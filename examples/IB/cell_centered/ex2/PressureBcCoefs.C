@@ -1,5 +1,5 @@
 // Filename: PressureBcCoefs.C
-// Last modified: <01.Apr.2008 17:11:46 griffith@box221.cims.nyu.edu>
+// Last modified: <27.Jun.2010 15:14:55 griffith@griffith-macbook-pro.local>
 // Created on 04 May 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "PressureBcCoefs.h"
@@ -64,17 +64,17 @@ PressureBcCoefs::setBcCoefs(
 
     double X[NDIM];
 
-    const SAMRAI::hier::BoundaryBox<NDIM> trimmed_bdry_box =
+    const hier::BoundaryBox<NDIM> trimmed_bdry_box =
         PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, patch);
-    const SAMRAI::hier::Box<NDIM> bc_coef_box =
+    const hier::Box<NDIM> bc_coef_box =
         PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
     const int location_index = bdry_box.getLocationIndex();
     const int bdry_normal_axis =  location_index / 2;
 
-    for (SAMRAI::hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+    for (hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
     {
-        const SAMRAI::hier::Index<NDIM>& i = b();
+        const hier::Index<NDIM>& i = b();
         for (int d = 0; d < NDIM; ++d)
         {
             if (d != bdry_normal_axis)

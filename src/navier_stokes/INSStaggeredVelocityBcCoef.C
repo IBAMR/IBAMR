@@ -1,5 +1,5 @@
 // Filename: INSStaggeredVelocityBcCoef.C
-// Last modified: <24.Nov.2008 15:39:38 griffith@box230.cims.nyu.edu>
+// Last modified: <27.Jun.2010 15:27:38 griffith@griffith-macbook-pro.local>
 // Created on 22 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredVelocityBcCoef.h"
@@ -15,6 +15,9 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
+
+// IBAMR INCLUDES
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/PhysicalBoundaryUtilities.h>
@@ -39,11 +42,11 @@ namespace IBAMR
 INSStaggeredVelocityBcCoef::INSStaggeredVelocityBcCoef(
     const int comp_idx,
     const INSCoefs& problem_coefs,
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     const bool homogeneous_bc)
     : d_comp_idx(comp_idx),
       d_problem_coefs(problem_coefs),
-      d_u_bc_coefs(NDIM,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL)),
+      d_u_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_target_idx(-1),
@@ -62,7 +65,7 @@ INSStaggeredVelocityBcCoef::~INSStaggeredVelocityBcCoef()
 
 void
 INSStaggeredVelocityBcCoef::setVelocityPhysicalBcCoefs(
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
 {
     if (u_bc_coefs.size() != NDIM)
     {
@@ -101,12 +104,12 @@ INSStaggeredVelocityBcCoef::setHomogeneousBc(
 
 void
 INSStaggeredVelocityBcCoef::setBcCoefs(
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
-    const SAMRAI::hier::Patch<NDIM>& patch,
-    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+    Pointer<ArrayData<NDIM,double> >& acoef_data,
+    Pointer<ArrayData<NDIM,double> >& bcoef_data,
+    Pointer<ArrayData<NDIM,double> >& gcoef_data,
+    const Pointer<Variable<NDIM> >& variable,
+    const Patch<NDIM>& patch,
+    const BoundaryBox<NDIM>& bdry_box,
     double fill_time) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -136,33 +139,33 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
     const int location_index   = bdry_box.getLocationIndex();
     const int bdry_normal_axis = location_index/2;
     const bool is_lower        = location_index%2 == 0;
-    const SAMRAI::hier::Box<NDIM>& bc_coef_box = acoef_data->getBox();
+    const Box<NDIM>& bc_coef_box = acoef_data->getBox();
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_data =
+    Pointer<SideData<NDIM,double> > u_data =
         patch.checkAllocated(d_target_idx)
         ? patch.getPatchData(d_target_idx)
-        : SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL);
+        : Pointer<PatchData<NDIM> >(NULL);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!u_data.isNull());
     TBOX_ASSERT(u_data->getGhostCellWidth().max() == u_data->getGhostCellWidth().min());
 #endif
-    const SAMRAI::hier::Box<NDIM>& ghost_box = u_data->getGhostBox();
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+    const Box<NDIM>& ghost_box = u_data->getGhostBox();
+    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double mu = d_problem_coefs.getMu();
-    for (SAMRAI::hier::Box<NDIM>::Iterator it(bc_coef_box); it; it++)
+    for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
-        const SAMRAI::hier::Index<NDIM>& i = it();
+        const Index<NDIM>& i = it();
         const double& alpha = (*acoef_data)(i,0);
         const double& beta  = (*bcoef_data)(i,0);
         double& gamma = (*gcoef_data)(i,0);
 
-        const bool velocity_bc = SAMRAI::tbox::MathUtilities<double>::equalEps(alpha,1.0);
-        const bool traction_bc = SAMRAI::tbox::MathUtilities<double>::equalEps(beta ,1.0);
+        const bool velocity_bc = MathUtilities<double>::equalEps(alpha,1.0);
+        const bool traction_bc = MathUtilities<double>::equalEps(beta ,1.0);
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
 #endif
@@ -174,8 +177,8 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
         {
             if (d_comp_idx == bdry_normal_axis)
             {
-                SAMRAI::hier::Index<NDIM> i_intr0 = i;
-                SAMRAI::hier::Index<NDIM> i_intr1 = i;
+                Index<NDIM> i_intr0 = i;
+                Index<NDIM> i_intr1 = i;
 
                 if (is_lower)
                 {
@@ -209,12 +212,12 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
                 {
                     if (axis != bdry_normal_axis)
                     {
-                        const SAMRAI::pdat::SideIndex<NDIM> i_s_intr0_upper(i_intr0, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
-                        const SAMRAI::pdat::SideIndex<NDIM> i_s_intr1_upper(i_intr1, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
+                        const SideIndex<NDIM> i_s_intr0_upper(i_intr0, axis, SideIndex<NDIM>::Upper);
+                        const SideIndex<NDIM> i_s_intr1_upper(i_intr1, axis, SideIndex<NDIM>::Upper);
                         const double u_tan_upper = 1.5*(*u_data)(i_s_intr0_upper)-0.5*(*u_data)(i_s_intr1_upper);
 
-                        const SAMRAI::pdat::SideIndex<NDIM> i_s_intr0_lower(i_intr0, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
-                        const SAMRAI::pdat::SideIndex<NDIM> i_s_intr1_lower(i_intr1, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
+                        const SideIndex<NDIM> i_s_intr0_lower(i_intr0, axis, SideIndex<NDIM>::Lower);
+                        const SideIndex<NDIM> i_s_intr1_lower(i_intr1, axis, SideIndex<NDIM>::Lower);
                         const double u_tan_lower = 1.5*(*u_data)(i_s_intr0_lower)-0.5*(*u_data)(i_s_intr1_lower);
 
                         du_norm_dx_norm -= (u_tan_upper-u_tan_lower)/dx[axis];
@@ -226,11 +229,11 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
             {
                 // Compute the tangential derivative of the normal component of
                 // the velocity at the boundary.
-                SAMRAI::hier::Index<NDIM> i_lower(i), i_upper(i);
+                Index<NDIM> i_lower(i), i_upper(i);
                 i_lower(d_comp_idx) = std::max(ghost_box.lower()(d_comp_idx),i(d_comp_idx)-1);
                 i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx),i(d_comp_idx)  );
-                const SAMRAI::pdat::SideIndex<NDIM> i_s_lower(i_lower, bdry_normal_axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
-                const SAMRAI::pdat::SideIndex<NDIM> i_s_upper(i_upper, bdry_normal_axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
+                const SideIndex<NDIM> i_s_lower(i_lower, bdry_normal_axis, SideIndex<NDIM>::Lower);
+                const SideIndex<NDIM> i_s_upper(i_upper, bdry_normal_axis, SideIndex<NDIM>::Lower);
                 const double du_norm_dx_tan = ((*u_data)(i_s_upper)-(*u_data)(i_s_lower))/dx[d_comp_idx];
 
                 // Correct the boundary condition value.
@@ -245,7 +248,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
     return;
 }// setBcCoefs
 
-SAMRAI::hier::IntVector<NDIM>
+IntVector<NDIM>
 INSStaggeredVelocityBcCoef::numberOfExtensionsFillable() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -255,10 +258,10 @@ INSStaggeredVelocityBcCoef::numberOfExtensionsFillable() const
         TBOX_ASSERT(d_u_bc_coefs[l] != NULL);
     }
 #endif
-    SAMRAI::hier::IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
+    IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
     for (int d = 0; d < NDIM; ++d)
     {
-        ret_val = SAMRAI::hier::IntVector<NDIM>::min(ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
+        ret_val = IntVector<NDIM>::min(ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
 }// numberOfExtensionsFillable

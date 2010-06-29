@@ -1,10 +1,13 @@
 // Filename: INSCoefs.C
-// Last modified: <24.Jul.2008 16:02:14 griffith@box230.cims.nyu.edu>
+// Last modified: <27.Jun.2010 15:26:35 griffith@griffith-macbook-pro.local>
 // Created on 24 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "INSCoefs.h"
+
+// IBAMR INCLUDES
+#include <ibamr/namespaces.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -25,6 +28,6 @@ namespace IBAMR
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::INSCoefs>;
+template class Pointer<IBAMR::INSCoefs>;
 
 //////////////////////////////////////////////////////////////////////////////

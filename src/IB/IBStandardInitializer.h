@@ -2,7 +2,7 @@
 #define included_IBStandardInitializer
 
 // Filename: IBStandardInitializer.h
-// Last modified: <01.Mar.2010 16:07:00 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <27.Jun.2010 16:03:01 griffith@griffith-macbook-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -116,6 +116,33 @@ namespace IBAMR
  *
  * <HR>
  *
+ * <B> Rod file format</B>
+ *
+ * Rod input files end with the extension <TT>".rod"</TT> and have the following
+ * format:
+ \verbatim
+ M                                                                                          # number of rods in the file
+ i_0   j_0   ds_0   a1_0   a2_0   a3_0   b1_0   b2_0   b3_0   kappa1_0   kappa2_0   tau_0   # first  vertex index, second vertex index, material parameters
+ i_1   j_1   ds_1   a1_1   a2_1   a3_1   b1_1   b2_1   b3_1   kappa1_1   kappa2_1   tau_1   # second vertex index, second vertex index, material parameters
+ i_2   j_2   ds_2   a1_2   a2_2   a3_2   b1_2   b2_2   b3_2   kappa1_2   kappa2_2   tau_2   # third  vertex index, second vertex index, material parameters
+ ...
+ \endverbatim
+ *
+ * \note There is no restriction on the number of rods that may be associated
+ * with any particular node of the Lagrangian mesh.
+ *
+ * \note The first vertex index is always used as the "master" node index when
+ * constructing the corresponding IBRodForceSpec object.
+ *
+ * \note The parameters kappa1, kappa2, and tau (the intrinsic curvatures and
+ * twist of the rod) are optional.  If not provided in the input file, they are
+ * assumed to be zero.
+ *
+ * \see IBKirchhoffRodForceGen
+ * \see IBRodForceSpec
+ *
+ * <HR>
+ *
  * <B>Target point file format</B>
  *
  * Target point input files end with the extension <TT>".target"</TT> and have
@@ -221,7 +248,28 @@ namespace IBAMR
  *
  * \see IBInstrumentPanel
  * \see IBInstrumentationSpec
- */
+ *
+ * <HR>
+ *
+ * <B>Director file format</B>
+ *
+ * Orthonormal director vector input files end with the extension
+ * <TT>".director"</TT> and have the following format, independent of spatial
+ * dimension:
+ \verbatim
+ N                         # number of triads in the file
+ D0_x_0   D0_y_0   D0_z_0  # coordinates of director D0 associated with vertex 0
+ D1_x_0   D1_y_0   D1_z_0  # coordinates of director D1 associated with vertex 0
+ D2_x_0   D2_y_0   D2_z_0  # coordinates of director D2 associated with vertex 0
+ D0_x_1   D0_y_1   D0_z_1  # coordinates of director D0 associated with vertex 1
+ D1_x_1   D1_y_1   D1_z_1  # coordinates of director D1 associated with vertex 1
+ D2_x_1   D2_y_1   D2_z_1  # coordinates of director D2 associated with vertex 1
+ D0_x_2   D0_y_2   D0_z_2  # coordinates of director D0 associated with vertex 2
+ D1_x_2   D1_y_2   D1_z_2  # coordinates of director D1 associated with vertex 2
+ D2_x_2   D2_y_2   D2_z_2  # coordinates of director D2 associated with vertex 2
+ ...
+ \endverbatim
+*/
 class IBStandardInitializer
     : public IBTK::LNodeInitStrategy
 {
@@ -324,6 +372,24 @@ public:
         IBTK::LDataManager* const lag_manager);
 
     /*!
+     * \brief Initialize the LNodeLevel data needed to specify director vectors
+     * required by some material models.
+     *
+     * \return The number of local nodes initialized on the patch level.
+     */
+    virtual int
+    initializeDirectorDataOnPatchLevel(
+        const int global_index_offset,
+        const int local_index_offset,
+        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& D_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        const int level_number,
+        const double init_data_time,
+        const bool can_be_refined,
+        const bool initial_time,
+        IBTK::LDataManager* const lag_manager);
+
+    /*!
      * \brief Tag cells for initial refinement.
      *
      * When the patch hierarchy is being constructed at the initial simulation
@@ -400,6 +466,12 @@ private:
     readBeamFiles();
 
     /*!
+     * \brief Read the rod data from one or more input files.
+     */
+    void
+    readRodFiles();
+
+    /*!
      * \brief Read the target point data from one or more input files.
      */
     void
@@ -416,6 +488,12 @@ private:
      */
     void
     readBoundaryMassFiles();
+
+    /*!
+     * \brief Read the director data from one or more input files.
+     */
+    void
+    readDirectorFiles();
 
     /*!
      * \brief Read the instrumentation data from one or more input files.
@@ -489,6 +567,14 @@ private:
      */
     double
     getVertexMassStiffness(
+        const std::pair<int,int>& point_index,
+        const int level_number) const;
+
+    /*!
+     * \return The directors associated with a particular node.
+     */
+    const std::vector<double>&
+    getVertexDirectors(
         const std::pair<int,int>& point_index,
         const int level_number) const;
 
@@ -613,6 +699,16 @@ private:
     std::vector<std::vector<double> > d_uniform_beam_bend_rigidity;
 
     /*
+     * Rod information.
+     */
+    std::vector<std::vector<bool> > d_enable_rods;
+    std::vector<std::vector<std::multimap<int,Edge> > > d_rod_edge_map;
+    std::vector<std::vector<std::multimap<int,std::pair<int,std::vector<double> > > > > d_rod_specs;
+
+    std::vector<std::vector<bool> > d_using_uniform_rod_specs;
+    std::vector<std::vector<std::vector<double> > > d_uniform_rod_specs;
+
+    /*
      * Target point information.
      */
     std::vector<std::vector<bool> > d_enable_target_points;
@@ -641,6 +737,11 @@ private:
 
     std::vector<std::vector<bool> > d_using_uniform_bdry_mass_stiffness;
     std::vector<std::vector<double> > d_uniform_bdry_mass_stiffness;
+
+    /*
+     * Mass information for the pIB method.
+     */
+    std::vector<std::vector<std::vector<std::vector<double> > > > d_directors;
 
     /*
      * Instrumentation information.

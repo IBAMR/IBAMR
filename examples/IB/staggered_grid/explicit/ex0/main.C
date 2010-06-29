@@ -71,17 +71,17 @@ public:
         const int u_idx,
         const int p_idx,
         const int f_idx,
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_data,
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > U_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        std::vector<tbox::Pointer<LNodeLevelData> > F_data,
+        std::vector<tbox::Pointer<LNodeLevelData> > X_data,
+        std::vector<tbox::Pointer<LNodeLevelData> > U_data,
+        const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level_number,
         const int finest_level_number,
         const double data_time,
-        IBTK::LDataManager* const lag_manager)
+        LDataManager* const lag_manager)
     {
         // Compute the total energy in the system as 0.5*|u|^2 - X*F.
-        IBTK::HierarchyMathOps hier_math_ops("HierarchyMathOps", hierarchy);
+        HierarchyMathOps hier_math_ops("HierarchyMathOps", hierarchy);
         hier_math_ops.setPatchHierarchy(hierarchy);
         hier_math_ops.resetLevels(coarsest_level_number, finest_level_number);
         const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
@@ -95,7 +95,7 @@ public:
             potential_energy += d_force_generator->computeLagrangianEnergy(X_data[ln], U_data[ln], hierarchy, ln, data_time, lag_manager);
         }
 
-        SAMRAI::tbox::pout << "\ntime = " << data_time << "\n"
+        tbox::pout << "\ntime = " << data_time << "\n"
                            << "kinetic energy = " << kinetic_energy << "\n"
                            << "potential energy = " << potential_energy << "\n"
                            << "total energy = " << kinetic_energy + potential_energy << "\n\n";
@@ -415,7 +415,7 @@ main(
         tbox::Pointer<IBStandardForceGen> force_generator = new IBStandardForceGen(
             spring_force_generator, beam_force_generator, target_point_force_generator);
 
-        SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> source_generator = NULL;
+        tbox::Pointer<IBLagrangianSourceStrategy> source_generator = NULL;
 
         myPostProcessor* t_post_processor = new myPostProcessor();
         t_post_processor->d_force_generator = force_generator;

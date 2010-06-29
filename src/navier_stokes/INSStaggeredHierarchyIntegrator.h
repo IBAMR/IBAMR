@@ -2,7 +2,7 @@
 #define included_INSStaggeredHierarchyIntegrator
 
 // Filename: INSStaggeredHierarchyIntegrator.h
-// Last modified: <02.Mar.2010 18:11:55 griffith@griffith-macbook-pro.local>
+// Last modified: <27.Jun.2010 22:10:47 griffith@griffith-macbook-pro.local>
 // Created on 20 Mar 2008 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -14,6 +14,7 @@
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/INSCoefs.h>
 #include <ibamr/INSStaggeredBlockFactorizationPreconditioner.h>
+#include <ibamr/INSStaggeredBoxRelaxationFACOperator.h>
 #include <ibamr/INSStaggeredPPMConvectiveOperator.h>
 #include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
 #include <ibamr/INSStaggeredProjectionPreconditioner.h>
@@ -998,6 +999,11 @@ private:
 
     bool d_projection_pc_needs_init;
     SAMRAI::tbox::Pointer<INSStaggeredProjectionPreconditioner> d_projection_pc;
+
+    bool d_vanka_pc_needs_init;
+    SAMRAI::tbox::Pointer<INSStaggeredBoxRelaxationFACOperator> d_vanka_fac_op;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > d_vanka_fac_pc;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_vanka_fac_pc_db;
 
     bool d_block_pc_needs_init;
     SAMRAI::tbox::Pointer<INSStaggeredBlockFactorizationPreconditioner> d_block_pc;

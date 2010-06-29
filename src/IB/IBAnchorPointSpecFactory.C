@@ -1,5 +1,5 @@
 // Filename: IBAnchorPointSpecFactory.C
-// Last modified: <18.Aug.2008 13:35:44 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <27.Jun.2010 15:28:17 griffith@griffith-macbook-pro.local>
 // Created on 18 Aug 2008 by Boyce Griffith (boyce@dm-linux.maths.gla.ac.uk)
 
 #include "IBAnchorPointSpecFactory.h"
@@ -18,6 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBAnchorPointSpec.h>
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/StashableManager.h>
@@ -34,7 +35,7 @@ int IBAnchorPointSpecFactory::s_stashable_id = -1;
 
 IBAnchorPointSpecFactory::IBAnchorPointSpecFactory()
 {
-    setStashableID(IBTK::StashableManager::getUnregisteredID());
+    setStashableID(StashableManager::getUnregisteredID());
     return;
 }// IBAnchorPointSpecFactory
 
@@ -58,10 +59,10 @@ IBAnchorPointSpecFactory::setStashableID(
     return;
 }// setStashableID
 
-SAMRAI::tbox::Pointer<IBTK::Stashable>
+Pointer<Stashable>
 IBAnchorPointSpecFactory::unpackStream(
-    SAMRAI::tbox::AbstractStream& stream,
-    const SAMRAI::hier::IntVector<NDIM>& offset)
+    AbstractStream& stream,
+    const IntVector<NDIM>& offset)
 {
     int node_idx;
     stream.unpack(&node_idx,1);
@@ -79,6 +80,6 @@ IBAnchorPointSpecFactory::unpackStream(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBAnchorPointSpecFactory>;
+template class Pointer<IBAMR::IBAnchorPointSpecFactory>;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,5 @@
 // Filename: INSStaggeredPressureBcCoef.C
-// Last modified: <24.Nov.2008 15:38:50 griffith@box230.cims.nyu.edu>
+// Last modified: <27.Jun.2010 15:27:14 griffith@griffith-macbook-pro.local>
 // Created on 23 Jul 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 #include "INSStaggeredPressureBcCoef.h"
@@ -15,6 +15,9 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
+
+// IBAMR INCLUDES
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/PhysicalBoundaryUtilities.h>
@@ -38,12 +41,12 @@ namespace IBAMR
 
 INSStaggeredPressureBcCoef::INSStaggeredPressureBcCoef(
     const INSCoefs& problem_coefs,
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     const bool homogeneous_bc)
     : d_problem_coefs(problem_coefs),
       d_u_current_idx(-1),
       d_u_new_idx(-1),
-      d_u_bc_coefs(NDIM,static_cast<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NULL)),
+      d_u_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_target_idx(-1),
@@ -78,7 +81,7 @@ INSStaggeredPressureBcCoef::setVelocityNewPatchDataIndex(
 
 void
 INSStaggeredPressureBcCoef::setVelocityPhysicalBcCoefs(
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
 {
     if (u_bc_coefs.size() != NDIM)
     {
@@ -117,12 +120,12 @@ INSStaggeredPressureBcCoef::setHomogeneousBc(
 
 void
 INSStaggeredPressureBcCoef::setBcCoefs(
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
-    const SAMRAI::hier::Patch<NDIM>& patch,
-    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+    Pointer<ArrayData<NDIM,double> >& acoef_data,
+    Pointer<ArrayData<NDIM,double> >& bcoef_data,
+    Pointer<ArrayData<NDIM,double> >& gcoef_data,
+    const Pointer<Variable<NDIM> >& variable,
+    const Patch<NDIM>& patch,
+    const BoundaryBox<NDIM>& bdry_box,
     double fill_time) const
 {
     const double half_time = 0.5*(d_current_time+d_new_time);
@@ -132,8 +135,8 @@ INSStaggeredPressureBcCoef::setBcCoefs(
     {
         TBOX_ASSERT(d_u_bc_coefs[l] != NULL);
     }
-    TBOX_ASSERT(SAMRAI::tbox::MathUtilities<double>::equalEps(fill_time,d_new_time) ||
-                SAMRAI::tbox::MathUtilities<double>::equalEps(fill_time,half_time));
+    TBOX_ASSERT(MathUtilities<double>::equalEps(fill_time,d_new_time) ||
+                MathUtilities<double>::equalEps(fill_time,half_time));
     TBOX_ASSERT(!acoef_data.isNull());
     TBOX_ASSERT(!bcoef_data.isNull());
     TBOX_ASSERT(!gcoef_data.isNull());
@@ -141,7 +144,7 @@ INSStaggeredPressureBcCoef::setBcCoefs(
     const int location_index   = bdry_box.getLocationIndex();
     const int bdry_normal_axis = location_index/2;
     const bool is_lower        = location_index%2 == 0;
-    const SAMRAI::hier::Box<NDIM>& bc_coef_box = acoef_data->getBox();
+    const Box<NDIM>& bc_coef_box = acoef_data->getBox();
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
@@ -153,35 +156,35 @@ INSStaggeredPressureBcCoef::setBcCoefs(
 
     // Modify the velocity boundary conditions to correspond to pressure
     // boundary conditions.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_current_data =
+    Pointer<SideData<NDIM,double> > u_current_data =
         patch.checkAllocated(d_u_current_idx)
         ? patch.getPatchData(d_u_current_idx)
-        : SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL);
+        : Pointer<PatchData<NDIM> >(NULL);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!u_current_data.isNull());
     TBOX_ASSERT(u_current_data->getGhostCellWidth().max() == u_current_data->getGhostCellWidth().min());
 #endif
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > u_new_data =
+    Pointer<SideData<NDIM,double> > u_new_data =
         patch.checkAllocated(d_u_new_idx)
         ? patch.getPatchData(d_u_new_idx)
-        : SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL);
+        : Pointer<PatchData<NDIM> >(NULL);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!u_new_data.isNull());
     TBOX_ASSERT(u_new_data->getGhostCellWidth().max() == u_new_data->getGhostCellWidth().min());
 #endif
-    const SAMRAI::hier::Box<NDIM> ghost_box = u_current_data->getGhostBox() * u_new_data->getGhostBox();
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+    const Box<NDIM> ghost_box = u_current_data->getGhostBox() * u_new_data->getGhostBox();
+    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double mu = d_problem_coefs.getMu();
-    for (SAMRAI::hier::Box<NDIM>::Iterator it(bc_coef_box); it; it++)
+    for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
-        const SAMRAI::hier::Index<NDIM>& i = it();
+        const Index<NDIM>& i = it();
         double& alpha = (*acoef_data)(i,0);
         double& beta  = (*bcoef_data)(i,0);
         double& gamma = (*gcoef_data)(i,0);
 
-        const bool velocity_bc = SAMRAI::tbox::MathUtilities<double>::equalEps(alpha,1.0);
-        const bool traction_bc = SAMRAI::tbox::MathUtilities<double>::equalEps(beta ,1.0);
+        const bool velocity_bc = MathUtilities<double>::equalEps(alpha,1.0);
+        const bool traction_bc = MathUtilities<double>::equalEps(beta ,1.0);
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
 #endif
@@ -197,8 +200,8 @@ INSStaggeredPressureBcCoef::setBcCoefs(
         {
             // Compute (d/dn)u_norm at the boundary by extrapolating the
             // divergence free condition to the boundary.
-            SAMRAI::hier::Index<NDIM> i_intr0 = i;
-            SAMRAI::hier::Index<NDIM> i_intr1 = i;
+            Index<NDIM> i_intr0 = i;
+            Index<NDIM> i_intr1 = i;
 
             if (is_lower)
             {
@@ -229,13 +232,13 @@ INSStaggeredPressureBcCoef::setBcCoefs(
             {
                 if (axis != bdry_normal_axis)
                 {
-                    const SAMRAI::pdat::SideIndex<NDIM> i_s_intr0_upper(i_intr0, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
-                    const SAMRAI::pdat::SideIndex<NDIM> i_s_intr1_upper(i_intr1, axis, SAMRAI::pdat::SideIndex<NDIM>::Upper);
+                    const SideIndex<NDIM> i_s_intr0_upper(i_intr0, axis, SideIndex<NDIM>::Upper);
+                    const SideIndex<NDIM> i_s_intr1_upper(i_intr1, axis, SideIndex<NDIM>::Upper);
                     const double u_tan_current_upper = 1.5*(*u_current_data)(i_s_intr0_upper)-0.5*(*u_current_data)(i_s_intr1_upper);
                     const double u_tan_new_upper     = 1.5*(*u_new_data    )(i_s_intr0_upper)-0.5*(*u_new_data    )(i_s_intr1_upper);
 
-                    const SAMRAI::pdat::SideIndex<NDIM> i_s_intr0_lower(i_intr0, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
-                    const SAMRAI::pdat::SideIndex<NDIM> i_s_intr1_lower(i_intr1, axis, SAMRAI::pdat::SideIndex<NDIM>::Lower);
+                    const SideIndex<NDIM> i_s_intr0_lower(i_intr0, axis, SideIndex<NDIM>::Lower);
+                    const SideIndex<NDIM> i_s_intr1_lower(i_intr1, axis, SideIndex<NDIM>::Lower);
                     const double u_tan_current_lower = 1.5*(*u_current_data)(i_s_intr0_lower)-0.5*(*u_current_data)(i_s_intr1_lower);
                     const double u_tan_new_lower     = 1.5*(*u_new_data    )(i_s_intr0_lower)-0.5*(*u_new_data    )(i_s_intr1_lower);
 
@@ -259,7 +262,7 @@ INSStaggeredPressureBcCoef::setBcCoefs(
     return;
 }// setBcCoefs
 
-SAMRAI::hier::IntVector<NDIM>
+IntVector<NDIM>
 INSStaggeredPressureBcCoef::numberOfExtensionsFillable() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -269,10 +272,10 @@ INSStaggeredPressureBcCoef::numberOfExtensionsFillable() const
         TBOX_ASSERT(d_u_bc_coefs[l] != NULL);
     }
 #endif
-    SAMRAI::hier::IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
+    IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
     for (int d = 0; d < NDIM; ++d)
     {
-        ret_val = SAMRAI::hier::IntVector<NDIM>::min(ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
+        ret_val = IntVector<NDIM>::min(ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
 }// numberOfExtensionsFillable

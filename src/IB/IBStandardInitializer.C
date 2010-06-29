@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <01.Mar.2010 16:07:13 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <27.Jun.2010 16:02:57 griffith@griffith-macbook-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -20,8 +20,10 @@
 #include <ibamr/IBAnchorPointSpec.h>
 #include <ibamr/IBBeamForceSpec.h>
 #include <ibamr/IBInstrumentationSpec.h>
+#include <ibamr/IBRodForceSpec.h>
 #include <ibamr/IBSpringForceSpec.h>
 #include <ibamr/IBTargetPointForceSpec.h>
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/IndexUtilities.h>
@@ -83,7 +85,7 @@ discard_comments(
 
 IBStandardInitializer::IBStandardInitializer(
     const std::string& object_name,
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+    Pointer<Database> input_db)
     : d_object_name(object_name),
       d_use_file_batons(true),
       d_max_levels(-1),
@@ -110,6 +112,9 @@ IBStandardInitializer::IBStandardInitializer(
       d_beam_specs(),
       d_using_uniform_beam_bend_rigidity(),
       d_uniform_beam_bend_rigidity(),
+      d_enable_rods(),
+      d_rod_edge_map(),
+      d_rod_specs(),
       d_enable_target_points(),
       d_target_stiffness(),
       d_target_damping(),
@@ -126,6 +131,7 @@ IBStandardInitializer::IBStandardInitializer(
       d_uniform_bdry_mass(),
       d_using_uniform_bdry_mass_stiffness(),
       d_uniform_bdry_mass_stiffness(),
+      d_directors(),
       d_enable_instrumentation(),
       d_instrument_idx(),
       d_global_index_offset()
@@ -135,10 +141,11 @@ IBStandardInitializer::IBStandardInitializer(
     TBOX_ASSERT(!input_db.isNull());
 #endif
 
-    // Register the specification objects with the IBTK::StashableManager class.
+    // Register the specification objects with the StashableManager class.
     IBAnchorPointSpec::registerWithStashableManager();
     IBBeamForceSpec::registerWithStashableManager();
     IBInstrumentationSpec::registerWithStashableManager();
+    IBRodForceSpec::registerWithStashableManager();
     IBSpringForceSpec::registerWithStashableManager();
     IBTargetPointForceSpec::registerWithStashableManager();
 
@@ -146,7 +153,7 @@ IBStandardInitializer::IBStandardInitializer(
     getFromInput(input_db);
 
     // Check to see if we are starting from a restart file.
-    SAMRAI::tbox::RestartManager* restart_manager = SAMRAI::tbox::RestartManager::getManager();
+    RestartManager* restart_manager = RestartManager::getManager();
     const bool is_from_restart = restart_manager->isFromRestart();
 
     // Process the input files only if we are not starting from a restart file.
@@ -161,6 +168,9 @@ IBStandardInitializer::IBStandardInitializer(
         // Process the (optional) beam information.
         readBeamFiles();
 
+        // Process the (optional) rod information.
+        readRodFiles();
+
         // Process the (optional) target point information.
         readTargetPointFiles();
 
@@ -170,11 +180,14 @@ IBStandardInitializer::IBStandardInitializer(
         // Process the (optional) mass information.
         readBoundaryMassFiles();
 
+        // Process the (optional) directors information.
+        readDirectorFiles();
+
         // Process the (optional) instrumentation information.
         readInstrumentationFiles();
 
         // Wait for all processes to finish.
-        SAMRAI::tbox::SAMRAI_MPI::barrier();
+        SAMRAI_MPI::barrier();
     }
     return;
 }// IBStandardInitializer
@@ -187,7 +200,7 @@ IBStandardInitializer::~IBStandardInitializer()
 
 void
 IBStandardInitializer::registerLagSiloDataWriter(
-    SAMRAI::tbox::Pointer<IBTK::LagSiloDataWriter> silo_writer)
+    Pointer<LagSiloDataWriter> silo_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!silo_writer.isNull());
@@ -197,7 +210,7 @@ IBStandardInitializer::registerLagSiloDataWriter(
     d_silo_writer = silo_writer;
 
     // Check to see if we are starting from a restart file.
-    SAMRAI::tbox::RestartManager* restart_manager = SAMRAI::tbox::RestartManager::getManager();
+    RestartManager* restart_manager = RestartManager::getManager();
     const bool is_from_restart = restart_manager->isFromRestart();
 
     // Initialize the Silo data writer only if we are not starting from a
@@ -225,7 +238,7 @@ IBStandardInitializer::getLevelHasLagrangianData(
 
 int
 IBStandardInitializer::getLocalNodeCountOnPatchLevel(
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
     const bool can_be_refined,
@@ -234,10 +247,10 @@ IBStandardInitializer::getLocalNodeCountOnPatchLevel(
     // Loop over all patches in the specified level of the patch level and count
     // the number of local vertices.
     int local_node_count = 0;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<Patch<NDIM> > patch = level->getPatch(p());
 
         // Count the number of vertices whose initial locations will be within
         // the given patch.
@@ -256,7 +269,7 @@ IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     (void) lag_manager;
     int offset = 0;
@@ -274,19 +287,19 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     const int lag_node_index_idx,
     const int global_index_offset,
     const int local_index_offset,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& X_data,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& U_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    Pointer<LNodeLevelData>& X_data,
+    Pointer<LNodeLevelData>& U_data,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     (void) lag_manager;
 
     // Determine the extents of the physical domain.
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
     const double* const XLower = grid_geom->getXLower();
     const double* const XUpper = grid_geom->getXUpper();
 
@@ -298,20 +311,20 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     // initialize the local vertices.
     int local_idx = -1;
     int local_node_count = 0;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-        const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
+        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom =
             patch->getPatchGeometry();
-        const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-        const SAMRAI::pdat::CellIndex<NDIM>& patch_lower = patch_box.lower();
-        const SAMRAI::pdat::CellIndex<NDIM>& patch_upper = patch_box.upper();
+        const Box<NDIM>& patch_box = patch->getBox();
+        const CellIndex<NDIM>& patch_lower = patch_box.lower();
+        const CellIndex<NDIM>& patch_upper = patch_box.upper();
         const double* const xLower = patch_geom->getXLower();
         const double* const xUpper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
 
-        SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> index_data = patch->getPatchData(lag_node_index_idx);
+        Pointer<LNodeIndexData> index_data = patch->getPatchData(lag_node_index_idx);
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -352,27 +365,27 @@ IBStandardInitializer::initializeDataOnPatchLevel(
 
             // Get the index of the cell in which the present vertex is
             // initially located.
-            const SAMRAI::pdat::CellIndex<NDIM> idx = IBTK::IndexUtilities::getCellIndex(
+            const CellIndex<NDIM> idx = IndexUtilities::getCellIndex(
                 X, xLower, xUpper, dx, patch_lower, patch_upper);
 
             // Initialize the force specification object associated with the
             // present vertex.
-            std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> > force_spec =
+            std::vector<Pointer<Stashable> > force_spec =
                 initializeSpecs(
                     point_idx, global_index_offset, level_number);
 
             if (!index_data->isElement(idx))
             {
-                index_data->appendItemPointer(idx, new IBTK::LNodeIndexSet());
+                index_data->appendItemPointer(idx, new LNodeIndexSet());
             }
-            IBTK::LNodeIndexSet* const node_set = index_data->getItem(idx);
-            static const SAMRAI::hier::IntVector<NDIM> periodic_offset(0);
+            LNodeIndexSet* const node_set = index_data->getItem(idx);
+            static const IntVector<NDIM> periodic_offset(0);
             static const std::vector<double> periodic_displacement(NDIM,0.0);
             node_set->push_back(
-                new IBTK::LNodeIndex(current_global_idx, current_local_idx,
-                                     &(*X_data)(current_local_idx),
-                                     periodic_offset, periodic_displacement,
-                                     force_spec));
+                new LNodeIndex(current_global_idx, current_local_idx,
+                               &(*X_data)(current_local_idx),
+                               periodic_offset, periodic_displacement,
+                               force_spec));
 
             // Initialize the velocity of the present vertex.
             double* const node_U = &(*U_data)(current_local_idx);
@@ -396,14 +409,14 @@ int
 IBStandardInitializer::initializeMassDataOnPatchLevel(
     const int global_index_offset,
     const int local_index_offset,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& M_data,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& K_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    Pointer<LNodeLevelData>& M_data,
+    Pointer<LNodeLevelData>& K_data,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     (void) lag_manager;
 
@@ -411,10 +424,10 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
     // initialize the local vertices.
     int local_idx = -1;
     int local_node_count = 0;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<Patch<NDIM> > patch = level->getPatch(p());
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -433,7 +446,7 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
             const double K = getVertexMassStiffness(point_idx, level_number);
 
             // Avoid division by zero at massless nodes.
-            if (SAMRAI::tbox::MathUtilities<double>::equalEps(M,0.0))
+            if (MathUtilities<double>::equalEps(M,0.0))
             {
                 (*M_data)(current_local_idx) = std::numeric_limits<double>::epsilon();
                 (*K_data)(current_local_idx) = 0.0;
@@ -448,9 +461,54 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
     return local_node_count;
 }// initializeMassOnPatchLevel
 
+int
+IBStandardInitializer::initializeDirectorDataOnPatchLevel(
+    const int global_index_offset,
+    const int local_index_offset,
+    Pointer<LNodeLevelData>& D_data,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const int level_number,
+    const double init_data_time,
+    const bool can_be_refined,
+    const bool initial_time,
+    LDataManager* const lag_manager)
+{
+    (void) lag_manager;
+
+    // Loop over all patches in the specified level of the patch level and
+    // initialize the local vertices.
+    int local_idx = -1;
+    int local_node_count = 0;
+    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+        // Initialize the vertices whose initial locations will be within the
+        // given patch.
+        std::vector<std::pair<int,int> > patch_vertices;
+        getPatchVertices(patch_vertices, patch, level_number, can_be_refined);
+        local_node_count += patch_vertices.size();
+        for (std::vector<std::pair<int,int> >::const_iterator it = patch_vertices.begin();
+             it != patch_vertices.end(); ++it)
+        {
+            const std::pair<int,int>& point_idx = (*it);
+            const int current_local_idx = ++local_idx + local_index_offset;
+
+            // Initialize the director corresponding to the present vertex.
+            const std::vector<double>& D = getVertexDirectors(point_idx, level_number);
+            for (int d = 0; d < 3*3; ++d)
+            {
+                (*D_data)(current_local_idx,d)= D[d];
+            }
+        }
+    }
+    return local_node_count;
+}// initializeDirectorOnPatchLevel
+
 void
 IBStandardInitializer::tagCellsForInitialRefinement(
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double error_data_time,
     const int tag_index)
@@ -458,20 +516,20 @@ IBStandardInitializer::tagCellsForInitialRefinement(
     // Loop over all patches in the specified level of the patch level and tag
     // cells for refinement wherever there are vertices assigned to a finer
     // level of the Cartesian grid.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-        const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
+        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom =
             patch->getPatchGeometry();
-        const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-        const SAMRAI::pdat::CellIndex<NDIM>& patch_lower = patch_box.lower();
-        const SAMRAI::pdat::CellIndex<NDIM>& patch_upper = patch_box.upper();
+        const Box<NDIM>& patch_box = patch->getBox();
+        const CellIndex<NDIM>& patch_lower = patch_box.lower();
+        const CellIndex<NDIM>& patch_upper = patch_box.upper();
         const double* const xLower = patch_geom->getXLower();
         const double* const xUpper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
 
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > tag_data = patch->getPatchData(tag_index);
+        Pointer<CellData<NDIM,int> > tag_data = patch->getPatchData(tag_index);
 
         // Tag cells for refinement whenever there are vertices whose initial
         // locations will be within the index space of the given patch, but on
@@ -491,7 +549,7 @@ IBStandardInitializer::tagCellsForInitialRefinement(
 
                 // Get the index of the cell in which the present vertex is
                 // initially located.
-                const SAMRAI::pdat::CellIndex<NDIM> i = IBTK::IndexUtilities::getCellIndex(
+                const CellIndex<NDIM> i = IndexUtilities::getCellIndex(
                     X, xLower, xUpper, dx, patch_lower, patch_upper);
 
                 // Tag the cell for refinement.
@@ -526,7 +584,7 @@ IBStandardInitializer::initializeLagSiloDataWriter(
     // WARNING: For now, we just register the visualization data on MPI process
     // 0.  This will fail if the structure is too large to be stored in the
     // memory available to a single MPI process.
-    if (SAMRAI::tbox::SAMRAI_MPI::getRank() == 0)
+    if (SAMRAI_MPI::getRank() == 0)
     {
         for (unsigned j = 0; j < d_num_vertex[level_number].size(); ++j)
         {
@@ -539,6 +597,12 @@ IBStandardInitializer::initializeLagSiloDataWriter(
                     d_base_filename[level_number][j] + "_mesh",
                     d_spring_edge_map[level_number][j], level_number);
             }
+            else if (d_rod_edge_map[level_number][j].size() > 0)
+            {
+                d_silo_writer->registerUnstructuredMesh(
+                    d_base_filename[level_number][j] + "_mesh",
+                    d_rod_edge_map[level_number][j], level_number);
+            }
         }
     }
     return;
@@ -548,8 +612,8 @@ void
 IBStandardInitializer::readVertexFiles()
 {
     std::string line_string;
-    const int rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
+    const int rank = SAMRAI_MPI::getRank();
+    const int nodes = SAMRAI_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -562,7 +626,7 @@ IBStandardInitializer::readVertexFiles()
         for (int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI::tbox::SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
+            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
             if (j == 0)
             {
@@ -579,9 +643,9 @@ IBStandardInitializer::readVertexFiles()
             file_stream.open(vertex_filename.c_str(), std::ios::in);
             if (!file_stream.is_open()) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << vertex_filename << std::endl);
 
-            SAMRAI::tbox::plog << d_object_name << ":  "
-                               << "processing vertex data from ASCII input file named " << vertex_filename << std::endl
-                               << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+            plog << d_object_name << ":  "
+                 << "processing vertex data from ASCII input file named " << vertex_filename << std::endl
+                 << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
 
             // The first entry in the file is the number of vertices.
             if (!std::getline(file_stream, line_string))
@@ -630,17 +694,17 @@ IBStandardInitializer::readVertexFiles()
             // Close the input file.
             file_stream.close();
 
-            SAMRAI::tbox::plog << d_object_name << ":  "
-                               << "read " << d_num_vertex[ln][j] << " vertices from ASCII input file named " << vertex_filename << std::endl
-                               << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+            plog << d_object_name << ":  "
+                 << "read " << d_num_vertex[ln][j] << " vertices from ASCII input file named " << vertex_filename << std::endl
+                 << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
+            if (d_use_file_batons && rank != nodes-1) SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
         }
     }
 
     // Synchronize the processes.
-    if (d_use_file_batons) SAMRAI::tbox::SAMRAI_MPI::barrier();
+    if (d_use_file_batons) SAMRAI_MPI::barrier();
     return;
 }// readVertexFiles
 
@@ -648,8 +712,8 @@ void
 IBStandardInitializer::readSpringFiles()
 {
     std::string line_string;
-    const int rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
+    const int rank = SAMRAI_MPI::getRank();
+    const int nodes = SAMRAI_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -665,7 +729,7 @@ IBStandardInitializer::readSpringFiles()
             bool warned = false;
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI::tbox::SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
+            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
             // Ensure that the file exists.
             const std::string spring_filename = d_base_filename[ln][j] + ".spring";
@@ -673,9 +737,9 @@ IBStandardInitializer::readSpringFiles()
             file_stream.open(spring_filename.c_str(), std::ios::in);
             if (file_stream.is_open())
             {
-                SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "processing spring data from ASCII input file named " << spring_filename << std::endl
-                                   << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+                plog << d_object_name << ":  "
+                     << "processing spring data from ASCII input file named " << spring_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of edges in the input
                 // file.
@@ -804,11 +868,11 @@ IBStandardInitializer::readSpringFiles()
 
                             // Ensure that the stiffness and rest length information is
                             // consistent.
-                            if (!SAMRAI::tbox::MathUtilities<double>::equalEps(
+                            if (!MathUtilities<double>::equalEps(
                                     (*d_spring_stiffness[ln][j].find(e)).second, kappa) ||
-                                !SAMRAI::tbox::MathUtilities<double>::equalEps(
+                                !MathUtilities<double>::equalEps(
                                     (*d_spring_rest_length[ln][j].find(e)).second, length) ||
-                                !SAMRAI::tbox::MathUtilities<double>::equalEps(
+                                !MathUtilities<double>::equalEps(
                                     (*d_spring_force_fcn_idx[ln][j].find(e)).second, force_fcn_idx))
                             {
                                 TBOX_ERROR(d_object_name << ":\n  Inconsistent duplicate edges in input file encountered on line " << k+2 << " of file " << spring_filename << std::endl
@@ -835,7 +899,7 @@ IBStandardInitializer::readSpringFiles()
                     // Check to see if the spring constant is zero and, if so,
                     // emit a warning.
                     if (!warned && d_enable_springs[ln][j] &&
-                        (kappa == 0.0 || SAMRAI::tbox::MathUtilities<double>::equalEps(kappa,0.0)))
+                        (kappa == 0.0 || MathUtilities<double>::equalEps(kappa,0.0)))
                     {
                         TBOX_WARNING(d_object_name << ":\n  Spring with zero spring constant encountered in ASCII input file named " << spring_filename << "." << std::endl);
                         warned = true;
@@ -845,18 +909,18 @@ IBStandardInitializer::readSpringFiles()
                 // Close the input file.
                 file_stream.close();
 
-                SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "read " << num_edges << " edges from ASCII input file named " << spring_filename << std::endl
-                                   << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+                plog << d_object_name << ":  "
+                     << "read " << num_edges << " edges from ASCII input file named " << spring_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
+            if (d_use_file_batons && rank != nodes-1) SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
         }
     }
 
     // Synchronize the processes.
-    if (d_use_file_batons) SAMRAI::tbox::SAMRAI_MPI::barrier();
+    if (d_use_file_batons) SAMRAI_MPI::barrier();
     return;
 }// readSpringFiles
 
@@ -864,8 +928,8 @@ void
 IBStandardInitializer::readBeamFiles()
 {
     std::string line_string;
-    const int rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
+    const int rank = SAMRAI_MPI::getRank();
+    const int nodes = SAMRAI_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -878,16 +942,16 @@ IBStandardInitializer::readBeamFiles()
             bool warned = false;
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI::tbox::SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
+            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
             const std::string beam_filename = d_base_filename[ln][j] + ".beam";
             std::ifstream file_stream;
             file_stream.open(beam_filename.c_str(), std::ios::in);
             if (file_stream.is_open())
             {
-                SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "processing beam data from ASCII input file named " << beam_filename << std::endl
-                                   << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+                plog << d_object_name << ":  "
+                     << "processing beam data from ASCII input file named " << beam_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of beams in
                 // the input file.
@@ -1014,7 +1078,7 @@ IBStandardInitializer::readBeamFiles()
                     // Check to see if the bending rigidity is zero and, if so,
                     // emit a warning.
                     if (!warned && d_enable_beams[ln][j] &&
-                        (bend == 0.0 || SAMRAI::tbox::MathUtilities<double>::equalEps(bend,0.0)))
+                        (bend == 0.0 || MathUtilities<double>::equalEps(bend,0.0)))
                     {
                         TBOX_WARNING(d_object_name << ":\n  Beam with zero bending rigidity encountered in ASCII input file named " << beam_filename << "." << std::endl);
                         warned = true;
@@ -1024,27 +1088,290 @@ IBStandardInitializer::readBeamFiles()
                 // Close the input file.
                 file_stream.close();
 
-                SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "read " << num_beams << " beams from ASCII input file named " << beam_filename << std::endl
-                                   << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+                plog << d_object_name << ":  "
+                     << "read " << num_beams << " beams from ASCII input file named " << beam_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
+            if (d_use_file_batons && rank != nodes-1) SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
         }
     }
 
     // Synchronize the processes.
-    if (d_use_file_batons) SAMRAI::tbox::SAMRAI_MPI::barrier();
+    if (d_use_file_batons) SAMRAI_MPI::barrier();
     return;
 }// readBeamFiles
+
+void
+IBStandardInitializer::readRodFiles()
+{
+    std::string line_string;
+    const int rank = SAMRAI_MPI::getRank();
+    const int nodes = SAMRAI_MPI::getNodes();
+    int flag = 1;
+    int sz = 1;
+
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        const int num_base_filename = d_base_filename[ln].size();
+        d_rod_edge_map[ln].resize(num_base_filename);
+        d_rod_specs[ln].resize(num_base_filename);
+        for (int j = 0; j < num_base_filename; ++j)
+        {
+            // Wait for the previous MPI process to finish reading the current file.
+            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
+
+            const std::string rod_filename = d_base_filename[ln][j] + ".rod";
+            std::ifstream file_stream;
+            file_stream.open(rod_filename.c_str(), std::ios::in);
+            if (file_stream.is_open())
+            {
+                plog << d_object_name << ":  "
+                     << "processing rod data from ASCII input file named " << rod_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+
+                // The first line in the file indicates the number of rods in
+                // the input file.
+                int num_rods;
+                if (!std::getline(file_stream, line_string))
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << rod_filename << std::endl);
+                }
+                else
+                {
+                    line_string = discard_comments(line_string);
+                    std::istringstream line_stream(line_string);
+                    if (!(line_stream >> num_rods))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << rod_filename << std::endl);
+                    }
+                }
+
+                if (num_rods <= 0)
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << rod_filename << std::endl);
+                }
+
+                // Each successive line provides the connectivity and material
+                // parameter information for each rod in the structure.
+                for (int k = 0; k < num_rods; ++k)
+                {
+                    int curr_idx, next_idx;
+                    std::vector<double> properties(10);
+                    double& ds = properties[0];
+                    double& a1 = properties[1];
+                    double& a2 = properties[2];
+                    double& a3 = properties[3];
+                    double& b1 = properties[4];
+                    double& b2 = properties[5];
+                    double& b3 = properties[6];
+                    double& kappa1 = properties[7];
+                    double& kappa2 = properties[8];
+                    double& tau = properties[9];
+
+                    if (!std::getline(file_stream, line_string))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << rod_filename << std::endl);
+                    }
+                    else
+                    {
+                        line_string = discard_comments(line_string);
+                        std::istringstream line_stream(line_string);
+
+                        if (!(line_stream >> curr_idx))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl);
+                        }
+                        else if ((curr_idx < 0) || (curr_idx >= d_num_vertex[ln][j]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                       << "  vertex index " << curr_idx << " is out of range" << std::endl);
+                        }
+
+                        if (!(line_stream >> next_idx))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl);
+                        }
+                        else if ((next_idx < 0) || (next_idx >= d_num_vertex[ln][j]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                       << "  vertex index " << next_idx << " is out of range" << std::endl);
+                        }
+
+                        if (!(line_stream >> ds))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl);
+                        }
+                        else if (ds < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                       << "  rod material constant ds is negative" << std::endl);
+                        }
+
+                        if (!(line_stream >> a1))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl);
+                        }
+                        else if (a1 < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                       << "  rod material constant a1 is negative" << std::endl);
+                        }
+
+                        if (!(line_stream >> a2))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl);
+                        }
+                        else if (a2 < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                       << "  rod material constant a2 is negative" << std::endl);
+                        }
+
+                        if (!(line_stream >> a3))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl);
+                        }
+                        else if (a3 < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                       << "  rod material constant a3 is negative" << std::endl);
+                        }
+
+                        if (!(line_stream >> b1))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl);
+                        }
+                        else if (b1 < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                       << "  rod material constant b1 is negative" << std::endl);
+                        }
+
+                        if (!(line_stream >> b2))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl);
+                        }
+                        else if (b2 < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                       << "  rod material constant b2 is negative" << std::endl);
+                        }
+
+                        if (!(line_stream >> b3))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl);
+                        }
+                        else if (b3 < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                       << "  rod material constant b3 is negative" << std::endl);
+                        }
+
+                        bool curvature_data_found_in_input = false;
+
+                        if (!(line_stream >> kappa1))
+                        {
+                            kappa1 = 0.0;
+                        }
+                        else
+                        {
+                            curvature_data_found_in_input = true;
+                        }
+
+                        if (!(line_stream >> kappa2))
+                        {
+                            kappa2 = 0.0;
+                            if (curvature_data_found_in_input)
+                            {
+                                TBOX_WARNING(d_object_name << ":\n  Potentially invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                             << "  intrinsic curvature kappa1 was specified but kappa2 was not" << std::endl);
+                            }
+                        }
+                        else
+                        {
+                            curvature_data_found_in_input = true;
+                        }
+
+                        if (!(line_stream >> tau))
+                        {
+                            tau = 0.0;
+                            if (curvature_data_found_in_input)
+                            {
+                                TBOX_WARNING(d_object_name << ":\n  Potentially invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
+                                             << "  intrinsic curvatures kappa1 and kappa2 were specified but intrinsic twist tau was not" << std::endl);
+                            }
+                        }
+                        else
+                        {
+                            curvature_data_found_in_input = true;
+                        }
+                    }
+
+                    // Correct the node numbers to be in the global Lagrangian
+                    // indexing scheme.
+                    curr_idx += d_vertex_offset[ln][j];
+                    next_idx += d_vertex_offset[ln][j];
+
+                    // Check to see if the edge has already been inserted in the
+                    // edge map.
+                    Edge e;
+                    e.first  = std::min(curr_idx,next_idx);
+                    e.second = std::max(curr_idx,next_idx);
+                    bool duplicate_edge = false;
+                    for (std::multimap<int,Edge>::const_iterator it =
+                             d_rod_edge_map[ln][j].lower_bound(e.first);
+                         it != d_rod_edge_map[ln][j].upper_bound(e.first); ++it)
+                    {
+                        const Edge& other_e = (*it).second;
+                        if (e.first  == other_e.first &&
+                            e.second == other_e.second)
+                        {
+                            // This is a duplicate edge and should not be
+                            // inserted into the edge map.
+                            duplicate_edge = true;
+                        }
+                    }
+
+                    // Initialize the map data corresponding to the present
+                    // edge.
+                    if (!duplicate_edge)
+                    {
+                        d_rod_edge_map[ln][j].insert(std::make_pair(e.first,e));
+                    }
+
+                    // Initialize the map data corresponding to the present rod.
+                    //
+                    // Note that in the rod property map, each edge is
+                    // associated with only the "current" vertex.
+                    d_rod_specs[ln][j].insert(std::make_pair(curr_idx, std::make_pair(next_idx,properties)));
+                }
+
+                // Close the input file.
+                file_stream.close();
+
+                plog << d_object_name << ":  "
+                     << "read " << num_rods << " rods from ASCII input file named " << rod_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+            }
+
+            // Free the next MPI process to start reading the current file.
+            if (d_use_file_batons && rank != nodes-1) SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
+        }
+    }
+
+    // Synchronize the processes.
+    if (d_use_file_batons) SAMRAI_MPI::barrier();
+    return;
+}// readRodFiles
 
 void
 IBStandardInitializer::readTargetPointFiles()
 {
     std::string line_string;
-    const int rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
+    const int rank = SAMRAI_MPI::getRank();
+    const int nodes = SAMRAI_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -1058,7 +1385,7 @@ IBStandardInitializer::readTargetPointFiles()
             bool warned = false;
 
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI::tbox::SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
+            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
             d_target_stiffness[ln][j].resize(d_num_vertex[ln][j], 0.0);
             d_target_damping  [ln][j].resize(d_num_vertex[ln][j], 0.0);
@@ -1068,9 +1395,9 @@ IBStandardInitializer::readTargetPointFiles()
             file_stream.open(target_point_stiffness_filename.c_str(), std::ios::in);
             if (file_stream.is_open())
             {
-                SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "processing target point data from ASCII input file named " << target_point_stiffness_filename << std::endl
-                                   << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+                plog << d_object_name << ":  "
+                     << "processing target point data from ASCII input file named " << target_point_stiffness_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of target
                 // point specifications in the input file.
@@ -1142,7 +1469,7 @@ IBStandardInitializer::readTargetPointFiles()
                     // if so, emit a warning.
                     const double kappa = d_target_stiffness[ln][j][n];
                     if (!warned && d_enable_target_points[ln][j] &&
-                        (kappa == 0.0 || SAMRAI::tbox::MathUtilities<double>::equalEps(kappa,0.0)))
+                        (kappa == 0.0 || MathUtilities<double>::equalEps(kappa,0.0)))
                     {
                         TBOX_WARNING(d_object_name << ":\n  Target point with zero penalty spring constant encountered in ASCII input file named " << target_point_stiffness_filename << "." << std::endl);
                         warned = true;
@@ -1152,9 +1479,9 @@ IBStandardInitializer::readTargetPointFiles()
                 // Close the input file.
                 file_stream.close();
 
-                SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "read " << num_target_points << " target points from ASCII input file named " << target_point_stiffness_filename << std::endl
-                                   << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+                plog << d_object_name << ":  "
+                     << "read " << num_target_points << " target points from ASCII input file named " << target_point_stiffness_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
 
             // Modify the target point stiffness constants according to whether
@@ -1177,12 +1504,12 @@ IBStandardInitializer::readTargetPointFiles()
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
+            if (d_use_file_batons && rank != nodes-1) SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
         }
     }
 
     // Synchronize the processes.
-    if (d_use_file_batons) SAMRAI::tbox::SAMRAI_MPI::barrier();
+    if (d_use_file_batons) SAMRAI_MPI::barrier();
     return;
 }// readTargetPointFiles
 
@@ -1190,8 +1517,8 @@ void
 IBStandardInitializer::readAnchorPointFiles()
 {
     std::string line_string;
-    const int rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
+    const int rank = SAMRAI_MPI::getRank();
+    const int nodes = SAMRAI_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -1202,7 +1529,7 @@ IBStandardInitializer::readAnchorPointFiles()
         for (int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI::tbox::SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
+            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
             d_is_anchor_point[ln][j].resize(d_num_vertex[ln][j], false);
 
@@ -1211,9 +1538,9 @@ IBStandardInitializer::readAnchorPointFiles()
             file_stream.open(anchor_point_filename.c_str(), std::ios::in);
             if (file_stream.is_open())
             {
-                SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "processing anchor point data from ASCII input file named " << anchor_point_filename << std::endl
-                                   << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+                plog << d_object_name << ":  "
+                     << "processing anchor point data from ASCII input file named " << anchor_point_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of anchor
                 // points in the input file.
@@ -1267,13 +1594,13 @@ IBStandardInitializer::readAnchorPointFiles()
                 // Close the input file.
                 file_stream.close();
 
-                SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "read " << num_anchor_pts << " anchor points from ASCII input file named " << anchor_point_filename << std::endl
-                                   << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+                plog << d_object_name << ":  "
+                     << "read " << num_anchor_pts << " anchor points from ASCII input file named " << anchor_point_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
+            if (d_use_file_batons && rank != nodes-1) SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
         }
     }
     return;
@@ -1283,8 +1610,8 @@ void
 IBStandardInitializer::readBoundaryMassFiles()
 {
     std::string line_string;
-    const int rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
+    const int rank = SAMRAI_MPI::getRank();
+    const int nodes = SAMRAI_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -1296,7 +1623,7 @@ IBStandardInitializer::readBoundaryMassFiles()
         for (int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI::tbox::SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
+            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
             d_bdry_mass[ln][j].resize(d_num_vertex[ln][j], 0.0);
             d_bdry_mass_stiffness[ln][j].resize(d_num_vertex[ln][j], 0.0);
@@ -1306,9 +1633,9 @@ IBStandardInitializer::readBoundaryMassFiles()
             file_stream.open(bdry_mass_filename.c_str(), std::ios::in);
             if (file_stream.is_open())
             {
-                SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "processing boundary mass data from ASCII input file named " << bdry_mass_filename << std::endl
-                                   << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+                plog << d_object_name << ":  "
+                     << "processing boundary mass data from ASCII input file named " << bdry_mass_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of massive IB
                 // points in the input file.
@@ -1381,9 +1708,9 @@ IBStandardInitializer::readBoundaryMassFiles()
                 // Close the input file.
                 file_stream.close();
 
-                SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "read " << num_bdry_mass_pts << " boundary mass points from ASCII input file named " << bdry_mass_filename << std::endl
-                                   << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+                plog << d_object_name << ":  "
+                     << "read " << num_bdry_mass_pts << " boundary mass points from ASCII input file named " << bdry_mass_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
 
             // Modify the boundary masses and boundary mass stiffness constants
@@ -1407,18 +1734,120 @@ IBStandardInitializer::readBoundaryMassFiles()
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
+            if (d_use_file_batons && rank != nodes-1) SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
         }
     }
     return;
 }// readBoundaryMassFiles
 
 void
+IBStandardInitializer::readDirectorFiles()
+{
+    std::string line_string;
+    const int rank = SAMRAI_MPI::getRank();
+    const int nodes = SAMRAI_MPI::getNodes();
+    int flag = 1;
+    int sz = 1;
+
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        const int num_base_filename = d_base_filename[ln].size();
+        d_directors[ln].resize(num_base_filename);
+        for (int j = 0; j < num_base_filename; ++j)
+        {
+            // Wait for the previous MPI process to finish reading the current file.
+            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
+
+            d_directors[ln][j].resize(d_num_vertex[ln][j], std::vector<double>(3*3,0.0));
+
+            const std::string directors_filename = d_base_filename[ln][j] + ".director";
+            std::ifstream file_stream;
+            file_stream.open(directors_filename.c_str(), std::ios::in);
+            if (file_stream.is_open())
+            {
+                plog << d_object_name << ":  "
+                     << "processing director data from ASCII input file named " << directors_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+
+                // The first line in the file indicates the number of sets of
+                // directors in the input file.
+                int num_directors_pts;
+                if (!std::getline(file_stream, line_string))
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << directors_filename << std::endl);
+                }
+                else
+                {
+                    line_string = discard_comments(line_string);
+                    std::istringstream line_stream(line_string);
+                    if (!(line_stream >> num_directors_pts))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << directors_filename << std::endl);
+                    }
+                }
+
+                if (num_directors_pts != d_num_vertex[ln][j])
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << directors_filename << std::endl);
+                }
+
+                // Each successive set of three lines indicates the initial
+                // configuration of a triad.
+                for (int k = 0; k < num_directors_pts; ++k)
+                {
+                    for (int n = 0; n < 3; ++n)
+                    {
+                        if (!std::getline(file_stream, line_string))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << 3*k+n+2 << " of file " << directors_filename << std::endl);
+                        }
+                        else
+                        {
+                            line_string = discard_comments(line_string);
+                            std::istringstream line_stream(line_string);
+                            double D_norm_squared = 0.0;
+                            for (int d = 0; d < 3; ++d)
+                            {
+                                if (!(line_stream >> d_directors[ln][j][k][3*n+d]))
+                                {
+                                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << 3*k+n+2 << " of file " << directors_filename << std::endl);
+                                }
+                                D_norm_squared += d_directors[ln][j][k][3*n+d]*d_directors[ln][j][k][3*n+d];
+                            }
+                            const double D_norm = sqrt(D_norm_squared);
+                            if (!MathUtilities<double>::equalEps(D_norm,1.0))
+                            {
+                                TBOX_WARNING(d_object_name << ":\n  Director vector on line " << 3*k+n+2 << " of file " << directors_filename << " is not normalized; norm = " << D_norm << std::endl);
+                                for (int d = 0; d < 3; ++d)
+                                {
+                                    d_directors[ln][j][k][3*n+d] /= D_norm;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Close the input file.
+                file_stream.close();
+
+                plog << d_object_name << ":  "
+                     << "read " << num_directors_pts << " director triads from ASCII input file named " << directors_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+            }
+
+            // Free the next MPI process to start reading the current file.
+            if (d_use_file_batons && rank != nodes-1) SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
+        }
+    }
+    return;
+}// readDirectorFiles
+
+void
 IBStandardInitializer::readInstrumentationFiles()
 {
     std::string line_string;
-    const int rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
+    const int rank = SAMRAI_MPI::getRank();
+    const int nodes = SAMRAI_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -1431,16 +1860,16 @@ IBStandardInitializer::readInstrumentationFiles()
         for (int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
-            if (d_use_file_batons && rank != 0) SAMRAI::tbox::SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
+            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
             const std::string inst_filename = d_base_filename[ln][j] + ".inst";
             std::ifstream file_stream;
             file_stream.open(inst_filename.c_str(), std::ios::in);
             if (file_stream.is_open() && d_enable_instrumentation[ln][j])
             {
-                SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "processing instrumentation data from ASCII input file named " << inst_filename << std::endl
-                                   << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+                plog << d_object_name << ":  "
+                     << "processing instrumentation data from ASCII input file named " << inst_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
 
                 // The first line in the file indicates the number of
                 // instruments in the input file.
@@ -1614,13 +2043,13 @@ IBStandardInitializer::readInstrumentationFiles()
                 // Close the input file.
                 file_stream.close();
 
-                SAMRAI::tbox::plog << d_object_name << ":  "
-                                   << "read " << num_inst_pts << " instrumentation points from ASCII input file named " << inst_filename << std::endl
-                                   << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << std::endl;
+                plog << d_object_name << ":  "
+                     << "read " << num_inst_pts << " instrumentation points from ASCII input file named " << inst_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
 
             // Free the next MPI process to start reading the current file.
-            if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
+            if (d_use_file_batons && rank != nodes-1) SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
         }
     }
     IBInstrumentationSpec::setInstrumentNames(instrument_names);
@@ -1630,7 +2059,7 @@ IBStandardInitializer::readInstrumentationFiles()
 void
 IBStandardInitializer::getPatchVertices(
     std::vector<std::pair<int,int> >& patch_vertices,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    const Pointer<Patch<NDIM> > patch,
     const int level_number,
     const bool can_be_refined) const
 {
@@ -1639,7 +2068,7 @@ IBStandardInitializer::getPatchVertices(
     //
     // NOTE: This is clearly not the best way to do this, but it will work for
     // now.
-    const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
+    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom =
         patch->getPatchGeometry();
     const double* const xLower = patch_geom->getXLower();
     const double* const xUpper = patch_geom->getXUpper();
@@ -1721,6 +2150,14 @@ IBStandardInitializer::getVertexMassStiffness(
     return d_bdry_mass_stiffness[level_number][point_index.first][point_index.second];
 }// getVertexMassStiffness
 
+const std::vector<double>&
+IBStandardInitializer::getVertexDirectors(
+    const std::pair<int,int>& point_index,
+    const int level_number) const
+{
+    return d_directors[level_number][point_index.first][point_index.second];
+}// getVertexDirectors
+
 std::pair<int,int>
 IBStandardInitializer::getVertexInstrumentationIndices(
     const std::pair<int,int>& point_index,
@@ -1738,13 +2175,13 @@ IBStandardInitializer::getVertexInstrumentationIndices(
     }
 }// getVertexInstrumentationIndices
 
-std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >
+std::vector<Pointer<Stashable> >
 IBStandardInitializer::initializeSpecs(
     const std::pair<int,int>& point_index,
     const int global_index_offset,
     const int level_number) const
 {
-    std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> > vertex_specs;
+    std::vector<Pointer<Stashable> > vertex_specs;
 
     const int j = point_index.first;
     const int mastr_idx = getCanonicalLagrangianIndex(point_index, level_number);
@@ -1808,6 +2245,27 @@ IBStandardInitializer::initializeSpecs(
         }
     }
 
+    // Initialize any rod specifications associated with the present vertex.
+    if (d_enable_rods[level_number][j])
+    {
+        std::vector<int> rod_next_idxs;
+        std::vector<std::vector<double> > rod_material_params;
+        for (std::multimap<int,std::pair<int,std::vector<double> > >::const_iterator it = d_rod_specs[level_number][j].lower_bound(mastr_idx);
+             it != d_rod_specs[level_number][j].upper_bound(mastr_idx); ++it)
+        {
+            const int next_idx = (*it).second.first;
+            const std::vector<double> & material_params = (*it).second.second;
+            rod_next_idxs.push_back(next_idx);
+            rod_material_params.push_back(material_params);
+        }
+        if (!rod_next_idxs.empty())
+        {
+            vertex_specs.push_back(
+                new IBRodForceSpec(
+                    mastr_idx, rod_next_idxs, rod_material_params));
+        }
+    }
+
     // Initialize any target point specifications associated with the present
     // vertex.
     if (d_enable_target_points[level_number][j])
@@ -1849,7 +2307,7 @@ IBStandardInitializer::initializeSpecs(
 
 void
 IBStandardInitializer::getFromInput(
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
+    Pointer<Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
@@ -1904,6 +2362,10 @@ IBStandardInitializer::getFromInput(
     d_using_uniform_beam_bend_rigidity.resize(d_max_levels);
     d_uniform_beam_bend_rigidity.resize(d_max_levels);
 
+    d_enable_rods.resize(d_max_levels);
+    d_rod_edge_map.resize(d_max_levels);
+    d_rod_specs.resize(d_max_levels);
+
     d_enable_target_points.resize(d_max_levels);
     d_target_stiffness.resize(d_max_levels);
     d_target_damping.resize(d_max_levels);
@@ -1922,6 +2384,8 @@ IBStandardInitializer::getFromInput(
     d_uniform_bdry_mass.resize(d_max_levels);
     d_using_uniform_bdry_mass_stiffness.resize(d_max_levels);
     d_uniform_bdry_mass_stiffness.resize(d_max_levels);
+
+    d_directors.resize(d_max_levels);
 
     d_enable_instrumentation.resize(d_max_levels);
     d_instrument_idx.resize(d_max_levels);
@@ -1942,7 +2406,7 @@ IBStandardInitializer::getFromInput(
             const std::string& strct_name = structure_names[n];
             if (db->keyExists(strct_name))
             {
-                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> sub_db = db->getDatabase((strct_name));
+                Pointer<Database> sub_db = db->getDatabase((strct_name));
                 if (sub_db->keyExists("level_number"))
                 {
                     const int ln = sub_db->getInteger("level_number");
@@ -2024,6 +2488,8 @@ IBStandardInitializer::getFromInput(
         d_using_uniform_beam_bend_rigidity[ln].resize(num_base_filename,false);
         d_uniform_beam_bend_rigidity[ln].resize(num_base_filename,-1.0);
 
+        d_enable_rods[ln].resize(num_base_filename,true);
+
         d_enable_target_points[ln].resize(num_base_filename,true);
 
         d_using_uniform_target_stiffness[ln].resize(num_base_filename,false);
@@ -2049,7 +2515,7 @@ IBStandardInitializer::getFromInput(
             const std::string& base_filename = d_base_filename[ln][j];
             if (db->isDatabase(base_filename))
             {
-                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> sub_db =
+                Pointer<Database> sub_db =
                     db->getDatabase(base_filename);
 
                 // Determine whether to enable or disable any particular
@@ -2061,6 +2527,10 @@ IBStandardInitializer::getFromInput(
                 if (sub_db->keyExists("enable_beams"))
                 {
                     d_enable_beams[ln][j] = sub_db->getBool("enable_beams");
+                }
+                if (sub_db->keyExists("enable_rods"))
+                {
+                    d_enable_rods[ln][j] = sub_db->getBool("enable_rods");
                 }
                 if (sub_db->keyExists("enable_target_points"))
                 {
@@ -2173,100 +2643,100 @@ IBStandardInitializer::getFromInput(
 
     // Output the names of the input files to be read along with additional
     // debugging information.
-    SAMRAI::tbox::pout << d_object_name << ":  Reading from input files: " << std::endl;
+    pout << d_object_name << ":  Reading from input files: " << std::endl;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filename = d_base_filename[ln].size();
         for (int j = 0; j < num_base_filename; ++j)
         {
             const std::string& base_filename = d_base_filename[ln][j];
-            SAMRAI::tbox::pout << "  base filename: " << base_filename << std::endl
-                               << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy" << std::endl
-                               << "     required files: " << base_filename << ".vertex" << std::endl
-                               << "     optional files: " << base_filename << ".spring, " << base_filename << ".beam, " << base_filename << ".target, " << base_filename << ".anchor, " << base_filename << ".mass, " << base_filename << ".inst " << std::endl;
+            pout << "  base filename: " << base_filename << std::endl
+                 << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy" << std::endl
+                 << "     required files: " << base_filename << ".vertex" << std::endl
+                 << "     optional files: " << base_filename << ".spring, " << base_filename << ".beam, " << base_filename << ".rod, " << base_filename << ".target, " << base_filename << ".anchor, " << base_filename << ".mass, " << base_filename << ".director, " << base_filename << ".inst" << std::endl;
             if (!d_enable_springs[ln][j])
             {
-                SAMRAI::tbox::pout << "  NOTE: spring forces are DISABLED for " << base_filename << std::endl;
+                pout << "  NOTE: spring forces are DISABLED for " << base_filename << std::endl;
             }
             else
             {
                 if (d_using_uniform_spring_stiffness[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform spring stiffnesses are being employed for the structure named " << base_filename << std::endl
-                                       << "        any stiffness information in optional file " << base_filename << ".spring will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform spring stiffnesses are being employed for the structure named " << base_filename << std::endl
+                         << "        any stiffness information in optional file " << base_filename << ".spring will be IGNORED" << std::endl;
                 }
                 if (d_using_uniform_spring_rest_length[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform spring resting lengths are being employed for the structure named " << base_filename << std::endl
-                                       << "        any resting length information in optional file " << base_filename << ".spring will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform spring resting lengths are being employed for the structure named " << base_filename << std::endl
+                         << "        any resting length information in optional file " << base_filename << ".spring will be IGNORED" << std::endl;
                 }
                 if (d_using_uniform_spring_force_fcn_idx[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform spring force functions are being employed for the structure named " << base_filename << std::endl
-                                       << "        any force function index information in optional file " << base_filename << ".spring will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform spring force functions are being employed for the structure named " << base_filename << std::endl
+                         << "        any force function index information in optional file " << base_filename << ".spring will be IGNORED" << std::endl;
                 }
             }
 
             if (!d_enable_beams[ln][j])
             {
-                SAMRAI::tbox::pout << "  NOTE: beam forces are DISABLED for " << base_filename << std::endl;
+                pout << "  NOTE: beam forces are DISABLED for " << base_filename << std::endl;
             }
             else
             {
                 if (d_using_uniform_beam_bend_rigidity[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform beam bending rigidities are being employed for the structure named " << base_filename << std::endl
-                                       << "        any stiffness information in optional file " << base_filename << ".beam will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform beam bending rigidities are being employed for the structure named " << base_filename << std::endl
+                         << "        any stiffness information in optional file " << base_filename << ".beam will be IGNORED" << std::endl;
                 }
             }
 
             if (!d_enable_target_points[ln][j])
             {
-                SAMRAI::tbox::pout << "  NOTE: target point penalty forces are DISABLED for " << base_filename << std::endl;
+                pout << "  NOTE: target point penalty forces are DISABLED for " << base_filename << std::endl;
             }
             else
             {
                 if (d_using_uniform_target_stiffness[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform target point stiffnesses are being employed for the structure named " << base_filename << std::endl
-                                       << "        any target point stiffness information in optional file " << base_filename << ".target will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform target point stiffnesses are being employed for the structure named " << base_filename << std::endl
+                         << "        any target point stiffness information in optional file " << base_filename << ".target will be IGNORED" << std::endl;
                 }
                 if (d_using_uniform_target_damping[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform target point damping factors are being employed for the structure named " << base_filename << std::endl
-                                       << "        any target point damping factor information in optional file " << base_filename << ".target will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform target point damping factors are being employed for the structure named " << base_filename << std::endl
+                         << "        any target point damping factor information in optional file " << base_filename << ".target will be IGNORED" << std::endl;
                 }
             }
 
             if (!d_enable_anchor_points[ln][j])
             {
-                SAMRAI::tbox::pout << "  NOTE: anchor points are DISABLED for " << base_filename << std::endl;
+                pout << "  NOTE: anchor points are DISABLED for " << base_filename << std::endl;
             }
 
             if (!d_enable_bdry_mass[ln][j])
             {
-                SAMRAI::tbox::pout << "  NOTE: massive boundary points are DISABLED for " << base_filename << std::endl;
+                pout << "  NOTE: massive boundary points are DISABLED for " << base_filename << std::endl;
             }
             else
             {
                 if (d_using_uniform_bdry_mass[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform boundary point masses are being employed for the structure named " << base_filename << std::endl
-                                       << "        any boundary point mass information in optional file " << base_filename << ".mass will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform boundary point masses are being employed for the structure named " << base_filename << std::endl
+                         << "        any boundary point mass information in optional file " << base_filename << ".mass will be IGNORED" << std::endl;
                 }
                 if (d_using_uniform_bdry_mass_stiffness[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform massive boundary point stiffnesses are being employed for the structure named " << base_filename << std::endl
-                                       << "        any massive boundary point stiffness information in optional file " << base_filename << ".mass will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform massive boundary point stiffnesses are being employed for the structure named " << base_filename << std::endl
+                         << "        any massive boundary point stiffness information in optional file " << base_filename << ".mass will be IGNORED" << std::endl;
                 }
             }
 
             if (!d_enable_instrumentation[ln][j])
             {
-                SAMRAI::tbox::pout << "  NOTE: instrumentation is DISABLED for " << base_filename << std::endl;
+                pout << "  NOTE: instrumentation is DISABLED for " << base_filename << std::endl;
             }
 
-            SAMRAI::tbox::pout << std::endl;
+            pout << std::endl;
         }
     }
     return;
@@ -2279,6 +2749,6 @@ IBStandardInitializer::getFromInput(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBStandardInitializer>;
+template class Pointer<IBAMR::IBStandardInitializer>;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -22,10 +22,12 @@ clean-local:
 ## Dimension-independent library
 libIBAMR_a_SOURCES = \
 $(top_builddir)/src/advect/fortran/godunov_helpers.f \
-$(top_srcdir)/src/adv_diff/TGACoefs.C
+$(top_srcdir)/src/adv_diff/TGACoefs.C \
+$(top_builddir)/src/fortran/sqrtm.f
 
 pkg_include_HEADERS = \
-$(top_srcdir)/src/adv_diff/TGACoefs.h
+$(top_srcdir)/src/adv_diff/TGACoefs.h \
+$(top_srcdir)/src/utilities/namespaces.h
 
 ## Dimension-dependent libraries
 DIM_INDEPENDENT_SOURCES = \
@@ -43,12 +45,15 @@ $(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C \
 $(top_srcdir)/src/IB/IBInstrumentPanel.C \
 $(top_srcdir)/src/IB/IBInstrumentationSpec.C \
 $(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
+$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategy.C \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategySet.C \
 $(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
 $(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C \
 $(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C \
 $(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C \
+$(top_srcdir)/src/IB/IBRodForceSpec.C \
+$(top_srcdir)/src/IB/IBRodForceSpecFactory.C \
 $(top_srcdir)/src/IB/IBSpringForceGen.C \
 $(top_srcdir)/src/IB/IBSpringForceSpec.C \
 $(top_srcdir)/src/IB/IBSpringForceSpecFactory.C \
@@ -69,6 +74,7 @@ $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C \
 $(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C \
+$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C \
@@ -78,7 +84,13 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C \
+$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C
+
+if LIBMESH_ENABLED
+DIM_INDEPENDENT_SOURCES += \
+$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C
+endif
 
 pkg_include_HEADERS += \
 $(top_srcdir)/src/IB/IBAnchorPointSpec.I \
@@ -98,6 +110,7 @@ $(top_srcdir)/src/IB/IBInstrumentPanel.h \
 $(top_srcdir)/src/IB/IBInstrumentationSpec.I \
 $(top_srcdir)/src/IB/IBInstrumentationSpec.h \
 $(top_srcdir)/src/IB/IBInstrumentationSpecFactory.h \
+$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.h \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategy.h \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategySet.h \
 $(top_srcdir)/src/IB/IBLagrangianSourceStrategy.h \
@@ -105,6 +118,9 @@ $(top_srcdir)/src/IB/IBMovingTargetPointForceGen.h \
 $(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.I \
 $(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.h \
 $(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.h \
+$(top_srcdir)/src/IB/IBRodForceSpec.I \
+$(top_srcdir)/src/IB/IBRodForceSpec.h \
+$(top_srcdir)/src/IB/IBRodForceSpecFactory.h \
 $(top_srcdir)/src/IB/IBSpringForceGen.h \
 $(top_srcdir)/src/IB/IBSpringForceSpec.I \
 $(top_srcdir)/src/IB/IBSpringForceSpec.h \
@@ -127,6 +143,7 @@ $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.h \
 $(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.h \
+$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.h \
@@ -136,7 +153,13 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.h \
+$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h
+
+if LIBMESH_ENABLED
+pkg_include_HEADERS += \
+$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.h
+endif
 
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \

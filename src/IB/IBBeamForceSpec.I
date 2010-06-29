@@ -1,5 +1,5 @@
 // Filename: IBBeamForceSpec.I
-// Last modified: <15.Dec.2009 19:16:38 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <15.Jun.2010 15:39:18 griffith@boyce-griffiths-mac-pro.local>
 // Created on 11 Jun 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -21,29 +21,6 @@ IBBeamForceSpec::getIsRegisteredWithStashableManager()
 }// getIsRegisteredWithStashableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
-
-inline void*
-IBBeamForceSpec::operator new(
-    std::size_t size)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(size == sizeof(IBBeamForceSpec));
-#endif
-    return s_arena.alloc(size);
-}// operator new
-
-inline void
-IBBeamForceSpec::operator delete(
-    void* ptr,
-    std::size_t size)
-{
-    if (ptr == NULL) return;
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(size == sizeof(IBBeamForceSpec));
-#endif
-    s_arena.free(ptr);
-    return;
-}// operator delete
 
 inline
 IBBeamForceSpec::IBBeamForceSpec(

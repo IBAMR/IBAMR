@@ -1,5 +1,5 @@
 // Filename: AdvDiffHypPatchOps.C
-// Last modified: <02.Mar.2010 18:13:18 griffith@griffith-macbook-pro.local>
+// Last modified: <27.Jun.2010 15:27:56 griffith@griffith-macbook-pro.local>
 // Created on 19 Mar 2004 by Boyce Griffith (boyce@bigboy.speakeasy.net)
 
 #include "AdvDiffHypPatchOps.h"
@@ -15,6 +15,9 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
+
+// IBAMR INCLUDES
+#include <ibamr/namespaces.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -118,18 +121,18 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_conservative_difference_on_patch;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_preprocess_advance_level_state;
-static SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> t_postprocess_advance_level_state;
+static Pointer<Timer> t_conservative_difference_on_patch;
+static Pointer<Timer> t_preprocess_advance_level_state;
+static Pointer<Timer> t_postprocess_advance_level_state;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvDiffHypPatchOps::AdvDiffHypPatchOps(
     const std::string& object_name,
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-    SAMRAI::tbox::Pointer<GodunovAdvector> godunov_advector,
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
+    Pointer<Database> input_db,
+    Pointer<GodunovAdvector> godunov_advector,
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom,
     bool register_for_restart)
     : AdvectHypPatchOps(object_name, input_db, godunov_advector, grid_geom, register_for_restart)
 {
@@ -137,11 +140,11 @@ AdvDiffHypPatchOps::AdvDiffHypPatchOps(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_conservative_difference_on_patch = SAMRAI::tbox::TimerManager::getManager()->
+        t_conservative_difference_on_patch = TimerManager::getManager()->
             getTimer("IBAMR::AdvDiffHypPatchOps::conservativeDifferenceOnPatch()");
-        t_preprocess_advance_level_state = SAMRAI::tbox::TimerManager::getManager()->
+        t_preprocess_advance_level_state = TimerManager::getManager()->
             getTimer("IBAMR::AdvDiffHypPatchOps::preprocessAdvanceLevelState()");
-        t_postprocess_advance_level_state = SAMRAI::tbox::TimerManager::getManager()->
+        t_postprocess_advance_level_state = TimerManager::getManager()->
             getTimer("IBAMR::AdvDiffHypPatchOps::postprocessAdvanceLevelState()");
         timers_need_init = false;
     }
@@ -172,7 +175,7 @@ AdvDiffHypPatchOps::getName() const
 
 void
 AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
-    SAMRAI::hier::Patch<NDIM>& patch,
+    Patch<NDIM>& patch,
     const double time,
     const double dt,
     bool at_synchronization)
@@ -182,50 +185,50 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
     (void) time;
     (void) at_synchronization;
 
-    const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
+    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const SAMRAI::hier::Index<NDIM>& ilower = patch.getBox().lower();
-    const SAMRAI::hier::Index<NDIM>& iupper = patch.getBox().upper();
+    const Index<NDIM>& ilower = patch.getBox().lower();
+    const Index<NDIM>& iupper = patch.getBox().upper();
 
-    const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox();
+    const Box<NDIM>& patch_box = patch.getBox();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_Q_var.size() == d_flux_integral_var.size());
     TBOX_ASSERT(d_Q_var.size() == d_q_integral_var.size());
 #endif
 
-    typedef std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > CellVariableVector;
+    typedef std::vector<Pointer<CellVariable<NDIM,double> > > CellVariableVector;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > u_integral_data =
+    Pointer<FaceData<NDIM,double> > u_integral_data =
         (!d_u_integral_var.isNull()
          ? patch.getPatchData(d_u_integral_var, getDataContext())
-         : SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL));
+         : Pointer<PatchData<NDIM> >(NULL));
 
-    const SAMRAI::hier::IntVector<NDIM>& u_integral_data_ghost_cells =
+    const IntVector<NDIM>& u_integral_data_ghost_cells =
         (!d_u_integral_var.isNull()
          ? u_integral_data->getGhostCellWidth()
          : 0);
 
     for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > Q_data =
+        Pointer<CellData<NDIM,double> > Q_data =
             patch.getPatchData(d_Q_var[l], getDataContext());
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > flux_integral_data =
+        Pointer<FaceData<NDIM,double> > flux_integral_data =
             (d_Q_in_consv_form[l]
              ? patch.getPatchData(d_flux_integral_var[l], getDataContext())
-             : SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL));
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> > q_integral_data =
+             : Pointer<PatchData<NDIM> >(NULL));
+        Pointer<FaceData<NDIM,double> > q_integral_data =
             ((!d_u_is_div_free) || (!d_Q_in_consv_form[l])
              ? patch.getPatchData(d_q_integral_var[l], getDataContext())
-             : SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >(NULL));
+             : Pointer<PatchData<NDIM> >(NULL));
 
-        const SAMRAI::hier::IntVector<NDIM>& Q_data_ghost_cells = Q_data->getGhostCellWidth();
-        const SAMRAI::hier::IntVector<NDIM>& flux_integral_data_ghost_cells =
+        const IntVector<NDIM>& Q_data_ghost_cells = Q_data->getGhostCellWidth();
+        const IntVector<NDIM>& flux_integral_data_ghost_cells =
             (d_Q_in_consv_form[l]
              ? flux_integral_data->getGhostCellWidth()
              : 0);
-        const SAMRAI::hier::IntVector<NDIM>& q_integral_data_ghost_cells =
+        const IntVector<NDIM>& q_integral_data_ghost_cells =
             ((!d_u_is_div_free) || (!d_Q_in_consv_form[l])
              ? q_integral_data->getGhostCellWidth()
              : 0);
@@ -322,10 +325,10 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
         }
         else
         {
-            SAMRAI::tbox::Pointer<SAMRAI::math::PatchCellDataOpsReal<NDIM,double> > patch_cc_data_ops =
-                new SAMRAI::math::PatchCellDataOpsReal<NDIM,double>();
-            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > N_data =
-                new SAMRAI::pdat::CellData<NDIM,double>(patch_box,Q_data->getDepth(),0);
+            Pointer<PatchCellDataOpsReal<NDIM,double> > patch_cc_data_ops =
+                new PatchCellDataOpsReal<NDIM,double>();
+            Pointer<CellData<NDIM,double> > N_data =
+                new CellData<NDIM,double>(patch_box,Q_data->getDepth(),0);
 
             d_godunov_advector->computeAdvectiveDerivative(
                 *N_data, *u_integral_data, *q_integral_data, patch);
@@ -345,7 +348,7 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
 // NOTE: Should the following method be removed?
 void
 AdvDiffHypPatchOps::preprocessAdvanceLevelState(
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
+    const Pointer<PatchLevel<NDIM> >& level,
     double current_time,
     double dt,
     bool first_step,
@@ -362,7 +365,7 @@ AdvDiffHypPatchOps::preprocessAdvanceLevelState(
     // Update the advection velocity.
     if (!d_u_fcn.isNull() && d_u_fcn->isTimeDependent() && d_compute_init_velocity)
     {
-        SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int u_idx = var_db->mapVariableAndContextToIndex(
             d_u_var, d_integrator->getScratchContext());
         d_u_fcn->setDataOnPatchLevel(u_idx, d_u_var, level, current_time);
@@ -375,7 +378,7 @@ AdvDiffHypPatchOps::preprocessAdvanceLevelState(
 
 void
 AdvDiffHypPatchOps::postprocessAdvanceLevelState(
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
+    const Pointer<PatchLevel<NDIM> >& level,
     double current_time,
     double dt,
     bool first_step,
@@ -391,7 +394,7 @@ AdvDiffHypPatchOps::postprocessAdvanceLevelState(
     // Update the advection velocity.
     if (!d_u_fcn.isNull() && d_u_fcn->isTimeDependent() && d_compute_final_velocity)
     {
-        SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int u_idx = var_db->mapVariableAndContextToIndex(
             d_u_var, d_integrator->getNewContext());
         d_u_fcn->setDataOnPatchLevel(u_idx, d_u_var, level, current_time+dt);
@@ -408,6 +411,6 @@ AdvDiffHypPatchOps::postprocessAdvanceLevelState(
 /////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::AdvDiffHypPatchOps>;
+template class Pointer<IBAMR::AdvDiffHypPatchOps>;
 
 //////////////////////////////////////////////////////////////////////////////

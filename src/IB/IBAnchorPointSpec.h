@@ -2,13 +2,12 @@
 #define included_IBAnchorPointSpec
 
 // Filename: IBAnchorPointSpec.h
-// Last modified: <01.Mar.2010 15:26:14 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <15.Jun.2010 15:40:25 griffith@boyce-griffiths-mac-pro.local>
 // Created on 18 Aug 2008 by Boyce Griffith (boyce@dm-linux.maths.gla.ac.uk)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/DynamicArena.h>
 #include <ibtk/Stashable.h>
 
 // SAMRAI INCLUDES
@@ -50,21 +49,6 @@ public:
      */
     static bool
     getIsRegisteredWithStashableManager();
-
-    /*!
-     * \brief Operator new.
-     */
-    static void*
-    operator new(
-        std::size_t size);
-
-    /*!
-     * \brief Operator delete.
-     */
-    static void
-    operator delete(
-        void* ptr,
-        std::size_t size);
 
     /*!
      * \brief Default constructor.
@@ -146,11 +130,6 @@ private:
      * The stashable ID for this object type.
      */
     static int s_stashable_id;
-
-    /*!
-     * Memory arena for allocating objects.
-     */
-    static IBTK::DynamicArena s_arena;
 
     /*!
      * The Lagrangian index of the anchored curvilinear mesh node.

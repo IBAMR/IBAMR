@@ -1,5 +1,5 @@
 // Filename: IBStandardForceGen.C
-// Last modified: <30.Dec.2009 19:28:49 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <27.Jun.2010 15:30:56 griffith@griffith-macbook-pro.local>
 // Created on 03 May 2005 by Boyce Griffith (boyce@mstu1.cims.nyu.edu)
 
 #include "IBStandardForceGen.h"
@@ -16,6 +16,9 @@
 #define included_SAMRAI_config
 #endif
 
+// IBAMR INCLUDES
+#include <ibamr/namespaces.h>
+
 // IBTK INCLUDES
 #include <ibtk/LNodeIndexData.h>
 #include <ibtk/LNodeLevelData.h>
@@ -29,14 +32,14 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBStandardForceGen::IBStandardForceGen(
-    SAMRAI::tbox::Pointer<IBSpringForceGen> spring_force_gen,
-    SAMRAI::tbox::Pointer<IBBeamForceGen> beam_force_gen,
-    SAMRAI::tbox::Pointer<IBTargetPointForceGen> target_point_force_gen)
+    Pointer<IBSpringForceGen> spring_force_gen,
+    Pointer<IBBeamForceGen> beam_force_gen,
+    Pointer<IBTargetPointForceGen> target_point_force_gen)
     : d_force_strategy_set(NULL),
       d_X_orig_vec(),
       d_shift_vec()
 {
-    std::vector<SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> > strategy_set;
+    std::vector<Pointer<IBLagrangianForceStrategy> > strategy_set;
 
     if (spring_force_gen.isNull())
     {
@@ -96,11 +99,11 @@ IBStandardForceGen::~IBStandardForceGen()
 
 void
 IBStandardForceGen::initializeLevelData(
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
     const bool initial_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     if (!lag_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -121,7 +124,7 @@ IBStandardForceGen::initializeLevelData(
         }
 
         // Create a duplicate of the position vector.
-        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data = lag_manager->getLNodeLevelData("X", level_number);
+        Pointer<LNodeLevelData> X_data = lag_manager->getLNodeLevelData("X", level_number);
         ierr = VecDuplicate(X_data->getGlobalVec(), &d_X_orig_vec[level_number]);  IBTK_CHKERRQ(ierr);
         ierr = VecDuplicate(X_data->getGlobalVec(), & d_shift_vec[level_number]);  IBTK_CHKERRQ(ierr);
 
@@ -132,17 +135,17 @@ IBStandardForceGen::initializeLevelData(
         double* shift_arr;
         ierr = VecGetArray(d_shift_vec[level_number], &shift_arr);  IBTK_CHKERRQ(ierr);
         const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-        for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-            const SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
-            for (IBTK::LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const Pointer<LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
+            for (LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
                  it != idx_data->lnode_index_end(); ++it)
             {
-                const IBTK::LNodeIndex& node_idx = *it;
-                if (node_idx.getPeriodicOffset() != SAMRAI::hier::IntVector<NDIM>(0))
+                const LNodeIndex& node_idx = *it;
+                if (node_idx.getPeriodicOffset() != IntVector<NDIM>(0))
                 {
                     const int petsc_local_idx = node_idx.getLocalPETScIndex();
                     const std::vector<double>& periodic_displacement = node_idx.getPeriodicDisplacement();
@@ -161,13 +164,13 @@ IBStandardForceGen::initializeLevelData(
 
 void
 IBStandardForceGen::computeLagrangianForce(
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> F_data,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    Pointer<LNodeLevelData> F_data,
+    Pointer<LNodeLevelData> X_data,
+    Pointer<LNodeLevelData> U_data,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     if (!lag_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -185,10 +188,10 @@ void
 IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
     std::vector<int>& d_nnz,
     std::vector<int>& o_nnz,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     if (!lag_manager->levelContainsLagrangianData(level_number)) return;
     d_force_strategy_set->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz, hierarchy, level_number, data_time, lag_manager);
@@ -200,13 +203,13 @@ IBStandardForceGen::computeLagrangianForceJacobian(
     Mat& J_mat,
     MatAssemblyType assembly_type,
     const double X_coef,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+    Pointer<LNodeLevelData> X_data,
     const double U_coef,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    Pointer<LNodeLevelData> U_data,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     if (!lag_manager->levelContainsLagrangianData(level_number)) return;
 
@@ -222,12 +225,12 @@ IBStandardForceGen::computeLagrangianForceJacobian(
 
 double
 IBStandardForceGen::computeLagrangianEnergy(
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    Pointer<LNodeLevelData> X_data,
+    Pointer<LNodeLevelData> U_data,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     if (!lag_manager->levelContainsLagrangianData(level_number)) return 0.0;
 
@@ -252,6 +255,6 @@ IBStandardForceGen::computeLagrangianEnergy(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBStandardForceGen>;
+template class Pointer<IBAMR::IBStandardForceGen>;
 
 //////////////////////////////////////////////////////////////////////////////

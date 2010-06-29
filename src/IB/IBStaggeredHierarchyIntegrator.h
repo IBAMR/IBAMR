@@ -2,7 +2,7 @@
 #define included_IBStaggeredHierarchyIntegrator
 
 // Filename: IBStaggeredHierarchyIntegrator.h
-// Last modified: <02.Mar.2010 18:15:35 griffith@griffith-macbook-pro.local>
+// Last modified: <22.Jun.2010 22:54:37 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -17,35 +17,11 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 // IBTK INCLUDES
-#include <ibtk/CartGridFunction.h>
 #include <ibtk/LDataManager.h>
-#include <ibtk/LNodeInitStrategy.h>
-#if (NDIM == 3)
-#include <ibtk/LagM3DDataWriter.h>
-#endif
 #include <ibtk/LagMarker.h>
-#include <ibtk/LagSiloDataWriter.h>
 
 // SAMRAI INCLUDES
-#include <CoarsenAlgorithm.h>
-#include <CoarsenSchedule.h>
-#include <GriddingAlgorithm.h>
 #include <IndexVariable.h>
-#include <IntVector.h>
-#include <LoadBalancer.h>
-#include <PatchHierarchy.h>
-#include <PatchLevel.h>
-#include <RefineAlgorithm.h>
-#include <RefineSchedule.h>
-#include <VariableContext.h>
-#include <VisItDataWriter.h>
-#include <tbox/Database.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
-#include <map>
-#include <set>
-#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -588,26 +564,6 @@ private:
     operator=(
         const IBStaggeredHierarchyIntegrator& that);
 
-    void
-    spread(
-        const int f_data_idx,
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_data,
-        const bool F_data_ghost_node_update,
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
-        const bool X_data_ghost_node_update,
-        const int coarsest_ln=-1,
-        const int finest_ln=-1);
-
-    void
-    interp(
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > U_data,
-        const int u_data_idx,
-        const bool u_data_ghost_cell_update,
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
-        const bool X_data_ghost_node_update,
-        const int coarsest_ln=-1,
-        const int finest_ln=-1);
-
     /*!
      * Initialize the IBLagrangianForceStrategy object for the current
      * configuration of the curvilinear mesh.
@@ -645,31 +601,6 @@ private:
         const double data_time);
 
     /*!
-     * Collect all marker data onto the coarsest level of the patch hierarchy to
-     * prepare for regridding the patch hierarchy.
-     */
-    void
-    collectMarkersOnPatchHierarchy();
-
-    /*!
-     * Prune marker data in refined regions of the specified levels of the patch
-     * hierarchy.
-     */
-    void
-    pruneDuplicateMarkers(
-        const int coarsest_ln,
-        const int finest_ln);
-
-    /*!
-     * Count the markers.
-     */
-    int
-    countMarkers(
-        const int coarsest_ln,
-        const int finest_ln,
-        const bool log_results);
-
-    /*!
      * Set the elements of the Lagrangian vector to zero at anchored nodes of
      * the curvilinear mesh.
      */
@@ -678,7 +609,6 @@ private:
         std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > V_data,
         const int coarsest_ln,
         const int finest_ln);
-
 
     /*!
      * Set the values of the distributed internal sources/sinks on the Cartesian
@@ -834,6 +764,11 @@ private:
     std::vector<double> d_gravitational_acceleration;
 
     /*
+     * Whether to include directors for force computations.
+     */
+    bool d_using_orthonormal_directors;
+
+    /*
      * Integrator data read from input or set at initialization.
      */
     double d_start_time;
@@ -904,11 +839,11 @@ private:
     /*
      * Variables and variable contexts.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_V_var, d_F_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_V_var, d_W_var, d_F_var, d_N_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Q_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > > d_mark_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current, d_scratch;
-    int d_V_idx, d_F_idx, d_Q_idx, d_mark_current_idx, d_mark_scratch_idx;
+    int d_V_idx, d_W_idx, d_F_idx, d_N_idx, d_Q_idx, d_mark_current_idx, d_mark_scratch_idx;
 
     /*
      * List of local indices of local anchor points.

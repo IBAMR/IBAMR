@@ -1,5 +1,5 @@
 // Filename: IBLagrangianSourceStrategy.C
-// Last modified: <12.Mar.2008 23:00:43 griffith@box221.cims.nyu.edu>
+// Last modified: <27.Jun.2010 15:29:53 griffith@griffith-macbook-pro.local>
 // Created on 18 Jun 2005 by Boyce Griffith (boyce@bigboy.verizon.net)
 
 #include "IBLagrangianSourceStrategy.h"
@@ -15,6 +15,9 @@
 #include <SAMRAI_config.h>
 #define included_SAMRAI_config
 #endif
+
+// IBAMR INCLUDES
+#include <ibamr/namespaces.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -47,11 +50,11 @@ IBLagrangianSourceStrategy::setTimeInterval(
 
 void
 IBLagrangianSourceStrategy::initializeLevelData(
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
     const bool initial_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     // intentionally blank
     return;
@@ -68,6 +71,6 @@ IBLagrangianSourceStrategy::initializeLevelData(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBLagrangianSourceStrategy>;
+template class Pointer<IBAMR::IBLagrangianSourceStrategy>;
 
 //////////////////////////////////////////////////////////////////////////////

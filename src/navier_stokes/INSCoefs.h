@@ -2,7 +2,7 @@
 #define included_INSCoefs
 
 // Filename: INSCoefs.h
-// Last modified: <10.Sep.2009 23:15:52 griffith@griffith-macbook-pro.local>
+// Last modified: <27.Jun.2010 19:33:41 griffith@griffith-macbook-pro.local>
 // Created on 26 Aug 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -39,6 +39,21 @@ public:
         }// INSCoefs
 
     /*!
+     * \brief Copy constructor.
+     *
+     * \param from The value to copy to this object.
+     */
+    INSCoefs(
+        const INSCoefs& from)
+        : d_rho(from.d_rho),
+          d_mu(from.d_mu),
+          d_lambda(from.d_lambda)
+        {
+            // intentionally blank
+            return;
+        }// INSCoefs
+
+    /*!
      * \brief Destructor.
      */
     inline
@@ -48,6 +63,24 @@ public:
             return;
         }// ~INSCoefs
 
+    /*!
+     * \brief Assignment operator.
+     *
+     * \param that The value to assign to this object.
+     *
+     * \return A reference to this object.
+     */
+    INSCoefs& operator=(
+        const INSCoefs& that)
+        {
+            if (&that != this)
+            {
+                d_rho = that.d_rho;
+                d_mu = that.d_mu;
+                d_lambda = that.d_lambda;
+            }
+            return *this;
+        }// operator=
 
     /*!
      * \return The mass density coefficient of the fluid.
@@ -88,35 +121,12 @@ private:
     INSCoefs();
 
     /*!
-     * \brief Copy constructor.
-     *
-     * \note This constructor is not implemented and should not be
-     * used.
-     *
-     * \param from The value to copy to this object.
-     */
-    INSCoefs(
-        const INSCoefs& from);
-
-    /*!
-     * \brief Assignment operator.
-     *
-     * \note This operator is not implemented and should not be used.
-     *
-     * \param that The value to assign to this object.
-     *
-     * \return A reference to this object.
-     */
-    INSCoefs& operator=(
-        const INSCoefs& that);
-
-    /*!
      * \brief The mass density (rho), dynamic viscosity (mu), and drag (lambda)
      * coefficients.
      */
-    const double d_rho;
-    const double d_mu;
-    const double d_lambda;
+    double d_rho;
+    double d_mu;
+    double d_lambda;
 };
 }// namespace IBAMR
 

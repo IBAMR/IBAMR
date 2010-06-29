@@ -1,5 +1,5 @@
 // Filename: IBBeamForceSpec.C
-// Last modified: <15.Dec.2009 19:19:51 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <27.Jun.2010 15:28:29 griffith@griffith-macbook-pro.local>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceSpec.h"
@@ -18,6 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBBeamForceSpecFactory.h>
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/StashableManager.h>
@@ -31,9 +32,8 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-bool               IBBeamForceSpec::s_registered_factory = false;
-int                IBBeamForceSpec::s_stashable_id = -1;
-IBTK::DynamicArena IBBeamForceSpec::s_arena(sizeof(IBBeamForceSpec));
+bool IBBeamForceSpec::s_registered_factory = false;
+int  IBBeamForceSpec::s_stashable_id = -1;
 
 void
 IBBeamForceSpec::registerWithStashableManager()
@@ -42,13 +42,13 @@ IBBeamForceSpec::registerWithStashableManager()
     // register the stashable factory with the stashable manager, and to ensure
     // that all processes employ the same stashable id for the IBBeamForceSpec
     // object.
-    SAMRAI::tbox::SAMRAI_MPI::barrier();
+    SAMRAI_MPI::barrier();
     if (!s_registered_factory)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(s_stashable_id == -1);
 #endif
-        s_stashable_id = IBTK::StashableManager::getManager()->registerFactory(
+        s_stashable_id = StashableManager::getManager()->registerFactory(
             new IBBeamForceSpecFactory());
         s_registered_factory = true;
     }
@@ -68,6 +68,6 @@ IBBeamForceSpec::registerWithStashableManager()
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBBeamForceSpec>;
+template class Pointer<IBAMR::IBBeamForceSpec>;
 
 //////////////////////////////////////////////////////////////////////////////

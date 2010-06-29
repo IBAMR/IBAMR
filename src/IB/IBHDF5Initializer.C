@@ -1,5 +1,5 @@
 // Filename: IBHDF5Initializer.C
-// Last modified: <01.Mar.2010 16:07:31 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <27.Jun.2010 16:00:34 griffith@griffith-macbook-pro.local>
 // Created on 26 Sep 2006 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBHDF5Initializer.h"
@@ -21,6 +21,7 @@
 #include <ibamr/IBInstrumentationSpec.h>
 #include <ibamr/IBSpringForceSpec.h>
 #include <ibamr/IBTargetPointForceSpec.h>
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/IndexUtilities.h>
@@ -109,7 +110,7 @@ file_info(
 
 IBHDF5Initializer::IBHDF5Initializer(
     const std::string& object_name,
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+    Pointer<Database> input_db)
     : d_object_name(object_name),
       d_use_file_batons(true),
       d_max_levels(-1),
@@ -158,7 +159,7 @@ IBHDF5Initializer::IBHDF5Initializer(
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(!input_db.isNull());
 #endif
-    // Register the specification objects with the IBTK::StashableManager class.
+    // Register the specification objects with the StashableManager class.
     IBSpringForceSpec::registerWithStashableManager();
     IBBeamForceSpec::registerWithStashableManager();
     IBTargetPointForceSpec::registerWithStashableManager();
@@ -185,7 +186,7 @@ IBHDF5Initializer::getLevelHasLagrangianData(
 
 int
 IBHDF5Initializer::getLocalNodeCountOnPatchLevel(
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
     const bool can_be_refined,
@@ -206,14 +207,14 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
     const int lag_node_index_idx,
     const int global_index_offset,
     const int local_index_offset,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& X_data,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& U_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    Pointer<LNodeLevelData>& X_data,
+    Pointer<LNodeLevelData>& U_data,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     if (!can_be_refined && level_number != d_max_levels-1)
     {
@@ -224,13 +225,13 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
     buildLevelDataCache(hierarchy, level_number, init_data_time, can_be_refined, initial_time);
 
     // Determine the extents of the physical domain.
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
     const double* const gridXLower = grid_geom->getXLower();
     const double* const gridXUpper = grid_geom->getXUpper();
 
     // Loop over all vertices in the specified level and initialize the data in
     // the appropriate Cartesian grid patches.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
     const int num_filenames = d_filenames[level_number].size();
     int local_idx = -1;
     int local_node_count = 0;
@@ -240,7 +241,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
         {
             const std::vector<double>& X = d_level_posns[j][k];
             const std::pair<int,int>& vertex_idx = d_level_vertex_idxs[j][k];
-            const SAMRAI::hier::Index<NDIM>& i = d_level_cell_idxs[j][k];
+            const Index<NDIM>& i = d_level_cell_idxs[j][k];
             const int patch_num = d_level_patch_nums[j][k];
 
             // Compute the index information for the present vertex.
@@ -272,8 +273,8 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
             }
 
             // Ensure the point lies with the present grid patch.
-            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(patch_num);
-            const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
+            Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom =
                 patch->getPatchGeometry();
             const double* const patchXLower = patch_geom->getXLower();
             const double* const patchXUpper = patch_geom->getXUpper();
@@ -307,11 +308,11 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
 
             // Initialize the specification objects associated with the present
             // vertex.
-            std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> > vertex_specs = initializeSpecs(
+            std::vector<Pointer<Stashable> > vertex_specs = initializeSpecs(
                 std::make_pair(j,k), vertex_idx, global_index_offset);
 
             // Initialize the LNodeIndex data.
-            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
+            const Box<NDIM>& patch_box = patch->getBox();
             if (!patch_box.contains(i))
             {
                 TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
@@ -323,15 +324,15 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
                            << "  assigned patch number = " << patch_num << "\n"
                            << "  assigned patch box = " << patch_box << "\n");
             }
-            SAMRAI::tbox::Pointer<IBTK::LNodeIndexData> index_data = patch->getPatchData(lag_node_index_idx);
+            Pointer<LNodeIndexData> index_data = patch->getPatchData(lag_node_index_idx);
             if (!index_data->isElement(i))
             {
-                index_data->appendItemPointer(i, new IBTK::LNodeIndexSet());
+                index_data->appendItemPointer(i, new LNodeIndexSet());
             }
-            IBTK::LNodeIndexSet* const node_set = index_data->getItem(i);
-            const SAMRAI::hier::IntVector<NDIM> periodic_offset(0);
+            LNodeIndexSet* const node_set = index_data->getItem(i);
+            const IntVector<NDIM> periodic_offset(0);
             const std::vector<double> periodic_displacement(NDIM,0.0);
-            node_set->push_back(new IBTK::LNodeIndex(current_global_idx, current_local_idx, &(*X_data)(current_local_idx), periodic_offset, periodic_displacement, vertex_specs));
+            node_set->push_back(new LNodeIndex(current_global_idx, current_local_idx, &(*X_data)(current_local_idx), periodic_offset, periodic_displacement, vertex_specs));
         }
     }
 
@@ -366,14 +367,14 @@ int
 IBHDF5Initializer::initializeMassDataOnPatchLevel(
     const int global_index_offset,
     const int local_index_offset,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& M_data,
-    SAMRAI::tbox::Pointer<IBTK::LNodeLevelData>& K_data,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    Pointer<LNodeLevelData>& M_data,
+    Pointer<LNodeLevelData>& K_data,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    IBTK::LDataManager* const lag_manager)
+    LDataManager* const lag_manager)
 {
     TBOX_ERROR(d_object_name << "::initializeMassDataOnPatchLevel():\n  Not implemented.\n");
     int local_node_count = 0;
@@ -382,21 +383,21 @@ IBHDF5Initializer::initializeMassDataOnPatchLevel(
 
 void
 IBHDF5Initializer::tagCellsForInitialRefinement(
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double error_data_time,
     const int tag_index)
 {
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > tag_level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel<NDIM> > tag_level = hierarchy->getPatchLevel(level_number);
 
     // Tag cells for refinement whenever there are vertices whose initial
     // locations lie within the index space of the given patch, but on the finer
     // levels of the AMR patch hierarchy.
-    std::vector<SAMRAI::hier::Index<NDIM> > cell_idxs;
+    std::vector<Index<NDIM> > cell_idxs;
     std::vector<int> patch_nums;
     for (int ln = level_number+1; ln < d_max_levels; ++ln)
     {
-        std::vector<SAMRAI::hier::Index<NDIM> > level_cell_idxs;
+        std::vector<Index<NDIM> > level_cell_idxs;
         std::vector<int> level_patch_nums;
         findLocalPatchIndices(level_cell_idxs, level_patch_nums, ln, tag_level);
         cell_idxs.insert(cell_idxs.end(),level_cell_idxs.begin(),level_cell_idxs.end());
@@ -406,10 +407,10 @@ IBHDF5Initializer::tagCellsForInitialRefinement(
     const int num_vertex = cell_idxs.size();
     for (int k = 0; k < num_vertex; ++k)
     {
-        const SAMRAI::hier::Index<NDIM>& i = cell_idxs[k];
+        const Index<NDIM>& i = cell_idxs[k];
         const int patch_num = patch_nums[k];
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,int> > tag_data = tag_level->getPatch(patch_num)->getPatchData(tag_index);
-        const SAMRAI::hier::Box<NDIM>& patch_box = tag_data->getBox();
+        Pointer<CellData<NDIM,int> > tag_data = tag_level->getPatch(patch_num)->getPatchData(tag_index);
+        const Box<NDIM>& patch_box = tag_data->getBox();
         if (!patch_box.contains(i))
         {
             TBOX_ERROR(d_object_name << "::tagCellsForInitialRefinement():\n"
@@ -430,16 +431,16 @@ IBHDF5Initializer::tagCellsForInitialRefinement(
 
 void
 IBHDF5Initializer::findLocalPatchIndices(
-    std::vector<SAMRAI::hier::Index<NDIM> >& cell_idxs,
+    std::vector<Index<NDIM> >& cell_idxs,
     std::vector<int>& patch_nums,
     const int level_number,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level) const
+    const Pointer<PatchLevel<NDIM> > level) const
 {
     cell_idxs.clear();
     patch_nums.clear();
 
-    const int rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
+    const int rank = SAMRAI_MPI::getRank();
+    const int nodes = SAMRAI_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -447,7 +448,7 @@ IBHDF5Initializer::findLocalPatchIndices(
     for (int j = 0; j < num_filenames; ++j)
     {
         // Wait for the previous MPI process to finish reading the current file.
-        if (d_use_file_batons && rank != 0) SAMRAI::tbox::SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
+        if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
         std::string filename = d_filenames[level_number][j];
         const std::string postfix = ".h5";
@@ -466,12 +467,12 @@ IBHDF5Initializer::findLocalPatchIndices(
         }
         else
         {
-            SAMRAI::tbox::plog << d_object_name << ":  "
-                               << "processing vertex data from input filename " << filename << "\n"
-                               << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << "\n";
+            plog << d_object_name << ":  "
+                 << "processing vertex data from input filename " << filename << "\n"
+                 << "  on MPI process " << SAMRAI_MPI::getRank() << "\n";
         }
 
-        std::vector<SAMRAI::hier::Index<NDIM> > file_cell_idxs;
+        std::vector<Index<NDIM> > file_cell_idxs;
         std::vector<int> file_patch_nums;
         findLocalPatchIndicesFromHDF5(
             file_cell_idxs, file_patch_nums,
@@ -482,21 +483,21 @@ IBHDF5Initializer::findLocalPatchIndices(
         H5Fclose(file_id);
 
         // Free the next MPI process to start reading the current file.
-        if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
+        if (d_use_file_batons && rank != nodes-1) SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
     }
 
     // Synchronize the processes.
-    if (d_use_file_batons) SAMRAI::tbox::SAMRAI_MPI::barrier();
+    if (d_use_file_batons) SAMRAI_MPI::barrier();
     return;
 }// findLocalPatchIndices
 
 void
 IBHDF5Initializer::findLocalPatchIndicesFromHDF5(
-    std::vector<SAMRAI::hier::Index<NDIM> >& cell_idxs,
+    std::vector<Index<NDIM> >& cell_idxs,
     std::vector<int>& patch_nums,
     const hid_t file_id,
     const std::string& base_group_name,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
+    const Pointer<PatchLevel<NDIM> > level,
     const std::string& filename) const
 {
     cell_idxs.clear();
@@ -574,10 +575,10 @@ IBHDF5Initializer::findLocalPatchIndicesFromHDF5(
             for (int k = 0; k < num_vertex_block; ++k)
             {
                 const double* const X = &posn_buf[NDIM*k];
-                for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
-                    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                    const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom =
                         patch->getPatchGeometry();
                     const double* const xLower = patch_geom->getXLower();
                     const double* const xUpper = patch_geom->getXUpper();
@@ -593,10 +594,10 @@ IBHDF5Initializer::findLocalPatchIndicesFromHDF5(
                     if (patch_owns_node)
                     {
                         const double* const dx = patch_geom->getDx();
-                        const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                        const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
-                        const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
-                        const SAMRAI::hier::Index<NDIM> i = IBTK::IndexUtilities::getCellIndex(
+                        const Box<NDIM>& patch_box = patch->getBox();
+                        const Index<NDIM>& patch_lower = patch_box.lower();
+                        const Index<NDIM>& patch_upper = patch_box.upper();
+                        const Index<NDIM> i = IndexUtilities::getCellIndex(
                             X, xLower, xUpper, dx, patch_lower, patch_upper);
                         cell_idxs.push_back(i);
                         patch_nums.push_back(p());
@@ -622,7 +623,7 @@ IBHDF5Initializer::findLocalPatchIndicesFromHDF5(
 
 void
 IBHDF5Initializer::buildLevelDataCache(
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
     const bool can_be_refined,
@@ -637,8 +638,8 @@ IBHDF5Initializer::buildLevelDataCache(
         return;
     }
 
-    const int rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
+    const int rank = SAMRAI_MPI::getRank();
+    const int nodes = SAMRAI_MPI::getNodes();
     int flag = 1;
     int sz = 1;
 
@@ -668,11 +669,11 @@ IBHDF5Initializer::buildLevelDataCache(
     d_level_num_local_inst_point  .resize(num_filenames,0);
     d_level_inst_point_data_map   .resize(num_filenames);
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
     for (int j = 0; j < num_filenames; ++j)
     {
         // Wait for the previous MPI process to finish reading the current file.
-        if (d_use_file_batons && rank != 0) SAMRAI::tbox::SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
+        if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
         std::string filename = d_filenames[level_number][j];
         const std::string postfix = ".h5";
@@ -691,9 +692,9 @@ IBHDF5Initializer::buildLevelDataCache(
         }
         else
         {
-            SAMRAI::tbox::plog << d_object_name << ":  "
-                               << "processing vertex data from input filename " << filename << "\n"
-                               << "  on MPI process " << SAMRAI::tbox::SAMRAI_MPI::getRank() << "\n";
+            plog << d_object_name << ":  "
+                 << "processing vertex data from input filename " << filename << "\n"
+                 << "  on MPI process " << SAMRAI_MPI::getRank() << "\n";
         }
 
         // Check the file contents.
@@ -709,7 +710,7 @@ IBHDF5Initializer::buildLevelDataCache(
 
             std::vector<std::vector<double> >&       posns       = d_level_posns      [j];
             std::vector<std::pair<int,int> >&        vertex_idxs = d_level_vertex_idxs[j];
-            std::vector<SAMRAI::hier::Index<NDIM> >& cell_idxs   = d_level_cell_idxs  [j];
+            std::vector<Index<NDIM> >& cell_idxs   = d_level_cell_idxs  [j];
             std::vector<int>&                        patch_nums  = d_level_patch_nums [j];
 
             if (j == 0)
@@ -734,7 +735,7 @@ IBHDF5Initializer::buildLevelDataCache(
         {
             int& num_spring       = d_level_num_spring      [j];
             int& num_local_spring = d_level_num_local_spring[j];
-            std::map<int,SAMRAI::tbox::Pointer<IBSpringForceSpec> >& spring_data_map = d_level_spring_data_map[j];
+            std::map<int,Pointer<IBSpringForceSpec> >& spring_data_map = d_level_spring_data_map[j];
 
             buildLevelSpringDataCacheFromHDF5(
                 num_spring, num_local_spring, spring_data_map,
@@ -749,7 +750,7 @@ IBHDF5Initializer::buildLevelDataCache(
         {
             int& num_beam       = d_level_num_beam      [j];
             int& num_local_beam = d_level_num_local_beam[j];
-            std::map<int,SAMRAI::tbox::Pointer<IBBeamForceSpec> >& beam_data_map = d_level_beam_data_map[j];
+            std::map<int,Pointer<IBBeamForceSpec> >& beam_data_map = d_level_beam_data_map[j];
 
             buildLevelBeamDataCacheFromHDF5(
                 num_beam, num_local_beam, beam_data_map,
@@ -764,7 +765,7 @@ IBHDF5Initializer::buildLevelDataCache(
         {
             int& num_target_point       = d_level_num_target_point      [j];
             int& num_local_target_point = d_level_num_local_target_point[j];
-            std::map<int,SAMRAI::tbox::Pointer<IBTargetPointForceSpec> >& target_point_data_map = d_level_target_point_data_map[j];
+            std::map<int,Pointer<IBTargetPointForceSpec> >& target_point_data_map = d_level_target_point_data_map[j];
 
             buildLevelTargetPointDataCacheFromHDF5(
                 num_target_point, num_local_target_point, target_point_data_map,
@@ -780,7 +781,7 @@ IBHDF5Initializer::buildLevelDataCache(
             std::vector<std::string>& instrument_names = d_instrument_names[level_number][j];
             int& num_inst_point       = d_level_num_inst_point      [j];
             int& num_local_inst_point = d_level_num_local_inst_point[j];
-            std::map<int,SAMRAI::tbox::Pointer<IBInstrumentationSpec> >& inst_point_data_map = d_level_inst_point_data_map[j];
+            std::map<int,Pointer<IBInstrumentationSpec> >& inst_point_data_map = d_level_inst_point_data_map[j];
 
             buildLevelInstrumentationDataCacheFromHDF5(
                 instrument_names, num_inst_point, num_local_inst_point, inst_point_data_map,
@@ -794,29 +795,29 @@ IBHDF5Initializer::buildLevelDataCache(
         H5Fclose(file_id);
 
         // Free the next MPI process to start reading the current file.
-        if (d_use_file_batons && rank != nodes-1) SAMRAI::tbox::SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
+        if (d_use_file_batons && rank != nodes-1) SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
     }
 
     // Sanity checks.
     const int level_num_vertex_sum = std::accumulate(d_level_num_vertex.begin(),d_level_num_vertex.end(),0);
     const int level_num_local_vertex_sum = std::accumulate(d_level_num_local_vertex.begin(),d_level_num_local_vertex.end(),0);
-    TBOX_ASSERT(level_num_vertex_sum == SAMRAI::tbox::SAMRAI_MPI::sumReduction(level_num_local_vertex_sum));
+    TBOX_ASSERT(level_num_vertex_sum == SAMRAI_MPI::sumReduction(level_num_local_vertex_sum));
 
     const int level_num_spring_sum = std::accumulate(d_level_num_spring.begin(),d_level_num_spring.end(),0);
     const int level_num_local_spring_sum = std::accumulate(d_level_num_local_spring.begin(),d_level_num_local_spring.end(),0);
-    TBOX_ASSERT(level_num_spring_sum == SAMRAI::tbox::SAMRAI_MPI::sumReduction(level_num_local_spring_sum));
+    TBOX_ASSERT(level_num_spring_sum == SAMRAI_MPI::sumReduction(level_num_local_spring_sum));
 
     const int level_num_beam_sum = std::accumulate(d_level_num_beam.begin(),d_level_num_beam.end(),0);
     const int level_num_local_beam_sum = std::accumulate(d_level_num_local_beam.begin(),d_level_num_local_beam.end(),0);
-    TBOX_ASSERT(level_num_beam_sum == SAMRAI::tbox::SAMRAI_MPI::sumReduction(level_num_local_beam_sum));
+    TBOX_ASSERT(level_num_beam_sum == SAMRAI_MPI::sumReduction(level_num_local_beam_sum));
 
     const int level_num_target_point_sum = std::accumulate(d_level_num_target_point.begin(),d_level_num_target_point.end(),0);
     const int level_num_local_target_point_sum = std::accumulate(d_level_num_local_target_point.begin(),d_level_num_local_target_point.end(),0);
-    TBOX_ASSERT(level_num_target_point_sum == SAMRAI::tbox::SAMRAI_MPI::sumReduction(level_num_local_target_point_sum));
+    TBOX_ASSERT(level_num_target_point_sum == SAMRAI_MPI::sumReduction(level_num_local_target_point_sum));
 
     const int level_num_inst_point_sum = std::accumulate(d_level_num_inst_point.begin(),d_level_num_inst_point.end(),0);
     const int level_num_local_inst_point_sum = std::accumulate(d_level_num_local_inst_point.begin(),d_level_num_local_inst_point.end(),0);
-    TBOX_ASSERT(level_num_inst_point_sum == SAMRAI::tbox::SAMRAI_MPI::sumReduction(level_num_local_inst_point_sum));
+    TBOX_ASSERT(level_num_inst_point_sum == SAMRAI_MPI::sumReduction(level_num_local_inst_point_sum));
     return;
 }// buildLevelDataCache
 
@@ -826,12 +827,12 @@ IBHDF5Initializer::buildLevelVertexDataCacheFromHDF5(
     int& num_local_vertex,
     std::vector<std::vector<double> >& posns,
     std::vector<std::pair<int,int> >& vertex_idxs,
-    std::vector<SAMRAI::hier::Index<NDIM> >& cell_idxs,
+    std::vector<Index<NDIM> >& cell_idxs,
     std::vector<int>& patch_nums,
     std::set<int>& local_vertex_idx_set,
     const hid_t file_id,
     const std::string& base_group_name,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
+    const Pointer<PatchLevel<NDIM> > level,
     const std::string& filename,
     const int file_number,
     const int num_files) const
@@ -914,10 +915,10 @@ IBHDF5Initializer::buildLevelVertexDataCacheFromHDF5(
             for (int k = 0; k < num_vertex_block; ++k)
             {
                 const double* const X = &posn_buf[NDIM*k];
-                for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
-                    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch = level->getPatch(p());
-                    const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom =
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom =
                         patch->getPatchGeometry();
                     const double* const xLower = patch_geom->getXLower();
                     const double* const xUpper = patch_geom->getXUpper();
@@ -935,10 +936,10 @@ IBHDF5Initializer::buildLevelVertexDataCacheFromHDF5(
                         ++num_local_vertex;
 
                         const double* const dx = patch_geom->getDx();
-                        const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-                        const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
-                        const SAMRAI::hier::Index<NDIM>& patch_upper = patch_box.upper();
-                        const SAMRAI::hier::Index<NDIM> i = IBTK::IndexUtilities::getCellIndex(
+                        const Box<NDIM>& patch_box = patch->getBox();
+                        const Index<NDIM>& patch_lower = patch_box.lower();
+                        const Index<NDIM>& patch_upper = patch_box.upper();
+                        const Index<NDIM> i = IndexUtilities::getCellIndex(
                             X, xLower, xUpper, dx, patch_lower, patch_upper);
 
                         const int index = k+index_offset;
@@ -973,11 +974,11 @@ void
 IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
     int& num_spring,
     int& num_local_spring,
-    std::map<int,SAMRAI::tbox::Pointer<IBSpringForceSpec> >& spring_data_map,
+    std::map<int,Pointer<IBSpringForceSpec> >& spring_data_map,
     const std::set<int>& local_vertex_idx_set,
     const hid_t file_id,
     const std::string& base_group_name,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
+    const Pointer<PatchLevel<NDIM> > level,
     const std::string& filename,
     const int file_number,
     const int num_files) const
@@ -1163,13 +1164,13 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
                 {
                     ++num_local_spring;
 
-                    std::map<int,SAMRAI::tbox::Pointer<IBSpringForceSpec> >::iterator it = spring_data_map.find(node1_idx);
+                    std::map<int,Pointer<IBSpringForceSpec> >::iterator it = spring_data_map.find(node1_idx);
                     if (it == spring_data_map.end())
                     {
                         it = spring_data_map.insert(spring_data_map.end(), std::make_pair(node1_idx,new IBSpringForceSpec()));
                     }
 
-                    SAMRAI::tbox::Pointer<IBSpringForceSpec> old_spring_data = (*it).second;
+                    Pointer<IBSpringForceSpec> old_spring_data = (*it).second;
                     TBOX_ASSERT(old_spring_data->getMasterNodeIndex() == -1 ||
                                 old_spring_data->getMasterNodeIndex() == node1_idx);
 
@@ -1183,7 +1184,7 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
                     stiffnesses   .push_back(stiffness    );
                     rest_lengths  .push_back(rest_length  );
 
-                    SAMRAI::tbox::Pointer<IBSpringForceSpec> new_spring_data = new IBSpringForceSpec(
+                    Pointer<IBSpringForceSpec> new_spring_data = new IBSpringForceSpec(
                         node1_idx, slave_idxs, force_fcn_idxs, stiffnesses, rest_lengths);
 
                     (*it).second = new_spring_data;
@@ -1213,11 +1214,11 @@ void
 IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
     int& num_beam,
     int& num_local_beam,
-    std::map<int,SAMRAI::tbox::Pointer<IBBeamForceSpec> >& beam_data_map,
+    std::map<int,Pointer<IBBeamForceSpec> >& beam_data_map,
     const std::set<int>& local_vertex_idx_set,
     const hid_t file_id,
     const std::string& base_group_name,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
+    const Pointer<PatchLevel<NDIM> > level,
     const std::string& filename,
     const int file_number,
     const int num_files) const
@@ -1430,13 +1431,13 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
                 {
                     ++num_local_beam;
 
-                    std::map<int,SAMRAI::tbox::Pointer<IBBeamForceSpec> >::iterator it = beam_data_map.find(node2_idx);
+                    std::map<int,Pointer<IBBeamForceSpec> >::iterator it = beam_data_map.find(node2_idx);
                     if (it == beam_data_map.end())
                     {
                         it = beam_data_map.insert(beam_data_map.end(), std::make_pair(node2_idx,new IBBeamForceSpec()));
                     }
 
-                    SAMRAI::tbox::Pointer<IBBeamForceSpec> old_beam_data = (*it).second;
+                    Pointer<IBBeamForceSpec> old_beam_data = (*it).second;
                     TBOX_ASSERT(old_beam_data->getMasterNodeIndex() == -1 ||
                                 old_beam_data->getMasterNodeIndex() == node2_idx);
 
@@ -1448,7 +1449,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
                     bend_rigidities.push_back(bend_rigidity                      );
                     rest_curvatures.push_back(rest_curvature                     );
 
-                    SAMRAI::tbox::Pointer<IBBeamForceSpec> new_beam_data = new IBBeamForceSpec(
+                    Pointer<IBBeamForceSpec> new_beam_data = new IBBeamForceSpec(
                         node2_idx, neighbor_idxs, bend_rigidities, rest_curvatures);
 
                     (*it).second = new_beam_data;
@@ -1481,11 +1482,11 @@ void
 IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
     int& num_target_point,
     int& num_local_target_point,
-    std::map<int,SAMRAI::tbox::Pointer<IBTargetPointForceSpec> >& target_point_data_map,
+    std::map<int,Pointer<IBTargetPointForceSpec> >& target_point_data_map,
     const std::set<int>& local_vertex_idx_set,
     const hid_t file_id,
     const std::string& base_group_name,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
+    const Pointer<PatchLevel<NDIM> > level,
     const std::string& filename,
     const int file_number,
     const int num_files) const
@@ -1620,8 +1621,8 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
                 {
                     ++num_local_target_point;
 
-                    SAMRAI::tbox::Pointer<IBTargetPointForceSpec> target_point_data;
-                    std::map<int,SAMRAI::tbox::Pointer<IBTargetPointForceSpec> >::iterator it = target_point_data_map.find(node_idx);
+                    Pointer<IBTargetPointForceSpec> target_point_data;
+                    std::map<int,Pointer<IBTargetPointForceSpec> >::iterator it = target_point_data_map.find(node_idx);
                     if (it == target_point_data_map.end())
                     {
                         target_point_data = (*target_point_data_map.insert(target_point_data_map.end(), std::make_pair(node_idx,new IBTargetPointForceSpec()))).second;
@@ -1660,11 +1661,11 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
     std::vector<std::string>& instrument_names,
     int& num_inst_point,
     int& num_local_inst_point,
-    std::map<int,SAMRAI::tbox::Pointer<IBInstrumentationSpec> >& inst_point_data_map,
+    std::map<int,Pointer<IBInstrumentationSpec> >& inst_point_data_map,
     const std::set<int>& local_vertex_idx_set,
     const hid_t file_id,
     const std::string& base_group_name,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
+    const Pointer<PatchLevel<NDIM> > level,
     const std::string& filename,
     const int file_number,
     const int num_files) const
@@ -1822,8 +1823,8 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
                 {
                     ++num_local_inst_point;
 
-                    SAMRAI::tbox::Pointer<IBInstrumentationSpec> inst_point_data;
-                    std::map<int,SAMRAI::tbox::Pointer<IBInstrumentationSpec> >::iterator it = inst_point_data_map.find(node_idx);
+                    Pointer<IBInstrumentationSpec> inst_point_data;
+                    std::map<int,Pointer<IBInstrumentationSpec> >::iterator it = inst_point_data_map.find(node_idx);
                     if (it == inst_point_data_map.end())
                     {
                         inst_point_data = (*inst_point_data_map.insert(inst_point_data_map.end(), std::make_pair(node_idx,new IBInstrumentationSpec()))).second;
@@ -1892,13 +1893,13 @@ IBHDF5Initializer::clearLevelDataCache()
     return;
 }// clearLevelDataCache
 
-std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >
+std::vector<Pointer<Stashable> >
 IBHDF5Initializer::initializeSpecs(
     const std::pair<int,int>& local_vertex_idx,
     const std::pair<int,int>& global_vertex_idx,
     const int global_index_offset)
 {
-    std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> > vertex_specs;
+    std::vector<Pointer<Stashable> > vertex_specs;
 
     const int& ln = d_cache_level_number;
     const int& j_local = local_vertex_idx.first;
@@ -1913,11 +1914,11 @@ IBHDF5Initializer::initializeSpecs(
     // Initialize any spring specifications associated with the present vertex.
     if (d_enable_springs[ln][j])
     {
-        std::map<int,SAMRAI::tbox::Pointer<IBSpringForceSpec> >::const_iterator cit =
+        std::map<int,Pointer<IBSpringForceSpec> >::const_iterator cit =
             d_level_spring_data_map[j].find(k);
         if (cit != d_level_spring_data_map[j].end())
         {
-            SAMRAI::tbox::Pointer<IBSpringForceSpec> spring_data = (*cit).second;
+            Pointer<IBSpringForceSpec> spring_data = (*cit).second;
             if (specs_need_reset)
             {
                 if (d_using_uniform_spring_force_fcn_idx[ln][j])
@@ -1950,11 +1951,11 @@ IBHDF5Initializer::initializeSpecs(
     // Initialize any beam specifications associated with the present vertex.
     if (d_enable_beams[ln][j])
     {
-        std::map<int,SAMRAI::tbox::Pointer<IBBeamForceSpec> >::const_iterator cit =
+        std::map<int,Pointer<IBBeamForceSpec> >::const_iterator cit =
             d_level_beam_data_map[j].find(k);
         if (cit != d_level_beam_data_map[j].end())
         {
-            SAMRAI::tbox::Pointer<IBBeamForceSpec> beam_data = (*cit).second;
+            Pointer<IBBeamForceSpec> beam_data = (*cit).second;
             if (specs_need_reset)
             {
                 if (d_using_uniform_beam_bend_rigidity[ln][j])
@@ -1981,7 +1982,7 @@ IBHDF5Initializer::initializeSpecs(
     {
         if (d_using_uniform_target_stiffness[ln][j] && d_using_uniform_target_damping[ln][j])
         {
-            SAMRAI::tbox::Pointer<IBTargetPointForceSpec> target_point_data = new IBTargetPointForceSpec(
+            Pointer<IBTargetPointForceSpec> target_point_data = new IBTargetPointForceSpec(
                 k+vertex_offset, d_uniform_target_stiffness[ln][j], d_uniform_target_damping[ln][j], d_level_posns[j_local][k_local]);
             vertex_specs.push_back(target_point_data);
         }
@@ -1991,11 +1992,11 @@ IBHDF5Initializer::initializeSpecs(
         }
         else
         {
-            std::map<int,SAMRAI::tbox::Pointer<IBTargetPointForceSpec> >::const_iterator cit =
+            std::map<int,Pointer<IBTargetPointForceSpec> >::const_iterator cit =
                 d_level_target_point_data_map[j].find(k);
             if (cit != d_level_target_point_data_map[j].end())
             {
-                SAMRAI::tbox::Pointer<IBTargetPointForceSpec> target_point_data = (*cit).second;
+                Pointer<IBTargetPointForceSpec> target_point_data = (*cit).second;
                 if (specs_need_reset)
                 {
                     target_point_data->getMasterNodeIndex() += vertex_offset;
@@ -2024,11 +2025,11 @@ IBHDF5Initializer::initializeSpecs(
 
     if (d_enable_instrumentation[ln][j])
     {
-        std::map<int,SAMRAI::tbox::Pointer<IBInstrumentationSpec> >::const_iterator cit =
+        std::map<int,Pointer<IBInstrumentationSpec> >::const_iterator cit =
             d_level_inst_point_data_map[j].find(k);
         if (cit != d_level_inst_point_data_map[j].end())
         {
-            SAMRAI::tbox::Pointer<IBInstrumentationSpec> inst_point_data = (*cit).second;
+            Pointer<IBInstrumentationSpec> inst_point_data = (*cit).second;
             if (specs_need_reset)
             {
                 inst_point_data->getMasterNodeIndex() += vertex_offset;
@@ -2046,7 +2047,7 @@ IBHDF5Initializer::initializeSpecs(
 
 void
 IBHDF5Initializer::getFromInput(
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
+    Pointer<Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
@@ -2155,7 +2156,7 @@ IBHDF5Initializer::getFromInput(
             const std::string& filename = d_filenames[ln][j];
             if (db->isDatabase(filename))
             {
-                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> sub_db = db->getDatabase(filename);
+                Pointer<Database> sub_db = db->getDatabase(filename);
 
                 // Determine whether to enable or disable any particular
                 // features.
@@ -2247,75 +2248,75 @@ IBHDF5Initializer::getFromInput(
 
     // Output the names of the input files to be read along with additional
     // debugging information.
-    SAMRAI::tbox::pout << d_object_name << ":  Reading from input files: \n";
+    pout << d_object_name << ":  Reading from input files: \n";
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_filenames = d_filenames[ln].size();
         for (int j = 0; j < num_filenames; ++j)
         {
             const std::string& filename = d_filenames[ln][j];
-            SAMRAI::tbox::pout << "  filename: " << filename << "\n"
-                               << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy\n";
+            pout << "  filename: " << filename << "\n"
+                 << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy\n";
             if (!d_enable_springs[ln][j])
             {
-                SAMRAI::tbox::pout << "  NOTE: spring forces are DISABLED for " << filename << "\n";
+                pout << "  NOTE: spring forces are DISABLED for " << filename << "\n";
             }
             else
             {
                 if (d_using_uniform_spring_stiffness[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform spring stiffnesses are being employed for the structure named " << filename << "\n"
-                                       << "        any stiffness information in input file " << filename << " will be IGNORED\n";
+                    pout << "  NOTE: uniform spring stiffnesses are being employed for the structure named " << filename << "\n"
+                         << "        any stiffness information in input file " << filename << " will be IGNORED\n";
                 }
                 if (d_using_uniform_spring_rest_length[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform spring resting lengths are being employed for the structure named " << filename << "\n"
-                                       << "        any resting length information in input file " << filename << " will be IGNORED\n";
+                    pout << "  NOTE: uniform spring resting lengths are being employed for the structure named " << filename << "\n"
+                         << "        any resting length information in input file " << filename << " will be IGNORED\n";
                 }
                 if (d_using_uniform_spring_force_fcn_idx[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform spring force functions are being employed for the structure named " << filename << "\n"
-                                       << "        any force function index information in input file " << filename << " will be IGNORED\n";
+                    pout << "  NOTE: uniform spring force functions are being employed for the structure named " << filename << "\n"
+                         << "        any force function index information in input file " << filename << " will be IGNORED\n";
                 }
             }
 
             if (!d_enable_beams[ln][j])
             {
-                SAMRAI::tbox::pout << "  NOTE: beam forces are DISABLED for " << filename << "\n";
+                pout << "  NOTE: beam forces are DISABLED for " << filename << "\n";
             }
             else
             {
                 if (d_using_uniform_beam_bend_rigidity[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform beam bending rigidities are being employed for the structure named " << filename << "\n"
-                                       << "        any stiffness information in input file " << filename << " will be IGNORED\n";
+                    pout << "  NOTE: uniform beam bending rigidities are being employed for the structure named " << filename << "\n"
+                         << "        any stiffness information in input file " << filename << " will be IGNORED\n";
                 }
             }
 
             if (!d_enable_target_points[ln][j])
             {
-                SAMRAI::tbox::pout << "  NOTE: target point penalty forces are DISABLED for " << filename << "\n";
+                pout << "  NOTE: target point penalty forces are DISABLED for " << filename << "\n";
             }
             else
             {
                 if (d_using_uniform_target_stiffness[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform target point stiffnesses are being employed for the structure named " << filename << "\n"
-                                       << "        any target point stiffness information in input file " << filename << " will be IGNORED\n";
+                    pout << "  NOTE: uniform target point stiffnesses are being employed for the structure named " << filename << "\n"
+                         << "        any target point stiffness information in input file " << filename << " will be IGNORED\n";
                 }
                 if (d_using_uniform_target_damping[ln][j])
                 {
-                    SAMRAI::tbox::pout << "  NOTE: uniform target point damping factors are being employed for the structure named " << filename << "\n"
-                                       << "        any target point damping factor information in input file " << filename << " will be IGNORED\n";
+                    pout << "  NOTE: uniform target point damping factors are being employed for the structure named " << filename << "\n"
+                         << "        any target point damping factor information in input file " << filename << " will be IGNORED\n";
                 }
             }
 
             if (!d_enable_instrumentation[ln][j])
             {
-                SAMRAI::tbox::pout << "  NOTE: instrumentation is DISABLED for " << filename << "\n";
+                pout << "  NOTE: instrumentation is DISABLED for " << filename << "\n";
             }
 
-            SAMRAI::tbox::pout << "\n";
+            pout << "\n";
         }
     }
     return;
@@ -2328,6 +2329,6 @@ IBHDF5Initializer::getFromInput(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBHDF5Initializer>;
+template class Pointer<IBAMR::IBHDF5Initializer>;
 
 //////////////////////////////////////////////////////////////////////////////

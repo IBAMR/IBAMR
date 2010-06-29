@@ -2,7 +2,7 @@
 #define included_INSStaggeredStokesOperator
 
 // Filename: INSStaggeredStokesOperator.h
-// Last modified: <12.Aug.2009 18:21:38 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <15.Jun.2010 11:51:15 griffith@boyce-griffiths-mac-pro.local>
 // Created on 29 Mar 2008 by Boyce Griffith (griffith@box230.cims.nyu.edu)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -22,7 +22,7 @@ namespace IBAMR
 {
 /*!
  * \brief Class INSStaggeredStokesOperator is a concrete IBTK::LinearOperator
- * which implements a staggered grid (MAC) discretization of the incompressible
+ * which implements a staggered-grid (MAC) discretization of the incompressible
  * Stokes operator.
  *
  * This class is intended to be used with an iterative (Krylov or Newton-Krylov)

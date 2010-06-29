@@ -1,5 +1,5 @@
 // Filename: IBTargetPointForceSpec.C
-// Last modified: <15.Dec.2009 19:23:04 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <27.Jun.2010 15:31:18 griffith@griffith-macbook-pro.local>
 // Created on 21 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBTargetPointForceSpec.h"
@@ -18,6 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBTargetPointForceSpecFactory.h>
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/StashableManager.h>
@@ -31,9 +32,8 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-bool               IBTargetPointForceSpec::s_registered_factory = false;
-int                IBTargetPointForceSpec::s_stashable_id = -1;
-IBTK::DynamicArena IBTargetPointForceSpec::s_arena(sizeof(IBTargetPointForceSpec));
+bool IBTargetPointForceSpec::s_registered_factory = false;
+int  IBTargetPointForceSpec::s_stashable_id = -1;
 
 void
 IBTargetPointForceSpec::registerWithStashableManager()
@@ -42,13 +42,13 @@ IBTargetPointForceSpec::registerWithStashableManager()
     // register the stashable factory with the stashable manager, and to ensure
     // that all processes employ the same stashable id for the
     // IBTargetPointForceSpec object.
-    SAMRAI::tbox::SAMRAI_MPI::barrier();
+    SAMRAI_MPI::barrier();
     if (!s_registered_factory)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(s_stashable_id == -1);
 #endif
-        s_stashable_id = IBTK::StashableManager::getManager()->registerFactory(
+        s_stashable_id = StashableManager::getManager()->registerFactory(
             new IBTargetPointForceSpecFactory());
         s_registered_factory = true;
     }
@@ -68,6 +68,6 @@ IBTargetPointForceSpec::registerWithStashableManager()
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBTargetPointForceSpec>;
+template class Pointer<IBAMR::IBTargetPointForceSpec>;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,5 @@
 // Filename: IBBeamForceSpecFactory.C
-// Last modified: <03.Sep.2008 17:28:51 griffith@box230.cims.nyu.edu>
+// Last modified: <27.Jun.2010 15:28:35 griffith@griffith-macbook-pro.local>
 // Created on 22 Mar 2007 by Boyce Griffith (griffith@box221.cims.nyu.edu)
 
 #include "IBBeamForceSpecFactory.h"
@@ -18,6 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBBeamForceSpec.h>
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/StashableManager.h>
@@ -34,7 +35,7 @@ int IBBeamForceSpecFactory::s_stashable_id = -1;
 
 IBBeamForceSpecFactory::IBBeamForceSpecFactory()
 {
-    setStashableID(IBTK::StashableManager::getUnregisteredID());
+    setStashableID(StashableManager::getUnregisteredID());
     return;
 }// IBBeamForceSpecFactory
 
@@ -58,10 +59,10 @@ IBBeamForceSpecFactory::setStashableID(
     return;
 }// setStashableID
 
-SAMRAI::tbox::Pointer<IBTK::Stashable>
+Pointer<Stashable>
 IBBeamForceSpecFactory::unpackStream(
-    SAMRAI::tbox::AbstractStream& stream,
-    const SAMRAI::hier::IntVector<NDIM>& offset)
+    AbstractStream& stream,
+    const IntVector<NDIM>& offset)
 {
     int num_beams;
     stream.unpack(&num_beams,1);
@@ -96,6 +97,6 @@ IBBeamForceSpecFactory::unpackStream(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBBeamForceSpecFactory>;
+template class Pointer<IBAMR::IBBeamForceSpecFactory>;
 
 //////////////////////////////////////////////////////////////////////////////

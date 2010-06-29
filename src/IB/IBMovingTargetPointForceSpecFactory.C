@@ -1,5 +1,5 @@
 // Filename: IBMovingTargetPointForceSpecFactory.C
-// Last modified: <14.Aug.2008 14:23:35 boyce@dm-linux.maths.gla.ac.uk>
+// Last modified: <27.Jun.2010 15:30:12 griffith@griffith-macbook-pro.local>
 // Created on 14 Aug 2008 by Boyce Griffith (boyce@dm-linux.maths.gla.ac.uk)
 
 #include "IBMovingTargetPointForceSpecFactory.h"
@@ -18,6 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBMovingTargetPointForceSpec.h>
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/StashableManager.h>
@@ -34,7 +35,7 @@ int IBMovingTargetPointForceSpecFactory::s_stashable_id = -1;
 
 IBMovingTargetPointForceSpecFactory::IBMovingTargetPointForceSpecFactory()
 {
-    setStashableID(IBTK::StashableManager::getUnregisteredID());
+    setStashableID(StashableManager::getUnregisteredID());
     return;
 }// IBMovingTargetPointForceSpecFactory
 
@@ -58,10 +59,10 @@ IBMovingTargetPointForceSpecFactory::setStashableID(
     return;
 }// setStashableID
 
-SAMRAI::tbox::Pointer<IBTK::Stashable>
+Pointer<Stashable>
 IBMovingTargetPointForceSpecFactory::unpackStream(
-    SAMRAI::tbox::AbstractStream& stream,
-    const SAMRAI::hier::IntVector<NDIM>& offset)
+    AbstractStream& stream,
+    const IntVector<NDIM>& offset)
 {
     int mastr_idx;
     stream.unpack(&mastr_idx,1);
@@ -87,6 +88,6 @@ IBMovingTargetPointForceSpecFactory::unpackStream(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBMovingTargetPointForceSpecFactory>;
+template class Pointer<IBAMR::IBMovingTargetPointForceSpecFactory>;
 
 //////////////////////////////////////////////////////////////////////////////

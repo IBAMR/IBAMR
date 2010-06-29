@@ -1,5 +1,5 @@
 // Filename: IBSpringForceSpecFactory.C
-// Last modified: <12.Mar.2008 23:03:30 griffith@box221.cims.nyu.edu>
+// Last modified: <27.Jun.2010 15:30:45 griffith@griffith-macbook-pro.local>
 // Created on 14 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBSpringForceSpecFactory.h"
@@ -18,6 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBSpringForceSpec.h>
+#include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/StashableManager.h>
@@ -34,7 +35,7 @@ int IBSpringForceSpecFactory::s_stashable_id = -1;
 
 IBSpringForceSpecFactory::IBSpringForceSpecFactory()
 {
-    setStashableID(IBTK::StashableManager::getUnregisteredID());
+    setStashableID(StashableManager::getUnregisteredID());
     return;
 }// IBSpringForceSpecFactory
 
@@ -58,10 +59,10 @@ IBSpringForceSpecFactory::setStashableID(
     return;
 }// setStashableID
 
-SAMRAI::tbox::Pointer<IBTK::Stashable>
+Pointer<Stashable>
 IBSpringForceSpecFactory::unpackStream(
-    SAMRAI::tbox::AbstractStream& stream,
-    const SAMRAI::hier::IntVector<NDIM>& offset)
+    AbstractStream& stream,
+    const IntVector<NDIM>& offset)
 {
     int num_springs;
     stream.unpack(&num_springs,1);
@@ -89,6 +90,6 @@ IBSpringForceSpecFactory::unpackStream(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class SAMRAI::tbox::Pointer<IBAMR::IBSpringForceSpecFactory>;
+template class Pointer<IBAMR::IBSpringForceSpecFactory>;
 
 //////////////////////////////////////////////////////////////////////////////

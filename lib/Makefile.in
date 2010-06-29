@@ -33,18 +33,27 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-DIST_COMMON = $(pkg_include_HEADERS) $(srcdir)/Makefile.am \
+DIST_COMMON = $(am__pkg_include_HEADERS_DIST) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(top_srcdir)/config/Make-rules
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = libIBAMR2d.a
 @SAMRAI3D_ENABLED_TRUE@am__append_2 = libIBAMR3d.a
+@LIBMESH_ENABLED_TRUE@am__append_3 = \
+@LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C
+
+@LIBMESH_ENABLED_TRUE@am__append_4 = \
+@LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.h
+
 subdir = lib
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_cxx_have_stl.m4 \
 	$(top_srcdir)/m4/ac_cxx_namespaces.m4 \
 	$(top_srcdir)/m4/acx_blas.m4 $(top_srcdir)/m4/acx_lapack.m4 \
-	$(top_srcdir)/m4/acx_mpi.m4 $(top_srcdir)/m4/lib-ld.m4 \
-	$(top_srcdir)/m4/lib-link.m4 $(top_srcdir)/m4/lib-prefix.m4 \
-	$(top_srcdir)/configure.ac
+	$(top_srcdir)/m4/acx_mpi.m4 $(top_srcdir)/m4/blitz.m4 \
+	$(top_srcdir)/m4/hdf5.m4 $(top_srcdir)/m4/hypre.m4 \
+	$(top_srcdir)/m4/lib-ld.m4 $(top_srcdir)/m4/lib-link.m4 \
+	$(top_srcdir)/m4/lib-prefix.m4 $(top_srcdir)/m4/libmesh.m4 \
+	$(top_srcdir)/m4/petsc.m4 $(top_srcdir)/m4/samrai.m4 \
+	$(top_srcdir)/m4/silo.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -62,11 +71,82 @@ LIBRARIES = $(lib_LIBRARIES)
 ARFLAGS = cru
 libIBAMR_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_a_LIBADD =
-am_libIBAMR_a_OBJECTS = godunov_helpers.$(OBJEXT) TGACoefs.$(OBJEXT)
+am_libIBAMR_a_OBJECTS = godunov_helpers.$(OBJEXT) TGACoefs.$(OBJEXT) \
+	sqrtm.$(OBJEXT)
 libIBAMR_a_OBJECTS = $(am_libIBAMR_a_OBJECTS)
 libIBAMR2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR2d_a_LIBADD =
-am__objects_1 = libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
+am__libIBAMR2d_a_SOURCES_DIST =  \
+	$(top_srcdir)/src/IB/IBAnchorPointSpec.C \
+	$(top_srcdir)/src/IB/IBAnchorPointSpecFactory.C \
+	$(top_srcdir)/src/IB/IBBeamForceGen.C \
+	$(top_srcdir)/src/IB/IBBeamForceSpec.C \
+	$(top_srcdir)/src/IB/IBBeamForceSpecFactory.C \
+	$(top_srcdir)/src/IB/IBDataPostProcessor.C \
+	$(top_srcdir)/src/IB/IBEulerianForceFunction.C \
+	$(top_srcdir)/src/IB/IBEulerianSourceFunction.C \
+	$(top_srcdir)/src/IB/IBHDF5Initializer.C \
+	$(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
+	$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C \
+	$(top_srcdir)/src/IB/IBInstrumentPanel.C \
+	$(top_srcdir)/src/IB/IBInstrumentationSpec.C \
+	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
+	$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C \
+	$(top_srcdir)/src/IB/IBLagrangianForceStrategy.C \
+	$(top_srcdir)/src/IB/IBLagrangianForceStrategySet.C \
+	$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
+	$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C \
+	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C \
+	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C \
+	$(top_srcdir)/src/IB/IBRodForceSpec.C \
+	$(top_srcdir)/src/IB/IBRodForceSpecFactory.C \
+	$(top_srcdir)/src/IB/IBSpringForceGen.C \
+	$(top_srcdir)/src/IB/IBSpringForceSpec.C \
+	$(top_srcdir)/src/IB/IBSpringForceSpecFactory.C \
+	$(top_srcdir)/src/IB/IBStaggeredHierarchyIntegrator.C \
+	$(top_srcdir)/src/IB/IBStandardForceGen.C \
+	$(top_srcdir)/src/IB/IBStandardInitializer.C \
+	$(top_srcdir)/src/IB/IBTargetPointForceGen.C \
+	$(top_srcdir)/src/IB/IBTargetPointForceSpec.C \
+	$(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C \
+	$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
+	$(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.C \
+	$(top_srcdir)/src/advect/AdvectHypPatchOps.C \
+	$(top_srcdir)/src/advect/GodunovAdvector.C \
+	$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C \
+	$(top_srcdir)/src/navier_stokes/HierarchyProjector.C \
+	$(top_srcdir)/src/navier_stokes/INSCoefs.C \
+	$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C \
+	$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C \
+	$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredPhysicalBoundaryHelper.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
+	$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C \
+	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
+	$(top_builddir)/src/advect/fortran/advect_detect2d.f \
+	$(top_builddir)/src/advect/fortran/advect_diff2d.f \
+	$(top_builddir)/src/advect/fortran/advect_stable2d.f \
+	$(top_builddir)/src/advect/fortran/godunov_predictors2d.f \
+	$(top_builddir)/src/advect/fortran/weno_fluxes2d.f \
+	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f \
+	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f \
+	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_godunov_predictors2d.f \
+	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f \
+	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f \
+	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f
+@LIBMESH_ENABLED_TRUE@am__objects_1 = libIBAMR2d_a-IBFEHierarchyIntegrator.$(OBJEXT)
+am__objects_2 = libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBAnchorPointSpecFactory.$(OBJEXT) \
 	libIBAMR2d_a-IBBeamForceGen.$(OBJEXT) \
 	libIBAMR2d_a-IBBeamForceSpec.$(OBJEXT) \
@@ -80,12 +160,15 @@ am__objects_1 = libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBInstrumentPanel.$(OBJEXT) \
 	libIBAMR2d_a-IBInstrumentationSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBInstrumentationSpecFactory.$(OBJEXT) \
+	libIBAMR2d_a-IBKirchhoffRodForceGen.$(OBJEXT) \
 	libIBAMR2d_a-IBLagrangianForceStrategy.$(OBJEXT) \
 	libIBAMR2d_a-IBLagrangianForceStrategySet.$(OBJEXT) \
 	libIBAMR2d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
 	libIBAMR2d_a-IBMovingTargetPointForceGen.$(OBJEXT) \
 	libIBAMR2d_a-IBMovingTargetPointForceSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.$(OBJEXT) \
+	libIBAMR2d_a-IBRodForceSpec.$(OBJEXT) \
+	libIBAMR2d_a-IBRodForceSpecFactory.$(OBJEXT) \
 	libIBAMR2d_a-IBSpringForceGen.$(OBJEXT) \
 	libIBAMR2d_a-IBSpringForceSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBSpringForceSpecFactory.$(OBJEXT) \
@@ -106,6 +189,7 @@ am__objects_1 = libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR2d_a-INSIntermediateVelocityBcCoef.$(OBJEXT) \
 	libIBAMR2d_a-INSProjectionBcCoef.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredBlockFactorizationPreconditioner.$(OBJEXT) \
+	libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredCenteredConvectiveOperator.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredIntermediateVelocityBcCoef.$(OBJEXT) \
@@ -115,8 +199,10 @@ am__objects_1 = libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredProjectionBcCoef.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredProjectionPreconditioner.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredStokesOperator.$(OBJEXT) \
-	libIBAMR2d_a-INSStaggeredVelocityBcCoef.$(OBJEXT)
-am_libIBAMR2d_a_OBJECTS = $(am__objects_1) \
+	libIBAMR2d_a-INSStaggeredVCStokesOperator.$(OBJEXT) \
+	libIBAMR2d_a-INSStaggeredVelocityBcCoef.$(OBJEXT) \
+	$(am__objects_1)
+am_libIBAMR2d_a_OBJECTS = $(am__objects_2) \
 	adv_diff_consdiff2d.$(OBJEXT) advect_detect2d.$(OBJEXT) \
 	advect_diff2d.$(OBJEXT) advect_stable2d.$(OBJEXT) \
 	godunov_predictors2d.$(OBJEXT) weno_fluxes2d.$(OBJEXT) \
@@ -129,7 +215,75 @@ am_libIBAMR2d_a_OBJECTS = $(am__objects_1) \
 libIBAMR2d_a_OBJECTS = $(am_libIBAMR2d_a_OBJECTS)
 libIBAMR3d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR3d_a_LIBADD =
-am__objects_2 = libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
+am__libIBAMR3d_a_SOURCES_DIST =  \
+	$(top_srcdir)/src/IB/IBAnchorPointSpec.C \
+	$(top_srcdir)/src/IB/IBAnchorPointSpecFactory.C \
+	$(top_srcdir)/src/IB/IBBeamForceGen.C \
+	$(top_srcdir)/src/IB/IBBeamForceSpec.C \
+	$(top_srcdir)/src/IB/IBBeamForceSpecFactory.C \
+	$(top_srcdir)/src/IB/IBDataPostProcessor.C \
+	$(top_srcdir)/src/IB/IBEulerianForceFunction.C \
+	$(top_srcdir)/src/IB/IBEulerianSourceFunction.C \
+	$(top_srcdir)/src/IB/IBHDF5Initializer.C \
+	$(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
+	$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C \
+	$(top_srcdir)/src/IB/IBInstrumentPanel.C \
+	$(top_srcdir)/src/IB/IBInstrumentationSpec.C \
+	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
+	$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C \
+	$(top_srcdir)/src/IB/IBLagrangianForceStrategy.C \
+	$(top_srcdir)/src/IB/IBLagrangianForceStrategySet.C \
+	$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
+	$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C \
+	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C \
+	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C \
+	$(top_srcdir)/src/IB/IBRodForceSpec.C \
+	$(top_srcdir)/src/IB/IBRodForceSpecFactory.C \
+	$(top_srcdir)/src/IB/IBSpringForceGen.C \
+	$(top_srcdir)/src/IB/IBSpringForceSpec.C \
+	$(top_srcdir)/src/IB/IBSpringForceSpecFactory.C \
+	$(top_srcdir)/src/IB/IBStaggeredHierarchyIntegrator.C \
+	$(top_srcdir)/src/IB/IBStandardForceGen.C \
+	$(top_srcdir)/src/IB/IBStandardInitializer.C \
+	$(top_srcdir)/src/IB/IBTargetPointForceGen.C \
+	$(top_srcdir)/src/IB/IBTargetPointForceSpec.C \
+	$(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C \
+	$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
+	$(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.C \
+	$(top_srcdir)/src/advect/AdvectHypPatchOps.C \
+	$(top_srcdir)/src/advect/GodunovAdvector.C \
+	$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C \
+	$(top_srcdir)/src/navier_stokes/HierarchyProjector.C \
+	$(top_srcdir)/src/navier_stokes/INSCoefs.C \
+	$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C \
+	$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C \
+	$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredPhysicalBoundaryHelper.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
+	$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C \
+	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
+	$(top_builddir)/src/advect/fortran/advect_detect3d.f \
+	$(top_builddir)/src/advect/fortran/advect_diff3d.f \
+	$(top_builddir)/src/advect/fortran/advect_stable3d.f \
+	$(top_builddir)/src/advect/fortran/godunov_predictors3d.f \
+	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f \
+	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f \
+	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f \
+	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f \
+	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f
+@LIBMESH_ENABLED_TRUE@am__objects_3 = libIBAMR3d_a-IBFEHierarchyIntegrator.$(OBJEXT)
+am__objects_4 = libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBAnchorPointSpecFactory.$(OBJEXT) \
 	libIBAMR3d_a-IBBeamForceGen.$(OBJEXT) \
 	libIBAMR3d_a-IBBeamForceSpec.$(OBJEXT) \
@@ -143,12 +297,15 @@ am__objects_2 = libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBInstrumentPanel.$(OBJEXT) \
 	libIBAMR3d_a-IBInstrumentationSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBInstrumentationSpecFactory.$(OBJEXT) \
+	libIBAMR3d_a-IBKirchhoffRodForceGen.$(OBJEXT) \
 	libIBAMR3d_a-IBLagrangianForceStrategy.$(OBJEXT) \
 	libIBAMR3d_a-IBLagrangianForceStrategySet.$(OBJEXT) \
 	libIBAMR3d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
 	libIBAMR3d_a-IBMovingTargetPointForceGen.$(OBJEXT) \
 	libIBAMR3d_a-IBMovingTargetPointForceSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.$(OBJEXT) \
+	libIBAMR3d_a-IBRodForceSpec.$(OBJEXT) \
+	libIBAMR3d_a-IBRodForceSpecFactory.$(OBJEXT) \
 	libIBAMR3d_a-IBSpringForceGen.$(OBJEXT) \
 	libIBAMR3d_a-IBSpringForceSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBSpringForceSpecFactory.$(OBJEXT) \
@@ -169,6 +326,7 @@ am__objects_2 = libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR3d_a-INSIntermediateVelocityBcCoef.$(OBJEXT) \
 	libIBAMR3d_a-INSProjectionBcCoef.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredBlockFactorizationPreconditioner.$(OBJEXT) \
+	libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredCenteredConvectiveOperator.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredIntermediateVelocityBcCoef.$(OBJEXT) \
@@ -178,8 +336,10 @@ am__objects_2 = libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredProjectionBcCoef.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredProjectionPreconditioner.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredStokesOperator.$(OBJEXT) \
-	libIBAMR3d_a-INSStaggeredVelocityBcCoef.$(OBJEXT)
-am_libIBAMR3d_a_OBJECTS = $(am__objects_2) \
+	libIBAMR3d_a-INSStaggeredVCStokesOperator.$(OBJEXT) \
+	libIBAMR3d_a-INSStaggeredVelocityBcCoef.$(OBJEXT) \
+	$(am__objects_3)
+am_libIBAMR3d_a_OBJECTS = $(am__objects_4) \
 	adv_diff_consdiff3d.$(OBJEXT) advect_detect3d.$(OBJEXT) \
 	advect_diff3d.$(OBJEXT) advect_stable3d.$(OBJEXT) \
 	godunov_predictors3d.$(OBJEXT) \
@@ -203,8 +363,73 @@ F77LINK = $(F77LD) $(AM_FFLAGS) $(FFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o \
 	$@
 SOURCES = $(libIBAMR_a_SOURCES) $(libIBAMR2d_a_SOURCES) \
 	$(libIBAMR3d_a_SOURCES)
-DIST_SOURCES = $(libIBAMR_a_SOURCES) $(libIBAMR2d_a_SOURCES) \
-	$(libIBAMR3d_a_SOURCES)
+DIST_SOURCES = $(libIBAMR_a_SOURCES) $(am__libIBAMR2d_a_SOURCES_DIST) \
+	$(am__libIBAMR3d_a_SOURCES_DIST)
+am__pkg_include_HEADERS_DIST = $(top_srcdir)/src/adv_diff/TGACoefs.h \
+	$(top_srcdir)/src/utilities/namespaces.h \
+	$(top_srcdir)/src/IB/IBAnchorPointSpec.I \
+	$(top_srcdir)/src/IB/IBAnchorPointSpec.h \
+	$(top_srcdir)/src/IB/IBAnchorPointSpecFactory.h \
+	$(top_srcdir)/src/IB/IBBeamForceGen.h \
+	$(top_srcdir)/src/IB/IBBeamForceSpec.I \
+	$(top_srcdir)/src/IB/IBBeamForceSpec.h \
+	$(top_srcdir)/src/IB/IBBeamForceSpecFactory.h \
+	$(top_srcdir)/src/IB/IBDataPostProcessor.h \
+	$(top_srcdir)/src/IB/IBEulerianForceFunction.h \
+	$(top_srcdir)/src/IB/IBEulerianSourceFunction.h \
+	$(top_srcdir)/src/IB/IBHDF5Initializer.h \
+	$(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
+	$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.h \
+	$(top_srcdir)/src/IB/IBInstrumentPanel.h \
+	$(top_srcdir)/src/IB/IBInstrumentationSpec.I \
+	$(top_srcdir)/src/IB/IBInstrumentationSpec.h \
+	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.h \
+	$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.h \
+	$(top_srcdir)/src/IB/IBLagrangianForceStrategy.h \
+	$(top_srcdir)/src/IB/IBLagrangianForceStrategySet.h \
+	$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.h \
+	$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.h \
+	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.I \
+	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.h \
+	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.h \
+	$(top_srcdir)/src/IB/IBRodForceSpec.I \
+	$(top_srcdir)/src/IB/IBRodForceSpec.h \
+	$(top_srcdir)/src/IB/IBRodForceSpecFactory.h \
+	$(top_srcdir)/src/IB/IBSpringForceGen.h \
+	$(top_srcdir)/src/IB/IBSpringForceSpec.I \
+	$(top_srcdir)/src/IB/IBSpringForceSpec.h \
+	$(top_srcdir)/src/IB/IBSpringForceSpecFactory.h \
+	$(top_srcdir)/src/IB/IBStaggeredHierarchyIntegrator.h \
+	$(top_srcdir)/src/IB/IBStandardForceGen.h \
+	$(top_srcdir)/src/IB/IBStandardInitializer.h \
+	$(top_srcdir)/src/IB/IBTargetPointForceGen.h \
+	$(top_srcdir)/src/IB/IBTargetPointForceSpec.I \
+	$(top_srcdir)/src/IB/IBTargetPointForceSpec.h \
+	$(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.h \
+	$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.h \
+	$(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.h \
+	$(top_srcdir)/src/advect/AdvectHypPatchOps.h \
+	$(top_srcdir)/src/advect/GodunovAdvector.h \
+	$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.h \
+	$(top_srcdir)/src/navier_stokes/HierarchyProjector.h \
+	$(top_srcdir)/src/navier_stokes/INSCoefs.h \
+	$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.h \
+	$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.h \
+	$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.h \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.h \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.h \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.h \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.h \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.h \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.h \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredPhysicalBoundaryHelper.h \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.h \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.h \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.h \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.h \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.h \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h \
+	$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.h
 pkg_includeHEADERS_INSTALL = $(INSTALL_HEADER)
 HEADERS = $(pkg_include_HEADERS)
 ETAGS = etags
@@ -248,9 +473,19 @@ GREP = @GREP@
 HAVE_DOT = @HAVE_DOT@
 HAVE_DOXYGEN = @HAVE_DOXYGEN@
 HAVE_LIBBLITZ = @HAVE_LIBBLITZ@
+HAVE_LIBEXODUSII = @HAVE_LIBEXODUSII@
+HAVE_LIBGMV = @HAVE_LIBGMV@
+HAVE_LIBGZSTREAM = @HAVE_LIBGZSTREAM@
 HAVE_LIBHDF5 = @HAVE_LIBHDF5@
 HAVE_LIBHDF5_HL = @HAVE_LIBHDF5_HL@
+HAVE_LIBHILBERT = @HAVE_LIBHILBERT@
 HAVE_LIBHYPRE = @HAVE_LIBHYPRE@
+HAVE_LIBLASPACK = @HAVE_LIBLASPACK@
+HAVE_LIBMESH = @HAVE_LIBMESH@
+HAVE_LIBMETIS = @HAVE_LIBMETIS@
+HAVE_LIBNEMESIS = @HAVE_LIBNEMESIS@
+HAVE_LIBNETCDF = @HAVE_LIBNETCDF@
+HAVE_LIBPARMETIS = @HAVE_LIBPARMETIS@
 HAVE_LIBPETSC = @HAVE_LIBPETSC@
 HAVE_LIBPETSCDM = @HAVE_LIBPETSCDM@
 HAVE_LIBPETSCKSP = @HAVE_LIBPETSCKSP@
@@ -277,8 +512,12 @@ HAVE_LIBSAMRAI3D_MESH = @HAVE_LIBSAMRAI3D_MESH@
 HAVE_LIBSAMRAI3D_PDAT_STD = @HAVE_LIBSAMRAI3D_PDAT_STD@
 HAVE_LIBSAMRAI3D_SOLV = @HAVE_LIBSAMRAI3D_SOLV@
 HAVE_LIBSAMRAI3D_XFER = @HAVE_LIBSAMRAI3D_XFER@
+HAVE_LIBSFCURVES = @HAVE_LIBSFCURVES@
 HAVE_LIBSILO = @HAVE_LIBSILO@
 HAVE_LIBSILOH5 = @HAVE_LIBSILOH5@
+HAVE_LIBTETGEN = @HAVE_LIBTETGEN@
+HAVE_LIBTRIANGLE = @HAVE_LIBTRIANGLE@
+HAVE_LIBVTK = @HAVE_LIBVTK@
 HAVE_LIBX11 = @HAVE_LIBX11@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -289,13 +528,33 @@ LAPACK_LIBS = @LAPACK_LIBS@
 LDFLAGS = @LDFLAGS@
 LIBBLITZ = @LIBBLITZ@
 LIBBLITZ_PREFIX = @LIBBLITZ_PREFIX@
+LIBEXODUSII = @LIBEXODUSII@
+LIBEXODUSII_PREFIX = @LIBEXODUSII_PREFIX@
+LIBGMV = @LIBGMV@
+LIBGMV_PREFIX = @LIBGMV_PREFIX@
+LIBGZSTREAM = @LIBGZSTREAM@
+LIBGZSTREAM_PREFIX = @LIBGZSTREAM_PREFIX@
 LIBHDF5 = @LIBHDF5@
 LIBHDF5_HL = @LIBHDF5_HL@
 LIBHDF5_HL_PREFIX = @LIBHDF5_HL_PREFIX@
 LIBHDF5_PREFIX = @LIBHDF5_PREFIX@
+LIBHILBERT = @LIBHILBERT@
+LIBHILBERT_PREFIX = @LIBHILBERT_PREFIX@
 LIBHYPRE = @LIBHYPRE@
 LIBHYPRE_PREFIX = @LIBHYPRE_PREFIX@
+LIBLASPACK = @LIBLASPACK@
+LIBLASPACK_PREFIX = @LIBLASPACK_PREFIX@
+LIBMESH = @LIBMESH@
+LIBMESH_PREFIX = @LIBMESH_PREFIX@
+LIBMETIS = @LIBMETIS@
+LIBMETIS_PREFIX = @LIBMETIS_PREFIX@
+LIBNEMESIS = @LIBNEMESIS@
+LIBNEMESIS_PREFIX = @LIBNEMESIS_PREFIX@
+LIBNETCDF = @LIBNETCDF@
+LIBNETCDF_PREFIX = @LIBNETCDF_PREFIX@
 LIBOBJS = @LIBOBJS@
+LIBPARMETIS = @LIBPARMETIS@
+LIBPARMETIS_PREFIX = @LIBPARMETIS_PREFIX@
 LIBPETSC = @LIBPETSC@
 LIBPETSCDM = @LIBPETSCDM@
 LIBPETSCDM_PREFIX = @LIBPETSCDM_PREFIX@
@@ -349,17 +608,35 @@ LIBSAMRAI3D_SOLV_PREFIX = @LIBSAMRAI3D_SOLV_PREFIX@
 LIBSAMRAI3D_XFER = @LIBSAMRAI3D_XFER@
 LIBSAMRAI3D_XFER_PREFIX = @LIBSAMRAI3D_XFER_PREFIX@
 LIBSAMRAI_PREFIX = @LIBSAMRAI_PREFIX@
+LIBSFCURVES = @LIBSFCURVES@
+LIBSFCURVES_PREFIX = @LIBSFCURVES_PREFIX@
 LIBSILO = @LIBSILO@
 LIBSILOH5 = @LIBSILOH5@
 LIBSILOH5_PREFIX = @LIBSILOH5_PREFIX@
 LIBSILO_PREFIX = @LIBSILO_PREFIX@
+LIBTETGEN = @LIBTETGEN@
+LIBTETGEN_PREFIX = @LIBTETGEN_PREFIX@
+LIBTRIANGLE = @LIBTRIANGLE@
+LIBTRIANGLE_PREFIX = @LIBTRIANGLE_PREFIX@
+LIBVTK = @LIBVTK@
+LIBVTK_PREFIX = @LIBVTK_PREFIX@
 LIBX11 = @LIBX11@
 LIBX11_PREFIX = @LIBX11_PREFIX@
 LTLIBBLITZ = @LTLIBBLITZ@
+LTLIBEXODUSII = @LTLIBEXODUSII@
+LTLIBGMV = @LTLIBGMV@
+LTLIBGZSTREAM = @LTLIBGZSTREAM@
 LTLIBHDF5 = @LTLIBHDF5@
 LTLIBHDF5_HL = @LTLIBHDF5_HL@
+LTLIBHILBERT = @LTLIBHILBERT@
 LTLIBHYPRE = @LTLIBHYPRE@
+LTLIBLASPACK = @LTLIBLASPACK@
+LTLIBMESH = @LTLIBMESH@
+LTLIBMETIS = @LTLIBMETIS@
+LTLIBNEMESIS = @LTLIBNEMESIS@
+LTLIBNETCDF = @LTLIBNETCDF@
 LTLIBOBJS = @LTLIBOBJS@
+LTLIBPARMETIS = @LTLIBPARMETIS@
 LTLIBPETSC = @LTLIBPETSC@
 LTLIBPETSCDM = @LTLIBPETSCDM@
 LTLIBPETSCKSP = @LTLIBPETSCKSP@
@@ -386,8 +663,12 @@ LTLIBSAMRAI3D_MESH = @LTLIBSAMRAI3D_MESH@
 LTLIBSAMRAI3D_PDAT_STD = @LTLIBSAMRAI3D_PDAT_STD@
 LTLIBSAMRAI3D_SOLV = @LTLIBSAMRAI3D_SOLV@
 LTLIBSAMRAI3D_XFER = @LTLIBSAMRAI3D_XFER@
+LTLIBSFCURVES = @LTLIBSFCURVES@
 LTLIBSILO = @LTLIBSILO@
 LTLIBSILOH5 = @LTLIBSILOH5@
+LTLIBTETGEN = @LTLIBTETGEN@
+LTLIBTRIANGLE = @LTLIBTRIANGLE@
+LTLIBVTK = @LTLIBVTK@
 LTLIBX11 = @LTLIBX11@
 M4 = @M4@
 MAKEINFO = @MAKEINFO@
@@ -473,9 +754,11 @@ SUFFIXES = .f.m4
 lib_LIBRARIES = libIBAMR.a $(am__append_1) $(am__append_2)
 libIBAMR_a_SOURCES = \
 $(top_builddir)/src/advect/fortran/godunov_helpers.f \
-$(top_srcdir)/src/adv_diff/TGACoefs.C
+$(top_srcdir)/src/adv_diff/TGACoefs.C \
+$(top_builddir)/src/fortran/sqrtm.f
 
 pkg_include_HEADERS = $(top_srcdir)/src/adv_diff/TGACoefs.h \
+	$(top_srcdir)/src/utilities/namespaces.h \
 	$(top_srcdir)/src/IB/IBAnchorPointSpec.I \
 	$(top_srcdir)/src/IB/IBAnchorPointSpec.h \
 	$(top_srcdir)/src/IB/IBAnchorPointSpecFactory.h \
@@ -493,6 +776,7 @@ pkg_include_HEADERS = $(top_srcdir)/src/adv_diff/TGACoefs.h \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.I \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.h \
 	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.h \
+	$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.h \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategy.h \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategySet.h \
 	$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.h \
@@ -500,6 +784,9 @@ pkg_include_HEADERS = $(top_srcdir)/src/adv_diff/TGACoefs.h \
 	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.I \
 	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.h \
 	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.h \
+	$(top_srcdir)/src/IB/IBRodForceSpec.I \
+	$(top_srcdir)/src/IB/IBRodForceSpec.h \
+	$(top_srcdir)/src/IB/IBRodForceSpecFactory.h \
 	$(top_srcdir)/src/IB/IBSpringForceGen.h \
 	$(top_srcdir)/src/IB/IBSpringForceSpec.I \
 	$(top_srcdir)/src/IB/IBSpringForceSpec.h \
@@ -522,6 +809,7 @@ pkg_include_HEADERS = $(top_srcdir)/src/adv_diff/TGACoefs.h \
 	$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.h \
 	$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.h \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.h \
@@ -531,59 +819,65 @@ pkg_include_HEADERS = $(top_srcdir)/src/adv_diff/TGACoefs.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.h \
-	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h
-DIM_INDEPENDENT_SOURCES = \
-$(top_srcdir)/src/IB/IBAnchorPointSpec.C \
-$(top_srcdir)/src/IB/IBAnchorPointSpecFactory.C \
-$(top_srcdir)/src/IB/IBBeamForceGen.C \
-$(top_srcdir)/src/IB/IBBeamForceSpec.C \
-$(top_srcdir)/src/IB/IBBeamForceSpecFactory.C \
-$(top_srcdir)/src/IB/IBDataPostProcessor.C \
-$(top_srcdir)/src/IB/IBEulerianForceFunction.C \
-$(top_srcdir)/src/IB/IBEulerianSourceFunction.C \
-$(top_srcdir)/src/IB/IBHDF5Initializer.C \
-$(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
-$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C \
-$(top_srcdir)/src/IB/IBInstrumentPanel.C \
-$(top_srcdir)/src/IB/IBInstrumentationSpec.C \
-$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
-$(top_srcdir)/src/IB/IBLagrangianForceStrategy.C \
-$(top_srcdir)/src/IB/IBLagrangianForceStrategySet.C \
-$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
-$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C \
-$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C \
-$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C \
-$(top_srcdir)/src/IB/IBSpringForceGen.C \
-$(top_srcdir)/src/IB/IBSpringForceSpec.C \
-$(top_srcdir)/src/IB/IBSpringForceSpecFactory.C \
-$(top_srcdir)/src/IB/IBStaggeredHierarchyIntegrator.C \
-$(top_srcdir)/src/IB/IBStandardForceGen.C \
-$(top_srcdir)/src/IB/IBStandardInitializer.C \
-$(top_srcdir)/src/IB/IBTargetPointForceGen.C \
-$(top_srcdir)/src/IB/IBTargetPointForceSpec.C \
-$(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C \
-$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
-$(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.C \
-$(top_srcdir)/src/advect/AdvectHypPatchOps.C \
-$(top_srcdir)/src/advect/GodunovAdvector.C \
-$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C \
-$(top_srcdir)/src/navier_stokes/HierarchyProjector.C \
-$(top_srcdir)/src/navier_stokes/INSCoefs.C \
-$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C \
-$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C \
-$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredPhysicalBoundaryHelper.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C
-
+	$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.h \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h \
+	$(am__append_4)
+DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/IB/IBAnchorPointSpec.C \
+	$(top_srcdir)/src/IB/IBAnchorPointSpecFactory.C \
+	$(top_srcdir)/src/IB/IBBeamForceGen.C \
+	$(top_srcdir)/src/IB/IBBeamForceSpec.C \
+	$(top_srcdir)/src/IB/IBBeamForceSpecFactory.C \
+	$(top_srcdir)/src/IB/IBDataPostProcessor.C \
+	$(top_srcdir)/src/IB/IBEulerianForceFunction.C \
+	$(top_srcdir)/src/IB/IBEulerianSourceFunction.C \
+	$(top_srcdir)/src/IB/IBHDF5Initializer.C \
+	$(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
+	$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C \
+	$(top_srcdir)/src/IB/IBInstrumentPanel.C \
+	$(top_srcdir)/src/IB/IBInstrumentationSpec.C \
+	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
+	$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C \
+	$(top_srcdir)/src/IB/IBLagrangianForceStrategy.C \
+	$(top_srcdir)/src/IB/IBLagrangianForceStrategySet.C \
+	$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
+	$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C \
+	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C \
+	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C \
+	$(top_srcdir)/src/IB/IBRodForceSpec.C \
+	$(top_srcdir)/src/IB/IBRodForceSpecFactory.C \
+	$(top_srcdir)/src/IB/IBSpringForceGen.C \
+	$(top_srcdir)/src/IB/IBSpringForceSpec.C \
+	$(top_srcdir)/src/IB/IBSpringForceSpecFactory.C \
+	$(top_srcdir)/src/IB/IBStaggeredHierarchyIntegrator.C \
+	$(top_srcdir)/src/IB/IBStandardForceGen.C \
+	$(top_srcdir)/src/IB/IBStandardInitializer.C \
+	$(top_srcdir)/src/IB/IBTargetPointForceGen.C \
+	$(top_srcdir)/src/IB/IBTargetPointForceSpec.C \
+	$(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C \
+	$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
+	$(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.C \
+	$(top_srcdir)/src/advect/AdvectHypPatchOps.C \
+	$(top_srcdir)/src/advect/GodunovAdvector.C \
+	$(top_srcdir)/src/navier_stokes/CCHierarchyProjector.C \
+	$(top_srcdir)/src/navier_stokes/HierarchyProjector.C \
+	$(top_srcdir)/src/navier_stokes/INSCoefs.C \
+	$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C \
+	$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C \
+	$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredPhysicalBoundaryHelper.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
+	$(am__append_3)
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
@@ -708,18 +1002,22 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBDataPostProcessor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBEulerianForceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBEulerianSourceFunction.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBFEHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBHDF5Initializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBImplicitHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBInstrumentPanel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpecFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategySet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBLagrangianSourceStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceGen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBRodForceSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBSpringForceGen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBSpringForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBSpringForceSpecFactory.Po@am__quote@
@@ -734,6 +1032,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSIntermediateVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSProjectionBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredBlockFactorizationPreconditioner.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredCenteredConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredIntermediateVelocityBcCoef.Po@am__quote@
@@ -743,6 +1042,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredProjectionBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredProjectionPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredStokesOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredVCStokesOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffHypPatchOps.Po@am__quote@
@@ -758,18 +1058,22 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBDataPostProcessor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBEulerianForceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBEulerianSourceFunction.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBFEHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBHDF5Initializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBImplicitHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBInstrumentPanel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpecFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategySet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBLagrangianSourceStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceGen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBRodForceSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBSpringForceGen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBSpringForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBSpringForceSpecFactory.Po@am__quote@
@@ -784,6 +1088,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSIntermediateVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSProjectionBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredBlockFactorizationPreconditioner.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredCenteredConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredIntermediateVelocityBcCoef.Po@am__quote@
@@ -793,6 +1098,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredProjectionBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredProjectionPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredStokesOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredVCStokesOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredVelocityBcCoef.Po@am__quote@
 
 .C.o:
@@ -1019,6 +1325,20 @@ libIBAMR2d_a-IBInstrumentationSpecFactory.obj: $(top_srcdir)/src/IB/IBInstrument
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBInstrumentationSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C'; fi`
 
+libIBAMR2d_a-IBKirchhoffRodForceGen.o: $(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBKirchhoffRodForceGen.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Tpo -c -o libIBAMR2d_a-IBKirchhoffRodForceGen.o `test -f '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Tpo $(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C' object='libIBAMR2d_a-IBKirchhoffRodForceGen.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBKirchhoffRodForceGen.o `test -f '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C
+
+libIBAMR2d_a-IBKirchhoffRodForceGen.obj: $(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBKirchhoffRodForceGen.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Tpo -c -o libIBAMR2d_a-IBKirchhoffRodForceGen.obj `if test -f '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Tpo $(DEPDIR)/libIBAMR2d_a-IBKirchhoffRodForceGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C' object='libIBAMR2d_a-IBKirchhoffRodForceGen.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBKirchhoffRodForceGen.obj `if test -f '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; fi`
+
 libIBAMR2d_a-IBLagrangianForceStrategy.o: $(top_srcdir)/src/IB/IBLagrangianForceStrategy.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBLagrangianForceStrategy.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategy.Tpo -c -o libIBAMR2d_a-IBLagrangianForceStrategy.o `test -f '$(top_srcdir)/src/IB/IBLagrangianForceStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBLagrangianForceStrategy.C
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategy.Tpo $(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategy.Po
@@ -1102,6 +1422,34 @@ libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.obj: $(top_srcdir)/src/IB/IBMov
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C' object='libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C'; fi`
+
+libIBAMR2d_a-IBRodForceSpec.o: $(top_srcdir)/src/IB/IBRodForceSpec.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBRodForceSpec.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Tpo -c -o libIBAMR2d_a-IBRodForceSpec.o `test -f '$(top_srcdir)/src/IB/IBRodForceSpec.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBRodForceSpec.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Tpo $(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBRodForceSpec.C' object='libIBAMR2d_a-IBRodForceSpec.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBRodForceSpec.o `test -f '$(top_srcdir)/src/IB/IBRodForceSpec.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBRodForceSpec.C
+
+libIBAMR2d_a-IBRodForceSpec.obj: $(top_srcdir)/src/IB/IBRodForceSpec.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBRodForceSpec.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Tpo -c -o libIBAMR2d_a-IBRodForceSpec.obj `if test -f '$(top_srcdir)/src/IB/IBRodForceSpec.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBRodForceSpec.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBRodForceSpec.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Tpo $(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBRodForceSpec.C' object='libIBAMR2d_a-IBRodForceSpec.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBRodForceSpec.obj `if test -f '$(top_srcdir)/src/IB/IBRodForceSpec.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBRodForceSpec.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBRodForceSpec.C'; fi`
+
+libIBAMR2d_a-IBRodForceSpecFactory.o: $(top_srcdir)/src/IB/IBRodForceSpecFactory.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBRodForceSpecFactory.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBRodForceSpecFactory.Tpo -c -o libIBAMR2d_a-IBRodForceSpecFactory.o `test -f '$(top_srcdir)/src/IB/IBRodForceSpecFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBRodForceSpecFactory.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBRodForceSpecFactory.Tpo $(DEPDIR)/libIBAMR2d_a-IBRodForceSpecFactory.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBRodForceSpecFactory.C' object='libIBAMR2d_a-IBRodForceSpecFactory.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBRodForceSpecFactory.o `test -f '$(top_srcdir)/src/IB/IBRodForceSpecFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBRodForceSpecFactory.C
+
+libIBAMR2d_a-IBRodForceSpecFactory.obj: $(top_srcdir)/src/IB/IBRodForceSpecFactory.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBRodForceSpecFactory.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBRodForceSpecFactory.Tpo -c -o libIBAMR2d_a-IBRodForceSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/IBRodForceSpecFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBRodForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBRodForceSpecFactory.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBRodForceSpecFactory.Tpo $(DEPDIR)/libIBAMR2d_a-IBRodForceSpecFactory.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBRodForceSpecFactory.C' object='libIBAMR2d_a-IBRodForceSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBRodForceSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/IBRodForceSpecFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBRodForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBRodForceSpecFactory.C'; fi`
 
 libIBAMR2d_a-IBSpringForceGen.o: $(top_srcdir)/src/IB/IBSpringForceGen.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBSpringForceGen.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBSpringForceGen.Tpo -c -o libIBAMR2d_a-IBSpringForceGen.o `test -f '$(top_srcdir)/src/IB/IBSpringForceGen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBSpringForceGen.C
@@ -1383,6 +1731,20 @@ libIBAMR2d_a-INSStaggeredBlockFactorizationPreconditioner.obj: $(top_srcdir)/src
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredBlockFactorizationPreconditioner.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C'; fi`
 
+libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.o: $(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.Tpo -c -o libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.Tpo $(DEPDIR)/libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C' object='libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C
+
+libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.obj: $(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.Tpo -c -o libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.Tpo $(DEPDIR)/libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C' object='libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C'; fi`
+
 libIBAMR2d_a-INSStaggeredCenteredConvectiveOperator.o: $(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredCenteredConvectiveOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredCenteredConvectiveOperator.Tpo -c -o libIBAMR2d_a-INSStaggeredCenteredConvectiveOperator.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.C
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-INSStaggeredCenteredConvectiveOperator.Tpo $(DEPDIR)/libIBAMR2d_a-INSStaggeredCenteredConvectiveOperator.Po
@@ -1509,6 +1871,20 @@ libIBAMR2d_a-INSStaggeredStokesOperator.obj: $(top_srcdir)/src/navier_stokes/INS
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredStokesOperator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C'; fi`
 
+libIBAMR2d_a-INSStaggeredVCStokesOperator.o: $(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredVCStokesOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredVCStokesOperator.Tpo -c -o libIBAMR2d_a-INSStaggeredVCStokesOperator.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-INSStaggeredVCStokesOperator.Tpo $(DEPDIR)/libIBAMR2d_a-INSStaggeredVCStokesOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C' object='libIBAMR2d_a-INSStaggeredVCStokesOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredVCStokesOperator.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C
+
+libIBAMR2d_a-INSStaggeredVCStokesOperator.obj: $(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredVCStokesOperator.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredVCStokesOperator.Tpo -c -o libIBAMR2d_a-INSStaggeredVCStokesOperator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-INSStaggeredVCStokesOperator.Tpo $(DEPDIR)/libIBAMR2d_a-INSStaggeredVCStokesOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C' object='libIBAMR2d_a-INSStaggeredVCStokesOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredVCStokesOperator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C'; fi`
+
 libIBAMR2d_a-INSStaggeredVelocityBcCoef.o: $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredVelocityBcCoef.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredVelocityBcCoef.Tpo -c -o libIBAMR2d_a-INSStaggeredVelocityBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-INSStaggeredVelocityBcCoef.Tpo $(DEPDIR)/libIBAMR2d_a-INSStaggeredVelocityBcCoef.Po
@@ -1522,6 +1898,20 @@ libIBAMR2d_a-INSStaggeredVelocityBcCoef.obj: $(top_srcdir)/src/navier_stokes/INS
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C' object='libIBAMR2d_a-INSStaggeredVelocityBcCoef.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C'; fi`
+
+libIBAMR2d_a-IBFEHierarchyIntegrator.o: $(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBFEHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBFEHierarchyIntegrator.Tpo -c -o libIBAMR2d_a-IBFEHierarchyIntegrator.o `test -f '$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBFEHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR2d_a-IBFEHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C' object='libIBAMR2d_a-IBFEHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBFEHierarchyIntegrator.o `test -f '$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C
+
+libIBAMR2d_a-IBFEHierarchyIntegrator.obj: $(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBFEHierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBFEHierarchyIntegrator.Tpo -c -o libIBAMR2d_a-IBFEHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBFEHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR2d_a-IBFEHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C' object='libIBAMR2d_a-IBFEHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBFEHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C'; fi`
 
 libIBAMR3d_a-IBAnchorPointSpec.o: $(top_srcdir)/src/IB/IBAnchorPointSpec.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBAnchorPointSpec.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpec.Tpo -c -o libIBAMR3d_a-IBAnchorPointSpec.o `test -f '$(top_srcdir)/src/IB/IBAnchorPointSpec.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBAnchorPointSpec.C
@@ -1719,6 +2109,20 @@ libIBAMR3d_a-IBInstrumentationSpecFactory.obj: $(top_srcdir)/src/IB/IBInstrument
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBInstrumentationSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C'; fi`
 
+libIBAMR3d_a-IBKirchhoffRodForceGen.o: $(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBKirchhoffRodForceGen.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Tpo -c -o libIBAMR3d_a-IBKirchhoffRodForceGen.o `test -f '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Tpo $(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C' object='libIBAMR3d_a-IBKirchhoffRodForceGen.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBKirchhoffRodForceGen.o `test -f '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C
+
+libIBAMR3d_a-IBKirchhoffRodForceGen.obj: $(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBKirchhoffRodForceGen.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Tpo -c -o libIBAMR3d_a-IBKirchhoffRodForceGen.obj `if test -f '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Tpo $(DEPDIR)/libIBAMR3d_a-IBKirchhoffRodForceGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C' object='libIBAMR3d_a-IBKirchhoffRodForceGen.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBKirchhoffRodForceGen.obj `if test -f '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C'; fi`
+
 libIBAMR3d_a-IBLagrangianForceStrategy.o: $(top_srcdir)/src/IB/IBLagrangianForceStrategy.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBLagrangianForceStrategy.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategy.Tpo -c -o libIBAMR3d_a-IBLagrangianForceStrategy.o `test -f '$(top_srcdir)/src/IB/IBLagrangianForceStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBLagrangianForceStrategy.C
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategy.Tpo $(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategy.Po
@@ -1802,6 +2206,34 @@ libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.obj: $(top_srcdir)/src/IB/IBMov
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C' object='libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C'; fi`
+
+libIBAMR3d_a-IBRodForceSpec.o: $(top_srcdir)/src/IB/IBRodForceSpec.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBRodForceSpec.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Tpo -c -o libIBAMR3d_a-IBRodForceSpec.o `test -f '$(top_srcdir)/src/IB/IBRodForceSpec.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBRodForceSpec.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Tpo $(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBRodForceSpec.C' object='libIBAMR3d_a-IBRodForceSpec.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBRodForceSpec.o `test -f '$(top_srcdir)/src/IB/IBRodForceSpec.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBRodForceSpec.C
+
+libIBAMR3d_a-IBRodForceSpec.obj: $(top_srcdir)/src/IB/IBRodForceSpec.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBRodForceSpec.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Tpo -c -o libIBAMR3d_a-IBRodForceSpec.obj `if test -f '$(top_srcdir)/src/IB/IBRodForceSpec.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBRodForceSpec.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBRodForceSpec.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Tpo $(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBRodForceSpec.C' object='libIBAMR3d_a-IBRodForceSpec.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBRodForceSpec.obj `if test -f '$(top_srcdir)/src/IB/IBRodForceSpec.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBRodForceSpec.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBRodForceSpec.C'; fi`
+
+libIBAMR3d_a-IBRodForceSpecFactory.o: $(top_srcdir)/src/IB/IBRodForceSpecFactory.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBRodForceSpecFactory.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBRodForceSpecFactory.Tpo -c -o libIBAMR3d_a-IBRodForceSpecFactory.o `test -f '$(top_srcdir)/src/IB/IBRodForceSpecFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBRodForceSpecFactory.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBRodForceSpecFactory.Tpo $(DEPDIR)/libIBAMR3d_a-IBRodForceSpecFactory.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBRodForceSpecFactory.C' object='libIBAMR3d_a-IBRodForceSpecFactory.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBRodForceSpecFactory.o `test -f '$(top_srcdir)/src/IB/IBRodForceSpecFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBRodForceSpecFactory.C
+
+libIBAMR3d_a-IBRodForceSpecFactory.obj: $(top_srcdir)/src/IB/IBRodForceSpecFactory.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBRodForceSpecFactory.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBRodForceSpecFactory.Tpo -c -o libIBAMR3d_a-IBRodForceSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/IBRodForceSpecFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBRodForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBRodForceSpecFactory.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBRodForceSpecFactory.Tpo $(DEPDIR)/libIBAMR3d_a-IBRodForceSpecFactory.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBRodForceSpecFactory.C' object='libIBAMR3d_a-IBRodForceSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBRodForceSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/IBRodForceSpecFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBRodForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBRodForceSpecFactory.C'; fi`
 
 libIBAMR3d_a-IBSpringForceGen.o: $(top_srcdir)/src/IB/IBSpringForceGen.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBSpringForceGen.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBSpringForceGen.Tpo -c -o libIBAMR3d_a-IBSpringForceGen.o `test -f '$(top_srcdir)/src/IB/IBSpringForceGen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBSpringForceGen.C
@@ -2083,6 +2515,20 @@ libIBAMR3d_a-INSStaggeredBlockFactorizationPreconditioner.obj: $(top_srcdir)/src
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredBlockFactorizationPreconditioner.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C'; fi`
 
+libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.o: $(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.Tpo -c -o libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.Tpo $(DEPDIR)/libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C' object='libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C
+
+libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.obj: $(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.Tpo -c -o libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.Tpo $(DEPDIR)/libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C' object='libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C'; fi`
+
 libIBAMR3d_a-INSStaggeredCenteredConvectiveOperator.o: $(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredCenteredConvectiveOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredCenteredConvectiveOperator.Tpo -c -o libIBAMR3d_a-INSStaggeredCenteredConvectiveOperator.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.C
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-INSStaggeredCenteredConvectiveOperator.Tpo $(DEPDIR)/libIBAMR3d_a-INSStaggeredCenteredConvectiveOperator.Po
@@ -2209,6 +2655,20 @@ libIBAMR3d_a-INSStaggeredStokesOperator.obj: $(top_srcdir)/src/navier_stokes/INS
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredStokesOperator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C'; fi`
 
+libIBAMR3d_a-INSStaggeredVCStokesOperator.o: $(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredVCStokesOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredVCStokesOperator.Tpo -c -o libIBAMR3d_a-INSStaggeredVCStokesOperator.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-INSStaggeredVCStokesOperator.Tpo $(DEPDIR)/libIBAMR3d_a-INSStaggeredVCStokesOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C' object='libIBAMR3d_a-INSStaggeredVCStokesOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredVCStokesOperator.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C
+
+libIBAMR3d_a-INSStaggeredVCStokesOperator.obj: $(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredVCStokesOperator.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredVCStokesOperator.Tpo -c -o libIBAMR3d_a-INSStaggeredVCStokesOperator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-INSStaggeredVCStokesOperator.Tpo $(DEPDIR)/libIBAMR3d_a-INSStaggeredVCStokesOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C' object='libIBAMR3d_a-INSStaggeredVCStokesOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredVCStokesOperator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C'; fi`
+
 libIBAMR3d_a-INSStaggeredVelocityBcCoef.o: $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredVelocityBcCoef.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredVelocityBcCoef.Tpo -c -o libIBAMR3d_a-INSStaggeredVelocityBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-INSStaggeredVelocityBcCoef.Tpo $(DEPDIR)/libIBAMR3d_a-INSStaggeredVelocityBcCoef.Po
@@ -2223,6 +2683,20 @@ libIBAMR3d_a-INSStaggeredVelocityBcCoef.obj: $(top_srcdir)/src/navier_stokes/INS
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C'; fi`
 
+libIBAMR3d_a-IBFEHierarchyIntegrator.o: $(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBFEHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBFEHierarchyIntegrator.Tpo -c -o libIBAMR3d_a-IBFEHierarchyIntegrator.o `test -f '$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBFEHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR3d_a-IBFEHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C' object='libIBAMR3d_a-IBFEHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBFEHierarchyIntegrator.o `test -f '$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C
+
+libIBAMR3d_a-IBFEHierarchyIntegrator.obj: $(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBFEHierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBFEHierarchyIntegrator.Tpo -c -o libIBAMR3d_a-IBFEHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBFEHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR3d_a-IBFEHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C' object='libIBAMR3d_a-IBFEHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBFEHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C'; fi`
+
 .f.o:
 	$(F77COMPILE) -c -o $@ $<
 
@@ -2234,6 +2708,12 @@ godunov_helpers.o: $(top_builddir)/src/advect/fortran/godunov_helpers.f
 
 godunov_helpers.obj: $(top_builddir)/src/advect/fortran/godunov_helpers.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o godunov_helpers.obj `if test -f '$(top_builddir)/src/advect/fortran/godunov_helpers.f'; then $(CYGPATH_W) '$(top_builddir)/src/advect/fortran/godunov_helpers.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/advect/fortran/godunov_helpers.f'; fi`
+
+sqrtm.o: $(top_builddir)/src/fortran/sqrtm.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o sqrtm.o `test -f '$(top_builddir)/src/fortran/sqrtm.f' || echo '$(srcdir)/'`$(top_builddir)/src/fortran/sqrtm.f
+
+sqrtm.obj: $(top_builddir)/src/fortran/sqrtm.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o sqrtm.obj `if test -f '$(top_builddir)/src/fortran/sqrtm.f'; then $(CYGPATH_W) '$(top_builddir)/src/fortran/sqrtm.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/fortran/sqrtm.f'; fi`
 
 adv_diff_consdiff2d.o: $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o adv_diff_consdiff2d.o `test -f '$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f

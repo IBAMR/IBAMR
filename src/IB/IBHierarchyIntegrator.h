@@ -2,7 +2,7 @@
 #define included_IBHierarchyIntegrator
 
 // Filename: IBHierarchyIntegrator.h
-// Last modified: <02.Mar.2010 18:17:05 griffith@griffith-macbook-pro.local>
+// Last modified: <24.Apr.2010 09:59:33 griffith@griffith-macbook-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -20,7 +20,6 @@
 #include <ibamr/INSHierarchyIntegrator.h>
 
 // IBTK INCLUDES
-#include <ibtk/CartGridFunction.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/LNodeInitStrategy.h>
 #if (NDIM == 3)
