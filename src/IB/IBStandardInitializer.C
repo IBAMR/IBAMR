@@ -1,5 +1,5 @@
 // Filename: IBStandardInitializer.C
-// Last modified: <27.Jun.2010 16:02:57 griffith@griffith-macbook-pro.local>
+// Last modified: <28.Jun.2010 14:18:15 griffith@boyce-griffiths-mac-pro.local>
 // Created on 22 Nov 2006 by Boyce Griffith (boyce@bigboy.nyconnect.com)
 
 #include "IBStandardInitializer.h"
@@ -588,19 +588,32 @@ IBStandardInitializer::initializeLagSiloDataWriter(
     {
         for (unsigned j = 0; j < d_num_vertex[level_number].size(); ++j)
         {
+            const std::string postfix = "_vertices";
             d_silo_writer->registerMarkerCloud(
-                d_base_filename[level_number][j] + "_vertices",
+                d_base_filename[level_number][j] + postfix,
                 d_num_vertex[level_number][j], d_vertex_offset[level_number][j], level_number);
+        }
+
+        bool registered_spring_edge_map = false;
+        for (unsigned j = 0; j < d_num_vertex[level_number].size(); ++j)
+        {
             if (d_spring_edge_map[level_number][j].size() > 0)
             {
+                registered_spring_edge_map = true;
+                const std::string postfix = "_mesh";
                 d_silo_writer->registerUnstructuredMesh(
-                    d_base_filename[level_number][j] + "_mesh",
+                    d_base_filename[level_number][j] + postfix,
                     d_spring_edge_map[level_number][j], level_number);
             }
-            else if (d_rod_edge_map[level_number][j].size() > 0)
+        }
+
+        for (unsigned j = 0; j < d_num_vertex[level_number].size(); ++j)
+        {
+            if (d_rod_edge_map[level_number][j].size() > 0)
             {
+                const std::string postfix = registered_spring_edge_map ? "_rod_mesh" : "_mesh";
                 d_silo_writer->registerUnstructuredMesh(
-                    d_base_filename[level_number][j] + "_mesh",
+                    d_base_filename[level_number][j] + postfix,
                     d_rod_edge_map[level_number][j], level_number);
             }
         }

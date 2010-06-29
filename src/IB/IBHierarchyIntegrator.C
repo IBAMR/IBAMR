@@ -1,5 +1,5 @@
 // Filename: IBHierarchyIntegrator.C
-// Last modified: <27.Jun.2010 16:00:48 griffith@griffith-macbook-pro.local>
+// Last modified: <28.Jun.2010 17:35:04 griffith@boyce-griffiths-mac-pro.local>
 // Created on 12 Jul 2004 by Boyce Griffith (boyce@trasnaform.speakeasy.net)
 
 #include "IBHierarchyIntegrator.h"
@@ -344,7 +344,10 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     }
 
     // Get the Lagrangian Data Manager.
-    d_lag_data_manager = LDataManager::getManager(d_object_name+"::LDataManager", d_interp_delta_fcn, d_spread_delta_fcn, d_registered_for_restart);
+    d_lag_data_manager = LDataManager::getManager(d_object_name+"::LDataManager",
+                                                  d_interp_delta_fcn, d_spread_delta_fcn,
+                                                  d_ghosts,
+                                                  d_registered_for_restart);
     d_ghosts = d_lag_data_manager->getGhostCellWidth();
 
     // Create the instrument panel object.
@@ -3508,6 +3511,15 @@ IBHierarchyIntegrator::getFromInput(
         {
             d_interp_delta_fcn = db->getStringWithDefault("delta_fcn", d_interp_delta_fcn);
             d_spread_delta_fcn = db->getStringWithDefault("delta_fcn", d_spread_delta_fcn);
+        }
+
+        if (db->isInteger("min_ghost_cell_width"))
+        {
+            d_ghosts = db->getInteger("min_ghost_cell_width");
+        }
+        else if (db->isDouble("min_ghost_cell_width"))
+        {
+            d_ghosts = std::ceil(db->getDouble("min_ghost_cell_width"));
         }
 
         d_start_time = db->getDoubleWithDefault("start_time", d_start_time);
