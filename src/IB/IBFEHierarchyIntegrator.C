@@ -1,5 +1,5 @@
 // Filename: IBFEHierarchyIntegrator.C
-// Last modified: <27.Jun.2010 16:16:15 griffith@griffith-macbook-pro.local>
+// Last modified: <29.Jul.2010 17:51:20 griffith@boyce-griffiths-mac-pro.local>
 // Created on 27 Jul 2009 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 #include "IBFEHierarchyIntegrator.h"
@@ -1504,16 +1504,11 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                         const TensorValue<double> P = d_PK1_stress_function(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_function_ctx);
                         const VectorValue<double> F = P*normal_face[qp]*JxW_face[qp];
 
-                        const TensorValue<double> dX_ds_inv_trans = tensor_inverse_transpose(dX_ds, NDIM);
-                        VectorValue<double> n = dX_ds_inv_trans*normal_face[qp];
-                        n /= n.size();
-                        const VectorValue<double> F_n = (F*n)*n;
-
                         // Split off the normal component of the force.
                         for (unsigned int k = 0; k < phi_face.size(); ++k)
                         {
                             VectorValue<double> F_qp;
-                            F_qp += F_n*phi_face[k][qp];
+                            F_qp += F*phi_face[k][qp];
                             for (unsigned int i = 0; i < NDIM; ++i)
                             {
                                 F_e[i](k) += F_qp(i);
@@ -1635,14 +1630,9 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
                         const TensorValue<double> P = d_PK1_stress_function(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_function_ctx);
                         const VectorValue<double> F = P*normal_face[qp]*JxW_face[qp];
 
-                        const TensorValue<double> dX_ds_inv_trans = tensor_inverse_transpose(dX_ds, NDIM);
-                        VectorValue<double> n = dX_ds_inv_trans*normal_face[qp];
-                        n /= n.size();
-                        const VectorValue<double> F_n = (F*n)*n;
-
                         for (unsigned int i = 0; i < NDIM; ++i)
                         {
-                            T_bdry[NDIM*(qp+qp_offset)+i] = -F_n(i);
+                            T_bdry[NDIM*(qp+qp_offset)+i] = -F(i);
                             X_bdry[NDIM*(qp+qp_offset)+i] = X_qp(i);
                         }
                     }

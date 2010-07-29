@@ -65,6 +65,7 @@ coordinate_mapping_function(
 }// coordinate_mapping_function
 
 // Stress tensor function.
+bool smooth_case = false;
 TensorValue<double>
 PK1_stress_function(
     const TensorValue<double>& dX_ds,
@@ -75,8 +76,11 @@ PK1_stress_function(
     void* ctx)
 {
     TensorValue<double> P = (mu/w)*dX_ds;
-//  P(0,1) = 0.0;
-//  P(1,1) = 0.0;
+    if (smooth_case)
+    {
+        P(0,1) = 0.0;
+        P(1,1) = 0.0;
+    }
     return P;
 }// PK1_stress_function
 }
@@ -296,6 +300,8 @@ main(
         pbc.pairedboundary = 1;
         VectorValue<double> boundary_translation(2.0*M_PI*R, 0.0, 0.0);
         pbc.translation_vector = boundary_translation;
+
+        smooth_case = input_db->getBoolWithDefault("smooth_case", smooth_case);
 
         // Create the FE data manager used to manage mappings between the FE
         // mesh and the Cartesian grid.

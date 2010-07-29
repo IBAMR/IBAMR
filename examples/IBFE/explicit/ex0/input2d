@@ -2,20 +2,22 @@
 PI = 3.14159265358979
 
 // physical parameters
-MU = 0.01
+MU = 1.0
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 3   // maximum number of levels in locally refined grid
+MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 16                                    // coarsest grid spacing
+N = 256                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 1.0                                   // width of computational domain
-M = 2                                     // Lagrangian mesh spacing
+M = N/64                                  // Lagrangian mesh spacing
+
+smooth_case = FALSE
 
 quad_type = "QGAUSS"
-quad_order = "FORTIETH"
+quad_order = "FIFTEENTH"
 weighting_fcn = "IB_4"
 use_consistent_mass_matrix = TRUE
 
@@ -111,7 +113,7 @@ INSStaggeredHierarchyIntegrator {
    HelmholtzHypreSolver {
       solver_type           = "PCG"
       precond_type          = "Split"
-      split_solver_type     = "Jacobi"
+      split_solver_type     = "PFMG"
       relative_residual_tol = 1.0e-2
       max_iterations        = 100
       enable_logging        = FALSE
