@@ -12,7 +12,8 @@ REF_RATIO  = 4   // refinement ratio between levels
 N = 256                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 1.0                                   // width of computational domain
-M = N/64                                  // Lagrangian mesh spacing
+MFAC = 1                                  // Lagrangian mesh spacing factor
+M = MFAC*N/64                             // Lagrangian mesh spacing
 
 smooth_case = FALSE
 
