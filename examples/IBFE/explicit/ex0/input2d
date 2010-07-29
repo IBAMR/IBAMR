@@ -9,11 +9,13 @@ RHO = 1.0
 MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 256                                   // coarsest grid spacing
+N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 1.0                                   // width of computational domain
 MFAC = 1                                  // Lagrangian mesh spacing factor
 M = MFAC*N/64                             // Lagrangian mesh spacing
+DX = L/NFINEST
+DT = 0.5*DX
 
 smooth_case = FALSE
 
@@ -21,8 +23,6 @@ quad_type = "QGAUSS"
 quad_order = "FIFTEENTH"
 weighting_fcn = "IB_4"
 use_consistent_mass_matrix = TRUE
-
-dx = L/NFINEST
 
 VelocityInitialConditions {
    function_0 = "0.0"
@@ -84,7 +84,7 @@ IBFEHierarchyIntegrator {
    grow_dt               = 1.1e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
    regrid_interval       = 2
-   dt_max = 0.5*dx
+   dt_max = DT
    num_cycles = 3
    enable_logging = TRUE
    split_interior_and_bdry_forces = TRUE
@@ -197,16 +197,16 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt" , "ExodusII"
-   viz_dump_interval     = 1 // NFINEST     // zero to turn off
+   viz_dump_interval     = int(0.125/DT)  // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_interval      = 0           // zero to turn off
+   restart_interval      = 0              // zero to turn off
    restart_write_dirname = "restart_IB2d"
 
 // timer dump parameters
-   timer_dump_interval   = 0           // zero to turn off
+   timer_dump_interval   = 0              // zero to turn off
 }
 
 CartesianGeometry {
