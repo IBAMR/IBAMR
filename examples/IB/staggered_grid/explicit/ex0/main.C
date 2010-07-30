@@ -305,7 +305,6 @@ main(
             }
         }
 
-
         int hier_dump_interval = 0;
         if (main_db->keyExists("hier_dump_interval"))
         {

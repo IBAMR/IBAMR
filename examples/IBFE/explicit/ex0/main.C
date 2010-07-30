@@ -287,7 +287,7 @@ main(
         const double R = 0.25;
         const double w = 0.0625;
         const int M = input_db->getIntegerWithDefault("M", 4);
-        string elem_type = "QUAD4";
+        string elem_type = input_db->getStringWithDefault("elem_type", "QUAD4");
         MeshTools::Generation::build_square(mesh,
                                             28*M, M,
                                             0.0, 2.0*M_PI*R,

@@ -9,20 +9,22 @@ RHO = 1.0
 MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 64                                    // coarsest grid spacing
+N = 128                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 1.0                                   // width of computational domain
 MFAC = 1                                  // Lagrangian mesh spacing factor
-M = MFAC*N/64                             // Lagrangian mesh spacing
+M = MFAC*NFINEST/64                       // Lagrangian mesh spacing
 DX = L/NFINEST
 DT = 0.5*DX
 
-smooth_case = FALSE
+smooth_case = TRUE
 
+elem_type = "QUAD4"
+elem_order = "FIRST"
 quad_type = "QGAUSS"
 quad_order = "FIFTEENTH"
 weighting_fcn = "IB_4"
-use_consistent_mass_matrix = TRUE
+use_consistent_mass_matrix = FALSE
 
 VelocityInitialConditions {
    function_0 = "0.0"
@@ -38,10 +40,10 @@ PressureInitialConditions {
    p0_sharp = mu*PI*R
 
 // smooth case
-// function = "if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R, (p0_smooth + (mu/R)), if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w, (p0_smooth + (mu/w)*(1/R)*(R+w-sqrt((X0-0.5)^2 + (X1-0.5)^2))), p0_smooth))"
+   function = "if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R, (p0_smooth + (mu/R)), if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w, (p0_smooth + (mu/w)*(1/R)*(R+w-sqrt((X0-0.5)^2 + (X1-0.5)^2))), p0_smooth))"
 
 // sharp case
-   function = "if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R, (p0_sharp - mu/(R+w)), if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w, (p0_sharp + (mu/w)*R/(R+w)), p0_sharp)) + if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R, (p0_smooth + (mu/R)), if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w, (p0_smooth + (mu/w)*(1/R)*(R+w-sqrt((X0-0.5)^2 + (X1-0.5)^2))), p0_smooth))"
+// function = "if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R, (p0_sharp - mu/(R+w)), if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w, (p0_sharp + (mu/w)*R/(R+w)), p0_sharp)) + if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R, (p0_smooth + (mu/R)), if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w, (p0_smooth + (mu/w)*(1/R)*(R+w-sqrt((X0-0.5)^2 + (X1-0.5)^2))), p0_smooth))"
 }
 
 VelocityBcCoefs_0 {
@@ -88,6 +90,7 @@ IBFEHierarchyIntegrator {
    num_cycles = 3
    enable_logging = TRUE
    split_interior_and_bdry_forces = TRUE
+   fe_order = elem_order
 }
 
 INSStaggeredHierarchyIntegrator {
