@@ -2,7 +2,7 @@
 #define included_IBFEHierarchyIntegrator
 
 // Filename: IBFEHierarchyIntegrator.h
-// Last modified: <25.May.2010 11:14:38 griffith@griffith-macbook-pro.local>
+// Last modified: <30.Jul.2010 10:14:51 griffith@boyce-griffiths-mac-pro.local>
 // Created on 27 Jul 2009 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -632,6 +632,8 @@ private:
      * Pointer to the FE data associated with this time integration object.
      */
     IBTK::FEDataManager* d_fe_data_manager;
+    Order d_fe_order;
+    FEFamily d_fe_family;
     bool d_split_interior_and_bdry_forces;
 
     /*

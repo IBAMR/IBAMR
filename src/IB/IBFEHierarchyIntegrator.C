@@ -1,5 +1,5 @@
 // Filename: IBFEHierarchyIntegrator.C
-// Last modified: <29.Jul.2010 17:51:20 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <30.Jul.2010 10:18:38 griffith@boyce-griffiths-mac-pro.local>
 // Created on 27 Jul 2009 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 #include "IBFEHierarchyIntegrator.h"
@@ -43,6 +43,7 @@
 #include <petsc_vector.h>
 #include <quadrature_trap.h>
 #include <quadrature_gauss.h>
+#include <string_to_enum.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -104,6 +105,8 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
     : d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
       d_fe_data_manager(fe_data_manager),
+      d_fe_order(FIRST),
+      d_fe_family(LAGRANGE),
       d_split_interior_and_bdry_forces(false),
       d_coordinate_mapping_function(NULL),
       d_coordinate_mapping_function_ctx(NULL),
@@ -369,7 +372,7 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         std::ostringstream os;
         os << "X_" << d;
-        coords_system.add_variable(os.str(), FIRST, LAGRANGE);
+        coords_system.add_variable(os.str(), d_fe_order, d_fe_family);
     }
 
     ExplicitSystem& coords_mapping_system = equation_systems->add_system<ExplicitSystem>(COORDINATE_MAPPING_SYSTEM_NAME);
@@ -377,7 +380,7 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         std::ostringstream os;
         os << "dX_" << d;
-        coords_mapping_system.add_variable(os.str(), FIRST, LAGRANGE);
+        coords_mapping_system.add_variable(os.str(), d_fe_order, d_fe_family);
     }
 
     ExplicitSystem& force_system = equation_systems->add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
@@ -385,7 +388,7 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         std::ostringstream os;
         os << "F_" << d;
-        force_system.add_variable(os.str(), FIRST, LAGRANGE);
+        force_system.add_variable(os.str(), d_fe_order, d_fe_family);
     }
 
     ExplicitSystem& velocity_system = equation_systems->add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
@@ -393,7 +396,7 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         std::ostringstream os;
         os << "U_" << d;
-        velocity_system.add_variable(os.str(), FIRST, LAGRANGE);
+        velocity_system.add_variable(os.str(), d_fe_order, d_fe_family);
     }
 
     // Initialize all variables.
@@ -1733,6 +1736,8 @@ IBFEHierarchyIntegrator::getFromInput(
     d_dt_max_time_max = db->getDoubleWithDefault("dt_max_time_max", d_dt_max_time_max);
     d_dt_max_time_min = db->getDoubleWithDefault("dt_max_time_min", d_dt_max_time_min);
 
+    d_fe_order = Utility::string_to_enum<Order>(db->getStringWithDefault("fe_order", Utility::enum_to_string<Order>(d_fe_order)));
+    d_fe_family = Utility::string_to_enum<FEFamily>(db->getStringWithDefault("fe_family", Utility::enum_to_string<FEFamily>(d_fe_family)));
     d_split_interior_and_bdry_forces = db->getBoolWithDefault("split_interior_and_bdry_forces", d_split_interior_and_bdry_forces);
 
     d_do_log = db->getBoolWithDefault("enable_logging", d_do_log);
