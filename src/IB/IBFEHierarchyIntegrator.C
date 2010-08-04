@@ -1,5 +1,5 @@
 // Filename: IBFEHierarchyIntegrator.C
-// Last modified: <30.Jul.2010 10:18:38 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <04.Aug.2010 19:04:23 griffith@boyce-griffiths-mac-pro.local>
 // Created on 27 Jul 2009 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 #include "IBFEHierarchyIntegrator.h"
@@ -1492,8 +1492,8 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                 // constraints.
                 const short int boundary_id = mesh.boundary_info->boundary_id(elem,side);
                 const bool at_physical_bdry = elem->neighbor(side) == NULL && !dof_map.is_periodic_boundary(boundary_id);
-                const bool normal_dirichlet_bdry = boundary_id == NORMAL_DIRICHLET_BOUNDARY_ID || boundary_id == NORMAL_AND_TANGENTIAL_DIRICHLET_BOUNDARY_ID;
-                if (at_physical_bdry && !normal_dirichlet_bdry)
+                const bool dirichlet_bdry = boundary_id == DIRICHLET_BOUNDARY_ID;
+                if (at_physical_bdry && !dirichlet_bdry)
                 {
                     fe_face->reinit(elem, side);
                     coords_fe_face->reinit(elem, side);
@@ -1608,8 +1608,8 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
                 // constraints.
                 const short int boundary_id = mesh.boundary_info->boundary_id(elem,side);
                 const bool at_physical_bdry = elem->neighbor(side) == NULL && !dof_map.is_periodic_boundary(boundary_id);
-                const bool normal_dirichlet_bdry = boundary_id == NORMAL_DIRICHLET_BOUNDARY_ID || boundary_id == NORMAL_AND_TANGENTIAL_DIRICHLET_BOUNDARY_ID;
-                if (at_physical_bdry && !normal_dirichlet_bdry)
+                const bool dirichlet_bdry = boundary_id == DIRICHLET_BOUNDARY_ID;
+                if (at_physical_bdry && !dirichlet_bdry)
                 {
                     fe_face->reinit(elem, side);
 

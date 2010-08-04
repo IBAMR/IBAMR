@@ -2,7 +2,7 @@
 #define included_IBFEHierarchyIntegrator
 
 // Filename: IBFEHierarchyIntegrator.h
-// Last modified: <30.Jul.2010 10:14:51 griffith@boyce-griffiths-mac-pro.local>
+// Last modified: <04.Aug.2010 18:19:16 griffith@boyce-griffiths-mac-pro.local>
 // Created on 27 Jul 2009 by Boyce Griffith (griffith@griffith-macbook-pro.local)
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
@@ -46,9 +46,9 @@ public:
     static const std::string              FORCE_SYSTEM_NAME;
     static const std::string           VELOCITY_SYSTEM_NAME;
 
-    static const short int                NORMAL_DIRICHLET_BOUNDARY_ID = 256;
-    static const short int            TANGENTIAL_DIRICHLET_BOUNDARY_ID = 512;
-    static const short int NORMAL_AND_TANGENTIAL_DIRICHLET_BOUNDARY_ID = NORMAL_DIRICHLET_BOUNDARY_ID | TANGENTIAL_DIRICHLET_BOUNDARY_ID;
+//  static const short int     NORMAL_DIRICHLET_BOUNDARY_ID = 256;
+//  static const short int TANGENTIAL_DIRICHLET_BOUNDARY_ID = 512;
+    static const short int            DIRICHLET_BOUNDARY_ID = 256 | 512;
 
     /*!
      * Constructor.
