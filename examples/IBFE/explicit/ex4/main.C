@@ -313,7 +313,7 @@ main(
         string elem_type = input_db->getStringWithDefault("elem_type", "QUAD4");
         MeshTools::Generation::build_sphere(mesh,
                                             0.2,
-                                            M,
+                                            R,
                                             Utility::string_to_enum<ElemType>(elem_type));
         ExodusII_IO mesh_writer(mesh);
 
@@ -534,10 +534,10 @@ main(
 
             static const double A0 = compute_mesh_volume(&equation_systems);
             double A = compute_mesh_volume(&equation_systems);
-            tbox::pout << endl
+            tbox::plog << endl
+                       << "time = " << loop_time << endl
                        << "mesh volume = " << A << endl
-                       << "relative difference = " << (A - A0)/A0 << endl
-                       << endl;
+                       << "relative difference = " << (A - A0)/A0 << endl;
 
             tbox::pout <<                                                       endl;
             tbox::pout << "At end      of timestep # " <<  iteration_num - 1 << endl;

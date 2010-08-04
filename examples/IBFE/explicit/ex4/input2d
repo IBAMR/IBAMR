@@ -6,10 +6,11 @@ RHO = 1.0
 MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 64                                    // coarsest grid spacing
+N = 128                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 1.0                                   // width of computational domain
-R = 3                                     // Lagrangian mesh refinement factor
+RFAC = 3
+R = RFAC*int(log(N)/log(64))              // Lagrangian mesh refinement factor
 
 U_MAX = 1.0
 CFL_MAX = 0.5
@@ -19,7 +20,7 @@ DT = CFL_MAX*DX/U_MAX
 elem_type = "QUAD4"
 elem_order = "FIRST"
 quad_type = "QGAUSS"
-quad_order = "NINTH"
+quad_order = "NINTEENTH"
 weighting_fcn = "IB_4"
 use_consistent_mass_matrix = TRUE
 
