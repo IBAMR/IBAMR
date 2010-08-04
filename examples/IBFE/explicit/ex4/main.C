@@ -309,7 +309,7 @@ main(
 
         // Create a simple FE mesh.
         Mesh mesh(NDIM);
-        const int M = input_db->getIntegerWithDefault("M", 4);
+        const int R = input_db->getIntegerWithDefault("R", 3);
         string elem_type = input_db->getStringWithDefault("elem_type", "QUAD4");
         MeshTools::Generation::build_sphere(mesh,
                                             0.2,
