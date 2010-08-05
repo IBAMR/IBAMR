@@ -68,6 +68,8 @@ coordinate_mapping_function(
 // Stress tensor function.
 static const double C1 = 0.05;
 static const double mu = 2.0*C1;
+static const double lambda = 1.0e6;
+static bool use_div_penalization = false;
 TensorValue<double>
 PK1_stress_function(
     const TensorValue<double>& dX_ds,
@@ -78,7 +80,12 @@ PK1_stress_function(
     void* ctx)
 {
     static const TensorValue<double> I(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);
-    return mu*(dX_ds-I);
+    TensorValue<double> P = mu*(dX_ds-I);
+    if (use_div_penalization)
+    {
+        P += (-mu + lambda*log(dX_ds.det()))*tensor_inverse_transpose(dX_ds, NDIM);
+    }
+    return P;
 }// PK1_stress_function
 }
 
@@ -316,6 +323,8 @@ main(
                                             R,
                                             Utility::string_to_enum<ElemType>(elem_type));
         ExodusII_IO mesh_writer(mesh);
+
+        use_div_penalization = input_db->getBoolWithDefault("use_div_penalization", use_div_penalization);
 
         // Create the FE data manager used to manage mappings between the FE
         // mesh and the Cartesian grid.
