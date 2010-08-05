@@ -9,7 +9,7 @@ REF_RATIO  = 4   // refinement ratio between levels
 N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 1.0                                   // width of computational domain
-RFAC = 3
+RFAC = 4
 R = RFAC + int(log(N)/log(2)) - 6         // Lagrangian mesh refinement factor
 
 U_MAX = 1.0
@@ -20,10 +20,12 @@ DT = CFL_MAX*DX/U_MAX
 elem_type = "QUAD4"
 elem_order = "FIRST"
 quad_type = "QGAUSS"
-quad_order = "NINTEENTH"
+quad_order = "NINTH"
 weighting_fcn = "IB_4"
 use_consistent_mass_matrix = TRUE
 
+struct_mu = 0.1
+struct_lambda = 2^(3 - RFAC)*2.5e0*NFINEST/64.0
 use_div_penalization = TRUE
 
 VelocityInitialConditions {

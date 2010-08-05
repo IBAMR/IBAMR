@@ -66,9 +66,9 @@ coordinate_mapping_function(
 }// coordinate_mapping_function
 
 // Stress tensor function.
-static const double C1 = 0.05;
-static const double mu = 2.0*C1;
-static const double lambda = 1.0e6;
+static double C1 = 0.05;
+static double struct_mu = 2.0*C1;
+static double struct_lambda = 2.5e0;
 static bool use_div_penalization = false;
 TensorValue<double>
 PK1_stress_function(
@@ -80,10 +80,10 @@ PK1_stress_function(
     void* ctx)
 {
     static const TensorValue<double> I(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);
-    TensorValue<double> P = mu*(dX_ds-I);
+    TensorValue<double> P = struct_mu*(dX_ds-I);
     if (use_div_penalization)
     {
-        P += (-mu + lambda*log(dX_ds.det()))*tensor_inverse_transpose(dX_ds, NDIM);
+        P += (-struct_mu + struct_lambda*log(dX_ds.det()))*tensor_inverse_transpose(dX_ds, NDIM);
     }
     return P;
 }// PK1_stress_function
@@ -324,6 +324,8 @@ main(
                                             Utility::string_to_enum<ElemType>(elem_type));
         ExodusII_IO mesh_writer(mesh);
 
+        struct_mu = input_db->getDoubleWithDefault("struct_mu", struct_mu);
+        struct_lambda = input_db->getDoubleWithDefault("struct_lambda", struct_lambda);
         use_div_penalization = input_db->getBoolWithDefault("use_div_penalization", use_div_penalization);
 
         // Create the FE data manager used to manage mappings between the FE
