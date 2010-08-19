@@ -245,6 +245,8 @@ if test "$LIBMESH_ENABLED" == "" ; then
   LIBMESH_ENABLED=no
 fi
 
+AM_CONDITIONAL([LIBMESH_ENABLED],[test "$LIBMESH_ENABLED" == "yes"])
+
 AC_ARG_WITH([libmesh],
   AS_HELP_STRING([--with-libmesh=PATH],[location of optional libMesh installation @<:@default=/usr/local/sfw/libmesh/current@:>@]),
   [if test "$LIBMESH_ENABLED" == "no" ; then

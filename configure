@@ -10224,6 +10224,15 @@ if test "$LIBMESH_ENABLED" == "" ; then
   LIBMESH_ENABLED=no
 fi
 
+ if test "$LIBMESH_ENABLED" == "yes"; then
+  LIBMESH_ENABLED_TRUE=
+  LIBMESH_ENABLED_FALSE='#'
+else
+  LIBMESH_ENABLED_TRUE='#'
+  LIBMESH_ENABLED_FALSE=
+fi
+
+
 
 # Check whether --with-libmesh was given.
 if test "${with_libmesh+set}" = set; then
@@ -37915,6 +37924,13 @@ if test -z "${SILO_ENABLED_TRUE}" && test -z "${SILO_ENABLED_FALSE}"; then
   { { echo "$as_me:$LINENO: error: conditional \"SILO_ENABLED\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"SILO_ENABLED\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${LIBMESH_ENABLED_TRUE}" && test -z "${LIBMESH_ENABLED_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"LIBMESH_ENABLED\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"LIBMESH_ENABLED\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
