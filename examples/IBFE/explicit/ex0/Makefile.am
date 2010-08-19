@@ -6,12 +6,14 @@ SOURCES = main.C
 EXTRA_DIST = input2d input3d
 
 EXTRA_PROGRAMS =
+if LIBMESH_ENABLED
 if SAMRAI2D_ENABLED
 EXTRA_PROGRAMS += main2d
 endif
 #if SAMRAI3D_ENABLED
 #EXTRA_PROGRAMS += main3d
 #endif
+endif
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(top_builddir)/lib/libIBAMR2d.a $(top_builddir)/lib/libIBAMR.a $(top_builddir)/ibtk/lib/libIBTK2d.a $(top_builddir)/ibtk/lib/libIBTK.a $(top_builddir)/ibtk/third_party/qd-2.3.7/fortran/libqdmod.a $(top_builddir)/ibtk/third_party/qd-2.3.7/src/libqd.a
