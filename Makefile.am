@@ -16,7 +16,8 @@ install-exec-local:
 	@echo "===================================================================="
 
 ## Add various "extra" files to the IBAMR distribution.
-EXTRA_DIST  = $(top_srcdir)/autogen.sh
+EXTRA_DIST  = $(top_srcdir)/COPYRIGHT
+EXTRA_DIST += $(top_srcdir)/autogen.sh
 EXTRA_DIST += $(top_srcdir)/doc/Doxyfile.in
 EXTRA_DIST += $(top_srcdir)/doc/libstdc++.tag
 EXTRA_DIST += $(top_srcdir)/include/ibamr/AdvDiffHierarchyIntegrator.h

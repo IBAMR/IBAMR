@@ -1,3 +1,23 @@
+// Copyright (c) 2002-2010 Boyce Griffith
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 // Config files
 #include <IBAMR_config.h>
 #include <SAMRAI_config.h>
@@ -9,6 +29,7 @@
 #include <exodusII_io.h>
 #include <mesh.h>
 #include <mesh_generation.h>
+#include <numeric_vector.h>
 #include <quadrature.h>
 #include <string_to_enum.h>
 
@@ -65,6 +86,7 @@ coordinate_mapping_function(
 }// coordinate_mapping_function
 
 // Stress tensor function.
+bool smooth_case = false;
 TensorValue<double>
 PK1_stress_function(
     const TensorValue<double>& dX_ds,
@@ -75,8 +97,11 @@ PK1_stress_function(
     void* ctx)
 {
     TensorValue<double> P = (mu/w)*dX_ds;
-//  P(0,1) = 0.0;
-//  P(1,1) = 0.0;
+    if (smooth_case)
+    {
+        P(0,1) = 0.0;
+        P(1,1) = 0.0;
+    }
     return P;
 }// PK1_stress_function
 }
@@ -265,6 +290,33 @@ main(
             }
         }
 
+        int hier_dump_interval = 0;
+        if (main_db->keyExists("hier_dump_interval"))
+        {
+            hier_dump_interval = main_db->getInteger("hier_dump_interval");
+        }
+
+        string hier_dump_dirname;
+        if (hier_dump_interval > 0)
+        {
+            if (main_db->keyExists("hier_dump_dirname"))
+            {
+                hier_dump_dirname = main_db->getString("hier_dump_dirname");
+            }
+            else
+            {
+                TBOX_ERROR("hier_dump_interval > 0, but key `hier_dump_dirname'"
+                           << " not specified in input file");
+            }
+        }
+
+        const bool write_hier_data = (hier_dump_interval > 0)
+            && !(hier_dump_dirname.empty());
+        if (write_hier_data)
+        {
+            tbox::Utilities::recursiveMkdir(hier_dump_dirname);
+        }
+
         int timer_dump_interval = 0;
         if (main_db->keyExists("timer_dump_interval"))
         {
@@ -284,7 +336,7 @@ main(
         const double R = 0.25;
         const double w = 0.0625;
         const int M = input_db->getIntegerWithDefault("M", 4);
-        string elem_type = "QUAD4";
+        string elem_type = input_db->getStringWithDefault("elem_type", "QUAD4");
         MeshTools::Generation::build_square(mesh,
                                             28*M, M,
                                             0.0, 2.0*M_PI*R,
@@ -297,6 +349,8 @@ main(
         pbc.pairedboundary = 1;
         VectorValue<double> boundary_translation(2.0*M_PI*R, 0.0, 0.0);
         pbc.translation_vector = boundary_translation;
+
+        smooth_case = input_db->getBoolWithDefault("smooth_case", smooth_case);
 
         // Create the FE data manager used to manage mappings between the FE
         // mesh and the Cartesian grid.
@@ -444,11 +498,9 @@ main(
             }
             if (uses_exodus)
             {
-                exodus_io.write_timestep("output.ex2", equation_systems, time_integrator->getIntegratorStep()/viz_dump_interval+1, time_integrator->getIntegratorTime());
-                ExodusII_IO exodus_amr_io(mesh);
-                ostringstream os;
-                os << "output." << time_integrator->getIntegratorStep() << ".ex2";
-                exodus_amr_io.write_equation_systems(os.str(), equation_systems);
+                std::ostringstream os;
+                os << "output.ex2";
+                exodus_io.write_timestep(os.str(), equation_systems, time_integrator->getIntegratorStep()/viz_dump_interval+1, time_integrator->getIntegratorTime());
             }
         }
 
@@ -458,6 +510,53 @@ main(
         double loop_time_end = time_integrator->getEndTime();
 
         int iteration_num = time_integrator->getIntegratorStep();
+
+        // At specified intervals, write state data for post-processing.
+        if (write_hier_data && iteration_num%hier_dump_interval == 0)
+        {
+            // Write Cartesian data.
+            hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
+
+            tbox::plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
+            tbox::plog << "simulation time is " << loop_time << endl;
+
+            string file_name = hier_dump_dirname + "/" + "hier_data.";
+            char temp_buf[128];
+            sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, tbox::SAMRAI_MPI::getRank());
+            file_name += temp_buf;
+
+            tbox::Pointer<tbox::HDFDatabase> hier_db = new tbox::HDFDatabase("hier_db");
+            hier_db->create(file_name);
+
+            hier::ComponentSelector hier_data;
+            hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVar(),
+                                                                   navier_stokes_integrator->getCurrentContext()));
+            hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVar(),
+                                                                   navier_stokes_integrator->getCurrentContext()));
+            hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getExtrapolatedPressureVar(),
+                                                                   navier_stokes_integrator->getCurrentContext()));
+
+            patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
+            hier_db->putDouble("loop_time", loop_time);
+            hier_db->putDouble("end_time", loop_time_end);
+            hier_db->putDouble("dt", dt_now);
+            hier_db->putInteger("iteration_num", iteration_num);
+            hier_db->putInteger("hier_dump_interval", hier_dump_interval);
+
+            hier_db->close();
+
+            // Write Lagrangian data.
+            file_name = hier_dump_dirname + "/" + "fe_mesh.";
+            sprintf(temp_buf, "%05d", iteration_num);
+            file_name += temp_buf;
+            file_name += ".xda";
+            mesh.write(file_name);
+
+            file_name = hier_dump_dirname + "/" + "fe_equation_systems.";
+            sprintf(temp_buf, "%05d", iteration_num);
+            file_name += temp_buf;
+            equation_systems.write(file_name, (EquationSystems::WRITE_DATA | EquationSystems::WRITE_ADDITIONAL_DATA));
+        }
 
         while (!tbox::MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
                time_integrator->stepsRemaining())
@@ -497,11 +596,9 @@ main(
                 }
                 if (uses_exodus)
                 {
-                    exodus_io.write_timestep("output.ex2", equation_systems, iteration_num/viz_dump_interval+1, loop_time);
-                    ExodusII_IO exodus_amr_io(mesh);
-                    ostringstream os;
-                    os << "output." << iteration_num << ".ex2";
-                    exodus_amr_io.write_equation_systems(os.str(), equation_systems);
+                    std::ostringstream os;
+                    os << "output.ex2";
+                    exodus_io.write_timestep(os.str(), equation_systems, iteration_num/viz_dump_interval+1, loop_time);
                 }
             }
 
@@ -512,6 +609,53 @@ main(
                     restart_write_dirname, iteration_num);
 
                 if (stop_after_writing_restart) break;
+            }
+
+            // At specified intervals, write state data for post-processing.
+            if (write_hier_data && iteration_num%hier_dump_interval == 0)
+            {
+                // Write Cartesian data.
+                hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
+
+                tbox::plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
+                tbox::plog << "simulation time is " << loop_time << endl;
+
+                string file_name = hier_dump_dirname + "/" + "hier_data.";
+                char temp_buf[128];
+                sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, tbox::SAMRAI_MPI::getRank());
+                file_name += temp_buf;
+
+                tbox::Pointer<tbox::HDFDatabase> hier_db = new tbox::HDFDatabase("hier_db");
+                hier_db->create(file_name);
+
+                hier::ComponentSelector hier_data;
+                hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVar(),
+                                                                       navier_stokes_integrator->getCurrentContext()));
+                hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVar(),
+                                                                       navier_stokes_integrator->getCurrentContext()));
+                hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getExtrapolatedPressureVar(),
+                                                                       navier_stokes_integrator->getCurrentContext()));
+
+                patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
+                hier_db->putDouble("loop_time", loop_time);
+                hier_db->putDouble("end_time", loop_time_end);
+                hier_db->putDouble("dt", dt_now);
+                hier_db->putInteger("iteration_num", iteration_num);
+                hier_db->putInteger("hier_dump_interval", hier_dump_interval);
+
+                hier_db->close();
+
+                // Write Lagrangian data.
+                file_name = hier_dump_dirname + "/" + "fe_mesh.";
+                sprintf(temp_buf, "%05d", iteration_num);
+                file_name += temp_buf;
+                file_name += ".xda";
+                mesh.write(file_name);
+
+                file_name = hier_dump_dirname + "/" + "fe_equation_systems.";
+                sprintf(temp_buf, "%05d", iteration_num);
+                file_name += temp_buf;
+                equation_systems.write(file_name, (EquationSystems::WRITE_DATA | EquationSystems::WRITE_ADDITIONAL_DATA));
             }
         }
 

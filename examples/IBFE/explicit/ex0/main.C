@@ -1,3 +1,23 @@
+// Copyright (c) 2002-2010 Boyce Griffith
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 // Config files
 #include <IBAMR_config.h>
 #include <SAMRAI_config.h>
@@ -65,6 +85,7 @@ coordinate_mapping_function(
 }// coordinate_mapping_function
 
 // Stress tensor function.
+bool smooth_case = false;
 TensorValue<double>
 PK1_stress_function(
     const TensorValue<double>& dX_ds,
@@ -75,8 +96,11 @@ PK1_stress_function(
     void* ctx)
 {
     TensorValue<double> P = (mu/w)*dX_ds;
-//  P(0,1) = 0.0;
-//  P(1,1) = 0.0;
+    if (smooth_case)
+    {
+        P(0,1) = 0.0;
+        P(1,1) = 0.0;
+    }
     return P;
 }// PK1_stress_function
 }
@@ -283,7 +307,7 @@ main(
         const double R = 0.25;
         const double w = 0.0625;
         const int M = input_db->getIntegerWithDefault("M", 4);
-        string elem_type = "QUAD4";
+        string elem_type = input_db->getStringWithDefault("elem_type", "QUAD4");
         MeshTools::Generation::build_square(mesh,
                                             28*M, M,
                                             0.0, 2.0*M_PI*R,
@@ -296,6 +320,8 @@ main(
         pbc.pairedboundary = 1;
         VectorValue<double> boundary_translation(2.0*M_PI*R, 0.0, 0.0);
         pbc.translation_vector = boundary_translation;
+
+        smooth_case = input_db->getBoolWithDefault("smooth_case", smooth_case);
 
         // Create the FE data manager used to manage mappings between the FE
         // mesh and the Cartesian grid.

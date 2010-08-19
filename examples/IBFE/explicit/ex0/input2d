@@ -2,24 +2,29 @@
 PI = 3.14159265358979
 
 // physical parameters
-MU = 0.01
+MU = 1.0
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 3   // maximum number of levels in locally refined grid
+MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 16                                    // coarsest grid spacing
+N = 128                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 1.0                                   // width of computational domain
-M = 2                                     // Lagrangian mesh spacing
+MFAC = 1                                  // Lagrangian mesh spacing factor
+M = MFAC*NFINEST/64                       // Lagrangian mesh spacing
+DX = L/NFINEST
+DT = 0.5*DX
 
+smooth_case = TRUE
+
+elem_type = "QUAD4"
+elem_order = "FIRST"
 quad_type = "QGAUSS"
-quad_order = "FORTIETH"
+quad_order = "FIFTEENTH"
 weighting_fcn = "IB_4"
-use_consistent_mass_matrix = TRUE
-
-dx = L/NFINEST
+use_consistent_mass_matrix = FALSE
 
 VelocityInitialConditions {
    function_0 = "0.0"
@@ -35,10 +40,10 @@ PressureInitialConditions {
    p0_sharp = mu*PI*R
 
 // smooth case
-// function = "if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R, (p0_smooth + (mu/R)), if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w, (p0_smooth + (mu/w)*(1/R)*(R+w-sqrt((X0-0.5)^2 + (X1-0.5)^2))), p0_smooth))"
+   function = "if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R, (p0_smooth + (mu/R)), if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w, (p0_smooth + (mu/w)*(1/R)*(R+w-sqrt((X0-0.5)^2 + (X1-0.5)^2))), p0_smooth))"
 
 // sharp case
-   function = "if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R, (p0_sharp - mu/(R+w)), if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w, (p0_sharp + (mu/w)*R/(R+w)), p0_sharp)) + if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R, (p0_smooth + (mu/R)), if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w, (p0_smooth + (mu/w)*(1/R)*(R+w-sqrt((X0-0.5)^2 + (X1-0.5)^2))), p0_smooth))"
+// function = "if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R, (p0_sharp - mu/(R+w)), if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w, (p0_sharp + (mu/w)*R/(R+w)), p0_sharp)) + if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R, (p0_smooth + (mu/R)), if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w, (p0_smooth + (mu/w)*(1/R)*(R+w-sqrt((X0-0.5)^2 + (X1-0.5)^2))), p0_smooth))"
 }
 
 VelocityBcCoefs_0 {
@@ -81,10 +86,11 @@ IBFEHierarchyIntegrator {
    grow_dt               = 1.1e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
    regrid_interval       = 2
-   dt_max = 0.5*dx
+   dt_max = DT
    num_cycles = 3
    enable_logging = TRUE
    split_interior_and_bdry_forces = TRUE
+   fe_order = elem_order
 }
 
 INSStaggeredHierarchyIntegrator {
@@ -111,7 +117,7 @@ INSStaggeredHierarchyIntegrator {
    HelmholtzHypreSolver {
       solver_type           = "PCG"
       precond_type          = "Split"
-      split_solver_type     = "Jacobi"
+      split_solver_type     = "PFMG"
       relative_residual_tol = 1.0e-2
       max_iterations        = 100
       enable_logging        = FALSE
@@ -194,16 +200,16 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt" , "ExodusII"
-   viz_dump_interval     = 1 // NFINEST     // zero to turn off
+   viz_dump_interval     = int(0.125/DT)  // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_interval      = 0           // zero to turn off
+   restart_interval      = 0              // zero to turn off
    restart_write_dirname = "restart_IB2d"
 
 // timer dump parameters
-   timer_dump_interval   = 0           // zero to turn off
+   timer_dump_interval   = 0              // zero to turn off
 }
 
 CartesianGeometry {

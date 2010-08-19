@@ -1,6 +1,25 @@
 // Filename: IBFEHierarchyIntegrator.C
-// Last modified: <27.Jun.2010 16:16:15 griffith@griffith-macbook-pro.local>
-// Created on 27 Jul 2009 by Boyce Griffith (griffith@griffith-macbook-pro.local)
+// Created on 27 Jul 2009 by Boyce Griffith
+//
+// Copyright (c) 2002-2010 Boyce Griffith
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #include "IBFEHierarchyIntegrator.h"
 
@@ -43,6 +62,7 @@
 #include <petsc_vector.h>
 #include <quadrature_trap.h>
 #include <quadrature_gauss.h>
+#include <string_to_enum.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -104,6 +124,8 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
     : d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
       d_fe_data_manager(fe_data_manager),
+      d_fe_order(FIRST),
+      d_fe_family(LAGRANGE),
       d_split_interior_and_bdry_forces(false),
       d_coordinate_mapping_function(NULL),
       d_coordinate_mapping_function_ctx(NULL),
@@ -369,7 +391,7 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         std::ostringstream os;
         os << "X_" << d;
-        coords_system.add_variable(os.str(), FIRST, LAGRANGE);
+        coords_system.add_variable(os.str(), d_fe_order, d_fe_family);
     }
 
     ExplicitSystem& coords_mapping_system = equation_systems->add_system<ExplicitSystem>(COORDINATE_MAPPING_SYSTEM_NAME);
@@ -377,7 +399,7 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         std::ostringstream os;
         os << "dX_" << d;
-        coords_mapping_system.add_variable(os.str(), FIRST, LAGRANGE);
+        coords_mapping_system.add_variable(os.str(), d_fe_order, d_fe_family);
     }
 
     ExplicitSystem& force_system = equation_systems->add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
@@ -385,7 +407,7 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         std::ostringstream os;
         os << "F_" << d;
-        force_system.add_variable(os.str(), FIRST, LAGRANGE);
+        force_system.add_variable(os.str(), d_fe_order, d_fe_family);
     }
 
     ExplicitSystem& velocity_system = equation_systems->add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
@@ -393,7 +415,7 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         std::ostringstream os;
         os << "U_" << d;
-        velocity_system.add_variable(os.str(), FIRST, LAGRANGE);
+        velocity_system.add_variable(os.str(), d_fe_order, d_fe_family);
     }
 
     // Initialize all variables.
@@ -1489,8 +1511,8 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                 // constraints.
                 const short int boundary_id = mesh.boundary_info->boundary_id(elem,side);
                 const bool at_physical_bdry = elem->neighbor(side) == NULL && !dof_map.is_periodic_boundary(boundary_id);
-                const bool normal_dirichlet_bdry = boundary_id == NORMAL_DIRICHLET_BOUNDARY_ID || boundary_id == NORMAL_AND_TANGENTIAL_DIRICHLET_BOUNDARY_ID;
-                if (at_physical_bdry && !normal_dirichlet_bdry)
+                const bool dirichlet_bdry = boundary_id == DIRICHLET_BOUNDARY_ID;
+                if (at_physical_bdry && !dirichlet_bdry)
                 {
                     fe_face->reinit(elem, side);
                     coords_fe_face->reinit(elem, side);
@@ -1504,16 +1526,11 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                         const TensorValue<double> P = d_PK1_stress_function(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_function_ctx);
                         const VectorValue<double> F = P*normal_face[qp]*JxW_face[qp];
 
-                        const TensorValue<double> dX_ds_inv_trans = tensor_inverse_transpose(dX_ds, NDIM);
-                        VectorValue<double> n = dX_ds_inv_trans*normal_face[qp];
-                        n /= n.size();
-                        const VectorValue<double> F_n = (F*n)*n;
-
                         // Split off the normal component of the force.
                         for (unsigned int k = 0; k < phi_face.size(); ++k)
                         {
                             VectorValue<double> F_qp;
-                            F_qp += F_n*phi_face[k][qp];
+                            F_qp += F*phi_face[k][qp];
                             for (unsigned int i = 0; i < NDIM; ++i)
                             {
                                 F_e[i](k) += F_qp(i);
@@ -1610,8 +1627,8 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
                 // constraints.
                 const short int boundary_id = mesh.boundary_info->boundary_id(elem,side);
                 const bool at_physical_bdry = elem->neighbor(side) == NULL && !dof_map.is_periodic_boundary(boundary_id);
-                const bool normal_dirichlet_bdry = boundary_id == NORMAL_DIRICHLET_BOUNDARY_ID || boundary_id == NORMAL_AND_TANGENTIAL_DIRICHLET_BOUNDARY_ID;
-                if (at_physical_bdry && !normal_dirichlet_bdry)
+                const bool dirichlet_bdry = boundary_id == DIRICHLET_BOUNDARY_ID;
+                if (at_physical_bdry && !dirichlet_bdry)
                 {
                     fe_face->reinit(elem, side);
 
@@ -1635,14 +1652,9 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
                         const TensorValue<double> P = d_PK1_stress_function(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_function_ctx);
                         const VectorValue<double> F = P*normal_face[qp]*JxW_face[qp];
 
-                        const TensorValue<double> dX_ds_inv_trans = tensor_inverse_transpose(dX_ds, NDIM);
-                        VectorValue<double> n = dX_ds_inv_trans*normal_face[qp];
-                        n /= n.size();
-                        const VectorValue<double> F_n = (F*n)*n;
-
                         for (unsigned int i = 0; i < NDIM; ++i)
                         {
-                            T_bdry[NDIM*(qp+qp_offset)+i] = -F_n(i);
+                            T_bdry[NDIM*(qp+qp_offset)+i] = -F(i);
                             X_bdry[NDIM*(qp+qp_offset)+i] = X_qp(i);
                         }
                     }
@@ -1743,6 +1755,8 @@ IBFEHierarchyIntegrator::getFromInput(
     d_dt_max_time_max = db->getDoubleWithDefault("dt_max_time_max", d_dt_max_time_max);
     d_dt_max_time_min = db->getDoubleWithDefault("dt_max_time_min", d_dt_max_time_min);
 
+    d_fe_order = Utility::string_to_enum<Order>(db->getStringWithDefault("fe_order", Utility::enum_to_string<Order>(d_fe_order)));
+    d_fe_family = Utility::string_to_enum<FEFamily>(db->getStringWithDefault("fe_family", Utility::enum_to_string<FEFamily>(d_fe_family)));
     d_split_interior_and_bdry_forces = db->getBoolWithDefault("split_interior_and_bdry_forces", d_split_interior_and_bdry_forces);
 
     d_do_log = db->getBoolWithDefault("enable_logging", d_do_log);
