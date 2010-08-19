@@ -1,3 +1,23 @@
+// Copyright (c) 2002-2010 Boyce Griffith
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 // Config files
 #include <IBAMR_config.h>
 #include <SAMRAI_config.h>
@@ -289,11 +309,11 @@ main(
                     const short int boundary_id = mesh.boundary_info->boundary_id(elem,side);
                     if (boundary_id == 0)
                     {
-                        mesh.boundary_info->add_side(elem, side, IBFEHierarchyIntegrator::NORMAL_AND_TANGENTIAL_DIRICHLET_BOUNDARY_ID);
+                        mesh.boundary_info->add_side(elem, side, IBFEHierarchyIntegrator::DIRICHLET_BOUNDARY_ID);
                     }
                     else if (boundary_id == 2)
                     {
-                        mesh.boundary_info->add_side(elem, side, IBFEHierarchyIntegrator::TANGENTIAL_DIRICHLET_BOUNDARY_ID);
+                        mesh.boundary_info->add_side(elem, side, IBFEHierarchyIntegrator::DIRICHLET_BOUNDARY_ID);
                     }
                 }
             }
@@ -440,7 +460,7 @@ main(
                     Node* node = elem->get_node(n);
                     if (node->n_dofs(force_system_number) > 0 && node->n_dofs(velocity_system_number) > 0)
                     {
-                        if (bdry_id == IBFEHierarchyIntegrator::NORMAL_DIRICHLET_BOUNDARY_ID)
+                        if (bdry_id == IBFEHierarchyIntegrator::DIRICHLET_BOUNDARY_ID)
                         {
                             unsigned int d = 1;
 
@@ -455,7 +475,7 @@ main(
                             velocity_dof_map.add_constraint_row(U1_dof_index, U_constraint_row, false);
                         }
 
-                        if (bdry_id == IBFEHierarchyIntegrator::NORMAL_AND_TANGENTIAL_DIRICHLET_BOUNDARY_ID)
+                        if (bdry_id == IBFEHierarchyIntegrator::DIRICHLET_BOUNDARY_ID)
                         {
                             for (unsigned int d = 0; d < NDIM; ++d)
                             {
