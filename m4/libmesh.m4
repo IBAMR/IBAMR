@@ -21,6 +21,12 @@ if test "${LIBMESH_COMPILE_MODE}" == "oprof" ; then
   CXXFLAGS="${CXXFLAGS} `grep -A1 oprof-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
 fi
 
+LIBMESH_TECPLOT_LIBS=`grep "libmesh_LIBS" $LIBMESH_DIR/Make.common | grep "tecplot" | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
+LIBS="${LIBMESH_TECPLOT_LIBS} ${LIBS}"
+
+LIBMESH_TECPLOT_INCLUDE=`grep "libmesh_INCLUDE" $LIBMESH_DIR/Make.common | grep "tecplot" | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
+CPPFLAGS="${LIBMESH_TECPLOT_INCLUDE} ${CPPFLAGS}"
+
 LIBMESH_PETSC_ARCH=`grep "PETSC_ARCH[ \t]*.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
 if test "${PETSC_ARCH}" != "${LIBMESH_PETSC_ARCH}"; then
   AC_MSG_WARN([using libMesh PETSC_ARCH=${LIBMESH_PETSC_ARCH} instead of PETSC_ARCH=${PETSC_ARCH}])
