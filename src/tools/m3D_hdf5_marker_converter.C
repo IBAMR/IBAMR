@@ -30,7 +30,14 @@
 #include <string>
 #include <vector>
 
+#include <hdf5.h>
+#if (H5_VERS_MINOR == 6)
 #include <H5LT.h>
+#define H5Gopen1 H5Gopen
+#endif
+#if (H5_VERS_MINOR == 8)
+#include <hdf5_hl.h>
+#endif
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -97,7 +104,7 @@ main(
         return -1;
     }
 
-    hid_t marker_group_id = H5Gopen(marker_file_id, "/markers");
+    hid_t marker_group_id = H5Gopen1(marker_file_id, "/markers");
 
     int num_local_marker_nodes, marker_node_offset, num_marker_nodes;
     status = H5LTget_attribute_int(marker_file_id, "/markers", "num_local_marker_nodes", &num_local_marker_nodes);

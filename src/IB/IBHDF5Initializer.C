@@ -63,7 +63,14 @@
 #include <iostream>
 
 // HDF5 INCLUDES
+#include <hdf5.h>
+#if (H5_VERS_MINOR == 6)
 #include <H5LT.h>
+#define H5Dopen1 H5Dopen
+#endif
+#if (H5_VERS_MINOR == 8)
+#include <hdf5_hl.h>
+#endif
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -528,7 +535,7 @@ IBHDF5Initializer::findLocalPatchIndicesFromHDF5(
     {
         // Open the dataset.
         const std::string posn_dset_name = vertex_group_name + "/posn";
-        hid_t posn_dset = H5Dopen(file_id, posn_dset_name.c_str());
+        hid_t posn_dset = H5Dopen1(file_id, posn_dset_name.c_str());
         if (posn_dset < 0)
         {
             TBOX_ERROR(d_object_name << ":\n  Cannot find required vertex dataset in input file " << filename << "\n");
@@ -868,7 +875,7 @@ IBHDF5Initializer::buildLevelVertexDataCacheFromHDF5(
     {
         // Open the dataset.
         const std::string posn_dset_name = vertex_group_name + "/posn";
-        hid_t posn_dset = H5Dopen(file_id, posn_dset_name.c_str());
+        hid_t posn_dset = H5Dopen1(file_id, posn_dset_name.c_str());
         if (posn_dset < 0)
         {
             TBOX_ERROR(d_object_name << ":\n  Cannot find required vertex dataset in input file " << filename << "\n");
@@ -1017,31 +1024,31 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
         const std::string stiffness_dset_name     = spring_group_name + "/stiffness"    ;
         const std::string rest_length_dset_name   = spring_group_name + "/rest_length"  ;
 
-        hid_t node1_idx_dset = H5Dopen(file_id, node1_idx_dset_name.c_str());
+        hid_t node1_idx_dset = H5Dopen1(file_id, node1_idx_dset_name.c_str());
         if (node1_idx_dset < 0)
         {
             TBOX_ERROR(d_object_name << ":\n  Cannot find required spring dataset in input file " << filename << "\n");
         }
 
-        hid_t node2_idx_dset = H5Dopen(file_id, node2_idx_dset_name.c_str());
+        hid_t node2_idx_dset = H5Dopen1(file_id, node2_idx_dset_name.c_str());
         if (node2_idx_dset < 0)
         {
             TBOX_ERROR(d_object_name << ":\n  Cannot find required spring dataset in input file " << filename << "\n");
         }
 
-        hid_t force_fcn_idx_dset = H5Dopen(file_id, force_fcn_idx_dset_name.c_str());
+        hid_t force_fcn_idx_dset = H5Dopen1(file_id, force_fcn_idx_dset_name.c_str());
         if (force_fcn_idx_dset < 0)
         {
             TBOX_ERROR(d_object_name << ":\n  Cannot find required spring dataset in input file " << filename << "\n");
         }
 
-        hid_t stiffness_dset = H5Dopen(file_id, stiffness_dset_name.c_str());
+        hid_t stiffness_dset = H5Dopen1(file_id, stiffness_dset_name.c_str());
         if (stiffness_dset < 0)
         {
             TBOX_ERROR(d_object_name << ":\n  Cannot find required spring dataset in input file " << filename << "\n");
         }
 
-        hid_t rest_length_dset = H5Dopen(file_id, rest_length_dset_name.c_str());
+        hid_t rest_length_dset = H5Dopen1(file_id, rest_length_dset_name.c_str());
         if (rest_length_dset < 0)
         {
             TBOX_ERROR(d_object_name << ":\n  Cannot find required spring dataset in input file " << filename << "\n");
@@ -1263,25 +1270,25 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
             rest_curvature_dset_name[d] = beam_group_name + "/rest_curvature" + os.str();
         }
 
-        hid_t node1_idx_dset = H5Dopen(file_id, node1_idx_dset_name.c_str());
+        hid_t node1_idx_dset = H5Dopen1(file_id, node1_idx_dset_name.c_str());
         if (node1_idx_dset < 0)
         {
             TBOX_ERROR(d_object_name << ":\n  Cannot find required beam dataset in input file " << filename << "\n");
         }
 
-        hid_t node2_idx_dset = H5Dopen(file_id, node2_idx_dset_name.c_str());
+        hid_t node2_idx_dset = H5Dopen1(file_id, node2_idx_dset_name.c_str());
         if (node2_idx_dset < 0)
         {
             TBOX_ERROR(d_object_name << ":\n  Cannot find required beam dataset in input file " << filename << "\n");
         }
 
-        hid_t node3_idx_dset = H5Dopen(file_id, node3_idx_dset_name.c_str());
+        hid_t node3_idx_dset = H5Dopen1(file_id, node3_idx_dset_name.c_str());
         if (node3_idx_dset < 0)
         {
             TBOX_ERROR(d_object_name << ":\n  Cannot find required beam dataset in input file " << filename << "\n");
         }
 
-        hid_t bend_rigidity_dset = H5Dopen(file_id, bend_rigidity_dset_name.c_str());
+        hid_t bend_rigidity_dset = H5Dopen1(file_id, bend_rigidity_dset_name.c_str());
         if (bend_rigidity_dset < 0)
         {
             TBOX_ERROR(d_object_name << ":\n  Cannot find required beam dataset in input file " << filename << "\n");
@@ -1290,7 +1297,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         hid_t rest_curvature_dset[NDIM];
         for (int d = 0; d < NDIM; ++d)
         {
-            rest_curvature_dset[d] = H5Dopen(file_id, rest_curvature_dset_name[d].c_str());
+            rest_curvature_dset[d] = H5Dopen1(file_id, rest_curvature_dset_name[d].c_str());
             if (rest_curvature_dset < 0)
             {
                 TBOX_ERROR(d_object_name << ":\n  Cannot find required beam dataset in input file " << filename << "\n");
@@ -1523,19 +1530,19 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
         const std::string stiffness_dset_name = target_point_group_name + "/stiffness";
         const std::string damping_dset_name   = target_point_group_name + "/damping";
 
-        hid_t node_idx_dset = H5Dopen(file_id, node_idx_dset_name.c_str());
+        hid_t node_idx_dset = H5Dopen1(file_id, node_idx_dset_name.c_str());
         if (node_idx_dset < 0)
         {
             TBOX_ERROR(d_object_name << ":\n  Cannot find required target point dataset in input file " << filename << "\n");
         }
 
-        hid_t stiffness_dset = H5Dopen(file_id, stiffness_dset_name.c_str());
+        hid_t stiffness_dset = H5Dopen1(file_id, stiffness_dset_name.c_str());
         if (stiffness_dset < 0)
         {
             TBOX_ERROR(d_object_name << ":\n  Cannot find required target point dataset in input file " << filename << "\n");
         }
 
-        hid_t damping_dset = H5Dopen(file_id, damping_dset_name.c_str());
+        hid_t damping_dset = H5Dopen1(file_id, damping_dset_name.c_str());
         if (damping_dset < 0)
         {
             TBOX_ERROR(d_object_name << ":\n  Cannot find required target point dataset in input file " << filename << "\n");
@@ -1699,7 +1706,7 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
     {
         // Read the instrument names.
         const std::string num_inst_dset_name = instrumentation_group_name + "/num_inst";
-        hid_t num_inst_dset = H5Dopen(file_id, num_inst_dset_name.c_str());
+        hid_t num_inst_dset = H5Dopen1(file_id, num_inst_dset_name.c_str());
         if (num_inst_dset < 0)
         {
             TBOX_ERROR(d_object_name << ":\n  Cannot find required instrumentation dataset in input file " << filename << "\n");
@@ -1727,19 +1734,19 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
         const std::string meter_idx_dset_name      = instrumentation_group_name + "/meter_idx"     ;
         const std::string meter_node_idx_dset_name = instrumentation_group_name + "/meter_node_idx";
 
-        hid_t node_idx_dset = H5Dopen(file_id, node_idx_dset_name.c_str());
+        hid_t node_idx_dset = H5Dopen1(file_id, node_idx_dset_name.c_str());
         if (node_idx_dset < 0)
         {
             TBOX_ERROR(d_object_name << ":\n  Cannot find required instrumentation dataset in input file " << filename << "\n");
         }
 
-        hid_t meter_idx_dset = H5Dopen(file_id, meter_idx_dset_name.c_str());
+        hid_t meter_idx_dset = H5Dopen1(file_id, meter_idx_dset_name.c_str());
         if (meter_idx_dset < 0)
         {
             TBOX_ERROR(d_object_name << ":\n  Cannot find required instrumentation dataset in input file " << filename << "\n");
         }
 
-        hid_t meter_node_idx_dset = H5Dopen(file_id, meter_node_idx_dset_name.c_str());
+        hid_t meter_node_idx_dset = H5Dopen1(file_id, meter_node_idx_dset_name.c_str());
         if (meter_node_idx_dset < 0)
         {
             TBOX_ERROR(d_object_name << ":\n  Cannot find required instrumentation dataset in input file " << filename << "\n");

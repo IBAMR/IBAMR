@@ -30,7 +30,14 @@
 #include <string>
 #include <vector>
 
+#include <hdf5.h>
+#if (H5_VERS_MINOR == 6)
 #include <H5LT.h>
+#define H5Gopen1 H5Gopen
+#endif
+#if (H5_VERS_MINOR == 8)
+#include <hdf5_hl.h>
+#endif
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -213,7 +220,7 @@ main(
         return -1;
     }
 
-    hid_t fiber_group_id = H5Gopen(fiber_file_id, "/fibers");
+    hid_t fiber_group_id = H5Gopen1(fiber_file_id, "/fibers");
 
     int num_local_fibers, fiber_offset, num_fibers;
     status = H5LTget_attribute_int(fiber_file_id, "/fibers", "num_local_fibers", &num_local_fibers);
