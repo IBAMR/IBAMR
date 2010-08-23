@@ -832,22 +832,40 @@ private:
         Vec* right,
         Vec* left);
 
+#if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 0)
     static PetscErrorCode
     PCApplyStrct_SAMRAI(
         void* p_ctx,
         Vec x,
         Vec y);
+#endif
+#if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 1)
+    static PetscErrorCode
+    PCApplyStrct_SAMRAI(
+        PC pc,
+        Vec x,
+        Vec y);
+#endif
 
     void
     PCApplyStrct(
         Vec x,
         Vec y);
 
+#if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 0)
     static PetscErrorCode
     PCApplyFluid_SAMRAI(
         void* p_ctx,
         Vec x,
         Vec y);
+#endif
+#if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 1)
+    static PetscErrorCode
+    PCApplyFluid_SAMRAI(
+        PC pc,
+        Vec x,
+        Vec y);
+#endif
 
     void
     PCApplyFluid(

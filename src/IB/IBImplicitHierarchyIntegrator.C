@@ -3443,6 +3443,7 @@ IBImplicitHierarchyIntegrator::MatGetVecs_SAMRAI(
     PetscFunctionReturn(0);
 }// MatGetVecs_SAMRAI
 
+#if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 0)
 int
 IBImplicitHierarchyIntegrator::PCApplyStrct_SAMRAI(
     void* p_ctx,
@@ -3458,6 +3459,27 @@ IBImplicitHierarchyIntegrator::PCApplyStrct_SAMRAI(
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
     PetscFunctionReturn(0);
 }// PCApplyStrct_SAMRAI
+#endif
+
+#if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 1)
+int
+IBImplicitHierarchyIntegrator::PCApplyStrct_SAMRAI(
+    PC pc,
+    Vec x,
+    Vec y)
+{
+    PetscErrorCode ierr;
+    void* p_ctx;
+    ierr = PCShellGetContext(pc, &p_ctx);  IBTK_CHKERRQ(ierr);
+    IBImplicitHierarchyIntegrator* hier_integrator = static_cast<IBImplicitHierarchyIntegrator*>(p_ctx);
+#if DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(hier_integrator != NULL);
+#endif
+    hier_integrator->PCApplyStrct(x,y);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
+    PetscFunctionReturn(0);
+}// PCApplyStrct_SAMRAI
+#endif
 
 void
 IBImplicitHierarchyIntegrator::PCApplyStrct(
@@ -3508,8 +3530,7 @@ IBImplicitHierarchyIntegrator::PCApplyStrct(
     return;
 }// PCApplyStrct
 
-#undef __FUNCT__
-#define __FUNCT__ "IBImplicitHierarchyIntegrator::PCApplyFluid_SAMRAI"
+#if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 0)
 PetscErrorCode
 IBImplicitHierarchyIntegrator::PCApplyFluid_SAMRAI(
     void* p_ctx,
@@ -3525,6 +3546,27 @@ IBImplicitHierarchyIntegrator::PCApplyFluid_SAMRAI(
     ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
     PetscFunctionReturn(0);
 }// PCApplyFluid_SAMRAI
+#endif
+
+#if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 1)
+PetscErrorCode
+IBImplicitHierarchyIntegrator::PCApplyFluid_SAMRAI(
+    PC pc,
+    Vec x,
+    Vec y)
+{
+    PetscErrorCode ierr;
+    void* p_ctx;
+    ierr = PCShellGetContext(pc, &p_ctx);  IBTK_CHKERRQ(ierr);
+    IBImplicitHierarchyIntegrator* hier_integrator = static_cast<IBImplicitHierarchyIntegrator*>(p_ctx);
+#if DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(hier_integrator != NULL);
+#endif
+    hier_integrator->PCApplyFluid(x,y);
+    ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));  IBTK_CHKERRQ(ierr);
+    PetscFunctionReturn(0);
+}// PCApplyFluid_SAMRAI
+#endif
 
 void
 IBImplicitHierarchyIntegrator::PCApplyFluid(
