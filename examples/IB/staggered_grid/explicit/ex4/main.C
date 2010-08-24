@@ -54,6 +54,7 @@
 #include <ibamr/IBKirchhoffRodForceGen.h>
 #include <ibamr/IBStaggeredHierarchyIntegrator.h>
 #include <ibamr/IBStandardInitializer.h>
+#include <ibtk/LEInteractor.h>
 #include <ibtk/LNodeIndexData.h>
 #include <ibtk/LagSiloDataWriter.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -80,6 +81,41 @@ output_data(
     const int iteration_num,
     const double loop_time,
     const string& data_dump_dirname);
+
+// Basic 4-point delta function kernel.
+inline double
+ib4_delta_fcn(
+    double r)
+{
+    r = std::abs(r);
+    if (r < 1.0)
+    {
+        const double t2 = r * r;
+        const double t6 = sqrt(-0.4e1 * t2 + 0.4e1 * r + 0.1e1);
+        return -r / 0.4e1 + 0.3e1 / 0.8e1 + t6 / 0.8e1;
+    }
+    else if (r < 2.0)
+    {
+        const double t2 = r * r;
+        const double t6 = sqrt(0.12e2 * r - 0.7e1 - 0.4e1 * t2);
+        return -r / 0.4e1 + 0.5e1 / 0.8e1 - t6 / 0.8e1;
+    }
+    else
+    {
+        return 0.0;
+    }
+}// ib4_delta_fcn
+
+// Specified delta-function width.
+double W = 4.0;
+
+// Re-scaled 4-point delta function kernel
+inline double
+scaled_ib4_delta_fcn(
+    double r)
+{
+    return ib4_delta_fcn(r/(W/4.0))/(W/4.0);
+}// scaled_ib4_delta_fcn
 
 /************************************************************************
  * For each run, the input filename and restart information (if         *
@@ -163,6 +199,19 @@ main(
          */
         tbox::Pointer<tbox::Database> input_db = new tbox::InputDatabase("input_db");
         tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
+
+        /*
+         * Determine the scaling factor to use to re-scale the 4-point delta
+         * function, and configure the Lagrangian-Eulerian interaction routines
+         * accordingly.
+         */
+        W = input_db->getDoubleWithDefault("W", W);
+        LEInteractor::s_delta_fcn = &scaled_ib4_delta_fcn;
+        LEInteractor::s_delta_fcn_stencil_size = std::ceil(W);
+        LEInteractor::s_delta_fcn_C = -1.0;  // NOTE: C is not used by the
+                                             // explicit IB integrator, but we
+                                             // set it to cause an error in case
+                                             // it is used elsewhere.
 
         /*
          * Retrieve "Main" section of the input database.  First, read dump
