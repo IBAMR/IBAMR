@@ -43,6 +43,9 @@
 #include <StandardTagAndInitStrategy.h>
 #include <tbox/Serializable.h>
 
+// C++ STDLIB INCLUDES
+#include <map>
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
