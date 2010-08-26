@@ -100,12 +100,9 @@ INSStaggeredVCStokesOperator::INSStaggeredVCStokesOperator(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_apply = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredVCStokesOperator::apply()");
-        t_initialize_operator_state = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredVCStokesOperator::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredVCStokesOperator::deallocateOperatorState()");
+        t_apply                     = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredVCStokesOperator::apply()");
+        t_initialize_operator_state = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredVCStokesOperator::initializeOperatorState()");
+        t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredVCStokesOperator::deallocateOperatorState()");
         timers_need_init = false;
     }
     return;

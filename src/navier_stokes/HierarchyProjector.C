@@ -282,14 +282,10 @@ HierarchyProjector::HierarchyProjector(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_project_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::HierarchyProjector::projectHierarchy");
-        t_initialize_level_data = TimerManager::getManager()->
-            getTimer("IBAMR::HierarchyProjector::initializeLevelData()");
-        t_reset_hierarchy_configuration = TimerManager::getManager()->
-            getTimer("IBAMR::HierarchyProjector::resetHierarchyConfiguration()");
-        t_put_to_database = TimerManager::getManager()->
-            getTimer("IBAMR::HierarchyProjector::putToDatabase()");
+        t_project_hierarchy             = TimerManager::getManager()->getTimer("IBAMR::HierarchyProjector::projectHierarchy");
+        t_initialize_level_data         = TimerManager::getManager()->getTimer("IBAMR::HierarchyProjector::initializeLevelData()");
+        t_reset_hierarchy_configuration = TimerManager::getManager()->getTimer("IBAMR::HierarchyProjector::resetHierarchyConfiguration()");
+        t_put_to_database               = TimerManager::getManager()->getTimer("IBAMR::HierarchyProjector::putToDatabase()");
         timers_need_init = false;
     }
     return;

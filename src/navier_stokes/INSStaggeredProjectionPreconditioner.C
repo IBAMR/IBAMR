@@ -149,12 +149,9 @@ INSStaggeredProjectionPreconditioner::INSStaggeredProjectionPreconditioner(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_solve_system = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredProjectionPreconditioner::solveSystem()");
-        t_initialize_solver_state = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredProjectionPreconditioner::initializeSolverState()");
-        t_deallocate_solver_state = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredProjectionPreconditioner::deallocateSolverState()");
+        t_solve_system            = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredProjectionPreconditioner::solveSystem()");
+        t_initialize_solver_state = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredProjectionPreconditioner::initializeSolverState()");
+        t_deallocate_solver_state = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredProjectionPreconditioner::deallocateSolverState()");
         timers_need_init = false;
     }
     return;

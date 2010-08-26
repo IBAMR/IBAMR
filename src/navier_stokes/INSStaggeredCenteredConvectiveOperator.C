@@ -204,14 +204,10 @@ INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_apply_convective_operator = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator()");
-        t_apply = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::apply()");
-        t_initialize_operator_state = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()");
+        t_apply_convective_operator = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator()");
+        t_apply                     = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::apply()");
+        t_initialize_operator_state = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::initializeOperatorState()");
+        t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()");
         timers_need_init = false;
     }
     return;

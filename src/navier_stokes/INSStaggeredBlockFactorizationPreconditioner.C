@@ -149,12 +149,9 @@ INSStaggeredBlockFactorizationPreconditioner::INSStaggeredBlockFactorizationPrec
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_solve_system = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredBlockFactorizationPreconditioner::solveSystem()");
-        t_initialize_solver_state = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredBlockFactorizationPreconditioner::initializeSolverState()");
-        t_deallocate_solver_state = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredBlockFactorizationPreconditioner::deallocateSolverState()");
+        t_solve_system            = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredBlockFactorizationPreconditioner::solveSystem()");
+        t_initialize_solver_state = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredBlockFactorizationPreconditioner::initializeSolverState()");
+        t_deallocate_solver_state = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredBlockFactorizationPreconditioner::deallocateSolverState()");
         timers_need_init = false;
     }
     return;

@@ -258,32 +258,19 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_initialize_hierarchy_integrator = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator()");
-        t_initialize_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::initializeHierarchy()");
-        t_advance_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::advanceHierarchy()");
-        t_regrid_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::regridHierarchy()");
-        t_integrate_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::integrateHierarchy()");
-        t_synchronize_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::synchronizeHierarchy()");
-        t_synchronize_new_levels = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::synchronizeNewLevels()");
-        t_reset_time_dependent_hier_data = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::resetTimeDependentHierData()");
-        t_reset_hier_data_to_preadvance_state = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::resetHierDataToPreadvanceState()");
-        t_initialize_level_data = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::initializeLevelData()");
-        t_reset_hierarchy_configuration = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::resetHierarchyConfiguration()");
-        t_apply_gradient_detector = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::applyGradientDetector()");
-        t_put_to_database = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::putToDatabase()");
+        t_initialize_hierarchy_integrator     = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator()");
+        t_initialize_hierarchy                = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::initializeHierarchy()");
+        t_advance_hierarchy                   = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::advanceHierarchy()");
+        t_regrid_hierarchy                    = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::regridHierarchy()");
+        t_integrate_hierarchy                 = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::integrateHierarchy()");
+        t_synchronize_hierarchy               = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::synchronizeHierarchy()");
+        t_synchronize_new_levels              = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::synchronizeNewLevels()");
+        t_reset_time_dependent_hier_data      = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::resetTimeDependentHierData()");
+        t_reset_hier_data_to_preadvance_state = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::resetHierDataToPreadvanceState()");
+        t_initialize_level_data               = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::initializeLevelData()");
+        t_reset_hierarchy_configuration       = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::resetHierarchyConfiguration()");
+        t_apply_gradient_detector             = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::applyGradientDetector()");
+        t_put_to_database                     = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::putToDatabase()");
         timers_need_init = false;
     }
     return;

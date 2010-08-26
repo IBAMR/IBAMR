@@ -200,10 +200,8 @@ IBKirchhoffRodForceGen::IBKirchhoffRodForceGen(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_compute_lagrangian_force_and_torque = TimerManager::getManager()->
-            getTimer("IBAMR::IBKirchhoffRodForceGen::computeLagrangianForceAndTorque()");
-        t_initialize_level_data = TimerManager::getManager()->
-            getTimer("IBAMR::IBKirchhoffRodForceGen::initializeLevelData()");
+        t_compute_lagrangian_force_and_torque = TimerManager::getManager()->getTimer("IBAMR::IBKirchhoffRodForceGen::computeLagrangianForceAndTorque()");
+        t_initialize_level_data               = TimerManager::getManager()->getTimer("IBAMR::IBKirchhoffRodForceGen::initializeLevelData()");
         timers_need_init = false;
     }
     return;

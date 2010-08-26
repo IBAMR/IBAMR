@@ -444,9 +444,10 @@ IBInstrumentPanel::IBInstrumentPanel(
     if (timers_need_init)
     {
         t_initialize_hierarchy_independent_data = TimerManager::getManager()->getTimer("IBAMR::IBInstrumentPanel::initializeHierarchyIndependentData()");
-        t_initialize_hierarchy_dependent_data = TimerManager::getManager()->getTimer("IBAMR::IBInstrumentPanel::initializeHierarchyDependentData()");
-        t_read_instrument_data = TimerManager::getManager()->getTimer("IBAMR::IBInstrumentPanel::readInstrumentData()");
-        t_write_plot_data = TimerManager::getManager()->getTimer("IBAMR::IBInstrumentPanel::writePlotData()");
+        t_initialize_hierarchy_dependent_data   = TimerManager::getManager()->getTimer("IBAMR::IBInstrumentPanel::initializeHierarchyDependentData()");
+        t_read_instrument_data                  = TimerManager::getManager()->getTimer("IBAMR::IBInstrumentPanel::readInstrumentData()");
+        t_write_plot_data                       = TimerManager::getManager()->getTimer("IBAMR::IBInstrumentPanel::writePlotData()");
+        timers_need_init = false;
     }
     return;
 }// IBInstrumentPanel

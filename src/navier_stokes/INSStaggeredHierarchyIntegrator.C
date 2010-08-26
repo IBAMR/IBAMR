@@ -265,38 +265,22 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_initialize_hierarchy_integrator = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator()");
-        t_initialize_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::initializeHierarchy()");
-        t_advance_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::advanceHierarchy()");
-        t_get_stable_timestep = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::getStableTimestep()");
-        t_regrid_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::regridHierarchy()");
-        t_integrate_hierarchy_initialize = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize()");
-        t_integrate_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::integrateHierarchy()");
-        t_integrate_hierarchy_finalize = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::integrateHierarchy_finalize()");
-        t_synchronize_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::synchronizeHierarchy()");
-        t_synchronize_new_levels = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::synchronizeNewLevels()");
-        t_reset_time_dependent_data = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::resetTimeDependentHierData()");
-        t_reset_data_to_preadvance_state = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::resetHierDataToPreadvanceState()");
-        t_initialize_level_data = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::initializeLevelData()");
-        t_reset_hierarchy_configuration = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration()");
-        t_apply_gradient_detector = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::applyGradientDetector()");
-        t_put_to_database = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::putToDatabase()");
+        t_initialize_hierarchy_integrator = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator()");
+        t_initialize_hierarchy            = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::initializeHierarchy()");
+        t_advance_hierarchy               = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::advanceHierarchy()");
+        t_get_stable_timestep             = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::getStableTimestep()");
+        t_regrid_hierarchy                = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::regridHierarchy()");
+        t_integrate_hierarchy_initialize  = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize()");
+        t_integrate_hierarchy             = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::integrateHierarchy()");
+        t_integrate_hierarchy_finalize    = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::integrateHierarchy_finalize()");
+        t_synchronize_hierarchy           = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::synchronizeHierarchy()");
+        t_synchronize_new_levels          = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::synchronizeNewLevels()");
+        t_reset_time_dependent_data       = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::resetTimeDependentHierData()");
+        t_reset_data_to_preadvance_state  = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::resetHierDataToPreadvanceState()");
+        t_initialize_level_data           = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::initializeLevelData()");
+        t_reset_hierarchy_configuration   = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration()");
+        t_apply_gradient_detector         = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::applyGradientDetector()");
+        t_put_to_database                 = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::putToDatabase()");
         timers_need_init = false;
     }
     return;

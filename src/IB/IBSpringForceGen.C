@@ -101,16 +101,11 @@ IBSpringForceGen::IBSpringForceGen(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_compute_lagrangian_force = TimerManager::getManager()->
-            getTimer("IBAMR::IBSpringForceGen::computeLagrangianForce()");
-        t_compute_lagrangian_force_jacobian = TimerManager::getManager()->
-            getTimer("IBAMR::IBSpringForceGen::computeLagrangianForceJacobian()");
-        t_compute_lagrangian_force_jacobian_nonzero_structure = TimerManager::getManager()->
-            getTimer("IBAMR::IBSpringForceGen::computeLagrangianForceJacobianNonzeroStructure()");
-        t_initialize_level_data = TimerManager::getManager()->
-            getTimer("IBAMR::IBSpringForceGen::initializeLevelData()");
-        t_compute_lagrangian_energy = TimerManager::getManager()->
-            getTimer("IBAMR::IBSpringForceGen::computeLagrangianEnergy()");
+        t_compute_lagrangian_force                            = TimerManager::getManager()->getTimer("IBAMR::IBSpringForceGen::computeLagrangianForce()");
+        t_compute_lagrangian_force_jacobian                   = TimerManager::getManager()->getTimer("IBAMR::IBSpringForceGen::computeLagrangianForceJacobian()");
+        t_compute_lagrangian_force_jacobian_nonzero_structure = TimerManager::getManager()->getTimer("IBAMR::IBSpringForceGen::computeLagrangianForceJacobianNonzeroStructure()");
+        t_initialize_level_data                               = TimerManager::getManager()->getTimer("IBAMR::IBSpringForceGen::initializeLevelData()");
+        t_compute_lagrangian_energy                           = TimerManager::getManager()->getTimer("IBAMR::IBSpringForceGen::computeLagrangianEnergy()");
         timers_need_init = false;
     }
     return;

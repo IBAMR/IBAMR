@@ -84,14 +84,10 @@ IBTargetPointForceGen::IBTargetPointForceGen(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_compute_lagrangian_force = TimerManager::getManager()->
-            getTimer("IBAMR::IBTargetPointForceGen::computeLagrangianForce()");
-        t_compute_lagrangian_force_jacobian = TimerManager::getManager()->
-            getTimer("IBAMR::IBTargetPointForceGen::computeLagrangianForceJacobian()");
-        t_compute_lagrangian_force_jacobian_nonzero_structure = TimerManager::getManager()->
-            getTimer("IBAMR::IBTargetPointForceGen::computeLagrangianForceJacobianNonzeroStructure()");
-        t_initialize_level_data = TimerManager::getManager()->
-            getTimer("IBAMR::IBTargetPointForceGen::initializeLevelData()");
+        t_compute_lagrangian_force                            = TimerManager::getManager()->getTimer("IBAMR::IBTargetPointForceGen::computeLagrangianForce()");
+        t_compute_lagrangian_force_jacobian                   = TimerManager::getManager()->getTimer("IBAMR::IBTargetPointForceGen::computeLagrangianForceJacobian()");
+        t_compute_lagrangian_force_jacobian_nonzero_structure = TimerManager::getManager()->getTimer("IBAMR::IBTargetPointForceGen::computeLagrangianForceJacobianNonzeroStructure()");
+        t_initialize_level_data                               = TimerManager::getManager()->getTimer("IBAMR::IBTargetPointForceGen::initializeLevelData()");
         timers_need_init = false;
     }
     return;

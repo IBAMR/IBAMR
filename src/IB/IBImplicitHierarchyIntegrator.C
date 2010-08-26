@@ -328,54 +328,30 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_initialize_hierarchy_integrator = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator()");
-        t_initialize_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::initializeHierarchy()");
-        t_advance_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::advanceHierarchy()");
-        t_get_stable_timestep = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::getStableTimestep()");
-        t_regrid_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::regridHierarchy()");
-        t_synchronize_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::synchronizeHierarchy()");
-        t_synchronize_new_levels = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::synchronizeNewLevels()");
-        t_reset_time_dependent_data = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::resetTimeDependentHierData()");
-        t_reset_data_to_preadvance_state = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::resetHierDataToPreadvanceState()");
-        t_initialize_level_data = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::initializeLevelData()");
-        t_reset_hierarchy_configuration = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::resetHierarchyConfiguration()");
-        t_apply_gradient_detector = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::applyGradientDetector()");
-        t_put_to_database = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::putToDatabase()");
-        t_form_function = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::FormFunction()");
-        t_form_force_function = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::FormForceFunction()");
-        t_form_jacobian = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::FormJacobian()");
-        t_mat_vec_mult = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::MatVecMult()");
-        t_mat_get_vecs = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::MatGetVecs()");
-        t_pc_apply_strct = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::PCApplyStrct()");
-        t_pc_apply_fluid = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::PCApplyFluid()");
-        t_spread = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::spread()");
-        t_interp = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::interp()");
-        t_regrid_projection = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::regridProjection()");
-        t_initialize_operators_and_solvers = TimerManager::getManager()->
-            getTimer("IBAMR::IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers()");
+        t_initialize_hierarchy_integrator  = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator()");
+        t_initialize_hierarchy             = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::initializeHierarchy()");
+        t_advance_hierarchy                = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::advanceHierarchy()");
+        t_get_stable_timestep              = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::getStableTimestep()");
+        t_regrid_hierarchy                 = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::regridHierarchy()");
+        t_synchronize_hierarchy            = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::synchronizeHierarchy()");
+        t_synchronize_new_levels           = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::synchronizeNewLevels()");
+        t_reset_time_dependent_data        = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::resetTimeDependentHierData()");
+        t_reset_data_to_preadvance_state   = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::resetHierDataToPreadvanceState()");
+        t_initialize_level_data            = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::initializeLevelData()");
+        t_reset_hierarchy_configuration    = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::resetHierarchyConfiguration()");
+        t_apply_gradient_detector          = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::applyGradientDetector()");
+        t_put_to_database                  = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::putToDatabase()");
+        t_form_function                    = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::FormFunction()");
+        t_form_force_function              = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::FormForceFunction()");
+        t_form_jacobian                    = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::FormJacobian()");
+        t_mat_vec_mult                     = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::MatVecMult()");
+        t_mat_get_vecs                     = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::MatGetVecs()");
+        t_pc_apply_strct                   = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::PCApplyStrct()");
+        t_pc_apply_fluid                   = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::PCApplyFluid()");
+        t_spread                           = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::spread()");
+        t_interp                           = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::interp()");
+        t_regrid_projection                = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::regridProjection()");
+        t_initialize_operators_and_solvers = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers()");
         timers_need_init = false;
     }
     return;

@@ -92,14 +92,10 @@ IBBeamForceGen::IBBeamForceGen(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_compute_lagrangian_force = TimerManager::getManager()->
-            getTimer("IBAMR::IBBeamForceGen::computeLagrangianForce()");
-        t_compute_lagrangian_force_jacobian = TimerManager::getManager()->
-            getTimer("IBAMR::IBBeamForceGen::computeLagrangianForceJacobian()");
-        t_compute_lagrangian_force_jacobian_nonzero_structure = TimerManager::getManager()->
-            getTimer("IBAMR::IBBeamForceGen::computeLagrangianForceJacobianNonzeroStructure()");
-        t_initialize_level_data = TimerManager::getManager()->
-            getTimer("IBAMR::IBBeamForceGen::initializeLevelData()");
+        t_compute_lagrangian_force                            = TimerManager::getManager()->getTimer("IBAMR::IBBeamForceGen::computeLagrangianForce()");
+        t_compute_lagrangian_force_jacobian                   = TimerManager::getManager()->getTimer("IBAMR::IBBeamForceGen::computeLagrangianForceJacobian()");
+        t_compute_lagrangian_force_jacobian_nonzero_structure = TimerManager::getManager()->getTimer("IBAMR::IBBeamForceGen::computeLagrangianForceJacobianNonzeroStructure()");
+        t_initialize_level_data                               = TimerManager::getManager()->getTimer("IBAMR::IBBeamForceGen::initializeLevelData()");
         timers_need_init = false;
     }
     return;

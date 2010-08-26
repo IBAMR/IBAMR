@@ -45,8 +45,6 @@
 #include <Index.h>
 #include <IntVector.h>
 #include <tbox/RestartManager.h>
-#include <tbox/Timer.h>
-#include <tbox/TimerManager.h>
 #include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
@@ -225,19 +223,6 @@ namespace IBAMR
 
 namespace
 {
-// Timers.
-static Pointer<Timer> t_compute_stable_dt_on_patch;
-static Pointer<Timer> t_compute_advective_derivative;
-static Pointer<Timer> t_compute_flux;
-static Pointer<Timer> t_predict_value;
-static Pointer<Timer> t_predict_value_with_source_term;
-static Pointer<Timer> t_predict_normal_velocity;
-static Pointer<Timer> t_predict_normal_velocity_with_source_term;
-static Pointer<Timer> t_enforce_incompressibility;
-static Pointer<Timer> t_put_to_database;
-static Pointer<Timer> t_predict;
-static Pointer<Timer> t_predict_with_source_term;
-
 // Number of ghosts cells used for each variable quantity.
 static const int FACEG = 1;
 
@@ -272,35 +257,6 @@ GodunovAdvector::GodunovAdvector(
     bool is_from_restart = RestartManager::getManager()->isFromRestart();
     if (is_from_restart) getFromRestart();
     if (!input_db.isNull()) getFromInput(input_db, is_from_restart);
-
-    // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
-        t_compute_stable_dt_on_patch = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::computeStableDtOnPatch()");
-        t_compute_advective_derivative = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::computeAdvectiveDerivative()");
-        t_compute_flux = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::computeFlux()");
-        t_predict_value = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::predictValue()");
-        t_predict_value_with_source_term = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::predictValueWithSourceTerm()");
-        t_predict_normal_velocity = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::predictNormalVelocity()");
-        t_predict_normal_velocity_with_source_term = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::predictNormalVelocityWithSourceTerm()");
-        t_enforce_incompressibility = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::enforceIncompressibility()");
-        t_put_to_database = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::putToDatabase()");
-        t_predict = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::predict()");
-        t_predict_with_source_term = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::predictWithSourceTerm()");
-        timers_need_init = false;
-    }
     return;
 }// GodunovAdvector
 
@@ -324,8 +280,6 @@ GodunovAdvector::computeStableDtOnPatch(
     const FaceData<NDIM,double>& u_ADV,
     const Patch<NDIM>& patch) const
 {
-    t_compute_stable_dt_on_patch->start();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(u_ADV.getDepth() == 1);
     TBOX_ASSERT(u_ADV.getBox()   == patch.getBox());
@@ -357,8 +311,6 @@ GodunovAdvector::computeStableDtOnPatch(
         u_ADV.getPointer(0),u_ADV.getPointer(1),u_ADV.getPointer(2),
         stable_dt);
 #endif
-
-    t_compute_stable_dt_on_patch->stop();
     return stable_dt;
 }// computeStableDtOnPatch
 
@@ -369,8 +321,6 @@ GodunovAdvector::computeAdvectiveDerivative(
     const FaceData<NDIM,double>& q_half,
     const Patch<NDIM>& patch) const
 {
-    t_compute_advective_derivative->start();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(u_ADV.getDepth() == 1);
     TBOX_ASSERT(u_ADV.getBox()   == patch.getBox());
@@ -416,8 +366,6 @@ GodunovAdvector::computeAdvectiveDerivative(
             N.getPointer(depth));
 #endif
     }
-
-    t_compute_advective_derivative->stop();
     return;
 }// computeAdvectiveDerivative
 
@@ -429,8 +377,6 @@ GodunovAdvector::computeFlux(
     const Patch<NDIM>& patch,
     const double dt) const
 {
-    t_compute_flux->start();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(u_ADV.getDepth() == 1);
     TBOX_ASSERT(u_ADV.getBox()   == patch.getBox());
@@ -472,8 +418,6 @@ GodunovAdvector::computeFlux(
             flux.getPointer(0,depth),flux.getPointer(1,depth),flux.getPointer(2,depth));
 #endif
     }
-
-    t_compute_flux->stop();
     return;
 }// computeFlux
 
@@ -485,11 +429,7 @@ GodunovAdvector::predictValue(
     const Patch<NDIM>& patch,
     const double dt) const
 {
-    t_predict_value->start();
-
     predict(q_half, u_ADV, Q, patch, dt);
-
-    t_predict_value->stop();
     return;
 }// predictValue
 
@@ -502,11 +442,7 @@ GodunovAdvector::predictValueWithSourceTerm(
     const Patch<NDIM>& patch,
     const double dt) const
 {
-    t_predict_value_with_source_term->start();
-
     predictWithSourceTerm(q_half, u_ADV, Q, F, patch, dt);
-
-    t_predict_value_with_source_term->stop();
     return;
 }// predictValueWithSourceTerm
 
@@ -518,8 +454,6 @@ GodunovAdvector::predictNormalVelocity(
     const Patch<NDIM>& patch,
     const double dt) const
 {
-    t_predict_normal_velocity->start();
-
     FaceData<NDIM,double> v_half_tmp(v_half.getBox(), NDIM, IntVector<NDIM>(FACEG));
 
     predict(v_half_tmp, u_ADV, V, patch, dt);
@@ -532,8 +466,6 @@ GodunovAdvector::predictNormalVelocity(
         const Box<NDIM> box = (v_half_arr.getBox())*(v_half_tmp_arr.getBox());
         v_half_arr.copyDepth(0, v_half_tmp_arr, axis, box);
     }
-
-    t_predict_normal_velocity->stop();
     return;
 }// predictNormalVelocity
 
@@ -546,8 +478,6 @@ GodunovAdvector::predictNormalVelocityWithSourceTerm(
     const Patch<NDIM>& patch,
     const double dt) const
 {
-    t_predict_normal_velocity_with_source_term->start();
-
     FaceData<NDIM,double> v_half_tmp(v_half.getBox(), NDIM, IntVector<NDIM>(FACEG));
 
     predictWithSourceTerm(v_half_tmp, u_ADV, V, F, patch, dt);
@@ -560,8 +490,6 @@ GodunovAdvector::predictNormalVelocityWithSourceTerm(
         const Box<NDIM> box = (v_half_arr.getBox())*(v_half_tmp_arr.getBox());
         v_half_arr.copyDepth(0, v_half_tmp_arr, axis, box);
     }
-
-    t_predict_normal_velocity_with_source_term->stop();
     return;
 }// predictNormalVelocityWithSourceTerm
 
@@ -572,8 +500,6 @@ GodunovAdvector::enforceIncompressibility(
     const FaceData<NDIM,double>& grad_phi,
     const Patch<NDIM>& patch) const
 {
-    t_enforce_incompressibility->start();
-
 #if (NDIM != 1)
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -615,8 +541,6 @@ GodunovAdvector::enforceIncompressibility(
     }
 
 #endif
-
-    t_enforce_incompressibility->stop();
     return;
 }// enforceIncompressibility
 
@@ -624,8 +548,6 @@ void
 GodunovAdvector::putToDatabase(
     Pointer<Database> db)
 {
-    t_put_to_database->start();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
 #endif
@@ -633,8 +555,6 @@ GodunovAdvector::putToDatabase(
 #if (NDIM == 3)
     db->putBool("d_using_full_ctu", d_using_full_ctu);
 #endif
-
-    t_put_to_database->stop();
     return;
 }// putToDatabase
 
@@ -648,8 +568,6 @@ GodunovAdvector::predict(
     const Patch<NDIM>& patch,
     const double dt) const
 {
-    t_predict->start();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(q_half.getDepth() == Q.getDepth());
     TBOX_ASSERT(q_half.getBox()   == patch.getBox());
@@ -709,8 +627,6 @@ GodunovAdvector::predict(
             q_half.getPointer(0,depth),q_half.getPointer(1,depth),q_half.getPointer(2,depth));
 #endif
     }
-
-    t_predict->stop();
     return;
 }// predict
 
@@ -723,8 +639,6 @@ GodunovAdvector::predictWithSourceTerm(
     const Patch<NDIM>& patch,
     const double dt) const
 {
-    t_predict_with_source_term->start();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(q_half.getDepth() == Q.getDepth());
     TBOX_ASSERT(q_half.getDepth() == F.getDepth());
@@ -793,8 +707,6 @@ GodunovAdvector::predictWithSourceTerm(
             q_half.getPointer(0,depth),q_half.getPointer(1,depth),q_half.getPointer(2,depth));
 #endif
     }
-
-    t_predict_with_source_term->stop();
     return;
 }// predictWithSourceTerm
 
