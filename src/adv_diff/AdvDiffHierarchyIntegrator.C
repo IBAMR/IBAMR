@@ -40,7 +40,6 @@
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
-#include <ibtk/FACPreconditionerLSWrapper.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 
 // SAMRAI INCLUDES
@@ -703,11 +702,9 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
                 d_helmholtz_specs[l]);
             d_helmholtz_fac_ops[l]->setPhysicalBcCoefs(d_Q_bc_coef[l]);
 
-            d_helmholtz_fac_pcs[l] = new FACPreconditioner<NDIM>(
+            d_helmholtz_fac_pcs[l] = new IBTK::FACPreconditioner(
                 d_object_name+"::FAC Preconditioner::"+name,
                 *d_helmholtz_fac_ops[l], d_fac_pc_db);
-            d_helmholtz_fac_ops[l]->setPreconditioner(
-                d_helmholtz_fac_pcs[l]);
         }
 
         d_helmholtz_solvers[l] = new PETScKrylovLinearSolver(
@@ -719,9 +716,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         d_helmholtz_solvers[l]->setOperator(d_helmholtz_ops[l]);
         if (d_using_FAC)
         {
-            d_helmholtz_solvers[l]->setPreconditioner(
-                new FACPreconditionerLSWrapper(
-                    d_helmholtz_fac_pcs[l], d_fac_pc_db));
+            d_helmholtz_solvers[l]->setPreconditioner(d_helmholtz_fac_pcs[l]);
         }
 
         // Indicate that the solvers need to be initialized.
@@ -1275,9 +1270,9 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         helmholtz_op->setTime(new_time);
         helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
 
-        Pointer<CCPoissonFACOperator>             helmholtz_fac_op = d_helmholtz_fac_ops[l];
-        Pointer<FACPreconditioner<NDIM> > helmholtz_fac_pc = d_helmholtz_fac_pcs[l];
-        Pointer<KrylovLinearSolver>               helmholtz_solver = d_helmholtz_solvers[l];
+        Pointer<CCPoissonFACOperator>     helmholtz_fac_op = d_helmholtz_fac_ops[l];
+        Pointer<IBTK::FACPreconditioner > helmholtz_fac_pc = d_helmholtz_fac_pcs[l];
+        Pointer<KrylovLinearSolver>       helmholtz_solver = d_helmholtz_solvers[l];
 
         if (d_helmholtz_solvers_need_init[l])
         {

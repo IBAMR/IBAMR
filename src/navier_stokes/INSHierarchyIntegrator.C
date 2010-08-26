@@ -41,7 +41,6 @@
 
 // IBTK INCLUDES
 #include <ibtk/CartExtrapPhysBdryOp.h>
-#include <ibtk/FACPreconditionerLSWrapper.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/PatchMathOps.h>
 #include <ibtk/PhysicalBoundaryUtilities.h>
@@ -1167,8 +1166,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
             d_helmholtz_fac_op = new CCPoissonFACOperator(d_object_name+"::helmholtz_fac_op", d_fac_op_db);
             d_helmholtz_fac_op->setPoissonSpecifications(*d_helmholtz_spec);
             d_helmholtz_fac_op->setPhysicalBcCoefs(U_bc_coefs);
-            d_helmholtz_fac_pc = new FACPreconditioner<NDIM>(d_object_name+"::helmholtz_fac_pc",*d_helmholtz_fac_op, d_fac_pc_db);
-            d_helmholtz_fac_op->setPreconditioner(d_helmholtz_fac_pc);
+            d_helmholtz_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::helmholtz_fac_pc",*d_helmholtz_fac_op, d_fac_pc_db);
         }
 
         d_helmholtz_solver = new PETScKrylovLinearSolver(d_object_name+"::helmholtz_solver", "adv_diff_");
@@ -1179,7 +1177,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
         d_helmholtz_solver->setOperator(d_helmholtz_op);
         if (d_helmholtz_using_FAC)
         {
-            d_helmholtz_solver->setPreconditioner(new FACPreconditionerLSWrapper(d_helmholtz_fac_pc, d_fac_pc_db));
+            d_helmholtz_solver->setPreconditioner(d_helmholtz_fac_pc);
         }
 
         // Indicate that the solver needs to be initialized.

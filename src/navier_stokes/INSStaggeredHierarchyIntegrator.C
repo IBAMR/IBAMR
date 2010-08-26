@@ -45,7 +45,6 @@
 // IBTK INCLUDES
 #include <ibtk/CartSideDoubleDivPreservingRefine.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
-#include <ibtk/FACPreconditionerLSWrapper.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/RefinePatchStrategySet.h>
@@ -883,11 +882,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                 }
                 d_helmholtz_fac_op = new SCPoissonFACOperator(d_object_name+"::Helmholtz FAC Operator", d_helmholtz_fac_pc_db);
                 d_helmholtz_fac_op->setPoissonSpecifications(*d_helmholtz_spec);
-
-                d_helmholtz_fac_pc = new FACPreconditioner<NDIM>(d_object_name+"::Helmholtz Preconditioner", *d_helmholtz_fac_op, d_helmholtz_fac_pc_db);
-                d_helmholtz_fac_op->setPreconditioner(d_helmholtz_fac_pc);
-
-                d_helmholtz_solver->setPreconditioner(new FACPreconditionerLSWrapper(d_helmholtz_fac_pc, d_helmholtz_fac_pc_db));
+                d_helmholtz_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Helmholtz Preconditioner", *d_helmholtz_fac_op, d_helmholtz_fac_pc_db);
+                d_helmholtz_solver->setPreconditioner(d_helmholtz_fac_pc);
             }
         }
 
@@ -946,11 +942,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                 }
                 d_poisson_fac_op = new CCPoissonFACOperator(d_object_name+"::Poisson FAC Operator", d_poisson_fac_pc_db);
                 d_poisson_fac_op->setPoissonSpecifications(*d_poisson_spec);
-
-                d_poisson_fac_pc = new FACPreconditioner<NDIM>(d_object_name+"::Poisson Preconditioner", *d_poisson_fac_op, d_poisson_fac_pc_db);
-                d_poisson_fac_op->setPreconditioner(d_poisson_fac_pc);
-
-                d_poisson_solver->setPreconditioner(new FACPreconditionerLSWrapper(d_poisson_fac_pc, d_poisson_fac_pc_db));
+                d_poisson_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Poisson Preconditioner", *d_poisson_fac_op, d_poisson_fac_pc_db);
+                d_poisson_solver->setPreconditioner(d_poisson_fac_pc);
             }
         }
 
@@ -995,10 +988,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                              "  Vanka FAC PC solver database is null." << std::endl);
             }
             d_vanka_fac_op = new INSStaggeredBoxRelaxationFACOperator(d_object_name+"::Vanka FAC Operator", *d_problem_coefs, d_old_dt, d_vanka_fac_pc_db);
-            d_vanka_fac_pc = new FACPreconditioner<NDIM>(d_object_name+"::Vanka Preconditioner", *d_vanka_fac_op, d_vanka_fac_pc_db);
-            d_vanka_fac_op->setPreconditioner(d_vanka_fac_pc);
-
-            d_stokes_solver->setPreconditioner(new FACPreconditionerLSWrapper(d_vanka_fac_pc, d_vanka_fac_pc_db));
+            d_vanka_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Vanka Preconditioner", *d_vanka_fac_op, d_vanka_fac_pc_db);
+            d_stokes_solver->setPreconditioner(d_vanka_fac_pc);
         }
         else if (stokes_pc_shell_type == "block_factorization")
         {
@@ -1038,11 +1029,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         }
         d_regrid_projection_fac_op = new CCPoissonFACOperator(d_object_name+"::Regrid Projection Poisson FAC Operator", d_regrid_projection_fac_pc_db);
         d_regrid_projection_fac_op->setPoissonSpecifications(*d_regrid_projection_spec);
-
-        d_regrid_projection_fac_pc = new FACPreconditioner<NDIM>(d_object_name+"::Regrid Projection Poisson Preconditioner", *d_regrid_projection_fac_op, d_regrid_projection_fac_pc_db);
-        d_regrid_projection_fac_op->setPreconditioner(d_regrid_projection_fac_pc);
-
-        d_regrid_projection_solver->setPreconditioner(new FACPreconditionerLSWrapper(d_regrid_projection_fac_pc, d_regrid_projection_fac_pc_db));
+        d_regrid_projection_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Regrid Projection Poisson Preconditioner", *d_regrid_projection_fac_op, d_regrid_projection_fac_pc_db);
+        d_regrid_projection_solver->setPreconditioner(d_regrid_projection_fac_pc);
 
         // Set some default options.
         d_regrid_projection_solver->setKSPType("gmres");

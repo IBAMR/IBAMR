@@ -37,6 +37,7 @@
 // IBTK INCLUDES
 #include <ibtk/CCPoissonFACOperator.h>
 #include <ibtk/CartGridFunction.h>
+#include <ibtk/FACPreconditioner.h>
 #include <ibtk/LinearSolver.h>
 #include <ibtk/HierarchyMathOps.h>
 
@@ -45,7 +46,6 @@
 #include <CoarsenAlgorithm.h>
 #include <CoarsenSchedule.h>
 #include <ComponentSelector.h>
-#include <FACPreconditioner.h>
 #include <FaceVariable.h>
 #include <Geometry.h>
 #include <GriddingAlgorithm.h>
@@ -1240,11 +1240,11 @@ private:
     double d_helmholtz_abs_residual_tol, d_helmholtz_rel_residual_tol;
     bool d_helmholtz_using_FAC;
 
-    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>                d_helmholtz_op    ;
-    SAMRAI::solv::PoissonSpecifications*                          d_helmholtz_spec  ;
-    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver>               d_helmholtz_solver;
-    SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>             d_helmholtz_fac_op;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > d_helmholtz_fac_pc;
+    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>    d_helmholtz_op    ;
+    SAMRAI::solv::PoissonSpecifications*              d_helmholtz_spec  ;
+    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver>   d_helmholtz_solver;
+    SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator> d_helmholtz_fac_op;
+    SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>    d_helmholtz_fac_pc;
     bool d_helmholtz_solver_needs_init;
 
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fac_op_db, d_fac_pc_db;

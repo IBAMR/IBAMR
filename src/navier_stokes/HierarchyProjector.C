@@ -39,7 +39,6 @@
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
-#include <ibtk/FACPreconditionerLSWrapper.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 
 // SAMRAI INCLUDES
@@ -260,14 +259,10 @@ HierarchyProjector::HierarchyProjector(
         fac_pc_db = input_db->getDatabase("FACPreconditioner");
     }
 
-    d_poisson_fac_op = new CCPoissonFACOperator(
-        d_object_name+"::FAC Op", fac_op_db);
+    d_poisson_fac_op = new CCPoissonFACOperator(d_object_name+"::FAC Op", fac_op_db);
     d_poisson_fac_op->setPoissonSpecifications(d_poisson_spec);
     d_poisson_fac_op->setPhysicalBcCoef(d_Phi_bc_coef);
-
-    d_poisson_fac_pc = new FACPreconditioner<NDIM>(
-        d_object_name+"::FAC Preconditioner", *d_poisson_fac_op, fac_pc_db);
-    d_poisson_fac_op->setPreconditioner(d_poisson_fac_pc);
+    d_poisson_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::FAC Preconditioner", *d_poisson_fac_op, fac_pc_db);
 
     // Initialize the Poisson solver.
     static const bool homogeneous_bc = false;
@@ -281,7 +276,7 @@ HierarchyProjector::HierarchyProjector(
     d_poisson_solver->setRelativeTolerance(d_rel_residual_tol);
     d_poisson_solver->setInitialGuessNonzero(d_initial_guess_nonzero);
     d_poisson_solver->setOperator(d_laplace_op);
-    d_poisson_solver->setPreconditioner(new FACPreconditionerLSWrapper(d_poisson_fac_pc, fac_pc_db));
+    d_poisson_solver->setPreconditioner(d_poisson_fac_pc);
 
     // Setup Timers.
     static bool timers_need_init = true;

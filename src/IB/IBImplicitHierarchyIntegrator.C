@@ -46,7 +46,6 @@
 // IBTK INCLUDES
 #include <ibtk/CartSideDoubleDivPreservingRefine.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
-#include <ibtk/FACPreconditionerLSWrapper.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/LEInteractor.h>
@@ -944,11 +943,8 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
             }
             d_helmholtz_fac_op = new SCPoissonFACOperator(d_object_name+"::Helmholtz FAC Operator", d_helmholtz_fac_pc_db);
             d_helmholtz_fac_op->setPoissonSpecifications(*d_helmholtz_spec);
-
-            d_helmholtz_fac_pc = new FACPreconditioner<NDIM>(d_object_name+"::Helmholtz Preconditioner", *d_helmholtz_fac_op, d_helmholtz_fac_pc_db);
-            d_helmholtz_fac_op->setPreconditioner(d_helmholtz_fac_pc);
-
-            d_helmholtz_solver->setPreconditioner(new FACPreconditionerLSWrapper(d_helmholtz_fac_pc, d_helmholtz_fac_pc_db));
+            d_helmholtz_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Helmholtz Preconditioner", *d_helmholtz_fac_op, d_helmholtz_fac_pc_db);
+            d_helmholtz_solver->setPreconditioner(d_helmholtz_fac_pc);
         }
 
         // Set some default options.
@@ -1004,11 +1000,8 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
             }
             d_poisson_fac_op = new CCPoissonFACOperator(d_object_name+"::Poisson FAC Operator", d_poisson_fac_pc_db);
             d_poisson_fac_op->setPoissonSpecifications(*d_poisson_spec);
-
-            d_poisson_fac_pc = new FACPreconditioner<NDIM>(d_object_name+"::Poisson Preconditioner", *d_poisson_fac_op, d_poisson_fac_pc_db);
-            d_poisson_fac_op->setPreconditioner(d_poisson_fac_pc);
-
-            d_poisson_solver->setPreconditioner(new FACPreconditionerLSWrapper(d_poisson_fac_pc, d_poisson_fac_pc_db));
+            d_poisson_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Poisson Preconditioner", *d_poisson_fac_op, d_poisson_fac_pc_db);
+            d_poisson_solver->setPreconditioner(d_poisson_fac_pc);
         }
 
         // Set some default options.
@@ -1078,11 +1071,8 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
         }
         d_regrid_projection_fac_op = new CCPoissonFACOperator(d_object_name+"::Regrid Projection Poisson FAC Operator", d_regrid_projection_fac_pc_db);
         d_regrid_projection_fac_op->setPoissonSpecifications(*d_regrid_projection_spec);
-
-        d_regrid_projection_fac_pc = new FACPreconditioner<NDIM>(d_object_name+"::Regrid Projection Poisson Preconditioner", *d_regrid_projection_fac_op, d_regrid_projection_fac_pc_db);
-        d_regrid_projection_fac_op->setPreconditioner(d_regrid_projection_fac_pc);
-
-        d_regrid_projection_solver->setPreconditioner(new FACPreconditionerLSWrapper(d_regrid_projection_fac_pc, d_regrid_projection_fac_pc_db));
+        d_regrid_projection_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Regrid Projection Poisson Preconditioner", *d_regrid_projection_fac_op, d_regrid_projection_fac_pc_db);
+        d_regrid_projection_solver->setPreconditioner(d_regrid_projection_fac_pc);
 
         // Set some default options.
         d_regrid_projection_solver->setKSPType("gmres");

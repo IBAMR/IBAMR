@@ -48,6 +48,7 @@
 #include <ibtk/LagM3DDataWriter.h>
 #endif
 #include <ibtk/LagSiloDataWriter.h>
+#include <ibtk/FACPreconditioner.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/SCLaplaceOperator.h>
 #include <ibtk/SCPoissonFACOperator.h>
@@ -1166,22 +1167,22 @@ private:
     SAMRAI::tbox::Pointer<INSStaggeredPPMConvectiveOperator> d_convective_op;
 
     bool d_helmholtz_solver_needs_init;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>                 d_helmholtz_hypre_pc_db, d_helmholtz_fac_pc_db;
-    SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator>                d_helmholtz_op;
-    SAMRAI::solv::PoissonSpecifications*                          d_helmholtz_spec;
-    SAMRAI::tbox::Pointer<IBTK::SCPoissonHypreLevelSolver>        d_helmholtz_hypre_pc;
-    SAMRAI::tbox::Pointer<IBTK::SCPoissonFACOperator>             d_helmholtz_fac_op;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > d_helmholtz_fac_pc;
-    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver>          d_helmholtz_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>          d_helmholtz_hypre_pc_db, d_helmholtz_fac_pc_db;
+    SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator>         d_helmholtz_op;
+    SAMRAI::solv::PoissonSpecifications*                   d_helmholtz_spec;
+    SAMRAI::tbox::Pointer<IBTK::SCPoissonHypreLevelSolver> d_helmholtz_hypre_pc;
+    SAMRAI::tbox::Pointer<IBTK::SCPoissonFACOperator>      d_helmholtz_fac_op;
+    SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>         d_helmholtz_fac_pc;
+    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver>   d_helmholtz_solver;
 
     bool d_poisson_solver_needs_init;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>                 d_poisson_hypre_pc_db, d_poisson_fac_pc_db;
-    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>                d_poisson_op;
-    SAMRAI::solv::PoissonSpecifications*                          d_poisson_spec;
-    SAMRAI::tbox::Pointer<IBTK::CCPoissonHypreLevelSolver>        d_poisson_hypre_pc;
-    SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>             d_poisson_fac_op;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > d_poisson_fac_pc;
-    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver>          d_poisson_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>          d_poisson_hypre_pc_db, d_poisson_fac_pc_db;
+    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>         d_poisson_op;
+    SAMRAI::solv::PoissonSpecifications*                   d_poisson_spec;
+    SAMRAI::tbox::Pointer<IBTK::CCPoissonHypreLevelSolver> d_poisson_hypre_pc;
+    SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>      d_poisson_fac_op;
+    SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>         d_poisson_fac_pc;
+    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver>   d_poisson_solver;
 
     bool d_projection_pc_needs_init;
     SAMRAI::tbox::Pointer<INSStaggeredProjectionPreconditioner> d_projection_pc;
@@ -1191,13 +1192,13 @@ private:
 
     bool d_needs_regrid_projection;
     double d_regrid_max_div_growth_factor;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>                 d_regrid_projection_fac_pc_db;
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>                 d_regrid_projection_bc_coef;
-    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>                d_regrid_projection_op;
-    SAMRAI::solv::PoissonSpecifications*                          d_regrid_projection_spec;
-    SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>             d_regrid_projection_fac_op;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > d_regrid_projection_fac_pc;
-    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver>          d_regrid_projection_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>        d_regrid_projection_fac_pc_db;
+    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>        d_regrid_projection_bc_coef;
+    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>       d_regrid_projection_op;
+    SAMRAI::solv::PoissonSpecifications*                 d_regrid_projection_spec;
+    SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>    d_regrid_projection_fac_op;
+    SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>       d_regrid_projection_fac_pc;
+    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> d_regrid_projection_solver;
 
     double d_current_time, d_new_time, d_dt;
 

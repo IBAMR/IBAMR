@@ -36,6 +36,7 @@
 #include <ibtk/LinearOperator.h>
 #include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/CCPoissonFACOperator.h>
+#include <ibtk/FACPreconditioner.h>
 #include <ibtk/KrylovLinearSolver.h>
 #include <ibtk/HierarchyMathOps.h>
 
@@ -470,10 +471,10 @@ private:
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_P_bc_coef;
     INSProjectionBcCoef* d_Phi_bc_coef;
 
-    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> d_poisson_solver;
-    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator> d_laplace_op;
+    SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver>   d_poisson_solver;
+    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>    d_laplace_op;
     SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator> d_poisson_fac_op;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::FACPreconditioner<NDIM> > d_poisson_fac_pc;
+    SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>    d_poisson_fac_pc;
 
     /*
      * Note that data is NOT allocated for these variables.  They are only used
