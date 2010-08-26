@@ -1447,7 +1447,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
     d_stokes_op->modifyRhsForInhomogeneousBc(*d_rhs_vec);
     d_stokes_op->setHomogeneousBc(true);
 
-    t_integrate_hierarchy_initialize->start();
+    t_integrate_hierarchy_initialize->stop();
     return;
 }// integrateHierarchy_initialize
 
@@ -1579,7 +1579,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         d_hier_sc_data_ops->copyData(d_Q_new_idx, d_Q_scratch_idx);
     }
 
-    t_integrate_hierarchy->start();
+    t_integrate_hierarchy->stop();
     return;
 }// integrateHierarchy
 
