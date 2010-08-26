@@ -745,6 +745,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_U_bc_helper = new INSStaggeredPhysicalBoundaryHelper();
 
     // Setup the Stokes operator.
+    d_stokes_op_needs_init = true;
     d_stokes_op = new INSStaggeredStokesOperator(
         *d_problem_coefs,
         d_U_bc_coefs, d_U_bc_helper, d_P_bc_coef,
@@ -1066,7 +1067,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchy()
         d_hierarchy->getFromRestart(d_gridding_alg->getMaxLevels());
         const int coarsest_ln = 0;
         const int finest_ln = d_hierarchy->getFinestLevelNumber();
-        d_gridding_alg->getTagAndInitializeStrategy()->resetHierarchyConfiguration(d_hierarchy, coarsest_ln, finest_ln);
+        d_gridding_alg->getTagAndInitializeStrategy()->resetHierarchyConfiguration(
+            d_hierarchy, coarsest_ln, finest_ln);
     }
     else
     {
@@ -1076,7 +1078,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchy()
         bool done = false;
         while (!done && (d_gridding_alg->levelCanBeRefined(level_number)))
         {
-            d_gridding_alg->makeFinerLevel(d_hierarchy, d_integrator_time, initial_time, d_tag_buffer[level_number]);
+            d_gridding_alg->makeFinerLevel(
+                d_hierarchy, d_integrator_time, initial_time, d_tag_buffer[level_number]);
             done = !d_hierarchy->finerLevelExists(level_number);
             ++level_number;
         }
@@ -2006,7 +2009,8 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
             // Fill in U boundary data from coarser levels.
             Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
             Pointer<RefineAlgorithm<NDIM> > ralg = new RefineAlgorithm<NDIM>();
-            Pointer<RefineOperator<NDIM> > refine_operator = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+            Pointer<RefineOperator<NDIM> > refine_operator = grid_geom->lookupRefineOperator(
+                d_U_var, "CONSERVATIVE_LINEAR_REFINE");
             ralg->registerRefine(d_U_scratch_idx, // destination
                                  d_U_current_idx, // source
                                  d_U_scratch_idx, // temporary work space
@@ -2215,6 +2219,7 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     }
 
     // Indicate that solvers need to be re-initialized.
+    d_stokes_op_needs_init = true;
     d_convective_op_needs_init = true;
     d_helmholtz_solver_needs_init = true;
     d_poisson_solver_needs_init = true;
@@ -2226,6 +2231,7 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     // Indicate that we need to perform a regrid projection.
     d_needs_regrid_projection = true;
 
+    // Reset the hierarchy configuration for the advection-diffusion solver.
     if (!d_adv_diff_hier_integrator.isNull())
     {
         d_adv_diff_hier_integrator->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
@@ -2918,6 +2924,16 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
         d_block_pc_needs_init = false;
     }
 
+    if (!d_stokes_op.isNull())
+    {
+        if (d_stokes_op_needs_init && !d_stokes_solver_needs_init)
+        {
+            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): Initializing incompressible Stokes operator" << std::endl;
+            d_stokes_op->initializeOperatorState(*U_scratch_vec,*U_rhs_vec);
+        }
+        d_stokes_op_needs_init = false;
+    }
+
     if (!d_stokes_solver.isNull())
     {
         d_stokes_op->setTimeInterval(current_time,new_time);
@@ -2934,6 +2950,7 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
     {
         if (d_convective_op_needs_init)
         {
+            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): Initializing convective operator" << std::endl;
             d_convective_op->initializeOperatorState(*U_scratch_vec,*U_rhs_vec);
         }
         d_convective_op_needs_init = false;

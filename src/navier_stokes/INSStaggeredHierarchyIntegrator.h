@@ -994,6 +994,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_rhs_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_nul_vec;
 
+    bool d_stokes_op_needs_init;
     SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> d_stokes_op;
 
     bool d_convective_op_needs_init;
