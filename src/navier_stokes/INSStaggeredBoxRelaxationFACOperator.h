@@ -649,38 +649,6 @@ private:
     //\}
 
     /*!
-     * \brief Construct a matrix corresponding to the linear operator restricted
-     * to a single patch.
-     */
-    static void
-    buildPatchOperator(
-        Mat& A,
-        const INSCoefs& problem_coefs,
-        const double dt,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
-
-    /*!
-     * \brief Copy patch data to the patch Vec object.
-     */
-    static void
-    copyToVec(
-        std::pair<int,int> data_idxs,
-        Vec& v,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
-
-    /*!
-     * \brief Copy patch data from the patch Vec object.
-     */
-    static void
-    copyFromVec(
-        std::pair<int,int> data_idxs,
-        Vec& v,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
-
-    /*!
      * \brief Check to make sure that all of the options make sense.
      */
     void
@@ -710,11 +678,15 @@ private:
     SAMRAI::hier::IntVector<NDIM> d_gcw;
 
     /*
+     * Box operator data.
+     */
+    std::vector<Mat> d_box_op;
+    std::vector<Vec> d_box_e, d_box_r;
+    std::vector<KSP> d_box_ksp;
+
+    /*
      * Mappings from patch indices to patch operators.
      */
-    std::vector<std::map<int,Vec> > d_patch_vec_e, d_patch_vec_f;
-    std::vector<std::map<int,Mat> > d_patch_mat;
-    std::vector<std::map<int,KSP> > d_patch_ksp;
     std::vector<std::map<int,std::vector<SAMRAI::hier::BoxList<NDIM> > > > d_patch_side_bc_box_overlap;
     std::vector<std::map<int,SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
 

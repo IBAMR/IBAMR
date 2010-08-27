@@ -420,6 +420,7 @@ EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/include/ibamr/IBHDF5Initializer.h \
 	$(top_srcdir)/include/ibamr/IBHierarchyIntegrator.h \
 	$(top_srcdir)/include/ibamr/IBImplicitHierarchyIntegrator.h \
+	$(top_srcdir)/include/ibamr/IBImplicitOperator.h \
 	$(top_srcdir)/include/ibamr/IBInstrumentPanel.h \
 	$(top_srcdir)/include/ibamr/IBInstrumentationSpec.I \
 	$(top_srcdir)/include/ibamr/IBInstrumentationSpec.h \

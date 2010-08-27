@@ -330,23 +330,24 @@ main(
                 "PatchHierarchy",
                 grid_geometry);
 
-        tbox::Pointer<IBSpringForceGen> spring_force_generator = new IBSpringForceGen();
-        tbox::Pointer<IBBeamForceGen> beam_force_generator = new IBBeamForceGen();
-        tbox::Pointer<IBTargetPointForceGen> target_point_force_generator = new IBTargetPointForceGen();
-        tbox::Pointer<IBStandardForceGen> force_generator = new IBStandardForceGen(
-            spring_force_generator, beam_force_generator, target_point_force_generator);
-
         tbox::Pointer<IBImplicitHierarchyIntegrator> time_integrator =
             new IBImplicitHierarchyIntegrator(
                 "IBImplicitHierarchyIntegrator",
                 input_db->getDatabase("IBImplicitHierarchyIntegrator"),
-                patch_hierarchy, force_generator);
+                patch_hierarchy);
 
         tbox::Pointer<IBStandardInitializer> initializer =
             new IBStandardInitializer(
                 "IBStandardInitializer",
                 input_db->getDatabase("IBStandardInitializer"));
         time_integrator->registerLNodeInitStrategy(initializer);
+
+        tbox::Pointer<IBSpringForceGen> spring_force_generator = new IBSpringForceGen();
+        tbox::Pointer<IBBeamForceGen> beam_force_generator = new IBBeamForceGen();
+        tbox::Pointer<IBTargetPointForceGen> target_point_force_generator = new IBTargetPointForceGen();
+        tbox::Pointer<IBStandardForceGen> force_generator = new IBStandardForceGen(
+            spring_force_generator, beam_force_generator, target_point_force_generator);
+        time_integrator->registerIBLagrangianForceStrategy(force_generator);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(

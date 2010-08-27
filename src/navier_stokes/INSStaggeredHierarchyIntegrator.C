@@ -1409,7 +1409,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
 
         int ierr;
         MatNullSpace petsc_nullsp;
-        Vec petsc_nullsp_vec = PETScSAMRAIVectorReal<double>::createPETScVector(d_nul_vec, PETSC_COMM_WORLD);
+        Vec petsc_nullsp_vec = PETScSAMRAIVectorReal::createPETScVector(d_nul_vec, PETSC_COMM_WORLD);
         double one_dot_one;
         ierr = VecDot(petsc_nullsp_vec, petsc_nullsp_vec, &one_dot_one); IBTK_CHKERRQ(ierr);
         ierr = VecScale(petsc_nullsp_vec, 1.0/one_dot_one); IBTK_CHKERRQ(ierr);

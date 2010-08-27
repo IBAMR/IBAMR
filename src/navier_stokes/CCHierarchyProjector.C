@@ -548,7 +548,7 @@ CCHierarchyProjector::resetHierarchyConfiguration(
         {
             ierr = VecDestroy(d_petsc_null_space_vecs[k]); IBTK_CHKERRQ(ierr);
         }
-        d_petsc_null_space_vecs[k] = PETScSAMRAIVectorReal<double>::createPETScVector(d_null_space_vecs[k], PETSC_COMM_WORLD);
+        d_petsc_null_space_vecs[k] = PETScSAMRAIVectorReal::createPETScVector(d_null_space_vecs[k], PETSC_COMM_WORLD);
 
         double v_dot_v;
         ierr = VecDot(d_petsc_null_space_vecs[k], d_petsc_null_space_vecs[k], &v_dot_v); IBTK_CHKERRQ(ierr);

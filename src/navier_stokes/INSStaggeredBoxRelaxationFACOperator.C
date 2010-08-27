@@ -57,6 +57,7 @@
 
 // C++ STDLIB INCLUDES
 #include <algorithm>
+#include <limits>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -79,6 +80,289 @@ static Pointer<Timer> t_deallocate_operator_state;
 
 // Number of ghosts cells used for each variable quantity.
 static const int GHOSTS = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+
+// Size of box to use in the box relaxation.
+static const int BOX_GHOSTS = 1;
+
+inline int
+compute_side_index(
+    const Index<NDIM>& i,
+    const Box<NDIM>& box,
+    const int axis)
+{
+    int offset = 0;
+    for (int d = 0; d < axis; ++d)
+    {
+        offset += SideGeometry<NDIM>::toSideBox(box,d).size();
+    }
+    return offset + SideGeometry<NDIM>::toSideBox(box,axis).offset(i);
+}// compute_side_index
+
+inline int
+compute_cell_index(
+    const Index<NDIM>& i,
+    const Box<NDIM>& box)
+{
+    int offset = 0;
+    for (int axis = 0; axis < NDIM; ++axis)
+    {
+        offset += SideGeometry<NDIM>::toSideBox(box,axis).size();
+    }
+    return box.offset(i) + offset;
+}// compute_cell_index
+
+void
+buildBoxOperator(
+    Mat& A,
+    const INSCoefs& problem_coefs,
+    const double dt,
+    const Box<NDIM>& box,
+    const Box<NDIM>& ghost_box,
+    const double* const dx)
+{
+    int ierr;
+
+    const double rho = problem_coefs.getRho();
+    const double mu = problem_coefs.getMu();
+    const double lambda = problem_coefs.getLambda();
+
+    // Allocate a PETSc matrix for the patch operator.
+    Box<NDIM> side_boxes[NDIM];
+    BoxList<NDIM> side_ghost_boxes[NDIM];
+    for (int axis = 0; axis < NDIM; ++axis)
+    {
+        side_boxes[axis] = SideGeometry<NDIM>::toSideBox(box, axis);
+        side_ghost_boxes[axis] = SideGeometry<NDIM>::toSideBox(ghost_box, axis);
+        side_ghost_boxes[axis].removeIntersections(side_boxes[axis]);
+    }
+    BoxList<NDIM> cell_ghost_boxes(ghost_box);
+    cell_ghost_boxes.removeIntersections(box);
+
+    int size = ghost_box.size();
+    for (int axis = 0; axis < NDIM; ++axis)
+    {
+        size += SideGeometry<NDIM>::toSideBox(ghost_box, axis).size();
+    }
+
+    static const int U_stencil_sz = 2*NDIM+3;
+    static const int P_stencil_sz = 2*NDIM+1;
+    std::vector<int> nnz(size, 0);
+
+    for (int axis = 0; axis < NDIM; ++axis)
+    {
+        for (Box<NDIM>::Iterator b(side_boxes[axis]); b; b++)
+        {
+            nnz[compute_side_index(b(), ghost_box, axis)] = U_stencil_sz;
+        }
+        for (BoxList<NDIM>::Iterator bl(side_ghost_boxes[axis]); bl; bl++)
+        {
+            for (Box<NDIM>::Iterator b(bl()); b; b++)
+            {
+                nnz[compute_side_index(b(), ghost_box, axis)] = 1;
+            }
+        }
+    }
+
+    for (Box<NDIM>::Iterator b(box); b; b++)
+    {
+        nnz[compute_cell_index(b(), ghost_box)] = P_stencil_sz;
+    }
+
+    for (BoxList<NDIM>::Iterator bl(cell_ghost_boxes); bl; bl++)
+    {
+        for (Box<NDIM>::Iterator b(bl()); b; b++)
+        {
+            nnz[compute_cell_index(b(), ghost_box)] = 1;
+        }
+    }
+
+    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, PETSC_DEFAULT, &nnz[0], &A);  IBTK_CHKERRQ(ierr);
+
+    // Set some general matrix options.
+#ifdef DEBUG_CHECK_ASSERTIONS
+    ierr = MatSetOption(A, MAT_NEW_NONZERO_LOCATION_ERR, PETSC_TRUE);    IBTK_CHKERRQ(ierr);
+    ierr = MatSetOption(A, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);  IBTK_CHKERRQ(ierr);
+#endif
+
+    // Set the matrix coefficients to correspond to the standard finite
+    // difference approximation to the time-dependent incompressible Stokes
+    // operator.
+    //
+    // Note that boundary conditions at both physical boundaries and at
+    // coarse-fine interfaces are implicitly treated by setting ghost cell
+    // values appropriately.  Thus the matrix coefficients are independent of
+    // any boundary conditions.
+    for (int axis = 0; axis < NDIM; ++axis)
+    {
+        for (Box<NDIM>::Iterator b(side_boxes[axis]); b; b++)
+        {
+            Index<NDIM> i = b();
+            const int mat_row = compute_side_index(i, ghost_box, axis);
+
+            std::vector<int> mat_cols(U_stencil_sz,-1);
+            std::vector<double> mat_vals(U_stencil_sz,0.0);
+
+            mat_cols[0] = mat_row;
+            mat_vals[0] = (rho/dt) + 0.5*lambda;
+
+            for (int d = 0; d < NDIM; ++d)
+            {
+                Index<NDIM> shift = 0;
+                shift(d) = 1;
+                const Index<NDIM> i_left = i - shift;
+                const Index<NDIM> i_rght = i + shift;
+                mat_cols[2*d+1] = compute_side_index(i_left, ghost_box, axis);
+                mat_cols[2*d+2] = compute_side_index(i_rght, ghost_box, axis);
+
+                mat_vals[    0] +=      mu/(dx[d]*dx[d]);
+                mat_vals[2*d+1]  = -0.5*mu/(dx[d]*dx[d]);
+                mat_vals[2*d+2]  = -0.5*mu/(dx[d]*dx[d]);
+            }
+
+            Index<NDIM> shift = 0;
+            shift(axis) = 1;
+            const Index<NDIM> p_left = i - shift;
+            const Index<NDIM> p_rght = i;
+            mat_cols[2*NDIM+1] = compute_cell_index(p_left, ghost_box);
+            mat_cols[2*NDIM+2] = compute_cell_index(p_rght, ghost_box);
+
+            mat_vals[2*NDIM+1] = -1.0/dx[axis];
+            mat_vals[2*NDIM+2] =  1.0/dx[axis];
+
+            static const int m = 1;
+            static const int n = U_stencil_sz;
+            ierr = MatSetValues(A, m, &mat_row, n, &mat_cols[0], &mat_vals[0], INSERT_VALUES);  IBTK_CHKERRQ(ierr);
+        }
+    }
+
+    for (Box<NDIM>::Iterator b(box); b; b++)
+    {
+        Index<NDIM> i = b();
+        const int mat_row = compute_cell_index(i, ghost_box);
+
+        std::vector<int> mat_cols(P_stencil_sz,-1);
+        std::vector<double> mat_vals(P_stencil_sz,0.0);
+
+        mat_cols[0] = mat_row;
+        mat_vals[0] = 0.0;
+
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            Index<NDIM> shift = 0;
+            shift(axis) = 1;
+            const Index<NDIM> u_left = i;
+            const Index<NDIM> u_rght = i + shift;
+            mat_cols[2*axis+1] = compute_side_index(u_left, ghost_box, axis);
+            mat_cols[2*axis+2] = compute_side_index(u_rght, ghost_box, axis);
+
+            mat_vals[2*axis+1] =  1.0/dx[axis];
+            mat_vals[2*axis+2] = -1.0/dx[axis];
+        }
+
+        static const int m = 1;
+        static const int n = P_stencil_sz;
+        ierr = MatSetValues(A, m, &mat_row, n, &mat_cols[0], &mat_vals[0], INSERT_VALUES);  IBTK_CHKERRQ(ierr);
+    }
+
+    // Set the entries in the ghost cell region so that ghost cell values are
+    // not modified by the smoother.
+    for (int axis = 0; axis < NDIM; ++axis)
+    {
+        for (BoxList<NDIM>::Iterator bl(side_ghost_boxes[axis]); bl; bl++)
+        {
+            for (Box<NDIM>::Iterator b(bl()); b; b++)
+            {
+                const int i = compute_side_index(b(), ghost_box, axis);
+                ierr = MatSetValue(A, i, i, 1.0, INSERT_VALUES);  IBTK_CHKERRQ(ierr);
+            }
+        }
+    }
+
+    for (BoxList<NDIM>::Iterator bl(cell_ghost_boxes); bl; bl++)
+    {
+        for (Box<NDIM>::Iterator b(bl()); b; b++)
+        {
+            const int i = compute_cell_index(b(), ghost_box);
+            ierr = MatSetValue(A, i, i, 1.0, INSERT_VALUES);  IBTK_CHKERRQ(ierr);
+        }
+    }
+
+    // Assemble the matrices.
+    ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd  (A, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
+    return;
+}// buildBoxOperator
+
+inline void
+copyToVec(
+    Vec& v,
+    const SideData<NDIM,double>& U_data,
+    const CellData<NDIM,double>& P_data,
+    const Box<NDIM>& box,
+    const Box<NDIM>& ghost_box)
+{
+    int ierr;
+
+    for (int axis = 0; axis < NDIM; ++axis)
+    {
+        const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(box, axis);
+        for (Box<NDIM>::Iterator b(side_box); b; b++)
+        {
+            const Index<NDIM>& i = b();
+            const SideIndex<NDIM> s_i(i, axis, 0);
+            const int idx = compute_side_index(i, ghost_box, axis);
+            ierr = VecSetValue(v, idx, U_data(s_i), INSERT_VALUES);  IBTK_CHKERRQ(ierr);
+        }
+    }
+
+    for (Box<NDIM>::Iterator b(box); b; b++)
+    {
+        const Index<NDIM>& i = b();
+        const int idx = compute_cell_index(i, ghost_box);
+        ierr = VecSetValue(v, idx, P_data(i), INSERT_VALUES);  IBTK_CHKERRQ(ierr);
+    }
+
+    ierr = VecAssemblyBegin(v);  IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(v);  IBTK_CHKERRQ(ierr);
+    return;
+}// copyToVec
+
+inline void
+copyFromVec(
+    Vec& v,
+    SideData<NDIM,double>& U_data,
+    CellData<NDIM,double>& P_data,
+    const Box<NDIM>& box,
+    const Box<NDIM>& ghost_box)
+{
+    int ierr;
+
+    static const double omega = 0.5;
+
+    double U;
+    for (int axis = 0; axis < NDIM; ++axis)
+    {
+        const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(box, axis);
+        for (Box<NDIM>::Iterator b(side_box); b; b++)
+        {
+            const Index<NDIM>& i = b();
+            const SideIndex<NDIM> s_i(i, axis, 0);
+            const int idx = compute_side_index(i, ghost_box, axis);
+            ierr = VecGetValues(v, 1, &idx, &U);  IBTK_CHKERRQ(ierr);
+            U_data(s_i) = (1.0-omega)*U_data(s_i) + omega*U;
+        }
+    }
+
+    double P;
+    for (Box<NDIM>::Iterator b(box); b; b++)
+    {
+        const Index<NDIM>& i = b();
+        const int idx = compute_cell_index(i, ghost_box);
+        ierr = VecGetValues(v, 1, &idx, &P);  IBTK_CHKERRQ(ierr);
+        P_data(i) = (1.0-omega)*P_data(i) + omega*P;
+    }
+    return;
+}// copyFromVec
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -93,10 +377,6 @@ INSStaggeredBoxRelaxationFACOperator::INSStaggeredBoxRelaxationFACOperator(
       d_solution(NULL),
       d_rhs(NULL),
       d_gcw(GHOSTS),
-      d_patch_vec_e(),
-      d_patch_vec_f(),
-      d_patch_mat(),
-      d_patch_ksp(),
       d_patch_side_bc_box_overlap(),
       d_patch_cell_bc_box_overlap(),
       d_hierarchy(),
@@ -655,8 +935,6 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     const int U_error_idx = error.getComponentDescriptorIndex(0);
     const int P_error_idx = error.getComponentDescriptorIndex(1);
-    const int U_residual_idx = residual.getComponentDescriptorIndex(0);
-    const int P_residual_idx = residual.getComponentDescriptorIndex(1);
 
     // Cache coarse-fine interface ghost cell values in the "scratch" data.
     if (level_num > d_coarsest_ln)
@@ -740,6 +1018,9 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
         }
 
         // Smooth the error on the patches.
+        Vec& e = d_box_e[level_num];
+        Vec& r = d_box_r[level_num];
+        KSP& ksp = d_box_ksp[level_num];
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -775,22 +1056,52 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
                 d_patch_cell_bc_box_overlap[level_num][patch_num],
                 IntVector<NDIM>(0));
 
-            // Setup the PETSc Vec objects for the given patch data.
-            const std::pair<int,int> error_idxs = std::make_pair(U_error_idx,P_error_idx);
-            Vec& e = d_patch_vec_e[level_num][patch_num];
-            copyToVec(error_idxs, e, patch, d_gcw);
+            // Smooth the error on the patch.
+            const Box<NDIM>& patch_box = patch->getBox();
+#if 1
+            for (int m = 0; m <= 1; ++m)
+            {
+                for (Box<NDIM>::Iterator b(patch_box); b; b++)
+                {
+                    const Index<NDIM>& i = b();
+                    if ((i(0) + i(1)) % 2 == m)
+                    {
+                        const Box<NDIM> box(i,i);
+                        const Box<NDIM> ghost_box = Box<NDIM>::grow(box,BOX_GHOSTS);
 
-            const std::pair<int,int> residual_idxs = std::make_pair(U_residual_idx,P_residual_idx);
-            Vec& f = d_patch_vec_f[level_num][patch_num];
-            copyToVec(residual_idxs, f, patch, d_gcw);
+                        copyToVec(e, *U_error_data   , *P_error_data   , ghost_box, ghost_box);
+                        copyToVec(r, *U_residual_data, *P_residual_data, ghost_box, ghost_box);
+                        int ierr = KSPSolve(ksp, r, e);  IBTK_CHKERRQ(ierr);
+                        copyFromVec(e, *U_error_data, *P_error_data, box, ghost_box);
+                    }
+                }
+            }
+#else
+            int ierr;
 
-            // Smooth the error on the patch using PETSc.  Here, we solve Ae = f
-            // on the patch using a KSP solver.
-            KSP& ksp = d_patch_ksp[level_num][patch_num];
-            int ierr = KSPSolve(ksp, f, e);  IBTK_CHKERRQ(ierr);
+            const Box<NDIM> ghost_box = Box<NDIM>::grow(patch_box,d_gcw);
+            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const double* const dx = pgeom->getDx();
+            Mat A;
+            buildBoxOperator(A, d_problem_coefs, d_dt, patch_box, ghost_box, dx);
 
-            // Extract the solution data from the Vec.
-            copyFromVec(error_idxs, e, patch, d_gcw);
+            Vec e, f;
+            ierr = MatGetVecs(A, &e, &f);  IBTK_CHKERRQ(ierr);
+            KSP ksp;
+            ierr = KSPCreate(PETSC_COMM_SELF, &ksp);  IBTK_CHKERRQ(ierr);
+            ierr = KSPSetOperators(ksp, A, A, SAME_PRECONDITIONER);  IBTK_CHKERRQ(ierr);
+            ierr = KSPSetOptionsPrefix(ksp, "vanka_");  IBTK_CHKERRQ(ierr);
+            ierr = KSPSetFromOptions(ksp);  IBTK_CHKERRQ(ierr);
+            copyToVec(e, *U_error_data   , *P_error_data   , ghost_box, ghost_box);
+            copyToVec(f, *U_residual_data, *P_residual_data, ghost_box, ghost_box);
+            ierr = KSPSolve(ksp, f, e);
+            copyFromVec(e, *U_error_data, *P_error_data, patch_box, ghost_box);
+
+            MatDestroy(A);
+            VecDestroy(e);
+            VecDestroy(f);
+            KSPDestroy(ksp);
+#endif
         }
     }
 
@@ -1149,37 +1460,37 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
         }
     }
 
-    // Initialize all cached PETSc data.
-    d_patch_vec_e.resize(d_finest_ln+1);
-    d_patch_vec_f.resize(d_finest_ln+1);
-    d_patch_mat.resize(d_finest_ln+1);
-    d_patch_ksp.resize(d_finest_ln+1);
+    // Initialize the box relaxation data on each level of the patch hierarchy.
+    d_box_op.resize(d_finest_ln+1);
+    d_box_e.resize(d_finest_ln+1);
+    d_box_r.resize(d_finest_ln+1);
+    d_box_ksp.resize(d_finest_ln+1);
+
+    const Box<NDIM> box(Index<NDIM>(0),Index<NDIM>(0));
+    const Box<NDIM> ghost_box = Box<NDIM>::grow(box,BOX_GHOSTS);
+
+    const double* const dx_coarsest = geometry->getDx();
+    double dx[NDIM];
+
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        const IntVector<NDIM>& ratio = d_hierarchy->getPatchLevel(ln)->getRatio();
+        for (int d = 0; d < NDIM; ++d)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const int patch_num = patch->getPatchNumber();
-
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Box<NDIM>  ghost_box = Box<NDIM>::grow(patch_box, d_gcw);
-
-            Vec& e = d_patch_vec_e[ln][patch_num];
-            Vec& f = d_patch_vec_f[ln][patch_num];
-            Mat& A = d_patch_mat  [ln][patch_num];
-            KSP& ksp = d_patch_ksp[ln][patch_num];
-
-            buildPatchOperator(A, d_problem_coefs, d_dt, patch, d_gcw);
-
-            int ierr;
-            ierr = MatGetVecs(A, &e, &f);  IBTK_CHKERRQ(ierr);
-            ierr = KSPCreate(PETSC_COMM_SELF, &ksp);  IBTK_CHKERRQ(ierr);
-            ierr = KSPSetOperators(ksp, A, A, SAME_PRECONDITIONER);  IBTK_CHKERRQ(ierr);
-            ierr = KSPSetOptionsPrefix(ksp, "vanka_");  IBTK_CHKERRQ(ierr);
-            ierr = KSPSetFromOptions(ksp);  IBTK_CHKERRQ(ierr);
-            ierr = KSPSetInitialGuessNonzero(ksp, PETSC_TRUE);  IBTK_CHKERRQ(ierr);
+            dx[d] = dx_coarsest[d]/double(ratio(d));
         }
+        buildBoxOperator(d_box_op[ln], d_problem_coefs, d_dt, box, ghost_box, dx);
+        int ierr;
+        ierr = MatGetVecs(d_box_op[ln], &d_box_e[ln], &d_box_r[ln]);  IBTK_CHKERRQ(ierr);
+        ierr = KSPCreate(PETSC_COMM_SELF, &d_box_ksp[ln]);  IBTK_CHKERRQ(ierr);
+        ierr = KSPSetOperators(d_box_ksp[ln], d_box_op[ln], d_box_op[ln], SAME_PRECONDITIONER);  IBTK_CHKERRQ(ierr);
+        ierr = KSPSetType(d_box_ksp[ln], KSPPREONLY);  IBTK_CHKERRQ(ierr);
+        PC box_pc;
+        ierr = KSPGetPC(d_box_ksp[ln], &box_pc);  IBTK_CHKERRQ(ierr);
+        ierr = PCSetType(box_pc, PCLU);  IBTK_CHKERRQ(ierr);
+        ierr = PCFactorReorderForNonzeroDiagonal(box_pc, std::numeric_limits<double>::epsilon());  IBTK_CHKERRQ(ierr);
+//      ierr = PCFactorSetMatOrderingType(box_pc, MATORDERING_ND);  IBTK_CHKERRQ(ierr);
+        ierr = KSPSetUp(d_box_ksp[ln]);  IBTK_CHKERRQ(ierr);
     }
 
     // Get overlap information for setting patch boundary conditions.
@@ -1248,35 +1559,10 @@ INSStaggeredBoxRelaxationFACOperator::deallocateOperatorState()
             }
 
             int ierr;
-
-            for (std::map<int,Vec>::iterator it = d_patch_vec_e[ln].begin();
-                 it != d_patch_vec_e[ln].end(); ++it)
-            {
-                Vec& e = (*it).second;
-                ierr = VecDestroy(e);  IBTK_CHKERRQ(ierr);
-            }
-            d_patch_vec_e[ln].clear();
-            for (std::map<int,Vec>::iterator it = d_patch_vec_f[ln].begin();
-                 it != d_patch_vec_f[ln].end(); ++it)
-            {
-                Vec& f = (*it).second;
-                ierr = VecDestroy(f);  IBTK_CHKERRQ(ierr);
-            }
-            d_patch_vec_f[ln].clear();
-            for (std::map<int,Mat>::iterator it = d_patch_mat[ln].begin();
-                 it != d_patch_mat[ln].end(); ++it)
-            {
-                Mat& A = (*it).second;
-                ierr = MatDestroy(A);  IBTK_CHKERRQ(ierr);
-            }
-            d_patch_mat[ln].clear();
-            for (std::map<int,KSP>::iterator it = d_patch_ksp[ln].begin();
-                 it != d_patch_ksp[ln].end(); ++it)
-            {
-                KSP& ksp = (*it).second;
-                ierr = KSPDestroy(ksp);  IBTK_CHKERRQ(ierr);
-            }
-            d_patch_ksp[ln].clear();
+            ierr = MatDestroy(d_box_op [ln]);  IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(d_box_e  [ln]);  IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(d_box_r  [ln]);  IBTK_CHKERRQ(ierr);
+            ierr = KSPDestroy(d_box_ksp[ln]);  IBTK_CHKERRQ(ierr);
         }
 
         // Delete the solution and rhs vectors.
@@ -1291,10 +1577,6 @@ INSStaggeredBoxRelaxationFACOperator::deallocateOperatorState()
         if (!d_in_initialize_operator_state ||
             (d_coarsest_reset_ln == -1) || (d_finest_reset_ln == -1))
         {
-            d_patch_vec_e.resize(0);
-            d_patch_vec_f.resize(0);
-            d_patch_mat.resize(0);
-            d_patch_ksp.resize(0);
             d_patch_side_bc_box_overlap.resize(0);
             d_patch_cell_bc_box_overlap.resize(0);
 
@@ -1481,304 +1763,6 @@ INSStaggeredBoxRelaxationFACOperator::xeqScheduleSideDataSynch(
     d_U_synch_refine_algorithm->resetSchedule(d_U_synch_refine_schedules[dst_ln]);
     return;
 }// xeqScheduleSideDataSynch
-
-namespace
-{
-inline int
-compute_side_index(
-    const Index<NDIM>& i,
-    const Box<NDIM>& box,
-    const int axis)
-{
-    int offset = 0;
-    for (int d = 0; d < axis; ++d)
-    {
-        offset += SideGeometry<NDIM>::toSideBox(box,d).size();
-    }
-    return offset + SideGeometry<NDIM>::toSideBox(box,axis).offset(i);
-}// compute_side_index
-
-inline int
-compute_cell_index(
-    const Index<NDIM>& i,
-    const Box<NDIM>& box)
-{
-    int offset = 0;
-    for (int axis = 0; axis < NDIM; ++axis)
-    {
-        offset += SideGeometry<NDIM>::toSideBox(box,axis).size();
-    }
-    return box.offset(i) + offset;
-}// compute_cell_index
-}
-
-void
-INSStaggeredBoxRelaxationFACOperator::buildPatchOperator(
-    Mat& A,
-    const INSCoefs& problem_coefs,
-    const double dt,
-    const Pointer<Patch<NDIM> >& patch,
-    const IntVector<NDIM>& ghost_cell_width)
-{
-    int ierr;
-
-    const double rho = problem_coefs.getRho();
-    const double mu = problem_coefs.getMu();
-    const double lambda = problem_coefs.getLambda();
-
-    // Allocate a PETSc matrix for the patch operator.
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Box<NDIM> ghost_box = Box<NDIM>::grow(patch_box, ghost_cell_width);
-
-    Box<NDIM> side_boxes[NDIM];
-    BoxList<NDIM> side_ghost_boxes[NDIM];
-    for (int axis = 0; axis < NDIM; ++axis)
-    {
-        side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
-        side_ghost_boxes[axis] = SideGeometry<NDIM>::toSideBox(ghost_box, axis);
-        side_ghost_boxes[axis].removeIntersections(side_boxes[axis]);
-    }
-    BoxList<NDIM> cell_ghost_boxes(ghost_box);
-    cell_ghost_boxes.removeIntersections(patch_box);
-
-    int size = ghost_box.size();
-    for (int axis = 0; axis < NDIM; ++axis)
-    {
-        size += SideGeometry<NDIM>::toSideBox(ghost_box, axis).size();
-    }
-
-    static const int U_stencil_sz = 2*NDIM+3;
-    static const int P_stencil_sz = 2*NDIM+1;
-    std::vector<int> nnz(size, 0);
-
-    for (int axis = 0; axis < NDIM; ++axis)
-    {
-        for (Box<NDIM>::Iterator b(side_boxes[axis]); b; b++)
-        {
-            nnz[compute_side_index(b(), ghost_box, axis)] = U_stencil_sz;
-        }
-        for (BoxList<NDIM>::Iterator bl(side_ghost_boxes[axis]); bl; bl++)
-        {
-            for (Box<NDIM>::Iterator b(bl()); b; b++)
-            {
-                nnz[compute_side_index(b(), ghost_box, axis)] = 1;
-            }
-        }
-    }
-
-    for (Box<NDIM>::Iterator b(patch_box); b; b++)
-    {
-        nnz[compute_cell_index(b(), ghost_box)] = P_stencil_sz;
-    }
-
-    for (BoxList<NDIM>::Iterator bl(cell_ghost_boxes); bl; bl++)
-    {
-        for (Box<NDIM>::Iterator b(bl()); b; b++)
-        {
-            nnz[compute_cell_index(b(), ghost_box)] = 1;
-        }
-    }
-
-    for (int k = 0; k < size; ++k)
-    {
-        if (nnz[k] == 0)
-        {
-            tbox::pout << patch_box << "\n" << k << "\n";
-        }
-    }
-
-    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, PETSC_DEFAULT, &nnz[0], &A);  IBTK_CHKERRQ(ierr);
-
-    // Set some general matrix options.
-#ifdef DEBUG_CHECK_ASSERTIONS
-    ierr = MatSetOption(A, MAT_NEW_NONZERO_LOCATION_ERR, PETSC_TRUE);    IBTK_CHKERRQ(ierr);
-    ierr = MatSetOption(A, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE);  IBTK_CHKERRQ(ierr);
-#endif
-
-    // Set the matrix coefficients to correspond to the standard finite
-    // difference approximation to the time-dependent incompressible Stokes
-    // operator.
-    //
-    // Note that boundary conditions at both physical boundaries and at
-    // coarse-fine interfaces are implicitly treated by setting ghost cell
-    // values appropriately.  Thus the matrix coefficients are independent of
-    // any boundary conditions.
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-    const double* const dx = pgeom->getDx();
-
-    for (int axis = 0; axis < NDIM; ++axis)
-    {
-        for (Box<NDIM>::Iterator b(side_boxes[axis]); b; b++)
-        {
-            Index<NDIM> i = b();
-            const int mat_row = compute_side_index(i, ghost_box, axis);
-
-            std::vector<int> mat_cols(U_stencil_sz,-1);
-            std::vector<double> mat_vals(U_stencil_sz,0.0);
-
-            mat_cols[0] = mat_row;
-            mat_vals[0] = (rho/dt) + 0.5*lambda;
-
-            for (int d = 0; d < NDIM; ++d)
-            {
-                Index<NDIM> shift = 0;
-                shift(d) = 1;
-                const Index<NDIM> i_left = i - shift;
-                const Index<NDIM> i_rght = i + shift;
-                mat_cols[2*d+1] = compute_side_index(i_left, ghost_box, axis);
-                mat_cols[2*d+2] = compute_side_index(i_rght, ghost_box, axis);
-
-                mat_vals[    0] +=      mu/(dx[d]*dx[d]);
-                mat_vals[2*d+1]  = -0.5*mu/(dx[d]*dx[d]);
-                mat_vals[2*d+2]  = -0.5*mu/(dx[d]*dx[d]);
-            }
-
-            Index<NDIM> shift = 0;
-            shift(axis) = 1;
-            const Index<NDIM> p_left = i - shift;
-            const Index<NDIM> p_rght = i;
-            mat_cols[2*NDIM+1] = compute_cell_index(p_left, ghost_box);
-            mat_cols[2*NDIM+2] = compute_cell_index(p_rght, ghost_box);
-
-            mat_vals[2*NDIM+1] = -1.0/dx[axis];
-            mat_vals[2*NDIM+2] =  1.0/dx[axis];
-
-            static const int m = 1;
-            static const int n = U_stencil_sz;
-            ierr = MatSetValues(A, m, &mat_row, n, &mat_cols[0], &mat_vals[0], INSERT_VALUES);  IBTK_CHKERRQ(ierr);
-        }
-    }
-
-    for (Box<NDIM>::Iterator b(patch_box); b; b++)
-    {
-        Index<NDIM> i = b();
-        const int mat_row = compute_cell_index(i, ghost_box);
-
-        std::vector<int> mat_cols(P_stencil_sz,-1);
-        std::vector<double> mat_vals(P_stencil_sz,0.0);
-
-        mat_cols[0] = mat_row;
-        mat_vals[0] = 0.0;
-
-        for (int axis = 0; axis < NDIM; ++axis)
-        {
-            Index<NDIM> shift = 0;
-            shift(axis) = 1;
-            const Index<NDIM> u_left = i;
-            const Index<NDIM> u_rght = i + shift;
-            mat_cols[2*axis+1] = compute_side_index(u_left, ghost_box, axis);
-            mat_cols[2*axis+2] = compute_side_index(u_rght, ghost_box, axis);
-
-            mat_vals[2*axis+1] =  1.0/dx[axis];
-            mat_vals[2*axis+2] = -1.0/dx[axis];
-        }
-
-        static const int m = 1;
-        static const int n = P_stencil_sz;
-        ierr = MatSetValues(A, m, &mat_row, n, &mat_cols[0], &mat_vals[0], INSERT_VALUES);  IBTK_CHKERRQ(ierr);
-    }
-
-    // Set the entries in the ghost cell region so that ghost cell values are
-    // not modified by the smoother.
-    for (int axis = 0; axis < NDIM; ++axis)
-    {
-        for (BoxList<NDIM>::Iterator bl(side_ghost_boxes[axis]); bl; bl++)
-        {
-            for (Box<NDIM>::Iterator b(bl()); b; b++)
-            {
-                const int i = compute_side_index(b(), ghost_box, axis);
-                ierr = MatSetValue(A, i, i, 1.0, INSERT_VALUES);  IBTK_CHKERRQ(ierr);
-            }
-        }
-    }
-
-    for (BoxList<NDIM>::Iterator bl(cell_ghost_boxes); bl; bl++)
-    {
-        for (Box<NDIM>::Iterator b(bl()); b; b++)
-        {
-            const int i = compute_cell_index(b(), ghost_box);
-            ierr = MatSetValue(A, i, i, 1.0, INSERT_VALUES);  IBTK_CHKERRQ(ierr);
-        }
-    }
-
-    // Assemble the matrices.
-    ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
-    ierr = MatAssemblyEnd  (A, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
-    return;
-}// buildPatchOperator
-
-void
-INSStaggeredBoxRelaxationFACOperator::copyToVec(
-    std::pair<int,int> data_idxs,
-    Vec& v,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
-    const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width)
-{
-    int ierr;
-
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Box<NDIM> ghost_box = Box<NDIM>::grow(patch_box, ghost_cell_width);
-
-    Pointer<SideData<NDIM,double> > U_data = patch->getPatchData(data_idxs.first);
-    for (int axis = 0; axis < NDIM; ++axis)
-    {
-        const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(ghost_box, axis);
-        for (Box<NDIM>::Iterator b(side_box); b; b++)
-        {
-            const Index<NDIM>& i = b();
-            const SideIndex<NDIM> s_i(i, axis, 0);
-            const int idx = compute_side_index(i, ghost_box, axis);
-            ierr = VecSetValue(v, idx, (*U_data)(s_i), INSERT_VALUES);  IBTK_CHKERRQ(ierr);
-        }
-    }
-
-    Pointer<CellData<NDIM,double> > P_data = patch->getPatchData(data_idxs.second);
-    for (Box<NDIM>::Iterator b(ghost_box); b; b++)
-    {
-        const Index<NDIM>& i = b();
-        const int idx = compute_cell_index(i, ghost_box);
-        ierr = VecSetValue(v, idx, (*P_data)(i), INSERT_VALUES);  IBTK_CHKERRQ(ierr);
-    }
-
-    ierr = VecAssemblyBegin(v);  IBTK_CHKERRQ(ierr);
-    ierr = VecAssemblyEnd(v);  IBTK_CHKERRQ(ierr);
-    return;
-}// copyToVec
-
-void
-INSStaggeredBoxRelaxationFACOperator::copyFromVec(
-    std::pair<int,int> data_idxs,
-    Vec& v,
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
-    const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width)
-{
-    int ierr;
-
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Box<NDIM> ghost_box = Box<NDIM>::grow(patch_box, ghost_cell_width);
-
-    Pointer<SideData<NDIM,double> > U_data = patch->getPatchData(data_idxs.first);
-    for (int axis = 0; axis < NDIM; ++axis)
-    {
-        const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(ghost_box, axis);
-        for (Box<NDIM>::Iterator b(side_box); b; b++)
-        {
-            const Index<NDIM>& i = b();
-            const SideIndex<NDIM> s_i(i, axis, 0);
-            const int idx = compute_side_index(i, ghost_box, axis);
-            ierr = VecGetValues(v, 1, &idx, &(*U_data)(s_i));  IBTK_CHKERRQ(ierr);
-        }
-    }
-
-    Pointer<CellData<NDIM,double> > P_data = patch->getPatchData(data_idxs.second);
-    for (Box<NDIM>::Iterator b(ghost_box); b; b++)
-    {
-        const Index<NDIM>& i = b();
-        const int idx = compute_cell_index(i, ghost_box);
-        ierr = VecGetValues(v, 1, &idx, &(*P_data)(i));  IBTK_CHKERRQ(ierr);
-    }
-    return;
-}// copyFromVec
 
 void
 INSStaggeredBoxRelaxationFACOperator::sanityCheck()

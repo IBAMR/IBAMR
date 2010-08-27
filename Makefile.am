@@ -40,6 +40,7 @@ EXTRA_DIST += $(top_srcdir)/include/ibamr/IBFEHierarchyIntegrator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBHDF5Initializer.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBHierarchyIntegrator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBImplicitHierarchyIntegrator.h
+EXTRA_DIST += $(top_srcdir)/include/ibamr/IBImplicitOperator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBInstrumentPanel.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBInstrumentationSpec.I
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBInstrumentationSpec.h

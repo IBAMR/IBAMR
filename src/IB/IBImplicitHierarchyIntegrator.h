@@ -31,6 +31,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBLagrangianForceStrategy.h>
+#include <ibamr/IBImplicitOperator.h>
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/INSCoefs.h>
 #include <ibamr/INSStaggeredBlockFactorizationPreconditioner.h>
@@ -50,7 +51,7 @@
 #include <ibtk/LagSiloDataWriter.h>
 #include <ibtk/FACPreconditioner.h>
 #include <ibtk/HierarchyMathOps.h>
-#include <ibtk/PETScKrylovLinearSolver.h>
+#include <ibtk/PETScNewtonKrylovSolver.h>
 #include <ibtk/SCLaplaceOperator.h>
 #include <ibtk/SCPoissonFACOperator.h>
 #include <ibtk/SideDataSynchronization.h>
@@ -97,6 +98,8 @@ class IBImplicitHierarchyIntegrator
       public SAMRAI::tbox::Serializable
 {
 public:
+    friend class IBImplicitOperator;
+
     /*!
      * The constructor for IBImplicitHierarchyIntegrator sets some default
      * values, reads in configuration information from input and restart
@@ -1121,8 +1124,11 @@ private:
     bool d_block_pc_needs_init;
     SAMRAI::tbox::Pointer<INSStaggeredBlockFactorizationPreconditioner> d_block_pc;
 
-    bool d_stokes_solver_needs_init;
-    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver> d_stokes_solver;
+    bool d_ib_op_needs_init;
+    SAMRAI::tbox::Pointer<IBImplicitOperator> d_ib_op;
+
+    bool d_ib_solver_needs_init;
+    SAMRAI::tbox::Pointer<IBTK::PETScNewtonKrylovSolver> d_ib_solver;
 
     bool d_needs_regrid_projection;
     double d_regrid_max_div_growth_factor;
@@ -1209,6 +1215,7 @@ private:
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_div_u_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_phi_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_u_half_ib_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_u_regrid_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_u_src_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_indicator_var;
@@ -1238,7 +1245,7 @@ private:
      *
      * Scratch variables have only one context: scratch.
      */
-    int d_phi_idx, d_u_regrid_idx, d_u_src_idx, d_indicator_idx;
+    int d_phi_idx, d_u_half_ib_idx, d_u_regrid_idx, d_u_src_idx, d_indicator_idx;
 
     /*
      * Patch data descriptors for all variables managed by the HierarchyMathOps
@@ -1288,7 +1295,9 @@ private:
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_X_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_X_mid_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_X_new_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_X_half_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_U_half_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > d_F_half_data;
 
     /*
      * List of local indices of local anchor points.

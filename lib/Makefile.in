@@ -88,6 +88,7 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/IB/IBHDF5Initializer.C \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
 	$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C \
+	$(top_srcdir)/src/IB/IBImplicitOperator.C \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
@@ -157,6 +158,7 @@ am__objects_2 = libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBHDF5Initializer.$(OBJEXT) \
 	libIBAMR2d_a-IBHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-IBImplicitHierarchyIntegrator.$(OBJEXT) \
+	libIBAMR2d_a-IBImplicitOperator.$(OBJEXT) \
 	libIBAMR2d_a-IBInstrumentPanel.$(OBJEXT) \
 	libIBAMR2d_a-IBInstrumentationSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBInstrumentationSpecFactory.$(OBJEXT) \
@@ -227,6 +229,7 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/IB/IBHDF5Initializer.C \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
 	$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C \
+	$(top_srcdir)/src/IB/IBImplicitOperator.C \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
@@ -294,6 +297,7 @@ am__objects_4 = libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBHDF5Initializer.$(OBJEXT) \
 	libIBAMR3d_a-IBHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-IBImplicitHierarchyIntegrator.$(OBJEXT) \
+	libIBAMR3d_a-IBImplicitOperator.$(OBJEXT) \
 	libIBAMR3d_a-IBInstrumentPanel.$(OBJEXT) \
 	libIBAMR3d_a-IBInstrumentationSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBInstrumentationSpecFactory.$(OBJEXT) \
@@ -380,6 +384,7 @@ am__pkg_include_HEADERS_DIST = $(top_srcdir)/src/adv_diff/TGACoefs.h \
 	$(top_srcdir)/src/IB/IBHDF5Initializer.h \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
 	$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.h \
+	$(top_srcdir)/src/IB/IBImplicitOperator.h \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.h \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.I \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.h \
@@ -772,6 +777,7 @@ pkg_include_HEADERS = $(top_srcdir)/src/adv_diff/TGACoefs.h \
 	$(top_srcdir)/src/IB/IBHDF5Initializer.h \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
 	$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.h \
+	$(top_srcdir)/src/IB/IBImplicitOperator.h \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.h \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.I \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.h \
@@ -833,6 +839,7 @@ DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/IB/IBAnchorPointSpec.C \
 	$(top_srcdir)/src/IB/IBHDF5Initializer.C \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
 	$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C \
+	$(top_srcdir)/src/IB/IBImplicitOperator.C \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
@@ -1006,6 +1013,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBHDF5Initializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBImplicitHierarchyIntegrator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBImplicitOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBInstrumentPanel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpecFactory.Po@am__quote@
@@ -1062,6 +1070,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBHDF5Initializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBImplicitHierarchyIntegrator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBImplicitOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBInstrumentPanel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpecFactory.Po@am__quote@
@@ -1282,6 +1291,20 @@ libIBAMR2d_a-IBImplicitHierarchyIntegrator.obj: $(top_srcdir)/src/IB/IBImplicitH
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C' object='libIBAMR2d_a-IBImplicitHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C'; fi`
+
+libIBAMR2d_a-IBImplicitOperator.o: $(top_srcdir)/src/IB/IBImplicitOperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBImplicitOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBImplicitOperator.Tpo -c -o libIBAMR2d_a-IBImplicitOperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitOperator.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBImplicitOperator.Tpo $(DEPDIR)/libIBAMR2d_a-IBImplicitOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitOperator.C' object='libIBAMR2d_a-IBImplicitOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitOperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitOperator.C
+
+libIBAMR2d_a-IBImplicitOperator.obj: $(top_srcdir)/src/IB/IBImplicitOperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBImplicitOperator.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBImplicitOperator.Tpo -c -o libIBAMR2d_a-IBImplicitOperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitOperator.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBImplicitOperator.Tpo $(DEPDIR)/libIBAMR2d_a-IBImplicitOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitOperator.C' object='libIBAMR2d_a-IBImplicitOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitOperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitOperator.C'; fi`
 
 libIBAMR2d_a-IBInstrumentPanel.o: $(top_srcdir)/src/IB/IBInstrumentPanel.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBInstrumentPanel.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBInstrumentPanel.Tpo -c -o libIBAMR2d_a-IBInstrumentPanel.o `test -f '$(top_srcdir)/src/IB/IBInstrumentPanel.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBInstrumentPanel.C
@@ -2066,6 +2089,20 @@ libIBAMR3d_a-IBImplicitHierarchyIntegrator.obj: $(top_srcdir)/src/IB/IBImplicitH
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C' object='libIBAMR3d_a-IBImplicitHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C'; fi`
+
+libIBAMR3d_a-IBImplicitOperator.o: $(top_srcdir)/src/IB/IBImplicitOperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBImplicitOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBImplicitOperator.Tpo -c -o libIBAMR3d_a-IBImplicitOperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitOperator.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBImplicitOperator.Tpo $(DEPDIR)/libIBAMR3d_a-IBImplicitOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitOperator.C' object='libIBAMR3d_a-IBImplicitOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitOperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitOperator.C
+
+libIBAMR3d_a-IBImplicitOperator.obj: $(top_srcdir)/src/IB/IBImplicitOperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBImplicitOperator.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBImplicitOperator.Tpo -c -o libIBAMR3d_a-IBImplicitOperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitOperator.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBImplicitOperator.Tpo $(DEPDIR)/libIBAMR3d_a-IBImplicitOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitOperator.C' object='libIBAMR3d_a-IBImplicitOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitOperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitOperator.C'; fi`
 
 libIBAMR3d_a-IBInstrumentPanel.o: $(top_srcdir)/src/IB/IBInstrumentPanel.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBInstrumentPanel.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBInstrumentPanel.Tpo -c -o libIBAMR3d_a-IBInstrumentPanel.o `test -f '$(top_srcdir)/src/IB/IBInstrumentPanel.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBInstrumentPanel.C

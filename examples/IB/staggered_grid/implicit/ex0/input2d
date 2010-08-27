@@ -1,5 +1,5 @@
 // physical parameters
-MU = 0.005
+MU = 0.01
 RHO = 1.0
 
 // grid spacing parameters
@@ -28,7 +28,7 @@ VelocityBcCoefs_0 {
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
-   gcoef_function_3 = "0.0"
+   gcoef_function_3 = "1.0"
 }
 
 VelocityBcCoefs_1 {
@@ -182,7 +182,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST/2   // zero to turn off
+   viz_dump_interval     = 4 // NFINEST/2   // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 
@@ -198,7 +198,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
    x_lo         = -0.5, -0.5          // lower end of computational domain.
    x_up         =  0.5,  0.5          // upper end of computational domain.
-   periodic_dimension = 1, 1
+   periodic_dimension = 0, 0
 }
 
 GriddingAlgorithm {
