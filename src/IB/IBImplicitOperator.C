@@ -113,10 +113,6 @@ IBImplicitOperator::apply(
     const int coarsest_ln = x.getCoarsestLevelNumber();
     const int finest_ln = x.getFinestLevelNumber();
 
-    // Initialize the operator (if necessary).
-    const bool deallocate_at_completion = !d_is_initialized;
-    if (!d_is_initialized) initializeOperatorState(x,y);
-
     // Apply the linear part of the operator with inhomogeneous boundary
     // conditions.
     static const bool homogeneous_bc = false;
@@ -182,9 +178,6 @@ IBImplicitOperator::apply(
     // Spread F(n+1/2) to f(n+1/2).
     d_ib_implicit_integrator->resetAnchorPointValues(F_half_data, coarsest_ln, finest_ln);
     lag_data_manager->spread(f_half_idx, F_half_data, X_mid_data, true, true);
-
-    // Deallocate the operator (if necessary).
-    if (deallocate_at_completion) deallocateOperatorState();
 
     t_apply->stop();
     return;

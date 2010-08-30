@@ -347,19 +347,12 @@ INSStaggeredCenteredConvectiveOperator::apply(
 {
     t_apply->start();
 
-    // Initialize the operator (if necessary).
-    const bool deallocate_at_completion = !d_is_initialized;
-    if (!d_is_initialized) initializeOperatorState(x,y);
-
     // Get the vector components.
     const int U_idx = x.getComponentDescriptorIndex(0);
     const int N_idx = y.getComponentDescriptorIndex(0);
 
     // Compute the action of the operator.
     applyConvectiveOperator(U_idx, N_idx);
-
-    // Deallocate the operator (if necessary).
-    if (deallocate_at_completion) deallocateOperatorState();
 
     t_apply->stop();
     return;

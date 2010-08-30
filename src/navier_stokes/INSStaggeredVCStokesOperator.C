@@ -183,10 +183,6 @@ INSStaggeredVCStokesOperator::apply(
 {
     t_apply->start();
 
-    // Initialize the operator (if necessary).
-    const bool deallocate_at_completion = !d_is_initialized;
-    if (!d_is_initialized) initializeOperatorState(x,y);
-
     // Get the vector components.
 //  const int U_in_idx       =            x.getComponentDescriptorIndex(0);
 //  const int P_in_idx       =            x.getComponentDescriptorIndex(1);
@@ -253,9 +249,6 @@ INSStaggeredVCStokesOperator::apply(
         P_out_idx, P_out_cc_var,
         -1.0, U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
         cf_bdry_synch);
-
-    // Deallocate the operator (if necessary).
-    if (deallocate_at_completion) deallocateOperatorState();
 
     t_apply->stop();
     return;
