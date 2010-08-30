@@ -95,7 +95,7 @@ IBSpringForceGen::IBSpringForceGen(
     getFromInput(input_db);
 
     // Setup the default force generation functions.
-    registerSpringForceFunction(0, &IBAMR::default_linear_spring_force);
+    registerSpringForceFunction(0, &default_linear_spring_force);
 
     // Setup Timers.
     static bool timers_need_init = true;

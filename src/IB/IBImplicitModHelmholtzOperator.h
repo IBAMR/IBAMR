@@ -1,5 +1,5 @@
-// Filename: IBImplicitOperator.h
-// Created on 26 Aug 2010 by Boyce Griffith
+// Filename: IBImplicitModHelmholtzOperator.h
+// Created on 30 Aug 2010 by Boyce Griffith
 //
 // Copyright (c) 2002-2010 Boyce Griffith
 //
@@ -21,70 +21,72 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef included_IBImplicitOperator
-#define included_IBImplicitOperator
+#ifndef included_IBImplicitModHelmholtzOperator
+#define included_IBImplicitModHelmholtzOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // PETSc INCLUDES
 #include <petsc.h>
 
-// IBAMR INCLUDES
-#include <ibamr/IBImplicitSFSstarOperator.h>
-#include <ibamr/INSStaggeredStokesOperator.h>
+// IBTK INCLUDES
+#include <ibtk/SCLaplaceOperator.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
 {
 /*!
- * \brief Class IBImplicitOperator is a concrete IBTK::GeneralOperator which
+ * \brief Class IBImplicitModHelmholtzOperator is a concrete IBTK::GeneralOperator which
  * implements an implicit staggered-grid (MAC) discretization of the IB method.
  *
  * This class is intended to be used with an iterative Newton-Krylov solver.
  *
  * \see IBImplicitHierarchyIntegrator
  */
-class IBImplicitOperator
-    : public IBTK::GeneralOperator
+class IBImplicitModHelmholtzOperator
+    : public IBTK::LinearOperator
 {
 public:
     /*!
      * \brief Class constructor.
      */
-    IBImplicitOperator(
-        SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> stokes_op,
-        SAMRAI::tbox::Pointer<IBImplicitSFSstarOperator> ib_SFSstar_op);
+    IBImplicitModHelmholtzOperator(
+        SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator> helmholtz_op,
+        SAMRAI::tbox::Pointer<IBTK::LinearOperator> ib_SJSstar_op);
 
     /*!
      * \brief Virtual destructor.
      */
     virtual
-    ~IBImplicitOperator();
+    ~IBImplicitModHelmholtzOperator();
 
     /*!
-     * \brief Set the current time interval.
-     */
-    void
-    setTimeInterval(
-        const double current_time,
-        const double new_time);
-
-    /*!
-     * \name General operator functionality.
+     * \name Linear operator functionality.
      */
     //\{
 
     /*!
-     * \brief Compute \f$y=F[x]\f$.
+     * \brief Compute y=Ax.
      *
-     * \note initializeOperatorState() must be called prior to any calls to
-     * apply().
+     * Before calling this function, the form of the vectors x and y should be
+     * set properly by the user on all patch interiors on the range of levels
+     * covered by the operator.  All data in these vectors should be allocated.
+     * The user is responsible for managing the storage for the vectors.
+     *
+     * Conditions on arguments:
+     * - vectors must have same hierarchy
+     * - vectors must have same variables (except that x \em must have enough
+     *   ghost cells for computation of Ax).
+     *
+     * In general, the vectors x and y \em cannot be the same.
+     *
+     * \note The operator MUST be initialized prior to calling apply.
      *
      * \see initializeOperatorState
      *
      * \param x input
-     * \param y output: y=F[x]
+     * \param y output: y=Ax
      */
     virtual void
     apply(
@@ -92,15 +94,36 @@ public:
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
 
     /*!
-     * \brief Compute hierarchy dependent data required for computing y=F[x] .
+     * \brief Compute hierarchy dependent data required for computing y=Ax and
+     * z=Ax+y.
      *
-     * \note Call deallocateOperatorState() to remove any data allocated by this
+     * The vector arguments for apply(), applyAdjoint(), etc, need not match
+     * those for initializeOperatorState().  However, there must be a certain
+     * degree of similarity, including
+     * - hierarchy configuration (hierarchy pointer and level range)
+     * - number, type and alignment of vector component data
+     * - ghost cell widths of data in the input and output vectors
+     *
+     * \note It is generally necessary to reinitialize the operator state when
+     * the hierarchy configuration changes.
+     *
+     * It is safe to call initializeOperatorState() when the state is already
+     * initialized.  In this case, the operator state is first deallocated and
+     * then reinitialized.
+     *
+     * Conditions on arguments:
+     * - input and output vectors must have same hierarchy
+     * - input and output vectors must have same structure, depth, etc.
+     *
+     * Call deallocateOperatorState() to remove any data allocated by this
      * method.
      *
      * \see deallocateOperatorState
      *
      * \param in input vector
      * \param out output vector
+     *
+     * \note The default implementation is empty.
      */
     virtual void
     initializeOperatorState(
@@ -111,7 +134,13 @@ public:
      * \brief Remove all hierarchy dependent data allocated by
      * initializeOperatorState().
      *
+     * Remove all hierarchy dependent data set by initializeOperatorState().  It
+     * is safe to call deallocateOperatorState() when the operator state is
+     * already deallocated.
+     *
      * \see initializeOperatorState
+     *
+     * \note The default implementation is empty.
      */
     virtual void
     deallocateOperatorState();
@@ -140,7 +169,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBImplicitOperator();
+    IBImplicitModHelmholtzOperator();
 
     /*!
      * \brief Copy constructor.
@@ -149,8 +178,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBImplicitOperator(
-        const IBImplicitOperator& from);
+    IBImplicitModHelmholtzOperator(
+        const IBImplicitModHelmholtzOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -161,28 +190,25 @@ private:
      *
      * \return A reference to this object.
      */
-    IBImplicitOperator&
+    IBImplicitModHelmholtzOperator&
     operator=(
-        const IBImplicitOperator& that);
+        const IBImplicitModHelmholtzOperator& that);
 
     // Whether the operator is initialized.
     bool d_is_initialized;
 
-    // The simulation time.
-    double d_current_time, d_new_time, d_dt;
-
     // The Stokes operator.
-    SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> d_stokes_op;
+    SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator> d_helmholtz_op;
 
     // The IB force operator.
-    SAMRAI::tbox::Pointer<IBImplicitSFSstarOperator> d_ib_SFSstar_op;
+    SAMRAI::tbox::Pointer<IBTK::LinearOperator> d_ib_SJSstar_op;
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/IBImplicitOperator.I>
+//#include <ibamr/IBImplicitModHelmholtzOperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBImplicitOperator
+#endif //#ifndef included_IBImplicitModHelmholtzOperator

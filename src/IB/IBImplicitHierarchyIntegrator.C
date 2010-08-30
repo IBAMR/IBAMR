@@ -841,13 +841,18 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Setup the IB operator.
     d_ib_op_needs_init = true;
-    d_ib_op = new IBImplicitOperator(d_stokes_op, this);
+    d_ib_SFSstar_op = new IBImplicitSFSstarOperator(this);
+    d_ib_op = new IBImplicitOperator(d_stokes_op, d_ib_SFSstar_op);
 
     // Setup the nonlinear solver.
     const std::string ib_prefix = "ib_";
     d_ib_solver_needs_init = true;
     d_ib_solver = new PETScNewtonKrylovSolver(d_object_name+"::ib_solver", ib_prefix);
     d_ib_solver->setOperator(d_ib_op);
+    d_ib_SJSstar_op = new PETScMFFDJacobianOperator(ib_prefix);
+    d_ib_SJSstar_op->setOperator(d_ib_SFSstar_op);
+    d_ib_jac_op = new IBImplicitJacobian(d_stokes_op, d_ib_SJSstar_op);
+    d_ib_solver->setJacobian(d_ib_jac_op);
 
     // Setup the regrid projection Poisson solver.
     const bool needs_regrid_projection_solver = (d_gridding_alg->getMaxLevels() > 1);
@@ -2916,7 +2921,7 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
         }
 
         d_helmholtz_solver->setInitialGuessNonzero(false);
-        d_helmholtz_solver->setOperator(d_helmholtz_op);
+        d_helmholtz_solver->setOperator(d_mod_helmholtz_op);
         if (d_helmholtz_solver_needs_init || !MathUtilities<double>::equalEps(dt,d_op_and_solver_init_dt))
         {
             if (d_do_log) plog << d_object_name << "::integrateHierarchy(): Initializing Helmholtz solver" << std::endl;
@@ -3021,6 +3026,7 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
     {
         d_ib_op->setTimeInterval(current_time,new_time);
         d_ib_solver->setOperator(d_ib_op);
+        d_ib_solver->setJacobian(d_ib_jac_op);
         if (d_ib_solver_needs_init)
         {
             if (d_do_log) plog << d_object_name << "::integrateHierarchy(): Initializing implicit IB solver" << std::endl;
@@ -3104,10 +3110,12 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
                 d_helmholtz_op = new SCLaplaceOperator(d_object_name+"::Helmholtz Operator", *d_helmholtz_spec, d_u_star_bc_coefs, true);
                 d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
 
+                d_mod_helmholtz_op = new IBImplicitModHelmholtzOperator(d_helmholtz_op, d_ib_SJSstar_op);
+
                 d_helmholtz_solver_needs_init = true;
                 d_helmholtz_solver = new PETScKrylovLinearSolver(d_object_name+"::Helmholtz Krylov Solver", helmholtz_prefix);
                 d_helmholtz_solver->setInitialGuessNonzero(false);
-                d_helmholtz_solver->setOperator(d_helmholtz_op);
+                d_helmholtz_solver->setOperator(d_mod_helmholtz_op);
 
                 if (helmholtz_pc_type != "none")
                 {
@@ -3138,7 +3146,7 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
                 }
 
                 // Set some default options.
-                d_helmholtz_solver->setKSPType(d_gridding_alg->getMaxLevels() == 1 ? "preonly" : "gmres");
+                d_helmholtz_solver->setKSPType("fgmres");
                 d_helmholtz_solver->setAbsoluteTolerance(1.0e-30);
                 d_helmholtz_solver->setRelativeTolerance(1.0e-02);
                 d_helmholtz_solver->setMaxIterations(25);
@@ -3147,6 +3155,7 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
             {
                 d_helmholtz_spec = NULL;
                 d_helmholtz_op = NULL;
+                d_mod_helmholtz_op = NULL;
                 d_helmholtz_hypre_pc = NULL;
                 d_helmholtz_fac_op = NULL;
                 d_helmholtz_fac_pc = NULL;

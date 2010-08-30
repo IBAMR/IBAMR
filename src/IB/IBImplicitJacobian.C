@@ -1,5 +1,5 @@
-// Filename: IBImplicitOperator.C
-// Created on 26 Aug 2010 by Boyce Griffith
+// Filename: IBImplicitJacobian.C
+// Created on 30 Aug 2010 by Boyce Griffith
 //
 // Copyright (c) 2002-2010 Boyce Griffith
 //
@@ -21,13 +21,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "IBImplicitOperator.h"
+#include "IBImplicitJacobian.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#ifndef included_IBAMR_config
-#include <IBAMR_config.h>
-#define included_IBAMR_config
+#ifndef included_IBTK_config
+#include <IBTK_config.h>
+#define included_IBTK_config
 #endif
 
 #ifndef included_SAMRAI_config
@@ -38,12 +38,9 @@
 // IBAMR INCLUDES
 #include <ibamr/namespaces.h>
 
-// SAMRAI INCLUDES
-#include <tbox/Timer.h>
-#include <tbox/TimerManager.h>
-
-// C++ STDLIB INCLUDES
-#include <limits>
+// IBTK INCLUDES
+#include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/PETScSAMRAIVectorReal.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -51,120 +48,98 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-namespace
-{
-// Timers.
-static Pointer<Timer> t_apply;
-static Pointer<Timer> t_initialize_operator_state;
-static Pointer<Timer> t_deallocate_operator_state;
-}
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBImplicitOperator::IBImplicitOperator(
+IBImplicitJacobian::IBImplicitJacobian(
     Pointer<INSStaggeredStokesOperator> stokes_op,
-    Pointer<IBImplicitSFSstarOperator> ib_SFSstar_op)
-    : d_is_initialized(false),
-      d_current_time(std::numeric_limits<double>::quiet_NaN()),
-      d_new_time(std::numeric_limits<double>::quiet_NaN()),
-      d_dt(std::numeric_limits<double>::quiet_NaN()),
+    Pointer<JacobianOperator> ib_SJSstar_op)
+    : JacobianOperator(false),
+      d_is_initialized(false),
       d_stokes_op(stokes_op),
-      d_ib_SFSstar_op(ib_SFSstar_op)
+      d_ib_SJSstar_op(ib_SJSstar_op)
 {
-    // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
-        t_apply                     = TimerManager::getManager()->getTimer("IBAMR::IBImplicitOperator::apply()");
-        t_initialize_operator_state = TimerManager::getManager()->getTimer("IBAMR::IBImplicitOperator::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBAMR::IBImplicitOperator::deallocateOperatorState()");
-        timers_need_init = false;
-    }
+    // intentionally blank
     return;
-}// IBImplicitOperator
+}// IBImplicitJacobian()
 
-IBImplicitOperator::~IBImplicitOperator()
+IBImplicitJacobian::~IBImplicitJacobian()
 {
-    deallocateOperatorState();
+    if (d_is_initialized) deallocateOperatorState();
     return;
-}// ~IBImplicitOperator
+}// ~IBImplicitJacobian()
 
 void
-IBImplicitOperator::setTimeInterval(
-    const double current_time,
-    const double new_time)
+IBImplicitJacobian::formJacobian(
+    SAMRAIVectorReal<NDIM,double>& x)
 {
-    d_current_time = current_time;
-    d_new_time = new_time;
-    d_dt = d_new_time-d_current_time;
-    d_stokes_op->setTimeInterval(current_time, new_time);
-    d_ib_SFSstar_op->setTimeInterval(current_time, new_time);
+    d_ib_SJSstar_op->formJacobian(x);
     return;
-}// setTimeInterval
+}// formJacobiam
+
+Pointer<SAMRAIVectorReal<NDIM,double> >
+IBImplicitJacobian::getBaseVector() const
+{
+    return d_ib_SJSstar_op->getBaseVector();
+}// getBaseVector
 
 void
-IBImplicitOperator::apply(
+IBImplicitJacobian::apply(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& y)
 {
-    t_apply->start();
+    if (!d_is_initialized) initializeOperatorState(x, y);
 
-    // Apply the linear part of the operator with inhomogeneous boundary
+    // Apply the linear part of the operator with homogeneous boundary
     // conditions.
-    static const bool homogeneous_bc = false;
+    static const bool homogeneous_bc = true;
     d_stokes_op->apply(homogeneous_bc, x, y);
 
     // Apply the nonlinear part of the operator.
-    static const bool zero_y_before_spread = false;
-    d_ib_SFSstar_op->apply(zero_y_before_spread, x, y);
+    SAMRAIVectorReal<NDIM,double> x_u(x.getName(), x.getPatchHierarchy(), x.getCoarsestLevelNumber(), x.getFinestLevelNumber());
+    x_u.addComponent(x.getComponentVariable(0), x.getComponentDescriptorIndex(0), x.getControlVolumeIndex(0));
+    SAMRAIVectorReal<NDIM,double> y_u(y.getName(), y.getPatchHierarchy(), y.getCoarsestLevelNumber(), y.getFinestLevelNumber());
+    y_u.addComponent(y.getComponentVariable(0), y.getComponentDescriptorIndex(0), y.getControlVolumeIndex(0));
+    d_ib_SJSstar_op->applyAdd(x_u, y_u, y_u);
 
-    t_apply->stop();
     return;
 }// apply
 
 void
-IBImplicitOperator::initializeOperatorState(
+IBImplicitJacobian::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& in,
     const SAMRAIVectorReal<NDIM,double>& out)
 {
-    t_initialize_operator_state->start();
-
     if (d_is_initialized) deallocateOperatorState();
 
     d_stokes_op->initializeOperatorState(in, out);
-    d_ib_SFSstar_op->initializeOperatorState(in, out);
+
+    SAMRAIVectorReal<NDIM,double> in_u(in.getName(), in.getPatchHierarchy(), in.getCoarsestLevelNumber(), in.getFinestLevelNumber());
+    in_u.addComponent(in.getComponentVariable(0), in.getComponentDescriptorIndex(0), in.getControlVolumeIndex(0));
+    SAMRAIVectorReal<NDIM,double> out_u(out.getName(), out.getPatchHierarchy(), out.getCoarsestLevelNumber(), out.getFinestLevelNumber());
+    out_u.addComponent(out.getComponentVariable(0), out.getComponentDescriptorIndex(0), out.getControlVolumeIndex(0));
+    d_ib_SJSstar_op->initializeOperatorState(in_u, out_u);
 
     d_is_initialized = true;
-
-    t_initialize_operator_state->stop();
     return;
 }// initializeOperatorState
 
 void
-IBImplicitOperator::deallocateOperatorState()
+IBImplicitJacobian::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
-
-    t_deallocate_operator_state->start();
-
     d_stokes_op->deallocateOperatorState();
-    d_ib_SFSstar_op->deallocateOperatorState();
-
+    d_ib_SJSstar_op->deallocateOperatorState();
     d_is_initialized = false;
-
-    t_deallocate_operator_state->stop();
     return;
 }// deallocateOperatorState
 
 void
-IBImplicitOperator::enableLogging(
+IBImplicitJacobian::enableLogging(
     bool enabled)
 {
     // intentionally blank
     return;
 }// enableLogging
-
-/////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -175,6 +150,6 @@ IBImplicitOperator::enableLogging(
 /////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
 
 #include <tbox/Pointer.C>
-template class Pointer<IBAMR::IBImplicitOperator>;
+template class Pointer<IBAMR::IBImplicitJacobian>;
 
 //////////////////////////////////////////////////////////////////////////////

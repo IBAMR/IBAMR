@@ -42,7 +42,10 @@ $(top_srcdir)/src/IB/IBEulerianSourceFunction.C \
 $(top_srcdir)/src/IB/IBHDF5Initializer.C \
 $(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
 $(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C \
+$(top_srcdir)/src/IB/IBImplicitJacobian.C \
+$(top_srcdir)/src/IB/IBImplicitModHelmholtzOperator.C \
 $(top_srcdir)/src/IB/IBImplicitOperator.C \
+$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C \
 $(top_srcdir)/src/IB/IBInstrumentPanel.C \
 $(top_srcdir)/src/IB/IBInstrumentationSpec.C \
 $(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
@@ -107,7 +110,10 @@ $(top_srcdir)/src/IB/IBEulerianSourceFunction.h \
 $(top_srcdir)/src/IB/IBHDF5Initializer.h \
 $(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
 $(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.h \
+$(top_srcdir)/src/IB/IBImplicitJacobian.h \
+$(top_srcdir)/src/IB/IBImplicitModHelmholtzOperator.h \
 $(top_srcdir)/src/IB/IBImplicitOperator.h \
+$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.h \
 $(top_srcdir)/src/IB/IBInstrumentPanel.h \
 $(top_srcdir)/src/IB/IBInstrumentationSpec.I \
 $(top_srcdir)/src/IB/IBInstrumentationSpec.h \

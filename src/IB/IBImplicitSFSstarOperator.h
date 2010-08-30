@@ -1,5 +1,5 @@
-// Filename: IBImplicitOperator.h
-// Created on 26 Aug 2010 by Boyce Griffith
+// Filename: IBImplicitSFSstarOperator.h
+// Created on 30 Aug 2010 by Boyce Griffith
 //
 // Copyright (c) 2002-2010 Boyce Griffith
 //
@@ -21,46 +21,44 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef included_IBImplicitOperator
-#define included_IBImplicitOperator
+#ifndef included_IBImplicitSFSstarOperator
+#define included_IBImplicitSFSstarOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // PETSc INCLUDES
 #include <petsc.h>
 
-// IBAMR INCLUDES
-#include <ibamr/IBImplicitSFSstarOperator.h>
-#include <ibamr/INSStaggeredStokesOperator.h>
+// IBTK INCLUDES
+#include <ibtk/GeneralOperator.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
 {
+class IBImplicitHierarchyIntegrator;
+
 /*!
- * \brief Class IBImplicitOperator is a concrete IBTK::GeneralOperator which
- * implements an implicit staggered-grid (MAC) discretization of the IB method.
- *
- * This class is intended to be used with an iterative Newton-Krylov solver.
+ * \brief Class IBImplicitSFSstarOperator is a concrete IBTK::GeneralOperator
+ * which implements the nonlinear operator S F S^{*}.
  *
  * \see IBImplicitHierarchyIntegrator
  */
-class IBImplicitOperator
+class IBImplicitSFSstarOperator
     : public IBTK::GeneralOperator
 {
 public:
     /*!
      * \brief Class constructor.
      */
-    IBImplicitOperator(
-        SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> stokes_op,
-        SAMRAI::tbox::Pointer<IBImplicitSFSstarOperator> ib_SFSstar_op);
+    IBImplicitSFSstarOperator(
+        IBImplicitHierarchyIntegrator* ib_implicit_integrator);
 
     /*!
      * \brief Virtual destructor.
      */
     virtual
-    ~IBImplicitOperator();
+    ~IBImplicitSFSstarOperator();
 
     /*!
      * \brief Set the current time interval.
@@ -69,6 +67,16 @@ public:
     setTimeInterval(
         const double current_time,
         const double new_time);
+
+    /*!
+     * \brief Implementation of the apply method which permits the operator to
+     * accumulate values in y.
+     */
+    virtual void
+    apply(
+        const bool zero_y_before_spread,
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
 
     /*!
      * \name General operator functionality.
@@ -140,7 +148,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBImplicitOperator();
+    IBImplicitSFSstarOperator();
 
     /*!
      * \brief Copy constructor.
@@ -149,8 +157,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBImplicitOperator(
-        const IBImplicitOperator& from);
+    IBImplicitSFSstarOperator(
+        const IBImplicitSFSstarOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -161,9 +169,9 @@ private:
      *
      * \return A reference to this object.
      */
-    IBImplicitOperator&
+    IBImplicitSFSstarOperator&
     operator=(
-        const IBImplicitOperator& that);
+        const IBImplicitSFSstarOperator& that);
 
     // Whether the operator is initialized.
     bool d_is_initialized;
@@ -171,18 +179,15 @@ private:
     // The simulation time.
     double d_current_time, d_new_time, d_dt;
 
-    // The Stokes operator.
-    SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> d_stokes_op;
-
-    // The IB force operator.
-    SAMRAI::tbox::Pointer<IBImplicitSFSstarOperator> d_ib_SFSstar_op;
+    // The IB implicit integrator provides most of the IB-related functionality.
+    IBImplicitHierarchyIntegrator* d_ib_implicit_integrator;
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/IBImplicitOperator.I>
+//#include <ibamr/IBImplicitSFSstarOperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBImplicitOperator
+#endif //#ifndef included_IBImplicitSFSstarOperator

@@ -31,7 +31,10 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBLagrangianForceStrategy.h>
+#include <ibamr/IBImplicitJacobian.h>
+#include <ibamr/IBImplicitModHelmholtzOperator.h>
 #include <ibamr/IBImplicitOperator.h>
+#include <ibamr/IBImplicitSFSstarOperator.h>
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/INSCoefs.h>
 #include <ibamr/INSStaggeredBlockFactorizationPreconditioner.h>
@@ -51,6 +54,7 @@
 #include <ibtk/LagSiloDataWriter.h>
 #include <ibtk/FACPreconditioner.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/PETScMFFDJacobianOperator.h>
 #include <ibtk/PETScNewtonKrylovSolver.h>
 #include <ibtk/SCLaplaceOperator.h>
 #include <ibtk/SCPoissonFACOperator.h>
@@ -98,7 +102,7 @@ class IBImplicitHierarchyIntegrator
       public SAMRAI::tbox::Serializable
 {
 public:
-    friend class IBImplicitOperator;
+    friend class IBImplicitSFSstarOperator;
 
     /*!
      * The constructor for IBImplicitHierarchyIntegrator sets some default
@@ -1098,6 +1102,7 @@ private:
     bool d_helmholtz_solver_needs_init;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>          d_helmholtz_hypre_pc_db, d_helmholtz_fac_pc_db;
     SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator>         d_helmholtz_op;
+    SAMRAI::tbox::Pointer<IBImplicitModHelmholtzOperator>  d_mod_helmholtz_op;
     SAMRAI::solv::PoissonSpecifications*                   d_helmholtz_spec;
     SAMRAI::tbox::Pointer<IBTK::SCPoissonHypreLevelSolver> d_helmholtz_hypre_pc;
     SAMRAI::tbox::Pointer<IBTK::SCPoissonFACOperator>      d_helmholtz_fac_op;
@@ -1125,10 +1130,13 @@ private:
     SAMRAI::tbox::Pointer<INSStaggeredBlockFactorizationPreconditioner> d_block_pc;
 
     bool d_ib_op_needs_init;
+    SAMRAI::tbox::Pointer<IBImplicitSFSstarOperator> d_ib_SFSstar_op;
+    SAMRAI::tbox::Pointer<IBTK::PETScMFFDJacobianOperator> d_ib_SJSstar_op;
     SAMRAI::tbox::Pointer<IBImplicitOperator> d_ib_op;
 
     bool d_ib_solver_needs_init;
     SAMRAI::tbox::Pointer<IBTK::PETScNewtonKrylovSolver> d_ib_solver;
+    SAMRAI::tbox::Pointer<IBImplicitJacobian>            d_ib_jac_op;
 
     bool d_needs_regrid_projection;
     double d_regrid_max_div_growth_factor;
