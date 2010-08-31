@@ -8,10 +8,10 @@ MU = 2.0*R/Re       // the viscosity required to attain the desired Re
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 3   // maximum number of levels in locally refined grid
+MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 16                                    // coarsest grid spacing
+N = 256                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 16.0                                  // width of computational domain
 
@@ -59,12 +59,12 @@ VelocityBcCoefs_1 {
    gcoef_function_3 = "0.0"
 }
 
-IBStaggeredHierarchyIntegrator {
+IBImplicitHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
    end_time              = 300.0e0  // final simulation time
    grow_dt               = 1.25e0   // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
-   regrid_interval       = 2
+   regrid_interval       = 1
    dt_max = 0.125*dx
    dt_max_time_max = dt_max
    num_cycles = 3
@@ -72,7 +72,7 @@ IBStaggeredHierarchyIntegrator {
 
    use_mffd_force_jacobian = TRUE
 
-   tag_buffer = 2
+   tag_buffer = 1
    using_vorticity_tagging = TRUE
    vorticity_abs_thresh = 0.0625 , 0.125 , 0.25 , 0.5
 
@@ -172,12 +172,12 @@ IBStaggeredHierarchyIntegrator {
 
 LEInteractor {
    debug_sort_mode = "NO_SORT"
-   precision_mode  = "STANDARD_PRECISION"
+   precision_mode  = "DOUBLE"
 }
 
 PETScVecOps {
    sort_mode      = "SORT_DECREASING_MAGNITUDE"
-   precision_mode = "DOUBLE_DOUBLE_PRECISION"
+   precision_mode = "DOUBLE_DOUBLE"
    summation_mode = "COMPENSATED_SUMMATION"
 }
 
@@ -193,7 +193,7 @@ E_s = 2.0*sqrt(K_s*M_s)                  // damping constant for critically damp
 IBStandardInitializer {
    max_levels = MAX_LEVELS
 
-   base_filenames_2 = "cylinder2d_256"
+   base_filenames_0 = "cylinder2d_256"
    cylinder2d_256 {
       uniform_target_stiffness = K_s
       uniform_target_damping = E_s

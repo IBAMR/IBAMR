@@ -44,6 +44,7 @@ EXTRA_DIST += $(top_srcdir)/include/ibamr/IBImplicitJacobian.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBImplicitModHelmholtzOperator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBImplicitOperator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBImplicitSFSstarOperator.h
+EXTRA_DIST += $(top_srcdir)/include/ibamr/IBImplicitSJSstarOperator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBInstrumentPanel.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBInstrumentationSpec.I
 EXTRA_DIST += $(top_srcdir)/include/ibamr/IBInstrumentationSpec.h

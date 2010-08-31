@@ -35,6 +35,7 @@
 #include <ibamr/IBImplicitModHelmholtzOperator.h>
 #include <ibamr/IBImplicitOperator.h>
 #include <ibamr/IBImplicitSFSstarOperator.h>
+#include <ibamr/IBImplicitSJSstarOperator.h>
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/INSCoefs.h>
 #include <ibamr/INSStaggeredBlockFactorizationPreconditioner.h>
@@ -103,6 +104,7 @@ class IBImplicitHierarchyIntegrator
 {
 public:
     friend class IBImplicitSFSstarOperator;
+    friend class IBImplicitSJSstarOperator;
 
     /*!
      * The constructor for IBImplicitHierarchyIntegrator sets some default
@@ -1131,7 +1133,7 @@ private:
 
     bool d_ib_op_needs_init;
     SAMRAI::tbox::Pointer<IBImplicitSFSstarOperator> d_ib_SFSstar_op;
-    SAMRAI::tbox::Pointer<IBTK::PETScMFFDJacobianOperator> d_ib_SJSstar_op;
+    SAMRAI::tbox::Pointer<IBTK::JacobianOperator> d_ib_SJSstar_op;
     SAMRAI::tbox::Pointer<IBImplicitOperator> d_ib_op;
 
     bool d_ib_solver_needs_init;

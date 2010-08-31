@@ -849,8 +849,9 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
     d_ib_solver_needs_init = true;
     d_ib_solver = new PETScNewtonKrylovSolver(d_object_name+"::ib_solver", ib_prefix);
     d_ib_solver->setOperator(d_ib_op);
-    d_ib_SJSstar_op = new PETScMFFDJacobianOperator(ib_prefix);
-    d_ib_SJSstar_op->setOperator(d_ib_SFSstar_op);
+//  d_ib_SJSstar_op = new PETScMFFDJacobianOperator(ib_prefix);
+//  d_ib_SJSstar_op->setOperator(d_ib_SFSstar_op);
+    d_ib_SJSstar_op = new IBImplicitSJSstarOperator(this);
     d_ib_jac_op = new IBImplicitJacobian(d_stokes_op, d_ib_SJSstar_op);
     d_ib_solver->setJacobian(d_ib_jac_op);
 
@@ -3025,6 +3026,8 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
     if (!d_ib_solver.isNull())
     {
         d_ib_op->setTimeInterval(current_time,new_time);
+        Pointer<IBImplicitSJSstarOperator> ib_SJSstar_op = d_ib_SJSstar_op;  // XXXX
+        if (!ib_SJSstar_op.isNull()) ib_SJSstar_op->setTimeInterval(current_time,new_time);
         d_ib_solver->setOperator(d_ib_op);
         d_ib_solver->setJacobian(d_ib_jac_op);
         if (d_ib_solver_needs_init)

@@ -46,6 +46,7 @@ $(top_srcdir)/src/IB/IBImplicitJacobian.C \
 $(top_srcdir)/src/IB/IBImplicitModHelmholtzOperator.C \
 $(top_srcdir)/src/IB/IBImplicitOperator.C \
 $(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C \
+$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C \
 $(top_srcdir)/src/IB/IBInstrumentPanel.C \
 $(top_srcdir)/src/IB/IBInstrumentationSpec.C \
 $(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
@@ -114,6 +115,7 @@ $(top_srcdir)/src/IB/IBImplicitJacobian.h \
 $(top_srcdir)/src/IB/IBImplicitModHelmholtzOperator.h \
 $(top_srcdir)/src/IB/IBImplicitOperator.h \
 $(top_srcdir)/src/IB/IBImplicitSFSstarOperator.h \
+$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.h \
 $(top_srcdir)/src/IB/IBInstrumentPanel.h \
 $(top_srcdir)/src/IB/IBInstrumentationSpec.I \
 $(top_srcdir)/src/IB/IBInstrumentationSpec.h \
