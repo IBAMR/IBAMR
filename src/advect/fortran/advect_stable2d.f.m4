@@ -1,25 +1,38 @@
 c
-c     Copyright (c) 2002-2010 Boyce Griffith
+c     Copyright (c) 2002-2010, Boyce Griffith
+c     All rights reserved.
 c
-c     Permission is hereby granted, free of charge, to any person
-c     obtaining a copy of this software and associated documentation
-c     files (the "Software"), to deal in the Software without
-c     restriction, including without limitation the rights to use, copy,
-c     modify, merge, publish, distribute, sublicense, and/or sell copies
-c     of the Software, and to permit persons to whom the Software is
-c     furnished to do so, subject to the following conditions:
+c     Redistribution and use in source and binary forms, with or without
+c     modification, are permitted provided that the following conditions
+c     are met:
 c
-c     The above copyright notice and this permission notice shall be
-c     included in all copies or substantial portions of the Software.
+c        * Redistributions of source code must retain the above
+c          copyright notice, this list of conditions and the following
+c          disclaimer.
 c
-c     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-c     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-c     MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-c     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-c     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-c     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-c     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-c     DEALINGS IN THE SOFTWARE.
+c        * Redistributions in binary form must reproduce the above
+c          copyright notice, this list of conditions and the following
+c          disclaimer in the documentation and/or other materials
+c          provided with the distribution.
+c
+c        * Neither the name of New York University nor the names of its
+c          contributors may be used to endorse or promote products
+c          derived from this software without specific prior written
+c          permission.
+c
+c     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+c     CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+c     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+c     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+c     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
+c     BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+c     EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+c     TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+c     DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+c     ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+c     TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
+c     THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+c     SUCH DAMAGE.
 c
 dnl Process this file with m4 to produce FORTRAN source code
 define(NDIM,2)dnl
@@ -28,47 +41,47 @@ define(INTEGER,`integer')dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
 c     Determine the timestep size corresponding to a unit CFL number.
-c     
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c     
+c
       subroutine advect_stabledt2d(
      &     dx,
      &     ifirst0,ilast0,ifirst1,ilast1,
      &     ngc0,ngc1,
      &     u0,u1,
      &     stabdt)
-c     
+c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl     
-c     
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+c
 c     Input.
-c     
+c
       INTEGER ifirst0,ilast0,ifirst1,ilast1
-      
+
       INTEGER ngc0,ngc1
-      
+
       REAL dx(0:NDIM-1)
-      
+
       REAL u0(FACE2d0VECG(ifirst,ilast,ngc))
       REAL u1(FACE2d1VECG(ifirst,ilast,ngc))
-c     
+c
 c     Input/Output.
-c     
+c
       REAL stabdt
-c     
+c
 c     Local variables.
-c     
+c
       INTEGER i0,i1,d
       REAL maxspeed(0:NDIM-1)
-c     
+c
 c     Determine the unit CFL number on the patch.
-c     
+c
       do d = 0,NDIM-1
          maxspeed(d) = 1.d-12   ! avoid division by zero
       enddo
-      
+
       do i1 = ifirst1,ilast1
          do i0 = ifirst0,ilast0+1
             maxspeed(0) = dmax1(maxspeed(0), dabs(u0(i0,i1)))
@@ -80,9 +93,9 @@ c
             maxspeed(1) = dmax1(maxspeed(1), dabs(u1(i1,i0)))
          enddo
       enddo
-      
+
       stabdt = dmin1((dx(0)/maxspeed(0)),(dx(1)/maxspeed(1)))
-c     
+c
       return
       end
 c
