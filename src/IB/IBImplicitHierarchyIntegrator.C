@@ -607,8 +607,6 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
 {
     t_initialize_hierarchy_integrator->start();
 
-    int ierr;
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!gridding_alg.isNull());
 #endif
@@ -906,12 +904,7 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
 
         // NOTE: We always use homogeneous Neumann boundary conditions for the
         // regrid projection Poisson solver.
-        static const bool constant_null_space = true;
-        if (constant_null_space)
-        {
-            std::string iname = std::string("-") + regrid_projection_prefix + std::string("ksp_constant_null_space");
-            ierr = PetscOptionsSetValue(iname.c_str(), PETSC_NULL);  IBTK_CHKERRQ(ierr);
-        }
+        d_regrid_projection_solver->setNullspace(true);
     }
     else
     {
@@ -1417,19 +1410,9 @@ IBImplicitHierarchyIntegrator::integrateHierarchy_initialize(
         d_nul_vec->allocateVectorData(current_time);
         d_hier_sc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(0), 0.0);
         d_hier_cc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(1), 1.0);
-
-        int ierr;
-        MatNullSpace petsc_nullsp;
-        Vec petsc_nullsp_vec = PETScSAMRAIVectorReal::createPETScVector(d_nul_vec, PETSC_COMM_WORLD);
-        double one_dot_one;
-        ierr = VecDot(petsc_nullsp_vec, petsc_nullsp_vec, &one_dot_one); IBTK_CHKERRQ(ierr);
-        ierr = VecScale(petsc_nullsp_vec, 1.0/one_dot_one); IBTK_CHKERRQ(ierr);
-        Vec vecs[] = {petsc_nullsp_vec};
-        static const PetscTruth has_cnst = PETSC_FALSE;
-        ierr = MatNullSpaceCreate(PETSC_COMM_WORLD, has_cnst, 1, vecs, &petsc_nullsp); IBTK_CHKERRQ(ierr);
-        Pointer<PETScKrylovLinearSolver> ksp_solver = d_ib_solver->getLinearSolver();
-        KSP petsc_ksp = ksp_solver->getPETScKSP();
-        ierr = KSPSetNullSpace(petsc_ksp, petsc_nullsp); IBTK_CHKERRQ(ierr);
+        d_ib_solver->getLinearSolver()->setNullspace(false, d_nul_vec);
+        TBOX_ASSERT(false);  // the foregoing line probably does not work correctly...
+        d_poisson_solver->setNullspace(true);
     }
 
     // Set the initial guess.
@@ -2804,12 +2787,7 @@ IBImplicitHierarchyIntegrator::regridProjection()
 
     // NOTE: We always use homogeneous Neumann boundary conditions for the
     // regrid projection Poisson solver.
-    static const bool constant_null_space = true;
-    if (constant_null_space)
-    {
-        const double phi_mean = (1.0/d_volume)*d_hier_cc_data_ops->integral(d_phi_idx, d_wgt_cc_idx);
-        d_hier_cc_data_ops->addScalar(d_phi_idx, d_phi_idx, -phi_mean);
-    }
+    d_regrid_projection_solver->setNullspace(true);
 
     // Setup the interpolation transaction information.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -3224,12 +3202,7 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
                 d_poisson_solver->setAbsoluteTolerance(1.0e-30);
                 d_poisson_solver->setRelativeTolerance(1.0e-02);
                 d_poisson_solver->setMaxIterations(25);
-                const bool constant_null_space = d_normalize_pressure;
-                if (constant_null_space)
-                {
-                    std::string iname = std::string("-") + poisson_prefix + std::string("ksp_constant_null_space");
-                    ierr = PetscOptionsSetValue(iname.c_str(), PETSC_NULL);  IBTK_CHKERRQ(ierr);
-                }
+                d_poisson_solver->setNullspace(d_normalize_pressure);
             }
             else
             {

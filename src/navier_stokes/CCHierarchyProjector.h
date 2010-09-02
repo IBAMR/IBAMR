@@ -376,7 +376,6 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_null_space_var;
     std::vector<int> d_null_space_idxs;
-    std::vector<Vec> d_petsc_null_space_vecs;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_W_var;
     int d_W_idx;

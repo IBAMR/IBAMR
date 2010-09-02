@@ -946,12 +946,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         d_poisson_solver->setAbsoluteTolerance(1.0e-30);
         d_poisson_solver->setRelativeTolerance(1.0e-02);
         d_poisson_solver->setMaxIterations(25);
-        const bool constant_null_space = d_normalize_pressure;
-        if (constant_null_space)
-        {
-            std::string iname = std::string("-") + poisson_prefix + std::string("ksp_constant_null_space");
-            ierr = PetscOptionsSetValue(iname.c_str(), PETSC_NULL);  IBTK_CHKERRQ(ierr);
-        }
+        d_poisson_solver->setNullspace(d_normalize_pressure);
     }
     else
     {
@@ -1034,12 +1029,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
         // NOTE: We always use homogeneous Neumann boundary conditions for the
         // regrid projection Poisson solver.
-        static const bool constant_null_space = true;
-        if (constant_null_space)
-        {
-            std::string iname = std::string("-") + regrid_projection_prefix + std::string("ksp_constant_null_space");
-            ierr = PetscOptionsSetValue(iname.c_str(), PETSC_NULL);  IBTK_CHKERRQ(ierr);
-        }
+        d_regrid_projection_solver->setNullspace(true);
     }
     else
     {
@@ -1415,18 +1405,8 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
         d_nul_vec->allocateVectorData(current_time);
         d_hier_sc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(0), 0.0);
         d_hier_cc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(1), 1.0);
-
-        int ierr;
-        MatNullSpace petsc_nullsp;
-        Vec petsc_nullsp_vec = PETScSAMRAIVectorReal::createPETScVector(d_nul_vec, PETSC_COMM_WORLD);
-        double one_dot_one;
-        ierr = VecDot(petsc_nullsp_vec, petsc_nullsp_vec, &one_dot_one); IBTK_CHKERRQ(ierr);
-        ierr = VecScale(petsc_nullsp_vec, 1.0/one_dot_one); IBTK_CHKERRQ(ierr);
-        Vec vecs[] = {petsc_nullsp_vec};
-        static const PetscTruth has_cnst = PETSC_FALSE;
-        ierr = MatNullSpaceCreate(PETSC_COMM_WORLD, has_cnst, 1, vecs, &petsc_nullsp); IBTK_CHKERRQ(ierr);
-        KSP petsc_ksp = d_stokes_solver->getPETScKSP();
-        ierr = KSPSetNullSpace(petsc_ksp, petsc_nullsp); IBTK_CHKERRQ(ierr);
+        d_stokes_solver->setNullspace(false, d_nul_vec);
+        d_poisson_solver->setNullspace(true);
     }
 
     // Set the initial guess.
@@ -1643,16 +1623,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_finalize(
         d_Div_U_new_idx, d_Div_U_var,
         1.0, d_U_new_idx, d_U_var,
         d_no_fill_op, new_time, false);
-
-    // Deallocate the nullspace object.
-    if (d_normalize_pressure)
-    {
-        PetscErrorCode ierr;
-        MatNullSpace petsc_nullsp;
-        KSP petsc_ksp = d_stokes_solver->getPETScKSP();
-        ierr = KSPGetNullSpace(petsc_ksp, &petsc_nullsp); IBTK_CHKERRQ(ierr);
-        ierr = MatNullSpaceDestroy(petsc_nullsp); IBTK_CHKERRQ(ierr);
-    }
 
     // Deallocate scratch data.
     d_U_rhs_vec->freeVectorComponents();
@@ -2725,12 +2695,7 @@ INSStaggeredHierarchyIntegrator::regridProjection()
 
     // NOTE: We always use homogeneous Neumann boundary conditions for the
     // regrid projection Poisson solver.
-    static const bool constant_null_space = true;
-    if (constant_null_space)
-    {
-        const double Phi_mean = (1.0/d_volume)*d_hier_cc_data_ops->integral(d_Phi_idx, d_wgt_cc_idx);
-        d_hier_cc_data_ops->addScalar(d_Phi_idx, d_Phi_idx, -Phi_mean);
-    }
+    d_regrid_projection_solver->setNullspace(true);
 
     // Setup the interpolation transaction information.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
