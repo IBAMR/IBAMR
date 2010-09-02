@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // PETSc INCLUDES
-#include <petsc.h>
+#include <petscmat.h>
 
 // IBTK INCLUDES
 #include <ibtk/JacobianOperator.h>
