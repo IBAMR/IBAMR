@@ -946,7 +946,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         d_poisson_solver->setAbsoluteTolerance(1.0e-30);
         d_poisson_solver->setRelativeTolerance(1.0e-02);
         d_poisson_solver->setMaxIterations(25);
-        d_poisson_solver->setNullspace(d_normalize_pressure);
+        d_poisson_solver->setNullspace(d_normalize_pressure, NULL);
     }
     else
     {
@@ -1029,7 +1029,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
         // NOTE: We always use homogeneous Neumann boundary conditions for the
         // regrid projection Poisson solver.
-        d_regrid_projection_solver->setNullspace(true);
+        d_regrid_projection_solver->setNullspace(true, NULL);
     }
     else
     {
@@ -1406,7 +1406,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
         d_hier_sc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(0), 0.0);
         d_hier_cc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(1), 1.0);
         d_stokes_solver->setNullspace(false, d_nul_vec);
-        d_poisson_solver->setNullspace(true);
+        d_poisson_solver->setNullspace(true, NULL);
     }
 
     // Set the initial guess.
@@ -2695,7 +2695,7 @@ INSStaggeredHierarchyIntegrator::regridProjection()
 
     // NOTE: We always use homogeneous Neumann boundary conditions for the
     // regrid projection Poisson solver.
-    d_regrid_projection_solver->setNullspace(true);
+    d_regrid_projection_solver->setNullspace(true, NULL);
 
     // Setup the interpolation transaction information.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
