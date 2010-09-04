@@ -55,6 +55,11 @@
 // C++ STDLIB INCLUDES
 #include <limits>
 
+// SAMRAI INCLUDES
+#include <HierarchyDataOpsManager.h>
+
+#include <iostream>
+using namespace std;
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -69,7 +74,9 @@ static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
-static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
+static const std::string  U_DATA_COARSEN_TYPE =    "CUBIC_COARSEN";
+static const std::string  P_DATA_COARSEN_TYPE =    "CUBIC_COARSEN";
+static const std::string MU_DATA_COARSEN_TYPE = "CONSTANT_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
 static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
@@ -87,9 +94,9 @@ static Pointer<Timer> t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredVCStokesOperator::INSStaggeredVCStokesOperator(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-    Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper,
-    RobinBcCoefStrategy<NDIM>* P_bc_coef,
+    //const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+    //Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper,
+    //RobinBcCoefStrategy<NDIM>* P_bc_coef,
     Pointer<HierarchyMathOps> hier_math_ops)
     : d_is_initialized(false),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
@@ -98,10 +105,12 @@ INSStaggeredVCStokesOperator::INSStaggeredVCStokesOperator(
       d_hier_math_ops(hier_math_ops),
       d_homogeneous_bc(false),
       d_correcting_rhs(false),
-      d_U_bc_coefs(U_bc_coefs),
-      d_U_bc_helper(U_bc_helper),
-      d_P_bc_coef(P_bc_coef),
-      d_U_P_bdry_fill_op(Pointer<HierarchyGhostCellInterpolation>(NULL)),
+      d_U_bc_coefs(std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,NULL)),
+      //d_U_bc_coefs(U_bc_coefs),
+      //d_U_bc_helper(U_bc_helper),
+      //d_P_bc_coef(P_bc_coef),
+      d_P_bc_coef(NULL),
+      d_U_P_MU_bdry_fill_op(Pointer<HierarchyGhostCellInterpolation>(NULL)),
       d_no_fill_op(Pointer<HierarchyGhostCellInterpolation>(NULL)),
       d_x_scratch(NULL)
 {
@@ -144,13 +153,23 @@ INSStaggeredVCStokesOperator::setTimeInterval(
 
 void
 INSStaggeredVCStokesOperator::registerViscosityVariable(
-    Pointer<NodeVariable<NDIM,double> > mu_var,
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM,double> > mu_var,
     const int mu_data_idx)
 {
     d_mu_var = mu_var;
     d_mu_data_idx = mu_data_idx;
     return;
 }// registerViscosityVariable
+
+void
+INSStaggeredVCStokesOperator::registerDensityVariable(
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > rho_var,
+    const int rho_data_idx)
+{
+    d_rho_var = rho_var;
+    d_rho_data_idx = rho_data_idx;
+    return;
+}// registerDensityVariable
 
 void
 INSStaggeredVCStokesOperator::modifyRhsForInhomogeneousBc(
@@ -215,49 +234,72 @@ INSStaggeredVCStokesOperator::apply(
     d_x_scratch->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
 
     // Reset the interpolation operators and fill the data.
-    Pointer<VariableFillPattern<NDIM> > sc_fill_pattern = new SideNoCornersFillPattern(SIDEG);
-    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(CELLG);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent U_scratch_component(U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, sc_fill_pattern);
-    InterpolationTransactionComponent P_scratch_component(P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , cc_fill_pattern);
-    std::vector<InterpolationTransactionComponent> U_P_components(2);
-    U_P_components[0] = U_scratch_component;
-    U_P_components[1] = P_scratch_component;
-    INSStaggeredPressureBcCoef* P_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_P_bc_coef);
-    P_bc_coef->setVelocityNewPatchDataIndex(U_scratch_idx);
-    d_U_P_bdry_fill_op->setHomogeneousBc(homogeneous_bc);
-    d_U_P_bdry_fill_op->resetTransactionComponents(U_P_components);
-    d_U_P_bdry_fill_op->fillData(d_new_time);
+    InterpolationTransactionComponent U_scratch_component(U_scratch_idx, U_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
+    InterpolationTransactionComponent P_scratch_component(P_scratch_idx, P_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
+    InterpolationTransactionComponent mu_component(d_mu_data_idx, MU_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
+    std::vector<InterpolationTransactionComponent> U_P_MU_components(3);
+    U_P_MU_components[0] = U_scratch_component;
+    U_P_MU_components[1] = P_scratch_component;
+    U_P_MU_components[2] = mu_component;
+    d_U_P_MU_bdry_fill_op->resetTransactionComponents(U_P_MU_components);
+    d_U_P_MU_bdry_fill_op->fillData(d_new_time);
+
+    // Setup hierarchy data ops object for U.
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager =
+        HierarchyDataOpsManager<NDIM>::getManager();
+    Pointer<PatchHierarchy<NDIM> > hierarchy = y.getPatchHierarchy();
+    Pointer<HierarchySideDataOpsReal<NDIM,double> > hier_sc_data_ops =
+        hier_ops_manager->getOperationsDouble(U_out_var,hierarchy);
 
     // Compute the action of the operator:
-    //      A*[u;p] = [((rho/dt)*I-0.5*mu*L)*u + grad p; -div u].
+    //      A*[u;p] = [(rho/dt)*u-0.5*div*(mu*(grad u + (grad u)^T)) + grad p; -div u].
     //
-    // Thomas: Please update the forgoing comment to reflect the form of the
-    // variable-density and variable-viscosity operator.
     static const bool cf_bdry_synch = true;
+
+    hier_sc_data_ops->scale(U_out_idx,1.0/d_dt,U_scratch_idx);
+
+
+    d_hier_math_ops->pointwiseMultiply(
+	U_out_idx, U_out_sc_var,
+        d_rho_data_idx, d_rho_var,
+        U_out_idx, U_out_sc_var,0.0);
+
+//    for (int ln = 0; ln <= 0; ++ln)
+//    {
+//        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+//        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+//        {
+//            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+  
+//  SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_out_data = patch->getPatchData(U_out_idx);
+//  SAMRAI::tbox::pout << "u_out on patch box: " << patch->getBox() << "\n";
+//  U_out_data->print(U_out_data->getBox(), pout);
+
+//        }
+//    }
+
+
+    d_hier_math_ops->vc_laplace(
+        U_out_idx, U_out_sc_var,
+        -0.5, 0.0, d_mu_data_idx, d_mu_var,
+        U_scratch_idx, U_scratch_sc_var, d_no_fill_op, 0.0,
+        1.0, U_out_idx, U_out_sc_var);
+
+
+
     d_hier_math_ops->grad(
         U_out_idx, U_out_sc_var,
         cf_bdry_synch,
-        1.0, P_scratch_idx, P_scratch_cc_var, d_no_fill_op, d_new_time);
+        1.0, P_scratch_idx, P_scratch_cc_var, d_no_fill_op, d_new_time,
+        1.0, U_out_idx, U_out_sc_var);
 
-//  This was from the uniform-density and uniform-viscosity implementation:
-//
-//     d_hier_math_ops->laplace(
-//         U_out_idx, U_out_sc_var,
-//         d_helmholtz_spec,
-//         U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
-//         1.0,
-//         U_out_idx, U_out_sc_var);
-//
-//  Thomas: the foregoing needs to be replaced by the appropriate
-//  variable-density and variable-viscosity code.
-
-    d_U_bc_helper->zeroValuesAtDirichletBoundaries(U_out_idx);
 
     d_hier_math_ops->div(
         P_out_idx, P_out_cc_var,
         -1.0, U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
         cf_bdry_synch);
+ 
 
     t_apply->stop();
     return;
@@ -284,18 +326,18 @@ INSStaggeredVCStokesOperator::initializeOperatorState(
     d_x_scratch = in.cloneVector("INSStaggeredVCStokesOperator::x_scratch");
     d_x_scratch->allocateVectorData();
 
-    Pointer<VariableFillPattern<NDIM> > sc_fill_pattern = new SideNoCornersFillPattern(SIDEG);
-    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(CELLG);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent U_scratch_component(d_x_scratch->getComponentDescriptorIndex(0), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, sc_fill_pattern);
-    InterpolationTransactionComponent P_scratch_component(d_x_scratch->getComponentDescriptorIndex(1), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , cc_fill_pattern);
+    InterpolationTransactionComponent U_scratch_component(d_x_scratch->getComponentDescriptorIndex(0), U_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
+    InterpolationTransactionComponent P_scratch_component(d_x_scratch->getComponentDescriptorIndex(1), P_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
+    InterpolationTransactionComponent mu_component(d_mu_data_idx, MU_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
 
-    std::vector<InterpolationTransactionComponent> U_P_components(2);
-    U_P_components[0] = U_scratch_component;
-    U_P_components[1] = P_scratch_component;
+    std::vector<InterpolationTransactionComponent> U_P_MU_components(3);
+    U_P_MU_components[0] = U_scratch_component;
+    U_P_MU_components[1] = P_scratch_component;
+    U_P_MU_components[2] = mu_component;                                                                                                                                                                                                                                                             
 
-    d_U_P_bdry_fill_op = new HierarchyGhostCellInterpolation();
-    d_U_P_bdry_fill_op->initializeOperatorState(U_P_components, d_x_scratch->getPatchHierarchy());
+    d_U_P_MU_bdry_fill_op = new HierarchyGhostCellInterpolation();
+    d_U_P_MU_bdry_fill_op->initializeOperatorState(U_P_MU_components, d_x_scratch->getPatchHierarchy());
 
     d_is_initialized = true;
 

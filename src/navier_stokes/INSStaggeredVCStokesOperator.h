@@ -69,9 +69,9 @@ public:
      * \brief Class constructor.
      */
     INSStaggeredVCStokesOperator(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-        SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
+     //   const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+     //   SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper,
+     //   SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops);
 
     /*!
@@ -107,6 +107,19 @@ public:
     registerViscosityVariable(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM,double> > mu_var,
         const int mu_data_idx);
+
+    /*!
+     * \brief Register the variable and patch data index for the variable
+     * density coefficient with the operator.
+     *
+     * \note Function INSStaggeredVCStokesOperator::apply() does \em not set
+     * ghost cell values for rho.  Any needed ghost cell values \em must be set
+     * prior to calling apply().
+     */
+    void
+    registerDensityVariable(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > rho_var,
+        const int rho_data_idx);
 
     /*!
      * \brief Implementation of the apply method which supports either
@@ -280,13 +293,17 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM,double> > d_mu_var;
     int d_mu_data_idx;
 
+    // Density variable data.
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_rho_var;
+    int d_rho_data_idx;
+
     // Boundary condition objects.
     bool d_homogeneous_bc;
     bool d_correcting_rhs;
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
-    SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_U_bc_helper;
+    //SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_U_bc_helper;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_P_bdry_fill_op, d_no_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_P_MU_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x_scratch;
