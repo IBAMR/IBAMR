@@ -409,6 +409,9 @@ AC_CONFIG_FILES([
   examples/navier_stokes/staggered_grid/ex1/Makefile
   examples/navier_stokes/staggered_grid/ex2/Makefile
   examples/navier_stokes/staggered_grid/ex3/Makefile
+  examples/vc_navier_stokes/Makefile
+  examples/vc_navier_stokes/operator_test/Makefile
+  examples/vc_navier_stokes/solver_test/Makefile
   lib/Makefile
   src/Makefile
   src/fortran/Makefile

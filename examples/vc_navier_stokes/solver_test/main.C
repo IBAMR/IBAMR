@@ -1,3 +1,32 @@
+// Copyright (c) 2002-2010, Boyce Griffith, Thomas Fai
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
+//
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+
 // Config files
 #include <IBTK_config.h>
 #include <SAMRAI_config.h>
@@ -152,8 +181,8 @@ main(
         tbox::Pointer<pdat::CellVariable<NDIM,double> > u_cell_var = new pdat::CellVariable<NDIM,double>("u_cell",NDIM);
         tbox::Pointer<pdat::CellVariable<NDIM,double> > f_cell_var = new pdat::CellVariable<NDIM,double>("f_cell",NDIM);
         tbox::Pointer<pdat::CellVariable<NDIM,double> > e_cell_var = new pdat::CellVariable<NDIM,double>("e_cell",NDIM);
-        tbox::Pointer<pdat::CellVariable<NDIM,double> > p_cell_var = new pdat::CellVariable<NDIM,double>("p_cell",NDIM);
-        tbox::Pointer<pdat::CellVariable<NDIM,double> > du_cell_var = new pdat::CellVariable<NDIM,double>("du_cell",NDIM);
+        tbox::Pointer<pdat::CellVariable<NDIM,double> > p_cell_var = new pdat::CellVariable<NDIM,double>("p_cell");
+        tbox::Pointer<pdat::CellVariable<NDIM,double> > du_cell_var = new pdat::CellVariable<NDIM,double>("du_cell");
 
         const int u_cell_idx = var_db->registerVariableAndContext(u_cell_var, ctx, hier::IntVector<NDIM>(0));
         const int f_cell_idx = var_db->registerVariableAndContext(f_cell_var, ctx, hier::IntVector<NDIM>(0));
@@ -239,8 +268,8 @@ main(
             level->allocatePatchData( f_cell_idx, data_time);
             level->allocatePatchData( e_cell_idx, data_time);
             level->allocatePatchData(mu_node_idx, data_time);
-            level->allocatePatchData(rho_side_idx, data_time);   
-            level->allocatePatchData(p_cell_idx, data_time);      
+            level->allocatePatchData(rho_side_idx, data_time);
+            level->allocatePatchData(p_cell_idx, data_time);
             level->allocatePatchData(du_cell_idx, data_time);
 	}
 
@@ -251,7 +280,7 @@ main(
         muParserCartGridFunction f_fcn("f", input_db->getDatabase("f"), grid_geometry);
         muParserCartGridFunction mu_fcn("mu", input_db->getDatabase("mu"), grid_geometry);
         muParserCartGridFunction rho_fcn("rho", input_db->getDatabase("rho"), grid_geometry);
-        muParserCartGridFunction p_fcn("p", input_db->getDatabase("p"), grid_geometry);      
+        muParserCartGridFunction p_fcn("p", input_db->getDatabase("p"), grid_geometry);
         muParserCartGridFunction du_fcn("du", input_db->getDatabase("du"), grid_geometry);
 
         u_fcn.setDataOnPatchHierarchy(e_side_idx, e_side_var, patch_hierarchy, data_time);
@@ -261,28 +290,6 @@ main(
         p_fcn.setDataOnPatchHierarchy(p_cell_idx, p_cell_var, patch_hierarchy, data_time);
         du_fcn.setDataOnPatchHierarchy(du_cell_idx, du_cell_var, patch_hierarchy, data_time);
 
-#if 0  // XXXX
-        /*
-         * Create an object to communicate ghost cell data.
-         */
-        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        InterpolationTransactionComponent  u_transaction( u_side_idx, "CUBIC_COARSEN" , "LINEAR");
-        InterpolationTransactionComponent mu_transaction(mu_node_idx, "CONSTANT_COARSEN" , "LINEAR");
-        InterpolationTransactionComponent rho_transaction(rho_side_idx, "CUBIC_COARSEN" , "LINEAR");
-        InterpolationTransactionComponent  p_transaction( p_cell_idx, "CUBIC_COARSEN" , "LINEAR");
-
-        std::vector<InterpolationTransactionComponent> transactions(4);
-        transactions[0] =  u_transaction;
-        transactions[1] = mu_transaction;
-        transactions[2] = rho_transaction;
-        transactions[3] = p_transaction;
-
-
-        tbox::Pointer<HierarchyGhostCellInterpolation> bdry_fill_op =
-            new HierarchyGhostCellInterpolation();
-        bdry_fill_op->initializeOperatorState(transactions, patch_hierarchy);
-#endif
-
         /*
          * Create the math operations object and get the patch data index for
          * the side-centered weighting factor.
@@ -290,16 +297,12 @@ main(
         HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
         const int dx_side_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
         const int dx_cell_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
+
         /*
          * Compute f = [(rho/dt)*u-0.5*div*(mu*(grad u + (grad u)^T)) + grad p; -div u]
          */
-
         INSStaggeredVCStokesOperator vc_stokes_op(tbox::Pointer<HierarchyMathOps>(&hier_math_ops,false));  // Create a Pointer to hier_math_ops which does NOT handle memory management for hier_math_ops (i.e., which does NOT delete hier_math_ops when the number of references drops to zero).
-  
-        //tbox::Pointer<INSStaggeredVCStokesOperator> vc_stokes_op_p = new INSStaggeredVCStokesOperator(
-        //    "vc_stokes_op_p");
 
-    
 	solv::SAMRAIVectorReal<NDIM,double> x("x", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
 	solv::SAMRAIVectorReal<NDIM,double> y("y", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
 
@@ -314,9 +317,9 @@ main(
         // Setup the operator.
         vc_stokes_op.setTimeInterval(0.1,0.2);
         vc_stokes_op.registerViscosityVariable(mu_node_var,mu_node_idx);
-        vc_stokes_op.registerDensityVariable(rho_side_var,rho_side_idx);  
+        vc_stokes_op.registerDensityVariable(rho_side_var,rho_side_idx);
         vc_stokes_op.initializeOperatorState(x,y);
-        petsc_linear_solver->setOperator(tbox::Pointer<LinearOperator>(&vc_stokes_op,false));  // Create 
+        petsc_linear_solver->setOperator(tbox::Pointer<LinearOperator>(&vc_stokes_op,false));
 
         // Initialize the solver.
         tbox::TimerManager* timer_manager = tbox::TimerManager::getManager();
@@ -330,7 +333,7 @@ main(
         // Add a nullspace vector to the KSP solver.
         tbox::Pointer<solv::SAMRAIVectorReal<NDIM,double> > nul_vec = x.cloneVector("nul_vec");
         nul_vec->allocateVectorData(0.0);
-        tbox::Pointer<math::HierarchyDataOpsReal<NDIM,double> > hier_side_data_ops =    
+        tbox::Pointer<math::HierarchyDataOpsReal<NDIM,double> > hier_side_data_ops =
             math::HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(
                 u_side_var, patch_hierarchy, true);
         tbox::Pointer<math::HierarchyDataOpsReal<NDIM,double> > hier_cell_data_ops =
@@ -338,18 +341,7 @@ main(
                 p_cell_var, patch_hierarchy, true);
         hier_side_data_ops->setToScalar(nul_vec->getComponentDescriptorIndex(0), 0.0);
         hier_cell_data_ops->setToScalar(nul_vec->getComponentDescriptorIndex(1), 1.0);
-
-        int ierr;
-        MatNullSpace petsc_nullsp;
-        Vec petsc_nullsp_vec = PETScSAMRAIVectorReal::createPETScVector(nul_vec, PETSC_COMM_WORLD);
-        double one_dot_one;
-        ierr = VecDot(petsc_nullsp_vec, petsc_nullsp_vec, &one_dot_one); CHKERRQ(ierr);
-        ierr = VecScale(petsc_nullsp_vec, 1.0/one_dot_one); CHKERRQ(ierr);
-        Vec vecs[] = {petsc_nullsp_vec};
-        static const PetscTruth has_cnst = PETSC_FALSE;
-        ierr = MatNullSpaceCreate(PETSC_COMM_WORLD, has_cnst, 1, vecs, &petsc_nullsp); CHKERRQ(ierr);
-        KSP petsc_ksp = petsc_linear_solver->getPETScKSP();
-        ierr = KSPSetNullSpace(petsc_ksp, petsc_nullsp); CHKERRQ(ierr);
+        petsc_linear_solver->setNullspace(false, nul_vec);
 
         // Solve the system.
         x.setToScalar(0.0,false);
@@ -362,22 +354,6 @@ main(
          */
         hier_side_data_ops->subtract(e_side_idx, e_side_idx, u_side_idx);  // computes e := e - u
 
-#if 0 //XXXX
-        for (int ln = 0; ln <= 0; ++ln)
-    {
-        tbox::Pointer<hier::PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-
-  SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > e_data = patch->getPatchData(e_side_idx);
-  tbox::pout << "e on patch box: " << patch->getBox() << "\n";
-  e_data->print(patch->getBox(), tbox::pout);
-
-        }
-    }
-#endif
-     
         tbox::pout << "|e|_oo = " << hier_side_data_ops->maxNorm(e_side_idx, dx_side_idx) << "\n";
         tbox::pout << "|e|_2  = " << hier_side_data_ops-> L2Norm(e_side_idx, dx_side_idx) << "\n";
         tbox::pout << "|e|_1  = " << hier_side_data_ops-> L1Norm(e_side_idx, dx_side_idx) << "\n";
