@@ -1,7 +1,7 @@
 // Filename: INSStaggeredVCStokesOperator.C
 // Created on 15 Jun 2010 by Boyce Griffith
 //
-// Copyright (c) 2002-2010, Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith, Thomas Fai
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -45,12 +45,7 @@
 #endif
 
 // IBAMR INCLUDES
-#include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/namespaces.h>
-
-// IBTK INCLUDES
-#include <ibtk/CellNoCornersFillPattern.h>
-#include <ibtk/SideNoCornersFillPattern.h>
 
 // C++ STDLIB INCLUDES
 #include <limits>
@@ -58,8 +53,6 @@
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
 
-#include <iostream>
-using namespace std;
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -94,9 +87,6 @@ static Pointer<Timer> t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredVCStokesOperator::INSStaggeredVCStokesOperator(
-    //const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-    //Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper,
-    //RobinBcCoefStrategy<NDIM>* P_bc_coef,
     Pointer<HierarchyMathOps> hier_math_ops)
     : d_is_initialized(false),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
@@ -105,10 +95,7 @@ INSStaggeredVCStokesOperator::INSStaggeredVCStokesOperator(
       d_hier_math_ops(hier_math_ops),
       d_homogeneous_bc(false),
       d_correcting_rhs(false),
-      d_U_bc_coefs(std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM,NULL)),
-      //d_U_bc_coefs(U_bc_coefs),
-      //d_U_bc_helper(U_bc_helper),
-      //d_P_bc_coef(P_bc_coef),
+      d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))),
       d_P_bc_coef(NULL),
       d_U_P_MU_bdry_fill_op(Pointer<HierarchyGhostCellInterpolation>(NULL)),
       d_no_fill_op(Pointer<HierarchyGhostCellInterpolation>(NULL)),
@@ -153,7 +140,7 @@ INSStaggeredVCStokesOperator::setTimeInterval(
 
 void
 INSStaggeredVCStokesOperator::registerViscosityVariable(
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM,double> > mu_var,
+    Pointer<NodeVariable<NDIM,double> > mu_var,
     const int mu_data_idx)
 {
     d_mu_var = mu_var;
@@ -163,7 +150,7 @@ INSStaggeredVCStokesOperator::registerViscosityVariable(
 
 void
 INSStaggeredVCStokesOperator::registerDensityVariable(
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > rho_var,
+    Pointer<SideVariable<NDIM,double> > rho_var,
     const int rho_data_idx)
 {
     d_rho_var = rho_var;
@@ -257,36 +244,17 @@ INSStaggeredVCStokesOperator::apply(
     //
     static const bool cf_bdry_synch = true;
 
-    hier_sc_data_ops->scale(U_out_idx,1.0/d_dt,U_scratch_idx);
-
-
     d_hier_math_ops->pointwiseMultiply(
 	U_out_idx, U_out_sc_var,
         d_rho_data_idx, d_rho_var,
-        U_out_idx, U_out_sc_var,0.0);
-
-//    for (int ln = 0; ln <= 0; ++ln)
-//    {
-//        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-//        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-//        {
-//            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-  
-//  SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > U_out_data = patch->getPatchData(U_out_idx);
-//  SAMRAI::tbox::pout << "u_out on patch box: " << patch->getBox() << "\n";
-//  U_out_data->print(U_out_data->getBox(), pout);
-
-//        }
-//    }
-
+        U_scratch_idx, U_scratch_sc_var,
+        0.0, -1, NULL);
 
     d_hier_math_ops->vc_laplace(
         U_out_idx, U_out_sc_var,
         -0.5, 0.0, d_mu_data_idx, d_mu_var,
-        U_scratch_idx, U_scratch_sc_var, d_no_fill_op, 0.0,
-        1.0, U_out_idx, U_out_sc_var);
-
-
+        U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
+        1.0/d_dt, U_out_idx, U_out_sc_var);
 
     d_hier_math_ops->grad(
         U_out_idx, U_out_sc_var,
@@ -294,12 +262,10 @@ INSStaggeredVCStokesOperator::apply(
         1.0, P_scratch_idx, P_scratch_cc_var, d_no_fill_op, d_new_time,
         1.0, U_out_idx, U_out_sc_var);
 
-
     d_hier_math_ops->div(
         P_out_idx, P_out_cc_var,
         -1.0, U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
         cf_bdry_synch);
- 
 
     t_apply->stop();
     return;
@@ -334,7 +300,7 @@ INSStaggeredVCStokesOperator::initializeOperatorState(
     std::vector<InterpolationTransactionComponent> U_P_MU_components(3);
     U_P_MU_components[0] = U_scratch_component;
     U_P_MU_components[1] = P_scratch_component;
-    U_P_MU_components[2] = mu_component;                                                                                                                                                                                                                                                             
+    U_P_MU_components[2] = mu_component;
 
     d_U_P_MU_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_U_P_MU_bdry_fill_op->initializeOperatorState(U_P_MU_components, d_x_scratch->getPatchHierarchy());
