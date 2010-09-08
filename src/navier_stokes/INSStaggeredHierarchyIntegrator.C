@@ -2682,7 +2682,6 @@ INSStaggeredHierarchyIntegrator::regridProjection()
 
     d_regrid_projection_fac_op->setPoissonSpecifications(*d_regrid_projection_spec);
     d_regrid_projection_fac_op->setPhysicalBcCoef(&d_regrid_projection_bc_coef);
-    d_regrid_projection_fac_op->setHomogeneousBc(true);
     d_regrid_projection_fac_op->setTime(d_integrator_time);
 
     d_regrid_projection_solver->setInitialGuessNonzero(false);
@@ -2812,7 +2811,6 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
         {
             d_helmholtz_fac_op->setPoissonSpecifications(*d_helmholtz_spec);
             d_helmholtz_fac_op->setPhysicalBcCoefs(d_U_star_bc_coefs);
-            d_helmholtz_fac_op->setHomogeneousBc(true);
             d_helmholtz_fac_op->setTime(new_time);
         }
 
@@ -2848,7 +2846,6 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
         {
             d_poisson_fac_op->setPoissonSpecifications(*d_poisson_spec);
             d_poisson_fac_op->setPhysicalBcCoef(d_Phi_bc_coef);
-            d_poisson_fac_op->setHomogeneousBc(true);
             d_poisson_fac_op->setTime(current_time+0.5*dt);
         }
 
