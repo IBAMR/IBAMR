@@ -103,7 +103,7 @@ c
       INTEGER dim
       INTEGER ic0,ic1
       REAL alpha,alphaj
-      PARAMETER(alpha=33.0)
+      PARAMETER(alpha=33.d0)
       REAL cL,cR
       REAL fL,fR
 c
