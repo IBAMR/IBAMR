@@ -1244,7 +1244,7 @@ c
 c     Compute a 7th order interpolation.
 c
             QQ   = Q(ic0,ic1)
-            QQ_L = (1.0/420.d0)*(
+            QQ_L = (1.d0/420.d0)*(
      &           -   3.d0*Q(ic0+3,ic1)
      &           +  25.d0*Q(ic0+2,ic1)
      &           - 101.d0*Q(ic0+1,ic1)
@@ -1252,7 +1252,7 @@ c
      &           + 214.d0*Q(ic0-1,ic1)
      &           -  38.d0*Q(ic0-2,ic1)
      &           +   4.d0*Q(ic0-3,ic1))
-            QQ_R = (1.0/420.d0)*(
+            QQ_R = (1.d0/420.d0)*(
      &           -   3.d0*Q(ic0-3,ic1)
      &           +  25.d0*Q(ic0-2,ic1)
      &           - 101.d0*Q(ic0-1,ic1)
@@ -1412,7 +1412,7 @@ c
 c     Compute a 7th order interpolation.
 c
             QQ   = Q(ic0,ic1)
-            QQ_L = (1.0/420.d0)*(
+            QQ_L = (1.d0/420.d0)*(
      &           -   3.d0*Q(ic0+3,ic1)
      &           +  25.d0*Q(ic0+2,ic1)
      &           - 101.d0*Q(ic0+1,ic1)
@@ -1420,7 +1420,7 @@ c
      &           + 214.d0*Q(ic0-1,ic1)
      &           -  38.d0*Q(ic0-2,ic1)
      &           +   4.d0*Q(ic0-3,ic1))
-            QQ_R = (1.0/420.d0)*(
+            QQ_R = (1.d0/420.d0)*(
      &           -   3.d0*Q(ic0-3,ic1)
      &           +  25.d0*Q(ic0-2,ic1)
      &           - 101.d0*Q(ic0-1,ic1)

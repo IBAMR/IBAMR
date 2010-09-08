@@ -243,7 +243,7 @@ build_meter_web(
 
     // Write out the variables.
     int    cycle = timestep;
-    float  time  = simulation_time;
+    float  time  = float(simulation_time);
     double dtime = simulation_time;
 
     static const int MAX_OPTS = 3;
@@ -1213,7 +1213,7 @@ IBInstrumentPanel::writePlotData(
         }
 
         int    cycle = timestep_num;
-        float  time  = simulation_time;
+        float  time  = float(simulation_time);
         double dtime = simulation_time;
 
         static const int MAX_OPTS = 3;

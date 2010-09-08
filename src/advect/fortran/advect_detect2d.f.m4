@@ -87,7 +87,7 @@ c
         do ic0=ifirst0,ilast0
 
           if (tags(ic0,ic1) .ne. 0) then
-            loctol = 0.125*tol
+            loctol = 0.125d0*tol
           else
             loctol = tol
           endif

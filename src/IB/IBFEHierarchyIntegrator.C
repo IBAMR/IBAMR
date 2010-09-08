@@ -971,7 +971,7 @@ IBFEHierarchyIntegrator::regridHierarchy()
                     // Loop over the element boundaries to determine if this
                     // element touches the physical boundary.
                     bool at_physical_bdry = false;
-                    for (unsigned int side = 0; side < elem->n_sides(); ++side)
+                    for (unsigned short int side = 0; side < elem->n_sides(); ++side)
                     {
                         const short int boundary_id = mesh.boundary_info->boundary_id(elem,side);
                         at_physical_bdry = at_physical_bdry || (elem->neighbor(side) == NULL && !coords_dof_map.is_periodic_boundary(boundary_id));
@@ -1514,7 +1514,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
         if (d_split_interior_and_bdry_forces)
         {
             // Loop over the element boundaries.
-            for (unsigned int side = 0; side < elem->n_sides(); ++side)
+            for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
                 // Skip non-physical boundaries and physical boundaries with
                 // constraints.
@@ -1630,7 +1630,7 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
             Elem* const elem = *cit;
 
             // Loop over the element boundaries.
-            for (unsigned int side = 0; side < elem->n_sides(); ++side)
+            for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
                 // Skip non-physical boundaries and physical boundaries with
                 // constraints.

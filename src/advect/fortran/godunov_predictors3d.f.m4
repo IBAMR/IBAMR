@@ -752,7 +752,7 @@ c
 c     Compute a 7th order interpolation.
 c
                QQ   = Q(ic0,ic1,ic2)
-               QQ_L = (1.0/420.d0)*(
+               QQ_L = (1.d0/420.d0)*(
      &              -   3.d0*Q(ic0+3,ic1,ic2)
      &              +  25.d0*Q(ic0+2,ic1,ic2)
      &              - 101.d0*Q(ic0+1,ic1,ic2)
@@ -760,7 +760,7 @@ c
      &              + 214.d0*Q(ic0-1,ic1,ic2)
      &              -  38.d0*Q(ic0-2,ic1,ic2)
      &              +   4.d0*Q(ic0-3,ic1,ic2))
-               QQ_R = (1.0/420.d0)*(
+               QQ_R = (1.d0/420.d0)*(
      &              -   3.d0*Q(ic0-3,ic1,ic2)
      &              +  25.d0*Q(ic0-2,ic1,ic2)
      &              - 101.d0*Q(ic0-1,ic1,ic2)
@@ -926,7 +926,7 @@ c
 c     Compute a 7th order interpolation.
 c
                QQ   = Q(ic0,ic1,ic2)
-               QQ_L = (1.0/420.d0)*(
+               QQ_L = (1.d0/420.d0)*(
      &              -   3.d0*Q(ic0+3,ic1,ic2)
      &              +  25.d0*Q(ic0+2,ic1,ic2)
      &              - 101.d0*Q(ic0+1,ic1,ic2)
@@ -934,7 +934,7 @@ c
      &              + 214.d0*Q(ic0-1,ic1,ic2)
      &              -  38.d0*Q(ic0-2,ic1,ic2)
      &              +   4.d0*Q(ic0-3,ic1,ic2))
-               QQ_R = (1.0/420.d0)*(
+               QQ_R = (1.d0/420.d0)*(
      &              -   3.d0*Q(ic0-3,ic1,ic2)
      &              +  25.d0*Q(ic0-2,ic1,ic2)
      &              - 101.d0*Q(ic0-1,ic1,ic2)
@@ -1186,7 +1186,7 @@ c
                qL_diff =
      &              - 0.5d0*dt*vtan*Qy/dx1
      &              - 0.5d0*dt*wtan*Qz/dx2
-     &              + sixth*(dt**2.0)*(wDzvQy+vDywQz)/(dx1*dx2)
+     &              + sixth*(dt**2.d0)*(wDzvQy+vDywQz)/(dx1*dx2)
 
                vtan = 0.5d0*(u1(ic1,ic2,ic0+1)+u1(ic1+1,ic2,ic0+1))
                wtan = 0.5d0*(u2(ic2,ic0+1,ic1)+u2(ic2+1,ic0+1,ic1))
@@ -1223,7 +1223,7 @@ c
                qR_diff =
      &              - 0.5d0*dt*vtan*Qy/dx1
      &              - 0.5d0*dt*wtan*Qz/dx2
-     &              + sixth*(dt**2.0)*(wDzvQy+vDywQz)/(dx1*dx2)
+     &              + sixth*(dt**2.d0)*(wDzvQy+vDywQz)/(dx1*dx2)
 
                qhalf0(ic0+1,ic1,ic2) = qtemp0(ic0+1,ic1,ic2) +
      &              0.5d0*(qL_diff+qR_diff)+

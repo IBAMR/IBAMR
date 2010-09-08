@@ -3520,7 +3520,7 @@ IBImplicitHierarchyIntegrator::getFromInput(
         }
         else if (db->isDouble("min_ghost_cell_width"))
         {
-            d_ghosts = std::ceil(db->getDouble("min_ghost_cell_width"));
+            d_ghosts = int(std::ceil(db->getDouble("min_ghost_cell_width")));
         }
     }
     return;
