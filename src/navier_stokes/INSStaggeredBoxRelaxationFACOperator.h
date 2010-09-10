@@ -45,11 +45,10 @@
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
 #include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
-#include <ibtk/FACPreconditioner.h>
+#include <ibtk/FACPreconditionerStrategy.h>
 
 // SAMRAI INCLUDES
 #include <CoarsenAlgorithm.h>
-#include <FACOperatorStrategy.h>
 #include <LocationIndexRobinBcCoefs.h>
 #include <RefineAlgorithm.h>
 #include <tbox/ConstPointer.h>
@@ -63,11 +62,11 @@ namespace IBAMR
 {
 /*!
  * \brief Class INSStaggeredBoxRelaxationFACOperator is a concrete
- * SAMRAI::solv::FACOperatorStrategy implementing a box relaxation (Vanka-type)
- * smoother for use as a multigrid preconditioner.
+ * FACPreconditionerStrategy implementing a box relaxation (Vanka-type) smoother
+ * for use as a multigrid preconditioner.
  */
 class INSStaggeredBoxRelaxationFACOperator
-    : public SAMRAI::solv::FACOperatorStrategy<NDIM>
+    : public virtual IBTK::FACPreconditionerStrategy
 {
 public:
     /*!
@@ -82,7 +81,8 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~INSStaggeredBoxRelaxationFACOperator();
+    virtual
+    ~INSStaggeredBoxRelaxationFACOperator();
 
     /*!
      * \name Functions for specifying the problem coefficients.
@@ -129,16 +129,6 @@ public:
     setTimeInterval(
         const double current_time,
         const double new_time);
-
-    /*!
-     * \brief Set the SAMRAI::solv::FACPreconditioner that is using this
-     * concrete SAMRAI::solv::FACOperatorStrategy object.
-     *
-     * \param preconditioner  Pointer to the FAC preconditioner that is using this concrete FAC strategy
-     */
-    void
-    setPreconditioner(
-        SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> preconditioner);
 
     //\}
 
@@ -239,25 +229,24 @@ public:
         const std::string& P_restriction_method);
 
     /*!
-     * \brief Set the maximum number of FAC cycles used by the
-     * SAMRAI::solv::FACPreconditioner that employs this concrete
-     * SAMRAI::solv::FACOperatorStrategy.
+     * \brief Set the maximum number of FAC cycles used by the FACPreconditioner
+     * that employs this concrete FACPreconditionerStrategy.
      */
     void
     setFACPreconditionerMaxCycles(
         int fac_max_cycles);
 
     /*!
-     * \brief Set whether the SAMRAI::solv::FACPreconditioner that employs this
-     * concrete SAMRAI::solv::FACOperatorStrategy is employing presmoothing.
+     * \brief Set whether the FACPreconditioner that employs this concrete
+     * FACPreconditionerStrategy is employing presmoothing.
      */
     void
     setFACPreconditionerUsesPresmoothing(
         bool fac_uses_presmoothing);
 
     /*!
-     * \brief Set whether the SAMRAI::solv::FACPreconditioner that employs this
-     * concrete SAMRAI::solv::FACOperatorStrategy uses a nonzero initial guess.
+     * \brief Set whether the FACPreconditioner that employs this concrete
+     * FACPreconditionerStrategy uses a nonzero initial guess.
      */
     void
     setFACPreconditionerInitialGuessNonzero(
@@ -288,76 +277,38 @@ public:
     ///
     ///  The following routines:
     ///
-    ///      restrictSolution(),
+    ///      setFACPreconditioner(),
     ///      restrictResidual(),
+    ///      prolongError(),
     ///      prolongErrorAndCorrect(),
     ///      smoothError(),
     ///      solveCoarsestLevel(),
-    ///      computeCompositeResidualOnLevel(),
-    ///      computeResidualNorm(),
+    ///      computeResidual(),
     ///      initializeOperatorState(),
     ///      deallocateOperatorState()
     ///
     ///  are concrete implementations of functions declared in the
-    ///  SAMRAI::solv::FACOperatorStrategy abstract base class.
+    ///  FACPreconditionerStrategy abstract base class.
     ///
 
     /*!
-     * \name Implementation of SAMRAI::solv::FACOperatorStrategy interface.
+     * \name Implementation of FACPreconditionerStrategy interface.
      */
     //\{
 
     /*!
-     * \brief Restrict the solution quantity to the specified level from the
-     * next finer level.
+     * \brief Set the FACPreconditioner object that is using this concrete
+     * FACPreconditionerStrategy object.
      *
-     * Restrict the residual data to level dst_ln in the destination vector dst,
-     * from level dst_ln+1 in the source vector src.
-     *
-     * Can assume:
-     * - dst_ln is not the finest level in the range being solved.
-     * - corresponding solution has been computed on level dst_ln+1.
-     * - the source and destination residual vectors (src and dst) may or may
-     *   not be the same.  (This function must work in either case.)
-     *
-     * Upon return from this function, the solution on the refined region of the
-     * coarse level will represent the coarsened version of the fine solution in
-     * a manner that is consistent with the linear system approximation on the
-     * composite grid.  This function must not change the solution values
-     * anywhere except on level dst_ln of the destination vector.
-     *
-     * The source and destination vectors may be the same.
-     *
-     * \param src source solution
-     * \param dst destination solution
-     * \param dst_ln destination level number
+     * \param preconditioner  Pointer to the FAC preconditioner that is using this concrete FAC strategy
      */
     virtual void
-    restrictSolution(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& src,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& dst,
-        int dst_ln);
+    setFACPreconditioner(
+        SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> preconditioner);
 
     /*!
      * \brief Restrict the residual quantity to the specified level from the
      * next finer level.
-     *
-     * Restrict the residual data to level dst_ln in the destination vector dst,
-     * from level dst_ln+1 in the source vector src.
-     *
-     * Can assume:
-     * - dst_ln is not the finest level in the range being solved.
-     * - corresponding residual has been computed on level dst_ln+1.
-     * - the source and destination residual vectors (src and dst) may or may
-     *   not be the same.  (This function must work in either case.)
-     *
-     * Upon return from this function, the residual on the refined region of the
-     * coarse level will represent the coarsened version of the fine residual in
-     * a manner that is consistent with the linear system approximation on the
-     * composite grid.  This function must not change the residual values
-     * anywhere except on level dst_ln of the destination vector.
-     *
-     * The source and destination vectors may be the same.
      *
      * \param src source residual
      * \param dst destination residual
@@ -371,32 +322,21 @@ public:
 
     /*!
      * \brief Prolong the error quantity to the specified level from the next
+     * coarser level.
+     *
+     * \param src source error vector
+     * \param dst destination error vector
+     * \param dst_ln destination level number of data transfer
+     */
+    virtual void
+    prolongError(
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& src,
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& dst,
+        int dst_ln);
+
+    /*!
+     * \brief Prolong the error quantity to the specified level from the next
      * coarser level and apply the correction to the fine-level error.
-     *
-     * On the part of the coarse level that does \em not overlap the fine level,
-     * the error is the correction to Au=f.
-     *
-     * On the part of the coarse level that \em does overlap the fine level, the
-     * error is the correction to Ae=r of the fine level.
-     *
-     * This function should apply the coarse-level correction to the fine level,
-     * that is \f$ e^{\mbox{\scriptsize fine}} \leftarrow e^{\mbox{\scriptsize
-     * fine}} + I^{\mbox{\scriptsize fine}}_{\mbox{\scriptsize coarse}}
-     * e^{\mbox{\scriptsize coarse}} \f$
-     *
-     * \b Note: You probably have to store the refined error in a temporary
-     * location before adding it to the current error.
-     *
-     * The array of boundary information contains a description of the
-     * coarse-fine level boundary for each patch on the level; the boundary
-     * information for patch N is obtained as the N-th element in the array,
-     * coarse_fine_boundary[N].
-     *
-     * Upon return from this function, the error on the fine level must
-     * represent the correction to the solution on that level.  Also, this
-     * function must not change the error values on the coarse level.
-     *
-     * The source and destination vectors may be the same.
      *
      * \param src source error vector
      * \param dst destination error vector
@@ -411,34 +351,31 @@ public:
     /*!
      * \brief Perform a given number of relaxations on the error.
      *
-     * Relax the residual equation Ae=r by applying the given number of
-     * smoothing sweeps on the specified level.  The relaxation may ignore the
-     * possible existence of finer levels on a given level.
-     *
      * \param error error vector
      * \param residual residual vector
      * \param level_num level number
      * \param num_sweeps number of sweeps to perform
+     * \param performing_pre_sweeps boolean value that is true when pre-smoothing sweeps are being performed
+     * \param performing_post_sweeps boolean value that is true when post-smoothing sweeps are being performed
      */
     virtual void
     smoothError(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& error,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
         int level_num,
-        int num_sweeps);
+        int num_sweeps,
+        bool performing_pre_sweeps,
+        bool performing_post_sweeps);
 
     /*!
-     * \brief Solve the residual equation Ae=r on the coarsest level in the FAC
-     * iteration.
-     *
-     * This routine must fill boundary values for given solution quantity on all
-     * patches on the specified level before the solve is performed.
+     * \brief Solve the residual equation Ae=r on the coarsest level of the
+     * patch hierarchy.
      *
      * \param error error vector
      * \param residual residual vector
      * \param coarsest_ln coarsest level number
      */
-    virtual int
+    virtual bool
     solveCoarsestLevel(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& error,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
@@ -447,94 +384,18 @@ public:
     /*!
      * \brief Compute composite grid residual on a single level.
      *
-     * For the specified level number level_num, compute the \em composite
-     * residual r=f-Au, where f is the right hand side and u is the solution.
-     * Note that the composite residual is not a one-level residual.  It must
-     * take into account the composite grid stencil around the coarse-fine grid
-     * interface.
-     *
-     * May assume:
-     * - Composite residual on next finer level, level_num+1, has been computed
-     *   already.
-     * - If any intermediately computed data is needed from level level_num+1,
-     *   it has been done and stored on that level.
-     * - Residual computations for the original equation and the error equations
-     *   will not be intermingled within one FAC cycle.
-     *
-     * Steps:
-     * -# Fill boundary ghosts.
-     * -# If needed, coarsen intermediate data from level level_num+1.
-     * -# Compute residual \f$ r^{ln} \leftarrow f - A u^{ln} \f$.
-     *
-     * Final step before leaving function:
-     * - If any intermediately computed data is needed in at level level_num-1,
-     *   it must be computed and stored before leaving this function.
-     *
-     * \b Important: Do not restrict residual from finer levels.  (However, you
-     * must write the function restrictResidual() to do this.)
-     *
-     * \b Important: This function must also work when the right-hand-side and
-     * the residual are identical.  In that case, it should effectively do \f$ r
-     * \leftarrow r - A u \f$.
-     *
      * \param residual residual vector
      * \param solution solution vector
      * \param rhs source (right hand side) vector
      * \param level_num level number
-     * \param error_equation_indicator flag stating whether u is an error
-     * vector or a solution vector
-     *
-     * \b Note: The residual needs to be computed in two different cases:
-     *
-     * -# before each FAC sweep commences, and
-     * -# after performing any presmoothing sweeps
-     *
-     * If the FAC preconditioner
-     *
-     * -# (a) does not use presmoothing,
-     * -# (b) uses a zero initial guess, and
-     * -# (c) only employs one FAC sweep (as is often the case, for instance,
-     *        when the preconditioner is being used in conjunction with a Krylov
-     *        subspace method),
-     *
-     * then we simply set the residual equal to the right hand side.  This
-     * avoids some unnecessary computation as well as parallel communication.
-     *
-     * \b IMPORTANT: We assume that the FAC algorithm being used does not use
-     * the composite residual in postsweeps.
+     * \param error_equation_indicator flag stating whether u is an error vector or a solution vector
      */
     virtual void
-    computeCompositeResidualOnLevel(
+    computeResidual(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs,
-        int level_num,
-        bool error_equation_indicator);
-
-    /*!
-     * \brief Compute the norm of the residual.
-     *
-     * Compute norm of the given residual on the given range of hierarchy
-     * levels.  The residual vector is computed already and you should \em not
-     * change it.  The only purpose of this function to allow you to choose how
-     * to define the norm.
-     *
-     * The norm value is used during the FAC iteration to determine
-     * convergence of the composite grid linear system.
-     *
-     * Residual values that lie under a finer level should not be counted.
-     *
-     * \param residual residual vector
-     * \param fine_ln finest level number
-     * \param coarse_ln coarsest level number
-     *
-     * \return norm value of residual vector, which should be non-negative
-     */
-    virtual double
-    computeResidualNorm(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
-        int fine_ln,
-        int coarse_ln);
+        int level_num);
 
     /*!
      * \brief Compute hierarchy-dependent data.
@@ -748,17 +609,16 @@ private:
     std::string d_U_restriction_method, d_P_restriction_method;
 
     /*
-     * SAMRAI::tbox::Pointer to the SAMRAI::solv::FACPreconditioner that is
-     * using this operator.
+     * Pointer to the FACPreconditioner that is using this operator.
      *
      * Integer indicates the maximum number of FAC cycles.  When this number is
      * 1, some computations and parallel communication can be avoided.
      *
      * Booleans that indicate whether the FAC preconditioner associated with
-     * this concrete SAMRAI::solv::FACOperatorStrategy is performing
-     * presmoothing or using a nonzero initial guess.
+     * this concrete FACPreconditionerStrategy is performing presmoothing or
+     * using a nonzero initial guess.
      *
-     * If the SAMRAI::solv::FACPreconditioner is:
+     * If the FACPreconditioner is:
      *
      *     1) being used as a preconditioner for a Krylov subspace linear
      *        solver, and

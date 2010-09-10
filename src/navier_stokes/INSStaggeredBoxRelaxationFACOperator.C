@@ -77,13 +77,12 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Pointer<Timer> t_restrict_solution;
 static Pointer<Timer> t_restrict_residual;
+static Pointer<Timer> t_prolong_error;
 static Pointer<Timer> t_prolong_error_and_correct;
 static Pointer<Timer> t_smooth_error;
 static Pointer<Timer> t_solve_coarsest_level;
-static Pointer<Timer> t_compute_composite_residual_on_level;
-static Pointer<Timer> t_compute_residual_norm;
+static Pointer<Timer> t_compute_residual;
 static Pointer<Timer> t_initialize_operator_state;
 static Pointer<Timer> t_deallocate_operator_state;
 
@@ -519,15 +518,14 @@ INSStaggeredBoxRelaxationFACOperator::INSStaggeredBoxRelaxationFACOperator(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_restrict_solution                   = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::restrictSolution()");
-        t_restrict_residual                   = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::restrictResidual()");
-        t_prolong_error_and_correct           = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::prolongErrorAndCorrect()");
-        t_smooth_error                        = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::smoothError()");
-        t_solve_coarsest_level                = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::solveCoarsestLevel()");
-        t_compute_composite_residual_on_level = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::computeCompositeResidualOnLevel()");
-        t_compute_residual_norm               = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::computeResidualNorm()");
-        t_initialize_operator_state           = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::initializeOperatorState()");
-        t_deallocate_operator_state           = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::deallocateOperatorState()");
+        t_restrict_residual         = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::restrictResidual()");
+        t_prolong_error             = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::prolongError()");
+        t_prolong_error_and_correct = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::prolongErrorAndCorrect()");
+        t_smooth_error              = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::smoothError()");
+        t_solve_coarsest_level      = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::solveCoarsestLevel()");
+        t_compute_residual          = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::computeResidual()");
+        t_initialize_operator_state = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::initializeOperatorState()");
+        t_deallocate_operator_state = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::deallocateOperatorState()");
         timers_need_init = false;
     }
     return;
@@ -600,20 +598,6 @@ INSStaggeredBoxRelaxationFACOperator::setTimeInterval(
     d_new_time = new_time;
     return;
 }// setTimeInterval
-
-void
-INSStaggeredBoxRelaxationFACOperator::setPreconditioner(
-    ConstPointer<FACPreconditioner> preconditioner)
-{
-    if (d_is_initialized)
-    {
-        TBOX_ERROR(d_object_name << "::setPreconditioner()\n"
-                   << "  cannot be called while operator state is initialized" << std::endl);
-    }
-    d_preconditioner = preconditioner;
-    sanityCheck();
-    return;
-}// setPreconditioner
 
 void
 INSStaggeredBoxRelaxationFACOperator::setResetLevels(
@@ -828,53 +812,33 @@ INSStaggeredBoxRelaxationFACOperator::setSkipRestrictResidual(
 ///
 ///  The following routines:
 ///
-///      restrictSolution(),
+///      setFACPreconditioner(),
 ///      restrictResidual(),
+///      prolongError(),
 ///      prolongErrorAndCorrect(),
 ///      smoothError(),
 ///      solveCoarsestLevel(),
-///      computeCompositeResidualOnLevel(),
-///      computeResidualNorm(),
+///      computeResidual(),
 ///      initializeOperatorState(),
 ///      deallocateOperatorState()
 ///
 ///  are concrete implementations of functions declared in the
-///  FACOperatorStrategy abstract base class.
+///  FACPreconditionerStrategy abstract base class.
 ///
 
 void
-INSStaggeredBoxRelaxationFACOperator::restrictSolution(
-    const SAMRAIVectorReal<NDIM,double>& src,
-    SAMRAIVectorReal<NDIM,double>& dst,
-    int dst_ln)
+INSStaggeredBoxRelaxationFACOperator::setFACPreconditioner(
+    ConstPointer<FACPreconditioner> preconditioner)
 {
-    if (d_skip_restrict_sol) return;
-
-    t_restrict_solution->start();
-
-    const int U_src_idx = src.getComponentDescriptorIndex(0);
-    const int P_src_idx = src.getComponentDescriptorIndex(1);
-    const std::pair<int,int> src_idxs = std::make_pair(U_src_idx,P_src_idx);
-
-    const int U_dst_idx = dst.getComponentDescriptorIndex(0);
-    const int P_dst_idx = dst.getComponentDescriptorIndex(1);
-    const std::pair<int,int> dst_idxs = std::make_pair(U_dst_idx,P_dst_idx);
-
-    xeqScheduleURestriction(dst_idxs, src_idxs, dst_ln);
-
-    static const bool homogeneous_bc = true;
-    if (dst_ln == d_coarsest_ln)
+    if (d_is_initialized)
     {
-        xeqScheduleGhostFillNoCoarse(dst_idxs, dst_ln, homogeneous_bc);
+        TBOX_ERROR(d_object_name << "::setFACPreconditioner()\n"
+                   << "  cannot be called while operator state is initialized" << std::endl);
     }
-    else
-    {
-        xeqScheduleGhostFill(dst_idxs, dst_ln, homogeneous_bc);
-    }
-
-    t_restrict_solution->stop();
+    d_preconditioner = preconditioner;
+    sanityCheck();
     return;
-}// restrictSolution
+}// setFACPreconditioner
 
 void
 INSStaggeredBoxRelaxationFACOperator::restrictResidual(
@@ -901,12 +865,12 @@ INSStaggeredBoxRelaxationFACOperator::restrictResidual(
 }// restrictResidual
 
 void
-INSStaggeredBoxRelaxationFACOperator::prolongErrorAndCorrect(
+INSStaggeredBoxRelaxationFACOperator::prolongError(
     const SAMRAIVectorReal<NDIM,double>& src,
     SAMRAIVectorReal<NDIM,double>& dst,
     int dst_ln)
 {
-    t_prolong_error_and_correct->start();
+    t_prolong_error->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     const bool dst_data_is_prolonged_src_data = !d_fac_uses_presmoothing && !d_fac_initial_guess_nonzero && d_fac_max_cycles == 1;
@@ -926,6 +890,20 @@ INSStaggeredBoxRelaxationFACOperator::prolongErrorAndCorrect(
     static const bool homogeneous_bc = true;
     xeqScheduleProlongation(dst_idxs, src_idxs, dst_ln, homogeneous_bc);
 
+    t_prolong_error->stop();
+    return;
+}// prolongError
+
+void
+INSStaggeredBoxRelaxationFACOperator::prolongErrorAndCorrect(
+    const SAMRAIVectorReal<NDIM,double>& src,
+    SAMRAIVectorReal<NDIM,double>& dst,
+    int dst_ln)
+{
+    t_prolong_error_and_correct->start();
+
+    TBOX_ASSERT(false);
+
     t_prolong_error_and_correct->stop();
     return;
 }// prolongErrorAndCorrect
@@ -935,7 +913,9 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
     SAMRAIVectorReal<NDIM,double>& error,
     const SAMRAIVectorReal<NDIM,double>& residual,
     int level_num,
-    int num_sweeps)
+    int num_sweeps,
+    bool performing_pre_sweeps,
+    bool performing_post_sweeps)
 {
     if (num_sweeps == 0) return;
 
@@ -1121,7 +1101,7 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
     return;
 }// smoothError
 
-int
+bool
 INSStaggeredBoxRelaxationFACOperator::solveCoarsestLevel(
     SAMRAIVectorReal<NDIM,double>& error,
     const SAMRAIVectorReal<NDIM,double>& residual,
@@ -1133,7 +1113,7 @@ INSStaggeredBoxRelaxationFACOperator::solveCoarsestLevel(
     TBOX_ASSERT(coarsest_ln == d_coarsest_ln);
 #endif
 
-    smoothError(error, residual, coarsest_ln, d_coarse_solver_max_its);
+    smoothError(error, residual, coarsest_ln, d_coarse_solver_max_its, false, false);
 
     // Re-fill ghost values.
     const int U_error_idx = error.getComponentDescriptorIndex(0);
@@ -1144,19 +1124,17 @@ INSStaggeredBoxRelaxationFACOperator::solveCoarsestLevel(
     xeqScheduleGhostFillNoCoarse(error_idxs, coarsest_ln, homogeneous_bc);
 
     t_solve_coarsest_level->stop();
-    static const int ret_val = 1;
-    return ret_val;
+    return true;
 }// solveCoarsestLevel
 
 void
-INSStaggeredBoxRelaxationFACOperator::computeCompositeResidualOnLevel(
+INSStaggeredBoxRelaxationFACOperator::computeResidual(
     SAMRAIVectorReal<NDIM,double>& residual,
     const SAMRAIVectorReal<NDIM,double>& solution,
     const SAMRAIVectorReal<NDIM,double>& rhs,
-    int level_num,
-    bool error_equation_indicator)
+    int level_num)
 {
-    t_compute_composite_residual_on_level->start();
+    t_compute_residual->start();
 
     if (!d_fac_uses_presmoothing && !d_fac_initial_guess_nonzero && d_fac_max_cycles == 1)
     {
@@ -1199,29 +1177,9 @@ INSStaggeredBoxRelaxationFACOperator::computeCompositeResidualOnLevel(
                    << "  thus the implemented solver is really only suitable for use as a preconditioner." << std::endl);
     }
 
-    t_compute_composite_residual_on_level->stop();
+    t_compute_residual->stop();
     return;
-}// computeCompositeResidualOnLevel
-
-double
-INSStaggeredBoxRelaxationFACOperator::computeResidualNorm(
-    const SAMRAIVectorReal<NDIM,double>& residual,
-    int fine_ln,
-    int coarse_ln)
-{
-    t_compute_residual_norm->start();
-
-    if (coarse_ln != residual.getCoarsestLevelNumber() ||
-        fine_ln   != residual.getFinestLevelNumber())
-    {
-        TBOX_ERROR("INSStaggeredBoxRelaxationFACOperator::computeResidualNorm()\n"
-                   << "  residual can only be computed over the range of levels\n"
-                   << "  defined in the SAMRAIVectorReal residual vector" << std::endl);
-    }
-
-    t_compute_residual_norm->stop();
-    return NormOps::L2Norm(&residual);
-}// computeResidualNorm
+}// computeResidual
 
 void
 INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
