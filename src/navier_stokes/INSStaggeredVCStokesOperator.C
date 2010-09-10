@@ -233,11 +233,10 @@ INSStaggeredVCStokesOperator::apply(
     d_U_P_MU_bdry_fill_op->fillData(d_new_time);
 
     // Setup hierarchy data ops object for U.
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager =
-        HierarchyDataOpsManager<NDIM>::getManager();
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
     Pointer<PatchHierarchy<NDIM> > hierarchy = y.getPatchHierarchy();
     Pointer<HierarchySideDataOpsReal<NDIM,double> > hier_sc_data_ops =
-        hier_ops_manager->getOperationsDouble(U_out_var,hierarchy);
+        hier_ops_manager->getOperationsDouble(U_out_var, hierarchy, true);
 
     // Compute the action of the operator:
     //      A*[u;p] = [(rho/dt)*u-0.5*div*(mu*(grad u + (grad u)^T)) + grad p; -div u].

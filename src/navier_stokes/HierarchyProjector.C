@@ -202,19 +202,15 @@ HierarchyProjector::HierarchyProjector(
     d_sc_velocity_rstrategy = new CartExtrapPhysBdryOp(d_w_sc_idx, "LINEAR");
 
     // Obtain the Hierarchy data operations objects.
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager =
-        HierarchyDataOpsManager<NDIM>::getManager();
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
 
-    Pointer<CellVariable<NDIM,double> > cc_var =
-        new CellVariable<NDIM,double>("cc_var");
-    Pointer<FaceVariable<NDIM,double> > fc_var =
-        new FaceVariable<NDIM,double>("fc_var");
-    Pointer<SideVariable<NDIM,double> > sc_var =
-        new SideVariable<NDIM,double>("sc_var");
+    Pointer<CellVariable<NDIM,double> > cc_var = new CellVariable<NDIM,double>("cc_var");
+    Pointer<FaceVariable<NDIM,double> > fc_var = new FaceVariable<NDIM,double>("fc_var");
+    Pointer<SideVariable<NDIM,double> > sc_var = new SideVariable<NDIM,double>("sc_var");
 
-    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy);
-    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(fc_var, hierarchy);
-    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, hierarchy);
+    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy, true);
+    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(fc_var, hierarchy, true);
+    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, hierarchy, true);
 
     // Initialize the Poisson specifications.
     d_poisson_spec.setCZero();

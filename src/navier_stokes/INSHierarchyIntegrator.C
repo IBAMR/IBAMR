@@ -397,8 +397,8 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     Pointer<FaceVariable<NDIM,double> > fc_var =
         new FaceVariable<NDIM,double>("fc_var");
 
-    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy);
-    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(fc_var, hierarchy);
+    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy, true);
+    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(fc_var, hierarchy, true);
 
     // Setup Timers.
     static bool timers_need_init = true;

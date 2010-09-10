@@ -45,13 +45,14 @@
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
 #include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
+#include <ibtk/FACPreconditioner.h>
 
 // SAMRAI INCLUDES
 #include <CoarsenAlgorithm.h>
 #include <FACOperatorStrategy.h>
-#include <FACPreconditioner.h>
 #include <LocationIndexRobinBcCoefs.h>
 #include <RefineAlgorithm.h>
+#include <tbox/ConstPointer.h>
 
 // C++ STDLIB INCLUDES
 #include <map>
@@ -137,7 +138,7 @@ public:
      */
     void
     setPreconditioner(
-        const SAMRAI::solv::FACPreconditioner<NDIM>* preconditioner);
+        SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> preconditioner);
 
     //\}
 
@@ -765,7 +766,7 @@ private:
      *
      * then we can save a substantial amount of work.
      */
-    const SAMRAI::solv::FACPreconditioner<NDIM>* d_preconditioner;
+    SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> d_preconditioner;
     int d_fac_max_cycles;
     bool d_fac_uses_presmoothing, d_fac_initial_guess_nonzero;
 

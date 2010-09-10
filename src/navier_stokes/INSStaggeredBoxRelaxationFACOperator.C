@@ -603,7 +603,7 @@ INSStaggeredBoxRelaxationFACOperator::setTimeInterval(
 
 void
 INSStaggeredBoxRelaxationFACOperator::setPreconditioner(
-    const FACPreconditioner<NDIM>* preconditioner)
+    ConstPointer<FACPreconditioner> preconditioner)
 {
     if (d_is_initialized)
     {
