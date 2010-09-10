@@ -380,7 +380,7 @@ AM_FFLAGS = -I${top_builddir}/ibtk/third_party/qd-2.3.7/fortran
 AM_FCFLAGS = -I${top_builddir}/ibtk/third_party/qd-2.3.7/fortran
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = IB IBFE adv_diff advect navier_stokes
+SUBDIRS = IB IBFE adv_diff advect navier_stokes vc_navier_stokes
 all: all-recursive
 
 .SUFFIXES:
@@ -693,11 +693,12 @@ uninstall-am:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
 examples:
-	@(cd IB            && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd IBFE          && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd adv_diff      && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd advect        && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
-	@(cd navier_stokes && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd IB               && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd IBFE             && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd adv_diff         && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd advect           && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd navier_stokes    && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	@(cd vc_navier_stokes && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
