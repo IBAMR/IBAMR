@@ -3,11 +3,11 @@ MU = 0.0025
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 5   // maximum number of levels in locally refined grid
+MAX_LEVELS = 3   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 16                                       // coarsest grid spacing
-NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N/16  // finest   grid spacing
+N = 16                                    // coarsest grid spacing
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 VelocityInitialConditions {
    function_0 = "0.0"
@@ -73,7 +73,7 @@ PETScVecOps {
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-   base_filenames_4 = "curve2d_256"
+   base_filenames_2 = "curve2d_256"
 }
 
 INSStaggeredHierarchyIntegrator {
@@ -107,25 +107,13 @@ INSStaggeredHierarchyIntegrator {
    }
 
    HelmholtzFACSolver {
-      max_cycles = 1
-      residual_tol = 1.0e-12
-      num_pre_sweeps  = 0  // this should always be 0
+      num_pre_sweeps  = 2
       num_post_sweeps = 2
-
-      fac_max_cycles = 1
-      fac_uses_presmoothing = FALSE
-      fac_initial_guess_nonzero = FALSE
-
-      skip_restrict_sol = TRUE
-      skip_restrict_residual = FALSE
-
-      ssor_iterations = 1
-
       coarse_solver_choice = "block_jacobi"
       coarse_solver_tolerance = 1.0e-30
       coarse_solver_max_iterations = 2
-      prolongation_method = "CONSERVATIVE_LINEAR_REFINE"
-      cf_discretization   = "CONSERVATIVE_LINEAR_REFINE"
+      prolongation_method = "CONSTANT_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
    }
 
    PoissonHypreSolver {
@@ -133,9 +121,9 @@ INSStaggeredHierarchyIntegrator {
       precond_type          = "PFMG"
       rap_type              = 0
       relax_type            = 2
-      skip_relax            = 1
-      num_pre_relax_steps   = 1
-      num_post_relax_steps  = 1
+      skip_relax            = 0
+      num_pre_relax_steps   = 2
+      num_post_relax_steps  = 2
       relative_residual_tol = 1.0e-2
       max_iterations        = 100
       enable_logging        = FALSE
@@ -144,7 +132,6 @@ INSStaggeredHierarchyIntegrator {
    PoissonFACSolver {
       num_pre_sweeps  = 0
       num_post_sweeps = 2
-
       coarse_solver_choice = "hypre"
       coarse_solver_tolerance = 1.0e-12
       coarse_solver_max_iterations = 1
@@ -156,8 +143,8 @@ INSStaggeredHierarchyIntegrator {
          rap_type              = 0
          relax_type            = 2
          skip_relax            = 0
-         num_pre_relax_steps   = 1
-         num_post_relax_steps  = 1
+         num_pre_relax_steps   = 2
+         num_post_relax_steps  = 2
          relative_residual_tol = 1.0e-12
          max_iterations        = 1
          enable_logging        = FALSE
@@ -193,9 +180,9 @@ Main {
 
 CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
-   x_lo         = -8, -8          // lower end of computational domain.
-   x_up         =  8,  8          // upper end of computational domain.
-   periodic_dimension = 1, 1
+   x_lo         = -0.5, -0.5         // lower end of computational domain.
+   x_up         =  0.5,  0.5         // upper end of computational domain.
+   periodic_dimension = 0, 0
 }
 
 GriddingAlgorithm {
