@@ -48,6 +48,7 @@
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
+#include <ibtk/CellNoCornersFillPattern.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 
 // SAMRAI INCLUDES
@@ -537,8 +538,9 @@ HierarchyProjector::projectHierarchy(
     }
 
     // Setup the interpolation transaction information.
+    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(CELLG, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent Phi_transaction_comp(Phi_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
+    InterpolationTransactionComponent Phi_transaction_comp(Phi_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef, cc_fill_pattern);
     d_Phi_hier_bdry_fill_op->resetTransactionComponent(Phi_transaction_comp);
 
     // Fill the physical boundary conditions for Phi.
@@ -566,10 +568,10 @@ HierarchyProjector::projectHierarchy(
     }
 
     // Reset the transaction components.
-    InterpolationTransactionComponent d_P_transaction_comp(d_P_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
+    InterpolationTransactionComponent d_P_transaction_comp(d_P_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL, cc_fill_pattern);
     d_P_hier_bdry_fill_op->resetTransactionComponent(d_P_transaction_comp);
 
-    InterpolationTransactionComponent d_Phi_transaction_comp(d_F_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
+    InterpolationTransactionComponent d_Phi_transaction_comp(d_F_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef, cc_fill_pattern);
     d_Phi_hier_bdry_fill_op->resetTransactionComponent(d_Phi_transaction_comp);
 
     t_project_hierarchy->stop();
@@ -676,8 +678,9 @@ HierarchyProjector::projectHierarchy(
     }
 
     // Setup the interpolation transaction information.
+    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(CELLG, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent Phi_transaction_comp(Phi_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
+    InterpolationTransactionComponent Phi_transaction_comp(Phi_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef, cc_fill_pattern);
     d_Phi_hier_bdry_fill_op->resetTransactionComponent(Phi_transaction_comp);
 
     // Fill the physical boundary conditions for Phi.
@@ -705,10 +708,10 @@ HierarchyProjector::projectHierarchy(
     }
 
     // Reset the transaction components.
-    InterpolationTransactionComponent d_P_transaction_comp(d_P_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
+    InterpolationTransactionComponent d_P_transaction_comp(d_P_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL, cc_fill_pattern);
     d_P_hier_bdry_fill_op->resetTransactionComponent(d_P_transaction_comp);
 
-    InterpolationTransactionComponent d_Phi_transaction_comp(d_F_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
+    InterpolationTransactionComponent d_Phi_transaction_comp(d_F_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef, cc_fill_pattern);
     d_Phi_hier_bdry_fill_op->resetTransactionComponent(d_Phi_transaction_comp);
 
     t_project_hierarchy->stop();
@@ -818,13 +821,14 @@ HierarchyProjector::resetHierarchyConfiguration(
     d_poisson_solver->initializeSolverState(*d_sol_vec,*d_rhs_vec);
 
     // Initialize the interpolation operators.
+    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(CELLG, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
 
-    InterpolationTransactionComponent P_transaction_comp(d_P_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
+    InterpolationTransactionComponent P_transaction_comp(d_P_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL, cc_fill_pattern);
     d_P_hier_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_P_hier_bdry_fill_op->initializeOperatorState(P_transaction_comp, d_hierarchy);
 
-    InterpolationTransactionComponent Phi_transaction_comp(d_F_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
+    InterpolationTransactionComponent Phi_transaction_comp(d_F_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef, cc_fill_pattern);
     d_Phi_hier_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_Phi_hier_bdry_fill_op->initializeOperatorState(Phi_transaction_comp, d_hierarchy);
 

@@ -1278,14 +1278,8 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
     d_U_bc_op = new CartSideRobinPhysBdryOp(d_side_scratch_idx, d_U_bc_coefs, false);
     d_P_bc_op = new CartCellRobinPhysBdryOp(d_cell_scratch_idx, d_P_bc_coef , false);
 
-#if (NDIM == 2)
-    d_U_op_stencil_fill_pattern = new SideNoCornersFillPattern(GHOSTS);
-    d_P_op_stencil_fill_pattern = new CellNoCornersFillPattern(GHOSTS);
-#endif
-#if (NDIM == 3)
-    d_U_op_stencil_fill_pattern = new SideNoCornersFillPattern(GHOSTS,false);
-    d_P_op_stencil_fill_pattern = new CellNoCornersFillPattern(GHOSTS,false);
-#endif
+    d_U_op_stencil_fill_pattern = new SideNoCornersFillPattern(GHOSTS, false, false);
+    d_P_op_stencil_fill_pattern = new CellNoCornersFillPattern(GHOSTS, false, false);
     d_U_synch_fill_pattern = new SideSynchCopyFillPattern();
 
     std::vector<RefinePatchStrategy<NDIM>*> prolongation_refine_patch_strategies;
