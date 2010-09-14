@@ -3157,7 +3157,7 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
 
                 // Setup the various solver components.
                 d_poisson_spec = new PoissonSpecifications(d_object_name+"::poisson_spec");
-                d_poisson_op = new CCLaplaceOperator(d_object_name+"::Poisson Operator", *d_poisson_spec, d_u_star_bc_coefs, true);
+                d_poisson_op = new CCLaplaceOperator(d_object_name+"::Poisson Operator", *d_poisson_spec, d_phi_bc_coef, true);
                 d_poisson_op->setHierarchyMathOps(d_hier_math_ops);
 
                 d_poisson_solver_needs_init = true;
