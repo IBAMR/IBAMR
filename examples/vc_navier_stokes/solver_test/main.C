@@ -42,6 +42,7 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/INSStaggeredProjectionPreconditioner.h>
+#include <ibamr/INSStaggeredStokesOperator.h>
 #include <ibamr/INSStaggeredVCStokesOperator.h>
 #include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/CCPoissonHypreLevelSolver.h>
@@ -298,10 +299,12 @@ main(
         /*
          * Problem coefficients for preconditioners.
          */
+        double current_time = 0.0;
+        double new_time = 0.1;
+        double dt = new_time-current_time;
         double rho = 1.0;
         double mu = 1.0;
         double lambda = 0.0;
-        double dt = 0.1;
 
         /*
          * Create the math operations object and get the patch data index for
@@ -312,28 +315,39 @@ main(
         const int dx_cell_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
         /*
-         * Compute f = [(rho/dt)*u-0.5*div*(mu*(grad u + (grad u)^T)) + grad p; -div u]
+         * Create the linear solver and solver vectors.
          */
-        INSStaggeredVCStokesOperator vc_stokes_op(tbox::Pointer<HierarchyMathOps>(&hier_math_ops,false));  // Create a Pointer to hier_math_ops which does NOT handle memory management for hier_math_ops (i.e., which does NOT delete hier_math_ops when the number of references drops to zero).
+        tbox::Pointer<PETScKrylovLinearSolver> petsc_krylov_solver = new PETScKrylovLinearSolver("petsc_krylov_solver");
 
-	solv::SAMRAIVectorReal<NDIM,double> x("x", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        solv::SAMRAIVectorReal<NDIM,double> x("x", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
 	solv::SAMRAIVectorReal<NDIM,double> y("y", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
-
         x.addComponent(u_side_var,u_side_idx,dx_side_idx);
 	x.addComponent(p_cell_var,p_cell_idx,dx_cell_idx);
 	y.addComponent(f_side_var,f_side_idx,dx_side_idx);
         y.addComponent(du_cell_var,du_cell_idx,dx_cell_idx);
 
-        tbox::Pointer<PETScKrylovLinearSolver> vc_stokes_solver = new PETScKrylovLinearSolver("vc_stokes_solver");
+        /*
+         * Setup the operator.
+         */
+#if 1
+        tbox::Pointer<INSStaggeredVCStokesOperator> vc_stokes_op = new INSStaggeredVCStokesOperator(tbox::Pointer<HierarchyMathOps>(&hier_math_ops,false));
+        vc_stokes_op->setTimeInterval(current_time, new_time);
+        vc_stokes_op->registerViscosityVariable(mu_node_var,mu_node_idx);
+        vc_stokes_op->registerDensityVariable(rho_side_var,rho_side_idx);
+        petsc_krylov_solver->setOperator(vc_stokes_op);
+#else
+        INSCoefs stokes_coefs(rho, mu, lambda);
+        vector<solv::RobinBcCoefStrategy<NDIM>*> stokes_U_bc_coefs(NDIM);
+        tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> stokes_U_bc_helper = NULL;
+        solv::RobinBcCoefStrategy<NDIM>* stokes_P_bc_coef = NULL;
+        tbox::Pointer<INSStaggeredStokesOperator> stokes_op = new INSStaggeredStokesOperator(stokes_coefs, stokes_U_bc_coefs, stokes_U_bc_helper, stokes_P_bc_coef, tbox::Pointer<HierarchyMathOps>(&hier_math_ops,false));
+        stokes_op->setTimeInterval(current_time, new_time);
+        petsc_krylov_solver->setOperator(stokes_op);
+#endif
 
-        // Setup the operator.
-        vc_stokes_op.setTimeInterval(0.1,0.2);
-        vc_stokes_op.registerViscosityVariable(mu_node_var,mu_node_idx);
-        vc_stokes_op.registerDensityVariable(rho_side_var,rho_side_idx);
-        vc_stokes_op.initializeOperatorState(x,y);
-        vc_stokes_solver->setOperator(tbox::Pointer<LinearOperator>(&vc_stokes_op,false));
-
-        // Add a nullspace vector to the KSP solver.
+        /*
+         * Add a nullspace vector to the KSP solver.
+         */
         tbox::Pointer<solv::SAMRAIVectorReal<NDIM,double> > nul_vec = x.cloneVector("nul_vec");
         nul_vec->allocateVectorData(0.0);
         tbox::Pointer<math::HierarchyDataOpsReal<NDIM,double> > hier_side_data_ops =
@@ -344,9 +358,11 @@ main(
                 p_cell_var, patch_hierarchy, true);
         hier_side_data_ops->setToScalar(nul_vec->getComponentDescriptorIndex(0), 0.0);
         hier_cell_data_ops->setToScalar(nul_vec->getComponentDescriptorIndex(1), 1.0);
-        vc_stokes_solver->setNullspace(false, nul_vec);
+        petsc_krylov_solver->setNullspace(false, nul_vec);
 
-        // Setup the velocity subdomain solver.
+        /*
+         * Setup the velocity subdomain solver.
+         */
         const string helmholtz_prefix = "helmholtz_";
 
         // Setup the various solver components.
@@ -362,7 +378,7 @@ main(
         helmholtz_solver->setInitialGuessNonzero(false);
         helmholtz_solver->setOperator(helmholtz_op);
 
-        tbox::Pointer<SCPoissonHypreLevelSolver> helmholtz_hypre_pc = new SCPoissonHypreLevelSolver("Helmholtz Preconditioner");
+        tbox::Pointer<SCPoissonHypreLevelSolver> helmholtz_hypre_pc = new SCPoissonHypreLevelSolver("Helmholtz Preconditioner", input_db->getDatabase("HelmholtzHypreSolver"));
         helmholtz_hypre_pc->setPoissonSpecifications(helmholtz_spec);
         helmholtz_solver->setPreconditioner(helmholtz_hypre_pc);
 
@@ -372,7 +388,9 @@ main(
         helmholtz_solver->setRelativeTolerance(1.0e-02);
         helmholtz_solver->setMaxIterations(25);
 
-        // Setup the pressure subdomain solver.
+        /*
+         * Setup the pressure subdomain solver.
+         */
         const string poisson_prefix = "poisson_";
 
         // Setup the various solver components.
@@ -388,7 +406,7 @@ main(
         poisson_solver->setInitialGuessNonzero(false);
         poisson_solver->setOperator(poisson_op);
 
-        tbox::Pointer<CCPoissonHypreLevelSolver> poisson_hypre_pc = new CCPoissonHypreLevelSolver("Poisson Preconditioner");
+        tbox::Pointer<CCPoissonHypreLevelSolver> poisson_hypre_pc = new CCPoissonHypreLevelSolver("Poisson Preconditioner", input_db->getDatabase("PoissonHypreSolver"));
         poisson_hypre_pc->setPoissonSpecifications(poisson_spec);
         poisson_solver->setPreconditioner(poisson_hypre_pc);
 
@@ -399,25 +417,31 @@ main(
         poisson_solver->setMaxIterations(25);
         poisson_solver->setNullspace(true, NULL);
 
-        // Setup the Stokes preconditioner.
+        /*
+         * Setup the Stokes preconditioner.
+         */
         INSCoefs problem_coefs(rho, mu, lambda);
-
         tbox::Pointer<INSStaggeredProjectionPreconditioner> projection_pc = new INSStaggeredProjectionPreconditioner(problem_coefs, Phi_bc_coef, true, helmholtz_solver, poisson_solver, hier_cell_data_ops, hier_side_data_ops, tbox::Pointer<HierarchyMathOps>(&hier_math_ops,false));
-        vc_stokes_solver->setPreconditioner(projection_pc);
+        projection_pc->setTimeInterval(current_time, new_time, dt);
+        petsc_krylov_solver->setPreconditioner(projection_pc);
 
-        // Initialize the solver.
+        /*
+         * Initialize the solver.
+         */
         tbox::TimerManager* timer_manager = tbox::TimerManager::getManager();
         tbox::Pointer<tbox::Timer> t_initialize_solver_state = timer_manager->getTimer("IBTK::main::initializeSolverState()");
         tbox::Pointer<tbox::Timer> t_solve_system = timer_manager->getTimer("IBTK::main::solveSystem()");
 
         t_initialize_solver_state->start();
-        vc_stokes_solver->initializeSolverState(x,y);
+        petsc_krylov_solver->initializeSolverState(x,y);
         t_initialize_solver_state->stop();
 
-        // Solve the system.
+        /*
+         * Solve the system.
+         */
         x.setToScalar(0.0,false);
         t_solve_system->start();
-        vc_stokes_solver->solveSystem(x,y);
+        petsc_krylov_solver->solveSystem(x,y);
         t_solve_system->stop();
 
         /*

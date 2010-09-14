@@ -6,13 +6,13 @@ u {
 }
 
 mu {
-   function = "1.0+0.5*cos(2*PI*X_0)*sin(2*PI*X_1)"
-   //function = "2.0"
+   //function = "1.0+0.5*cos(2*PI*X_0)*sin(2*PI*X_1)"
+   function = "1.0"
 }
 
 rho {
-   function = "1.0+0.5*sin(2*PI*X_0)*sin(2*PI*X_1)"
-   //function = "0.5"
+   //function = "1.0+0.5*sin(2*PI*X_0)*sin(2*PI*X_1)"
+   function = "1.0"
 }
 
 f {
@@ -33,7 +33,25 @@ du {
    function="0"
 }
 
+HelmholtzHypreSolver {
+   solver_type           = "Split"
+   split_solver_type     = "PFMG"
+   relative_residual_tol = 1.0e-12
+   max_iterations        = 1
+   enable_logging        = FALSE
+}
 
+PoissonHypreSolver {
+   solver_type           = "PFMG"
+   rap_type              = 0
+   relax_type            = 2
+   skip_relax            = 0
+   num_pre_relax_steps   = 2
+   num_post_relax_steps  = 2
+   relative_residual_tol = 1.0e-12
+   max_iterations        = 1
+   enable_logging        = FALSE
+}
 
 Main {
 // log file parameters
@@ -48,7 +66,7 @@ Main {
    timer_enabled = TRUE
 }
 
-N =2*2*8 
+N =2*2*8
 
 CartesianGeometry {
    domain_boxes       = [(0,0), (N - 1,N - 1)]
