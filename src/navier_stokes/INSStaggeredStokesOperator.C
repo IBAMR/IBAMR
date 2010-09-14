@@ -222,7 +222,7 @@ INSStaggeredStokesOperator::apply(
     U_P_components[0] = U_scratch_component;
     U_P_components[1] = P_scratch_component;
     INSStaggeredPressureBcCoef* P_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_P_bc_coef);
-    P_bc_coef->setVelocityNewPatchDataIndex(U_scratch_idx);
+    if (P_bc_coef != NULL) P_bc_coef->setVelocityNewPatchDataIndex(U_scratch_idx);
     d_U_P_bdry_fill_op->setHomogeneousBc(homogeneous_bc);
     d_U_P_bdry_fill_op->resetTransactionComponents(U_P_components);
     d_U_P_bdry_fill_op->fillData(d_new_time);
@@ -240,7 +240,7 @@ INSStaggeredStokesOperator::apply(
         U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
         1.0,
         U_out_idx, U_out_sc_var);
-    d_U_bc_helper->zeroValuesAtDirichletBoundaries(U_out_idx);
+    if (!d_U_bc_helper.isNull()) d_U_bc_helper->zeroValuesAtDirichletBoundaries(U_out_idx);
 
     d_hier_math_ops->div(
         P_out_idx, P_out_cc_var,
