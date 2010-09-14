@@ -41,11 +41,16 @@
 #include <VisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibtk/HierarchyMathOps.h>
-#include <ibtk/muParserCartGridFunction.h>
+#include <ibamr/INSStaggeredProjectionPreconditioner.h>
 #include <ibamr/INSStaggeredVCStokesOperator.h>
+#include <ibtk/CCLaplaceOperator.h>
+#include <ibtk/CCPoissonHypreLevelSolver.h>
+#include <ibtk/HierarchyMathOps.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
+#include <ibtk/SCLaplaceOperator.h>
+#include <ibtk/SCPoissonHypreLevelSolver.h>
+#include <ibtk/muParserCartGridFunction.h>
 
 using namespace SAMRAI;
 using namespace IBTK;
@@ -208,7 +213,7 @@ main(
         visit_data_writer->registerPlotQuantity(u_cell_var->getName(), "VECTOR", u_cell_idx);
         for (int d = 0; d < NDIM; ++d)
         {
-            std::ostringstream stream;
+            ostringstream stream;
             stream << d;
             visit_data_writer->registerPlotQuantity(u_cell_var->getName()+stream.str(), "SCALAR", u_cell_idx, d);
         }
@@ -216,7 +221,7 @@ main(
         visit_data_writer->registerPlotQuantity(f_cell_var->getName(), "VECTOR", f_cell_idx);
         for (int d = 0; d < NDIM; ++d)
         {
-            std::ostringstream stream;
+            ostringstream stream;
             stream << d;
             visit_data_writer->registerPlotQuantity(f_cell_var->getName()+stream.str(), "SCALAR", f_cell_idx, d);
         }
@@ -224,7 +229,7 @@ main(
         visit_data_writer->registerPlotQuantity(e_cell_var->getName(), "VECTOR", e_cell_idx);
         for (int d = 0; d < NDIM; ++d)
         {
-            std::ostringstream stream;
+            ostringstream stream;
             stream << d;
             visit_data_writer->registerPlotQuantity(e_cell_var->getName()+stream.str(), "SCALAR", e_cell_idx, d);
         }
@@ -291,6 +296,14 @@ main(
         du_fcn.setDataOnPatchHierarchy(du_cell_idx, du_cell_var, patch_hierarchy, data_time);
 
         /*
+         * Problem coefficients for preconditioners.
+         */
+        double rho = 1.0;
+        double mu = 1.0;
+        double lambda = 0.0;
+        double dt = 0.1;
+
+        /*
          * Create the math operations object and get the patch data index for
          * the side-centered weighting factor.
          */
@@ -311,24 +324,14 @@ main(
 	y.addComponent(f_side_var,f_side_idx,dx_side_idx);
         y.addComponent(du_cell_var,du_cell_idx,dx_cell_idx);
 
-        tbox::Pointer<PETScKrylovLinearSolver> petsc_linear_solver =
-            new PETScKrylovLinearSolver("petsc_linear_solver");
+        tbox::Pointer<PETScKrylovLinearSolver> vc_stokes_solver = new PETScKrylovLinearSolver("vc_stokes_solver");
 
         // Setup the operator.
         vc_stokes_op.setTimeInterval(0.1,0.2);
         vc_stokes_op.registerViscosityVariable(mu_node_var,mu_node_idx);
         vc_stokes_op.registerDensityVariable(rho_side_var,rho_side_idx);
         vc_stokes_op.initializeOperatorState(x,y);
-        petsc_linear_solver->setOperator(tbox::Pointer<LinearOperator>(&vc_stokes_op,false));
-
-        // Initialize the solver.
-        tbox::TimerManager* timer_manager = tbox::TimerManager::getManager();
-        tbox::Pointer<tbox::Timer> t_initialize_solver_state = timer_manager->getTimer("IBTK::main::initializeSolverState()");
-        tbox::Pointer<tbox::Timer> t_solve_system = timer_manager->getTimer("IBTK::main::solveSystem()");
-
-        t_initialize_solver_state->start();
-        petsc_linear_solver->initializeSolverState(x,y);
-        t_initialize_solver_state->stop();
+        vc_stokes_solver->setOperator(tbox::Pointer<LinearOperator>(&vc_stokes_op,false));
 
         // Add a nullspace vector to the KSP solver.
         tbox::Pointer<solv::SAMRAIVectorReal<NDIM,double> > nul_vec = x.cloneVector("nul_vec");
@@ -341,12 +344,80 @@ main(
                 p_cell_var, patch_hierarchy, true);
         hier_side_data_ops->setToScalar(nul_vec->getComponentDescriptorIndex(0), 0.0);
         hier_cell_data_ops->setToScalar(nul_vec->getComponentDescriptorIndex(1), 1.0);
-        petsc_linear_solver->setNullspace(false, nul_vec);
+        vc_stokes_solver->setNullspace(false, nul_vec);
+
+        // Setup the velocity subdomain solver.
+        const string helmholtz_prefix = "helmholtz_";
+
+        // Setup the various solver components.
+        solv::PoissonSpecifications helmholtz_spec("helmholtz_spec");
+        helmholtz_spec.setCConstant((rho/dt)+0.5*lambda);
+        helmholtz_spec.setDConstant(        -0.5*mu    );
+
+        vector<solv::RobinBcCoefStrategy<NDIM>*> U_star_bc_coefs(NDIM);
+        tbox::Pointer<SCLaplaceOperator> helmholtz_op = new SCLaplaceOperator("Helmholtz Operator", helmholtz_spec, U_star_bc_coefs, true);
+        helmholtz_op->setHierarchyMathOps(tbox::Pointer<HierarchyMathOps>(&hier_math_ops,false));
+
+        tbox::Pointer <PETScKrylovLinearSolver> helmholtz_solver = new PETScKrylovLinearSolver("::Helmholtz Krylov Solver", helmholtz_prefix);
+        helmholtz_solver->setInitialGuessNonzero(false);
+        helmholtz_solver->setOperator(helmholtz_op);
+
+        tbox::Pointer<SCPoissonHypreLevelSolver> helmholtz_hypre_pc = new SCPoissonHypreLevelSolver("Helmholtz Preconditioner");
+        helmholtz_hypre_pc->setPoissonSpecifications(helmholtz_spec);
+        helmholtz_solver->setPreconditioner(helmholtz_hypre_pc);
+
+        // Set some default options.
+        helmholtz_solver->setKSPType("preonly");
+        helmholtz_solver->setAbsoluteTolerance(1.0e-30);
+        helmholtz_solver->setRelativeTolerance(1.0e-02);
+        helmholtz_solver->setMaxIterations(25);
+
+        // Setup the pressure subdomain solver.
+        const string poisson_prefix = "poisson_";
+
+        // Setup the various solver components.
+        solv::PoissonSpecifications poisson_spec("poisson_spec");
+        poisson_spec.setCZero();
+        poisson_spec.setDConstant(-1.0);
+
+        solv::RobinBcCoefStrategy<NDIM>* Phi_bc_coef = NULL;
+        tbox::Pointer<CCLaplaceOperator> poisson_op = new CCLaplaceOperator("Poisson Operator", poisson_spec, Phi_bc_coef, true);
+        poisson_op->setHierarchyMathOps(tbox::Pointer<HierarchyMathOps>(&hier_math_ops,false));
+
+        tbox::Pointer<PETScKrylovLinearSolver> poisson_solver = new PETScKrylovLinearSolver("Poisson Krylov Solver", poisson_prefix);
+        poisson_solver->setInitialGuessNonzero(false);
+        poisson_solver->setOperator(poisson_op);
+
+        tbox::Pointer<CCPoissonHypreLevelSolver> poisson_hypre_pc = new CCPoissonHypreLevelSolver("Poisson Preconditioner");
+        poisson_hypre_pc->setPoissonSpecifications(poisson_spec);
+        poisson_solver->setPreconditioner(poisson_hypre_pc);
+
+        // Set some default options.
+        poisson_solver->setKSPType("preonly");
+        poisson_solver->setAbsoluteTolerance(1.0e-30);
+        poisson_solver->setRelativeTolerance(1.0e-02);
+        poisson_solver->setMaxIterations(25);
+        poisson_solver->setNullspace(true, NULL);
+
+        // Setup the Stokes preconditioner.
+        INSCoefs problem_coefs(rho, mu, lambda);
+
+        tbox::Pointer<INSStaggeredProjectionPreconditioner> projection_pc = new INSStaggeredProjectionPreconditioner(problem_coefs, Phi_bc_coef, true, helmholtz_solver, poisson_solver, hier_cell_data_ops, hier_side_data_ops, tbox::Pointer<HierarchyMathOps>(&hier_math_ops,false));
+        vc_stokes_solver->setPreconditioner(projection_pc);
+
+        // Initialize the solver.
+        tbox::TimerManager* timer_manager = tbox::TimerManager::getManager();
+        tbox::Pointer<tbox::Timer> t_initialize_solver_state = timer_manager->getTimer("IBTK::main::initializeSolverState()");
+        tbox::Pointer<tbox::Timer> t_solve_system = timer_manager->getTimer("IBTK::main::solveSystem()");
+
+        t_initialize_solver_state->start();
+        vc_stokes_solver->initializeSolverState(x,y);
+        t_initialize_solver_state->stop();
 
         // Solve the system.
         x.setToScalar(0.0,false);
         t_solve_system->start();
-        petsc_linear_solver->solveSystem(x,y);
+        vc_stokes_solver->solveSystem(x,y);
         t_solve_system->stop();
 
         /*
