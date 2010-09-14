@@ -51,13 +51,13 @@ class INSCoefs
 {
 public:
     /*!
-     * \brief Constructor.
+     * \brief Default constructor.
      */
     inline
     INSCoefs(
-        const double rho,
-        const double mu,
-        const double lambda)
+        const double rho=0.0,
+        const double mu=0.0,
+        const double lambda=0.0)
         : d_rho(rho),
           d_mu(mu),
           d_lambda(lambda)
@@ -140,14 +140,6 @@ public:
 protected:
 
 private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be
-     * used.
-     */
-    INSCoefs();
-
     /*!
      * \brief The mass density (rho), dynamic viscosity (mu), and drag (lambda)
      * coefficients.
