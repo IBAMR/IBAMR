@@ -976,7 +976,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                 TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
                              "  Vanka FAC PC solver database is null." << std::endl);
             }
-            d_vanka_fac_op = new INSStaggeredBoxRelaxationFACOperator(d_object_name+"::Vanka FAC Operator", *d_problem_coefs, d_old_dt, d_vanka_fac_pc_db);
+            d_vanka_fac_op = new INSStaggeredBoxRelaxationFACOperator(d_object_name+"::Vanka FAC Operator", d_vanka_fac_pc_db);
             d_vanka_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Vanka Preconditioner", *d_vanka_fac_op, d_vanka_fac_pc_db);
             d_stokes_solver->setPreconditioner(d_vanka_fac_pc);
         }
@@ -1398,7 +1398,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
     // Setup the operators and solvers.
     initializeOperatorsAndSolvers(current_time, new_time);
 
-    // Setup the nullspace object.
     if (d_normalize_pressure)
     {
         d_nul_vec = d_sol_vec->cloneVector(d_object_name+"::nul_vec");
@@ -1406,7 +1405,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
         d_hier_sc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(0), 0.0);
         d_hier_cc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(1), 1.0);
         d_stokes_solver->setNullspace(false, d_nul_vec);
-        d_poisson_solver->setNullspace(true, NULL);
     }
 
     // Set the initial guess.
@@ -2875,7 +2873,6 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
         d_vanka_fac_op->setProblemCoefficients(*d_problem_coefs,dt);
         d_vanka_fac_op->setTimeInterval(current_time,new_time);
         d_vanka_fac_op->setPhysicalBcCoefs(d_U_star_bc_coefs,d_Phi_bc_coef);
-        d_vanka_fac_op->setHomogeneousBc(true);
         if (d_vanka_pc_needs_init && !d_stokes_solver_needs_init)
         {
             if (d_do_log) plog << d_object_name << "::integrateHierarchy(): Initializing Vanka preconditioner" << std::endl;

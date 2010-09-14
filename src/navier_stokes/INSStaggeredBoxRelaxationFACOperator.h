@@ -46,6 +46,7 @@
 #include <ibtk/CartSideRobinPhysBdryOp.h>
 #include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
 #include <ibtk/FACPreconditionerStrategy.h>
+#include <ibtk/HierarchyMathOps.h>
 
 // SAMRAI INCLUDES
 #include <CoarsenAlgorithm.h>
@@ -64,7 +65,26 @@ namespace IBAMR
  * \brief Class INSStaggeredBoxRelaxationFACOperator is a concrete
  * FACPreconditionerStrategy implementing a box relaxation (Vanka-type) smoother
  * for use as a multigrid preconditioner.
- */
+ *
+ * \warning This class was originally intended to be used with the SAMRAI class
+ * SAMRAI::solv::FACPreconditioner but is now designed to be used with the IBTK
+ * class IBTK::FACPreconditioner.
+ *
+ * Sample parameters for initialization from database (and their default
+ * values): \verbatim
+
+ smoother_choice = "additive"                   // see setSmootherChoice()
+
+ U_prolongation_method = "CONSTANT_REFINE"      // see setProlongationMethods()
+ P_prolongation_method = "LINEAR_REFINE"        // see setProlongationMethods()
+ U_restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethods()
+ P_restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethods()
+
+ coarse_solver_choice = "block_jacobi"              // see setCoarsestLevelSolverChoice()
+ coarse_solver_tolerance = 1.0e-6                   // see setCoarsestLevelSolverTolerance()
+ coarse_solver_max_iterations = 10                  // see setCoarsestLevelSolverMaxIterations()
+ \endverbatim
+*/
 class INSStaggeredBoxRelaxationFACOperator
     : public virtual IBTK::FACPreconditionerStrategy
 {
@@ -74,8 +94,6 @@ public:
      */
     INSStaggeredBoxRelaxationFACOperator(
         const std::string& object_name,
-        const INSCoefs& problem_coefs,
-        const double dt,
         const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db=NULL);
 
     /*!
@@ -107,8 +125,8 @@ public:
      * depth.  \a P_bc_coef may also be NULL; in that case, homogeneous Neumann
      * boundary conditions are employed for the pressure.
      *
-     * \param U_bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
-     * \param P_bc_coef   Pointers to object that can set the Robin boundary condition coefficients
+     * \param U_bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients for the velocity
+     * \param P_bc_coef   Pointer to object that can set the Robin boundary condition coefficients for the pressure
      */
     void
     setPhysicalBcCoefs(
@@ -116,14 +134,8 @@ public:
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
 
     /*!
-     * \brief Specify whether the boundary conditions are homogeneous.
-     */
-    void
-    setHomogeneousBc(
-        const bool homogeneous_bc);
-
-    /*!
-     * \brief Set the current time interval.
+     * \brief Set the current time interval, for use with the refinement
+     * schedules and boundary condition routines employed by the object.
      */
     void
     setTimeInterval(
@@ -175,6 +187,7 @@ public:
      *
      * Select from:
      * - \c "additive"
+     * - \c "multiplicative"
      *
      * \note The smoother is always additive between processors ("processor
      * block Gauss-Seidel").
@@ -199,7 +212,8 @@ public:
      * If the coarse level solver requires a tolerance, the specified value is
      * used.
      *
-     * \note Currently, this value is not used.
+     * \note This value is ignored if the bottom solver choice is
+     * "block_jacobi".
      */
     void
     setCoarsestLevelSolverTolerance(
@@ -213,7 +227,7 @@ public:
         int coarse_solver_max_its);
 
     /*!
-     * \brief Set the name of the prolongation methods.
+     * \brief Set the names of the prolongation methods.
      */
     void
     setProlongationMethods(
@@ -221,56 +235,12 @@ public:
         const std::string& P_prolongation_method);
 
     /*!
-     * \brief Set the name of the restriction methods.
+     * \brief Set the names of the restriction methods.
      */
     void
     setRestrictionMethods(
         const std::string& U_restriction_method,
         const std::string& P_restriction_method);
-
-    /*!
-     * \brief Set the maximum number of FAC cycles used by the FACPreconditioner
-     * that employs this concrete FACPreconditionerStrategy.
-     */
-    void
-    setFACPreconditionerMaxCycles(
-        int fac_max_cycles);
-
-    /*!
-     * \brief Set whether the FACPreconditioner that employs this concrete
-     * FACPreconditionerStrategy is employing presmoothing.
-     */
-    void
-    setFACPreconditionerUsesPresmoothing(
-        bool fac_uses_presmoothing);
-
-    /*!
-     * \brief Set whether the FACPreconditioner that employs this concrete
-     * FACPreconditionerStrategy uses a nonzero initial guess.
-     */
-    void
-    setFACPreconditionerInitialGuessNonzero(
-        bool fac_initial_guess_nonzero);
-
-    /*!
-     * \brief Set whether to skip restricting the solution.
-     *
-     * If this operator is being used as a preconditioner, it may be possible to
-     * avoid restricting the solution.
-     */
-    void
-    setSkipRestrictSolution(
-        bool skip_restrict_sol);
-
-    /*!
-     * \brief Set whether to skip restricting the residual.
-     *
-     * If this operator is being used as a preconditioner, it may be possible to
-     * avoid restricting the residual.
-     */
-    void
-    setSkipRestrictResidual(
-        bool skip_restrict_residual);
 
     //\}
 
@@ -470,35 +440,17 @@ private:
     xeqScheduleProlongation(
         const std::pair<int,int>& dst_idxs,
         const std::pair<int,int>& src_idxs,
-        const int dst_ln,
-        const bool homogeneous_bc);
-
-    /*!
-     * \brief Execute schedule for restricting solution to the specified level.
-     */
-    void
-    xeqScheduleURestriction(
-        const std::pair<int,int>& dst_idxs,
-        const std::pair<int,int>& src_idxs,
         const int dst_ln);
 
     /*!
-     * \brief Execute schedule for restricting residual to the specified level.
+     * \brief Execute schedule for restricting solution or residual to the
+     * specified level.
      */
     void
-    xeqScheduleRRestriction(
+    xeqScheduleRestriction(
         const std::pair<int,int>& dst_idxs,
         const std::pair<int,int>& src_idxs,
         const int dst_ln);
-
-    /*!
-     * \brief Execute schedule for filling ghosts on the specified level.
-     */
-    void
-    xeqScheduleGhostFill(
-        const std::pair<int,int>& dst_idxs,
-        const int dst_ln,
-        const bool homogeneous_bc);
 
     /*!
      * \brief Execute schedule for filling ghosts on the specified level.
@@ -506,15 +458,14 @@ private:
     void
     xeqScheduleGhostFillNoCoarse(
         const std::pair<int,int>& dst_idxs,
-        const int dst_ln,
-        const bool homogeneous_bc);
+        const int dst_ln);
 
     /*!
      * \brief Execute schedule for synchronizing data on the specified level.
      */
     void
     xeqScheduleSideDataSynch(
-        const int U_dst_idx,
+        const int dst_idx,
         const int dst_ln);
 
     //\}
@@ -558,8 +509,10 @@ private:
     /*
      * Mappings from patch indices to patch operators.
      */
-    std::vector<std::map<int,std::vector<SAMRAI::hier::BoxList<NDIM> > > > d_patch_side_bc_box_overlap;
-    std::vector<std::map<int,SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
+    std::vector<std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > > d_patch_side_bc_box_overlap;
+    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
+    std::vector<std::vector<std::vector<std::map<int,SAMRAI::hier::Box<NDIM> > > > > d_patch_side_smoother_bc_boxes;
+    std::vector<std::vector<std::map<int,SAMRAI::hier::Box<NDIM> > > > d_patch_cell_smoother_bc_boxes;
 
     /*
      * Reference patch hierarchy and range of levels involved in the solve.
@@ -571,6 +524,12 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
+
+    /*
+     * Level operators, used to compute composite-grid residuals.
+     */
+    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> > d_hier_bdry_fill_ops;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> > d_hier_math_ops;
 
     /*
      * Range of levels to be reset the next time the operator is initialized.
@@ -597,44 +556,21 @@ private:
     std::string d_smoother_choice;
 
     /*
-     * The name of the refinement operators used to prolong the coarse grid
+     * The names of the refinement operators used to prolong the coarse grid
      * correction.
      */
     std::string d_U_prolongation_method, d_P_prolongation_method;
 
     /*
-     * The name of the coarsening operators used to restrict the fine grid error
-     * or residual.
+     * The names of the coarsening operators used to restrict the fine grid
+     * error or residual.
      */
     std::string d_U_restriction_method, d_P_restriction_method;
 
     /*
      * Pointer to the FACPreconditioner that is using this operator.
-     *
-     * Integer indicates the maximum number of FAC cycles.  When this number is
-     * 1, some computations and parallel communication can be avoided.
-     *
-     * Booleans that indicate whether the FAC preconditioner associated with
-     * this concrete FACPreconditionerStrategy is performing presmoothing or
-     * using a nonzero initial guess.
-     *
-     * If the FACPreconditioner is:
-     *
-     *     1) being used as a preconditioner for a Krylov subspace linear
-     *        solver, and
-     *     2) not performing presmoothing (which doesn't seem to work anyway)
-     *
-     * then we can save a substantial amount of work.
      */
     SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> d_preconditioner;
-    int d_fac_max_cycles;
-    bool d_fac_uses_presmoothing, d_fac_initial_guess_nonzero;
-
-    /*
-     * In some cases, it may be desirable to skip restricting the solution or
-     * the residual.
-     */
-    bool d_skip_restrict_sol, d_skip_restrict_residual;
 
     /*
      * Coarse level solver parameters.
@@ -677,7 +613,6 @@ private:
 
     SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_U_P_bc_op;
 
-    bool d_homogeneous_bc;
     double d_current_time, d_new_time;
 
     //\}
@@ -686,6 +621,12 @@ private:
      * \name Various refine and coarsen objects.
      */
     //\{
+
+    /*
+     * Coarse-fine interface interpolation objects.
+     */
+    SAMRAI::tbox::Pointer<IBTK::CoarseFineBoundaryRefinePatchStrategy> d_U_cf_bdry_op;
+    SAMRAI::tbox::Pointer<IBTK::CoarseFineBoundaryRefinePatchStrategy> d_P_cf_bdry_op;
 
     /*
      * Variable fill pattern object.
@@ -697,38 +638,20 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_U_prolongation_refine_operator;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_P_prolongation_refine_operator;
-    SAMRAI::tbox::Pointer<IBTK::CoarseFineBoundaryRefinePatchStrategy> d_U_cf_bdry_op;
-    SAMRAI::tbox::Pointer<IBTK::CoarseFineBoundaryRefinePatchStrategy> d_P_cf_bdry_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_prolongation_refine_patch_strategy;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_prolongation_refine_algorithm;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_prolongation_refine_schedules;
 
     /*
-     * Solution restriction (coarsening) operator.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_U_urestriction_coarsen_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_P_urestriction_coarsen_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_urestriction_coarsen_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_urestriction_coarsen_schedules;
-
-    /*
      * Residual restriction (coarsening) operator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_U_rrestriction_coarsen_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_P_rrestriction_coarsen_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_rrestriction_coarsen_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_rrestriction_coarsen_schedules;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_U_restriction_coarsen_operator;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_P_restriction_coarsen_operator;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_restriction_coarsen_algorithm;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_restriction_coarsen_schedules;
 
     /*
-     * Refine operator for side data from coarser level.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_U_ghostfill_refine_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_P_ghostfill_refine_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_ghostfill_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_ghostfill_refine_schedules;
-
-    /*
-     * Refine operator for side data from same level.
+     * Refine operator for side and cell data from same level.
      */
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_U_ghostfill_nocoarse_refine_operator;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_P_ghostfill_nocoarse_refine_operator;

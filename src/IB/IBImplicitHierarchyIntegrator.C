@@ -2968,7 +2968,6 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
         d_vanka_fac_op->setProblemCoefficients(*d_problem_coefs,dt);
         d_vanka_fac_op->setTimeInterval(current_time,new_time);
         d_vanka_fac_op->setPhysicalBcCoefs(d_u_star_bc_coefs,d_phi_bc_coef);
-        d_vanka_fac_op->setHomogeneousBc(true);
         if (d_vanka_pc_needs_init && !d_ib_solver_needs_init)
         {
             if (d_do_log) plog << d_object_name << "::integrateHierarchy(): Initializing Vanka preconditioner" << std::endl;
@@ -3229,7 +3228,7 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
                         TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
                                      "  Vanka FAC PC solver database is null." << std::endl);
                     }
-                    d_vanka_fac_op = new INSStaggeredBoxRelaxationFACOperator(d_object_name+"::Vanka FAC Operator", *d_problem_coefs, d_old_dt, d_vanka_fac_pc_db);
+                    d_vanka_fac_op = new INSStaggeredBoxRelaxationFACOperator(d_object_name+"::Vanka FAC Operator", d_vanka_fac_pc_db);
                     d_vanka_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Vanka Preconditioner", *d_vanka_fac_op, d_vanka_fac_pc_db);
                     ksp_solver->setPreconditioner(d_vanka_fac_pc);
                 }
