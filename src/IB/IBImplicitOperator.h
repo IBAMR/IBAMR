@@ -39,7 +39,7 @@
 #include <petsc.h>
 
 // IBAMR INCLUDES
-#include <ibamr/IBImplicitSFSstarOperator.h>
+#include <ibamr/IBImplicitSFROperator.h>
 #include <ibamr/INSStaggeredStokesOperator.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -63,7 +63,7 @@ public:
      */
     IBImplicitOperator(
         SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> stokes_op,
-        SAMRAI::tbox::Pointer<IBImplicitSFSstarOperator> ib_SFSstar_op);
+        SAMRAI::tbox::Pointer<IBImplicitSFROperator> ib_SFR_op);
 
     /*!
      * \brief Virtual destructor.
@@ -184,7 +184,7 @@ private:
     SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> d_stokes_op;
 
     // The IB force operator.
-    SAMRAI::tbox::Pointer<IBImplicitSFSstarOperator> d_ib_SFSstar_op;
+    SAMRAI::tbox::Pointer<IBImplicitSFROperator> d_ib_SFR_op;
 };
 }// namespace IBAMR
 

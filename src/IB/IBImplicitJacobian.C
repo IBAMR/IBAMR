@@ -45,6 +45,7 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/IBImplicitSJROperator.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
@@ -61,11 +62,13 @@ namespace IBAMR
 
 IBImplicitJacobian::IBImplicitJacobian(
     Pointer<INSStaggeredStokesOperator> stokes_op,
-    Pointer<JacobianOperator> ib_SJSstar_op)
+    Pointer<JacobianOperator> ib_SJR_op,
+    Pointer<IBImplicitModHelmholtzPETScLevelSolver> mod_helmholtz_solver)
     : JacobianOperator(false),
       d_is_initialized(false),
       d_stokes_op(stokes_op),
-      d_ib_SJSstar_op(ib_SJSstar_op)
+      d_ib_SJR_op(ib_SJR_op),
+      d_mod_helmholtz_solver(mod_helmholtz_solver)
 {
     // intentionally blank
     return;
@@ -81,14 +84,20 @@ void
 IBImplicitJacobian::formJacobian(
     SAMRAIVectorReal<NDIM,double>& x)
 {
-    d_ib_SJSstar_op->formJacobian(x);
+    d_ib_SJR_op->formJacobian(x);
+    Pointer<IBImplicitSJROperator> ib_SJR_op = d_ib_SJR_op;
+    if (!ib_SJR_op.isNull())
+    {
+        d_mod_helmholtz_solver->setSJRMat(ib_SJR_op->getSJRMats()[0]);
+        d_mod_helmholtz_solver->initializeSolverState(x,x); // XXXX
+    }
     return;
-}// formJacobiam
+}// formJacobian
 
 Pointer<SAMRAIVectorReal<NDIM,double> >
 IBImplicitJacobian::getBaseVector() const
 {
-    return d_ib_SJSstar_op->getBaseVector();
+    return d_ib_SJR_op->getBaseVector();
 }// getBaseVector
 
 void
@@ -108,7 +117,7 @@ IBImplicitJacobian::apply(
     x_u.addComponent(x.getComponentVariable(0), x.getComponentDescriptorIndex(0), x.getControlVolumeIndex(0));
     SAMRAIVectorReal<NDIM,double> y_u(y.getName(), y.getPatchHierarchy(), y.getCoarsestLevelNumber(), y.getFinestLevelNumber());
     y_u.addComponent(y.getComponentVariable(0), y.getComponentDescriptorIndex(0), y.getControlVolumeIndex(0));
-    d_ib_SJSstar_op->applyAdd(x_u, y_u, y_u);
+    d_ib_SJR_op->applyAdd(x_u, y_u, y_u);
     return;
 }// apply
 
@@ -125,7 +134,7 @@ IBImplicitJacobian::initializeOperatorState(
     in_u.addComponent(in.getComponentVariable(0), in.getComponentDescriptorIndex(0), in.getControlVolumeIndex(0));
     SAMRAIVectorReal<NDIM,double> out_u(out.getName(), out.getPatchHierarchy(), out.getCoarsestLevelNumber(), out.getFinestLevelNumber());
     out_u.addComponent(out.getComponentVariable(0), out.getComponentDescriptorIndex(0), out.getControlVolumeIndex(0));
-    d_ib_SJSstar_op->initializeOperatorState(in_u, out_u);
+    d_ib_SJR_op->initializeOperatorState(in_u, out_u);
 
     d_is_initialized = true;
     return;
@@ -136,7 +145,7 @@ IBImplicitJacobian::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
     d_stokes_op->deallocateOperatorState();
-    d_ib_SJSstar_op->deallocateOperatorState();
+    d_ib_SJR_op->deallocateOperatorState();
     d_is_initialized = false;
     return;
 }// deallocateOperatorState

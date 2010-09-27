@@ -90,9 +90,10 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C \
 	$(top_srcdir)/src/IB/IBImplicitJacobian.C \
 	$(top_srcdir)/src/IB/IBImplicitModHelmholtzOperator.C \
+	$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C \
 	$(top_srcdir)/src/IB/IBImplicitOperator.C \
-	$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C \
-	$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C \
+	$(top_srcdir)/src/IB/IBImplicitSFROperator.C \
+	$(top_srcdir)/src/IB/IBImplicitSJROperator.C \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
@@ -164,9 +165,10 @@ am__objects_2 = libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBImplicitHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-IBImplicitJacobian.$(OBJEXT) \
 	libIBAMR2d_a-IBImplicitModHelmholtzOperator.$(OBJEXT) \
+	libIBAMR2d_a-IBImplicitModHelmholtzPETScLevelSolver.$(OBJEXT) \
 	libIBAMR2d_a-IBImplicitOperator.$(OBJEXT) \
-	libIBAMR2d_a-IBImplicitSFSstarOperator.$(OBJEXT) \
-	libIBAMR2d_a-IBImplicitSJSstarOperator.$(OBJEXT) \
+	libIBAMR2d_a-IBImplicitSFROperator.$(OBJEXT) \
+	libIBAMR2d_a-IBImplicitSJROperator.$(OBJEXT) \
 	libIBAMR2d_a-IBInstrumentPanel.$(OBJEXT) \
 	libIBAMR2d_a-IBInstrumentationSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBInstrumentationSpecFactory.$(OBJEXT) \
@@ -239,9 +241,10 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C \
 	$(top_srcdir)/src/IB/IBImplicitJacobian.C \
 	$(top_srcdir)/src/IB/IBImplicitModHelmholtzOperator.C \
+	$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C \
 	$(top_srcdir)/src/IB/IBImplicitOperator.C \
-	$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C \
-	$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C \
+	$(top_srcdir)/src/IB/IBImplicitSFROperator.C \
+	$(top_srcdir)/src/IB/IBImplicitSJROperator.C \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
@@ -311,9 +314,10 @@ am__objects_4 = libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBImplicitHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-IBImplicitJacobian.$(OBJEXT) \
 	libIBAMR3d_a-IBImplicitModHelmholtzOperator.$(OBJEXT) \
+	libIBAMR3d_a-IBImplicitModHelmholtzPETScLevelSolver.$(OBJEXT) \
 	libIBAMR3d_a-IBImplicitOperator.$(OBJEXT) \
-	libIBAMR3d_a-IBImplicitSFSstarOperator.$(OBJEXT) \
-	libIBAMR3d_a-IBImplicitSJSstarOperator.$(OBJEXT) \
+	libIBAMR3d_a-IBImplicitSFROperator.$(OBJEXT) \
+	libIBAMR3d_a-IBImplicitSJROperator.$(OBJEXT) \
 	libIBAMR3d_a-IBInstrumentPanel.$(OBJEXT) \
 	libIBAMR3d_a-IBInstrumentationSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBInstrumentationSpecFactory.$(OBJEXT) \
@@ -402,9 +406,11 @@ am__pkg_include_HEADERS_DIST = $(top_srcdir)/src/adv_diff/TGACoefs.h \
 	$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.h \
 	$(top_srcdir)/src/IB/IBImplicitJacobian.h \
 	$(top_srcdir)/src/IB/IBImplicitModHelmholtzOperator.h \
+	$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.I \
+	$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.h \
 	$(top_srcdir)/src/IB/IBImplicitOperator.h \
-	$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.h \
-	$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.h \
+	$(top_srcdir)/src/IB/IBImplicitSFROperator.h \
+	$(top_srcdir)/src/IB/IBImplicitSJROperator.h \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.h \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.I \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.h \
@@ -799,9 +805,11 @@ pkg_include_HEADERS = $(top_srcdir)/src/adv_diff/TGACoefs.h \
 	$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.h \
 	$(top_srcdir)/src/IB/IBImplicitJacobian.h \
 	$(top_srcdir)/src/IB/IBImplicitModHelmholtzOperator.h \
+	$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.I \
+	$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.h \
 	$(top_srcdir)/src/IB/IBImplicitOperator.h \
-	$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.h \
-	$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.h \
+	$(top_srcdir)/src/IB/IBImplicitSFROperator.h \
+	$(top_srcdir)/src/IB/IBImplicitSJROperator.h \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.h \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.I \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.h \
@@ -865,9 +873,10 @@ DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/IB/IBAnchorPointSpec.C \
 	$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C \
 	$(top_srcdir)/src/IB/IBImplicitJacobian.C \
 	$(top_srcdir)/src/IB/IBImplicitModHelmholtzOperator.C \
+	$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C \
 	$(top_srcdir)/src/IB/IBImplicitOperator.C \
-	$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C \
-	$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C \
+	$(top_srcdir)/src/IB/IBImplicitSFROperator.C \
+	$(top_srcdir)/src/IB/IBImplicitSJROperator.C \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
@@ -1043,9 +1052,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBImplicitHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBImplicitJacobian.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBImplicitModHelmholtzOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBImplicitModHelmholtzPETScLevelSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBImplicitOperator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBImplicitSFSstarOperator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBImplicitSJSstarOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBImplicitSFROperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBImplicitSJROperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBInstrumentPanel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpecFactory.Po@am__quote@
@@ -1104,9 +1114,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBImplicitHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBImplicitJacobian.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBImplicitModHelmholtzOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBImplicitModHelmholtzPETScLevelSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBImplicitOperator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBImplicitSFSstarOperator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBImplicitSJSstarOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBImplicitSFROperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBImplicitSJROperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBInstrumentPanel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpecFactory.Po@am__quote@
@@ -1356,6 +1367,20 @@ libIBAMR2d_a-IBImplicitModHelmholtzOperator.obj: $(top_srcdir)/src/IB/IBImplicit
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitModHelmholtzOperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitModHelmholtzOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitModHelmholtzOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitModHelmholtzOperator.C'; fi`
 
+libIBAMR2d_a-IBImplicitModHelmholtzPETScLevelSolver.o: $(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBImplicitModHelmholtzPETScLevelSolver.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBImplicitModHelmholtzPETScLevelSolver.Tpo -c -o libIBAMR2d_a-IBImplicitModHelmholtzPETScLevelSolver.o `test -f '$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBImplicitModHelmholtzPETScLevelSolver.Tpo $(DEPDIR)/libIBAMR2d_a-IBImplicitModHelmholtzPETScLevelSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C' object='libIBAMR2d_a-IBImplicitModHelmholtzPETScLevelSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitModHelmholtzPETScLevelSolver.o `test -f '$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C
+
+libIBAMR2d_a-IBImplicitModHelmholtzPETScLevelSolver.obj: $(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBImplicitModHelmholtzPETScLevelSolver.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBImplicitModHelmholtzPETScLevelSolver.Tpo -c -o libIBAMR2d_a-IBImplicitModHelmholtzPETScLevelSolver.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBImplicitModHelmholtzPETScLevelSolver.Tpo $(DEPDIR)/libIBAMR2d_a-IBImplicitModHelmholtzPETScLevelSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C' object='libIBAMR2d_a-IBImplicitModHelmholtzPETScLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitModHelmholtzPETScLevelSolver.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C'; fi`
+
 libIBAMR2d_a-IBImplicitOperator.o: $(top_srcdir)/src/IB/IBImplicitOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBImplicitOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBImplicitOperator.Tpo -c -o libIBAMR2d_a-IBImplicitOperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitOperator.C
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBImplicitOperator.Tpo $(DEPDIR)/libIBAMR2d_a-IBImplicitOperator.Po
@@ -1370,33 +1395,33 @@ libIBAMR2d_a-IBImplicitOperator.obj: $(top_srcdir)/src/IB/IBImplicitOperator.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitOperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitOperator.C'; fi`
 
-libIBAMR2d_a-IBImplicitSFSstarOperator.o: $(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBImplicitSFSstarOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBImplicitSFSstarOperator.Tpo -c -o libIBAMR2d_a-IBImplicitSFSstarOperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBImplicitSFSstarOperator.Tpo $(DEPDIR)/libIBAMR2d_a-IBImplicitSFSstarOperator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C' object='libIBAMR2d_a-IBImplicitSFSstarOperator.o' libtool=no @AMDEPBACKSLASH@
+libIBAMR2d_a-IBImplicitSFROperator.o: $(top_srcdir)/src/IB/IBImplicitSFROperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBImplicitSFROperator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBImplicitSFROperator.Tpo -c -o libIBAMR2d_a-IBImplicitSFROperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitSFROperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitSFROperator.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBImplicitSFROperator.Tpo $(DEPDIR)/libIBAMR2d_a-IBImplicitSFROperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitSFROperator.C' object='libIBAMR2d_a-IBImplicitSFROperator.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitSFSstarOperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitSFROperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitSFROperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitSFROperator.C
 
-libIBAMR2d_a-IBImplicitSFSstarOperator.obj: $(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBImplicitSFSstarOperator.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBImplicitSFSstarOperator.Tpo -c -o libIBAMR2d_a-IBImplicitSFSstarOperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBImplicitSFSstarOperator.Tpo $(DEPDIR)/libIBAMR2d_a-IBImplicitSFSstarOperator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C' object='libIBAMR2d_a-IBImplicitSFSstarOperator.obj' libtool=no @AMDEPBACKSLASH@
+libIBAMR2d_a-IBImplicitSFROperator.obj: $(top_srcdir)/src/IB/IBImplicitSFROperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBImplicitSFROperator.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBImplicitSFROperator.Tpo -c -o libIBAMR2d_a-IBImplicitSFROperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitSFROperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitSFROperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitSFROperator.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBImplicitSFROperator.Tpo $(DEPDIR)/libIBAMR2d_a-IBImplicitSFROperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitSFROperator.C' object='libIBAMR2d_a-IBImplicitSFROperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitSFSstarOperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitSFROperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitSFROperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitSFROperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitSFROperator.C'; fi`
 
-libIBAMR2d_a-IBImplicitSJSstarOperator.o: $(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBImplicitSJSstarOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBImplicitSJSstarOperator.Tpo -c -o libIBAMR2d_a-IBImplicitSJSstarOperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBImplicitSJSstarOperator.Tpo $(DEPDIR)/libIBAMR2d_a-IBImplicitSJSstarOperator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C' object='libIBAMR2d_a-IBImplicitSJSstarOperator.o' libtool=no @AMDEPBACKSLASH@
+libIBAMR2d_a-IBImplicitSJROperator.o: $(top_srcdir)/src/IB/IBImplicitSJROperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBImplicitSJROperator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBImplicitSJROperator.Tpo -c -o libIBAMR2d_a-IBImplicitSJROperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitSJROperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitSJROperator.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBImplicitSJROperator.Tpo $(DEPDIR)/libIBAMR2d_a-IBImplicitSJROperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitSJROperator.C' object='libIBAMR2d_a-IBImplicitSJROperator.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitSJSstarOperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitSJROperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitSJROperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitSJROperator.C
 
-libIBAMR2d_a-IBImplicitSJSstarOperator.obj: $(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBImplicitSJSstarOperator.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBImplicitSJSstarOperator.Tpo -c -o libIBAMR2d_a-IBImplicitSJSstarOperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBImplicitSJSstarOperator.Tpo $(DEPDIR)/libIBAMR2d_a-IBImplicitSJSstarOperator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C' object='libIBAMR2d_a-IBImplicitSJSstarOperator.obj' libtool=no @AMDEPBACKSLASH@
+libIBAMR2d_a-IBImplicitSJROperator.obj: $(top_srcdir)/src/IB/IBImplicitSJROperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBImplicitSJROperator.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBImplicitSJROperator.Tpo -c -o libIBAMR2d_a-IBImplicitSJROperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitSJROperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitSJROperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitSJROperator.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR2d_a-IBImplicitSJROperator.Tpo $(DEPDIR)/libIBAMR2d_a-IBImplicitSJROperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitSJROperator.C' object='libIBAMR2d_a-IBImplicitSJROperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitSJSstarOperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitSJROperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitSJROperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitSJROperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitSJROperator.C'; fi`
 
 libIBAMR2d_a-IBInstrumentPanel.o: $(top_srcdir)/src/IB/IBInstrumentPanel.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBInstrumentPanel.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBInstrumentPanel.Tpo -c -o libIBAMR2d_a-IBInstrumentPanel.o `test -f '$(top_srcdir)/src/IB/IBInstrumentPanel.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBInstrumentPanel.C
@@ -2210,6 +2235,20 @@ libIBAMR3d_a-IBImplicitModHelmholtzOperator.obj: $(top_srcdir)/src/IB/IBImplicit
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitModHelmholtzOperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitModHelmholtzOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitModHelmholtzOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitModHelmholtzOperator.C'; fi`
 
+libIBAMR3d_a-IBImplicitModHelmholtzPETScLevelSolver.o: $(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBImplicitModHelmholtzPETScLevelSolver.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBImplicitModHelmholtzPETScLevelSolver.Tpo -c -o libIBAMR3d_a-IBImplicitModHelmholtzPETScLevelSolver.o `test -f '$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBImplicitModHelmholtzPETScLevelSolver.Tpo $(DEPDIR)/libIBAMR3d_a-IBImplicitModHelmholtzPETScLevelSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C' object='libIBAMR3d_a-IBImplicitModHelmholtzPETScLevelSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitModHelmholtzPETScLevelSolver.o `test -f '$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C
+
+libIBAMR3d_a-IBImplicitModHelmholtzPETScLevelSolver.obj: $(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBImplicitModHelmholtzPETScLevelSolver.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBImplicitModHelmholtzPETScLevelSolver.Tpo -c -o libIBAMR3d_a-IBImplicitModHelmholtzPETScLevelSolver.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBImplicitModHelmholtzPETScLevelSolver.Tpo $(DEPDIR)/libIBAMR3d_a-IBImplicitModHelmholtzPETScLevelSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C' object='libIBAMR3d_a-IBImplicitModHelmholtzPETScLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitModHelmholtzPETScLevelSolver.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C'; fi`
+
 libIBAMR3d_a-IBImplicitOperator.o: $(top_srcdir)/src/IB/IBImplicitOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBImplicitOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBImplicitOperator.Tpo -c -o libIBAMR3d_a-IBImplicitOperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitOperator.C
 @am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBImplicitOperator.Tpo $(DEPDIR)/libIBAMR3d_a-IBImplicitOperator.Po
@@ -2224,33 +2263,33 @@ libIBAMR3d_a-IBImplicitOperator.obj: $(top_srcdir)/src/IB/IBImplicitOperator.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitOperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitOperator.C'; fi`
 
-libIBAMR3d_a-IBImplicitSFSstarOperator.o: $(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBImplicitSFSstarOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBImplicitSFSstarOperator.Tpo -c -o libIBAMR3d_a-IBImplicitSFSstarOperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBImplicitSFSstarOperator.Tpo $(DEPDIR)/libIBAMR3d_a-IBImplicitSFSstarOperator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C' object='libIBAMR3d_a-IBImplicitSFSstarOperator.o' libtool=no @AMDEPBACKSLASH@
+libIBAMR3d_a-IBImplicitSFROperator.o: $(top_srcdir)/src/IB/IBImplicitSFROperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBImplicitSFROperator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBImplicitSFROperator.Tpo -c -o libIBAMR3d_a-IBImplicitSFROperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitSFROperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitSFROperator.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBImplicitSFROperator.Tpo $(DEPDIR)/libIBAMR3d_a-IBImplicitSFROperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitSFROperator.C' object='libIBAMR3d_a-IBImplicitSFROperator.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitSFSstarOperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitSFROperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitSFROperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitSFROperator.C
 
-libIBAMR3d_a-IBImplicitSFSstarOperator.obj: $(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBImplicitSFSstarOperator.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBImplicitSFSstarOperator.Tpo -c -o libIBAMR3d_a-IBImplicitSFSstarOperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBImplicitSFSstarOperator.Tpo $(DEPDIR)/libIBAMR3d_a-IBImplicitSFSstarOperator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C' object='libIBAMR3d_a-IBImplicitSFSstarOperator.obj' libtool=no @AMDEPBACKSLASH@
+libIBAMR3d_a-IBImplicitSFROperator.obj: $(top_srcdir)/src/IB/IBImplicitSFROperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBImplicitSFROperator.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBImplicitSFROperator.Tpo -c -o libIBAMR3d_a-IBImplicitSFROperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitSFROperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitSFROperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitSFROperator.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBImplicitSFROperator.Tpo $(DEPDIR)/libIBAMR3d_a-IBImplicitSFROperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitSFROperator.C' object='libIBAMR3d_a-IBImplicitSFROperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitSFSstarOperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitSFSstarOperator.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitSFROperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitSFROperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitSFROperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitSFROperator.C'; fi`
 
-libIBAMR3d_a-IBImplicitSJSstarOperator.o: $(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBImplicitSJSstarOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBImplicitSJSstarOperator.Tpo -c -o libIBAMR3d_a-IBImplicitSJSstarOperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBImplicitSJSstarOperator.Tpo $(DEPDIR)/libIBAMR3d_a-IBImplicitSJSstarOperator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C' object='libIBAMR3d_a-IBImplicitSJSstarOperator.o' libtool=no @AMDEPBACKSLASH@
+libIBAMR3d_a-IBImplicitSJROperator.o: $(top_srcdir)/src/IB/IBImplicitSJROperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBImplicitSJROperator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBImplicitSJROperator.Tpo -c -o libIBAMR3d_a-IBImplicitSJROperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitSJROperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitSJROperator.C
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBImplicitSJROperator.Tpo $(DEPDIR)/libIBAMR3d_a-IBImplicitSJROperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitSJROperator.C' object='libIBAMR3d_a-IBImplicitSJROperator.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitSJSstarOperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitSJROperator.o `test -f '$(top_srcdir)/src/IB/IBImplicitSJROperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitSJROperator.C
 
-libIBAMR3d_a-IBImplicitSJSstarOperator.obj: $(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBImplicitSJSstarOperator.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBImplicitSJSstarOperator.Tpo -c -o libIBAMR3d_a-IBImplicitSJSstarOperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C'; fi`
-@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBImplicitSJSstarOperator.Tpo $(DEPDIR)/libIBAMR3d_a-IBImplicitSJSstarOperator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C' object='libIBAMR3d_a-IBImplicitSJSstarOperator.obj' libtool=no @AMDEPBACKSLASH@
+libIBAMR3d_a-IBImplicitSJROperator.obj: $(top_srcdir)/src/IB/IBImplicitSJROperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBImplicitSJROperator.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBImplicitSJROperator.Tpo -c -o libIBAMR3d_a-IBImplicitSJROperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitSJROperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitSJROperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitSJROperator.C'; fi`
+@am__fastdepCXX_TRUE@	mv -f $(DEPDIR)/libIBAMR3d_a-IBImplicitSJROperator.Tpo $(DEPDIR)/libIBAMR3d_a-IBImplicitSJROperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitSJROperator.C' object='libIBAMR3d_a-IBImplicitSJROperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitSJSstarOperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitSJSstarOperator.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitSJROperator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitSJROperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitSJROperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitSJROperator.C'; fi`
 
 libIBAMR3d_a-IBInstrumentPanel.o: $(top_srcdir)/src/IB/IBInstrumentPanel.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBInstrumentPanel.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBInstrumentPanel.Tpo -c -o libIBAMR3d_a-IBInstrumentPanel.o `test -f '$(top_srcdir)/src/IB/IBInstrumentPanel.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBInstrumentPanel.C

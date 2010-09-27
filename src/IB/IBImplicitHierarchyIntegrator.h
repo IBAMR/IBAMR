@@ -43,8 +43,8 @@
 #include <ibamr/IBImplicitJacobian.h>
 #include <ibamr/IBImplicitModHelmholtzOperator.h>
 #include <ibamr/IBImplicitOperator.h>
-#include <ibamr/IBImplicitSFSstarOperator.h>
-#include <ibamr/IBImplicitSJSstarOperator.h>
+#include <ibamr/IBImplicitSFROperator.h>
+#include <ibamr/IBImplicitSJROperator.h>
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/INSCoefs.h>
 #include <ibamr/INSStaggeredBlockFactorizationPreconditioner.h>
@@ -112,8 +112,8 @@ class IBImplicitHierarchyIntegrator
       public SAMRAI::tbox::Serializable
 {
 public:
-    friend class IBImplicitSFSstarOperator;
-    friend class IBImplicitSJSstarOperator;
+    friend class IBImplicitSFROperator;
+    friend class IBImplicitSJROperator;
 
     /*!
      * The constructor for IBImplicitHierarchyIntegrator sets some default
@@ -1141,8 +1141,9 @@ private:
     SAMRAI::tbox::Pointer<INSStaggeredBlockFactorizationPreconditioner> d_block_pc;
 
     bool d_ib_op_needs_init;
-    SAMRAI::tbox::Pointer<IBImplicitSFSstarOperator> d_ib_SFSstar_op;
-    SAMRAI::tbox::Pointer<IBTK::JacobianOperator> d_ib_SJSstar_op;
+    SAMRAI::tbox::Pointer<IBImplicitSFROperator> d_ib_SFR_op;
+    SAMRAI::tbox::Pointer<IBTK::JacobianOperator> d_ib_SJR_op;
+    SAMRAI::tbox::Pointer<IBImplicitModHelmholtzPETScLevelSolver> d_ib_mod_helmholtz_pc;
     SAMRAI::tbox::Pointer<IBImplicitOperator> d_ib_op;
 
     bool d_ib_solver_needs_init;
@@ -1235,6 +1236,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_div_u_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_phi_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_u_half_ib_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,int   > > d_ib_dof_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_u_regrid_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_u_src_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_indicator_var;
@@ -1264,7 +1266,7 @@ private:
      *
      * Scratch variables have only one context: scratch.
      */
-    int d_phi_idx, d_u_half_ib_idx, d_u_regrid_idx, d_u_src_idx, d_indicator_idx;
+    int d_phi_idx, d_u_half_ib_idx, d_ib_dof_idx, d_u_regrid_idx, d_u_src_idx, d_indicator_idx;
 
     /*
      * Patch data descriptors for all variables managed by the HierarchyMathOps
@@ -1325,6 +1327,11 @@ private:
      * within 2.0*sqrt(epsilon_mach) of the physical boundary.
      */
     std::vector<std::set<int > > d_anchor_point_local_idxs;
+
+    /*
+     * Interpolation/spreading operator matrices.
+     */
+    std::vector<Mat> d_R_mats;
 };
 }// namespace IBAMR
 

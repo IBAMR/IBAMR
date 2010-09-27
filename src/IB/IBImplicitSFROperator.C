@@ -1,4 +1,4 @@
-// Filename: IBImplicitSJSstarOperator.C
+// Filename: IBImplicitSFROperator.C
 // Created on 30 Aug 2010 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "IBImplicitSJSstarOperator.h"
+#include "IBImplicitSFROperator.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -47,6 +47,10 @@
 // IBAMR INCLUDES
 #include <ibamr/IBImplicitHierarchyIntegrator.h>
 #include <ibamr/namespaces.h>
+
+// IBTK INCLUDES
+#include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/PETScVecUtilities.h>
 
 // SAMRAI INCLUDES
 #include <tbox/Timer.h>
@@ -71,7 +75,7 @@ static Pointer<Timer> t_deallocate_operator_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBImplicitSJSstarOperator::IBImplicitSJSstarOperator(
+IBImplicitSFROperator::IBImplicitSFROperator(
     IBImplicitHierarchyIntegrator* ib_implicit_integrator)
     : d_is_initialized(false),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
@@ -83,22 +87,22 @@ IBImplicitSJSstarOperator::IBImplicitSJSstarOperator(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_apply                     = TimerManager::getManager()->getTimer("IBAMR::IBImplicitSJSstarOperator::apply()");
-        t_initialize_operator_state = TimerManager::getManager()->getTimer("IBAMR::IBImplicitSJSstarOperator::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBAMR::IBImplicitSJSstarOperator::deallocateOperatorState()");
+        t_apply                     = TimerManager::getManager()->getTimer("IBAMR::IBImplicitSFROperator::apply()");
+        t_initialize_operator_state = TimerManager::getManager()->getTimer("IBAMR::IBImplicitSFROperator::initializeOperatorState()");
+        t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBAMR::IBImplicitSFROperator::deallocateOperatorState()");
         timers_need_init = false;
     }
     return;
-}// IBImplicitSJSstarOperator
+}// IBImplicitSFROperator
 
-IBImplicitSJSstarOperator::~IBImplicitSJSstarOperator()
+IBImplicitSFROperator::~IBImplicitSFROperator()
 {
     deallocateOperatorState();
     return;
-}// ~IBImplicitSJSstarOperator
+}// ~IBImplicitSFROperator
 
 void
-IBImplicitSJSstarOperator::setTimeInterval(
+IBImplicitSFROperator::setTimeInterval(
     const double current_time,
     const double new_time)
 {
@@ -109,9 +113,13 @@ IBImplicitSJSstarOperator::setTimeInterval(
 }// setTimeInterval
 
 void
-IBImplicitSJSstarOperator::formJacobian(
-    SAMRAIVectorReal<NDIM,double>& x)
+IBImplicitSFROperator::apply(
+    const bool zero_y_before_spread,
+    SAMRAIVectorReal<NDIM,double>& x,
+    SAMRAIVectorReal<NDIM,double>& y)
 {
+    t_apply->start();
+
     int ierr;
 
     Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
@@ -120,18 +128,23 @@ IBImplicitSJSstarOperator::formJacobian(
 
     // Get the vector components.
     const int u_new_idx  = x.getComponentDescriptorIndex(0);
-    const int u_half_ib_idx = d_ib_implicit_integrator->d_u_half_ib_idx;
+    const int f_half_idx = y.getComponentDescriptorIndex(0);
+    Pointer<SideVariable<NDIM,double> > f_half_var = y.getComponentVariable(0);
     const int u_current_idx = d_ib_implicit_integrator->d_u_current_idx;
 
-    std::vector<Pointer<RefineSchedule<NDIM> > >& u_half_ib_rscheds = d_ib_implicit_integrator->d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"];
+    const int u_half_ib_idx = d_ib_implicit_integrator->d_u_half_ib_idx;
+    Pointer<SideVariable<NDIM,double> > u_half_ib_var = d_ib_implicit_integrator->d_u_half_ib_var;
+
     Pointer<HierarchySideDataOpsReal<NDIM,double> > hier_sc_data_ops = d_ib_implicit_integrator->d_hier_sc_data_ops;
 
     LDataManager* lag_data_manager = d_ib_implicit_integrator->d_lag_data_manager;
 
     std::vector<Pointer<LNodeLevelData> >& X_data = d_ib_implicit_integrator->d_X_data;
-    std::vector<Pointer<LNodeLevelData> >& X_mid_data = d_ib_implicit_integrator->d_X_mid_data;
     std::vector<Pointer<LNodeLevelData> >& X_half_data = d_ib_implicit_integrator->d_X_half_data;
     std::vector<Pointer<LNodeLevelData> >& U_half_data = d_ib_implicit_integrator->d_U_half_data;
+    std::vector<Pointer<LNodeLevelData> >& F_half_data = d_ib_implicit_integrator->d_F_half_data;
+
+    std::vector<Mat>& R_mats = d_ib_implicit_integrator->d_R_mats;
 
     Pointer<IBLagrangianForceStrategy> lag_force_strategy = d_ib_implicit_integrator->d_lag_force_strategy;
 
@@ -139,9 +152,19 @@ IBImplicitSJSstarOperator::formJacobian(
     hier_sc_data_ops->linearSum(u_half_ib_idx, 0.5, u_current_idx, 0.5, u_new_idx);
 
     // Interpolate u(n+1/2) to U(n+1/2).
-    lag_data_manager->interpolate(u_half_ib_idx, U_half_data, X_mid_data,
-                                  u_half_ib_rscheds, d_current_time);
-    d_ib_implicit_integrator->resetAnchorPointValues(U_half_data, coarsest_ln, finest_ln);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            Vec U_half_vec = U_half_data[ln]->getGlobalVec();
+            Vec u_half_ib_vec = static_cast<Vec>(NULL);
+            Pointer<PatchLevel<NDIM> > patch_level = hierarchy->getPatchLevel(ln);
+            PETScVecUtilities::constructPatchLevelVec(u_half_ib_vec, u_half_ib_idx, u_half_ib_var, patch_level);
+            PETScVecUtilities::copyToPatchLevelVec(u_half_ib_vec, u_half_ib_idx, u_half_ib_var, patch_level);
+            ierr = MatMult(R_mats[ln], u_half_ib_vec, U_half_vec); IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(u_half_ib_vec); IBTK_CHKERRQ(ierr);
+        }
+    }
 
     // Set X(n+1/2) = X(n) + 0.5*dt*U(n+1/2).
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -155,101 +178,56 @@ IBImplicitSJSstarOperator::formJacobian(
         }
     }
 
-    // Compute dF/dX[X(n+1/2),U(n+1/2)].
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        if (d_dF_dX_mat[ln] != static_cast<Mat>(NULL))
-        {
-            ierr = MatDestroy(d_dF_dX_mat[ln]);  IBTK_CHKERRQ(ierr);
-        }
-        if (lag_data_manager->levelContainsLagrangianData(ln))
-        {
-            // Determine the non-zero structure of the force Jacobian matrix and
-            // allocate a block AIJ matrix.
-            //
-            // XXXX: This should be done elsewhere, e.g. in
-            // initializeOperatorState(), so that the sparsity pattern may be
-            // re-used.
-            const int num_local_nodes = lag_data_manager->getNumberOfLocalNodes(ln);
-            std::vector<int> d_nnz(num_local_nodes), o_nnz(num_local_nodes);
-            lag_force_strategy->computeLagrangianForceJacobianNonzeroStructure(
-                d_nnz, o_nnz, hierarchy, ln, d_current_time+0.5*d_dt, lag_data_manager);
-            ierr = MatCreateMPIBAIJ(PETSC_COMM_WORLD,
-                                    NDIM, NDIM*num_local_nodes, NDIM*num_local_nodes,
-                                    PETSC_DETERMINE, PETSC_DETERMINE,
-                                    PETSC_DEFAULT, &d_nnz[0],
-                                    PETSC_DEFAULT, &o_nnz[0],
-                                    &d_dF_dX_mat[ln]);  IBTK_CHKERRQ(ierr);
-
-            // Compute the Jacobian of the force.
-            lag_force_strategy->computeLagrangianForceJacobian(
-                d_dF_dX_mat[ln], MAT_FINAL_ASSEMBLY, -0.25*d_dt, X_half_data[ln], -0.5, U_half_data[ln],
-                hierarchy, ln, d_current_time+0.5*d_dt, lag_data_manager);
-        }
-    }
-    return;
-}// formJacobian
-
-Pointer<SAMRAIVectorReal<NDIM,double> >
-IBImplicitSJSstarOperator::getBaseVector() const
-{
-    return NULL; // XXXX
-}// getBaseVector
-
-void
-IBImplicitSJSstarOperator::apply(
-    const bool zero_y_before_spread,
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y)
-{
-    t_apply->start();
-
-    Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
-    const int coarsest_ln = x.getCoarsestLevelNumber();
-    const int finest_ln = x.getFinestLevelNumber();
-
-    // Get the vector components.
-    const int u_idx = x.getComponentDescriptorIndex(0);
-    const int f_idx = y.getComponentDescriptorIndex(0);
-
-    const int u_ib_idx = d_ib_implicit_integrator->d_u_half_ib_idx;
-    std::vector<Pointer<RefineSchedule<NDIM> > >& u_ib_rscheds = d_ib_implicit_integrator->d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"];
-    Pointer<HierarchySideDataOpsReal<NDIM,double> > hier_sc_data_ops = d_ib_implicit_integrator->d_hier_sc_data_ops;
-
-    LDataManager* lag_data_manager = d_ib_implicit_integrator->d_lag_data_manager;
-
-    std::vector<Pointer<LNodeLevelData> >& X_mid_data = d_ib_implicit_integrator->d_X_mid_data;
-    std::vector<Pointer<LNodeLevelData> >& U_data = d_ib_implicit_integrator->d_U_half_data;
-    std::vector<Pointer<LNodeLevelData> >& F_data = d_ib_implicit_integrator->d_F_half_data;
-
-    // Interpolate u to U.
-    hier_sc_data_ops->copyData(u_ib_idx, u_idx);
-    lag_data_manager->interpolate(u_ib_idx, U_data, X_mid_data, u_ib_rscheds, d_current_time);
-    d_ib_implicit_integrator->resetAnchorPointValues(U_data, coarsest_ln, finest_ln);
-
-    // Compute F = (dF/dX) U.
+    // Compute F(n+1/2) = F(X(n+1/2),U(n+1/2),t_{n+1/2}).
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (lag_data_manager->levelContainsLagrangianData(ln))
         {
-            int ierr;
-            Vec U_vec = U_data[ln]->getGlobalVec();
-            Vec F_vec = F_data[ln]->getGlobalVec();
-            ierr = MatMult(d_dF_dX_mat[ln], U_vec, F_vec);  IBTK_CHKERRQ(ierr);
+            Vec F_half_vec = F_half_data[ln]->getGlobalVec();
+            ierr = VecSet(F_half_vec, 0.0);  IBTK_CHKERRQ(ierr);
+            lag_force_strategy->computeLagrangianForce(F_half_data[ln], X_half_data[ln], U_half_data[ln], hierarchy, ln, d_current_time+0.5*d_dt, lag_data_manager);
+            Pointer<PatchLevel<NDIM> > patch_level = hierarchy->getPatchLevel(ln);
+            Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_level->getGridGeometry();
+            const double* const dx0 = grid_geom->getDx();
+            const IntVector<NDIM>& ratio = patch_level->getRatio();
+            double cell_vol = 1.0;
+            for (int d = 0; d < NDIM; ++d)
+            {
+                cell_vol *= dx0[d] / double(ratio(d));
+            }
+            ierr = VecScale(F_half_vec, -1.0/cell_vol);  IBTK_CHKERRQ(ierr);
         }
     }
 
     // Spread F(n+1/2) to f(n+1/2).
-    d_ib_implicit_integrator->resetAnchorPointValues(F_data, coarsest_ln, finest_ln);
-    if (zero_y_before_spread) y.setToScalar(0.0, false);
-    lag_data_manager->spread(f_idx, F_data, X_mid_data, true, true);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            Pointer<PatchLevel<NDIM> > patch_level = hierarchy->getPatchLevel(ln);
+            Vec F_half_vec = F_half_data[ln]->getGlobalVec();
+            Vec f_half_vec = static_cast<Vec>(NULL);
+            PETScVecUtilities::constructPatchLevelVec(f_half_vec, f_half_idx, f_half_var, patch_level);
+            if (zero_y_before_spread)
+            {
+                ierr = MatMultTranspose(R_mats[ln], F_half_vec, f_half_vec); IBTK_CHKERRQ(ierr);
+            }
+            else
+            {
+                PETScVecUtilities::copyToPatchLevelVec(f_half_vec, f_half_idx, f_half_var, patch_level);
+                ierr = MatMultTransposeAdd(R_mats[ln], F_half_vec, f_half_vec, f_half_vec); IBTK_CHKERRQ(ierr);
+            }
+            PETScVecUtilities::copyFromPatchLevelVec(f_half_vec, f_half_idx, f_half_var, patch_level);
+            ierr = VecDestroy(f_half_vec); IBTK_CHKERRQ(ierr);
+        }
+    }
 
     t_apply->stop();
     return;
 }// apply
 
 void
-IBImplicitSJSstarOperator::apply(
+IBImplicitSFROperator::apply(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& y)
 {
@@ -258,15 +236,13 @@ IBImplicitSJSstarOperator::apply(
 }// apply
 
 void
-IBImplicitSJSstarOperator::initializeOperatorState(
+IBImplicitSFROperator::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& in,
     const SAMRAIVectorReal<NDIM,double>& out)
 {
     t_initialize_operator_state->start();
 
     if (d_is_initialized) deallocateOperatorState();
-
-    d_dF_dX_mat.resize(in.getPatchHierarchy()->getFinestLevelNumber()+1, static_cast<Mat>(NULL));
 
     d_is_initialized = true;
 
@@ -275,19 +251,11 @@ IBImplicitSJSstarOperator::initializeOperatorState(
 }// initializeOperatorState
 
 void
-IBImplicitSJSstarOperator::deallocateOperatorState()
+IBImplicitSFROperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
     t_deallocate_operator_state->start();
-
-    for (unsigned k = 0; k < d_dF_dX_mat.size(); ++k)
-    {
-        if (d_dF_dX_mat[k] != static_cast<Mat>(NULL))
-        {
-            int ierr = MatDestroy(d_dF_dX_mat[k]);  IBTK_CHKERRQ(ierr);
-        }
-    }
 
     d_is_initialized = false;
 
@@ -296,7 +264,7 @@ IBImplicitSJSstarOperator::deallocateOperatorState()
 }// deallocateOperatorState
 
 void
-IBImplicitSJSstarOperator::enableLogging(
+IBImplicitSFROperator::enableLogging(
     bool enabled)
 {
     // intentionally blank
@@ -314,6 +282,6 @@ IBImplicitSJSstarOperator::enableLogging(
 /////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
 
 #include <tbox/Pointer.C>
-template class Pointer<IBAMR::IBImplicitSJSstarOperator>;
+template class Pointer<IBAMR::IBImplicitSFROperator>;
 
 //////////////////////////////////////////////////////////////////////////////

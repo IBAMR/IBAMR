@@ -39,6 +39,7 @@
 #include <petscvec.h>
 
 // IBAMR INCLUDES
+#include <ibamr/IBImplicitModHelmholtzPETScLevelSolver.h>
 #include <ibamr/INSStaggeredStokesOperator.h>
 
 // IBTK INCLUDES
@@ -62,7 +63,8 @@ public:
      */
     IBImplicitJacobian(
         SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> stokes_op,
-        SAMRAI::tbox::Pointer<JacobianOperator> ib_SJSstar_op);
+        SAMRAI::tbox::Pointer<JacobianOperator> ib_SJR_op,
+        SAMRAI::tbox::Pointer<IBImplicitModHelmholtzPETScLevelSolver> mod_helmholtz_solver);
 
     /*!
      * \brief Virtual empty destructor.
@@ -234,7 +236,10 @@ private:
     SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> d_stokes_op;
 
     // The IB force Jacobian operator.
-    SAMRAI::tbox::Pointer<IBTK::JacobianOperator> d_ib_SJSstar_op;
+    SAMRAI::tbox::Pointer<IBTK::JacobianOperator> d_ib_SJR_op;
+
+    // A preconditioner that makes use of the SJR operator.
+    SAMRAI::tbox::Pointer<IBImplicitModHelmholtzPETScLevelSolver> d_mod_helmholtz_solver;
 };
 }// namespace IBAMR
 

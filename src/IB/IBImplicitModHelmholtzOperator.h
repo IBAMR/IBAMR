@@ -46,8 +46,9 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBImplicitModHelmholtzOperator is a concrete IBTK::GeneralOperator which
- * implements an implicit staggered-grid (MAC) discretization of the IB method.
+ * \brief Class IBImplicitModHelmholtzOperator is a concrete
+ * IBTK::GeneralOperator which implements a linear operator arrising from an
+ * implicit staggered-grid (MAC) discretization of the IB method.
  *
  * This class is intended to be used with an iterative Newton-Krylov solver.
  *

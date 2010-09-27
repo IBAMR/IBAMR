@@ -58,6 +58,8 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/LNodeIndexData.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
+#include <ibtk/PETScMatUtilities.h>
+#include <ibtk/PETScVecUtilities.h>
 #include <ibtk/RefinePatchStrategySet.h>
 
 // SAMRAI INCLUDES
@@ -657,6 +659,7 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
 #endif
     d_div_u_var      = new CellVariable<NDIM,double>(d_object_name+"::div_u"      );
     d_phi_var        = new CellVariable<NDIM,double>(d_object_name+"::phi"        );
+    d_ib_dof_var     = new SideVariable<NDIM,int   >(d_object_name+"::ib_dof"     );
     d_u_half_ib_var  = new SideVariable<NDIM,double>(d_object_name+"::u_half_ib"  );
     d_u_regrid_var   = new SideVariable<NDIM,double>(d_object_name+"::u_regrid"   );
     d_u_src_var      = new SideVariable<NDIM,double>(d_object_name+"::u_src"      );
@@ -750,10 +753,13 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
     // IBImplicitHierarchyIntegrator.
 
     registerVariable(      d_phi_idx,       d_phi_var, cell_ghosts);
-    registerVariable(d_u_half_ib_idx, d_u_half_ib_var,    d_ghosts);
+    registerVariable(   d_ib_dof_idx,    d_ib_dof_var,    d_ghosts);
+    registerVariable(d_u_half_ib_idx, d_u_half_ib_var, side_ghosts);  // XXXX
     registerVariable( d_u_regrid_idx,  d_u_regrid_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
     registerVariable(    d_u_src_idx,     d_u_src_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
     registerVariable(d_indicator_idx, d_indicator_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
+
+    d_scratch_data.clrFlag(d_ib_dof_idx);  // handle data allocation manually
 
     // Register variables for plotting.
     if (!d_visit_writer.isNull())
@@ -848,19 +854,20 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Setup the IB operator.
     d_ib_op_needs_init = true;
-    d_ib_SFSstar_op = new IBImplicitSFSstarOperator(this);
-    d_ib_op = new IBImplicitOperator(d_stokes_op, d_ib_SFSstar_op);
+    d_ib_SFR_op = new IBImplicitSFROperator(this);
+    d_ib_op = new IBImplicitOperator(d_stokes_op, d_ib_SFR_op);
 
     // Setup the nonlinear solver.
     const std::string ib_prefix = "ib_";
     d_ib_solver_needs_init = true;
     d_ib_solver = new PETScNewtonKrylovSolver(d_object_name+"::ib_solver", ib_prefix);
     d_ib_solver->setOperator(d_ib_op);
-//  d_ib_SJSstar_op = new PETScMFFDJacobianOperator(ib_prefix);
-//  Pointer<PETScMFFDJacobianOperator> ib_SJSstar_op = d_ib_SJSstar_op;
-//  ib_SJSstar_op->setOperator(d_ib_SFSstar_op);
-    d_ib_SJSstar_op = new IBImplicitSJSstarOperator(this);
-    d_ib_jac_op = new IBImplicitJacobian(d_stokes_op, d_ib_SJSstar_op);
+//  d_ib_SJR_op = new PETScMFFDJacobianOperator(ib_prefix);  // XXXX
+//  Pointer<PETScMFFDJacobianOperator> ib_SJR_op = d_ib_SJR_op;
+//  ib_SJR_op->setOperator(d_ib_SFR_op);
+    d_ib_SJR_op = new IBImplicitSJROperator(this);
+    d_ib_mod_helmholtz_pc = new IBImplicitModHelmholtzPETScLevelSolver("IBImplicitModHelmholtzPETScLevelSolver");
+    d_ib_jac_op = new IBImplicitJacobian(d_stokes_op, d_ib_SJR_op, d_ib_mod_helmholtz_pc);
     d_ib_solver->setJacobian(d_ib_jac_op);
 
     // Setup the regrid projection Poisson solver.
@@ -1411,7 +1418,6 @@ IBImplicitHierarchyIntegrator::integrateHierarchy_initialize(
         d_hier_sc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(0), 0.0);
         d_hier_cc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(1), 1.0);
         d_ib_solver->getLinearSolver()->setNullspace(false, d_nul_vec);
-        TBOX_ASSERT(false);  // the foregoing line probably does not work correctly...
         d_poisson_solver->setNullspace(true, NULL);
     }
 
@@ -1488,6 +1494,35 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(
             ierr = VecAXPBY(X_mid_vec,0.5,0.5,X_new_vec);  IBTK_CHKERRQ(ierr);
             d_X_mid_data[ln]->beginGhostUpdate();
             d_X_mid_data[ln]->endGhostUpdate();
+        }
+    }
+
+    // Construct the interpolation and spreading operators.
+    d_R_mats.resize(finest_ln+1);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            int ierr;
+            Pointer<PatchLevel<NDIM> > patch_level = d_hierarchy->getPatchLevel(ln);
+            Vec X_mid_vec = d_X_mid_data[ln]->getGlobalVec();
+            PETScMatUtilities::constructPatchLevelInterpOp(
+                d_R_mats[ln], X_mid_vec,
+                d_u_half_ib_idx, d_u_half_ib_var, d_ib_dof_idx, d_ib_dof_var,
+                patch_level);
+            const int global_node_offset = d_lag_data_manager->getGlobalNodeOffset(ln);
+            std::vector<int> anchored_rows;
+            anchored_rows.reserve(NDIM*d_anchor_point_local_idxs.size());
+            for (std::set<int>::const_iterator cit = d_anchor_point_local_idxs[ln].begin();
+                 cit != d_anchor_point_local_idxs[ln].end(); ++cit)
+            {
+                const int local_node_idx = *cit;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    anchored_rows.push_back(NDIM*(local_node_idx+global_node_offset)+d);
+                }
+            }
+            ierr = MatZeroRows(d_R_mats[ln], anchored_rows.size(), anchored_rows.empty() ? PETSC_NULL : &anchored_rows[0], 0.0); IBTK_CHKERRQ(ierr);
         }
     }
 
@@ -1590,23 +1625,35 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(
     // Set u(n+1/2) = 0.5*(u(n) + u(n+1)).
     d_hier_sc_data_ops->linearSum(d_u_half_ib_idx, 0.5, d_u_current_idx, 0.5, d_u_new_idx);
 
-    // Interpolate u(n+1/2) to U(n+1/2).
-    d_lag_data_manager->interpolate(d_u_half_ib_idx, d_U_half_data, d_X_mid_data,
-                                    d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"], current_time);
-    resetAnchorPointValues(d_U_half_data, coarsest_ln, finest_ln);
-
-    // Set X(n+1) = X(n) + dt*U(n+1/2).
+    // Interpolate u(n+1/2) to U(n+1/2) and set X(n+1) = X(n) + dt*U(n+1/2).
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
             int ierr;
+            Pointer<PatchLevel<NDIM> > patch_level = d_hierarchy->getPatchLevel(ln);
+            Vec U_half_vec = d_U_half_data[ln]->getGlobalVec();
+            Vec u_half_ib_vec = static_cast<Vec>(NULL);
+            PETScVecUtilities::constructPatchLevelVec(u_half_ib_vec, d_u_half_ib_idx, d_u_half_ib_var, patch_level);
+            PETScVecUtilities::copyToPatchLevelVec(u_half_ib_vec, d_u_half_ib_idx, d_u_half_ib_var, patch_level);
+            ierr = MatMult(d_R_mats[ln], u_half_ib_vec, U_half_vec); IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(u_half_ib_vec); IBTK_CHKERRQ(ierr);
             Vec X_vec = d_X_data[ln]->getGlobalVec();
             Vec X_new_vec = d_X_new_data[ln]->getGlobalVec();
-            Vec U_half_vec = d_U_half_data[ln]->getGlobalVec();
             ierr = VecWAXPY(X_new_vec, dt, U_half_vec, X_vec);  IBTK_CHKERRQ(ierr);
         }
     }
+
+    // Destroy the restriction matrices.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        {
+            int ierr;
+            ierr = MatDestroy(d_R_mats[ln]);  IBTK_CHKERRQ(ierr);
+        }
+    }
+    d_R_mats.clear();
 
     t_integrate_hierarchy->stop();
     return;
@@ -1915,11 +1962,18 @@ IBImplicitHierarchyIntegrator::initializeLevelData(
     if (allocate_data)
     {
         level->allocatePatchData(d_current_data, init_data_time);
+        level->allocatePatchData(d_ib_dof_idx, init_data_time);
     }
     else
     {
         level->setTime(init_data_time, d_current_data);
+        level->setTime(d_ib_dof_idx, d_current_data);
     }
+
+    // Initialize DOF index data.
+    level->allocatePatchData(d_u_half_ib_idx, init_data_time);
+    PETScVecUtilities::constructPatchLevelDOFIndices(d_ib_dof_idx, d_ib_dof_var, d_u_half_ib_idx, d_u_half_ib_var, level);
+    level->deallocatePatchData(d_u_half_ib_idx);
 
     // Fill data from coarser levels in AMR hierarchy.
     if (!initial_time && (level_number > 0 || !old_level.isNull()))
@@ -2848,6 +2902,12 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
 
+    if (d_lag_force_strategy_needs_init)
+    {
+        resetLagrangianForceStrategy(current_time, initial_time);
+        d_lag_force_strategy_needs_init = false;
+    }
+
     Pointer<SAMRAIVectorReal<NDIM,double> > u_scratch_vec = new SAMRAIVectorReal<NDIM,double>(
         d_object_name+"::u_scratch_vec", d_hierarchy, coarsest_ln, finest_ln);
     u_scratch_vec->addComponent(d_u_var,d_u_scratch_idx,d_wgt_sc_idx,d_hier_sc_data_ops);
@@ -2892,6 +2952,11 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
         d_helmholtz_op->setHomogeneousBc(true);
         d_helmholtz_op->setTime(new_time);
         d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
+
+        d_ib_mod_helmholtz_pc->setPoissonSpecifications(*d_helmholtz_spec);
+        d_ib_mod_helmholtz_pc->setPhysicalBcCoefs(d_u_star_bc_coefs);
+        d_ib_mod_helmholtz_pc->setHomogeneousBc(true);
+        d_ib_mod_helmholtz_pc->setTime(new_time);
 
         if (!d_helmholtz_hypre_pc.isNull())
         {
@@ -3010,8 +3075,8 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
     if (!d_ib_solver.isNull())
     {
         d_ib_op->setTimeInterval(current_time,new_time);
-        Pointer<IBImplicitSJSstarOperator> ib_SJSstar_op = d_ib_SJSstar_op;  // XXXX
-        if (!ib_SJSstar_op.isNull()) ib_SJSstar_op->setTimeInterval(current_time,new_time);
+        Pointer<IBImplicitSJROperator> ib_SJR_op = d_ib_SJR_op;  // XXXX
+        if (!ib_SJR_op.isNull()) ib_SJR_op->setTimeInterval(current_time,new_time);
         d_ib_solver->setOperator(d_ib_op);
         d_ib_solver->setJacobian(d_ib_jac_op);
         if (d_ib_solver_needs_init)
@@ -3045,14 +3110,6 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
                 TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n" <<
                            "  invalid stokes preconditioner type: " << stokes_pc_type << "\n"
                            "  valid stokes preconditioner types: shell, none" << std::endl);
-            }
-
-            char helmholtz_pc_type_str[len];
-            ierr = PetscOptionsGetString("helmholtz_", "-pc_type", helmholtz_pc_type_str, len, &flg);  IBTK_CHKERRQ(ierr);
-            std::string helmholtz_pc_type = "shell";
-            if (flg)
-            {
-                helmholtz_pc_type = std::string(helmholtz_pc_type_str);
             }
 
             char poisson_pc_type_str[len];
@@ -3097,40 +3154,13 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
                 d_helmholtz_op = new SCLaplaceOperator(d_object_name+"::Helmholtz Operator", *d_helmholtz_spec, d_u_star_bc_coefs, true);
                 d_helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
 
-                d_mod_helmholtz_op = new IBImplicitModHelmholtzOperator(d_helmholtz_op, d_ib_SJSstar_op);
+                d_mod_helmholtz_op = new IBImplicitModHelmholtzOperator(d_helmholtz_op, d_ib_SJR_op);
 
                 d_helmholtz_solver_needs_init = true;
                 d_helmholtz_solver = new PETScKrylovLinearSolver(d_object_name+"::Helmholtz Krylov Solver", helmholtz_prefix);
                 d_helmholtz_solver->setInitialGuessNonzero(false);
                 d_helmholtz_solver->setOperator(d_mod_helmholtz_op);
-
-                if (helmholtz_pc_type != "none")
-                {
-                    if (d_gridding_alg->getMaxLevels() == 1)
-                    {
-                        if (d_helmholtz_hypre_pc_db.isNull())
-                        {
-                            TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
-                                         "  helmholtz hypre pc solver database is null." << std::endl);
-                        }
-                        d_helmholtz_hypre_pc = new SCPoissonHypreLevelSolver(d_object_name+"::Helmholtz Preconditioner", d_helmholtz_hypre_pc_db);
-                        d_helmholtz_hypre_pc->setPoissonSpecifications(*d_helmholtz_spec);
-
-                        d_helmholtz_solver->setPreconditioner(d_helmholtz_hypre_pc);
-                    }
-                    else
-                    {
-                        if (d_helmholtz_fac_pc_db.isNull())
-                        {
-                            TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
-                                         "  helmholtz fac pc solver database is null." << std::endl);
-                        }
-                        d_helmholtz_fac_op = new SCPoissonFACOperator(d_object_name+"::Helmholtz FAC Operator", d_helmholtz_fac_pc_db);
-                        d_helmholtz_fac_op->setPoissonSpecifications(*d_helmholtz_spec);
-                        d_helmholtz_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Helmholtz Preconditioner", *d_helmholtz_fac_op, d_helmholtz_fac_pc_db);
-                        d_helmholtz_solver->setPreconditioner(d_helmholtz_fac_pc);
-                    }
-                }
+                d_helmholtz_solver->setPreconditioner(d_ib_mod_helmholtz_pc);
 
                 // Set some default options.
                 d_helmholtz_solver->setKSPType("fgmres");
@@ -3255,13 +3285,6 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
 
     u_rhs_vec->freeVectorComponents();
     p_rhs_vec->freeVectorComponents();
-
-    // (Re)initialize the force strategy.
-    if (d_lag_force_strategy_needs_init)
-    {
-        resetLagrangianForceStrategy(current_time, initial_time);
-        d_lag_force_strategy_needs_init = false;
-    }
 
     // Keep track of the timestep size to avoid unnecessary re-initialization.
     d_op_and_solver_init_dt = dt;

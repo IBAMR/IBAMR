@@ -72,13 +72,13 @@ static Pointer<Timer> t_deallocate_operator_state;
 
 IBImplicitOperator::IBImplicitOperator(
     Pointer<INSStaggeredStokesOperator> stokes_op,
-    Pointer<IBImplicitSFSstarOperator> ib_SFSstar_op)
+    Pointer<IBImplicitSFROperator> ib_SFR_op)
     : d_is_initialized(false),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_dt(std::numeric_limits<double>::quiet_NaN()),
       d_stokes_op(stokes_op),
-      d_ib_SFSstar_op(ib_SFSstar_op)
+      d_ib_SFR_op(ib_SFR_op)
 {
     // Setup Timers.
     static bool timers_need_init = true;
@@ -107,7 +107,7 @@ IBImplicitOperator::setTimeInterval(
     d_new_time = new_time;
     d_dt = d_new_time-d_current_time;
     d_stokes_op->setTimeInterval(current_time, new_time);
-    d_ib_SFSstar_op->setTimeInterval(current_time, new_time);
+    d_ib_SFR_op->setTimeInterval(current_time, new_time);
     return;
 }// setTimeInterval
 
@@ -125,7 +125,7 @@ IBImplicitOperator::apply(
 
     // Apply the nonlinear part of the operator.
     static const bool zero_y_before_spread = false;
-    d_ib_SFSstar_op->apply(zero_y_before_spread, x, y);
+    d_ib_SFR_op->apply(zero_y_before_spread, x, y);
 
     t_apply->stop();
     return;
@@ -141,7 +141,7 @@ IBImplicitOperator::initializeOperatorState(
     if (d_is_initialized) deallocateOperatorState();
 
     d_stokes_op->initializeOperatorState(in, out);
-    d_ib_SFSstar_op->initializeOperatorState(in, out);
+    d_ib_SFR_op->initializeOperatorState(in, out);
 
     d_is_initialized = true;
 
@@ -157,7 +157,7 @@ IBImplicitOperator::deallocateOperatorState()
     t_deallocate_operator_state->start();
 
     d_stokes_op->deallocateOperatorState();
-    d_ib_SFSstar_op->deallocateOperatorState();
+    d_ib_SFR_op->deallocateOperatorState();
 
     d_is_initialized = false;
 

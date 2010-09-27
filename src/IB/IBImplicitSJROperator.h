@@ -1,4 +1,4 @@
-// Filename: IBImplicitSFSstarOperator.h
+// Filename: IBImplicitSJROperator.h
 // Created on 30 Aug 2010 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,16 +30,19 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBImplicitSFSstarOperator
-#define included_IBImplicitSFSstarOperator
+#ifndef included_IBImplicitSJROperator
+#define included_IBImplicitSJROperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // PETSc INCLUDES
-#include <petsc.h>
+#include <petscmat.h>
 
 // IBTK INCLUDES
-#include <ibtk/GeneralOperator.h>
+#include <ibtk/JacobianOperator.h>
+
+// C++ STDLIB INCLUDES
+#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -48,26 +51,26 @@ namespace IBAMR
 class IBImplicitHierarchyIntegrator;
 
 /*!
- * \brief Class IBImplicitSFSstarOperator is a concrete IBTK::GeneralOperator
- * which implements the nonlinear operator S F S^{*}.
+ * \brief Class IBImplicitSJROperator is a concrete IBTK::JacobianOperator which
+ * implements the linearized operator S dF/dX R = S dF/dX S^{*}.
  *
  * \see IBImplicitHierarchyIntegrator
  */
-class IBImplicitSFSstarOperator
-    : public IBTK::GeneralOperator
+class IBImplicitSJROperator
+    : public IBTK::JacobianOperator
 {
 public:
     /*!
      * \brief Class constructor.
      */
-    IBImplicitSFSstarOperator(
+    IBImplicitSJROperator(
         IBImplicitHierarchyIntegrator* ib_implicit_integrator);
 
     /*!
      * \brief Virtual destructor.
      */
     virtual
-    ~IBImplicitSFSstarOperator();
+    ~IBImplicitSJROperator();
 
     /*!
      * \brief Set the current time interval.
@@ -76,6 +79,13 @@ public:
     setTimeInterval(
         const double current_time,
         const double new_time);
+
+    /*!
+     * \brief Allow access to the current S J R = S J S^{*} matrices.
+     */
+    std::vector<Mat>&
+    getSJRMats()
+        { return d_SJR_mats; }
 
     /*!
      * \brief Implementation of the apply method which permits the operator to
@@ -88,20 +98,56 @@ public:
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
 
     /*!
-     * \name General operator functionality.
+     * \name General Jacobian functionality.
      */
     //\{
 
     /*!
-     * \brief Compute \f$y=F[x]\f$.
+     * \brief Compute hierarchy dependent data required for evaluating F'[x].
      *
-     * \note initializeOperatorState() must be called prior to any calls to
-     * apply().
+     * \param x value where the Jacobian is to be evaluated
+     */
+    virtual void
+    formJacobian(
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x);
+
+    /*!
+     * \brief Return the vector where the Jacobian is evaluated.
+     *
+     * \note This member function returns a NULL pointer if the operator is not
+     * initialized, or if formJacobian() has not been called.
+     */
+    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >
+    getBaseVector() const;
+
+    //\}
+
+    /*!
+     * \name Linear operator functionality.
+     */
+    //\{
+
+    /*!
+     * \brief Compute y=Ax.
+     *
+     * Before calling this function, the form of the vectors x and y should be
+     * set properly by the user on all patch interiors on the range of levels
+     * covered by the operator.  All data in these vectors should be allocated.
+     * The user is responsible for managing the storage for the vectors.
+     *
+     * Conditions on arguments:
+     * - vectors must have same hierarchy
+     * - vectors must have same variables (except that x \em must have enough
+     *   ghost cells for computation of Ax).
+     *
+     * In general, the vectors x and y \em cannot be the same.
+     *
+     * \note The operator MUST be initialized prior to calling apply.
      *
      * \see initializeOperatorState
      *
      * \param x input
-     * \param y output: y=F[x]
+     * \param y output: y=Ax
      */
     virtual void
     apply(
@@ -109,15 +155,36 @@ public:
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
 
     /*!
-     * \brief Compute hierarchy dependent data required for computing y=F[x] .
+     * \brief Compute hierarchy dependent data required for computing y=Ax and
+     * z=Ax+y.
      *
-     * \note Call deallocateOperatorState() to remove any data allocated by this
+     * The vector arguments for apply(), applyAdjoint(), etc, need not match
+     * those for initializeOperatorState().  However, there must be a certain
+     * degree of similarity, including
+     * - hierarchy configuration (hierarchy pointer and level range)
+     * - number, type and alignment of vector component data
+     * - ghost cell widths of data in the input and output vectors
+     *
+     * \note It is generally necessary to reinitialize the operator state when
+     * the hierarchy configuration changes.
+     *
+     * It is safe to call initializeOperatorState() when the state is already
+     * initialized.  In this case, the operator state is first deallocated and
+     * then reinitialized.
+     *
+     * Conditions on arguments:
+     * - input and output vectors must have same hierarchy
+     * - input and output vectors must have same structure, depth, etc.
+     *
+     * Call deallocateOperatorState() to remove any data allocated by this
      * method.
      *
      * \see deallocateOperatorState
      *
      * \param in input vector
      * \param out output vector
+     *
+     * \note The default implementation is empty.
      */
     virtual void
     initializeOperatorState(
@@ -128,7 +195,13 @@ public:
      * \brief Remove all hierarchy dependent data allocated by
      * initializeOperatorState().
      *
+     * Remove all hierarchy dependent data set by initializeOperatorState().  It
+     * is safe to call deallocateOperatorState() when the operator state is
+     * already deallocated.
+     *
      * \see initializeOperatorState
+     *
+     * \note The default implementation is empty.
      */
     virtual void
     deallocateOperatorState();
@@ -157,7 +230,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBImplicitSFSstarOperator();
+    IBImplicitSJROperator();
 
     /*!
      * \brief Copy constructor.
@@ -166,8 +239,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBImplicitSFSstarOperator(
-        const IBImplicitSFSstarOperator& from);
+    IBImplicitSJROperator(
+        const IBImplicitSJROperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -178,9 +251,9 @@ private:
      *
      * \return A reference to this object.
      */
-    IBImplicitSFSstarOperator&
+    IBImplicitSJROperator&
     operator=(
-        const IBImplicitSFSstarOperator& that);
+        const IBImplicitSJROperator& that);
 
     // Whether the operator is initialized.
     bool d_is_initialized;
@@ -190,13 +263,17 @@ private:
 
     // The IB implicit integrator provides most of the IB-related functionality.
     IBImplicitHierarchyIntegrator* d_ib_implicit_integrator;
+
+    // IB force Jacobian matrices.
+    std::vector<Mat> d_SJR_mats;
+    std::vector<std::vector<int> > d_d_nnz, d_o_nnz;
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/IBImplicitSFSstarOperator.I>
+//#include <ibamr/IBImplicitSJROperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBImplicitSFSstarOperator
+#endif //#ifndef included_IBImplicitSJROperator
