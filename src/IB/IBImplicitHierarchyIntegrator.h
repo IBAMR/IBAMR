@@ -1057,6 +1057,7 @@ private:
     double d_dt_max;
     double d_dt_max_time_max;
     double d_dt_max_time_min;
+    double d_dt_init;
 
     /*
      * Indicates whether the integrator has been initialized.
@@ -1111,7 +1112,7 @@ private:
     SAMRAI::tbox::Pointer<INSStaggeredPPMConvectiveOperator> d_convective_op;
 
     bool d_helmholtz_solver_needs_init;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>          d_helmholtz_hypre_pc_db, d_helmholtz_fac_pc_db;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>          d_helmholtz_hypre_pc_db, d_helmholtz_petsc_pc_db, d_helmholtz_fac_pc_db;
     SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator>         d_helmholtz_op;
     SAMRAI::tbox::Pointer<IBImplicitModHelmholtzOperator>  d_mod_helmholtz_op;
     SAMRAI::solv::PoissonSpecifications*                   d_helmholtz_spec;

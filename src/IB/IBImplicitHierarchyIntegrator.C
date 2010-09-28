@@ -231,6 +231,7 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
     d_dt_max = std::numeric_limits<double>::max();
     d_dt_max_time_max = std::numeric_limits<double>::max();
     d_dt_max_time_min = -(d_dt_max_time_max-std::numeric_limits<double>::epsilon());
+    d_dt_init = std::numeric_limits<double>::max();
 
     d_is_initialized = false;
 
@@ -866,7 +867,7 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
 //  Pointer<PETScMFFDJacobianOperator> ib_SJR_op = d_ib_SJR_op;
 //  ib_SJR_op->setOperator(d_ib_SFR_op);
     d_ib_SJR_op = new IBImplicitSJROperator(this);
-    d_ib_mod_helmholtz_pc = new IBImplicitModHelmholtzPETScLevelSolver("IBImplicitModHelmholtzPETScLevelSolver");
+    d_ib_mod_helmholtz_pc = new IBImplicitModHelmholtzPETScLevelSolver("IBImplicitModHelmholtzPETScLevelSolver", d_helmholtz_petsc_pc_db);
     d_ib_jac_op = new IBImplicitJacobian(d_stokes_op, d_ib_SJR_op, d_ib_mod_helmholtz_pc);
     d_ib_solver->setJacobian(d_ib_jac_op);
 
@@ -1081,7 +1082,11 @@ IBImplicitHierarchyIntegrator::getStableTimestep(
         dt_next = std::min(d_dt_max,dt_next);
     }
 
-    if (!initial_time)
+    if (initial_time)
+    {
+        dt_next = std::min(dt_next,d_dt_init);
+    }
+    else
     {
         dt_next = std::min(dt_next,d_grow_dt*d_old_dt);
     }
@@ -2649,6 +2654,7 @@ IBImplicitHierarchyIntegrator::putToDatabase(
     db->putDouble("d_dt_max", d_dt_max);
     db->putDouble("d_dt_max_time_max", d_dt_max_time_max);
     db->putDouble("d_dt_max_time_min", d_dt_max_time_min);
+    db->putDouble("d_dt_init", d_dt_init);
 
     db->putBool("d_do_log", d_do_log);
 
@@ -3488,8 +3494,10 @@ IBImplicitHierarchyIntegrator::getFromInput(
     d_dt_max = db->getDoubleWithDefault("dt_max",d_dt_max);
     d_dt_max_time_max = db->getDoubleWithDefault("dt_max_time_max", d_dt_max_time_max);
     d_dt_max_time_min = db->getDoubleWithDefault("dt_max_time_min", d_dt_max_time_min);
+    d_dt_init = db->getDoubleWithDefault("dt_init",d_dt_init);
 
     d_helmholtz_hypre_pc_db       = db->isDatabase("HelmholtzHypreSolver") ? db->getDatabase("HelmholtzHypreSolver") : Pointer<Database>(NULL);
+    d_helmholtz_petsc_pc_db       = db->isDatabase("HelmholtzPETScSolver") ? db->getDatabase("HelmholtzPETScSolver") : Pointer<Database>(NULL);
     d_helmholtz_fac_pc_db         = db->isDatabase("HelmholtzFACSolver"  ) ? db->getDatabase("HelmholtzFACSolver"  ) : Pointer<Database>(NULL);
     d_poisson_hypre_pc_db         = db->isDatabase("PoissonHypreSolver"  ) ? db->getDatabase("PoissonHypreSolver"  ) : Pointer<Database>(NULL);
     d_poisson_fac_pc_db           = db->isDatabase("PoissonFACSolver"    ) ? db->getDatabase("PoissonFACSolver"    ) : Pointer<Database>(NULL);
@@ -3613,6 +3621,7 @@ IBImplicitHierarchyIntegrator::getFromRestart()
     d_dt_max = db->getDouble("d_dt_max");
     d_dt_max_time_max = db->getDouble("d_dt_max_time_max");
     d_dt_max_time_min = db->getDouble("d_dt_max_time_min");
+    d_dt_init = db->getDouble("d_dt_init");
 
     d_do_log = db->getBool("d_do_log");
 
