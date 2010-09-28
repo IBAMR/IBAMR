@@ -371,17 +371,12 @@ IBImplicitModHelmholtzPETScLevelSolver::initializeSolverState(
     PETScVecUtilities::constructPatchLevelDOFIndices(d_dof_index_idx, d_dof_index_var, x_idx, x_var, level);
     const double C = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
     const double D = d_poisson_spec.getDConstant();
-    Mat L = static_cast<Mat>(NULL);
-    PETScMatUtilities::constructPatchLevelLaplaceOp(L, C, D, x_idx, x_var, d_dof_index_idx, d_dof_index_var, level, d_dof_index_fill);
+    PETScMatUtilities::constructPatchLevelLaplaceOp(d_petsc_mat, C, D, x_idx, x_var, d_dof_index_idx, d_dof_index_var, level, d_dof_index_fill);
     if (d_SJR_mat != static_cast<Mat>(NULL))
     {
-        ierr = PETScMatOps::MatAXPY_SeqAIJ(&d_petsc_mat, 1.0, d_SJR_mat, L); IBTK_CHKERRQ(ierr);
-        ierr = MatDestroy(L); IBTK_CHKERRQ(ierr);
+        ierr = PETScMatOps::MatAXPY(d_petsc_mat, 1.0, d_SJR_mat); IBTK_CHKERRQ(ierr);
     }
-    else
-    {
-        d_petsc_mat = L;
-    }
+    ierr = MatSetBlockSize(d_petsc_mat, NDIM); IBTK_CHKERRQ(ierr);
 
     ierr = KSPCreate(PETSC_COMM_WORLD, &d_petsc_ksp); IBTK_CHKERRQ(ierr);
     ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat, SAME_PRECONDITIONER); IBTK_CHKERRQ(ierr);
