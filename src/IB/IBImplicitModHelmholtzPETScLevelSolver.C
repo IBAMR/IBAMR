@@ -49,6 +49,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/PETScMatOps.h>
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScVecUtilities.h>
 
@@ -240,10 +241,11 @@ IBImplicitModHelmholtzPETScLevelSolver::solveSystem(
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x,b);
-
+#if 0 // XXXX
     // Configure solver.
     ierr = KSPSetTolerances(d_petsc_ksp, d_rel_residual_tol, d_abs_residual_tol, PETSC_DEFAULT, d_max_iterations); IBTK_CHKERRQ(ierr);
     ierr = KSPSetInitialGuessNonzero(d_petsc_ksp, d_initial_guess_nonzero ? PETSC_TRUE : PETSC_FALSE); IBTK_CHKERRQ(ierr);
+#endif
 
     // Solve the system.
     Pointer<PatchLevel<NDIM> > patch_level = d_hierarchy->getPatchLevel(d_level_num);
@@ -369,14 +371,16 @@ IBImplicitModHelmholtzPETScLevelSolver::initializeSolverState(
     PETScVecUtilities::constructPatchLevelDOFIndices(d_dof_index_idx, d_dof_index_var, x_idx, x_var, level);
     const double C = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
     const double D = d_poisson_spec.getDConstant();
-    PETScMatUtilities::constructPatchLevelLaplaceOp(d_petsc_mat, C, D, x_idx, x_var, d_dof_index_idx, d_dof_index_var, level, d_dof_index_fill);
+    Mat L = static_cast<Mat>(NULL);
+    PETScMatUtilities::constructPatchLevelLaplaceOp(L, C, D, x_idx, x_var, d_dof_index_idx, d_dof_index_var, level, d_dof_index_fill);
     if (d_SJR_mat != static_cast<Mat>(NULL))
     {
-        tbox::pout << "here..." << std::endl;
-        ierr = MatSetOption(d_petsc_mat, MAT_NEW_NONZERO_LOCATION_ERR  , PETSC_FALSE); IBTK_CHKERRQ(ierr);
-        ierr = MatSetOption(d_petsc_mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE); IBTK_CHKERRQ(ierr);
-        ierr = MatAXPY(d_petsc_mat, 1.0, d_SJR_mat, DIFFERENT_NONZERO_PATTERN); IBTK_CHKERRQ(ierr);
-        tbox::pout << "...there" << std::endl;
+        ierr = PETScMatOps::MatAXPY_SeqAIJ(&d_petsc_mat, 1.0, d_SJR_mat, L); IBTK_CHKERRQ(ierr);
+        ierr = MatDestroy(L); IBTK_CHKERRQ(ierr);
+    }
+    else
+    {
+        d_petsc_mat = L;
     }
 
     ierr = KSPCreate(PETSC_COMM_WORLD, &d_petsc_ksp); IBTK_CHKERRQ(ierr);
