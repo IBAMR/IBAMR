@@ -222,6 +222,12 @@ IBImplicitSFROperator::apply(
         }
     }
 
+    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    SynchronizationTransactionComponent f_half_synch_transaction = SynchronizationTransactionComponent(f_half_idx, "CONSERVATIVE_COARSEN");
+    Pointer<SideDataSynchronization> side_synch_op = new SideDataSynchronization();
+    side_synch_op->initializeOperatorState(f_half_synch_transaction, y.getPatchHierarchy());
+    side_synch_op->synchronizeData(0.0);
+
     t_apply->stop();
     return;
 }// apply

@@ -863,10 +863,10 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
     d_ib_solver_needs_init = true;
     d_ib_solver = new PETScNewtonKrylovSolver(d_object_name+"::ib_solver", ib_prefix);
     d_ib_solver->setOperator(d_ib_op);
-//  d_ib_SJR_op = new PETScMFFDJacobianOperator(ib_prefix);  // XXXX
-//  Pointer<PETScMFFDJacobianOperator> ib_SJR_op = d_ib_SJR_op;
-//  ib_SJR_op->setOperator(d_ib_SFR_op);
-    d_ib_SJR_op = new IBImplicitSJROperator(this);
+    d_ib_SJR_op = new PETScMFFDJacobianOperator(ib_prefix);  // XXXX
+    Pointer<PETScMFFDJacobianOperator> ib_SJR_op = d_ib_SJR_op;
+    ib_SJR_op->setOperator(d_ib_SFR_op);
+//  d_ib_SJR_op = new IBImplicitSJROperator(this);
     d_ib_mod_helmholtz_pc = new IBImplicitModHelmholtzPETScLevelSolver("IBImplicitModHelmholtzPETScLevelSolver", d_helmholtz_petsc_pc_db);
     d_ib_jac_op = new IBImplicitJacobian(d_stokes_op, d_ib_SJR_op, d_ib_mod_helmholtz_pc);
     d_ib_solver->setJacobian(d_ib_jac_op);
@@ -1423,7 +1423,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy_initialize(
         d_hier_sc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(0), 0.0);
         d_hier_cc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(1), 1.0);
         d_ib_solver->getLinearSolver()->setNullspace(false, d_nul_vec);
-        d_poisson_solver->setNullspace(true, NULL);
+        if (!d_poisson_solver.isNull()) d_poisson_solver->setNullspace(true, NULL);
     }
 
     // Set the initial guess.
