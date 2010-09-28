@@ -181,13 +181,17 @@ IBImplicitSJROperator::formJacobian(
                                    PETSC_DEFAULT, &d_d_nnz[ln][0],
                                    PETSC_DEFAULT, &d_o_nnz[ln][0],
                                    &J_mat);  IBTK_CHKERRQ(ierr);
+#ifdef DEBUG_CHECK_ASSERTIONS
+            ierr = MatSetOption(J_mat, MAT_NEW_NONZERO_LOCATION_ERR  , PETSC_TRUE); IBTK_CHKERRQ(ierr);
+            ierr = MatSetOption(J_mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE); IBTK_CHKERRQ(ierr);
+#endif
             ierr = MatSetBlockSize(J_mat, NDIM);  IBTK_CHKERRQ(ierr);
             lag_force_strategy->computeLagrangianForceJacobian(
                 J_mat, MAT_FINAL_ASSEMBLY, -0.25*d_dt, X_half_data[ln], -0.5, U_half_data[ln],
                 hierarchy, ln, d_current_time+0.5*d_dt, lag_data_manager);
 
             // Compute S dF/dX R.
-            ierr = MatPtAP(J_mat, R_mats[ln], MAT_INITIAL_MATRIX, 1.0, &d_SJR_mats[ln]); IBTK_CHKERRQ(ierr);
+            ierr = MatPtAP(J_mat, R_mats[ln], MAT_INITIAL_MATRIX, 32.0, &d_SJR_mats[ln]); IBTK_CHKERRQ(ierr);
             Pointer<PatchLevel<NDIM> > patch_level = hierarchy->getPatchLevel(ln);
             Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_level->getGridGeometry();
             const double* const dx0 = grid_geom->getDx();
@@ -311,8 +315,8 @@ IBImplicitSJROperator::initializeOperatorState(
             {
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    d_d_nnz[ln][NDIM*k+d] = d_nnz[k];
-                    d_o_nnz[ln][NDIM*k+d] = o_nnz[k];
+                    d_d_nnz[ln][NDIM*k+d] = NDIM*d_nnz[k];
+                    d_o_nnz[ln][NDIM*k+d] = NDIM*o_nnz[k];
                 }
             }
         }
