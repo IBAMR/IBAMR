@@ -1149,7 +1149,7 @@ private:
 
     bool d_ib_solver_needs_init;
     SAMRAI::tbox::Pointer<IBTK::PETScNewtonKrylovSolver> d_ib_solver;
-    SAMRAI::tbox::Pointer<IBImplicitJacobian>            d_ib_jac_op;
+    SAMRAI::tbox::Pointer<IBTK::JacobianOperator>        d_ib_jac_op;
 
     bool d_needs_regrid_projection;
     double d_regrid_max_div_growth_factor;

@@ -51,6 +51,7 @@
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
+#include <ibtk/SideDataSynchronization.h> // XXXX
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -118,6 +119,14 @@ IBImplicitJacobian::apply(
     SAMRAIVectorReal<NDIM,double> y_u(y.getName(), y.getPatchHierarchy(), y.getCoarsestLevelNumber(), y.getFinestLevelNumber());
     y_u.addComponent(y.getComponentVariable(0), y.getComponentDescriptorIndex(0), y.getControlVolumeIndex(0));
     d_ib_SJR_op->applyAdd(x_u, y_u, y_u);
+
+    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent; // XXXX
+    const int y_idx = y.getComponentDescriptorIndex(0);
+    SynchronizationTransactionComponent y_synch_transaction = SynchronizationTransactionComponent(y_idx, "CONSERVATIVE_COARSEN");
+    Pointer<SideDataSynchronization> side_synch_op = new SideDataSynchronization();
+    side_synch_op->initializeOperatorState(y_synch_transaction, y.getPatchHierarchy());
+    side_synch_op->synchronizeData(0.0);
+
     return;
 }// apply
 

@@ -52,6 +52,7 @@
 #include <ibtk/PETScMatOps.h>
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScVecUtilities.h>
+#include <ibtk/SideDataSynchronization.h>
 
 // SAMRAI INCLUDES
 #include <tbox/Timer.h>
@@ -258,6 +259,12 @@ IBImplicitModHelmholtzPETScLevelSolver::solveSystem(
     PETScVecUtilities::constrainPatchLevelVec(d_petsc_b, d_dof_index_idx, d_dof_index_var, patch_level, d_dof_index_fill);
     ierr = KSPSolve(d_petsc_ksp, d_petsc_b, d_petsc_x); IBTK_CHKERRQ(ierr);
     PETScVecUtilities::copyFromPatchLevelVec(d_petsc_x, x_idx, x_var, patch_level);
+
+    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent; // XXXX
+    SynchronizationTransactionComponent x_synch_transaction = SynchronizationTransactionComponent(x_idx, "CONSERVATIVE_COARSEN");
+    Pointer<SideDataSynchronization> side_synch_op = new SideDataSynchronization();
+    side_synch_op->initializeOperatorState(x_synch_transaction, x.getPatchHierarchy());
+    side_synch_op->synchronizeData(0.0);
 
     // Log solver info.
     KSPConvergedReason reason;

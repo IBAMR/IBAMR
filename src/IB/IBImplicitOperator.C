@@ -47,6 +47,9 @@
 // IBAMR INCLUDES
 #include <ibamr/namespaces.h>
 
+// IBTK INCLUDES
+#include <ibtk/SideDataSynchronization.h> // XXXX
+
 // SAMRAI INCLUDES
 #include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
@@ -126,6 +129,13 @@ IBImplicitOperator::apply(
     // Apply the nonlinear part of the operator.
     static const bool zero_y_before_spread = false;
     d_ib_SFR_op->apply(zero_y_before_spread, x, y);
+
+    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent; // XXXX
+    const int y_idx = y.getComponentDescriptorIndex(0);
+    SynchronizationTransactionComponent y_synch_transaction = SynchronizationTransactionComponent(y_idx, "CONSERVATIVE_COARSEN");
+    Pointer<SideDataSynchronization> side_synch_op = new SideDataSynchronization();
+    side_synch_op->initializeOperatorState(y_synch_transaction, y.getPatchHierarchy());
+    side_synch_op->synchronizeData(0.0);
 
     t_apply->stop();
     return;

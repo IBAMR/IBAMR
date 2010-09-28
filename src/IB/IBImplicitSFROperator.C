@@ -222,7 +222,7 @@ IBImplicitSFROperator::apply(
         }
     }
 
-    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent; // XXXX
     SynchronizationTransactionComponent f_half_synch_transaction = SynchronizationTransactionComponent(f_half_idx, "CONSERVATIVE_COARSEN");
     Pointer<SideDataSynchronization> side_synch_op = new SideDataSynchronization();
     side_synch_op->initializeOperatorState(f_half_synch_transaction, y.getPatchHierarchy());
