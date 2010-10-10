@@ -864,7 +864,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                 }
                 d_helmholtz_hypre_pc = new SCPoissonHypreLevelSolver(d_object_name+"::Helmholtz Preconditioner", d_helmholtz_hypre_pc_db);
                 d_helmholtz_hypre_pc->setPoissonSpecifications(*d_helmholtz_spec);
-
                 d_helmholtz_solver->setPreconditioner(d_helmholtz_hypre_pc);
             }
             else
@@ -924,7 +923,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                 }
                 d_poisson_hypre_pc = new CCPoissonHypreLevelSolver(d_object_name+"::Poisson Preconditioner", d_poisson_hypre_pc_db);
                 d_poisson_hypre_pc->setPoissonSpecifications(*d_poisson_spec);
-
                 d_poisson_solver->setPreconditioner(d_poisson_hypre_pc);
             }
             else
