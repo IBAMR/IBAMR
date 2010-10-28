@@ -512,10 +512,10 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     if (d_using_orthonormal_directors)
     {
         d_W_var = new SideVariable<NDIM,double>(d_object_name+"::W");
-        d_W_idx = var_db->registerVariableAndContext(d_W_var, d_scratch, SIDEG);
+        d_W_idx = var_db->registerVariableAndContext(d_W_var, d_scratch, ghosts);
 
         d_N_var = new SideVariable<NDIM,double>(d_object_name+"::N");
-        d_N_idx = var_db->registerVariableAndContext(d_N_var, d_scratch, ghosts);
+        d_N_idx = var_db->registerVariableAndContext(d_N_var, d_scratch, SIDEG);
     }
 
     if (!d_source_strategy.isNull())
@@ -1097,11 +1097,6 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         if (d_using_orthonormal_directors)
         {
             // Set w(n+1/2) = curl u(n+1/2).
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-                d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(current_time);
-            }
             hier_math_ops->curl(d_W_idx, d_W_var, d_V_idx, d_V_var, NULL, current_time);
 
             // Interpolate w(n+1/2) to W(n+1/2).
