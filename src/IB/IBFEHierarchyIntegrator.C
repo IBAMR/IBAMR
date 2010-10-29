@@ -72,6 +72,7 @@
 #include <quadrature_trap.h>
 #include <quadrature_gauss.h>
 #include <string_to_enum.h>
+using namespace libMesh;
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -1564,8 +1565,8 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     dof_map.enforce_constraints_exactly(system, F.get());
 
     // Solve for G, the nodal interior elastic force density.
-    std::pair< ::LinearSolver<double>*,SparseMatrix<double>*> proj_solver_components = d_fe_data_manager->getL2ProjectionSolver(FORCE_SYSTEM_NAME);
-    ::LinearSolver<double>* solver = proj_solver_components.first;
+    std::pair<libMesh::LinearSolver<double>*,SparseMatrix<double>*> proj_solver_components = d_fe_data_manager->getL2ProjectionSolver(FORCE_SYSTEM_NAME);
+    libMesh::LinearSolver<double>* solver = proj_solver_components.first;
     SparseMatrix<double>* M = proj_solver_components.second;
     const double tol = 1.0e-10;
     const unsigned int max_its = 100;
