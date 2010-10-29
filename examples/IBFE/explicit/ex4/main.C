@@ -43,6 +43,7 @@
 #include <quadrature.h>
 #include <quadrature_gauss.h>
 #include <string_to_enum.h>
+using namespace libMesh;
 
 // Headers for basic SAMRAI objects
 #include <PatchLevel.h>

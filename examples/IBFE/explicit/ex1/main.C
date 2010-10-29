@@ -39,8 +39,10 @@
 #include <mesh.h>
 #include <mesh_generation.h>
 #include <numeric_vector.h>
+#include <periodic_boundaries.h>
 #include <quadrature.h>
 #include <string_to_enum.h>
+using namespace libMesh;
 
 // Headers for basic SAMRAI objects
 #include <PatchLevel.h>

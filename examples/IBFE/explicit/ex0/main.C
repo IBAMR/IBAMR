@@ -38,8 +38,10 @@
 #include <exodusII_io.h>
 #include <mesh.h>
 #include <mesh_generation.h>
+#include <periodic_boundaries.h>
 #include <quadrature.h>
 #include <string_to_enum.h>
+using namespace libMesh;
 
 // Headers for basic SAMRAI objects
 #include <PatchLevel.h>

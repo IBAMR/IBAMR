@@ -42,6 +42,7 @@
 #include <numeric_vector.h>
 #include <quadrature.h>
 #include <string_to_enum.h>
+using namespace libMesh;
 
 // Headers for basic SAMRAI objects
 #include <PatchLevel.h>

@@ -39,9 +39,11 @@
 #include <ibtk/HierarchyMathOps.h>
 
 // LIBMESH INCLUDES
+#include <../base/variable.h>
 #include <equation_systems.h>
 #include <exact_solution.h>
 #include <mesh.h>
+using namespace libMesh;
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
