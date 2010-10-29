@@ -88,7 +88,7 @@ IBStaggeredHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
    end_time              = 2.4e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
-   max_integrator_steps  = 10000000 // max number of simulation timesteps
+   max_integrator_steps  = 10 // XXXX 10000000 // max number of simulation timesteps
    regrid_interval       = 1
    dt_max = 1.6e-1/NFINEST
    num_cycles = 3
@@ -143,11 +143,12 @@ INSStaggeredHierarchyIntegrator {
    }
 
    HelmholtzFACSolver {
-      num_pre_sweeps  = 2
+      num_pre_sweeps  = 0
       num_post_sweeps = 2
       coarse_solver_choice = "block_jacobi"
       coarse_solver_tolerance = 1.0e-30
       coarse_solver_max_iterations = 2
+      smoother_choice = "additive"
       prolongation_method = "CONSTANT_REFINE"
       restriction_method  = "CONSERVATIVE_COARSEN"
    }
@@ -168,9 +169,10 @@ INSStaggeredHierarchyIntegrator {
    PoissonFACSolver {
       num_pre_sweeps  = 2
       num_post_sweeps = 2
-      coarse_solver_choice = "hypre"
+      coarse_solver_choice = "petsc"
       coarse_solver_tolerance = 1.0e-12
       coarse_solver_max_iterations = 1
+      smoother_choice = "additive"
       prolongation_method = "LINEAR_REFINE"
       restriction_method  = "CONSERVATIVE_COARSEN"
 
@@ -185,6 +187,10 @@ INSStaggeredHierarchyIntegrator {
          max_iterations        = 1
          enable_logging        = FALSE
       }
+
+      petsc_solver {
+         options_prefix = "poisson0_"
+      }
    }
 }
 
@@ -195,7 +201,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST/2   // zero to turn off
+   viz_dump_interval     = 0 // XXXX NFINEST/2   // zero to turn off
    viz_dump_dirname      = "viz_IB3d"
    visit_number_procs_per_file = 1
 
@@ -204,14 +210,14 @@ Main {
    restart_write_dirname = "restart_IB3d"
 
 // timer dump parameters
-   timer_dump_interval   = 0           // zero to turn off
+   timer_dump_interval   = 10           // zero to turn off
 }
 
 CartesianGeometry {
    domain_boxes = [ (0,0,0) , (N - 1,N - 1,N - 1) ]
    x_lo         =  0, 0, 0         // lower end of computational domain.
    x_up         =  1, 1, 1         // upper end of computational domain.
-   periodic_dimension = 0, 0, 0
+   periodic_dimension = 1, 1, 1
 }
 
 GriddingAlgorithm {

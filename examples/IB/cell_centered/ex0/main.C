@@ -134,7 +134,6 @@ public:
     }// postProcessData
 };
 
-
 /************************************************************************
  * For each run, the input filename and restart information (if         *
  * needed) must be given on the command line.  For non-restarted case,  *

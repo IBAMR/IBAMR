@@ -1,11 +1,11 @@
 ###########################################################################
 # Prelude.
 ###########################################################################
-AC_PREREQ([2.61])
-AC_INIT([IBAMR],[091103],[griffith AT cims DOT nyu DOT edu])
+AC_PREREQ(2.65)
+AC_INIT([IBAMR],[101029],[griffith AT cims DOT nyu DOT edu])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_HEADERS([config/IBAMR_config.h])
-AM_INIT_AUTOMAKE([1.10 -Wall -Werror dist-bzip2 foreign])
+AM_INIT_AUTOMAKE([1.11.1 -Wall -Werror dist-bzip2 foreign])
 AC_LANG(C++)
 
 ###########################################################################
@@ -48,10 +48,10 @@ AC_ARG_WITH([mpicxx],
   [MPICXX=$withval],)
 
 AC_LANG_PUSH([C])
-ACX_MPI(,AC_MSG_WARN([unable to find working MPI C complier wrapper]))
+AX_MPI([],[AC_MSG_WARN([unable to find working MPI C complier wrapper])])
 AC_LANG_POP([C])
 
-ACX_MPI(,AC_MSG_WARN([unable to find working MPI C++ compiler wrapper]))
+AX_MPI([],[AC_MSG_WARN([unable to find working MPI C++ compiler wrapper])])
 
 if test "$MPILIBS" != "" ; then
   LIBS="$MPILIBS $LIBS"
@@ -61,15 +61,25 @@ fi
 AC_HEADER_MAJOR
 AC_HEADER_STDC
 
-AC_CXX_NAMESPACES
-if test "$ac_cv_cxx_namespaces" != "yes" ; then
+AX_CXX_NAMESPACES
+if test "$ax_cv_cxx_namespaces" != "yes" ; then
   AC_MSG_ERROR([the specified C++ compiler does not appear to support namespaces])
 fi
 
-AC_CXX_HAVE_STL
-if test "$ac_cv_cxx_have_stl" != "yes" ; then
+AX_CXX_HAVE_STL
+if test "$ax_cv_cxx_have_stl" != "yes" ; then
   AC_MSG_ERROR([the specified C++ compiler does not appear support the Standard Template Library])
 fi
+
+AC_MSG_CHECKING([whether compiler supports __builtin_expect keyword])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[
+if (__builtin_expect(true,1)) return 0;
+]])],[
+have_builtin_expect=1
+AC_MSG_RESULT(yes)],[
+have_builtin_expect=0
+AC_MSG_RESULT(no)])
+AC_DEFINE_UNQUOTED(HAVE_BUILTIN_EXPECT,$have_builtin_expect,[Boolean value indicating whether the C++ compiler supports the __builtin_expect keyword])
 
 # Checks for other programs.
 AC_PROG_RANLIB
@@ -165,9 +175,6 @@ fi
 # Checks for libraries.
 ###########################################################################
 
-# Optional external libraries.
-
-# Check for Blitz++ library and configure Blitz++ options.
 AC_ARG_ENABLE([blitz],
   AS_HELP_STRING(--enable-blitz,enable support for the optional Blitz++ library @<:@default=yes@:>@),
   [BLITZ_ENABLED=$enableval], [BLITZ_ENABLED=yes])
@@ -188,64 +195,28 @@ AC_ARG_WITH([blitz],
    fi],
   [BLITZ_DIR=/usr/local/sfw/blitz/current])
 
-AM_CONDITIONAL([BLITZ_ENABLED],[test "$BLITZ_ENABLED" == "yes"])
-if test "$BLITZ_ENABLED" == "yes"; then
-  echo
-  echo "===================================="
-  echo "Configuring optional package Blitz++"
-  echo "===================================="
-  CONFIGURE_BLITZ
-else
-  echo
-  echo "===================================="
-  echo "Optional package Blitz++ is DISABLED"
-  echo "===================================="
-fi
+AC_ARG_WITH([hdf5],
+  AS_HELP_STRING(--with-hdf5=PATH,location of required hdf5 installation @<:@default=/usr/local/sfw/hdf5/current@:>@),
+  [if test ! -d "$withval" ; then
+     AC_MSG_ERROR([you must specify an existing directory when using --with-hdf5=PATH])
+   fi
+   HDF5_DIR=$withval],
+  [HDF5_DIR=/usr/local/sfw/hdf5/current])
 
-# Check for Silo library and configure Silo options.
-AC_ARG_ENABLE([silo],
-  AS_HELP_STRING(--enable-silo,enable support for the optional Silo library @<:@default=yes@:>@),
-  [SILO_ENABLED=$enableval], [SILO_ENABLED=yes])
-if test "$SILO_ENABLED" == "" ; then
-  SILO_ENABLED=yes
-fi
+AC_ARG_WITH([hypre],
+  AS_HELP_STRING(--with-hypre=PATH,location of required hypre installation @<:@default=/usr/local/sfw/hypre/current@:>@),
+  [if test ! -d "$withval" ; then
+     AC_MSG_ERROR([you must specify an existing directory when using --with-hypre=PATH])
+   fi
+   HYPRE_DIR=$withval],
+  [HYPRE_DIR=/usr/local/sfw/hypre/current])
 
-AC_ARG_WITH([silo],
-  AS_HELP_STRING(--with-silo=PATH,location of optional Silo installation @<:@default=/usr/local/sfw/silo/current@:>@),
-  [if test "$SILO_ENABLED" == "no" ; then
-     AC_MSG_WARN([--with-silo is specified, but support for Silo is DISABLED])
-     SILO_DIR=NONE
-   else
-     if test ! -d "$withval" ; then
-       AC_MSG_ERROR([you must specify an existing directory when using --with-silo=PATH])
-     fi
-     SILO_DIR=$withval
-   fi],
-  [SILO_DIR=/usr/local/sfw/silo/current])
-
-AM_CONDITIONAL([SILO_ENABLED],[test "$SILO_ENABLED" == "yes"])
-if test "$SILO_ENABLED" == "yes"; then
-  echo
-  echo "================================="
-  echo "Configuring optional package Silo"
-  echo "================================="
-  CONFIGURE_SILO
-else
-  echo
-  echo "================================="
-  echo "Optional package Silo is DISABLED"
-  echo "================================="
-fi
-
-# Check for libMesh library and configure libMesh options.
 AC_ARG_ENABLE([libmesh],
   AS_HELP_STRING(--enable-libmesh,enable support for the optional libMesh library @<:@default=no@:>@),
   [LIBMESH_ENABLED=$enableval], [LIBMESH_ENABLED=no])
 if test "$LIBMESH_ENABLED" == "" ; then
   LIBMESH_ENABLED=no
 fi
-
-AM_CONDITIONAL([LIBMESH_ENABLED],[test "$LIBMESH_ENABLED" == "yes"])
 
 AC_ARG_WITH([libmesh],
   AS_HELP_STRING([--with-libmesh=PATH],[location of optional libMesh installation @<:@default=/usr/local/sfw/libmesh/current@:>@]),
@@ -270,6 +241,124 @@ AC_ARG_WITH([libmesh-compile-mode],
    fi],
   [LIBMESH_COMPILE_MODE=dbg])
 
+AC_ARG_VAR(PETSC_DIR,[the location of the PETSc installation that is to be used.  Note that multiple versions of PETSc may be installed within the same filesystem, with each version corresponding to a different value of PETSC_DIR.])
+AC_ARG_VAR(PETSC_ARCH,[the PETSc configuration that is to be used, corresponding to the configuration located in ${PETSC_DIR}/${PETSC_ARCH}.  Note that multiple configurations of PETSc can be installed for a particular version of the PETSc library.  Each configuration will correspond to a different value of PETSC_ARCH.])
+AC_ARG_WITH([petsc],
+  AS_HELP_STRING(--with-petsc=PATH,location of required PETSc installation @<:@default=PETSC_DIR@:>@),
+  [if test ! -d "$withval" ; then
+     AC_MSG_ERROR([you must specify an existing directory when using --with-petsc=PATH])
+   fi
+   PETSC_DIR=$withval],)
+AC_ARG_WITH([petsc-arch],
+  AS_HELP_STRING(--with-petsc-arch=ARCH,PETSc architecture @<:@default=PETSC_ARCH@:>@),
+  [PETSC_ARCH=$withval],)
+AC_SUBST(PETSC_DIR,$PETSC_DIR)
+AC_SUBST(PETSC_ARCH,$PETSC_ARCH)
+
+AC_ARG_WITH([samrai],
+  AS_HELP_STRING(--with-samrai=PATH,location of required SAMRAI installation @<:@default=/usr/local/sfw/samrai/current@:>@),
+  [if test ! -d "$withval" ; then
+     AC_MSG_ERROR([you must specify an existing directory when using --with-samrai=PATH])
+   fi
+   SAMRAI_DIR=$withval],
+  [SAMRAI_DIR=/usr/local/sfw/samrai/current])
+
+AC_ARG_ENABLE([silo],
+  AS_HELP_STRING(--enable-silo,enable support for the optional Silo library @<:@default=yes@:>@),
+  [SILO_ENABLED=$enableval], [SILO_ENABLED=yes])
+if test "$SILO_ENABLED" == "" ; then
+  SILO_ENABLED=yes
+fi
+
+AC_ARG_WITH([silo],
+  AS_HELP_STRING(--with-silo=PATH,location of optional Silo installation @<:@default=/usr/local/sfw/silo/current@:>@),
+  [if test "$SILO_ENABLED" == "no" ; then
+     AC_MSG_WARN([--with-silo is specified, but support for Silo is DISABLED])
+     SILO_DIR=NONE
+   else
+     if test ! -d "$withval" ; then
+       AC_MSG_ERROR([you must specify an existing directory when using --with-silo=PATH])
+     fi
+     SILO_DIR=$withval
+   fi],
+  [SILO_DIR=/usr/local/sfw/silo/current])
+
+###########################################################################
+# Configure libraries.
+###########################################################################
+
+echo
+echo "========================================"
+echo "Configuring required package BLAS/LAPACK"
+echo "========================================"
+if (test -r $PETSC_DIR/$PETSC_ARCH/conf/petscvariables) ; then
+  PETSC_BLASLAPACK_LIB=`grep "BLASLAPACK_LIB" $PETSC_DIR/$PETSC_ARCH/conf/petscvariables | sed -e 's/.*BLASLAPACK_LIB = //'`
+  if test "x$PETSC_BLASLAPACK_LIB" != x ; then
+    if test "x$with_blas" != "x" -a "$with_blas" != "$PETSC_BLASLAPACK_LIB" ; then
+      echo "BLAS flags specified by --with-blas appear to disagree with PETSc BLAS/LAPACK flags; using PETSc settings"
+    fi
+    if test "x$with_lapack" != "x" -a "$with_lapack" != "$PETSC_BLASLAPACK_LIB" ; then
+      echo "LAPACK flags specified by --with-lapack appear to disagree with PETSc BLAS/LAPACK flags; using PETSc settings"
+    fi
+    echo "using PETSc BLAS/LAPACK library flags: $PETSC_BLASLAPACK_LIB"
+    with_blas="$PETSC_BLASLAPACK_LIB"
+    with_lapack=""
+  fi
+  PETSC_BLASLAPACK_INCLUDE=`grep "BLASLAPACK_INCLUDE" $PETSC_DIR/$PETSC_ARCH/conf/petscvariables | sed -e 's/.*BLASLAPACK_INCLUDE = //'`
+  if test "x$PETSC_BLASLAPACK_INCLUDE" != x ; then
+    CPPFLAGS="${PETSC_BLASLAPACK_INCLUDE} $CPPFLAGS"
+  fi
+fi
+AX_BLAS(,)
+AX_LAPACK(,)
+
+AM_CONDITIONAL([BLITZ_ENABLED],[test "$BLITZ_ENABLED" == "yes"])
+if test "$BLITZ_ENABLED" == "yes"; then
+  echo
+  echo "===================================="
+  echo "Configuring optional package Blitz++"
+  echo "===================================="
+  CONFIGURE_BLITZ
+else
+  echo
+  echo "===================================="
+  echo "Optional package Blitz++ is DISABLED"
+  echo "===================================="
+fi
+
+AM_CONDITIONAL([SILO_ENABLED],[test "$SILO_ENABLED" == "yes"])
+if test "$SILO_ENABLED" == "yes"; then
+  echo
+  echo "================================="
+  echo "Configuring optional package Silo"
+  echo "================================="
+  CONFIGURE_SILO
+else
+  echo
+  echo "================================="
+  echo "Optional package Silo is DISABLED"
+  echo "================================="
+fi
+
+echo
+echo "================================="
+echo "Configuring required package hdf5"
+echo "================================="
+CONFIGURE_HDF5
+
+echo
+echo "=================================="
+echo "Configuring required package hypre"
+echo "=================================="
+CONFIGURE_HYPRE
+
+echo
+echo "=================================="
+echo "Configuring required package PETSc"
+echo "=================================="
+LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FCLIBS"
+CONFIGURE_PETSC
+
 AM_CONDITIONAL([LIBMESH_ENABLED],[test "$LIBMESH_ENABLED" == "yes"])
 if test "$LIBMESH_ENABLED" == "yes"; then
   echo
@@ -284,77 +373,10 @@ else
   echo "===================================="
 fi
 
-# Required external libraries.
-
-# Check for BLAS and LAPACK libraries.
-echo
-echo "========================================"
-echo "Configuring required package BLAS/LAPACK"
-echo "========================================"
-ACX_BLAS(,)
-ACX_LAPACK(,)
-LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FCLIBS"
-
-# Check for hdf5 library and configure hdf5 options.
-echo
-echo "================================="
-echo "Configuring required package hdf5"
-echo "================================="
-AC_ARG_WITH([hdf5],
-  AS_HELP_STRING(--with-hdf5=PATH,location of required hdf5 installation @<:@default=/usr/local/sfw/hdf5/current@:>@),
-  [if test ! -d "$withval" ; then
-     AC_MSG_ERROR([you must specify an existing directory when using --with-hdf5=PATH])
-   fi
-   HDF5_DIR=$withval],
-  [HDF5_DIR=/usr/local/sfw/hdf5/current])
-CONFIGURE_HDF5
-
-# Check for hypre library and configure hypre options.
-echo
-echo "=================================="
-echo "Configuring required package hypre"
-echo "=================================="
-AC_ARG_WITH([hypre],
-  AS_HELP_STRING(--with-hypre=PATH,location of required hypre installation @<:@default=/usr/local/sfw/hypre/current@:>@),
-  [if test ! -d "$withval" ; then
-     AC_MSG_ERROR([you must specify an existing directory when using --with-hypre=PATH])
-   fi
-   HYPRE_DIR=$withval],
-  [HYPRE_DIR=/usr/local/sfw/hypre/current])
-CONFIGURE_HYPRE
-
-# Check for PETSc library and configure PETSc options.
-echo
-echo "=================================="
-echo "Configuring required package PETSc"
-echo "=================================="
-AC_ARG_VAR(PETSC_DIR,[the location of the PETSc installation that is to be used.  Note that multiple versions of PETSc may be installed within the same filesystem, with each version corresponding to a different value of PETSC_DIR.])
-AC_ARG_VAR(PETSC_ARCH,[the PETSc configuration that is to be used, corresponding to the configuration located in ${PETSC_DIR}/${PETSC_ARCH}.  Note that multiple configurations of PETSc can be installed for a particular version of the PETSc library.  Each configuration will correspond to a different value of PETSC_ARCH.])
-AC_ARG_WITH([petsc],
-  AS_HELP_STRING(--with-petsc=PATH,location of required PETSc installation @<:@default=PETSC_DIR@:>@),
-  [if test ! -d "$withval" ; then
-     AC_MSG_ERROR([you must specify an existing directory when using --with-petsc=PATH])
-   fi
-   PETSC_DIR=$withval],)
-AC_ARG_WITH([petsc-arch],
-  AS_HELP_STRING(--with-petsc-arch=ARCH,PETSc architecture @<:@default=PETSC_ARCH@:>@),
-  [PETSC_ARCH=$withval],)
-AC_SUBST(PETSC_DIR,$PETSC_DIR)
-AC_SUBST(PETSC_ARCH,$PETSC_ARCH)
-CONFIGURE_PETSC
-
-# Check for SAMRAI library and configure SAMRAI options.
 echo
 echo "==================================="
 echo "Configuring required package SAMRAI"
 echo "==================================="
-AC_ARG_WITH([samrai],
-  AS_HELP_STRING(--with-samrai=PATH,location of required SAMRAI installation @<:@default=/usr/local/sfw/samrai/current@:>@),
-  [if test ! -d "$withval" ; then
-     AC_MSG_ERROR([you must specify an existing directory when using --with-samrai=PATH])
-   fi
-   SAMRAI_DIR=$withval],
-  [SAMRAI_DIR=/usr/local/sfw/samrai/current])
 CONFIGURE_SAMRAI
 
 ###########################################################################
