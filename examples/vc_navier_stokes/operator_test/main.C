@@ -295,10 +295,10 @@ main(
         HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
         const int dx_side_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
         const int dx_cell_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
+
         /*
          * Compute f = [(rho/dt)*u-0.5*div*(mu*(grad u + (grad u)^T)) + grad p; -div u]
          */
-
         INSStaggeredVCStokesOperator vc_stokes_op(tbox::Pointer<HierarchyMathOps>(&hier_math_ops,false));  // Create a Pointer to hier_math_ops which does NOT handle memory management for hier_math_ops (i.e., which does NOT delete hier_math_ops when the number of references drops to zero).
 
 	solv::SAMRAIVectorReal<NDIM,double> x("x", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
