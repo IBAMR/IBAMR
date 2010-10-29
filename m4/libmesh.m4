@@ -6,19 +6,19 @@ LIBMESH_CONTRIBDIR=${LIBMESH_DIR}/contrib
 LIBMESH_CONTRIB_LIBDIR=${LIBMESH_DIR}/contrib/lib/${LIBMESH_HOSTTYPE}_${LIBMESH_COMPILE_MODE}
 
 if test "${LIBMESH_COMPILE_MODE}" == "opt" ; then
-  CXXFLAGS="${CXXFLAGS} `grep -A1 opt-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
+  CXXFLAGS="${CXXFLAGS} `grep -A3 opt-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
 fi
 if test "${LIBMESH_COMPILE_MODE}" == "devel" ; then
-  CXXFLAGS="${CXXFLAGS} `grep -A1 devel-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
+  CXXFLAGS="${CXXFLAGS} `grep -A3 devel-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
 fi
 if test "${LIBMESH_COMPILE_MODE}" == "dbg" ; then
-  CXXFLAGS="${CXXFLAGS} `grep -A1 debug-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
+  CXXFLAGS="${CXXFLAGS} `grep -A3 debug-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
 fi
 if test "${LIBMESH_COMPILE_MODE}" == "prof" ; then
-  CXXFLAGS="${CXXFLAGS} `grep -A1 prof-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
+  CXXFLAGS="${CXXFLAGS} `grep -A3 prof-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
 fi
 if test "${LIBMESH_COMPILE_MODE}" == "oprof" ; then
-  CXXFLAGS="${CXXFLAGS} `grep -A1 oprof-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
+  CXXFLAGS="${CXXFLAGS} `grep -A3 oprof-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
 fi
 
 LIBMESH_TECPLOT_LIBS=`grep "libmesh_LIBS" $LIBMESH_DIR/Make.common | grep "tecplot" | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
