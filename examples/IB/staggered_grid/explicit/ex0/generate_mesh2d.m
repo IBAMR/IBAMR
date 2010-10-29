@@ -8,7 +8,9 @@ width = 0.0; %4.0/64.0;
 alpha = 0.2;
 beta  = 0.3;
 
-perim = 2*pi*sqrt(0.5*(alpha^2 + beta^2));  % approximate perimeter of ellipse
+A = pi*alpha*beta;      % area of ellipse
+R = sqrt(A/pi);         % radius of disc with same area as the area of the ellipse
+perim = 2*pi*R;         % perimeter of the equivalent disc
 dx = 1/(16*NFINEST);
 num_layers = max(1,ceil(width/(0.5*dx)));
 num_nodes = ceil(perim/(0.5*dx)/4)*4;
