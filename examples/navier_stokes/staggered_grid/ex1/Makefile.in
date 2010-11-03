@@ -60,19 +60,15 @@ CONFIG_CLEAN_VPATH_FILES =
 am_convergence_tester2d_OBJECTS =  \
 	convergence_tester2d-convergence_tester.$(OBJEXT)
 convergence_tester2d_OBJECTS = $(am_convergence_tester2d_OBJECTS)
-convergence_tester2d_DEPENDENCIES = $(top_builddir)/lib/libIBAMR2d.a \
-	$(top_builddir)/lib/libIBAMR.a \
-	$(top_builddir)/ibtk/lib/libIBTK2d.a \
-	$(top_builddir)/ibtk/lib/libIBTK.a
+am__DEPENDENCIES_1 =
+convergence_tester2d_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_1)
 convergence_tester2d_LINK = $(CXXLD) $(convergence_tester2d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__objects_1 = main2d-main.$(OBJEXT) main2d-UInit.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
-main2d_DEPENDENCIES = $(top_builddir)/lib/libIBAMR2d.a \
-	$(top_builddir)/lib/libIBAMR.a \
-	$(top_builddir)/ibtk/lib/libIBTK2d.a \
-	$(top_builddir)/ibtk/lib/libIBTK.a
+main2d_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
 main2d_LINK = $(CXXLD) $(main2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
@@ -409,16 +405,19 @@ MAINTAINERCLEANFILES = Makefile.in
 AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/ibtk/include -I${top_builddir}/ibtk/config -I${top_srcdir}/ibtk/third_party/qd-2.3.11/include -I${top_builddir}/ibtk/third_party/qd-2.3.11/include
 AM_FFLAGS = -I${top_builddir}/ibtk/third_party/qd-2.3.11/fortran
 AM_FCFLAGS = -I${top_builddir}/ibtk/third_party/qd-2.3.11/fortran
-AM_LDFLAGS = -L${top_builddir}/ibtk/third_party/qd-2.3.11/src -L${top_builddir}/ibtk/third_party/qd-2.3.11/fortran -lqd -lqdmod
+AM_LDFLAGS = -L${top_builddir}/lib -L${top_builddir}/ibtk/lib -L${top_builddir}/ibtk/third_party/qd-2.3.11/src -L${top_builddir}/ibtk/third_party/qd-2.3.11/fortran
+IBAMR_LIBS = -lIBAMR -lIBTK -lqd -lqdmod
+IBAMR2d_LIBS = -lIBAMR2d -lIBTK2d
+IBAMR3d_LIBS = -lIBAMR3d -lIBTK3d
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SOURCES = main.C UInit.C UInit.h
 EXTRA_DIST = input2d
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-main2d_LDADD = $(top_builddir)/lib/libIBAMR2d.a $(top_builddir)/lib/libIBAMR.a $(top_builddir)/ibtk/lib/libIBTK2d.a $(top_builddir)/ibtk/lib/libIBTK.a
+main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_SOURCES = $(SOURCES)
 convergence_tester2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-convergence_tester2d_LDADD = $(top_builddir)/lib/libIBAMR2d.a $(top_builddir)/lib/libIBAMR.a $(top_builddir)/ibtk/lib/libIBTK2d.a $(top_builddir)/ibtk/lib/libIBTK.a
+convergence_tester2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 convergence_tester2d_SOURCES = convergence_tester.C
 all: all-am
 
