@@ -38,6 +38,7 @@
 #include <exodusII_io.h>
 #include <mesh.h>
 #include <mesh_generation.h>
+#include <point.h>
 #include <periodic_boundaries.h>
 #include <quadrature.h>
 #include <string_to_enum.h>
@@ -326,11 +327,10 @@ main(
                                             Utility::string_to_enum<ElemType>(elem_type));
         ExodusII_IO mesh_writer(mesh);
 
-        PeriodicBoundary pbc;
+        VectorValue<double> boundary_translation(2.0*M_PI*R, 0.0, 0.0);
+        PeriodicBoundary pbc(boundary_translation);
         pbc.myboundary = 3;
         pbc.pairedboundary = 1;
-        VectorValue<double> boundary_translation(2.0*M_PI*R, 0.0, 0.0);
-        pbc.translation_vector = boundary_translation;
 
         smooth_case = input_db->getBoolWithDefault("smooth_case", smooth_case);
 
