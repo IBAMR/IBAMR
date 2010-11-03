@@ -38,7 +38,6 @@
 #include <exodusII_io.h>
 #include <mesh.h>
 #include <mesh_generation.h>
-#include <point.h>
 #include <periodic_boundaries.h>
 #include <quadrature.h>
 #include <string_to_enum.h>
