@@ -856,6 +856,9 @@ LDFLAGS
 CFLAGS
 CC
 FCLIBS
+MAINT
+MAINTAINER_MODE_FALSE
+MAINTAINER_MODE_TRUE
 am__untar
 am__tar
 AMTAR
@@ -920,6 +923,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+enable_maintainer_mode
 enable_dependency_tracking
 with_gnu_ld
 enable_rpath
@@ -946,55 +950,8 @@ enable_silo
 with_silo
 with_blas
 with_lapack
-with_libblitz_prefix
-with_libsilo_prefix
-with_libsiloh5_prefix
-with_libhdf5_prefix
-with_libhdf5_hl_prefix
-with_libHYPRE_prefix
-with_libX11_prefix
-with_libpetsc_prefix
-with_libpetscvec_prefix
-with_libpetscmat_prefix
-with_libpetscdm_prefix
-with_libpetscksp_prefix
-with_libpetscsnes_prefix
-with_libpetscts_prefix
-with_liblaspack_prefix
-with_libmetis_prefix
-with_libparmetis_prefix
-with_libsfcurves_prefix
-with_libgzstream_prefix
-with_libtetgen_prefix
-with_libtriangle_prefix
-with_libgmv_prefix
-with_libvtk_prefix
-with_libnetcdf_prefix
-with_libexodusii_prefix
-with_libnemesis_prefix
-with_libhilbert_prefix
-with_libmesh_prefix
-with_libSAMRAI_prefix
 enable_samrai_2d
-with_libSAMRAI2d_hier_prefix
-with_libSAMRAI2d_xfer_prefix
-with_libSAMRAI2d_pdat_std_prefix
-with_libSAMRAI2d_math_std_prefix
-with_libSAMRAI2d_mesh_prefix
-with_libSAMRAI2d_geom_prefix
-with_libSAMRAI2d_solv_prefix
-with_libSAMRAI2d_algs_prefix
-with_libSAMRAI2d_appu_prefix
 enable_samrai_3d
-with_libSAMRAI3d_hier_prefix
-with_libSAMRAI3d_xfer_prefix
-with_libSAMRAI3d_pdat_std_prefix
-with_libSAMRAI3d_math_std_prefix
-with_libSAMRAI3d_mesh_prefix
-with_libSAMRAI3d_geom_prefix
-with_libSAMRAI3d_solv_prefix
-with_libSAMRAI3d_algs_prefix
-with_libSAMRAI3d_appu_prefix
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1636,6 +1593,8 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-maintainer-mode  enable make rules and dependencies not useful
+			  (and sometimes confusing) to the casual installer
   --disable-dependency-tracking  speeds up one-time build
   --enable-dependency-tracking   do not reject slow dependency extractors
   --disable-rpath         do not hardcode runtime library paths
@@ -1694,100 +1653,6 @@ Optional Packages:
                           [default=/usr/local/sfw/silo/current]
   --with-blas=<lib>       use BLAS library <lib>
   --with-lapack=<lib>     use LAPACK library <lib>
-  --with-libblitz-prefix[=DIR]  search for libblitz in DIR/include and DIR/lib
-  --without-libblitz-prefix     don't search for libblitz in includedir and libdir
-  --with-libsilo-prefix[=DIR]  search for libsilo in DIR/include and DIR/lib
-  --without-libsilo-prefix     don't search for libsilo in includedir and libdir
-  --with-libsiloh5-prefix[=DIR]  search for libsiloh5 in DIR/include and DIR/lib
-  --without-libsiloh5-prefix     don't search for libsiloh5 in includedir and libdir
-  --with-libhdf5-prefix[=DIR]  search for libhdf5 in DIR/include and DIR/lib
-  --without-libhdf5-prefix     don't search for libhdf5 in includedir and libdir
-  --with-libhdf5_hl-prefix[=DIR]  search for libhdf5_hl in DIR/include and DIR/lib
-  --without-libhdf5_hl-prefix     don't search for libhdf5_hl in includedir and libdir
-  --with-libHYPRE-prefix[=DIR]  search for libHYPRE in DIR/include and DIR/lib
-  --without-libHYPRE-prefix     don't search for libHYPRE in includedir and libdir
-  --with-libX11-prefix[=DIR]  search for libX11 in DIR/include and DIR/lib
-  --without-libX11-prefix     don't search for libX11 in includedir and libdir
-  --with-libpetsc-prefix[=DIR]  search for libpetsc in DIR/include and DIR/lib
-  --without-libpetsc-prefix     don't search for libpetsc in includedir and libdir
-  --with-libpetscvec-prefix[=DIR]  search for libpetscvec in DIR/include and DIR/lib
-  --without-libpetscvec-prefix     don't search for libpetscvec in includedir and libdir
-  --with-libpetscmat-prefix[=DIR]  search for libpetscmat in DIR/include and DIR/lib
-  --without-libpetscmat-prefix     don't search for libpetscmat in includedir and libdir
-  --with-libpetscdm-prefix[=DIR]  search for libpetscdm in DIR/include and DIR/lib
-  --without-libpetscdm-prefix     don't search for libpetscdm in includedir and libdir
-  --with-libpetscksp-prefix[=DIR]  search for libpetscksp in DIR/include and DIR/lib
-  --without-libpetscksp-prefix     don't search for libpetscksp in includedir and libdir
-  --with-libpetscsnes-prefix[=DIR]  search for libpetscsnes in DIR/include and DIR/lib
-  --without-libpetscsnes-prefix     don't search for libpetscsnes in includedir and libdir
-  --with-libpetscts-prefix[=DIR]  search for libpetscts in DIR/include and DIR/lib
-  --without-libpetscts-prefix     don't search for libpetscts in includedir and libdir
-  --with-liblaspack-prefix[=DIR]  search for liblaspack in DIR/include and DIR/lib
-  --without-liblaspack-prefix     don't search for liblaspack in includedir and libdir
-  --with-libmetis-prefix[=DIR]  search for libmetis in DIR/include and DIR/lib
-  --without-libmetis-prefix     don't search for libmetis in includedir and libdir
-  --with-libparmetis-prefix[=DIR]  search for libparmetis in DIR/include and DIR/lib
-  --without-libparmetis-prefix     don't search for libparmetis in includedir and libdir
-  --with-libsfcurves-prefix[=DIR]  search for libsfcurves in DIR/include and DIR/lib
-  --without-libsfcurves-prefix     don't search for libsfcurves in includedir and libdir
-  --with-libgzstream-prefix[=DIR]  search for libgzstream in DIR/include and DIR/lib
-  --without-libgzstream-prefix     don't search for libgzstream in includedir and libdir
-  --with-libtetgen-prefix[=DIR]  search for libtetgen in DIR/include and DIR/lib
-  --without-libtetgen-prefix     don't search for libtetgen in includedir and libdir
-  --with-libtriangle-prefix[=DIR]  search for libtriangle in DIR/include and DIR/lib
-  --without-libtriangle-prefix     don't search for libtriangle in includedir and libdir
-  --with-libgmv-prefix[=DIR]  search for libgmv in DIR/include and DIR/lib
-  --without-libgmv-prefix     don't search for libgmv in includedir and libdir
-  --with-libvtk-prefix[=DIR]  search for libvtk in DIR/include and DIR/lib
-  --without-libvtk-prefix     don't search for libvtk in includedir and libdir
-  --with-libnetcdf-prefix[=DIR]  search for libnetcdf in DIR/include and DIR/lib
-  --without-libnetcdf-prefix     don't search for libnetcdf in includedir and libdir
-  --with-libexodusii-prefix[=DIR]  search for libexodusii in DIR/include and DIR/lib
-  --without-libexodusii-prefix     don't search for libexodusii in includedir and libdir
-  --with-libnemesis-prefix[=DIR]  search for libnemesis in DIR/include and DIR/lib
-  --without-libnemesis-prefix     don't search for libnemesis in includedir and libdir
-  --with-libhilbert-prefix[=DIR]  search for libhilbert in DIR/include and DIR/lib
-  --without-libhilbert-prefix     don't search for libhilbert in includedir and libdir
-  --with-libmesh-prefix[=DIR]  search for libmesh in DIR/include and DIR/lib
-  --without-libmesh-prefix     don't search for libmesh in includedir and libdir
-  --with-libSAMRAI-prefix[=DIR]  search for libSAMRAI in DIR/include and DIR/lib
-  --without-libSAMRAI-prefix     don't search for libSAMRAI in includedir and libdir
-  --with-libSAMRAI2d_hier-prefix[=DIR]  search for libSAMRAI2d_hier in DIR/include and DIR/lib
-  --without-libSAMRAI2d_hier-prefix     don't search for libSAMRAI2d_hier in includedir and libdir
-  --with-libSAMRAI2d_xfer-prefix[=DIR]  search for libSAMRAI2d_xfer in DIR/include and DIR/lib
-  --without-libSAMRAI2d_xfer-prefix     don't search for libSAMRAI2d_xfer in includedir and libdir
-  --with-libSAMRAI2d_pdat_std-prefix[=DIR]  search for libSAMRAI2d_pdat_std in DIR/include and DIR/lib
-  --without-libSAMRAI2d_pdat_std-prefix     don't search for libSAMRAI2d_pdat_std in includedir and libdir
-  --with-libSAMRAI2d_math_std-prefix[=DIR]  search for libSAMRAI2d_math_std in DIR/include and DIR/lib
-  --without-libSAMRAI2d_math_std-prefix     don't search for libSAMRAI2d_math_std in includedir and libdir
-  --with-libSAMRAI2d_mesh-prefix[=DIR]  search for libSAMRAI2d_mesh in DIR/include and DIR/lib
-  --without-libSAMRAI2d_mesh-prefix     don't search for libSAMRAI2d_mesh in includedir and libdir
-  --with-libSAMRAI2d_geom-prefix[=DIR]  search for libSAMRAI2d_geom in DIR/include and DIR/lib
-  --without-libSAMRAI2d_geom-prefix     don't search for libSAMRAI2d_geom in includedir and libdir
-  --with-libSAMRAI2d_solv-prefix[=DIR]  search for libSAMRAI2d_solv in DIR/include and DIR/lib
-  --without-libSAMRAI2d_solv-prefix     don't search for libSAMRAI2d_solv in includedir and libdir
-  --with-libSAMRAI2d_algs-prefix[=DIR]  search for libSAMRAI2d_algs in DIR/include and DIR/lib
-  --without-libSAMRAI2d_algs-prefix     don't search for libSAMRAI2d_algs in includedir and libdir
-  --with-libSAMRAI2d_appu-prefix[=DIR]  search for libSAMRAI2d_appu in DIR/include and DIR/lib
-  --without-libSAMRAI2d_appu-prefix     don't search for libSAMRAI2d_appu in includedir and libdir
-  --with-libSAMRAI3d_hier-prefix[=DIR]  search for libSAMRAI3d_hier in DIR/include and DIR/lib
-  --without-libSAMRAI3d_hier-prefix     don't search for libSAMRAI3d_hier in includedir and libdir
-  --with-libSAMRAI3d_xfer-prefix[=DIR]  search for libSAMRAI3d_xfer in DIR/include and DIR/lib
-  --without-libSAMRAI3d_xfer-prefix     don't search for libSAMRAI3d_xfer in includedir and libdir
-  --with-libSAMRAI3d_pdat_std-prefix[=DIR]  search for libSAMRAI3d_pdat_std in DIR/include and DIR/lib
-  --without-libSAMRAI3d_pdat_std-prefix     don't search for libSAMRAI3d_pdat_std in includedir and libdir
-  --with-libSAMRAI3d_math_std-prefix[=DIR]  search for libSAMRAI3d_math_std in DIR/include and DIR/lib
-  --without-libSAMRAI3d_math_std-prefix     don't search for libSAMRAI3d_math_std in includedir and libdir
-  --with-libSAMRAI3d_mesh-prefix[=DIR]  search for libSAMRAI3d_mesh in DIR/include and DIR/lib
-  --without-libSAMRAI3d_mesh-prefix     don't search for libSAMRAI3d_mesh in includedir and libdir
-  --with-libSAMRAI3d_geom-prefix[=DIR]  search for libSAMRAI3d_geom in DIR/include and DIR/lib
-  --without-libSAMRAI3d_geom-prefix     don't search for libSAMRAI3d_geom in includedir and libdir
-  --with-libSAMRAI3d_solv-prefix[=DIR]  search for libSAMRAI3d_solv in DIR/include and DIR/lib
-  --without-libSAMRAI3d_solv-prefix     don't search for libSAMRAI3d_solv in includedir and libdir
-  --with-libSAMRAI3d_algs-prefix[=DIR]  search for libSAMRAI3d_algs in DIR/include and DIR/lib
-  --without-libSAMRAI3d_algs-prefix     don't search for libSAMRAI3d_algs in includedir and libdir
-  --with-libSAMRAI3d_appu-prefix[=DIR]  search for libSAMRAI3d_appu in DIR/include and DIR/lib
-  --without-libSAMRAI3d_appu-prefix     don't search for libSAMRAI3d_appu in includedir and libdir
 
 Some influential environment variables:
   LIBS        linker commands, e.g. -l<lib> if you require a nonstandard
@@ -3348,6 +3213,29 @@ am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
 
 
 
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable maintainer-specific portions of Makefiles" >&5
+$as_echo_n "checking whether to enable maintainer-specific portions of Makefiles... " >&6; }
+    # Check whether --enable-maintainer-mode was given.
+if test "${enable_maintainer_mode+set}" = set; then :
+  enableval=$enable_maintainer_mode; USE_MAINTAINER_MODE=$enableval
+else
+  USE_MAINTAINER_MODE=no
+fi
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $USE_MAINTAINER_MODE" >&5
+$as_echo "$USE_MAINTAINER_MODE" >&6; }
+   if test $USE_MAINTAINER_MODE = yes; then
+  MAINTAINER_MODE_TRUE=
+  MAINTAINER_MODE_FALSE='#'
+else
+  MAINTAINER_MODE_TRUE='#'
+  MAINTAINER_MODE_FALSE=
+fi
+
+  MAINT=$MAINTAINER_MODE_TRUE
 
 
 ac_ext=cpp
@@ -10034,38 +9922,28 @@ fi
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libblitz-prefix was given.
-if test "${with_libblitz_prefix+set}" = set; then :
-  withval=$with_libblitz_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBBLITZ=
   LTLIBBLITZ=
   INCBLITZ=
@@ -10641,38 +10519,28 @@ fi
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libsilo-prefix was given.
-if test "${with_libsilo_prefix+set}" = set; then :
-  withval=$with_libsilo_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSILO=
   LTLIBSILO=
   INCSILO=
@@ -11212,38 +11080,28 @@ $as_echo "$as_me: WARNING: could not find working libsilo; checking for libsiloh
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libsiloh5-prefix was given.
-if test "${with_libsiloh5_prefix+set}" = set; then :
-  withval=$with_libsiloh5_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSILOH5=
   LTLIBSILOH5=
   INCSILOH5=
@@ -11816,38 +11674,28 @@ fi
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libhdf5-prefix was given.
-if test "${with_libhdf5_prefix+set}" = set; then :
-  withval=$with_libhdf5_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBHDF5=
   LTLIBHDF5=
   INCHDF5=
@@ -12384,38 +12232,28 @@ LIBS="$LIBHDF5 $LIBS"
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libhdf5_hl-prefix was given.
-if test "${with_libhdf5_hl_prefix+set}" = set; then :
-  withval=$with_libhdf5_hl_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBHDF5_HL=
   LTLIBHDF5_HL=
   INCHDF5_HL=
@@ -12976,38 +12814,28 @@ fi
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libHYPRE-prefix was given.
-if test "${with_libHYPRE_prefix+set}" = set; then :
-  withval=$with_libHYPRE_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBHYPRE=
   LTLIBHYPRE=
   INCHYPRE=
@@ -13623,38 +13451,28 @@ if test "$PETSC_HAS_X11" == "yes"; then
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libX11-prefix was given.
-if test "${with_libX11_prefix+set}" = set; then :
-  withval=$with_libX11_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBX11=
   LTLIBX11=
   INCX11=
@@ -14197,38 +14015,28 @@ fi
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libpetsc-prefix was given.
-if test "${with_libpetsc_prefix+set}" = set; then :
-  withval=$with_libpetsc_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBPETSC=
   LTLIBPETSC=
   INCPETSC=
@@ -14765,38 +14573,28 @@ LIBS="$LIBPETSC $LIBS"
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libpetscvec-prefix was given.
-if test "${with_libpetscvec_prefix+set}" = set; then :
-  withval=$with_libpetscvec_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBPETSCVEC=
   LTLIBPETSCVEC=
   INCPETSCVEC=
@@ -15333,38 +15131,28 @@ LIBS="$LIBPETSCVEC $LIBS"
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libpetscmat-prefix was given.
-if test "${with_libpetscmat_prefix+set}" = set; then :
-  withval=$with_libpetscmat_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBPETSCMAT=
   LTLIBPETSCMAT=
   INCPETSCMAT=
@@ -15901,38 +15689,28 @@ LIBS="$LIBPETSCMAT $LIBS"
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libpetscdm-prefix was given.
-if test "${with_libpetscdm_prefix+set}" = set; then :
-  withval=$with_libpetscdm_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBPETSCDM=
   LTLIBPETSCDM=
   INCPETSCDM=
@@ -16469,38 +16247,28 @@ LIBS="$LIBPETSCDM $LIBS"
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libpetscksp-prefix was given.
-if test "${with_libpetscksp_prefix+set}" = set; then :
-  withval=$with_libpetscksp_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBPETSCKSP=
   LTLIBPETSCKSP=
   INCPETSCKSP=
@@ -17037,38 +16805,28 @@ LIBS="$LIBPETSCKSP $LIBS"
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libpetscsnes-prefix was given.
-if test "${with_libpetscsnes_prefix+set}" = set; then :
-  withval=$with_libpetscsnes_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBPETSCSNES=
   LTLIBPETSCSNES=
   INCPETSCSNES=
@@ -17605,38 +17363,28 @@ LIBS="$LIBPETSCSNES $LIBS"
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libpetscts-prefix was given.
-if test "${with_libpetscts_prefix+set}" = set; then :
-  withval=$with_libpetscts_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBPETSCTS=
   LTLIBPETSCTS=
   INCPETSCTS=
@@ -18257,38 +18005,28 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-liblaspack-prefix was given.
-if test "${with_liblaspack_prefix+set}" = set; then :
-  withval=$with_liblaspack_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBLASPACK=
   LTLIBLASPACK=
   INCLASPACK=
@@ -18835,38 +18573,28 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libmetis-prefix was given.
-if test "${with_libmetis_prefix+set}" = set; then :
-  withval=$with_libmetis_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBMETIS=
   LTLIBMETIS=
   INCMETIS=
@@ -19413,38 +19141,28 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libparmetis-prefix was given.
-if test "${with_libparmetis_prefix+set}" = set; then :
-  withval=$with_libparmetis_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBPARMETIS=
   LTLIBPARMETIS=
   INCPARMETIS=
@@ -19991,38 +19709,28 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libsfcurves-prefix was given.
-if test "${with_libsfcurves_prefix+set}" = set; then :
-  withval=$with_libsfcurves_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSFCURVES=
   LTLIBSFCURVES=
   INCSFCURVES=
@@ -20569,38 +20277,28 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libgzstream-prefix was given.
-if test "${with_libgzstream_prefix+set}" = set; then :
-  withval=$with_libgzstream_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBGZSTREAM=
   LTLIBGZSTREAM=
   INCGZSTREAM=
@@ -21147,38 +20845,28 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libtetgen-prefix was given.
-if test "${with_libtetgen_prefix+set}" = set; then :
-  withval=$with_libtetgen_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBTETGEN=
   LTLIBTETGEN=
   INCTETGEN=
@@ -21725,38 +21413,28 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libtriangle-prefix was given.
-if test "${with_libtriangle_prefix+set}" = set; then :
-  withval=$with_libtriangle_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBTRIANGLE=
   LTLIBTRIANGLE=
   INCTRIANGLE=
@@ -22303,38 +21981,28 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libgmv-prefix was given.
-if test "${with_libgmv_prefix+set}" = set; then :
-  withval=$with_libgmv_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBGMV=
   LTLIBGMV=
   INCGMV=
@@ -22880,38 +22548,28 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libvtk-prefix was given.
-if test "${with_libvtk_prefix+set}" = set; then :
-  withval=$with_libvtk_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBVTK=
   LTLIBVTK=
   INCVTK=
@@ -23458,38 +23116,28 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libnetcdf-prefix was given.
-if test "${with_libnetcdf_prefix+set}" = set; then :
-  withval=$with_libnetcdf_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBNETCDF=
   LTLIBNETCDF=
   INCNETCDF=
@@ -24036,38 +23684,28 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libexodusii-prefix was given.
-if test "${with_libexodusii_prefix+set}" = set; then :
-  withval=$with_libexodusii_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBEXODUSII=
   LTLIBEXODUSII=
   INCEXODUSII=
@@ -24614,38 +24252,28 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libnemesis-prefix was given.
-if test "${with_libnemesis_prefix+set}" = set; then :
-  withval=$with_libnemesis_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBNEMESIS=
   LTLIBNEMESIS=
   INCNEMESIS=
@@ -25191,38 +24819,28 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libhilbert-prefix was given.
-if test "${with_libhilbert_prefix+set}" = set; then :
-  withval=$with_libhilbert_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBHILBERT=
   LTLIBHILBERT=
   INCHILBERT=
@@ -25774,38 +25392,28 @@ fi
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libmesh-prefix was given.
-if test "${with_libmesh_prefix+set}" = set; then :
-  withval=$with_libmesh_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBMESH=
   LTLIBMESH=
   INCMESH=
@@ -26429,38 +26037,28 @@ fi
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libSAMRAI-prefix was given.
-if test "${with_libSAMRAI_prefix+set}" = set; then :
-  withval=$with_libSAMRAI_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSAMRAI=
   LTLIBSAMRAI=
   INCSAMRAI=
@@ -27014,38 +26612,28 @@ if test "$SAMRAI2D" == "yes"; then
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libSAMRAI2d_hier-prefix was given.
-if test "${with_libSAMRAI2d_hier_prefix+set}" = set; then :
-  withval=$with_libSAMRAI2d_hier_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSAMRAI2D_HIER=
   LTLIBSAMRAI2D_HIER=
   INCSAMRAI2D_HIER=
@@ -27582,38 +27170,28 @@ $as_echo "$LIBSAMRAI2D_HIER" >&6; }
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libSAMRAI2d_xfer-prefix was given.
-if test "${with_libSAMRAI2d_xfer_prefix+set}" = set; then :
-  withval=$with_libSAMRAI2d_xfer_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSAMRAI2D_XFER=
   LTLIBSAMRAI2D_XFER=
   INCSAMRAI2D_XFER=
@@ -28150,38 +27728,28 @@ $as_echo "$LIBSAMRAI2D_XFER" >&6; }
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libSAMRAI2d_pdat_std-prefix was given.
-if test "${with_libSAMRAI2d_pdat_std_prefix+set}" = set; then :
-  withval=$with_libSAMRAI2d_pdat_std_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSAMRAI2D_PDAT_STD=
   LTLIBSAMRAI2D_PDAT_STD=
   INCSAMRAI2D_PDAT_STD=
@@ -28718,38 +28286,28 @@ $as_echo "$LIBSAMRAI2D_PDAT_STD" >&6; }
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libSAMRAI2d_math_std-prefix was given.
-if test "${with_libSAMRAI2d_math_std_prefix+set}" = set; then :
-  withval=$with_libSAMRAI2d_math_std_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSAMRAI2D_MATH_STD=
   LTLIBSAMRAI2D_MATH_STD=
   INCSAMRAI2D_MATH_STD=
@@ -29286,38 +28844,28 @@ $as_echo "$LIBSAMRAI2D_MATH_STD" >&6; }
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libSAMRAI2d_mesh-prefix was given.
-if test "${with_libSAMRAI2d_mesh_prefix+set}" = set; then :
-  withval=$with_libSAMRAI2d_mesh_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSAMRAI2D_MESH=
   LTLIBSAMRAI2D_MESH=
   INCSAMRAI2D_MESH=
@@ -29854,38 +29402,28 @@ $as_echo "$LIBSAMRAI2D_MESH" >&6; }
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libSAMRAI2d_geom-prefix was given.
-if test "${with_libSAMRAI2d_geom_prefix+set}" = set; then :
-  withval=$with_libSAMRAI2d_geom_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSAMRAI2D_GEOM=
   LTLIBSAMRAI2D_GEOM=
   INCSAMRAI2D_GEOM=
@@ -30422,38 +29960,28 @@ $as_echo "$LIBSAMRAI2D_GEOM" >&6; }
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libSAMRAI2d_solv-prefix was given.
-if test "${with_libSAMRAI2d_solv_prefix+set}" = set; then :
-  withval=$with_libSAMRAI2d_solv_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSAMRAI2D_SOLV=
   LTLIBSAMRAI2D_SOLV=
   INCSAMRAI2D_SOLV=
@@ -30990,38 +30518,28 @@ $as_echo "$LIBSAMRAI2D_SOLV" >&6; }
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libSAMRAI2d_algs-prefix was given.
-if test "${with_libSAMRAI2d_algs_prefix+set}" = set; then :
-  withval=$with_libSAMRAI2d_algs_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSAMRAI2D_ALGS=
   LTLIBSAMRAI2D_ALGS=
   INCSAMRAI2D_ALGS=
@@ -31558,38 +31076,28 @@ $as_echo "$LIBSAMRAI2D_ALGS" >&6; }
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libSAMRAI2d_appu-prefix was given.
-if test "${with_libSAMRAI2d_appu_prefix+set}" = set; then :
-  withval=$with_libSAMRAI2d_appu_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSAMRAI2D_APPU=
   LTLIBSAMRAI2D_APPU=
   INCSAMRAI2D_APPU=
@@ -32147,38 +31655,28 @@ if test "$SAMRAI3D" == "yes"; then
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libSAMRAI3d_hier-prefix was given.
-if test "${with_libSAMRAI3d_hier_prefix+set}" = set; then :
-  withval=$with_libSAMRAI3d_hier_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSAMRAI3D_HIER=
   LTLIBSAMRAI3D_HIER=
   INCSAMRAI3D_HIER=
@@ -32715,38 +32213,28 @@ $as_echo "$LIBSAMRAI3D_HIER" >&6; }
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libSAMRAI3d_xfer-prefix was given.
-if test "${with_libSAMRAI3d_xfer_prefix+set}" = set; then :
-  withval=$with_libSAMRAI3d_xfer_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSAMRAI3D_XFER=
   LTLIBSAMRAI3D_XFER=
   INCSAMRAI3D_XFER=
@@ -33283,38 +32771,28 @@ $as_echo "$LIBSAMRAI3D_XFER" >&6; }
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libSAMRAI3d_pdat_std-prefix was given.
-if test "${with_libSAMRAI3d_pdat_std_prefix+set}" = set; then :
-  withval=$with_libSAMRAI3d_pdat_std_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSAMRAI3D_PDAT_STD=
   LTLIBSAMRAI3D_PDAT_STD=
   INCSAMRAI3D_PDAT_STD=
@@ -33851,38 +33329,28 @@ $as_echo "$LIBSAMRAI3D_PDAT_STD" >&6; }
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libSAMRAI3d_math_std-prefix was given.
-if test "${with_libSAMRAI3d_math_std_prefix+set}" = set; then :
-  withval=$with_libSAMRAI3d_math_std_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSAMRAI3D_MATH_STD=
   LTLIBSAMRAI3D_MATH_STD=
   INCSAMRAI3D_MATH_STD=
@@ -34419,38 +33887,28 @@ $as_echo "$LIBSAMRAI3D_MATH_STD" >&6; }
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libSAMRAI3d_mesh-prefix was given.
-if test "${with_libSAMRAI3d_mesh_prefix+set}" = set; then :
-  withval=$with_libSAMRAI3d_mesh_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSAMRAI3D_MESH=
   LTLIBSAMRAI3D_MESH=
   INCSAMRAI3D_MESH=
@@ -34987,38 +34445,28 @@ $as_echo "$LIBSAMRAI3D_MESH" >&6; }
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libSAMRAI3d_geom-prefix was given.
-if test "${with_libSAMRAI3d_geom_prefix+set}" = set; then :
-  withval=$with_libSAMRAI3d_geom_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSAMRAI3D_GEOM=
   LTLIBSAMRAI3D_GEOM=
   INCSAMRAI3D_GEOM=
@@ -35555,38 +35003,28 @@ $as_echo "$LIBSAMRAI3D_GEOM" >&6; }
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libSAMRAI3d_solv-prefix was given.
-if test "${with_libSAMRAI3d_solv_prefix+set}" = set; then :
-  withval=$with_libSAMRAI3d_solv_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSAMRAI3D_SOLV=
   LTLIBSAMRAI3D_SOLV=
   INCSAMRAI3D_SOLV=
@@ -36123,38 +35561,28 @@ $as_echo "$LIBSAMRAI3D_SOLV" >&6; }
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libSAMRAI3d_algs-prefix was given.
-if test "${with_libSAMRAI3d_algs_prefix+set}" = set; then :
-  withval=$with_libSAMRAI3d_algs_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSAMRAI3D_ALGS=
   LTLIBSAMRAI3D_ALGS=
   INCSAMRAI3D_ALGS=
@@ -36691,38 +36119,28 @@ $as_echo "$LIBSAMRAI3D_ALGS" >&6; }
   exec_prefix="$acl_save_exec_prefix"
   prefix="$acl_save_prefix"
 
-
-# Check whether --with-libSAMRAI3d_appu-prefix was given.
-if test "${with_libSAMRAI3d_appu_prefix+set}" = set; then :
-  withval=$with_libSAMRAI3d_appu_prefix;
-    if test "X$withval" = "Xno"; then
-      use_additional=no
-    else
-      if test "X$withval" = "X"; then
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-          eval additional_includedir=\"$includedir\"
-          eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      else
-        additional_includedir="$withval/include"
-        additional_libdir="$withval/$acl_libdirstem"
-        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-           && ! test -d "$withval/$acl_libdirstem"; then
-          additional_libdir="$withval/$acl_libdirstem2"
-        fi
-      fi
-    fi
-
-fi
-
+##  AC_ARG_WITH(P_A_C_K[-prefix],
+##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
+##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
+##[
+##    if test "X$withval" = "Xno"; then
+##      use_additional=no
+##    else
+##      if test "X$withval" = "X"; then
+##        AC_LIB_WITH_FINAL_PREFIX([
+##          eval additional_includedir=\"$includedir\"
+##          eval additional_libdir=\"$libdir\"
+##        ])
+##      else
+##        additional_includedir="$withval/include"
+##        additional_libdir="$withval/$acl_libdirstem"
+##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
+##           && ! test -d "$withval/$acl_libdirstem"; then
+##          additional_libdir="$withval/$acl_libdirstem2"
+##        fi
+##      fi
+##    fi
+##])
       LIBSAMRAI3D_APPU=
   LTLIBSAMRAI3D_APPU=
   INCSAMRAI3D_APPU=
@@ -37357,6 +36775,10 @@ else
   am__EXEEXT_FALSE=
 fi
 
+if test -z "${MAINTAINER_MODE_TRUE}" && test -z "${MAINTAINER_MODE_FALSE}"; then
+  as_fn_error "conditional \"MAINTAINER_MODE\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${AMDEP_TRUE}" && test -z "${AMDEP_FALSE}"; then
   as_fn_error "conditional \"AMDEP\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
