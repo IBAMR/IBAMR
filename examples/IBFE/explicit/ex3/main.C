@@ -333,6 +333,25 @@ main(
                                             Utility::string_to_enum<ElemType>(elem_type));
         ExodusII_IO mesh_writer(mesh);
 
+        // Setup boundary condition data.
+        const MeshBase::const_element_iterator end_el = mesh.elements_end();
+        for (MeshBase::const_element_iterator el = mesh.elements_begin(); el != end_el; ++el)
+        {
+            Elem* const elem = *el;
+            for (unsigned int side = 0; side < elem->n_sides(); ++side)
+            {
+                const bool at_mesh_bdry = elem->neighbor(side) == NULL;
+                if (at_mesh_bdry)
+                {
+                    const short int boundary_id = mesh.boundary_info->boundary_id(elem,side);
+                    if (boundary_id != 2)
+                    {
+                        mesh.boundary_info->add_side(elem, side, FEDataManager::DIRICHLET_BDRY_ID);
+                    }
+                }
+            }
+        }
+
         // Create the FE data manager used to manage mappings between the FE
         // mesh and the Cartesian grid.
         const std::string quad_type = input_db->getStringWithDefault("quad_type", "QGAUSS");
@@ -453,49 +472,6 @@ main(
         time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
         double dt_now = time_integrator->initializeHierarchy();
         tbox::RestartManager::getManager()->closeRestartFile();
-
-        // Setup Dirichlet boundary conditions.
-        System&    force_system = equation_systems.get_system<System>(IBFEHierarchyIntegrator::   FORCE_SYSTEM_NAME);
-        System& velocity_system = equation_systems.get_system<System>(IBFEHierarchyIntegrator::VELOCITY_SYSTEM_NAME);
-        DofMap&    force_dof_map =    force_system.get_dof_map();
-        DofMap& velocity_dof_map = velocity_system.get_dof_map();
-        const unsigned int    force_system_number =    force_system.number();
-        const unsigned int velocity_system_number = velocity_system.number();
-
-        vector<unsigned int> elems;
-        vector<unsigned short int> sides;
-        vector<short int> bdry_ids;
-        mesh.boundary_info->build_side_list(elems, sides, bdry_ids);
-        for (unsigned int k = 0; k < elems.size(); ++k)
-        {
-            const unsigned int       elem_id = elems[k];
-            const unsigned short int side_id = sides[k];
-            if (side_id != 2)
-            {
-                Elem* elem = mesh.elem(elem_id);
-                mesh.boundary_info->remove_side(elem, side_id);
-                mesh.boundary_info->add_side(elem, side_id, IBFEHierarchyIntegrator::DIRICHLET_BOUNDARY_ID);
-                for (unsigned int n = 0; n < elem->n_nodes(); ++n)
-                {
-                    if (elem->is_node_on_side(n, side_id))
-                    {
-                        Node* node = elem->get_node(n);
-                        for (unsigned int d = 0; d < NDIM; ++d)
-                        {
-                            const int F_dof_index = node->dof_number(force_system_number,d,0);
-                            DofConstraintRow F_constraint_row;
-                            F_constraint_row[F_dof_index] = 1.0;
-                            force_dof_map.add_constraint_row(F_dof_index, F_constraint_row, false);
-
-                            const int U_dof_index = node->dof_number(velocity_system_number,d,0);
-                            DofConstraintRow U_constraint_row;
-                            U_constraint_row[U_dof_index] = 1.0;
-                            velocity_dof_map.add_constraint_row(U_dof_index, U_constraint_row, false);
-                        }
-                    }
-                }
-            }
-        }
 
         // After creating all objects and initializing their state, we print the
         // input database contents to the log file.

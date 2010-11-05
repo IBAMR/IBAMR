@@ -75,10 +75,6 @@ public:
     static const std::string              FORCE_SYSTEM_NAME;
     static const std::string           VELOCITY_SYSTEM_NAME;
 
-//  static const short int     NORMAL_DIRICHLET_BOUNDARY_ID = 256;
-//  static const short int TANGENTIAL_DIRICHLET_BOUNDARY_ID = 512;
-    static const short int            DIRICHLET_BOUNDARY_ID = 256 | 512;
-
     /*!
      * Constructor.
      *

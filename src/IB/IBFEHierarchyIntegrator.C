@@ -506,6 +506,9 @@ IBFEHierarchyIntegrator::initializeHierarchy()
     initializeCoordinates();
     updateCoordinateMapping();
 
+    // Set up boundary conditions.  Specifically, add appropriate boundary IDs
+    // to the BoundaryInfo object associated with the mesh, and add DOF
+    // constraints for the nodal forces and velocities.
     System& coords_system = equation_systems->get_system<System>(COORDINATES_SYSTEM_NAME);
     coords_system.assemble_before_solve = false;
     coords_system.assemble();
@@ -513,6 +516,62 @@ IBFEHierarchyIntegrator::initializeHierarchy()
     System& coords_mapping_system = equation_systems->get_system<System>(COORDINATE_MAPPING_SYSTEM_NAME);
     coords_mapping_system.assemble_before_solve = false;
     coords_mapping_system.assemble();
+
+    ExplicitSystem&    force_system = equation_systems->get_system<ExplicitSystem>(   FORCE_SYSTEM_NAME);
+    ExplicitSystem& velocity_system = equation_systems->get_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
+
+    const MeshBase& mesh = equation_systems->get_mesh();
+    DofMap&    force_dof_map =    force_system.get_dof_map();
+    DofMap& velocity_dof_map = velocity_system.get_dof_map();
+    const unsigned int    force_system_number =    force_system.number();
+    const unsigned int velocity_system_number = velocity_system.number();
+    const MeshBase::const_element_iterator end_el = mesh.elements_end();
+    for (MeshBase::const_element_iterator el = mesh.elements_begin(); el != end_el; ++el)
+    {
+        Elem* const elem = *el;
+        for (unsigned int side = 0; side < elem->n_sides(); ++side)
+        {
+            const bool at_mesh_bdry = elem->neighbor(side) == NULL;
+            if (at_mesh_bdry)
+            {
+                const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
+                const bool at_dirichlet_bdry = std::find(bdry_ids.begin(), bdry_ids.end(), FEDataManager::DIRICHLET_BDRY_ID) != bdry_ids.end();
+                if (at_dirichlet_bdry)
+                {
+                    for (unsigned int n = 0; n < elem->n_nodes(); ++n)
+                    {
+                        if (elem->is_node_on_side(n, side))
+                        {
+                            Node* node = elem->get_node(n);
+                            mesh.boundary_info->add_node(node, FEDataManager::DIRICHLET_BDRY_ID);
+
+                            if (node->n_dofs(force_system_number) > 0)
+                            {
+                                for (unsigned int d = 0; d < NDIM; ++d)
+                                {
+                                    const int F_dof_index = node->dof_number(force_system_number,d,0);
+                                    DofConstraintRow F_constraint_row;
+                                    F_constraint_row[F_dof_index] = 1.0;
+                                    force_dof_map.add_constraint_row(F_dof_index, F_constraint_row, false);
+                                }
+                            }
+
+                            if (node->n_dofs(velocity_system_number) > 0)
+                            {
+                                for (unsigned int d = 0; d < NDIM; ++d)
+                                {
+                                    const int U_dof_index = node->dof_number(velocity_system_number,d,0);
+                                    DofConstraintRow U_constraint_row;
+                                    U_constraint_row[U_dof_index] = 1.0;
+                                    velocity_dof_map.add_constraint_row(U_dof_index, U_constraint_row, false);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // Use the INSStaggeredHierarchyIntegrator to initialize the patch
     // hierarchy.
@@ -974,8 +1033,12 @@ IBFEHierarchyIntegrator::regridHierarchy()
                     bool at_physical_bdry = false;
                     for (unsigned short int side = 0; side < elem->n_sides(); ++side)
                     {
-                        const short int boundary_id = mesh.boundary_info->boundary_id(elem,side);
-                        at_physical_bdry = at_physical_bdry || (elem->neighbor(side) == NULL && !coords_dof_map.is_periodic_boundary(boundary_id));
+                        const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
+                        for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
+                        {
+                            const short int bdry_id = *cit;
+                            at_physical_bdry = at_physical_bdry || (elem->neighbor(side) == NULL && !coords_dof_map.is_periodic_boundary(bdry_id));
+                        }
                     }
 
                     // Flag the element for refinement
@@ -1512,39 +1575,43 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
             }
         }
 
-        if (d_split_interior_and_bdry_forces)
+        // Loop over the element boundaries.
+        for (unsigned short int side = 0; side < elem->n_sides(); ++side)
         {
-            // Loop over the element boundaries.
-            for (unsigned short int side = 0; side < elem->n_sides(); ++side)
+            // Skip non-physical boundaries and Dirichlet boundaries.
+            const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
+            bool at_physical_bdry  = false;
+            bool at_dirichlet_bdry = false;
+            for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
             {
-                // Skip non-physical boundaries and physical boundaries with
-                // constraints.
-                const short int boundary_id = mesh.boundary_info->boundary_id(elem,side);
-                const bool at_physical_bdry = elem->neighbor(side) == NULL && !dof_map.is_periodic_boundary(boundary_id);
-                const bool dirichlet_bdry = boundary_id == DIRICHLET_BOUNDARY_ID;
-                if (at_physical_bdry && !dirichlet_bdry)
+                const short int bdry_id = *cit;
+                at_physical_bdry  = at_physical_bdry  || (elem->neighbor(side) == NULL && !dof_map.is_periodic_boundary(bdry_id));
+                at_dirichlet_bdry = at_dirichlet_bdry || (bdry_id == FEDataManager::DIRICHLET_BDRY_ID);
+            }
+            if (at_physical_bdry &&
+                (( d_split_interior_and_bdry_forces && !at_dirichlet_bdry) ||
+                 (!d_split_interior_and_bdry_forces &&  at_dirichlet_bdry)))
+            {
+                fe_face->reinit(elem, side);
+                coords_fe_face->reinit(elem, side);
+                for (unsigned int qp = 0; qp < qrule_face.n_points(); ++qp)
                 {
-                    fe_face->reinit(elem, side);
-                    coords_fe_face->reinit(elem, side);
-                    for (unsigned int qp = 0; qp < qrule_face.n_points(); ++qp)
-                    {
-                        // Compute the value of the first Piola-Kirchoff stress
-                        // tensor at the quadrature point.
-                        const Point& s_qp = coords_q_point_face[qp];
-                        const Point& X_qp = compute_coordinate(qp,X,coords_phi_face,coords_dof_indices);
-                        const TensorValue<double> dX_ds = compute_coordinate_mapping_jacobian(qp,X,coords_dphi_face,coords_dof_indices);
-                        const TensorValue<double> P = d_PK1_stress_function(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_function_ctx);
-                        const VectorValue<double> F = P*normal_face[qp]*JxW_face[qp];
+                    // Compute the value of the first Piola-Kirchoff stress
+                    // tensor at the quadrature point.
+                    const Point& s_qp = coords_q_point_face[qp];
+                    const Point& X_qp = compute_coordinate(qp,X,coords_phi_face,coords_dof_indices);
+                    const TensorValue<double> dX_ds = compute_coordinate_mapping_jacobian(qp,X,coords_dphi_face,coords_dof_indices);
+                    const TensorValue<double> P = d_PK1_stress_function(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_function_ctx);
+                    const VectorValue<double> F = P*normal_face[qp]*JxW_face[qp];
 
-                        // Split off the normal component of the force.
-                        for (unsigned int k = 0; k < phi_face.size(); ++k)
+                    // Split off the transmission force.
+                    for (unsigned int k = 0; k < phi_face.size(); ++k)
+                    {
+                        VectorValue<double> F_qp;
+                        F_qp += F*phi_face[k][qp];
+                        for (unsigned int i = 0; i < NDIM; ++i)
                         {
-                            VectorValue<double> F_qp;
-                            F_qp += F*phi_face[k][qp];
-                            for (unsigned int i = 0; i < NDIM; ++i)
-                            {
-                                F_e[i](k) += F_qp(i);
-                            }
+                            F_e[i](k) += F_qp(i);
                         }
                     }
                 }
@@ -1633,12 +1700,17 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
             // Loop over the element boundaries.
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
-                // Skip non-physical boundaries and physical boundaries with
-                // constraints.
-                const short int boundary_id = mesh.boundary_info->boundary_id(elem,side);
-                const bool at_physical_bdry = elem->neighbor(side) == NULL && !dof_map.is_periodic_boundary(boundary_id);
-                const bool dirichlet_bdry = boundary_id == DIRICHLET_BOUNDARY_ID;
-                if (at_physical_bdry && !dirichlet_bdry)
+                // Skip non-physical boundaries and Dirichlet boundaries.
+                const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
+                bool at_physical_bdry  = false;
+                bool at_dirichlet_bdry = false;
+                for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
+                {
+                    const short int bdry_id = *cit;
+                    at_physical_bdry  = at_physical_bdry  || (elem->neighbor(side) == NULL && !dof_map.is_periodic_boundary(bdry_id));
+                    at_dirichlet_bdry = at_dirichlet_bdry || (bdry_id == FEDataManager::DIRICHLET_BDRY_ID);
+                }
+                if (at_physical_bdry && !at_dirichlet_bdry)
                 {
                     fe_face->reinit(elem, side);
 
