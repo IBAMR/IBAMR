@@ -68,7 +68,7 @@ VelocityBcCoefs_1 {
 
 IBFEHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
-   end_time              = 3.0e0    // final simulation time
+   end_time              = 15.0e0   // final simulation time
    grow_dt               = 1.1e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
    regrid_interval       = 2
@@ -186,7 +186,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt" , "ExodusII"
-   viz_dump_interval     = 1 // NFINEST     // zero to turn off
+   viz_dump_interval     = NFINEST/4   // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 
