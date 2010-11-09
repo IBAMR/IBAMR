@@ -70,10 +70,11 @@ class IBFEHierarchyIntegrator
       public SAMRAI::tbox::Serializable
 {
 public:
-    static const std::string        COORDINATES_SYSTEM_NAME;
-    static const std::string COORDINATE_MAPPING_SYSTEM_NAME;
-    static const std::string              FORCE_SYSTEM_NAME;
-    static const std::string           VELOCITY_SYSTEM_NAME;
+    static const std::string                 COORDINATES_SYSTEM_NAME;
+    static const std::string          COORDINATE_MAPPING_SYSTEM_NAME;
+    static const std::string                       FORCE_SYSTEM_NAME;
+    static const std::string                    VELOCITY_SYSTEM_NAME;
+    static const std::string PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME;
 
     /*!
      * Constructor.
@@ -583,6 +584,14 @@ private:
         const IBFEHierarchyIntegrator& that);
 
     /*
+     * \brief Compute the projected dilatational strain, for use in the Fbar
+     * projection method.
+     */
+    void
+    computeProjectedDilatationalStrain(
+        libMesh::NumericVector<double>& X);
+
+    /*
      * \brief Compute the interior elastic density, possibly splitting off the
      * normal component of the transmission force along the physical boundary of
      * the Lagrangian structure.
@@ -660,6 +669,14 @@ private:
     libMeshEnums::Order d_fe_order;
     libMeshEnums::FEFamily d_fe_family;
     bool d_split_interior_and_bdry_forces;
+    bool d_use_consistent_mass_matrix;
+
+    /*
+     * Fbar projection method parameters.
+     */
+    bool d_use_fbar_projection;
+    libMeshEnums::Order d_projected_strain_fe_order;
+    libMeshEnums::FEFamily d_projected_strain_fe_family;
 
     /*
      * Function used to compute the initial coordinates of the Lagrangian mesh.
