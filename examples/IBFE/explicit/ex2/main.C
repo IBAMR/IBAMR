@@ -336,14 +336,12 @@ main(
         const std::string quad_order = input_db->getStringWithDefault("quad_order", "SIXTH");
         AutoPtr<QBase> qrule = QBase::build(Utility::string_to_enum<QuadratureType>(quad_type),NDIM,Utility::string_to_enum<Order>(quad_order));
         const std::string weighting_fcn = input_db->getStringWithDefault("weighting_fcn", "IB_4");
-        FEDataManager* fe_data_manager = FEDataManager::getManager("IBFE Manager", weighting_fcn, weighting_fcn, qrule.get());
+        const bool use_consistent_mass_matrix = input_db->getBoolWithDefault("use_consistent_mass_matrix", true);
+        FEDataManager* fe_data_manager = FEDataManager::getManager("IBFE Manager", weighting_fcn, weighting_fcn, qrule.get(), use_consistent_mass_matrix);
 
         const int mesh_level_number = input_db->getInteger("MAX_LEVELS")-1;
         EquationSystems equation_systems(mesh);
         fe_data_manager->setEquationSystems(&equation_systems, mesh_level_number);
-
-        const bool use_consistent_mass_matrix = input_db->getBoolWithDefault("use_consistent_mass_matrix", true);
-        fe_data_manager->setUseConsistentMassMatrix(use_consistent_mass_matrix);
 
         // Get the restart manager and root restart database.  If run is from
         // restart, open the restart file.
