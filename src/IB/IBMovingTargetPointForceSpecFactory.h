@@ -36,8 +36,8 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/Stashable.h>
-#include <ibtk/StashableFactory.h>
+#include <ibtk/Streamable.h>
+#include <ibtk/StreamableFactory.h>
 
 // SAMRAI INCLUDES
 #include <IntVector.h>
@@ -54,7 +54,7 @@ namespace IBAMR
  * SAMRAI::tbox::AbstractStream data streams.
  */
 class IBMovingTargetPointForceSpecFactory
-    : public IBTK::StashableFactory
+    : public IBTK::StreamableFactory
 {
 public:
     /*!
@@ -70,26 +70,26 @@ public:
 
     /*!
      * \brief Return the unique identifier used to specify the
-     * IBTK::StashableFactory object used by the IBTK::StashableManager to
-     * extract Stashable objects from data streams.
+     * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
+     * extract IBMovingTargetPointForceSpec objects from data streams.
      */
     virtual int
-    getStashableID() const;
+    getStreamableClassID() const;
 
     /*!
      * \brief Set the unique identifier used to specify the
-     * IBTK::StashableFactory object used by the IBTK::StashableManager to
-     * extract Stashable objects from data streams.
+     * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
+     * extract IBMovingTargetPointForceSpec objects from data streams.
      */
     virtual void
-    setStashableID(
-        const int stashable_id);
+    setStreamableClassID(
+        const int class_id);
 
     /*!
-     * \brief Build a IBTK::Stashable object by unpacking data from the input
-     * stream.
+     * \brief Build an IBMovingTargetPointForceSpec object by unpacking data
+     * from the data stream.
      */
-    virtual SAMRAI::tbox::Pointer<IBTK::Stashable>
+    virtual SAMRAI::tbox::Pointer<IBTK::Streamable>
     unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
         const SAMRAI::hier::IntVector<NDIM>& offset);
@@ -119,9 +119,10 @@ private:
         const IBMovingTargetPointForceSpecFactory& that);
 
     /*
-     * The stashable ID for this object type.
+     * The class ID for this object type assigned by the
+     * IBTK::StreamableManager.
      */
-    static int s_stashable_id;
+    static int s_class_id;
 };
 }// namespace IBAMR
 

@@ -43,10 +43,10 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 inline bool
-IBSpringForceSpec::getIsRegisteredWithStashableManager()
+IBSpringForceSpec::getIsRegisteredWithStreamableManager()
 {
     return s_registered_factory;
-}// getIsRegisteredWithStashableManager
+}// getIsRegisteredWithStreamableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -72,7 +72,7 @@ IBSpringForceSpec::IBSpringForceSpec(
     if (!s_registered_factory)
     {
         TBOX_ERROR("IBSpringForceSpec::IBSpringForceSpec():\n"
-                   << "  must call IBSpringForceSpec::registerWithStashableManager() before\n"
+                   << "  must call IBSpringForceSpec::registerWithStreamableManager() before\n"
                    << "  creating any IBSpringForceSpec objects.\n");
     }
     return;
@@ -158,10 +158,10 @@ IBSpringForceSpec::getRestingLengths()
 }// getRestingLengths
 
 inline int
-IBSpringForceSpec::getStashableID() const
+IBSpringForceSpec::getStreamableClassID() const
 {
-    return s_stashable_id;
-}// getStashableID
+    return s_class_id;
+}// getStreamableClassID
 
 inline size_t
 IBSpringForceSpec::getDataStreamSize() const

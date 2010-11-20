@@ -43,10 +43,10 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 inline bool
-IBRodForceSpec::getIsRegisteredWithStashableManager()
+IBRodForceSpec::getIsRegisteredWithStreamableManager()
 {
     return s_registered_factory;
-}// getIsRegisteredWithStashableManager
+}// getIsRegisteredWithStreamableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -66,7 +66,7 @@ IBRodForceSpec::IBRodForceSpec(
     if (!s_registered_factory)
     {
         TBOX_ERROR("IBRodForceSpec::IBRodForceSpec():\n"
-                   << "  must call IBRodForceSpec::registerWithStashableManager() before\n"
+                   << "  must call IBRodForceSpec::registerWithStreamableManager() before\n"
                    << "  creating any IBRodForceSpec objects.\n");
     }
     return;
@@ -126,10 +126,10 @@ IBRodForceSpec::getMaterialParams()
 }// getMaterialParams
 
 inline int
-IBRodForceSpec::getStashableID() const
+IBRodForceSpec::getStreamableClassID() const
 {
-    return s_stashable_id;
-}// getStashableID
+    return s_class_id;
+}// getStreamableClassID
 
 inline size_t
 IBRodForceSpec::getDataStreamSize() const

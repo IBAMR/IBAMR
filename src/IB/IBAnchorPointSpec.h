@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/Stashable.h>
+#include <ibtk/Streamable.h>
 
 // SAMRAI INCLUDES
 #include <tbox/AbstractStream.h>
@@ -56,27 +56,27 @@ namespace IBAMR
  * to spread force to the Cartesian grid.
  */
 class IBAnchorPointSpec
-    : public IBTK::Stashable
+    : public IBTK::Streamable
 {
 public:
     /*!
      * \brief Register this class and its factory class with the singleton
-     * IBTK::StashableManager object.  This method must be called before any
+     * IBTK::StreamableManager object.  This method must be called before any
      * IBAnchorPointSpec objects are created.
      *
      * \note This method is collective on all MPI processes.  This is done to
-     * ensure that all processes employ the same stashable ID for the
+     * ensure that all processes employ the same class ID for the
      * IBAnchorPointSpec class.
      */
     static void
-    registerWithStashableManager();
+    registerWithStreamableManager();
 
     /*!
      * \brief Returns a boolean indicating whether the class has been registered
-     * with the singleton IBTK::StashableManager object.
+     * with the singleton IBTK::StreamableManager object.
      */
     static bool
-    getIsRegisteredWithStashableManager();
+    getIsRegisteredWithStreamableManager();
 
     /*!
      * \brief Default constructor.
@@ -103,12 +103,12 @@ public:
     getNodeIndex();
 
     /*!
-     * \brief Return the unique identifier used to specify the IBTK::StashableFactory
-     * object used by the IBTK::StashableManager to extract Stashable objects from
-     * data streams.
+     * \brief Return the unique identifier used to specify the
+     * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
+     * extract Streamable objects from data streams.
      */
     virtual int
-    getStashableID() const;
+    getStreamableClassID() const;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the
@@ -150,14 +150,15 @@ private:
 
     /*!
      * Indicates whether the factory has been registered with the
-     * IBTK::StashableManager.
+     * IBTK::StreamableManager.
      */
     static bool s_registered_factory;
 
     /*!
-     * The stashable ID for this object type.
+     * The unique class ID for this object type assigned by the
+     * IBTK::StreamableManager.
      */
-    static int s_stashable_id;
+    static int s_class_id;
 
     /*!
      * The Lagrangian index of the anchored curvilinear mesh node.

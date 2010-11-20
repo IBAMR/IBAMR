@@ -213,7 +213,7 @@ IBSpringForceGen::initializeLevelData(
              it != idx_data->lnode_index_end(); ++it)
         {
             const LNodeIndex& node_idx = *it;
-            Pointer<IBSpringForceSpec> force_spec = node_idx.getStashData<IBSpringForceSpec>();
+            Pointer<IBSpringForceSpec> force_spec = node_idx.getNodeData<IBSpringForceSpec>();
             if (!force_spec.isNull())
             {
                 const int& mastr_idx = node_idx.getLagrangianIndex();

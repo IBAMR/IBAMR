@@ -43,10 +43,10 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 inline bool
-IBBeamForceSpec::getIsRegisteredWithStashableManager()
+IBBeamForceSpec::getIsRegisteredWithStreamableManager()
 {
     return s_registered_factory;
-}// getIsRegisteredWithStashableManager
+}// getIsRegisteredWithStreamableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -69,7 +69,7 @@ IBBeamForceSpec::IBBeamForceSpec(
     if (!s_registered_factory)
     {
         TBOX_ERROR("IBBeamForceSpec::IBBeamForceSpec():\n"
-                   << "  must call IBBeamForceSpec::registerWithStashableManager() before\n"
+                   << "  must call IBBeamForceSpec::registerWithStreamableManager() before\n"
                    << "  creating any IBBeamForceSpec objects.\n");
     }
     return;
@@ -142,10 +142,10 @@ IBBeamForceSpec::getMeshDependentCurvatures()
 }// getMeshDependentCurvatures
 
 inline int
-IBBeamForceSpec::getStashableID() const
+IBBeamForceSpec::getStreamableClassID() const
 {
-    return s_stashable_id;
-}// getStashableID
+    return s_class_id;
+}// getStreamableClassID
 
 inline size_t
 IBBeamForceSpec::getDataStreamSize() const

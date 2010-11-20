@@ -43,10 +43,10 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 inline bool
-IBMovingTargetPointForceSpec::getIsRegisteredWithStashableManager()
+IBMovingTargetPointForceSpec::getIsRegisteredWithStreamableManager()
 {
     return s_registered_factory;
-}// getIsRegisteredWithStashableManager
+}// getIsRegisteredWithStreamableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -69,7 +69,7 @@ IBMovingTargetPointForceSpec::IBMovingTargetPointForceSpec(
     if (!s_registered_factory)
     {
         TBOX_ERROR("IBMovingTargetPointForceSpec::IBMovingTargetPointForceSpec():\n"
-                   << "  must call IBMovingTargetPointForceSpec::registerWithStashableManager() before\n"
+                   << "  must call IBMovingTargetPointForceSpec::registerWithStreamableManager() before\n"
                    << "  creating any IBMovingTargetPointForceSpec objects.\n");
     }
     return;
@@ -143,10 +143,10 @@ IBMovingTargetPointForceSpec::getPeriodicShift()
 }// getPeriodicShift
 
 inline int
-IBMovingTargetPointForceSpec::getStashableID() const
+IBMovingTargetPointForceSpec::getStreamableClassID() const
 {
-    return s_stashable_id;
-}// getStashableID
+    return s_class_id;
+}// getStreamableClassID
 
 inline size_t
 IBMovingTargetPointForceSpec::getDataStreamSize() const

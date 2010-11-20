@@ -38,7 +38,7 @@
 // IBTK INCLUDES
 #include <ibtk/LNodeInitStrategy.h>
 #include <ibtk/LagSiloDataWriter.h>
-#include <ibtk/Stashable.h>
+#include <ibtk/Streamable.h>
 
 // C++ STDLIB INCLUDES
 #include <map>
@@ -619,7 +619,7 @@ private:
     /*!
      * \return The specification objects associated with the specified vertex.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >
+    std::vector<SAMRAI::tbox::Pointer<IBTK::Streamable> >
     initializeSpecs(
         const std::pair<int,int>& point_index,
         const int global_index_offset,

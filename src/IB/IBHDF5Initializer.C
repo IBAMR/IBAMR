@@ -194,11 +194,11 @@ IBHDF5Initializer::IBHDF5Initializer(
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(!input_db.isNull());
 #endif
-    // Register the specification objects with the StashableManager class.
-    IBSpringForceSpec::registerWithStashableManager();
-    IBBeamForceSpec::registerWithStashableManager();
-    IBTargetPointForceSpec::registerWithStashableManager();
-    IBInstrumentationSpec::registerWithStashableManager();
+    // Register the specification objects with the StreamableManager class.
+    IBSpringForceSpec::registerWithStreamableManager();
+    IBBeamForceSpec::registerWithStreamableManager();
+    IBTargetPointForceSpec::registerWithStreamableManager();
+    IBInstrumentationSpec::registerWithStreamableManager();
 
     // Initialize object with data read from the input database.
     getFromInput(input_db);
@@ -343,7 +343,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
 
             // Initialize the specification objects associated with the present
             // vertex.
-            std::vector<Pointer<Stashable> > vertex_specs = initializeSpecs(
+            std::vector<Pointer<Streamable> > vertex_specs = initializeSpecs(
                 std::make_pair(j,k), vertex_idx, global_index_offset);
 
             // Initialize the LNodeIndex data.
@@ -1928,13 +1928,13 @@ IBHDF5Initializer::clearLevelDataCache()
     return;
 }// clearLevelDataCache
 
-std::vector<Pointer<Stashable> >
+std::vector<Pointer<Streamable> >
 IBHDF5Initializer::initializeSpecs(
     const std::pair<int,int>& local_vertex_idx,
     const std::pair<int,int>& global_vertex_idx,
     const int global_index_offset)
 {
-    std::vector<Pointer<Stashable> > vertex_specs;
+    std::vector<Pointer<Streamable> > vertex_specs;
 
     const int& ln = d_cache_level_number;
     const int& j_local = local_vertex_idx.first;

@@ -43,10 +43,10 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 inline bool
-IBInstrumentationSpec::getIsRegisteredWithStashableManager()
+IBInstrumentationSpec::getIsRegisteredWithStreamableManager()
 {
     return s_registered_factory;
-}// getIsRegisteredWithStashableManager
+}// getIsRegisteredWithStreamableManager
 
 inline const std::vector<std::string>&
 IBInstrumentationSpec::getInstrumentNames()
@@ -68,7 +68,7 @@ IBInstrumentationSpec::IBInstrumentationSpec(
     if (!s_registered_factory)
     {
         TBOX_ERROR("IBInstrumentationSpec::IBInstrumentationSpec():\n"
-                   << "  must call IBInstrumentationSpec::registerWithStashableManager() before\n"
+                   << "  must call IBInstrumentationSpec::registerWithStreamableManager() before\n"
                    << "  creating any IBInstrumentationSpec objects.\n");
     }
     return;
@@ -118,10 +118,10 @@ IBInstrumentationSpec::getNodeIndex()
 }// getNodeIndex
 
 inline int
-IBInstrumentationSpec::getStashableID() const
+IBInstrumentationSpec::getStreamableClassID() const
 {
-    return s_stashable_id;
-}// getStashableID
+    return s_class_id;
+}// getStreamableClassID
 
 inline size_t
 IBInstrumentationSpec::getDataStreamSize() const

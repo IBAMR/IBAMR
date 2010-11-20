@@ -45,7 +45,7 @@
 #include <ibtk/LNodeInitStrategy.h>
 
 // IBTK INCLUDES
-#include <ibtk/Stashable.h>
+#include <ibtk/Streamable.h>
 
 // C++ STDLIB INCLUDES
 #include <map>
@@ -320,7 +320,7 @@ private:
     /*!
      * \return The specification objects associated with the specified vertex.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::Stashable> >
+    std::vector<SAMRAI::tbox::Pointer<IBTK::Streamable> >
     initializeSpecs(
         const std::pair<int,int>& local_vertex_idx,
         const std::pair<int,int>& global_vertex_idx,

@@ -169,13 +169,13 @@ IBStandardInitializer::IBStandardInitializer(
     TBOX_ASSERT(!input_db.isNull());
 #endif
 
-    // Register the specification objects with the StashableManager class.
-    IBAnchorPointSpec::registerWithStashableManager();
-    IBBeamForceSpec::registerWithStashableManager();
-    IBInstrumentationSpec::registerWithStashableManager();
-    IBRodForceSpec::registerWithStashableManager();
-    IBSpringForceSpec::registerWithStashableManager();
-    IBTargetPointForceSpec::registerWithStashableManager();
+    // Register the specification objects with the StreamableManager class.
+    IBAnchorPointSpec::registerWithStreamableManager();
+    IBBeamForceSpec::registerWithStreamableManager();
+    IBInstrumentationSpec::registerWithStreamableManager();
+    IBRodForceSpec::registerWithStreamableManager();
+    IBSpringForceSpec::registerWithStreamableManager();
+    IBTargetPointForceSpec::registerWithStreamableManager();
 
     // Initialize object with data read from the input database.
     getFromInput(input_db);
@@ -398,7 +398,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
 
             // Initialize the force specification object associated with the
             // present vertex.
-            std::vector<Pointer<Stashable> > force_spec =
+            std::vector<Pointer<Streamable> > force_spec =
                 initializeSpecs(
                     point_idx, global_index_offset, level_number);
 
@@ -2216,13 +2216,13 @@ IBStandardInitializer::getVertexInstrumentationIndices(
     }
 }// getVertexInstrumentationIndices
 
-std::vector<Pointer<Stashable> >
+std::vector<Pointer<Streamable> >
 IBStandardInitializer::initializeSpecs(
     const std::pair<int,int>& point_index,
     const int global_index_offset,
     const int level_number) const
 {
-    std::vector<Pointer<Stashable> > vertex_specs;
+    std::vector<Pointer<Streamable> > vertex_specs;
 
     const int j = point_index.first;
     const int mastr_idx = getCanonicalLagrangianIndex(point_index, level_number);

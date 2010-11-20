@@ -43,10 +43,10 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 inline bool
-IBTargetPointForceSpec::getIsRegisteredWithStashableManager()
+IBTargetPointForceSpec::getIsRegisteredWithStreamableManager()
 {
     return s_registered_factory;
-}// getIsRegisteredWithStashableManager
+}// getIsRegisteredWithStreamableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -67,7 +67,7 @@ IBTargetPointForceSpec::IBTargetPointForceSpec(
     if (!s_registered_factory)
     {
         TBOX_ERROR("IBTargetPointForceSpec::IBTargetPointForceSpec():\n"
-                   << "  must call IBTargetPointForceSpec::registerWithStashableManager() before\n"
+                   << "  must call IBTargetPointForceSpec::registerWithStreamableManager() before\n"
                    << "  creating any IBTargetPointForceSpec objects.\n");
     }
     return;
@@ -129,10 +129,10 @@ IBTargetPointForceSpec::getTargetPointPosition()
 }// getTargetPointPosition
 
 inline int
-IBTargetPointForceSpec::getStashableID() const
+IBTargetPointForceSpec::getStreamableClassID() const
 {
-    return s_stashable_id;
-}// getStashableID
+    return s_class_id;
+}// getStreamableClassID
 
 inline size_t
 IBTargetPointForceSpec::getDataStreamSize() const

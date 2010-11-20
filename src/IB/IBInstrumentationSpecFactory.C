@@ -49,7 +49,7 @@
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
-#include <ibtk/StashableManager.h>
+#include <ibtk/StreamableManager.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -57,13 +57,13 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-int IBInstrumentationSpecFactory::s_stashable_id = -1;
+int IBInstrumentationSpecFactory::s_class_id = -1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBInstrumentationSpecFactory::IBInstrumentationSpecFactory()
 {
-    setStashableID(StashableManager::getUnregisteredID());
+    setStreamableClassID(StreamableManager::getUnregisteredID());
     return;
 }// IBInstrumentationSpecFactory
 
@@ -74,20 +74,20 @@ IBInstrumentationSpecFactory::~IBInstrumentationSpecFactory()
 }// ~IBInstrumentationSpecFactory
 
 int
-IBInstrumentationSpecFactory::getStashableID() const
+IBInstrumentationSpecFactory::getStreamableClassID() const
 {
-    return s_stashable_id;
-}// getStashableID
+    return s_class_id;
+}// getStreamableClassID
 
 void
-IBInstrumentationSpecFactory::setStashableID(
-    const int stashable_id)
+IBInstrumentationSpecFactory::setStreamableClassID(
+    const int class_id)
 {
-    s_stashable_id = stashable_id;
+    s_class_id = class_id;
     return;
-}// setStashableID
+}// setStreamableClassID
 
-Pointer<Stashable>
+Pointer<Streamable>
 IBInstrumentationSpecFactory::unpackStream(
     AbstractStream& stream,
     const IntVector<NDIM>& offset)

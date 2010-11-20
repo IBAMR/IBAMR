@@ -170,7 +170,7 @@ IBMovingTargetPointForceGen::computeLagrangianForce(
              it != idx_data->lnode_index_end(); ++it)
         {
             const LNodeIndex& node_idx = *it;
-            Pointer<IBMovingTargetPointForceSpec> force_spec = node_idx.getStashData<IBMovingTargetPointForceSpec>();
+            Pointer<IBMovingTargetPointForceSpec> force_spec = node_idx.getNodeData<IBMovingTargetPointForceSpec>();
             if (!force_spec.isNull())
             {
                 const int& mastr_idx = node_idx.getLagrangianIndex();
@@ -253,7 +253,7 @@ IBMovingTargetPointForceGen::computeLagrangianForceJacobianNonzeroStructure(
              it != idx_data->lnode_index_end(); ++it)
         {
             const LNodeIndex& node_idx = *it;
-            Pointer<IBMovingTargetPointForceSpec> force_spec = node_idx.getStashData<IBMovingTargetPointForceSpec>();
+            Pointer<IBMovingTargetPointForceSpec> force_spec = node_idx.getNodeData<IBMovingTargetPointForceSpec>();
             if (!force_spec.isNull())
             {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -307,7 +307,7 @@ IBMovingTargetPointForceGen::computeLagrangianForceJacobian(
              it != idx_data->lnode_index_end(); ++it)
         {
             const LNodeIndex& node_idx = *it;
-            Pointer<IBMovingTargetPointForceSpec> force_spec = node_idx.getStashData<IBMovingTargetPointForceSpec>();
+            Pointer<IBMovingTargetPointForceSpec> force_spec = node_idx.getNodeData<IBMovingTargetPointForceSpec>();
             if (!force_spec.isNull())
             {
 #ifdef DEBUG_CHECK_ASSERTIONS

@@ -49,7 +49,7 @@
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
-#include <ibtk/StashableManager.h>
+#include <ibtk/StreamableManager.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -57,13 +57,13 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-int IBMovingTargetPointForceSpecFactory::s_stashable_id = -1;
+int IBMovingTargetPointForceSpecFactory::s_class_id = -1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBMovingTargetPointForceSpecFactory::IBMovingTargetPointForceSpecFactory()
 {
-    setStashableID(StashableManager::getUnregisteredID());
+    setStreamableClassID(StreamableManager::getUnregisteredID());
     return;
 }// IBMovingTargetPointForceSpecFactory
 
@@ -74,20 +74,20 @@ IBMovingTargetPointForceSpecFactory::~IBMovingTargetPointForceSpecFactory()
 }// ~IBMovingTargetPointForceSpecFactory
 
 int
-IBMovingTargetPointForceSpecFactory::getStashableID() const
+IBMovingTargetPointForceSpecFactory::getStreamableClassID() const
 {
-    return s_stashable_id;
-}// getStashableID
+    return s_class_id;
+}// getStreamableClassID
 
 void
-IBMovingTargetPointForceSpecFactory::setStashableID(
-    const int stashable_id)
+IBMovingTargetPointForceSpecFactory::setStreamableClassID(
+    const int class_id)
 {
-    s_stashable_id = stashable_id;
+    s_class_id = class_id;
     return;
-}// setStashableID
+}// setStreamableClassID
 
-Pointer<Stashable>
+Pointer<Streamable>
 IBMovingTargetPointForceSpecFactory::unpackStream(
     AbstractStream& stream,
     const IntVector<NDIM>& offset)

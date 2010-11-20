@@ -1277,7 +1277,7 @@ IBImplicitHierarchyIntegrator::regridHierarchy()
                      it != idx_data->lnode_index_end(); ++it)
                 {
                     const LNodeIndex& node_idx = *it;
-                    Pointer<IBAnchorPointSpec> anchor_point_spec = node_idx.getStashData<IBAnchorPointSpec>();
+                    Pointer<IBAnchorPointSpec> anchor_point_spec = node_idx.getNodeData<IBAnchorPointSpec>();
                     if (!anchor_point_spec.isNull())
                     {
                         d_anchor_point_local_idxs[ln].insert(node_idx.getLocalPETScIndex());

@@ -43,10 +43,10 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 inline bool
-IBAnchorPointSpec::getIsRegisteredWithStashableManager()
+IBAnchorPointSpec::getIsRegisteredWithStreamableManager()
 {
     return s_registered_factory;
-}// getIsRegisteredWithStashableManager
+}// getIsRegisteredWithStreamableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -58,7 +58,7 @@ IBAnchorPointSpec::IBAnchorPointSpec(
     if (!s_registered_factory)
     {
         TBOX_ERROR("IBAnchorPointSpec::IBAnchorPointSpec():\n"
-                   << "  must call IBAnchorPointSpec::registerWithStashableManager() before\n"
+                   << "  must call IBAnchorPointSpec::registerWithStreamableManager() before\n"
                    << "  creating any IBAnchorPointSpec objects.\n");
     }
     return;
@@ -84,10 +84,10 @@ IBAnchorPointSpec::getNodeIndex()
 }// getNodeIndex
 
 inline int
-IBAnchorPointSpec::getStashableID() const
+IBAnchorPointSpec::getStreamableClassID() const
 {
-    return s_stashable_id;
-}// getStashableID
+    return s_class_id;
+}// getStreamableClassID
 
 inline size_t
 IBAnchorPointSpec::getDataStreamSize() const

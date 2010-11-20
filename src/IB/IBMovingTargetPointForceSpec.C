@@ -49,7 +49,7 @@
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
-#include <ibtk/StashableManager.h>
+#include <ibtk/StreamableManager.h>
 
 // SAMRAI INCLUDES
 #include <tbox/SAMRAI_MPI.h>
@@ -61,27 +61,28 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 bool IBMovingTargetPointForceSpec::s_registered_factory = false;
-int  IBMovingTargetPointForceSpec::s_stashable_id = -1;
+int  IBMovingTargetPointForceSpec::s_class_id = -1;
 
 void
-IBMovingTargetPointForceSpec::registerWithStashableManager()
+IBMovingTargetPointForceSpec::registerWithStreamableManager()
 {
-    // We place an MPI barrier here to ensure that all MPI processes actually
-    // register the stashable factory with the stashable manager, and to ensure
-    // that all processes employ the same stashable id for the
+    // We place MPI barriers here to ensure that all MPI processes actually
+    // register the factory class with the StreamableManager, and to ensure that
+    // all processes employ the same class ID for the
     // IBMovingTargetPointForceSpec object.
     SAMRAI_MPI::barrier();
     if (!s_registered_factory)
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(s_stashable_id == -1);
+        TBOX_ASSERT(s_class_id == -1);
 #endif
-        s_stashable_id = StashableManager::getManager()->registerFactory(
+        s_class_id = StreamableManager::getManager()->registerFactory(
             new IBMovingTargetPointForceSpecFactory());
         s_registered_factory = true;
     }
+    SAMRAI_MPI::barrier();
     return;
-}// registerWithStashableManager
+}// registerWithStreamableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

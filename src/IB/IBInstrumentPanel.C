@@ -544,7 +544,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
                      it != idx_data->lnode_index_end(); ++it)
                 {
                     const LNodeIndex& node_idx = *it;
-                    Pointer<IBInstrumentationSpec> spec = node_idx.getStashData<IBInstrumentationSpec>();
+                    Pointer<IBInstrumentationSpec> spec = node_idx.getNodeData<IBInstrumentationSpec>();
                     if (!spec.isNull())
                     {
                         const int m = spec->getMeterIndex();
@@ -703,7 +703,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
                      it != idx_data->lnode_index_end(); ++it)
                 {
                     const LNodeIndex& node_idx = *it;
-                    Pointer<IBInstrumentationSpec> spec = node_idx.getStashData<IBInstrumentationSpec>();
+                    Pointer<IBInstrumentationSpec> spec = node_idx.getNodeData<IBInstrumentationSpec>();
                     if (!spec.isNull())
                     {
                         const int& petsc_idx = node_idx.getLocalPETScIndex();
@@ -1048,7 +1048,7 @@ IBInstrumentPanel::readInstrumentData(
                      it != idx_data->lnode_index_end(); ++it)
                 {
                     const LNodeIndex& node_idx = *it;
-                    Pointer<IBInstrumentationSpec> spec = node_idx.getStashData<IBInstrumentationSpec>();
+                    Pointer<IBInstrumentationSpec> spec = node_idx.getNodeData<IBInstrumentationSpec>();
                     if (!spec.isNull())
                     {
                         const int& petsc_idx = node_idx.getLocalPETScIndex();

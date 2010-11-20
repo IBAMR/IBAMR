@@ -202,7 +202,7 @@ IBBeamForceGen::initializeLevelData(
              it != idx_data->lnode_index_end(); ++it)
         {
             const LNodeIndex& node_idx = *it;
-            const Pointer<IBBeamForceSpec> force_spec = node_idx.getStashData<IBBeamForceSpec>();
+            const Pointer<IBBeamForceSpec> force_spec = node_idx.getNodeData<IBBeamForceSpec>();
             if (!force_spec.isNull())
             {
                 const int& mastr_idx = node_idx.getLagrangianIndex();

@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/Stashable.h>
+#include <ibtk/Streamable.h>
 
 // SAMRAI INCLUDES
 #include <tbox/AbstractStream.h>
@@ -55,37 +55,37 @@ namespace IBAMR
  * resist bending) at a single node of the Lagrangian mesh.
  *
  * Beams are connections between three particular nodes of the Lagrangian mesh.
- * IBBeamForceSpec objects are stored as IBTK::Stashable data associated with only the
- * master beam nodes in the mesh.
+ * IBBeamForceSpec objects are stored as IBTK::Streamable data associated with
+ * only the master beam nodes in the mesh.
  */
 class IBBeamForceSpec
-    : public IBTK::Stashable
+    : public IBTK::Streamable
 {
 public:
     /*!
-     * \note Use of this typedef appears to be needed to get g++ to parse the
-     * default parameters in the class constructor.
+     * \note This typedef appears to be needed to get g++ to parse the default
+     * parameters in the class constructor.
      */
     typedef std::pair<int,int> NeighborIdxs;
 
     /*!
      * \brief Register this class and its factory class with the singleton
-     * IBTK::StashableManager object.  This method must be called before any
+     * IBTK::StreamableManager object.  This method must be called before any
      * IBBeamForceSpec objects are created.
      *
      * \note This method is collective on all MPI processes.  This is done to
-     * ensure that all processes employ the same stashable ID for the
+     * ensure that all processes employ the same class ID for the
      * IBBeamForceSpec class.
      */
     static void
-    registerWithStashableManager();
+    registerWithStreamableManager();
 
     /*!
      * \brief Returns a boolean indicating whether the class has been registered
-     * with the singleton IBTK::StashableManager object.
+     * with the singleton IBTK::StreamableManager object.
      */
     static bool
-    getIsRegisteredWithStashableManager();
+    getIsRegisteredWithStreamableManager();
 
     /*!
      * \brief Default constructor.
@@ -163,12 +163,12 @@ public:
     getMeshDependentCurvatures();
 
     /*!
-     * \brief Return the unique identifier used to specify the IBTK::StashableFactory
-     * object used by the IBTK::StashableManager to extract Stashable objects from
-     * data streams.
+     * \brief Return the unique identifier used to specify the
+     * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
+     * extract Streamable objects from data streams.
      */
     virtual int
-    getStashableID() const;
+    getStreamableClassID() const;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the
@@ -210,14 +210,15 @@ private:
 
     /*!
      * Indicates whether the factory has been registered with the
-     * IBTK::StashableManager.
+     * IBTK::StreamableManager.
      */
     static bool s_registered_factory;
 
     /*!
-     * The stashable ID for this object type.
+     * The class ID for this object type assigned by the
+     * IBTK::StreamableManager.
      */
-    static int s_stashable_id;
+    static int s_class_id;
 
     /*!
      * Data required to define the beam forces.
