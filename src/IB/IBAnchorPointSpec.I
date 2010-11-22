@@ -52,8 +52,12 @@ IBAnchorPointSpec::getIsRegisteredWithStreamableManager()
 
 inline
 IBAnchorPointSpec::IBAnchorPointSpec(
-    const int node_idx)
+    const int node_idx,
+    const int subdomain_idx)
     : d_node_idx(node_idx)
+#if ENABLE_SUBDOMAIN_INDICES
+    , d_subdomain_idx(subdomain_idx)
+#endif
 {
     if (!s_registered_factory)
     {
@@ -83,6 +87,28 @@ IBAnchorPointSpec::getNodeIndex()
     return d_node_idx;
 }// getNodeIndex
 
+inline const int&
+IBAnchorPointSpec::getSubdomainIndex() const
+{
+#if ENABLE_SUBDOMAIN_INDICES
+    return d_subdomain_idx;
+#else
+    static int dummy_idx = -1;
+    return dummy_idx;
+#endif
+}// getSubdomainIndex
+
+inline int&
+IBAnchorPointSpec::getSubdomainIndex()
+{
+#if ENABLE_SUBDOMAIN_INDICES
+    return d_subdomain_idx;
+#else
+    static int dummy_idx = -1;
+    return dummy_idx;
+#endif
+}// getSubdomainIndex
+
 inline int
 IBAnchorPointSpec::getStreamableClassID() const
 {
@@ -92,7 +118,11 @@ IBAnchorPointSpec::getStreamableClassID() const
 inline size_t
 IBAnchorPointSpec::getDataStreamSize() const
 {
-    return SAMRAI::tbox::AbstractStream::sizeofInt();
+    return SAMRAI::tbox::AbstractStream::sizeofInt()
+#if ENABLE_SUBDOMAIN_INDICES
+        + SAMRAI::tbox::AbstractStream::sizeofInt()
+#endif
+        ;
 }// getDataStreamSize
 
 inline void
@@ -100,6 +130,9 @@ IBAnchorPointSpec::packStream(
     SAMRAI::tbox::AbstractStream& stream)
 {
     stream.pack(&d_node_idx,1);
+#if ENABLE_SUBDOMAIN_INDICES
+    stream.pack(&d_subdomain_idx,1);
+#endif
     return;
 }// packStream
 

@@ -102,7 +102,13 @@ IBMovingTargetPointForceSpecFactory::unpackStream(
     stream.unpack(&spec_fcn_idx,1);
     std::vector<double> periodic_shift(NDIM);
     stream.unpack(&periodic_shift[0],NDIM);
+#if ENABLE_SUBDOMAIN_INDICES
+    int subdomain_idx;
+    stream.unpack(&subdomain_idx,1);
+    return new IBMovingTargetPointForceSpec(mastr_idx,kappa_target,eta_target,spec_fcn_idx,periodic_shift,subdomain_idx);
+#else
     return new IBMovingTargetPointForceSpec(mastr_idx,kappa_target,eta_target,spec_fcn_idx,periodic_shift);
+#endif
 }// unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

@@ -55,11 +55,15 @@ IBTargetPointForceSpec::IBTargetPointForceSpec(
     const int master_idx,
     const double& kappa_target,
     const double& eta_target,
-    const std::vector<double>& X_target)
+    const std::vector<double>& X_target,
+    const int subdomain_idx)
     : d_master_idx(master_idx),
       d_kappa_target(kappa_target),
       d_eta_target(eta_target),
       d_X_target(X_target)
+#if ENABLE_SUBDOMAIN_INDICES
+    , d_subdomain_idx(subdomain_idx)
+#endif
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(NDIM == int(d_X_target.size()));
@@ -128,6 +132,28 @@ IBTargetPointForceSpec::getTargetPointPosition()
     return d_X_target;
 }// getTargetPointPosition
 
+inline const int&
+IBTargetPointForceSpec::getSubdomainIndex() const
+{
+#if ENABLE_SUBDOMAIN_INDICES
+    return d_subdomain_idx;
+#else
+    static int dummy_idx = -1;
+    return dummy_idx;
+#endif
+}// getSubdomainIndex
+
+inline int&
+IBTargetPointForceSpec::getSubdomainIndex()
+{
+#if ENABLE_SUBDOMAIN_INDICES
+    return d_subdomain_idx;
+#else
+    static int dummy_idx = -1;
+    return dummy_idx;
+#endif
+}// getSubdomainIndex
+
 inline int
 IBTargetPointForceSpec::getStreamableClassID() const
 {
@@ -138,7 +164,11 @@ inline size_t
 IBTargetPointForceSpec::getDataStreamSize() const
 {
     return ((1     )*SAMRAI::tbox::AbstractStream::sizeofInt() +
-            (2+NDIM)*SAMRAI::tbox::AbstractStream::sizeofDouble());
+            (2+NDIM)*SAMRAI::tbox::AbstractStream::sizeofDouble())
+#if ENABLE_SUBDOMAIN_INDICES
+        + SAMRAI::tbox::AbstractStream::sizeofInt()
+#endif
+        ;
 }// getDataStreamSize
 
 inline void
@@ -152,6 +182,9 @@ IBTargetPointForceSpec::packStream(
     stream.pack(&d_kappa_target,1);
     stream.pack(&d_eta_target,1);
     stream.pack(&d_X_target[0],NDIM);
+#if ENABLE_SUBDOMAIN_INDICES
+    stream.pack(&d_subdomain_idx,1);
+#endif
     return;
 }// packStream
 

@@ -55,16 +55,23 @@ IBBeamForceSpec::IBBeamForceSpec(
     const int master_idx,
     const std::vector<NeighborIdxs>& neighbor_idxs,
     const std::vector<double>& bend_rigidities,
-    const std::vector<std::vector<double> >& mesh_dependent_curvatures)
+    const std::vector<std::vector<double> >& mesh_dependent_curvatures,
+    const std::vector<int>& subdomain_idxs)
     : d_master_idx(master_idx),
       d_neighbor_idxs(neighbor_idxs),
       d_bend_rigidities(bend_rigidities),
       d_mesh_dependent_curvatures(mesh_dependent_curvatures)
+#if ENABLE_SUBDOMAIN_INDICES
+    , d_subdomain_idxs(subdomain_idxs)
+#endif
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     const int num_beams = d_neighbor_idxs.size();
     TBOX_ASSERT(num_beams == int(d_bend_rigidities.size()));
     TBOX_ASSERT(num_beams == int(d_mesh_dependent_curvatures.size()));
+#if ENABLE_SUBDOMAIN_INDICES
+    TBOX_ASSERT(num_beams == int(d_subdomain_idxs.size()));
+#endif
 #endif
     if (!s_registered_factory)
     {
@@ -141,6 +148,28 @@ IBBeamForceSpec::getMeshDependentCurvatures()
     return d_mesh_dependent_curvatures;
 }// getMeshDependentCurvatures
 
+inline const std::vector<int>&
+IBBeamForceSpec::getSubdomainIndices() const
+{
+#if ENABLE_SUBDOMAIN_INDICES
+    return d_subdomain_idxs;
+#else
+    static std::vector<int> dummy_idxs;
+    return dummy_idxs;
+#endif
+}// getSubdomainIndices
+
+inline std::vector<int>&
+IBBeamForceSpec::getSubdomainIndices()
+{
+#if ENABLE_SUBDOMAIN_INDICES
+    return d_subdomain_idxs;
+#else
+    static std::vector<int> dummy_idxs;
+    return dummy_idxs;
+#endif
+}// getSubdomainIndices
+
 inline int
 IBBeamForceSpec::getStreamableClassID() const
 {
@@ -152,7 +181,11 @@ IBBeamForceSpec::getDataStreamSize() const
 {
     const int num_beams = d_neighbor_idxs.size();
     return ((2+2*num_beams     )*SAMRAI::tbox::AbstractStream::sizeofInt() +
-            ((1+NDIM)*num_beams)*SAMRAI::tbox::AbstractStream::sizeofDouble());
+            ((1+NDIM)*num_beams)*SAMRAI::tbox::AbstractStream::sizeofDouble())
+#if ENABLE_SUBDOMAIN_INDICES
+        + num_beams*SAMRAI::tbox::AbstractStream::sizeofInt()
+#endif
+        ;
 }// getDataStreamSize
 
 inline void
@@ -178,6 +211,9 @@ IBBeamForceSpec::packStream(
     {
         stream.pack(&d_mesh_dependent_curvatures[k][0],NDIM);
     }
+#if ENABLE_SUBDOMAIN_INDICES
+    stream.pack(&d_subdomain_idxs[0],num_beams);
+#endif
     return;
 }// packStream
 

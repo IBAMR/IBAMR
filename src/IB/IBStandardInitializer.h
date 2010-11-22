@@ -62,7 +62,7 @@ namespace IBAMR
  * <B>Vertex file format</B>
  *
  * Vertex input files end with the extension <TT>".vertex"</TT> and have the
- * following format for two spatial dimensions:
+ * following format for two-dimensional models:
  \verbatim
  N                   # number of vertices in the file
  x_0       y_0       # (x,y)-coordinates of vertex 0
@@ -72,7 +72,7 @@ namespace IBAMR
  \endverbatim
  *
  * Vertex input files end with the extension <TT>".vertex"</TT> and have the
- * following format for three spatial dimensions:
+ * following format for three-dimensional models:
  \verbatim
  N                             # number of vertices in the file
  x_0       y_0       z_0       # (x,y,z)-coordinates of vertex 0
@@ -98,7 +98,7 @@ namespace IBAMR
  * \note There is no restriction on the number of springs that may be associated
  * with any particular node of the Lagrangian mesh.
  *
- * \note The rest length and force function indices are \em optional values.  If
+ * \note The rest length and force function index are \em optional values.  If
  * they are not provided, by default the rest length will be set to the value \a
  * 0.0 and the force function index will be set to \a 0.  This corresponds to a
  * linear spring with zero rest length.
@@ -210,8 +210,8 @@ namespace IBAMR
  i_2
  ...
  \endverbatim
- * \note Anchor points are immersed boundary nodes which are "anchored" in
- * place.  Such points neither spread force nor interpolate velocity.
+ * \note Anchor points are immersed boundary nodes that are "anchored" in place.
+ * Such points neither spread force nor interpolate velocity.
  *
  * <HR>
  *
@@ -557,44 +557,32 @@ private:
         const int level_number) const;
 
     /*!
-     * \return The target point penalty force spring constant associated with a
+     * \return The target point specifications associated with a particular
+     * node.
+     */
+    struct TargetSpec;
+    const TargetSpec&
+    getVertexTargetSpec(
+        const std::pair<int,int>& point_index,
+        const int level_number) const;
+
+    /*!
+     * \return The anchor point specifications associated with a particular
+     * node.
+     */
+    struct AnchorSpec;
+    const AnchorSpec&
+    getVertexAnchorSpec(
+        const std::pair<int,int>& point_index,
+        const int level_number) const;
+
+    /*!
+     * \return The massive boundary point specifications associated with a
      * particular node.
      */
-    double
-    getVertexTargetStiffness(
-        const std::pair<int,int>& point_index,
-        const int level_number) const;
-
-    /*!
-     * \return The target point penalty force damping parameter associated with
-     * a particular node.
-     */
-    double
-    getVertexTargetDamping(
-        const std::pair<int,int>& point_index,
-        const int level_number) const;
-
-    /*!
-     * \return Boolean indicating whether a particular node is an anchor point.
-     */
-    bool
-    getIsAnchorPoint(
-        const std::pair<int,int>& point_index,
-        const int level_number) const;
-
-    /*!
-     * \return The mass associated with a particular node.
-     */
-    double
-    getVertexMass(
-        const std::pair<int,int>& point_index,
-        const int level_number) const;
-
-    /*!
-     * \return The mass spring constant associated with a particular node.
-     */
-    double
-    getVertexMassStiffness(
+    struct BdryMassSpec;
+    const BdryMassSpec&
+    getVertexBdryMassSpec(
         const std::pair<int,int>& point_index,
         const int level_number) const;
 
@@ -688,7 +676,7 @@ private:
     std::vector<std::vector<std::vector<double> > > d_vertex_posn;
 
     /*
-     * Spring information.
+     * Edge data structures.
      */
     typedef std::pair<int,int> Edge;
     struct EdgeComp
@@ -702,10 +690,21 @@ private:
                 return (e1.first < e2.first) || (e1.first == e2.first && e1.second < e2.second);
             }
     };
+
+    /*
+     * Spring information.
+     */
     std::vector<std::vector<bool> > d_enable_springs;
+
     std::vector<std::vector<std::multimap<int,Edge> > > d_spring_edge_map;
-    std::vector<std::vector<std::map<Edge,double,EdgeComp> > > d_spring_stiffness, d_spring_rest_length;
-    std::vector<std::vector<std::map<Edge,int,EdgeComp> > > d_spring_force_fcn_idx;
+
+    struct SpringSpec
+    {
+        double stiffness, rest_length;
+        int force_fcn_idx;
+        int subdomain_idx;
+    };
+    std::vector<std::vector<std::map<Edge,SpringSpec,EdgeComp> > > d_spring_spec_data;
 
     std::vector<std::vector<bool> > d_using_uniform_spring_stiffness;
     std::vector<std::vector<double> > d_uniform_spring_stiffness;
@@ -716,31 +715,63 @@ private:
     std::vector<std::vector<bool> > d_using_uniform_spring_force_fcn_idx;
     std::vector<std::vector<int> > d_uniform_spring_force_fcn_idx;
 
+    std::vector<std::vector<bool> > d_using_uniform_spring_subdomain_idx;
+    std::vector<std::vector<int> > d_uniform_spring_subdomain_idx;
+
     /*
      * Beam information.
      */
-    typedef std::pair<int,int> Neighbors;
     std::vector<std::vector<bool> > d_enable_beams;
-    std::vector<std::vector<std::multimap<int,std::pair<Neighbors,std::pair<double,std::vector<double> > > > > > d_beam_specs;
+
+    struct BeamSpec
+    {
+        std::pair<int,int> neighbor_idxs;
+        double bend_rigidity;
+        std::vector<double> curvature;
+        int subdomain_idx;
+    };
+    std::vector<std::vector<std::multimap<int,BeamSpec> > > d_beam_spec_data;
 
     std::vector<std::vector<bool> > d_using_uniform_beam_bend_rigidity;
     std::vector<std::vector<double> > d_uniform_beam_bend_rigidity;
+
+    std::vector<std::vector<bool> > d_using_uniform_beam_curvature;
+    std::vector<std::vector<std::vector<double> > > d_uniform_beam_curvature;
+
+    std::vector<std::vector<bool> > d_using_uniform_beam_subdomain_idx;
+    std::vector<std::vector<int> > d_uniform_beam_subdomain_idx;
 
     /*
      * Rod information.
      */
     std::vector<std::vector<bool> > d_enable_rods;
-    std::vector<std::vector<std::multimap<int,Edge> > > d_rod_edge_map;
-    std::vector<std::vector<std::multimap<int,std::pair<int,std::vector<double> > > > > d_rod_specs;
 
-    std::vector<std::vector<bool> > d_using_uniform_rod_specs;
-    std::vector<std::vector<std::vector<double> > > d_uniform_rod_specs;
+    std::vector<std::vector<std::multimap<int,Edge> > > d_rod_edge_map;
+
+    struct RodSpec
+    {
+        std::vector<double> properties;
+        int subdomain_idx;
+    };
+    std::vector<std::vector<std::map<Edge,RodSpec,EdgeComp> > > d_rod_spec_data;
+
+    std::vector<std::vector<bool> > d_using_uniform_rod_properties;
+    std::vector<std::vector<std::vector<double> > > d_uniform_rod_properties;
+
+    std::vector<std::vector<bool> > d_using_uniform_rod_subdomain_idx;
+    std::vector<std::vector<int> > d_uniform_rod_subdomain_idx;
 
     /*
      * Target point information.
      */
     std::vector<std::vector<bool> > d_enable_target_points;
-    std::vector<std::vector<std::vector<double> > > d_target_stiffness, d_target_damping;
+
+    struct TargetSpec
+    {
+        double stiffness, damping;
+        int subdomain_idx;
+    };
+    std::vector<std::vector<std::vector<TargetSpec> > > d_target_spec_data;
 
     std::vector<std::vector<bool> > d_using_uniform_target_stiffness;
     std::vector<std::vector<double> > d_uniform_target_stiffness;
@@ -748,17 +779,34 @@ private:
     std::vector<std::vector<bool> > d_using_uniform_target_damping;
     std::vector<std::vector<double> > d_uniform_target_damping;
 
+    std::vector<std::vector<bool> > d_using_uniform_target_subdomain_idx;
+    std::vector<std::vector<int> > d_uniform_target_subdomain_idx;
+
     /*
      * Anchor point information.
      */
     std::vector<std::vector<bool> > d_enable_anchor_points;
-    std::vector<std::vector<std::vector<bool> > > d_is_anchor_point;
+
+    struct AnchorSpec
+    {
+        bool is_anchor_point;
+        int subdomain_idx;
+    };
+    std::vector<std::vector<std::vector<AnchorSpec> > > d_anchor_spec_data;
+
+    std::vector<std::vector<bool> > d_using_uniform_anchor_subdomain_idx;
+    std::vector<std::vector<int> > d_uniform_anchor_subdomain_idx;
 
     /*
      * Mass information for the pIB method.
      */
     std::vector<std::vector<bool> > d_enable_bdry_mass;
-    std::vector<std::vector<std::vector<double> > > d_bdry_mass, d_bdry_mass_stiffness;
+
+    struct BdryMassSpec
+    {
+        double bdry_mass, stiffness;
+    };
+    std::vector<std::vector<std::vector<BdryMassSpec> > > d_bdry_mass_spec_data;
 
     std::vector<std::vector<bool> > d_using_uniform_bdry_mass;
     std::vector<std::vector<double> > d_uniform_bdry_mass;
@@ -767,7 +815,7 @@ private:
     std::vector<std::vector<double> > d_uniform_bdry_mass_stiffness;
 
     /*
-     * Mass information for the pIB method.
+     * Orthonormal directors for the generalized IB method.
      */
     std::vector<std::vector<std::vector<std::vector<double> > > > d_directors;
 

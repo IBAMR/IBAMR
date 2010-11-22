@@ -111,7 +111,13 @@ IBBeamForceSpecFactory::unpackStream(
     {
         stream.unpack(&mesh_dependent_curvatures[k][0],NDIM);
     }
+#if ENABLE_SUBDOMAIN_INDICES
+    std::vector<int> subdomain_idxs(num_beams);
+    stream.unpack(&subdomain_idxs[0],num_beams);
+    return new IBBeamForceSpec(master_idx,neighbor_idxs,bend_rigidities,mesh_dependent_curvatures,subdomain_idxs);
+#else
     return new IBBeamForceSpec(master_idx,neighbor_idxs,bend_rigidities,mesh_dependent_curvatures);
+#endif
 }// unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

@@ -104,13 +104,18 @@ public:
      * associated with \a force_fcn_idx 0.  Users may override this default
      * value with any function that implements the interface required by
      * IBSpringForceGen::registerSpringForceFunction().
+     *
+     * \note The subdomain indices are ignored unless IBAMR is configured to
+     * enable support for subdomain indices.  Subdomain indices are not enabled
+     * by default.
      */
     IBSpringForceSpec(
         const int master_idx=-1,
         const std::vector<int>& slave_idxs=std::vector<int>(),
         const std::vector<int>& force_fcn_idxs=std::vector<int>(),
         const std::vector<double>& stiffnesses=std::vector<double>(),
-        const std::vector<double>& rest_lengths=std::vector<double>());
+        const std::vector<double>& rest_lengths=std::vector<double>(),
+        const std::vector<int>& subdomain_idxs=std::vector<int>());
 
     /*!
      * \brief Virtual destructor.
@@ -193,6 +198,26 @@ public:
     getRestingLengths();
 
     /*!
+     * \return A const reference to the subdomain indices associated with this
+     * force spec object.
+     *
+     * \note IBAMR must be specifically configured to enable support for
+     * subdomain indices.  Subdomain indices are not enabled by default.
+     */
+    const std::vector<int>&
+    getSubdomainIndices() const;
+
+    /*!
+     * \return A non-const reference to the subdomain indices associated with
+     * this force spec object.
+     *
+     * \note IBAMR must be specifically configured to enable support for
+     * subdomain indices.  Subdomain indices are not enabled by default.
+     */
+    std::vector<int>&
+    getSubdomainIndices();
+
+    /*!
      * \brief Return the unique identifier used to specify the
      * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
      * extract Streamable objects from data streams.
@@ -256,6 +281,13 @@ private:
     int d_master_idx;
     std::vector<int> d_slave_idxs, d_force_fcn_idxs;
     std::vector<double> d_stiffnesses, d_rest_lengths;
+
+#if ENABLE_SUBDOMAIN_INDICES
+    /*!
+     * The subdomain indices of the force spec object.
+     */
+    std::vector<int> d_subdomain_idxs;
+#endif
 };
 }// namespace IBAMR
 

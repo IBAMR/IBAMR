@@ -77,13 +77,18 @@ public:
 
     /*!
      * \brief Default constructor.
+     *
+     * \note The subdomain index is ignored unless IBAMR is configured to enable
+     * support for subdomain indices.  Subdomain indices are not enabled by
+     * default.
      */
     IBMovingTargetPointForceSpec(
         const int master_idx=-1,
         const double& kappa_target=0.0,
         const double& eta_target=0.0,
         const int spec_fcn_idx=-1,
-        const std::vector<double>& periodic_shift=std::vector<double>(NDIM,0.0));
+        const std::vector<double>& periodic_shift=std::vector<double>(NDIM,0.0),
+        const int subdomain_idx=-1);
 
     /*!
      * \brief Virtual destructor.
@@ -160,6 +165,26 @@ public:
     getPeriodicShift();
 
     /*!
+     * \return A const reference to the subdomain index associated with this
+     * force spec object.
+     *
+     * \note IBAMR must be specifically configured to enable support for
+     * subdomain indices.  Subdomain indices are not enabled by default.
+     */
+    const int&
+    getSubdomainIndex() const;
+
+    /*!
+     * \return A non-const reference to the subdomain index associated with this
+     * force spec object.
+     *
+     * \note IBAMR must be specifically configured to enable support for
+     * subdomain indices.  Subdomain indices are not enabled by default.
+     */
+    int&
+    getSubdomainIndex();
+
+    /*!
      * \brief Return the unique identifier used to specify the
      * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
      * extract Streamable objects from data streams.
@@ -233,6 +258,13 @@ private:
     double d_kappa_target, d_eta_target;
     int d_spec_fcn_idx;
     std::vector<double> d_periodic_shift;
+
+#if ENABLE_SUBDOMAIN_INDICES
+    /*!
+     * The subdomain index of the force spec object.
+     */
+    int d_subdomain_idx;
+#endif
 };
 }// namespace IBAMR
 

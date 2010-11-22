@@ -56,12 +56,16 @@ IBMovingTargetPointForceSpec::IBMovingTargetPointForceSpec(
     const double& kappa_target,
     const double& eta_target,
     const int spec_fcn_idx,
-    const std::vector<double>& periodic_shift)
+    const std::vector<double>& periodic_shift,
+    const int subdomain_idx)
     : d_master_idx(master_idx),
       d_kappa_target(kappa_target),
       d_eta_target(eta_target),
       d_spec_fcn_idx(spec_fcn_idx),
       d_periodic_shift(periodic_shift)
+#if ENABLE_SUBDOMAIN_INDICES
+    , d_subdomain_idx(subdomain_idx)
+#endif
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(NDIM == int(d_periodic_shift.size()));
@@ -142,6 +146,28 @@ IBMovingTargetPointForceSpec::getPeriodicShift()
     return d_periodic_shift;
 }// getPeriodicShift
 
+inline const int&
+IBMovingTargetPointForceSpec::getSubdomainIndex() const
+{
+#if ENABLE_SUBDOMAIN_INDICES
+    return d_subdomain_idx;
+#else
+    static int dummy_idx = -1;
+    return dummy_idx;
+#endif
+}// getSubdomainIndex
+
+inline int&
+IBMovingTargetPointForceSpec::getSubdomainIndex()
+{
+#if ENABLE_SUBDOMAIN_INDICES
+    return d_subdomain_idx;
+#else
+    static int dummy_idx = -1;
+    return dummy_idx;
+#endif
+}// getSubdomainIndex
+
 inline int
 IBMovingTargetPointForceSpec::getStreamableClassID() const
 {
@@ -152,7 +178,11 @@ inline size_t
 IBMovingTargetPointForceSpec::getDataStreamSize() const
 {
     return ((2     )*SAMRAI::tbox::AbstractStream::sizeofInt() +
-            (2+NDIM)*SAMRAI::tbox::AbstractStream::sizeofDouble());
+            (2+NDIM)*SAMRAI::tbox::AbstractStream::sizeofDouble())
+#if ENABLE_SUBDOMAIN_INDICES
+        + SAMRAI::tbox::AbstractStream::sizeofInt()
+#endif
+        ;
 }// getDataStreamSize
 
 inline void
@@ -167,6 +197,9 @@ IBMovingTargetPointForceSpec::packStream(
     stream.pack(&d_eta_target,1);
     stream.pack(&d_spec_fcn_idx,1);
     stream.pack(&d_periodic_shift[0],NDIM);
+#if ENABLE_SUBDOMAIN_INDICES
+    stream.pack(&d_subdomain_idx,1);
+#endif
     return;
 }// packStream
 

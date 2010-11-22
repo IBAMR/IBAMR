@@ -79,12 +79,17 @@ public:
 
     /*!
      * \brief Default constructor.
+     *
+     * \note The subdomain index is ignored unless IBAMR is configured to enable
+     * support for subdomain indices.  Subdomain indices are not enabled by
+     * default.
      */
     IBTargetPointForceSpec(
         const int master_idx=-1,
         const double& kappa_target=0.0,
         const double& eta_target=0.0,
-        const std::vector<double>& X_target=std::vector<double>(NDIM,0.0));
+        const std::vector<double>& X_target=std::vector<double>(NDIM,0.0),
+        const int subdomain_idx=-1);
 
     /*!
      * \brief Virtual destructor.
@@ -145,6 +150,26 @@ public:
      */
     std::vector<double>&
     getTargetPointPosition();
+
+    /*!
+     * \return A const reference to the subdomain index associated with this
+     * force spec object.
+     *
+     * \note IBAMR must be specifically configured to enable support for
+     * subdomain indices.  Subdomain indices are not enabled by default.
+     */
+    const int&
+    getSubdomainIndex() const;
+
+    /*!
+     * \return A non-const reference to the subdomain index associated with this
+     * force spec object.
+     *
+     * \note IBAMR must be specifically configured to enable support for
+     * subdomain indices.  Subdomain indices are not enabled by default.
+     */
+    int&
+    getSubdomainIndex();
 
     /*!
      * \brief Return the unique identifier used to specify the
@@ -210,6 +235,13 @@ private:
     int d_master_idx;
     double d_kappa_target, d_eta_target;
     std::vector<double> d_X_target;
+
+#if ENABLE_SUBDOMAIN_INDICES
+    /*!
+     * The subdomain index of the force spec object.
+     */
+    int d_subdomain_idx;
+#endif
 };
 }// namespace IBAMR
 

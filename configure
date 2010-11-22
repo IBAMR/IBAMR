@@ -936,6 +936,7 @@ with_doxygen_dir
 with_dot_dir
 enable_large_ghost_cell_width
 enable_expensive_cf_interpolation
+enable_subdomain_indices
 enable_blitz
 with_blitz
 with_hdf5
@@ -1609,6 +1610,9 @@ Optional Features:
                           (this feature must be enabled for certain use cases,
                           e.g. general anisotropic diffusion tensors)
                           [default=no]
+  --enable-subdomain-indices
+                          enable the use of subdomain indices for standard IB
+                          mechanical elements [default=no]
   --enable-blitz          enable support for the optional Blitz++ library
                           [default=yes]
   --enable-libmesh        enable support for the optional libMesh library
@@ -7386,6 +7390,27 @@ else
   echo "  if you wish to enable support for large ghost cell widths, specify --enable-expensive-cf-interpolation"
 
 $as_echo "#define USING_EXPENSIVE_CF_INTERPOLATION false" >>confdefs.h
+
+fi
+
+# Checks to see whether subdomain indices should be enabled.
+# Check whether --enable-subdomain-indices was given.
+if test "${enable_subdomain_indices+set}" = set; then :
+  enableval=$enable_subdomain_indices; SUBDOMAIN_INDICES=$enable_subdomain_indices
+else
+  SUBDOMAIN_INDICES=no
+fi
+
+
+if test "$SUBDOMAIN_INDICES" == "yes" ; then
+  echo "subdomain indices are ENABLED!"
+
+$as_echo "#define ENABLE_SUBDOMAIN_INDICES true" >>confdefs.h
+
+else
+  echo "subdomain indices are DISABLED!"
+
+$as_echo "#define ENABLE_SUBDOMAIN_INDICES false" >>confdefs.h
 
 fi
 

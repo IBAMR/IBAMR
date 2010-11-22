@@ -100,7 +100,13 @@ IBTargetPointForceSpecFactory::unpackStream(
     stream.unpack(&eta_target,1);
     std::vector<double> X_target(NDIM);
     stream.unpack(&X_target[0],NDIM);
+#if ENABLE_SUBDOMAIN_INDICES
+    int subdomain_idx;
+    stream.unpack(&subdomain_idx,1);
+    return new IBTargetPointForceSpec(mastr_idx,kappa_target,eta_target,X_target,subdomain_idx);
+#else
     return new IBTargetPointForceSpec(mastr_idx,kappa_target,eta_target,X_target);
+#endif
 }// unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

@@ -56,18 +56,25 @@ IBSpringForceSpec::IBSpringForceSpec(
     const std::vector<int>& slave_idxs,
     const std::vector<int>& force_fcn_idxs,
     const std::vector<double>& stiffnesses,
-    const std::vector<double>& rest_lengths)
+    const std::vector<double>& rest_lengths,
+    const std::vector<int>& subdomain_idxs)
     : d_master_idx(master_idx),
       d_slave_idxs(slave_idxs),
       d_force_fcn_idxs(force_fcn_idxs),
       d_stiffnesses(stiffnesses),
       d_rest_lengths(rest_lengths)
+#if ENABLE_SUBDOMAIN_INDICES
+    , d_subdomain_idxs(subdomain_idxs)
+#endif
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     const int num_springs = d_slave_idxs.size();
     TBOX_ASSERT(num_springs == int(d_force_fcn_idxs.size()));
     TBOX_ASSERT(num_springs == int(d_stiffnesses.size()));
     TBOX_ASSERT(num_springs == int(d_rest_lengths.size()));
+#if ENABLE_SUBDOMAIN_INDICES
+    TBOX_ASSERT(num_springs == int(d_subdomain_idxs.size()));
+#endif
 #endif
     if (!s_registered_factory)
     {
@@ -157,6 +164,28 @@ IBSpringForceSpec::getRestingLengths()
     return d_rest_lengths;
 }// getRestingLengths
 
+inline const std::vector<int>&
+IBSpringForceSpec::getSubdomainIndices() const
+{
+#if ENABLE_SUBDOMAIN_INDICES
+    return d_subdomain_idxs;
+#else
+    static std::vector<int> dummy_idxs;
+    return dummy_idxs;
+#endif
+}// getSubdomainIndices
+
+inline std::vector<int>&
+IBSpringForceSpec::getSubdomainIndices()
+{
+#if ENABLE_SUBDOMAIN_INDICES
+    return d_subdomain_idxs;
+#else
+    static std::vector<int> dummy_idxs;
+    return dummy_idxs;
+#endif
+}// getSubdomainIndices
+
 inline int
 IBSpringForceSpec::getStreamableClassID() const
 {
@@ -173,7 +202,11 @@ IBSpringForceSpec::getDataStreamSize() const
     TBOX_ASSERT(num_springs == int(d_rest_lengths.size()));
 #endif
     return ((2+2*num_springs)*SAMRAI::tbox::AbstractStream::sizeofInt() +
-            (  2*num_springs)*SAMRAI::tbox::AbstractStream::sizeofDouble());
+            (  2*num_springs)*SAMRAI::tbox::AbstractStream::sizeofDouble())
+#if ENABLE_SUBDOMAIN_INDICES
+        + num_springs*SAMRAI::tbox::AbstractStream::sizeofInt()
+#endif
+        ;
 }// getDataStreamSize
 
 inline void
@@ -192,6 +225,9 @@ IBSpringForceSpec::packStream(
     stream.pack(&d_force_fcn_idxs[0],num_springs);
     stream.pack(&d_stiffnesses[0],num_springs);
     stream.pack(&d_rest_lengths[0],num_springs);
+#if ENABLE_SUBDOMAIN_INDICES
+    stream.pack(&d_subdomain_idxs[0],num_springs);
+#endif
     return;
 }// packStream
 

@@ -103,7 +103,13 @@ IBRodForceSpecFactory::unpackStream(
     {
         stream.unpack(&material_params[n][0],10);
     }
+#if ENABLE_SUBDOMAIN_INDICES
+    std::vector<int> subdomain_idxs(num_rods);
+    stream.unpack(&subdomain_idxs[0],num_rods);
+    return new IBRodForceSpec(master_idx,next_idxs,material_params,subdomain_idxs);
+#else
     return new IBRodForceSpec(master_idx,next_idxs,material_params);
+#endif
 }// unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

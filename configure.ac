@@ -172,6 +172,19 @@ else
   AC_DEFINE([USING_EXPENSIVE_CF_INTERPOLATION],[false],[Boolean value indicating whether we are using the expensive version of the quadratic coarse-fine interface code])
 fi
 
+# Checks to see whether subdomain indices should be enabled.
+AC_ARG_ENABLE([subdomain-indices],
+  AS_HELP_STRING(--enable-subdomain-indices,[enable the use of subdomain indices for standard IB mechanical elements @<:@default=no@:>@]),
+  [SUBDOMAIN_INDICES=$enable_subdomain_indices], [SUBDOMAIN_INDICES=no])
+
+if test "$SUBDOMAIN_INDICES" == "yes" ; then
+  echo "subdomain indices are ENABLED!"
+  AC_DEFINE([ENABLE_SUBDOMAIN_INDICES],[true],[Boolean value indicating whether we are using subdomain indices])
+else
+  echo "subdomain indices are DISABLED!"
+  AC_DEFINE([ENABLE_SUBDOMAIN_INDICES],[false],[Boolean value indicating whether we are using subdomain indices])
+fi
+
 ###########################################################################
 # Checks for libraries.
 ###########################################################################

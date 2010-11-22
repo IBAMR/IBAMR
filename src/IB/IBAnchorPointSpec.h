@@ -80,9 +80,14 @@ public:
 
     /*!
      * \brief Default constructor.
+     *
+     * \note The subdomain index is ignored unless IBAMR is configured to enable
+     * support for subdomain indices.  Subdomain indices are not enabled by
+     * default.
      */
     IBAnchorPointSpec(
-        const int node_idx=-1);
+        const int node_idx=-1,
+        const int subdomain_idx=-1);
 
     /*!
      * \brief Virtual destructor.
@@ -101,6 +106,26 @@ public:
      */
     int&
     getNodeIndex();
+
+    /*!
+     * \return A const reference to the subdomain index associated with this
+     * force spec object.
+     *
+     * \note IBAMR must be specifically configured to enable support for
+     * subdomain indices.  Subdomain indices are not enabled by default.
+     */
+    const int&
+    getSubdomainIndex() const;
+
+    /*!
+     * \return A non-const reference to the subdomain index associated with this
+     * force spec object.
+     *
+     * \note IBAMR must be specifically configured to enable support for
+     * subdomain indices.  Subdomain indices are not enabled by default.
+     */
+    int&
+    getSubdomainIndex();
 
     /*!
      * \brief Return the unique identifier used to specify the
@@ -164,6 +189,13 @@ private:
      * The Lagrangian index of the anchored curvilinear mesh node.
      */
     int d_node_idx;
+
+#if ENABLE_SUBDOMAIN_INDICES
+    /*!
+     * The subdomain index of the force spec object.
+     */
+    int d_subdomain_idx;
+#endif
 };
 }// namespace IBAMR
 

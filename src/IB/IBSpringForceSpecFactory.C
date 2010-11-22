@@ -104,7 +104,13 @@ IBSpringForceSpecFactory::unpackStream(
     stream.unpack(&stiffnesses[0],num_springs);
     std::vector<double> rest_lengths(num_springs);
     stream.unpack(&rest_lengths[0],num_springs);
+#if ENABLE_SUBDOMAIN_INDICES
+    std::vector<int> subdomain_idxs(num_springs);
+    stream.unpack(&subdomain_idxs[0],num_springs);
+    return new IBSpringForceSpec(master_idx,slave_idxs,force_fcn_idxs,stiffnesses,rest_lengths,subdomain_idxs);
+#else
     return new IBSpringForceSpec(master_idx,slave_idxs,force_fcn_idxs,stiffnesses,rest_lengths);
+#endif
 }// unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

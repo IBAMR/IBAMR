@@ -89,12 +89,17 @@ public:
 
     /*!
      * \brief Default constructor.
+     *
+     * \note The subdomain indices are ignored unless IBAMR is configured to
+     * enable support for subdomain indices.  Subdomain indices are not enabled
+     * by default.
      */
     IBBeamForceSpec(
         const int master_idx=-1,
         const std::vector<NeighborIdxs>& neighbor_idxs=std::vector<NeighborIdxs>(),
         const std::vector<double>& bend_rigidities=std::vector<double>(),
-        const std::vector<std::vector<double> >& mesh_dependent_curvatures=std::vector<std::vector<double> >());
+        const std::vector<std::vector<double> >& mesh_dependent_curvatures=std::vector<std::vector<double> >(),
+        const std::vector<int>& subdomain_idxs=std::vector<int>());
 
     /*!
      * \brief Virtual destructor.
@@ -163,6 +168,26 @@ public:
     getMeshDependentCurvatures();
 
     /*!
+     * \return A const reference to the subdomain indices associated with this
+     * force spec object.
+     *
+     * \note IBAMR must be specifically configured to enable support for
+     * subdomain indices.  Subdomain indices are not enabled by default.
+     */
+    const std::vector<int>&
+    getSubdomainIndices() const;
+
+    /*!
+     * \return A non-const reference to the subdomain indices associated with
+     * this force spec object.
+     *
+     * \note IBAMR must be specifically configured to enable support for
+     * subdomain indices.  Subdomain indices are not enabled by default.
+     */
+    std::vector<int>&
+    getSubdomainIndices();
+
+    /*!
      * \brief Return the unique identifier used to specify the
      * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
      * extract Streamable objects from data streams.
@@ -221,12 +246,19 @@ private:
     static int s_class_id;
 
     /*!
-     * Data required to define the beam forces.
+     * Data required to compute the beam forces.
      */
     int d_master_idx;
     std::vector<NeighborIdxs> d_neighbor_idxs;
     std::vector<double> d_bend_rigidities;
     std::vector<std::vector<double> > d_mesh_dependent_curvatures;
+
+#if ENABLE_SUBDOMAIN_INDICES
+    /*!
+     * The subdomain indices of the force spec object.
+     */
+    std::vector<int> d_subdomain_idxs;
+#endif
 };
 }// namespace IBAMR
 

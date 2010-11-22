@@ -54,14 +54,21 @@ inline
 IBRodForceSpec::IBRodForceSpec(
     const int master_idx,
     const std::vector<int>& next_idxs,
-    const std::vector<std::vector<double> >& material_params)
+    const std::vector<std::vector<double> >& material_params,
+    const std::vector<int>& subdomain_idxs)
     : d_master_idx(master_idx),
       d_next_idxs(next_idxs),
       d_material_params(material_params)
+#if ENABLE_SUBDOMAIN_INDICES
+    , d_subdomain_idxs(subdomain_idxs)
+#endif
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     const int num_rods = d_next_idxs.size();
     TBOX_ASSERT(num_rods == int(d_material_params.size()));
+#if ENABLE_SUBDOMAIN_INDICES
+    TBOX_ASSERT(num_rods == int(d_subdomain_idxs.size()));
+#endif
 #endif
     if (!s_registered_factory)
     {
@@ -125,6 +132,28 @@ IBRodForceSpec::getMaterialParams()
     return d_material_params;
 }// getMaterialParams
 
+inline const std::vector<int>&
+IBRodForceSpec::getSubdomainIndices() const
+{
+#if ENABLE_SUBDOMAIN_INDICES
+    return d_subdomain_idxs;
+#else
+    static std::vector<int> dummy_idxs;
+    return dummy_idxs;
+#endif
+}// getSubdomainIndices
+
+inline std::vector<int>&
+IBRodForceSpec::getSubdomainIndices()
+{
+#if ENABLE_SUBDOMAIN_INDICES
+    return d_subdomain_idxs;
+#else
+    static std::vector<int> dummy_idxs;
+    return dummy_idxs;
+#endif
+}// getSubdomainIndices
+
 inline int
 IBRodForceSpec::getStreamableClassID() const
 {
@@ -139,7 +168,11 @@ IBRodForceSpec::getDataStreamSize() const
     TBOX_ASSERT(num_rods == int(d_material_params.size()));
 #endif
     return (( 2+num_rods)*SAMRAI::tbox::AbstractStream::sizeofInt() +
-            (10*num_rods)*SAMRAI::tbox::AbstractStream::sizeofDouble());
+            (10*num_rods)*SAMRAI::tbox::AbstractStream::sizeofDouble())
+#if ENABLE_SUBDOMAIN_INDICES
+        + num_rods*SAMRAI::tbox::AbstractStream::sizeofInt()
+#endif
+        ;
 }// getDataStreamSize
 
 inline void
@@ -157,6 +190,9 @@ IBRodForceSpec::packStream(
     {
         stream.pack(&d_material_params[n][0],10);
     }
+#if ENABLE_SUBDOMAIN_INDICES
+    stream.pack(&d_subdomain_idxs[0],num_rods);
+#endif
     return;
 }// packStream
 

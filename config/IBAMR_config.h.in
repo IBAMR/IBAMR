@@ -1,5 +1,8 @@
 /* config/IBAMR_config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Boolean value indicating whether we are using subdomain indices */
+#undef ENABLE_SUBDOMAIN_INDICES
+
 /* Define to dummy `main' function (if any) required to link to the Fortran
    libraries. */
 #undef F77_DUMMY_MAIN

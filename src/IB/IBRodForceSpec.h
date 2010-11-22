@@ -78,11 +78,16 @@ public:
 
     /*!
      * \brief Default constructor.
+     *
+     * \note The subdomain indices are ignored unless IBAMR is configured to
+     * enable support for subdomain indices.  Subdomain indices are not enabled
+     * by default.
      */
     IBRodForceSpec(
         const int master_idx=-1,
         const std::vector<int>& next_idxs=std::vector<int>(),
-        const std::vector<std::vector<double> >& material_params=std::vector<std::vector<double> >());
+        const std::vector<std::vector<double> >& material_params=std::vector<std::vector<double> >(),
+        const std::vector<int>& subdomain_idxs=std::vector<int>());
 
     /*!
      * \brief Virtual destructor.
@@ -135,6 +140,26 @@ public:
      */
     std::vector<std::vector<double> >&
     getMaterialParams();
+
+    /*!
+     * \return A const reference to the subdomain indices associated with this
+     * force spec object.
+     *
+     * \note IBAMR must be specifically configured to enable support for
+     * subdomain indices.  Subdomain indices are not enabled by default.
+     */
+    const std::vector<int>&
+    getSubdomainIndices() const;
+
+    /*!
+     * \return A non-const reference to the subdomain indices associated with
+     * this force spec object.
+     *
+     * \note IBAMR must be specifically configured to enable support for
+     * subdomain indices.  Subdomain indices are not enabled by default.
+     */
+    std::vector<int>&
+    getSubdomainIndices();
 
     /*!
      * \brief Return the unique identifier used to specify the
@@ -200,6 +225,13 @@ private:
     int d_master_idx;
     std::vector<int> d_next_idxs;
     std::vector<std::vector<double> > d_material_params;
+
+#if ENABLE_SUBDOMAIN_INDICES
+    /*!
+     * The subdomain indices of the force spec object.
+     */
+    std::vector<int> d_subdomain_idxs;
+#endif
 };
 }// namespace IBAMR
 
