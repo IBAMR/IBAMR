@@ -1,25 +1,34 @@
 // Filename: HierarchyProjector.C
 // Created on 30 Mar 2004 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #include "HierarchyProjector.h"
 
@@ -39,7 +48,7 @@
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
-#include <ibtk/FACPreconditionerLSWrapper.h>
+#include <ibtk/CellNoCornersFillPattern.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 
 // SAMRAI INCLUDES
@@ -194,19 +203,15 @@ HierarchyProjector::HierarchyProjector(
     d_sc_velocity_rstrategy = new CartExtrapPhysBdryOp(d_w_sc_idx, "LINEAR");
 
     // Obtain the Hierarchy data operations objects.
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager =
-        HierarchyDataOpsManager<NDIM>::getManager();
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
 
-    Pointer<CellVariable<NDIM,double> > cc_var =
-        new CellVariable<NDIM,double>("cc_var");
-    Pointer<FaceVariable<NDIM,double> > fc_var =
-        new FaceVariable<NDIM,double>("fc_var");
-    Pointer<SideVariable<NDIM,double> > sc_var =
-        new SideVariable<NDIM,double>("sc_var");
+    Pointer<CellVariable<NDIM,double> > cc_var = new CellVariable<NDIM,double>("cc_var");
+    Pointer<FaceVariable<NDIM,double> > fc_var = new FaceVariable<NDIM,double>("fc_var");
+    Pointer<SideVariable<NDIM,double> > sc_var = new SideVariable<NDIM,double>("sc_var");
 
-    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy);
-    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(fc_var, hierarchy);
-    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, hierarchy);
+    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy, true);
+    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(fc_var, hierarchy, true);
+    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, hierarchy, true);
 
     // Initialize the Poisson specifications.
     d_poisson_spec.setCZero();
@@ -260,14 +265,10 @@ HierarchyProjector::HierarchyProjector(
         fac_pc_db = input_db->getDatabase("FACPreconditioner");
     }
 
-    d_poisson_fac_op = new CCPoissonFACOperator(
-        d_object_name+"::FAC Op", fac_op_db);
+    d_poisson_fac_op = new CCPoissonFACOperator(d_object_name+"::FAC Op", fac_op_db);
     d_poisson_fac_op->setPoissonSpecifications(d_poisson_spec);
     d_poisson_fac_op->setPhysicalBcCoef(d_Phi_bc_coef);
-
-    d_poisson_fac_pc = new FACPreconditioner<NDIM>(
-        d_object_name+"::FAC Preconditioner", *d_poisson_fac_op, fac_pc_db);
-    d_poisson_fac_op->setPreconditioner(d_poisson_fac_pc);
+    d_poisson_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::FAC Preconditioner", *d_poisson_fac_op, fac_pc_db);
 
     // Initialize the Poisson solver.
     static const bool homogeneous_bc = false;
@@ -281,20 +282,16 @@ HierarchyProjector::HierarchyProjector(
     d_poisson_solver->setRelativeTolerance(d_rel_residual_tol);
     d_poisson_solver->setInitialGuessNonzero(d_initial_guess_nonzero);
     d_poisson_solver->setOperator(d_laplace_op);
-    d_poisson_solver->setPreconditioner(new FACPreconditionerLSWrapper(d_poisson_fac_pc, fac_pc_db));
+    d_poisson_solver->setPreconditioner(d_poisson_fac_pc);
 
     // Setup Timers.
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_project_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::HierarchyProjector::projectHierarchy");
-        t_initialize_level_data = TimerManager::getManager()->
-            getTimer("IBAMR::HierarchyProjector::initializeLevelData()");
-        t_reset_hierarchy_configuration = TimerManager::getManager()->
-            getTimer("IBAMR::HierarchyProjector::resetHierarchyConfiguration()");
-        t_put_to_database = TimerManager::getManager()->
-            getTimer("IBAMR::HierarchyProjector::putToDatabase()");
+        t_project_hierarchy             = TimerManager::getManager()->getTimer("IBAMR::HierarchyProjector::projectHierarchy");
+        t_initialize_level_data         = TimerManager::getManager()->getTimer("IBAMR::HierarchyProjector::initializeLevelData()");
+        t_reset_hierarchy_configuration = TimerManager::getManager()->getTimer("IBAMR::HierarchyProjector::resetHierarchyConfiguration()");
+        t_put_to_database               = TimerManager::getManager()->getTimer("IBAMR::HierarchyProjector::putToDatabase()");
         timers_need_init = false;
     }
     return;
@@ -541,8 +538,9 @@ HierarchyProjector::projectHierarchy(
     }
 
     // Setup the interpolation transaction information.
+    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(CELLG, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent Phi_transaction_comp(Phi_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
+    InterpolationTransactionComponent Phi_transaction_comp(Phi_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef, cc_fill_pattern);
     d_Phi_hier_bdry_fill_op->resetTransactionComponent(Phi_transaction_comp);
 
     // Fill the physical boundary conditions for Phi.
@@ -570,10 +568,10 @@ HierarchyProjector::projectHierarchy(
     }
 
     // Reset the transaction components.
-    InterpolationTransactionComponent d_P_transaction_comp(d_P_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
+    InterpolationTransactionComponent d_P_transaction_comp(d_P_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL, cc_fill_pattern);
     d_P_hier_bdry_fill_op->resetTransactionComponent(d_P_transaction_comp);
 
-    InterpolationTransactionComponent d_Phi_transaction_comp(d_F_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
+    InterpolationTransactionComponent d_Phi_transaction_comp(d_F_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef, cc_fill_pattern);
     d_Phi_hier_bdry_fill_op->resetTransactionComponent(d_Phi_transaction_comp);
 
     t_project_hierarchy->stop();
@@ -680,8 +678,9 @@ HierarchyProjector::projectHierarchy(
     }
 
     // Setup the interpolation transaction information.
+    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(CELLG, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent Phi_transaction_comp(Phi_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
+    InterpolationTransactionComponent Phi_transaction_comp(Phi_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef, cc_fill_pattern);
     d_Phi_hier_bdry_fill_op->resetTransactionComponent(Phi_transaction_comp);
 
     // Fill the physical boundary conditions for Phi.
@@ -709,10 +708,10 @@ HierarchyProjector::projectHierarchy(
     }
 
     // Reset the transaction components.
-    InterpolationTransactionComponent d_P_transaction_comp(d_P_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
+    InterpolationTransactionComponent d_P_transaction_comp(d_P_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL, cc_fill_pattern);
     d_P_hier_bdry_fill_op->resetTransactionComponent(d_P_transaction_comp);
 
-    InterpolationTransactionComponent d_Phi_transaction_comp(d_F_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
+    InterpolationTransactionComponent d_Phi_transaction_comp(d_F_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef, cc_fill_pattern);
     d_Phi_hier_bdry_fill_op->resetTransactionComponent(d_Phi_transaction_comp);
 
     t_project_hierarchy->stop();
@@ -822,13 +821,14 @@ HierarchyProjector::resetHierarchyConfiguration(
     d_poisson_solver->initializeSolverState(*d_sol_vec,*d_rhs_vec);
 
     // Initialize the interpolation operators.
+    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(CELLG, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
 
-    InterpolationTransactionComponent P_transaction_comp(d_P_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
+    InterpolationTransactionComponent P_transaction_comp(d_P_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL, cc_fill_pattern);
     d_P_hier_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_P_hier_bdry_fill_op->initializeOperatorState(P_transaction_comp, d_hierarchy);
 
-    InterpolationTransactionComponent Phi_transaction_comp(d_F_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef);
+    InterpolationTransactionComponent Phi_transaction_comp(d_F_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef, cc_fill_pattern);
     d_Phi_hier_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_Phi_hier_bdry_fill_op->initializeOperatorState(Phi_transaction_comp, d_hierarchy);
 

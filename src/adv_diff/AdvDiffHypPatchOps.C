@@ -1,25 +1,34 @@
 // Filename: AdvDiffHypPatchOps.C
 // Created on 19 Mar 2004 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #include "AdvDiffHypPatchOps.h"
 
@@ -48,8 +57,6 @@
 #include <PatchCellDataOpsReal.h>
 #include <PatchData.h>
 #include <VariableDatabase.h>
-#include <tbox/Timer.h>
-#include <tbox/TimerManager.h>
 
 // C++ STDLIB INCLUDES
 #include <vector>
@@ -137,14 +144,6 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-namespace
-{
-// Timers.
-static Pointer<Timer> t_conservative_difference_on_patch;
-static Pointer<Timer> t_preprocess_advance_level_state;
-static Pointer<Timer> t_postprocess_advance_level_state;
-}
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvDiffHypPatchOps::AdvDiffHypPatchOps(
@@ -155,18 +154,7 @@ AdvDiffHypPatchOps::AdvDiffHypPatchOps(
     bool register_for_restart)
     : AdvectHypPatchOps(object_name, input_db, godunov_advector, grid_geom, register_for_restart)
 {
-    // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
-        t_conservative_difference_on_patch = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHypPatchOps::conservativeDifferenceOnPatch()");
-        t_preprocess_advance_level_state = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHypPatchOps::preprocessAdvanceLevelState()");
-        t_postprocess_advance_level_state = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHypPatchOps::postprocessAdvanceLevelState()");
-        timers_need_init = false;
-    }
+    // intentionally blank
     return;
 }// AdvDiffHypPatchOps
 
@@ -199,8 +187,6 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
     const double dt,
     bool at_synchronization)
 {
-    t_conservative_difference_on_patch->start();
-
     (void) time;
     (void) at_synchronization;
 
@@ -358,8 +344,6 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
                                      patch_box);
         }
     }
-
-    t_conservative_difference_on_patch->stop();
     return;
 }// conservativeDifferenceOnPatch
 
@@ -374,8 +358,6 @@ AdvDiffHypPatchOps::preprocessAdvanceLevelState(
     bool last_step,
     bool regrid_advance)
 {
-    t_preprocess_advance_level_state->start();
-
     (void) dt;
     (void) first_step;
     (void) last_step;
@@ -389,8 +371,6 @@ AdvDiffHypPatchOps::preprocessAdvanceLevelState(
             d_u_var, d_integrator->getScratchContext());
         d_u_fcn->setDataOnPatchLevel(u_idx, d_u_var, level, current_time);
     }
-
-    t_preprocess_advance_level_state->stop();
     return;
 }// preprocessAdvanceLevelState
 #endif
@@ -404,8 +384,6 @@ AdvDiffHypPatchOps::postprocessAdvanceLevelState(
     bool last_step,
     bool regrid_advance)
 {
-    t_postprocess_advance_level_state->start();
-
     (void) first_step;
     (void) last_step;
     (void) regrid_advance;
@@ -418,8 +396,6 @@ AdvDiffHypPatchOps::postprocessAdvanceLevelState(
             d_u_var, d_integrator->getNewContext());
         d_u_fcn->setDataOnPatchLevel(u_idx, d_u_var, level, current_time+dt);
     }
-
-    t_postprocess_advance_level_state->stop();
     return;
 }// postprocessAdvanceLevelState
 

@@ -8,7 +8,6 @@ if test -d "${HDF5_DIR}/include" ; then
 fi
 
 AC_CHECK_HEADER([hdf5.h],,AC_MSG_ERROR([could not find header file hdf5.h]))
-AC_CHECK_HEADER([H5LT.h],,AC_MSG_ERROR([could not find header file H5LT.h]))
 
 AC_LIB_HAVE_LINKFLAGS([hdf5],[z,sz])
 LIBS="$LIBHDF5 $LIBS"

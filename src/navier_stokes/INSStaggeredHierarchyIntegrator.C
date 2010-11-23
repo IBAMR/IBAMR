@@ -1,25 +1,34 @@
 // Filename: INSStaggeredHierarchyIntegrator.C
 // Created on 20 Mar 2008 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #include "INSStaggeredHierarchyIntegrator.h"
 
@@ -45,7 +54,6 @@
 // IBTK INCLUDES
 #include <ibtk/CartSideDoubleDivPreservingRefine.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
-#include <ibtk/FACPreconditionerLSWrapper.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/RefinePatchStrategySet.h>
@@ -251,10 +259,10 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
 
     Pointer<CellVariable<NDIM,double> > cc_var = new CellVariable<NDIM,double>("cc_var");
-    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy);
+    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy, true);
 
     Pointer<SideVariable<NDIM,double> > sc_var = new SideVariable<NDIM,double>("sc_var");
-    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, hierarchy);
+    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, hierarchy, true);
 
     // Initialize all variable contexts.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -266,38 +274,22 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_initialize_hierarchy_integrator = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator()");
-        t_initialize_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::initializeHierarchy()");
-        t_advance_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::advanceHierarchy()");
-        t_get_stable_timestep = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::getStableTimestep()");
-        t_regrid_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::regridHierarchy()");
-        t_integrate_hierarchy_initialize = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize()");
-        t_integrate_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::integrateHierarchy()");
-        t_integrate_hierarchy_finalize = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::integrateHierarchy_finalize()");
-        t_synchronize_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::synchronizeHierarchy()");
-        t_synchronize_new_levels = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::synchronizeNewLevels()");
-        t_reset_time_dependent_data = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::resetTimeDependentHierData()");
-        t_reset_data_to_preadvance_state = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::resetHierDataToPreadvanceState()");
-        t_initialize_level_data = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::initializeLevelData()");
-        t_reset_hierarchy_configuration = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration()");
-        t_apply_gradient_detector = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::applyGradientDetector()");
-        t_put_to_database = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredHierarchyIntegrator::putToDatabase()");
+        t_initialize_hierarchy_integrator = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator()");
+        t_initialize_hierarchy            = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::initializeHierarchy()");
+        t_advance_hierarchy               = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::advanceHierarchy()");
+        t_get_stable_timestep             = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::getStableTimestep()");
+        t_regrid_hierarchy                = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::regridHierarchy()");
+        t_integrate_hierarchy_initialize  = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize()");
+        t_integrate_hierarchy             = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::integrateHierarchy()");
+        t_integrate_hierarchy_finalize    = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::integrateHierarchy_finalize()");
+        t_synchronize_hierarchy           = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::synchronizeHierarchy()");
+        t_synchronize_new_levels          = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::synchronizeNewLevels()");
+        t_reset_time_dependent_data       = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::resetTimeDependentHierData()");
+        t_reset_data_to_preadvance_state  = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::resetHierDataToPreadvanceState()");
+        t_initialize_level_data           = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::initializeLevelData()");
+        t_reset_hierarchy_configuration   = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration()");
+        t_apply_gradient_detector         = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::applyGradientDetector()");
+        t_put_to_database                 = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::putToDatabase()");
         timers_need_init = false;
     }
     return;
@@ -762,6 +754,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_U_bc_helper = new INSStaggeredPhysicalBoundaryHelper();
 
     // Setup the Stokes operator.
+    d_stokes_op_needs_init = true;
     d_stokes_op = new INSStaggeredStokesOperator(
         *d_problem_coefs,
         d_U_bc_coefs, d_U_bc_helper, d_P_bc_coef,
@@ -871,7 +864,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                 }
                 d_helmholtz_hypre_pc = new SCPoissonHypreLevelSolver(d_object_name+"::Helmholtz Preconditioner", d_helmholtz_hypre_pc_db);
                 d_helmholtz_hypre_pc->setPoissonSpecifications(*d_helmholtz_spec);
-
                 d_helmholtz_solver->setPreconditioner(d_helmholtz_hypre_pc);
             }
             else
@@ -883,11 +875,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                 }
                 d_helmholtz_fac_op = new SCPoissonFACOperator(d_object_name+"::Helmholtz FAC Operator", d_helmholtz_fac_pc_db);
                 d_helmholtz_fac_op->setPoissonSpecifications(*d_helmholtz_spec);
-
-                d_helmholtz_fac_pc = new FACPreconditioner<NDIM>(d_object_name+"::Helmholtz Preconditioner", *d_helmholtz_fac_op, d_helmholtz_fac_pc_db);
-                d_helmholtz_fac_op->setPreconditioner(d_helmholtz_fac_pc);
-
-                d_helmholtz_solver->setPreconditioner(new FACPreconditionerLSWrapper(d_helmholtz_fac_pc, d_helmholtz_fac_pc_db));
+                d_helmholtz_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Helmholtz Preconditioner", *d_helmholtz_fac_op, d_helmholtz_fac_pc_db);
+                d_helmholtz_solver->setPreconditioner(d_helmholtz_fac_pc);
             }
         }
 
@@ -915,7 +904,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
         // Setup the various solver components.
         d_poisson_spec = new PoissonSpecifications(d_object_name+"::poisson_spec");
-        d_poisson_op = new CCLaplaceOperator(d_object_name+"::Poisson Operator", *d_poisson_spec, d_U_star_bc_coefs, true);
+        d_poisson_op = new CCLaplaceOperator(d_object_name+"::Poisson Operator", *d_poisson_spec, d_Phi_bc_coef, true);
         d_poisson_op->setHierarchyMathOps(d_hier_math_ops);
 
         d_poisson_solver_needs_init = true;
@@ -934,7 +923,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                 }
                 d_poisson_hypre_pc = new CCPoissonHypreLevelSolver(d_object_name+"::Poisson Preconditioner", d_poisson_hypre_pc_db);
                 d_poisson_hypre_pc->setPoissonSpecifications(*d_poisson_spec);
-
                 d_poisson_solver->setPreconditioner(d_poisson_hypre_pc);
             }
             else
@@ -946,11 +934,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                 }
                 d_poisson_fac_op = new CCPoissonFACOperator(d_object_name+"::Poisson FAC Operator", d_poisson_fac_pc_db);
                 d_poisson_fac_op->setPoissonSpecifications(*d_poisson_spec);
-
-                d_poisson_fac_pc = new FACPreconditioner<NDIM>(d_object_name+"::Poisson Preconditioner", *d_poisson_fac_op, d_poisson_fac_pc_db);
-                d_poisson_fac_op->setPreconditioner(d_poisson_fac_pc);
-
-                d_poisson_solver->setPreconditioner(new FACPreconditionerLSWrapper(d_poisson_fac_pc, d_poisson_fac_pc_db));
+                d_poisson_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Poisson Preconditioner", *d_poisson_fac_op, d_poisson_fac_pc_db);
+                d_poisson_solver->setPreconditioner(d_poisson_fac_pc);
             }
         }
 
@@ -959,12 +944,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         d_poisson_solver->setAbsoluteTolerance(1.0e-30);
         d_poisson_solver->setRelativeTolerance(1.0e-02);
         d_poisson_solver->setMaxIterations(25);
-        const bool constant_null_space = d_normalize_pressure;
-        if (constant_null_space)
-        {
-            std::string iname = std::string("-") + poisson_prefix + std::string("ksp_constant_null_space");
-            ierr = PetscOptionsSetValue(iname.c_str(), PETSC_NULL);  IBTK_CHKERRQ(ierr);
-        }
+        d_poisson_solver->setNullspace(d_normalize_pressure, NULL);
     }
     else
     {
@@ -994,11 +974,9 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                 TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
                              "  Vanka FAC PC solver database is null." << std::endl);
             }
-            d_vanka_fac_op = new INSStaggeredBoxRelaxationFACOperator(d_object_name+"::Vanka FAC Operator", *d_problem_coefs, d_old_dt, d_vanka_fac_pc_db);
-            d_vanka_fac_pc = new FACPreconditioner<NDIM>(d_object_name+"::Vanka Preconditioner", *d_vanka_fac_op, d_vanka_fac_pc_db);
-            d_vanka_fac_op->setPreconditioner(d_vanka_fac_pc);
-
-            d_stokes_solver->setPreconditioner(new FACPreconditionerLSWrapper(d_vanka_fac_pc, d_vanka_fac_pc_db));
+            d_vanka_fac_op = new INSStaggeredBoxRelaxationFACOperator(d_object_name+"::Vanka FAC Operator", d_vanka_fac_pc_db);
+            d_vanka_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Vanka Preconditioner", *d_vanka_fac_op, d_vanka_fac_pc_db);
+            d_stokes_solver->setPreconditioner(d_vanka_fac_pc);
         }
         else if (stokes_pc_shell_type == "block_factorization")
         {
@@ -1038,11 +1016,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         }
         d_regrid_projection_fac_op = new CCPoissonFACOperator(d_object_name+"::Regrid Projection Poisson FAC Operator", d_regrid_projection_fac_pc_db);
         d_regrid_projection_fac_op->setPoissonSpecifications(*d_regrid_projection_spec);
-
-        d_regrid_projection_fac_pc = new FACPreconditioner<NDIM>(d_object_name+"::Regrid Projection Poisson Preconditioner", *d_regrid_projection_fac_op, d_regrid_projection_fac_pc_db);
-        d_regrid_projection_fac_op->setPreconditioner(d_regrid_projection_fac_pc);
-
-        d_regrid_projection_solver->setPreconditioner(new FACPreconditionerLSWrapper(d_regrid_projection_fac_pc, d_regrid_projection_fac_pc_db));
+        d_regrid_projection_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Regrid Projection Poisson Preconditioner", *d_regrid_projection_fac_op, d_regrid_projection_fac_pc_db);
+        d_regrid_projection_solver->setPreconditioner(d_regrid_projection_fac_pc);
 
         // Set some default options.
         d_regrid_projection_solver->setKSPType("gmres");
@@ -1052,12 +1027,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
         // NOTE: We always use homogeneous Neumann boundary conditions for the
         // regrid projection Poisson solver.
-        static const bool constant_null_space = true;
-        if (constant_null_space)
-        {
-            std::string iname = std::string("-") + regrid_projection_prefix + std::string("ksp_constant_null_space");
-            ierr = PetscOptionsSetValue(iname.c_str(), PETSC_NULL);  IBTK_CHKERRQ(ierr);
-        }
+        d_regrid_projection_solver->setNullspace(true, NULL);
     }
     else
     {
@@ -1094,7 +1064,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchy()
         d_hierarchy->getFromRestart(d_gridding_alg->getMaxLevels());
         const int coarsest_ln = 0;
         const int finest_ln = d_hierarchy->getFinestLevelNumber();
-        d_gridding_alg->getTagAndInitializeStrategy()->resetHierarchyConfiguration(d_hierarchy, coarsest_ln, finest_ln);
+        d_gridding_alg->getTagAndInitializeStrategy()->resetHierarchyConfiguration(
+            d_hierarchy, coarsest_ln, finest_ln);
     }
     else
     {
@@ -1104,7 +1075,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchy()
         bool done = false;
         while (!done && (d_gridding_alg->levelCanBeRefined(level_number)))
         {
-            d_gridding_alg->makeFinerLevel(d_hierarchy, d_integrator_time, initial_time, d_tag_buffer[level_number]);
+            d_gridding_alg->makeFinerLevel(
+                d_hierarchy, d_integrator_time, initial_time, d_tag_buffer[level_number]);
             done = !d_hierarchy->finerLevelExists(level_number);
             ++level_number;
         }
@@ -1424,25 +1396,13 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
     // Setup the operators and solvers.
     initializeOperatorsAndSolvers(current_time, new_time);
 
-    // Setup the nullspace object.
     if (d_normalize_pressure)
     {
         d_nul_vec = d_sol_vec->cloneVector(d_object_name+"::nul_vec");
         d_nul_vec->allocateVectorData(current_time);
         d_hier_sc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(0), 0.0);
         d_hier_cc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(1), 1.0);
-
-        int ierr;
-        MatNullSpace petsc_nullsp;
-        Vec petsc_nullsp_vec = PETScSAMRAIVectorReal<double>::createPETScVector(d_nul_vec, PETSC_COMM_WORLD);
-        double one_dot_one;
-        ierr = VecDot(petsc_nullsp_vec, petsc_nullsp_vec, &one_dot_one); IBTK_CHKERRQ(ierr);
-        ierr = VecScale(petsc_nullsp_vec, 1.0/one_dot_one); IBTK_CHKERRQ(ierr);
-        Vec vecs[] = {petsc_nullsp_vec};
-        static const PetscTruth has_cnst = PETSC_FALSE;
-        ierr = MatNullSpaceCreate(PETSC_COMM_WORLD, has_cnst, 1, vecs, &petsc_nullsp); IBTK_CHKERRQ(ierr);
-        KSP petsc_ksp = d_stokes_solver->getPETScKSP();
-        ierr = KSPSetNullSpace(petsc_ksp, petsc_nullsp); IBTK_CHKERRQ(ierr);
+        d_stokes_solver->setNullspace(false, d_nul_vec);
     }
 
     // Set the initial guess.
@@ -1459,7 +1419,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
     d_stokes_op->modifyRhsForInhomogeneousBc(*d_rhs_vec);
     d_stokes_op->setHomogeneousBc(true);
 
-    t_integrate_hierarchy_initialize->start();
+    t_integrate_hierarchy_initialize->stop();
     return;
 }// integrateHierarchy_initialize
 
@@ -1591,7 +1551,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         d_hier_sc_data_ops->copyData(d_Q_new_idx, d_Q_scratch_idx);
     }
 
-    t_integrate_hierarchy->start();
+    t_integrate_hierarchy->stop();
     return;
 }// integrateHierarchy
 
@@ -1659,16 +1619,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_finalize(
         d_Div_U_new_idx, d_Div_U_var,
         1.0, d_U_new_idx, d_U_var,
         d_no_fill_op, new_time, false);
-
-    // Deallocate the nullspace object.
-    if (d_normalize_pressure)
-    {
-        PetscErrorCode ierr;
-        MatNullSpace petsc_nullsp;
-        KSP petsc_ksp = d_stokes_solver->getPETScKSP();
-        ierr = KSPGetNullSpace(petsc_ksp, &petsc_nullsp); IBTK_CHKERRQ(ierr);
-        ierr = MatNullSpaceDestroy(petsc_nullsp); IBTK_CHKERRQ(ierr);
-    }
 
     // Deallocate scratch data.
     d_U_rhs_vec->freeVectorComponents();
@@ -2034,7 +1984,8 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
             // Fill in U boundary data from coarser levels.
             Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
             Pointer<RefineAlgorithm<NDIM> > ralg = new RefineAlgorithm<NDIM>();
-            Pointer<RefineOperator<NDIM> > refine_operator = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+            Pointer<RefineOperator<NDIM> > refine_operator = grid_geom->lookupRefineOperator(
+                d_U_var, "CONSERVATIVE_LINEAR_REFINE");
             ralg->registerRefine(d_U_scratch_idx, // destination
                                  d_U_current_idx, // source
                                  d_U_scratch_idx, // temporary work space
@@ -2243,6 +2194,7 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     }
 
     // Indicate that solvers need to be re-initialized.
+    d_stokes_op_needs_init = true;
     d_convective_op_needs_init = true;
     d_helmholtz_solver_needs_init = true;
     d_poisson_solver_needs_init = true;
@@ -2254,6 +2206,7 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     // Indicate that we need to perform a regrid projection.
     d_needs_regrid_projection = true;
 
+    // Reset the hierarchy configuration for the advection-diffusion solver.
     if (!d_adv_diff_hier_integrator.isNull())
     {
         d_adv_diff_hier_integrator->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
@@ -2725,7 +2678,6 @@ INSStaggeredHierarchyIntegrator::regridProjection()
 
     d_regrid_projection_fac_op->setPoissonSpecifications(*d_regrid_projection_spec);
     d_regrid_projection_fac_op->setPhysicalBcCoef(&d_regrid_projection_bc_coef);
-    d_regrid_projection_fac_op->setHomogeneousBc(true);
     d_regrid_projection_fac_op->setTime(d_integrator_time);
 
     d_regrid_projection_solver->setInitialGuessNonzero(false);
@@ -2738,12 +2690,7 @@ INSStaggeredHierarchyIntegrator::regridProjection()
 
     // NOTE: We always use homogeneous Neumann boundary conditions for the
     // regrid projection Poisson solver.
-    static const bool constant_null_space = true;
-    if (constant_null_space)
-    {
-        const double Phi_mean = (1.0/d_volume)*d_hier_cc_data_ops->integral(d_Phi_idx, d_wgt_cc_idx);
-        d_hier_cc_data_ops->addScalar(d_Phi_idx, d_Phi_idx, -Phi_mean);
-    }
+    d_regrid_projection_solver->setNullspace(true, NULL);
 
     // Setup the interpolation transaction information.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -2860,7 +2807,6 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
         {
             d_helmholtz_fac_op->setPoissonSpecifications(*d_helmholtz_spec);
             d_helmholtz_fac_op->setPhysicalBcCoefs(d_U_star_bc_coefs);
-            d_helmholtz_fac_op->setHomogeneousBc(true);
             d_helmholtz_fac_op->setTime(new_time);
         }
 
@@ -2896,7 +2842,6 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
         {
             d_poisson_fac_op->setPoissonSpecifications(*d_poisson_spec);
             d_poisson_fac_op->setPhysicalBcCoef(d_Phi_bc_coef);
-            d_poisson_fac_op->setHomogeneousBc(true);
             d_poisson_fac_op->setTime(current_time+0.5*dt);
         }
 
@@ -2926,7 +2871,6 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
         d_vanka_fac_op->setProblemCoefficients(*d_problem_coefs,dt);
         d_vanka_fac_op->setTimeInterval(current_time,new_time);
         d_vanka_fac_op->setPhysicalBcCoefs(d_U_star_bc_coefs,d_Phi_bc_coef);
-        d_vanka_fac_op->setHomogeneousBc(true);
         if (d_vanka_pc_needs_init && !d_stokes_solver_needs_init)
         {
             if (d_do_log) plog << d_object_name << "::integrateHierarchy(): Initializing Vanka preconditioner" << std::endl;
@@ -2946,6 +2890,16 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
         d_block_pc_needs_init = false;
     }
 
+    if (!d_stokes_op.isNull())
+    {
+        if (d_stokes_op_needs_init && !d_stokes_solver_needs_init)
+        {
+            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): Initializing incompressible Stokes operator" << std::endl;
+            d_stokes_op->initializeOperatorState(*U_scratch_vec,*U_rhs_vec);
+        }
+        d_stokes_op_needs_init = false;
+    }
+
     if (!d_stokes_solver.isNull())
     {
         d_stokes_op->setTimeInterval(current_time,new_time);
@@ -2962,6 +2916,7 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
     {
         if (d_convective_op_needs_init)
         {
+            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): Initializing convective operator" << std::endl;
             d_convective_op->initializeOperatorState(*U_scratch_vec,*U_rhs_vec);
         }
         d_convective_op_needs_init = false;

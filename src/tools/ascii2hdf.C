@@ -1,25 +1,34 @@
 // Filename: ascii2hdf.C
 // Created on 30 May 2007 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -32,8 +41,15 @@
 #include <string>
 #include <vector>
 
-#include <H5LT.h>
 #include <hdf5.h>
+#if (H5_VERS_MINOR == 6)
+#include <H5LT.h>
+#define H5Dcreate1 H5Dcreate
+#define H5Gcreate1 H5Gcreate
+#endif
+#if (H5_VERS_MINOR == 8)
+#include <hdf5_hl.h>
+#endif
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -80,7 +96,7 @@ main(
 
     // Create the appropriate group(s).
     const string base_group_name = "/" + base_filename;
-    hid_t base_group_id = H5Gcreate(file_id, base_group_name.c_str(), 0);
+    hid_t base_group_id = H5Gcreate1(file_id, base_group_name.c_str(), 0);
 
     // Populate the datasets.
     initializeVertexData(base_filename, file_id);
@@ -177,7 +193,7 @@ initializeVertexData(
 
     // Create the appropriate group(s).
     const string vertex_group_name = "/" + base_filename + "/vertex";
-    hid_t vertex_group_id = H5Gcreate(file_id, vertex_group_name.c_str(), 0);
+    hid_t vertex_group_id = H5Gcreate1(file_id, vertex_group_name.c_str(), 0);
 
     // Define the file dataspace.
     static const int rankf = 2;
@@ -197,7 +213,7 @@ initializeVertexData(
     H5Pset_deflate(plist, 6);
 
     const string vertex_posn_dset_name = "/" + base_filename + "/vertex/posn";
-    hid_t posn_dataset = H5Dcreate(file_id, vertex_posn_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
+    hid_t posn_dataset = H5Dcreate1(file_id, vertex_posn_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
 
     // Each successive line provides the initial position of each vertex in the
     // input file.
@@ -323,7 +339,7 @@ initializeSpringData(
 
     // Create the appropriate group(s).
     const string spring_group_name = "/" + base_filename + "/spring";
-    hid_t spring_group_id = H5Gcreate(file_id, spring_group_name.c_str(), 0);
+    hid_t spring_group_id = H5Gcreate1(file_id, spring_group_name.c_str(), 0);
 
     // Define the file dataspace.
     static const int rankf = 1;
@@ -344,19 +360,19 @@ initializeSpringData(
     H5Pset_deflate(plist, 6);
 
     const string spring_node1_idx_dset_name = "/" + base_filename + "/spring/node1_idx";
-    hid_t node1_idx_dataset = H5Dcreate(file_id, spring_node1_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
+    hid_t node1_idx_dataset = H5Dcreate1(file_id, spring_node1_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
 
     const string spring_node2_idx_dset_name = "/" + base_filename + "/spring/node2_idx";
-    hid_t node2_idx_dataset = H5Dcreate(file_id, spring_node2_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
+    hid_t node2_idx_dataset = H5Dcreate1(file_id, spring_node2_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
 
     const string spring_force_fcn_idx_dset_name = "/" + base_filename + "/spring/force_fcn_idx";
-    hid_t force_fcn_idx_dataset = H5Dcreate(file_id, spring_force_fcn_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
+    hid_t force_fcn_idx_dataset = H5Dcreate1(file_id, spring_force_fcn_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
 
     const string spring_stiffness_dset_name = "/" + base_filename + "/spring/stiffness";
-    hid_t stiffness_dataset = H5Dcreate(file_id, spring_stiffness_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
+    hid_t stiffness_dataset = H5Dcreate1(file_id, spring_stiffness_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
 
     const string spring_rest_length_dset_name = "/" + base_filename + "/spring/rest_length";
-    hid_t rest_length_dataset = H5Dcreate(file_id, spring_rest_length_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
+    hid_t rest_length_dataset = H5Dcreate1(file_id, spring_rest_length_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
 
     // Each successive line provides the connectivity and material parameter
     // information for each spring in the structure.
@@ -544,7 +560,7 @@ initializeBeamData(
 
     // Create the appropriate group(s).
     const string beam_group_name = "/" + base_filename + "/beam";
-    hid_t beam_group_id = H5Gcreate(file_id, beam_group_name.c_str(), 0);
+    hid_t beam_group_id = H5Gcreate1(file_id, beam_group_name.c_str(), 0);
 
     // Define the file dataspace.
     static const int rankf = 1;
@@ -565,16 +581,16 @@ initializeBeamData(
     H5Pset_deflate(plist, 6);
 
     const string beam_node1_idx_dset_name = "/" + base_filename + "/beam/node1_idx";
-    hid_t node1_idx_dataset = H5Dcreate(file_id, beam_node1_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
+    hid_t node1_idx_dataset = H5Dcreate1(file_id, beam_node1_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
 
     const string beam_node2_idx_dset_name = "/" + base_filename + "/beam/node2_idx";
-    hid_t node2_idx_dataset = H5Dcreate(file_id, beam_node2_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
+    hid_t node2_idx_dataset = H5Dcreate1(file_id, beam_node2_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
 
     const string beam_node3_idx_dset_name = "/" + base_filename + "/beam/node3_idx";
-    hid_t node3_idx_dataset = H5Dcreate(file_id, beam_node3_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
+    hid_t node3_idx_dataset = H5Dcreate1(file_id, beam_node3_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
 
     const string beam_bend_rigidity_dset_name = "/" + base_filename + "/beam/bend_rigidity";
-    hid_t bend_rigidity_dataset = H5Dcreate(file_id, beam_bend_rigidity_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
+    hid_t bend_rigidity_dataset = H5Dcreate1(file_id, beam_bend_rigidity_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
 
     hid_t rest_curvature_dataset[NDIM];
     for (int d = 0; d < NDIM; ++d)
@@ -582,7 +598,7 @@ initializeBeamData(
         ostringstream os;
         os << "_" << d;
         const string beam_rest_curvature_dset_name = "/" + base_filename + "/beam/rest_curvature" + os.str();
-        rest_curvature_dataset[d] = H5Dcreate(file_id, beam_rest_curvature_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
+        rest_curvature_dataset[d] = H5Dcreate1(file_id, beam_rest_curvature_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
     }
 
     // Each successive line provides the connectivity and material parameter
@@ -797,7 +813,7 @@ initializeTargetPointData(
 
     // Create the appropriate group(s).
     const string target_point_group_name = "/" + base_filename + "/target_point";
-    hid_t target_point_group_id = H5Gcreate(file_id, target_point_group_name.c_str(), 0);
+    hid_t target_point_group_id = H5Gcreate1(file_id, target_point_group_name.c_str(), 0);
 
     // Define the file dataspace.
     static const int rankf = 1;
@@ -818,13 +834,13 @@ initializeTargetPointData(
     H5Pset_deflate(plist, 6);
 
     const string target_point_node_idx_dset_name = "/" + base_filename + "/target_point/node_idx";
-    hid_t node_idx_dataset = H5Dcreate(file_id, target_point_node_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
+    hid_t node_idx_dataset = H5Dcreate1(file_id, target_point_node_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
 
     const string target_point_stiffness_dset_name = "/" + base_filename + "/target_point/stiffness";
-    hid_t stiffness_dataset = H5Dcreate(file_id, target_point_stiffness_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
+    hid_t stiffness_dataset = H5Dcreate1(file_id, target_point_stiffness_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
 
     const string target_point_damping_dset_name = "/" + base_filename + "/target_point/damping";
-    hid_t damping_dataset = H5Dcreate(file_id, target_point_damping_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
+    hid_t damping_dataset = H5Dcreate1(file_id, target_point_damping_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
 
     // Each successive line indicates the vertex number and penalty spring
     // constant associated with any target points.
@@ -988,7 +1004,7 @@ initializeMassData(
 
     // Create the appropriate group(s).
     const string mass_point_group_name = "/" + base_filename + "/mass_point";
-    hid_t mass_point_group_id = H5Gcreate(file_id, mass_point_group_name.c_str(), 0);
+    hid_t mass_point_group_id = H5Gcreate1(file_id, mass_point_group_name.c_str(), 0);
 
     // Define the file dataspace.
     static const int rankf = 1;
@@ -1009,13 +1025,13 @@ initializeMassData(
     H5Pset_deflate(plist, 6);
 
     const string mass_point_node_idx_dset_name = "/" + base_filename + "/mass_point/node_idx";
-    hid_t node_idx_dataset = H5Dcreate(file_id, mass_point_node_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
+    hid_t node_idx_dataset = H5Dcreate1(file_id, mass_point_node_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
 
     const string mass_point_bdry_mass_dset_name = "/" + base_filename + "/mass_point/bdry_mass";
-    hid_t bdry_mass_dataset = H5Dcreate(file_id, mass_point_bdry_mass_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
+    hid_t bdry_mass_dataset = H5Dcreate1(file_id, mass_point_bdry_mass_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
 
     const string mass_point_stiffness_dset_name = "/" + base_filename + "/mass_point/stiffness";
-    hid_t stiffness_dataset = H5Dcreate(file_id, mass_point_stiffness_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
+    hid_t stiffness_dataset = H5Dcreate1(file_id, mass_point_stiffness_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
 
     // Each successive line indicates the vertex number, mass, and penalty
     // spring constant associated with any massive IB points.
@@ -1228,7 +1244,7 @@ initializeInstrumentationData(
 
     // Create the appropriate group(s).
     const string instrumentation_group_name = "/" + base_filename + "/instrumentation";
-    hid_t instrumentation_group_id = H5Gcreate(file_id, instrumentation_group_name.c_str(), 0);
+    hid_t instrumentation_group_id = H5Gcreate1(file_id, instrumentation_group_name.c_str(), 0);
 
     // Store the instrument names.
     const string instrumentation_num_inst_dset_name = "/" + base_filename + "/instrumentation/num_inst";
@@ -1262,13 +1278,13 @@ initializeInstrumentationData(
     H5Pset_deflate(plist, 6);
 
     const string instrumentation_node_idx_dset_name = "/" + base_filename + "/instrumentation/node_idx";
-    hid_t node_idx_dataset = H5Dcreate(file_id, instrumentation_node_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
+    hid_t node_idx_dataset = H5Dcreate1(file_id, instrumentation_node_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
 
     const string instrumentation_meter_idx_dset_name = "/" + base_filename + "/instrumentation/meter_idx";
-    hid_t meter_idx_dataset = H5Dcreate(file_id, instrumentation_meter_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
+    hid_t meter_idx_dataset = H5Dcreate1(file_id, instrumentation_meter_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
 
     const string instrumentation_meter_node_idx_dset_name = "/" + base_filename + "/instrumentation/meter_node_idx";
-    hid_t meter_node_idx_dataset = H5Dcreate(file_id, instrumentation_meter_node_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
+    hid_t meter_node_idx_dataset = H5Dcreate1(file_id, instrumentation_meter_node_idx_dset_name.c_str(), H5T_NATIVE_INT, filespace, plist);
 
     // Each successive line indicates the vertex number, meter number, and meter
     // node indices of each of the instrumented IB points in the input file.

@@ -1,25 +1,34 @@
 // Filename: INSHierarchyIntegrator.C
 // Created on 02 Apr 2004 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #include "INSHierarchyIntegrator.h"
 
@@ -41,7 +50,6 @@
 
 // IBTK INCLUDES
 #include <ibtk/CartExtrapPhysBdryOp.h>
-#include <ibtk/FACPreconditionerLSWrapper.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/PatchMathOps.h>
 #include <ibtk/PhysicalBoundaryUtilities.h>
@@ -389,49 +397,31 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     Pointer<FaceVariable<NDIM,double> > fc_var =
         new FaceVariable<NDIM,double>("fc_var");
 
-    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy);
-    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(fc_var, hierarchy);
+    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy, true);
+    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(fc_var, hierarchy, true);
 
     // Setup Timers.
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_initialize_hierarchy_integrator = TimerManager::getManager()->
-            getTimer("IBAMR::INSHierarchyIntegrator::initializeHierarchyIntegrator()");
-        t_initialize_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::INSHierarchyIntegrator::initializeHierarchy()");
-        t_advance_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::INSHierarchyIntegrator::advanceHierarchy()");
-        t_get_stable_timestep = TimerManager::getManager()->
-            getTimer("IBAMR::INSHierarchyIntegrator::getStableTimestep()");
-        t_regrid_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::INSHierarchyIntegrator::regridHierarchy()");
-        t_predict_advection_velocity = TimerManager::getManager()->
-            getTimer("IBAMR::INSHierarchyIntegrator::predictAdvectionVelocity()");
-        t_integrate_adv_diff = TimerManager::getManager()->
-            getTimer("IBAMR::INSHierarchyIntegrator::integrateAdvDiff()");
-        t_project_velocity = TimerManager::getManager()->
-            getTimer("IBAMR::INSHierarchyIntegrator::projectVelocity()");
-        t_update_pressure = TimerManager::getManager()->
-            getTimer("IBAMR::INSHierarchyIntegrator::updatePressure()");
-        t_synchronize_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::INSHierarchyIntegrator::synchronizeHierarchy()");
-        t_synchronize_new_levels = TimerManager::getManager()->
-            getTimer("IBAMR::INSHierarchyIntegrator::synchronizeNewLevels()");
-        t_reset_time_dependent_data = TimerManager::getManager()->
-            getTimer("IBAMR::INSHierarchyIntegrator::resetTimeDependentHierData()");
-        t_reset_data_to_preadvance_state = TimerManager::getManager()->
-            getTimer("IBAMR::INSHierarchyIntegrator::resetHierDataToPreadvanceState()");
-        t_initialize_level_data = TimerManager::getManager()->
-            getTimer("IBAMR::INSHierarchyIntegrator::initializeLevelData()");
-        t_reset_hierarchy_configuration = TimerManager::getManager()->
-            getTimer("IBAMR::INSHierarchyIntegrator::resetHierarchyConfiguration()");
-        t_apply_gradient_detector = TimerManager::getManager()->
-            getTimer("IBAMR::INSHierarchyIntegrator::applyGradientDetector()");
-        t_put_to_database = TimerManager::getManager()->
-            getTimer("IBAMR::INSHierarchyIntegrator::putToDatabase()");
-        t_compute_div_source_term = TimerManager::getManager()->
-            getTimer("IBAMR::INSHierarchyIntegrator::computeDivSourceTerm()");
+        t_initialize_hierarchy_integrator = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::initializeHierarchyIntegrator()");
+        t_initialize_hierarchy            = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::initializeHierarchy()");
+        t_advance_hierarchy               = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::advanceHierarchy()");
+        t_get_stable_timestep             = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::getStableTimestep()");
+        t_regrid_hierarchy                = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::regridHierarchy()");
+        t_predict_advection_velocity      = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::predictAdvectionVelocity()");
+        t_integrate_adv_diff              = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::integrateAdvDiff()");
+        t_project_velocity                = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::projectVelocity()");
+        t_update_pressure                 = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::updatePressure()");
+        t_synchronize_hierarchy           = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::synchronizeHierarchy()");
+        t_synchronize_new_levels          = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::synchronizeNewLevels()");
+        t_reset_time_dependent_data       = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::resetTimeDependentHierData()");
+        t_reset_data_to_preadvance_state  = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::resetHierDataToPreadvanceState()");
+        t_initialize_level_data           = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::initializeLevelData()");
+        t_reset_hierarchy_configuration   = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::resetHierarchyConfiguration()");
+        t_apply_gradient_detector         = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::applyGradientDetector()");
+        t_put_to_database                 = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::putToDatabase()");
+        t_compute_div_source_term         = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::computeDivSourceTerm()");
         timers_need_init = false;
     }
     return;
@@ -1167,8 +1157,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
             d_helmholtz_fac_op = new CCPoissonFACOperator(d_object_name+"::helmholtz_fac_op", d_fac_op_db);
             d_helmholtz_fac_op->setPoissonSpecifications(*d_helmholtz_spec);
             d_helmholtz_fac_op->setPhysicalBcCoefs(U_bc_coefs);
-            d_helmholtz_fac_pc = new FACPreconditioner<NDIM>(d_object_name+"::helmholtz_fac_pc",*d_helmholtz_fac_op, d_fac_pc_db);
-            d_helmholtz_fac_op->setPreconditioner(d_helmholtz_fac_pc);
+            d_helmholtz_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::helmholtz_fac_pc",*d_helmholtz_fac_op, d_fac_pc_db);
         }
 
         d_helmholtz_solver = new PETScKrylovLinearSolver(d_object_name+"::helmholtz_solver", "adv_diff_");
@@ -1179,7 +1168,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
         d_helmholtz_solver->setOperator(d_helmholtz_op);
         if (d_helmholtz_using_FAC)
         {
-            d_helmholtz_solver->setPreconditioner(new FACPreconditionerLSWrapper(d_helmholtz_fac_pc, d_fac_pc_db));
+            d_helmholtz_solver->setPreconditioner(d_helmholtz_fac_pc);
         }
 
         // Indicate that the solver needs to be initialized.

@@ -1,25 +1,34 @@
 // Filename: AdvectHypPatchOps.C
 // Created on 12 Mar 2004 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #include "AdvectHypPatchOps.h"
 
@@ -61,8 +70,6 @@
 #include <VariableDatabase.h>
 #include <tbox/Array.h>
 #include <tbox/RestartManager.h>
-#include <tbox/Timer.h>
-#include <tbox/TimerManager.h>
 #include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
@@ -183,19 +190,6 @@ namespace IBAMR
 
 namespace
 {
-// Timers.
-static Pointer<Timer> t_register_model_vars;
-static Pointer<Timer> t_initialize_data_on_patch;
-static Pointer<Timer> t_compute_stable_dt_on_patch;
-static Pointer<Timer> t_compute_fluxes_on_patch;
-static Pointer<Timer> t_conservative_difference_on_patch;
-static Pointer<Timer> t_preprocess_advance_level_state;
-static Pointer<Timer> t_postprocess_advance_level_state;
-static Pointer<Timer> t_tag_richardson_extrapolation_cells;
-static Pointer<Timer> t_tag_gradient_detector_cells;
-static Pointer<Timer> t_set_physical_boundary_conditions;
-static Pointer<Timer> t_put_to_database;
-
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 4;
 static const int FLUXG = 1;
@@ -275,35 +269,6 @@ AdvectHypPatchOps::AdvectHypPatchOps(
     bool is_from_restart = RestartManager::getManager()->isFromRestart();
     if (is_from_restart) getFromRestart();
     if (!input_db.isNull()) getFromInput(input_db, is_from_restart);
-
-    // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
-        t_register_model_vars = TimerManager::getManager()->
-            getTimer("IBAMR::AdvectHypPatchOps::registerModelVariables()");
-        t_initialize_data_on_patch = TimerManager::getManager()->
-            getTimer("IBAMR::AdvectHypPatchOps::initializeDataOnPatch()");
-        t_compute_stable_dt_on_patch = TimerManager::getManager()->
-            getTimer("IBAMR::AdvectHypPatchOps::computeStableDtOnPatch()");
-        t_compute_fluxes_on_patch = TimerManager::getManager()->
-            getTimer("IBAMR::AdvectHypPatchOps::computeFluxesOnPatch()");
-        t_conservative_difference_on_patch = TimerManager::getManager()->
-            getTimer("IBAMR::AdvectHypPatchOps::conservativeDifferenceOnPatch()");
-        t_preprocess_advance_level_state = TimerManager::getManager()->
-            getTimer("IBAMR::AdvectHypPatchOps::preprocessAdvanceLevelState()");
-        t_postprocess_advance_level_state = TimerManager::getManager()->
-            getTimer("IBAMR::AdvectHypPatchOps::postprocessAdvanceLevelState()");
-        t_tag_richardson_extrapolation_cells = TimerManager::getManager()->
-            getTimer("IBAMR::AdvectHypPatchOps::tagRichardsonExtrapolationCells()");
-        t_tag_gradient_detector_cells = TimerManager::getManager()->
-            getTimer("IBAMR::AdvectHypPatchOps::tagGradientDetectorCells()");
-        t_set_physical_boundary_conditions = TimerManager::getManager()->
-            getTimer("IBAMR::AdvectHypPatchOps::setPhysicalBoundaryConditions()");
-        t_put_to_database = TimerManager::getManager()->
-            getTimer("IBAMR::AdvectHypPatchOps::putToDatabase()");
-        timers_need_init = false;
-    }
     return;
 }// AdvectHypPatchOps
 
@@ -579,8 +544,6 @@ void
 AdvectHypPatchOps::registerModelVariables(
     HyperbolicLevelIntegrator<NDIM>* integrator)
 {
-    t_register_model_vars->start();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(integrator != static_cast<HyperbolicLevelIntegrator<NDIM>*>(NULL));
 #endif
@@ -706,8 +669,6 @@ AdvectHypPatchOps::registerModelVariables(
             "CONSERVATIVE_COARSEN",
             "NO_REFINE");
     }
-
-    t_register_model_vars->stop();
     return;
 }// registerModelVariables
 
@@ -717,8 +678,6 @@ AdvectHypPatchOps::initializeDataOnPatch(
     const double data_time,
     const bool initial_time)
 {
-    t_initialize_data_on_patch->start();
-
     if (initial_time)
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -801,8 +760,6 @@ AdvectHypPatchOps::initializeDataOnPatch(
             u_data->fillAll(0.0);
         }
     }
-
-    t_initialize_data_on_patch->stop();
     return;
 }// initializeDataOnPatch
 
@@ -812,8 +769,6 @@ AdvectHypPatchOps::computeStableDtOnPatch(
     const bool initial_time,
     const double dt_time)
 {
-    t_compute_stable_dt_on_patch->start();
-
     (void) initial_time;
     (void) dt_time;
 
@@ -826,8 +781,6 @@ AdvectHypPatchOps::computeStableDtOnPatch(
 
     const double stable_dt = d_godunov_advector->
         computeStableDtOnPatch(*u_data,patch);
-
-    t_compute_stable_dt_on_patch->stop();
     return stable_dt;
 }// computeStableDtOnPatch
 
@@ -837,8 +790,6 @@ AdvectHypPatchOps::computeFluxesOnPatch(
     const double time,
     const double dt)
 {
-    t_compute_fluxes_on_patch->start();
-
     (void) time;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -956,9 +907,6 @@ AdvectHypPatchOps::computeFluxesOnPatch(
                                 u_data,          // src
                                 patch_box);
     }
-
-
-    t_compute_fluxes_on_patch->stop();
     return;
 }// computeFluxesOnPatch
 
@@ -969,8 +917,6 @@ AdvectHypPatchOps::conservativeDifferenceOnPatch(
     const double dt,
     bool at_synchronization)
 {
-    t_conservative_difference_on_patch->start();
-
     (void) time;
     (void) at_synchronization;
 
@@ -1119,8 +1065,6 @@ AdvectHypPatchOps::conservativeDifferenceOnPatch(
                                    patch_box);
         }
     }
-
-    t_conservative_difference_on_patch->stop();
     return;
 }// conservativeDifferenceOnPatch
 
@@ -1133,8 +1077,6 @@ AdvectHypPatchOps::preprocessAdvanceLevelState(
     bool last_step,
     bool regrid_advance)
 {
-    t_preprocess_advance_level_state->start();
-
     (void) dt;
     (void) first_step;
     (void) last_step;
@@ -1183,8 +1125,6 @@ AdvectHypPatchOps::preprocessAdvanceLevelState(
             d_coarse_fine_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
         }
     }
-
-    t_preprocess_advance_level_state->stop();
     return;
 }// preprocessAdvanceLevelState
 
@@ -1197,8 +1137,6 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
     bool last_step,
     bool regrid_advance)
 {
-    t_postprocess_advance_level_state->start();
-
     (void) first_step;
     (void) last_step;
     (void) regrid_advance;
@@ -1285,8 +1223,6 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
             d_u_var, d_integrator->getNewContext());
         d_u_fcn->setDataOnPatchLevel(u_idx, d_u_var, level, current_time+dt);
     }
-
-    t_postprocess_advance_level_state->stop();
     return;
 }// postprocessAdvanceLevelState
 
@@ -1303,8 +1239,6 @@ AdvectHypPatchOps::tagRichardsonExtrapolationCells(
     const int tag_index,
     const bool uses_gradient_detector_too)
 {
-    t_tag_richardson_extrapolation_cells->start();
-
     (void) initial_error;
 
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
@@ -1469,8 +1403,6 @@ AdvectHypPatchOps::tagRichardsonExtrapolationCells(
             }
         }
     }
-
-    t_tag_richardson_extrapolation_cells->stop();
     return;
 }// tagRichardsonExtrapolationCells
 
@@ -1482,8 +1414,6 @@ AdvectHypPatchOps::tagGradientDetectorCells(
     const int tag_indx,
     const bool uses_richardson_extrapolation_too)
 {
-    t_tag_gradient_detector_cells->start();
-
     const int error_level_number = patch.getPatchLevelNumber();
 
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
@@ -1654,8 +1584,6 @@ AdvectHypPatchOps::tagGradientDetectorCells(
     {
         (*tags)(ic(),0) = (*temp_tags)(ic(),0);
     }
-
-    t_tag_gradient_detector_cells->stop();
     return;
 }// tagGradientDetectorCells
 
@@ -1677,8 +1605,6 @@ AdvectHypPatchOps::setPhysicalBoundaryConditions(
     const double fill_time,
     const IntVector<NDIM>& ghost_width_to_fill)
 {
-    t_set_physical_boundary_conditions->start();
-
     // Extrapolate the interior data to set the ghost cell values for the state
     // variables and for any forcing terms.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -1716,8 +1642,6 @@ AdvectHypPatchOps::setPhysicalBoundaryConditions(
         d_coarse_fine_bdry_op->setPatchDataIndices(patch_data_indices);
         d_coarse_fine_bdry_op->setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
     }
-
-    t_set_physical_boundary_conditions->stop();
     return;
 }// setPhysicalBoundaryConditions
 
@@ -1821,8 +1745,6 @@ void
 AdvectHypPatchOps::putToDatabase(
     Pointer<Database> db)
 {
-    t_put_to_database->start();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
 #endif
@@ -1858,8 +1780,6 @@ AdvectHypPatchOps::putToDatabase(
             db->putDoubleArray("d_rich_time_min", d_rich_time_min);
         }
     }
-
-    t_put_to_database->stop();
     return;
 }// putToDatabase
 

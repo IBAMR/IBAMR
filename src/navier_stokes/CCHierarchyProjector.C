@@ -1,25 +1,34 @@
 // Filename: CCHierarchyProjector.C
 // Created on 18 Feb 2010 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #include "CCHierarchyProjector.h"
 
@@ -100,7 +109,6 @@ CCHierarchyProjector::CCHierarchyProjector(
       d_F_var(NULL),
       d_F_idx(-1),
       d_null_space_idxs(int(pow(2,NDIM)),-1),
-      d_petsc_null_space_vecs(int(pow(2,NDIM)),static_cast<Vec>(PETSC_NULL)),
       d_W_var(NULL),
       d_W_idx(-1),
       d_sol_vec(NULL),
@@ -160,11 +168,9 @@ CCHierarchyProjector::CCHierarchyProjector(
     }
 
     // Obtain the Hierarchy data operations objects.
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager =
-        HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<CellVariable<NDIM,double> > cc_var =
-        new CellVariable<NDIM,double>("cc_var");
-    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy);
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    Pointer<CellVariable<NDIM,double> > cc_var = new CellVariable<NDIM,double>("cc_var");
+    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy, true);
 
     // Initialize the hypre preconditioner.
     Pointer<Database> hypre_db;
@@ -188,14 +194,10 @@ CCHierarchyProjector::CCHierarchyProjector(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_project_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::CCHierarchyProjector::projectHierarchy");
-        t_initialize_level_data = TimerManager::getManager()->
-            getTimer("IBAMR::CCHierarchyProjector::initializeLevelData()");
-        t_reset_hierarchy_configuration = TimerManager::getManager()->
-            getTimer("IBAMR::CCHierarchyProjector::resetHierarchyConfiguration()");
-        t_put_to_database = TimerManager::getManager()->
-            getTimer("IBAMR::CCHierarchyProjector::putToDatabase()");
+        t_project_hierarchy             = TimerManager::getManager()->getTimer("IBAMR::CCHierarchyProjector::projectHierarchy");
+        t_initialize_level_data         = TimerManager::getManager()->getTimer("IBAMR::CCHierarchyProjector::initializeLevelData()");
+        t_reset_hierarchy_configuration = TimerManager::getManager()->getTimer("IBAMR::CCHierarchyProjector::resetHierarchyConfiguration()");
+        t_put_to_database               = TimerManager::getManager()->getTimer("IBAMR::CCHierarchyProjector::putToDatabase()");
         timers_need_init = false;
     }
     return;
@@ -206,23 +208,6 @@ CCHierarchyProjector::~CCHierarchyProjector()
     if (d_registered_for_restart)
     {
         RestartManager::getManager()->unregisterRestartItem(d_object_name);
-    }
-
-    // Deallocate null space object.
-    int ierr;
-    KSP petsc_ksp = dynamic_cast<PETScKrylovLinearSolver*>(d_poisson_solver.getPointer())->getPETScKSP();
-    MatNullSpace petsc_nullsp;
-    ierr = KSPGetNullSpace(petsc_ksp, &petsc_nullsp); IBTK_CHKERRQ(ierr);
-    if (petsc_nullsp != PETSC_NULL)
-    {
-        ierr = MatNullSpaceDestroy(petsc_nullsp); IBTK_CHKERRQ(ierr);
-    }
-    for (int k = 0; k < int(pow(2,NDIM)); ++k)
-    {
-        if (d_petsc_null_space_vecs[k] != PETSC_NULL)
-        {
-            ierr = VecDestroy(d_petsc_null_space_vecs[k]); IBTK_CHKERRQ(ierr);
-        }
     }
 
     // Deallocate solver.
@@ -539,7 +524,6 @@ CCHierarchyProjector::resetHierarchyConfiguration(
     d_poisson_solver->initializeSolverState(*d_sol_vec,*d_rhs_vec);
 
     // Setup the nullspace object associated with the Poisson solver.
-    int ierr;
     for (int k = 0; k < int(pow(2,NDIM)); ++k)
     {
         std::ostringstream stream;
@@ -547,28 +531,8 @@ CCHierarchyProjector::resetHierarchyConfiguration(
         d_null_space_vecs[k] = new SAMRAIVectorReal<NDIM,double>(
             d_object_name+"::null_space_vec_"+stream.str(), d_hierarchy, 0, finest_hier_level);
         d_null_space_vecs[k]->addComponent(d_null_space_var,d_null_space_idxs[k],d_wgt_idx,d_hier_cc_data_ops);
-
-        if (d_petsc_null_space_vecs[k] != PETSC_NULL)
-        {
-            ierr = VecDestroy(d_petsc_null_space_vecs[k]); IBTK_CHKERRQ(ierr);
-        }
-        d_petsc_null_space_vecs[k] = PETScSAMRAIVectorReal<double>::createPETScVector(d_null_space_vecs[k], PETSC_COMM_WORLD);
-
-        double v_dot_v;
-        ierr = VecDot(d_petsc_null_space_vecs[k], d_petsc_null_space_vecs[k], &v_dot_v); IBTK_CHKERRQ(ierr);
-        ierr = VecScale(d_petsc_null_space_vecs[k], 1.0/v_dot_v); IBTK_CHKERRQ(ierr);
     }
-
-    KSP petsc_ksp = dynamic_cast<PETScKrylovLinearSolver*>(d_poisson_solver.getPointer())->getPETScKSP();
-    MatNullSpace petsc_nullsp;
-    ierr = KSPGetNullSpace(petsc_ksp, &petsc_nullsp); IBTK_CHKERRQ(ierr);
-    if (petsc_nullsp != PETSC_NULL)
-    {
-        ierr = MatNullSpaceDestroy(petsc_nullsp); IBTK_CHKERRQ(ierr);
-    }
-    static const PetscTruth has_cnst = PETSC_FALSE;
-    ierr = MatNullSpaceCreate(PETSC_COMM_WORLD, has_cnst, int(pow(2,NDIM)), &d_petsc_null_space_vecs[0], &petsc_nullsp); IBTK_CHKERRQ(ierr);
-    ierr = KSPSetNullSpace(petsc_ksp, petsc_nullsp); IBTK_CHKERRQ(ierr);
+    d_poisson_solver->setNullspace(false, d_null_space_vecs);
 
     // Initialize the interpolation operators.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;

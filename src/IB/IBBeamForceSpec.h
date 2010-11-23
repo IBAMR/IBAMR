@@ -1,25 +1,34 @@
 // Filename: IBBeamForceSpec.h
 // Created on 22 Mar 2007 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef included_IBBeamForceSpec
 #define included_IBBeamForceSpec
@@ -27,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/Stashable.h>
+#include <ibtk/Streamable.h>
 
 // SAMRAI INCLUDES
 #include <tbox/AbstractStream.h>
@@ -46,46 +55,51 @@ namespace IBAMR
  * resist bending) at a single node of the Lagrangian mesh.
  *
  * Beams are connections between three particular nodes of the Lagrangian mesh.
- * IBBeamForceSpec objects are stored as IBTK::Stashable data associated with only the
- * master beam nodes in the mesh.
+ * IBBeamForceSpec objects are stored as IBTK::Streamable data associated with
+ * only the master beam nodes in the mesh.
  */
 class IBBeamForceSpec
-    : public IBTK::Stashable
+    : public IBTK::Streamable
 {
 public:
     /*!
-     * \note Use of this typedef appears to be needed to get g++ to parse the
-     * default parameters in the class constructor.
+     * \note This typedef appears to be needed to get g++ to parse the default
+     * parameters in the class constructor.
      */
     typedef std::pair<int,int> NeighborIdxs;
 
     /*!
      * \brief Register this class and its factory class with the singleton
-     * IBTK::StashableManager object.  This method must be called before any
+     * IBTK::StreamableManager object.  This method must be called before any
      * IBBeamForceSpec objects are created.
      *
      * \note This method is collective on all MPI processes.  This is done to
-     * ensure that all processes employ the same stashable ID for the
+     * ensure that all processes employ the same class ID for the
      * IBBeamForceSpec class.
      */
     static void
-    registerWithStashableManager();
+    registerWithStreamableManager();
 
     /*!
      * \brief Returns a boolean indicating whether the class has been registered
-     * with the singleton IBTK::StashableManager object.
+     * with the singleton IBTK::StreamableManager object.
      */
     static bool
-    getIsRegisteredWithStashableManager();
+    getIsRegisteredWithStreamableManager();
 
     /*!
      * \brief Default constructor.
+     *
+     * \note The subdomain indices are ignored unless IBAMR is configured to
+     * enable support for subdomain indices.  Subdomain indices are not enabled
+     * by default.
      */
     IBBeamForceSpec(
         const int master_idx=-1,
         const std::vector<NeighborIdxs>& neighbor_idxs=std::vector<NeighborIdxs>(),
         const std::vector<double>& bend_rigidities=std::vector<double>(),
-        const std::vector<std::vector<double> >& mesh_dependent_curvatures=std::vector<std::vector<double> >());
+        const std::vector<std::vector<double> >& mesh_dependent_curvatures=std::vector<std::vector<double> >(),
+        const std::vector<int>& subdomain_idxs=std::vector<int>());
 
     /*!
      * \brief Virtual destructor.
@@ -154,12 +168,32 @@ public:
     getMeshDependentCurvatures();
 
     /*!
-     * \brief Return the unique identifier used to specify the IBTK::StashableFactory
-     * object used by the IBTK::StashableManager to extract Stashable objects from
-     * data streams.
+     * \return A const reference to the subdomain indices associated with this
+     * force spec object.
+     *
+     * \note IBAMR must be specifically configured to enable support for
+     * subdomain indices.  Subdomain indices are not enabled by default.
+     */
+    const std::vector<int>&
+    getSubdomainIndices() const;
+
+    /*!
+     * \return A non-const reference to the subdomain indices associated with
+     * this force spec object.
+     *
+     * \note IBAMR must be specifically configured to enable support for
+     * subdomain indices.  Subdomain indices are not enabled by default.
+     */
+    std::vector<int>&
+    getSubdomainIndices();
+
+    /*!
+     * \brief Return the unique identifier used to specify the
+     * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
+     * extract Streamable objects from data streams.
      */
     virtual int
-    getStashableID() const;
+    getStreamableClassID() const;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the
@@ -201,22 +235,30 @@ private:
 
     /*!
      * Indicates whether the factory has been registered with the
-     * IBTK::StashableManager.
+     * IBTK::StreamableManager.
      */
     static bool s_registered_factory;
 
     /*!
-     * The stashable ID for this object type.
+     * The class ID for this object type assigned by the
+     * IBTK::StreamableManager.
      */
-    static int s_stashable_id;
+    static int s_class_id;
 
     /*!
-     * Data required to define the beam forces.
+     * Data required to compute the beam forces.
      */
     int d_master_idx;
     std::vector<NeighborIdxs> d_neighbor_idxs;
     std::vector<double> d_bend_rigidities;
     std::vector<std::vector<double> > d_mesh_dependent_curvatures;
+
+#if ENABLE_SUBDOMAIN_INDICES
+    /*!
+     * The subdomain indices of the force spec object.
+     */
+    std::vector<int> d_subdomain_idxs;
+#endif
 };
 }// namespace IBAMR
 

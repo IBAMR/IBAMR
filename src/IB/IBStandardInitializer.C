@@ -1,25 +1,34 @@
 // Filename: IBStandardInitializer.C
 // Created on 22 Nov 2006 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #include "IBStandardInitializer.h"
 
@@ -73,6 +82,8 @@ namespace IBAMR
 
 namespace
 {
+static const int NUM_ROD_PARAMS = 10;
+
 inline std::string
 discard_comments(
     const std::string& input_string)
@@ -118,34 +129,44 @@ IBStandardInitializer::IBStandardInitializer(
       d_vertex_posn(),
       d_enable_springs(),
       d_spring_edge_map(),
-      d_spring_stiffness(),
-      d_spring_rest_length(),
-      d_spring_force_fcn_idx(),
+      d_spring_spec_data(),
       d_using_uniform_spring_stiffness(),
       d_uniform_spring_stiffness(),
       d_using_uniform_spring_rest_length(),
       d_uniform_spring_rest_length(),
       d_using_uniform_spring_force_fcn_idx(),
       d_uniform_spring_force_fcn_idx(),
+      d_using_uniform_spring_subdomain_idx(),
+      d_uniform_spring_subdomain_idx(),
       d_enable_beams(),
-      d_beam_specs(),
+      d_beam_spec_data(),
       d_using_uniform_beam_bend_rigidity(),
       d_uniform_beam_bend_rigidity(),
+      d_using_uniform_beam_curvature(),
+      d_uniform_beam_curvature(),
+      d_using_uniform_beam_subdomain_idx(),
+      d_uniform_beam_subdomain_idx(),
       d_enable_rods(),
       d_rod_edge_map(),
-      d_rod_specs(),
+      d_rod_spec_data(),
+      d_using_uniform_rod_properties(),
+      d_uniform_rod_properties(),
+      d_using_uniform_rod_subdomain_idx(),
+      d_uniform_rod_subdomain_idx(),
       d_enable_target_points(),
-      d_target_stiffness(),
-      d_target_damping(),
+      d_target_spec_data(),
       d_using_uniform_target_stiffness(),
       d_uniform_target_stiffness(),
       d_using_uniform_target_damping(),
       d_uniform_target_damping(),
+      d_using_uniform_target_subdomain_idx(),
+      d_uniform_target_subdomain_idx(),
       d_enable_anchor_points(),
-      d_is_anchor_point(),
+      d_anchor_spec_data(),
+      d_using_uniform_anchor_subdomain_idx(),
+      d_uniform_anchor_subdomain_idx(),
       d_enable_bdry_mass(),
-      d_bdry_mass(),
-      d_bdry_mass_stiffness(),
+      d_bdry_mass_spec_data(),
       d_using_uniform_bdry_mass(),
       d_uniform_bdry_mass(),
       d_using_uniform_bdry_mass_stiffness(),
@@ -160,13 +181,13 @@ IBStandardInitializer::IBStandardInitializer(
     TBOX_ASSERT(!input_db.isNull());
 #endif
 
-    // Register the specification objects with the StashableManager class.
-    IBAnchorPointSpec::registerWithStashableManager();
-    IBBeamForceSpec::registerWithStashableManager();
-    IBInstrumentationSpec::registerWithStashableManager();
-    IBRodForceSpec::registerWithStashableManager();
-    IBSpringForceSpec::registerWithStashableManager();
-    IBTargetPointForceSpec::registerWithStashableManager();
+    // Register the specification objects with the StreamableManager class.
+    IBAnchorPointSpec::registerWithStreamableManager();
+    IBBeamForceSpec::registerWithStreamableManager();
+    IBInstrumentationSpec::registerWithStreamableManager();
+    IBRodForceSpec::registerWithStreamableManager();
+    IBSpringForceSpec::registerWithStreamableManager();
+    IBTargetPointForceSpec::registerWithStreamableManager();
 
     // Initialize object with data read from the input database.
     getFromInput(input_db);
@@ -387,12 +408,13 @@ IBStandardInitializer::initializeDataOnPatchLevel(
             const CellIndex<NDIM> idx = IndexUtilities::getCellIndex(
                 X, xLower, xUpper, dx, patch_lower, patch_upper);
 
-            // Initialize the force specification object associated with the
-            // present vertex.
-            std::vector<Pointer<Stashable> > force_spec =
-                initializeSpecs(
-                    point_idx, global_index_offset, level_number);
+            // Initialize the specification objects associated with the present
+            // vertex.
+            std::vector<Pointer<Streamable> > specs = initializeSpecs(
+                point_idx, global_index_offset, level_number);
 
+            // Create or retrieve a pointer to the LNodeIndexSet associated with
+            // the current Cartesian grid cell.
             if (!index_data->isElement(idx))
             {
                 index_data->appendItemPointer(idx, new LNodeIndexSet());
@@ -400,11 +422,10 @@ IBStandardInitializer::initializeDataOnPatchLevel(
             LNodeIndexSet* const node_set = index_data->getItem(idx);
             static const IntVector<NDIM> periodic_offset(0);
             static const std::vector<double> periodic_displacement(NDIM,0.0);
-            node_set->push_back(
-                new LNodeIndex(current_global_idx, current_local_idx,
-                               &(*X_data)(current_local_idx),
-                               periodic_offset, periodic_displacement,
-                               force_spec));
+            node_set->push_back(new LNodeIndex(current_global_idx, current_local_idx,
+                                               &(*X_data)(current_local_idx),
+                                               periodic_offset, periodic_displacement,
+                                               specs));
 
             // Initialize the velocity of the present vertex.
             double* const node_U = &(*U_data)(current_local_idx);
@@ -461,8 +482,9 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
 
             // Initialize the mass and penalty stiffness coefficient
             // corresponding to the present vertex.
-            const double M = getVertexMass(point_idx, level_number);
-            const double K = getVertexMassStiffness(point_idx, level_number);
+            const BdryMassSpec& spec = getVertexBdryMassSpec(point_idx, level_number);
+            const double M = spec.bdry_mass;
+            const double K = spec.stiffness;
 
             // Avoid division by zero at massless nodes.
             if (MathUtilities<double>::equalEps(M,0.0))
@@ -753,9 +775,7 @@ IBStandardInitializer::readSpringFiles()
     {
         const int num_base_filename = d_base_filename[ln].size();
         d_spring_edge_map[ln].resize(num_base_filename);
-        d_spring_stiffness[ln].resize(num_base_filename);
-        d_spring_rest_length[ln].resize(num_base_filename);
-        d_spring_force_fcn_idx[ln].resize(num_base_filename);
+        d_spring_spec_data[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
             bool warned = false;
@@ -801,7 +821,7 @@ IBStandardInitializer::readSpringFiles()
                 {
                     Edge e;
                     double kappa, length;
-                    int force_fcn_idx;
+                    int force_fcn_idx, subdomain_idx;
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << spring_filename << std::endl);
@@ -855,10 +875,15 @@ IBStandardInitializer::readSpringFiles()
                         {
                             force_fcn_idx = 0;  // default force function specification.
                         }
+
+                        if (!(line_stream >> subdomain_idx))
+                        {
+                            subdomain_idx = -1;  // default subdomain index.
+                        }
                     }
 
-                    // Modify kappa and length according to whether spring forces are
-                    // enabled, or whether uniform values are to be employed, for this
+                    // Modify kappa, length, and subdomain_idx according to
+                    // whether uniform values are to be employed for this
                     // particular structure.
                     if (d_using_uniform_spring_stiffness[ln][j])
                     {
@@ -871,6 +896,10 @@ IBStandardInitializer::readSpringFiles()
                     if (d_using_uniform_spring_force_fcn_idx[ln][j])
                     {
                         force_fcn_idx = d_uniform_spring_force_fcn_idx[ln][j];
+                    }
+                    if (d_using_uniform_spring_subdomain_idx[ln][j])
+                    {
+                        subdomain_idx = d_uniform_spring_subdomain_idx[ln][j];
                     }
 
                     // Correct the edge numbers to be in the global Lagrangian indexing
@@ -890,7 +919,7 @@ IBStandardInitializer::readSpringFiles()
                              d_spring_edge_map[ln][j].lower_bound(e.first);
                          it != d_spring_edge_map[ln][j].upper_bound(e.first); ++it)
                     {
-                        const Edge& other_e = (*it).second;
+                        const Edge& other_e = it->second;
                         if (e.first  == other_e.first &&
                             e.second == other_e.second)
                         {
@@ -898,20 +927,18 @@ IBStandardInitializer::readSpringFiles()
                             // edge map.
                             duplicate_edge = true;
 
-                            // Ensure that the stiffness and rest length information is
-                            // consistent.
-                            if (!MathUtilities<double>::equalEps(
-                                    (*d_spring_stiffness[ln][j].find(e)).second, kappa) ||
-                                !MathUtilities<double>::equalEps(
-                                    (*d_spring_rest_length[ln][j].find(e)).second, length) ||
-                                !MathUtilities<double>::equalEps(
-                                    (*d_spring_force_fcn_idx[ln][j].find(e)).second, force_fcn_idx))
+                            // Ensure that the link information is consistent.
+                            if (!MathUtilities<double>::equalEps(d_spring_spec_data[ln][j].find(e)->second.stiffness  , kappa ) ||
+                                !MathUtilities<double>::equalEps(d_spring_spec_data[ln][j].find(e)->second.rest_length, length) ||
+                                (d_spring_spec_data[ln][j].find(e)->second.force_fcn_idx != force_fcn_idx) ||
+                                (d_spring_spec_data[ln][j].find(e)->second.subdomain_idx != subdomain_idx))
                             {
                                 TBOX_ERROR(d_object_name << ":\n  Inconsistent duplicate edges in input file encountered on line " << k+2 << " of file " << spring_filename << std::endl
                                            << "  first vertex = " << e.first-d_vertex_offset[ln][j] << " second vertex = " << e.second-d_vertex_offset[ln][j] << std::endl
-                                           << "  original spring constant = " << (*d_spring_stiffness[ln][j].find(e)).second << std::endl
-                                           << "  original resting length = " << (*d_spring_rest_length[ln][j].find(e)).second << std::endl
-                                           << "  original force function index = " << (*d_spring_force_fcn_idx[ln][j].find(e)).second << std::endl);
+                                           << "  original spring constant      = " << d_spring_spec_data[ln][j].find(e)->second.stiffness     << std::endl
+                                           << "  original resting length       = " << d_spring_spec_data[ln][j].find(e)->second.rest_length   << std::endl
+                                           << "  original force function index = " << d_spring_spec_data[ln][j].find(e)->second.force_fcn_idx << std::endl
+                                           << "  original subdomain index      = " << d_spring_spec_data[ln][j].find(e)->second.subdomain_idx << std::endl);
                             }
                         }
                     }
@@ -923,9 +950,11 @@ IBStandardInitializer::readSpringFiles()
                     if (!duplicate_edge)
                     {
                         d_spring_edge_map[ln][j].insert(std::make_pair(e.first,e));
-                        d_spring_stiffness[ln][j][e] = kappa;
-                        d_spring_rest_length[ln][j][e] = length;
-                        d_spring_force_fcn_idx[ln][j][e] = force_fcn_idx;
+                        SpringSpec& spec_data = d_spring_spec_data[ln][j][e];
+                        spec_data.stiffness     = kappa;
+                        spec_data.rest_length   = length;
+                        spec_data.force_fcn_idx = force_fcn_idx;
+                        spec_data.subdomain_idx = subdomain_idx;
                     }
 
                     // Check to see if the spring constant is zero and, if so,
@@ -968,7 +997,7 @@ IBStandardInitializer::readBeamFiles()
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filename = d_base_filename[ln].size();
-        d_beam_specs[ln].resize(num_base_filename);
+        d_beam_spec_data[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
             bool warned = false;
@@ -1014,6 +1043,7 @@ IBStandardInitializer::readBeamFiles()
                     int prev_idx, curr_idx, next_idx;
                     double bend;
                     std::vector<double> curv(NDIM,0.0);
+                    int subdomain_idx;
                     if (!std::getline(file_stream, line_string))
                     {
                         TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << beam_filename << std::endl);
@@ -1080,14 +1110,27 @@ IBStandardInitializer::readBeamFiles()
                                 curv[d] = c;
                             }
                         }
+
+                        if (!(line_stream >> subdomain_idx))
+                        {
+                            subdomain_idx = -1;  // default subdomain index.
+                        }
                     }
 
-                    // Modify the value of bend according to whether beam forces
-                    // are enabled, or whether uniform values are to be
-                    // employed, for this particular structure.
+                    // Modify bend, curvature, and subdomain_idx according to
+                    // whether uniform values are to be employed for this
+                    // particular structure.
                     if (d_using_uniform_beam_bend_rigidity[ln][j])
                     {
                         bend = d_uniform_beam_bend_rigidity[ln][j];
+                    }
+                    if (d_using_uniform_beam_curvature[ln][j])
+                    {
+                        curv = d_uniform_beam_curvature[ln][j];
+                    }
+                    if (d_using_uniform_beam_subdomain_idx[ln][j])
+                    {
+                        subdomain_idx = d_uniform_beam_subdomain_idx[ln][j];
                     }
 
                     // Correct the node numbers to be in the global Lagrangian
@@ -1101,11 +1144,12 @@ IBStandardInitializer::readBeamFiles()
                     //
                     // Note that in the beam property map, each edge is
                     // associated with only the "current" vertex.
-                    d_beam_specs[ln][j].insert(
-                        std::make_pair(
-                            curr_idx, std::make_pair(
-                                std::make_pair(next_idx,prev_idx),
-                                std::make_pair(bend,curv))));
+                    BeamSpec spec_data;
+                    spec_data.neighbor_idxs = std::make_pair(next_idx,prev_idx);
+                    spec_data.bend_rigidity = bend;
+                    spec_data.curvature     = curv;
+                    spec_data.subdomain_idx = subdomain_idx;
+                    d_beam_spec_data[ln][j].insert(std::make_pair(curr_idx,spec_data));
 
                     // Check to see if the bending rigidity is zero and, if so,
                     // emit a warning.
@@ -1148,7 +1192,7 @@ IBStandardInitializer::readRodFiles()
     {
         const int num_base_filename = d_base_filename[ln].size();
         d_rod_edge_map[ln].resize(num_base_filename);
-        d_rod_specs[ln].resize(num_base_filename);
+        d_rod_spec_data[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
@@ -1190,7 +1234,7 @@ IBStandardInitializer::readRodFiles()
                 for (int k = 0; k < num_rods; ++k)
                 {
                     int curr_idx, next_idx;
-                    std::vector<double> properties(10);
+                    std::vector<double> properties(NUM_ROD_PARAMS);
                     double& ds = properties[0];
                     double& a1 = properties[1];
                     double& a2 = properties[2];
@@ -1201,6 +1245,7 @@ IBStandardInitializer::readRodFiles()
                     double& kappa1 = properties[7];
                     double& kappa2 = properties[8];
                     double& tau = properties[9];
+                    int subdomain_idx;
 
                     if (!std::getline(file_stream, line_string))
                     {
@@ -1339,6 +1384,23 @@ IBStandardInitializer::readRodFiles()
                         {
                             curvature_data_found_in_input = true;
                         }
+
+                        if (!(line_stream >> subdomain_idx))
+                        {
+                            subdomain_idx = -1;  // default subdomain index.
+                        }
+                    }
+
+                    // Modify properties and subdomain_idx according to whether
+                    // uniform values are to be employed for this particular
+                    // structure.
+                    if (d_using_uniform_rod_properties[ln][j])
+                    {
+                        properties = d_uniform_rod_properties[ln][j];
+                    }
+                    if (d_using_uniform_rod_subdomain_idx[ln][j])
+                    {
+                        subdomain_idx = d_uniform_rod_subdomain_idx[ln][j];
                     }
 
                     // Correct the node numbers to be in the global Lagrangian
@@ -1356,7 +1418,7 @@ IBStandardInitializer::readRodFiles()
                              d_rod_edge_map[ln][j].lower_bound(e.first);
                          it != d_rod_edge_map[ln][j].upper_bound(e.first); ++it)
                     {
-                        const Edge& other_e = (*it).second;
+                        const Edge& other_e = it->second;
                         if (e.first  == other_e.first &&
                             e.second == other_e.second)
                         {
@@ -1377,7 +1439,9 @@ IBStandardInitializer::readRodFiles()
                     //
                     // Note that in the rod property map, each edge is
                     // associated with only the "current" vertex.
-                    d_rod_specs[ln][j].insert(std::make_pair(curr_idx, std::make_pair(next_idx,properties)));
+                    RodSpec& rod_spec = d_rod_spec_data[ln][j][e];
+                    rod_spec.properties = properties;
+                    rod_spec.subdomain_idx = subdomain_idx;
                 }
 
                 // Close the input file.
@@ -1410,8 +1474,7 @@ IBStandardInitializer::readTargetPointFiles()
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filename = d_base_filename[ln].size();
-        d_target_stiffness[ln].resize(num_base_filename);
-        d_target_damping  [ln].resize(num_base_filename);
+        d_target_spec_data[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
             bool warned = false;
@@ -1419,8 +1482,11 @@ IBStandardInitializer::readTargetPointFiles()
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
-            d_target_stiffness[ln][j].resize(d_num_vertex[ln][j], 0.0);
-            d_target_damping  [ln][j].resize(d_num_vertex[ln][j], 0.0);
+            TargetSpec default_spec;
+            default_spec.stiffness = 0.0;
+            default_spec.damping = 0.0;
+            default_spec.subdomain_idx = -1;
+            d_target_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
 
             const std::string target_point_stiffness_filename = d_base_filename[ln][j] + ".target";
             std::ifstream file_stream;
@@ -1476,30 +1542,35 @@ IBStandardInitializer::readTargetPointFiles()
                                        << "  vertex index " << n << " is out of range" << std::endl);
                         }
 
-                        if (!(line_stream >> d_target_stiffness[ln][j][n]))
+                        if (!(line_stream >> d_target_spec_data[ln][j][n].stiffness))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << target_point_stiffness_filename << std::endl);
                         }
-                        else if (d_target_stiffness[ln][j][n] < 0.0)
+                        else if (d_target_spec_data[ln][j][n].stiffness < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << target_point_stiffness_filename << std::endl
                                        << "  target point spring constant is negative" << std::endl);
                         }
 
-                        if (!(line_stream >> d_target_damping[ln][j][n]))
+                        if (!(line_stream >> d_target_spec_data[ln][j][n].damping))
                         {
-                            d_target_damping[ln][j][n] = 0.0;
+                            d_target_spec_data[ln][j][n].damping = 0.0;
                         }
-                        else if (d_target_damping[ln][j][n] < 0.0)
+                        else if (d_target_spec_data[ln][j][n].damping < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << target_point_stiffness_filename << std::endl
                                        << "  target point damping coefficient is negative" << std::endl);
+                        }
+
+                        if (!(line_stream >> d_target_spec_data[ln][j][n].subdomain_idx))
+                        {
+                            d_target_spec_data[ln][j][n].subdomain_idx = -1;  // default subdomain index.
                         }
                     }
 
                     // Check to see if the penalty spring constant is zero and,
                     // if so, emit a warning.
-                    const double kappa = d_target_stiffness[ln][j][n];
+                    const double kappa = d_target_spec_data[ln][j][n].stiffness;
                     if (!warned && d_enable_target_points[ln][j] &&
                         (kappa == 0.0 || MathUtilities<double>::equalEps(kappa,0.0)))
                     {
@@ -1521,17 +1592,34 @@ IBStandardInitializer::readTargetPointFiles()
             // values are to be employed, for this particular structure.
             if (!d_enable_target_points[ln][j])
             {
-                d_target_stiffness[ln][j] = std::vector<double>(d_num_vertex[ln][j], 0.0);
+                for (int k = 0; k < d_num_vertex[ln][j]; ++k)
+                {
+                    d_target_spec_data[ln][j][k].stiffness = 0.0;
+                    d_target_spec_data[ln][j][k].damping   = 0.0;
+                }
             }
             else
             {
                 if (d_using_uniform_target_stiffness[ln][j])
                 {
-                    d_target_stiffness[ln][j] = std::vector<double>(d_num_vertex[ln][j], d_uniform_target_stiffness[ln][j]);
+                    for (int k = 0; k < d_num_vertex[ln][j]; ++k)
+                    {
+                        d_target_spec_data[ln][j][k].stiffness = d_uniform_target_stiffness[ln][j];
+                    }
                 }
                 if (d_using_uniform_target_damping[ln][j])
                 {
-                    d_target_damping[ln][j] = std::vector<double>(d_num_vertex[ln][j], d_uniform_target_damping[ln][j]);
+                    for (int k = 0; k < d_num_vertex[ln][j]; ++k)
+                    {
+                        d_target_spec_data[ln][j][k].damping = d_uniform_target_damping[ln][j];
+                    }
+                }
+                if (d_using_uniform_target_subdomain_idx[ln][j])
+                {
+                    for (int k = 0; k < d_num_vertex[ln][j]; ++k)
+                    {
+                        d_target_spec_data[ln][j][k].subdomain_idx = d_uniform_target_subdomain_idx[ln][j];
+                    }
                 }
             }
 
@@ -1557,13 +1645,16 @@ IBStandardInitializer::readAnchorPointFiles()
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filename = d_base_filename[ln].size();
-        d_is_anchor_point[ln].resize(num_base_filename);
+        d_anchor_spec_data[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
-            d_is_anchor_point[ln][j].resize(d_num_vertex[ln][j], false);
+            AnchorSpec default_spec;
+            default_spec.is_anchor_point = false;
+            default_spec.subdomain_idx = -1;
+            d_anchor_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
 
             const std::string anchor_point_filename = d_base_filename[ln][j] + ".anchor";
             std::ifstream file_stream;
@@ -1619,7 +1710,12 @@ IBStandardInitializer::readAnchorPointFiles()
                                        << "  vertex index " << n << " is out of range" << std::endl);
                         }
 
-                        d_is_anchor_point[ln][j][n] = true;
+                        d_anchor_spec_data[ln][j][n].is_anchor_point = true;
+
+                        if (!(line_stream >> d_anchor_spec_data[ln][j][n].subdomain_idx))
+                        {
+                            d_anchor_spec_data[ln][j][n].subdomain_idx = -1;  // default subdomain index.
+                        }
                     }
                 }
 
@@ -1629,6 +1725,16 @@ IBStandardInitializer::readAnchorPointFiles()
                 plog << d_object_name << ":  "
                      << "read " << num_anchor_pts << " anchor points from ASCII input file named " << anchor_point_filename << std::endl
                      << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+            }
+
+            // Modify the anchor point properties according to whether uniform
+            // values are to be employed for this particular structure.
+            if (d_using_uniform_anchor_subdomain_idx[ln][j])
+            {
+                for (int k = 0; k < d_num_vertex[ln][j]; ++k)
+                {
+                    d_anchor_spec_data[ln][j][k].subdomain_idx = d_uniform_anchor_subdomain_idx[ln][j];
+                }
             }
 
             // Free the next MPI process to start reading the current file.
@@ -1650,15 +1756,16 @@ IBStandardInitializer::readBoundaryMassFiles()
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const int num_base_filename = d_base_filename[ln].size();
-        d_bdry_mass[ln].resize(num_base_filename);
-        d_bdry_mass_stiffness[ln].resize(num_base_filename);
+        d_bdry_mass_spec_data[ln].resize(num_base_filename);
         for (int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
-            d_bdry_mass[ln][j].resize(d_num_vertex[ln][j], 0.0);
-            d_bdry_mass_stiffness[ln][j].resize(d_num_vertex[ln][j], 0.0);
+            BdryMassSpec default_spec;
+            default_spec.bdry_mass = 0.0;
+            default_spec.stiffness = 0.0;
+            d_bdry_mass_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
 
             const std::string bdry_mass_filename = d_base_filename[ln][j] + ".mass";
             std::ifstream file_stream;
@@ -1715,21 +1822,21 @@ IBStandardInitializer::readBoundaryMassFiles()
                                        << "  vertex index " << n << " is out of range" << std::endl);
                         }
 
-                        if (!(line_stream >> d_bdry_mass[ln][j][n]))
+                        if (!(line_stream >> d_bdry_mass_spec_data[ln][j][n].bdry_mass))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << bdry_mass_filename << std::endl);
                         }
-                        else if (d_bdry_mass[ln][j][n] < 0.0)
+                        else if (d_bdry_mass_spec_data[ln][j][n].bdry_mass < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << bdry_mass_filename << std::endl
                                        << "  boundary mass is negative" << std::endl);
                         }
 
-                        if (!(line_stream >> d_bdry_mass_stiffness[ln][j][n]))
+                        if (!(line_stream >> d_bdry_mass_spec_data[ln][j][n].stiffness))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << bdry_mass_filename << std::endl);
                         }
-                        else if (d_bdry_mass_stiffness[ln][j][n] < 0.0)
+                        else if (d_bdry_mass_spec_data[ln][j][n].stiffness < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << bdry_mass_filename << std::endl
                                        << "  boundary mass spring constant is negative" << std::endl);
@@ -1750,18 +1857,27 @@ IBStandardInitializer::readBoundaryMassFiles()
             // values are to be employed, for this particular structure.
             if (!d_enable_bdry_mass[ln][j])
             {
-                d_bdry_mass          [ln][j] = std::vector<double>(d_num_vertex[ln][j], 0.0);
-                d_bdry_mass_stiffness[ln][j] = std::vector<double>(d_num_vertex[ln][j], 0.0);
+                for (int k = 0; k < d_num_vertex[ln][j]; ++k)
+                {
+                    d_bdry_mass_spec_data[ln][j][k].bdry_mass = 0.0;
+                    d_bdry_mass_spec_data[ln][j][k].stiffness = 0.0;
+                }
             }
             else
             {
                 if (d_using_uniform_bdry_mass[ln][j])
                 {
-                    d_bdry_mass[ln][j] = std::vector<double>(d_num_vertex[ln][j], d_uniform_bdry_mass[ln][j]);
+                    for (int k = 0; k < d_num_vertex[ln][j]; ++k)
+                    {
+                        d_bdry_mass_spec_data[ln][j][k].bdry_mass = d_uniform_bdry_mass[ln][j];
+                    }
                 }
                 if (d_using_uniform_bdry_mass_stiffness[ln][j])
                 {
-                    d_bdry_mass_stiffness[ln][j] = std::vector<double>(d_num_vertex[ln][j], d_uniform_bdry_mass_stiffness[ln][j]);
+                    for (int k = 0; k < d_num_vertex[ln][j]; ++k)
+                    {
+                        d_bdry_mass_spec_data[ln][j][k].stiffness = d_uniform_bdry_mass_stiffness[ln][j];
+                    }
                 }
             }
 
@@ -2142,45 +2258,29 @@ IBStandardInitializer::getVertexPosn(
     return std::vector<double>(posn_ptr,posn_ptr+NDIM);
 }// getVertexPosn
 
-double
-IBStandardInitializer::getVertexTargetStiffness(
+const IBStandardInitializer::TargetSpec&
+IBStandardInitializer::getVertexTargetSpec(
     const std::pair<int,int>& point_index,
     const int level_number) const
 {
-    return d_target_stiffness[level_number][point_index.first][point_index.second];
-}// getVertexTargetStiffness
+    return d_target_spec_data[level_number][point_index.first][point_index.second];
+}// getVertexTargetSpec
 
-double
-IBStandardInitializer::getVertexTargetDamping(
+const IBStandardInitializer::AnchorSpec&
+IBStandardInitializer::getVertexAnchorSpec(
     const std::pair<int,int>& point_index,
     const int level_number) const
 {
-    return d_target_damping[level_number][point_index.first][point_index.second];
-}// getVertexTargetDamping
+    return d_anchor_spec_data[level_number][point_index.first][point_index.second];
+}// getVertexAnchorSpec
 
-bool
-IBStandardInitializer::getIsAnchorPoint(
+const IBStandardInitializer::BdryMassSpec&
+IBStandardInitializer::getVertexBdryMassSpec(
     const std::pair<int,int>& point_index,
     const int level_number) const
 {
-    return d_is_anchor_point[level_number][point_index.first][point_index.second];
-}// getIsAnchorPoint
-
-double
-IBStandardInitializer::getVertexMass(
-    const std::pair<int,int>& point_index,
-    const int level_number) const
-{
-    return d_bdry_mass[level_number][point_index.first][point_index.second];
-}// getVertexMass
-
-double
-IBStandardInitializer::getVertexMassStiffness(
-    const std::pair<int,int>& point_index,
-    const int level_number) const
-{
-    return d_bdry_mass_stiffness[level_number][point_index.first][point_index.second];
-}// getVertexMassStiffness
+    return d_bdry_mass_spec_data[level_number][point_index.first][point_index.second];
+}// getVertexBdryMassSpec
 
 const std::vector<double>&
 IBStandardInitializer::getVertexDirectors(
@@ -2199,7 +2299,7 @@ IBStandardInitializer::getVertexInstrumentationIndices(
         d_instrument_idx[level_number][point_index.first].find(point_index.second);
     if (it != d_instrument_idx[level_number][point_index.first].end())
     {
-        return (*it).second;
+        return it->second;
     }
     else
     {
@@ -2207,13 +2307,13 @@ IBStandardInitializer::getVertexInstrumentationIndices(
     }
 }// getVertexInstrumentationIndices
 
-std::vector<Pointer<Stashable> >
+std::vector<Pointer<Streamable> >
 IBStandardInitializer::initializeSpecs(
     const std::pair<int,int>& point_index,
     const int global_index_offset,
     const int level_number) const
 {
-    std::vector<Pointer<Stashable> > vertex_specs;
+    std::vector<Pointer<Streamable> > vertex_specs;
 
     const int j = point_index.first;
     const int mastr_idx = getCanonicalLagrangianIndex(point_index, level_number);
@@ -2223,33 +2323,36 @@ IBStandardInitializer::initializeSpecs(
     {
         std::vector<int> slave_idxs, force_fcn_idxs;
         std::vector<double> stiffness, rest_length;
+        std::vector<int> subdomain_idxs;
         for (std::multimap<int,Edge>::const_iterator it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
              it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
         {
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(mastr_idx == (*it).first);
+            TBOX_ASSERT(mastr_idx == it->first);
 #endif
             // The connectivity information.
-            const Edge& e = (*it).second;
+            const Edge& e = it->second;
             if (e.first == mastr_idx)
             {
                 slave_idxs.push_back(e.second+global_index_offset);
             }
             else
             {
-                slave_idxs.push_back(e.first+global_index_offset);
+                slave_idxs.push_back(e.first +global_index_offset);
             }
 
             // The material properties.
-            force_fcn_idxs.push_back((*d_spring_force_fcn_idx[level_number][j].find(e)).second);
-            stiffness     .push_back((*d_spring_stiffness    [level_number][j].find(e)).second);
-            rest_length   .push_back((*d_spring_rest_length  [level_number][j].find(e)).second);
+            const SpringSpec& spec_data = d_spring_spec_data[level_number][j].find(e)->second;
+            stiffness     .push_back(spec_data.stiffness    );
+            rest_length   .push_back(spec_data.rest_length  );
+            force_fcn_idxs.push_back(spec_data.force_fcn_idx);
+            subdomain_idxs.push_back(spec_data.subdomain_idx);
         }
         if (slave_idxs.size() > 0)
         {
             vertex_specs.push_back(
                 new IBSpringForceSpec(
-                    mastr_idx, slave_idxs, force_fcn_idxs, stiffness, rest_length));
+                    mastr_idx, slave_idxs, force_fcn_idxs, stiffness, rest_length, subdomain_idxs));
         }
     }
 
@@ -2259,21 +2362,21 @@ IBStandardInitializer::initializeSpecs(
         std::vector<std::pair<int,int> > beam_neighbor_idxs;
         std::vector<double> beam_bend_rigidity;
         std::vector<std::vector<double> > beam_mesh_dependent_curvature;
-        for (std::multimap<int,std::pair<Neighbors,std::pair<double,std::vector<double > > > >::const_iterator it = d_beam_specs[level_number][j].lower_bound(mastr_idx);
-             it != d_beam_specs[level_number][j].upper_bound(mastr_idx); ++it)
+        std::vector<int> beam_subdomain_idxs;
+        for (std::multimap<int,BeamSpec>::const_iterator it = d_beam_spec_data[level_number][j].lower_bound(mastr_idx);
+             it != d_beam_spec_data[level_number][j].upper_bound(mastr_idx); ++it)
         {
-            const std::pair<int,int>& neighbor_idxs             = (*it).second.first;
-            const double& bend_rigidity                         = (*it).second.second.first;
-            const std::vector<double>& mesh_dependent_curvature = (*it).second.second.second;
-            beam_neighbor_idxs.push_back(neighbor_idxs);
-            beam_bend_rigidity.push_back(bend_rigidity);
-            beam_mesh_dependent_curvature.push_back(mesh_dependent_curvature);
+            const BeamSpec& spec_data = it->second;
+            beam_neighbor_idxs.push_back(spec_data.neighbor_idxs);
+            beam_bend_rigidity.push_back(spec_data.bend_rigidity);
+            beam_mesh_dependent_curvature.push_back(spec_data.curvature);
+            beam_subdomain_idxs.push_back(spec_data.subdomain_idx);
         }
         if (!beam_neighbor_idxs.empty())
         {
             vertex_specs.push_back(
                 new IBBeamForceSpec(
-                    mastr_idx, beam_neighbor_idxs, beam_bend_rigidity, beam_mesh_dependent_curvature));
+                    mastr_idx, beam_neighbor_idxs, beam_bend_rigidity, beam_mesh_dependent_curvature, beam_subdomain_idxs));
         }
     }
 
@@ -2282,19 +2385,34 @@ IBStandardInitializer::initializeSpecs(
     {
         std::vector<int> rod_next_idxs;
         std::vector<std::vector<double> > rod_material_params;
-        for (std::multimap<int,std::pair<int,std::vector<double> > >::const_iterator it = d_rod_specs[level_number][j].lower_bound(mastr_idx);
-             it != d_rod_specs[level_number][j].upper_bound(mastr_idx); ++it)
+        std::vector<int> rod_subdomain_idxs;
+        for (std::multimap<int,Edge>::const_iterator it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx);
+             it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
         {
-            const int next_idx = (*it).second.first;
-            const std::vector<double> & material_params = (*it).second.second;
-            rod_next_idxs.push_back(next_idx);
-            rod_material_params.push_back(material_params);
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(mastr_idx == it->first);
+#endif
+            // The connectivity information.
+            const Edge& e = it->second;
+            if (e.first == mastr_idx)
+            {
+                rod_next_idxs.push_back(e.second+global_index_offset);
+            }
+            else
+            {
+                rod_next_idxs.push_back(e.first +global_index_offset);
+            }
+
+            // The material properties.
+            const RodSpec& spec_data = d_rod_spec_data[level_number][j].find(e)->second;
+            rod_material_params.push_back(spec_data.properties);
+            rod_subdomain_idxs.push_back(spec_data.subdomain_idx);
         }
         if (!rod_next_idxs.empty())
         {
             vertex_specs.push_back(
                 new IBRodForceSpec(
-                    mastr_idx, rod_next_idxs, rod_material_params));
+                    mastr_idx, rod_next_idxs, rod_material_params, rod_subdomain_idxs));
         }
     }
 
@@ -2302,23 +2420,26 @@ IBStandardInitializer::initializeSpecs(
     // vertex.
     if (d_enable_target_points[level_number][j])
     {
-        const double kappa_target = getVertexTargetStiffness(point_index, level_number);
-        const double eta_target = getVertexTargetDamping(point_index, level_number);
+        const TargetSpec& spec_data = getVertexTargetSpec(point_index, level_number);
+        const double kappa_target = spec_data.stiffness;
+        const double eta_target = spec_data.damping;
+        const int subdomain_idx = spec_data.subdomain_idx;
         const std::vector<double> X_target = getVertexPosn(point_index, level_number);
         vertex_specs.push_back(
             new IBTargetPointForceSpec(
-                mastr_idx, kappa_target, eta_target, X_target));
+                mastr_idx, kappa_target, eta_target, X_target, subdomain_idx));
     }
 
     // Initialize any anchor point specifications associated with the present
     // vertex.
     if (d_enable_anchor_points[level_number][j])
     {
-        const bool is_anchor_point = getIsAnchorPoint(point_index, level_number);
+        const AnchorSpec& spec_data = getVertexAnchorSpec(point_index, level_number);
+        const bool is_anchor_point = spec_data.is_anchor_point;
+        const int subdomain_idx = spec_data.subdomain_idx;
         if (is_anchor_point)
         {
-            vertex_specs.push_back(
-                new IBAnchorPointSpec(mastr_idx));
+            vertex_specs.push_back(new IBAnchorPointSpec(mastr_idx, subdomain_idx));
         }
     }
 
@@ -2379,39 +2500,49 @@ IBStandardInitializer::getFromInput(
 
     d_enable_springs.resize(d_max_levels);
     d_spring_edge_map.resize(d_max_levels);
-    d_spring_stiffness.resize(d_max_levels);
-    d_spring_rest_length.resize(d_max_levels);
-    d_spring_force_fcn_idx.resize(d_max_levels);
+    d_spring_spec_data.resize(d_max_levels);
     d_using_uniform_spring_stiffness.resize(d_max_levels);
     d_uniform_spring_stiffness.resize(d_max_levels);
     d_using_uniform_spring_rest_length.resize(d_max_levels);
     d_uniform_spring_rest_length.resize(d_max_levels);
     d_using_uniform_spring_force_fcn_idx.resize(d_max_levels);
     d_uniform_spring_force_fcn_idx.resize(d_max_levels);
+    d_using_uniform_spring_subdomain_idx.resize(d_max_levels);
+    d_uniform_spring_subdomain_idx.resize(d_max_levels);
 
     d_enable_beams.resize(d_max_levels);
-    d_beam_specs.resize(d_max_levels);
+    d_beam_spec_data.resize(d_max_levels);
     d_using_uniform_beam_bend_rigidity.resize(d_max_levels);
     d_uniform_beam_bend_rigidity.resize(d_max_levels);
+    d_using_uniform_beam_curvature.resize(d_max_levels);
+    d_uniform_beam_curvature.resize(d_max_levels);
+    d_using_uniform_beam_subdomain_idx.resize(d_max_levels);
+    d_uniform_beam_subdomain_idx.resize(d_max_levels);
 
     d_enable_rods.resize(d_max_levels);
     d_rod_edge_map.resize(d_max_levels);
-    d_rod_specs.resize(d_max_levels);
+    d_rod_spec_data.resize(d_max_levels);
+    d_using_uniform_rod_properties.resize(d_max_levels);
+    d_uniform_rod_properties.resize(d_max_levels);
+    d_using_uniform_rod_subdomain_idx.resize(d_max_levels);
+    d_uniform_rod_subdomain_idx.resize(d_max_levels);
 
     d_enable_target_points.resize(d_max_levels);
-    d_target_stiffness.resize(d_max_levels);
-    d_target_damping.resize(d_max_levels);
+    d_target_spec_data.resize(d_max_levels);
     d_using_uniform_target_stiffness.resize(d_max_levels);
     d_uniform_target_stiffness.resize(d_max_levels);
     d_using_uniform_target_damping.resize(d_max_levels);
     d_uniform_target_damping.resize(d_max_levels);
+    d_using_uniform_target_subdomain_idx.resize(d_max_levels);
+    d_uniform_target_subdomain_idx.resize(d_max_levels);
 
     d_enable_anchor_points.resize(d_max_levels);
-    d_is_anchor_point.resize(d_max_levels);
+    d_anchor_spec_data.resize(d_max_levels);
+    d_using_uniform_anchor_subdomain_idx.resize(d_max_levels);
+    d_uniform_anchor_subdomain_idx.resize(d_max_levels);
 
     d_enable_bdry_mass.resize(d_max_levels);
-    d_bdry_mass.resize(d_max_levels);
-    d_bdry_mass_stiffness.resize(d_max_levels);
+    d_bdry_mass_spec_data.resize(d_max_levels);
     d_using_uniform_bdry_mass.resize(d_max_levels);
     d_uniform_bdry_mass.resize(d_max_levels);
     d_using_uniform_bdry_mass_stiffness.resize(d_max_levels);
@@ -2505,38 +2636,44 @@ IBStandardInitializer::getFromInput(
         const int num_base_filename = d_base_filename[ln].size();
 
         d_enable_springs[ln].resize(num_base_filename,true);
-
         d_using_uniform_spring_stiffness[ln].resize(num_base_filename,false);
         d_uniform_spring_stiffness[ln].resize(num_base_filename,-1.0);
-
         d_using_uniform_spring_rest_length[ln].resize(num_base_filename,false);
         d_uniform_spring_rest_length[ln].resize(num_base_filename,-1.0);
-
         d_using_uniform_spring_force_fcn_idx[ln].resize(num_base_filename,false);
         d_uniform_spring_force_fcn_idx[ln].resize(num_base_filename,-1);
+        d_using_uniform_spring_subdomain_idx[ln].resize(num_base_filename,false);
+        d_uniform_spring_subdomain_idx[ln].resize(num_base_filename,-1);
 
         d_enable_beams[ln].resize(num_base_filename,true);
-
         d_using_uniform_beam_bend_rigidity[ln].resize(num_base_filename,false);
         d_uniform_beam_bend_rigidity[ln].resize(num_base_filename,-1.0);
+        d_using_uniform_beam_curvature[ln].resize(num_base_filename,false);
+        d_uniform_beam_curvature[ln].resize(num_base_filename,std::vector<double>(NDIM,0.0));
+        d_using_uniform_beam_subdomain_idx[ln].resize(num_base_filename,false);
+        d_uniform_beam_subdomain_idx[ln].resize(num_base_filename,-1);
 
         d_enable_rods[ln].resize(num_base_filename,true);
+        d_using_uniform_rod_properties[ln].resize(num_base_filename,false);
+        d_uniform_rod_properties[ln].resize(num_base_filename,std::vector<double>(NUM_ROD_PARAMS,0.0));
+        d_using_uniform_rod_subdomain_idx[ln].resize(num_base_filename,false);
+        d_uniform_rod_subdomain_idx[ln].resize(num_base_filename,-1);
 
         d_enable_target_points[ln].resize(num_base_filename,true);
-
         d_using_uniform_target_stiffness[ln].resize(num_base_filename,false);
         d_uniform_target_stiffness[ln].resize(num_base_filename,-1.0);
-
         d_using_uniform_target_damping[ln].resize(num_base_filename,false);
         d_uniform_target_damping[ln].resize(num_base_filename,-1.0);
+        d_using_uniform_target_subdomain_idx[ln].resize(num_base_filename,false);
+        d_uniform_target_subdomain_idx[ln].resize(num_base_filename,-1);
 
         d_enable_anchor_points[ln].resize(num_base_filename,true);
+        d_using_uniform_anchor_subdomain_idx[ln].resize(num_base_filename,false);
+        d_uniform_anchor_subdomain_idx[ln].resize(num_base_filename,-1);
 
         d_enable_bdry_mass[ln].resize(num_base_filename,true);
-
         d_using_uniform_bdry_mass[ln].resize(num_base_filename,false);
         d_uniform_bdry_mass[ln].resize(num_base_filename,-1.0);
-
         d_using_uniform_bdry_mass_stiffness[ln].resize(num_base_filename,false);
         d_uniform_bdry_mass_stiffness[ln].resize(num_base_filename,-1.0);
 
@@ -2587,7 +2724,6 @@ IBStandardInitializer::getFromInput(
                 {
                     d_using_uniform_spring_stiffness[ln][j] = true;
                     d_uniform_spring_stiffness[ln][j] = sub_db->getDouble("uniform_spring_stiffness");
-
                     if (d_uniform_spring_stiffness[ln][j] < 0.0)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_spring_stiffness' in database " << base_filename << std::endl
@@ -2598,7 +2734,6 @@ IBStandardInitializer::getFromInput(
                 {
                     d_using_uniform_spring_rest_length[ln][j] = true;
                     d_uniform_spring_rest_length[ln][j] = sub_db->getDouble("uniform_spring_rest_length");
-
                     if (d_uniform_spring_rest_length[ln][j] < 0.0)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_spring_rest_length' in database " << base_filename << std::endl
@@ -2610,41 +2745,74 @@ IBStandardInitializer::getFromInput(
                     d_using_uniform_spring_force_fcn_idx[ln][j] = true;
                     d_uniform_spring_force_fcn_idx[ln][j] = sub_db->getInteger("uniform_spring_force_fcn_idx");
                 }
+                if (sub_db->keyExists("uniform_spring_subdomain_idx"))
+                {
+                    d_using_uniform_spring_subdomain_idx[ln][j] = true;
+                    d_uniform_spring_subdomain_idx[ln][j] = sub_db->getInteger("uniform_spring_subdomain_idx");
+                }
 
                 if (sub_db->keyExists("uniform_beam_bend_rigidity"))
                 {
                     d_using_uniform_beam_bend_rigidity[ln][j] = true;
                     d_uniform_beam_bend_rigidity[ln][j] = sub_db->getDouble("uniform_beam_bend_rigidity");
-
                     if (d_uniform_beam_bend_rigidity[ln][j] < 0.0)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_beam_bend_rigidity' in database " << base_filename << std::endl
                                    << "  beam bending rigidity is negative" << std::endl);
                     }
                 }
+                if (sub_db->keyExists("uniform_beam_curvature"))
+                {
+                    d_using_uniform_beam_curvature[ln][j] = true;
+                    sub_db->getDoubleArray("uniform_beam_curvature", &d_uniform_beam_curvature[ln][j][0], NDIM);
+                }
+                if (sub_db->keyExists("uniform_beam_subdomain_idx"))
+                {
+                    d_using_uniform_beam_subdomain_idx[ln][j] = true;
+                    d_uniform_beam_subdomain_idx[ln][j] = sub_db->getInteger("uniform_beam_subdomain_idx");
+                }
+
+                if (sub_db->keyExists("uniform_rod_properties"))
+                {
+                    d_using_uniform_rod_properties[ln][j] = true;
+                    sub_db->getDoubleArray("uniform_rod_properties", &d_uniform_rod_properties[ln][j][0], NUM_ROD_PARAMS);
+                }
+                if (sub_db->keyExists("uniform_rod_subdomain_idx"))
+                {
+                    d_using_uniform_rod_subdomain_idx[ln][j] = true;
+                    d_uniform_rod_subdomain_idx[ln][j] = sub_db->getInteger("uniform_rod_subdomain_idx");
+                }
 
                 if (sub_db->keyExists("uniform_target_stiffness"))
                 {
                     d_using_uniform_target_stiffness[ln][j] = true;
                     d_uniform_target_stiffness[ln][j] = sub_db->getDouble("uniform_target_stiffness");
-
                     if (d_uniform_target_stiffness[ln][j] < 0.0)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_target_stiffness' in database " << base_filename << std::endl
                                    << "  target point spring constant is negative" << std::endl);
                     }
                 }
-
                 if (sub_db->keyExists("uniform_target_damping"))
                 {
                     d_using_uniform_target_damping[ln][j] = true;
                     d_uniform_target_damping[ln][j] = sub_db->getDouble("uniform_target_damping");
-
                     if (d_uniform_target_damping[ln][j] < 0.0)
                     {
                         TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_target_damping' in database " << base_filename << std::endl
                                    << "  target point spring constant is negative" << std::endl);
                     }
+                }
+                if (sub_db->keyExists("uniform_target_subdomain_idx"))
+                {
+                    d_using_uniform_target_subdomain_idx[ln][j] = true;
+                    d_uniform_target_subdomain_idx[ln][j] = sub_db->getInteger("uniform_target_subdomain_idx");
+                }
+
+                if (sub_db->keyExists("uniform_anchor_subdomain_idx"))
+                {
+                    d_using_uniform_anchor_subdomain_idx[ln][j] = true;
+                    d_uniform_anchor_subdomain_idx[ln][j] = sub_db->getInteger("uniform_anchor_subdomain_idx");
                 }
 
                 if (sub_db->keyExists("uniform_bdry_mass"))
@@ -2707,6 +2875,11 @@ IBStandardInitializer::getFromInput(
                     pout << "  NOTE: uniform spring force functions are being employed for the structure named " << base_filename << std::endl
                          << "        any force function index information in optional file " << base_filename << ".spring will be IGNORED" << std::endl;
                 }
+                if (d_using_uniform_spring_subdomain_idx[ln][j])
+                {
+                    pout << "  NOTE: uniform spring subdomain indicies are being employed for the structure named " << base_filename << std::endl
+                         << "        any subdomain index information in optional file " << base_filename << ".spring will be IGNORED" << std::endl;
+                }
             }
 
             if (!d_enable_beams[ln][j])
@@ -2719,6 +2892,34 @@ IBStandardInitializer::getFromInput(
                 {
                     pout << "  NOTE: uniform beam bending rigidities are being employed for the structure named " << base_filename << std::endl
                          << "        any stiffness information in optional file " << base_filename << ".beam will be IGNORED" << std::endl;
+                }
+                if (d_using_uniform_beam_curvature[ln][j])
+                {
+                    pout << "  NOTE: uniform beam curvatures are being employed for the structure named " << base_filename << std::endl
+                         << "        any curvature information in optional file " << base_filename << ".beam will be IGNORED" << std::endl;
+                }
+                if (d_using_uniform_beam_subdomain_idx[ln][j])
+                {
+                    pout << "  NOTE: uniform beam subdomain indicies are being employed for the structure named " << base_filename << std::endl
+                         << "        any subdomain index information in optional file " << base_filename << ".beam will be IGNORED" << std::endl;
+                }
+            }
+
+            if (!d_enable_rods[ln][j])
+            {
+                pout << "  NOTE: rod forces are DISABLED for " << base_filename << std::endl;
+            }
+            else
+            {
+                if (d_using_uniform_rod_properties[ln][j])
+                {
+                    pout << "  NOTE: uniform rod material properties are being employed for the structure named " << base_filename << std::endl
+                         << "        any material property information in optional file " << base_filename << ".rod will be IGNORED" << std::endl;
+                }
+                if (d_using_uniform_rod_subdomain_idx[ln][j])
+                {
+                    pout << "  NOTE: uniform rod subdomain indicies are being employed for the structure named " << base_filename << std::endl
+                         << "        any subdomain index information in optional file " << base_filename << ".rod will be IGNORED" << std::endl;
                 }
             }
 
@@ -2738,11 +2939,24 @@ IBStandardInitializer::getFromInput(
                     pout << "  NOTE: uniform target point damping factors are being employed for the structure named " << base_filename << std::endl
                          << "        any target point damping factor information in optional file " << base_filename << ".target will be IGNORED" << std::endl;
                 }
+                if (d_using_uniform_target_subdomain_idx[ln][j])
+                {
+                    pout << "  NOTE: uniform target point subdomain indicies are being employed for the structure named " << base_filename << std::endl
+                         << "        any subdomain index information in optional file " << base_filename << ".target will be IGNORED" << std::endl;
+                }
             }
 
             if (!d_enable_anchor_points[ln][j])
             {
                 pout << "  NOTE: anchor points are DISABLED for " << base_filename << std::endl;
+            }
+            else
+            {
+                if (d_using_uniform_anchor_subdomain_idx[ln][j])
+                {
+                    pout << "  NOTE: uniform anchor point subdomain indicies are being employed for the structure named " << base_filename << std::endl
+                         << "        any subdomain index information in optional file " << base_filename << ".anchor will be IGNORED" << std::endl;
+                }
             }
 
             if (!d_enable_bdry_mass[ln][j])

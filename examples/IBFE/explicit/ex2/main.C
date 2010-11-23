@@ -1,22 +1,31 @@
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 // Config files
 #include <IBAMR_config.h>
@@ -32,6 +41,7 @@
 #include <mesh_generation.h>
 #include <quadrature.h>
 #include <string_to_enum.h>
+using namespace libMesh;
 
 // Headers for basic SAMRAI objects
 #include <PatchLevel.h>
@@ -289,7 +299,7 @@ main(
         // Create a simple FE mesh.
         Mesh mesh(NDIM);
         const int M = input_db->getIntegerWithDefault("M", 4);
-        string elem_type = "QUAD4";
+        string elem_type = input_db->getStringWithDefault("elem_type", "QUAD4");
         MeshTools::Generation::build_square(mesh,
                                             M, 10*M,
                                             0.95, 1.05,
@@ -309,11 +319,11 @@ main(
                     const short int boundary_id = mesh.boundary_info->boundary_id(elem,side);
                     if (boundary_id == 0)
                     {
-                        mesh.boundary_info->add_side(elem, side, IBFEHierarchyIntegrator::DIRICHLET_BOUNDARY_ID);
+                        mesh.boundary_info->add_side(elem, side, FEDataManager::DIRICHLET_BDRY_ID);
                     }
                     else if (boundary_id == 2)
                     {
-                        mesh.boundary_info->add_side(elem, side, IBFEHierarchyIntegrator::DIRICHLET_BOUNDARY_ID);
+                        mesh.boundary_info->add_side(elem, side, FEDataManager::DIRICHLET_BDRY_ID);
                     }
                 }
             }
@@ -326,14 +336,12 @@ main(
         const std::string quad_order = input_db->getStringWithDefault("quad_order", "SIXTH");
         AutoPtr<QBase> qrule = QBase::build(Utility::string_to_enum<QuadratureType>(quad_type),NDIM,Utility::string_to_enum<Order>(quad_order));
         const std::string weighting_fcn = input_db->getStringWithDefault("weighting_fcn", "IB_4");
-        FEDataManager* fe_data_manager = FEDataManager::getManager("IBFE Manager", weighting_fcn, weighting_fcn, qrule.get());
+        const bool use_consistent_mass_matrix = input_db->getBoolWithDefault("use_consistent_mass_matrix", true);
+        FEDataManager* fe_data_manager = FEDataManager::getManager("IBFE Manager", weighting_fcn, weighting_fcn, qrule.get(), use_consistent_mass_matrix);
 
         const int mesh_level_number = input_db->getInteger("MAX_LEVELS")-1;
         EquationSystems equation_systems(mesh);
         fe_data_manager->setEquationSystems(&equation_systems, mesh_level_number);
-
-        const bool use_consistent_mass_matrix = input_db->getBoolWithDefault("use_consistent_mass_matrix", true);
-        fe_data_manager->setUseConsistentMassMatrix(use_consistent_mass_matrix);
 
         // Get the restart manager and root restart database.  If run is from
         // restart, open the restart file.
@@ -434,66 +442,6 @@ main(
         time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
         double dt_now = time_integrator->initializeHierarchy();
         tbox::RestartManager::getManager()->closeRestartFile();
-
-        // Set up boundary conditions.
-        System&    force_system = equation_systems.get_system<System>(IBFEHierarchyIntegrator::   FORCE_SYSTEM_NAME);
-        System& velocity_system = equation_systems.get_system<System>(IBFEHierarchyIntegrator::VELOCITY_SYSTEM_NAME);
-        DofMap&    force_dof_map =    force_system.get_dof_map();
-        DofMap& velocity_dof_map = velocity_system.get_dof_map();
-        const unsigned int    force_system_number =    force_system.number();
-        const unsigned int velocity_system_number = velocity_system.number();
-
-        vector<unsigned int> elems;
-        vector<unsigned short int> sides;
-        vector<short int> bdry_ids;
-        mesh.boundary_info->build_side_list(elems, sides, bdry_ids);
-        for (unsigned int k = 0; k < elems.size(); ++k)
-        {
-            const unsigned int       elem_id =    elems[k];
-            const unsigned short int side_id =    sides[k];
-            const short int          bdry_id = bdry_ids[k];
-            Elem* elem = mesh.elem(elem_id);
-            for (unsigned int n = 0; n < elem->n_nodes(); ++n)
-            {
-                if (elem->is_node_on_side(n, side_id))
-                {
-                    Node* node = elem->get_node(n);
-                    if (node->n_dofs(force_system_number) > 0 && node->n_dofs(velocity_system_number) > 0)
-                    {
-                        if (bdry_id == IBFEHierarchyIntegrator::DIRICHLET_BOUNDARY_ID)
-                        {
-                            unsigned int d = 1;
-
-                            const int F1_dof_index = node->dof_number(force_system_number,d,0);
-                            DofConstraintRow F_constraint_row;
-                            F_constraint_row[F1_dof_index] = 1.0;
-                            force_dof_map.add_constraint_row(F1_dof_index, F_constraint_row, false);
-
-                            const int U1_dof_index = node->dof_number(velocity_system_number,d,0);
-                            DofConstraintRow U_constraint_row;
-                            U_constraint_row[U1_dof_index] = 1.0;
-                            velocity_dof_map.add_constraint_row(U1_dof_index, U_constraint_row, false);
-                        }
-
-                        if (bdry_id == IBFEHierarchyIntegrator::DIRICHLET_BOUNDARY_ID)
-                        {
-                            for (unsigned int d = 0; d < NDIM; ++d)
-                            {
-                                const int F_dof_index = node->dof_number(force_system_number,d,0);
-                                DofConstraintRow F_constraint_row;
-                                F_constraint_row[F_dof_index] = 1.0;
-                                force_dof_map.add_constraint_row(F_dof_index, F_constraint_row, false);
-
-                                const int U_dof_index = node->dof_number(velocity_system_number,d,0);
-                                DofConstraintRow U_constraint_row;
-                                U_constraint_row[U_dof_index] = 1.0;
-                                velocity_dof_map.add_constraint_row(U_dof_index, U_constraint_row, false);
-                            }
-                        }
-                    }
-                }
-            }
-        }
 
         // After creating all objects and initializing their state, we print the
         // input database contents to the log file.

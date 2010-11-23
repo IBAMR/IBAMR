@@ -1,25 +1,34 @@
 // Filename: AdvDiffHierarchyIntegrator.C
 // Created on 17 Mar 2004 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #include "AdvDiffHierarchyIntegrator.h"
 
@@ -40,7 +49,6 @@
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
-#include <ibtk/FACPreconditionerLSWrapper.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 
 // SAMRAI INCLUDES
@@ -247,44 +255,27 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     }
 
     // Obtain the Hierarchy data operations objects.
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager =
-        HierarchyDataOpsManager<NDIM>::getManager();
-
-    Pointer<CellVariable<NDIM,double> > cc_var =
-        new CellVariable<NDIM,double>("cc_var");
-    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(
-        cc_var, hierarchy);
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    Pointer<CellVariable<NDIM,double> > cc_var = new CellVariable<NDIM,double>("cc_var");
+    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy, true);
 
     // Setup Timers.
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_initialize_hierarchy_integrator = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator()");
-        t_initialize_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::initializeHierarchy()");
-        t_advance_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::advanceHierarchy()");
-        t_regrid_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::regridHierarchy()");
-        t_integrate_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::integrateHierarchy()");
-        t_synchronize_hierarchy = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::synchronizeHierarchy()");
-        t_synchronize_new_levels = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::synchronizeNewLevels()");
-        t_reset_time_dependent_hier_data = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::resetTimeDependentHierData()");
-        t_reset_hier_data_to_preadvance_state = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::resetHierDataToPreadvanceState()");
-        t_initialize_level_data = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::initializeLevelData()");
-        t_reset_hierarchy_configuration = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::resetHierarchyConfiguration()");
-        t_apply_gradient_detector = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::applyGradientDetector()");
-        t_put_to_database = TimerManager::getManager()->
-            getTimer("IBAMR::AdvDiffHierarchyIntegrator::putToDatabase()");
+        t_initialize_hierarchy_integrator     = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator()");
+        t_initialize_hierarchy                = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::initializeHierarchy()");
+        t_advance_hierarchy                   = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::advanceHierarchy()");
+        t_regrid_hierarchy                    = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::regridHierarchy()");
+        t_integrate_hierarchy                 = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::integrateHierarchy()");
+        t_synchronize_hierarchy               = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::synchronizeHierarchy()");
+        t_synchronize_new_levels              = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::synchronizeNewLevels()");
+        t_reset_time_dependent_hier_data      = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::resetTimeDependentHierData()");
+        t_reset_hier_data_to_preadvance_state = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::resetHierDataToPreadvanceState()");
+        t_initialize_level_data               = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::initializeLevelData()");
+        t_reset_hierarchy_configuration       = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::resetHierarchyConfiguration()");
+        t_apply_gradient_detector             = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::applyGradientDetector()");
+        t_put_to_database                     = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::putToDatabase()");
         timers_need_init = false;
     }
     return;
@@ -703,11 +694,9 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
                 d_helmholtz_specs[l]);
             d_helmholtz_fac_ops[l]->setPhysicalBcCoefs(d_Q_bc_coef[l]);
 
-            d_helmholtz_fac_pcs[l] = new FACPreconditioner<NDIM>(
+            d_helmholtz_fac_pcs[l] = new IBTK::FACPreconditioner(
                 d_object_name+"::FAC Preconditioner::"+name,
                 *d_helmholtz_fac_ops[l], d_fac_pc_db);
-            d_helmholtz_fac_ops[l]->setPreconditioner(
-                d_helmholtz_fac_pcs[l]);
         }
 
         d_helmholtz_solvers[l] = new PETScKrylovLinearSolver(
@@ -719,9 +708,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         d_helmholtz_solvers[l]->setOperator(d_helmholtz_ops[l]);
         if (d_using_FAC)
         {
-            d_helmholtz_solvers[l]->setPreconditioner(
-                new FACPreconditionerLSWrapper(
-                    d_helmholtz_fac_pcs[l], d_fac_pc_db));
+            d_helmholtz_solvers[l]->setPreconditioner(d_helmholtz_fac_pcs[l]);
         }
 
         // Indicate that the solvers need to be initialized.
@@ -1275,9 +1262,9 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         helmholtz_op->setTime(new_time);
         helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
 
-        Pointer<CCPoissonFACOperator>             helmholtz_fac_op = d_helmholtz_fac_ops[l];
-        Pointer<FACPreconditioner<NDIM> > helmholtz_fac_pc = d_helmholtz_fac_pcs[l];
-        Pointer<KrylovLinearSolver>               helmholtz_solver = d_helmholtz_solvers[l];
+        Pointer<CCPoissonFACOperator>     helmholtz_fac_op = d_helmholtz_fac_ops[l];
+        Pointer<IBTK::FACPreconditioner > helmholtz_fac_pc = d_helmholtz_fac_pcs[l];
+        Pointer<KrylovLinearSolver>       helmholtz_solver = d_helmholtz_solvers[l];
 
         if (d_helmholtz_solvers_need_init[l])
         {

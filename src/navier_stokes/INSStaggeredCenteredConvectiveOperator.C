@@ -1,25 +1,34 @@
 // Filename: INSStaggeredCenteredConvectiveOperator.C
 // Created on 30 Oct 2008 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #include "INSStaggeredCenteredConvectiveOperator.h"
 
@@ -204,14 +213,10 @@ INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_apply_convective_operator = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator()");
-        t_apply = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::apply()");
-        t_initialize_operator_state = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()");
+        t_apply_convective_operator = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator()");
+        t_apply                     = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::apply()");
+        t_initialize_operator_state = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::initializeOperatorState()");
+        t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()");
         timers_need_init = false;
     }
     return;
@@ -351,19 +356,12 @@ INSStaggeredCenteredConvectiveOperator::apply(
 {
     t_apply->start();
 
-    // Initialize the operator (if necessary).
-    const bool deallocate_at_completion = !d_is_initialized;
-    if (!d_is_initialized) initializeOperatorState(x,y);
-
     // Get the vector components.
     const int U_idx = x.getComponentDescriptorIndex(0);
     const int N_idx = y.getComponentDescriptorIndex(0);
 
     // Compute the action of the operator.
     applyConvectiveOperator(U_idx, N_idx);
-
-    // Deallocate the operator (if necessary).
-    if (deallocate_at_completion) deallocateOperatorState();
 
     t_apply->stop();
     return;

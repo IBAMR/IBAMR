@@ -79,7 +79,7 @@ IBFEHierarchyIntegrator {
    dt_max = DT
    num_cycles = 3
    enable_logging = TRUE
-   split_interior_and_bdry_forces = TRUE
+   split_interior_and_bdry_forces = FALSE
    fe_order = elem_order
 }
 

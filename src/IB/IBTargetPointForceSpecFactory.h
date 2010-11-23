@@ -1,25 +1,34 @@
 // Filename: IBTargetPointForceSpecFactory.h
 // Created on 21 Mar 2007 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef included_IBTargetPointForceSpecFactory
 #define included_IBTargetPointForceSpecFactory
@@ -27,8 +36,8 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/Stashable.h>
-#include <ibtk/StashableFactory.h>
+#include <ibtk/Streamable.h>
+#include <ibtk/StreamableFactory.h>
 
 // SAMRAI INCLUDES
 #include <IntVector.h>
@@ -45,7 +54,7 @@ namespace IBAMR
  * streams.
  */
 class IBTargetPointForceSpecFactory
-    : public IBTK::StashableFactory
+    : public IBTK::StreamableFactory
 {
 public:
     /*!
@@ -60,26 +69,27 @@ public:
     ~IBTargetPointForceSpecFactory();
 
     /*!
-     * \brief Return the unique identifier used to specify the IBTK::StashableFactory
-     * object used by the IBTK::StashableManager to extract Stashable objects from
-     * data streams.
+     * \brief Return the unique identifier used to specify the
+     * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
+     * extract IBTargetPointForceSpec objects from data streams.
      */
     virtual int
-    getStashableID() const;
+    getStreamableClassID() const;
 
     /*!
-     * \brief Set the unique identifier used to specify the IBTK::StashableFactory
-     * object used by the IBTK::StashableManager to extract Stashable objects from
-     * data streams.
+     * \brief Set the unique identifier used to specify the
+     * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
+     * extract IBTargetPointForceSpec objects from data streams.
      */
     virtual void
-    setStashableID(
-        const int stashable_id);
+    setStreamableClassID(
+        const int class_id);
 
     /*!
-     * \brief Build a IBTK::Stashable object by unpacking data from the input stream.
+     * \brief Build an IBTargetPointForceSpec object by unpacking data from the
+     * data stream.
      */
-    virtual SAMRAI::tbox::Pointer<IBTK::Stashable>
+    virtual SAMRAI::tbox::Pointer<IBTK::Streamable>
     unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
         const SAMRAI::hier::IntVector<NDIM>& offset);
@@ -109,9 +119,10 @@ private:
         const IBTargetPointForceSpecFactory& that);
 
     /*
-     * The stashable ID for this object type.
+     * The class ID for this object type assigned by the
+     * IBTK::StreamableManager.
      */
-    static int s_stashable_id;
+    static int s_class_id;
 };
 }// namespace IBAMR
 

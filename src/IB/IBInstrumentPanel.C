@@ -1,25 +1,34 @@
 // Filename: IBInstrumentPanel.C
 // Created on 12 May 2007 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #include "IBInstrumentPanel.h"
 
@@ -125,11 +134,7 @@ init_meter_elements(
 
         // Away from the center of the web, each web patch is a planar
         // quadrilateral.  At the web centroid, the quadrilateral is degenerate,
-        // i.e., it becomes a triangle.
-        //
-        // The only change required between these two cases is that the centroid
-        // of a non-degenerate quadrilateral is different from that of a
-        // degenerate quadrilateral.
+        // i.e., it is a triangle.
         for (int n = 0; n < num_web_nodes; ++n)
         {
             // Compute the four vertices of the quadrilateral web patch.
@@ -141,8 +146,32 @@ init_meter_elements(
             const blitz::TinyVector<double,NDIM> X2(X_perimeter1+double(n+1)*dX1);
             const blitz::TinyVector<double,NDIM> X3(X_perimeter0+double(n+1)*dX0);
 
-            // Compute the centroid of the quadrilateral web patch.
-            X_web(m,n) = ((n+1 < num_web_nodes) ? blitz::TinyVector<double,NDIM>((X0+X1+X2+X3)/4.0) : blitz::TinyVector<double,NDIM>((X0+X1+X2)/3.0));
+            // Compute the midpoints of the edges of the quadrilateral.
+            const blitz::TinyVector<double,NDIM> X01(0.5*(X0+X1));
+            const blitz::TinyVector<double,NDIM> X12(0.5*(X1+X2));
+            const blitz::TinyVector<double,NDIM> X23(0.5*(X2+X3));
+            const blitz::TinyVector<double,NDIM> X30(0.5*(X3+X0));
+
+            // Construct a parametric representation of the lines connecting the
+            // midpoints of the edges.
+            const blitz::TinyVector<double,NDIM>& l0 = X01;
+            const blitz::TinyVector<double,NDIM>  d0 = X23-X01;
+
+            const blitz::TinyVector<double,NDIM>& l1 = X12;
+            const blitz::TinyVector<double,NDIM>  d1 = X30-X12;
+
+            // Compute the centroid as the intersection of the lines connecting
+            // the midpoints of the edges.
+            const double d0d0 = dot(d0,d0);
+            const double d0d1 = dot(d0,d1);
+            const double d1d1 = dot(d1,d1);
+            const double d0l0 = dot(d0,l0);
+            const double d0l1 = dot(d0,l1);
+            const double d1l0 = dot(d1,l0);
+            const double d1l1 = dot(d1,l1);
+            const double t = (-d0l0*d1d1+d0l1*d1d1+d0d1*d1l0-d0d1*d1l1)/(-d0d1*d0d1+d1d1*d0d0);
+            const double s = ( d1l0*d0d0-d0d1*d0l0+d0d1*d0l1-d1l1*d0d0)/(-d0d1*d0d1+d1d1*d0d0);
+            X_web(m,n) = 0.5*(l0+t*d0+l1+s*d1);
 
             // Compute the area-weighted normal to the quadrilateral web patch,
             // i.e.,
@@ -234,7 +263,7 @@ build_meter_web(
 
     // Write out the variables.
     int    cycle = timestep;
-    float  time  = simulation_time;
+    float  time  = float(simulation_time);
     double dtime = simulation_time;
 
     static const int MAX_OPTS = 3;
@@ -444,9 +473,10 @@ IBInstrumentPanel::IBInstrumentPanel(
     if (timers_need_init)
     {
         t_initialize_hierarchy_independent_data = TimerManager::getManager()->getTimer("IBAMR::IBInstrumentPanel::initializeHierarchyIndependentData()");
-        t_initialize_hierarchy_dependent_data = TimerManager::getManager()->getTimer("IBAMR::IBInstrumentPanel::initializeHierarchyDependentData()");
-        t_read_instrument_data = TimerManager::getManager()->getTimer("IBAMR::IBInstrumentPanel::readInstrumentData()");
-        t_write_plot_data = TimerManager::getManager()->getTimer("IBAMR::IBInstrumentPanel::writePlotData()");
+        t_initialize_hierarchy_dependent_data   = TimerManager::getManager()->getTimer("IBAMR::IBInstrumentPanel::initializeHierarchyDependentData()");
+        t_read_instrument_data                  = TimerManager::getManager()->getTimer("IBAMR::IBInstrumentPanel::readInstrumentData()");
+        t_write_plot_data                       = TimerManager::getManager()->getTimer("IBAMR::IBInstrumentPanel::writePlotData()");
+        timers_need_init = false;
     }
     return;
 }// IBInstrumentPanel
@@ -534,7 +564,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
                      it != idx_data->lnode_index_end(); ++it)
                 {
                     const LNodeIndex& node_idx = *it;
-                    Pointer<IBInstrumentationSpec> spec = node_idx.getStashData<IBInstrumentationSpec>();
+                    Pointer<IBInstrumentationSpec> spec = node_idx.getNodeData<IBInstrumentationSpec>();
                     if (!spec.isNull())
                     {
                         const int m = spec->getMeterIndex();
@@ -693,7 +723,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
                      it != idx_data->lnode_index_end(); ++it)
                 {
                     const LNodeIndex& node_idx = *it;
-                    Pointer<IBInstrumentationSpec> spec = node_idx.getStashData<IBInstrumentationSpec>();
+                    Pointer<IBInstrumentationSpec> spec = node_idx.getNodeData<IBInstrumentationSpec>();
                     if (!spec.isNull())
                     {
                         const int& petsc_idx = node_idx.getLocalPETScIndex();
@@ -1038,7 +1068,7 @@ IBInstrumentPanel::readInstrumentData(
                      it != idx_data->lnode_index_end(); ++it)
                 {
                     const LNodeIndex& node_idx = *it;
-                    Pointer<IBInstrumentationSpec> spec = node_idx.getStashData<IBInstrumentationSpec>();
+                    Pointer<IBInstrumentationSpec> spec = node_idx.getNodeData<IBInstrumentationSpec>();
                     if (!spec.isNull())
                     {
                         const int& petsc_idx = node_idx.getLocalPETScIndex();
@@ -1203,7 +1233,7 @@ IBInstrumentPanel::writePlotData(
         }
 
         int    cycle = timestep_num;
-        float  time  = simulation_time;
+        float  time  = float(simulation_time);
         double dtime = simulation_time;
 
         static const int MAX_OPTS = 3;

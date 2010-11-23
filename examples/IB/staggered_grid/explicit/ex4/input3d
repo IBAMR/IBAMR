@@ -1,16 +1,16 @@
 // physical parameters
-L = 10.0         // length of computational domain (cm)
-RHO = 1.0        // fluid density (g/cm^3)
-MU = 0.01        // fluid viscosity (g/cm*s)
-DT = 0.01        // timestep size (s)
-FREQ = 1.0       // rotation frequency (Hz)
+L = 10.0                                  // length of computational domain (cm)
+RHO = 1.0                                 // fluid density (g/cm^3)
+MU = 0.01                                 // fluid viscosity (g/cm*s)
+FREQ = 1.0                                // rotation frequency (Hz)
 
-// grid spacing parameters
-NUM_LEVELS = 2   // number of levels in locally refined grid
-REF_RATIO  = 4   // refinement ratio between levels
-
-N = 16                                    // coarsest grid spacing
-NFINEST = (REF_RATIO^(NUM_LEVELS - 1))*N  // finest   grid spacing
+// numerical parameters
+NUM_LEVELS = 2                            // number of levels in locally refined grid
+REF_RATIO  = 4                            // refinement ratio between levels
+NFINEST = 64                              // finest   grid spacing
+N = NFINEST/(REF_RATIO^(NUM_LEVELS - 1))  // coarsest grid spacing
+DT = 1.0e-1*64.0/NFINEST                  // timestep size (s)    --- 1.0e-1 s at NFINEST = 64
+W = 4.0 * NFINEST / 64.0                  // delta function width --- 4        at NFINEST = 64
 
 VelocityInitialConditions {
    function_0 = "0.0"
@@ -26,20 +26,9 @@ IBStaggeredHierarchyIntegrator {
    regrid_interval       = 1
    dt_max = DT
    num_cycles = 2
-   delta_fcn = "IB_4"
+   delta_fcn = "USER_DEFINED"
    enable_logging = TRUE
    using_orthonormal_directors = TRUE
-}
-
-LEInteractor {
-   debug_sort_mode = "NO_SORT"
-   precision_mode  = "DOUBLE"
-}
-
-PETScVecOps {
-   sort_mode      = "SORT_DECREASING_MAGNITUDE"
-   precision_mode = "DOUBLE_DOUBLE"
-   summation_mode = "COMPENSATED_SUMMATION"
 }
 
 IBStandardInitializer {
@@ -55,7 +44,7 @@ INSStaggeredHierarchyIntegrator {
 
    cfl = 0.5
 
-   tag_buffer = 1
+   tag_buffer = int(ceil(W/8))
 
    conservation_form = FALSE
    using_vorticity_tagging = FALSE
@@ -156,20 +145,20 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 16          // zero to turn off
+   viz_dump_interval     = 16*NFINEST/64  // zero to turn off
    viz_dump_dirname      = "viz_IB3d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_interval      = 0           // zero to turn off
+   restart_interval      = 0              // zero to turn off
    restart_write_dirname = "restart_IB3d"
 
 // data dump parameters
-   data_dump_interval = 16             // zero to turn off
+   data_dump_interval = 16*NFINEST/64     // zero to turn off
    data_dump_dirname = "data_IB3d"
 
 // timer dump parameters
-   timer_dump_interval   = 0           // zero to turn off
+   timer_dump_interval   = 0              // zero to turn off
 }
 
 CartesianGeometry {

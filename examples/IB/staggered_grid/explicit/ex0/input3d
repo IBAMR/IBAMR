@@ -3,10 +3,10 @@ MU = 0.005
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 2   // maximum number of levels in locally refined grid
+MAX_LEVELS = 3   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 16                                    // coarsest grid spacing
+N = 8                                     // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 VelocityInitialConditions {
@@ -15,38 +15,80 @@ VelocityInitialConditions {
    function_2 = "0.0"
 }
 
-LocationIndexRobinBcCoefs_u0 {
-   boundary_0 = "value", "0.0"  // lower x boundary condition
-   boundary_1 = "value", "0.0"  // upper x boundary condition
-   boundary_2 = "value", "0.0"  // lower y boundary condition
-   boundary_3 = "value", "0.0"  // upper y boundary condition
-   boundary_4 = "value", "0.0"  // lower z boundary condition
-   boundary_5 = "value", "0.0"  // upper z boundary condition
+VelocityBcCoefs_0 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
 }
 
-LocationIndexRobinBcCoefs_u1 {
-   boundary_0 = "value", "0.0"  // lower x boundary condition
-   boundary_1 = "value", "0.0"  // upper x boundary condition
-   boundary_2 = "value", "0.0"  // lower y boundary condition
-   boundary_3 = "value", "0.0"  // upper y boundary condition
-   boundary_4 = "value", "0.0"  // lower z boundary condition
-   boundary_5 = "value", "0.0"  // upper z boundary condition
+VelocityBcCoefs_1 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
 }
 
-LocationIndexRobinBcCoefs_u2 {
-   boundary_0 = "value", "0.0"  // lower x boundary condition
-   boundary_1 = "value", "0.0"  // upper x boundary condition
-   boundary_2 = "value", "0.0"  // lower y boundary condition
-   boundary_3 = "value", "0.0"  // upper y boundary condition
-   boundary_4 = "value", "0.0"  // lower z boundary condition
-   boundary_5 = "value", "0.0"  // upper z boundary condition
+VelocityBcCoefs_2 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
 }
 
 IBStaggeredHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
    end_time              = 2.4e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
-   max_integrator_steps  = 10000000 // max number of simulation timesteps
+   max_integrator_steps  = 10 // XXXX 10000000 // max number of simulation timesteps
    regrid_interval       = 1
    dt_max = 1.6e-1/NFINEST
    num_cycles = 3
@@ -67,7 +109,7 @@ PETScVecOps {
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-   base_filenames_1 = "sphere3d"
+   base_filenames_2 = "sphere3d"
 }
 
 INSStaggeredHierarchyIntegrator {
@@ -101,25 +143,14 @@ INSStaggeredHierarchyIntegrator {
    }
 
    HelmholtzFACSolver {
-      max_cycles = 1
-      residual_tol = 1.0e-12
-      num_pre_sweeps  = 0  // this should always be 0
+      num_pre_sweeps  = 0
       num_post_sweeps = 2
-
-      fac_max_cycles = 1
-      fac_uses_presmoothing = FALSE
-      fac_initial_guess_nonzero = FALSE
-
-      skip_restrict_sol = TRUE
-      skip_restrict_residual = FALSE
-
-      ssor_iterations = 1
-
       coarse_solver_choice = "block_jacobi"
       coarse_solver_tolerance = 1.0e-30
       coarse_solver_max_iterations = 2
+      smoother_choice = "additive"
       prolongation_method = "CONSTANT_REFINE"
-      cf_discretization   = "CONSTANT_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
    }
 
    PoissonHypreSolver {
@@ -127,45 +158,38 @@ INSStaggeredHierarchyIntegrator {
       precond_type          = "PFMG"
       rap_type              = 0
       relax_type            = 2
-      skip_relax            = 1
-      num_pre_relax_steps   = 1
-      num_post_relax_steps  = 1
+      skip_relax            = 0
+      num_pre_relax_steps   = 2
+      num_post_relax_steps  = 2
       relative_residual_tol = 1.0e-2
       max_iterations        = 100
       enable_logging        = FALSE
    }
 
    PoissonFACSolver {
-      max_cycles = 1
-      residual_tol = 1.0e-12
-      num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 3
-
-      fac_max_cycles = 1
-      fac_uses_presmoothing = FALSE
-      fac_initial_guess_nonzero = FALSE
-
-      skip_restrict_sol = TRUE
-      skip_restrict_residual = FALSE
-
-      ssor_iterations = 1
-
-      coarse_solver_choice = "hypre"
+      num_pre_sweeps  = 2
+      num_post_sweeps = 2
+      coarse_solver_choice = "petsc"
       coarse_solver_tolerance = 1.0e-12
       coarse_solver_max_iterations = 1
+      smoother_choice = "additive"
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization   = "LINEAR_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
 
       hypre_solver {
          solver_type           = "PFMG"
          rap_type              = 0
          relax_type            = 2
-         skip_relax            = 1
-         num_pre_relax_steps   = 0
-         num_post_relax_steps  = 3
+         skip_relax            = 0
+         num_pre_relax_steps   = 2
+         num_post_relax_steps  = 2
          relative_residual_tol = 1.0e-12
          max_iterations        = 1
          enable_logging        = FALSE
+      }
+
+      petsc_solver {
+         options_prefix = "poisson0_"
       }
    }
 }
@@ -177,7 +201,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST/2   // zero to turn off
+   viz_dump_interval     = 0 // XXXX NFINEST/2   // zero to turn off
    viz_dump_dirname      = "viz_IB3d"
    visit_number_procs_per_file = 1
 
@@ -186,7 +210,7 @@ Main {
    restart_write_dirname = "restart_IB3d"
 
 // timer dump parameters
-   timer_dump_interval   = 0           // zero to turn off
+   timer_dump_interval   = 10           // zero to turn off
 }
 
 CartesianGeometry {

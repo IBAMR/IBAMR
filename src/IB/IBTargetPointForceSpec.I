@@ -1,25 +1,34 @@
 // Filename: IBTargetPointForceSpec.C
 // Created on 11 Jun 2007 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -34,10 +43,10 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 inline bool
-IBTargetPointForceSpec::getIsRegisteredWithStashableManager()
+IBTargetPointForceSpec::getIsRegisteredWithStreamableManager()
 {
     return s_registered_factory;
-}// getIsRegisteredWithStashableManager
+}// getIsRegisteredWithStreamableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -46,11 +55,15 @@ IBTargetPointForceSpec::IBTargetPointForceSpec(
     const int master_idx,
     const double& kappa_target,
     const double& eta_target,
-    const std::vector<double>& X_target)
+    const std::vector<double>& X_target,
+    const int subdomain_idx)
     : d_master_idx(master_idx),
       d_kappa_target(kappa_target),
       d_eta_target(eta_target),
       d_X_target(X_target)
+#if ENABLE_SUBDOMAIN_INDICES
+    , d_subdomain_idx(subdomain_idx)
+#endif
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(NDIM == int(d_X_target.size()));
@@ -58,7 +71,7 @@ IBTargetPointForceSpec::IBTargetPointForceSpec(
     if (!s_registered_factory)
     {
         TBOX_ERROR("IBTargetPointForceSpec::IBTargetPointForceSpec():\n"
-                   << "  must call IBTargetPointForceSpec::registerWithStashableManager() before\n"
+                   << "  must call IBTargetPointForceSpec::registerWithStreamableManager() before\n"
                    << "  creating any IBTargetPointForceSpec objects.\n");
     }
     return;
@@ -119,17 +132,43 @@ IBTargetPointForceSpec::getTargetPointPosition()
     return d_X_target;
 }// getTargetPointPosition
 
-inline int
-IBTargetPointForceSpec::getStashableID() const
+inline const int&
+IBTargetPointForceSpec::getSubdomainIndex() const
 {
-    return s_stashable_id;
-}// getStashableID
+#if ENABLE_SUBDOMAIN_INDICES
+    return d_subdomain_idx;
+#else
+    static int dummy_idx = -1;
+    return dummy_idx;
+#endif
+}// getSubdomainIndex
+
+inline int&
+IBTargetPointForceSpec::getSubdomainIndex()
+{
+#if ENABLE_SUBDOMAIN_INDICES
+    return d_subdomain_idx;
+#else
+    static int dummy_idx = -1;
+    return dummy_idx;
+#endif
+}// getSubdomainIndex
+
+inline int
+IBTargetPointForceSpec::getStreamableClassID() const
+{
+    return s_class_id;
+}// getStreamableClassID
 
 inline size_t
 IBTargetPointForceSpec::getDataStreamSize() const
 {
     return ((1     )*SAMRAI::tbox::AbstractStream::sizeofInt() +
-            (2+NDIM)*SAMRAI::tbox::AbstractStream::sizeofDouble());
+            (2+NDIM)*SAMRAI::tbox::AbstractStream::sizeofDouble())
+#if ENABLE_SUBDOMAIN_INDICES
+        + SAMRAI::tbox::AbstractStream::sizeofInt()
+#endif
+        ;
 }// getDataStreamSize
 
 inline void
@@ -143,6 +182,9 @@ IBTargetPointForceSpec::packStream(
     stream.pack(&d_kappa_target,1);
     stream.pack(&d_eta_target,1);
     stream.pack(&d_X_target[0],NDIM);
+#if ENABLE_SUBDOMAIN_INDICES
+    stream.pack(&d_subdomain_idx,1);
+#endif
     return;
 }// packStream
 

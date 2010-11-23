@@ -1,25 +1,34 @@
 // Filename: IBFEHierarchyIntegrator.h
 // Created on 27 Jul 2009 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef included_IBFEHierarchyIntegrator
 #define included_IBFEHierarchyIntegrator
@@ -40,6 +49,7 @@
 #include <ibtk/LagMarker.h>
 
 // LIBMESH INCLUDES
+#define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
 #include <dof_map.h>
 
 // SAMRAI INCLUDES
@@ -60,14 +70,11 @@ class IBFEHierarchyIntegrator
       public SAMRAI::tbox::Serializable
 {
 public:
-    static const std::string        COORDINATES_SYSTEM_NAME;
-    static const std::string COORDINATE_MAPPING_SYSTEM_NAME;
-    static const std::string              FORCE_SYSTEM_NAME;
-    static const std::string           VELOCITY_SYSTEM_NAME;
-
-//  static const short int     NORMAL_DIRICHLET_BOUNDARY_ID = 256;
-//  static const short int TANGENTIAL_DIRICHLET_BOUNDARY_ID = 512;
-    static const short int            DIRICHLET_BOUNDARY_ID = 256 | 512;
+    static const std::string                 COORDINATES_SYSTEM_NAME;
+    static const std::string          COORDINATE_MAPPING_SYSTEM_NAME;
+    static const std::string                       FORCE_SYSTEM_NAME;
+    static const std::string                    VELOCITY_SYSTEM_NAME;
+    static const std::string PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME;
 
     /*!
      * Constructor.
@@ -108,7 +115,7 @@ public:
      */
     void
     setInitialCoordinateMappingFunction(
-        Point (*coordinate_mapping_function)(const Point& s, void* ctx),
+        libMesh::Point (*coordinate_mapping_function)(const libMesh::Point& s, void* ctx),
         void* coordinate_mapping_function_ctx=NULL);
 
     /*!
@@ -117,7 +124,7 @@ public:
      */
     void
     setPK1StressTensorFunction(
-        TensorValue<double> (*PK1_stress_function)(const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const elem, const double& time, void* ctx),
+        libMesh::TensorValue<double> (*PK1_stress_function)(const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, const double& time, void* ctx),
         void* PK1_stress_function_ctx=NULL);
 
     /*!
@@ -126,7 +133,7 @@ public:
      */
     void
     setExtraForceFunction(
-        void (*extra_force_function)(NumericVector<double>& F, NumericVector<double>& X, EquationSystems* equation_systems, const std::string& force_system_name, const std::string& coords_system_name, const double& time, void* ctx),
+        void (*extra_force_function)(libMesh::NumericVector<double>& F, libMesh::NumericVector<double>& X, libMesh::EquationSystems* equation_systems, const std::string& force_system_name, const std::string& coords_system_name, const double& time, void* ctx),
         void* extra_force_function_ctx=NULL);
 
     /*!
@@ -577,14 +584,22 @@ private:
         const IBFEHierarchyIntegrator& that);
 
     /*
+     * \brief Compute the projected dilatational strain, for use in the Fbar
+     * projection method.
+     */
+    void
+    computeProjectedDilatationalStrain(
+        libMesh::NumericVector<double>& X);
+
+    /*
      * \brief Compute the interior elastic density, possibly splitting off the
      * normal component of the transmission force along the physical boundary of
      * the Lagrangian structure.
      */
     void
     computeInteriorForceDensity(
-        NumericVector<double>& G,
-        NumericVector<double>& X,
+        libMesh::NumericVector<double>& G,
+        libMesh::NumericVector<double>& X,
         const double& time);
 
     /*!
@@ -594,7 +609,7 @@ private:
     void
     spreadBoundaryForceDensity(
         const int f_data_idx,
-        NumericVector<double>& X_ghost,
+        libMesh::NumericVector<double>& X_ghost,
         const double& time);
 
     /*!
@@ -651,27 +666,35 @@ private:
      * Pointer to the FE data associated with this time integration object.
      */
     IBTK::FEDataManager* d_fe_data_manager;
-    Order d_fe_order;
-    FEFamily d_fe_family;
+    libMeshEnums::Order d_fe_order;
+    libMeshEnums::FEFamily d_fe_family;
     bool d_split_interior_and_bdry_forces;
+    bool d_use_consistent_mass_matrix;
+
+    /*
+     * Fbar projection method parameters.
+     */
+    bool d_use_fbar_projection;
+    libMeshEnums::Order d_projected_strain_fe_order;
+    libMeshEnums::FEFamily d_projected_strain_fe_family;
 
     /*
      * Function used to compute the initial coordinates of the Lagrangian mesh.
      */
-    Point (*d_coordinate_mapping_function)(const Point& s, void* ctx);
+    libMesh::Point (*d_coordinate_mapping_function)(const libMesh::Point& s, void* ctx);
     void* d_coordinate_mapping_function_ctx;
 
     /*
      * Function used to compute the PK1 stress tensor.
      */
-    TensorValue<double> (*d_PK1_stress_function)(const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const elem, const double& time, void* ctx);
+    libMesh::TensorValue<double> (*d_PK1_stress_function)(const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, const double& time, void* ctx);
     void* d_PK1_stress_function_ctx;
 
     /*
      * Optional function use to compute "extra" forces (e.g., penalty forces) on
      * the Lagrangian finite element mesh.
      */
-    void (*d_extra_force_function)(NumericVector<double>& F, NumericVector<double>& X, EquationSystems* equation_systems, const std::string& force_system_name, const std::string& coords_system_name, const double& time, void* ctx);
+    void (*d_extra_force_function)(libMesh::NumericVector<double>& F, libMesh::NumericVector<double>& X, libMesh::EquationSystems* equation_systems, const std::string& force_system_name, const std::string& coords_system_name, const double& time, void* ctx);
     void* d_extra_force_function_ctx;
 
     /*

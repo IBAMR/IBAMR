@@ -1,25 +1,34 @@
 // Filename: INSStaggeredStokesOperator.C
 // Created on 29 Apr 2008 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #include "INSStaggeredStokesOperator.h"
 
@@ -103,12 +112,9 @@ INSStaggeredStokesOperator::INSStaggeredStokesOperator(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_apply = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredStokesOperator::apply()");
-        t_initialize_operator_state = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredStokesOperator::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredStokesOperator::deallocateOperatorState()");
+        t_apply                     = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredStokesOperator::apply()");
+        t_initialize_operator_state = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredStokesOperator::initializeOperatorState()");
+        t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredStokesOperator::deallocateOperatorState()");
         timers_need_init = false;
     }
     return;
@@ -184,10 +190,6 @@ INSStaggeredStokesOperator::apply(
 {
     t_apply->start();
 
-    // Initialize the operator (if necessary).
-    const bool deallocate_at_completion = !d_is_initialized;
-    if (!d_is_initialized) initializeOperatorState(x,y);
-
     // Get the vector components.
 //  const int U_in_idx       =            x.getComponentDescriptorIndex(0);
 //  const int P_in_idx       =            x.getComponentDescriptorIndex(1);
@@ -211,8 +213,8 @@ INSStaggeredStokesOperator::apply(
     d_x_scratch->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
 
     // Reset the interpolation operators and fill the data.
-    Pointer<VariableFillPattern<NDIM> > sc_fill_pattern = new SideNoCornersFillPattern(SIDEG);
-    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(CELLG);
+    Pointer<VariableFillPattern<NDIM> > sc_fill_pattern = new SideNoCornersFillPattern(SIDEG, false, true);
+    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(CELLG, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent U_scratch_component(U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, sc_fill_pattern);
     InterpolationTransactionComponent P_scratch_component(P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , cc_fill_pattern);
@@ -220,7 +222,7 @@ INSStaggeredStokesOperator::apply(
     U_P_components[0] = U_scratch_component;
     U_P_components[1] = P_scratch_component;
     INSStaggeredPressureBcCoef* P_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_P_bc_coef);
-    P_bc_coef->setVelocityNewPatchDataIndex(U_scratch_idx);
+    if (P_bc_coef != NULL) P_bc_coef->setVelocityNewPatchDataIndex(U_scratch_idx);
     d_U_P_bdry_fill_op->setHomogeneousBc(homogeneous_bc);
     d_U_P_bdry_fill_op->resetTransactionComponents(U_P_components);
     d_U_P_bdry_fill_op->fillData(d_new_time);
@@ -238,15 +240,12 @@ INSStaggeredStokesOperator::apply(
         U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
         1.0,
         U_out_idx, U_out_sc_var);
-    d_U_bc_helper->zeroValuesAtDirichletBoundaries(U_out_idx);
+    if (!d_U_bc_helper.isNull()) d_U_bc_helper->zeroValuesAtDirichletBoundaries(U_out_idx);
 
     d_hier_math_ops->div(
         P_out_idx, P_out_cc_var,
         -1.0, U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
         cf_bdry_synch);
-
-    // Deallocate the operator (if necessary).
-    if (deallocate_at_completion) deallocateOperatorState();
 
     t_apply->stop();
     return;
@@ -273,8 +272,8 @@ INSStaggeredStokesOperator::initializeOperatorState(
     d_x_scratch = in.cloneVector("INSStaggeredStokesOperator::x_scratch");
     d_x_scratch->allocateVectorData();
 
-    Pointer<VariableFillPattern<NDIM> > sc_fill_pattern = new SideNoCornersFillPattern(SIDEG);
-    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(CELLG);
+    Pointer<VariableFillPattern<NDIM> > sc_fill_pattern = new SideNoCornersFillPattern(SIDEG, false, true);
+    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(CELLG, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent U_scratch_component(d_x_scratch->getComponentDescriptorIndex(0), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, sc_fill_pattern);
     InterpolationTransactionComponent P_scratch_component(d_x_scratch->getComponentDescriptorIndex(1), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , cc_fill_pattern);

@@ -1,25 +1,34 @@
 // Filename: IBRodForceSpec.I
 // Created on 23 Jun 2010 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -34,10 +43,10 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 inline bool
-IBRodForceSpec::getIsRegisteredWithStashableManager()
+IBRodForceSpec::getIsRegisteredWithStreamableManager()
 {
     return s_registered_factory;
-}// getIsRegisteredWithStashableManager
+}// getIsRegisteredWithStreamableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -45,19 +54,26 @@ inline
 IBRodForceSpec::IBRodForceSpec(
     const int master_idx,
     const std::vector<int>& next_idxs,
-    const std::vector<std::vector<double> >& material_params)
+    const std::vector<std::vector<double> >& material_params,
+    const std::vector<int>& subdomain_idxs)
     : d_master_idx(master_idx),
       d_next_idxs(next_idxs),
       d_material_params(material_params)
+#if ENABLE_SUBDOMAIN_INDICES
+    , d_subdomain_idxs(subdomain_idxs)
+#endif
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     const int num_rods = d_next_idxs.size();
     TBOX_ASSERT(num_rods == int(d_material_params.size()));
+#if ENABLE_SUBDOMAIN_INDICES
+    TBOX_ASSERT(num_rods == int(d_subdomain_idxs.size()));
+#endif
 #endif
     if (!s_registered_factory)
     {
         TBOX_ERROR("IBRodForceSpec::IBRodForceSpec():\n"
-                   << "  must call IBRodForceSpec::registerWithStashableManager() before\n"
+                   << "  must call IBRodForceSpec::registerWithStreamableManager() before\n"
                    << "  creating any IBRodForceSpec objects.\n");
     }
     return;
@@ -116,11 +132,33 @@ IBRodForceSpec::getMaterialParams()
     return d_material_params;
 }// getMaterialParams
 
-inline int
-IBRodForceSpec::getStashableID() const
+inline const std::vector<int>&
+IBRodForceSpec::getSubdomainIndices() const
 {
-    return s_stashable_id;
-}// getStashableID
+#if ENABLE_SUBDOMAIN_INDICES
+    return d_subdomain_idxs;
+#else
+    static std::vector<int> dummy_idxs;
+    return dummy_idxs;
+#endif
+}// getSubdomainIndices
+
+inline std::vector<int>&
+IBRodForceSpec::getSubdomainIndices()
+{
+#if ENABLE_SUBDOMAIN_INDICES
+    return d_subdomain_idxs;
+#else
+    static std::vector<int> dummy_idxs;
+    return dummy_idxs;
+#endif
+}// getSubdomainIndices
+
+inline int
+IBRodForceSpec::getStreamableClassID() const
+{
+    return s_class_id;
+}// getStreamableClassID
 
 inline size_t
 IBRodForceSpec::getDataStreamSize() const
@@ -130,7 +168,11 @@ IBRodForceSpec::getDataStreamSize() const
     TBOX_ASSERT(num_rods == int(d_material_params.size()));
 #endif
     return (( 2+num_rods)*SAMRAI::tbox::AbstractStream::sizeofInt() +
-            (10*num_rods)*SAMRAI::tbox::AbstractStream::sizeofDouble());
+            (10*num_rods)*SAMRAI::tbox::AbstractStream::sizeofDouble())
+#if ENABLE_SUBDOMAIN_INDICES
+        + num_rods*SAMRAI::tbox::AbstractStream::sizeofInt()
+#endif
+        ;
 }// getDataStreamSize
 
 inline void
@@ -148,6 +190,9 @@ IBRodForceSpec::packStream(
     {
         stream.pack(&d_material_params[n][0],10);
     }
+#if ENABLE_SUBDOMAIN_INDICES
+    stream.pack(&d_subdomain_idxs[0],num_rods);
+#endif
     return;
 }// packStream
 

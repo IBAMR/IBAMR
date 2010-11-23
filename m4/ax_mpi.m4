@@ -1,10 +1,10 @@
 # ===========================================================================
-#                http://autoconf-archive.cryp.to/acx_mpi.html
+#          http://www.gnu.org/software/autoconf-archive/ax_mpi.html
 # ===========================================================================
 #
 # SYNOPSIS
 #
-#   ACX_MPI([ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
+#   AX_MPI([ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
 #
 # DESCRIPTION
 #
@@ -19,10 +19,19 @@
 #   are needed for linking MPI (e.g. -lmpi or -lfmpi, if a special
 #   MPICC/MPICXX/MPIF77/MPIFC was not found).
 #
-#   If you want to compile everything with MPI, you should set:
+#   If you want to compile everything with MPI, you should use something
+#   like this for C:
 #
-#       CC="MPICC" #OR# CXX="MPICXX" #OR# F77="MPIF77" #OR# FC="MPIFC"
-#       LIBS="$MPILIBS $LIBS"
+#     if test -z "$CC" && test -n "$MPICC"; then
+#       CC="$MPICC"
+#     fi
+#     AC_PROG_CC
+#     AX_MPI
+#     CC="$MPICC"
+#     LIBS="$MPILIBS $LIBS"
+#
+#   and similar for C++ (change all instances of CC to CXX), Fortran 77
+#   (with F77 instead of CC) or Fortran (with FC instead of CC).
 #
 #   NOTE: The above assumes that you will use $CC (or whatever) for linking
 #   as well as for compiling. (This is the default for automake and most
@@ -36,11 +45,7 @@
 #   found. If ACTION-IF-FOUND is not specified, the default action will
 #   define HAVE_MPI.
 #
-# LAST MODIFICATION
-#
-#   2008-04-12
-#
-# COPYLEFT
+# LICENSE
 #
 #   Copyright (c) 2008 Steven G. Johnson <stevenj@alum.mit.edu>
 #   Copyright (c) 2008 Julian C. Cummings <cummings@cacr.caltech.edu>
@@ -67,18 +72,21 @@
 #   all other use of the material that constitutes the Autoconf Macro.
 #
 #   This special exception to the GPL applies to versions of the Autoconf
-#   Macro released by the Autoconf Macro Archive. When you make and
-#   distribute a modified version of the Autoconf Macro, you may extend this
-#   special exception to the GPL to apply to your modified version as well.
+#   Macro released by the Autoconf Archive. When you make and distribute a
+#   modified version of the Autoconf Macro, you may extend this special
+#   exception to the GPL to apply to your modified version as well.
 
-AC_DEFUN([ACX_MPI], [
+#serial 7
+
+AU_ALIAS([ACX_MPI], [AX_MPI])
+AC_DEFUN([AX_MPI], [
 AC_PREREQ(2.50) dnl for AC_LANG_CASE
 
 AC_LANG_CASE([C], [
 	AC_REQUIRE([AC_PROG_CC])
 	AC_ARG_VAR(MPICC,[MPI C compiler command])
 	AC_CHECK_PROGS(MPICC, mpicc hcc mpxlc_r mpxlc mpcc cmpicc, $CC)
-	acx_mpi_save_CC="$CC"
+	ax_mpi_save_CC="$CC"
 	CC="$MPICC"
 	AC_SUBST(MPICC)
 ],
@@ -86,7 +94,7 @@ AC_LANG_CASE([C], [
 	AC_REQUIRE([AC_PROG_CXX])
 	AC_ARG_VAR(MPICXX,[MPI C++ compiler command])
 	AC_CHECK_PROGS(MPICXX, mpic++ mpicxx mpiCC hcp mpxlC_r mpxlC mpCC cmpic++, $CXX)
-	acx_mpi_save_CXX="$CXX"
+	ax_mpi_save_CXX="$CXX"
 	CXX="$MPICXX"
 	AC_SUBST(MPICXX)
 ],
@@ -94,7 +102,7 @@ AC_LANG_CASE([C], [
 	AC_REQUIRE([AC_PROG_F77])
 	AC_ARG_VAR(MPIF77,[MPI Fortran 77 compiler command])
 	AC_CHECK_PROGS(MPIF77, mpif77 hf77 mpxlf_r mpxlf mpf77 cmpifc, $F77)
-	acx_mpi_save_F77="$F77"
+	ax_mpi_save_F77="$F77"
 	F77="$MPIF77"
 	AC_SUBST(MPIF77)
 ],
@@ -102,7 +110,7 @@ AC_LANG_CASE([C], [
 	AC_REQUIRE([AC_PROG_FC])
 	AC_ARG_VAR(MPIFC,[MPI Fortran compiler command])
 	AC_CHECK_PROGS(MPIFC, mpif90 mpxlf95_r mpxlf90_r mpxlf95 mpxlf90 mpf90 cmpif90c, $FC)
-	acx_mpi_save_FC="$FC"
+	ax_mpi_save_FC="$FC"
 	FC="$MPIFC"
 	AC_SUBST(MPIFC)
 ])
@@ -163,10 +171,10 @@ fi],
 		AC_MSG_RESULT(no)])
 fi])
 
-AC_LANG_CASE([C], [CC="$acx_mpi_save_CC"],
-	[C++], [CXX="$acx_mpi_save_CXX"],
-	[Fortran 77], [F77="$acx_mpi_save_F77"],
-	[Fortran], [FC="$acx_mpi_save_FC"])
+AC_LANG_CASE([C], [CC="$ax_mpi_save_CC"],
+	[C++], [CXX="$ax_mpi_save_CXX"],
+	[Fortran 77], [F77="$ax_mpi_save_F77"],
+	[Fortran], [FC="$ax_mpi_save_FC"])
 
 AC_SUBST(MPILIBS)
 
@@ -178,4 +186,4 @@ else
         ifelse([$1],,[AC_DEFINE(HAVE_MPI,1,[Define if you have the MPI library.])],[$1])
         :
 fi
-])dnl ACX_MPI
+])dnl AX_MPI

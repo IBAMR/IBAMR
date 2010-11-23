@@ -1,25 +1,34 @@
 // Filename: INSStaggeredVCStokesOperator.C
 // Created on 15 Jun 2010 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith, Thomas Fai
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #include "INSStaggeredVCStokesOperator.h"
 
@@ -36,15 +45,13 @@
 #endif
 
 // IBAMR INCLUDES
-#include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/namespaces.h>
-
-// IBTK INCLUDES
-#include <ibtk/CellNoCornersFillPattern.h>
-#include <ibtk/SideNoCornersFillPattern.h>
 
 // C++ STDLIB INCLUDES
 #include <limits>
+
+// SAMRAI INCLUDES
+#include <HierarchyDataOpsManager.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -60,7 +67,9 @@ static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
-static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
+static const std::string  U_DATA_COARSEN_TYPE =    "CUBIC_COARSEN";
+static const std::string  P_DATA_COARSEN_TYPE =    "CUBIC_COARSEN";
+static const std::string MU_DATA_COARSEN_TYPE = "CONSTANT_COARSEN";
 
 // Type of extrapolation to use at physical boundaries.
 static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
@@ -78,9 +87,6 @@ static Pointer<Timer> t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredVCStokesOperator::INSStaggeredVCStokesOperator(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-    Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper,
-    RobinBcCoefStrategy<NDIM>* P_bc_coef,
     Pointer<HierarchyMathOps> hier_math_ops)
     : d_is_initialized(false),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
@@ -89,10 +95,9 @@ INSStaggeredVCStokesOperator::INSStaggeredVCStokesOperator(
       d_hier_math_ops(hier_math_ops),
       d_homogeneous_bc(false),
       d_correcting_rhs(false),
-      d_U_bc_coefs(U_bc_coefs),
-      d_U_bc_helper(U_bc_helper),
-      d_P_bc_coef(P_bc_coef),
-      d_U_P_bdry_fill_op(Pointer<HierarchyGhostCellInterpolation>(NULL)),
+      d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))),
+      d_P_bc_coef(NULL),
+      d_U_P_MU_bdry_fill_op(Pointer<HierarchyGhostCellInterpolation>(NULL)),
       d_no_fill_op(Pointer<HierarchyGhostCellInterpolation>(NULL)),
       d_x_scratch(NULL)
 {
@@ -100,12 +105,9 @@ INSStaggeredVCStokesOperator::INSStaggeredVCStokesOperator(
     static bool timers_need_init = true;
     if (timers_need_init)
     {
-        t_apply = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredVCStokesOperator::apply()");
-        t_initialize_operator_state = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredVCStokesOperator::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->
-            getTimer("IBAMR::INSStaggeredVCStokesOperator::deallocateOperatorState()");
+        t_apply                     = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredVCStokesOperator::apply()");
+        t_initialize_operator_state = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredVCStokesOperator::initializeOperatorState()");
+        t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredVCStokesOperator::deallocateOperatorState()");
         timers_need_init = false;
     }
     return;
@@ -147,6 +149,16 @@ INSStaggeredVCStokesOperator::registerViscosityVariable(
 }// registerViscosityVariable
 
 void
+INSStaggeredVCStokesOperator::registerDensityVariable(
+    Pointer<SideVariable<NDIM,double> > rho_var,
+    const int rho_data_idx)
+{
+    d_rho_var = rho_var;
+    d_rho_data_idx = rho_data_idx;
+    return;
+}// registerDensityVariable
+
+void
 INSStaggeredVCStokesOperator::modifyRhsForInhomogeneousBc(
     SAMRAIVectorReal<NDIM,double>& y)
 {
@@ -186,10 +198,6 @@ INSStaggeredVCStokesOperator::apply(
 {
     t_apply->start();
 
-    // Initialize the operator (if necessary).
-    const bool deallocate_at_completion = !d_is_initialized;
-    if (!d_is_initialized) initializeOperatorState(x,y);
-
     // Get the vector components.
 //  const int U_in_idx       =            x.getComponentDescriptorIndex(0);
 //  const int P_in_idx       =            x.getComponentDescriptorIndex(1);
@@ -213,52 +221,50 @@ INSStaggeredVCStokesOperator::apply(
     d_x_scratch->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
 
     // Reset the interpolation operators and fill the data.
-    Pointer<VariableFillPattern<NDIM> > sc_fill_pattern = new SideNoCornersFillPattern(SIDEG);
-    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(CELLG);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent U_scratch_component(U_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, sc_fill_pattern);
-    InterpolationTransactionComponent P_scratch_component(P_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , cc_fill_pattern);
-    std::vector<InterpolationTransactionComponent> U_P_components(2);
-    U_P_components[0] = U_scratch_component;
-    U_P_components[1] = P_scratch_component;
-    INSStaggeredPressureBcCoef* P_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_P_bc_coef);
-    P_bc_coef->setVelocityNewPatchDataIndex(U_scratch_idx);
-    d_U_P_bdry_fill_op->setHomogeneousBc(homogeneous_bc);
-    d_U_P_bdry_fill_op->resetTransactionComponents(U_P_components);
-    d_U_P_bdry_fill_op->fillData(d_new_time);
+    InterpolationTransactionComponent U_scratch_component(U_scratch_idx, U_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
+    InterpolationTransactionComponent P_scratch_component(P_scratch_idx, P_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
+    InterpolationTransactionComponent mu_component(d_mu_data_idx, MU_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
+    std::vector<InterpolationTransactionComponent> U_P_MU_components(3);
+    U_P_MU_components[0] = U_scratch_component;
+    U_P_MU_components[1] = P_scratch_component;
+    U_P_MU_components[2] = mu_component;
+    d_U_P_MU_bdry_fill_op->resetTransactionComponents(U_P_MU_components);
+    d_U_P_MU_bdry_fill_op->fillData(d_new_time);
+
+    // Setup hierarchy data ops object for U.
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    Pointer<PatchHierarchy<NDIM> > hierarchy = y.getPatchHierarchy();
+    Pointer<HierarchySideDataOpsReal<NDIM,double> > hier_sc_data_ops =
+        hier_ops_manager->getOperationsDouble(U_out_var, hierarchy, true);
 
     // Compute the action of the operator:
-    //      A*[u;p] = [((rho/dt)*I-0.5*mu*L)*u + grad p; -div u].
+    //      A*[u;p] = [(rho/dt)*u-0.5*div*(mu*(grad u + (grad u)^T)) + grad p; -div u].
     //
-    // Thomas: Please update the forgoing comment to reflect the form of the
-    // variable-density and variable-viscosity operator.
     static const bool cf_bdry_synch = true;
+
+    d_hier_math_ops->pointwiseMultiply(
+	U_out_idx, U_out_sc_var,
+        d_rho_data_idx, d_rho_var,
+        U_scratch_idx, U_scratch_sc_var,
+        0.0, -1, NULL);
+
+    d_hier_math_ops->vc_laplace(
+        U_out_idx, U_out_sc_var,
+        -0.5, 0.0, d_mu_data_idx, d_mu_var,
+        U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
+        1.0/d_dt, U_out_idx, U_out_sc_var);
+
     d_hier_math_ops->grad(
         U_out_idx, U_out_sc_var,
         cf_bdry_synch,
-        1.0, P_scratch_idx, P_scratch_cc_var, d_no_fill_op, d_new_time);
-
-//  This was from the uniform-density and uniform-viscosity implementation:
-//
-//     d_hier_math_ops->laplace(
-//         U_out_idx, U_out_sc_var,
-//         d_helmholtz_spec,
-//         U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
-//         1.0,
-//         U_out_idx, U_out_sc_var);
-//
-//  Thomas: the foregoing needs to be replaced by the appropriate
-//  variable-density and variable-viscosity code.
-
-    d_U_bc_helper->zeroValuesAtDirichletBoundaries(U_out_idx);
+        1.0, P_scratch_idx, P_scratch_cc_var, d_no_fill_op, d_new_time,
+        1.0, U_out_idx, U_out_sc_var);
 
     d_hier_math_ops->div(
         P_out_idx, P_out_cc_var,
         -1.0, U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
         cf_bdry_synch);
-
-    // Deallocate the operator (if necessary).
-    if (deallocate_at_completion) deallocateOperatorState();
 
     t_apply->stop();
     return;
@@ -285,18 +291,18 @@ INSStaggeredVCStokesOperator::initializeOperatorState(
     d_x_scratch = in.cloneVector("INSStaggeredVCStokesOperator::x_scratch");
     d_x_scratch->allocateVectorData();
 
-    Pointer<VariableFillPattern<NDIM> > sc_fill_pattern = new SideNoCornersFillPattern(SIDEG);
-    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(CELLG);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    InterpolationTransactionComponent U_scratch_component(d_x_scratch->getComponentDescriptorIndex(0), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, sc_fill_pattern);
-    InterpolationTransactionComponent P_scratch_component(d_x_scratch->getComponentDescriptorIndex(1), DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , cc_fill_pattern);
+    InterpolationTransactionComponent U_scratch_component(d_x_scratch->getComponentDescriptorIndex(0), U_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
+    InterpolationTransactionComponent P_scratch_component(d_x_scratch->getComponentDescriptorIndex(1), P_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
+    InterpolationTransactionComponent mu_component(d_mu_data_idx, MU_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
 
-    std::vector<InterpolationTransactionComponent> U_P_components(2);
-    U_P_components[0] = U_scratch_component;
-    U_P_components[1] = P_scratch_component;
+    std::vector<InterpolationTransactionComponent> U_P_MU_components(3);
+    U_P_MU_components[0] = U_scratch_component;
+    U_P_MU_components[1] = P_scratch_component;
+    U_P_MU_components[2] = mu_component;
 
-    d_U_P_bdry_fill_op = new HierarchyGhostCellInterpolation();
-    d_U_P_bdry_fill_op->initializeOperatorState(U_P_components, d_x_scratch->getPatchHierarchy());
+    d_U_P_MU_bdry_fill_op = new HierarchyGhostCellInterpolation();
+    d_U_P_MU_bdry_fill_op->initializeOperatorState(U_P_MU_components, d_x_scratch->getPatchHierarchy());
 
     d_is_initialized = true;
 

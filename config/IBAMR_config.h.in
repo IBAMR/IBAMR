@@ -1,5 +1,12 @@
 /* config/IBAMR_config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Boolean value indicating whether we are using subdomain indices */
+#undef ENABLE_SUBDOMAIN_INDICES
+
+/* Define to dummy `main' function (if any) required to link to the Fortran
+   libraries. */
+#undef F77_DUMMY_MAIN
+
 /* Define to dummy `main' function (if any) required to link to the Fortran
    libraries. */
 #undef FC_DUMMY_MAIN
@@ -17,151 +24,155 @@
 /* Define if you have a BLAS library. */
 #undef HAVE_BLAS
 
+/* Boolean value indicating whether the C++ compiler supports the
+   __builtin_expect keyword */
+#undef HAVE_BUILTIN_EXPECT
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
 /* Define if you have LAPACK library. */
 #undef HAVE_LAPACK
 
-/* Define if you have the blitz library. */
+/* Define if you have the libblitz library. */
 #undef HAVE_LIBBLITZ
 
-/* Define if you have the exodusii library. */
+/* Define if you have the libexodusii library. */
 #undef HAVE_LIBEXODUSII
 
-/* Define if you have the gmv library. */
+/* Define if you have the libgmv library. */
 #undef HAVE_LIBGMV
 
-/* Define if you have the gzstream library. */
+/* Define if you have the libgzstream library. */
 #undef HAVE_LIBGZSTREAM
 
-/* Define if you have the hdf5 library. */
+/* Define if you have the libhdf5 library. */
 #undef HAVE_LIBHDF5
 
-/* Define if you have the hdf5_hl library. */
+/* Define if you have the libhdf5_hl library. */
 #undef HAVE_LIBHDF5_HL
 
-/* Define if you have the hilbert library. */
+/* Define if you have the libhilbert library. */
 #undef HAVE_LIBHILBERT
 
-/* Define if you have the HYPRE library. */
+/* Define if you have the libHYPRE library. */
 #undef HAVE_LIBHYPRE
 
-/* Define if you have the laspack library. */
+/* Define if you have the liblaspack library. */
 #undef HAVE_LIBLASPACK
 
-/* Define if you have the mesh library. */
+/* Define if you have the libmesh library. */
 #undef HAVE_LIBMESH
 
-/* Define if you have the metis library. */
+/* Define if you have the libmetis library. */
 #undef HAVE_LIBMETIS
 
-/* Define if you have the nemesis library. */
+/* Define if you have the libnemesis library. */
 #undef HAVE_LIBNEMESIS
 
-/* Define if you have the netcdf library. */
+/* Define if you have the libnetcdf library. */
 #undef HAVE_LIBNETCDF
 
-/* Define if you have the parmetis library. */
+/* Define if you have the libparmetis library. */
 #undef HAVE_LIBPARMETIS
 
-/* Define if you have the petsc library. */
+/* Define if you have the libpetsc library. */
 #undef HAVE_LIBPETSC
 
-/* Define if you have the petscdm library. */
+/* Define if you have the libpetscdm library. */
 #undef HAVE_LIBPETSCDM
 
-/* Define if you have the petscksp library. */
+/* Define if you have the libpetscksp library. */
 #undef HAVE_LIBPETSCKSP
 
-/* Define if you have the petscmat library. */
+/* Define if you have the libpetscmat library. */
 #undef HAVE_LIBPETSCMAT
 
-/* Define if you have the petscsnes library. */
+/* Define if you have the libpetscsnes library. */
 #undef HAVE_LIBPETSCSNES
 
-/* Define if you have the petscts library. */
+/* Define if you have the libpetscts library. */
 #undef HAVE_LIBPETSCTS
 
-/* Define if you have the petscvec library. */
+/* Define if you have the libpetscvec library. */
 #undef HAVE_LIBPETSCVEC
 
-/* Define if you have the SAMRAI library. */
+/* Define if you have the libSAMRAI library. */
 #undef HAVE_LIBSAMRAI
 
-/* Define if you have the SAMRAI2d_algs library. */
+/* Define if you have the libSAMRAI2d_algs library. */
 #undef HAVE_LIBSAMRAI2D_ALGS
 
-/* Define if you have the SAMRAI2d_appu library. */
+/* Define if you have the libSAMRAI2d_appu library. */
 #undef HAVE_LIBSAMRAI2D_APPU
 
-/* Define if you have the SAMRAI2d_geom library. */
+/* Define if you have the libSAMRAI2d_geom library. */
 #undef HAVE_LIBSAMRAI2D_GEOM
 
-/* Define if you have the SAMRAI2d_hier library. */
+/* Define if you have the libSAMRAI2d_hier library. */
 #undef HAVE_LIBSAMRAI2D_HIER
 
-/* Define if you have the SAMRAI2d_math_std library. */
+/* Define if you have the libSAMRAI2d_math_std library. */
 #undef HAVE_LIBSAMRAI2D_MATH_STD
 
-/* Define if you have the SAMRAI2d_mesh library. */
+/* Define if you have the libSAMRAI2d_mesh library. */
 #undef HAVE_LIBSAMRAI2D_MESH
 
-/* Define if you have the SAMRAI2d_pdat_std library. */
+/* Define if you have the libSAMRAI2d_pdat_std library. */
 #undef HAVE_LIBSAMRAI2D_PDAT_STD
 
-/* Define if you have the SAMRAI2d_solv library. */
+/* Define if you have the libSAMRAI2d_solv library. */
 #undef HAVE_LIBSAMRAI2D_SOLV
 
-/* Define if you have the SAMRAI2d_xfer library. */
+/* Define if you have the libSAMRAI2d_xfer library. */
 #undef HAVE_LIBSAMRAI2D_XFER
 
-/* Define if you have the SAMRAI3d_algs library. */
+/* Define if you have the libSAMRAI3d_algs library. */
 #undef HAVE_LIBSAMRAI3D_ALGS
 
-/* Define if you have the SAMRAI3d_appu library. */
+/* Define if you have the libSAMRAI3d_appu library. */
 #undef HAVE_LIBSAMRAI3D_APPU
 
-/* Define if you have the SAMRAI3d_geom library. */
+/* Define if you have the libSAMRAI3d_geom library. */
 #undef HAVE_LIBSAMRAI3D_GEOM
 
-/* Define if you have the SAMRAI3d_hier library. */
+/* Define if you have the libSAMRAI3d_hier library. */
 #undef HAVE_LIBSAMRAI3D_HIER
 
-/* Define if you have the SAMRAI3d_math_std library. */
+/* Define if you have the libSAMRAI3d_math_std library. */
 #undef HAVE_LIBSAMRAI3D_MATH_STD
 
-/* Define if you have the SAMRAI3d_mesh library. */
+/* Define if you have the libSAMRAI3d_mesh library. */
 #undef HAVE_LIBSAMRAI3D_MESH
 
-/* Define if you have the SAMRAI3d_pdat_std library. */
+/* Define if you have the libSAMRAI3d_pdat_std library. */
 #undef HAVE_LIBSAMRAI3D_PDAT_STD
 
-/* Define if you have the SAMRAI3d_solv library. */
+/* Define if you have the libSAMRAI3d_solv library. */
 #undef HAVE_LIBSAMRAI3D_SOLV
 
-/* Define if you have the SAMRAI3d_xfer library. */
+/* Define if you have the libSAMRAI3d_xfer library. */
 #undef HAVE_LIBSAMRAI3D_XFER
 
-/* Define if you have the sfcurves library. */
+/* Define if you have the libsfcurves library. */
 #undef HAVE_LIBSFCURVES
 
-/* Define if you have the silo library. */
+/* Define if you have the libsilo library. */
 #undef HAVE_LIBSILO
 
-/* Define if you have the siloh5 library. */
+/* Define if you have the libsiloh5 library. */
 #undef HAVE_LIBSILOH5
 
-/* Define if you have the tetgen library. */
+/* Define if you have the libtetgen library. */
 #undef HAVE_LIBTETGEN
 
-/* Define if you have the triangle library. */
+/* Define if you have the libtriangle library. */
 #undef HAVE_LIBTRIANGLE
 
-/* Define if you have the vtk library. */
+/* Define if you have the libvtk library. */
 #undef HAVE_LIBVTK
 
-/* Define if you have the X11 library. */
+/* Define if you have the libX11 library. */
 #undef HAVE_LIBX11
 
 /* Define to 1 if you have the <memory.h> header file. */
@@ -219,6 +230,9 @@
 
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION

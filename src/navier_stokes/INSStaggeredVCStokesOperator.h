@@ -1,33 +1,39 @@
 // Filename: INSStaggeredVCStokesOperator.h
 // Created on 15 Jun 2010 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith, Thomas Fai
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef included_INSStaggeredVCStokesOperator
 #define included_INSStaggeredVCStokesOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-// IBAMR INCLUDES
-#include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
 
 // IBTK INCLUDES
 #include <ibtk/LinearOperator.h>
@@ -60,9 +66,6 @@ public:
      * \brief Class constructor.
      */
     INSStaggeredVCStokesOperator(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-        SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops);
 
     /*!
@@ -98,6 +101,19 @@ public:
     registerViscosityVariable(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM,double> > mu_var,
         const int mu_data_idx);
+
+    /*!
+     * \brief Register the variable and patch data index for the variable
+     * density coefficient with the operator.
+     *
+     * \note Function INSStaggeredVCStokesOperator::apply() does \em not set
+     * ghost cell values for rho.  Any needed ghost cell values \em must be set
+     * prior to calling apply().
+     */
+    void
+    registerDensityVariable(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > rho_var,
+        const int rho_data_idx);
 
     /*!
      * \brief Implementation of the apply method which supports either
@@ -271,13 +287,16 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM,double> > d_mu_var;
     int d_mu_data_idx;
 
+    // Density variable data.
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_rho_var;
+    int d_rho_data_idx;
+
     // Boundary condition objects.
     bool d_homogeneous_bc;
     bool d_correcting_rhs;
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
-    SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_U_bc_helper;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_P_bdry_fill_op, d_no_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_P_MU_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x_scratch;

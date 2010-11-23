@@ -1,25 +1,34 @@
 // Filename: IBStaggeredHierarchyIntegrator.C
 // Created on 12 Jul 2004 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #include "IBStaggeredHierarchyIntegrator.h"
 
@@ -293,9 +302,9 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
     Pointer<CellVariable<NDIM,double> > cc_var = new CellVariable<NDIM,double>("cc_var");
-    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy);
+    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy, true);
     Pointer<SideVariable<NDIM,double> > sc_var = new SideVariable<NDIM,double>("sc_var");
-    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, hierarchy);
+    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, hierarchy, true);
 
     // Initialize all variable contexts.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -503,10 +512,10 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     if (d_using_orthonormal_directors)
     {
         d_W_var = new SideVariable<NDIM,double>(d_object_name+"::W");
-        d_W_idx = var_db->registerVariableAndContext(d_W_var, d_scratch, SIDEG);
+        d_W_idx = var_db->registerVariableAndContext(d_W_var, d_scratch, ghosts);
 
         d_N_var = new SideVariable<NDIM,double>(d_object_name+"::N");
-        d_N_idx = var_db->registerVariableAndContext(d_N_var, d_scratch, ghosts);
+        d_N_idx = var_db->registerVariableAndContext(d_N_var, d_scratch, SIDEG);
     }
 
     if (!d_source_strategy.isNull())
@@ -1088,11 +1097,6 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         if (d_using_orthonormal_directors)
         {
             // Set w(n+1/2) = curl u(n+1/2).
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-                d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(current_time);
-            }
             hier_math_ops->curl(d_W_idx, d_W_var, d_V_idx, d_V_var, NULL, current_time);
 
             // Interpolate w(n+1/2) to W(n+1/2).
@@ -1533,7 +1537,7 @@ IBStaggeredHierarchyIntegrator::regridHierarchy()
                      it != idx_data->lnode_index_end(); ++it)
                 {
                     const LNodeIndex& node_idx = *it;
-                    Pointer<IBAnchorPointSpec> anchor_point_spec = node_idx.getStashData<IBAnchorPointSpec>();
+                    Pointer<IBAnchorPointSpec> anchor_point_spec = node_idx.getNodeData<IBAnchorPointSpec>();
                     if (!anchor_point_spec.isNull())
                     {
                         d_anchor_point_local_idxs[ln].insert(node_idx.getLocalPETScIndex());
@@ -2620,7 +2624,7 @@ IBStaggeredHierarchyIntegrator::getFromInput(
         }
         else if (db->isDouble("min_ghost_cell_width"))
         {
-            d_ghosts = std::ceil(db->getDouble("min_ghost_cell_width"));
+            d_ghosts = int(std::ceil(db->getDouble("min_ghost_cell_width")));
         }
         d_using_pIB_method = db->getBoolWithDefault("using_pIB_method", d_using_pIB_method);
         if (d_using_pIB_method)

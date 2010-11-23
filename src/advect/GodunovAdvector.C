@@ -1,25 +1,34 @@
 // Filename: GodunovAdvector.C
 // Created on 14 Feb 2004 by Boyce Griffith
 //
-// Copyright (c) 2002-2010 Boyce Griffith
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #include "GodunovAdvector.h"
 
@@ -45,8 +54,6 @@
 #include <Index.h>
 #include <IntVector.h>
 #include <tbox/RestartManager.h>
-#include <tbox/Timer.h>
-#include <tbox/TimerManager.h>
 #include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
@@ -225,19 +232,6 @@ namespace IBAMR
 
 namespace
 {
-// Timers.
-static Pointer<Timer> t_compute_stable_dt_on_patch;
-static Pointer<Timer> t_compute_advective_derivative;
-static Pointer<Timer> t_compute_flux;
-static Pointer<Timer> t_predict_value;
-static Pointer<Timer> t_predict_value_with_source_term;
-static Pointer<Timer> t_predict_normal_velocity;
-static Pointer<Timer> t_predict_normal_velocity_with_source_term;
-static Pointer<Timer> t_enforce_incompressibility;
-static Pointer<Timer> t_put_to_database;
-static Pointer<Timer> t_predict;
-static Pointer<Timer> t_predict_with_source_term;
-
 // Number of ghosts cells used for each variable quantity.
 static const int FACEG = 1;
 
@@ -272,35 +266,6 @@ GodunovAdvector::GodunovAdvector(
     bool is_from_restart = RestartManager::getManager()->isFromRestart();
     if (is_from_restart) getFromRestart();
     if (!input_db.isNull()) getFromInput(input_db, is_from_restart);
-
-    // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
-        t_compute_stable_dt_on_patch = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::computeStableDtOnPatch()");
-        t_compute_advective_derivative = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::computeAdvectiveDerivative()");
-        t_compute_flux = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::computeFlux()");
-        t_predict_value = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::predictValue()");
-        t_predict_value_with_source_term = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::predictValueWithSourceTerm()");
-        t_predict_normal_velocity = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::predictNormalVelocity()");
-        t_predict_normal_velocity_with_source_term = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::predictNormalVelocityWithSourceTerm()");
-        t_enforce_incompressibility = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::enforceIncompressibility()");
-        t_put_to_database = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::putToDatabase()");
-        t_predict = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::predict()");
-        t_predict_with_source_term = TimerManager::getManager()->
-            getTimer("IBAMR::GodunovAdvector::predictWithSourceTerm()");
-        timers_need_init = false;
-    }
     return;
 }// GodunovAdvector
 
@@ -324,8 +289,6 @@ GodunovAdvector::computeStableDtOnPatch(
     const FaceData<NDIM,double>& u_ADV,
     const Patch<NDIM>& patch) const
 {
-    t_compute_stable_dt_on_patch->start();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(u_ADV.getDepth() == 1);
     TBOX_ASSERT(u_ADV.getBox()   == patch.getBox());
@@ -357,8 +320,6 @@ GodunovAdvector::computeStableDtOnPatch(
         u_ADV.getPointer(0),u_ADV.getPointer(1),u_ADV.getPointer(2),
         stable_dt);
 #endif
-
-    t_compute_stable_dt_on_patch->stop();
     return stable_dt;
 }// computeStableDtOnPatch
 
@@ -369,8 +330,6 @@ GodunovAdvector::computeAdvectiveDerivative(
     const FaceData<NDIM,double>& q_half,
     const Patch<NDIM>& patch) const
 {
-    t_compute_advective_derivative->start();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(u_ADV.getDepth() == 1);
     TBOX_ASSERT(u_ADV.getBox()   == patch.getBox());
@@ -416,8 +375,6 @@ GodunovAdvector::computeAdvectiveDerivative(
             N.getPointer(depth));
 #endif
     }
-
-    t_compute_advective_derivative->stop();
     return;
 }// computeAdvectiveDerivative
 
@@ -429,8 +386,6 @@ GodunovAdvector::computeFlux(
     const Patch<NDIM>& patch,
     const double dt) const
 {
-    t_compute_flux->start();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(u_ADV.getDepth() == 1);
     TBOX_ASSERT(u_ADV.getBox()   == patch.getBox());
@@ -472,8 +427,6 @@ GodunovAdvector::computeFlux(
             flux.getPointer(0,depth),flux.getPointer(1,depth),flux.getPointer(2,depth));
 #endif
     }
-
-    t_compute_flux->stop();
     return;
 }// computeFlux
 
@@ -485,11 +438,7 @@ GodunovAdvector::predictValue(
     const Patch<NDIM>& patch,
     const double dt) const
 {
-    t_predict_value->start();
-
     predict(q_half, u_ADV, Q, patch, dt);
-
-    t_predict_value->stop();
     return;
 }// predictValue
 
@@ -502,11 +451,7 @@ GodunovAdvector::predictValueWithSourceTerm(
     const Patch<NDIM>& patch,
     const double dt) const
 {
-    t_predict_value_with_source_term->start();
-
     predictWithSourceTerm(q_half, u_ADV, Q, F, patch, dt);
-
-    t_predict_value_with_source_term->stop();
     return;
 }// predictValueWithSourceTerm
 
@@ -518,8 +463,6 @@ GodunovAdvector::predictNormalVelocity(
     const Patch<NDIM>& patch,
     const double dt) const
 {
-    t_predict_normal_velocity->start();
-
     FaceData<NDIM,double> v_half_tmp(v_half.getBox(), NDIM, IntVector<NDIM>(FACEG));
 
     predict(v_half_tmp, u_ADV, V, patch, dt);
@@ -532,8 +475,6 @@ GodunovAdvector::predictNormalVelocity(
         const Box<NDIM> box = (v_half_arr.getBox())*(v_half_tmp_arr.getBox());
         v_half_arr.copyDepth(0, v_half_tmp_arr, axis, box);
     }
-
-    t_predict_normal_velocity->stop();
     return;
 }// predictNormalVelocity
 
@@ -546,8 +487,6 @@ GodunovAdvector::predictNormalVelocityWithSourceTerm(
     const Patch<NDIM>& patch,
     const double dt) const
 {
-    t_predict_normal_velocity_with_source_term->start();
-
     FaceData<NDIM,double> v_half_tmp(v_half.getBox(), NDIM, IntVector<NDIM>(FACEG));
 
     predictWithSourceTerm(v_half_tmp, u_ADV, V, F, patch, dt);
@@ -560,8 +499,6 @@ GodunovAdvector::predictNormalVelocityWithSourceTerm(
         const Box<NDIM> box = (v_half_arr.getBox())*(v_half_tmp_arr.getBox());
         v_half_arr.copyDepth(0, v_half_tmp_arr, axis, box);
     }
-
-    t_predict_normal_velocity_with_source_term->stop();
     return;
 }// predictNormalVelocityWithSourceTerm
 
@@ -572,8 +509,6 @@ GodunovAdvector::enforceIncompressibility(
     const FaceData<NDIM,double>& grad_phi,
     const Patch<NDIM>& patch) const
 {
-    t_enforce_incompressibility->start();
-
 #if (NDIM != 1)
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -615,8 +550,6 @@ GodunovAdvector::enforceIncompressibility(
     }
 
 #endif
-
-    t_enforce_incompressibility->stop();
     return;
 }// enforceIncompressibility
 
@@ -624,8 +557,6 @@ void
 GodunovAdvector::putToDatabase(
     Pointer<Database> db)
 {
-    t_put_to_database->start();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
 #endif
@@ -633,8 +564,6 @@ GodunovAdvector::putToDatabase(
 #if (NDIM == 3)
     db->putBool("d_using_full_ctu", d_using_full_ctu);
 #endif
-
-    t_put_to_database->stop();
     return;
 }// putToDatabase
 
@@ -648,8 +577,6 @@ GodunovAdvector::predict(
     const Patch<NDIM>& patch,
     const double dt) const
 {
-    t_predict->start();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(q_half.getDepth() == Q.getDepth());
     TBOX_ASSERT(q_half.getBox()   == patch.getBox());
@@ -709,8 +636,6 @@ GodunovAdvector::predict(
             q_half.getPointer(0,depth),q_half.getPointer(1,depth),q_half.getPointer(2,depth));
 #endif
     }
-
-    t_predict->stop();
     return;
 }// predict
 
@@ -723,8 +648,6 @@ GodunovAdvector::predictWithSourceTerm(
     const Patch<NDIM>& patch,
     const double dt) const
 {
-    t_predict_with_source_term->start();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(q_half.getDepth() == Q.getDepth());
     TBOX_ASSERT(q_half.getDepth() == F.getDepth());
@@ -793,8 +716,6 @@ GodunovAdvector::predictWithSourceTerm(
             q_half.getPointer(0,depth),q_half.getPointer(1,depth),q_half.getPointer(2,depth));
 #endif
     }
-
-    t_predict_with_source_term->stop();
     return;
 }// predictWithSourceTerm
 
