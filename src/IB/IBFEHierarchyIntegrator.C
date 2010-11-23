@@ -435,8 +435,8 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
 
     if (d_use_fbar_projection)
     {
-        ExplicitSystem& coords_system = equation_systems->add_system<ExplicitSystem>(PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME);
-        coords_system.add_variable("J_proj", d_projected_strain_fe_order, d_projected_strain_fe_family);
+        ExplicitSystem& proj_strain_system = equation_systems->add_system<ExplicitSystem>(PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME);
+        proj_strain_system.add_variable("J_proj", d_projected_strain_fe_order, d_projected_strain_fe_family);
     }
 
     // Initialize all variables.
@@ -1512,7 +1512,7 @@ IBFEHierarchyIntegrator::computeProjectedDilatationalStrain(
     System& proj_strain_system = equation_systems->get_system<System>(PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME);
     NumericVector<double>& J_proj = *(proj_strain_system.current_local_solution);
     const DofMap& proj_strain_dof_map = proj_strain_system.get_dof_map();
-    std::vector<unsigned int> proj_strain_dof_indices(NDIM);
+    std::vector<unsigned int> proj_strain_dof_indices;
 
     AutoPtr<FEBase> proj_strain_fe(FEBase::build(dim, proj_strain_dof_map.variable_type(0)));
     proj_strain_fe->attach_quadrature_rule(&qrule);
@@ -1522,7 +1522,7 @@ IBFEHierarchyIntegrator::computeProjectedDilatationalStrain(
     // Loop over the elements to compute the right-hand side vector.
     AutoPtr<NumericVector<double> > F = J_proj.clone();
     F->zero();
-    DenseVector<double> F_e(NDIM);
+    DenseVector<double> F_e;
     const MeshBase::const_element_iterator end_el = mesh.active_local_elements_end();
     for (MeshBase::const_element_iterator el = mesh.active_local_elements_begin(); el != end_el; ++el)
     {
