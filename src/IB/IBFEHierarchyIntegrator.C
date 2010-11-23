@@ -1695,7 +1695,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
             {
                 const double J = dX_ds.det();
                 const double J_bar = compute_interpolation(qp,*J_proj,*proj_strain_phi,proj_strain_dof_indices);
-                const double alpha = pow(J_bar,1.0/double(NDIM))/pow(J,1.0/double(NDIM));
+                const double alpha = pow(J_bar/J,1.0/double(NDIM));
                 dX_ds *= alpha;
 #if (NDIM == 2)
                 dX_ds(2,2) = 1.0;
