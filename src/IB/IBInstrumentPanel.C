@@ -134,11 +134,7 @@ init_meter_elements(
 
         // Away from the center of the web, each web patch is a planar
         // quadrilateral.  At the web centroid, the quadrilateral is degenerate,
-        // i.e., it becomes a triangle.
-        //
-        // The only change required between these two cases is that the centroid
-        // of a non-degenerate quadrilateral is different from that of a
-        // degenerate quadrilateral.
+        // i.e., it is a triangle.
         for (int n = 0; n < num_web_nodes; ++n)
         {
             // Compute the four vertices of the quadrilateral web patch.
@@ -150,8 +146,32 @@ init_meter_elements(
             const blitz::TinyVector<double,NDIM> X2(X_perimeter1+double(n+1)*dX1);
             const blitz::TinyVector<double,NDIM> X3(X_perimeter0+double(n+1)*dX0);
 
-            // Compute the centroid of the quadrilateral web patch.
-            X_web(m,n) = ((n+1 < num_web_nodes) ? blitz::TinyVector<double,NDIM>((X0+X1+X2+X3)/4.0) : blitz::TinyVector<double,NDIM>((X0+X1+X2)/3.0));
+            // Compute the midpoints of the edges of the quadrilateral.
+            const blitz::TinyVector<double,NDIM> X01(0.5*(X0+X1));
+            const blitz::TinyVector<double,NDIM> X12(0.5*(X1+X2));
+            const blitz::TinyVector<double,NDIM> X23(0.5*(X2+X3));
+            const blitz::TinyVector<double,NDIM> X30(0.5*(X3+X0));
+
+            // Construct a parametric representation of the lines connecting the
+            // midpoints of the edges.
+            const blitz::TinyVector<double,NDIM>& l0 = X01;
+            const blitz::TinyVector<double,NDIM>  d0 = X23-X01;
+
+            const blitz::TinyVector<double,NDIM>& l1 = X12;
+            const blitz::TinyVector<double,NDIM>  d1 = X30-X12;
+
+            // Compute the centroid as the intersection of the lines connecting
+            // the midpoints of the edges.
+            const double d0d0 = dot(d0,d0);
+            const double d0d1 = dot(d0,d1);
+            const double d1d1 = dot(d1,d1);
+            const double d0l0 = dot(d0,l0);
+            const double d0l1 = dot(d0,l1);
+            const double d1l0 = dot(d1,l0);
+            const double d1l1 = dot(d1,l1);
+            const double t = (-d0l0*d1d1+d0l1*d1d1+d0d1*d1l0-d0d1*d1l1)/(-d0d1*d0d1+d1d1*d0d0);
+            const double s = ( d1l0*d0d0-d0d1*d0l0+d0d1*d0l1-d1l1*d0d0)/(-d0d1*d0d1+d1d1*d0d0);
+            X_web(m,n) = 0.5*(l0+t*d0+l1+s*d1);
 
             // Compute the area-weighted normal to the quadrilateral web patch,
             // i.e.,
