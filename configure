@@ -9835,6 +9835,7 @@ else
 
 fi
 
+LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FCLIBS"
 
  if test "$BLITZ_ENABLED" == "yes"; then
   BLITZ_ENABLED_TRUE=
@@ -13386,7 +13387,6 @@ echo
 echo "=================================="
 echo "Configuring required package PETSc"
 echo "=================================="
-LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FCLIBS"
 
 
 echo "using PETSc architecture = ${PETSC_ARCH}"
