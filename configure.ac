@@ -325,6 +325,7 @@ if (test -r $PETSC_DIR/$PETSC_ARCH/conf/petscvariables) ; then
 fi
 AX_BLAS(,)
 AX_LAPACK(,)
+LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FCLIBS"
 
 AM_CONDITIONAL([BLITZ_ENABLED],[test "$BLITZ_ENABLED" == "yes"])
 if test "$BLITZ_ENABLED" == "yes"; then
@@ -370,7 +371,6 @@ echo
 echo "=================================="
 echo "Configuring required package PETSc"
 echo "=================================="
-LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FCLIBS"
 CONFIGURE_PETSC
 
 AM_CONDITIONAL([LIBMESH_ENABLED],[test "$LIBMESH_ENABLED" == "yes"])
