@@ -1,7 +1,7 @@
 ###########################################################################
 # Prelude.
 ###########################################################################
-AC_PREREQ(2.65)
+AC_PREREQ([2.68])
 AC_INIT([IBAMR],[101029],[griffith AT cims DOT nyu DOT edu])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_HEADERS([config/IBAMR_config.h])
@@ -12,17 +12,33 @@ AC_LANG(C++)
 ###########################################################################
 # Checks for programs.
 ###########################################################################
+AC_ARG_VAR(LDFLAGS,[linker flags, e.g. -L<lib dir> if you have libraries in a nonstandard directory <lib dir>])
 AC_ARG_VAR(LIBS,[linker commands, e.g. -l<lib> if you require a nonstandard library <lib>])
 AC_ARG_VAR(FCLIBS,[linker flags and commands, e.g. -L<lib dir> and -l<lib> for the "Fortran intrinsic and run-time libraries" that are required to successfully link a Fortran program or shared library])
 AC_PROG_CC		# Check for a C compiler.
 AC_PROG_CXX		# Check for a C++ compiler.
+AC_PROG_CXXCPP          # Check for a C++ preprocessor.
 AC_PROG_FC		# Check for a Fortran compiler.
+AC_PROG_F77		# Check for a Fortran 77 compiler.
 AC_FC_LIBRARY_LDFLAGS	# Determine the linker flags for the Fortran intrinsic and runtime libraries.
 AC_FC_WRAPPERS
 LIBS="$LIBS $FCLIBS"
-AC_SUBST(F77, $FC)
-AC_SUBST(FFLAGS, $FCFLAGS)
-AC_SUBST(FLIBS, $FCLIBS)
+
+if test "x$F77" != "x" -a "$F77" != "$FC" ; then
+  AC_MSG_WARN([environment variables F77 and FC differ; using F77=$FC])
+fi
+F77=$FC
+
+if test "x$FFLAGS" != "x" -a "$FFLAGS" != "$FCFLAGS" ; then
+  AC_MSG_WARN([environment variables FFLAGS and FCFLAGS differ; using FFLAGS=$FCFLAGS])
+fi
+FFLAGS=$FCFLAGS
+
+if test "x$FLIBS" != "x" -a "$FLIBS" != "$FCLIBS" ; then
+  AC_MSG_WARN([environment variables FCLIBS and FLIBS differ; using FLIBS=$FCLIBS])
+fi
+FLIBS=$FCLIBS
+
 AC_LIB_PREPARE_PREFIX
 AC_LIB_RPATH
 
@@ -309,10 +325,10 @@ if (test -r $PETSC_DIR/$PETSC_ARCH/conf/petscvariables) ; then
   PETSC_BLASLAPACK_LIB=`grep "BLASLAPACK_LIB" $PETSC_DIR/$PETSC_ARCH/conf/petscvariables | sed -e 's/.*BLASLAPACK_LIB = //'`
   if test "x$PETSC_BLASLAPACK_LIB" != x ; then
     if test "x$with_blas" != "x" -a "$with_blas" != "$PETSC_BLASLAPACK_LIB" ; then
-      echo "BLAS flags specified by --with-blas appear to disagree with PETSc BLAS/LAPACK flags; using PETSc settings"
+      AC_MSG_WARN([BLAS flags specified by --with-blas appear to disagree with PETSc BLAS/LAPACK flags; using PETSc settings])
     fi
     if test "x$with_lapack" != "x" -a "$with_lapack" != "$PETSC_BLASLAPACK_LIB" ; then
-      echo "LAPACK flags specified by --with-lapack appear to disagree with PETSc BLAS/LAPACK flags; using PETSc settings"
+      AC_MSG_WARN([LAPACK flags specified by --with-lapack appear to disagree with PETSc BLAS/LAPACK flags; using PETSc settings])
     fi
     echo "using PETSc BLAS/LAPACK library flags: $PETSC_BLASLAPACK_LIB"
     with_blas="$PETSC_BLASLAPACK_LIB"
