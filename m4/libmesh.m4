@@ -202,7 +202,7 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   fi
 fi
 
-contrib_lib_enabled=`grep "enable-libHilbert.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
+contrib_lib_enabled=`grep "enable-libhilbert.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`
 echo "checking whether libMesh contrib package libHilbert is enabled... ${contrib_lib_enabled}"
 if test "${contrib_lib_enabled}" == "yes" ; then
   AC_LIB_HAVE_LINKFLAGS([Hilbert])
