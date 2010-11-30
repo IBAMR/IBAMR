@@ -352,7 +352,6 @@ main(
                                             0.2,
                                             R,
                                             Utility::string_to_enum<ElemType>(elem_type));
-        ExodusII_IO mesh_writer(mesh);
 
         struct_mu = input_db->getDoubleWithDefault("struct_mu", struct_mu);
         struct_lambda = input_db->getDoubleWithDefault("struct_lambda", struct_lambda);

@@ -331,7 +331,6 @@ main(
                                             0.0, 2.0,
                                             0.0, 0.5,
                                             Utility::string_to_enum<ElemType>(elem_type));
-        ExodusII_IO mesh_writer(mesh);
 
         // Setup boundary condition data.
         const MeshBase::const_element_iterator end_el = mesh.elements_end();
