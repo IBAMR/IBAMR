@@ -24837,8 +24837,8 @@ $as_echo "$as_me: WARNING: libMesh contributed lib libnemesis is enabled, but co
   fi
 fi
 
-contrib_lib_enabled=`grep "enable-libhilbert.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
-echo "checking whether libMesh contrib package libhilbert is enabled... ${contrib_lib_enabled}"
+contrib_lib_enabled=`grep "enable-libHilbert.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
+echo "checking whether libMesh contrib package libHilbert is enabled... ${contrib_lib_enabled}"
 if test "${contrib_lib_enabled}" == "yes" ; then
 
 
@@ -24896,7 +24896,7 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   rpathdirs=
   ltrpathdirs=
   names_already_handled=
-  names_next_round='hilbert '
+  names_next_round='Hilbert '
   while test -n "$names_next_round"; do
     names_this_round="$names_next_round"
     names_next_round=
@@ -25104,14 +25104,14 @@ if test "${contrib_lib_enabled}" == "yes" ; then
             case "$found_dir" in
               */$acl_libdirstem | */$acl_libdirstem/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                if test "$name" = 'hilbert'; then
+                if test "$name" = 'Hilbert'; then
                   LIBHILBERT_PREFIX="$basedir"
                 fi
                 additional_includedir="$basedir/include"
                 ;;
               */$acl_libdirstem2 | */$acl_libdirstem2/)
                 basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
-                if test "$name" = 'hilbert'; then
+                if test "$name" = 'Hilbert'; then
                   LIBHILBERT_PREFIX="$basedir"
                 fi
                 additional_includedir="$basedir/include"
@@ -25323,9 +25323,9 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   done
 
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libhilbert" >&5
-$as_echo_n "checking for libhilbert... " >&6; }
-if ${ac_cv_libhilbert+:} false; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libHilbert" >&5
+$as_echo_n "checking for libHilbert... " >&6; }
+if ${ac_cv_libHilbert+:} false; then :
   $as_echo_n "(cached) " >&6
 else
 
@@ -25362,24 +25362,24 @@ main ()
 }
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_libhilbert=yes
+  ac_cv_libHilbert=yes
 else
-  ac_cv_libhilbert='no'
+  ac_cv_libHilbert='no'
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
     LIBS="$ac_save_LIBS"
 
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_libhilbert" >&5
-$as_echo "$ac_cv_libhilbert" >&6; }
-  if test "$ac_cv_libhilbert" = yes; then
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_libHilbert" >&5
+$as_echo "$ac_cv_libHilbert" >&6; }
+  if test "$ac_cv_libHilbert" = yes; then
     HAVE_LIBHILBERT=yes
 
 $as_echo "#define HAVE_LIBHILBERT 1" >>confdefs.h
 
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking how to link with libhilbert" >&5
-$as_echo_n "checking how to link with libhilbert... " >&6; }
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking how to link with libHilbert" >&5
+$as_echo_n "checking how to link with libHilbert... " >&6; }
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBHILBERT" >&5
 $as_echo "$LIBHILBERT" >&6; }
   else
@@ -25399,8 +25399,8 @@ $as_echo "$LIBHILBERT" >&6; }
   if test "$HAVE_LIBHILBERT" == "yes" ; then
     LIBS="$LIBHILBERT $LIBS"
   else
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: libMesh contributed lib libhilbert is enabled, but could not find working libhilbert" >&5
-$as_echo "$as_me: WARNING: libMesh contributed lib libhilbert is enabled, but could not find working libhilbert" >&2;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: libMesh contributed lib libHilbert is enabled, but could not find working libHilbert" >&5
+$as_echo "$as_me: WARNING: libMesh contributed lib libHilbert is enabled, but could not find working libHilbert" >&2;}
   fi
 fi
 
