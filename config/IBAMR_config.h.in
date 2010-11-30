@@ -52,7 +52,7 @@
 /* Define if you have the libhdf5_hl library. */
 #undef HAVE_LIBHDF5_HL
 
-/* Define if you have the libhilbert library. */
+/* Define if you have the libHilbert library. */
 #undef HAVE_LIBHILBERT
 
 /* Define if you have the libHYPRE library. */
