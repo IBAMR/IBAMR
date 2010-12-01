@@ -76,6 +76,7 @@ using namespace std;
 void
 output_data(
     tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy,
+    tbox::Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
     LDataManager* lag_manager,
     const int iteration_num,
     const double loop_time,
@@ -510,7 +511,9 @@ main(
          */
         if (write_data && iteration_num%data_dump_interval == 0)
         {
-            output_data(patch_hierarchy, time_integrator->getLDataManager(), iteration_num, loop_time, data_dump_dirname);
+            output_data(patch_hierarchy,
+                        navier_stokes_integrator, time_integrator->getLDataManager(),
+                        iteration_num, loop_time, data_dump_dirname);
         }
 
         while (!tbox::MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
@@ -566,7 +569,9 @@ main(
 
             if (write_data && iteration_num%data_dump_interval == 0)
             {
-                output_data(patch_hierarchy, time_integrator->getLDataManager(), iteration_num, loop_time, data_dump_dirname);
+                output_data(patch_hierarchy,
+                            navier_stokes_integrator, time_integrator->getLDataManager(),
+                            iteration_num, loop_time, data_dump_dirname);
             }
         }
 
@@ -605,6 +610,7 @@ main(
 void
 output_data(
     tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy,
+    tbox::Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
     LDataManager* lag_manager,
     const int iteration_num,
     const double loop_time,
@@ -617,6 +623,32 @@ output_data(
 
     string file_name;
     char temp_buf[128];
+
+    /*
+     * Write Cartesian data.
+     */
+    hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
+
+    file_name = data_dump_dirname + "/" + "hier_data.";
+    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, tbox::SAMRAI_MPI::getRank());
+    file_name += temp_buf;
+
+    tbox::Pointer<tbox::HDFDatabase> hier_db = new tbox::HDFDatabase("hier_db");
+    hier_db->create(file_name);
+
+    hier::ComponentSelector hier_data;
+    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVar(),
+                                                           navier_stokes_integrator->getCurrentContext()));
+    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVar(),
+                                                           navier_stokes_integrator->getCurrentContext()));
+    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getExtrapolatedPressureVar(),
+                                                           navier_stokes_integrator->getCurrentContext()));
+
+    patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
+    hier_db->putDouble("loop_time", loop_time);
+    hier_db->putInteger("iteration_num", iteration_num);
+
+    hier_db->close();
 
     /*
      * Write Lagrangian data.
