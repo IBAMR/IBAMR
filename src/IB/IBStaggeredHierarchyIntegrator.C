@@ -52,7 +52,6 @@
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IndexUtilities.h>
-#include <ibtk/LEInteractor.h>
 #include <ibtk/LNodeIndexData.h>
 #include <ibtk/LagMarkerUtilities.h>
 #include <ibtk/LagSiloDataWriter.h>
@@ -804,7 +803,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         d_rscheds["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(current_time);
     }
-    d_lag_data_manager->interpolate(d_V_idx, U_data, X_data);
+    d_lag_data_manager->interp(d_V_idx, U_data, X_data);
     resetAnchorPointValues(U_data, coarsest_ln, finest_ln);
 
     // Initialize X(n+1/2) to equal X(n).
@@ -1061,7 +1060,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         d_hier_sc_data_ops->linearSum(d_V_idx, 0.5, U_current_idx, 0.5, U_new_idx);
 
         // Interpolate u(n+1/2) to U(n+1/2).
-        d_lag_data_manager->interpolate(d_V_idx, U_half_data, X_half_data, d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"], current_time);
+        d_lag_data_manager->interp(d_V_idx, U_half_data, X_half_data, d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"], current_time);
         resetAnchorPointValues(U_half_data, coarsest_ln, finest_ln);
 
         // Set X(n+1) = X(n) + dt*U(n+1/2).
@@ -1100,7 +1099,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
             hier_math_ops->curl(d_W_idx, d_W_var, d_V_idx, d_V_var, NULL, current_time);
 
             // Interpolate w(n+1/2) to W(n+1/2).
-            d_lag_data_manager->interpolate(d_W_idx, W_half_data, X_half_data, d_rscheds["W->W::S->S::CONSERVATIVE_LINEAR_REFINE"], current_time);
+            d_lag_data_manager->interp(d_W_idx, W_half_data, X_half_data, d_rscheds["W->W::S->S::CONSERVATIVE_LINEAR_REFINE"], current_time);
             resetAnchorPointValues(W_half_data, coarsest_ln, finest_ln);
 
             // Compute D(n+1) from D(n) and W(n+1/2), and compute D(n+1/2) from
@@ -1348,7 +1347,7 @@ IBStaggeredHierarchyIntegrator::postProcessData()
 
     // Interpolate u(n) from the Cartesian grid onto the Lagrangian mesh.
     d_hier_sc_data_ops->copyData(d_V_idx, U_current_idx);
-    d_lag_data_manager->interpolate(d_V_idx, U_data, X_data, d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"], d_integrator_time);
+    d_lag_data_manager->interp(d_V_idx, U_data, X_data, d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"], d_integrator_time);
     resetAnchorPointValues(U_data, coarsest_ln, finest_ln);
 
     // Compute F(n) = F(X(n),U(n),n), the Lagrangian force corresponding to

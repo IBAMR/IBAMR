@@ -147,8 +147,7 @@ IBImplicitSJROperator::formJacobian(
     hier_sc_data_ops->linearSum(u_half_ib_idx, 0.5, u_current_idx, 0.5, u_new_idx);
 
     // Interpolate u(n+1/2) to U(n+1/2).
-    lag_data_manager->interpolate(u_half_ib_idx, U_half_data, X_mid_data,
-                                  u_half_ib_rscheds, d_current_time);
+    lag_data_manager->interp(u_half_ib_idx, U_half_data, X_mid_data, u_half_ib_rscheds, d_current_time);
     d_ib_implicit_integrator->resetAnchorPointValues(U_half_data, coarsest_ln, finest_ln);
 
     // Set X(n+1/2) = X(n) + 0.5*dt*U(n+1/2).
