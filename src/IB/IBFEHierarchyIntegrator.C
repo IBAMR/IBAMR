@@ -534,12 +534,14 @@ IBFEHierarchyIntegrator::initializeHierarchy()
     const MeshBase& mesh = equation_systems->get_mesh();
     DofMap&    force_dof_map =    force_system.get_dof_map();
     DofMap& velocity_dof_map = velocity_system.get_dof_map();
-    const unsigned int    force_system_number =    force_system.number();
-    const unsigned int velocity_system_number = velocity_system.number();
-    const MeshBase::const_element_iterator end_el = mesh.elements_end();
-    for (MeshBase::const_element_iterator el = mesh.elements_begin(); el != end_el; ++el)
+    const unsigned int    force_sys_num =    force_system.number();
+    const unsigned int velocity_sys_num = velocity_system.number();
+
+    MeshBase::const_element_iterator       el_it  = mesh.elements_begin();
+    const MeshBase::const_element_iterator el_end = mesh.elements_end();
+    for ( ; el_it != el_end; ++el_it)
     {
-        Elem* const elem = *el;
+        Elem* const elem = *el_it;
         for (unsigned int side = 0; side < elem->n_sides(); ++side)
         {
             const bool at_mesh_bdry = elem->neighbor(side) == NULL;
@@ -556,22 +558,22 @@ IBFEHierarchyIntegrator::initializeHierarchy()
                             Node* node = elem->get_node(n);
                             mesh.boundary_info->add_node(node, FEDataManager::DIRICHLET_BDRY_ID);
 
-                            if (node->n_dofs(force_system_number) > 0)
+                            if (node->n_dofs(force_sys_num) > 0)
                             {
                                 for (unsigned int d = 0; d < NDIM; ++d)
                                 {
-                                    const int F_dof_index = node->dof_number(force_system_number,d,0);
+                                    const int F_dof_index = node->dof_number(force_sys_num,d,0);
                                     DofConstraintRow F_constraint_row;
                                     F_constraint_row[F_dof_index] = 1.0;
                                     force_dof_map.add_constraint_row(F_dof_index, F_constraint_row, false);
                                 }
                             }
 
-                            if (node->n_dofs(velocity_system_number) > 0)
+                            if (node->n_dofs(velocity_sys_num) > 0)
                             {
                                 for (unsigned int d = 0; d < NDIM; ++d)
                                 {
-                                    const int U_dof_index = node->dof_number(velocity_system_number,d,0);
+                                    const int U_dof_index = node->dof_number(velocity_sys_num,d,0);
                                     DofConstraintRow U_constraint_row;
                                     U_constraint_row[U_dof_index] = 1.0;
                                     velocity_dof_map.add_constraint_row(U_dof_index, U_constraint_row, false);
@@ -668,17 +670,17 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     System& force_system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
     System& velocity_system = equation_systems->get_system<System>(VELOCITY_SYSTEM_NAME);
 
-    NumericVector<double>& X_current = *(coords_system.current_local_solution);
+    NumericVector<double>& X_current = *(coords_system.solution);
     coords_system.get_dof_map().enforce_constraints_exactly(coords_system, &X_current);
 
     AutoPtr<NumericVector<double> > X_new_ptr = X_current.clone();
     NumericVector<double>& X_new = *X_new_ptr;
 
-    AutoPtr<NumericVector<double> > X_half_ptr = X_current.clone();
+    AutoPtr<NumericVector<double> > X_half_ptr = coords_system.current_local_solution->clone();
     NumericVector<double>& X_half = *X_half_ptr;
 
-    NumericVector<double>& F_half = *(   force_system.current_local_solution);
-    NumericVector<double>& U_half = *(velocity_system.current_local_solution);
+    NumericVector<double>& F_half = *(   force_system.solution);
+    NumericVector<double>& U_half = *(velocity_system.solution);
 
     NumericVector<double>* X_half_IB_ghost_ptr = d_fe_data_manager->getGhostedCoordsVector();
     NumericVector<double>& X_half_IB_ghost = *X_half_IB_ghost_ptr;
@@ -772,6 +774,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
                            0.5, 0.5, 0.0,
                            dynamic_cast<PetscVector<double>*>(&X_current)->vec(),
                            dynamic_cast<PetscVector<double>*>(&X_new)->vec()); IBTK_CHKERRQ(ierr);
+        X_half.close();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
@@ -829,7 +832,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         d_hier_sc_data_ops->linearSum(d_V_idx, 0.5, U_current_idx, 0.5, U_new_idx);
 
         // Interpolate u(n+1/2) to U(n+1/2).
-        d_fe_data_manager->interp(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"], current_time);
+        d_fe_data_manager->interp(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"], current_time, false);
         if (d_lag_data_manager != NULL)
         {
             d_lag_data_manager->interp(d_V_idx, U_half_data, X_half_data, std::vector<Pointer<RefineSchedule<NDIM> > >(), current_time, false);
@@ -869,14 +872,6 @@ IBFEHierarchyIntegrator::advanceHierarchy(
             ierr = VecCopy(X_new_vec, X_current_vec); IBTK_CHKERRQ(ierr);
         }
     }
-
-    // Copy the ghosted data into the non-ghosted solution vectors.
-    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(  coords_system.current_local_solution.get())->vec(),
-                   dynamic_cast<PetscVector<double>*>(  coords_system.              solution.get())->vec()); IBTK_CHKERRQ(ierr);
-    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(   force_system.current_local_solution.get())->vec(),
-                   dynamic_cast<PetscVector<double>*>(   force_system.              solution.get())->vec()); IBTK_CHKERRQ(ierr);
-    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(velocity_system.current_local_solution.get())->vec(),
-                   dynamic_cast<PetscVector<double>*>(velocity_system.              solution.get())->vec()); IBTK_CHKERRQ(ierr);
 
     // Update the coordinate mapping dX = X - s.
     updateCoordinateMapping();
@@ -1010,86 +1005,6 @@ IBFEHierarchyIntegrator::regridHierarchy()
 {
     t_regrid_hierarchy->start();
 
-    // Update the Lagrangian mesh.
-    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-    const unsigned int max_h_level = 0;
-    if (max_h_level > 0)
-    {
-        SAMRAI_MPI::barrier();
-        pout << "\n*** Remeshing ***" << std::endl;
-
-        MeshBase& mesh = equation_systems->get_mesh();
-        const int mesh_n_elem = mesh.n_elem();
-
-        System& coords_system = equation_systems->get_system<System>(COORDINATES_SYSTEM_NAME);
-        const DofMap& coords_dof_map = coords_system.get_dof_map();
-
-        MeshRefinement mesh_refinement(mesh);
-        mesh_refinement.max_h_level() = max_h_level;
-
-        const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
-        const int num_refine_iterations = initial_time ? max_h_level : 1;
-        for (int it = 0; it < num_refine_iterations; ++it)
-        {
-            // Flag elements for refinement if they are near fluid-structure
-            // interfaces (i.e., physical boundaries).
-            bool marked_element_for_refine = false;
-            for (MeshBase::element_iterator e_it = mesh.active_elements_begin(); e_it != mesh.active_elements_end(); ++e_it)
-            {
-                Elem* const elem = *e_it;
-
-                // Only flag elements for refinement if they are not already
-                // maximally refined.
-                if (elem->level() < max_h_level)
-                {
-                    // Loop over the element boundaries to determine if this
-                    // element touches the physical boundary.
-                    bool at_physical_bdry = false;
-                    for (unsigned short int side = 0; side < elem->n_sides(); ++side)
-                    {
-                        const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
-                        for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
-                        {
-                            const short int bdry_id = *cit;
-                            at_physical_bdry = at_physical_bdry || (elem->neighbor(side) == NULL && !coords_dof_map.is_periodic_boundary(bdry_id));
-                        }
-                    }
-
-                    // Flag the element for refinement
-                    if (at_physical_bdry)
-                    {
-                        marked_element_for_refine = true;
-                        elem->set_refinement_flag(Elem::REFINE);
-                    }
-                }
-            }
-
-            if (marked_element_for_refine && mesh_refinement.refine_and_coarsen_elements())
-            {
-                equation_systems->reinit();
-                d_fe_data_manager->reinitElementMappings();
-
-                // Reinitialize the systems.
-                System& coords_system = equation_systems->get_system<System>(COORDINATES_SYSTEM_NAME);
-                coords_system.assemble_before_solve = false;
-                coords_system.assemble();
-
-                System& coords_mapping_system = equation_systems->get_system<System>(COORDINATE_MAPPING_SYSTEM_NAME);
-                coords_mapping_system.assemble_before_solve = false;
-                coords_mapping_system.assemble();
-
-                SAMRAI_MPI::barrier();
-                pout << "number of elements before remesh = " << mesh_n_elem   << std::endl
-                     << "number of elements after  remesh = " << mesh.n_elem() << std::endl << std::endl;
-            }
-            else
-            {
-                SAMRAI_MPI::barrier();
-                pout << "mesh unchanged" << std::endl << std::endl;
-            }
-        }
-    }
-
     // Update the marker data.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): resetting markers particles.\n";
     LagMarkerUtilities::collectMarkersOnPatchHierarchy(d_mark_current_idx, d_hierarchy);
@@ -1112,6 +1027,9 @@ IBFEHierarchyIntegrator::regridHierarchy()
         d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
     }
     d_lag_force_strategy_needs_init = true;
+
+    // Reinitialize the FE data manager.
+    d_fe_data_manager->reinitElementMappings();
 
     // Prune duplicate markers following regridding.
     LagMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
@@ -1510,7 +1428,7 @@ IBFEHierarchyIntegrator::computeProjectedDilatationalStrain(
     const std::vector<std::vector<VectorValue<double> > >& coords_dphi = coords_fe->get_dphi();
 
     System& proj_strain_system = equation_systems->get_system<System>(PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME);
-    NumericVector<double>& J_proj = *(proj_strain_system.current_local_solution);
+    NumericVector<double>& J_proj = *(proj_strain_system.solution);
     const DofMap& proj_strain_dof_map = proj_strain_system.get_dof_map();
     std::vector<unsigned int> proj_strain_dof_indices;
 
@@ -1523,10 +1441,11 @@ IBFEHierarchyIntegrator::computeProjectedDilatationalStrain(
     AutoPtr<NumericVector<double> > F = J_proj.clone();
     F->zero();
     DenseVector<double> F_e;
-    const MeshBase::const_element_iterator end_el = mesh.active_local_elements_end();
-    for (MeshBase::const_element_iterator el = mesh.active_local_elements_begin(); el != end_el; ++el)
+    MeshBase::const_element_iterator       el_it  = mesh.active_local_elements_begin();
+    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
+    for ( ; el_it != el_end; ++el_it)
     {
-        Elem* const elem = *el;
+        const Elem* const elem = *el_it;
 
         coords_fe->reinit(elem);
         for (unsigned int i = 0; i < NDIM; ++i)
@@ -1555,7 +1474,6 @@ IBFEHierarchyIntegrator::computeProjectedDilatationalStrain(
     }
 
     // Assemble the right hand side vector.
-    F->close();
     proj_strain_dof_map.enforce_constraints_exactly(proj_strain_system, F.get());
 
     // Solve for the projected deformation.
@@ -1637,7 +1555,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     if (d_use_fbar_projection)
     {
         System& proj_strain_system = equation_systems->get_system<System>(PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME);
-        J_proj = proj_strain_system.current_local_solution.get();
+        J_proj = proj_strain_system.solution.get();
         proj_strain_dof_map = &proj_strain_system.get_dof_map();
 
         proj_strain_fe = FEBase::build(dim, proj_strain_dof_map->variable_type(0));
@@ -1659,10 +1577,11 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     AutoPtr<NumericVector<double> > F = G.clone();
     F->zero();
     std::vector<DenseVector<double> > F_e(NDIM);
-    const MeshBase::const_element_iterator end_el = mesh.active_local_elements_end();
-    for (MeshBase::const_element_iterator el = mesh.active_local_elements_begin(); el != end_el; ++el)
+    MeshBase::const_element_iterator       el_it  = mesh.active_local_elements_begin();
+    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
+    for ( ; el_it != el_end; ++el_it)
     {
-        Elem* const elem = *el;
+        Elem* const elem = *el_it;
 
         fe->reinit(elem);
         for (unsigned int i = 0; i < NDIM; ++i)
@@ -1706,7 +1625,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
             // Accumulate the nodal forces.
             for (unsigned int k = 0; k < phi.size(); ++k)
             {
-                const VectorValue<double> F_qp = -P*(dphi[k][qp])*JxW[qp];
+                const VectorValue<double> F_qp = -P*dphi[k][qp]*JxW[qp];
                 for (unsigned int i = 0; i < NDIM; ++i)
                 {
                     F_e[i](k) += F_qp(i);
@@ -1775,7 +1694,6 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     }
 
     // Assemble the right hand side vector.
-    F->close();
     dof_map.enforce_constraints_exactly(system, F.get());
 
     // Solve for G, the nodal interior elastic force density.
@@ -1828,7 +1746,7 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
     if (d_use_fbar_projection)
     {
         System& proj_strain_system = equation_systems->get_system<System>(PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME);
-        J_proj = proj_strain_system.current_local_solution.get();
+        J_proj = proj_strain_system.solution.get();
         proj_strain_dof_map = &proj_strain_system.get_dof_map();
 
         proj_strain_fe_face = FEBase::build(dim, proj_strain_dof_map->variable_type(0));
@@ -1849,17 +1767,19 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
         const Box<NDIM>& box = f_data->getGhostBox();
 
         // The relevant range of elements.
-        const std::vector<Elem*>& active_patch_elems = d_fe_data_manager->getActivePatchGhostBoxElems(level_num, patch_num);
-        const std::vector<Elem*>::const_iterator el_begin = active_patch_elems.begin();
-        const std::vector<Elem*>::const_iterator el_end   = active_patch_elems.end();
+        const std::map<int,std::set<Elem*> >& active_patch_elems = d_fe_data_manager->getActivePatchElements();
+        std::map<int,std::set<Elem*> >::const_iterator pos = active_patch_elems.find(patch_num);
+        if (pos == active_patch_elems.end()) continue;
+        std::set<Elem*>::const_iterator       el_it  = pos->second.begin();
+        const std::set<Elem*>::const_iterator el_end = pos->second.end();
 
         // Loop over the elements and compute the values to be spread and the
         // positions of the quadrature points.
         int qp_offset = 0;
         std::vector<double> T_bdry, X_bdry;
-        for (std::vector<Elem*>::const_iterator cit = el_begin; cit != el_end; ++cit)
+        for ( ; el_it != el_end; ++el_it)
         {
-            Elem* const elem = *cit;
+            Elem* const elem = *el_it;
 
             // Loop over the element boundaries.
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
@@ -1938,25 +1858,24 @@ IBFEHierarchyIntegrator::initializeCoordinates()
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     MeshBase& mesh = equation_systems->get_mesh();
     System& coords_system = equation_systems->get_system<System>(COORDINATES_SYSTEM_NAME);
-    const unsigned int coords_system_number = coords_system.number();
+    const unsigned int coords_sys_num = coords_system.number();
     NumericVector<double>& X_coords = *coords_system.solution;
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
     {
         Node* n = *it;
-        if (n->n_vars(coords_system_number) > 0)
+        if (n->n_vars(coords_sys_num) > 0)
         {
-            libmesh_assert(n->n_vars(coords_system_number) == NDIM);
+            libmesh_assert(n->n_vars(coords_sys_num) == NDIM);
             const Point& s = *n;
             const Point X = d_coordinate_mapping_function == NULL ? s : d_coordinate_mapping_function(s, d_coordinate_mapping_function_ctx);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                const int dof_index = n->dof_number(coords_system_number,d,0);
+                const int dof_index = n->dof_number(coords_sys_num,d,0);
                 X_coords.set(dof_index,X(d));
             }
         }
     }
     X_coords.close();
-    X_coords.localize(*coords_system.current_local_solution);
     return;
 }// initializeCoordinates
 
@@ -1966,29 +1885,28 @@ IBFEHierarchyIntegrator::updateCoordinateMapping()
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     MeshBase& mesh = equation_systems->get_mesh();
     System& coords_system = equation_systems->get_system<System>(COORDINATES_SYSTEM_NAME);
-    const unsigned int coords_system_number = coords_system.number();
+    const unsigned int coords_sys_num = coords_system.number();
     NumericVector<double>& X_coords = *coords_system.solution;
     System& coords_mapping_system = equation_systems->get_system<System>(COORDINATE_MAPPING_SYSTEM_NAME);
-    const unsigned int coords_mapping_system_number = coords_mapping_system.number();
+    const unsigned int coords_mapping_sys_num = coords_mapping_system.number();
     NumericVector<double>& dX_coords = *coords_mapping_system.solution;
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
     {
         Node* n = *it;
-        if (n->n_vars(coords_system_number) > 0)
+        if (n->n_vars(coords_sys_num) > 0)
         {
-            libmesh_assert(n->n_vars(coords_system_number) == NDIM);
-            libmesh_assert(n->n_vars(coords_mapping_system_number) == NDIM);
+            libmesh_assert(n->n_vars(coords_sys_num) == NDIM);
+            libmesh_assert(n->n_vars(coords_mapping_sys_num) == NDIM);
             const Point& s = *n;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                const int X_dof_index = n->dof_number(coords_system_number,d,0);
-                const int dX_dof_index = n->dof_number(coords_mapping_system_number,d,0);
+                const int X_dof_index = n->dof_number(coords_sys_num,d,0);
+                const int dX_dof_index = n->dof_number(coords_mapping_sys_num,d,0);
                 dX_coords.set(dX_dof_index,X_coords(X_dof_index)-s(d));
             }
         }
     }
     dX_coords.close();
-    dX_coords.localize(*coords_mapping_system.current_local_solution);
     return;
 }// updateCoordinateMapping
 
