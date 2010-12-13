@@ -119,8 +119,8 @@ public:
         void* coordinate_mapping_function_ctx=NULL);
 
     /*!
-     * Set the function to compute the PK1 stress tensor, used to compute the
-     * forces on the Lagrangian finite element mesh.
+     * Set the function to compute the first Piola-Kirchhoff stress tensor, used
+     * to compute the forces on the Lagrangian finite element mesh.
      */
     void
     setPK1StressTensorFunction(
@@ -685,7 +685,7 @@ private:
     void* d_coordinate_mapping_function_ctx;
 
     /*
-     * Function used to compute the PK1 stress tensor.
+     * Function used to compute the first Piola-Kirchhoff stress tensor.
      */
     libMesh::TensorValue<double> (*d_PK1_stress_function)(const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, const double& time, void* ctx);
     void* d_PK1_stress_function_ctx;

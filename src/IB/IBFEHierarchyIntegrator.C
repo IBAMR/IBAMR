@@ -594,9 +594,6 @@ IBFEHierarchyIntegrator::initializeHierarchy()
         dt_next = std::min(dt_next, d_dt_max);
     }
 
-    // Initialize the FE data manager.
-    d_fe_data_manager->reinitElementMappings();
-
     // Reset the Lagrangian data manager.
     if (d_lag_data_manager != NULL)
     {
@@ -606,6 +603,9 @@ IBFEHierarchyIntegrator::initializeHierarchy()
         d_lag_data_manager->endDataRedistribution();
         d_lag_data_manager->updateWorkloadData(coarsest_ln, finest_ln);
     }
+
+    // Initialize the FE data manager.
+    d_fe_data_manager->reinitElementMappings();
 
     // Prune duplicate markers following initialization.
     LagMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
@@ -815,7 +815,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
 
         // Spread F(n+1/2) to f(n+1/2).
         d_hier_sc_data_ops->setToScalar(d_F_idx, 0.0);
-        d_fe_data_manager->spread(d_F_idx, F_half_IB_ghost, X_half_IB_ghost, FORCE_SYSTEM_NAME);
+        d_fe_data_manager->spread(d_F_idx, F_half_IB_ghost, X_half_IB_ghost, FORCE_SYSTEM_NAME, true, true);
         if (d_split_interior_and_bdry_forces)
         {
             spreadBoundaryForceDensity(d_F_idx, X_half_IB_ghost, current_time+0.5*dt);
@@ -1473,8 +1473,8 @@ IBFEHierarchyIntegrator::computeProjectedDilatationalStrain(
         F->add_vector(F_e, proj_strain_dof_indices);
     }
 
-    // Assemble the right hand side vector.
-    proj_strain_dof_map.enforce_constraints_exactly(proj_strain_system, F.get());
+    // Assemble the right-hand-side vector.
+    F->close();
 
     // Solve for the projected deformation.
     std::pair<libMesh::LinearSolver<double>*,SparseMatrix<double>*> proj_solver_components = d_fe_data_manager->getL2ProjectionSolver(PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME);
@@ -1482,6 +1482,7 @@ IBFEHierarchyIntegrator::computeProjectedDilatationalStrain(
     SparseMatrix<double>* M = proj_solver_components.second;
     const double tol = 1.0e-10;
     const unsigned int max_its = 100;
+    proj_strain_dof_map.enforce_constraints_exactly(proj_strain_system, F.get());
     solver->solve(*M, *M, J_proj, *F, tol, max_its);
     proj_strain_dof_map.enforce_constraints_exactly(proj_strain_system, &J_proj);
     return;
@@ -1605,7 +1606,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
         // Loop over interior quadrature points.
         for (unsigned int qp = 0; qp < qrule.n_points(); ++qp)
         {
-            // Compute the value of the first Piola-Kirchoff stress tensor at
+            // Compute the value of the first Piola-Kirchhoff stress tensor at
             // the quadrature point.
             const Point& s_qp = coords_q_point[qp];
             const Point& X_qp = compute_coordinate(qp,X,coords_phi,coords_dof_indices);
@@ -1655,7 +1656,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                 if (d_use_fbar_projection) proj_strain_fe_face->reinit(elem, side);
                 for (unsigned int qp = 0; qp < qrule_face.n_points(); ++qp)
                 {
-                    // Compute the value of the first Piola-Kirchoff stress
+                    // Compute the value of the first Piola-Kirchhoff stress
                     // tensor at the quadrature point.
                     const Point& s_qp = coords_q_point_face[qp];
                     const Point& X_qp = compute_coordinate(qp,X,coords_phi_face,coords_dof_indices);
@@ -1693,8 +1694,8 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
         }
     }
 
-    // Assemble the right hand side vector.
-    dof_map.enforce_constraints_exactly(system, F.get());
+    // Assemble the right-hand-side vector.
+    F->close();
 
     // Solve for G, the nodal interior elastic force density.
     std::pair<libMesh::LinearSolver<double>*,SparseMatrix<double>*> proj_solver_components = d_fe_data_manager->getL2ProjectionSolver(FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
@@ -1702,6 +1703,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     SparseMatrix<double>* M = proj_solver_components.second;
     const double tol = 1.0e-10;
     const unsigned int max_its = 100;
+    dof_map.enforce_constraints_exactly(system, F.get());
     solver->solve(*M, *M, G, *F, tol, max_its);
     dof_map.enforce_constraints_exactly(system, &G);
     return;
@@ -1815,7 +1817,7 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
                     X_bdry.resize(X_bdry.size()+NDIM*qrule_face->n_points(),0.0);
                     for (unsigned int qp = 0; qp < qrule_face->n_points(); ++qp)
                     {
-                        // Compute the value of the first Piola-Kirchoff stress
+                        // Compute the value of the first Piola-Kirchhoff stress
                         // tensor at the quadrature point and evaluate the
                         // transmission force density.
                         const Point& s_qp = coords_q_point_face[qp];
