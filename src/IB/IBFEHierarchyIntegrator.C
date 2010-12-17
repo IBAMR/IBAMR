@@ -102,6 +102,16 @@ namespace
 static Pointer<Timer> t_initialize_hierarchy_integrator;
 static Pointer<Timer> t_initialize_hierarchy;
 static Pointer<Timer> t_advance_hierarchy;
+static Pointer<Timer> t_advance_hierarchy_init;
+static Pointer<Timer> t_advance_hierarchy_phase1;
+static Pointer<Timer> t_advance_hierarchy_phase2;
+static Pointer<Timer> t_advance_hierarchy_phase3;
+static Pointer<Timer> t_advance_hierarchy_phase4;
+static Pointer<Timer> t_advance_hierarchy_phase5;
+static Pointer<Timer> t_advance_hierarchy_phase6;
+static Pointer<Timer> t_advance_hierarchy_phase7;
+static Pointer<Timer> t_advance_hierarchy_phase8;
+static Pointer<Timer> t_advance_hierarchy_finalize;
 static Pointer<Timer> t_regrid_hierarchy;
 static Pointer<Timer> t_synchronize_hierarchy;
 static Pointer<Timer> t_synchronize_new_levels;
@@ -230,6 +240,16 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
         t_initialize_hierarchy_integrator = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::initializeHierarchyIntegrator()");
         t_initialize_hierarchy            = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::initializeHierarchy()");
         t_advance_hierarchy               = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()");
+        t_advance_hierarchy_init          = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_init");
+        t_advance_hierarchy_phase1        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase1");
+        t_advance_hierarchy_phase2        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase2");
+        t_advance_hierarchy_phase3        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase3");
+        t_advance_hierarchy_phase4        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase4");
+        t_advance_hierarchy_phase5        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase5");
+        t_advance_hierarchy_phase6        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase6");
+        t_advance_hierarchy_phase7        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase7");
+        t_advance_hierarchy_phase8        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase8");
+        t_advance_hierarchy_finalize      = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_finalize");
         t_regrid_hierarchy                = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::regridHierarchy()");
         t_synchronize_hierarchy           = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::synchronizeHierarchy()");
         t_synchronize_new_levels          = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::synchronizeNewLevels()");
@@ -622,6 +642,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     const double dt)
 {
     t_advance_hierarchy->start();
+    t_advance_hierarchy_init->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_end_time >= d_integrator_time+dt);
@@ -676,11 +697,9 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     AutoPtr<NumericVector<double> > X_new_ptr = X_current.clone();
     NumericVector<double>& X_new = *X_new_ptr;
 
-    AutoPtr<NumericVector<double> > X_half_ptr = coords_system.current_local_solution->clone();
-    NumericVector<double>& X_half = *X_half_ptr;
-
-    NumericVector<double>& F_half = *(   force_system.solution);
-    NumericVector<double>& U_half = *(velocity_system.solution);
+    NumericVector<double>& X_half = *(  coords_system.current_local_solution);
+    NumericVector<double>& U_half = *(velocity_system.              solution);
+    NumericVector<double>& F_half = *(   force_system.              solution);
 
     NumericVector<double>* X_half_IB_ghost_ptr = d_fe_data_manager->getGhostedCoordsVector();
     NumericVector<double>& X_half_IB_ghost = *X_half_IB_ghost_ptr;
@@ -694,22 +713,21 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     std::vector<Pointer<LNodeLevelData> > X_half_data(finest_ln+1);
     std::vector<Pointer<LNodeLevelData> > U_half_data(finest_ln+1);
     std::vector<Pointer<LNodeLevelData> > F_half_data(finest_ln+1);
-
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
         {
             X_current_data[ln] = d_lag_data_manager->getLNodeLevelData(LDataManager::POSN_DATA_NAME,ln);
-            X_new_data[ln] = d_lag_data_manager->createLNodeLevelData("X_new",ln,NDIM);
-            X_half_data[ln] = d_lag_data_manager->createLNodeLevelData("X_half",ln,NDIM);
-            U_half_data[ln] = d_lag_data_manager->createLNodeLevelData("U_half",ln,NDIM);
-            F_half_data[ln] = d_lag_data_manager->createLNodeLevelData("F_half",ln,NDIM);
+            X_new_data    [ln] = d_lag_data_manager->createLNodeLevelData("X_new" ,ln,NDIM);
+            X_half_data   [ln] = d_lag_data_manager->createLNodeLevelData("X_half",ln,NDIM);
+            U_half_data   [ln] = d_lag_data_manager->createLNodeLevelData("U_half",ln,NDIM);
+            F_half_data   [ln] = d_lag_data_manager->createLNodeLevelData("F_half",ln,NDIM);
 
             X_current_data[ln]->restoreLocalFormVec();
-            X_new_data[ln]->restoreLocalFormVec();
-            X_half_data[ln]->restoreLocalFormVec();
-            U_half_data[ln]->restoreLocalFormVec();
-            F_half_data[ln]->restoreLocalFormVec();
+            X_new_data    [ln]->restoreLocalFormVec();
+            X_half_data   [ln]->restoreLocalFormVec();
+            U_half_data   [ln]->restoreLocalFormVec();
+            F_half_data   [ln]->restoreLocalFormVec();
         }
     }
 
@@ -764,12 +782,15 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         }
     }
 
+    t_advance_hierarchy_init->stop();
+
     // Perform one or more cycles to compute the updated configuration of the
     // coupled fluid-structure system.
     d_ins_hier_integrator->integrateHierarchy_initialize(current_time, new_time);
     for (int cycle = 0; cycle < d_num_cycles; ++cycle)
     {
         // Set X(n+1/2) = 0.5*(X(n) + X(n+1)).
+        t_advance_hierarchy_phase1->start();
         ierr = VecAXPBYPCZ(dynamic_cast<PetscVector<double>*>(&X_half)->vec(),
                            0.5, 0.5, 0.0,
                            dynamic_cast<PetscVector<double>*>(&X_current)->vec(),
@@ -785,11 +806,15 @@ IBFEHierarchyIntegrator::advanceHierarchy(
                 ierr = VecAXPBYPCZ(X_half_vec, 0.5, 0.5, 0.0, X_current_vec, X_new_vec); IBTK_CHKERRQ(ierr);
             }
         }
+        t_advance_hierarchy_phase1->stop();
 
         // Project the deformation, if necessary.
+        t_advance_hierarchy_phase2->start();
         if (d_use_fbar_projection) computeProjectedDilatationalStrain(X_half);
+        t_advance_hierarchy_phase2->stop();
 
         // Compute F(n+1/2) = F(X(n+1/2),t(n+1/2)).
+        t_advance_hierarchy_phase3->start();
         computeInteriorForceDensity(F_half, X_half, current_time+0.5*dt);
         if (d_extra_force_function != NULL)
         {
@@ -808,12 +833,16 @@ IBFEHierarchyIntegrator::advanceHierarchy(
                 d_lag_force_strategy->computeLagrangianForce(F_half_data[ln], X_half_data[ln], U_half_data[ln], d_hierarchy, ln, current_time+0.5*dt, d_lag_data_manager);
             }
         }
+        t_advance_hierarchy_phase3->stop();
 
         // Copy data into the "IB ghosted" vectors.
+        t_advance_hierarchy_phase4->start();
         ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&X_half)->vec(), dynamic_cast<PetscVector<double>*>(&X_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
         ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&F_half)->vec(), dynamic_cast<PetscVector<double>*>(&F_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
+        t_advance_hierarchy_phase4->stop();
 
         // Spread F(n+1/2) to f(n+1/2).
+        t_advance_hierarchy_phase5->start();
         d_hier_sc_data_ops->setToScalar(d_F_idx, 0.0);
         d_fe_data_manager->spread(d_F_idx, F_half_IB_ghost, X_half_IB_ghost, FORCE_SYSTEM_NAME, true, true);
         if (d_split_interior_and_bdry_forces)
@@ -824,21 +853,26 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         {
             d_lag_data_manager->spread(d_F_idx, F_half_data, X_half_data);
         }
+        t_advance_hierarchy_phase5->stop();
 
         // Solve the incompressible Navier-Stokes equations.
+        t_advance_hierarchy_phase6->start();
         d_ins_hier_integrator->integrateHierarchy(current_time, new_time);
+        t_advance_hierarchy_phase6->stop();
 
-        // Set u(n+1/2) = 0.5*(u(n) + u(n+1)).
+        // Set u(n+1/2) = 0.5*(u(n) + u(n+1)) and interpolate u(n+1/2) to
+        // U(n+1/2).
+        t_advance_hierarchy_phase7->start();
         d_hier_sc_data_ops->linearSum(d_V_idx, 0.5, U_current_idx, 0.5, U_new_idx);
-
-        // Interpolate u(n+1/2) to U(n+1/2).
         d_fe_data_manager->interp(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"], current_time, false);
         if (d_lag_data_manager != NULL)
         {
             d_lag_data_manager->interp(d_V_idx, U_half_data, X_half_data, std::vector<Pointer<RefineSchedule<NDIM> > >(), current_time, false);
         }
+        t_advance_hierarchy_phase7->stop();
 
         // Set X(n+1) = X(n) + dt*U(n+1/2).
+        t_advance_hierarchy_phase8->start();
         ierr = VecWAXPY(dynamic_cast<PetscVector<double>*>(&X_new)->vec(),
                         dt,
                         dynamic_cast<PetscVector<double>*>(&U_half)->vec(),
@@ -854,11 +888,12 @@ IBFEHierarchyIntegrator::advanceHierarchy(
                 ierr = VecWAXPY(X_new_vec, dt, U_half_vec, X_current_vec); IBTK_CHKERRQ(ierr);
             }
         }
-
-        // Set X_mark(n+1) = X_mark(n) + dt*U(n+1/2).
         LagMarkerUtilities::advectMarkers(d_mark_current_idx, d_mark_scratch_idx, d_V_idx, dt, d_fe_data_manager->getInterpWeightingFunction(), d_hierarchy);
+        t_advance_hierarchy_phase8->stop();
     }
     d_ins_hier_integrator->integrateHierarchy_finalize(current_time, new_time);
+
+    t_advance_hierarchy_finalize->start();
 
     // Reset X_current to equal X_new.
     ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&X_new)->vec(),
@@ -924,6 +959,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         dt_next = std::min(dt_next,d_grow_dt*d_old_dt);
     }
 
+    t_advance_hierarchy_finalize->stop();
     t_advance_hierarchy->stop();
     return dt_next;
 }// advanceHierarchy
