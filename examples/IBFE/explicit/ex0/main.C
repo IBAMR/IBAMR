@@ -324,7 +324,6 @@ main(
                                             0.0, 2.0*M_PI*R,
                                             0.0, w,
                                             Utility::string_to_enum<ElemType>(elem_type));
-        ExodusII_IO mesh_writer(mesh);
 
         VectorValue<double> boundary_translation(2.0*M_PI*R, 0.0, 0.0);
         PeriodicBoundary pbc(boundary_translation);

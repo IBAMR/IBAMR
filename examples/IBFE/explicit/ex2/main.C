@@ -328,7 +328,6 @@ main(
                 }
             }
         }
-        ExodusII_IO mesh_writer(mesh);
 
         // Create the FE data manager used to manage mappings between the FE
         // mesh and the Cartesian grid.

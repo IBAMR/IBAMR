@@ -66,6 +66,7 @@
 #include <dof_map.h>
 #include <explicit_system.h>
 #include <fe.h>
+#include <linear_implicit_system.h>
 #include <mesh_refinement.h>
 #include <numeric_vector.h>
 #include <petsc_vector.h>
@@ -417,7 +418,7 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
         coords_mapping_system.add_variable(os.str(), d_fe_order, d_fe_family);
     }
 
-    ExplicitSystem& force_system = equation_systems->add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
+    LinearImplicitSystem& force_system = equation_systems->add_system<LinearImplicitSystem>(FORCE_SYSTEM_NAME);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         std::ostringstream os;
@@ -425,7 +426,7 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
         force_system.add_variable(os.str(), d_fe_order, d_fe_family);
     }
 
-    ExplicitSystem& velocity_system = equation_systems->add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
+    LinearImplicitSystem& velocity_system = equation_systems->add_system<LinearImplicitSystem>(VELOCITY_SYSTEM_NAME);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         std::ostringstream os;
@@ -435,7 +436,7 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
 
     if (d_use_fbar_projection)
     {
-        ExplicitSystem& proj_strain_system = equation_systems->add_system<ExplicitSystem>(PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME);
+        LinearImplicitSystem& proj_strain_system = equation_systems->add_system<LinearImplicitSystem>(PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME);
         proj_strain_system.add_variable("J_proj", d_projected_strain_fe_order, d_projected_strain_fe_family);
     }
 
@@ -528,20 +529,33 @@ IBFEHierarchyIntegrator::initializeHierarchy()
     coords_mapping_system.assemble_before_solve = false;
     coords_mapping_system.assemble();
 
-    ExplicitSystem&    force_system = equation_systems->get_system<ExplicitSystem>(   FORCE_SYSTEM_NAME);
-    ExplicitSystem& velocity_system = equation_systems->get_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
+    LinearImplicitSystem& force_system = equation_systems->get_system<LinearImplicitSystem>(FORCE_SYSTEM_NAME);
+    force_system.assemble_before_solve = false;
+    force_system.attach_assemble_function(FEDataManager::assemble_L2_projection);
+    force_system.assemble();
+
+    LinearImplicitSystem& velocity_system = equation_systems->get_system<LinearImplicitSystem>(VELOCITY_SYSTEM_NAME);
+    velocity_system.assemble_before_solve = false;
+    velocity_system.attach_assemble_function(FEDataManager::assemble_L2_projection);
+    velocity_system.assemble();
+
+    if (d_use_fbar_projection)
+    {
+        LinearImplicitSystem& proj_strain_system = equation_systems->get_system<LinearImplicitSystem>(PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME);
+        proj_strain_system.assemble_before_solve = false;
+        proj_strain_system.attach_assemble_function(FEDataManager::assemble_L2_projection);
+        proj_strain_system.assemble();
+    }
 
     const MeshBase& mesh = equation_systems->get_mesh();
     DofMap&    force_dof_map =    force_system.get_dof_map();
     DofMap& velocity_dof_map = velocity_system.get_dof_map();
-    const unsigned int    force_sys_num =    force_system.number();
-    const unsigned int velocity_sys_num = velocity_system.number();
-
-    MeshBase::const_element_iterator       el_it  = mesh.elements_begin();
-    const MeshBase::const_element_iterator el_end = mesh.elements_end();
-    for ( ; el_it != el_end; ++el_it)
+    const unsigned int    force_system_number =    force_system.number();
+    const unsigned int velocity_system_number = velocity_system.number();
+    const MeshBase::const_element_iterator end_el = mesh.elements_end();
+    for (MeshBase::const_element_iterator el = mesh.elements_begin(); el != end_el; ++el)
     {
-        Elem* const elem = *el_it;
+        Elem* const elem = *el;
         for (unsigned int side = 0; side < elem->n_sides(); ++side)
         {
             const bool at_mesh_bdry = elem->neighbor(side) == NULL;
@@ -558,22 +572,22 @@ IBFEHierarchyIntegrator::initializeHierarchy()
                             Node* node = elem->get_node(n);
                             mesh.boundary_info->add_node(node, FEDataManager::DIRICHLET_BDRY_ID);
 
-                            if (node->n_dofs(force_sys_num) > 0)
+                            if (node->n_dofs(force_system_number) > 0)
                             {
                                 for (unsigned int d = 0; d < NDIM; ++d)
                                 {
-                                    const int F_dof_index = node->dof_number(force_sys_num,d,0);
+                                    const int F_dof_index = node->dof_number(force_system_number,d,0);
                                     DofConstraintRow F_constraint_row;
                                     F_constraint_row[F_dof_index] = 1.0;
                                     force_dof_map.add_constraint_row(F_dof_index, F_constraint_row, false);
                                 }
                             }
 
-                            if (node->n_dofs(velocity_sys_num) > 0)
+                            if (node->n_dofs(velocity_system_number) > 0)
                             {
                                 for (unsigned int d = 0; d < NDIM; ++d)
                                 {
-                                    const int U_dof_index = node->dof_number(velocity_sys_num,d,0);
+                                    const int U_dof_index = node->dof_number(velocity_system_number,d,0);
                                     DofConstraintRow U_constraint_row;
                                     U_constraint_row[U_dof_index] = 1.0;
                                     velocity_dof_map.add_constraint_row(U_dof_index, U_constraint_row, false);
@@ -594,6 +608,9 @@ IBFEHierarchyIntegrator::initializeHierarchy()
         dt_next = std::min(dt_next, d_dt_max);
     }
 
+    // Initialize the FE data manager.
+    d_fe_data_manager->reinitElementMappings();
+
     // Reset the Lagrangian data manager.
     if (d_lag_data_manager != NULL)
     {
@@ -603,9 +620,6 @@ IBFEHierarchyIntegrator::initializeHierarchy()
         d_lag_data_manager->endDataRedistribution();
         d_lag_data_manager->updateWorkloadData(coarsest_ln, finest_ln);
     }
-
-    // Initialize the FE data manager.
-    d_fe_data_manager->reinitElementMappings();
 
     // Prune duplicate markers following initialization.
     LagMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
@@ -790,7 +804,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         if (d_use_fbar_projection) computeProjectedDilatationalStrain(X_half);
 
         // Compute F(n+1/2) = F(X(n+1/2),t(n+1/2)).
-        computeInteriorForceDensity(F_half, X_half, current_time+0.5*dt);
+        computeInteriorForceDensity(X_half, current_time+0.5*dt);
         if (d_extra_force_function != NULL)
         {
             AutoPtr<NumericVector<double> > F_extra_half = F_half.zero_clone();
@@ -810,12 +824,15 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         }
 
         // Copy data into the "IB ghosted" vectors.
-        ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&X_half)->vec(), dynamic_cast<PetscVector<double>*>(&X_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
-        ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&F_half)->vec(), dynamic_cast<PetscVector<double>*>(&F_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&X_half)->vec(),
+                       dynamic_cast<PetscVector<double>*>(&X_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&F_half)->vec(),
+                       dynamic_cast<PetscVector<double>*>(&F_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
 
         // Spread F(n+1/2) to f(n+1/2).
         d_hier_sc_data_ops->setToScalar(d_F_idx, 0.0);
-        d_fe_data_manager->spread(d_F_idx, F_half_IB_ghost, X_half_IB_ghost, FORCE_SYSTEM_NAME, true, true);
+#if 0  // XXXX
+        d_fe_data_manager->spread(d_F_idx, F_half_IB_ghost, X_half_IB_ghost, FORCE_SYSTEM_NAME);
         if (d_split_interior_and_bdry_forces)
         {
             spreadBoundaryForceDensity(d_F_idx, X_half_IB_ghost, current_time+0.5*dt);
@@ -824,6 +841,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         {
             d_lag_data_manager->spread(d_F_idx, F_half_data, X_half_data);
         }
+#endif
 
         // Solve the incompressible Navier-Stokes equations.
         d_ins_hier_integrator->integrateHierarchy(current_time, new_time);
@@ -832,7 +850,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         d_hier_sc_data_ops->linearSum(d_V_idx, 0.5, U_current_idx, 0.5, U_new_idx);
 
         // Interpolate u(n+1/2) to U(n+1/2).
-        d_fe_data_manager->interp(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"], current_time, false);
+        d_fe_data_manager->interp(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"], current_time);
         if (d_lag_data_manager != NULL)
         {
             d_lag_data_manager->interp(d_V_idx, U_half_data, X_half_data, std::vector<Pointer<RefineSchedule<NDIM> > >(), current_time, false);
@@ -1427,7 +1445,7 @@ IBFEHierarchyIntegrator::computeProjectedDilatationalStrain(
     coords_fe->attach_quadrature_rule(&qrule);
     const std::vector<std::vector<VectorValue<double> > >& coords_dphi = coords_fe->get_dphi();
 
-    System& proj_strain_system = equation_systems->get_system<System>(PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME);
+    LinearImplicitSystem& proj_strain_system = equation_systems->get_system<LinearImplicitSystem>(PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME);
     NumericVector<double>& J_proj = *(proj_strain_system.solution);
     const DofMap& proj_strain_dof_map = proj_strain_system.get_dof_map();
     std::vector<unsigned int> proj_strain_dof_indices;
@@ -1438,14 +1456,13 @@ IBFEHierarchyIntegrator::computeProjectedDilatationalStrain(
     const std::vector<std::vector<double> >& proj_strain_phi = proj_strain_fe->get_phi();
 
     // Loop over the elements to compute the right-hand side vector.
-    AutoPtr<NumericVector<double> > F = J_proj.clone();
+    NumericVector<double>* F = proj_strain_system.rhs;
     F->zero();
     DenseVector<double> F_e;
-    MeshBase::const_element_iterator       el_it  = mesh.active_local_elements_begin();
-    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-    for ( ; el_it != el_end; ++el_it)
+    const MeshBase::const_element_iterator end_el = mesh.active_local_elements_end();
+    for (MeshBase::const_element_iterator el = mesh.active_local_elements_begin(); el != end_el; ++el)
     {
-        const Elem* const elem = *el_it;
+        Elem* const elem = *el;
 
         coords_fe->reinit(elem);
         for (unsigned int i = 0; i < NDIM; ++i)
@@ -1473,24 +1490,17 @@ IBFEHierarchyIntegrator::computeProjectedDilatationalStrain(
         F->add_vector(F_e, proj_strain_dof_indices);
     }
 
-    // Assemble the right-hand-side vector.
+    // Assemble the right hand side vector.
     F->close();
+    proj_strain_dof_map.enforce_constraints_exactly(proj_strain_system, F);
 
     // Solve for the projected deformation.
-    std::pair<libMesh::LinearSolver<double>*,SparseMatrix<double>*> proj_solver_components = d_fe_data_manager->getL2ProjectionSolver(PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME);
-    libMesh::LinearSolver<double>* solver = proj_solver_components.first;
-    SparseMatrix<double>* M = proj_solver_components.second;
-    const double tol = 1.0e-10;
-    const unsigned int max_its = 100;
-    proj_strain_dof_map.enforce_constraints_exactly(proj_strain_system, F.get());
-    solver->solve(*M, *M, J_proj, *F, tol, max_its);
-    proj_strain_dof_map.enforce_constraints_exactly(proj_strain_system, &J_proj);
+    proj_strain_system.solve();
     return;
 }// computeProjectedDilatationalStrain
 
 void
 IBFEHierarchyIntegrator::computeInteriorForceDensity(
-    NumericVector<double>& G,
     NumericVector<double>& X,
     const double& time)
 {
@@ -1501,8 +1511,8 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     QGauss qrule(dim, FIFTH);
     QGauss qrule_face(dim-1, FIFTH);
 
-    System& system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
-    const DofMap& dof_map = system.get_dof_map();
+    LinearImplicitSystem& force_system = equation_systems->get_system<LinearImplicitSystem>(FORCE_SYSTEM_NAME);
+    const DofMap& dof_map = force_system.get_dof_map();
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (int d = 0; d < NDIM; ++d)
@@ -1556,7 +1566,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     if (d_use_fbar_projection)
     {
         System& proj_strain_system = equation_systems->get_system<System>(PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME);
-        J_proj = proj_strain_system.solution.get();
+        J_proj = proj_strain_system.current_local_solution.get();
         proj_strain_dof_map = &proj_strain_system.get_dof_map();
 
         proj_strain_fe = FEBase::build(dim, proj_strain_dof_map->variable_type(0));
@@ -1575,14 +1585,13 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     //
     // This right-hand side vector is used to solve for the nodal values of the
     // interior elastic force density.
-    AutoPtr<NumericVector<double> > F = G.clone();
+    NumericVector<double>* F = force_system.rhs;
     F->zero();
     std::vector<DenseVector<double> > F_e(NDIM);
-    MeshBase::const_element_iterator       el_it  = mesh.active_local_elements_begin();
-    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-    for ( ; el_it != el_end; ++el_it)
+    const MeshBase::const_element_iterator end_el = mesh.active_local_elements_end();
+    for (MeshBase::const_element_iterator el = mesh.active_local_elements_begin(); el != end_el; ++el)
     {
-        Elem* const elem = *el_it;
+        Elem* const elem = *el;
 
         fe->reinit(elem);
         for (unsigned int i = 0; i < NDIM; ++i)
@@ -1606,7 +1615,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
         // Loop over interior quadrature points.
         for (unsigned int qp = 0; qp < qrule.n_points(); ++qp)
         {
-            // Compute the value of the first Piola-Kirchhoff stress tensor at
+            // Compute the value of the first Piola-Kirchoff stress tensor at
             // the quadrature point.
             const Point& s_qp = coords_q_point[qp];
             const Point& X_qp = compute_coordinate(qp,X,coords_phi,coords_dof_indices);
@@ -1626,14 +1635,14 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
             // Accumulate the nodal forces.
             for (unsigned int k = 0; k < phi.size(); ++k)
             {
-                const VectorValue<double> F_qp = -P*dphi[k][qp]*JxW[qp];
+                const VectorValue<double> F_qp = -1.0 /*P*(dphi[k][qp]) XXXX */ *JxW[qp];
                 for (unsigned int i = 0; i < NDIM; ++i)
                 {
                     F_e[i](k) += F_qp(i);
                 }
             }
         }
-
+#if 0
         // Loop over the element boundaries.
         for (unsigned short int side = 0; side < elem->n_sides(); ++side)
         {
@@ -1656,7 +1665,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                 if (d_use_fbar_projection) proj_strain_fe_face->reinit(elem, side);
                 for (unsigned int qp = 0; qp < qrule_face.n_points(); ++qp)
                 {
-                    // Compute the value of the first Piola-Kirchhoff stress
+                    // Compute the value of the first Piola-Kirchoff stress
                     // tensor at the quadrature point.
                     const Point& s_qp = coords_q_point_face[qp];
                     const Point& X_qp = compute_coordinate(qp,X,coords_phi_face,coords_dof_indices);
@@ -1684,7 +1693,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                 }
             }
         }
-
+#endif
         // Apply constraints (e.g., enforce periodic boundary conditions) and
         // add the elemental contributions to the global vector.
         for (int i = 0; i < NDIM; ++i)
@@ -1694,18 +1703,12 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
         }
     }
 
-    // Assemble the right-hand-side vector.
+    // Assemble the right hand side vector.
     F->close();
+    dof_map.enforce_constraints_exactly(force_system, F);
 
-    // Solve for G, the nodal interior elastic force density.
-    std::pair<libMesh::LinearSolver<double>*,SparseMatrix<double>*> proj_solver_components = d_fe_data_manager->getL2ProjectionSolver(FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
-    libMesh::LinearSolver<double>* solver = proj_solver_components.first;
-    SparseMatrix<double>* M = proj_solver_components.second;
-    const double tol = 1.0e-10;
-    const unsigned int max_its = 100;
-    dof_map.enforce_constraints_exactly(system, F.get());
-    solver->solve(*M, *M, G, *F, tol, max_its);
-    dof_map.enforce_constraints_exactly(system, &G);
+    // Solve for the nodal interior elastic force density.
+    force_system.solve();
     return;
 }// computeInteriorForceDensity
 
@@ -1748,7 +1751,7 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
     if (d_use_fbar_projection)
     {
         System& proj_strain_system = equation_systems->get_system<System>(PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME);
-        J_proj = proj_strain_system.solution.get();
+        J_proj = proj_strain_system.current_local_solution.get();
         proj_strain_dof_map = &proj_strain_system.get_dof_map();
 
         proj_strain_fe_face = FEBase::build(dim, proj_strain_dof_map->variable_type(0));
@@ -1759,27 +1762,24 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
     // Loop over the patches to spread the transmission elastic force density
     // onto the grid.
     const int level_num = d_fe_data_manager->getLevelNumber();
+    const std::map<int,std::vector<Elem*> >& active_patch_elems = d_fe_data_manager->getActivePatchElements();
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const int patch_num = patch->getPatchNumber();
-        const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-        Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
-        const Box<NDIM>& box = f_data->getGhostBox();
 
         // The relevant range of elements.
-        const std::map<int,std::set<Elem*> >& active_patch_elems = d_fe_data_manager->getActivePatchElements();
-        std::map<int,std::set<Elem*> >::const_iterator pos = active_patch_elems.find(patch_num);
+        std::map<int,std::vector<Elem*> >::const_iterator pos = active_patch_elems.find(patch_num);
         if (pos == active_patch_elems.end()) continue;
-        std::set<Elem*>::const_iterator       el_it  = pos->second.begin();
-        const std::set<Elem*>::const_iterator el_end = pos->second.end();
+        const std::vector<Elem*>::const_iterator el_begin = pos->second.begin();
+        const std::vector<Elem*>::const_iterator el_end   = pos->second.end();
 
         // Loop over the elements and compute the values to be spread and the
         // positions of the quadrature points.
         int qp_offset = 0;
         std::vector<double> T_bdry, X_bdry;
-        for ( ; el_it != el_end; ++el_it)
+        for (std::vector<Elem*>::const_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             Elem* const elem = *el_it;
 
@@ -1817,7 +1817,7 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
                     X_bdry.resize(X_bdry.size()+NDIM*qrule_face->n_points(),0.0);
                     for (unsigned int qp = 0; qp < qrule_face->n_points(); ++qp)
                     {
-                        // Compute the value of the first Piola-Kirchhoff stress
+                        // Compute the value of the first Piola-Kirchoff stress
                         // tensor at the quadrature point and evaluate the
                         // transmission force density.
                         const Point& s_qp = coords_q_point_face[qp];
@@ -1832,24 +1832,23 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
                         }
                         const TensorValue<double> P = d_PK1_stress_function(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_function_ctx);
                         const VectorValue<double> F = P*coords_normal_face[qp]*coords_JxW_face[qp];
-
                         for (unsigned int i = 0; i < NDIM; ++i)
                         {
                             T_bdry[NDIM*(qp+qp_offset)+i] = -F(i);
                             X_bdry[NDIM*(qp+qp_offset)+i] = X_qp(i);
                         }
                     }
-
                     qp_offset += qrule_face->n_points();
                 }
             }
         }
 
+        if (qp_offset == 0) continue;
+
         // Spread the boundary forces to the grid.
-        if (qp_offset > 0)
-        {
-            LEInteractor::spread(f_data, T_bdry, NDIM, X_bdry, NDIM, patch, box, d_fe_data_manager->getSpreadWeightingFunction());
-        }
+        Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
+        const Box<NDIM>& spread_box = Box<NDIM>::grow(patch->getBox(), d_fe_data_manager->getGhostCellWidth());
+        LEInteractor::spread(f_data, T_bdry, NDIM, X_bdry, NDIM, patch, spread_box, d_fe_data_manager->getSpreadWeightingFunction());
     }
     return;
 }// spreadBoundaryForceDensity
@@ -1860,24 +1859,25 @@ IBFEHierarchyIntegrator::initializeCoordinates()
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     MeshBase& mesh = equation_systems->get_mesh();
     System& coords_system = equation_systems->get_system<System>(COORDINATES_SYSTEM_NAME);
-    const unsigned int coords_sys_num = coords_system.number();
+    const unsigned int coords_system_number = coords_system.number();
     NumericVector<double>& X_coords = *coords_system.solution;
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
     {
         Node* n = *it;
-        if (n->n_vars(coords_sys_num) > 0)
+        if (n->n_vars(coords_system_number) > 0)
         {
-            libmesh_assert(n->n_vars(coords_sys_num) == NDIM);
+            libmesh_assert(n->n_vars(coords_system_number) == NDIM);
             const Point& s = *n;
             const Point X = d_coordinate_mapping_function == NULL ? s : d_coordinate_mapping_function(s, d_coordinate_mapping_function_ctx);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                const int dof_index = n->dof_number(coords_sys_num,d,0);
+                const int dof_index = n->dof_number(coords_system_number,d,0);
                 X_coords.set(dof_index,X(d));
             }
         }
     }
     X_coords.close();
+    X_coords.localize(*coords_system.current_local_solution);
     return;
 }// initializeCoordinates
 
@@ -1887,28 +1887,29 @@ IBFEHierarchyIntegrator::updateCoordinateMapping()
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     MeshBase& mesh = equation_systems->get_mesh();
     System& coords_system = equation_systems->get_system<System>(COORDINATES_SYSTEM_NAME);
-    const unsigned int coords_sys_num = coords_system.number();
+    const unsigned int coords_system_number = coords_system.number();
     NumericVector<double>& X_coords = *coords_system.solution;
     System& coords_mapping_system = equation_systems->get_system<System>(COORDINATE_MAPPING_SYSTEM_NAME);
-    const unsigned int coords_mapping_sys_num = coords_mapping_system.number();
+    const unsigned int coords_mapping_system_number = coords_mapping_system.number();
     NumericVector<double>& dX_coords = *coords_mapping_system.solution;
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
     {
         Node* n = *it;
-        if (n->n_vars(coords_sys_num) > 0)
+        if (n->n_vars(coords_system_number) > 0)
         {
-            libmesh_assert(n->n_vars(coords_sys_num) == NDIM);
-            libmesh_assert(n->n_vars(coords_mapping_sys_num) == NDIM);
+            libmesh_assert(n->n_vars(coords_system_number) == NDIM);
+            libmesh_assert(n->n_vars(coords_mapping_system_number) == NDIM);
             const Point& s = *n;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                const int X_dof_index = n->dof_number(coords_sys_num,d,0);
-                const int dX_dof_index = n->dof_number(coords_mapping_sys_num,d,0);
+                const int X_dof_index = n->dof_number(coords_system_number,d,0);
+                const int dX_dof_index = n->dof_number(coords_mapping_system_number,d,0);
                 dX_coords.set(dX_dof_index,X_coords(X_dof_index)-s(d));
             }
         }
     }
     dX_coords.close();
+    dX_coords.localize(*coords_mapping_system.current_local_solution);
     return;
 }// updateCoordinateMapping
 
