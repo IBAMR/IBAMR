@@ -1408,37 +1408,17 @@ IBStandardInitializer::readRodFiles()
                     curr_idx += d_vertex_offset[ln][j];
                     next_idx += d_vertex_offset[ln][j];
 
-                    // Check to see if the edge has already been inserted in the
-                    // edge map.
-                    Edge e;
-                    e.first  = std::min(curr_idx,next_idx);
-                    e.second = std::max(curr_idx,next_idx);
-                    bool duplicate_edge = false;
-                    for (std::multimap<int,Edge>::const_iterator it =
-                             d_rod_edge_map[ln][j].lower_bound(e.first);
-                         it != d_rod_edge_map[ln][j].upper_bound(e.first); ++it)
-                    {
-                        const Edge& other_e = it->second;
-                        if (e.first  == other_e.first &&
-                            e.second == other_e.second)
-                        {
-                            // This is a duplicate edge and should not be
-                            // inserted into the edge map.
-                            duplicate_edge = true;
-                        }
-                    }
-
                     // Initialize the map data corresponding to the present
                     // edge.
-                    if (!duplicate_edge)
-                    {
-                        d_rod_edge_map[ln][j].insert(std::make_pair(e.first,e));
-                    }
+                    Edge e;
+                    e.first  = curr_idx;
+                    e.second = next_idx;
+                    d_rod_edge_map[ln][j].insert(std::make_pair(e.first,e));
 
                     // Initialize the map data corresponding to the present rod.
                     //
                     // Note that in the rod property map, each edge is
-                    // associated with only the "current" vertex.
+                    // associated with only the "cur1rent" vertex.
                     RodSpec& rod_spec = d_rod_spec_data[ln][j][e];
                     rod_spec.properties = properties;
                     rod_spec.subdomain_idx = subdomain_idx;
