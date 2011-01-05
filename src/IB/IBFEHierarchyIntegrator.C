@@ -822,6 +822,9 @@ IBFEHierarchyIntegrator::advanceHierarchy(
             d_extra_force_function(*F_extra_half, X_half,
                                    equation_systems, FORCE_SYSTEM_NAME, COORDINATES_SYSTEM_NAME,
                                    current_time+0.5*dt, d_extra_force_function_ctx);
+            F_extra_half->close();
+            const DofMap& force_dof_map = force_system.get_dof_map();
+            force_dof_map.enforce_constraints_exactly(force_system, F_extra_half.get());
             F_half += *F_extra_half;
         }
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
