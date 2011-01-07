@@ -1174,7 +1174,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                             D_half[alpha] = &(*D_half_data[ln])(l,3*alpha);
                         }
 
-//                      interpolate_directors(D_half, D, D_new);
+                        interpolate_directors(D_half, D, D_new);
                     }
                 }
             }
