@@ -1,0 +1,156 @@
+<!-- 
+//
+//
+//  
+//   Adding the parser to your projects
+//
+//
+//
+-->
+
+
+<br>
+<h1><a name="idBuild"></a>Build instructions</h1>
+<h2><a name="idInstWin"></a>Building on win32</h2>
+<p>
+<strong>muParser</strong> supports various win32 command-line compilers:
+<ul>
+  <li>Mingw</li>
+  <li>Borland C++</li>
+  <li>Watcom</li>
+  <li>Microsoft CL</li>
+</ul>
+and provides also project files for MSVC6 IDE and the Borland C++ Builder. In order to compile muParser 
+from makefiles, open an MSDOS prompt and then move to the muParser/build directory and
+type:
+<p>
+<ul>
+  <li>mingw32-make -fmakefile.gcc      for mingw</li>
+  <li>nmake -fmakefile.vc              for msvc</li>
+  <li>make -fmakefile.bcc              for borland</li>
+  <li>wmake -fmakefile.wat             for watcom</li>
+</ul>
+</p>
+
+All makefiles support the following options:
+<pre>
+  # Set to 1 to build debug version [0,1]
+  #   0 - Release
+  #   1 - Debug
+  DEBUG = 0
+
+  # Set to 1 to build shared (DLL) version [0,1]
+  #   0 - Static
+  #   1 - DLL
+  SHARED = 0
+
+  # Set to 1 to compile samples [0,1]
+  SAMPLES = 1
+</pre>
+The muParser library is created in the 'lib' folder and the sample
+binaries are created in samples\example1 or samples\example3.
+
+<table>
+<tr>
+  <td><img src="images/warning.gif"/></td> 
+  <td>samples\example1 can be compiled *only* when building muParser as a STATIC library (SHARED=0).<br/>
+      samples\example3 can be compiled *only* when building muParser as a SHARED library (SHARED=1).
+  </td>
+</tr>
+</table>
+</p>
+
+<h2><a name="idInstLinux"></a>Building on BSD/Linux</h2>
+<p>
+muParser can be installed just extracting the sources somewhere and then, from a terminal, typing:
+
+<pre>
+ cd [path to muParser]
+ ./configure [--enable-shared=yes/no] [--enable-samples=yes/no]
+             [--enable-debug=yes/no]
+ make
+ [sudo*] make install
+</pre>
+ <small>* = this command must be executed with root permissions and thus
+     you have to use 'sudo' or just 'su' to gain root access.
+     Note that installation is not strictly required.</small>
+<p>
+The "make" step will create the muParser library in 'lib' and the
+sample binary in samples/example1. The samples/example2 and 
+samples/example3 are win32-specific and thus won't be built.
+</p>
+</p>
+
+<h2><a name="idInstMisc"></a>Other miscellaneous info Unix-specific</h2>
+If you don't like to have your muParser folder filled by temporary
+files created by GCC, then you can do the following:
+
+<pre>
+  mkdir mybuild && cd mybuild && ../configure && make
+</pre>
+
+to put all object files in the "mybuild" directory. If you want to use 
+muParser library in your programs, you can use the pkg-config program 
+(this works only if muParser was installed with 'make install' !). 
+The commands:
+<ul>
+   <li>pkg-config muparser --cflags</li>
+   <li>pkg-config muparser --libs</li>
+</ul>
+will return all useful info you need to build your programs against
+muParser !
+
+<h2><a name="idInstInc"></a><a name="idUseSource"></a>Including the source code directly</h2>
+<p>
+Sometimes including the library sources directly into an application is the easiest 
+possibility to avoid linker conflicts originating from different versions of the 
+runtime libraries used by the parser and your project.
+
+In order to use the parser simply include the following files into your project:
+
+<p>
+<i>muParser.cpp</i><br/>
+<i>muParserBase.cpp</i><br/>
+<i>muParserBytecode.cpp</i><br/>
+<i>muParserCallback.cpp</i><br/>
+<i>muParserError.cpp</i><br/>
+<i>muParserTokenReader.cpp</i>
+</p>
+
+And make sure the following files can be found in your projects include path:
+<p>
+<i>muParser.h</i><br/>
+<i>muParserBase.h</i><br/>
+<i>muParserBytecode.h</i><br/>
+<i>muParserCallback.h</i><br/>
+<i>muParserDef.h</i><br/>
+<i>muParserError.h</i><br/>
+<i>muParserFixes.h</i><br/>
+<i>muParserStack.h</i><br/>
+<i>muParserToken.h</i><br/>
+<i>muParserTokenReader.h</i><br/>
+</p>
+
+The parser class and all related classes reside in the namespace <code>mu</code> (MathUtils). So make sure to either
+add a using 
+
+<pre>
+using namespace mu;
+</pre>
+
+to your files or reference all classes with their complete name.
+</p>
+
+<h2>Where to ask for help</h2>
+
+If you find problems with either compilation, installation or usage
+of muParser, then you can ask in the muParser forum at:<br/>
+<ul>
+<li><a href="https://sourceforge.net/forum/forum.php?forum_id=462843">https://sourceforge.net/forum/forum.php?forum_id=462843</a></li>
+</ul>
+
+For more info about muParser, visit:
+<ul>
+<li><a href="http://sourceforge.net/projects/muparser/">http://sourceforge.net/projects/muparser/</a><br/></li>
+<li><a href="http://muparser.sourceforge.net">http://muparser.sourceforge.net</a></li>
+</ul>

@@ -1,0 +1,381 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="./style/formate.css"/>
+  <meta name="author" content="Ingo Berg"/>
+  <meta name="keywords" content="math parser, parser, expression evaluator, C++, Mathematical, Expression"/>
+  <meta name="description" content="a fast and portable math parser library written in C++"/>
+
+  <title>muParser - a fast math parser library</title>
+  <script src="script/functions.js" language="javascript" type="text/javascript"></script>
+</head>
+
+<body>
+    <!-- Tabelle mit Hauptinhalt der Seite -->
+    <table id="MainTable" border="0" cellpadding="5" cellspacing="0" style="width:100%; height:100%;">
+      <thead id="MainTableHead">
+        <tr>
+          <td style="background-image: url(images/grad1.jpg);" align="center">
+
+            <!-- Statistikerfassung ausschalten, wenn blocking cookie gesetzt ist -->
+              <a href="http://sourceforge.net/projects/muparser/">
+                <object>
+                <script type="text/javascript">SFLogo();</script>
+
+                <!-- Always gather statistics data for deactivated javascript -->
+                <noscript>
+                    <img src="images/sflogo.png" border="0" alt="Math parser Logo"/>
+                </noscript>
+                </object>
+              </a>
+          </td>
+
+          <td style="background-image: url(images/grad2.jpg);" align="right">
+            <table cellpadding="0" cellspacing="0" border="0" style="width: 30%;">
+            <tr>
+                <td style="text-align: center;">
+                    <strong><a class="white" href="classdocu/index.html" title="The doxygen documentation of muParser">
+                    <img src="images/help.gif" border="0" alt="class documentation"/><br/>
+                    <span style="font-size: 70%">class documentation</span></a></strong>
+                </td>
+                <td style="text-align: center;">
+                  <strong>
+                    <a class="white" 
+                       href="http://sourceforge.net/project/showfiles.php?group_id=137191" 
+                       title="The Sourceforge download page">
+                      <img src="images/download.gif" border="0" alt="math parser download"/>
+                      <br/>
+                      <span style="font-size: 70%">math parser download</span>
+                    </a>
+                  </strong>
+                </td>
+            </tr>
+            </table>
+          </td>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr>
+          <td style="vertical-align: top; text-align: center">
+            <br/><strong><small>Start page</small></strong>
+            <div class="sidebarlink">
+                <a href="index.html">About the parser</a><br/>
+                <a href="index.html#idNews">News</a><br/>
+                <a href="mup_links.html">Projects using this lib</a><br/>
+                <a href="mup_licence.html">Licence</a><br/>
+            </div>
+
+            <br/><strong><small>Features</small></strong>
+            <div class="sidebarlink">
+              <a href="mup_features.html">Features</a><br/>
+              <a href="mup_features.html#idFeatureOverview">Overview</a><br/>
+              <a href="mup_features.html#idDef2">Built in functions</a><br/>
+              <a href="mup_features.html#idDef3">Built in binary operators</a><br/>
+            </div>
+
+            <br/><strong><small>Build instructions</small></strong>
+            <div class="sidebarlink">
+              <a href="mup_usage.html#idInstWin">Building on Win32</a><br/>
+              <a href="mup_usage.html#idInstLinux">Building on BSD/Linux</a><br/>
+              <a href="mup_usage.html#idInstMisc">Misc build instructions</a><br/>
+              <a href="mup_usage.html#idInstInc">Including the files</a><br/>
+              <a href="mup_usage.html#idInstInc">Where to ask for help</a><br/>
+            </div>
+
+            <br/><strong><small>Math parser interface</small></strong>
+            <div class="sidebarlink">
+              <a href="mup_interface.html#idInit">Parser (de)initialization</a><br/>
+              <a href="mup_interface.html#idEval">Evaluating an expression</a><br/>
+              <a href="mup_interface.html#idSetExpr">Setting the expression</a><br/>
+              <a href="mup_interface.html#idDefCharset">Defining identifier charsets</a><br/>
+              <a href="mup_interface.html#idDefVar">Defining parser variables</a><br/>
+              <a href="mup_interface.html#idDefVarEx">Explicit variable definition</a><br/>
+              <a href="mup_interface.html#idDefVarIm">Implicit variable definition</a><br/>
+              <a href="mup_interface.html#idDefConst">Defining constants</a><br/>
+              <a href="mup_interface.html#idDefFun">Defining functions</a><br/>
+              <a href="mup_interface.html#idDefOprt">Defining operators</a><br/>
+              <a href="mup_interface.html#idUnOp">Unary operators</a><br/>
+              <a href="mup_interface.html#idBinOp">Binary operators</a><br/>
+              <a href="mup_interface.html#idQueryVar">Querying variables</a><br/>
+              <a href="mup_interface.html#idQueryConst">Querying constants</a><br/>
+              <a href="mup_interface.html#idDefConst2">Value recognition callbacks</a><br/>
+              <a href="mup_interface.html#idDefConst2">Removing variables/constants</a><br/>
+              <a href="mup_interface.html#idErrors">Error handling</a><br/>
+              <a href="mup_version.html#idExample">Example code</a><br/>
+            </div>
+
+            <br/>
+            <strong>
+              <small>Current version</small>
+            </strong>
+            <div class="sidebarlink">
+              <a href="mup_version.html#idRelNote">Release notes</a><br/>
+              <a href="mup_version.html#idBench">Benchmarks</a><br/>
+            </div>
+
+            <br/>
+            <div align=center>
+              <a href="http://www.opensource.org/"><img src="images/osi.jpg"/></a>
+            </div>
+            <br/> 
+            <!-- $STAT_COUNTER -->
+          </td>
+
+          <td id="top" style="height: 100%; padding: 1em; vertical-align: top;">
+            <!-- 
+              This section contains the real page content. 
+              pages are created automatically by using the script "build_page.sh"
+              which combines section templated with the navigation bar.
+
+	      This creates webpages that do not rely on php3 or Javascript for 
+              serverside or client side html inclusion.
+            //-->
+            <!-- $PLACEHOLDER -->
+<!-- 
+//
+//
+//  
+//   Features
+//
+//
+//
+-->
+
+<br>
+<h2><a name="idFeature">Features</a></h2>
+
+<p>
+The following is a list of the features currently supported by the parser library. 
+The primary objective is to keep it as extensible as possible whilst ensuring a maximum parsing speed. Extending the parser is mostly based on allowing a user to add custom callbacks which require only an absolute minimum of code. For instance you need exactly 2 lines of code to add a new function.
+But extending the parser may not be necessary at all since it comes with a powerful default 
+implementation. Here is the (incomplete) list of features:
+</p>
+
+
+<!-- 
+//
+//   Features / Overview
+//
+-->
+
+<h3><a name="idFeatureOverview">Overview</a></h3>
+
+
+<ul>
+  <li><b>Easy to use</b></li>
+  <ul>
+    <li>You need only a <a href="mup_version.html#idExample">few lines of code</a> to evaluate en expression</li>
+  </uL> 
+  <li><b>Extremely fast</b></li>
+  <ul>
+    <li><a href="mup_version.html#idBench">faster than similar commercial parsers</a></li>
+  </uL> 
+
+  <li><b>User-defined operators</b></li>
+  <ul>
+    <li>binary operators</li>
+    <li>postfix operators</li>
+    <li>infix operators</li>
+  </ul>
+
+  <li><b>User-defined functions</b>
+    <ul>
+      <li>with a fixed number of up to five arguments</li>
+      <li>with variable number of arguments</li>
+      <li>with a single string argument (for database queries)</li>
+    </ul>
+  </li>
+
+  <li><b>User-defined constants.</b>
+  <ul>
+    <li>numeric constants</li>
+    <li>string constants</lI>
+  </ul> 
+  </li>
+
+  <li><b>User-defined variables.</b>
+    <ul>
+        <li>unlimited in number</li>	
+        <li>definable at parser runtime by the parser</li>
+        <li>assigning variables in terms of other variables is possible</li>	
+    </ul>
+  </li>
+  
+  <li><b>Custom value recognition callbacks</b>
+    <ul>
+	<li>support for binary and hex values.</li>
+        <li>can be used to implement database queries</li>
+    </ul>
+  </li>
+
+  <li><b>Default implementaion with many features</b></li> 
+    <ul>
+      <li>26 <a href="#idDef1">predefined functions</a>.</li>
+      <li>15 <a href="#idDef2">predefined operators</a>.</li>
+      <li>Supports numerical differentiation with respect to a given variable.</li>
+      <li>Assignement operator is supported</li>
+    </ul>
+
+  <li><b>Portability</b>
+    <ul>
+       <li>GNU Makefile included</li>
+       <li>BCB Project files included</li>
+       <li>MSVC 7.1 Project files for managed and unmanaged code</li>
+       <li>ISO 14882 compliant code</li>
+       <li>DLL version usable from every language able to use function exported in C-style</li>
+    </ul> 
+  </li>
+
+  <li><b>Unit support</b>
+    <ul>
+      <li>Use postfix operators as unit multipliers <code>(3m -> 0.003)</code></li>
+    </ul>
+  </li>
+
+</ul>
+
+
+<!-- 
+//
+//
+//  
+//   Default implementation
+//
+//
+//
+-->
+
+<h3><a name="idDef1">The default implementation</a></h3>
+<p>
+This section gives an overview on the default features supported by the parser. The default
+implementation is defined in the class <code>mu::Parser</code> located in the file 
+<i>muParser.cpp</i>. The DLL-version uses this class internally.
+
+<!-- 
+//
+//   Features / Built in functions
+//
+-->
+
+
+<h4><a name="idDef2">Built-in functions</a></h4>
+<p>
+The following table gives an overview of the functions supported by the
+default implementation. It lists the function names, the number of 
+arguments and a brief description.
+</p>
+
+<p>
+<BLOCKQUOTE>
+<small>
+<table border="1">
+<thead>
+<tr>
+  <td><b>Name</b></td>  <td><b>Argc.</b></td>  <td><b>Explanation</b></td>
+</tr>
+</thead>
+
+<tbody>
+<tr><td><code>sin</code></td>   <td align="center">1</td>     <td>sine function</td></tr>
+<tr><td><code>cos</code></td>   <td align="center">1</td>     <td>cosine function</td></tr>
+<tr><td><code>tan</code></td>   <td align="center">1</td>     <td>tangens function</td></tr>
+<tr><td><code>asin</code></td>  <td align="center">1</td>     <td>arcus sine function</td></tr>
+<tr><td><code>acos</code></td>  <td align="center">1</td>     <td>arcus cosine function</td></tr>
+<tr><td><code>atan</code></td>  <td align="center">1</td>     <td>arcus tangens function</td></tr>
+<tr><td><code>sinh</code></td>  <td align="center">1</td>     <td>hyperbolic sine function</td></tr>
+<tr><td><code>cosh</code></td>  <td align="center">1</td>     <td>hyperbolic cosine</td></tr>
+<tr><td><code>tanh</code></td>  <td align="center">1</td>     <td>hyperbolic tangens function</td></tr>
+<tr><td><code>asinh</code></td> <td align="center">1</td>     <td>hyperbolic arcus sine function</td></tr>
+<tr><td><code>acosh</code></td> <td align="center">1</td>     <td>hyperbolic arcus tangens function</td></tr>
+<tr><td><code>atanh</code></td> <td align="center">1</td>     <td>hyperbolic arcur tangens function</td></tr>
+<tr><td><code>log2</code></td>  <td align="center">1</td>     <td>logarithm to the base 2</td></tr>
+<tr><td><code>log10</code></td> <td align="center">1</td>     <td>logarithm to the base 10</td></tr>
+<tr><td><code>log</code></td>   <td align="center">1</td>     <td>logarithm to the base 10</td></tr>
+<tr><td><code>ln</code></td>    <td align="center">1</td>     <td>logarithm to base e (2.71828...)</td></tr>
+<tr><td><code>exp</code></td>   <td align="center">1</td>     <td>e raised to the power of x</td></tr>
+<tr><td><code>sqrt</code></td>  <td align="center">1</td>     <td>square root of a value</td></tr>
+<tr><td><code>sign</code></td>  <td align="center">1</td>     <td>sign function -1 if x&lt;0; 1 if x&gt;0</td></tr>
+<tr><td><code>rint</code></td>  <td align="center">1</td>     <td>round to nearest integer</td></tr>
+<tr><td><code>abs</code></td>   <td align="center">1</td>     <td>absolute value</td></tr>
+<tr><td><code>if</code></td>    <td align="center">3</td>     <td>if ... then ... else ...</td></tr>
+<tr><td><code>min</code></td>   <td align="center">var.</td>  <td>min of all arguments</td></tr>
+<tr><td><code>max</code></td>   <td align="center">var.</td>  <td>max of all arguments</td></tr>
+<tr><td><code>sum</code></td>   <td align="center">var.</td>  <td>sum of all arguments</td></tr>
+<tr><td><code>avg</code></td>   <td align="center">var.</td>  <td>mean value of all arguments</td></tr>
+</tbody>
+
+</table>
+</small>
+</BLOCKQUOTE>
+</p>
+
+
+<h4><a name="idDef3">Built-in binary operators</a></h4>
+<p>
+The following table lists the default binary operators supported by the parser.
+
+<BLOCKQUOTE>
+<table border="1">
+
+<thead>
+<tr><td><b>Operator</b></td>     <td><b>Meaning</b></td>             <td><b>Priority</b></td></tr>
+</thead>
+
+<tbody>
+<tr><td><code>=</code></td>      <td>assignement*</td>                <td>-1</td></tr>
+<tr><td><code>and</code></td>    <td>logical and</td>                <td>1</td></tr>
+<tr><td><code>or</code></td>     <td>logical or</td>                 <td>1</td></tr>
+<tr><td><code>xor</code></td>    <td>logical xor</td>                <td>1</td></tr>
+<tr><td><code>&lt;=</code></td>  <td>less or equal</td>              <td>2</td></tr>
+<tr><td><code>&gt;=</code></td>  <td>greater or equal</td>           <td>2</td></tr>
+<tr><td><code>!=</code></td>     <td>not equal</td>                  <td>2</td></tr>
+<tr><td><code>==</code></td>     <td>equal</td>                      <td>2</td></tr>
+<tr><td><code>&gt;</code></td>   <td>greater than</td>               <td>2</td></tr>
+<tr><td><code>&lt;</code></td>   <td>less than</td>                  <td>2</td></tr>
+<tr><td><code>+</code></td>      <td>addition</td>                   <td>3</td></tr>
+<tr><td><code>-</code></td>      <td>subtraction</td>                <td>3</td></tr>
+<tr><td><code>*</code></td>      <td>multiplication</td>             <td>4</td></tr>
+<tr><td><code>/</code></td>      <td>division</td>                   <td>4</td></tr>
+<tr><td><code>^</code></td>      <td>raise x to the power of y</td>  <td>5</td></tr>
+</tbody>
+
+</table>
+<small>*The assignment operator is special since it changes one of its
+       arguments and can only by applied to variables.</small>
+
+</BLOCKQUOTE>
+</p>
+
+<!--
+<hr>
+
+<div align="center">
+  [back to <a href="mup_intro.html" target="noframe">Math parser</a> main page]
+</div>
+-->
+
+            <hr/>
+            <table border="0" style="width:100%">
+            <tr>
+              <td>&copy; 2005-2006 Ingo Berg</td>
+              <td style="text-align:right; padding-right: 3em;">
+                <a href="#top">^ TOP</a>
+              </td>
+            </tr>
+          </table>
+
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+    _uacct = "UA-1019178-1";
+    urchinTracker();
+  </script>
+</body>
+</html>

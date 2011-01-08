@@ -1,0 +1,2 @@
+A test program to check that the side-centered Laplace operator
+discretization yields the expected order of accuracy.

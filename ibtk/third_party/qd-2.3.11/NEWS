@@ -1,0 +1,151 @@
+Changes for 2.3.7
+  - Fixed bug in to_digits where digits larger than 10
+    where output occasionally.
+
+Changes for 2.3.6
+  - Added fmod (C++) and mod (Fortran) functions.
+
+Changes for 2.3.5
+  - Fixed bug in division of qd_real by dd_real.
+  - Fixed bug in ddoutc (Fortran ddmod.f).
+  - Now compiles with g++ 4.3.
+  - Distribute tests/coeff.dat.
+
+Changes for 2.3.4
+  - Fixed bug in Makefile for cygwin / mingw systems.
+
+Changes for 2.3.3
+  - Fixed bug in atan2.
+
+Changes for 2.3.2
+  - Fixed bug in sin / cos / sincos where too much accuracy was 
+    lost for (moderately) large angles.
+  - Use fused-multiply add intrinsics on IA-64 platforms if 
+    compiled by Intel compiler.
+  - Fixed bug in c_dd_write and c_qd_write.
+  - Fixed bug were qdext.mod was not being installed.
+
+Changes for 2.3.1
+  - Fixed bug in sincos and cos_taylor.  This affected the result
+    of trigonometric functions in some cases.
+
+Changes for 2.3.0
+  This is a fairly significant change, breaking API compatibility.
+  - Moved C++ main entry in libqdmod.a to libqd_f_main.a.
+    This allows to link Fortran code using QD with custom 
+    C++ main function.  Pure Fortran code will need to be linked
+    with qd_f_main library in addition to qdmod and qd library.
+  - Constructors accepting pointers made explicit.
+  - Fortran routines labeled as elemental or pure, where appropriate.
+  - Write() is now to_string(), and now takes a single fmtflag.
+  - dd_real addition and multiplication made commutative.
+  - dd_real now represented as array of two doubles, instead of
+    two discrete scalars.
+  - New Fortran generic routines to read / write, operations with
+    complex and integers.
+  - Improved exp, sin, and cos functions.
+  - Removed unused constants and obscure constants only used internally
+    from public interface.
+
+Changes for 2.2.6
+  - Fixed bug in mixed precision multiplication: qd_real * dd_real.
+
+Changes for 2.2.5
+  - Bug fix in qd_real addition when --enable-ieee-add is specified.
+  - Debugging routines dump and dump_bits updated; 
+    dump_components removed (just use dump).
+  - Fortran support for Fortran strings.  Use character arrays instead.
+  - Return NaN under error conditions.
+  - Added _inf constant; exp now returns Inf when argument is too large.
+  - Output formatting fixes for Inf and NaNs.
+  - Added more real-complex mixed arithmetic routines in Fortran 
+    interface.
+
+Changes for 2.2.4
+  - Added random_number interface for Fortran modules.
+  - Use slightly more conservative values for eps.
+  - Avoid unnecessary overflow near overflow threshold.
+  - Added radix, digits, min/maxexponent, range, and precision
+    intrinsics to Fortran interface.
+  - Added safe_max (C++) and safe_huge (Fortran).
+
+Changes for 2.2.3
+  - Fix sign function bug in Fortran modules.
+
+Changes for 2.2.2
+  - Do not bother setting uninitialized dd_real and qd_reals to zero.
+  - Use clock_gettime if available for timing.
+  - Fortran I/O should be more consistent with C++ version.
+  - fpu.h is now included with dd_real.h.
+
+Changes for 2.2.1
+  - Minor fixes when printing in scientific format.
+  - Change search order of C++ compilers in Apple systems to avoid
+    case insensitive filesystems.
+
+Changes for 2.2.0
+  - Added F95 interface for complex types.
+  - Renamed dd.h and qd.h to dd_real.h and qd_real.h, respectively.
+    This will break older C++ code using 2.1.x library, but it was
+    conflicting with QuickDraw libraries on Macs.  (Hence the version 
+    bump to 2.2).
+  - Removed overloaded typecast operators for int and double.  These
+    permitted *automatic* conversion of dd_real/qd_real to double or
+    int, which is somewhat dangerous.  Instead to_int and to_double
+    routines are added.
+
+Changes for 2.1.214
+  - Updated pslq_test.
+  - Implmented numeric_limits<>.
+  - Better polyroot.
+  - Added isnan, isfinite, isinf functions.
+  - Fix / improve input output functions.
+  - Drop Microsoft Visual C++ 6.0 support.
+  - More efficient dd_real::sin.
+
+Changes for 2.1.213
+  - Support for x86_64 platforms.
+  - Drop libtool support for now.
+
+Changes for 2.1.212
+  - Support for pathCC compiler.
+  - Added accurate and sloppy versions of add / sub / mul / div avaialble.
+  - Added autodetection of fma functions.
+
+Changes for 2.1  (2003-12-30)
+  - added automake scripts.
+  - use libtool to compile / link and build libraries.
+  - supports standard installation targets (make install).
+  - support for Intel C++ compilers (icc / ecc).
+  - Fortran programs are now linked by C++ compiler.
+  - support for building shared library.
+  - minor bug fixes.
+
+Changes for 2.0  (2003-12-08)
+  - all header files are in "include/qd" directory.
+  - added autoconf scripts.
+  - added config.h and qd_config.h to store configuration information.
+  - renamed x86_* routines to fpu_* routines.
+  - added separate Fortran interface (f_* routines).
+  - options for sloppy multiply and sloppy divison separated.
+  - fixed C interface to be actually in C syntax.
+  - updated / added README, AUTHORS, NEWS, and LICENSE files.
+  - minor bug fixes.
+
+Changes for 1.2  (2003-12-04)
+  - added "dist-clean" target in Makefile
+  - initialize dd and qd variables to zero
+  - increases tolerance for qd / dd tests
+  - changed .cc extension to .cpp
+  - updated README, COPYING, and NEWS files
+  - added ChangeLog file
+  - fixed bug in '-all' flag in qd_test
+  - minor bug fixes
+
+Changes for 1.1  (2002-10-22)
+  - added "Changes" file (this file)
+  - fixed <strings.h> to <string.h>
+  - fixed constant (3/4) * pi
+  - fixed exp(x) to return zero if x is a large negative number
+  - removed "docs" target in Makefile
+

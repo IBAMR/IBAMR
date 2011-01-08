@@ -1,0 +1,282 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="./style/formate.css"/>
+  <meta name="author" content="Ingo Berg"/>
+  <meta name="keywords" content="math parser, parser, expression evaluator, C++, Mathematical, Expression"/>
+  <meta name="description" content="a fast and portable math parser library written in C++"/>
+
+  <title>muParser - a fast math parser library</title>
+  <script src="script/functions.js" language="javascript" type="text/javascript"></script>
+</head>
+
+<body>
+    <!-- Tabelle mit Hauptinhalt der Seite -->
+    <table id="MainTable" border="0" cellpadding="5" cellspacing="0" style="width:100%; height:100%;">
+      <thead id="MainTableHead">
+        <tr>
+          <td style="background-image: url(images/grad1.jpg);" align="center">
+
+            <!-- Statistikerfassung ausschalten, wenn blocking cookie gesetzt ist -->
+              <a href="http://sourceforge.net/projects/muparser/">
+                <object>
+                <script type="text/javascript">SFLogo();</script>
+
+                <!-- Always gather statistics data for deactivated javascript -->
+                <noscript>
+                    <img src="images/sflogo.png" border="0" alt="Math parser Logo"/>
+                </noscript>
+                </object>
+              </a>
+          </td>
+
+          <td style="background-image: url(images/grad2.jpg);" align="right">
+            <table cellpadding="0" cellspacing="0" border="0" style="width: 30%;">
+            <tr>
+                <td style="text-align: center;">
+                    <strong><a class="white" href="classdocu/index.html" title="The doxygen documentation of muParser">
+                    <img src="images/help.gif" border="0" alt="class documentation"/><br/>
+                    <span style="font-size: 70%">class documentation</span></a></strong>
+                </td>
+                <td style="text-align: center;">
+                  <strong>
+                    <a class="white" 
+                       href="http://sourceforge.net/project/showfiles.php?group_id=137191" 
+                       title="The Sourceforge download page">
+                      <img src="images/download.gif" border="0" alt="math parser download"/>
+                      <br/>
+                      <span style="font-size: 70%">math parser download</span>
+                    </a>
+                  </strong>
+                </td>
+            </tr>
+            </table>
+          </td>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr>
+          <td style="vertical-align: top; text-align: center">
+            <br/><strong><small>Start page</small></strong>
+            <div class="sidebarlink">
+                <a href="index.html">About the parser</a><br/>
+                <a href="index.html#idNews">News</a><br/>
+                <a href="mup_links.html">Projects using this lib</a><br/>
+                <a href="mup_licence.html">Licence</a><br/>
+            </div>
+
+            <br/><strong><small>Features</small></strong>
+            <div class="sidebarlink">
+              <a href="mup_features.html">Features</a><br/>
+              <a href="mup_features.html#idFeatureOverview">Overview</a><br/>
+              <a href="mup_features.html#idDef2">Built in functions</a><br/>
+              <a href="mup_features.html#idDef3">Built in binary operators</a><br/>
+            </div>
+
+            <br/><strong><small>Build instructions</small></strong>
+            <div class="sidebarlink">
+              <a href="mup_usage.html#idInstWin">Building on Win32</a><br/>
+              <a href="mup_usage.html#idInstLinux">Building on BSD/Linux</a><br/>
+              <a href="mup_usage.html#idInstMisc">Misc build instructions</a><br/>
+              <a href="mup_usage.html#idInstInc">Including the files</a><br/>
+              <a href="mup_usage.html#idInstInc">Where to ask for help</a><br/>
+            </div>
+
+            <br/><strong><small>Math parser interface</small></strong>
+            <div class="sidebarlink">
+              <a href="mup_interface.html#idInit">Parser (de)initialization</a><br/>
+              <a href="mup_interface.html#idEval">Evaluating an expression</a><br/>
+              <a href="mup_interface.html#idSetExpr">Setting the expression</a><br/>
+              <a href="mup_interface.html#idDefCharset">Defining identifier charsets</a><br/>
+              <a href="mup_interface.html#idDefVar">Defining parser variables</a><br/>
+              <a href="mup_interface.html#idDefVarEx">Explicit variable definition</a><br/>
+              <a href="mup_interface.html#idDefVarIm">Implicit variable definition</a><br/>
+              <a href="mup_interface.html#idDefConst">Defining constants</a><br/>
+              <a href="mup_interface.html#idDefFun">Defining functions</a><br/>
+              <a href="mup_interface.html#idDefOprt">Defining operators</a><br/>
+              <a href="mup_interface.html#idUnOp">Unary operators</a><br/>
+              <a href="mup_interface.html#idBinOp">Binary operators</a><br/>
+              <a href="mup_interface.html#idQueryVar">Querying variables</a><br/>
+              <a href="mup_interface.html#idQueryConst">Querying constants</a><br/>
+              <a href="mup_interface.html#idDefConst2">Value recognition callbacks</a><br/>
+              <a href="mup_interface.html#idDefConst2">Removing variables/constants</a><br/>
+              <a href="mup_interface.html#idErrors">Error handling</a><br/>
+              <a href="mup_version.html#idExample">Example code</a><br/>
+            </div>
+
+            <br/>
+            <strong>
+              <small>Current version</small>
+            </strong>
+            <div class="sidebarlink">
+              <a href="mup_version.html#idRelNote">Release notes</a><br/>
+              <a href="mup_version.html#idBench">Benchmarks</a><br/>
+            </div>
+
+            <br/>
+            <div align=center>
+              <a href="http://www.opensource.org/"><img src="images/osi.jpg"/></a>
+            </div>
+            <br/> 
+            <!-- $STAT_COUNTER -->
+<script type="text/javascript" language="javascript">
+<!--
+  if (getState()==1)
+  {
+    document.write("<strong>stat disabled</strong>");
+  }
+  else
+  {
+    statCounter();
+  }
+-->
+</script>
+
+<noscript>
+  <a href="http://www.statcounter.com/" target="_blank">
+    <img  src="http://c6.statcounter.com/counter.php?sc_project=671117&amp;java=0&amp;security=f3fad66c"
+          alt="website hit counter" border="0"/>
+  </a>
+</noscript>
+          </td>
+
+          <td id="top" style="height: 100%; padding: 1em; vertical-align: top;">
+            <!-- 
+              This section contains the real page content. 
+              pages are created automatically by using the script "build_page.sh"
+              which combines section templated with the navigation bar.
+
+	      This creates webpages that do not rely on php3 or Javascript for 
+              serverside or client side html inclusion.
+            //-->
+            <!-- $PLACEHOLDER -->
+<h1>muParser - a fast math parser library</h1>
+
+<p>
+Many applications require the parsing of mathematical expressions.
+The main objective of this project is to provide a fast and easy way of
+doing this. <b>muParser</b> is an extensible high performance math parser 
+library. It is based on transforming an expression into a bytecode and 
+precalculating constant parts of it.
+</p>
+
+<p>
+  <div align="center">
+  <img src="images/mathparser.jpg" alt="math parser logo" border="0">
+  </diV>
+</p>
+
+
+<p>
+The math parser library is written in pure C++ and should compile on every
+standard compliant compiler. I provide you with static libraries and a DLL 
+version ready for implementation into your projects. The code has been tested
+using MS VC++ V7.1 and GCC V3.3.1. It reportedly works on BCB too.
+
+I provide you with three demo projects in order to help you understand its 
+usage. 
+</p>
+
+<p>
+But before I go on, I'd like to thank SourceForge for hosting this project. This
+pages would not exist without the webspace provided by them and of course I'd like 
+to thank CodeProject for hosting the original <a href="http://www.codeproject.com/cpp/FastMathParser.asp" target="_blank">math parser</a> article.
+</p>
+
+<h2><a name="idNews">News</a></h2>
+<p>
+  <a href="http://sourceforge.net/forum/forum.php?forum_id=563029">
+    <strong>New website</strong>
+  </a>
+  <br/>
+  <small class="date">
+    2006-04-16 14:07 - <a href="http://sourceforge.net/projects/muparser/">muParser - A fast math parser library</a>
+  </small>
+  <br/>
+  The website of muParser has been (slightly) updated and since now it will be available also as docs in the   download page.
+  <br/>
+  <a href="http://sourceforge.net/forum/forum.php?forum_id=563029">Read More &raquo;</a>
+</p>
+
+<p>
+  <a href="http://sourceforge.net/forum/forum.php?forum_id=536851"><strong>Version 1.25 released</strong></a>
+  <br/>
+  <small class="date">
+    2006-02-06 03:00 - <a href="http://sourceforge.net/projects/muparser/">muParser - A fast math parser library</a>
+  </small>
+  <br/>
+  The version 1.25 of muParser has been released. Unix users will find this new version much more user-friendly   as it includes a standard configure script and provides a pkg-config template files which allows to easily build 
+  applications which depend from muParser.
+  <br/>
+  <a href="http://sourceforge.net/forum/forum.php?forum_id=536851">Read More &raquo;</a>
+</p>
+
+<p>
+  <a href="http://sourceforge.net/forum/forum.php?forum_id=500018"><strong>New Version available</strong></a>
+  <br/>
+  <small class="date">
+    2005-09-30 13:56 - <a href="http://sourceforge.net/projects/muparser/">muParser - A fast math parser library</a>
+  </small>
+  <br/>
+  The parser archive has been updated to Version 1.22 in order to fix compiler issues with gcc 4.0.
+  <br/>
+  <a href="http://sourceforge.net/forum/forum.php?forum_id=500018">Read More &raquo;</a>
+</p>
+
+<p>
+  <a href="http://sourceforge.net/forum/forum.php?forum_id=465363"><strong>Class documentation online</strong></a>
+  <br/>
+  <small class="date">
+    2005-05-07 04:53 - <a href="http://sourceforge.net/projects/muparser/">muParser - A fast math parser library</a>
+  </small>
+  <br/>
+  I have added the class documentation to the homepage. It can be accessed at:
+  <br/>
+  <a href="http://sourceforge.net/forum/forum.php?forum_id=465363">Read More &raquo;</a>
+  <p>
+    <a href="http://sourceforge.net/forum/forum.php?forum_id=462892">
+      <strong>
+        Homepage and archives added
+      </strong>
+    </a>
+    <br/>
+    <small class="date">
+      2005-04-23 08:50 - <a href="http://sourceforge.net/projects/muparser/">muParser - A fast math parser library</a>
+    </small>
+    <br/>
+    I made two additions to the site:
+    <br/>
+    <br/> 
+    I created a new homepage for the project:
+    <br/>
+    <a href="http://sourceforge.net/forum/forum.php?forum_id=462892">Read More &raquo;</a>
+  </p>
+
+  <p>
+    <a href="http://sourceforge.net/news/?group_id=137191">Site news archive &raquo;</a>
+  </p>
+            <hr/>
+            <table border="0" style="width:100%">
+            <tr>
+              <td>&copy; 2005-2006 Ingo Berg</td>
+              <td style="text-align:right; padding-right: 3em;">
+                <a href="#top">^ TOP</a>
+              </td>
+            </tr>
+          </table>
+
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+    _uacct = "UA-1019178-1";
+    urchinTracker();
+  </script>
+</body>
+</html>

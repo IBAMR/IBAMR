@@ -1,0 +1,9 @@
+* update documentation
+* add integer format support
+* support complex types.
+* partial template specialization for complex divide.
+* support x86 double-extended format (see Hladky's work)
+* perhaps rewrite core code in C preprocessor, with C/C++ wrappers.
+* complete numeric_limits
+* sane handling of overflow / underflow / NaNs.
+* handle more general streams, e.g., wide character streams
