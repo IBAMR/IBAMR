@@ -1,0 +1,16 @@
+libqd: quad-double / double-double computation package
+------------------------------------------------------
+
+Authors
+-------
+Yozo Hida        U.C. Berkeley               <yozo@cs.berkeley.edu>
+Xiaoye S. Li     Lawrence Berkeley Natl Lab  <xiaoye@nersc.gov>
+David H. Bailey  Lawrence Berkeley Natl Lab  <dhbailey@lbl.gov>
+
+Contributors
+------------
+Yves Renard      <Yves.Renard@gmm.insa-tlse.fr>
+  - provided initial autotoolization (autoconf / automake / libool)
+E. Jason Riedy   <ejr@cs.berkeley.edu>
+  - various bug fixes and code cleanup.
+

@@ -1,0 +1,1103 @@
+
+<!-- 
+//
+//
+//  
+//   The parser interface
+//
+//
+//
+-->
+
+<br>
+<h1><a name="idInterface"></a>The parser interface</h1>
+<p>
+The following section gives an overview of the public parser member functions as well as of the functions 
+exported by the DLL version of the parser.
+</p>
+
+
+<h2><a name="idInit"></a>Parser initialization / deinitialization</a></h2>
+<p>
+
+<h3>[DLL interface]</u></h3>
+<p>
+Create a new instance handle. You can create as many different instance handles as you like. Each will 
+internally reference a different parser object. When using the DLL it is necessary to manually release 
+any parser handle created by <code>mupInit()</code> by calling <code>mupRelease(hParser)</code>.
+</p>
+
+<pre>
+parser_handle hParser;
+hParser = mupInit(); // Create a new handle
+
+// use the parser...
+
+mupRelease(hParser); // Release an existing parser handle
+</pre>
+
+<p>
+Internally a handle is nothing more than a pointer to a parser object casted to a void pointer.
+</p>
+
+
+<h3>[Parser class interface]</h3>
+Code for creating a new parser object. (In case of dynamic allocation use <code>new</code> and <code>delete</code> 
+for initialization and deinitialization.) 
+
+<pre>
+mu::Parser parser;
+</pre>
+
+</p>
+
+<!-- 
+//
+//   The parser interface / Setting the expression
+//
+-->
+
+<h2><a name="idSetExpr"></a>Setting the expression</h2>
+<p>
+
+<h3>[DLL interface]</h3>
+<p>
+Setting the expression when using the DLL requires a valid parser handle and a pointer to 
+<code>const char</code> pointing to the expression.
+
+<pre>
+mupSetExpr(hParser, szLine);
+</pre>
+
+<small>See also: <i>Example3/Example3.cpp</i>.</small>
+</p>
+
+<h3>[Parser class interface]</h3>
+<p>
+Setting the expression using the parser class requires a <code>std::string</code> containing the expression as the
+only parameter.
+<pre>
+parser.SetExpr(line);
+</pre>
+<small>See also: <i>Example1/Example1.cpp; Example2/WndMain.cpp; ParserLib/muParserTest.cpp</i>.</small>
+</p>
+
+</p>
+
+<!-- 
+//
+//   The parser interface / Evaluating the expression
+//
+-->
+
+<h2><a name="idEval"></a>Evaluating an expression</h2>
+<p>
+Expression evaluation is done by calling the <code>mupEval()</code> function in the DLL version or the 
+<code>Eval()</code> member function of a parser object. When evaluating an expression for the first time
+the parser evaluates the expression string directly and creates a bytecode during 
+this first time evaluation. Every sucessive call to <code>Eval()</code> will evaluate the bytecode directly
+unless you call a function that will silently reset the parser to string parse mode. Some functions 
+invalidate the bytecode due to possible changes in callback
+function pointers or variable addresses. In this way they effectively cause a recreation of the 
+bytecode during the next call to <code>Eval()</code>.
+
+<p>
+Internally there are different evaluation functions. One for parsing from a string, the other for
+parsing from bytecode (and a third one used only if the expression can be simplified to a constant). 
+Initially, <code>Eval()</code> will call the string parsing function which is slow due to all the 
+necessary syntax checking, variable lookup, and bytecode creation. Once this
+function succeeds, <code>Eval()</code> will change its internal parse function pointer to either
+the bytecode parsing function or the const result function which are significantly (approx. 1000 times) 
+faster. You don't have to worry about this, it's done automatically, just keep in mind that the 
+first time evaluation of a new formula is significantly slower than any successive call to 
+<code>Eval()</code>.
+</p>
+
+<h3>[DLL interface]</h3>
+<p>
+<pre>
+double fVal;
+fVal = mupEval(hParser);
+</pre>
+<small>See also: <i>Example3/Example3.cpp</i>.</small>
+</p>
+
+<h3>[Parser class interface]</h3>
+<p>
+<pre>
+double fVal;
+try
+{
+  fVal = parser.Eval();
+}
+catch (Parser::exception_type &amp;e)
+{
+  std::cout &lt;&lt; e.GetMsg() &lt;&lt; endl;
+}
+</pre>
+<small>See also: <i>Example1/Example1.cpp; Example2/WndMain.cpp</i>.</small>
+</p>
+
+</p>
+
+<!-- 
+//
+//   The parser interface / Defining identifier character sets
+//
+-->
+
+<h2><a name="idDefCharset"></a>Defining identifier character sets</a></h2>
+<p>
+Sometimes it is necessary to change the character sets that are used for token identifiers in 
+order to avoid conflicts. The parser uses three different character sets.
+<ul>
+  <li>The name character set, is used for:</li>
+  <ul>
+    <li>function identifiers</li>
+    <li>variable identifiers</li>
+    <li>constant identifiers</li>
+  </uL>
+
+  <li>The operator character set is used for:</li>
+  <ul>
+    <li>binary operator identifiers</li>
+    <li>postfix operator identifiers</li>
+  </ul>
+
+  <li>The Infix operator charset is used for infix operator identifiers only</li>
+</ul>
+
+
+When using the default implementation <code>mu::muParser</code> directly you can skip this
+section. (The DLL version uses the default implementation internally.)
+
+<h3>[DLL interface]</h3>
+<p>
+<pre>
+mupDefineNameChars(hParser, "0123456789_"
+                            "abcdefghijklmnopqrstuvwxyz"
+                            "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+mupDefineOprtChars(hParser, "abcdefghijklmnopqrstuvwxyz"
+                            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                            "+-*^/?<>=#!$%&|~'_");
+mupDefineInfixOprtChars(hParser, "/+-*^?<>=#!$%&|~'_");
+</pre>
+</p>
+
+<h3>[Parser class interface]</h3>
+<p>
+<pre>
+parser.DefineNameChars("0123456789_"
+                       "abcdefghijklmnopqrstuvwxyz"
+                       "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+parser.DefineOprtChars("abcdefghijklmnopqrstuvwxyz"
+                       "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                       "+-*^/?<>=#!$%&|~'_");
+parser.DefineInfixOprtChars("/+-*^?<>=#!$%&|~'_");
+</pre>
+<small>See also: <i>ParserLib/muParser.cpp; ParserLib/muParserInt.cpp</i>.</small>
+</p>
+
+</p>
+
+
+<!-- 
+//
+//   The parser interface / Defining parser variables
+//
+-->
+
+
+<h2><a name="idDefVar"></a>Defining parser variables</h2>
+
+<p>
+Custom variables can be defined either explicit in the code by using the <code>DefineVar</code> function or implicit by the parser. Implicit declaration will call a variable factory function provided by the user. The parser is never the owner of its variables. So you must take care of their destruction in case of dynamic allocation. The general idea is to bind every parser variable to a C++ variable. For this reason, you have to make sure the C++ variable stays valid as long as you process a formula that needs it. Only variables of type <code>double</code> are supported.
+</p>
+
+
+<h2><a name="idDefVarEx"></a>Explicitely defining variables</h2>
+<p>
+
+Explicitely in this context means you have to do add the variables manually it in your application code. So you must know in advance which variables you intend to use. If this is not the case have a look at
+the section on <a href="#idDefVarIm">Implicit creation of new variables</a>.
+</p>
+
+<p>
+<table>
+<tr><td><img src="images/warning.gif"/></td> <td>Defining new Variables will reset the parser bytecode. Do not use this function just for changing the values of variables! It would dramatically reduce the parser performance! Once the parser knows the address of the variable there is no need to explicitely call a function for changing the value. Since the parser knows the address it knows the value too so simply change the C++ variable in your code directly!</td>
+</tr>
+</table>
+</p>
+
+<h3>[DLL interface]</h3>
+
+The first parameter is a valid parser handle, the second the variable name and the third a pointer to 
+the associated C++ variable.
+
+<pre>
+double fVal=0;
+mupDefineVar(hParser, "a", &fVal);  
+</pre>
+<small>See also: <i>Example3/Example3.cpp</i>.</small>
+
+<h3>[Parser class interface]</h3>
+
+The first parameter is the variable name and the second a pointer to the associated C++ variable.
+
+<pre>
+double fVal=0;
+parser.DefineVar("a", &fVal);
+</pre>
+<small>See also: <i>Example1/Example1.cpp; Example2/WndMain.cpp; ParserLib/muParserTest.cpp</i>.</small>
+
+</p>
+
+<h2><a name="idDefVarIm"></a>Implicit creation of new variables</h2>
+<p>
+
+Implicit declaration of new variables is only possible by setting a factory function. Implicit creation 
+means that everytime the parser finds an unknown token at a position where a variable could be located it 
+creates a new variable with that name automatically. The necessary factory function must be of type:
+<pre>double* (*facfun_type)(const char*, void*)</pre> 
+The first argument to a factory function is the name of the variable found by the parser. The second is a pointer
+to user defined data. This pointer can be used to provide a pointer to a class that implements the actual factory. 
+By doing this it is possible to use custom factory classes depending on the variable name.
+
+<p>
+<table>
+<tr><td><img src="images/warning.gif"/></td> <td>Be aware of name conflicts! Please notice that recognizing the name of an undefined variable is the last step during parser token detection. If the potential variable name starts with identifiers that could be interpreted as a function or operator it will be detected as such most likely resulting in an syntax error.</td>
+</tr>
+</table>
+</p>
+
+The following code is an example of a factory function. The example does not use dynamic allocation for 
+the new variables although this would be possible too. But when using dynamic allocation you must keep
+track of the variables allocated implicitely in order to free them later on. 
+
+<pre>
+double* AddVariable(const char *a_szName, void *pUserData)
+{
+  static double afValBuf[100];  
+  static int iVal = 0;          
+
+  std::cout << "Generating new variable \"" 
+            << a_szName << "\" (slots left: " 
+            << 99-iVal << ")" << endl;
+
+  // you could also do:
+  // MyFactory *pFactory = (MyFactory*)pUserData;
+  // pFactory->CreateNewVariable(a_szName);
+
+  afValBuf[iVal++] = 0;
+  if (iVal>=99)
+    throw mu::Parser::exception_type("Variable buffer overflow.");
+
+  return &afValBuf[iVal];
+}
+</pre>
+<small>See also: <i>Example1/Example1.cpp</i>.</small>
+</p>
+
+In order to add a variable factory use the <code>SetVarFactory</code> functions. The first parameter 
+is a pointer to the static factory function, the second parameter is optional and represents a pointer 
+to user defined data. Without a variable factory each undefined variable will cause an undefined token error. Factory 
+functions can be used to query the values of newly created variables directly from a
+database. If you emit errors from a factory function be sure to throw an exception of
+type <code>ParserBase::exception_type</code> all other exceptions will be caught internally
+and result in an internal error.
+
+<h3>[DLL interface]</h3>
+<p>
+<pre>
+mupSetVarFactory(hParser, AddVariable, pUserData);
+</pre>
+<small>See also: <i>Example3/Example3.cpp</i>.</small>
+</p>
+
+<h3>[Parser class interface]</h3>
+<p>
+<pre>
+parser.SetVarFactory(AddVariable, pUserData);
+</pre>
+<small>See also: <i>Example1/Example1.cpp</i>.</small>
+</p>
+
+
+<!-- 
+//
+//   The parser interface / Defining parser constants
+//
+-->
+
+
+<h2><a name="idDefConst"></a>Defining parser constants</h2>
+<p>
+Parser constants can either be values of type <code>double</code> or <code>string</code>. Constness 
+refers to the bytecode. Constants will be stored by their value in the bytecode, not by a reference to
+their address. Thus accessing them is faster. They may be optimized away if this is possible. 
+Defining new constants or changing old ones will reset the parser to string parsing mode thus resetting
+the bytecode.
+<br>
+The Names of user defined constants may contain only the following characters: <code>0-9, a-z, A-Z, _</code>, and they may not start with a number. Violating this rule will raise a parser error.
+
+<h3>[DLL interface]</h3>
+<p>
+<pre>
+// Define value constants <code>_pi</code>
+mupDefineConst(hParser, "_pi", (double)PARSER_CONST_PI);  
+
+// Define a string constant named <code>strBuf</code>
+mupDefineStrConst("strBuf", "hello world");
+</pre>
+<small>See also: <i>Example3/Example3.cpp</i>.</small>
+</p>
+
+
+<h3>[Parser class interface]</h3>
+<p>
+<pre>
+// Define value constant <code>_pi</code>
+parser.DefineConst("_pi", (double)PARSER_CONST_PI);
+
+// Define a string constant named <code>strBuf</code>
+parser.DefineStrConst("strBuf", "hello world");
+</pre>
+<small>See also: <i>Example1/Example1.cpp; Example2/WndMain.cpp; ParserLib/muParserTest.cpp</i>.</small>
+</p>
+
+</p>
+
+
+<!-- 
+//
+//   The parser interface / Defining parser functions
+//
+-->
+
+
+<h2><a name="idDefFun"></a>Defining parser functions</h2>
+<p>
+The parser allows the user to define a variety of different callback functions. 
+Functions with a fixed number of up to five numeric arguments, functions with
+a variable number of numeric arguments and functions taking a sinlge string 
+argument plus up to two numeric values. 
+In order to define a parser function you need to specify its name, a pointer
+to a static callback function and an optional flag indicating if the function 
+is volatile. Volatile functions are functions that can not be optimized.
+<br>
+The static callback functions must have of either one of the <a name="FunTypes">following types</a>:
+
+<pre>
+// For fixed number of arguments
+double (*fun_type1)(double); 
+double (*fun_type2)(double, double); 
+double (*fun_type3)(double, double, double); 
+double (*fun_type4)(double, double, double, double); 
+double (*fun_type5)(double, double, double, double, double); 
+
+// for a variable number of arguments
+//   first arg:   pointer to the arguments
+//   second arg:  number of arguments
+double (*multfun_type)(const double*, int);
+
+// for functions taking a single string plus up to two numeric values
+double (*strfun_type1)(const char *);
+double (*strfun_type2)(const char *, double);
+double (*strfun_type3)(const char *, double, double);
+</pre>
+
+
+<h3>[DLL interface]</h3>
+<p>
+When using the DLL version it is necessary to call a seperate function for
+each type of callback. The following is a list of possible choices.
+
+<pre>
+// Add functions taking string parameters that cant be optimized
+mupDefineStrFun1(hParser, "StrFun1", pStrCallback1, false); 
+mupDefineStrFun2(hParser, "StrFun2", pStrCallback2, false); 
+mupDefineStrFun3(hParser, "StrFun3", pStrCallback3, false); 
+
+// Add an function with a fixed number of arguments
+mupDefineFun1(hParser, "fun1", pCallback1, false);             
+mupDefineFun2(hParser, "fun2", pCallback2, false);             
+mupDefineFun3(hParser, "fun3", pCallback3, false);             
+mupDefineFun4(hParser, "fun4", pCallback4, false);             
+mupDefineFun5(hParser, "fun5", pCallback5, false);             
+
+// Define a function with variable number of arguments
+mupDefineMultFun(hParser, "MultFun", pMultCallback);  
+</pre>
+<small>See also: <i>Example3.cpp</i>.</small>
+</p>
+
+<h3>[Parser class interface]</h3>
+<p>
+Defining callback functions by using the parser class directly is easier since there is
+only a single member function that is used for all kinds of callbacks. Since
+this member function is defined as a template internally it automatically associates
+the right code to any given type of callback. (As long as this type is listed 
+<a href="#FunTypes">above</a>)
+
+<pre>
+parser.DefineFun("FunName", pCallback, false)
+</pre>
+<small>See also: <i>Example1/Example1.cpp; ParserLib/muParser.cpp; ParserLib/muParserInt.cpp</i>.</small>
+</p>
+
+</p>
+
+
+<!-- 
+//
+//
+//   The parser interface / Defining parser operators
+//
+//
+-->
+
+
+<h2><a name="idDefOprt"></a>Defining parser operators</h2>
+<p>
+The parser is extensible with different kinds of operators: prefix operators, infix operators
+and binary operators. Operators can be applied to numerical values only (not to string constants).
+
+<ul>
+  <li>Postfix operators are operators that succeed values. For instance the factorial operator 
+      (<code>a! = a*(a-1)...*2*1</code>). Another application for postfix operators is their use as multipliers 
+      that can be used for implementing units.</li>
+  <li>Infix operators are operators like the unary minus which serves as a sign or the logical 
+      not <code>"!(a<9)"</code>.</lI>
+  <li>Binary operators can be defined in order to supplement or replace the built in binary operators
+      they require an additional parameter, the operator priority.</li>
+</ul>
+</p>
+
+
+<!-- 
+//
+//   The parser interface / unary Operators
+//
+-->
+
+
+<h3><a name="idUnOp"></a>Unary operators</h3>
+<p>
+Both postfix and infix operators take <a href="#FunTypes">callback functions of type</a> <code>fun_type1</code> like the following: 
+
+<pre>
+double MyCallback(double fVal) 
+{
+  return fVal/1000.0; 
+}
+</pre>
+
+For defining postfix operators and infix operators you need a valid parser instance, 
+an identifier string, and an optional third parameter marking the operator as volatile
+(non optimizable). 
+
+<h3>[DLL interface]</h3>
+<p>
+<pre>
+// Define an infix operator
+mupDefineInfixOprt(hParser, "!", MyCallback);
+
+// Define a postfix operators
+mupDefinePostfixOprt(hParser, "M", MyCallback);
+</pre>
+<small>See also:<i>Example3/Example3.cpp</i>.</small>
+</p>
+
+<h3>[Parser class interface]</h3>
+<p>
+<pre>
+// Define an infix operator
+parser.DefineInfixOprt("!", MyCallback);
+
+// Define a postfix operators
+parser.DefinePostfixOprt("m", MyCallback);
+</pre>
+<small>See also:<i>Example1/Example1.cpp; Example2/WndMain.cpp; muParserTest.cpp</i>.</small>
+</p>
+
+</p>
+
+
+<!-- 
+//
+//   The parser interface / Binary Operators
+//
+-->
+
+
+<h3><a name="idBinOp"></a>Binary operators</h3>
+<p>
+This parser has 15 <a href="mup_features.html#idDef3">Built in binary operators</a>. Sometimes it might be necessary to add additional custom binary operators. Examples are <code>shl</code> or <code>shr</code>, the "<b>shift left</b>" and "<b>shift right</b>" operators for integer numbers.
+In order to add user defined operators you need to assign a name, a callback function of type <code><a href="#idDefFun">fun_type2</a></code> and a priority for each new binary operator. You are not allowed to overload built in operators, this would result in an error being raised! For instance lets consider the
+following callback function which should be assigned to a binary operator:
+
+<pre>
+double pMyAddFun(double v1, double v2) 
+{
+  return v1+v2; 
+}
+</pre>
+
+For the definintion of binary operators you need at least 4 parameters. The first is a valid parser handle,
+the second is the identifier of the operator, the third is the operator callback function, the fourth is 
+the operator priority and the optional fifth parameter is a flag of type <code>bool</code> marking the operator
+as volatile. (The examples below omit the last flag.)
+Having defined a proper operator callback function you can add the binary operator with the following code:
+
+<h3>[DLL interface]</h3>
+<p>
+<pre>
+mupDefineOprt(hParser, "add", pMyAddFun, 0);
+</pre>
+<small>See also:<i>Example3/Example3.cpp</i>.</small>
+</p>
+
+<h3>[Parser class interface]</h3>
+<p>
+<pre>
+parser.DefineOprt("add", pMyAddFun, 0);
+</pre>
+<small>See also:<i>Example1/Example1.cpp; Example2/WndMain.cpp; muParserTest.cpp</i>.</small>
+</p>
+
+<a href="mup_features.html#idDef3">The priority</a> value must be greater or equal than zero (lowest possible priority). It controls the operator precedence in the formula. For instance if you want to calculate the formula <code>1+2*3^4</code> in a mathemetically correct sense you have to make sure that Addition has a lower priority than multiplication which in turn has a lower priority than the power operator. The most likely cases are that you assign an operator with a low priority of 0 (like <code>and</code>, <code>or</code>, <code>xor</code>) or a high priority that is larger than 6. (The priority of the power operator (<code>^</code>).)
+By assigning Priority values already used by built in operators you might introduce unwanted side effects. To avoid this and make the order of calculation clear you must use brackets in these cases. Otherwise the order will be determined by the Formula parsing direction which is from left to right.
+<br>
+<br>
+Example A:  Priority of <code>shl</code> equals priority of an addition; The order of the execution is from left to right.
+<pre>
+1 + 2 shl 1 => (1 + 2) shl 1
+2 shl 1 + 1 => (s shl 1) + 1
+</pre>
+Example B:  Priority of <code>shl</code> is higher than the one of the addition; <code>shl</code> is executed first.
+<pre>
+1 + 2 shl 1 => 1 + (2 shl 1)
+2 shl 1 + 1 => (2 shl 1) + 1
+</pre>
+</p>
+
+<p>
+If you encounter such conflicts or simply dont need the built in operators these can easily be deactivated using the <code>EnableBuiltInOprt(bool)</code> function. If you call this function you must add binary operators manually. After all without any operators you won't be able to parse anything useful. User defined operators come with approximately 10% decrease in parsing speed compared to built in operators. There is no way to avoid that. They cause an overhead when calling theeir callback functions. (This is the reason why there are built in operators)
+
+<pre>
+// disable all built in operators
+parser.EnableBuiltInOprt(false);
+</pre>
+</p>
+
+
+</p>
+
+
+<!-- 
+//
+//   The parser interface / Querying parser variables
+//
+-->
+
+
+<h2><a name="idQueryVar"></a>Querying parser variables</h2>
+<p>
+
+Keeping track of all variables can be a difficult task. For simplification the parser allows the user
+to query the variables defined in the parser. There are two different sets of variables that can 
+be accessed:
+
+<ul>
+  <li>Varaiables defined in the parser</li>
+  <li>Variables used in the current expression</li>
+</ul>
+
+Since the usage of the necessary commands is similar the following example shows 
+querying the parser variables only.
+
+
+<h3>[DLL interface]</h3>
+<p>
+For querying the variables used in the expression exchange <code>mupGetVarNum(...)</code> with 
+<code>mupGetExprVarNum(...)</code> and <code>mupGetVar(...)</code> with <code>mupGetExprVar(...)</code> 
+in the following example. Due to the use of an temporary internal static buffer for storing the variable
+name in the DLL version this DLL-function is not thread safe.
+
+<pre>
+// Get the number of variables
+int iNumVar = mupGetVarNum(a_hParser);
+
+// Query the variables  
+for (int i=0; i &lt iNumVar; ++i)
+{
+  const char *szName = 0;
+  double *pVar = 0;
+  mupGetVar(a_hParser, i, &szName, &pVar);
+  std::cout << "Name: " << szName << "   Address: [0x" << pVar << "]\n";
+}
+</pre>
+<small>See also: <i>Example3/Example3.cpp</i>.</small>
+</p>
+
+<h3>[Parser class interface]</h3>
+<p>
+For querying the expression variables exchange <code>parser.GetVar()</code> with
+<code>parser.GetUsedVar()</code> in the following example.
+
+<pre>
+// Get the map with the variables
+mu::Parser::varmap_type variables = parser.GetVar();
+cout << "Number: " << (int)variables.size() << "\n";
+
+// Get the number of variables 
+mu::Parser::varmap_type::const_iterator item = variables.begin();
+
+// Query the variables
+for (; item!=variables.end(); ++item)
+{
+  cout << "Name: " << item->first << " Address: [0x" << item->second << "]\n";
+}
+</pre>
+<small>See also: <i>Example1/Example1.cpp, Example2/WndMain.cpp</i>.</small>
+</p>
+
+</p>
+
+
+<!-- 
+//
+//   The parser interface / Querying parser constants
+//
+-->
+
+
+<h2><a name="idQueryConst"></a>Querying parser constants</h2>
+<p>
+
+Querying parser constants is similar to querying variables and expression variables. 
+
+<h3>[DLL interface]</h3>
+<p>
+Due to the use of an temporary internal static buffer for storing the variable
+name in the DLL version this DLL-function is not thread safe.
+<pre>
+int iNumVar = mupGetConstNum(a_hParser);
+
+for (int i=0; i &lt iNumVar; ++i)
+{
+  const char *szName = 0;
+  double fVal = 0;
+  mupGetConst(a_hParser, i, &szName, fVal);
+  std::cout << "  " << szName << " = " << fVal << "\n";
+}
+</pre>
+<small>See also: <i>Example3/Example3.cpp</i>.</small>
+</p>
+
+<h3>[Parser class interface]</h3>
+<p>
+The parser class provides you with the <code>GetConst()</code> member function that returns a map structure
+with all defined constants. The following code snippet shows how to use it:
+<pre>
+mu::Parser::valmap_type cmap = parser.GetConst();
+if (cmap.size())
+{
+  mu::Parser::valmap_type::const_iterator item = cmap.begin();
+  for (; item!=cmap.end(); ++item)
+    cout << "  " << item->first << " =  " << item->second << "\n";
+}
+</pre>
+<small>See also: <i>Example1/Example1.cpp, Example2/WndMain.cpp</i>.</small>
+</p>
+
+</p>
+
+
+
+<!-- 
+//
+//   The parser interface / Setting custom value recognition callbacks
+//
+-->
+
+
+<h2><a name="idDefConst2"></a>Setting custom value recognition callbacks</h2>
+<p>
+The parser default implementation <i>(muParser.cpp)</i> scans expressions 
+only for floating point values. Custom value recognition callbacks can be used in order to 
+implement support for binary, hexadecimal or octal numbers. These functions are called 
+during the string parsing and allow the user to scan portions of the original expressions
+for values. Their callback functions must be of the following type:
+
+<pre>
+bool (*identfun_type)(const char_type*, int&, value_type&);
+</pre>
+
+If the parser reaches an a position during string parsing that could host a value token it 
+tries to interpret it as such. If that fails the parser sucessively calls all 
+internal value recognition callbacks in order to give them a chance to make 
+sense out of what has been found. If all of them fail the parser continues to
+check if it is a Variable or another kind of token. 
+<p>
+In order to perform the task of value recognition these functions take a <code>const char</code>
+pointer, a reference to <code>int</code> and a reference 
+to <code>double</code> as their arguments. 
+The <code>const char</code> pointer points to the current formula position. The second
+argument is the index of that position. This value must be increased by the length of the 
+value entry if one has been found. In that case the value must be written to the third 
+argument which is of type <code>double</code>.
+
+
+The next code snippet shows a sample implementation of a function that reads and
+interprets binary values from the expression string. The code is taken from 
+<i>muParserInt.cpp</i> the implementation of a parser for integer numbers. Binary 
+numbers must be preceded with a <code>#</code> (i.e. <code>#1000101</code>).
+
+<pre>
+bool ParserInt::IsBinVal(const char_type *a_szExpr, 
+                         int &a_iPos, value_type &a_fVal)
+{
+  if (a_szExpr[0]!='#') 
+    return false;
+
+  unsigned iVal = 0, iBits = sizeof(iVal)*8;
+  for (unsigned i=0; 
+       (a_szExpr[i+1]=='0'||a_szExpr[i+1]=='1')&& i<iBits; 
+       ++i)
+  {
+    iVal |= (int)(a_szExpr[i+1]=='1') << ((iBits-1)-i);
+  }
+
+  if (i==0) 
+    return false;
+
+  if (i==iBits)
+    throw exception_type("Binary to integer conversion error (overflow).");
+
+  a_fVal = (unsigned)(iVal >> (iBits-i) );
+  a_iPos += i+1;
+
+  return true;
+}
+</pre>
+
+Once you have the callback you must add it to the parser. This can be done with:
+
+<h3>[DLL interface]</h3>
+<p>
+<pre>
+mupAddValIdent(hParser, IsBinVal);
+</pre>
+<small>See also: <i>Example3/Example3.cpp</i>.</small>
+</p>
+
+
+<h3>[Parser class interface]</h3>
+<p>
+<pre>
+parser.AddValIdent(IsBinVal);
+</pre>
+<small>See also: <i>ParserLib/muParserInt.cpp</i>.</small>
+</p>
+
+</p>
+
+
+<!-- 
+//
+//   The parser interface / Removing variables or constants
+//
+-->
+
+
+<h2><a name="idRemoveVar"></a>Removing variables or constants</h2>
+<p>
+Removing variables and constants can be done all at once using <code>ClearVar</code> and 
+<code>ClearConst</code>. Additionally variables can be removed by name using 
+<code>RemoveVar</code>. Since the parser never owns the variables you must take care of
+their release yourself if they were dynamically allocated. If you need to browse all 
+the variables for that purpose have a look at the chapter explaining how to 
+<a href="#idQueryVar">query parser variables</a>.
+
+
+<h3>[DLL interface]</h3>
+<p>
+<pre>
+// Remove all constants
+mupClearConst(hParser);
+
+// remove all variables
+mupClearVar(hParser);
+
+// remove a single variable by name
+mupRemoveVar(hParser, "a"); 
+</pre>
+</p>
+
+
+<h3>[Parser class interface]</h3>
+<p>
+<pre>
+// Remove all constants
+parser.ClearConst();
+
+// remove all variables
+parser.ClearVar();
+
+// remove a single variable by name
+parser.RemoveVar("a"); 
+</pre>
+</p>
+
+</p>
+
+
+<!-- 
+//
+//   The parser interface / Error handling
+//
+-->
+
+
+<h2><a name="idErrors"></a>Error handling</h2>
+<p>
+
+In case of an error both parser class and the parser DLL provide 
+similar methods for querying the information associated with the 
+error. In the parser class they are member functions of the associated 
+exception class <code>mu::Parser::exception_type</code> and in the DLL 
+version they are normal functions.
+</p>
+
+<p>
+These functions are:
+<ul>
+<li><code>exception.GetMsg() / mupGetErrorMsg()</code> - returns the error message.</li>
+<li><code>exception.GetExpr() / mupGetExpr()</code> - returns the current formula (if a formula is set)</li>
+<li><code>exception.GetToken() / mupGetErrorToken()</code> - returns the token associated with the error (if applicable)</li>
+<li><code>exception.GetPos() / mupGetErrorPos()</code> - returns the current formula position (if applicable)</li>
+<li><code>exception.GetCode() / mupGetErrorCode()</code> - returns the error code.</li>
+</ul>
+</p>
+
+<p>
+The following table lists the parser error codes. 
+The first column contains the enumeration values as defined in the enumeration <code>mu::EErrorCodes</code> 
+located in the file <i>muParserError.h</i>. Since they are only accessible from C++ the second column lists 
+their numeric code and the third column contains the error description.
+</p>
+
+<p>
+<BLOCKQUOTE>
+<table border="0" size="40" >
+<basefont size="+10">
+<thead>
+  <tr>
+    <td>             <small><b>Enumeration name</b></small></td>
+    <td align=center><small><b>Value</b></small></td>
+    <td>             <small><b>Description</b></small></td>
+  </tr>
+</thead>
+
+<tbody>
+  <tr>
+      <td><small><code>ecUNEXPECTED_OPERATOR</code></small></td>  
+      <td align=center><small>0</small></td>
+      <td><small>Unexpected binary operator found</small></td>
+  </tr>
+  <tr>
+      <td><small><code>ecUNASSIGNABLE_TOKEN</code></small></td>
+      <td align=center><small>1</small></td>
+      <td><small>Token cant be identified</small></tD>
+  </tr>
+  <tr>
+      <td><small><code>ecUNEXPECTED_EOF</code></small></td> 
+      <td align=center><small>2</small></td> 
+      <td><small>Unexpected end of formula. (Example: "2+sin(")</small></tD>
+  </tr>
+  <tr>
+      <td><small><code>ecUNEXPECTED_COMMA</code></small></td> 
+      <td align=center><small>3</small></td>  
+      <td><small>An unexpected comma has been found. (Example: "1,23")</small></tD>
+  </tr>
+  <tr>
+      <td><small><code>ecUNEXPECTED_ARG</code></small></td>
+      <td align=center><small>4</small></td> 
+      <td><small>An unexpected argument has been found</small></tD>
+  </tr>
+  <tr>
+      <td><small><code>ecUNEXPECTED_VAL</code></small></td>
+      <td align=center><small>5</small></td> 
+      <td><small>An unexpected value token has been found</small></tD>
+  </tr>
+  <tr>
+      <td><small><code>ecUNEXPECTED_VAR</code></small></td>
+      <td align=center><small>6</small></td>  
+      <td><small>An unexpected variable token has been found</small></tD>
+  </tr>
+  <tr>
+      <td><small><code>ecUNEXPECTED_PARENS</code></small></td> 
+      <td align=center><small>7</small></td>
+      <td><small>Unexpected parenthesis, opening or closing</small></td>
+  </tr>
+  <tr>
+      <td><small><code>ecUNEXPECTED_STR</code></small></td>
+      <td align=center><small>8</small></td> 
+      <td><small>A string has been found at an inapropriate position</small></tD>
+  </tr>
+  <tr>
+      <td><small><code>ecSTRING_EXPECTED</code></small></td>
+      <td align=center><small>9</small></td>  
+      <td><small>A string function has been called with a different type of argument</small></tD>
+  </tr>
+  <tr>
+      <td><small><code>ecVAL_EXPECTED</code></small></td>
+      <td align=center><small>10</small></td> 
+      <td><small>A numerical function has been called with a non value type of argument</small></tD>
+  </tr>
+  <tr>
+      <td><small><code>ecMISSING_PARENS</code></small></td>
+      <td align=center><small>11</small></td> <td><small>Missing parens. (Example: "3*sin(3")</small></td>
+  </tr>
+  <tr>
+      <td><small><code>ecUNEXPECTED_FUN</code></small></td>
+      <td align=center><small>12</small></td> 
+      <td><small>Unexpected function found. (Example: "sin(8)cos(9)")</small></td>
+  </tr>
+  <tr>
+      <td><small><code>ecUNTERMINATED_STRING</code></small></td>
+      <td align=center><small>13</small></td>
+      <td><small>unterminated string constant. (Example: "3*valueof("hello)")</small></td>
+  </tr>
+  <tr>
+      <td><small><code>ecTOO_MANY_PARAMS</code></small></td>
+      <td align=center><small>14</small></td> 
+      <td><small>Too many function parameters</small></td>
+  </tr>
+  <tr>
+      <td><small><code>ecTOO_FEW_PARAMS</code></small></td> 
+      <td align=center><small>15</small></td>
+      <td><small>Too few function parameters. (Example: "ite(1<2,2)")</small></td>
+  </tr>
+  <tr>
+      <td><small><code>ecOPRT_TYPE_CONFLICT</code></small></td> 
+      <td align=center><small>16</small></td> 
+      <td><small>binary operators may only be applied to value items of the same type</small></td>
+  </tr>
+  <tr>
+      <td><small><code>ecSTR_RESULT</code></small></td>  
+      <td align=center><small>17</small></td> 
+      <td><small>result is a string</small></td>
+  </tr>
+  <tr>
+      <td><small><code>ecINVALID_NAME</code></small></td>
+      <td align=center><small>18</small></td> 
+      <td><small>Invalid function, variable or constant name.</small></td>
+  </tr>
+  <tr>
+      <td><small><code>ecBUILTIN_OVERLOAD</code></small></td>
+      <td align=center><small>19</small></td> 
+      <td><small>Trying to overload builtin operator</small></td>
+  </tr>
+  <tr>
+      <td><small><code>ecINVALID_FUN_PTR</code></small></td>  
+      <td align=center><small>20</small></td> 
+      <td><small>Invalid callback function pointer</small></td>
+  </tr>
+  <tr>
+      <td><small><code>ecINVALID_VAR_PTR</code></small></td>
+      <td align=center><small>21</small></td> 
+      <td><small>Invalid variable pointer</small></td>
+  </tr>
+  <tr>
+      <td><small><code>ecNAME_CONFLICT</code></small></td>  
+      <td align=center><small>22</small></td> 
+      <td><small>Name conflict</small></td>
+  </tr>
+  <tr>
+      <td><small><code>ecOPT_PRI</code></small></td>  
+      <td align=center><small>23</small></td>
+      <td><small>Invalid operator priority</small></td>
+  </tr>
+  <tr>
+      <td><small><code>ecDOMAIN_ERROR</code></small></td>
+      <td align=center><small>24</small></td>
+      <td><small>catch division by zero, sqrt(-1), log(0) (currently unused)</small></td>
+  </tr>
+  <tr>
+      <td><small><code>ecDIV_BY_ZERO</code></small></td>
+      <td align=center><small>25</small></td> 
+      <td><small>Division by zero (currently unused)</small></td>
+  </tr>
+  <tr>
+      <td><small><code>ecGENERIC</code></small></td> 
+      <td align=center><small>26</small></td> 
+      <td><small>Error that does not fit any other code but is not an internal error</small></td>
+  </tr>
+  <tr>
+      <td><small><code>ecINTERNAL_ERROR</code></small></td>   
+      <td align=center><small>27</small></td> 
+      <td><small>Internal error of any kind.</small></td>
+  </tr>
+  </tbody>
+</basefont>
+</table>
+</BLOCKQUOTE>
+</p>
+
+<h3>[DLL interface]</h3>
+<p>
+Since dynamic libraries with functions exported in C-style can't throw exceptions the DLL version
+provides the user with a callback mechanism to raise errors. Simply add a callback function
+that does the handling of errors. Additionally you can query the error flag with 
+<code>mupError()</code>. By calling this function you will automatically reset the error flag!
+<pre>
+// Callback function for errors
+void OnError()
+{
+  cout << "Message:  " << mupGetErrorMsg() << "\n";
+  cout << "Token:    " << mupGetErrorToken() << "\n";
+  cout << "Position: " << mupGetErrorPos() << "\n";
+  cout << "Errc:     " << mupGetErrorCode() << "\n";
+}
+
+...
+
+// Set a callback for error handling
+mupSetErrorHandler(OnError);
+
+// The next function could raise an error
+fVal = mupEval(hParser);
+
+// Test for the error flag
+if (!mupError()) cout << fVal << "\n";
+</pre>
+<small>See also: Example3/Example3.cpp</small>
+</p>
+
+<h3>[Parser class interface]</h3>
+<p>
+In case of an error the parser class raises an exception of type <code>Parser::exception_type</code>. This 
+class provides you with several member functions that allow querying the exact cause as well as 
+additional information for the error.
+<pre>
+try
+{
+  ...
+  parser.Eval();
+  ...
+}
+catch(mu::Parser::exception_type &e)
+{
+  cout << "Message:  " << e.GetMsg() << "\n";
+  cout << "Formula:  " << e.GetExpr() << "\n";
+  cout << "Token:    " << e.GetToken() << "\n";
+  cout << "Position: " << e.GetPos() << "\n";
+  cout << "Errc:     " << e.GetCode() << "\n";
+}
+</pre>
+<small>See also: Example1/Example1.cpp</small>
+</p>
+
+</p>

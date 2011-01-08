@@ -1,0 +1,33 @@
+# Sample Makefile for compiling Fortran programs using Quad-Double library.
+# Make sure the script qd-config (installed during "make install") 
+# is in your path.
+
+# Fortran compiler.  Should be whatever  "qd-config --fc"  returns.
+FC=$(shell qd-config --fc)
+
+# C++ compiler.  Used for linking.
+# Should be whatever  "qd-config --cxx"  returns.
+CXX=$(shell qd-config --cxx)
+
+# Fortran compiler flags.  Should be whatever  "qd-config --fcflags"  
+# returns, but some items (like optimization levels) # can be 
+# tweaked if desired.
+FCFLAGS=$(shell qd-config --fcflags)
+
+# Linker flags.  Includes the Quad-Double library and any Fortran
+# libraries that needs to be linked in.  Should be whatever  
+# "qd-config --fclibs"  returns
+FCLIBS=$(shell qd-config --fclibs)
+
+# If your main proram is written in Fortran, you need declare your
+# main program as "subroutine f_main", not "program myprog", since
+# C++ linker must find the main entry, provided by
+# "qd-config --fmainlib".
+FCMAIN=$(shell qd-config --fmainlib)
+
+fortran_test: fortran_test.o
+	$(CXX) -o $@ fortran_test.o $(FCLIBS) $(FCMAIN)
+
+%.o: %.f90
+	$(FC) -c $(FCFLAGS) $<
+

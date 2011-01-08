@@ -1,0 +1,20 @@
+MAINTAINERCLEANFILES = Makefile.in
+
+AR = @AR@
+
+PETSC_DIR  = @PETSC_DIR@
+PETSC_ARCH = @PETSC_ARCH@
+
+AM_CPPFLAGS = -I${top_srcdir}/include -I${top_srcdir}/include -I${top_builddir}/config -I${top_srcdir}/third_party/qd-2.3.11/include -I${top_builddir}/third_party/qd-2.3.11/include
+AM_FFLAGS   = -I${top_builddir}/third_party/qd-2.3.11/fortran
+AM_FCFLAGS  = -I${top_builddir}/third_party/qd-2.3.11/fortran
+AM_LDFLAGS  = -L${top_builddir}/lib -L${top_builddir}/third_party/qd-2.3.11/src -L${top_builddir}/third_party/qd-2.3.11/fortran
+IBTK_LIBS   = ${top_builddir}/lib/libIBTK.a -lqdmod -lqd
+IBTK2d_LIBS = ${top_builddir}/lib/libIBTK2d.a
+IBTK3d_LIBS = ${top_builddir}/lib/libIBTK3d.a
+
+pkg_includedir = $(includedir)/@PACKAGE@
+
+SUFFIXES = .f.m4
+.f.m4.f:
+	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@

@@ -1,0 +1,315 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="./style/formate.css"/>
+  <meta name="author" content="Ingo Berg"/>
+  <meta name="keywords" content="math parser, parser, expression evaluator, C++, Mathematical, Expression"/>
+  <meta name="description" content="a fast and portable math parser library written in C++"/>
+
+  <title>muParser - a fast math parser library</title>
+  <script src="script/functions.js" language="javascript" type="text/javascript"></script>
+</head>
+
+<body>
+    <!-- Tabelle mit Hauptinhalt der Seite -->
+    <table id="MainTable" border="0" cellpadding="5" cellspacing="0" style="width:100%; height:100%;">
+      <thead id="MainTableHead">
+        <tr>
+          <td style="background-image: url(images/grad1.jpg);" align="center">
+
+            <!-- Statistikerfassung ausschalten, wenn blocking cookie gesetzt ist -->
+              <a href="http://sourceforge.net/projects/muparser/">
+                <object>
+                <script type="text/javascript">SFLogo();</script>
+
+                <!-- Always gather statistics data for deactivated javascript -->
+                <noscript>
+                    <img src="images/sflogo.png" border="0" alt="Math parser Logo"/>
+                </noscript>
+                </object>
+              </a>
+          </td>
+
+          <td style="background-image: url(images/grad2.jpg);" align="right">
+            <table cellpadding="0" cellspacing="0" border="0" style="width: 30%;">
+            <tr>
+                <td style="text-align: center;">
+                    <strong><a class="white" href="classdocu/index.html" title="The doxygen documentation of muParser">
+                    <img src="images/help.gif" border="0" alt="class documentation"/><br/>
+                    <span style="font-size: 70%">class documentation</span></a></strong>
+                </td>
+                <td style="text-align: center;">
+                  <strong>
+                    <a class="white" 
+                       href="http://sourceforge.net/project/showfiles.php?group_id=137191" 
+                       title="The Sourceforge download page">
+                      <img src="images/download.gif" border="0" alt="math parser download"/>
+                      <br/>
+                      <span style="font-size: 70%">math parser download</span>
+                    </a>
+                  </strong>
+                </td>
+            </tr>
+            </table>
+          </td>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr>
+          <td style="vertical-align: top; text-align: center">
+            <br/><strong><small>Start page</small></strong>
+            <div class="sidebarlink">
+                <a href="index.html">About the parser</a><br/>
+                <a href="index.html#idNews">News</a><br/>
+                <a href="mup_links.html">Projects using this lib</a><br/>
+                <a href="mup_licence.html">Licence</a><br/>
+            </div>
+
+            <br/><strong><small>Features</small></strong>
+            <div class="sidebarlink">
+              <a href="mup_features.html">Features</a><br/>
+              <a href="mup_features.html#idFeatureOverview">Overview</a><br/>
+              <a href="mup_features.html#idDef2">Built in functions</a><br/>
+              <a href="mup_features.html#idDef3">Built in binary operators</a><br/>
+            </div>
+
+            <br/><strong><small>Build instructions</small></strong>
+            <div class="sidebarlink">
+              <a href="mup_usage.html#idInstWin">Building on Win32</a><br/>
+              <a href="mup_usage.html#idInstLinux">Building on BSD/Linux</a><br/>
+              <a href="mup_usage.html#idInstMisc">Misc build instructions</a><br/>
+              <a href="mup_usage.html#idInstInc">Including the files</a><br/>
+              <a href="mup_usage.html#idInstInc">Where to ask for help</a><br/>
+            </div>
+
+            <br/><strong><small>Math parser interface</small></strong>
+            <div class="sidebarlink">
+              <a href="mup_interface.html#idInit">Parser (de)initialization</a><br/>
+              <a href="mup_interface.html#idEval">Evaluating an expression</a><br/>
+              <a href="mup_interface.html#idSetExpr">Setting the expression</a><br/>
+              <a href="mup_interface.html#idDefCharset">Defining identifier charsets</a><br/>
+              <a href="mup_interface.html#idDefVar">Defining parser variables</a><br/>
+              <a href="mup_interface.html#idDefVarEx">Explicit variable definition</a><br/>
+              <a href="mup_interface.html#idDefVarIm">Implicit variable definition</a><br/>
+              <a href="mup_interface.html#idDefConst">Defining constants</a><br/>
+              <a href="mup_interface.html#idDefFun">Defining functions</a><br/>
+              <a href="mup_interface.html#idDefOprt">Defining operators</a><br/>
+              <a href="mup_interface.html#idUnOp">Unary operators</a><br/>
+              <a href="mup_interface.html#idBinOp">Binary operators</a><br/>
+              <a href="mup_interface.html#idQueryVar">Querying variables</a><br/>
+              <a href="mup_interface.html#idQueryConst">Querying constants</a><br/>
+              <a href="mup_interface.html#idDefConst2">Value recognition callbacks</a><br/>
+              <a href="mup_interface.html#idDefConst2">Removing variables/constants</a><br/>
+              <a href="mup_interface.html#idErrors">Error handling</a><br/>
+              <a href="mup_version.html#idExample">Example code</a><br/>
+            </div>
+
+            <br/>
+            <strong>
+              <small>Current version</small>
+            </strong>
+            <div class="sidebarlink">
+              <a href="mup_version.html#idRelNote">Release notes</a><br/>
+              <a href="mup_version.html#idBench">Benchmarks</a><br/>
+            </div>
+
+            <br/>
+            <div align=center>
+              <a href="http://www.opensource.org/"><img src="images/osi.jpg"/></a>
+            </div>
+            <br/> 
+            <!-- $STAT_COUNTER -->
+          </td>
+
+          <td id="top" style="height: 100%; padding: 1em; vertical-align: top;">
+            <!-- 
+              This section contains the real page content. 
+              pages are created automatically by using the script "build_page.sh"
+              which combines section templated with the navigation bar.
+
+	      This creates webpages that do not rely on php3 or Javascript for 
+              serverside or client side html inclusion.
+            //-->
+            <!-- $PLACEHOLDER -->
+<!-- 
+//
+//
+//  
+//   Adding the parser to your projects
+//
+//
+//
+-->
+
+
+<br>
+<h1><a name="idBuild"></a>Build instructions</h1>
+<h2><a name="idInstWin"></a>Building on win32</h2>
+<p>
+<strong>muParser</strong> supports various win32 command-line compilers:
+<ul>
+  <li>Mingw</li>
+  <li>Borland C++</li>
+  <li>Watcom</li>
+  <li>Microsoft CL</li>
+</ul>
+and provides also project files for MSVC6 IDE and the Borland C++ Builder. In order to compile muParser 
+from makefiles, open an MSDOS prompt and then move to the muParser/build directory and
+type:
+<p>
+<ul>
+  <li>mingw32-make -fmakefile.gcc      for mingw</li>
+  <li>nmake -fmakefile.vc              for msvc</li>
+  <li>make -fmakefile.bcc              for borland</li>
+  <li>wmake -fmakefile.wat             for watcom</li>
+</ul>
+</p>
+
+All makefiles support the following options:
+<pre>
+  # Set to 1 to build debug version [0,1]
+  #   0 - Release
+  #   1 - Debug
+  DEBUG = 0
+
+  # Set to 1 to build shared (DLL) version [0,1]
+  #   0 - Static
+  #   1 - DLL
+  SHARED = 0
+
+  # Set to 1 to compile samples [0,1]
+  SAMPLES = 1
+</pre>
+The muParser library is created in the 'lib' folder and the sample
+binaries are created in samples\example1 or samples\example3.
+
+<table>
+<tr>
+  <td><img src="images/warning.gif"/></td> 
+  <td>samples\example1 can be compiled *only* when building muParser as a STATIC library (SHARED=0).<br/>
+      samples\example3 can be compiled *only* when building muParser as a SHARED library (SHARED=1).
+  </td>
+</tr>
+</table>
+</p>
+
+<h2><a name="idInstLinux"></a>Building on BSD/Linux</h2>
+<p>
+muParser can be installed just extracting the sources somewhere and then, from a terminal, typing:
+
+<pre>
+ cd [path to muParser]
+ ./configure [--enable-shared=yes/no] [--enable-samples=yes/no]
+             [--enable-debug=yes/no]
+ make
+ [sudo*] make install
+</pre>
+ <small>* = this command must be executed with root permissions and thus
+     you have to use 'sudo' or just 'su' to gain root access.
+     Note that installation is not strictly required.</small>
+<p>
+The "make" step will create the muParser library in 'lib' and the
+sample binary in samples/example1. The samples/example2 and 
+samples/example3 are win32-specific and thus won't be built.
+</p>
+</p>
+
+<h2><a name="idInstMisc"></a>Other miscellaneous info Unix-specific</h2>
+If you don't like to have your muParser folder filled by temporary
+files created by GCC, then you can do the following:
+
+<pre>
+  mkdir mybuild && cd mybuild && ../configure && make
+</pre>
+
+to put all object files in the "mybuild" directory. If you want to use 
+muParser library in your programs, you can use the pkg-config program 
+(this works only if muParser was installed with 'make install' !). 
+The commands:
+<ul>
+   <li>pkg-config muparser --cflags</li>
+   <li>pkg-config muparser --libs</li>
+</ul>
+will return all useful info you need to build your programs against
+muParser !
+
+<h2><a name="idInstInc"></a><a name="idUseSource"></a>Including the source code directly</h2>
+<p>
+Sometimes including the library sources directly into an application is the easiest 
+possibility to avoid linker conflicts originating from different versions of the 
+runtime libraries used by the parser and your project.
+
+In order to use the parser simply include the following files into your project:
+
+<p>
+<i>muParser.cpp</i><br/>
+<i>muParserBase.cpp</i><br/>
+<i>muParserBytecode.cpp</i><br/>
+<i>muParserCallback.cpp</i><br/>
+<i>muParserError.cpp</i><br/>
+<i>muParserTokenReader.cpp</i>
+</p>
+
+And make sure the following files can be found in your projects include path:
+<p>
+<i>muParser.h</i><br/>
+<i>muParserBase.h</i><br/>
+<i>muParserBytecode.h</i><br/>
+<i>muParserCallback.h</i><br/>
+<i>muParserDef.h</i><br/>
+<i>muParserError.h</i><br/>
+<i>muParserFixes.h</i><br/>
+<i>muParserStack.h</i><br/>
+<i>muParserToken.h</i><br/>
+<i>muParserTokenReader.h</i><br/>
+</p>
+
+The parser class and all related classes reside in the namespace <code>mu</code> (MathUtils). So make sure to either
+add a using 
+
+<pre>
+using namespace mu;
+</pre>
+
+to your files or reference all classes with their complete name.
+</p>
+
+<h2>Where to ask for help</h2>
+
+If you find problems with either compilation, installation or usage
+of muParser, then you can ask in the muParser forum at:<br/>
+<ul>
+<li><a href="https://sourceforge.net/forum/forum.php?forum_id=462843">https://sourceforge.net/forum/forum.php?forum_id=462843</a></li>
+</ul>
+
+For more info about muParser, visit:
+<ul>
+<li><a href="http://sourceforge.net/projects/muparser/">http://sourceforge.net/projects/muparser/</a><br/></li>
+<li><a href="http://muparser.sourceforge.net">http://muparser.sourceforge.net</a></li>
+</ul>
+
+            <hr/>
+            <table border="0" style="width:100%">
+            <tr>
+              <td>&copy; 2005-2006 Ingo Berg</td>
+              <td style="text-align:right; padding-right: 3em;">
+                <a href="#top">^ TOP</a>
+              </td>
+            </tr>
+          </table>
+
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+    _uacct = "UA-1019178-1";
+    urchinTracker();
+  </script>
+</body>
+</html>

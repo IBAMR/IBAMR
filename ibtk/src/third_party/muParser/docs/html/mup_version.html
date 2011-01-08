@@ -1,0 +1,301 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="./style/formate.css"/>
+  <meta name="author" content="Ingo Berg"/>
+  <meta name="keywords" content="math parser, parser, expression evaluator, C++, Mathematical, Expression"/>
+  <meta name="description" content="a fast and portable math parser library written in C++"/>
+
+  <title>muParser - a fast math parser library</title>
+  <script src="script/functions.js" language="javascript" type="text/javascript"></script>
+</head>
+
+<body>
+    <!-- Tabelle mit Hauptinhalt der Seite -->
+    <table id="MainTable" border="0" cellpadding="5" cellspacing="0" style="width:100%; height:100%;">
+      <thead id="MainTableHead">
+        <tr>
+          <td style="background-image: url(images/grad1.jpg);" align="center">
+
+            <!-- Statistikerfassung ausschalten, wenn blocking cookie gesetzt ist -->
+              <a href="http://sourceforge.net/projects/muparser/">
+                <object>
+                <script type="text/javascript">SFLogo();</script>
+
+                <!-- Always gather statistics data for deactivated javascript -->
+                <noscript>
+                    <img src="images/sflogo.png" border="0" alt="Math parser Logo"/>
+                </noscript>
+                </object>
+              </a>
+          </td>
+
+          <td style="background-image: url(images/grad2.jpg);" align="right">
+            <table cellpadding="0" cellspacing="0" border="0" style="width: 30%;">
+            <tr>
+                <td style="text-align: center;">
+                    <strong><a class="white" href="classdocu/index.html" title="The doxygen documentation of muParser">
+                    <img src="images/help.gif" border="0" alt="class documentation"/><br/>
+                    <span style="font-size: 70%">class documentation</span></a></strong>
+                </td>
+                <td style="text-align: center;">
+                  <strong>
+                    <a class="white" 
+                       href="http://sourceforge.net/project/showfiles.php?group_id=137191" 
+                       title="The Sourceforge download page">
+                      <img src="images/download.gif" border="0" alt="math parser download"/>
+                      <br/>
+                      <span style="font-size: 70%">math parser download</span>
+                    </a>
+                  </strong>
+                </td>
+            </tr>
+            </table>
+          </td>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr>
+          <td style="vertical-align: top; text-align: center">
+            <br/><strong><small>Start page</small></strong>
+            <div class="sidebarlink">
+                <a href="index.html">About the parser</a><br/>
+                <a href="index.html#idNews">News</a><br/>
+                <a href="mup_links.html">Projects using this lib</a><br/>
+                <a href="mup_licence.html">Licence</a><br/>
+            </div>
+
+            <br/><strong><small>Features</small></strong>
+            <div class="sidebarlink">
+              <a href="mup_features.html">Features</a><br/>
+              <a href="mup_features.html#idFeatureOverview">Overview</a><br/>
+              <a href="mup_features.html#idDef2">Built in functions</a><br/>
+              <a href="mup_features.html#idDef3">Built in binary operators</a><br/>
+            </div>
+
+            <br/><strong><small>Build instructions</small></strong>
+            <div class="sidebarlink">
+              <a href="mup_usage.html#idInstWin">Building on Win32</a><br/>
+              <a href="mup_usage.html#idInstLinux">Building on BSD/Linux</a><br/>
+              <a href="mup_usage.html#idInstMisc">Misc build instructions</a><br/>
+              <a href="mup_usage.html#idInstInc">Including the files</a><br/>
+              <a href="mup_usage.html#idInstInc">Where to ask for help</a><br/>
+            </div>
+
+            <br/><strong><small>Math parser interface</small></strong>
+            <div class="sidebarlink">
+              <a href="mup_interface.html#idInit">Parser (de)initialization</a><br/>
+              <a href="mup_interface.html#idEval">Evaluating an expression</a><br/>
+              <a href="mup_interface.html#idSetExpr">Setting the expression</a><br/>
+              <a href="mup_interface.html#idDefCharset">Defining identifier charsets</a><br/>
+              <a href="mup_interface.html#idDefVar">Defining parser variables</a><br/>
+              <a href="mup_interface.html#idDefVarEx">Explicit variable definition</a><br/>
+              <a href="mup_interface.html#idDefVarIm">Implicit variable definition</a><br/>
+              <a href="mup_interface.html#idDefConst">Defining constants</a><br/>
+              <a href="mup_interface.html#idDefFun">Defining functions</a><br/>
+              <a href="mup_interface.html#idDefOprt">Defining operators</a><br/>
+              <a href="mup_interface.html#idUnOp">Unary operators</a><br/>
+              <a href="mup_interface.html#idBinOp">Binary operators</a><br/>
+              <a href="mup_interface.html#idQueryVar">Querying variables</a><br/>
+              <a href="mup_interface.html#idQueryConst">Querying constants</a><br/>
+              <a href="mup_interface.html#idDefConst2">Value recognition callbacks</a><br/>
+              <a href="mup_interface.html#idDefConst2">Removing variables/constants</a><br/>
+              <a href="mup_interface.html#idErrors">Error handling</a><br/>
+              <a href="mup_version.html#idExample">Example code</a><br/>
+            </div>
+
+            <br/>
+            <strong>
+              <small>Current version</small>
+            </strong>
+            <div class="sidebarlink">
+              <a href="mup_version.html#idRelNote">Release notes</a><br/>
+              <a href="mup_version.html#idBench">Benchmarks</a><br/>
+            </div>
+
+            <br/>
+            <div align=center>
+              <a href="http://www.opensource.org/"><img src="images/osi.jpg"/></a>
+            </div>
+            <br/> 
+            <!-- $STAT_COUNTER -->
+          </td>
+
+          <td id="top" style="height: 100%; padding: 1em; vertical-align: top;">
+            <!-- 
+              This section contains the real page content. 
+              pages are created automatically by using the script "build_page.sh"
+              which combines section templated with the navigation bar.
+
+	      This creates webpages that do not rely on php3 or Javascript for 
+              serverside or client side html inclusion.
+            //-->
+            <!-- $PLACEHOLDER -->
+<!-- 
+//
+//
+//  
+//   Example code
+//
+//
+//
+-->
+
+<h2><a name="idExample">Example code</a></h2>
+
+<p>
+If you put all this together, you get the source code for a small application. The application defines a parser variables ("<code>a</code>") and adds 
+a user defined functions named "<code>MyFunc</code>". When using the parser make sure that you don't forget to catch the <code>Parser::exception_type</code> in your application. It contains detailed information helping you to find syntax errors in your formula.
+</p>
+
+<pre>
+#include "muParser.h"
+
+// Function callback
+double MyFunction(double a_fVal) 
+{ 
+  return a_fVal*a_fVal; 
+}
+
+// main program
+int main(int argc, char* argv[])
+{
+  using namespace mu;
+
+  try
+  {
+    double fVal = 1;
+    Parser p;
+    p.DefineVar("a", &amp;fVal); 
+    p.DefineFun("MyFunc", MyFunction); 
+    p.SetExpr("MyFunc(a)*pi+min(10,a)");
+    std::cout &lt;&lt; p.Eval() &lt;&lt; endl;
+  }
+  catch (Parser::exception_type &amp;e)
+  {
+    std::cout &lt;&lt; e.GetMsg() &lt;&lt; endl;
+  }
+  return 0;
+}
+</pre>
+
+
+<!-- 
+//
+//
+//
+//  Benchmarks
+//
+//
+//
+-->
+
+<hr>
+<h2><a name="idBench">Benchmarks</a></h2>
+
+<p>
+Finally, I'd like to give you some benchmarks. The benchmarking was done on an Intel 
+Pentium P-4 with 2.6 GHz, with a version compiled by using MSVC++ 7.1 (Standard edition).
+The diagram shows number of <b>evaluations per seconds vs. expression length</b>. 
+I compared both the static lib and the dll version with two other parsers that are freely available 
+on the net, very fast and have a similar set of features. One of them is a commercial product.
+</p>
+
+<p>
+<blockquote>
+<img src="images/bench2.jpg" alt="parser benchmarks" border="0" height="489" width="560">
+</blockquote>
+</p>
+
+<p>
+A higher curve means better performance. Expressions were created randomly. They used only <code>sin</code> and <code>cos</code> functions and contained 
+multiple variables and constants. In order to smoothen the curves each point represents the value of a
+running average over 10 sample expressions. 
+</p>
+
+
+<!-- 
+//
+//
+//  
+//   History
+//
+//
+//
+-->
+
+<hr>
+<h2><a name="idRelNote">Release Notes</a></h2>
+
+<h4>Rev 1.2: 14/04/2005</h4>
+
+First of all the interface has changed so this version is not backwards compatible. 
+After receiving a couple of questions about it, this version features support for user defined binary operators. Consequently the built in operators can now be turned off, thus you can deactivate them and write complete customized parser subclasses that only contain the functionality you want. Other new feature is the introduction of callback functions taking string arguments, implicit generation of 
+variables and the Assignement operator. 
+
+<ul>
+  <li> <b>Functionality</b>
+  <ul>
+    <li><a href="mup_features.html#idDef3">New built in operator</a>: <code>xor</code>; Logical xor.</li>
+    <li>New built in operator: Assignement operator; Defining variables in terms of other 			       variables/constants</li> 
+    <li>New feature: <a href="mup_interface.html#idDefFun">Strings as arguments for callback functions</a></li>
+    <li>New feature: <a href="mup_interface.html#idDefOprt">User defined binary operators</a></li>
+    <li>New feature: <code>ParserInt</code> a class with a sample implementation for
+                     integer numbers.</li> 
+    <li>New feature: <a href="mup_interface.html#idDefConst2">Callbacks to value regognition functions.</a></li> 
+
+    <li>Removed:  all predefined postfix operators have been removed.</li> 
+    <li>New project file:  Now comes with a ready to use windows DLL.</li> 
+    <li>New project file:  Makefile for cygwin now included.</li> 
+    <li>New example:  Example3 shows usage of the DLL.</li> 
+  </ul>
+  </li>
+
+  <li> <b>Interface changes</b>
+  <ul>
+    <li><a href="mup_interface.html#idBinOp">New member function</a>: <code>DefineOprt</code> For 
+                                                    adding user defined binary operators.</li>
+    <li>New member function: <code>EnableBuiltInOprt(bool)</code>                                                                              Enables/Disables <a href="mup_features.html#idDef3">
+                             built in binary operators</a>.</li>
+    <li>New member function: <code>AddValIdent(...)</code> to add callbacks for custom value recognition                              functions.</li>
+    <li>Removed: <code>SetVar()</code>, <code>SetConst()</code>.</li> 
+    <li>Renamed: Most interface functions have been renamed</li>
+    <li>Changed:  The <a href="mup_interface.html#idDefFun">type for multiargument callbacks</a> <code>multfun_type</code> has changed. 
+                  It no longer takes a std::vector as input.</li>
+  </ul>
+  </li>
+  
+  <li> <b>Internal changes</b>
+  <ul>
+     <li>new class <i>muParserTokenReader.h</i> encapsulates the token identification and token assignement.</li>
+     <li>Internal handling of function callbacks unified as a result the performance of the bytecode evaluation 
+         increased.</li>
+  </ul>
+  </li>
+</ul>
+
+            <hr/>
+            <table border="0" style="width:100%">
+            <tr>
+              <td>&copy; 2005-2006 Ingo Berg</td>
+              <td style="text-align:right; padding-right: 3em;">
+                <a href="#top">^ TOP</a>
+              </td>
+            </tr>
+          </table>
+
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+    _uacct = "UA-1019178-1";
+    urchinTracker();
+  </script>
+</body>
+</html>
