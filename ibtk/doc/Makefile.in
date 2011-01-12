@@ -34,7 +34,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 DIST_COMMON = $(srcdir)/Doxyfile.in $(srcdir)/Makefile.am \
-	$(srcdir)/Makefile.in $(top_srcdir)/config/Make-rules
+	$(srcdir)/Makefile.in $(srcdir)/online_Doxyfile.in \
+	$(top_srcdir)/config/Make-rules
 subdir = doc
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_blas.m4 \
@@ -52,7 +53,7 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBTK_config.h
-CONFIG_CLEAN_FILES = Doxyfile
+CONFIG_CLEAN_FILES = Doxyfile online_Doxyfile
 CONFIG_CLEAN_VPATH_FILES =
 SOURCES =
 DIST_SOURCES =
@@ -417,6 +418,8 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 $(am__aclocal_m4_deps):
 Doxyfile: $(top_builddir)/config.status $(srcdir)/Doxyfile.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+online_Doxyfile: $(top_builddir)/config.status $(srcdir)/online_Doxyfile.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 tags: TAGS
 TAGS:
 
@@ -566,6 +569,9 @@ uninstall-am:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 doc:
 	@DOXYGEN@
+
+online_doc:
+	@DOXYGEN@ online_Doxyfile
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -1,0 +1,75 @@
+/*!
+ * \mainpage
+ *
+ * <h2>%IBAMR: An adaptive and distributed-memory parallel implementation of the
+ * immersed boundary (IB) method.</h2>
+ *
+ * <h3>What is %IBAMR?</h3>
+ *
+ * %IBAMR is a distributed-memory parallel implementation of the immersed
+ * boundary (IB) method with support for Cartesian grid adaptive mesh refinement
+ * (AMR). Support for distributed-memory parallelism is via MPI, the Message
+ * Passing Interface. Support for spatial adaptivity is via <a
+ * href="https://computation.llnl.gov/casc/SAMRAI">SAMRAI</a>, the Structured
+ * Adaptive Mesh Refinement Application Infrastructure, which is developed at
+ * the <a href="https://computation.llnl.gov/casc">Center for Applied Scientific
+ * Computing</a> at <a href="https://www.llnl.gov/">Lawrence Livermore National
+ * Laboratory</a>.
+ *
+ * This implementation of the IB method also makes extensive use of
+ * functionality provided by several high-quality third-party software
+ * libraries, including:
+ *
+ *  - <a href="http://www.mcs.anl.gov/petsc/petsc-as">PETSc</a>, the Portable,
+ *    Extensible Toolkit for Scientific Computation,
+ *  - <a
+ *    href="https://computation.llnl.gov/casc/hypre/software.html"><i>hypre</i></a>,
+ *    a library of high performance preconditioners that features parallel
+ *    multigrid methods for both structured and unstructured grid problems,
+ *  - <a href="http://www.hdfgroup.org/HDF5">HDF5</a>, a general purpose library
+ *    and file format for storing scientific data,
+ *  - <a href="http://sourceforge.net/projects/blitz">Blitz++</a>, a
+ *    high-performance C++ array class library, and
+ *  - <a href="https://wci.llnl.gov/codes/silo">Silo</a>, a general purpose I/O
+ *    library and file format for storing scientific data for visualization and
+ *    post-processing.
+ *
+ * %IBAMR outputs visualization files that can be read by the <a
+ * href="https://wci.llnl.gov/codes/visit">VisIt Visualization Tool</a>. Work is
+ * also underway to implement support for finite element mechanics models in
+ * %IBAMR via the <a href="http://libmesh.sourceforge.net"><tt>libMesh</tt></a>
+ * finite element library.
+ *
+ * <h3>What Is the IB Method?</h3>
+ *
+ * The immersed boundary (IB) method is a general-purpose numerical method for
+ * simulating fluid-structure interaction. The IB formulation of such problems
+ * uses an Eulerian description of the fluid and a Lagrangian description of the
+ * structure. Interaction equations that take the form of integral equations
+ * with delta function kernels couple the Eulerian and Lagrangian variables.
+ *
+ * For general information about the IB method, see
+ * http://math.nyu.edu/faculty/peskin.
+ *
+ * <h3>Support</h3>
+ *
+ * Support for %IBAMR is available from the <a
+ * href="http://groups.google.com/group/ibamr-dev">%IBAMR developers</a>
+ * (ibamr-dev) Google Group. There is also list of <a
+ * href="http://code.google.com/p/ibamr/wiki/FAQ">frequently asked
+ * questions</a>.
+ *
+ *
+ * <h3>Bugs and Other Issues</h3>
+ *
+ * Please use the <a href="http://code.google.com/p/ibamr/issues/entry">Google
+ * Code issue tracking system</a> to report bugs, feature requests, or other
+ * issues with %IBAMR. A <a
+ * href="http://code.google.com/p/ibamr/issues/list">list</a> of issues is
+ * available.
+ *
+ * <h3>Acknowledgments</h3>
+ *
+ * %IBAMR development is supported in part by an NSF <i>Software Infrastructure
+ * for Sustained Innovation</i> grant. We gratefully acknowledge this support.
+ */

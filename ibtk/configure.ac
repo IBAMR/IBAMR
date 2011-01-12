@@ -408,6 +408,7 @@ AC_CONFIG_FILES([
   Makefile
   doc/Doxyfile
   doc/Makefile
+  doc/online_Doxyfile
   examples/Makefile
   examples/CCLaplace/Makefile
   examples/PhysBdryOps/Makefile
