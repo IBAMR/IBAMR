@@ -1373,17 +1373,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
     const Pointer<CellVariable<NDIM,double> > P_rhs_var = d_P_rhs_vec->getComponentVariable(0);
     d_hier_cc_data_ops->setToScalar(P_rhs_idx,0.0);
 
-    // Initialize the right-hand side terms.
-    PoissonSpecifications rhs_spec(d_object_name+"::rhs_spec");
-    rhs_spec.setCConstant((d_rho/dt)-0.5*d_lambda);
-    rhs_spec.setDConstant(          +0.5*d_mu    );
-    d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
-    d_hier_math_ops->laplace(
-        U_rhs_idx, U_rhs_var,
-        rhs_spec,
-        d_U_scratch_idx, d_U_var,
-        d_U_bdry_bc_fill_op, current_time);
-
     // Reset the solution, rhs, and nullspace vectors.
     d_sol_vec = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
     d_sol_vec->addComponent(d_U_var,d_U_scratch_idx,d_wgt_sc_idx,d_hier_sc_data_ops);
@@ -1404,6 +1393,17 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
         d_hier_cc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(1), 1.0);
         d_stokes_solver->setNullspace(false, d_nul_vec);
     }
+
+    // Initialize the right-hand side terms.
+    PoissonSpecifications rhs_spec(d_object_name+"::rhs_spec");
+    rhs_spec.setCConstant((d_rho/dt)-0.5*d_lambda);
+    rhs_spec.setDConstant(          +0.5*d_mu    );
+    d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
+    d_hier_math_ops->laplace(
+        U_rhs_idx, U_rhs_var,
+        rhs_spec,
+        d_U_scratch_idx, d_U_var,
+        d_U_bdry_bc_fill_op, current_time);
 
     // Set the initial guess.
     d_hier_sc_data_ops->copyData(d_sol_vec->getComponentDescriptorIndex(0), d_U_current_idx);
