@@ -102,44 +102,50 @@ ParallelMap::communicateData()
     const int rank = SAMRAI_MPI::getRank();
 
     // Add items to the map.
+    if (SAMRAI_MPI::maxReduction(int(d_pending_additions.size())) > 0)
     {
         StreamableManager* streamable_manager = StreamableManager::getManager();
-        std::vector<int> send_keys;
-        std::vector<tbox::Pointer<Streamable> > send_data_items;
+
+        // Get the local values to send.
+        std::vector<int> keys_to_send;
+        std::vector<tbox::Pointer<Streamable> > data_items_to_send;
         for (std::map<int,tbox::Pointer<Streamable> >::const_iterator cit = d_pending_additions.begin();
              cit != d_pending_additions.end(); ++cit)
         {
-            send_keys.push_back(cit->first);
-            send_data_items.push_back(cit->second);
+            keys_to_send.push_back(cit->first);
+            data_items_to_send.push_back(cit->second);
         }
-        d_pending_additions.clear();
 
+        // Determine the amount of data to be broadcast by each process.
         std::vector<int> data_sz(size,0);
-        data_sz[rank] = tbox::AbstractStream::sizeofInt()*(1+send_keys.size()) + streamable_manager->getDataStreamSize(send_data_items);
+        data_sz[rank] = tbox::AbstractStream::sizeofInt()*(1+keys_to_send.size()) + streamable_manager->getDataStreamSize(data_items_to_send);
         SAMRAI_MPI::sumReduction(&data_sz[0], size);
 
+        // Broadcast data from each process.
         for (int sending_proc = 0; sending_proc < size; ++sending_proc)
         {
             if (data_sz[sending_proc] == tbox::AbstractStream::sizeofInt()) continue;
             if (sending_proc == rank)
             {
+                // Pack and broadcast data on process sending_proc.
                 FixedSizedStream stream(data_sz[sending_proc]);
-                const int num_send_keys = send_keys.size();
-                stream << num_send_keys;
-                stream.pack(&send_keys[0], send_keys.size());
-                streamable_manager->packStream(stream, send_data_items);
+                const int num_keys_to_send = keys_to_send.size();
+                stream << num_keys_to_send;
+                stream.pack(&keys_to_send[0], keys_to_send.size());
+                streamable_manager->packStream(stream, data_items_to_send);
                 int size = stream.getCurrentSize();
 #ifdef DEBUG_CHECK_ASSERTIONS
                 TBOX_ASSERT(size == data_sz[sending_proc]);
 #endif
                 SAMRAI_MPI::bcast(static_cast<char*>(stream.getBufferStart()), size, sending_proc);
-                for (int k = 0; k < num_send_keys; ++k)
+                for (int k = 0; k < num_keys_to_send; ++k)
                 {
-                    d_map[send_keys[k]] = send_data_items[k];
+                    d_map[keys_to_send[k]] = data_items_to_send[k];
                 }
             }
             else
             {
+                // Receive and unpack data broadcast from process sending_proc.
                 std::vector<char> buffer(data_sz[sending_proc]);
                 int size;
                 SAMRAI_MPI::bcast(&buffer[0], size, sending_proc);
@@ -147,38 +153,46 @@ ParallelMap::communicateData()
                 TBOX_ASSERT(size == data_sz[sending_proc]);
 #endif
                 FixedSizedStream stream(&buffer[0], size);
-                int num_recv_keys;
-                stream >> num_recv_keys;
+                int num_keys_received;
+                stream >> num_keys_received;
 #ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(num_recv_keys > 0);
+                TBOX_ASSERT(num_keys_received > 0);
 #endif
-                std::vector<int> recv_keys(num_recv_keys);
-                stream.unpack(&recv_keys[0], num_recv_keys);
-                std::vector<tbox::Pointer<Streamable> > recv_data_items;
+                std::vector<int> keys_received(num_keys_received);
+                stream.unpack(&keys_received[0], num_keys_received);
+                std::vector<tbox::Pointer<Streamable> > data_items_received;
                 hier::IntVector<NDIM> offset = 0;
-                streamable_manager->unpackStream(stream, offset, recv_data_items);
+                streamable_manager->unpackStream(stream, offset, data_items_received);
 #ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(recv_keys.size() == recv_data_items.size());
+                TBOX_ASSERT(keys_received.size() == data_items_received.size());
 #endif
-                for (int k = 0; k < num_recv_keys; ++k)
+                for (int k = 0; k < num_keys_received; ++k)
                 {
-                    d_map[recv_keys[k]] = recv_data_items[k];
+                    d_map[keys_received[k]] = data_items_received[k];
                 }
             }
         }
+
+        // Clear the set of pending additions.
+        d_pending_additions.clear();
     }
 
     // Remove items from the map.
+    if (SAMRAI_MPI::maxReduction(int(d_pending_removals.size())) > 0)
     {
+        // Determine how many keys have been registered for removal on each
+        // process.
         std::vector<int> num_removals(size,0);
         num_removals[rank] = d_pending_removals.size();
         SAMRAI_MPI::sumReduction(&num_removals[0], size);
 
+        // Broadcast data from each process.
         for (int sending_proc = 0; sending_proc < size; ++sending_proc)
         {
             if (num_removals[sending_proc] == 0) continue;
             if (sending_proc == rank)
             {
+                // Pack and broadcast data on process sending_proc.
                 int size = d_pending_removals.size();
 #ifdef DEBUG_CHECK_ASSERTIONS
                 TBOX_ASSERT(size == num_removals[sending_proc]);
@@ -191,19 +205,21 @@ ParallelMap::communicateData()
             }
             else
             {
-                std::vector<int> recv_keys(num_removals[sending_proc]);
+                // Receive and unpack data broadcast from process sending_proc.
+                std::vector<int> keys_received(num_removals[sending_proc]);
                 int size;
-                SAMRAI_MPI::bcast(&recv_keys[0], size, sending_proc);
+                SAMRAI_MPI::bcast(&keys_received[0], size, sending_proc);
 #ifdef DEBUG_CHECK_ASSERTIONS
                 TBOX_ASSERT(size == num_removals[sending_proc]);
 #endif
                 for (int k = 0; k < size; ++k)
                 {
-                    d_map.erase(recv_keys[k]);
+                    d_map.erase(keys_received[k]);
                 }
             }
         }
 
+        // Clear the set of pending removals.
         d_pending_removals.clear();
     }
     return;
