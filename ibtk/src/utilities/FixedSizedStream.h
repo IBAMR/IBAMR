@@ -64,28 +64,18 @@ class FixedSizedStream
     : public SAMRAI::tbox::AbstractStream
 {
 public:
-    enum StreamMode
-    {
-        Read,
-        Write
-    };
-
     /*!
-     * Create a message stream of the specified size in bytes and the stream
-     * mode (either FixedSizedStream::Read or FixedSizedStream::Write).
+     * Create a message stream of the specified size in bytes.
      */
     FixedSizedStream(
-        const int bytes,
-        const StreamMode mode);
+        const int bytes);
 
     /*!
-     * Create a message stream with the specified buffer and stream mode (either
-     * FixedSizedStream::Read or FixedSizedStream::Write).
+     * Create a message stream with the specified buffer.
      */
     FixedSizedStream(
         const void* const buffer,
-        const int bytes,
-        const StreamMode mode);
+        const int bytes);
 
     /*!
      * Virtual destructor for a message stream.

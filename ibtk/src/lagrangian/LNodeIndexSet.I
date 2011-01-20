@@ -195,7 +195,7 @@ LNodeIndexSet::putToDatabase(
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& database) const
 {
     const size_t data_sz = getDataStreamSize();
-    FixedSizedStream stream(data_sz, FixedSizedStream::Write);
+    FixedSizedStream stream(data_sz);
     packStream(stream);
     database->putInteger("data_sz", data_sz);
     database->putCharArray("data", static_cast<char*>(stream.getBufferStart()), data_sz);
@@ -212,7 +212,7 @@ LNodeIndexSet::getFromDatabase(
     const size_t data_sz = database->getInteger("data_sz");
     std::vector<char> data(data_sz);
     database->getCharArray("data", &data[0], data_sz);
-    FixedSizedStream stream(&data[0], data_sz, FixedSizedStream::Read);
+    FixedSizedStream stream(&data[0], data_sz);
     unpackStream(stream, d_offset);
     return;
 }// getFromDatabase

@@ -28,8 +28,7 @@ $(top_srcdir)/src/third_party/muParser/muParserBytecode.cpp \
 $(top_srcdir)/src/third_party/muParser/muParserCallback.cpp \
 $(top_srcdir)/src/third_party/muParser/muParserError.cpp \
 $(top_srcdir)/src/third_party/muParser/muParserTokenReader.cpp \
-$(top_srcdir)/src/utilities/Interpolator.C \
-$(top_srcdir)/src/utilities/ParallelEdgeMap.C
+$(top_srcdir)/src/utilities/Interpolator.C
 
 pkg_include_HEADERS = \
 $(top_srcdir)/src/third_party/muParser/muParser.h \
@@ -45,7 +44,6 @@ $(top_srcdir)/src/third_party/muParser/muParserTokenReader.h \
 $(top_srcdir)/src/utilities/IBTK_CHKERRQ.h \
 $(top_srcdir)/src/utilities/Interpolator.I \
 $(top_srcdir)/src/utilities/Interpolator.h \
-$(top_srcdir)/src/utilities/ParallelEdgeMap.h \
 $(top_srcdir)/src/utilities/compiler_hints.h \
 $(top_srcdir)/src/utilities/efficient_add_or_update.h \
 $(top_srcdir)/src/utilities/namespaces.h
@@ -139,6 +137,7 @@ $(top_srcdir)/src/utilities/LagMarkerUtilities.C \
 $(top_srcdir)/src/utilities/NormOps.C \
 $(top_srcdir)/src/utilities/PETScMatOps.C \
 $(top_srcdir)/src/utilities/PETScVecOps.C \
+$(top_srcdir)/src/utilities/ParallelMap.C \
 $(top_srcdir)/src/utilities/RefinePatchStrategySet.C \
 $(top_srcdir)/src/utilities/SideDataSynchronization.C \
 $(top_srcdir)/src/utilities/SideNoCornersFillPattern.C \
@@ -271,6 +270,7 @@ $(top_srcdir)/src/utilities/LagMarkerUtilities.h \
 $(top_srcdir)/src/utilities/NormOps.h \
 $(top_srcdir)/src/utilities/PETScMatOps.h \
 $(top_srcdir)/src/utilities/PETScVecOps.h \
+$(top_srcdir)/src/utilities/ParallelMap.h \
 $(top_srcdir)/src/utilities/RefinePatchStrategySet.I \
 $(top_srcdir)/src/utilities/RefinePatchStrategySet.h \
 $(top_srcdir)/src/utilities/SideDataSynchronization.h \

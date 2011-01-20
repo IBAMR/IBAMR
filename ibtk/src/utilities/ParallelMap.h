@@ -1,4 +1,4 @@
-// Filename: ParallelEdgeMap.h
+// Filename: ParallelMap.h
 // Created on 28 Jun 2010 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,85 +30,82 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_ParallelEdgeMap
-#define included_ParallelEdgeMap
+#ifndef included_ParallelMap
+#define included_ParallelMap
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <tbox/DescribedClass.h>
+// IBTK INCLUDES
+#include <ibtk/Streamable.h>
 
 // C++ STDLIB INCLUDES
 #include <map>
+#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
 {
 /*!
- * \brief Class ParallelEdgeMap is a utility class for managing edge maps (i.e.,
- * maps from vertices to links between vertices) in parallel.
+ * \brief Class ParallelMap is a utility class for associating integer keys with
+ * arbitrary data items in parallel.
  */
-class ParallelEdgeMap
+class ParallelMap
     : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
      * \brief Default constructor.
      */
-    ParallelEdgeMap();
+    ParallelMap();
 
     /*!
      * \brief Destructor.
      */
-    ~ParallelEdgeMap();
+    ~ParallelMap();
 
     /*!
-     * \brief Add an edge to the edge map.
-     *
-     * \return The master node index to be associated with the edge in the edge
-     * map.
+     * \brief Add an item with the specified key to the map.
      *
      * \note This method is not collective (i.e., it does not have to be called
      * by all MPI tasks); however, it is necessary to call the collective
-     * function ParallelEdgeMap::communicateData() to finalize all parallel
+     * function ParallelMap::communicateData() to finalize all parallel
      * communication.
      *
-     * \note By default, the master index associated with each edge is the
-     * vertex with minimum index in the link.
-     */
-    int
-    addEdge(
-        const std::pair<int,int>& link,
-        int mastr_idx=-1);
-
-    /*!
-     * \brief Remove an edge from the edge map.
-     *
-     * \note This method is not collective (i.e., it does not have to be called
-     * by all MPI tasks); however, it is necessary to call the collective
-     * function ParallelEdgeMap::communicateData() to finalize all parallel
-     * communication.
-     *
-     * \note The master index argument is optional and is only used as a hint to
-     * attempt to find the link in the link table.
+     * \note The underling map data structure is \em not updated until the
+     * collective method communicateData() is called, even for \em serial runs.
      */
     void
-    removeEdge(
-        const std::pair<int,int>& link,
-        int mastr_idx=-1);
+    addItem(
+        const int key,
+        const SAMRAI::tbox::Pointer<Streamable>& item);
 
     /*!
-     * \brief Communicate data to (re-)initialize the edge map.
+     * \brief Remove an item from the map.
+     *
+     * \note This method is not collective (i.e., it does not have to be called
+     * by all MPI tasks); however, it is necessary to call the collective
+     * function ParallelMap::communicateData() to finalize all parallel
+     * communication.
+     *
+     * \note The underling map data structure is \em not updated until the
+     * collective method communicateData() is called, even for \em serial runs.
+     */
+    void
+    removeItem(
+        const int key);
+
+    /*!
+     * \brief Communicate data to (re-)initialize the map.
      */
     void
     communicateData();
 
     /*!
-     * \brief Return a const reference to the edge map.
+     * \brief Return a const reference to the map.
      */
-    const std::multimap<int,std::pair<int,int> >&
-    getEdgeMap() const;
+    const std::map<int,SAMRAI::tbox::Pointer<Streamable> >&
+    getMap() const;
 
 private:
     /*!
@@ -118,8 +115,8 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    ParallelEdgeMap(
-        const ParallelEdgeMap& from);
+    ParallelMap(
+        const ParallelMap& from);
 
     /*!
      * \brief Assignment operator.
@@ -130,20 +127,21 @@ private:
      *
      * \return A reference to this object.
      */
-    ParallelEdgeMap&
+    ParallelMap&
     operator=(
-        const ParallelEdgeMap& that);
+        const ParallelMap& that);
 
     // Member data.
-    std::multimap<int,std::pair<int,int> > d_edge_map;
-    std::multimap<int,std::pair<int,int> > d_pending_additions, d_pending_removals;
+    std::map<int,SAMRAI::tbox::Pointer<Streamable> > d_map;
+    std::map<int,SAMRAI::tbox::Pointer<Streamable> > d_pending_additions;
+    std::vector<int> d_pending_removals;
 };
 }// namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibtk/ParallelEdgeMap.I>
+//#include <ibtk/ParallelMap.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_ParallelEdgeMap
+#endif //#ifndef included_ParallelMap

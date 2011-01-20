@@ -56,8 +56,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 FixedSizedStream::FixedSizedStream(
-    const int bytes,
-    const StreamMode mode)
+    const int bytes)
     : d_buffer_size(bytes),
       d_current_size(0),
       d_buffer_index(0),
@@ -69,8 +68,7 @@ FixedSizedStream::FixedSizedStream(
 
 FixedSizedStream::FixedSizedStream(
     const void* const buffer,
-    const int bytes,
-    const StreamMode mode)
+    const int bytes)
     : d_buffer_size(bytes),
       d_current_size(0),
       d_buffer_index(0),

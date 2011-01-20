@@ -1,0 +1,229 @@
+// Filename: ParallelMap.C
+// Created on 28 Jun 2010 by Boyce Griffith
+//
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
+//
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+
+#include "ParallelMap.h"
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+#ifndef included_IBTK_config
+#include <IBTK_config.h>
+#define included_IBTK_config
+#endif
+
+#ifndef included_SAMRAI_config
+#include <SAMRAI_config.h>
+#define included_SAMRAI_config
+#endif
+
+// IBTK INCLUDES
+#include <ibtk/FixedSizedStream.h>
+#include <ibtk/StreamableManager.h>
+#include <ibtk/namespaces.h>
+
+// SAMRAI INCLUDES
+#include <tbox/SAMRAI_MPI.h>
+
+// C++ STDLIB INCLUDES
+#include <vector>
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+namespace IBTK
+{
+/////////////////////////////// STATIC ///////////////////////////////////////
+
+/////////////////////////////// PUBLIC ///////////////////////////////////////
+
+ParallelMap::ParallelMap()
+    : d_map(),
+      d_pending_additions(),
+      d_pending_removals()
+{
+    // intentionally blank
+    return;
+}// ParallelMap
+
+ParallelMap::~ParallelMap()
+{
+    // intentionally blank
+    return;
+}// ~ParallelMap
+
+void
+ParallelMap::addItem(
+    const int key,
+    const tbox::Pointer<Streamable>& item)
+{
+    d_pending_additions.insert(std::make_pair(key,item));
+    return;
+}// addItem
+
+void
+ParallelMap::removeItem(
+    const int key)
+{
+    d_pending_removals.push_back(key);
+    return;
+}// removeItem
+
+void
+ParallelMap::communicateData()
+{
+    const int size = SAMRAI_MPI::getNodes();
+    const int rank = SAMRAI_MPI::getRank();
+
+    // Add items to the map.
+    {
+        StreamableManager* streamable_manager = StreamableManager::getManager();
+        std::vector<int> send_keys;
+        std::vector<tbox::Pointer<Streamable> > send_data_items;
+        for (std::map<int,tbox::Pointer<Streamable> >::const_iterator cit = d_pending_additions.begin();
+             cit != d_pending_additions.end(); ++cit)
+        {
+            send_keys.push_back(cit->first);
+            send_data_items.push_back(cit->second);
+        }
+        d_pending_additions.clear();
+
+        std::vector<int> data_sz(size,0);
+        data_sz[rank] = tbox::AbstractStream::sizeofInt()*(1+send_keys.size()) + streamable_manager->getDataStreamSize(send_data_items);
+        SAMRAI_MPI::sumReduction(&data_sz[0], size);
+
+        for (int sending_proc = 0; sending_proc < size; ++sending_proc)
+        {
+            if (data_sz[sending_proc] == tbox::AbstractStream::sizeofInt()) continue;
+            if (sending_proc == rank)
+            {
+                FixedSizedStream stream(data_sz[sending_proc]);
+                const int num_send_keys = send_keys.size();
+                stream << num_send_keys;
+                stream.pack(&send_keys[0], send_keys.size());
+                streamable_manager->packStream(stream, send_data_items);
+                int size = stream.getCurrentSize();
+#ifdef DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(size == data_sz[sending_proc]);
+#endif
+                SAMRAI_MPI::bcast(static_cast<char*>(stream.getBufferStart()), size, sending_proc);
+                for (int k = 0; k < num_send_keys; ++k)
+                {
+                    d_map[send_keys[k]] = send_data_items[k];
+                }
+            }
+            else
+            {
+                std::vector<char> buffer(data_sz[sending_proc]);
+                int size;
+                SAMRAI_MPI::bcast(&buffer[0], size, sending_proc);
+#ifdef DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(size == data_sz[sending_proc]);
+#endif
+                FixedSizedStream stream(&buffer[0], size);
+                int num_recv_keys;
+                stream >> num_recv_keys;
+#ifdef DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(num_recv_keys > 0);
+#endif
+                std::vector<int> recv_keys(num_recv_keys);
+                stream.unpack(&recv_keys[0], num_recv_keys);
+                std::vector<tbox::Pointer<Streamable> > recv_data_items;
+                hier::IntVector<NDIM> offset = 0;
+                streamable_manager->unpackStream(stream, offset, recv_data_items);
+#ifdef DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(recv_keys.size() == recv_data_items.size());
+#endif
+                for (int k = 0; k < num_recv_keys; ++k)
+                {
+                    d_map[recv_keys[k]] = recv_data_items[k];
+                }
+            }
+        }
+    }
+
+    // Remove items from the map.
+    {
+        std::vector<int> num_removals(size,0);
+        num_removals[rank] = d_pending_removals.size();
+        SAMRAI_MPI::sumReduction(&num_removals[0], size);
+
+        for (int sending_proc = 0; sending_proc < size; ++sending_proc)
+        {
+            if (num_removals[sending_proc] == 0) continue;
+            if (sending_proc == rank)
+            {
+                int size = d_pending_removals.size();
+#ifdef DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(size == num_removals[sending_proc]);
+#endif
+                SAMRAI_MPI::bcast(&d_pending_removals[0], size, sending_proc);
+                for (int k = 0; k < size; ++k)
+                {
+                    d_map.erase(d_pending_removals[k]);
+                }
+            }
+            else
+            {
+                std::vector<int> recv_keys(num_removals[sending_proc]);
+                int size;
+                SAMRAI_MPI::bcast(&recv_keys[0], size, sending_proc);
+#ifdef DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(size == num_removals[sending_proc]);
+#endif
+                for (int k = 0; k < size; ++k)
+                {
+                    d_map.erase(recv_keys[k]);
+                }
+            }
+        }
+
+        d_pending_removals.clear();
+    }
+    return;
+}// communicateData
+
+const std::map<int,SAMRAI::tbox::Pointer<Streamable> >&
+ParallelMap::getMap() const
+{
+    return d_map;
+}// getMap
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+} // namespace IBTK
+
+/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
+
+#include <tbox/Pointer.C>
+template class Pointer<IBTK::ParallelMap>;
+
+//////////////////////////////////////////////////////////////////////////////
