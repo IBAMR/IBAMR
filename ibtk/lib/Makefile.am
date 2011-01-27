@@ -280,6 +280,9 @@ $(top_srcdir)/src/utilities/SideSynchCopyTransaction.h \
 $(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.h \
 $(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.I \
 $(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.h \
+$(top_srcdir)/src/utilities/Stashable.h \
+$(top_srcdir)/src/utilities/StashableFactory.h \
+$(top_srcdir)/src/utilities/StashableManager.h \
 $(top_srcdir)/src/utilities/Streamable.h \
 $(top_srcdir)/src/utilities/StreamableFactory.h \
 $(top_srcdir)/src/utilities/StreamableManager.I \
@@ -289,7 +292,8 @@ $(top_srcdir)/src/utilities/muParserCartGridFunction.h
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
 $(top_srcdir)/src/lagrangian/FEDataManager.h \
-$(top_srcdir)/src/utilities/libmesh_utilities.h
+$(top_srcdir)/src/utilities/libmesh_utilities.h \
+$(top_srcdir)/src/utilities/ibtk_utilities.h
 endif
 
 libIBTK2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

@@ -19,7 +19,13 @@ install-exec-local:
 EXTRA_DIST  = $(top_srcdir)/COPYRIGHT
 EXTRA_DIST += $(top_srcdir)/autogen.sh
 EXTRA_DIST += $(top_srcdir)/doc/Doxyfile.in
+EXTRA_DIST += $(top_srcdir)/doc/footer.html
+EXTRA_DIST += $(top_srcdir)/doc/header.html
 EXTRA_DIST += $(top_srcdir)/doc/libstdc++.tag
+EXTRA_DIST += $(top_srcdir)/doc/mainpage.dox
+EXTRA_DIST += $(top_srcdir)/doc/online_Doxyfile.in
+EXTRA_DIST += $(top_srcdir)/doc/samrai.tag
+EXTRA_DIST += $(top_srcdir)/doc/stylesheet.css
 EXTRA_DIST += $(top_srcdir)/include/ibamr/AdvDiffHierarchyIntegrator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/AdvDiffHypPatchOps.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/AdvectHypPatchOps.h
@@ -88,8 +94,10 @@ EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredPressureBcCoef.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredProjectionBcCoef.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredProjectionPreconditioner.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredStokesOperator.h
+EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredVCStokesOperator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredVelocityBcCoef.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/TGACoefs.h
+EXTRA_DIST += $(top_srcdir)/include/ibamr/ibamr_utilities.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/namespaces.h
 
 ## Automatically link header files in $(top_srcdir)/include and
