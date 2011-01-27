@@ -598,6 +598,21 @@ LDataManager::interp(
 }// interp
 
 void
+LDataManager::interpolate(
+    const int f_data_idx,
+    std::vector<Pointer<LNodeLevelData> >& F_data,
+    std::vector<Pointer<LNodeLevelData> >& X_data,
+    std::vector<Pointer<RefineSchedule<NDIM> > > f_refine_scheds,
+    const double fill_data_time,
+    const int coarsest_ln,
+    const int finest_ln)
+{
+    IBTK_DEPRECATED_MEMBER_FUNCTION2("IBTK::LDataManager","interpolate()","interp()");
+    interp(f_data_idx, F_data, X_data, f_refine_scheds, fill_data_time, coarsest_ln, finest_ln);
+    return;
+}// interpolate
+
+void
 LDataManager::registerLNodeInitStrategy(
     Pointer<LNodeInitStrategy> lag_init)
 {

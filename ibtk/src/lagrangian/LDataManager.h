@@ -259,6 +259,23 @@ public:
         const int finest_ln=-1);
 
     /*!
+     * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
+     * mesh.
+     *
+     * \note This method is deprecated.  It should be replaced by calls to
+     * interp().
+     */
+    void
+    interpolate(
+        const int f_data_idx,
+        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& F_data,
+        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_refine_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        const double fill_data_time=0.0,
+        const int coarsest_ln=-1,
+        const int finest_ln=-1);
+
+    /*!
      * Register a concrete strategy object with the integrator that specifies
      * the initial configuration of the curvilinear mesh nodes.
      */
