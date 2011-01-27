@@ -218,6 +218,80 @@ public:
     getNodeDataVector() const;
 
     /*!
+     * \name Deprecated methods.
+     */
+    //\{
+
+    /*!
+     * \return A constant reference to all additional data associated with the
+     * node referenced by this LNodeIndex.
+     *
+     * \note This method is deprecated.  It should be replaced by calls to
+     * getNodeData().
+     */
+    const std::vector<SAMRAI::tbox::Pointer<Streamable> >&
+    getStashData() const;
+
+    /*!
+     * \return A non-constant reference to all additional data associated with
+     * the node referenced by this LNodeIndex.
+     *
+     * \note This method is deprecated.  It should be replaced by calls to
+     * getNodeData().
+     */
+    std::vector<SAMRAI::tbox::Pointer<Streamable> >&
+    getStashData();
+
+    /*!
+     * \brief Reset the additional data associated with the node referenced by
+     * this LNodeIndex.
+     *
+     * \note This method is deprecated.  It should be replaced by calls to
+     * setNodeData().
+     */
+    void
+    setStashData(
+        const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data);
+
+    /*!
+     * \return A pointer to the first data object of subclass T associated with
+     * the node referenced by the LNodeIndex.
+     *
+     * If no object of the specified type is encountered, this method returns a
+     * null pointer.
+     *
+     * \note It is possible for multiple objects of the same sub-type to be
+     * associated with each node.  This method returns only the \em first such
+     * object encountered in the array of node objects.
+     *
+     * \note This method is deprecated.  It should be replaced by calls to
+     * getNodeData().
+     */
+    template<class T>
+    SAMRAI::tbox::Pointer<T>
+    getStashData() const;
+
+    /*!
+     * \return A vector of pointers to all data objects of subclass T associated
+     * with the node referenced by the LNodeIndex.
+     *
+     * If no object of the specified type is encountered, this method returns an
+     * empty vector.
+     *
+     * \note It is possible for multiple objects of the same sub-type to be
+     * associated with each node.  This method returns a vector of \em all such
+     * objects encountered in the array of node objects.
+     *
+     * \note This method is deprecated.  It should be replaced by calls to
+     * getNodeData().
+     */
+    template<class T>
+    std::vector<SAMRAI::tbox::Pointer<T> >
+    getStashDataVector() const;
+
+    //\}
+
+    /*!
      * \brief Copy data from the source.
      *
      * \note The cell index of the destination object is src_index + src_offset.

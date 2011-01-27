@@ -39,6 +39,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/StreamableManager.h>
+#include <ibtk/ibtk_utilities.h>
 
 // SAMRAI INCLUDES
 #include <tbox/PIO.h>
@@ -193,6 +194,7 @@ LNodeIndex::setNodeData(
     const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data)
 {
     d_node_data = node_data;
+    return;
 }// setNodeData
 
 template<class T>
@@ -222,6 +224,45 @@ LNodeIndex::getNodeDataVector() const
     }
     return ret_val;
 }// getNodeDataVector
+
+inline const std::vector<SAMRAI::tbox::Pointer<Streamable> >&
+LNodeIndex::getStashData() const
+{
+    IBTK_DEPRECATED_MEMBER_FUNCTION2("IBTK::LNodeIndex","getStashData()","getNodeData()");
+    return getNodeData();
+}// getStashData
+
+inline std::vector<SAMRAI::tbox::Pointer<Streamable> >&
+LNodeIndex::getStashData()
+{
+    IBTK_DEPRECATED_MEMBER_FUNCTION2("IBTK::LNodeIndex","getStashData()","getNodeData()");
+    return getNodeData();
+}// getStashData
+
+inline void
+LNodeIndex::setStashData(
+    const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data)
+{
+    IBTK_DEPRECATED_MEMBER_FUNCTION2("IBTK::LNodeIndex","setStashData()","setNodeData()");
+    setNodeData(node_data);
+    return;
+}// setStashData
+
+template<class T>
+inline SAMRAI::tbox::Pointer<T>
+LNodeIndex::getStashData() const
+{
+    IBTK_DEPRECATED_MEMBER_FUNCTION2("IBTK::LNodeIndex","getStashData()","getNodeData()");
+    return getNodeData<T>();
+}// getStashData
+
+template<class T>
+inline std::vector<SAMRAI::tbox::Pointer<T> >
+LNodeIndex::getStashDataVector() const
+{
+    IBTK_DEPRECATED_MEMBER_FUNCTION2("IBTK::LNodeIndex","getStashDataVector()","getNodeDataVector()");
+    return getNodeDataVector<T>();
+}// getStashDataVector
 
 inline void
 LNodeIndex::copySourceItem(
