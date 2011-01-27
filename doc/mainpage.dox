@@ -4,6 +4,8 @@
  * <h2>%IBAMR: An adaptive and distributed-memory parallel implementation of the
  * immersed boundary (IB) method.</h2>
  *
+ * http://ibamr.googlecode.com
+ *
  * <h3>What is %IBAMR?</h3>
  *
  * %IBAMR is a distributed-memory parallel implementation of the immersed
@@ -48,13 +50,13 @@
  * structure. Interaction equations that take the form of integral equations
  * with delta function kernels couple the Eulerian and Lagrangian variables.
  *
- * For general information about the IB method, see
- * http://math.nyu.edu/faculty/peskin.
+ * For general information about the IB method, see <a
+ * href="http://math.nyu.edu/faculty/peskin">http://math.nyu.edu/faculty/peskin</a>.
  *
  * <h3>Support</h3>
  *
  * Support for %IBAMR is available from the <a
- * href="http://groups.google.com/group/ibamr-dev">%IBAMR developers</a>
+ * href="http://groups.google.com/group/ibamr-dev">%IBAMR Developers</a>
  * (ibamr-dev) Google Group. There is also list of <a
  * href="http://code.google.com/p/ibamr/wiki/FAQ">frequently asked
  * questions</a>.
