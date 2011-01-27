@@ -47,6 +47,7 @@
 // IBTK INCLUDES
 #include <ibtk/LNodeIndex.h>
 #include <ibtk/LNodeIndexSet.h>
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // BLITZ++ INCLUDES
@@ -633,15 +634,12 @@ void
 LEInteractor::initializeTimers()
 {
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBTK_DO_ONCE(
         t_interpolate     = TimerManager::getManager()->getTimer("IBTK::LEInteractor::interpolate()");
         t_interpolate_f77 = TimerManager::getManager()->getTimer("IBTK::LEInteractor::interpolate()[fortran]");
         t_spread          = TimerManager::getManager()->getTimer("IBTK::LEInteractor::spread()");
         t_spread_f77      = TimerManager::getManager()->getTimer("IBTK::LEInteractor::spread()[fortran]");
-        timers_need_init = false;
-    }
+                 );
     return;
 }// initializeTimers
 

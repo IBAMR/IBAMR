@@ -3079,9 +3079,7 @@ LDataManager::LDataManager(
     }
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBTK_DO_ONCE(
         t_map_lagrangian_to_petsc = TimerManager::getManager()->getTimer("IBTK::LDataManager::mapLagrangianToPETSc()");
         t_map_petsc_to_lagrangian = TimerManager::getManager()->getTimer("IBTK::LDataManager::mapPETScToLagrangian()");
         t_begin_data_redistribution = TimerManager::getManager()->getTimer("IBTK::LDataManager::beginDataRedistribution()");
@@ -3099,8 +3097,7 @@ LDataManager::LDataManager(
         t_compute_node_distribution = TimerManager::getManager()->getTimer("IBTK::LDataManager::computeNodeDistribution()");
         t_compute_node_offsets = TimerManager::getManager()->getTimer("IBTK::LDataManager::computeNodeOffsets()");
         LEInteractor::initializeTimers();
-        timers_need_init = false;
-    }
+                 );
     return;
 }// LDataManager
 

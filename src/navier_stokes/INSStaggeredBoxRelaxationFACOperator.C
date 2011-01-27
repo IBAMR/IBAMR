@@ -45,6 +45,7 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
@@ -571,9 +572,7 @@ INSStaggeredBoxRelaxationFACOperator::INSStaggeredBoxRelaxationFACOperator(
     d_cell_scratch_idx = var_db->registerVariableAndContext(cell_scratch_var, d_context, cell_ghosts);
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBAMR_DO_ONCE(
         t_restrict_residual         = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::restrictResidual()");
         t_prolong_error             = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::prolongError()");
         t_prolong_error_and_correct = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::prolongErrorAndCorrect()");
@@ -582,8 +581,7 @@ INSStaggeredBoxRelaxationFACOperator::INSStaggeredBoxRelaxationFACOperator(
         t_compute_residual          = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::computeResidual()");
         t_initialize_operator_state = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::initializeOperatorState()");
         t_deallocate_operator_state = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::deallocateOperatorState()");
-        timers_need_init = false;
-    }
+                  );
     return;
 }// INSStaggeredBoxRelaxationFACOperator
 
@@ -1321,13 +1319,10 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
 
     // Get the transfer operators.
     Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
-    static bool need_to_add_cubic_coarsen = true;
-    if (need_to_add_cubic_coarsen)
-    {
+    IBAMR_DO_ONCE(
         geometry->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen());
         geometry->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen());
-        need_to_add_cubic_coarsen = false;
-    }
+                  );
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > var;

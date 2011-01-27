@@ -45,6 +45,7 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -75,14 +76,11 @@ IBImplicitModHelmholtzOperator::IBImplicitModHelmholtzOperator(
       d_ib_SJSstar_op(ib_SJSstar_op)
 {
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBAMR_DO_ONCE(
         t_apply                     = TimerManager::getManager()->getTimer("IBAMR::IBImplicitModHelmholtzOperator::apply()");
         t_initialize_operator_state = TimerManager::getManager()->getTimer("IBAMR::IBImplicitModHelmholtzOperator::initializeOperatorState()");
         t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBAMR::IBImplicitModHelmholtzOperator::deallocateOperatorState()");
-        timers_need_init = false;
-    }
+                  );
     return;
 }// IBImplicitModHelmholtzOperator
 

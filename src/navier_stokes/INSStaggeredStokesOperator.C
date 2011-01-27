@@ -46,6 +46,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/INSStaggeredPressureBcCoef.h>
+#include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
@@ -109,14 +110,11 @@ INSStaggeredStokesOperator::INSStaggeredStokesOperator(
       d_x_scratch(NULL)
 {
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBAMR_DO_ONCE(
         t_apply                     = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredStokesOperator::apply()");
         t_initialize_operator_state = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredStokesOperator::initializeOperatorState()");
         t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredStokesOperator::deallocateOperatorState()");
-        timers_need_init = false;
-    }
+                  );
     return;
 }// INSStaggeredStokesOperator
 

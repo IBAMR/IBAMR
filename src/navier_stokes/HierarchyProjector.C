@@ -45,6 +45,7 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
@@ -285,15 +286,12 @@ HierarchyProjector::HierarchyProjector(
     d_poisson_solver->setPreconditioner(d_poisson_fac_pc);
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBAMR_DO_ONCE(
         t_project_hierarchy             = TimerManager::getManager()->getTimer("IBAMR::HierarchyProjector::projectHierarchy");
         t_initialize_level_data         = TimerManager::getManager()->getTimer("IBAMR::HierarchyProjector::initializeLevelData()");
         t_reset_hierarchy_configuration = TimerManager::getManager()->getTimer("IBAMR::HierarchyProjector::resetHierarchyConfiguration()");
         t_put_to_database               = TimerManager::getManager()->getTimer("IBAMR::HierarchyProjector::putToDatabase()");
-        timers_need_init = false;
-    }
+                  );
     return;
 }// HierarchyProjector
 

@@ -45,6 +45,7 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
@@ -155,14 +156,11 @@ INSStaggeredProjectionPreconditioner::INSStaggeredProjectionPreconditioner(
 #endif
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBAMR_DO_ONCE(
         t_solve_system            = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredProjectionPreconditioner::solveSystem()");
         t_initialize_solver_state = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredProjectionPreconditioner::initializeSolverState()");
         t_deallocate_solver_state = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredProjectionPreconditioner::deallocateSolverState()");
-        timers_need_init = false;
-    }
+                  );
     return;
 }// INSStaggeredProjectionPreconditioner
 

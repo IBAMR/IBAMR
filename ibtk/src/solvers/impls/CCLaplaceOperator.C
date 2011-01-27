@@ -46,6 +46,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/CellNoCornersFillPattern.h>
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -132,14 +133,11 @@ CCLaplaceOperator::CCLaplaceOperator(
     setPhysicalBcCoef(bc_coef);
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBTK_DO_ONCE(
         t_apply                     = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::apply()");
         t_initialize_operator_state = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::initializeOperatorState()");
         t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::deallocateOperatorState()");
-        timers_need_init = false;
-    }
+                 );
     return;
 }// CCLaplaceOperator()
 
@@ -186,14 +184,11 @@ CCLaplaceOperator::CCLaplaceOperator(
     setPhysicalBcCoefs(bc_coefs);
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBTK_DO_ONCE(
         t_apply                     = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::apply()");
         t_initialize_operator_state = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::initializeOperatorState()");
         t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::deallocateOperatorState()");
-        timers_need_init = false;
-    }
+                 );
     return;
 }// CCLaplaceOperator()
 

@@ -46,6 +46,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/NormOps.h>
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -748,9 +749,7 @@ PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(
       d_vector_created_via_duplicate(vector_created_via_duplicate)
 {
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBTK_DO_ONCE(
         t_vec_duplicate            = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecDuplicate()");
         t_vec_dot                  = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecDot()");
         t_vec_m_dot                = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecMDot()");
@@ -782,7 +781,7 @@ PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(
         t_vec_m_t_dot_local        = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecMTDot_local()");
         t_vec_max_pointwise_divide = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecMaxPointwiseDivide()");
         t_vec_dot_norm2            = TimerManager::getManager()->getTimer("IBTK::PETScSAMRAIVectorReal::VecDotNorm2()");
-    }
+                 );
 
     int ierr;
     ierr = VecCreate(comm, &d_petsc_vector); IBTK_CHKERRQ(ierr);

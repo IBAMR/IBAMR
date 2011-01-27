@@ -136,10 +136,6 @@ private:
     operator=(
         const Streamable& that);
 };
-
-// This class was formerly named Stashable.  We provide a typedef for backwards
-// compatibility.
-typedef Streamable Stashable;
 }// namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////

@@ -45,6 +45,7 @@
 #endif
 
 // IBTK INCLUDES
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -175,15 +176,12 @@ CCDivGradHypreLevelSolver::CCDivGradHypreLevelSolver(
     }
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBTK_DO_ONCE(
         t_solve_system            = TimerManager::getManager()->getTimer("IBTK::CCDivGradHypreLevelSolver::solveSystem()");
         t_solve_system_hypre      = TimerManager::getManager()->getTimer("IBTK::CCDivGradHypreLevelSolver::solveSystem()[hypre]");
         t_initialize_solver_state = TimerManager::getManager()->getTimer("IBTK::CCDivGradHypreLevelSolver::initializeSolverState()");
         t_deallocate_solver_state = TimerManager::getManager()->getTimer("IBTK::CCDivGradHypreLevelSolver::deallocateSolverState()");
-        timers_need_init = false;
-    }
+                 );
     return;
 }// CCDivGradHypreLevelSolver
 

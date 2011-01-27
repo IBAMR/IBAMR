@@ -53,6 +53,7 @@
 #include <ibtk/SideNoCornersFillPattern.h>
 #include <ibtk/SideSynchCopyFillPattern.h>
 #include <ibtk/SideSynchCopyTransactionFactory.h>
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -252,9 +253,7 @@ SCPoissonFACOperator::SCPoissonFACOperator(
     d_side_scratch_idx = var_db->registerVariableAndContext(side_scratch_var, d_context, side_ghosts);
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBTK_DO_ONCE(
         t_restrict_residual         = TimerManager::getManager()->getTimer("IBTK::SCPoissonFACOperator::restrictResidual()");
         t_prolong_error             = TimerManager::getManager()->getTimer("IBTK::SCPoissonFACOperator::prolongError()");
         t_prolong_error_and_correct = TimerManager::getManager()->getTimer("IBTK::SCPoissonFACOperator::prolongErrorAndCorrect()");
@@ -263,8 +262,7 @@ SCPoissonFACOperator::SCPoissonFACOperator(
         t_compute_residual          = TimerManager::getManager()->getTimer("IBTK::SCPoissonFACOperator::computeResidual()");
         t_initialize_operator_state = TimerManager::getManager()->getTimer("IBTK::SCPoissonFACOperator::initializeOperatorState()");
         t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBTK::SCPoissonFACOperator::deallocateOperatorState()");
-        timers_need_init = false;
-    }
+                 );
     return;
 }// SCPoissonFACOperator
 
@@ -996,12 +994,9 @@ SCPoissonFACOperator::initializeOperatorState(
 
     // Get the transfer operators.
     Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
-    static bool need_to_add_cubic_coarsen = true;
-    if (need_to_add_cubic_coarsen)
-    {
+    IBTK_DO_ONCE(
         geometry->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen());
-        need_to_add_cubic_coarsen = false;
-    }
+                 );
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > var;

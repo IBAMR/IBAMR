@@ -46,6 +46,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBTargetPointForceSpec.h>
+#include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
@@ -90,15 +91,12 @@ IBTargetPointForceGen::IBTargetPointForceGen(
     getFromInput(input_db);
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBAMR_DO_ONCE(
         t_compute_lagrangian_force                            = TimerManager::getManager()->getTimer("IBAMR::IBTargetPointForceGen::computeLagrangianForce()");
         t_compute_lagrangian_force_jacobian                   = TimerManager::getManager()->getTimer("IBAMR::IBTargetPointForceGen::computeLagrangianForceJacobian()");
         t_compute_lagrangian_force_jacobian_nonzero_structure = TimerManager::getManager()->getTimer("IBAMR::IBTargetPointForceGen::computeLagrangianForceJacobianNonzeroStructure()");
         t_initialize_level_data                               = TimerManager::getManager()->getTimer("IBAMR::IBTargetPointForceGen::initializeLevelData()");
-        timers_need_init = false;
-    }
+                  );
     return;
 }// IBTargetPointForceGen
 

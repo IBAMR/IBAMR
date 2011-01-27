@@ -35,6 +35,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -994,9 +995,7 @@ VecCreateMultiVec(
 
     // Assign vector operations to PETSc vector object.
     static struct _VecOps DvOps;
-    static bool initialized = false;
-    if (!initialized)
-    {
+    IBTK_DO_ONCE(
         DvOps.duplicate = VecDuplicate_MultiVec;
         DvOps.duplicatevecs = VecDuplicateVecs_Default;
         DvOps.destroyvecs = VecDestroyVecs_Default;
@@ -1061,8 +1060,7 @@ VecCreateMultiVec(
 #if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 1)
         DvOps.dotnorm2 = VecDotNorm2_MultiVec;
 #endif
-        initialized = true;
-    }
+                 );
     ierr = PetscMemcpy((*vv)->ops,&DvOps,sizeof(DvOps)); CHKERRQ(ierr);
 
     // Initialize the data structures where the component vectors are stored.

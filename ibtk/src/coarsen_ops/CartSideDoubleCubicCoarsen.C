@@ -45,6 +45,7 @@
 #endif
 
 // IBTK INCLUDES
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -157,14 +158,11 @@ CartSideDoubleCubicCoarsen::coarsen(
 {
     if (ratio.min() < 4)
     {
-        static bool warned = false;
-        if (!warned)
-        {
+        IBTK_DO_ONCE(
             TBOX_WARNING("CartSideDoubleCubicCoarsen::coarsen():\n"
                          << "  cubic coarsening requires a refinement ratio of 4 or larger.\n"
                          << "  reverting to weighted averaging." << std::endl);
-            warned = true;
-        }
+                     );
         d_weighted_average_coarsen_op->coarsen(coarse, fine, dst_component, src_component, coarse_box, ratio);
         return;
     }

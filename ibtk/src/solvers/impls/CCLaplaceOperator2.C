@@ -49,6 +49,7 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScVecUtilities.h>
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -133,14 +134,11 @@ CCLaplaceOperator2::CCLaplaceOperator2(
     setPhysicalBcCoef(bc_coef);
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBTK_DO_ONCE(
         t_apply                     = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator2::apply()");
         t_initialize_operator_state = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator2::initializeOperatorState()");
         t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator2::deallocateOperatorState()");
-        timers_need_init = false;
-    }
+                 );
     return;
 }// CCLaplaceOperator2()
 
@@ -185,14 +183,11 @@ CCLaplaceOperator2::CCLaplaceOperator2(
     setPhysicalBcCoefs(bc_coefs);
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBTK_DO_ONCE(
         t_apply                     = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator2::apply()");
         t_initialize_operator_state = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator2::initializeOperatorState()");
         t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator2::deallocateOperatorState()");
-        timers_need_init = false;
-    }
+                 );
     return;
 }// CCLaplaceOperator2()
 

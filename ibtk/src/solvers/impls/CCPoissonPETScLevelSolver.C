@@ -48,6 +48,7 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScVecUtilities.h>
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -143,14 +144,11 @@ CCPoissonPETScLevelSolver::CCPoissonPETScLevelSolver(
     d_dof_index_idx = var_db->registerVariableAndContext(d_dof_index_var, d_context, CELLG);
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBTK_DO_ONCE(
         t_solve_system            = TimerManager::getManager()->getTimer("IBTK::CCPoissonPETScLevelSolver::solveSystem()");
         t_initialize_solver_state = TimerManager::getManager()->getTimer("IBTK::CCPoissonPETScLevelSolver::initializeSolverState()");
         t_deallocate_solver_state = TimerManager::getManager()->getTimer("IBTK::CCPoissonPETScLevelSolver::deallocateSolverState()");
-        timers_need_init = false;
-    }
+                 );
     return;
 }// CCPoissonPETScLevelSolver
 

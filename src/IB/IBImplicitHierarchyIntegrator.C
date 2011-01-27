@@ -50,6 +50,7 @@
 #include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/INSStaggeredProjectionBcCoef.h>
 #include <ibamr/INSStaggeredVelocityBcCoef.h>
+#include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
@@ -286,9 +287,7 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
     d_scratch_context = var_db->getContext(d_object_name+"::SCRATCH");
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBAMR_DO_ONCE(
         t_initialize_hierarchy_integrator = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator()");
         t_initialize_hierarchy            = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::initializeHierarchy()");
         t_advance_hierarchy               = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::advanceHierarchy()");
@@ -305,8 +304,7 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
         t_reset_hierarchy_configuration   = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::resetHierarchyConfiguration()");
         t_apply_gradient_detector         = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::applyGradientDetector()");
         t_put_to_database                 = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::putToDatabase()");
-        timers_need_init = false;
-    }
+                  );
     return;
 }// IBImplicitHierarchyIntegrator
 

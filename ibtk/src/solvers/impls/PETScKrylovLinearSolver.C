@@ -52,6 +52,7 @@
 #include <ibtk/PETScMatLOWrapper.h>
 #include <ibtk/PETScPCLSWrapper.h>
 #include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -451,14 +452,11 @@ void
 PETScKrylovLinearSolver::common_ctor()
 {
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBTK_DO_ONCE(
         t_solve_system            = TimerManager::getManager()->getTimer("IBTK::PETScKrylovLinearSolver::solveSystem()");
         t_initialize_solver_state = TimerManager::getManager()->getTimer("IBTK::PETScKrylovLinearSolver::initializeSolverState()");
         t_deallocate_solver_state = TimerManager::getManager()->getTimer("IBTK::PETScKrylovLinearSolver::deallocateSolverState()");
-        timers_need_init = false;
-    }
+                 );
     return;
 }// common_ctor
 

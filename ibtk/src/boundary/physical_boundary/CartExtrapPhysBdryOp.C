@@ -48,6 +48,7 @@
 #include <ibtk/PhysicalBoundaryUtilities.h>
 #include <ibtk/VecCellData.h>
 #include <ibtk/VecCellVariable.h>
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -274,12 +275,12 @@ CartExtrapPhysBdryOp::setExtrapolationType(
                    << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
     }
 
-    static bool warned = false;
-    if (!warned && extrap_type == "QUADRATIC" && !USING_LARGE_GHOST_CELL_WIDTH)
+    if (extrap_type == "QUADRATIC" && !USING_LARGE_GHOST_CELL_WIDTH)
     {
-        TBOX_WARNING("CartExtrapPhysBdryOp::setExtrapolationType():\n"
-                     << "  extrapolation type " << extrap_type << " requires large ghost cell widths" << std::endl);
-        warned = true;
+        IBTK_DO_ONCE(
+            TBOX_WARNING("CartExtrapPhysBdryOp::setExtrapolationType():\n"
+                         << "  extrapolation type " << extrap_type << " requires large ghost cell widths" << std::endl);
+                     );
     }
 
     d_extrap_type = extrap_type;

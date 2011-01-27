@@ -46,6 +46,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBSpringForceSpec.h>
+#include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
@@ -107,16 +108,13 @@ IBSpringForceGen::IBSpringForceGen(
     registerSpringForceFunction(0, &default_linear_spring_force);
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBAMR_DO_ONCE(
         t_compute_lagrangian_force                            = TimerManager::getManager()->getTimer("IBAMR::IBSpringForceGen::computeLagrangianForce()");
         t_compute_lagrangian_force_jacobian                   = TimerManager::getManager()->getTimer("IBAMR::IBSpringForceGen::computeLagrangianForceJacobian()");
         t_compute_lagrangian_force_jacobian_nonzero_structure = TimerManager::getManager()->getTimer("IBAMR::IBSpringForceGen::computeLagrangianForceJacobianNonzeroStructure()");
         t_initialize_level_data                               = TimerManager::getManager()->getTimer("IBAMR::IBSpringForceGen::initializeLevelData()");
         t_compute_lagrangian_energy                           = TimerManager::getManager()->getTimer("IBAMR::IBSpringForceGen::computeLagrangianEnergy()");
-        timers_need_init = false;
-    }
+                  );
     return;
 }// IBSpringForceGen
 

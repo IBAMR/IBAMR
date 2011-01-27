@@ -46,6 +46,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBRodForceSpec.h>
+#include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
@@ -206,13 +207,10 @@ IBKirchhoffRodForceGen::IBKirchhoffRodForceGen(
     getFromInput(input_db);
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBAMR_DO_ONCE(
         t_compute_lagrangian_force_and_torque = TimerManager::getManager()->getTimer("IBAMR::IBKirchhoffRodForceGen::computeLagrangianForceAndTorque()");
         t_initialize_level_data               = TimerManager::getManager()->getTimer("IBAMR::IBKirchhoffRodForceGen::initializeLevelData()");
-        timers_need_init = false;
-    }
+                  );
     return;
 }// IBKirchhoffRodForceGen
 

@@ -46,6 +46,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/CellNoCornersFillPattern.h>
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -107,14 +108,11 @@ CCDivGradOperator::CCDivGradOperator(
       d_finest_ln(-1)
 {
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBTK_DO_ONCE(
         t_apply                     = TimerManager::getManager()->getTimer("IBTK::CCDivGradOperator::apply()");
         t_initialize_operator_state = TimerManager::getManager()->getTimer("IBTK::CCDivGradOperator::initializeOperatorState()");
         t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBTK::CCDivGradOperator::deallocateOperatorState()");
-        timers_need_init = false;
-    }
+                 );
     return;
 }// CCDivGradOperator()
 

@@ -46,6 +46,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/TGACoefs.h>
+#include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
@@ -401,9 +402,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(fc_var, hierarchy, true);
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBAMR_DO_ONCE(
         t_initialize_hierarchy_integrator = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::initializeHierarchyIntegrator()");
         t_initialize_hierarchy            = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::initializeHierarchy()");
         t_advance_hierarchy               = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::advanceHierarchy()");
@@ -422,8 +421,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
         t_apply_gradient_detector         = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::applyGradientDetector()");
         t_put_to_database                 = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::putToDatabase()");
         t_compute_div_source_term         = TimerManager::getManager()->getTimer("IBAMR::INSHierarchyIntegrator::computeDivSourceTerm()");
-        timers_need_init = false;
-    }
+                  );
     return;
 }// INSHierarchyIntegrator
 
