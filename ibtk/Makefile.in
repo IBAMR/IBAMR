@@ -439,7 +439,11 @@ SUFFIXES = .f.m4
 SUBDIRS = doc scripts third_party src lib examples
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
-	$(top_srcdir)/doc/Doxyfile.in $(top_srcdir)/doc/libstdc++.tag \
+	$(top_srcdir)/doc/Doxyfile.in $(top_srcdir)/doc/footer.html \
+	$(top_srcdir)/doc/header.html $(top_srcdir)/doc/libstdc++.tag \
+	$(top_srcdir)/doc/mainpage.dox \
+	$(top_srcdir)/doc/online_Doxyfile.in \
+	$(top_srcdir)/doc/samrai.tag $(top_srcdir)/doc/stylesheet.css \
 	$(top_srcdir)/include/ibtk/BGaussSeidelPreconditioner.I \
 	$(top_srcdir)/include/ibtk/BGaussSeidelPreconditioner.h \
 	$(top_srcdir)/include/ibtk/BJacobiPreconditioner.I \
@@ -454,9 +458,9 @@ EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/include/ibtk/CCPoissonHypreLevelSolver.h \
 	$(top_srcdir)/include/ibtk/CCPoissonPETScLevelSolver.I \
 	$(top_srcdir)/include/ibtk/CCPoissonPETScLevelSolver.h \
+	$(top_srcdir)/include/ibtk/CartCellDoubleBoundsPreservingConservativeLinearRefine.h \
 	$(top_srcdir)/include/ibtk/CartCellDoubleCubicCoarsen.h \
 	$(top_srcdir)/include/ibtk/CartCellDoubleQuadraticCFInterpolation.h \
-	$(top_srcdir)/include/ibtk/CartCellDoubleBoundsPreservingConservativeLinearRefine.h \
 	$(top_srcdir)/include/ibtk/CartCellDoubleQuadraticRefine.h \
 	$(top_srcdir)/include/ibtk/CartCellRobinPhysBdryOp.h \
 	$(top_srcdir)/include/ibtk/CartExtrapPhysBdryOp.h \
@@ -477,6 +481,7 @@ EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/include/ibtk/FACPreconditioner.I \
 	$(top_srcdir)/include/ibtk/FACPreconditioner.h \
 	$(top_srcdir)/include/ibtk/FACPreconditionerStrategy.h \
+	$(top_srcdir)/include/ibtk/FEDataManager.h \
 	$(top_srcdir)/include/ibtk/FixedSizedStream.I \
 	$(top_srcdir)/include/ibtk/FixedSizedStream.h \
 	$(top_srcdir)/include/ibtk/GeneralOperator.h \
@@ -484,10 +489,12 @@ EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/include/ibtk/HierarchyMathOps.h \
 	$(top_srcdir)/include/ibtk/HierarchyVecCellDataOpsReal.h \
 	$(top_srcdir)/include/ibtk/IBTK_CHKERRQ.h \
-	$(top_srcdir)/include/ibtk/IndexUtilities.I \
-	$(top_srcdir)/include/ibtk/IndexUtilities.h \
 	$(top_srcdir)/include/ibtk/IndexSet.I \
 	$(top_srcdir)/include/ibtk/IndexSet.h \
+	$(top_srcdir)/include/ibtk/IndexUtilities.I \
+	$(top_srcdir)/include/ibtk/IndexUtilities.h \
+	$(top_srcdir)/include/ibtk/Interpolator.I \
+	$(top_srcdir)/include/ibtk/Interpolator.h \
 	$(top_srcdir)/include/ibtk/JacobianOperator.h \
 	$(top_srcdir)/include/ibtk/KrylovLinearSolver.h \
 	$(top_srcdir)/include/ibtk/LDataManager.I \
@@ -523,6 +530,7 @@ EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/include/ibtk/PETScMFFDJacobianOperator.h \
 	$(top_srcdir)/include/ibtk/PETScMatLOWrapper.I \
 	$(top_srcdir)/include/ibtk/PETScMatLOWrapper.h \
+	$(top_srcdir)/include/ibtk/PETScMatOps.h \
 	$(top_srcdir)/include/ibtk/PETScMatUtilities.h \
 	$(top_srcdir)/include/ibtk/PETScMultiVec.h \
 	$(top_srcdir)/include/ibtk/PETScNewtonKrylovSolver.I \
@@ -535,8 +543,6 @@ EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/include/ibtk/PETScSNESFunctionGOWrapper.h \
 	$(top_srcdir)/include/ibtk/PETScSNESJacobianJOWrapper.I \
 	$(top_srcdir)/include/ibtk/PETScSNESJacobianJOWrapper.h \
-	$(top_srcdir)/include/ibtk/PETScMatOps.h \
-	$(top_srcdir)/include/ibtk/PETScMatUtilities.h \
 	$(top_srcdir)/include/ibtk/PETScVecOps.h \
 	$(top_srcdir)/include/ibtk/PETScVecUtilities.h \
 	$(top_srcdir)/include/ibtk/ParallelMap.h \
@@ -559,6 +565,9 @@ EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/include/ibtk/SideSynchCopyTransactionFactory.h \
 	$(top_srcdir)/include/ibtk/StandardTagAndInitStrategySet.I \
 	$(top_srcdir)/include/ibtk/StandardTagAndInitStrategySet.h \
+	$(top_srcdir)/include/ibtk/Stashable.h \
+	$(top_srcdir)/include/ibtk/StashableFactory.h \
+	$(top_srcdir)/include/ibtk/StashableManager.h \
 	$(top_srcdir)/include/ibtk/Streamable.h \
 	$(top_srcdir)/include/ibtk/StreamableFactory.h \
 	$(top_srcdir)/include/ibtk/StreamableManager.I \
@@ -573,6 +582,8 @@ EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/include/ibtk/VecCellVariable.h \
 	$(top_srcdir)/include/ibtk/compiler_hints.h \
 	$(top_srcdir)/include/ibtk/efficient_add_or_update.h \
+	$(top_srcdir)/include/ibtk/ibtk_utilities.h \
+	$(top_srcdir)/include/ibtk/libmesh_utilities.h \
 	$(top_srcdir)/include/ibtk/muParser.h \
 	$(top_srcdir)/include/ibtk/muParserBase.h \
 	$(top_srcdir)/include/ibtk/muParserBytecode.h \

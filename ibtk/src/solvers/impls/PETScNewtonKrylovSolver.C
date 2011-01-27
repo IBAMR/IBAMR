@@ -48,6 +48,7 @@
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/PETScSNESFunctionGOWrapper.h>
 #include <ibtk/PETScSNESJacobianJOWrapper.h>
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -436,14 +437,11 @@ void
 PETScNewtonKrylovSolver::common_ctor()
 {
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBTK_DO_ONCE(
         t_solve_system            = TimerManager::getManager()->getTimer("IBTK::PETScNewtonKrylovSolver::solveSystem()");
         t_initialize_solver_state = TimerManager::getManager()->getTimer("IBTK::PETScNewtonKrylovSolver::initializeOperatorState()");
         t_deallocate_solver_state = TimerManager::getManager()->getTimer("IBTK::PETScNewtonKrylovSolver::deallocateOperatorState()");
-        timers_need_init = false;
-    }
+                 );
     return;
 }// common_ctor
 

@@ -129,10 +129,6 @@ private:
     operator=(
         const StreamableFactory& that);
 };
-
-// This class was formerly named StashableFactory.  We provide a typedef for
-// backwards compatibility.
-typedef StreamableFactory StashableFactory;
 }// namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////

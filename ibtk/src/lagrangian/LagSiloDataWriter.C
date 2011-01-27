@@ -46,6 +46,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES

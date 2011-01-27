@@ -420,8 +420,9 @@ AC_CONFIG_FILES([
   Makefile
   bin/Makefile
   config/make.inc
-  doc/Makefile
   doc/Doxyfile
+  doc/Makefile
+  doc/online_Doxyfile
   examples/Makefile
   examples/IB/Makefile
   examples/IB/cell_centered/Makefile

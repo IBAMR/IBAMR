@@ -46,6 +46,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBInstrumentationSpec.h>
+#include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
@@ -469,15 +470,12 @@ IBInstrumentPanel::IBInstrumentPanel(
     }
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBAMR_DO_ONCE(
         t_initialize_hierarchy_independent_data = TimerManager::getManager()->getTimer("IBAMR::IBInstrumentPanel::initializeHierarchyIndependentData()");
         t_initialize_hierarchy_dependent_data   = TimerManager::getManager()->getTimer("IBAMR::IBInstrumentPanel::initializeHierarchyDependentData()");
         t_read_instrument_data                  = TimerManager::getManager()->getTimer("IBAMR::IBInstrumentPanel::readInstrumentData()");
         t_write_plot_data                       = TimerManager::getManager()->getTimer("IBAMR::IBInstrumentPanel::writePlotData()");
-        timers_need_init = false;
-    }
+                  );
     return;
 }// IBInstrumentPanel
 

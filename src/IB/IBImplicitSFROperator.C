@@ -46,6 +46,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBImplicitHierarchyIntegrator.h>
+#include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
@@ -84,14 +85,11 @@ IBImplicitSFROperator::IBImplicitSFROperator(
       d_ib_implicit_integrator(ib_implicit_integrator)
 {
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBAMR_DO_ONCE(
         t_apply                     = TimerManager::getManager()->getTimer("IBAMR::IBImplicitSFROperator::apply()");
         t_initialize_operator_state = TimerManager::getManager()->getTimer("IBAMR::IBImplicitSFROperator::initializeOperatorState()");
         t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBAMR::IBImplicitSFROperator::deallocateOperatorState()");
-        timers_need_init = false;
-    }
+                  );
     return;
 }// IBImplicitSFROperator
 

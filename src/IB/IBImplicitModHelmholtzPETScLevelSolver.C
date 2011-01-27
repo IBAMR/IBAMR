@@ -45,6 +45,7 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
@@ -148,14 +149,11 @@ IBImplicitModHelmholtzPETScLevelSolver::IBImplicitModHelmholtzPETScLevelSolver(
     d_dof_index_idx = var_db->registerVariableAndContext(d_dof_index_var, d_context, SIDEG);
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBAMR_DO_ONCE(
         t_solve_system            = TimerManager::getManager()->getTimer("IBAMR::IBImplicitModHelmholtzPETScLevelSolver::solveSystem()");
         t_initialize_solver_state = TimerManager::getManager()->getTimer("IBAMR::IBImplicitModHelmholtzPETScLevelSolver::initializeSolverState()");
         t_deallocate_solver_state = TimerManager::getManager()->getTimer("IBAMR::IBImplicitModHelmholtzPETScLevelSolver::deallocateSolverState()");
-        timers_need_init = false;
-    }
+                  );
     return;
 }// IBImplicitModHelmholtzPETScLevelSolver
 

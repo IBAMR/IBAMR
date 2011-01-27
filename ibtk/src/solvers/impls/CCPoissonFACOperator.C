@@ -51,6 +51,7 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/NormOps.h>
 #include <ibtk/RefinePatchStrategySet.h>
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -266,9 +267,7 @@ CCPoissonFACOperator::CCPoissonFACOperator(
     d_cell_scratch_idx = var_db->registerVariableAndContext(cell_scratch_var, d_context, cell_ghosts);
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBTK_DO_ONCE(
         t_restrict_residual         = TimerManager::getManager()->getTimer("IBTK::CCPoissonFACOperator::restrictResidual()");
         t_prolong_error             = TimerManager::getManager()->getTimer("IBTK::CCPoissonFACOperator::prolongError()");
         t_prolong_error_and_correct = TimerManager::getManager()->getTimer("IBTK::CCPoissonFACOperator::prolongErrorAndCorrect()");
@@ -277,8 +276,7 @@ CCPoissonFACOperator::CCPoissonFACOperator(
         t_compute_residual          = TimerManager::getManager()->getTimer("IBTK::CCPoissonFACOperator::computeResidual()");
         t_initialize_operator_state = TimerManager::getManager()->getTimer("IBTK::CCPoissonFACOperator::initializeOperatorState()");
         t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBTK::CCPoissonFACOperator::deallocateOperatorState()");
-        timers_need_init = false;
-    }
+                 );
     return;
 }// CCPoissonFACOperator
 
@@ -1001,12 +999,9 @@ CCPoissonFACOperator::initializeOperatorState(
 
     // Get the transfer operators.
     Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
-    static bool need_to_add_cubic_coarsen = true;
-    if (need_to_add_cubic_coarsen)
-    {
+    IBTK_DO_ONCE(
         geometry->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen());
-        need_to_add_cubic_coarsen = false;
-    }
+                 );
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > var;

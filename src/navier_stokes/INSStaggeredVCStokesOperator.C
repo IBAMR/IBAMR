@@ -45,6 +45,7 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
 // C++ STDLIB INCLUDES
@@ -102,14 +103,11 @@ INSStaggeredVCStokesOperator::INSStaggeredVCStokesOperator(
       d_x_scratch(NULL)
 {
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBAMR_DO_ONCE(
         t_apply                     = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredVCStokesOperator::apply()");
         t_initialize_operator_state = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredVCStokesOperator::initializeOperatorState()");
         t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredVCStokesOperator::deallocateOperatorState()");
-        timers_need_init = false;
-    }
+                  );
     return;
 }// INSStaggeredVCStokesOperator
 

@@ -47,6 +47,7 @@
 // IBTK INCLUDES
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/LEInteractor.h>
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/namespaces.h>
 
@@ -919,16 +920,13 @@ FEDataManager::FEDataManager(
     d_qp_count_idx = var_db->registerVariableAndContext(d_qp_count_var, d_context, 0);
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBTK_DO_ONCE(
         t_initialize_level_data = TimerManager::getManager()->getTimer("IBTK::FEDataManager::initializeLevelData()");
         t_reset_hierarchy_configuration = TimerManager::getManager()->getTimer("IBTK::FEDataManager::resetHierarchyConfiguration()");
         t_apply_gradient_detector = TimerManager::getManager()->getTimer("IBTK::FEDataManager::applyGradientDetector()");
         t_put_to_database = TimerManager::getManager()->getTimer("IBTK::FEDataManager::putToDatabase()");
         LEInteractor::initializeTimers();
-        timers_need_init = false;
-    }
+                 );
     return;
 }// FEDataManager
 

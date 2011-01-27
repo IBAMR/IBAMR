@@ -52,6 +52,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBInstrumentationSpec.h>
+#include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
@@ -234,9 +235,7 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
     d_scratch = var_db->getContext(d_object_name+"::SCRATCH");
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBAMR_DO_ONCE(
         t_initialize_hierarchy_integrator = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::initializeHierarchyIntegrator()");
         t_initialize_hierarchy            = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::initializeHierarchy()");
         t_advance_hierarchy               = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()");
@@ -259,8 +258,7 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
         t_reset_hierarchy_configuration   = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::resetHierarchyConfiguration()");
         t_apply_gradient_detector         = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::applyGradientDetector()");
         t_put_to_database                 = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::putToDatabase()");
-        timers_need_init = false;
-    }
+                  );
     return;
 }// IBFEHierarchyIntegrator
 

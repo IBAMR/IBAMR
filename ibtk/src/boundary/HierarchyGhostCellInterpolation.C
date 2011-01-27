@@ -41,6 +41,7 @@
 #include <ibtk/CartSideDoubleQuadraticCFInterpolation.h>
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
 #include <ibtk/RefinePatchStrategySet.h>
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -148,13 +149,10 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     d_finest_ln   =   finest_ln == -1 ? d_hierarchy->getFinestLevelNumber() :   finest_ln;
 
     // Register the cubic coarsen operators with the grid geometry object.
-    static bool need_to_add_cubic_coarsen = true;
-    if (need_to_add_cubic_coarsen)
-    {
+    IBTK_DO_ONCE(
         d_grid_geom->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen());
         d_grid_geom->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen());
-        need_to_add_cubic_coarsen = false;
-    }
+                 );
 
     // Setup cached coarsen algorithms and schedules.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();

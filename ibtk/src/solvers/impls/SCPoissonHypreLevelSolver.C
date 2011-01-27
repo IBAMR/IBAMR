@@ -46,6 +46,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/PhysicalBoundaryUtilities.h>
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -206,15 +207,12 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(
     setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)));
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBTK_DO_ONCE(
         t_solve_system            = TimerManager::getManager()->getTimer("IBTK::SCPoissonHypreLevelSolver::solveSystem()");
         t_solve_system_hypre      = TimerManager::getManager()->getTimer("IBTK::SCPoissonHypreLevelSolver::solveSystem()[hypre]");
         t_initialize_solver_state = TimerManager::getManager()->getTimer("IBTK::SCPoissonHypreLevelSolver::initializeSolverState()");
         t_deallocate_solver_state = TimerManager::getManager()->getTimer("IBTK::SCPoissonHypreLevelSolver::deallocateSolverState()");
-        timers_need_init = false;
-    }
+                 );
     return;
 }// SCPoissonHypreLevelSolver
 

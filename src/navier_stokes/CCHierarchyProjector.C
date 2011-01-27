@@ -45,6 +45,7 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
@@ -191,15 +192,12 @@ CCHierarchyProjector::CCHierarchyProjector(
     d_poisson_solver->setPreconditioner(d_cc_div_grad_hypre_solver);
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBAMR_DO_ONCE(
         t_project_hierarchy             = TimerManager::getManager()->getTimer("IBAMR::CCHierarchyProjector::projectHierarchy");
         t_initialize_level_data         = TimerManager::getManager()->getTimer("IBAMR::CCHierarchyProjector::initializeLevelData()");
         t_reset_hierarchy_configuration = TimerManager::getManager()->getTimer("IBAMR::CCHierarchyProjector::resetHierarchyConfiguration()");
         t_put_to_database               = TimerManager::getManager()->getTimer("IBAMR::CCHierarchyProjector::putToDatabase()");
-        timers_need_init = false;
-    }
+                  );
     return;
 }// CCHierarchyProjector
 

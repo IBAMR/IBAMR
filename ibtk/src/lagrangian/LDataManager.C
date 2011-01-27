@@ -598,6 +598,21 @@ LDataManager::interp(
 }// interp
 
 void
+LDataManager::interpolate(
+    const int f_data_idx,
+    std::vector<Pointer<LNodeLevelData> >& F_data,
+    std::vector<Pointer<LNodeLevelData> >& X_data,
+    std::vector<Pointer<RefineSchedule<NDIM> > > f_refine_scheds,
+    const double fill_data_time,
+    const int coarsest_ln,
+    const int finest_ln)
+{
+    IBTK_DEPRECATED_MEMBER_FUNCTION2("IBTK::LDataManager","interpolate()","interp()");
+    interp(f_data_idx, F_data, X_data, f_refine_scheds, fill_data_time, coarsest_ln, finest_ln);
+    return;
+}// interpolate
+
+void
 LDataManager::registerLNodeInitStrategy(
     Pointer<LNodeInitStrategy> lag_init)
 {
@@ -3079,9 +3094,7 @@ LDataManager::LDataManager(
     }
 
     // Setup Timers.
-    static bool timers_need_init = true;
-    if (timers_need_init)
-    {
+    IBTK_DO_ONCE(
         t_map_lagrangian_to_petsc = TimerManager::getManager()->getTimer("IBTK::LDataManager::mapLagrangianToPETSc()");
         t_map_petsc_to_lagrangian = TimerManager::getManager()->getTimer("IBTK::LDataManager::mapPETScToLagrangian()");
         t_begin_data_redistribution = TimerManager::getManager()->getTimer("IBTK::LDataManager::beginDataRedistribution()");
@@ -3099,8 +3112,7 @@ LDataManager::LDataManager(
         t_compute_node_distribution = TimerManager::getManager()->getTimer("IBTK::LDataManager::computeNodeDistribution()");
         t_compute_node_offsets = TimerManager::getManager()->getTimer("IBTK::LDataManager::computeNodeOffsets()");
         LEInteractor::initializeTimers();
-        timers_need_init = false;
-    }
+                 );
     return;
 }// LDataManager
 

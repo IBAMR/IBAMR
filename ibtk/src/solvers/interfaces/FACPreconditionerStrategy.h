@@ -43,6 +43,8 @@
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
+namespace IBTK
+{
 /*!
  * \brief Class FACPreconditionerStrategy provides an interface for specifying
  * the problem-specific operations needed to implement a specific FAC
@@ -58,8 +60,6 @@
  *
  * \see FACPreconditioner
  */
-namespace IBTK
-{
 class FACPreconditionerStrategy
     : public virtual SAMRAI::tbox::DescribedClass
 {

@@ -2,3 +2,6 @@
 include $(top_srcdir)/config/Make-rules
 doc:
 	@DOXYGEN@
+
+online_doc:
+	@DOXYGEN@ online_Doxyfile

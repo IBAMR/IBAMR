@@ -238,10 +238,6 @@ private:
      */
     StreamableFactoryMap d_factory_map;
 };
-
-// This class was formerly named StashableManager.  We provide a typedef for
-// backwards compatibility.
-typedef StreamableManager StashableManager;
 }// namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
