@@ -858,7 +858,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
 
         // Solve the incompressible Navier-Stokes equations.
         t_advance_hierarchy_phase6->start();
-        d_ins_hier_integrator->integrateHierarchy(current_time, new_time);
+        d_ins_hier_integrator->integrateHierarchy(current_time, new_time, cycle);
         t_advance_hierarchy_phase6->stop();
 
         // Set u(n+1/2) = 0.5*(u(n) + u(n+1)) and interpolate u(n+1/2) to

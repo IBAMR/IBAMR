@@ -1052,7 +1052,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         }
 
         // Solve the incompressible Navier-Stokes equations.
-        d_ins_hier_integrator->integrateHierarchy(current_time, new_time);
+        d_ins_hier_integrator->integrateHierarchy(current_time, new_time, cycle);
 
         // Set u(n+1/2) = 0.5*(u(n) + u(n+1)).
         d_hier_sc_data_ops->linearSum(d_V_idx, 0.5, U_current_idx, 0.5, U_new_idx);

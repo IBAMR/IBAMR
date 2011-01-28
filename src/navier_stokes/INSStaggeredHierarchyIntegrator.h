@@ -185,12 +185,30 @@ public:
     ///
     ///  The following routines:
     ///
+    ///      registerPreprocessIntegrateHierarchyCallback(),
+    ///      registerPostprocessIntegrateHierarchyCallback(),
     ///      registerRegridHierarchyCallback(),
     ///      registerApplyGradientDetectorCallback()
     ///
     ///  allow for the registration of callback functions that are executed by
     ///  the hierarchy integrator.
     ///
+
+    /*!
+     * \brief Callback registration function.
+     */
+    void
+    registerPreprocessIntegrateHierarchyCallback(
+        void (*callback)(const double current_time, const double new_time, const int cycle_num, void* ctx),
+        void* ctx);
+
+    /*!
+     * \brief Callback registration function.
+     */
+    void
+    registerPostprocessIntegrateHierarchyCallback(
+        void (*callback)(const double current_time, const double new_time, const int cycle_num, void* ctx),
+        void* ctx);
 
     /*!
      * \brief Callback registration function.
@@ -425,7 +443,8 @@ public:
     virtual void
     integrateHierarchy(
         const double current_time,
-        const double new_time);
+        const double new_time,
+        const int cycle_num);
 
     /*!
      * Clean up data following call to integrateHierarchy().
@@ -1168,6 +1187,12 @@ private:
     /*!
      * \brief Callback function pointers and callback contexts.
      */
+    std::vector<void (*)(const double current_time, const double new_time, const int cycle_num, void* ctx)> d_preprocess_integrate_hierarchy_callbacks;
+    std::vector<void*> d_preprocess_integrate_hierarchy_callback_ctxs;
+
+    std::vector<void (*)(const double current_time, const double new_time, const int cycle_num, void* ctx)> d_postprocess_integrate_hierarchy_callbacks;
+    std::vector<void*> d_postprocess_integrate_hierarchy_callback_ctxs;
+
     std::vector<void (*)(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy, const double regrid_data_time, const bool initial_time, void* ctx)> d_regrid_hierarchy_callbacks;
     std::vector<void*> d_regrid_hierarchy_callback_ctxs;
 

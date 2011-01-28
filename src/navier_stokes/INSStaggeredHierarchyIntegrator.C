@@ -441,6 +441,26 @@ INSStaggeredHierarchyIntegrator::registerVisItDataWriter(
 }// registerVisItDataWriter
 
 void
+INSStaggeredHierarchyIntegrator::registerPreprocessIntegrateHierarchyCallback(
+    void (*callback)(const double current_time, const double new_time, const int cycle_num, void* ctx),
+    void* ctx)
+{
+    d_preprocess_integrate_hierarchy_callbacks.push_back(callback);
+    d_preprocess_integrate_hierarchy_callback_ctxs.push_back(ctx);
+    return;
+}// registerPreprocessIntegrateHierarchyCallback
+
+void
+INSStaggeredHierarchyIntegrator::registerPostprocessIntegrateHierarchyCallback(
+    void (*callback)(const double current_time, const double new_time, const int cycle_num, void* ctx),
+    void* ctx)
+{
+    d_postprocess_integrate_hierarchy_callbacks.push_back(callback);
+    d_postprocess_integrate_hierarchy_callback_ctxs.push_back(ctx);
+    return;
+}// registerPostprocessIntegrateHierarchyCallback
+
+void
 INSStaggeredHierarchyIntegrator::registerRegridHierarchyCallback(
     void (*callback)(const Pointer<BasePatchHierarchy<NDIM> > hierarchy, const double regrid_data_time, const bool initial_time, void* ctx),
     void* ctx)
@@ -1139,7 +1159,7 @@ INSStaggeredHierarchyIntegrator::advanceHierarchy(
     integrateHierarchy_initialize(current_time, new_time);
     for (int cycle = 0; cycle < d_num_cycles; ++cycle)
     {
-        integrateHierarchy(current_time, new_time);
+        integrateHierarchy(current_time, new_time, cycle);
     }
     integrateHierarchy_finalize(current_time, new_time);
 
@@ -1424,11 +1444,20 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
 void
 INSStaggeredHierarchyIntegrator::integrateHierarchy(
     const double current_time,
-    const double new_time)
+    const double new_time,
+    const int cycle_num)
 {
     t_integrate_hierarchy->start();
 
     const double dt = new_time-current_time;
+
+    // Execute any registered callback functions.
+    for (size_t i = 0; i < d_preprocess_integrate_hierarchy_callbacks.size(); ++i)
+    {
+        (*d_preprocess_integrate_hierarchy_callbacks[i])(
+            current_time, new_time, cycle_num,
+            d_preprocess_integrate_hierarchy_callback_ctxs[i]);
+    }
 
     // Perform a single step of fixed point iteration.
 
@@ -1475,6 +1504,34 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     // Synchronize solution data after solve.
     d_side_synch_op->resetTransactionComponent(sol_synch_transaction);
     d_side_synch_op->synchronizeData(current_time);
+
+    // Enforce Dirichlet boundary conditions.
+    d_U_bc_helper->resetValuesAtDirichletBoundaries(d_sol_vec->getComponentDescriptorIndex(0));
+
+    // Pull out solution components.
+    d_hier_sc_data_ops->copyData(d_U_new_idx, d_sol_vec->getComponentDescriptorIndex(0));
+    d_hier_cc_data_ops->copyData(d_P_new_idx, d_sol_vec->getComponentDescriptorIndex(1));
+
+    // Reset the right-hand side vector.
+    d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0), +d_rho, N_idx, d_rhs_vec->getComponentDescriptorIndex(0));
+    if (!d_F_fcn.isNull())
+    {
+        d_hier_sc_data_ops->subtract(d_rhs_vec->getComponentDescriptorIndex(0), d_rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
+        d_hier_sc_data_ops->copyData(d_F_new_idx, d_F_scratch_idx);
+    }
+    if (!d_Q_fcn.isNull())
+    {
+        d_hier_sc_data_ops->add(d_rhs_vec->getComponentDescriptorIndex(1), d_rhs_vec->getComponentDescriptorIndex(1), d_Q_scratch_idx);
+        d_hier_sc_data_ops->copyData(d_Q_new_idx, d_Q_scratch_idx);
+    }
+
+    // Execute any registered callback functions.
+    for (size_t i = 0; i < d_postprocess_integrate_hierarchy_callbacks.size(); ++i)
+    {
+        (*d_postprocess_integrate_hierarchy_callbacks[i])(
+            current_time, new_time, cycle_num,
+            d_postprocess_integrate_hierarchy_callback_ctxs[i]);
+    }
 
     // Update the values of any advected-and-diffused quantities registered with
     // the optional advection-diffusion solver.
@@ -1527,26 +1584,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         }
         d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time);
         d_adv_diff_hier_integrator->synchronizeHierarchy();
-    }
-
-    // Enforce Dirichlet boundary conditions.
-    d_U_bc_helper->resetValuesAtDirichletBoundaries(d_sol_vec->getComponentDescriptorIndex(0));
-
-    // Pull out solution components.
-    d_hier_sc_data_ops->copyData(d_U_new_idx, d_sol_vec->getComponentDescriptorIndex(0));
-    d_hier_cc_data_ops->copyData(d_P_new_idx, d_sol_vec->getComponentDescriptorIndex(1));
-
-    // Reset the right-hand side vector.
-    d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0), +d_rho, N_idx, d_rhs_vec->getComponentDescriptorIndex(0));
-    if (!d_F_fcn.isNull())
-    {
-        d_hier_sc_data_ops->subtract(d_rhs_vec->getComponentDescriptorIndex(0), d_rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
-        d_hier_sc_data_ops->copyData(d_F_new_idx, d_F_scratch_idx);
-    }
-    if (!d_Q_fcn.isNull())
-    {
-        d_hier_sc_data_ops->add(d_rhs_vec->getComponentDescriptorIndex(1), d_rhs_vec->getComponentDescriptorIndex(1), d_Q_scratch_idx);
-        d_hier_sc_data_ops->copyData(d_Q_new_idx, d_Q_scratch_idx);
     }
 
     t_integrate_hierarchy->stop();
@@ -2304,7 +2341,7 @@ INSStaggeredHierarchyIntegrator::applyGradientDetector(
         }
     }
 
-    // Allow callback functions to tag cells for refinement.
+    // Execute any registered callback functions.
     for (size_t i = 0; i < d_apply_gradient_detector_callbacks.size(); ++i)
     {
         (*d_apply_gradient_detector_callbacks[i])(
