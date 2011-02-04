@@ -127,6 +127,7 @@ EXTRA_DIST += $(top_srcdir)/include/ibtk/PETScSNESJacobianJOWrapper.I
 EXTRA_DIST += $(top_srcdir)/include/ibtk/PETScSNESJacobianJOWrapper.h
 EXTRA_DIST += $(top_srcdir)/include/ibtk/PETScVecOps.h
 EXTRA_DIST += $(top_srcdir)/include/ibtk/PETScVecUtilities.h
+EXTRA_DIST += $(top_srcdir)/include/ibtk/ParallelEdgeMap.h
 EXTRA_DIST += $(top_srcdir)/include/ibtk/ParallelMap.h
 EXTRA_DIST += $(top_srcdir)/include/ibtk/PatchMathOps.h
 EXTRA_DIST += $(top_srcdir)/include/ibtk/PatchVecCellDataBasicOps.h

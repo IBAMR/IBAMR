@@ -46,6 +46,25 @@
         }                                                       \
     } while (0)
 
+#define IBTK_DEPRECATED_CLASS1(deprecated_class_name)                   \
+    IBTK_DO_ONCE({                                                      \
+            SAMRAI::tbox::pout << "WARNING: class "                     \
+                               << deprecated_class_name                 \
+                               << " is deprecated and may be removed in the future." \
+                               << std::endl;                            \
+        });
+
+#define IBTK_DEPRECATED_CLASS2(deprecated_class_name,new_class_name)    \
+    IBTK_DO_ONCE({                                                      \
+            SAMRAI::tbox::pout << "WARNING: class "                     \
+                               << deprecated_class_name                 \
+                               << " is deprecated and may be removed in the future.\n" \
+                               << "Please update your code to use class " \
+                               << new_class_name                        \
+                               << "."                                   \
+                               << std::endl;                            \
+        });
+
 #define IBTK_DEPRECATED_FUNCTION1(deprecated_function_name)             \
     IBTK_DO_ONCE({                                                      \
             SAMRAI::tbox::pout << "WARNING: function "                  \

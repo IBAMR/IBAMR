@@ -137,6 +137,7 @@ $(top_srcdir)/src/utilities/LagMarkerUtilities.C \
 $(top_srcdir)/src/utilities/NormOps.C \
 $(top_srcdir)/src/utilities/PETScMatOps.C \
 $(top_srcdir)/src/utilities/PETScVecOps.C \
+$(top_srcdir)/src/utilities/ParallelEdgeMap.C \
 $(top_srcdir)/src/utilities/ParallelMap.C \
 $(top_srcdir)/src/utilities/RefinePatchStrategySet.C \
 $(top_srcdir)/src/utilities/SideDataSynchronization.C \
@@ -270,6 +271,7 @@ $(top_srcdir)/src/utilities/LagMarkerUtilities.h \
 $(top_srcdir)/src/utilities/NormOps.h \
 $(top_srcdir)/src/utilities/PETScMatOps.h \
 $(top_srcdir)/src/utilities/PETScVecOps.h \
+$(top_srcdir)/src/utilities/ParallelEdgeMap.h \
 $(top_srcdir)/src/utilities/ParallelMap.h \
 $(top_srcdir)/src/utilities/RefinePatchStrategySet.I \
 $(top_srcdir)/src/utilities/RefinePatchStrategySet.h \

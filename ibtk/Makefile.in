@@ -545,6 +545,7 @@ EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/include/ibtk/PETScSNESJacobianJOWrapper.h \
 	$(top_srcdir)/include/ibtk/PETScVecOps.h \
 	$(top_srcdir)/include/ibtk/PETScVecUtilities.h \
+	$(top_srcdir)/include/ibtk/ParallelEdgeMap.h \
 	$(top_srcdir)/include/ibtk/ParallelMap.h \
 	$(top_srcdir)/include/ibtk/PatchMathOps.h \
 	$(top_srcdir)/include/ibtk/PatchVecCellDataBasicOps.h \
