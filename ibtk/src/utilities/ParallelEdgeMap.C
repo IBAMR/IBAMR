@@ -45,6 +45,7 @@
 #endif
 
 // IBTK INCLUDES
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES

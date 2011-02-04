@@ -35,6 +35,8 @@
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 
+#include <tbox/PIO.h>
+
 #define IBAMR_DO_ONCE(task)                                      \
     do                                                           \
     {                                                            \
