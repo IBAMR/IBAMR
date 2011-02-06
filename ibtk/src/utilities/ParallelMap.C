@@ -147,7 +147,7 @@ ParallelMap::communicateData()
             {
                 // Receive and unpack data broadcast from process sending_proc.
                 std::vector<char> buffer(data_sz[sending_proc]);
-                int size;
+                int size = data_sz[sending_proc];
                 SAMRAI_MPI::bcast(&buffer[0], size, sending_proc);
 #ifdef DEBUG_CHECK_ASSERTIONS
                 TBOX_ASSERT(size == data_sz[sending_proc]);
@@ -207,7 +207,7 @@ ParallelMap::communicateData()
             {
                 // Receive and unpack data broadcast from process sending_proc.
                 std::vector<int> keys_received(num_removals[sending_proc]);
-                int size;
+                int size = num_removals[sending_proc];
                 SAMRAI_MPI::bcast(&keys_received[0], size, sending_proc);
 #ifdef DEBUG_CHECK_ASSERTIONS
                 TBOX_ASSERT(size == num_removals[sending_proc]);
