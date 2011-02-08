@@ -1,5 +1,5 @@
-// Filename: SideSynchCopyFillPattern.h
-// Created on 10 Mar 2010 by Boyce Griffith
+// Filename: NodeSynchCopyFillPattern.h
+// Created on 02 Feb 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_SideSynchCopyFillPattern
-#define included_SideSynchCopyFillPattern
+#ifndef included_NodeSynchCopyFillPattern
+#define included_NodeSynchCopyFillPattern
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -43,26 +43,33 @@
 namespace IBTK
 {
 /*!
- * \brief Class SideCellSynchCopyFillPattern is a concrete implementation of the
+ * \brief Class NodeCellSynchCopyFillPattern is a concrete implementation of the
  * abstract base class SAMRAI::xfer::VariableFillPattern.  It is used to
  * calculate overlaps according to a pattern which limits overlaps to the
- * side-centered ghost region surrounding a patch appropriate for
- * "synchronizing" side-centered values at patch boundaries.
+ * node-centered ghost region surrounding a patch appropriate for
+ * "synchronizing" node-centered values in an axis-by-axis manner at patch
+ * boundaries.
+ *
+ * \note We synchronize data one axis at a time because node-centered values can
+ * be shared by more than two patches.  For instance, to synchronize nodal
+ * values in three spatial dimensions, we first synchronize values in the x
+ * direction, then in the y direction, and finally in the z direction.
  */
-class SideSynchCopyFillPattern
+class NodeSynchCopyFillPattern
     : public virtual SAMRAI::xfer::VariableFillPattern<NDIM>
 {
 public:
     /*!
-     * \brief Default constructor
+     * \brief Constructor
      */
-    SideSynchCopyFillPattern();
+    NodeSynchCopyFillPattern(
+        const int axis);
 
     /*!
      * \brief Destructor
      */
     virtual
-    ~SideSynchCopyFillPattern();
+    ~NodeSynchCopyFillPattern();
 
     /*!
      * Calculate overlaps between the destination and source geometries according
@@ -96,12 +103,19 @@ public:
     getStencilWidth();
 
     /*!
-     * Returns a string name identifier "SIDE_SYNCH_COPY_FILL_PATTERN".
+     * Returns a string name identifier "NODE_SYNCH_COPY_FILL_PATTERN".
      */
     const std::string&
     getPatternName() const;
 
 private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    NodeSynchCopyFillPattern();
+
     /*!
      * \brief Copy constructor.
      *
@@ -109,8 +123,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SideSynchCopyFillPattern(
-        const SideSynchCopyFillPattern& from);
+    NodeSynchCopyFillPattern(
+        const NodeSynchCopyFillPattern& from);
 
     /*!
      * \brief Assignment operator.
@@ -121,18 +135,19 @@ private:
      *
      * \return A reference to this object.
      */
-    SideSynchCopyFillPattern&
+    NodeSynchCopyFillPattern&
     operator=(
-        const SideSynchCopyFillPattern& that);
+        const NodeSynchCopyFillPattern& that);
 
     SAMRAI::hier::IntVector<NDIM> d_stencil_width;
+    const int d_axis;
 };
 }// namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "SideSynchCopyFillPattern.I"
+//#include "NodeSynchCopyFillPattern.I"
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_SideSynchCopyFillPattern
+#endif //#ifndef included_NodeSynchCopyFillPattern

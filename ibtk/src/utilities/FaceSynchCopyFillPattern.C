@@ -1,5 +1,5 @@
-// Filename: SideSynchCopyFillPattern.C
-// Created on 10 Mar 2010 by Boyce Griffith
+// Filename: FaceSynchCopyFillPattern.C
+// Created on 03 Feb 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "SideSynchCopyFillPattern.h"
+#include "FaceSynchCopyFillPattern.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -38,8 +38,8 @@
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
-#include <SideGeometry.h>
-#include <SideOverlap.h>
+#include <FaceGeometry.h>
+#include <FaceOverlap.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -49,26 +49,26 @@ namespace IBTK
 
 namespace
 {
-static const std::string PATTERN_NAME = "SIDE_SYNCH_COPY_FILL_PATTERN";
+static const std::string PATTERN_NAME = "FACE_SYNCH_COPY_FILL_PATTERN";
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-SideSynchCopyFillPattern::SideSynchCopyFillPattern()
+FaceSynchCopyFillPattern::FaceSynchCopyFillPattern()
     : d_stencil_width(1)
 {
     // intentionally blank
     return;
-}// SideSynchCopyFillPattern
+}// FaceSynchCopyFillPattern
 
-SideSynchCopyFillPattern::~SideSynchCopyFillPattern()
+FaceSynchCopyFillPattern::~FaceSynchCopyFillPattern()
 {
     // intentionally blank
     return;
-}// SideSynchCopyFillPattern
+}// FaceSynchCopyFillPattern
 
 Pointer<BoxOverlap<NDIM> >
-SideSynchCopyFillPattern::calculateOverlap(
+FaceSynchCopyFillPattern::calculateOverlap(
     const BoxGeometry<NDIM>& dst_geometry,
     const BoxGeometry<NDIM>& src_geometry,
     const Box<NDIM>& dst_patch_box,
@@ -76,14 +76,14 @@ SideSynchCopyFillPattern::calculateOverlap(
     const bool overwrite_interior,
     const IntVector<NDIM>& src_offset) const
 {
-    Pointer<SideOverlap<NDIM> > box_geom_overlap =
+    Pointer<FaceOverlap<NDIM> > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!box_geom_overlap.isNull());
 #endif
     if (box_geom_overlap->isOverlapEmpty()) return box_geom_overlap;
 
-    const SideGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const SideGeometry<NDIM>*>(&dst_geometry);
+    const FaceGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const FaceGeometry<NDIM>*>(&dst_geometry);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(t_dst_geometry != NULL);
 #endif
@@ -102,8 +102,8 @@ SideSynchCopyFillPattern::calculateOverlap(
         {
             // Determine the stencil box.
             const Box<NDIM>& dst_box = t_dst_geometry->getBox();
-            Box<NDIM> stencil_box = SideGeometry<NDIM>::toSideBox(dst_box,axis);
-            stencil_box.lower()(axis) = stencil_box.upper()(axis);
+            Box<NDIM> stencil_box = FaceGeometry<NDIM>::toFaceBox(dst_box,axis);
+            stencil_box.lower()(0) = stencil_box.upper()(0);
 
             // Intersect the original overlap boxes with the stencil box.
             const BoxList<NDIM>& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxList(axis);
@@ -114,17 +114,17 @@ SideSynchCopyFillPattern::calculateOverlap(
             }
         }
     }
-    return new SideOverlap<NDIM>(dst_boxes, src_offset);
+    return new FaceOverlap<NDIM>(dst_boxes, src_offset);
 }// calculateOverlap
 
 IntVector<NDIM>&
-SideSynchCopyFillPattern::getStencilWidth()
+FaceSynchCopyFillPattern::getStencilWidth()
 {
     return d_stencil_width;
 }// getStencilWidth
 
 const std::string&
-SideSynchCopyFillPattern::getPatternName() const
+FaceSynchCopyFillPattern::getPatternName() const
 {
     return PATTERN_NAME;
 }// getPatternName
@@ -140,6 +140,6 @@ SideSynchCopyFillPattern::getPatternName() const
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class Pointer<IBTK::SideSynchCopyFillPattern>;
+template class Pointer<IBTK::FaceSynchCopyFillPattern>;
 
 //////////////////////////////////////////////////////////////////////////////

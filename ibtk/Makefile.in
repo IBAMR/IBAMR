@@ -477,11 +477,15 @@ EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/include/ibtk/DiagonalScalingOperator.h \
 	$(top_srcdir)/include/ibtk/DiagonalScalingPreconditioner.I \
 	$(top_srcdir)/include/ibtk/DiagonalScalingPreconditioner.h \
+	$(top_srcdir)/include/ibtk/EdgeDataSynchronization.h \
+	$(top_srcdir)/include/ibtk/EdgeSynchCopyFillPattern.h \
 	$(top_srcdir)/include/ibtk/ExtendedRobinBcCoefStrategy.h \
 	$(top_srcdir)/include/ibtk/FACPreconditioner.I \
 	$(top_srcdir)/include/ibtk/FACPreconditioner.h \
 	$(top_srcdir)/include/ibtk/FACPreconditionerStrategy.h \
 	$(top_srcdir)/include/ibtk/FEDataManager.h \
+	$(top_srcdir)/include/ibtk/FaceDataSynchronization.h \
+	$(top_srcdir)/include/ibtk/FaceSynchCopyFillPattern.h \
 	$(top_srcdir)/include/ibtk/FixedSizedStream.I \
 	$(top_srcdir)/include/ibtk/FixedSizedStream.h \
 	$(top_srcdir)/include/ibtk/GeneralOperator.h \
@@ -524,6 +528,8 @@ EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/include/ibtk/LinearOperator.h \
 	$(top_srcdir)/include/ibtk/LinearSolver.h \
 	$(top_srcdir)/include/ibtk/NewtonKrylovSolver.h \
+	$(top_srcdir)/include/ibtk/NodeDataSynchronization.h \
+	$(top_srcdir)/include/ibtk/NodeSynchCopyFillPattern.h \
 	$(top_srcdir)/include/ibtk/NormOps.h \
 	$(top_srcdir)/include/ibtk/PETScKrylovLinearSolver.I \
 	$(top_srcdir)/include/ibtk/PETScKrylovLinearSolver.h \
@@ -562,8 +568,6 @@ EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/include/ibtk/SideDataSynchronization.h \
 	$(top_srcdir)/include/ibtk/SideNoCornersFillPattern.h \
 	$(top_srcdir)/include/ibtk/SideSynchCopyFillPattern.h \
-	$(top_srcdir)/include/ibtk/SideSynchCopyTransaction.h \
-	$(top_srcdir)/include/ibtk/SideSynchCopyTransactionFactory.h \
 	$(top_srcdir)/include/ibtk/StandardTagAndInitStrategySet.I \
 	$(top_srcdir)/include/ibtk/StandardTagAndInitStrategySet.h \
 	$(top_srcdir)/include/ibtk/Stashable.h \

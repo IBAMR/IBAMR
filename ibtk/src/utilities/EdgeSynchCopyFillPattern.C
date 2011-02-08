@@ -1,5 +1,5 @@
-// Filename: SideSynchCopyFillPattern.C
-// Created on 10 Mar 2010 by Boyce Griffith
+// Filename: EdgeSynchCopyFillPattern.C
+// Created on 02 Feb 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "SideSynchCopyFillPattern.h"
+#include "EdgeSynchCopyFillPattern.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -38,8 +38,8 @@
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
-#include <SideGeometry.h>
-#include <SideOverlap.h>
+#include <EdgeGeometry.h>
+#include <EdgeOverlap.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -49,26 +49,28 @@ namespace IBTK
 
 namespace
 {
-static const std::string PATTERN_NAME = "SIDE_SYNCH_COPY_FILL_PATTERN";
+static const std::string PATTERN_NAME = "EDGE_SYNCH_COPY_FILL_PATTERN";
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-SideSynchCopyFillPattern::SideSynchCopyFillPattern()
-    : d_stencil_width(1)
+EdgeSynchCopyFillPattern::EdgeSynchCopyFillPattern(
+    const int axis)
+    : d_stencil_width(1),
+      d_axis(axis)
 {
     // intentionally blank
     return;
-}// SideSynchCopyFillPattern
+}// EdgeSynchCopyFillPattern
 
-SideSynchCopyFillPattern::~SideSynchCopyFillPattern()
+EdgeSynchCopyFillPattern::~EdgeSynchCopyFillPattern()
 {
     // intentionally blank
     return;
-}// SideSynchCopyFillPattern
+}// EdgeSynchCopyFillPattern
 
 Pointer<BoxOverlap<NDIM> >
-SideSynchCopyFillPattern::calculateOverlap(
+EdgeSynchCopyFillPattern::calculateOverlap(
     const BoxGeometry<NDIM>& dst_geometry,
     const BoxGeometry<NDIM>& src_geometry,
     const Box<NDIM>& dst_patch_box,
@@ -76,21 +78,21 @@ SideSynchCopyFillPattern::calculateOverlap(
     const bool overwrite_interior,
     const IntVector<NDIM>& src_offset) const
 {
-    Pointer<SideOverlap<NDIM> > box_geom_overlap =
+    Pointer<EdgeOverlap<NDIM> > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!box_geom_overlap.isNull());
 #endif
     if (box_geom_overlap->isOverlapEmpty()) return box_geom_overlap;
 
-    const SideGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const SideGeometry<NDIM>*>(&dst_geometry);
+    const EdgeGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const EdgeGeometry<NDIM>*>(&dst_geometry);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(t_dst_geometry != NULL);
 #endif
     BoxList<NDIM> dst_boxes[NDIM];
     for (int axis = 0; axis < NDIM; ++axis)
     {
-        bool skip = false;
+        bool skip = (axis == d_axis);
         for (int d = 0; d < NDIM && !skip; ++d)
         {
             if (d != axis)
@@ -102,7 +104,7 @@ SideSynchCopyFillPattern::calculateOverlap(
         {
             // Determine the stencil box.
             const Box<NDIM>& dst_box = t_dst_geometry->getBox();
-            Box<NDIM> stencil_box = SideGeometry<NDIM>::toSideBox(dst_box,axis);
+            Box<NDIM> stencil_box = EdgeGeometry<NDIM>::toEdgeBox(dst_box,axis);
             stencil_box.lower()(axis) = stencil_box.upper()(axis);
 
             // Intersect the original overlap boxes with the stencil box.
@@ -114,17 +116,17 @@ SideSynchCopyFillPattern::calculateOverlap(
             }
         }
     }
-    return new SideOverlap<NDIM>(dst_boxes, src_offset);
+    return new EdgeOverlap<NDIM>(dst_boxes, src_offset);
 }// calculateOverlap
 
 IntVector<NDIM>&
-SideSynchCopyFillPattern::getStencilWidth()
+EdgeSynchCopyFillPattern::getStencilWidth()
 {
     return d_stencil_width;
 }// getStencilWidth
 
 const std::string&
-SideSynchCopyFillPattern::getPatternName() const
+EdgeSynchCopyFillPattern::getPatternName() const
 {
     return PATTERN_NAME;
 }// getPatternName
@@ -140,6 +142,6 @@ SideSynchCopyFillPattern::getPatternName() const
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class Pointer<IBTK::SideSynchCopyFillPattern>;
+template class Pointer<IBTK::EdgeSynchCopyFillPattern>;
 
 //////////////////////////////////////////////////////////////////////////////

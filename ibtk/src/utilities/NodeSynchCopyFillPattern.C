@@ -1,5 +1,5 @@
-// Filename: SideSynchCopyFillPattern.C
-// Created on 10 Mar 2010 by Boyce Griffith
+// Filename: NodeSynchCopyFillPattern.C
+// Created on 02 Feb 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "SideSynchCopyFillPattern.h"
+#include "NodeSynchCopyFillPattern.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -38,8 +38,8 @@
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
-#include <SideGeometry.h>
-#include <SideOverlap.h>
+#include <NodeGeometry.h>
+#include <NodeOverlap.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -49,26 +49,28 @@ namespace IBTK
 
 namespace
 {
-static const std::string PATTERN_NAME = "SIDE_SYNCH_COPY_FILL_PATTERN";
+static const std::string PATTERN_NAME = "NODE_SYNCH_COPY_FILL_PATTERN";
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-SideSynchCopyFillPattern::SideSynchCopyFillPattern()
-    : d_stencil_width(1)
+NodeSynchCopyFillPattern::NodeSynchCopyFillPattern(
+    const int axis)
+    : d_stencil_width(1),
+      d_axis(axis)
 {
     // intentionally blank
     return;
-}// SideSynchCopyFillPattern
+}// NodeSynchCopyFillPattern
 
-SideSynchCopyFillPattern::~SideSynchCopyFillPattern()
+NodeSynchCopyFillPattern::~NodeSynchCopyFillPattern()
 {
     // intentionally blank
     return;
-}// SideSynchCopyFillPattern
+}// NodeSynchCopyFillPattern
 
 Pointer<BoxOverlap<NDIM> >
-SideSynchCopyFillPattern::calculateOverlap(
+NodeSynchCopyFillPattern::calculateOverlap(
     const BoxGeometry<NDIM>& dst_geometry,
     const BoxGeometry<NDIM>& src_geometry,
     const Box<NDIM>& dst_patch_box,
@@ -76,55 +78,52 @@ SideSynchCopyFillPattern::calculateOverlap(
     const bool overwrite_interior,
     const IntVector<NDIM>& src_offset) const
 {
-    Pointer<SideOverlap<NDIM> > box_geom_overlap =
+    Pointer<NodeOverlap<NDIM> > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!box_geom_overlap.isNull());
 #endif
     if (box_geom_overlap->isOverlapEmpty()) return box_geom_overlap;
 
-    const SideGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const SideGeometry<NDIM>*>(&dst_geometry);
+    const NodeGeometry<NDIM>* const t_dst_geometry = dynamic_cast<const NodeGeometry<NDIM>*>(&dst_geometry);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(t_dst_geometry != NULL);
 #endif
-    BoxList<NDIM> dst_boxes[NDIM];
-    for (int axis = 0; axis < NDIM; ++axis)
+    BoxList<NDIM> dst_boxes;
+    bool skip = false;
+    for (int d = 0; d < NDIM && !skip; ++d)
     {
-        bool skip = false;
-        for (int d = 0; d < NDIM && !skip; ++d)
+        if (d != d_axis)
         {
-            if (d != axis)
-            {
-                skip = skip || (src_offset(d) != 0);
-            }
-        }
-        if (!skip)
-        {
-            // Determine the stencil box.
-            const Box<NDIM>& dst_box = t_dst_geometry->getBox();
-            Box<NDIM> stencil_box = SideGeometry<NDIM>::toSideBox(dst_box,axis);
-            stencil_box.lower()(axis) = stencil_box.upper()(axis);
-
-            // Intersect the original overlap boxes with the stencil box.
-            const BoxList<NDIM>& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxList(axis);
-            for (BoxList<NDIM>::Iterator it(box_geom_overlap_boxes); it; it++)
-            {
-                const Box<NDIM> overlap_box = stencil_box * it();
-                if (!overlap_box.empty()) dst_boxes[axis].appendItem(overlap_box);
-            }
+            skip = skip || (src_offset(d) != 0);
         }
     }
-    return new SideOverlap<NDIM>(dst_boxes, src_offset);
+    if (!skip)
+    {
+        // Determine the stencil box.
+        const Box<NDIM>& dst_box = t_dst_geometry->getBox();
+        Box<NDIM> stencil_box = NodeGeometry<NDIM>::toNodeBox(dst_box);
+        stencil_box.lower()(d_axis) = stencil_box.upper()(d_axis);
+
+        // Intersect the original overlap boxes with the stencil box.
+        const BoxList<NDIM>& box_geom_overlap_boxes = box_geom_overlap->getDestinationBoxList();
+        for (BoxList<NDIM>::Iterator it(box_geom_overlap_boxes); it; it++)
+        {
+            const Box<NDIM> overlap_box = stencil_box * it();
+            if (!overlap_box.empty()) dst_boxes.appendItem(overlap_box);
+        }
+    }
+    return new NodeOverlap<NDIM>(dst_boxes, src_offset);
 }// calculateOverlap
 
 IntVector<NDIM>&
-SideSynchCopyFillPattern::getStencilWidth()
+NodeSynchCopyFillPattern::getStencilWidth()
 {
     return d_stencil_width;
 }// getStencilWidth
 
 const std::string&
-SideSynchCopyFillPattern::getPatternName() const
+NodeSynchCopyFillPattern::getPatternName() const
 {
     return PATTERN_NAME;
 }// getPatternName
@@ -140,6 +139,6 @@ SideSynchCopyFillPattern::getPatternName() const
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class Pointer<IBTK::SideSynchCopyFillPattern>;
+template class Pointer<IBTK::NodeSynchCopyFillPattern>;
 
 //////////////////////////////////////////////////////////////////////////////

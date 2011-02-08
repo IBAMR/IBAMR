@@ -495,15 +495,13 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
 
     const int U_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVar(), d_ins_hier_integrator->getCurrentContext());
 
-    d_ralgs["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"] = new RefineAlgorithm<NDIM>();
-    refine_operator = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getVelocityVar(), "CONSERVATIVE_LINEAR_REFINE");
-    d_ralgs["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"]->registerRefine(d_V_idx, U_current_idx, d_V_idx, refine_operator);
-    d_rstrategies["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"] = new CartExtrapPhysBdryOp(d_V_idx, "QUADRATIC");
+    d_ralgs["U->V::C->S::GHOST_FILL"] = new RefineAlgorithm<NDIM>();
+    refine_operator = NULL;
+    d_ralgs["U->V::C->S::GHOST_FILL"]->registerRefine(d_V_idx, U_current_idx, d_V_idx, refine_operator);
 
-    d_ralgs["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"] = new RefineAlgorithm<NDIM>();
-    refine_operator = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getVelocityVar(), "CONSERVATIVE_LINEAR_REFINE");
-    d_ralgs["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"]->registerRefine(d_V_idx, d_V_idx, d_V_idx, refine_operator);
-    d_rstrategies["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"] = new CartExtrapPhysBdryOp(d_V_idx, "QUADRATIC");
+    d_ralgs["V->V::S->S::GHOST_FILL"] = new RefineAlgorithm<NDIM>();
+    refine_operator = NULL;
+    d_ralgs["V->V::S->S::GHOST_FILL"]->registerRefine(d_V_idx, d_V_idx, d_V_idx, refine_operator);
 
     d_calgs["U->U::C->C::CONSERVATIVE_COARSEN"] = new CoarsenAlgorithm<NDIM>();
     coarsen_operator = grid_geom->lookupCoarsenOperator(d_V_var, "CONSERVATIVE_COARSEN");
@@ -750,7 +748,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        d_rscheds["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(current_time);
+        d_rscheds["U->V::C->S::GHOST_FILL"][ln]->fillData(current_time);
     }
 
     // Initialize X(n+1) to equal X(n).
@@ -865,10 +863,10 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         // U(n+1/2).
         t_advance_hierarchy_phase7->start();
         d_hier_sc_data_ops->linearSum(d_V_idx, 0.5, U_current_idx, 0.5, U_new_idx);
-        d_fe_data_manager->interp(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"], current_time, false);
+        d_fe_data_manager->interp(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::GHOST_FILL"], current_time, false);
         if (d_lag_data_manager != NULL)
         {
-            d_lag_data_manager->interp(d_V_idx, U_half_data, X_half_data, std::vector<Pointer<RefineSchedule<NDIM> > >(), current_time, false);
+            d_lag_data_manager->interp(d_V_idx, U_half_data, X_half_data, std::vector<Pointer<CoarsenSchedule<NDIM> > >(), std::vector<Pointer<RefineSchedule<NDIM> > >(), current_time, false);
         }
         t_advance_hierarchy_phase7->stop();
 

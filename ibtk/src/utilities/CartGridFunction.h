@@ -90,7 +90,7 @@ public:
      *
      * \see setDataOnPatch
      */
-    void
+    virtual void
     setDataOnPatchHierarchy(
         const int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
@@ -106,7 +106,7 @@ public:
      *
      * \see setDataOnPatch
      */
-    void
+    virtual void
     setDataOnPatchLevel(
         const int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,

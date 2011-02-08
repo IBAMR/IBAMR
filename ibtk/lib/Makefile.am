@@ -130,10 +130,16 @@ $(top_srcdir)/src/utilities/CartGridFunction.C \
 $(top_srcdir)/src/utilities/CellNoCornersFillPattern.C \
 $(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C \
 $(top_srcdir)/src/utilities/DebuggingUtilities.C \
+$(top_srcdir)/src/utilities/EdgeDataSynchronization.C \
+$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C \
+$(top_srcdir)/src/utilities/FaceDataSynchronization.C \
+$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C \
 $(top_srcdir)/src/utilities/FixedSizedStream.C \
 $(top_srcdir)/src/utilities/IndexUtilities.C \
 $(top_srcdir)/src/utilities/IndexSet.C \
 $(top_srcdir)/src/utilities/LagMarkerUtilities.C \
+$(top_srcdir)/src/utilities/NodeDataSynchronization.C \
+$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C \
 $(top_srcdir)/src/utilities/NormOps.C \
 $(top_srcdir)/src/utilities/PETScMatOps.C \
 $(top_srcdir)/src/utilities/PETScVecOps.C \
@@ -143,8 +149,6 @@ $(top_srcdir)/src/utilities/RefinePatchStrategySet.C \
 $(top_srcdir)/src/utilities/SideDataSynchronization.C \
 $(top_srcdir)/src/utilities/SideNoCornersFillPattern.C \
 $(top_srcdir)/src/utilities/SideSynchCopyFillPattern.C \
-$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C \
-$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C \
 $(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.C \
 $(top_srcdir)/src/utilities/Streamable.C \
 $(top_srcdir)/src/utilities/StreamableFactory.C \
@@ -261,6 +265,10 @@ $(top_srcdir)/src/utilities/CellNoCornersFillPattern.h \
 $(top_srcdir)/src/utilities/CoarsenPatchStrategySet.I \
 $(top_srcdir)/src/utilities/CoarsenPatchStrategySet.h \
 $(top_srcdir)/src/utilities/DebuggingUtilities.h \
+$(top_srcdir)/src/utilities/EdgeDataSynchronization.h \
+$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.h \
+$(top_srcdir)/src/utilities/FaceDataSynchronization.h \
+$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.h \
 $(top_srcdir)/src/utilities/FixedSizedStream.I \
 $(top_srcdir)/src/utilities/FixedSizedStream.h \
 $(top_srcdir)/src/utilities/IndexUtilities.I \
@@ -268,6 +276,8 @@ $(top_srcdir)/src/utilities/IndexUtilities.h \
 $(top_srcdir)/src/utilities/IndexSet.I \
 $(top_srcdir)/src/utilities/IndexSet.h \
 $(top_srcdir)/src/utilities/LagMarkerUtilities.h \
+$(top_srcdir)/src/utilities/NodeDataSynchronization.h \
+$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.h \
 $(top_srcdir)/src/utilities/NormOps.h \
 $(top_srcdir)/src/utilities/PETScMatOps.h \
 $(top_srcdir)/src/utilities/PETScVecOps.h \
@@ -278,8 +288,6 @@ $(top_srcdir)/src/utilities/RefinePatchStrategySet.h \
 $(top_srcdir)/src/utilities/SideDataSynchronization.h \
 $(top_srcdir)/src/utilities/SideNoCornersFillPattern.h \
 $(top_srcdir)/src/utilities/SideSynchCopyFillPattern.h \
-$(top_srcdir)/src/utilities/SideSynchCopyTransaction.h \
-$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.h \
 $(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.I \
 $(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.h \
 $(top_srcdir)/src/utilities/Stashable.h \

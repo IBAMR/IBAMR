@@ -3,10 +3,10 @@ MU = 0.0075
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 1   // maximum number of levels in locally refined grid
+MAX_LEVELS = 3   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 128                                   // coarsest grid spacing
+N = 16                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 VelocityInitialConditions {
@@ -73,7 +73,7 @@ PETScVecOps {
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-   base_filenames_0 = "curve2d_128"
+   base_filenames_2 = "curve2d_256"
 }
 
 INSStaggeredHierarchyIntegrator {
@@ -168,7 +168,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 8*(NFINEST/64)^2  // zero to turn off
+   viz_dump_interval     = 1 // 8*(NFINEST/64)^2  // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 

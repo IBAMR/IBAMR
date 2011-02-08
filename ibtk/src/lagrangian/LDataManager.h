@@ -216,6 +216,7 @@ public:
         std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& F_data,
         std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
         std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& ds_data,
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
         const bool F_data_ghost_node_update=true,
         const bool X_data_ghost_node_update=true,
         const bool ds_data_ghost_node_update=true,
@@ -239,6 +240,7 @@ public:
         const int f_data_idx,
         std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& F_data,
         std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
         const bool F_data_ghost_node_update=true,
         const bool X_data_ghost_node_update=true,
         const int coarsest_ln=-1,
@@ -253,7 +255,8 @@ public:
         const int f_data_idx,
         std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& F_data,
         std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
-        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_refine_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > f_synch_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_ghost_fill_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
         const double fill_data_time=0.0,
         const int coarsest_ln=-1,
         const int finest_ln=-1);
@@ -270,7 +273,8 @@ public:
         const int f_data_idx,
         std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& F_data,
         std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
-        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_refine_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > f_synch_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_ghost_fill_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
         const double fill_data_time=0.0,
         const int coarsest_ln=-1,
         const int finest_ln=-1);
@@ -901,6 +905,34 @@ private:
     LDataManager&
     operator=(
         const LDataManager& that);
+
+    /*!
+     * \brief Version of the spreading routine specialized to the case in which
+     * there is Lagrangian data only on finest_ln.
+     */
+    void
+    spread_specialized(
+        const int f_data_idx,
+        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& F_data,
+        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
+        const bool F_data_ghost_node_update,
+        const bool X_data_ghost_node_update,
+        const int coarsest_ln,
+        const int finest_ln);
+
+    /*!
+     * \brief Version of the interpolation routine specialized to the case in
+     * which there is Lagrangian data only on finest_ln.
+     */
+    void
+    interp_specialized(
+        const int f_data_idx,
+        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& F_data,
+        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_ghost_fill_scheds,
+        const double fill_data_time,
+        const int coarsest_ln,
+        const int finest_ln);
 
     /*!
      * \brief Common implementation of scatterPETScToLagrangian() and

@@ -1,5 +1,5 @@
-// Filename: SideDataSynchronization.C
-// Created on 01 Mar 2010 by Boyce Griffith
+// Filename: EdgeDataSynchronization.C
+// Created on 02 Feb 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,13 +30,12 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "SideDataSynchronization.h"
+#include "EdgeDataSynchronization.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/CartSideDoubleCubicCoarsen.h>
-#include <ibtk/SideSynchCopyFillPattern.h>
+#include <ibtk/EdgeSynchCopyFillPattern.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
@@ -48,28 +47,28 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-SideDataSynchronization::SideDataSynchronization()
+EdgeDataSynchronization::EdgeDataSynchronization()
     : d_is_initialized(false),
       d_transaction_comps(),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
       d_coarsen_alg(NULL),
       d_coarsen_scheds(),
-      d_refine_alg(NULL),
-      d_refine_scheds()
+      d_refine_alg(NDIM),
+      d_refine_scheds(NDIM)
 {
     // intentionally blank
     return;
-}// SideDataSynchronization
+}// EdgeDataSynchronization
 
-SideDataSynchronization::~SideDataSynchronization()
+EdgeDataSynchronization::~EdgeDataSynchronization()
 {
     if (d_is_initialized) deallocateOperatorState();
     return;
-}// ~SideDataSynchronization
+}// ~EdgeDataSynchronization
 
 void
-SideDataSynchronization::initializeOperatorState(
+EdgeDataSynchronization::initializeOperatorState(
     const SynchronizationTransactionComponent& transaction_comp,
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
@@ -78,7 +77,7 @@ SideDataSynchronization::initializeOperatorState(
 }// initializeOperatorState
 
 void
-SideDataSynchronization::initializeOperatorState(
+EdgeDataSynchronization::initializeOperatorState(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps,
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
@@ -93,9 +92,6 @@ SideDataSynchronization::initializeOperatorState(
     d_grid_geom   = d_hierarchy->getGridGeometry();
     d_coarsest_ln = 0;
     d_finest_ln   = d_hierarchy->getFinestLevelNumber();
-
-    // Register the cubic coarsen operators with the grid geometry object.
-    IBTK_DO_ONCE(d_grid_geom->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen()));
 
     // Setup cached coarsen algorithms and schedules.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -137,32 +133,35 @@ SideDataSynchronization::initializeOperatorState(
     }
 
     // Setup cached refine algorithms and schedules.
-    d_refine_alg = new RefineAlgorithm<NDIM>();
-    for (unsigned comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (int axis = 0; axis < NDIM; ++axis)
     {
-        const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
-        Pointer<Variable<NDIM> > var;
-        var_db->mapIndexToVariable(data_idx, var);
-        Pointer<SideVariable<NDIM,double> > sc_var = var;
-        if (sc_var.isNull())
+        d_refine_alg[axis] = new RefineAlgorithm<NDIM>();
+        for (unsigned comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
         {
-            TBOX_ERROR("SideDataSynchronization::initializeOperatorState():\n"
-                       << "  only double-precision side-centered data is supported." << std::endl);
+            const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
+            Pointer<Variable<NDIM> > var;
+            var_db->mapIndexToVariable(data_idx, var);
+            Pointer<EdgeVariable<NDIM,double> > nc_var = var;
+            if (nc_var.isNull())
+            {
+                TBOX_ERROR("EdgeDataSynchronization::initializeOperatorState():\n"
+                           << "  only double-precision edge-centered data is supported." << std::endl);
+            }
+            Pointer<RefineOperator<NDIM> > refine_op = NULL;
+            Pointer<VariableFillPattern<NDIM> > fill_pattern = new EdgeSynchCopyFillPattern(axis);
+            d_refine_alg[axis]->registerRefine(data_idx,  // destination
+                                               data_idx,  // source
+                                               data_idx,  // temporary work space
+                                               refine_op,
+                                               fill_pattern);
         }
-        Pointer<RefineOperator<NDIM> > refine_op = NULL;
-        Pointer<VariableFillPattern<NDIM> > fill_pattern = new SideSynchCopyFillPattern();
-        d_refine_alg->registerRefine(data_idx,  // destination
-                                     data_idx,  // source
-                                     data_idx,  // temporary work space
-                                     refine_op,
-                                     fill_pattern);
-    }
 
-    d_refine_scheds.resize(d_finest_ln+1);
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        d_refine_scheds[ln] = d_refine_alg->createSchedule(level);
+        d_refine_scheds[axis].resize(d_finest_ln+1);
+        for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            d_refine_scheds[axis][ln] = d_refine_alg[axis]->createSchedule(level);
+        }
     }
 
     // Indicate the operator is initialized.
@@ -171,7 +170,7 @@ SideDataSynchronization::initializeOperatorState(
 }// initializeOperatorState
 
 void
-SideDataSynchronization::resetTransactionComponent(
+EdgeDataSynchronization::resetTransactionComponent(
     const SynchronizationTransactionComponent& transaction_comp)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -179,7 +178,7 @@ SideDataSynchronization::resetTransactionComponent(
 #endif
     if (d_transaction_comps.size() != 1)
     {
-        TBOX_ERROR("SideDataSynchronization::resetTransactionComponent():"
+        TBOX_ERROR("EdgeDataSynchronization::resetTransactionComponent():"
                    << "  invalid reset operation.  attempting to change the number of registered synchronization transaction components.\n");
     }
     resetTransactionComponents(std::vector<SynchronizationTransactionComponent>(1,transaction_comp));
@@ -187,7 +186,7 @@ SideDataSynchronization::resetTransactionComponent(
 }// resetTransactionComponent
 
 void
-SideDataSynchronization::resetTransactionComponents(
+EdgeDataSynchronization::resetTransactionComponents(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -195,7 +194,7 @@ SideDataSynchronization::resetTransactionComponents(
 #endif
     if (d_transaction_comps.size() != transaction_comps.size())
     {
-        TBOX_ERROR("SideDataSynchronization::resetTransactionComponents():"
+        TBOX_ERROR("EdgeDataSynchronization::resetTransactionComponents():"
                    << "  invalid reset operation.  attempting to change the number of registered synchronization transaction components.\n");
     }
 
@@ -238,36 +237,39 @@ SideDataSynchronization::resetTransactionComponents(
     }
 
     // Reset cached refine algorithms and schedules.
-    d_refine_alg = new RefineAlgorithm<NDIM>();
-    for (unsigned comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (int axis = 0; axis < NDIM; ++axis)
     {
-        const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
-        Pointer<Variable<NDIM> > var;
-        var_db->mapIndexToVariable(data_idx, var);
-        Pointer<SideVariable<NDIM,double> > sc_var = var;
-        if (sc_var.isNull())
+        d_refine_alg[axis] = new RefineAlgorithm<NDIM>();
+        for (unsigned comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
         {
-            TBOX_ERROR("SideDataSynchronization::resetTransactionComponents():\n"
-                       << "  only double-precision side-centered data is supported." << std::endl);
+            const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
+            Pointer<Variable<NDIM> > var;
+            var_db->mapIndexToVariable(data_idx, var);
+            Pointer<EdgeVariable<NDIM,double> > nc_var = var;
+            if (nc_var.isNull())
+            {
+                TBOX_ERROR("EdgeDataSynchronization::resetTransactionComponents():\n"
+                           << "  only double-precision edge-centered data is supported." << std::endl);
+            }
+            Pointer<RefineOperator<NDIM> > refine_op = NULL;
+            Pointer<VariableFillPattern<NDIM> > fill_pattern = new EdgeSynchCopyFillPattern(axis);
+            d_refine_alg[axis]->registerRefine(data_idx,  // destination
+                                               data_idx,  // source
+                                               data_idx,  // temporary work space
+                                               refine_op,
+                                               fill_pattern);
         }
-        Pointer<RefineOperator<NDIM> > refine_op = NULL;
-        Pointer<VariableFillPattern<NDIM> > fill_pattern = new SideSynchCopyFillPattern();
-        d_refine_alg->registerRefine(data_idx,  // destination
-                                     data_idx,  // source
-                                     data_idx,  // temporary work space
-                                     refine_op,
-                                     fill_pattern);
-    }
 
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        d_refine_alg->resetSchedule(d_refine_scheds[ln]);
+        for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+        {
+            d_refine_alg[axis]->resetSchedule(d_refine_scheds[axis][ln]);
+        }
     }
     return;
 }// resetTransactionComponents
 
 void
-SideDataSynchronization::deallocateOperatorState()
+EdgeDataSynchronization::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -275,8 +277,11 @@ SideDataSynchronization::deallocateOperatorState()
     d_coarsen_alg.setNull();
     d_coarsen_scheds.clear();
 
-    d_refine_alg.setNull();
-    d_refine_scheds.clear();
+    for (int axis = 0; axis < NDIM; ++axis)
+    {
+        d_refine_alg[axis].setNull();
+        d_refine_scheds[axis].clear();
+    }
 
     // Indicate that the operator is NOT initialized.
     d_is_initialized = false;
@@ -284,7 +289,7 @@ SideDataSynchronization::deallocateOperatorState()
 }// deallocateOperatorState
 
 void
-SideDataSynchronization::synchronizeData(
+EdgeDataSynchronization::synchronizeData(
     const double& fill_time)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -295,7 +300,10 @@ SideDataSynchronization::synchronizeData(
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
 
         // Synchronize data on the current level.
-        d_refine_scheds[ln]->fillData(fill_time);
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            d_refine_scheds[axis][ln]->fillData(fill_time);
+        }
 
         // When appropriate, coarsen data from the current level to the next
         // coarser level.
@@ -315,6 +323,6 @@ SideDataSynchronization::synchronizeData(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class Pointer<IBTK::SideDataSynchronization>;
+template class Pointer<IBTK::EdgeDataSynchronization>;
 
 //////////////////////////////////////////////////////////////////////////////

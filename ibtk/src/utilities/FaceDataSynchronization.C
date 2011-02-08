@@ -1,5 +1,5 @@
-// Filename: SideDataSynchronization.C
-// Created on 01 Mar 2010 by Boyce Griffith
+// Filename: FaceDataSynchronization.C
+// Created on 03 Feb 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,13 +30,12 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "SideDataSynchronization.h"
+#include "FaceDataSynchronization.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/CartSideDoubleCubicCoarsen.h>
-#include <ibtk/SideSynchCopyFillPattern.h>
+#include <ibtk/FaceSynchCopyFillPattern.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
@@ -48,7 +47,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-SideDataSynchronization::SideDataSynchronization()
+FaceDataSynchronization::FaceDataSynchronization()
     : d_is_initialized(false),
       d_transaction_comps(),
       d_coarsest_ln(-1),
@@ -60,16 +59,16 @@ SideDataSynchronization::SideDataSynchronization()
 {
     // intentionally blank
     return;
-}// SideDataSynchronization
+}// FaceDataSynchronization
 
-SideDataSynchronization::~SideDataSynchronization()
+FaceDataSynchronization::~FaceDataSynchronization()
 {
     if (d_is_initialized) deallocateOperatorState();
     return;
-}// ~SideDataSynchronization
+}// ~FaceDataSynchronization
 
 void
-SideDataSynchronization::initializeOperatorState(
+FaceDataSynchronization::initializeOperatorState(
     const SynchronizationTransactionComponent& transaction_comp,
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
@@ -78,7 +77,7 @@ SideDataSynchronization::initializeOperatorState(
 }// initializeOperatorState
 
 void
-SideDataSynchronization::initializeOperatorState(
+FaceDataSynchronization::initializeOperatorState(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps,
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
@@ -93,9 +92,6 @@ SideDataSynchronization::initializeOperatorState(
     d_grid_geom   = d_hierarchy->getGridGeometry();
     d_coarsest_ln = 0;
     d_finest_ln   = d_hierarchy->getFinestLevelNumber();
-
-    // Register the cubic coarsen operators with the grid geometry object.
-    IBTK_DO_ONCE(d_grid_geom->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen()));
 
     // Setup cached coarsen algorithms and schedules.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -143,14 +139,14 @@ SideDataSynchronization::initializeOperatorState(
         const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(data_idx, var);
-        Pointer<SideVariable<NDIM,double> > sc_var = var;
+        Pointer<FaceVariable<NDIM,double> > sc_var = var;
         if (sc_var.isNull())
         {
-            TBOX_ERROR("SideDataSynchronization::initializeOperatorState():\n"
-                       << "  only double-precision side-centered data is supported." << std::endl);
+            TBOX_ERROR("FaceDataSynchronization::initializeOperatorState():\n"
+                       << "  only double-precision face-centered data is supported." << std::endl);
         }
         Pointer<RefineOperator<NDIM> > refine_op = NULL;
-        Pointer<VariableFillPattern<NDIM> > fill_pattern = new SideSynchCopyFillPattern();
+        Pointer<VariableFillPattern<NDIM> > fill_pattern = new FaceSynchCopyFillPattern();
         d_refine_alg->registerRefine(data_idx,  // destination
                                      data_idx,  // source
                                      data_idx,  // temporary work space
@@ -171,7 +167,7 @@ SideDataSynchronization::initializeOperatorState(
 }// initializeOperatorState
 
 void
-SideDataSynchronization::resetTransactionComponent(
+FaceDataSynchronization::resetTransactionComponent(
     const SynchronizationTransactionComponent& transaction_comp)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -179,7 +175,7 @@ SideDataSynchronization::resetTransactionComponent(
 #endif
     if (d_transaction_comps.size() != 1)
     {
-        TBOX_ERROR("SideDataSynchronization::resetTransactionComponent():"
+        TBOX_ERROR("FaceDataSynchronization::resetTransactionComponent():"
                    << "  invalid reset operation.  attempting to change the number of registered synchronization transaction components.\n");
     }
     resetTransactionComponents(std::vector<SynchronizationTransactionComponent>(1,transaction_comp));
@@ -187,7 +183,7 @@ SideDataSynchronization::resetTransactionComponent(
 }// resetTransactionComponent
 
 void
-SideDataSynchronization::resetTransactionComponents(
+FaceDataSynchronization::resetTransactionComponents(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -195,7 +191,7 @@ SideDataSynchronization::resetTransactionComponents(
 #endif
     if (d_transaction_comps.size() != transaction_comps.size())
     {
-        TBOX_ERROR("SideDataSynchronization::resetTransactionComponents():"
+        TBOX_ERROR("FaceDataSynchronization::resetTransactionComponents():"
                    << "  invalid reset operation.  attempting to change the number of registered synchronization transaction components.\n");
     }
 
@@ -244,14 +240,14 @@ SideDataSynchronization::resetTransactionComponents(
         const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(data_idx, var);
-        Pointer<SideVariable<NDIM,double> > sc_var = var;
+        Pointer<FaceVariable<NDIM,double> > sc_var = var;
         if (sc_var.isNull())
         {
-            TBOX_ERROR("SideDataSynchronization::resetTransactionComponents():\n"
-                       << "  only double-precision side-centered data is supported." << std::endl);
+            TBOX_ERROR("FaceDataSynchronization::resetTransactionComponents():\n"
+                       << "  only double-precision face-centered data is supported." << std::endl);
         }
         Pointer<RefineOperator<NDIM> > refine_op = NULL;
-        Pointer<VariableFillPattern<NDIM> > fill_pattern = new SideSynchCopyFillPattern();
+        Pointer<VariableFillPattern<NDIM> > fill_pattern = new FaceSynchCopyFillPattern();
         d_refine_alg->registerRefine(data_idx,  // destination
                                      data_idx,  // source
                                      data_idx,  // temporary work space
@@ -267,7 +263,7 @@ SideDataSynchronization::resetTransactionComponents(
 }// resetTransactionComponents
 
 void
-SideDataSynchronization::deallocateOperatorState()
+FaceDataSynchronization::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
@@ -284,7 +280,7 @@ SideDataSynchronization::deallocateOperatorState()
 }// deallocateOperatorState
 
 void
-SideDataSynchronization::synchronizeData(
+FaceDataSynchronization::synchronizeData(
     const double& fill_time)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -315,6 +311,6 @@ SideDataSynchronization::synchronizeData(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class Pointer<IBTK::SideDataSynchronization>;
+template class Pointer<IBTK::FaceDataSynchronization>;
 
 //////////////////////////////////////////////////////////////////////////////

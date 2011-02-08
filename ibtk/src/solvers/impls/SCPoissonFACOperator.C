@@ -52,7 +52,6 @@
 #include <ibtk/RefinePatchStrategySet.h>
 #include <ibtk/SideNoCornersFillPattern.h>
 #include <ibtk/SideSynchCopyFillPattern.h>
-#include <ibtk/SideSynchCopyTransactionFactory.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
@@ -1081,7 +1080,7 @@ SCPoissonFACOperator::initializeOperatorState(
 
         d_side_synch_refine_schedules[dst_ln] =
             d_side_synch_refine_algorithm->createSchedule(
-                d_hierarchy->getPatchLevel(dst_ln), NULL, new SideSynchCopyTransactionFactory());
+                d_hierarchy->getPatchLevel(dst_ln));
     }
 
     d_ghostfill_nocoarse_refine_schedules[d_coarsest_ln] =
@@ -1090,7 +1089,7 @@ SCPoissonFACOperator::initializeOperatorState(
 
     d_side_synch_refine_schedules[d_coarsest_ln] =
         d_side_synch_refine_algorithm->createSchedule(
-            d_hierarchy->getPatchLevel(d_coarsest_ln), NULL, new SideSynchCopyTransactionFactory());
+            d_hierarchy->getPatchLevel(d_coarsest_ln));
 
     for (int dst_ln = d_coarsest_ln; dst_ln < d_finest_ln; ++dst_ln)
     {

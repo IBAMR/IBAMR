@@ -1,5 +1,5 @@
-// Filename: SideSynchCopyFillPattern.h
-// Created on 10 Mar 2010 by Boyce Griffith
+// Filename: FaceSynchCopyFillPattern.h
+// Created on 03 Feb 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_SideSynchCopyFillPattern
-#define included_SideSynchCopyFillPattern
+#ifndef included_FaceSynchCopyFillPattern
+#define included_FaceSynchCopyFillPattern
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -43,26 +43,26 @@
 namespace IBTK
 {
 /*!
- * \brief Class SideCellSynchCopyFillPattern is a concrete implementation of the
+ * \brief Class FaceCellSynchCopyFillPattern is a concrete implementation of the
  * abstract base class SAMRAI::xfer::VariableFillPattern.  It is used to
  * calculate overlaps according to a pattern which limits overlaps to the
- * side-centered ghost region surrounding a patch appropriate for
- * "synchronizing" side-centered values at patch boundaries.
+ * face-centered ghost region surrounding a patch appropriate for
+ * "synchronizing" face-centered values at patch boundaries.
  */
-class SideSynchCopyFillPattern
+class FaceSynchCopyFillPattern
     : public virtual SAMRAI::xfer::VariableFillPattern<NDIM>
 {
 public:
     /*!
      * \brief Default constructor
      */
-    SideSynchCopyFillPattern();
+    FaceSynchCopyFillPattern();
 
     /*!
      * \brief Destructor
      */
     virtual
-    ~SideSynchCopyFillPattern();
+    ~FaceSynchCopyFillPattern();
 
     /*!
      * Calculate overlaps between the destination and source geometries according
@@ -96,7 +96,7 @@ public:
     getStencilWidth();
 
     /*!
-     * Returns a string name identifier "SIDE_SYNCH_COPY_FILL_PATTERN".
+     * Returns a string name identifier "FACE_SYNCH_COPY_FILL_PATTERN".
      */
     const std::string&
     getPatternName() const;
@@ -109,8 +109,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    SideSynchCopyFillPattern(
-        const SideSynchCopyFillPattern& from);
+    FaceSynchCopyFillPattern(
+        const FaceSynchCopyFillPattern& from);
 
     /*!
      * \brief Assignment operator.
@@ -121,9 +121,9 @@ private:
      *
      * \return A reference to this object.
      */
-    SideSynchCopyFillPattern&
+    FaceSynchCopyFillPattern&
     operator=(
-        const SideSynchCopyFillPattern& that);
+        const FaceSynchCopyFillPattern& that);
 
     SAMRAI::hier::IntVector<NDIM> d_stencil_width;
 };
@@ -131,8 +131,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "SideSynchCopyFillPattern.I"
+//#include "FaceSynchCopyFillPattern.I"
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_SideSynchCopyFillPattern
+#endif //#ifndef included_FaceSynchCopyFillPattern
