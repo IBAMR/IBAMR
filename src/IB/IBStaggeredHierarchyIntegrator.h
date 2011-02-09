@@ -875,7 +875,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Q_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > > d_mark_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current, d_scratch;
-    int d_V_idx, d_W_idx, d_F_idx, d_F_scratch_idx, d_N_idx, d_N_scratch_idx, d_Q_idx, d_mark_current_idx, d_mark_scratch_idx;
+    int d_V_idx, d_W_idx, d_F_idx, d_N_idx, d_Q_idx, d_mark_current_idx, d_mark_scratch_idx;
 
     /*
      * List of local indices of local anchor points.

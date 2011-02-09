@@ -50,6 +50,7 @@ EXTRA_DIST += $(top_srcdir)/include/ibtk/CartGridFunction.h
 EXTRA_DIST += $(top_srcdir)/include/ibtk/CartSideDoubleCubicCoarsen.h
 EXTRA_DIST += $(top_srcdir)/include/ibtk/CartSideDoubleDivPreservingRefine.h
 EXTRA_DIST += $(top_srcdir)/include/ibtk/CartSideDoubleQuadraticCFInterpolation.h
+EXTRA_DIST += $(top_srcdir)/include/ibtk/CartSideDoubleSpecializedLinearRefine.h
 EXTRA_DIST += $(top_srcdir)/include/ibtk/CartSideRobinPhysBdryOp.h
 EXTRA_DIST += $(top_srcdir)/include/ibtk/CellNoCornersFillPattern.h
 EXTRA_DIST += $(top_srcdir)/include/ibtk/CoarseFineBoundaryRefinePatchStrategy.h

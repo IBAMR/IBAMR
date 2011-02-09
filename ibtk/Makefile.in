@@ -468,6 +468,7 @@ EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/include/ibtk/CartSideDoubleCubicCoarsen.h \
 	$(top_srcdir)/include/ibtk/CartSideDoubleDivPreservingRefine.h \
 	$(top_srcdir)/include/ibtk/CartSideDoubleQuadraticCFInterpolation.h \
+	$(top_srcdir)/include/ibtk/CartSideDoubleSpecializedLinearRefine.h \
 	$(top_srcdir)/include/ibtk/CartSideRobinPhysBdryOp.h \
 	$(top_srcdir)/include/ibtk/CellNoCornersFillPattern.h \
 	$(top_srcdir)/include/ibtk/CoarseFineBoundaryRefinePatchStrategy.h \

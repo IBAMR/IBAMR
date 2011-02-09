@@ -601,7 +601,7 @@ main(
         double dt_old = 0.0;
 
         int iteration_num = time_integrator->getIntegratorStep();
-
+#if 0
         /*
          * At specified intervals, write state data for post-processing.
          */
@@ -659,7 +659,7 @@ main(
             PetscViewerDestroy(viewer);
             VecDestroy(X_lag_vec);
         }
-
+#endif
         while (!tbox::MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
                time_integrator->stepsRemaining())
         {
@@ -712,7 +712,7 @@ main(
 
                 if (stop_after_writing_restart) break;
             }
-
+#if 0
             /*
              * At specified intervals, write state data for post-processing.
              */
@@ -770,7 +770,7 @@ main(
                 PetscViewerDestroy(viewer);
                 VecDestroy(X_lag_vec);
             }
-
+#endif
             /*
              * At specified intervals, post-process data.
              */

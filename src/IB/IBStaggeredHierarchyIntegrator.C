@@ -51,6 +51,7 @@
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
+#include <ibtk/CartSideDoubleSpecializedLinearRefine.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/LNodeIndexData.h>
@@ -257,9 +258,7 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
       d_V_idx(-1),
       d_W_idx(-1),
       d_F_idx(-1),
-      d_F_scratch_idx(-1),
       d_N_idx(-1),
-      d_N_scratch_idx(-1),
       d_mark_current_idx(-1),
       d_mark_scratch_idx(-1)
 {
@@ -509,8 +508,7 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_V_idx = var_db->registerVariableAndContext(d_V_var, d_scratch, ghosts);
 
     d_F_var = new SideVariable<NDIM,double>(d_object_name+"::F");
-    d_F_idx = var_db->registerVariableAndContext(d_F_var, d_scratch, SIDEG);
-    d_F_scratch_idx = var_db->registerClonedPatchDataIndex(d_F_var, d_F_idx);
+    d_F_idx = var_db->registerVariableAndContext(d_F_var, d_scratch, no_ghosts);
 
     if (d_using_orthonormal_directors)
     {
@@ -519,7 +517,6 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
         d_N_var = new SideVariable<NDIM,double>(d_object_name+"::N");
         d_N_idx = var_db->registerVariableAndContext(d_N_var, d_scratch, SIDEG);
-        d_N_scratch_idx = var_db->registerClonedPatchDataIndex(d_N_var, d_N_idx);
     }
 
     if (!d_source_strategy.isNull())
@@ -555,6 +552,11 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     // Create several communications algorithms, used in filling ghost cell data
     // and synchronizing data on the patch hierarchy.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+
+    IBAMR_DO_ONCE(
+        grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
+                  );
+
     Pointer<RefineOperator<NDIM> > refine_operator;
     Pointer<CoarsenOperator<NDIM> > coarsen_operator;
 
@@ -580,9 +582,9 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     coarsen_operator = grid_geom->lookupCoarsenOperator(d_V_var, "CONSERVATIVE_COARSEN");
     d_calgs["V->V::S->S::CONSERVATIVE_COARSEN"]->registerCoarsen(d_V_idx, d_V_idx, coarsen_operator);
 
-    d_palgs["F->F::S->S::CONSERVATIVE_LINEAR_REFINE"] = new RefineAlgorithm<NDIM>();
-    refine_operator = grid_geom->lookupRefineOperator(d_F_var, "CONSERVATIVE_LINEAR_REFINE");
-    d_palgs["F->F::S->S::CONSERVATIVE_LINEAR_REFINE"]->registerRefine(d_F_idx, d_F_idx, d_F_scratch_idx, refine_operator);
+    d_palgs["F->F::S->S::PROLONGATION"] = new RefineAlgorithm<NDIM>();
+    refine_operator = grid_geom->lookupRefineOperator(d_F_var, "SPECIALIZED_LINEAR_REFINE");
+    d_palgs["F->F::S->S::PROLONGATION"]->registerRefine(d_F_idx, d_F_idx, d_F_idx, refine_operator);
 
     d_ralgs["INSTRUMENTATION_DATA_FILL"] = new RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getVelocityVar(), "CONSERVATIVE_LINEAR_REFINE");
@@ -600,9 +602,9 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         refine_operator = grid_geom->lookupRefineOperator(d_N_var, "CONSERVATIVE_LINEAR_REFINE");
         d_ralgs["N->N::S->S::CONSERVATIVE_LINEAR_REFINE"]->registerRefine(d_N_idx, d_N_idx, d_N_idx, refine_operator);
 
-        d_palgs["N->N::S->S::CONSERVATIVE_LINEAR_REFINE"] = new RefineAlgorithm<NDIM>();
-        refine_operator = grid_geom->lookupRefineOperator(d_N_var, "CONSERVATIVE_LINEAR_REFINE");
-        d_palgs["N->N::S->S::CONSERVATIVE_LINEAR_REFINE"]->registerRefine(d_N_idx, d_N_idx, d_N_scratch_idx, refine_operator);
+        d_palgs["N->N::S->S::PROLONGATION"] = new RefineAlgorithm<NDIM>();
+        refine_operator = grid_geom->lookupRefineOperator(d_N_var, "SPECIALIZED_LINEAR_REFINE");
+        d_palgs["N->N::S->S::PROLONGATION"]->registerRefine(d_N_idx, d_N_idx, d_N_idx, refine_operator);
 
         d_ralgs["W->W::S->S::GHOST_FILL"] = new RefineAlgorithm<NDIM>();
         refine_operator = NULL;
@@ -741,12 +743,10 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_V_idx, current_time);
         level->allocatePatchData(d_F_idx, current_time);
-        level->allocatePatchData(d_F_scratch_idx, current_time);
         if (d_using_orthonormal_directors)
         {
             level->allocatePatchData(d_W_idx, current_time);
             level->allocatePatchData(d_N_idx, current_time);
-            level->allocatePatchData(d_N_scratch_idx, current_time);
         }
         if (!d_source_strategy.isNull())
         {
@@ -1056,7 +1056,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         {
             d_hier_sc_data_ops->setToScalar(d_N_idx, 0.0, false);
             resetAnchorPointValues(N_half_data, coarsest_ln, finest_ln);
-            d_lag_data_manager->spread(d_N_idx, N_half_data, X_half_data, d_pscheds["N->N::S->S::CONSERVATIVE_LINEAR_PROLONGATION"], true, true);
+            d_lag_data_manager->spread(d_N_idx, N_half_data, X_half_data, d_pscheds["N->N::S->S::PROLONGATION"], true, true);
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1066,7 +1066,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
             d_hier_sc_data_ops->scale(d_F_idx, 0.5, d_F_idx);
         }
         resetAnchorPointValues(F_half_data, coarsest_ln, finest_ln);
-        d_lag_data_manager->spread(d_F_idx, F_half_data, X_half_data, d_pscheds["F->F::S->S::CONSERVATIVE_LINEAR_PROLONGATION"], true, true);
+        d_lag_data_manager->spread(d_F_idx, F_half_data, X_half_data, d_pscheds["F->F::S->S::PROLONGATION"], true, true);
 
         // Compute the source/sink strengths corresponding to any distributed
         // internal fluid sources or sinks.
@@ -1295,12 +1295,10 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_V_idx);
         level->deallocatePatchData(d_F_idx);
-        level->deallocatePatchData(d_F_scratch_idx);
         if (d_using_orthonormal_directors)
         {
             level->deallocatePatchData(d_W_idx);
             level->deallocatePatchData(d_N_idx);
-            level->deallocatePatchData(d_N_scratch_idx);
         }
         if (!d_source_strategy.isNull())
         {
@@ -1494,17 +1492,21 @@ IBStaggeredHierarchyIntegrator::regridHierarchy()
 {
     t_regrid_hierarchy->start();
 
+    // Determine the current range of hierarchy levels.
+    const int coarsest_ln_before_regrid = 0;
+    const int finest_ln_before_regrid = d_hierarchy->getFinestLevelNumber();
+
     // Update the marker data.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): resetting markers particles.\n";
     LagMarkerUtilities::collectMarkersOnPatchHierarchy(d_mark_current_idx, d_hierarchy);
 
     // Update the workload pre-regridding.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
-    d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
+    d_lag_data_manager->updateWorkloadData(coarsest_ln_before_regrid,finest_ln_before_regrid);
 
     // Before regridding, begin Lagrangian data movement.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement.\n";
-    d_lag_data_manager->beginDataRedistribution();
+    d_lag_data_manager->beginDataRedistribution(coarsest_ln_before_regrid,finest_ln_before_regrid);
 
     // We use the INSStaggeredHierarchyIntegrator to handle as much structured
     // data management as possible.
@@ -1513,7 +1515,7 @@ IBStaggeredHierarchyIntegrator::regridHierarchy()
 
     // After regridding, finish Lagrangian data movement.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement.\n";
-    d_lag_data_manager->endDataRedistribution();
+    d_lag_data_manager->endDataRedistribution(coarsest_ln_before_regrid,finest_ln_before_regrid);
 
     // Update the workload post-regridding.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
@@ -1888,8 +1890,7 @@ IBStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
         for (int ln = std::max(coarsest_level,1); ln <= finest_hier_level; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevel<NDIM> > coarser_level = hierarchy->getPatchLevel(ln-1);
-            d_pscheds[(*it).first][ln] = (*it).second->createSchedule(level, coarser_level, d_pstrategies[(*it).first]);
+            d_pscheds[(*it).first][ln] = (*it).second->createSchedule(level, Pointer<PatchLevel<NDIM> >(), ln-1, d_hierarchy, d_pstrategies[(*it).first]);
         }
     }
 

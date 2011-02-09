@@ -377,6 +377,10 @@ LDataManager::resetLevels(
     d_strct_id_to_lag_idx_range_map.resize(d_finest_ln+1);
     d_last_lag_idx_to_strct_id_map .resize(d_finest_ln+1);
     d_strct_activation_map         .resize(d_finest_ln+1);
+    d_displaced_strct_ids           .resize(d_finest_ln+1);
+    d_displaced_strct_bounding_boxes.resize(d_finest_ln+1);
+    d_displaced_strct_lnode_idxs    .resize(d_finest_ln+1);
+    d_displaced_strct_lnode_posns   .resize(d_finest_ln+1);
     d_lag_quantity_data            .resize(d_finest_ln+1);
     d_needs_synch                  .resize(d_finest_ln+1,false);
     d_ao                           .resize(d_finest_ln+1);
@@ -612,14 +616,14 @@ LDataManager::interp(
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (ln < int(f_ghost_fill_scheds.size()) && !f_ghost_fill_scheds[ln].isNull())
-        {
-            f_ghost_fill_scheds[ln]->fillData(fill_data_time);
-        }
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
         if (levelContainsLagrangianData(ln))
         {
+            if (ln < int(f_ghost_fill_scheds.size()) && !f_ghost_fill_scheds[ln].isNull())
+            {
+                f_ghost_fill_scheds[ln]->fillData(fill_data_time);
+            }
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -3729,7 +3733,7 @@ LDataManager::getFromRestart()
     d_beta_work   = db->getDouble ("d_beta_work"  );
 
     // Resize some arrays.
-    d_level_contains_lag_data       .resize(d_finest_ln+1);
+    d_level_contains_lag_data       .resize(d_finest_ln+1,false);
     d_strct_name_to_strct_id_map    .resize(d_finest_ln+1);
     d_strct_id_to_strct_name_map    .resize(d_finest_ln+1);
     d_strct_id_to_lag_idx_range_map .resize(d_finest_ln+1);

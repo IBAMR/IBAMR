@@ -50,11 +50,11 @@ VelocityBcCoefs_1 {
 
 IBStaggeredHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
-   end_time              = 1.2e0    // final simulation time
+   end_time              = 3.6e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
    regrid_interval       = 1
-   dt_max = 6.25e-3*(64.0/NFINEST)^2
+   dt_max = 6.25e-3*(64.0/(NFINEST/2))^2
    num_cycles = 2
    delta_fcn = "IB_4"
    enable_logging = TRUE
@@ -73,7 +73,7 @@ PETScVecOps {
 
 IBStandardInitializer {
    max_levels = MAX_LEVELS
-   base_filenames_2 = "curve2d_256"
+   base_filenames_1 = "shell2d_64"
 }
 
 INSStaggeredHierarchyIntegrator {
@@ -168,7 +168,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt"
-   viz_dump_interval     = 1 // 8*(NFINEST/64)^2  // zero to turn off
+   viz_dump_interval     = 4*((NFINEST/2)/64)^2  // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 
@@ -189,8 +189,8 @@ Main {
 
 CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
-   x_lo         = -0.5, -0.5         // lower end of computational domain.
-   x_up         =  0.5,  0.5         // upper end of computational domain.
+   x_lo         = 0.0, 0.0         // lower end of computational domain.
+   x_up         = 1.0, 1.0         // upper end of computational domain.
    periodic_dimension = 1, 1
 }
 

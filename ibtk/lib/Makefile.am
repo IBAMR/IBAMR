@@ -92,6 +92,7 @@ $(top_srcdir)/src/patch_data/VecCellVariable.C \
 $(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.C \
 $(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.C \
 $(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C \
+$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C \
 $(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C \
 $(top_srcdir)/src/refine_ops/LagMarkerRefine.C \
 $(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C \
@@ -211,6 +212,7 @@ $(top_srcdir)/src/patch_data/VecCellVariable.h \
 $(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.h \
 $(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.h \
 $(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.h \
+$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.h \
 $(top_srcdir)/src/refine_ops/VecCellRefineAdapter.h \
 $(top_srcdir)/src/refine_ops/LagMarkerRefine.h \
 $(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.I \
@@ -321,6 +323,7 @@ $(top_builddir)/src/math/fortran/interp2d.f \
 $(top_builddir)/src/math/fortran/laplace2d.f \
 $(top_builddir)/src/math/fortran/miscmath2d.f \
 $(top_builddir)/src/math/fortran/vclaplace2d.f \
+$(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f \
 $(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f \
 $(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
 
@@ -338,5 +341,6 @@ $(top_builddir)/src/math/fortran/graddetect3d.f \
 $(top_builddir)/src/math/fortran/interp3d.f \
 $(top_builddir)/src/math/fortran/laplace3d.f \
 $(top_builddir)/src/math/fortran/miscmath3d.f \
+$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f \
 $(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f \
 $(top_builddir)/src/solvers/impls/fortran/patchsmoothers3d.f

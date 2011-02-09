@@ -138,6 +138,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.C \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.C \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C \
+	$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C \
 	$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C \
 	$(top_srcdir)/src/refine_ops/LagMarkerRefine.C \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C \
@@ -217,6 +218,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/math/fortran/laplace2d.f \
 	$(top_builddir)/src/math/fortran/miscmath2d.f \
 	$(top_builddir)/src/math/fortran/vclaplace2d.f \
+	$(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f \
 	$(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f \
 	$(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
 @LIBMESH_ENABLED_TRUE@am__objects_1 =  \
@@ -263,6 +265,7 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.$(OBJEXT) \
 	libIBTK2d_a-CartCellDoubleQuadraticRefine.$(OBJEXT) \
 	libIBTK2d_a-CartSideDoubleDivPreservingRefine.$(OBJEXT) \
+	libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.$(OBJEXT) \
 	libIBTK2d_a-VecCellRefineAdapter.$(OBJEXT) \
 	libIBTK2d_a-LagMarkerRefine.$(OBJEXT) \
 	libIBTK2d_a-BGaussSeidelPreconditioner.$(OBJEXT) \
@@ -332,7 +335,8 @@ am_libIBTK2d_a_OBJECTS = $(am__objects_2) \
 	curl2d.$(OBJEXT) div2d.$(OBJEXT) flux2d.$(OBJEXT) \
 	grad2d.$(OBJEXT) graddetect2d.$(OBJEXT) interp2d.$(OBJEXT) \
 	laplace2d.$(OBJEXT) miscmath2d.$(OBJEXT) vclaplace2d.$(OBJEXT) \
-	divpreservingrefine2d.$(OBJEXT) patchsmoothers2d.$(OBJEXT)
+	cart_side_refine2d.$(OBJEXT) divpreservingrefine2d.$(OBJEXT) \
+	patchsmoothers2d.$(OBJEXT)
 libIBTK2d_a_OBJECTS = $(am_libIBTK2d_a_OBJECTS)
 libIBTK3d_a_AR = $(AR) $(ARFLAGS)
 libIBTK3d_a_LIBADD =
@@ -379,6 +383,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.C \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.C \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C \
+	$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C \
 	$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C \
 	$(top_srcdir)/src/refine_ops/LagMarkerRefine.C \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C \
@@ -457,6 +462,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/math/fortran/interp3d.f \
 	$(top_builddir)/src/math/fortran/laplace3d.f \
 	$(top_builddir)/src/math/fortran/miscmath3d.f \
+	$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f \
 	$(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f \
 	$(top_builddir)/src/solvers/impls/fortran/patchsmoothers3d.f
 @LIBMESH_ENABLED_TRUE@am__objects_3 =  \
@@ -503,6 +509,7 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.$(OBJEXT) \
 	libIBTK3d_a-CartCellDoubleQuadraticRefine.$(OBJEXT) \
 	libIBTK3d_a-CartSideDoubleDivPreservingRefine.$(OBJEXT) \
+	libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.$(OBJEXT) \
 	libIBTK3d_a-VecCellRefineAdapter.$(OBJEXT) \
 	libIBTK3d_a-LagMarkerRefine.$(OBJEXT) \
 	libIBTK3d_a-BGaussSeidelPreconditioner.$(OBJEXT) \
@@ -572,7 +579,8 @@ am_libIBTK3d_a_OBJECTS = $(am__objects_4) \
 	curl3d.$(OBJEXT) div3d.$(OBJEXT) flux3d.$(OBJEXT) \
 	grad3d.$(OBJEXT) graddetect3d.$(OBJEXT) interp3d.$(OBJEXT) \
 	laplace3d.$(OBJEXT) miscmath3d.$(OBJEXT) \
-	divpreservingrefine3d.$(OBJEXT) patchsmoothers3d.$(OBJEXT)
+	cart_side_refine3d.$(OBJEXT) divpreservingrefine3d.$(OBJEXT) \
+	patchsmoothers3d.$(OBJEXT)
 libIBTK3d_a_OBJECTS = $(am_libIBTK3d_a_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -1001,6 +1009,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.h \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.h \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.h \
+	$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.h \
 	$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.h \
 	$(top_srcdir)/src/refine_ops/LagMarkerRefine.h \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.I \
@@ -1131,6 +1140,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.C \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.C \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C \
+	$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C \
 	$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C \
 	$(top_srcdir)/src/refine_ops/LagMarkerRefine.C \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C \
@@ -1209,6 +1219,7 @@ $(top_builddir)/src/math/fortran/interp2d.f \
 $(top_builddir)/src/math/fortran/laplace2d.f \
 $(top_builddir)/src/math/fortran/miscmath2d.f \
 $(top_builddir)/src/math/fortran/vclaplace2d.f \
+$(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f \
 $(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f \
 $(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
 
@@ -1226,6 +1237,7 @@ $(top_builddir)/src/math/fortran/graddetect3d.f \
 $(top_builddir)/src/math/fortran/interp3d.f \
 $(top_builddir)/src/math/fortran/laplace3d.f \
 $(top_builddir)/src/math/fortran/miscmath3d.f \
+$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f \
 $(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f \
 $(top_builddir)/src/solvers/impls/fortran/patchsmoothers3d.f
 
@@ -1334,6 +1346,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CartSideDoubleCubicCoarsen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CartSideDoubleDivPreservingRefine.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CartSideDoubleQuadraticCFInterpolation.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CartSideRobinPhysBdryOp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CellNoCornersFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CoarseFineBoundaryRefinePatchStrategy.Po@am__quote@
@@ -1439,6 +1452,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CartSideDoubleCubicCoarsen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CartSideDoubleDivPreservingRefine.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CartSideDoubleQuadraticCFInterpolation.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CartSideRobinPhysBdryOp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CellNoCornersFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CoarseFineBoundaryRefinePatchStrategy.Po@am__quote@
@@ -2231,6 +2245,20 @@ libIBTK2d_a-CartSideDoubleDivPreservingRefine.obj: $(top_srcdir)/src/refine_ops/
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C' object='libIBTK2d_a-CartSideDoubleDivPreservingRefine.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CartSideDoubleDivPreservingRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C'; fi`
+
+libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.o: $(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Tpo -c -o libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.o `test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Tpo $(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C' object='libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.o `test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C
+
+libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.obj: $(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Tpo -c -o libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Tpo $(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C' object='libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; fi`
 
 libIBTK2d_a-VecCellRefineAdapter.o: $(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-VecCellRefineAdapter.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-VecCellRefineAdapter.Tpo -c -o libIBTK2d_a-VecCellRefineAdapter.o `test -f '$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C
@@ -3702,6 +3730,20 @@ libIBTK3d_a-CartSideDoubleDivPreservingRefine.obj: $(top_srcdir)/src/refine_ops/
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CartSideDoubleDivPreservingRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C'; fi`
 
+libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.o: $(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Tpo -c -o libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.o `test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Tpo $(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C' object='libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.o `test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C
+
+libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.obj: $(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Tpo -c -o libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Tpo $(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C' object='libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; fi`
+
 libIBTK3d_a-VecCellRefineAdapter.o: $(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-VecCellRefineAdapter.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-VecCellRefineAdapter.Tpo -c -o libIBTK3d_a-VecCellRefineAdapter.o `test -f '$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-VecCellRefineAdapter.Tpo $(DEPDIR)/libIBTK3d_a-VecCellRefineAdapter.Po
@@ -4688,6 +4730,12 @@ vclaplace2d.o: $(top_builddir)/src/math/fortran/vclaplace2d.f
 vclaplace2d.obj: $(top_builddir)/src/math/fortran/vclaplace2d.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o vclaplace2d.obj `if test -f '$(top_builddir)/src/math/fortran/vclaplace2d.f'; then $(CYGPATH_W) '$(top_builddir)/src/math/fortran/vclaplace2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/math/fortran/vclaplace2d.f'; fi`
 
+cart_side_refine2d.o: $(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o cart_side_refine2d.o `test -f '$(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f
+
+cart_side_refine2d.obj: $(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o cart_side_refine2d.obj `if test -f '$(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f'; then $(CYGPATH_W) '$(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f'; fi`
+
 divpreservingrefine2d.o: $(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o divpreservingrefine2d.o `test -f '$(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f
 
@@ -4771,6 +4819,12 @@ miscmath3d.o: $(top_builddir)/src/math/fortran/miscmath3d.f
 
 miscmath3d.obj: $(top_builddir)/src/math/fortran/miscmath3d.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o miscmath3d.obj `if test -f '$(top_builddir)/src/math/fortran/miscmath3d.f'; then $(CYGPATH_W) '$(top_builddir)/src/math/fortran/miscmath3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/math/fortran/miscmath3d.f'; fi`
+
+cart_side_refine3d.o: $(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o cart_side_refine3d.o `test -f '$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f' || echo '$(srcdir)/'`$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f
+
+cart_side_refine3d.obj: $(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o cart_side_refine3d.obj `if test -f '$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f'; then $(CYGPATH_W) '$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f'; fi`
 
 divpreservingrefine3d.o: $(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o divpreservingrefine3d.o `test -f '$(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f' || echo '$(srcdir)/'`$(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f
