@@ -106,6 +106,12 @@ ParallelMap::communicateData()
     {
         StreamableManager* streamable_manager = StreamableManager::getManager();
 
+        // Determine how many keys have been registered for addition on each
+        // process.
+        std::vector<int> num_additions(size,0);
+        num_additions[rank] = d_pending_additions.size();
+        SAMRAI_MPI::sumReduction(&num_additions[0], size);
+
         // Get the local values to send.
         std::vector<int> keys_to_send;
         std::vector<tbox::Pointer<Streamable> > data_items_to_send;
@@ -118,27 +124,27 @@ ParallelMap::communicateData()
 
         // Determine the amount of data to be broadcast by each process.
         std::vector<int> data_sz(size,0);
-        data_sz[rank] = tbox::AbstractStream::sizeofInt()*(1+keys_to_send.size()) + streamable_manager->getDataStreamSize(data_items_to_send);
+        data_sz[rank] = tbox::AbstractStream::sizeofInt()*keys_to_send.size() + streamable_manager->getDataStreamSize(data_items_to_send);
         SAMRAI_MPI::sumReduction(&data_sz[0], size);
 
         // Broadcast data from each process.
         for (int sending_proc = 0; sending_proc < size; ++sending_proc)
         {
-            if (data_sz[sending_proc] == tbox::AbstractStream::sizeofInt()) continue;
+            int num_keys = num_additions[sending_proc];
+            if (num_keys == 0) continue;
             if (sending_proc == rank)
             {
                 // Pack and broadcast data on process sending_proc.
                 FixedSizedStream stream(data_sz[sending_proc]);
-                const int num_keys_to_send = keys_to_send.size();
-                stream << num_keys_to_send;
                 stream.pack(&keys_to_send[0], keys_to_send.size());
                 streamable_manager->packStream(stream, data_items_to_send);
-                int size = stream.getCurrentSize();
+                int data_size = stream.getCurrentSize();
 #ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(size == data_sz[sending_proc]);
+                TBOX_ASSERT(int(d_pending_additions.size()) == num_keys);
+                TBOX_ASSERT(data_size == data_sz[sending_proc]);
 #endif
-                SAMRAI_MPI::bcast(static_cast<char*>(stream.getBufferStart()), size, sending_proc);
-                for (int k = 0; k < num_keys_to_send; ++k)
+                SAMRAI_MPI::bcast(static_cast<char*>(stream.getBufferStart()), data_size, sending_proc);
+                for (int k = 0; k < num_keys; ++k)
                 {
                     d_map[keys_to_send[k]] = data_items_to_send[k];
                 }
@@ -147,26 +153,21 @@ ParallelMap::communicateData()
             {
                 // Receive and unpack data broadcast from process sending_proc.
                 std::vector<char> buffer(data_sz[sending_proc]);
-                int size = data_sz[sending_proc];
-                SAMRAI_MPI::bcast(&buffer[0], size, sending_proc);
+                int data_size = data_sz[sending_proc];
+                SAMRAI_MPI::bcast(&buffer[0], data_size, sending_proc);
 #ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(size == data_sz[sending_proc]);
+                TBOX_ASSERT(data_size == data_sz[sending_proc]);
 #endif
-                FixedSizedStream stream(&buffer[0], size);
-                int num_keys_received;
-                stream >> num_keys_received;
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(num_keys_received > 0);
-#endif
-                std::vector<int> keys_received(num_keys_received);
-                stream.unpack(&keys_received[0], num_keys_received);
+                FixedSizedStream stream(&buffer[0], data_size);
+                std::vector<int> keys_received(num_keys);
+                stream.unpack(&keys_received[0], num_keys);
                 std::vector<tbox::Pointer<Streamable> > data_items_received;
                 hier::IntVector<NDIM> offset = 0;
                 streamable_manager->unpackStream(stream, offset, data_items_received);
 #ifdef DEBUG_CHECK_ASSERTIONS
                 TBOX_ASSERT(keys_received.size() == data_items_received.size());
 #endif
-                for (int k = 0; k < num_keys_received; ++k)
+                for (int k = 0; k < num_keys; ++k)
                 {
                     d_map[keys_received[k]] = data_items_received[k];
                 }
@@ -189,16 +190,16 @@ ParallelMap::communicateData()
         // Broadcast data from each process.
         for (int sending_proc = 0; sending_proc < size; ++sending_proc)
         {
-            if (num_removals[sending_proc] == 0) continue;
+            int num_keys = num_removals[sending_proc];
+            if (num_keys == 0) continue;
             if (sending_proc == rank)
             {
                 // Pack and broadcast data on process sending_proc.
-                int size = d_pending_removals.size();
 #ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(size == num_removals[sending_proc]);
+                TBOX_ASSERT(int(d_pending_removals.size()) == num_keys);
 #endif
-                SAMRAI_MPI::bcast(&d_pending_removals[0], size, sending_proc);
-                for (int k = 0; k < size; ++k)
+                SAMRAI_MPI::bcast(&d_pending_removals[0], num_keys, sending_proc);
+                for (int k = 0; k < num_keys; ++k)
                 {
                     d_map.erase(d_pending_removals[k]);
                 }
@@ -207,12 +208,8 @@ ParallelMap::communicateData()
             {
                 // Receive and unpack data broadcast from process sending_proc.
                 std::vector<int> keys_received(num_removals[sending_proc]);
-                int size = num_removals[sending_proc];
-                SAMRAI_MPI::bcast(&keys_received[0], size, sending_proc);
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(size == num_removals[sending_proc]);
-#endif
-                for (int k = 0; k < size; ++k)
+                SAMRAI_MPI::bcast(&keys_received[0], num_keys, sending_proc);
+                for (int k = 0; k < num_keys; ++k)
                 {
                     d_map.erase(keys_received[k]);
                 }
