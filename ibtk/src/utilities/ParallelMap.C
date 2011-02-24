@@ -112,7 +112,8 @@ ParallelMap::communicateData()
         num_additions[rank] = d_pending_additions.size();
         SAMRAI_MPI::sumReduction(&num_additions[0], size);
 
-        // Get the local values to send.
+        // Get the local values to send and determine the amount of data to be
+        // broadcast by each process.
         std::vector<int> keys_to_send;
         std::vector<tbox::Pointer<Streamable> > data_items_to_send;
         for (std::map<int,tbox::Pointer<Streamable> >::const_iterator cit = d_pending_additions.begin();
@@ -121,8 +122,6 @@ ParallelMap::communicateData()
             keys_to_send.push_back(cit->first);
             data_items_to_send.push_back(cit->second);
         }
-
-        // Determine the amount of data to be broadcast by each process.
         std::vector<int> data_sz(size,0);
         data_sz[rank] = tbox::AbstractStream::sizeofInt()*keys_to_send.size() + streamable_manager->getDataStreamSize(data_items_to_send);
         SAMRAI_MPI::sumReduction(&data_sz[0], size);
