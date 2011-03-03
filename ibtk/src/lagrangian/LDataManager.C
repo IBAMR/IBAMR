@@ -2824,44 +2824,33 @@ LDataManager::applyGradientDetector(
 
         // Tag cells for refinement within the bounding boxes of any displaced
         // structures on finer levels of the patch hierarchy.
-        const double* const dx0 = d_grid_geom->getDx();
-        const double* const gridXLower = d_grid_geom->getXLower();
-        const double* const gridXUpper = d_grid_geom->getXUpper();
-        const IntVector<NDIM>& ratio = level->getRatio();
-        double dx[NDIM];
-        for (int d = 0; d < NDIM; ++d)
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            dx[d] = dx0[d]/double(ratio(d));
-        }
-        const Box<NDIM>& domain_box = level->getPhysicalDomain()[0];
-        const CellIndex<NDIM>& domain_lower = domain_box.lower();
-        const CellIndex<NDIM>& domain_upper = domain_box.upper();
-        for (int ln = level_number+1; ln <= d_finest_ln; ++ln)
-        {
-            for (std::vector<std::pair<std::vector<double>,std::vector<double> > >::const_iterator cit =
-                     d_displaced_strct_bounding_boxes[ln].begin();
-                 cit != d_displaced_strct_bounding_boxes[ln].end(); ++cit)
+            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const CellIndex<NDIM>& patch_lower = patch_box.lower();
+            const CellIndex<NDIM>& patch_upper = patch_box.upper();
+            const double* const patchXLower = patch_geom->getXLower();
+            const double* const patchXUpper = patch_geom->getXUpper();
+            const double* const patchDx = patch_geom->getDx();
+
+            Pointer<CellData<NDIM,int> > tag_data = patch->getPatchData(tag_index);
+
+            for (int ln = level_number+1; ln <= d_finest_ln; ++ln)
             {
-                const std::pair<std::vector<double>,std::vector<double> >& bounding_box = *cit;
-
-                // Determine the region of index space covered by the displaced
-                // structure bounding box.
-                const CellIndex<NDIM> box_lower = IndexUtilities::getCellIndex(
-                    bounding_box.first , gridXLower, gridXUpper, dx, domain_lower, domain_upper);
-                const CellIndex<NDIM> box_upper = IndexUtilities::getCellIndex(
-                    bounding_box.second, gridXLower, gridXUpper, dx, domain_lower, domain_upper);
-                const Box<NDIM> tag_box(box_lower,box_upper);
-
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                for (std::vector<std::pair<std::vector<double>,std::vector<double> > >::const_iterator cit =
+                         d_displaced_strct_bounding_boxes[ln].begin();
+                     cit != d_displaced_strct_bounding_boxes[ln].end(); ++cit)
                 {
-                    const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    const Box<NDIM>& patch_box = patch->getBox();
-                    if (patch_box.intersects(tag_box))
-                    {
-                        Pointer<CellData<NDIM,int> > tag_data =
-                            patch->getPatchData(tag_index);
-                        tag_data->fill(1,tag_box);
-                    }
+                    const std::pair<std::vector<double>,std::vector<double> >& bounding_box = *cit;
+
+                    // Determine the region of index space covered by the
+                    // displaced structure bounding box.
+                    const CellIndex<NDIM> bbox_lower = IndexUtilities::getCellIndex(bounding_box.first , patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
+                    const CellIndex<NDIM> bbox_upper = IndexUtilities::getCellIndex(bounding_box.second, patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
+                    const Box<NDIM> tag_box(bbox_lower,bbox_upper);
+                    tag_data->fillAll(1,tag_box);
                 }
             }
         }
