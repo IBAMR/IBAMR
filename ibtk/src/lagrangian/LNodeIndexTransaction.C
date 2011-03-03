@@ -153,9 +153,11 @@ LNodeIndexTransaction::unpackStream(
     for (std::vector<LNodeIndexTransactionComponent>::iterator it = d_dst_index_set.begin();
          it != d_dst_index_set.end(); ++it)
     {
+        it->lag_idx = new LNodeIndex();
         Pointer<LNodeIndex> idx = it->lag_idx;
         idx->unpackStream(stream, periodic_offset);
         std::vector<double>& posn = it->posn;
+        posn.resize(NDIM);
         stream.unpack(&posn[0],NDIM);
     }
     return;

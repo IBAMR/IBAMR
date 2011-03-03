@@ -1250,19 +1250,17 @@ LDataManager::zeroInactivatedComponents(
     std::vector<int> ix(bs);
     std::vector<double> y(bs,0.0);
     std::sort(idxs.begin(), idxs.end());
-    std::vector<int>::const_iterator cit;
-    for (cit  = lower_bound(idxs.begin(), idxs.end(), lo/bs);
-         cit != upper_bound(idxs.begin(), idxs.end(), hi/bs); ++cit)
+    for (std::vector<int>::const_iterator cit = idxs.begin(); cit != idxs.end(); ++cit)
     {
         const int l = *cit;
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(lo <= bs*l && bs*l < hi);
-#endif
-        for (int k = 0; k < bs; ++k)
+        if (l*bs >= lo && l*bs < hi)
         {
-            ix[k] = bs*l + k;
+            for (int k = 0; k < bs; ++k)
+            {
+                ix[k] = bs*l + k;
+            }
+            ierr = VecSetValues(lag_data_vec, bs, &ix[0], &y[0], INSERT_VALUES);  IBTK_CHKERRQ(ierr);
         }
-        ierr = VecSetValues(lag_data_vec, bs, &ix[0], &y[0], INSERT_VALUES);  IBTK_CHKERRQ(ierr);
     }
     ierr = VecAssemblyBegin(lag_data_vec);  IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyEnd(  lag_data_vec);  IBTK_CHKERRQ(ierr);
@@ -1651,8 +1649,7 @@ LDataManager::endDataRedistribution(
 
             // Setup communication transactions between each pair of processors.
             Schedule lnode_idx_data_mover;
-            std::vector<std::vector<Pointer<Transaction> > > transactions(
-                num_procs, std::vector<Pointer<Transaction> >(num_procs));
+            std::vector<std::vector<Pointer<Transaction> > > transactions(num_procs, std::vector<Pointer<Transaction> >(num_procs));
             for (int src_proc = 0; src_proc < num_procs; ++src_proc)
             {
                 for (int dst_proc = 0; dst_proc < num_procs; ++dst_proc)
