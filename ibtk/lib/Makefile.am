@@ -146,6 +146,7 @@ $(top_srcdir)/src/utilities/PETScMatOps.C \
 $(top_srcdir)/src/utilities/PETScVecOps.C \
 $(top_srcdir)/src/utilities/ParallelEdgeMap.C \
 $(top_srcdir)/src/utilities/ParallelMap.C \
+$(top_srcdir)/src/utilities/ParallelSet.C \
 $(top_srcdir)/src/utilities/RefinePatchStrategySet.C \
 $(top_srcdir)/src/utilities/SideDataSynchronization.C \
 $(top_srcdir)/src/utilities/SideNoCornersFillPattern.C \
@@ -285,6 +286,7 @@ $(top_srcdir)/src/utilities/PETScMatOps.h \
 $(top_srcdir)/src/utilities/PETScVecOps.h \
 $(top_srcdir)/src/utilities/ParallelEdgeMap.h \
 $(top_srcdir)/src/utilities/ParallelMap.h \
+$(top_srcdir)/src/utilities/ParallelSet.h \
 $(top_srcdir)/src/utilities/RefinePatchStrategySet.I \
 $(top_srcdir)/src/utilities/RefinePatchStrategySet.h \
 $(top_srcdir)/src/utilities/SideDataSynchronization.h \

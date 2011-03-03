@@ -74,7 +74,7 @@ LNodeIndexTransaction::LNodeIndexTransaction(
 LNodeIndexTransaction::LNodeIndexTransaction(
     const int src_proc,
     const int dst_proc,
-    const std::vector<std::pair<Pointer<LNodeIndex>,std::vector<double> > >& src_index_set)
+    const std::vector<LNodeIndexTransactionComponent>& src_index_set)
     : d_src_index_set(src_index_set),
       d_src_proc(src_proc),
       d_outgoing_bytes(0),
@@ -82,10 +82,10 @@ LNodeIndexTransaction::LNodeIndexTransaction(
       d_dst_proc(dst_proc)
 {
     d_outgoing_bytes = AbstractStream::sizeofInt();
-    for (std::vector<std::pair<Pointer<LNodeIndex>,std::vector<double> > >::const_iterator cit = d_src_index_set.begin();
+    for (std::vector<LNodeIndexTransactionComponent>::const_iterator cit = d_src_index_set.begin();
          cit != d_src_index_set.end(); ++cit)
     {
-        d_outgoing_bytes += (*cit).first->getDataStreamSize() + NDIM*AbstractStream::sizeofDouble();
+        d_outgoing_bytes += cit->lag_idx->getDataStreamSize() + NDIM*AbstractStream::sizeofDouble();
     }
     return;
 }// LNodeIndexTransaction
@@ -131,12 +131,12 @@ LNodeIndexTransaction::packStream(
     AbstractStream& stream)
 {
     stream << int(d_src_index_set.size());
-    for (std::vector<std::pair<Pointer<LNodeIndex>,std::vector<double> > >::const_iterator cit = d_src_index_set.begin();
+    for (std::vector<LNodeIndexTransactionComponent>::const_iterator cit = d_src_index_set.begin();
          cit != d_src_index_set.end(); ++cit)
     {
-        const Pointer<LNodeIndex>& idx = (*cit).first;
+        const Pointer<LNodeIndex>& idx = cit->lag_idx;
         idx->packStream(stream);
-        const std::vector<double>& posn = (*cit).second;
+        const std::vector<double>& posn = cit->posn;
         stream.pack(&posn[0],NDIM);
     }
     return;
@@ -149,14 +149,13 @@ LNodeIndexTransaction::unpackStream(
     static const IntVector<NDIM> periodic_offset = 0;
     int num_idxs;
     stream >> num_idxs;
-    d_dst_index_set.resize(num_idxs,std::make_pair(Pointer<LNodeIndex>(NULL),std::vector<double>(NDIM)));
-    for (std::vector<std::pair<Pointer<LNodeIndex>,std::vector<double> > >::iterator it = d_dst_index_set.begin();
+    d_dst_index_set.resize(num_idxs);
+    for (std::vector<LNodeIndexTransactionComponent>::iterator it = d_dst_index_set.begin();
          it != d_dst_index_set.end(); ++it)
     {
-        (*it).first = new LNodeIndex();
-        Pointer<LNodeIndex> idx = (*it).first;
+        Pointer<LNodeIndex> idx = it->lag_idx;
         idx->unpackStream(stream, periodic_offset);
-        std::vector<double>& posn = (*it).second;
+        std::vector<double>& posn = it->posn;
         stream.unpack(&posn[0],NDIM);
     }
     return;

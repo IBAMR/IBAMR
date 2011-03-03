@@ -371,25 +371,25 @@ LDataManager::resetLevels(
     d_finest_ln   = finest_ln;
 
     // Resize some arrays.
-    d_level_contains_lag_data      .resize(d_finest_ln+1);
-    d_strct_name_to_strct_id_map   .resize(d_finest_ln+1);
-    d_strct_id_to_strct_name_map   .resize(d_finest_ln+1);
-    d_strct_id_to_lag_idx_range_map.resize(d_finest_ln+1);
-    d_last_lag_idx_to_strct_id_map .resize(d_finest_ln+1);
-    d_strct_activation_map         .resize(d_finest_ln+1);
+    d_level_contains_lag_data       .resize(d_finest_ln+1);
+    d_strct_name_to_strct_id_map    .resize(d_finest_ln+1);
+    d_strct_id_to_strct_name_map    .resize(d_finest_ln+1);
+    d_strct_id_to_lag_idx_range_map .resize(d_finest_ln+1);
+    d_last_lag_idx_to_strct_id_map  .resize(d_finest_ln+1);
+    d_inactive_strcts               .resize(d_finest_ln+1);
     d_displaced_strct_ids           .resize(d_finest_ln+1);
     d_displaced_strct_bounding_boxes.resize(d_finest_ln+1);
     d_displaced_strct_lnode_idxs    .resize(d_finest_ln+1);
     d_displaced_strct_lnode_posns   .resize(d_finest_ln+1);
-    d_lag_quantity_data            .resize(d_finest_ln+1);
-    d_needs_synch                  .resize(d_finest_ln+1,false);
-    d_ao                           .resize(d_finest_ln+1);
-    d_num_nodes                    .resize(d_finest_ln+1);
-    d_node_offset                  .resize(d_finest_ln+1);
-    d_local_lag_indices            .resize(d_finest_ln+1);
-    d_nonlocal_lag_indices         .resize(d_finest_ln+1);
-    d_local_petsc_indices          .resize(d_finest_ln+1);
-    d_nonlocal_petsc_indices       .resize(d_finest_ln+1);
+    d_lag_quantity_data             .resize(d_finest_ln+1);
+    d_needs_synch                   .resize(d_finest_ln+1,false);
+    d_ao                            .resize(d_finest_ln+1);
+    d_num_nodes                     .resize(d_finest_ln+1);
+    d_node_offset                   .resize(d_finest_ln+1);
+    d_local_lag_indices             .resize(d_finest_ln+1);
+    d_nonlocal_lag_indices          .resize(d_finest_ln+1);
+    d_local_petsc_indices           .resize(d_finest_ln+1);
+    d_nonlocal_petsc_indices        .resize(d_finest_ln+1);
     return;
 }// resetLevels
 
@@ -426,6 +426,12 @@ LDataManager::spread(
 {
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
+
+    // Zero inactivated components.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        zeroInactivatedComponents(F_data[ln], ln);
+    }
 
     // Compute F*ds.
     std::vector<Pointer<LNodeLevelData> > F_ds_data(F_data.size());
@@ -638,6 +644,12 @@ LDataManager::interp(
                 if (is_sc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
             }
         }
+    }
+
+    // Zero inactivated components.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        zeroInactivatedComponents(F_data[ln], ln);
     }
     return;
 }// interp
@@ -1161,76 +1173,16 @@ LDataManager::activateLagrangianStructures(
     const std::vector<int>& structure_ids,
     const int level_number)
 {
-    static const int LDATA_MPI_ROOT = 0;
-    const int mpi_rank  = SAMRAI_MPI::getRank();
-    const int mpi_nodes = SAMRAI_MPI::getNodes();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
-    const unsigned int num_structures = d_strct_name_to_strct_id_map[level_number].size();
-
-    // Collect the set of activated IDs on the root MPI process.
-    std::set<int> activated_ids;
-    if (mpi_rank == LDATA_MPI_ROOT)
+    for (std::vector<int>::const_iterator cit = structure_ids.begin();
+         cit != structure_ids.end(); ++cit)
     {
-        for (int sending_proc = 0; sending_proc < mpi_nodes; ++sending_proc)
-        {
-            if (sending_proc != LDATA_MPI_ROOT)
-            {
-                std::vector<int> buffer(num_structures);
-                int length;
-                SAMRAI_MPI::recv(&buffer[0], length, sending_proc, true, sending_proc);
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(length <= int(num_structures));
-#endif
-                buffer.resize(length);
-                activated_ids.insert(buffer.begin(), buffer.end());
-            }
-            else
-            {
-                activated_ids.insert(structure_ids.begin(), structure_ids.end());
-            }
-        }
+        d_inactive_strcts[level_number].removeItem(*cit);
     }
-    else
-    {
-        SAMRAI_MPI::send(&structure_ids[0], structure_ids.size(), LDATA_MPI_ROOT, true, mpi_rank);
-    }
-
-    // Broadcast the set of activated IDs to all of the MPI processes.
-    std::vector<int> activated_ids_vector;
-    if (mpi_rank == LDATA_MPI_ROOT)
-    {
-        activated_ids_vector.insert(activated_ids_vector.end(), activated_ids.begin(), activated_ids.end());
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(activated_ids_vector.size() <= num_structures);
-#endif
-        int length = activated_ids_vector.size();
-        SAMRAI_MPI::bcast(&activated_ids_vector[0], length, mpi_rank);
-    }
-    else
-    {
-        activated_ids_vector.resize(num_structures);
-        int length;
-        SAMRAI_MPI::bcast(&activated_ids_vector[0], length, mpi_rank);
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(length <= int(num_structures));
-#endif
-        activated_ids_vector.resize(length);
-    }
-
-    // Indicate which structure IDs are activated.
-    for (std::vector<int>::const_iterator cit = activated_ids_vector.begin();
-         cit != activated_ids_vector.end(); ++cit)
-    {
-        std::map<int,bool>::iterator it = d_strct_activation_map[level_number].find(*cit);
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(it != d_strct_activation_map[level_number].end());
-#endif
-        (*it).second = true;
-    }
+    d_inactive_strcts[level_number].communicateData();
     return;
 }// activateLagrangianStructures
 
@@ -1239,76 +1191,16 @@ LDataManager::inactivateLagrangianStructures(
     const std::vector<int>& structure_ids,
     const int level_number)
 {
-    static const int LDATA_MPI_ROOT = 0;
-    const int mpi_rank  = SAMRAI_MPI::getRank();
-    const int mpi_nodes = SAMRAI_MPI::getNodes();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
-    const unsigned int num_structures = d_strct_name_to_strct_id_map[level_number].size();
-
-    // Collect the set of inactivated IDs on the root MPI process.
-    std::set<int> inactivated_ids;
-    if (mpi_rank == LDATA_MPI_ROOT)
+    for (std::vector<int>::const_iterator cit = structure_ids.begin();
+         cit != structure_ids.end(); ++cit)
     {
-        for (int sending_proc = 0; sending_proc < mpi_nodes; ++sending_proc)
-        {
-            if (sending_proc != LDATA_MPI_ROOT)
-            {
-                std::vector<int> buffer(num_structures);
-                int length;
-                SAMRAI_MPI::recv(&buffer[0], length, sending_proc, true, sending_proc);
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(length <= int(num_structures));
-#endif
-                buffer.resize(length);
-                inactivated_ids.insert(buffer.begin(), buffer.end());
-            }
-            else
-            {
-                inactivated_ids.insert(structure_ids.begin(), structure_ids.end());
-            }
-        }
+        d_inactive_strcts[level_number].addItem(*cit);
     }
-    else
-    {
-        SAMRAI_MPI::send(&structure_ids[0], structure_ids.size(), LDATA_MPI_ROOT, true, mpi_rank);
-    }
-
-    // Broadcast the set of inactivated IDs to all of the MPI processes.
-    std::vector<int> inactivated_ids_vector;
-    if (mpi_rank == LDATA_MPI_ROOT)
-    {
-        inactivated_ids_vector.insert(inactivated_ids_vector.end(), inactivated_ids.begin(), inactivated_ids.end());
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(inactivated_ids_vector.size() <= num_structures);
-#endif
-        int length = inactivated_ids_vector.size();
-        SAMRAI_MPI::bcast(&inactivated_ids_vector[0], length, mpi_rank);
-    }
-    else
-    {
-        inactivated_ids_vector.resize(num_structures);
-        int length;
-        SAMRAI_MPI::bcast(&inactivated_ids_vector[0], length, mpi_rank);
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(length <= int(num_structures));
-#endif
-        inactivated_ids_vector.resize(length);
-    }
-
-    // Indicate which structure IDs are inactivated.
-    for (std::vector<int>::const_iterator cit = inactivated_ids_vector.begin();
-         cit != inactivated_ids_vector.end(); ++cit)
-    {
-        std::map<int,bool>::iterator it = d_strct_activation_map[level_number].find(*cit);
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(it != d_strct_activation_map[level_number].end());
-#endif
-        (*it).second = false;
-    }
+    d_inactive_strcts[level_number].communicateData();
     return;
 }// inactivateLagrangianStructures
 
@@ -1322,24 +1214,22 @@ LDataManager::zeroInactivatedComponents(
                 d_finest_ln   >= level_number);
 #endif
 
+    if (LIKELY(d_inactive_strcts[level_number].getSet().empty())) return;
+
     // Construct a list of all of the inactivated Lagrangian indices.
     //
     // NOTE: The vector idxs is NOT a list of the LOCAL inactivated indices.
     // Instead, it is a list of ALL of the inactivated indices.  Thus, idxs will
     // have the same contents for all MPI processes.
     std::vector<int> idxs;
-    for (std::map<int,bool>::const_iterator cit = d_strct_activation_map[level_number].begin();
-         cit != d_strct_activation_map[level_number].end(); ++cit)
+    for (std::set<int>::const_iterator cit = d_inactive_strcts[level_number].getSet().begin();
+         cit != d_inactive_strcts[level_number].getSet().end(); ++cit)
     {
-        const int strct_id = (*cit).first;
-        const bool is_activated = (*cit).second;
-        if (!is_activated)
+        const int strct_id = *cit;
+        const std::pair<int,int>& lag_index_range = (*d_strct_id_to_lag_idx_range_map[level_number].find(strct_id)).second;
+        for (int l = lag_index_range.first; l < lag_index_range.second; ++l)
         {
-            const std::pair<int,int>& lag_index_range = (*d_strct_id_to_lag_idx_range_map[level_number].find(strct_id)).second;
-            for (int l = lag_index_range.first; l < lag_index_range.second; ++l)
-            {
-                idxs.push_back(l);
-            }
+            idxs.push_back(l);
         }
     }
 
@@ -1719,7 +1609,7 @@ LDataManager::endDataRedistribution(
         {
             const int num_procs = SAMRAI_MPI::getNodes();
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
-            Pointer<BoxTop<NDIM> > box_top = level->getBoxTop();
+            Pointer<BoxTree<NDIM> > box_tree = level->getBoxTree();
             const ProcessorMapping& processor_mapping = level->getProcessorMapping();
             const Box<NDIM>& domain_box = level->getPhysicalDomain()[0];
             const CellIndex<NDIM>& domain_lower = domain_box.lower();
@@ -1736,7 +1626,8 @@ LDataManager::endDataRedistribution(
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(d_displaced_strct_lnode_posns[level_number].size() == num_nodes);
 #endif
-            std::vector<std::vector<std::pair<Pointer<LNodeIndex>,std::vector<double> > > > src_index_set(num_procs);
+            typedef LNodeIndexTransaction::LNodeIndexTransactionComponent LNodeIndexTransactionComponent;
+            std::vector<std::vector<LNodeIndexTransactionComponent> > src_index_set(num_procs);
             for (size_t k = 0; k < num_nodes; ++k)
             {
                 Pointer<LNodeIndex> lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
@@ -1745,12 +1636,17 @@ LDataManager::endDataRedistribution(
                     posn, gridXLower, gridXUpper, dx, domain_lower, domain_upper);
 
                 Array<int> indices;
-                box_top->findOverlappingBoxIndices(indices, Box<NDIM>(cell_idx,cell_idx));
+                box_tree->findOverlapIndices(indices, Box<NDIM>(cell_idx,cell_idx));
 #ifdef DEBUG_CHECK_ASSERTIONS
                 TBOX_ASSERT(indices.getSize() == 1);
 #endif
-                const int dst_proc = processor_mapping.getProcessorAssignment(indices[0]);
-                src_index_set[dst_proc].push_back(std::make_pair(lag_idx,posn));
+                const int patch_num = indices[0];
+#if DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(patch_num >= 0 && patch_num < level->getNumberOfPatches());
+#endif
+                const int dst_proc = processor_mapping.getProcessorAssignment(patch_num);
+                LNodeIndexTransactionComponent component(lag_idx, posn);
+                src_index_set[dst_proc].push_back(component);
             }
 
             // Setup communication transactions between each pair of processors.
@@ -1788,13 +1684,12 @@ LDataManager::endDataRedistribution(
                     if (dst_proc == SAMRAI_MPI::getRank())
                     {
                         Pointer<LNodeIndexTransaction> transaction = transactions[src_proc][dst_proc];
-                        const std::vector<std::pair<Pointer<LNodeIndex>,std::vector<double> > >& dst_index_set =
-                            transaction->getDestinationData();
-                        for (std::vector<std::pair<Pointer<LNodeIndex>,std::vector<double> > >::const_iterator
+                        const std::vector<LNodeIndexTransactionComponent>& dst_index_set = transaction->getDestinationData();
+                        for (std::vector<LNodeIndexTransactionComponent>::const_iterator
                                  cit = dst_index_set.begin(); cit != dst_index_set.end(); ++cit)
                         {
-                            d_displaced_strct_lnode_idxs [level_number].push_back((*cit).first );
-                            d_displaced_strct_lnode_posns[level_number].push_back((*cit).second);
+                            d_displaced_strct_lnode_idxs [level_number].push_back(cit->lag_idx);
+                            d_displaced_strct_lnode_posns[level_number].push_back(cit->posn   );
                         }
                     }
                 }
@@ -1813,12 +1708,15 @@ LDataManager::endDataRedistribution(
                     posn, gridXLower, gridXUpper, dx, domain_lower, domain_upper);
 
                 Array<int> indices;
-                box_top->findOverlappingBoxIndices(indices, Box<NDIM>(cell_idx,cell_idx));
+                box_tree->findOverlapIndices(indices, Box<NDIM>(cell_idx,cell_idx));
 #ifdef DEBUG_CHECK_ASSERTIONS
                 TBOX_ASSERT(indices.getSize() == 1);
 #endif
-
-                Pointer<Patch<NDIM> > patch = level->getPatch(indices[0]);
+                const int patch_num = indices[0];
+#if DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(patch_num >= 0 && patch_num < level->getNumberOfPatches());
+#endif
+                Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
                 Pointer<LNodeIndexData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
                 if (!idx_data->isElement(cell_idx))
                 {
@@ -2472,7 +2370,7 @@ LDataManager::initializeLevelData(
         d_strct_id_to_strct_name_map    .resize(level_number+1);
         d_strct_id_to_lag_idx_range_map.resize(level_number+1);
         d_last_lag_idx_to_strct_id_map  .resize(level_number+1);
-        d_strct_activation_map          .resize(level_number+1);
+        d_inactive_strcts               .resize(level_number+1);
         d_displaced_strct_ids           .resize(d_finest_ln+1);
         d_displaced_strct_bounding_boxes.resize(d_finest_ln+1);
         d_displaced_strct_lnode_idxs    .resize(d_finest_ln+1);
@@ -2528,7 +2426,6 @@ LDataManager::initializeLevelData(
                  cit != d_strct_id_to_strct_name_map[level_number].end(); ++cit)
             {
                 d_strct_name_to_strct_id_map[level_number][(*cit).second] = (*cit).first;
-                d_strct_activation_map      [level_number][(*cit).first ] = true;
             }
 
             for (std::map<int,std::pair<int,int> >::const_iterator cit(d_strct_id_to_lag_idx_range_map[level_number].begin());
@@ -2902,7 +2799,7 @@ LDataManager::putToDatabase(
                 lstruct_names.push_back((*it).second);
                 lstruct_lag_idx_range_first.push_back((*d_strct_id_to_lag_idx_range_map[level_number].find(id)).second.first);
                 lstruct_lag_idx_range_second.push_back((*d_strct_id_to_lag_idx_range_map[level_number].find(id)).second.second);
-                lstruct_activation.push_back(int((*d_strct_activation_map[level_number].find(id)).second));
+                lstruct_activation.push_back(int(d_inactive_strcts[level_number].getSet().find(id) != d_inactive_strcts[level_number].getSet().end()));
             }
             level_db->putInteger("n_lstructs", lstruct_ids.size());
             if (!lstruct_ids.empty())
@@ -3178,6 +3075,12 @@ LDataManager::spread_specialized(
     const int coarsest_ln,
     const int finest_ln)
 {
+    // Zero inactivated components.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        zeroInactivatedComponents(F_data[ln], ln);
+    }
+
     // Spread data from the Lagrangian mesh to the Eulerian grid.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -3247,6 +3150,12 @@ LDataManager::interp_specialized(
                 if (is_sc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
             }
         }
+    }
+
+    // Zero inactivated components.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        zeroInactivatedComponents(F_data[ln], ln);
     }
     return;
 }// interp_specialized
@@ -3727,7 +3636,7 @@ LDataManager::getFromRestart()
     d_strct_id_to_strct_name_map    .resize(d_finest_ln+1);
     d_strct_id_to_lag_idx_range_map .resize(d_finest_ln+1);
     d_last_lag_idx_to_strct_id_map  .resize(d_finest_ln+1);
-    d_strct_activation_map          .resize(d_finest_ln+1);
+    d_inactive_strcts               .resize(d_finest_ln+1);
     d_displaced_strct_ids           .resize(d_finest_ln+1);
     d_displaced_strct_bounding_boxes.resize(d_finest_ln+1);
     d_displaced_strct_lnode_idxs    .resize(d_finest_ln+1);
@@ -3769,8 +3678,12 @@ LDataManager::getFromRestart()
             {
                 d_strct_id_to_strct_name_map   [level_number][lstruct_ids[k]] = lstruct_names[k];
                 d_strct_id_to_lag_idx_range_map[level_number][lstruct_ids[k]] = std::make_pair(lstruct_lag_idx_range_first[k], lstruct_lag_idx_range_second[k]);
-                d_strct_activation_map         [level_number][lstruct_ids[k]] = bool(lstruct_activation[k]);
+                if (lstruct_activation[k] == 1)
+                {
+                    d_inactive_strcts[level_number].addItem(k);
+                }
             }
+            d_inactive_strcts[level_number].communicateData();
 
             for (std::map<int,std::string>::const_iterator cit(d_strct_id_to_strct_name_map[level_number].begin());
                  cit != d_strct_id_to_strct_name_map[level_number].end(); ++cit)

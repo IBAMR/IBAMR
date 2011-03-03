@@ -43,6 +43,7 @@
 #include <ibtk/LNodeInitStrategy.h>
 #include <ibtk/LNodeIndex.h>
 #include <ibtk/LNodeIndexVariable.h>
+#include <ibtk/ParallelSet.h>
 
 // PETSc INCLUDES
 #include <petscvec.h>
@@ -1164,7 +1165,7 @@ private:
     std::vector<std::map<int,std::string> > d_strct_id_to_strct_name_map;
     std::vector<std::map<int,std::pair<int,int> > > d_strct_id_to_lag_idx_range_map;
     std::vector<std::map<int,int> > d_last_lag_idx_to_strct_id_map;
-    std::vector<std::map<int,bool> > d_strct_activation_map;
+    std::vector<IBTK::ParallelSet> d_inactive_strcts;
     std::vector<std::vector<int> > d_displaced_strct_ids;
     std::vector<std::vector<std::pair<std::vector<double>,std::vector<double> > > > d_displaced_strct_bounding_boxes;
     std::vector<std::vector<SAMRAI::tbox::Pointer<LNodeIndex> > > d_displaced_strct_lnode_idxs;

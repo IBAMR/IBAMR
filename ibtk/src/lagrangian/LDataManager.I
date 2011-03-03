@@ -150,9 +150,8 @@ LDataManager::getLagrangianStructureIsActivated(
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
                 d_finest_ln   >= level_number);
 #endif
-    std::map<int,bool>::const_iterator cit = d_strct_activation_map[level_number].find(structure_id);
-    if (UNLIKELY(cit == d_strct_activation_map[level_number].end())) return false;
-    return (*cit).second;
+    std::set<int>::const_iterator cit = d_inactive_strcts[level_number].getSet().find(structure_id);
+    return (cit == d_inactive_strcts[level_number].getSet().end());
 }// getLagrangianStructureIsActivated
 
 /////////////////////////////// PRIVATE //////////////////////////////////////

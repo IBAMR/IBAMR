@@ -192,6 +192,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/utilities/PETScVecOps.C \
 	$(top_srcdir)/src/utilities/ParallelEdgeMap.C \
 	$(top_srcdir)/src/utilities/ParallelMap.C \
+	$(top_srcdir)/src/utilities/ParallelSet.C \
 	$(top_srcdir)/src/utilities/RefinePatchStrategySet.C \
 	$(top_srcdir)/src/utilities/SideDataSynchronization.C \
 	$(top_srcdir)/src/utilities/SideNoCornersFillPattern.C \
@@ -319,6 +320,7 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-PETScVecOps.$(OBJEXT) \
 	libIBTK2d_a-ParallelEdgeMap.$(OBJEXT) \
 	libIBTK2d_a-ParallelMap.$(OBJEXT) \
+	libIBTK2d_a-ParallelSet.$(OBJEXT) \
 	libIBTK2d_a-RefinePatchStrategySet.$(OBJEXT) \
 	libIBTK2d_a-SideDataSynchronization.$(OBJEXT) \
 	libIBTK2d_a-SideNoCornersFillPattern.$(OBJEXT) \
@@ -437,6 +439,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/utilities/PETScVecOps.C \
 	$(top_srcdir)/src/utilities/ParallelEdgeMap.C \
 	$(top_srcdir)/src/utilities/ParallelMap.C \
+	$(top_srcdir)/src/utilities/ParallelSet.C \
 	$(top_srcdir)/src/utilities/RefinePatchStrategySet.C \
 	$(top_srcdir)/src/utilities/SideDataSynchronization.C \
 	$(top_srcdir)/src/utilities/SideNoCornersFillPattern.C \
@@ -563,6 +566,7 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-PETScVecOps.$(OBJEXT) \
 	libIBTK3d_a-ParallelEdgeMap.$(OBJEXT) \
 	libIBTK3d_a-ParallelMap.$(OBJEXT) \
+	libIBTK3d_a-ParallelSet.$(OBJEXT) \
 	libIBTK3d_a-RefinePatchStrategySet.$(OBJEXT) \
 	libIBTK3d_a-SideDataSynchronization.$(OBJEXT) \
 	libIBTK3d_a-SideNoCornersFillPattern.$(OBJEXT) \
@@ -1082,6 +1086,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/utilities/PETScVecOps.h \
 	$(top_srcdir)/src/utilities/ParallelEdgeMap.h \
 	$(top_srcdir)/src/utilities/ParallelMap.h \
+	$(top_srcdir)/src/utilities/ParallelSet.h \
 	$(top_srcdir)/src/utilities/RefinePatchStrategySet.I \
 	$(top_srcdir)/src/utilities/RefinePatchStrategySet.h \
 	$(top_srcdir)/src/utilities/SideDataSynchronization.h \
@@ -1194,6 +1199,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/utilities/PETScVecOps.C \
 	$(top_srcdir)/src/utilities/ParallelEdgeMap.C \
 	$(top_srcdir)/src/utilities/ParallelMap.C \
+	$(top_srcdir)/src/utilities/ParallelSet.C \
 	$(top_srcdir)/src/utilities/RefinePatchStrategySet.C \
 	$(top_srcdir)/src/utilities/SideDataSynchronization.C \
 	$(top_srcdir)/src/utilities/SideNoCornersFillPattern.C \
@@ -1409,6 +1415,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScVecUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-ParallelMap.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-ParallelSet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PatchMathOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PatchVecCellDataBasicOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PatchVecCellDataOpsReal.Po@am__quote@
@@ -1515,6 +1522,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScVecUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-ParallelMap.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-ParallelSet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PatchMathOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PatchVecCellDataBasicOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PatchVecCellDataOpsReal.Po@am__quote@
@@ -3002,6 +3010,20 @@ libIBTK2d_a-ParallelMap.obj: $(top_srcdir)/src/utilities/ParallelMap.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-ParallelMap.obj `if test -f '$(top_srcdir)/src/utilities/ParallelMap.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ParallelMap.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ParallelMap.C'; fi`
 
+libIBTK2d_a-ParallelSet.o: $(top_srcdir)/src/utilities/ParallelSet.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-ParallelSet.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-ParallelSet.Tpo -c -o libIBTK2d_a-ParallelSet.o `test -f '$(top_srcdir)/src/utilities/ParallelSet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/ParallelSet.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-ParallelSet.Tpo $(DEPDIR)/libIBTK2d_a-ParallelSet.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/ParallelSet.C' object='libIBTK2d_a-ParallelSet.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-ParallelSet.o `test -f '$(top_srcdir)/src/utilities/ParallelSet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/ParallelSet.C
+
+libIBTK2d_a-ParallelSet.obj: $(top_srcdir)/src/utilities/ParallelSet.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-ParallelSet.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-ParallelSet.Tpo -c -o libIBTK2d_a-ParallelSet.obj `if test -f '$(top_srcdir)/src/utilities/ParallelSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ParallelSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ParallelSet.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-ParallelSet.Tpo $(DEPDIR)/libIBTK2d_a-ParallelSet.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/ParallelSet.C' object='libIBTK2d_a-ParallelSet.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-ParallelSet.obj `if test -f '$(top_srcdir)/src/utilities/ParallelSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ParallelSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ParallelSet.C'; fi`
+
 libIBTK2d_a-RefinePatchStrategySet.o: $(top_srcdir)/src/utilities/RefinePatchStrategySet.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-RefinePatchStrategySet.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Tpo -c -o libIBTK2d_a-RefinePatchStrategySet.o `test -f '$(top_srcdir)/src/utilities/RefinePatchStrategySet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/RefinePatchStrategySet.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Tpo $(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Po
@@ -4485,6 +4507,20 @@ libIBTK3d_a-ParallelMap.obj: $(top_srcdir)/src/utilities/ParallelMap.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/ParallelMap.C' object='libIBTK3d_a-ParallelMap.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-ParallelMap.obj `if test -f '$(top_srcdir)/src/utilities/ParallelMap.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ParallelMap.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ParallelMap.C'; fi`
+
+libIBTK3d_a-ParallelSet.o: $(top_srcdir)/src/utilities/ParallelSet.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-ParallelSet.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-ParallelSet.Tpo -c -o libIBTK3d_a-ParallelSet.o `test -f '$(top_srcdir)/src/utilities/ParallelSet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/ParallelSet.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-ParallelSet.Tpo $(DEPDIR)/libIBTK3d_a-ParallelSet.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/ParallelSet.C' object='libIBTK3d_a-ParallelSet.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-ParallelSet.o `test -f '$(top_srcdir)/src/utilities/ParallelSet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/ParallelSet.C
+
+libIBTK3d_a-ParallelSet.obj: $(top_srcdir)/src/utilities/ParallelSet.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-ParallelSet.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-ParallelSet.Tpo -c -o libIBTK3d_a-ParallelSet.obj `if test -f '$(top_srcdir)/src/utilities/ParallelSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ParallelSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ParallelSet.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-ParallelSet.Tpo $(DEPDIR)/libIBTK3d_a-ParallelSet.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/ParallelSet.C' object='libIBTK3d_a-ParallelSet.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-ParallelSet.obj `if test -f '$(top_srcdir)/src/utilities/ParallelSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ParallelSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ParallelSet.C'; fi`
 
 libIBTK3d_a-RefinePatchStrategySet.o: $(top_srcdir)/src/utilities/RefinePatchStrategySet.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-RefinePatchStrategySet.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-RefinePatchStrategySet.Tpo -c -o libIBTK3d_a-RefinePatchStrategySet.o `test -f '$(top_srcdir)/src/utilities/RefinePatchStrategySet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/RefinePatchStrategySet.C
