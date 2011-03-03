@@ -60,9 +60,28 @@ public:
     ParallelMap();
 
     /*!
+     * \brief Copy constructor.
+     *
+     * \param from The value to copy to this object.
+     */
+    ParallelMap(
+        const ParallelMap& from);
+
+    /*!
      * \brief Destructor.
      */
     ~ParallelMap();
+
+    /*!
+     * \brief Assignment operator.
+     *
+     * \param that The value to assign to this object.
+     *
+     * \return A reference to this object.
+     */
+    ParallelMap&
+    operator=(
+        const ParallelMap& that);
 
     /*!
      * \brief Add an item with the specified key to the map.
@@ -108,29 +127,6 @@ public:
     getMap() const;
 
 private:
-    /*!
-     * \brief Copy constructor.
-     *
-     * \param from The value to copy to this object.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    ParallelMap(
-        const ParallelMap& from);
-
-    /*!
-     * \brief Assignment operator.
-     *
-     * \note This operator is not implemented and should not be used.
-     *
-     * \param that The value to assign to this object.
-     *
-     * \return A reference to this object.
-     */
-    ParallelMap&
-    operator=(
-        const ParallelMap& that);
-
     // Member data.
     std::map<int,SAMRAI::tbox::Pointer<Streamable> > d_map;
     std::map<int,SAMRAI::tbox::Pointer<Streamable> > d_pending_additions;
