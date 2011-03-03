@@ -205,6 +205,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     d_normalize_pressure = false;
 
     d_regrid_interval = 1;
+    d_regrid_mode = STANDARD;
     d_old_dt = -1.0;
     d_op_and_solver_init_dt = -1.0;
     d_integrator_time = std::numeric_limits<double>::quiet_NaN();
@@ -1299,8 +1300,18 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
     const double Div_U_norm_2_pre  = d_hier_cc_data_ops->L2Norm( d_Div_U_current_idx, d_wgt_cc_idx);
     const double Div_U_norm_oo_pre = d_hier_cc_data_ops->maxNorm(d_Div_U_current_idx, d_wgt_cc_idx);
 
-    // Regrid the hierarchy
-    d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
+    // Regrid the hierarchy.
+    if (d_regrid_mode == STANDARD)
+    {
+        d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
+    }
+    else if (d_regrid_mode == AGGRESSIVE)
+    {
+        for (int k = 0; k < std::max(1,d_hierarchy->getFinestLevelNumber()); ++k)
+        {
+            d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
+        }
+    }
 
     // Determine the divergence of the velocity field after regridding.
     d_hier_math_ops->div(d_Div_U_current_idx, d_Div_U_var, 1.0, d_U_current_idx, d_U_var, d_no_fill_op, d_integrator_time, true);
@@ -3032,6 +3043,21 @@ INSStaggeredHierarchyIntegrator::getFromInput(
     d_num_cycles = db->getIntegerWithDefault("num_cycles", d_num_cycles);
 
     d_regrid_interval = db->getIntegerWithDefault("regrid_interval", d_regrid_interval);
+    std::string regrid_mode_str = db->getStringWithDefault("regrid_mode", "STANDARD");
+    if (regrid_mode_str == "STANDARD")
+    {
+        d_regrid_mode = STANDARD;
+    }
+    else if (regrid_mode_str == "AGGRESSIVE")
+    {
+        d_regrid_mode = AGGRESSIVE;
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << ":  "
+                   << "Key data `regrid_mode' has invalid value.\n"
+                   << "Valid options are: STANDARD, AGGRESSIVE" << std::endl);
+    }
 
     if (db->keyExists("tag_buffer"))
     {

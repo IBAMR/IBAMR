@@ -144,6 +144,7 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_grow_dt(2.0),
       d_max_integrator_steps(std::numeric_limits<int>::max()),
       d_regrid_interval(1),
+      d_regrid_mode(STANDARD),
       d_using_default_tag_buffer(true),
       d_tag_buffer(),
       d_old_dt(-1.0),
@@ -916,8 +917,17 @@ AdvDiffHierarchyIntegrator::regridHierarchy()
     t_regrid_hierarchy->start();
 
     const int coarsest_ln = 0;
-    d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln,
-                                         d_integrator_time, d_tag_buffer);
+    if (d_regrid_mode == STANDARD)
+    {
+        d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
+    }
+    else if (d_regrid_mode == AGGRESSIVE)
+    {
+        for (int k = 0; k < std::max(1,d_hierarchy->getFinestLevelNumber()); ++k)
+        {
+            d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
+        }
+    }
 
     t_regrid_hierarchy->stop();
     return;
@@ -1783,6 +1793,21 @@ AdvDiffHierarchyIntegrator::getFromInput(
 
     d_regrid_interval = db->getIntegerWithDefault(
         "regrid_interval", d_regrid_interval);
+    std::string regrid_mode_str = db->getStringWithDefault("regrid_mode", "STANDARD");
+    if (regrid_mode_str == "STANDARD")
+    {
+        d_regrid_mode = STANDARD;
+    }
+    else if (regrid_mode_str == "AGGRESSIVE")
+    {
+        d_regrid_mode = AGGRESSIVE;
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << ":  "
+                   << "Key data `regrid_mode' has invalid value " << regrid_mode_str << "\n"
+                   << "Valid options are: STANDARD, AGGRESSIVE" << std::endl);
+    }
 
     if (db->keyExists("tag_buffer"))
     {

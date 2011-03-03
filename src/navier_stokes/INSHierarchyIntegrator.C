@@ -249,6 +249,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     d_performing_init_cycles = false;
 
     d_regrid_interval = 1;
+    d_regrid_mode = STANDARD;
     d_old_dt = -1.0;
     d_integrator_time = std::numeric_limits<double>::quiet_NaN();
     d_integrator_step = std::numeric_limits<int>::max();
@@ -1500,13 +1501,19 @@ INSHierarchyIntegrator::regridHierarchy()
 
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
 
+    // Regrid the hierarchy.
     const int coarsest_ln = 0;
-    d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
-    for (size_t i = 0; i < d_regrid_hierarchy_callbacks.size(); ++i)
+    if (d_regrid_mode == STANDARD)
     {
-        (*d_regrid_hierarchy_callbacks[i])(d_hierarchy, d_integrator_time, initial_time, d_regrid_hierarchy_callback_ctxs[i]);
+        d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
     }
-
+    else if (d_regrid_mode == AGGRESSIVE)
+    {
+        for (int k = 0; k < std::max(1,d_hierarchy->getFinestLevelNumber()); ++k)
+        {
+            d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
+        }
+    }
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Allocate scratch data.
@@ -3524,6 +3531,21 @@ INSHierarchyIntegrator::getFromInput(
 
     d_regrid_interval = db->getIntegerWithDefault(
         "regrid_interval", d_regrid_interval);
+    std::string regrid_mode_str = db->getStringWithDefault("regrid_mode", "STANDARD");
+    if (regrid_mode_str == "STANDARD")
+    {
+        d_regrid_mode = STANDARD;
+    }
+    else if (regrid_mode_str == "AGGRESSIVE")
+    {
+        d_regrid_mode = AGGRESSIVE;
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << ":  "
+                   << "Key data `regrid_mode' has invalid value " << regrid_mode_str << "\n"
+                   << "Valid options are: STANDARD, AGGRESSIVE" << std::endl);
+    }
 
     if (db->keyExists("tag_buffer"))
     {

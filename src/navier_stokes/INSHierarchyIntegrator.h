@@ -42,6 +42,7 @@
 #include <ibamr/HierarchyProjector.h>
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
 #include <ibamr/INSProjectionBcCoef.h>
+#include <ibamr/RegridMode.h>
 
 // IBTK INCLUDES
 #include <ibtk/CCPoissonFACOperator.h>
@@ -975,8 +976,15 @@ private:
     /*
      * The regrid interval indicates the number of integration steps taken
      * between invocations of the regridding process.
+     *
+     * The regrid mode indicates whether to use "standard" regridding (grid
+     * generation involves only one call to
+     * SAMRAI::mesh::GriddingAlgorithm::regridAllFinerLevels()) or "agressive"
+     * regridding (grid generation involes multiple calls to
+     * SAMRAI::mesh::GriddingAlgorithm::regridAllFinerLevels()).
      */
     int d_regrid_interval;
+    RegridMode d_regrid_mode;
 
     /*
      * The tag buffer indicates the number of cells on each level by which

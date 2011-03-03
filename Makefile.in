@@ -514,6 +514,7 @@ EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/include/ibamr/INSStaggeredStokesOperator.h \
 	$(top_srcdir)/include/ibamr/INSStaggeredVCStokesOperator.h \
 	$(top_srcdir)/include/ibamr/INSStaggeredVelocityBcCoef.h \
+	$(top_srcdir)/include/ibamr/RegridMode.h \
 	$(top_srcdir)/include/ibamr/TGACoefs.h \
 	$(top_srcdir)/include/ibamr/ibamr_utilities.h \
 	$(top_srcdir)/include/ibamr/namespaces.h
