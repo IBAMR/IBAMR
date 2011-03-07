@@ -153,19 +153,21 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
       d_use_fbar_projection(false),
       d_projected_strain_fe_order(CONSTANT),
       d_projected_strain_fe_family(MONOMIAL),
-      d_coordinate_mapping_function(NULL),
-      d_coordinate_mapping_function_ctx(NULL),
-      d_PK1_stress_function(NULL),
-      d_PK1_stress_function_ctx(NULL),
-      d_extra_force_function(NULL),
-      d_extra_force_function_ctx(NULL),
+      d_coordinate_mapping_fcn(NULL),
+      d_coordinate_mapping_fcn_ctx(NULL),
+      d_PK1_stress_fcn(NULL),
+      d_PK1_stress_fcn_ctx(NULL),
+      d_lag_body_force_fcn(NULL),
+      d_lag_body_force_fcn_ctx(NULL),
+      d_lag_pressure_fcn(NULL),
+      d_lag_pressure_fcn_ctx(NULL),
       d_lag_data_manager(lag_data_manager),
       d_hierarchy(hierarchy),
       d_gridding_alg(NULL),
       d_visit_writer(NULL),
       d_load_balancer(NULL),
       d_ins_hier_integrator(ins_hier_integrator),
-      d_body_force_fcn(NULL),
+      d_eul_body_force_fcn(NULL),
       d_eulerian_force_fcn(NULL),
       d_start_time(0.0),
       d_end_time(std::numeric_limits<double>::max()),
@@ -288,43 +290,53 @@ IBFEHierarchyIntegrator::getName() const
 }// getName
 
 void
-IBFEHierarchyIntegrator::setInitialCoordinateMappingFunction(
-    Point (*coordinate_mapping_function)(const Point& s, void* ctx),
-    void* coordinate_mapping_function_ctx)
+IBFEHierarchyIntegrator::registerInitialCoordinateMappingFunction(
+    Point (*coordinate_mapping_fcn)(const Point& s, void* ctx),
+    void* coordinate_mapping_fcn_ctx)
 {
-    d_coordinate_mapping_function = coordinate_mapping_function;
-    d_coordinate_mapping_function_ctx = coordinate_mapping_function_ctx;
+    d_coordinate_mapping_fcn = coordinate_mapping_fcn;
+    d_coordinate_mapping_fcn_ctx = coordinate_mapping_fcn_ctx;
     return;
-}// setInitialCoordinateMappingFunction
+}// registerInitialCoordinateMappingFunction
 
 void
-IBFEHierarchyIntegrator::setPK1StressTensorFunction(
-    TensorValue<double> (*PK1_stress_function)(const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const elem, const double& time, void* ctx),
-    void* PK1_stress_function_ctx)
+IBFEHierarchyIntegrator::registerPK1StressTensorFunction(
+    TensorValue<double> (*PK1_stress_fcn)(const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const elem, const double& time, void* ctx),
+    void* PK1_stress_fcn_ctx)
 {
-    d_PK1_stress_function = PK1_stress_function;
-    d_PK1_stress_function_ctx = PK1_stress_function_ctx;
+    d_PK1_stress_fcn = PK1_stress_fcn;
+    d_PK1_stress_fcn_ctx = PK1_stress_fcn_ctx;
     return;
-}// setPK1StressTensorFunction
+}// registerPK1StressTensorFunction
 
 void
-IBFEHierarchyIntegrator::setExtraForceFunction(
-    void (*extra_force_function)(NumericVector<double>& F, NumericVector<double>& X, EquationSystems* equation_systems, const std::string& force_system_name, const std::string& coords_system_name, const double& time, void* ctx),
-    void* extra_force_function_ctx)
+IBFEHierarchyIntegrator::registerLagBodyForceFunction(
+    libMesh::VectorValue<double> (*lag_body_force_fcn)(const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, const double& time, void* ctx),
+    void* lag_body_force_fcn_ctx)
 {
-    d_extra_force_function = extra_force_function;
-    d_extra_force_function_ctx = extra_force_function_ctx;
+    d_lag_body_force_fcn = lag_body_force_fcn;
+    d_lag_body_force_fcn_ctx = lag_body_force_fcn_ctx;
     return;
-}// setExtraForceFunction
+}// registerLagBodyForceFunction
 
 void
-IBFEHierarchyIntegrator::setLagrangianForceStrategy(
-    Pointer<IBLagrangianForceStrategy> lag_force_strategy)
+IBFEHierarchyIntegrator::registerLagPressureFunction(
+    double (*lag_pressure_fcn)(const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, const unsigned short int side, const double& time, void* ctx),
+    void* lag_pressure_fcn_ctx)
 {
-    d_lag_force_strategy = lag_force_strategy;
-    d_lag_force_strategy_needs_init = true;
+    d_lag_pressure_fcn = lag_pressure_fcn;
+    d_lag_pressure_fcn_ctx = lag_pressure_fcn_ctx;
     return;
-}// setLagrangianForceStrategy
+}// registerLagPressureFunction
+
+void
+IBFEHierarchyIntegrator::registerIBLagrangianForceStrategy(
+    Pointer<IBLagrangianForceStrategy> ib_lag_force_strategy)
+{
+    d_ib_lag_force_strategy = ib_lag_force_strategy;
+    d_ib_lag_force_strategy_needs_init = true;
+    return;
+}// registerIBLagrangianForceStrategy
 
 void
 IBFEHierarchyIntegrator::registerVelocityInitialConditions(
@@ -355,12 +367,12 @@ IBFEHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
 }// registerVelocityPhysicalBcCoefs
 
 void
-IBFEHierarchyIntegrator::registerBodyForceSpecification(
-    Pointer<CartGridFunction> body_force_fcn)
+IBFEHierarchyIntegrator::registerEulBodyForceFunction(
+    Pointer<CartGridFunction> eul_body_force_fcn)
 {
-    d_body_force_fcn = body_force_fcn;
+    d_eul_body_force_fcn = eul_body_force_fcn;
     return;
-}// registerBodyForceSpecification
+}// registerEulBodyForceFunction
 
 void
 IBFEHierarchyIntegrator::registerVisItDataWriter(
@@ -627,7 +639,7 @@ IBFEHierarchyIntegrator::initializeHierarchy()
     LagMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
 
     // Indicate that the force strategy needs to be re-initialized.
-    d_lag_force_strategy_needs_init = true;
+    d_ib_lag_force_strategy_needs_init = true;
 
     t_initialize_hierarchy->stop();
     return dt_next;
@@ -664,21 +676,21 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
 
     // Set the current time interval in the force specification objects.
-    d_eulerian_force_fcn->registerBodyForceSpecification(d_body_force_fcn);
+    d_eulerian_force_fcn->registerBodyForceSpecification(d_eul_body_force_fcn);
     d_eulerian_force_fcn->setTimeInterval(current_time, new_time);
-    if (!d_lag_force_strategy.isNull()) d_lag_force_strategy->setTimeInterval(current_time, new_time);
+    if (!d_ib_lag_force_strategy.isNull()) d_ib_lag_force_strategy->setTimeInterval(current_time, new_time);
 
     // (Re)initialize the force strategy object.
-    if (d_lag_force_strategy_needs_init)
+    if (d_ib_lag_force_strategy_needs_init)
     {
         for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
             if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
             {
-                d_lag_force_strategy->initializeLevelData(d_hierarchy, ln, current_time, initial_time, d_lag_data_manager);
+                d_ib_lag_force_strategy->initializeLevelData(d_hierarchy, ln, current_time, initial_time, d_lag_data_manager);
             }
         }
-        d_lag_force_strategy_needs_init = false;
+        d_ib_lag_force_strategy_needs_init = false;
     }
 
     // Extract the FE vectors.
@@ -812,24 +824,13 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         // Compute F(n+1/2) = F(X(n+1/2),t(n+1/2)).
         t_advance_hierarchy_phase3->start();
         computeInteriorForceDensity(F_half, X_half, current_time+0.5*dt);
-        if (d_extra_force_function != NULL)
-        {
-            AutoPtr<NumericVector<double> > F_extra_half = F_half.zero_clone();
-            d_extra_force_function(*F_extra_half, X_half,
-                                   equation_systems, FORCE_SYSTEM_NAME, COORDINATES_SYSTEM_NAME,
-                                   current_time+0.5*dt, d_extra_force_function_ctx);
-            F_extra_half->close();
-            const DofMap& force_dof_map = force_system.get_dof_map();
-            force_dof_map.enforce_constraints_exactly(force_system, F_extra_half.get());
-            F_half += *F_extra_half;
-        }
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
             {
                 Vec F_half_vec = F_half_data[ln]->getGlobalVec();
                 ierr = VecSet(F_half_vec, 0.0); IBTK_CHKERRQ(ierr);
-                d_lag_force_strategy->computeLagrangianForce(F_half_data[ln], X_half_data[ln], U_half_data[ln], d_hierarchy, ln, current_time+0.5*dt, d_lag_data_manager);
+                d_ib_lag_force_strategy->computeLagrangianForce(F_half_data[ln], X_half_data[ln], U_half_data[ln], d_hierarchy, ln, current_time+0.5*dt, d_lag_data_manager);
             }
         }
         t_advance_hierarchy_phase3->stop();
@@ -1061,7 +1062,7 @@ IBFEHierarchyIntegrator::regridHierarchy()
         d_lag_data_manager->endDataRedistribution();
         d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
     }
-    d_lag_force_strategy_needs_init = true;
+    d_ib_lag_force_strategy_needs_init = true;
 
     // Reinitialize the FE data manager.
     d_fe_data_manager->reinitElementMappings();
@@ -1581,13 +1582,13 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     const std::vector<std::vector<double> >& coords_phi_face = coords_fe_face->get_phi();
     const std::vector<std::vector<VectorValue<double> > >& coords_dphi_face = coords_fe_face->get_dphi();
 
-    NumericVector<double>* J_proj;
-    const DofMap* proj_strain_dof_map;
+    NumericVector<double>* J_proj = NULL;
+    const DofMap* proj_strain_dof_map = NULL;
     std::vector<unsigned int> proj_strain_dof_indices;
     AutoPtr<FEBase> proj_strain_fe;
-    const std::vector<std::vector<double> >* proj_strain_phi;
+    const std::vector<std::vector<double> >* proj_strain_phi = NULL;
     AutoPtr<FEBase> proj_strain_fe_face;
-    const std::vector<std::vector<double> >* proj_strain_phi_face;
+    const std::vector<std::vector<double> >* proj_strain_phi_face = NULL;
     if (d_use_fbar_projection)
     {
         System& proj_strain_system = equation_systems->get_system<System>(PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME);
@@ -1641,8 +1642,6 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
         // Loop over interior quadrature points.
         for (unsigned int qp = 0; qp < qrule.n_points(); ++qp)
         {
-            // Compute the value of the first Piola-Kirchhoff stress tensor at
-            // the quadrature point.
             const Point& s_qp = coords_q_point[qp];
             const Point& X_qp = compute_coordinate(qp,X,coords_phi,coords_dof_indices);
             TensorValue<double> dX_ds = compute_coordinate_mapping_jacobian(qp,X,coords_dphi,coords_dof_indices);
@@ -1656,15 +1655,33 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                 dX_ds(2,2) = 1.0;
 #endif
             }
-            const TensorValue<double> P = d_PK1_stress_function(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_function_ctx);
 
-            // Accumulate the nodal forces.
+            // Compute the value of the first Piola-Kirchhoff stress tensor at
+            // the quadrature point and add the corresponding forces to the
+            // right-hand-side vector.
+            const TensorValue<double> PP = d_PK1_stress_fcn(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_fcn_ctx);
             for (unsigned int k = 0; k < phi.size(); ++k)
             {
-                const VectorValue<double> F_qp = -P*dphi[k][qp]*JxW[qp];
+                const VectorValue<double> F_qp = -PP*dphi[k][qp]*JxW[qp];
                 for (unsigned int i = 0; i < NDIM; ++i)
                 {
                     F_e[i](k) += F_qp(i);
+                }
+            }
+
+            if (d_lag_body_force_fcn != NULL)
+            {
+                // Compute the value of the body force at the quadrature point
+                // and add the corresponding forces to the right-hand-side
+                // vector.
+                const VectorValue<double> F = d_lag_body_force_fcn(dX_ds,X_qp,s_qp,elem,time,d_lag_body_force_fcn_ctx);
+                for (unsigned int k = 0; k < phi.size(); ++k)
+                {
+                    const VectorValue<double> F_qp = F*phi[k][qp]*JxW[qp];
+                    for (unsigned int i = 0; i < NDIM; ++i)
+                    {
+                        F_e[i](k) += F_qp(i);
+                    }
                 }
             }
         }
@@ -1672,7 +1689,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
         // Loop over the element boundaries.
         for (unsigned short int side = 0; side < elem->n_sides(); ++side)
         {
-            // Skip non-physical boundaries and Dirichlet boundaries.
+            // Skip non-physical boundaries.
             const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
             bool at_physical_bdry  = false;
             bool at_dirichlet_bdry = false;
@@ -1682,17 +1699,20 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                 at_physical_bdry  = at_physical_bdry  || (elem->neighbor(side) == NULL && !dof_map.is_periodic_boundary(bdry_id));
                 at_dirichlet_bdry = at_dirichlet_bdry || (bdry_id == FEDataManager::DIRICHLET_BDRY_ID);
             }
-            if (at_physical_bdry &&
-                (( d_split_interior_and_bdry_forces && !at_dirichlet_bdry) ||
-                 (!d_split_interior_and_bdry_forces &&  at_dirichlet_bdry)))
+            if (!at_physical_bdry) continue;
+
+            // Determine whether we need to compute surface forces along the
+            // physical boundary.
+            const bool compute_transmission_force = (( d_split_interior_and_bdry_forces && !at_dirichlet_bdry) ||
+                                                     (!d_split_interior_and_bdry_forces &&  at_dirichlet_bdry));
+            const bool compute_pressure = (d_split_interior_and_bdry_forces && d_lag_pressure_fcn != NULL);
+            if (compute_transmission_force || compute_pressure)
             {
                 fe_face->reinit(elem, side);
                 coords_fe_face->reinit(elem, side);
                 if (d_use_fbar_projection) proj_strain_fe_face->reinit(elem, side);
                 for (unsigned int qp = 0; qp < qrule_face.n_points(); ++qp)
                 {
-                    // Compute the value of the first Piola-Kirchhoff stress
-                    // tensor at the quadrature point.
                     const Point& s_qp = coords_q_point_face[qp];
                     const Point& X_qp = compute_coordinate(qp,X,coords_phi_face,coords_dof_indices);
                     TensorValue<double> dX_ds = compute_coordinate_mapping_jacobian(qp,X,coords_dphi_face,coords_dof_indices);
@@ -1702,18 +1722,45 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                         const double J_bar = compute_interpolation(qp,*J_proj,*proj_strain_phi_face,proj_strain_dof_indices);
                         const double alpha = pow(J_bar/J,1.0/double(NDIM));
                         dX_ds *= alpha;
+#if (NDIM == 2)
+                        dX_ds(2,2) = 1.0;
+#endif
                     }
-                    const TensorValue<double> P = d_PK1_stress_function(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_function_ctx);
-                    const VectorValue<double> F = P*normal_face[qp]*JxW_face[qp];
 
-                    // Split off the transmission force.
-                    for (unsigned int k = 0; k < phi_face.size(); ++k)
+                    if (compute_transmission_force)
                     {
-                        VectorValue<double> F_qp;
-                        F_qp += F*phi_face[k][qp];
-                        for (unsigned int i = 0; i < NDIM; ++i)
+                        // Compute the value of the first Piola-Kirchhoff stress
+                        // tensor at the quadrature point and add the
+                        // corresponding force to the right-hand-side vector.
+                        const TensorValue<double> PP = d_PK1_stress_fcn(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_fcn_ctx);
+                        const VectorValue<double> F = PP*normal_face[qp]*JxW_face[qp];
+                        for (unsigned int k = 0; k < phi_face.size(); ++k)
                         {
-                            F_e[i](k) += F_qp(i);
+                            VectorValue<double> F_qp;
+                            F_qp += F*phi_face[k][qp];
+                            for (unsigned int i = 0; i < NDIM; ++i)
+                            {
+                                F_e[i](k) += F_qp(i);
+                            }
+                        }
+                    }
+
+                    if (compute_pressure && !at_dirichlet_bdry)
+                    {
+                        // Compute the value of the pressure at the quadrature point
+                        // and add the corresponding force to the right-hand-side
+                        // vector.
+                        const double P = d_lag_pressure_fcn(dX_ds,X_qp,s_qp,elem,side,time,d_lag_pressure_fcn_ctx);
+                        const double J = dX_ds.det();
+                        const VectorValue<double> F = -P*J*tensor_inverse_transpose(dX_ds,NDIM)*normal_face[qp]*JxW_face[qp];
+                        for (unsigned int k = 0; k < phi_face.size(); ++k)
+                        {
+                            VectorValue<double> F_qp;
+                            F_qp += F*phi_face[k][qp];
+                            for (unsigned int i = 0; i < NDIM; ++i)
+                            {
+                                F_e[i](k) += F_qp(i);
+                            }
                         }
                     }
                 }
@@ -1775,11 +1822,11 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
     const std::vector<std::vector<VectorValue<double> > >& coords_dphi_face = coords_fe_face->get_dphi();
     const std::vector<Point>& coords_normal_face = coords_fe_face->get_normals();
 
-    NumericVector<double>* J_proj;
-    const DofMap* proj_strain_dof_map;
+    NumericVector<double>* J_proj = NULL;
+    const DofMap* proj_strain_dof_map = NULL;
     std::vector<unsigned int> proj_strain_dof_indices;
     AutoPtr<FEBase> proj_strain_fe_face;
-    const std::vector<std::vector<double> >* proj_strain_phi_face;
+    const std::vector<std::vector<double> >* proj_strain_phi_face = NULL;
     if (d_use_fbar_projection)
     {
         System& proj_strain_system = equation_systems->get_system<System>(PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME);
@@ -1821,7 +1868,7 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
             // Loop over the element boundaries.
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
-                // Skip non-physical boundaries and Dirichlet boundaries.
+                // Skip non-physical boundaries.
                 const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
                 bool at_physical_bdry  = false;
                 bool at_dirichlet_bdry = false;
@@ -1831,7 +1878,12 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
                     at_physical_bdry  = at_physical_bdry  || (elem->neighbor(side) == NULL && !coords_dof_map.is_periodic_boundary(bdry_id));
                     at_dirichlet_bdry = at_dirichlet_bdry || (bdry_id == FEDataManager::DIRICHLET_BDRY_ID);
                 }
-                if (at_physical_bdry && !at_dirichlet_bdry)
+                if (!at_physical_bdry) continue;
+
+                const bool compute_transmission_force = !at_dirichlet_bdry;
+                const bool compute_pressure = (d_lag_pressure_fcn != NULL) && !at_dirichlet_bdry;
+
+                if (compute_transmission_force || compute_pressure)
                 {
                     coords_fe_face->reinit(elem, side);
                     if (d_use_fbar_projection) proj_strain_fe_face->reinit(elem, side);
@@ -1852,9 +1904,6 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
                     X_bdry.resize(X_bdry.size()+NDIM*qrule_face->n_points(),0.0);
                     for (unsigned int qp = 0; qp < qrule_face->n_points(); ++qp)
                     {
-                        // Compute the value of the first Piola-Kirchhoff stress
-                        // tensor at the quadrature point and evaluate the
-                        // transmission force density.
                         const Point& s_qp = coords_q_point_face[qp];
                         const Point& X_qp = compute_coordinate(qp,X_ghost,coords_phi_face,coords_dof_indices);
                         TensorValue<double> dX_ds = compute_coordinate_mapping_jacobian(qp,X_ghost,coords_dphi_face,coords_dof_indices);
@@ -1864,17 +1913,44 @@ IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
                             const double J_bar = compute_interpolation(qp,*J_proj,*proj_strain_phi_face,proj_strain_dof_indices);
                             const double alpha = pow(J_bar/J,1.0/double(NDIM));
                             dX_ds *= alpha;
+#if (NDIM == 2)
+                            dX_ds(2,2) = 1.0;
+#endif
                         }
-                        const TensorValue<double> P = d_PK1_stress_function(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_function_ctx);
-                        const VectorValue<double> F = P*coords_normal_face[qp]*coords_JxW_face[qp];
 
                         for (unsigned int i = 0; i < NDIM; ++i)
                         {
-                            T_bdry[NDIM*(qp+qp_offset)+i] = -F(i);
+                            T_bdry[NDIM*(qp+qp_offset)+i] = 0.0;
                             X_bdry[NDIM*(qp+qp_offset)+i] = X_qp(i);
                         }
-                    }
 
+                        if (compute_transmission_force)
+                        {
+                            // Compute the value of the first Piola-Kirchhoff
+                            // stress tensor at the quadrature point and compute
+                            // the corresponding force.
+                            const TensorValue<double> PP = d_PK1_stress_fcn(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_fcn_ctx);
+                            const VectorValue<double> F = PP*coords_normal_face[qp]*coords_JxW_face[qp];
+                            for (unsigned int i = 0; i < NDIM; ++i)
+                            {
+                                T_bdry[NDIM*(qp+qp_offset)+i] += -F(i);
+                            }
+                        }
+
+                        if (compute_pressure)
+                        {
+                            // Compute the value of the pressure at the
+                            // quadrature point and compute the corresponding
+                            // force.
+                            const double P = d_lag_pressure_fcn(dX_ds,X_qp,s_qp,elem,side,time,d_lag_pressure_fcn_ctx);
+                            const double J = dX_ds.det();
+                            const VectorValue<double> F = -P*J*tensor_inverse_transpose(dX_ds,NDIM)*coords_normal_face[qp]*coords_JxW_face[qp];
+                            for (unsigned int i = 0; i < NDIM; ++i)
+                            {
+                                T_bdry[NDIM*(qp+qp_offset)+i] += F(i);
+                            }
+                        }
+                    }
                     qp_offset += qrule_face->n_points();
                 }
             }
@@ -1897,6 +1973,7 @@ IBFEHierarchyIntegrator::initializeCoordinates()
     System& coords_system = equation_systems->get_system<System>(COORDINATES_SYSTEM_NAME);
     const unsigned int coords_sys_num = coords_system.number();
     NumericVector<double>& X_coords = *coords_system.solution;
+    const bool identity_mapping = d_coordinate_mapping_fcn == NULL;
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
     {
         Node* n = *it;
@@ -1904,7 +1981,7 @@ IBFEHierarchyIntegrator::initializeCoordinates()
         {
             libmesh_assert(n->n_vars(coords_sys_num) == NDIM);
             const Point& s = *n;
-            const Point X = d_coordinate_mapping_function == NULL ? s : d_coordinate_mapping_function(s, d_coordinate_mapping_function_ctx);
+            const Point X = identity_mapping ? s : d_coordinate_mapping_fcn(s, d_coordinate_mapping_fcn_ctx);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 const int dof_index = n->dof_number(coords_sys_num,d,0);

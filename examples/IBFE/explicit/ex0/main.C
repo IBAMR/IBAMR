@@ -379,8 +379,8 @@ main(
                 "IBFEHierarchyIntegrator",
                 input_db->getDatabase("IBFEHierarchyIntegrator"),
                 patch_hierarchy, navier_stokes_integrator, fe_data_manager);
-        time_integrator->setInitialCoordinateMappingFunction(&coordinate_mapping_function);
-        time_integrator->setPK1StressTensorFunction(&PK1_stress_function);
+        time_integrator->registerInitialCoordinateMappingFunction(&coordinate_mapping_function);
+        time_integrator->registerPK1StressTensorFunction(&PK1_stress_function);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(
@@ -512,7 +512,7 @@ main(
 
             tbox::pout <<                                                       endl;
             tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
-            tbox::pout << "At begining of timestep # " <<  iteration_num - 1 << endl;
+            tbox::pout << "At beginning of timestep # " << iteration_num - 1 << endl;
             tbox::pout << "Simulation time is " << loop_time                 << endl;
 
             double dt_new = time_integrator->advanceHierarchy(dt_now);
@@ -520,7 +520,7 @@ main(
             dt_now = dt_new;
 
             tbox::pout <<                                                       endl;
-            tbox::pout << "At end      of timestep # " <<  iteration_num - 1 << endl;
+            tbox::pout << "At end       of timestep # " << iteration_num - 1 << endl;
             tbox::pout << "Simulation time is " << loop_time                 << endl;
             tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
             tbox::pout <<                                                       endl;
