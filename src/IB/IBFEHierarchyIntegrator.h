@@ -825,6 +825,48 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > > d_mark_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current, d_scratch;
     int d_V_idx, d_F_idx, d_mark_current_idx, d_mark_scratch_idx;
+
+    /*
+     * Cached data related to computing the projected dilational strain field.
+     */
+    std::vector<std::vector<libMesh::Point> > d_proj_strain_q_point;
+    std::vector<std::vector<unsigned int> > d_proj_strain_dof_indices;
+    std::vector<std::vector<std::vector<double> > > d_proj_strain_phi_JxW;
+
+    std::vector<std::vector<std::vector<unsigned int> > > d_proj_strain_coords_dof_indices;
+    std::vector<std::vector<std::vector<libMesh::VectorValue<double> > > > d_proj_strain_coords_dphi;
+
+    /*
+     * Cached data related to computing the interior force density field.
+     */
+    std::vector<std::vector<libMesh::Point> > d_force_q_point;
+    std::vector<std::vector<std::vector<unsigned int> > > d_force_dof_indices;
+    std::vector<std::vector<std::vector<double> > > d_force_phi_JxW;
+    std::vector<std::vector<std::vector<libMesh::VectorValue<double> > > > d_force_dphi_JxW;
+
+    std::vector<std::vector<std::vector<unsigned int> > > d_force_coords_dof_indices;
+    std::vector<std::vector<std::vector<double> > > d_force_coords_phi;
+    std::vector<std::vector<std::vector<libMesh::VectorValue<double> > > > d_force_coords_dphi;
+
+    std::vector<std::vector<unsigned int> > d_force_proj_strain_dof_indices;
+    std::vector<std::vector<std::vector<double> > > d_force_proj_strain_phi;
+
+    std::vector<std::vector<std::vector<libMesh::Point> > > d_force_q_point_face;
+    std::vector<std::vector<std::vector<libMesh::VectorValue<double> > > > d_force_normal_face;
+    std::vector<std::vector<std::vector<std::vector<double> > > > d_force_phi_JxW_face;
+
+    std::vector<std::vector<std::vector<std::vector<double> > > > d_force_coords_phi_face;
+    std::vector<std::vector<std::vector<std::vector<libMesh::VectorValue<double> > > > > d_force_coords_dphi_face;
+
+    std::vector<std::vector<std::vector<unsigned int> > > d_force_proj_strain_dof_indices_face;
+    std::vector<std::vector<std::vector<std::vector<double> > > > d_force_proj_strain_phi_face;
+
+    /*
+     * Cached data related to physical boundaries of the Lagrangian structure
+     * mesh.
+     */
+    std::vector<std::vector<bool> > d_elem_side_at_physical_bdry;
+    std::vector<std::vector<bool> > d_elem_side_at_dirichlet_bdry;
 };
 }// namespace IBAMR
 
