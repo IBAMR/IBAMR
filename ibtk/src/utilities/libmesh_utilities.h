@@ -41,6 +41,9 @@
 #include <tensor_value.h>
 #include <vector_value.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/array.h>
+
 // C++ STDLIB INCLUDES
 #include <vector>
 
@@ -63,6 +66,21 @@ compute_interpolation(
     return U;
 }// compute_interpolation
 
+inline double
+compute_interpolation(
+    const int qp,
+    const libMesh::NumericVector<double>& U_vec,
+    const blitz::Array<double,2>& phi,
+    const std::vector<unsigned int>& dof_indices)
+{
+    double U = 0.0;
+    for (int k = 0; k < phi.extent(blitz::secondDim); ++k)
+    {
+        U += U_vec(dof_indices[k])*phi(qp,k);
+    }
+    return U;
+}// compute_interpolation
+
 inline std::vector<double>
 compute_interpolation(
     const unsigned int qp,
@@ -77,6 +95,26 @@ compute_interpolation(
         for (unsigned int i = 0; i < n_vars; ++i)
         {
             U[i] += U_vec(dof_indices[i][k])*phi[k][qp];
+        }
+    }
+    return U;
+}// compute_interpolation
+
+inline blitz::Array<double,1>
+compute_interpolation(
+    const int qp,
+    const libMesh::NumericVector<double>& U_vec,
+    const blitz::Array<double,2>& phi,
+    const std::vector<std::vector<unsigned int> >& dof_indices)
+{
+    const unsigned int n_vars = dof_indices.size();
+    blitz::Array<double,1> U(n_vars);
+    U = 0.0;
+    for (int k = 0; k < phi.extent(blitz::secondDim); ++k)
+    {
+        for (unsigned int i = 0; i < n_vars; ++i)
+        {
+            U(i) += U_vec(dof_indices[i][k])*phi(qp,k);
         }
     }
     return U;
@@ -101,6 +139,25 @@ compute_coordinate(
     return X_qp;
 }// compute_coordinate
 
+inline libMesh::Point
+compute_coordinate(
+    const int qp,
+    const libMesh::NumericVector<double>& X,
+    const blitz::Array<double,2>& phi,
+    const std::vector<std::vector<unsigned int> >& dof_indices)
+{
+    const unsigned int dim = dof_indices.size();
+    libMesh::Point X_qp;
+    for (int k = 0; k < phi.extent(blitz::secondDim); ++k)
+    {
+        for (unsigned int i = 0; i < dim; ++i)
+        {
+            X_qp(i) += X(dof_indices[i][k])*phi(qp,k);
+        }
+    }
+    return X_qp;
+}// compute_coordinate
+
 inline libMesh::TensorValue<double>
 compute_coordinate_mapping_jacobian(
     const unsigned int qp,
@@ -112,11 +169,12 @@ compute_coordinate_mapping_jacobian(
     libMesh::TensorValue<double> dX_ds;
     for (unsigned int k = 0; k < dphi.size(); ++k)
     {
+        const libMesh::VectorValue<double>& dphi_ds = dphi[k][qp];
         for (unsigned int j = 0; j < dim; ++j)
         {
             for (unsigned int i = 0; i < dim; ++i)
             {
-                dX_ds(i,j) += X(dof_indices[i][k])*dphi[k][qp](j);
+                dX_ds(i,j) += X(dof_indices[i][k])*dphi_ds(j);
             }
         }
     }
@@ -124,6 +182,75 @@ compute_coordinate_mapping_jacobian(
     {
         dX_ds(2,2) = 1.0;
     }
+    return dX_ds;
+}// compute_coordinate_mapping_jacobian
+
+inline libMesh::TensorValue<double>
+compute_coordinate_mapping_jacobian(
+    const unsigned int qp,
+    const libMesh::NumericVector<double>& X,
+    const std::vector<std::vector<libMesh::VectorValue<double> > >& dphi,
+    const std::vector<std::vector<unsigned int> >& dof_indices,
+    const libMesh::NumericVector<double>* const proj_strain_J_bar,
+    const std::vector<std::vector<double> >* const proj_strain_phi,
+    const std::vector<unsigned int>* const proj_strain_dof_indices)
+{
+    libMesh::TensorValue<double> dX_ds = compute_coordinate_mapping_jacobian(qp, X, dphi, dof_indices);
+    if (proj_strain_J_bar == NULL || proj_strain_phi == NULL || proj_strain_dof_indices == NULL) return dX_ds;
+    const unsigned int dim = dof_indices.size();
+    const double J = dX_ds.det();
+    const double J_bar = compute_interpolation(qp,*proj_strain_J_bar,*proj_strain_phi,*proj_strain_dof_indices);
+    const double alpha = pow(J_bar/J,1.0/double(NDIM));
+    dX_ds *= alpha;
+    if (dim == 2) dX_ds(2,2) = 1.0;
+    return dX_ds;
+}// compute_coordinate_mapping_jacobian
+
+inline libMesh::TensorValue<double>
+compute_coordinate_mapping_jacobian(
+    const int qp,
+    const libMesh::NumericVector<double>& X,
+    const blitz::Array<libMesh::VectorValue<double>,2>& dphi,
+    const std::vector<std::vector<unsigned int> >& dof_indices)
+{
+    const unsigned int dim = dof_indices.size();
+    libMesh::TensorValue<double> dX_ds;
+    for (int k = 0; k < dphi.extent(blitz::secondDim); ++k)
+    {
+        const libMesh::VectorValue<double>& dphi_ds = dphi(qp,k);
+        for (unsigned int j = 0; j < dim; ++j)
+        {
+            for (unsigned int i = 0; i < dim; ++i)
+            {
+                dX_ds(i,j) += X(dof_indices[i][k])*dphi_ds(j);
+            }
+        }
+    }
+    if (dim == 2)
+    {
+        dX_ds(2,2) = 1.0;
+    }
+    return dX_ds;
+}// compute_coordinate_mapping_jacobian
+
+inline libMesh::TensorValue<double>
+compute_coordinate_mapping_jacobian(
+    const int qp,
+    const libMesh::NumericVector<double>& X,
+    const blitz::Array<libMesh::VectorValue<double>,2>& dphi,
+    const std::vector<std::vector<unsigned int> >& dof_indices,
+    const libMesh::NumericVector<double>* const proj_strain_J_bar,
+    const blitz::Array<double,2>* const proj_strain_phi,
+    const std::vector<unsigned int>* const proj_strain_dof_indices)
+{
+    libMesh::TensorValue<double> dX_ds = compute_coordinate_mapping_jacobian(qp, X, dphi, dof_indices);
+    const unsigned int dim = dof_indices.size();
+    if (proj_strain_J_bar == NULL || proj_strain_phi == NULL || proj_strain_dof_indices == NULL) return dX_ds;
+    const double J = dX_ds.det();
+    const double J_bar = compute_interpolation(qp,*proj_strain_J_bar,*proj_strain_phi,*proj_strain_dof_indices);
+    const double alpha = pow(J_bar/J,1.0/double(NDIM));
+    dX_ds *= alpha;
+    if (dim == 2) dX_ds(2,2) = 1.0;
     return dX_ds;
 }// compute_coordinate_mapping_jacobian
 
@@ -135,6 +262,45 @@ compute_coordinate_mapping_jacobian_det(
     const std::vector<std::vector<unsigned int> >& dof_indices)
 {
     libMesh::TensorValue<double> dX_ds = compute_coordinate_mapping_jacobian(qp, X, dphi, dof_indices);
+    return dX_ds.det();
+}// compute_coordinate_mapping_jacobian_det
+
+inline double
+compute_coordinate_mapping_jacobian_det(
+    const unsigned int qp,
+    const libMesh::NumericVector<double>& X,
+    const std::vector<std::vector<libMesh::VectorValue<double> > >& dphi,
+    const std::vector<std::vector<unsigned int> >& dof_indices,
+    const libMesh::NumericVector<double>* const proj_strain_J_bar,
+    const std::vector<std::vector<double> >* const proj_strain_phi,
+    const std::vector<unsigned int>* const proj_strain_dof_indices)
+{
+    libMesh::TensorValue<double> dX_ds = compute_coordinate_mapping_jacobian(qp, X, dphi, dof_indices, proj_strain_J_bar, proj_strain_phi, proj_strain_dof_indices);
+    return dX_ds.det();
+}// compute_coordinate_mapping_jacobian_det
+
+inline double
+compute_coordinate_mapping_jacobian_det(
+    const int qp,
+    const libMesh::NumericVector<double>& X,
+    const blitz::Array<libMesh::VectorValue<double>,2>& dphi,
+    const std::vector<std::vector<unsigned int> >& dof_indices)
+{
+    libMesh::TensorValue<double> dX_ds = compute_coordinate_mapping_jacobian(qp, X, dphi, dof_indices);
+    return dX_ds.det();
+}// compute_coordinate_mapping_jacobian_det
+
+inline double
+compute_coordinate_mapping_jacobian_det(
+    const int qp,
+    const libMesh::NumericVector<double>& X,
+    const blitz::Array<libMesh::VectorValue<double>,2>& dphi,
+    const std::vector<std::vector<unsigned int> >& dof_indices,
+    const libMesh::NumericVector<double>* const proj_strain_J_bar,
+    const blitz::Array<double,2>* const proj_strain_phi,
+    const std::vector<unsigned int>* const proj_strain_dof_indices)
+{
+    libMesh::TensorValue<double> dX_ds = compute_coordinate_mapping_jacobian(qp, X, dphi, dof_indices, proj_strain_J_bar, proj_strain_phi, proj_strain_dof_indices);
     return dX_ds.det();
 }// compute_coordinate_mapping_jacobian_det
 

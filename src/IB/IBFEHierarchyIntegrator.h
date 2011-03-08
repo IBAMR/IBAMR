@@ -48,6 +48,9 @@
 #include <ibtk/LDataManager.h>
 #include <ibtk/LagMarker.h>
 
+// BLITZ INCLUDES
+#include <blitz/array.h>
+
 // LIBMESH INCLUDES
 #define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
 #include <dof_map.h>
@@ -637,6 +640,12 @@ private:
     updateCoordinateMapping();
 
     /*!
+     * \brief Compute cached FE data items.
+     */
+    void
+    computeCachedFEValues();
+
+    /*!
      * Read input values, indicated above, from given database.  The boolean
      * argument is_from_restart should be set to true if the simulation is
      * beginning from restart.  Otherwise it should be set to false.
@@ -827,46 +836,45 @@ private:
     int d_V_idx, d_F_idx, d_mark_current_idx, d_mark_scratch_idx;
 
     /*
-     * Cached data related to computing the projected dilational strain field.
+     * Cached data used to compute the projected dilational strain field.
      */
-    std::vector<std::vector<libMesh::Point> > d_proj_strain_q_point;
-    std::vector<std::vector<unsigned int> > d_proj_strain_dof_indices;
-    std::vector<std::vector<std::vector<double> > > d_proj_strain_phi_JxW;
+    blitz::Array<std::vector<unsigned int>,1> d_proj_strain_dof_indices;
+    blitz::Array<blitz::Array<libMesh::Point,1>,1> d_proj_strain_q_point;
+    blitz::Array<blitz::Array<double,2>,1> d_proj_strain_phi_JxW;
 
-    std::vector<std::vector<std::vector<unsigned int> > > d_proj_strain_coords_dof_indices;
-    std::vector<std::vector<std::vector<libMesh::VectorValue<double> > > > d_proj_strain_coords_dphi;
+    blitz::Array<std::vector<std::vector<unsigned int> >,1> d_proj_strain_coords_dof_indices;
+    blitz::Array<blitz::Array<libMesh::VectorValue<double>,2>,1> d_proj_strain_coords_dphi;
 
     /*
-     * Cached data related to computing the interior force density field.
+     * Cached data used to compute the interior force density field.
      */
-    std::vector<std::vector<libMesh::Point> > d_force_q_point;
-    std::vector<std::vector<std::vector<unsigned int> > > d_force_dof_indices;
-    std::vector<std::vector<std::vector<double> > > d_force_phi_JxW;
-    std::vector<std::vector<std::vector<libMesh::VectorValue<double> > > > d_force_dphi_JxW;
+    blitz::Array<std::vector<std::vector<unsigned int> >,1> d_force_dof_indices;
+    blitz::Array<blitz::Array<libMesh::Point,1>,1> d_force_q_point;
+    blitz::Array<blitz::Array<double,2>,1> d_force_phi_JxW;
+    blitz::Array<blitz::Array<libMesh::VectorValue<double>,2>,1> d_force_dphi_JxW;
 
-    std::vector<std::vector<std::vector<unsigned int> > > d_force_coords_dof_indices;
-    std::vector<std::vector<std::vector<double> > > d_force_coords_phi;
-    std::vector<std::vector<std::vector<libMesh::VectorValue<double> > > > d_force_coords_dphi;
+    blitz::Array<std::vector<std::vector<unsigned int> >,1> d_force_coords_dof_indices;
+    blitz::Array<blitz::Array<double,2>,1> d_force_coords_phi;
+    blitz::Array<blitz::Array<libMesh::VectorValue<double>,2>,1> d_force_coords_dphi;
 
-    std::vector<std::vector<unsigned int> > d_force_proj_strain_dof_indices;
-    std::vector<std::vector<std::vector<double> > > d_force_proj_strain_phi;
+    blitz::Array<std::vector<unsigned int>,1> d_force_proj_strain_dof_indices;
+    blitz::Array<blitz::Array<double,2>,1> d_force_proj_strain_phi;
 
-    std::vector<std::vector<std::vector<libMesh::Point> > > d_force_q_point_face;
-    std::vector<std::vector<std::vector<libMesh::VectorValue<double> > > > d_force_normal_face;
-    std::vector<std::vector<std::vector<std::vector<double> > > > d_force_phi_JxW_face;
+    blitz::Array<blitz::Array<blitz::Array<libMesh::Point,1>,1>,1> d_force_q_point_face;
+    blitz::Array<blitz::Array<blitz::Array<libMesh::VectorValue<double>,1>,1>,1> d_force_normal_face;
+    blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1> d_force_phi_JxW_face;
 
-    std::vector<std::vector<std::vector<std::vector<double> > > > d_force_coords_phi_face;
-    std::vector<std::vector<std::vector<std::vector<libMesh::VectorValue<double> > > > > d_force_coords_dphi_face;
+    blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1> d_force_coords_phi_face;
+    blitz::Array<blitz::Array<blitz::Array<libMesh::VectorValue<double>,2>,1>,1> d_force_coords_dphi_face;
 
-    std::vector<std::vector<std::vector<unsigned int> > > d_force_proj_strain_dof_indices_face;
-    std::vector<std::vector<std::vector<std::vector<double> > > > d_force_proj_strain_phi_face;
+    blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1> d_force_proj_strain_phi_face;
 
     /*
      * Cached data related to physical boundaries of the Lagrangian structure
      * mesh.
      */
-    std::vector<std::vector<bool> > d_elem_side_at_physical_bdry;
-    std::vector<std::vector<bool> > d_elem_side_at_dirichlet_bdry;
+    blitz::Array<blitz::Array<bool,1>,1> d_elem_side_at_physical_bdry;
+    blitz::Array<blitz::Array<bool,1>,1> d_elem_side_at_dirichlet_bdry;
 };
 }// namespace IBAMR
 
