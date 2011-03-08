@@ -73,11 +73,11 @@ class IBFEHierarchyIntegrator
       public SAMRAI::tbox::Serializable
 {
 public:
-    static const std::string                 COORDINATES_SYSTEM_NAME;
-    static const std::string          COORDINATE_MAPPING_SYSTEM_NAME;
-    static const std::string                       FORCE_SYSTEM_NAME;
-    static const std::string                    VELOCITY_SYSTEM_NAME;
-    static const std::string PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME;
+    static const std::string        COORDS_SYSTEM_NAME;
+    static const std::string COORD_MAPPING_SYSTEM_NAME;
+    static const std::string         FORCE_SYSTEM_NAME;
+    static const std::string      VELOCITY_SYSTEM_NAME;
+    static const std::string   PROJ_STRAIN_SYSTEM_NAME;
 
     /*!
      * Constructor.
@@ -643,7 +643,10 @@ private:
      * \brief Compute cached FE data items.
      */
     void
-    computeCachedFEValues();
+    computeCachedProjectedDilatationalStrainFEData();
+
+    void
+    computeCachedInteriorForceDensityFEData();
 
     /*!
      * Read input values, indicated above, from given database.  The boolean
@@ -694,8 +697,8 @@ private:
      * Fbar projection method parameters.
      */
     bool d_use_fbar_projection;
-    libMeshEnums::Order d_projected_strain_fe_order;
-    libMeshEnums::FEFamily d_projected_strain_fe_family;
+    libMeshEnums::Order d_proj_strain_fe_order;
+    libMeshEnums::FEFamily d_proj_strain_fe_family;
 
     /*
      * Function used to compute the initial coordinates of the Lagrangian mesh.
@@ -836,7 +839,7 @@ private:
     int d_V_idx, d_F_idx, d_mark_current_idx, d_mark_scratch_idx;
 
     /*
-     * Cached data used to compute the projected dilational strain field.
+     * Cached data used to compute the projected dilatational strain field.
      */
     blitz::Array<std::vector<unsigned int>,1> d_proj_strain_dof_indices;
     blitz::Array<blitz::Array<libMesh::Point,1>,1> d_proj_strain_q_point;

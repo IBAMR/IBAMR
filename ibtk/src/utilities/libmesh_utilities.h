@@ -261,7 +261,7 @@ compute_coordinate_mapping_jacobian_det(
     const std::vector<std::vector<libMesh::VectorValue<double> > >& dphi,
     const std::vector<std::vector<unsigned int> >& dof_indices)
 {
-    libMesh::TensorValue<double> dX_ds = compute_coordinate_mapping_jacobian(qp, X, dphi, dof_indices);
+    libMesh::TensorValue<double> dX_ds = compute_coordinate_mapping_jacobian(qp,X,dphi,dof_indices);
     return dX_ds.det();
 }// compute_coordinate_mapping_jacobian_det
 
