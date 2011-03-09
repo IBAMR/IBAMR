@@ -151,8 +151,8 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
       d_split_interior_and_bdry_forces(false),
       d_use_consistent_mass_matrix(true),
       d_use_fbar_projection(false),
-      d_proj_strain_fe_order(CONSTANT),
-      d_proj_strain_fe_family(MONOMIAL),
+      d_J_bar_fe_order(CONSTANT),
+      d_J_bar_fe_family(MONOMIAL),
       d_coordinate_mapping_fcn(NULL),
       d_coordinate_mapping_fcn_ctx(NULL),
       d_PK1_stress_fcn(NULL),
@@ -311,7 +311,7 @@ IBFEHierarchyIntegrator::registerPK1StressTensorFunction(
 
 void
 IBFEHierarchyIntegrator::registerLagBodyForceFunction(
-    libMesh::VectorValue<double> (*lag_body_force_fcn)(const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, const double& time, void* ctx),
+    VectorValue<double> (*lag_body_force_fcn)(const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const elem, const double& time, void* ctx),
     void* lag_body_force_fcn_ctx)
 {
     d_lag_body_force_fcn = lag_body_force_fcn;
@@ -321,7 +321,7 @@ IBFEHierarchyIntegrator::registerLagBodyForceFunction(
 
 void
 IBFEHierarchyIntegrator::registerLagPressureFunction(
-    double (*lag_pressure_fcn)(const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, const unsigned short int side, const double& time, void* ctx),
+    double (*lag_pressure_fcn)(const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const elem, const unsigned short int side, const double& time, void* ctx),
     void* lag_pressure_fcn_ctx)
 {
     d_lag_pressure_fcn = lag_pressure_fcn;
@@ -431,42 +431,42 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
 
     d_fe_data_manager->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
-    ExplicitSystem& coords_system = equation_systems->add_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+    ExplicitSystem& X_system = equation_systems->add_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         std::ostringstream os;
         os << "X_" << d;
-        coords_system.add_variable(os.str(), d_fe_order, d_fe_family);
+        X_system.add_variable(os.str(), d_fe_order, d_fe_family);
     }
 
-    ExplicitSystem& coords_mapping_system = equation_systems->add_system<ExplicitSystem>(COORD_MAPPING_SYSTEM_NAME);
+    ExplicitSystem& X_mapping_system = equation_systems->add_system<ExplicitSystem>(COORD_MAPPING_SYSTEM_NAME);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         std::ostringstream os;
         os << "dX_" << d;
-        coords_mapping_system.add_variable(os.str(), d_fe_order, d_fe_family);
+        X_mapping_system.add_variable(os.str(), d_fe_order, d_fe_family);
     }
 
-    ExplicitSystem& force_system = equation_systems->add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
+    ExplicitSystem& F_system = equation_systems->add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         std::ostringstream os;
         os << "F_" << d;
-        force_system.add_variable(os.str(), d_fe_order, d_fe_family);
+        F_system.add_variable(os.str(), d_fe_order, d_fe_family);
     }
 
-    ExplicitSystem& velocity_system = equation_systems->add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
+    ExplicitSystem& U_system = equation_systems->add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         std::ostringstream os;
         os << "U_" << d;
-        velocity_system.add_variable(os.str(), d_fe_order, d_fe_family);
+        U_system.add_variable(os.str(), d_fe_order, d_fe_family);
     }
 
     if (d_use_fbar_projection)
     {
-        ExplicitSystem& proj_strain_system = equation_systems->add_system<ExplicitSystem>(PROJ_STRAIN_SYSTEM_NAME);
-        proj_strain_system.add_variable("proj_strain_J_bar", d_proj_strain_fe_order, d_proj_strain_fe_family);
+        ExplicitSystem& J_bar_system = equation_systems->add_system<ExplicitSystem>(PROJ_STRAIN_SYSTEM_NAME);
+        J_bar_system.add_variable("J_bar", d_J_bar_fe_order, d_J_bar_fe_family);
     }
 
     // Initialize all variables.
@@ -548,22 +548,22 @@ IBFEHierarchyIntegrator::initializeHierarchy()
     // Set up boundary conditions.  Specifically, add appropriate boundary IDs
     // to the BoundaryInfo object associated with the mesh, and add DOF
     // constraints for the nodal forces and velocities.
-    System& coords_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
-    coords_system.assemble_before_solve = false;
-    coords_system.assemble();
+    System& X_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
+    X_system.assemble_before_solve = false;
+    X_system.assemble();
 
-    System& coords_mapping_system = equation_systems->get_system<System>(COORD_MAPPING_SYSTEM_NAME);
-    coords_mapping_system.assemble_before_solve = false;
-    coords_mapping_system.assemble();
+    System& X_mapping_system = equation_systems->get_system<System>(COORD_MAPPING_SYSTEM_NAME);
+    X_mapping_system.assemble_before_solve = false;
+    X_mapping_system.assemble();
 
-    ExplicitSystem&    force_system = equation_systems->get_system<ExplicitSystem>(   FORCE_SYSTEM_NAME);
-    ExplicitSystem& velocity_system = equation_systems->get_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
+    ExplicitSystem& F_system = equation_systems->get_system<ExplicitSystem>(   FORCE_SYSTEM_NAME);
+    ExplicitSystem& U_system = equation_systems->get_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
 
     const MeshBase& mesh = equation_systems->get_mesh();
-    DofMap&    force_dof_map =    force_system.get_dof_map();
-    DofMap& velocity_dof_map = velocity_system.get_dof_map();
-    const unsigned int    force_sys_num =    force_system.number();
-    const unsigned int velocity_sys_num = velocity_system.number();
+    DofMap& F_dof_map = F_system.get_dof_map();
+    DofMap& U_dof_map = U_system.get_dof_map();
+    const unsigned int F_sys_num = F_system.number();
+    const unsigned int U_sys_num = U_system.number();
 
     MeshBase::const_element_iterator       el_it  = mesh.elements_begin();
     const MeshBase::const_element_iterator el_end = mesh.elements_end();
@@ -586,25 +586,25 @@ IBFEHierarchyIntegrator::initializeHierarchy()
                             Node* node = elem->get_node(n);
                             mesh.boundary_info->add_node(node, FEDataManager::DIRICHLET_BDRY_ID);
 
-                            if (node->n_dofs(force_sys_num) > 0)
+                            if (node->n_dofs(F_sys_num) > 0)
                             {
                                 for (unsigned int d = 0; d < NDIM; ++d)
                                 {
-                                    const int F_dof_index = node->dof_number(force_sys_num,d,0);
+                                    const int F_dof_index = node->dof_number(F_sys_num,d,0);
                                     DofConstraintRow F_constraint_row;
                                     F_constraint_row[F_dof_index] = 1.0;
-                                    force_dof_map.add_constraint_row(F_dof_index, F_constraint_row, false);
+                                    F_dof_map.add_constraint_row(F_dof_index, F_constraint_row, false);
                                 }
                             }
 
-                            if (node->n_dofs(velocity_sys_num) > 0)
+                            if (node->n_dofs(U_sys_num) > 0)
                             {
                                 for (unsigned int d = 0; d < NDIM; ++d)
                                 {
-                                    const int U_dof_index = node->dof_number(velocity_sys_num,d,0);
+                                    const int U_dof_index = node->dof_number(U_sys_num,d,0);
                                     DofConstraintRow U_constraint_row;
                                     U_constraint_row[U_dof_index] = 1.0;
-                                    velocity_dof_map.add_constraint_row(U_dof_index, U_constraint_row, false);
+                                    U_dof_map.add_constraint_row(U_dof_index, U_constraint_row, false);
                                 }
                             }
                         }
@@ -613,10 +613,6 @@ IBFEHierarchyIntegrator::initializeHierarchy()
             }
         }
     }
-
-    // Compute cached FE data.
-    computeCachedProjectedDilatationalStrainFEData();
-    computeCachedInteriorForceDensityFEData();
 
     // Use the INSStaggeredHierarchyIntegrator to initialize the patch
     // hierarchy.
@@ -638,6 +634,11 @@ IBFEHierarchyIntegrator::initializeHierarchy()
 
     // Initialize the FE data manager.
     d_fe_data_manager->reinitElementMappings();
+
+    // Compute cached FE data.
+    computeCachedProjectedDilatationalStrainFEData();
+    computeCachedInteriorForceDensityFEData();
+    computeCachedTransmissionForceDensityFEData();
 
     // Prune duplicate markers following initialization.
     LagMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
@@ -699,25 +700,34 @@ IBFEHierarchyIntegrator::advanceHierarchy(
 
     // Extract the FE vectors.
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-    System& coords_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
-    System& force_system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
-    System& velocity_system = equation_systems->get_system<System>(VELOCITY_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system<System>(  COORDS_SYSTEM_NAME);
+    System& F_system = equation_systems->get_system<System>(   FORCE_SYSTEM_NAME);
+    System& U_system = equation_systems->get_system<System>(VELOCITY_SYSTEM_NAME);
 
-    NumericVector<double>& X_current = *(coords_system.solution);
-    coords_system.get_dof_map().enforce_constraints_exactly(coords_system, &X_current);
+    NumericVector<double>& X_current = *(X_system.solution);
+    X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_current);
 
     AutoPtr<NumericVector<double> > X_new_ptr = X_current.clone();
     NumericVector<double>& X_new = *X_new_ptr;
 
-    NumericVector<double>& X_half = *(  coords_system.current_local_solution);
-    NumericVector<double>& U_half = *(velocity_system.              solution);
-    NumericVector<double>& F_half = *(   force_system.              solution);
+    NumericVector<double>& X_half = *(X_system.current_local_solution);
+    NumericVector<double>& U_half = *(U_system.              solution);
+    NumericVector<double>& F_half = *(F_system.              solution);
 
     NumericVector<double>* X_half_IB_ghost_ptr = d_fe_data_manager->getGhostedCoordsVector();
     NumericVector<double>& X_half_IB_ghost = *X_half_IB_ghost_ptr;
 
     NumericVector<double>* F_half_IB_ghost_ptr = d_fe_data_manager->getGhostedSolutionVector(FORCE_SYSTEM_NAME);
     NumericVector<double>& F_half_IB_ghost = *F_half_IB_ghost_ptr;
+
+    NumericVector<double>* J_bar_half = NULL;
+    NumericVector<double>* J_bar_half_IB_ghost = NULL;
+    if (d_use_fbar_projection)
+    {
+        System& J_bar_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
+        J_bar_half = J_bar_system.solution.get();
+        J_bar_half_IB_ghost = d_fe_data_manager->getGhostedSolutionVector(PROJ_STRAIN_SYSTEM_NAME);
+    }
 
     // Initialize the various LNodeLevelData objects on each level of the patch hierarchy.
     std::vector<Pointer<LNodeLevelData> > X_current_data(finest_ln+1);
@@ -822,12 +832,12 @@ IBFEHierarchyIntegrator::advanceHierarchy(
 
         // Project the deformation, if necessary.
         t_advance_hierarchy_phase2->start();
-        if (d_use_fbar_projection) computeProjectedDilatationalStrain(X_half);
+        if (d_use_fbar_projection) computeProjectedDilatationalStrain(*J_bar_half, X_half);
         t_advance_hierarchy_phase2->stop();
 
         // Compute F(n+1/2) = F(X(n+1/2),t(n+1/2)).
         t_advance_hierarchy_phase3->start();
-        computeInteriorForceDensity(F_half, X_half, current_time+0.5*dt);
+        computeInteriorForceDensity(F_half, X_half, J_bar_half, current_time+0.5*dt);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
@@ -843,6 +853,10 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         t_advance_hierarchy_phase4->start();
         ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&X_half)->vec(), dynamic_cast<PetscVector<double>*>(&X_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
         ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&F_half)->vec(), dynamic_cast<PetscVector<double>*>(&F_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
+        if (d_use_fbar_projection)
+        {
+            ierr = VecCopy(dynamic_cast<PetscVector<double>*>(J_bar_half)->vec(), dynamic_cast<PetscVector<double>*>(J_bar_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
+        }
         t_advance_hierarchy_phase4->stop();
 
         // Spread F(n+1/2) to f(n+1/2).
@@ -851,7 +865,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         d_fe_data_manager->spread(d_F_idx, F_half_IB_ghost, X_half_IB_ghost, FORCE_SYSTEM_NAME, true, true);
         if (d_split_interior_and_bdry_forces)
         {
-            spreadBoundaryForceDensity(d_F_idx, X_half_IB_ghost, current_time+0.5*dt);
+            spreadTransmissionForceDensity(d_F_idx, X_half_IB_ghost, J_bar_half_IB_ghost, current_time+0.5*dt);
         }
         if (d_lag_data_manager != NULL)
         {
@@ -881,7 +895,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
                         dt,
                         dynamic_cast<PetscVector<double>*>(&U_half)->vec(),
                         dynamic_cast<PetscVector<double>*>(&X_current)->vec()); IBTK_CHKERRQ(ierr);
-        coords_system.get_dof_map().enforce_constraints_exactly(coords_system, &X_new);
+        X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_new);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
@@ -1070,6 +1084,9 @@ IBFEHierarchyIntegrator::regridHierarchy()
 
     // Reinitialize the FE data manager.
     d_fe_data_manager->reinitElementMappings();
+
+    // Recompute cached FE data.
+    computeCachedTransmissionForceDensityFEData();
 
     // Prune duplicate markers following regridding.
     LagMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
@@ -1443,18 +1460,18 @@ IBFEHierarchyIntegrator::putToDatabase(
 
 void
 IBFEHierarchyIntegrator::computeProjectedDilatationalStrain(
+    NumericVector<double>& J_bar,
     NumericVector<double>& X)
 {
     if (!d_use_fbar_projection) return;
 
     // Extract the relevant systems and DOF maps.
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-    System& proj_strain_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
-    const DofMap& proj_strain_dof_map = proj_strain_system.get_dof_map();
+    System& J_bar_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
+    const DofMap& J_bar_dof_map = J_bar_system.get_dof_map();
 
     // Setup global and elemental right-hand-side vectors.
-    NumericVector<double>& proj_strain_J_bar = *(proj_strain_system.solution);
-    AutoPtr<NumericVector<double> > F = proj_strain_J_bar.clone();
+    AutoPtr<NumericVector<double> > F = J_bar.clone();
     F->zero();
     DenseVector<double> F_e;
 
@@ -1465,42 +1482,33 @@ IBFEHierarchyIntegrator::computeProjectedDilatationalStrain(
     for (int e = 0; e < std::distance(el_begin,el_end); ++e)
     {
         // Lookup cached data.
-        std::vector<unsigned int> dof_indices = d_proj_strain_dof_indices(e);
-        const blitz::Array<libMesh::Point,1>& q_point = d_proj_strain_q_point(e);
-        const blitz::Array<double,2>& phi_JxW = d_proj_strain_phi_JxW(e);
+        const blitz::Array<Point,1>& q_point = d_proj_strain_q_point(e);
 
-        const std::vector<std::vector<unsigned int> >& coords_dof_indices = d_proj_strain_coords_dof_indices(e);
-        const blitz::Array<libMesh::VectorValue<double>,2>& coords_dphi = d_proj_strain_coords_dphi(e);
+        std::vector<unsigned int> J_bar_dof_indices = d_proj_strain_J_bar_dof_indices(e);
+        const blitz::Array<double,2>& J_bar_phi_JxW = d_proj_strain_J_bar_phi_JxW(e);
+
+        const std::vector<std::vector<unsigned int> >& X_dof_indices = d_proj_strain_X_dof_indices(e);
+        const blitz::Array<VectorValue<double>,2>& X_dphi = d_proj_strain_X_dphi(e);
 
         // Compute the elemental right-hand-side entries.
-        F_e.resize(dof_indices.size());
+        F_e.resize(J_bar_dof_indices.size());
         for (int qp = 0; qp < q_point.extent(blitz::firstDim); ++qp)
         {
-            const double J = compute_coordinate_mapping_jacobian_det(qp,X,coords_dphi,coords_dof_indices);
-            for (int k = 0; k < phi_JxW.extent(blitz::secondDim); ++k)
+            const double J = compute_coordinate_mapping_jacobian_det(qp,X,X_dphi,X_dof_indices);
+            for (int k = 0; k < J_bar_phi_JxW.extent(blitz::secondDim); ++k)
             {
-                F_e(k) += J*phi_JxW(qp,k);
+                F_e(k) += J*J_bar_phi_JxW(qp,k);
             }
         }
 
         // Apply constraints (e.g., enforce periodic boundary conditions) and
         // add the elemental contributions to the global vector.
-        proj_strain_dof_map.constrain_element_vector(F_e, dof_indices);
-        F->add_vector(F_e, dof_indices);
+        J_bar_dof_map.constrain_element_vector(F_e, J_bar_dof_indices);
+        F->add_vector(F_e, J_bar_dof_indices);
     }
 
-    // Assemble the right-hand-side vector.
-    F->close();
-
-    // Solve for the projected deformation.
-    std::pair<libMesh::LinearSolver<double>*,SparseMatrix<double>*> proj_solver_components = d_fe_data_manager->getL2ProjectionSolver(PROJ_STRAIN_SYSTEM_NAME);
-    libMesh::LinearSolver<double>* solver = proj_solver_components.first;
-    SparseMatrix<double>* M = proj_solver_components.second;
-    const double tol = 1.0e-10;
-    const unsigned int max_its = 100;
-    proj_strain_dof_map.enforce_constraints_exactly(proj_strain_system, F.get());
-    solver->solve(*M, *M, proj_strain_J_bar, *F, tol, max_its);
-    proj_strain_dof_map.enforce_constraints_exactly(proj_strain_system, &proj_strain_J_bar);
+    // Solve for J_bar.
+    d_fe_data_manager->computeL2Projection(J_bar, *F, PROJ_STRAIN_SYSTEM_NAME, d_use_consistent_mass_matrix);
     return;
 }// computeProjectedDilatationalStrain
 
@@ -1508,26 +1516,28 @@ void
 IBFEHierarchyIntegrator::computeInteriorForceDensity(
     NumericVector<double>& G,
     NumericVector<double>& X,
+    NumericVector<double>* J_bar,
     const double& time)
 {
     // Extract the relevant systems and DOF maps.
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-    System& force_system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
-    const DofMap& force_dof_map = force_system.get_dof_map();
+    System& F_system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
+    const DofMap& F_dof_map = F_system.get_dof_map();
 
     // Setup global and elemental right-hand-side vectors.
     AutoPtr<NumericVector<double> > F = G.clone();
     F->zero();
     DenseVector<double> F_e[NDIM];
 
-    // Setup data structures related to (optional) Fbar projection.
-    NumericVector<double>* proj_strain_J_bar = NULL;
-    const DofMap* proj_strain_dof_map = NULL;
+    // Setup data structures related to (optional) F-bar projection.
+    const DofMap* J_bar_dof_map = NULL;
     if (d_use_fbar_projection)
     {
-        System& proj_strain_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
-        proj_strain_J_bar = proj_strain_system.solution.get();
-        proj_strain_dof_map = &proj_strain_system.get_dof_map();
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(J_bar != NULL);
+#endif
+        System& J_bar_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
+        J_bar_dof_map = &J_bar_system.get_dof_map();
     }
 
     // Loop over the elements to accumulate the interior forces at the nodes of
@@ -1546,36 +1556,37 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
         const unsigned int e = std::distance(el_begin,el_it);
 
         // Lookup cached data.
-        std::vector<std::vector<unsigned int> > dof_indices = d_force_dof_indices(e);
-        const blitz::Array<libMesh::Point,1>& q_point = d_force_q_point(e);
-        const blitz::Array<double,2>& phi_JxW = d_force_phi_JxW(e);
-        const blitz::Array<libMesh::VectorValue<double>,2>& dphi_JxW = d_force_dphi_JxW(e);
+        const blitz::Array<Point,1>& q_point = d_interior_q_point(e);
 
-        const std::vector<std::vector<unsigned int> >& coords_dof_indices = d_force_coords_dof_indices(e);
-        const blitz::Array<double,2>& coords_phi = d_force_coords_phi(e);
-        const blitz::Array<libMesh::VectorValue<double>,2>& coords_dphi = d_force_coords_dphi(e);
+        std::vector<std::vector<unsigned int> > F_dof_indices = d_interior_F_dof_indices(e);
+        const blitz::Array<double,2>& F_phi_JxW = d_interior_F_phi_JxW(e);
+        const blitz::Array<VectorValue<double>,2>& F_dphi_JxW = d_interior_F_dphi_JxW(e);
 
-        const std::vector<unsigned int>* const proj_strain_dof_indices = (d_use_fbar_projection ? &d_force_proj_strain_dof_indices(e) : NULL);
-        const blitz::Array<double,2>* const proj_strain_phi = (d_use_fbar_projection ? &d_force_proj_strain_phi(e) : NULL);
+        const std::vector<std::vector<unsigned int> >& X_dof_indices = d_interior_X_dof_indices(e);
+        const blitz::Array<double,2>& X_phi = d_interior_X_phi(e);
+        const blitz::Array<VectorValue<double>,2>& X_dphi = d_interior_X_dphi(e);
+
+        const std::vector<unsigned int>* const J_bar_dof_indices = (d_use_fbar_projection ? &d_interior_J_bar_dof_indices(e) : NULL);
+        const blitz::Array<double,2>* const J_bar_phi = (d_use_fbar_projection ? &d_interior_J_bar_phi(e) : NULL);
 
         // Compute the elemental right-hand-side entries.
         for (unsigned int i = 0; i < NDIM; ++i)
         {
-            F_e[i].resize(dof_indices[i].size());
+            F_e[i].resize(F_dof_indices[i].size());
         }
         for (int qp = 0; qp < q_point.size(); ++qp)
         {
             const Point& s_qp = q_point(qp);
-            const Point& X_qp = compute_coordinate(qp,X,coords_phi,coords_dof_indices);
-            const TensorValue<double> dX_ds = compute_coordinate_mapping_jacobian(qp,X,coords_dphi,coords_dof_indices,proj_strain_J_bar,proj_strain_phi,proj_strain_dof_indices);
+            const Point& X_qp = compute_coordinate(qp,X,X_phi,X_dof_indices);
+            const TensorValue<double> dX_ds = compute_coordinate_mapping_jacobian(qp,X,X_dphi,X_dof_indices,J_bar,J_bar_phi,J_bar_dof_indices);
 
             // Compute the value of the first Piola-Kirchhoff stress tensor at
             // the quadrature point and add the corresponding forces to the
             // right-hand-side vector.
             const TensorValue<double> PP = d_PK1_stress_fcn(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_fcn_ctx);
-            for (int k = 0; k < dphi_JxW.extent(blitz::secondDim); ++k)
+            for (int k = 0; k < F_dphi_JxW.extent(blitz::secondDim); ++k)
             {
-                const VectorValue<double> F_qp = -PP*dphi_JxW(qp,k);
+                const VectorValue<double> F_qp = -PP*F_dphi_JxW(qp,k);
                 for (unsigned int i = 0; i < NDIM; ++i)
                 {
                     F_e[i](k) += F_qp(i);
@@ -1588,9 +1599,9 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                 // and add the corresponding forces to the right-hand-side
                 // vector.
                 const VectorValue<double> F_b = d_lag_body_force_fcn(dX_ds,X_qp,s_qp,elem,time,d_lag_body_force_fcn_ctx);
-                for (int k = 0; k < phi_JxW.extent(blitz::secondDim); ++k)
+                for (int k = 0; k < F_phi_JxW.extent(blitz::secondDim); ++k)
                 {
-                    const VectorValue<double> F_qp = phi_JxW(qp,k)*F_b;
+                    const VectorValue<double> F_qp = F_phi_JxW(qp,k)*F_b;
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
                         F_e[i](k) += F_qp(i);
@@ -1598,38 +1609,39 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                 }
             }
         }
-#if 0
+
         // Loop over the element boundaries.
         for (unsigned short int side = 0; side < elem->n_sides(); ++side)
         {
             // Skip non-physical boundaries.
-            const bool at_physical_bdry = d_elem_side_at_physical_bdry(e)(side);
+            const bool at_physical_bdry = d_interior_elem_side_at_physical_bdry(e)(side);
             if (!at_physical_bdry) continue;
 
             // Determine whether we need to compute surface forces along this
             // part of the physical boundary; if not, skip the present side.
-            const bool at_dirichlet_bdry = d_elem_side_at_dirichlet_bdry(e)(side);
+            const bool at_dirichlet_bdry = d_interior_elem_side_at_dirichlet_bdry(e)(side);
             const bool compute_transmission_force = (( d_split_interior_and_bdry_forces && !at_dirichlet_bdry) ||
                                                      (!d_split_interior_and_bdry_forces &&  at_dirichlet_bdry));
             const bool compute_pressure = (d_split_interior_and_bdry_forces && d_lag_pressure_fcn != NULL);
             if (!(compute_transmission_force || compute_pressure)) continue;
 
             // Lookup cached data.
-            const blitz::Array<libMesh::Point,1>& q_point_face = d_force_q_point_face(e)(side);
-            const blitz::Array<libMesh::VectorValue<double>,1>& normal_face = d_force_normal_face(e)(side);
-            const blitz::Array<double,2>& phi_JxW_face = d_force_phi_JxW_face(e)(side);
+            const blitz::Array<Point,1>& q_point_face = d_interior_q_point_face(e)(side);
 
-            const blitz::Array<double,2>& coords_phi_face = d_force_coords_phi_face(e)(side);
-            const blitz::Array<libMesh::VectorValue<double>,2>& coords_dphi_face = d_force_coords_dphi_face(e)(side);
+            const blitz::Array<VectorValue<double>,1>& normal_face = d_interior_F_normal_face(e)(side);
+            const blitz::Array<double,2>& phi_JxW_face = d_interior_F_phi_JxW_face(e)(side);
 
-            const blitz::Array<double,2>* const proj_strain_phi_face = (d_use_fbar_projection ? &d_force_proj_strain_phi_face(e)(side) : NULL);
+            const blitz::Array<double,2>& X_phi_face = d_interior_X_phi_face(e)(side);
+            const blitz::Array<VectorValue<double>,2>& X_dphi_face = d_interior_X_dphi_face(e)(side);
+
+            const blitz::Array<double,2>* const J_bar_phi_face = (d_use_fbar_projection ? &d_interior_J_bar_phi_face(e)(side) : NULL);
 
             // Compute the elemental right-hand-side entries.
             for (int qp = 0; qp < q_point_face.size(); ++qp)
             {
                 const Point& s_qp = q_point_face(qp);
-                const Point& X_qp = compute_coordinate(qp,X,coords_phi_face,coords_dof_indices);
-                const TensorValue<double> dX_ds = compute_coordinate_mapping_jacobian(qp,X,coords_dphi_face,coords_dof_indices,proj_strain_J_bar,proj_strain_phi_face,proj_strain_dof_indices);
+                const Point& X_qp = compute_coordinate(qp,X,X_phi_face,X_dof_indices);
+                const TensorValue<double> dX_ds = compute_coordinate_mapping_jacobian(qp,X,X_dphi_face,X_dof_indices,J_bar,J_bar_phi_face,J_bar_dof_indices);
 
                 VectorValue<double> F;
 
@@ -1662,61 +1674,156 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                 }
             }
         }
-#endif
+
         // Apply constraints (e.g., enforce periodic boundary conditions) and
         // add the elemental contributions to the global vector.
         for (int i = 0; i < NDIM; ++i)
         {
-            force_dof_map.constrain_element_vector(F_e[i], dof_indices[i]);
-            F->add_vector(F_e[i], dof_indices[i]);
+            F_dof_map.constrain_element_vector(F_e[i], F_dof_indices[i]);
+            F->add_vector(F_e[i], F_dof_indices[i]);
         }
     }
 
-    // Assemble the right-hand-side vector.
-    F->close();
-
-    // Solve for G, the nodal interior elastic force density.
-    std::pair<libMesh::LinearSolver<double>*,SparseMatrix<double>*> proj_solver_components = d_fe_data_manager->getL2ProjectionSolver(FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
-    libMesh::LinearSolver<double>* solver = proj_solver_components.first;
-    SparseMatrix<double>* M = proj_solver_components.second;
-    const double tol = 1.0e-10;
-    const unsigned int max_its = 100;
-    force_dof_map.enforce_constraints_exactly(force_system, F.get());
-    solver->solve(*M, *M, G, *F, tol, max_its);
-    force_dof_map.enforce_constraints_exactly(force_system, &G);
+    // Solve for G.
+    d_fe_data_manager->computeL2Projection(G, *F, FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
     return;
 }// computeInteriorForceDensity
 
 void
-IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
+IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     const int f_data_idx,
     NumericVector<double>& X_ghost,
+    NumericVector<double>* J_bar_ghost,
     const double& time)
 {
-    TBOX_ASSERT(false); // XXXX
+    if (!d_split_interior_and_bdry_forces) return;
+
+    // Loop over the patches to spread the transmission elastic force density
+    // onto the grid.
+    const int level_num = d_fe_data_manager->getLevelNumber();
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+    int local_patch_num = 0;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    {
+        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        const int patch_num = patch->getPatchNumber();
+        Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
+        const Box<NDIM>& box = f_data->getGhostBox();
+
+        // Loop over the elements and compute the values to be spread and the
+        // positions of the quadrature points.
+        const std::map<int,std::set<Elem*> >& active_patch_elems = d_fe_data_manager->getActivePatchElements();
+        std::map<int,std::set<Elem*> >::const_iterator pos = active_patch_elems.find(patch_num);
+        if (pos == active_patch_elems.end()) continue;
+
+        const std::set<Elem*>::const_iterator el_begin = pos->second.begin();
+        const std::set<Elem*>::const_iterator el_end   = pos->second.end();
+        if (el_begin == el_end) continue;
+
+        int qp_offset = 0;
+        std::vector<double> T_bdry, X_bdry;
+        for (std::set<Elem*>::const_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        {
+            Elem* const elem = *el_it;
+            const unsigned int e = std::distance(el_begin,el_it);
+
+            // Loop over the element boundaries.
+            for (unsigned short int side = 0; side < elem->n_sides(); ++side)
+            {
+                // Skip non-physical boundaries.
+                const bool at_physical_bdry = d_transmission_elem_side_at_physical_bdry(local_patch_num)(e)(side);
+                if (!at_physical_bdry) continue;
+
+                // Determine whether we need to compute surface forces along
+                // this part of the physical boundary; if not, skip the present
+                // side.
+                const bool at_dirichlet_bdry = d_transmission_elem_side_at_dirichlet_bdry(local_patch_num)(e)(side);
+                const bool compute_transmission_force = d_split_interior_and_bdry_forces && !at_dirichlet_bdry;
+                const bool compute_pressure = (d_split_interior_and_bdry_forces && d_lag_pressure_fcn != NULL);
+                if (!(compute_transmission_force || compute_pressure)) continue;
+
+                // Lookup cached data.
+                const blitz::Array<Point,1>& q_point_face = d_transmission_q_point_face(local_patch_num)(e)(side);
+
+                const std::vector<std::vector<unsigned int> >& X_dof_indices = d_transmission_X_dof_indices(local_patch_num)(e);
+                const blitz::Array<VectorValue<double>,1>& X_normal_JxW_face = d_transmission_X_normal_JxW_face(local_patch_num)(e)(side);
+                const blitz::Array<double,2>& X_phi_face = d_transmission_X_phi_face(local_patch_num)(e)(side);
+                const blitz::Array<VectorValue<double>,2>& X_dphi_face = d_transmission_X_dphi_face(local_patch_num)(e)(side);
+
+                const std::vector<unsigned int>* const J_bar_dof_indices = (d_use_fbar_projection ? &d_transmission_J_bar_dof_indices(local_patch_num)(e) : NULL);
+                const blitz::Array<double,2>* const J_bar_phi_face = (d_use_fbar_projection ? &d_transmission_J_bar_phi_face(local_patch_num)(e)(side) : NULL);
+
+                // Loop over boundary quadrature points.
+                const int n_qp = q_point_face.size();
+                T_bdry.resize(T_bdry.size()+NDIM*n_qp,0.0);
+                X_bdry.resize(X_bdry.size()+NDIM*n_qp,0.0);
+                for (int qp = 0; qp < n_qp; ++qp, ++qp_offset)
+                {
+                    const Point& s_qp = q_point_face(qp);
+                    const Point& X_qp = compute_coordinate(qp,X_ghost,X_phi_face,X_dof_indices);
+                    const TensorValue<double> dX_ds = compute_coordinate_mapping_jacobian(qp,X_ghost,X_dphi_face,X_dof_indices,J_bar_ghost,J_bar_phi_face,J_bar_dof_indices);
+
+                    VectorValue<double> F;
+                    if (compute_transmission_force)
+                    {
+                        // Compute the value of the first Piola-Kirchhoff stress
+                        // tensor at the quadrature point and compute the
+                        // corresponding force.
+                        const TensorValue<double> PP = d_PK1_stress_fcn(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_fcn_ctx);
+                        F -= PP*X_normal_JxW_face(qp);
+                    }
+
+                    if (compute_pressure)
+                    {
+                        // Compute the value of the pressure at the quadrature
+                        // point and compute the corresponding force.
+                        const double P = d_lag_pressure_fcn(dX_ds,X_qp,s_qp,elem,side,time,d_lag_pressure_fcn_ctx);
+                        const double J = dX_ds.det();
+                        F -= P*J*tensor_inverse_transpose(dX_ds,NDIM)*X_normal_JxW_face(qp);
+                    }
+
+                    for (unsigned int i = 0; i < NDIM; ++i)
+                    {
+                        T_bdry[NDIM*qp_offset+i] = F(i);
+                    }
+
+                    for (unsigned int i = 0; i < NDIM; ++i)
+                    {
+                        X_bdry[NDIM*qp_offset+i] = X_qp(i);
+                    }
+                }
+            }
+        }
+
+        // Spread the boundary forces to the grid.
+        if (qp_offset > 0)
+        {
+            LEInteractor::spread(f_data, T_bdry, NDIM, X_bdry, NDIM, patch, box, d_fe_data_manager->getSpreadWeightingFunction());
+        }
+    }
     return;
-}// spreadBoundaryForceDensity
+}// spreadTransmissionForceDensity
 
 void
 IBFEHierarchyIntegrator::initializeCoordinates()
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     MeshBase& mesh = equation_systems->get_mesh();
-    System& coords_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
-    const unsigned int coords_sys_num = coords_system.number();
-    NumericVector<double>& X_coords = *coords_system.solution;
+    System& X_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
+    const unsigned int X_sys_num = X_system.number();
+    NumericVector<double>& X_coords = *X_system.solution;
     const bool identity_mapping = d_coordinate_mapping_fcn == NULL;
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
     {
         Node* n = *it;
-        if (n->n_vars(coords_sys_num) > 0)
+        if (n->n_vars(X_sys_num) > 0)
         {
-            libmesh_assert(n->n_vars(coords_sys_num) == NDIM);
+            libmesh_assert(n->n_vars(X_sys_num) == NDIM);
             const Point& s = *n;
             const Point X = identity_mapping ? s : d_coordinate_mapping_fcn(s, d_coordinate_mapping_fcn_ctx);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                const int dof_index = n->dof_number(coords_sys_num,d,0);
+                const int dof_index = n->dof_number(X_sys_num,d,0);
                 X_coords.set(dof_index,X(d));
             }
         }
@@ -1730,24 +1837,24 @@ IBFEHierarchyIntegrator::updateCoordinateMapping()
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     MeshBase& mesh = equation_systems->get_mesh();
-    System& coords_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
-    const unsigned int coords_sys_num = coords_system.number();
-    NumericVector<double>& X_coords = *coords_system.solution;
-    System& coords_mapping_system = equation_systems->get_system<System>(COORD_MAPPING_SYSTEM_NAME);
-    const unsigned int coords_mapping_sys_num = coords_mapping_system.number();
-    NumericVector<double>& dX_coords = *coords_mapping_system.solution;
+    System& X_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
+    const unsigned int X_sys_num = X_system.number();
+    NumericVector<double>& X_coords = *X_system.solution;
+    System& X_mapping_system = equation_systems->get_system<System>(COORD_MAPPING_SYSTEM_NAME);
+    const unsigned int X_mapping_sys_num = X_mapping_system.number();
+    NumericVector<double>& dX_coords = *X_mapping_system.solution;
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
     {
         Node* n = *it;
-        if (n->n_vars(coords_sys_num) > 0)
+        if (n->n_vars(X_sys_num) > 0)
         {
-            libmesh_assert(n->n_vars(coords_sys_num) == NDIM);
-            libmesh_assert(n->n_vars(coords_mapping_sys_num) == NDIM);
+            libmesh_assert(n->n_vars(X_sys_num) == NDIM);
+            libmesh_assert(n->n_vars(X_mapping_sys_num) == NDIM);
             const Point& s = *n;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                const int X_dof_index = n->dof_number(coords_sys_num,d,0);
-                const int dX_dof_index = n->dof_number(coords_mapping_sys_num,d,0);
+                const int X_dof_index = n->dof_number(X_sys_num,d,0);
+                const int dX_dof_index = n->dof_number(X_mapping_sys_num,d,0);
                 dX_coords.set(dX_dof_index,X_coords(X_dof_index)-s(d));
             }
         }
@@ -1768,29 +1875,29 @@ IBFEHierarchyIntegrator::computeCachedProjectedDilatationalStrainFEData()
     QGauss qrule(dim, FIFTH);
     QGauss qrule_face(dim-1, FIFTH);
 
-    System& proj_strain_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
-    const DofMap& proj_strain_dof_map = proj_strain_system.get_dof_map();
-    std::vector<unsigned int> proj_strain_dof_indices;
+    System& J_bar_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
+    const DofMap& J_bar_dof_map = J_bar_system.get_dof_map();
+    std::vector<unsigned int> J_bar_dof_indices;
 
-    AutoPtr<FEBase> proj_strain_fe(FEBase::build(dim, proj_strain_dof_map.variable_type(0)));
-    proj_strain_fe->attach_quadrature_rule(&qrule);
-    const std::vector<Point>& proj_strain_q_point = proj_strain_fe->get_xyz();
-    const std::vector<double>& proj_strain_JxW = proj_strain_fe->get_JxW();
-    const std::vector<std::vector<double> >& proj_strain_phi = proj_strain_fe->get_phi();
+    AutoPtr<FEBase> J_bar_fe(FEBase::build(dim, J_bar_dof_map.variable_type(0)));
+    J_bar_fe->attach_quadrature_rule(&qrule);
+    const std::vector<Point>& q_point = J_bar_fe->get_xyz();
+    const std::vector<double>& J_bar_JxW = J_bar_fe->get_JxW();
+    const std::vector<std::vector<double> >& J_bar_phi = J_bar_fe->get_phi();
 
-    System& coords_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
-    const DofMap& coords_dof_map = coords_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > coords_dof_indices(NDIM);
+    System& X_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
+    const DofMap& X_dof_map = X_system.get_dof_map();
+    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(coords_dof_map.variable_type(0) == coords_dof_map.variable_type(d));
+        TBOX_ASSERT(X_dof_map.variable_type(0) == X_dof_map.variable_type(d));
     }
 #endif
 
-    AutoPtr<FEBase> coords_fe(FEBase::build(dim, coords_dof_map.variable_type(0)));
-    coords_fe->attach_quadrature_rule(&qrule);
-    const std::vector<std::vector<VectorValue<double> > >& coords_dphi = coords_fe->get_dphi();
+    AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
+    X_fe->attach_quadrature_rule(&qrule);
+    const std::vector<std::vector<VectorValue<double> > >& X_dphi = X_fe->get_dphi();
 
     // Compute cached values.
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
@@ -1798,12 +1905,13 @@ IBFEHierarchyIntegrator::computeCachedProjectedDilatationalStrainFEData()
 
     const unsigned int sz = std::distance(el_begin,el_end);
 
-    d_proj_strain_dof_indices.resize(sz);
     d_proj_strain_q_point.resize(sz);
-    d_proj_strain_phi_JxW.resize(sz);
 
-    d_proj_strain_coords_dof_indices.resize(sz);
-    d_proj_strain_coords_dphi.resize(sz);
+    d_proj_strain_J_bar_dof_indices.resize(sz);
+    d_proj_strain_J_bar_phi_JxW.resize(sz);
+
+    d_proj_strain_X_dof_indices.resize(sz);
+    d_proj_strain_X_dphi.resize(sz);
 
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
     {
@@ -1811,32 +1919,32 @@ IBFEHierarchyIntegrator::computeCachedProjectedDilatationalStrainFEData()
         const unsigned int e = std::distance(el_begin,el_it);
 
         // Compute cached data.
-        proj_strain_fe->reinit(elem);
-        proj_strain_dof_map.dof_indices(elem, proj_strain_dof_indices);
-        d_proj_strain_dof_indices(e) = proj_strain_dof_indices;
+        J_bar_fe->reinit(elem);
+        J_bar_dof_map.dof_indices(elem, J_bar_dof_indices);
+        d_proj_strain_J_bar_dof_indices(e) = J_bar_dof_indices;
 
-        coords_fe->reinit(elem);
-        d_proj_strain_coords_dof_indices(e).resize(NDIM);
+        X_fe->reinit(elem);
+        d_proj_strain_X_dof_indices(e).resize(NDIM);
         for (unsigned int i = 0; i < NDIM; ++i)
         {
-            coords_dof_map.dof_indices(elem, coords_dof_indices[i], i);
-            d_proj_strain_coords_dof_indices(e)[i] = coords_dof_indices[i];
+            X_dof_map.dof_indices(elem, X_dof_indices[i], i);
+            d_proj_strain_X_dof_indices(e)[i] = X_dof_indices[i];
         }
 
         const int n_qp = qrule.n_points();
         d_proj_strain_q_point(e).resize(n_qp);
-        d_proj_strain_phi_JxW(e).resize(n_qp,proj_strain_phi.size());
-        d_proj_strain_coords_dphi(e).resize(n_qp,coords_dphi.size());
+        d_proj_strain_J_bar_phi_JxW(e).resize(n_qp,J_bar_phi.size());
+        d_proj_strain_X_dphi(e).resize(n_qp,X_dphi.size());
         for (int qp = 0; qp < n_qp; ++qp)
         {
-            d_proj_strain_q_point(e)(qp) = proj_strain_q_point[qp];
-            for (int k = 0; k < int(proj_strain_phi.size()); ++k)
+            d_proj_strain_q_point(e)(qp) = q_point[qp];
+            for (int k = 0; k < int(J_bar_phi.size()); ++k)
             {
-                d_proj_strain_phi_JxW(e)(qp,k) = proj_strain_JxW[qp]*proj_strain_phi[k][qp];
+                d_proj_strain_J_bar_phi_JxW(e)(qp,k) = J_bar_JxW[qp]*J_bar_phi[k][qp];
             }
-            for (int k = 0; k < int(coords_dphi.size()); ++k)
+            for (int k = 0; k < int(X_dphi.size()); ++k)
             {
-                d_proj_strain_coords_dphi(e)(qp,k) = coords_dphi[k][qp];
+                d_proj_strain_X_dphi(e)(qp,k) = X_dphi[k][qp];
             }
         }
     }
@@ -1853,68 +1961,68 @@ IBFEHierarchyIntegrator::computeCachedInteriorForceDensityFEData()
     QGauss qrule(dim, FIFTH);
     QGauss qrule_face(dim-1, FIFTH);
 
-    System& force_system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
-    const DofMap& force_dof_map = force_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > force_dof_indices(NDIM);
+    System& F_system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
+    const DofMap& F_dof_map = F_system.get_dof_map();
+    std::vector<std::vector<unsigned int> > F_dof_indices(NDIM);
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(force_dof_map.variable_type(0) == force_dof_map.variable_type(d));
+        TBOX_ASSERT(F_dof_map.variable_type(0) == F_dof_map.variable_type(d));
     }
 #endif
 
-    AutoPtr<FEBase> force_fe(FEBase::build(dim, force_dof_map.variable_type(0)));
-    force_fe->attach_quadrature_rule(&qrule);
-    const std::vector<Point>& force_q_point = force_fe->get_xyz();
-    const std::vector<double>& force_JxW = force_fe->get_JxW();
-    const std::vector<std::vector<double> >& force_phi = force_fe->get_phi();
-    const std::vector<std::vector<VectorValue<double> > >& force_dphi = force_fe->get_dphi();
+    AutoPtr<FEBase> F_fe(FEBase::build(dim, F_dof_map.variable_type(0)));
+    F_fe->attach_quadrature_rule(&qrule);
+    const std::vector<Point>& q_point = F_fe->get_xyz();
+    const std::vector<double>& F_JxW = F_fe->get_JxW();
+    const std::vector<std::vector<double> >& F_phi = F_fe->get_phi();
+    const std::vector<std::vector<VectorValue<double> > >& F_dphi = F_fe->get_dphi();
 
-    AutoPtr<FEBase> force_fe_face(FEBase::build(dim, force_dof_map.variable_type(0)));
-    force_fe_face->attach_quadrature_rule(&qrule_face);
-    const std::vector<Point>& force_q_point_face = force_fe_face->get_xyz();
-    const std::vector<double>& force_JxW_face = force_fe_face->get_JxW();
-    const std::vector<std::vector<double> >& force_phi_face = force_fe_face->get_phi();
-    const std::vector<Point>& force_normal_face = force_fe_face->get_normals();
+    AutoPtr<FEBase> F_fe_face(FEBase::build(dim, F_dof_map.variable_type(0)));
+    F_fe_face->attach_quadrature_rule(&qrule_face);
+    const std::vector<Point>& q_point_face = F_fe_face->get_xyz();
+    const std::vector<double>& F_JxW_face = F_fe_face->get_JxW();
+    const std::vector<std::vector<double> >& F_phi_face = F_fe_face->get_phi();
+    const std::vector<Point>& F_normal_face = F_fe_face->get_normals();
 
-    System& coords_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
-    const DofMap& coords_dof_map = coords_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > coords_dof_indices(NDIM);
+    System& X_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
+    const DofMap& X_dof_map = X_system.get_dof_map();
+    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(coords_dof_map.variable_type(0) == coords_dof_map.variable_type(d));
+        TBOX_ASSERT(X_dof_map.variable_type(0) == X_dof_map.variable_type(d));
     }
 #endif
 
-    AutoPtr<FEBase> coords_fe(FEBase::build(dim, coords_dof_map.variable_type(0)));
-    coords_fe->attach_quadrature_rule(&qrule);
-    const std::vector<std::vector<double> >& coords_phi = coords_fe->get_phi();
-    const std::vector<std::vector<VectorValue<double> > >& coords_dphi = coords_fe->get_dphi();
+    AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
+    X_fe->attach_quadrature_rule(&qrule);
+    const std::vector<std::vector<double> >& X_phi = X_fe->get_phi();
+    const std::vector<std::vector<VectorValue<double> > >& X_dphi = X_fe->get_dphi();
 
-    AutoPtr<FEBase> coords_fe_face(FEBase::build(dim, coords_dof_map.variable_type(0)));
-    coords_fe_face->attach_quadrature_rule(&qrule_face);
-    const std::vector<std::vector<double> >& coords_phi_face = coords_fe_face->get_phi();
-    const std::vector<std::vector<VectorValue<double> > >& coords_dphi_face = coords_fe_face->get_dphi();
+    AutoPtr<FEBase> X_fe_face(FEBase::build(dim, X_dof_map.variable_type(0)));
+    X_fe_face->attach_quadrature_rule(&qrule_face);
+    const std::vector<std::vector<double> >& X_phi_face = X_fe_face->get_phi();
+    const std::vector<std::vector<VectorValue<double> > >& X_dphi_face = X_fe_face->get_dphi();
 
-    const DofMap* proj_strain_dof_map = NULL;
-    std::vector<unsigned int> proj_strain_dof_indices;
-    AutoPtr<FEBase> proj_strain_fe;
-    const std::vector<std::vector<double> >* proj_strain_phi = NULL;
-    AutoPtr<FEBase> proj_strain_fe_face;
-    const std::vector<std::vector<double> >* proj_strain_phi_face = NULL;
+    const DofMap* J_bar_dof_map = NULL;
+    std::vector<unsigned int> J_bar_dof_indices;
+    AutoPtr<FEBase> J_bar_fe;
+    const std::vector<std::vector<double> >* J_bar_phi = NULL;
+    AutoPtr<FEBase> J_bar_fe_face;
+    const std::vector<std::vector<double> >* J_bar_phi_face = NULL;
     if (d_use_fbar_projection)
     {
-        System& proj_strain_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
-        proj_strain_dof_map = &proj_strain_system.get_dof_map();
+        System& J_bar_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
+        J_bar_dof_map = &J_bar_system.get_dof_map();
 
-        proj_strain_fe = FEBase::build(dim, proj_strain_dof_map->variable_type(0));
-        proj_strain_fe->attach_quadrature_rule(&qrule);
-        proj_strain_phi = &(proj_strain_fe->get_phi());
+        J_bar_fe = FEBase::build(dim, J_bar_dof_map->variable_type(0));
+        J_bar_fe->attach_quadrature_rule(&qrule);
+        J_bar_phi = &(J_bar_fe->get_phi());
 
-        proj_strain_fe_face = FEBase::build(dim, proj_strain_dof_map->variable_type(0));
-        proj_strain_fe_face->attach_quadrature_rule(&qrule_face);
-        proj_strain_phi_face = &(proj_strain_fe_face->get_phi());
+        J_bar_fe_face = FEBase::build(dim, J_bar_dof_map->variable_type(0));
+        J_bar_fe_face->attach_quadrature_rule(&qrule_face);
+        J_bar_phi_face = &(J_bar_fe_face->get_phi());
     }
 
     // Compute cached values.
@@ -1923,31 +2031,33 @@ IBFEHierarchyIntegrator::computeCachedInteriorForceDensityFEData()
 
     const unsigned int sz = std::distance(el_begin,el_end);
 
-    d_force_dof_indices.resize(sz);
-    d_force_q_point.resize(sz);
-    d_force_phi_JxW.resize(sz);
-    d_force_dphi_JxW.resize(sz);
+    d_interior_q_point.resize(sz);
 
-    d_force_coords_dof_indices.resize(sz);
-    d_force_coords_phi.resize(sz);
-    d_force_coords_dphi.resize(sz);
+    d_interior_F_dof_indices.resize(sz);
+    d_interior_F_phi_JxW.resize(sz);
+    d_interior_F_dphi_JxW.resize(sz);
 
-    d_force_q_point_face.resize(sz);
-    d_force_normal_face.resize(sz);
-    d_force_phi_JxW_face.resize(sz);
+    d_interior_X_dof_indices.resize(sz);
+    d_interior_X_phi.resize(sz);
+    d_interior_X_dphi.resize(sz);
 
-    d_force_coords_phi_face.resize(sz);
-    d_force_coords_dphi_face.resize(sz);
+    d_interior_q_point_face.resize(sz);
 
-    d_elem_side_at_physical_bdry.resize(sz);
-    d_elem_side_at_dirichlet_bdry.resize(sz);
+    d_interior_F_normal_face.resize(sz);
+    d_interior_F_phi_JxW_face.resize(sz);
+
+    d_interior_X_phi_face.resize(sz);
+    d_interior_X_dphi_face.resize(sz);
+
+    d_interior_elem_side_at_physical_bdry.resize(sz);
+    d_interior_elem_side_at_dirichlet_bdry.resize(sz);
 
     if (d_use_fbar_projection)
     {
-        d_force_proj_strain_dof_indices.resize(sz);
-        d_force_proj_strain_phi.resize(sz);
+        d_interior_J_bar_dof_indices.resize(sz);
+        d_interior_J_bar_phi.resize(sz);
 
-        d_force_proj_strain_phi_face.resize(sz);
+        d_interior_J_bar_phi_face.resize(sz);
     }
 
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -1956,74 +2066,74 @@ IBFEHierarchyIntegrator::computeCachedInteriorForceDensityFEData()
         const unsigned int e = std::distance(el_begin,el_it);
 
         // Compute cached data.
-        force_fe->reinit(elem);
-        d_force_dof_indices(e).resize(NDIM);
+        F_fe->reinit(elem);
+        d_interior_F_dof_indices(e).resize(NDIM);
         for (unsigned int i = 0; i < NDIM; ++i)
         {
-            force_dof_map.dof_indices(elem, force_dof_indices[i], i);
-            d_force_dof_indices(e)[i] = force_dof_indices[i];
+            F_dof_map.dof_indices(elem, F_dof_indices[i], i);
+            d_interior_F_dof_indices(e)[i] = F_dof_indices[i];
         }
 
-        coords_fe->reinit(elem);
-        d_force_coords_dof_indices(e).resize(NDIM);
+        X_fe->reinit(elem);
+        d_interior_X_dof_indices(e).resize(NDIM);
         for (unsigned int i = 0; i < NDIM; ++i)
         {
-            coords_dof_map.dof_indices(elem, coords_dof_indices[i], i);
-            d_force_coords_dof_indices(e)[i] = coords_dof_indices[i];
+            X_dof_map.dof_indices(elem, X_dof_indices[i], i);
+            d_interior_X_dof_indices(e)[i] = X_dof_indices[i];
         }
 
         if (d_use_fbar_projection)
         {
-            proj_strain_fe->reinit(elem);
-            proj_strain_dof_map->dof_indices(elem, proj_strain_dof_indices);
-            d_force_proj_strain_dof_indices(e) = proj_strain_dof_indices;
+            J_bar_fe->reinit(elem);
+            J_bar_dof_map->dof_indices(elem, J_bar_dof_indices);
+            d_interior_J_bar_dof_indices(e) = J_bar_dof_indices;
         }
 
         const int n_qp = qrule.n_points();
-        d_force_q_point(e).resize(n_qp);
-        d_force_phi_JxW(e).resize(n_qp,force_phi.size());
-        d_force_dphi_JxW(e).resize(n_qp,force_dphi.size());
-        d_force_coords_phi(e).resize(n_qp,coords_phi.size());
-        d_force_coords_dphi(e).resize(n_qp,coords_dphi.size());
-        if (d_use_fbar_projection) d_force_proj_strain_phi(e).resize(n_qp,proj_strain_phi->size());
+        d_interior_q_point(e).resize(n_qp);
+        d_interior_F_phi_JxW(e).resize(n_qp,F_phi.size());
+        d_interior_F_dphi_JxW(e).resize(n_qp,F_dphi.size());
+        d_interior_X_phi(e).resize(n_qp,X_phi.size());
+        d_interior_X_dphi(e).resize(n_qp,X_dphi.size());
+        if (d_use_fbar_projection) d_interior_J_bar_phi(e).resize(n_qp,J_bar_phi->size());
         for (int qp = 0; qp < n_qp; ++qp)
         {
-            d_force_q_point(e)(qp) = force_q_point[qp];
-            for (int k = 0; k < int(force_phi.size()); ++k)
+            d_interior_q_point(e)(qp) = q_point[qp];
+            for (int k = 0; k < int(F_phi.size()); ++k)
             {
-                d_force_phi_JxW(e)(qp,k) = force_JxW[qp]*force_phi[k][qp];
+                d_interior_F_phi_JxW(e)(qp,k) = F_JxW[qp]*F_phi[k][qp];
             }
-            for (int k = 0; k < int(force_dphi.size()); ++k)
+            for (int k = 0; k < int(F_dphi.size()); ++k)
             {
-                d_force_dphi_JxW(e)(qp,k) = force_dphi[k][qp]*force_JxW[qp];
+                d_interior_F_dphi_JxW(e)(qp,k) = F_dphi[k][qp]*F_JxW[qp];
             }
-            for (int k = 0; k < int(coords_phi.size()); ++k)
+            for (int k = 0; k < int(X_phi.size()); ++k)
             {
-                d_force_coords_phi(e)(qp,k) = coords_phi[k][qp];
+                d_interior_X_phi(e)(qp,k) = X_phi[k][qp];
             }
-            for (int k = 0; k < int(coords_dphi.size()); ++k)
+            for (int k = 0; k < int(X_dphi.size()); ++k)
             {
-                d_force_coords_dphi(e)(qp,k) = coords_dphi[k][qp];
+                d_interior_X_dphi(e)(qp,k) = X_dphi[k][qp];
             }
             if (d_use_fbar_projection)
             {
-                for (int k = 0; k < int(proj_strain_phi->size()); ++k)
+                for (int k = 0; k < int(J_bar_phi->size()); ++k)
                 {
-                    d_force_proj_strain_phi(e)(qp,k) = (*proj_strain_phi)[k][qp];
+                    d_interior_J_bar_phi(e)(qp,k) = (*J_bar_phi)[k][qp];
                 }
             }
         }
 
         // Loop over the element boundaries.
         const unsigned int n_sides = elem->n_sides();
-        d_elem_side_at_physical_bdry(e).resize(n_sides);
-        d_elem_side_at_dirichlet_bdry(e).resize(n_sides);
-        d_force_q_point_face(e).resize(n_sides);
-        d_force_normal_face(e).resize(n_sides);
-        d_force_phi_JxW_face(e).resize(n_sides);
-        d_force_coords_phi_face(e).resize(n_sides);
-        d_force_coords_dphi_face(e).resize(n_sides);
-        if (d_use_fbar_projection) d_force_proj_strain_phi_face(e).resize(n_sides);
+        d_interior_elem_side_at_physical_bdry(e).resize(n_sides);
+        d_interior_elem_side_at_dirichlet_bdry(e).resize(n_sides);
+        d_interior_q_point_face(e).resize(n_sides);
+        d_interior_F_normal_face(e).resize(n_sides);
+        d_interior_F_phi_JxW_face(e).resize(n_sides);
+        d_interior_X_phi_face(e).resize(n_sides);
+        d_interior_X_dphi_face(e).resize(n_sides);
+        if (d_use_fbar_projection) d_interior_J_bar_phi_face(e).resize(n_sides);
         for (unsigned short int side = 0; side < n_sides; ++side)
         {
             // Skip non-physical boundaries.
@@ -2033,11 +2143,11 @@ IBFEHierarchyIntegrator::computeCachedInteriorForceDensityFEData()
             for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
             {
                 const short int bdry_id = *cit;
-                at_physical_bdry  = at_physical_bdry  || (elem->neighbor(side) == NULL && !coords_dof_map.is_periodic_boundary(bdry_id));
+                at_physical_bdry  = at_physical_bdry  || (elem->neighbor(side) == NULL && !X_dof_map.is_periodic_boundary(bdry_id));
                 at_dirichlet_bdry = at_dirichlet_bdry || (bdry_id == FEDataManager::DIRICHLET_BDRY_ID);
             }
-            d_elem_side_at_physical_bdry (e)(side) = at_physical_bdry ;
-            d_elem_side_at_dirichlet_bdry(e)(side) = at_dirichlet_bdry;
+            d_interior_elem_side_at_physical_bdry (e)(side) = at_physical_bdry ;
+            d_interior_elem_side_at_dirichlet_bdry(e)(side) = at_dirichlet_bdry;
             if (!at_physical_bdry) continue;
 
             // Determine whether we need to compute surface forces along the
@@ -2047,39 +2157,39 @@ IBFEHierarchyIntegrator::computeCachedInteriorForceDensityFEData()
             const bool compute_pressure = (d_split_interior_and_bdry_forces && d_lag_pressure_fcn != NULL);
             if (!(compute_transmission_force || compute_pressure)) continue;
 
-            force_fe_face->reinit(elem, side);
-            coords_fe_face->reinit(elem, side);
-            if (d_use_fbar_projection) proj_strain_fe_face->reinit(elem, side);
+            F_fe_face->reinit(elem, side);
+            X_fe_face->reinit(elem, side);
+            if (d_use_fbar_projection) J_bar_fe_face->reinit(elem, side);
 
             // Compute cached data.
             const int n_qp_face = qrule_face.n_points();
-            d_force_q_point_face(e)(side).resize(n_qp_face);
-            d_force_normal_face(e)(side).resize(n_qp_face);
-            d_force_phi_JxW_face(e)(side).resize(n_qp_face,force_phi_face.size());
-            d_force_coords_phi_face(e)(side).resize(n_qp_face,coords_phi_face.size());
-            d_force_coords_dphi_face(e)(side).resize(n_qp_face,coords_dphi_face.size());
-            if (d_use_fbar_projection) d_force_proj_strain_phi_face(e)(side).resize(n_qp_face,proj_strain_phi_face->size());
+            d_interior_q_point_face(e)(side).resize(n_qp_face);
+            d_interior_F_normal_face(e)(side).resize(n_qp_face);
+            d_interior_F_phi_JxW_face(e)(side).resize(n_qp_face,F_phi_face.size());
+            d_interior_X_phi_face(e)(side).resize(n_qp_face,X_phi_face.size());
+            d_interior_X_dphi_face(e)(side).resize(n_qp_face,X_dphi_face.size());
+            if (d_use_fbar_projection) d_interior_J_bar_phi_face(e)(side).resize(n_qp_face,J_bar_phi_face->size());
             for (int qp = 0; qp < n_qp_face; ++qp)
             {
-                d_force_q_point_face(e)(side)(qp) = force_q_point_face[qp];
-                d_force_normal_face(e)(side)(qp) = force_normal_face[qp];
-                for (int k = 0; k < int(force_phi_face.size()); ++k)
+                d_interior_q_point_face(e)(side)(qp) = q_point_face[qp];
+                d_interior_F_normal_face(e)(side)(qp) = F_normal_face[qp];
+                for (int k = 0; k < int(F_phi_face.size()); ++k)
                 {
-                    d_force_phi_JxW_face(e)(side)(qp,k) = force_phi_face[k][qp]*force_JxW_face[qp];
+                    d_interior_F_phi_JxW_face(e)(side)(qp,k) = F_phi_face[k][qp]*F_JxW_face[qp];
                 }
-                for (int k = 0; k < int(coords_phi_face.size()); ++k)
+                for (int k = 0; k < int(X_phi_face.size()); ++k)
                 {
-                    d_force_coords_phi_face(e)(side)(qp,k) = coords_phi_face[k][qp];
+                    d_interior_X_phi_face(e)(side)(qp,k) = X_phi_face[k][qp];
                 }
-                for (int k = 0; k < int(coords_dphi_face.size()); ++k)
+                for (int k = 0; k < int(X_dphi_face.size()); ++k)
                 {
-                    d_force_coords_dphi_face(e)(side)(qp,k) = coords_dphi_face[k][qp];
+                    d_interior_X_dphi_face(e)(side)(qp,k) = X_dphi_face[k][qp];
                 }
                 if (d_use_fbar_projection)
                 {
-                    for (int k = 0; k < int(proj_strain_phi_face->size()); ++k)
+                    for (int k = 0; k < int(J_bar_phi_face->size()); ++k)
                     {
-                        d_force_proj_strain_phi_face(e)(side)(qp,k) = (*proj_strain_phi_face)[k][qp];
+                        d_interior_J_bar_phi_face(e)(side)(qp,k) = (*J_bar_phi_face)[k][qp];
                     }
                 }
             }
@@ -2087,6 +2197,188 @@ IBFEHierarchyIntegrator::computeCachedInteriorForceDensityFEData()
     }
     return;
 }// computeCachedInteriorForceDensityFEData
+
+void
+IBFEHierarchyIntegrator::computeCachedTransmissionForceDensityFEData()
+{
+    if (!d_split_interior_and_bdry_forces) return;
+
+    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
+
+    const MeshBase& mesh = equation_systems->get_mesh();
+    const unsigned int dim = mesh.mesh_dimension();
+    QGauss qrule(dim, FIFTH);
+    QGauss qrule_face(dim-1, FIFTH);
+
+    System& X_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
+    const DofMap& X_dof_map = X_system.get_dof_map();
+    std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    for (int d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(X_dof_map.variable_type(0) == X_dof_map.variable_type(d));
+    }
+#endif
+
+    AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
+    X_fe->attach_quadrature_rule(&qrule);
+
+    AutoPtr<FEBase> X_fe_face(FEBase::build(dim, X_dof_map.variable_type(0)));
+    X_fe_face->attach_quadrature_rule(&qrule_face);
+    const std::vector<Point>& q_point_face = X_fe_face->get_xyz();
+    const std::vector<double>& X_JxW_face = X_fe_face->get_JxW();
+    const std::vector<std::vector<double> >& X_phi_face = X_fe_face->get_phi();
+    const std::vector<std::vector<VectorValue<double> > >& X_dphi_face = X_fe_face->get_dphi();
+    const std::vector<Point>& X_normal_face = X_fe_face->get_normals();
+
+    const DofMap* J_bar_dof_map = NULL;
+    std::vector<unsigned int> J_bar_dof_indices;
+    AutoPtr<FEBase> J_bar_fe;
+    AutoPtr<FEBase> J_bar_fe_face;
+    const std::vector<std::vector<double> >* J_bar_phi_face = NULL;
+    if (d_use_fbar_projection)
+    {
+        System& J_bar_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
+        J_bar_dof_map = &J_bar_system.get_dof_map();
+
+        J_bar_fe = FEBase::build(dim, J_bar_dof_map->variable_type(0));
+        J_bar_fe->attach_quadrature_rule(&qrule);
+
+        J_bar_fe_face = FEBase::build(dim, J_bar_dof_map->variable_type(0));
+        J_bar_fe_face->attach_quadrature_rule(&qrule_face);
+        J_bar_phi_face = &(J_bar_fe_face->get_phi());
+    }
+
+    // Compute cached values.
+    const int level_num = d_fe_data_manager->getLevelNumber();
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+
+    const int n_local_patches = level->getProcessorMapping().getNumberOfLocalIndices();
+    d_transmission_X_dof_indices.resize(n_local_patches);
+    if (d_use_fbar_projection) d_transmission_J_bar_dof_indices.resize(n_local_patches);
+    d_transmission_elem_side_at_physical_bdry.resize(n_local_patches);
+    d_transmission_elem_side_at_dirichlet_bdry.resize(n_local_patches);
+    d_transmission_q_point_face.resize(n_local_patches);
+    d_transmission_X_normal_JxW_face.resize(n_local_patches);
+    d_transmission_X_phi_face.resize(n_local_patches);
+    d_transmission_X_dphi_face.resize(n_local_patches);
+    if (d_use_fbar_projection) d_transmission_J_bar_phi_face.resize(n_local_patches);
+
+    // Loop over the patches.
+    int local_patch_num = 0;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    {
+        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        const int patch_num = patch->getPatchNumber();
+
+        // Loop over the elements.
+        const std::map<int,std::set<Elem*> >& active_patch_elems = d_fe_data_manager->getActivePatchElements();
+        std::map<int,std::set<Elem*> >::const_iterator pos = active_patch_elems.find(patch_num);
+        if (pos == active_patch_elems.end()) continue;
+
+        const std::set<Elem*>::const_iterator el_begin = pos->second.begin();
+        const std::set<Elem*>::const_iterator el_end   = pos->second.end();
+        if (el_begin == el_end) continue;
+
+        const unsigned int sz = pos->second.size();
+        d_transmission_X_dof_indices(local_patch_num).resize(sz);
+        if (d_use_fbar_projection) d_transmission_J_bar_dof_indices(local_patch_num).resize(sz);
+        d_transmission_elem_side_at_physical_bdry(local_patch_num).resize(sz);
+        d_transmission_elem_side_at_dirichlet_bdry(local_patch_num).resize(sz);
+        d_transmission_q_point_face(local_patch_num).resize(sz);
+        d_transmission_X_normal_JxW_face(local_patch_num).resize(sz);
+        d_transmission_X_phi_face(local_patch_num).resize(sz);
+        d_transmission_X_dphi_face(local_patch_num).resize(sz);
+        if (d_use_fbar_projection) d_transmission_J_bar_phi_face(local_patch_num).resize(sz);
+
+        for (std::set<Elem*>::const_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        {
+            Elem* const elem = *el_it;
+            const unsigned int e = std::distance(el_begin,el_it);
+
+            // Compute cached data.
+            X_fe->reinit(elem);
+            d_transmission_X_dof_indices(local_patch_num)(e).resize(NDIM);
+            for (unsigned int i = 0; i < NDIM; ++i)
+            {
+                X_dof_map.dof_indices(elem, X_dof_indices[i], i);
+                d_transmission_X_dof_indices(local_patch_num)(e)[i] = X_dof_indices[i];
+            }
+
+            if (d_use_fbar_projection)
+            {
+                J_bar_fe->reinit(elem);
+                J_bar_dof_map->dof_indices(elem, J_bar_dof_indices);
+                d_transmission_J_bar_dof_indices(local_patch_num)(e) = J_bar_dof_indices;
+            }
+
+            // Loop over the element boundaries.
+            const unsigned int n_sides = elem->n_sides();
+            d_transmission_elem_side_at_physical_bdry(local_patch_num)(e).resize(n_sides);
+            d_transmission_elem_side_at_dirichlet_bdry(local_patch_num)(e).resize(n_sides);
+            d_transmission_q_point_face(local_patch_num)(e).resize(n_sides);
+            d_transmission_X_normal_JxW_face(local_patch_num)(e).resize(n_sides);
+            d_transmission_X_phi_face(local_patch_num)(e).resize(n_sides);
+            d_transmission_X_dphi_face(local_patch_num)(e).resize(n_sides);
+            if (d_use_fbar_projection) d_transmission_J_bar_phi_face(local_patch_num)(e).resize(n_sides);
+            for (unsigned short int side = 0; side < elem->n_sides(); ++side)
+            {
+                // Skip non-physical boundaries.
+                const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
+                bool at_physical_bdry  = false;
+                bool at_dirichlet_bdry = false;
+                for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
+                {
+                    const short int bdry_id = *cit;
+                    at_physical_bdry  = at_physical_bdry  || (elem->neighbor(side) == NULL && !X_dof_map.is_periodic_boundary(bdry_id));
+                    at_dirichlet_bdry = at_dirichlet_bdry || (bdry_id == FEDataManager::DIRICHLET_BDRY_ID);
+                }
+                d_transmission_elem_side_at_physical_bdry (local_patch_num)(e)(side) = at_physical_bdry ;
+                d_transmission_elem_side_at_dirichlet_bdry(local_patch_num)(e)(side) = at_dirichlet_bdry;
+                if (!at_physical_bdry) continue;
+
+                // Determine whether we need to compute surface forces along
+                // this part of the physical boundary; if not, skip the present
+                // side.
+                const bool compute_transmission_force = d_split_interior_and_bdry_forces && !at_dirichlet_bdry;
+                const bool compute_pressure = (d_split_interior_and_bdry_forces && d_lag_pressure_fcn != NULL);
+                if (!(compute_transmission_force || compute_pressure)) continue;
+
+                X_fe_face->reinit(elem, side);
+                if (d_use_fbar_projection) J_bar_fe_face->reinit(elem, side);
+
+                // Compute cached data.
+                const int n_qp_face = qrule_face.n_points();
+                d_transmission_q_point_face(local_patch_num)(e)(side).resize(n_qp_face);
+                d_transmission_X_normal_JxW_face(local_patch_num)(e)(side).resize(n_qp_face);
+                d_transmission_X_phi_face(local_patch_num)(e)(side).resize(n_qp_face,X_phi_face.size());
+                d_transmission_X_dphi_face(local_patch_num)(e)(side).resize(n_qp_face,X_dphi_face.size());
+                if (d_use_fbar_projection) d_transmission_J_bar_phi_face(local_patch_num)(e)(side).resize(n_qp_face,J_bar_phi_face->size());
+                for (int qp = 0; qp < n_qp_face; ++qp)
+                {
+                    d_transmission_q_point_face(local_patch_num)(e)(side)(qp) = q_point_face[qp];
+                    d_transmission_X_normal_JxW_face(local_patch_num)(e)(side)(qp) = X_normal_face[qp]*X_JxW_face[qp];
+                    for (int k = 0; k < int(X_phi_face.size()); ++k)
+                    {
+                        d_transmission_X_phi_face(local_patch_num)(e)(side)(qp,k) = X_phi_face[k][qp];
+                    }
+                    for (int k = 0; k < int(X_dphi_face.size()); ++k)
+                    {
+                        d_transmission_X_dphi_face(local_patch_num)(e)(side)(qp,k) = X_dphi_face[k][qp];
+                    }
+                    if (d_use_fbar_projection)
+                    {
+                        for (int k = 0; k < int(J_bar_phi_face->size()); ++k)
+                        {
+                            d_transmission_J_bar_phi_face(local_patch_num)(e)(side)(qp,k) = (*J_bar_phi_face)[k][qp];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return;
+}// computeCachedTransmissionForceDensityFEData
 
 void
 IBFEHierarchyIntegrator::getFromInput(
@@ -2118,8 +2410,8 @@ IBFEHierarchyIntegrator::getFromInput(
     d_use_fbar_projection = db->getBoolWithDefault("use_fbar_projection", d_use_fbar_projection);
     if (d_use_fbar_projection)
     {
-        d_proj_strain_fe_order = Utility::string_to_enum<Order>(db->getStringWithDefault("proj_strain_fe_order", Utility::enum_to_string<Order>(d_proj_strain_fe_order)));
-        d_proj_strain_fe_family = Utility::string_to_enum<FEFamily>(db->getStringWithDefault("proj_strain_fe_family", Utility::enum_to_string<FEFamily>(d_proj_strain_fe_family)));
+        d_J_bar_fe_order = Utility::string_to_enum<Order>(db->getStringWithDefault("J_bar_fe_order", Utility::enum_to_string<Order>(d_J_bar_fe_order)));
+        d_J_bar_fe_family = Utility::string_to_enum<FEFamily>(db->getStringWithDefault("J_bar_fe_family", Utility::enum_to_string<FEFamily>(d_J_bar_fe_family)));
     }
 
     d_do_log = db->getBoolWithDefault("enable_logging", d_do_log);
@@ -2185,182 +2477,6 @@ IBFEHierarchyIntegrator::getFromRestart()
     }
     return;
 }// getFromRestart
-
-#if 0
-void
-IBFEHierarchyIntegrator::spreadBoundaryForceDensity(
-    const int f_data_idx,
-    NumericVector<double>& X_ghost,
-    const double& time)
-{
-    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-
-    const MeshBase& mesh = equation_systems->get_mesh();
-    const unsigned int dim = mesh.mesh_dimension();
-    QBase* const qrule = d_fe_data_manager->getQuadratureRule();
-    AutoPtr<QBase> qrule_face = QBase::build(qrule->type(), dim-1, qrule->get_order());
-
-    System& coords_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
-    const DofMap& coords_dof_map = coords_system.get_dof_map();
-    std::vector<std::vector<unsigned int> > coords_dof_indices(NDIM);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    for (int d = 0; d < NDIM; ++d)
-    {
-        TBOX_ASSERT(coords_dof_map.variable_type(0) == coords_dof_map.variable_type(d));
-    }
-#endif
-
-    AutoPtr<FEBase> coords_fe_face(FEBase::build(dim, coords_dof_map.variable_type(0)));
-    coords_fe_face->attach_quadrature_rule(qrule_face.get());
-    const std::vector<double>& coords_JxW_face = coords_fe_face->get_JxW();
-    const std::vector<Point>& coords_q_point_face = coords_fe_face->get_xyz();
-    const std::vector<std::vector<double> >& coords_phi_face = coords_fe_face->get_phi();
-    const std::vector<std::vector<VectorValue<double> > >& coords_dphi_face = coords_fe_face->get_dphi();
-    const std::vector<Point>& coords_normal_face = coords_fe_face->get_normals();
-
-    NumericVector<double>* proj_strain_J_bar = NULL;
-    const DofMap* proj_strain_dof_map = NULL;
-    std::vector<unsigned int> proj_strain_dof_indices;
-    AutoPtr<FEBase> proj_strain_fe_face;
-    const std::vector<std::vector<double> >* proj_strain_phi_face = NULL;
-    if (d_use_fbar_projection)
-    {
-        System& proj_strain_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
-        proj_strain_J_bar = proj_strain_system.solution.get();
-        proj_strain_dof_map = &proj_strain_system.get_dof_map();
-
-        proj_strain_fe_face = FEBase::build(dim, proj_strain_dof_map->variable_type(0));
-        proj_strain_fe_face->attach_quadrature_rule(qrule_face.get());
-        proj_strain_phi_face = &proj_strain_fe_face->get_phi();
-    }
-
-    // Loop over the patches to spread the transmission elastic force density
-    // onto the grid.
-    const int level_num = d_fe_data_manager->getLevelNumber();
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const int patch_num = patch->getPatchNumber();
-        const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-        Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
-        const Box<NDIM>& box = f_data->getGhostBox();
-
-        // The relevant range of elements.
-        const std::map<int,std::set<Elem*> >& active_patch_elems = d_fe_data_manager->getActivePatchElements();
-        std::map<int,std::set<Elem*> >::const_iterator pos = active_patch_elems.find(patch_num);
-        if (pos == active_patch_elems.end()) continue;
-        std::set<Elem*>::const_iterator       el_it  = pos->second.begin();
-        const std::set<Elem*>::const_iterator el_end = pos->second.end();
-
-        // Loop over the elements and compute the values to be spread and the
-        // positions of the quadrature points.
-        int qp_offset = 0;
-        std::vector<double> T_bdry, X_bdry;
-        for ( ; el_it != el_end; ++el_it)
-        {
-            Elem* const elem = *el_it;
-
-            // Loop over the element boundaries.
-            for (unsigned short int side = 0; side < elem->n_sides(); ++side)
-            {
-                // Skip non-physical boundaries.
-                const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
-                bool at_physical_bdry  = false;
-                bool at_dirichlet_bdry = false;
-                for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
-                {
-                    const short int bdry_id = *cit;
-                    at_physical_bdry  = at_physical_bdry  || (elem->neighbor(side) == NULL && !coords_dof_map.is_periodic_boundary(bdry_id));
-                    at_dirichlet_bdry = at_dirichlet_bdry || (bdry_id == FEDataManager::DIRICHLET_BDRY_ID);
-                }
-                if (!at_physical_bdry) continue;
-
-                const bool compute_transmission_force = !at_dirichlet_bdry;
-                const bool compute_pressure = (d_lag_pressure_fcn != NULL) && !at_dirichlet_bdry;
-
-                if (compute_transmission_force || compute_pressure)
-                {
-                    coords_fe_face->reinit(elem, side);
-                    if (d_use_fbar_projection) proj_strain_fe_face->reinit(elem, side);
-
-                    // Determine the degrees of freedom for the current element.
-                    for (unsigned int i = 0; i < NDIM; ++i)
-                    {
-                        coords_dof_map.dof_indices(elem, coords_dof_indices[i], i);
-                    }
-
-                    if (d_use_fbar_projection)
-                    {
-                        proj_strain_dof_map->dof_indices(elem, proj_strain_dof_indices);
-                    }
-
-                    // Loop over boundary quadrature points.
-                    T_bdry.resize(T_bdry.size()+NDIM*qrule_face->n_points(),0.0);
-                    X_bdry.resize(X_bdry.size()+NDIM*qrule_face->n_points(),0.0);
-                    for (unsigned int qp = 0; qp < qrule_face->n_points(); ++qp)
-                    {
-                        const Point& s_qp = coords_q_point_face[qp];
-                        const Point& X_qp = compute_coordinate(qp,X_ghost,coords_phi_face,coords_dof_indices);
-                        TensorValue<double> dX_ds = compute_coordinate_mapping_jacobian(qp,X_ghost,coords_dphi_face,coords_dof_indices);
-                        if (d_use_fbar_projection)
-                        {
-                            const double J = dX_ds.det();
-                            const double J_bar = compute_interpolation(qp,*proj_strain_J_bar,*proj_strain_phi_face,proj_strain_dof_indices);
-                            const double alpha = pow(J_bar/J,1.0/double(NDIM));
-                            dX_ds *= alpha;
-#if (NDIM == 2)
-                            dX_ds(2,2) = 1.0;
-#endif
-                        }
-
-                        for (unsigned int i = 0; i < NDIM; ++i)
-                        {
-                            T_bdry[NDIM*(qp+qp_offset)+i] = 0.0;
-                            X_bdry[NDIM*(qp+qp_offset)+i] = X_qp(i);
-                        }
-
-                        if (compute_transmission_force)
-                        {
-                            // Compute the value of the first Piola-Kirchhoff
-                            // stress tensor at the quadrature point and compute
-                            // the corresponding force.
-                            const TensorValue<double> PP = d_PK1_stress_fcn(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_fcn_ctx);
-                            const VectorValue<double> F = PP*coords_normal_face[qp]*coords_JxW_face[qp];
-                            for (unsigned int i = 0; i < NDIM; ++i)
-                            {
-                                T_bdry[NDIM*(qp+qp_offset)+i] += -F(i);
-                            }
-                        }
-
-                        if (compute_pressure)
-                        {
-                            // Compute the value of the pressure at the
-                            // quadrature point and compute the corresponding
-                            // force.
-                            const double P = d_lag_pressure_fcn(dX_ds,X_qp,s_qp,elem,side,time,d_lag_pressure_fcn_ctx);
-                            const double J = dX_ds.det();
-                            const VectorValue<double> F = -P*J*tensor_inverse_transpose(dX_ds,NDIM)*coords_normal_face[qp]*coords_JxW_face[qp];
-                            for (unsigned int i = 0; i < NDIM; ++i)
-                            {
-                                T_bdry[NDIM*(qp+qp_offset)+i] += F(i);
-                            }
-                        }
-                    }
-                    qp_offset += qrule_face->n_points();
-                }
-            }
-        }
-
-        // Spread the boundary forces to the grid.
-        if (qp_offset > 0)
-        {
-            LEInteractor::spread(f_data, T_bdry, NDIM, X_bdry, NDIM, patch, box, d_fe_data_manager->getSpreadWeightingFunction());
-        }
-    }
-    return;
-}// spreadBoundaryForceDensity
-#endif
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

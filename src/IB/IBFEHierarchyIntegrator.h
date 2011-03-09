@@ -602,6 +602,7 @@ private:
      */
     void
     computeProjectedDilatationalStrain(
+        libMesh::NumericVector<double>& J_bar,
         libMesh::NumericVector<double>& X);
 
     /*
@@ -613,16 +614,18 @@ private:
     computeInteriorForceDensity(
         libMesh::NumericVector<double>& G,
         libMesh::NumericVector<double>& X,
+        libMesh::NumericVector<double>* J_bar,
         const double& time);
 
     /*!
-     * \brief Spread the normal component of the transmission force density
-     * along the physical boundary of the Lagrangian structure.
+     * \brief Spread the transmission force density along the physical boundary
+     * of the Lagrangian structure.
      */
     void
-    spreadBoundaryForceDensity(
+    spreadTransmissionForceDensity(
         const int f_data_idx,
         libMesh::NumericVector<double>& X_ghost,
+        libMesh::NumericVector<double>* J_bar_ghost,
         const double& time);
 
     /*!
@@ -647,6 +650,9 @@ private:
 
     void
     computeCachedInteriorForceDensityFEData();
+
+    void
+    computeCachedTransmissionForceDensityFEData();
 
     /*!
      * Read input values, indicated above, from given database.  The boolean
@@ -697,8 +703,8 @@ private:
      * Fbar projection method parameters.
      */
     bool d_use_fbar_projection;
-    libMeshEnums::Order d_proj_strain_fe_order;
-    libMeshEnums::FEFamily d_proj_strain_fe_family;
+    libMeshEnums::Order d_J_bar_fe_order;
+    libMeshEnums::FEFamily d_J_bar_fe_family;
 
     /*
      * Function used to compute the initial coordinates of the Lagrangian mesh.
@@ -841,43 +847,60 @@ private:
     /*
      * Cached data used to compute the projected dilatational strain field.
      */
-    blitz::Array<std::vector<unsigned int>,1> d_proj_strain_dof_indices;
     blitz::Array<blitz::Array<libMesh::Point,1>,1> d_proj_strain_q_point;
-    blitz::Array<blitz::Array<double,2>,1> d_proj_strain_phi_JxW;
 
-    blitz::Array<std::vector<std::vector<unsigned int> >,1> d_proj_strain_coords_dof_indices;
-    blitz::Array<blitz::Array<libMesh::VectorValue<double>,2>,1> d_proj_strain_coords_dphi;
+    blitz::Array<std::vector<unsigned int>,1> d_proj_strain_J_bar_dof_indices;
+    blitz::Array<blitz::Array<double,2>,1> d_proj_strain_J_bar_phi_JxW;
+
+    blitz::Array<std::vector<std::vector<unsigned int> >,1> d_proj_strain_X_dof_indices;
+    blitz::Array<blitz::Array<libMesh::VectorValue<double>,2>,1> d_proj_strain_X_dphi;
 
     /*
      * Cached data used to compute the interior force density field.
      */
-    blitz::Array<std::vector<std::vector<unsigned int> >,1> d_force_dof_indices;
-    blitz::Array<blitz::Array<libMesh::Point,1>,1> d_force_q_point;
-    blitz::Array<blitz::Array<double,2>,1> d_force_phi_JxW;
-    blitz::Array<blitz::Array<libMesh::VectorValue<double>,2>,1> d_force_dphi_JxW;
+    blitz::Array<blitz::Array<libMesh::Point,1>,1> d_interior_q_point;
 
-    blitz::Array<std::vector<std::vector<unsigned int> >,1> d_force_coords_dof_indices;
-    blitz::Array<blitz::Array<double,2>,1> d_force_coords_phi;
-    blitz::Array<blitz::Array<libMesh::VectorValue<double>,2>,1> d_force_coords_dphi;
+    blitz::Array<std::vector<std::vector<unsigned int> >,1> d_interior_F_dof_indices;
+    blitz::Array<blitz::Array<double,2>,1> d_interior_F_phi_JxW;
+    blitz::Array<blitz::Array<libMesh::VectorValue<double>,2>,1> d_interior_F_dphi_JxW;
 
-    blitz::Array<std::vector<unsigned int>,1> d_force_proj_strain_dof_indices;
-    blitz::Array<blitz::Array<double,2>,1> d_force_proj_strain_phi;
+    blitz::Array<std::vector<std::vector<unsigned int> >,1> d_interior_X_dof_indices;
+    blitz::Array<blitz::Array<double,2>,1> d_interior_X_phi;
+    blitz::Array<blitz::Array<libMesh::VectorValue<double>,2>,1> d_interior_X_dphi;
 
-    blitz::Array<blitz::Array<blitz::Array<libMesh::Point,1>,1>,1> d_force_q_point_face;
-    blitz::Array<blitz::Array<blitz::Array<libMesh::VectorValue<double>,1>,1>,1> d_force_normal_face;
-    blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1> d_force_phi_JxW_face;
+    blitz::Array<std::vector<unsigned int>,1> d_interior_J_bar_dof_indices;
+    blitz::Array<blitz::Array<double,2>,1> d_interior_J_bar_phi;
 
-    blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1> d_force_coords_phi_face;
-    blitz::Array<blitz::Array<blitz::Array<libMesh::VectorValue<double>,2>,1>,1> d_force_coords_dphi_face;
+    blitz::Array<blitz::Array<bool,1>,1> d_interior_elem_side_at_physical_bdry;
+    blitz::Array<blitz::Array<bool,1>,1> d_interior_elem_side_at_dirichlet_bdry;
 
-    blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1> d_force_proj_strain_phi_face;
+    blitz::Array<blitz::Array<blitz::Array<libMesh::Point,1>,1>,1> d_interior_q_point_face;
+
+    blitz::Array<blitz::Array<blitz::Array<libMesh::VectorValue<double>,1>,1>,1> d_interior_F_normal_face;
+    blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1> d_interior_F_phi_JxW_face;
+
+    blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1> d_interior_X_phi_face;
+    blitz::Array<blitz::Array<blitz::Array<libMesh::VectorValue<double>,2>,1>,1> d_interior_X_dphi_face;
+
+    blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1> d_interior_J_bar_phi_face;
 
     /*
-     * Cached data related to physical boundaries of the Lagrangian structure
-     * mesh.
+     * Cached data used to compute and to spread the transmission force density
+     * field.
      */
-    blitz::Array<blitz::Array<bool,1>,1> d_elem_side_at_physical_bdry;
-    blitz::Array<blitz::Array<bool,1>,1> d_elem_side_at_dirichlet_bdry;
+    blitz::Array<blitz::Array<std::vector<std::vector<unsigned int> >,1>,1> d_transmission_X_dof_indices;
+    blitz::Array<blitz::Array<std::vector<unsigned int>,1>,1> d_transmission_J_bar_dof_indices;
+
+    blitz::Array<blitz::Array<blitz::Array<bool,1>,1>,1> d_transmission_elem_side_at_physical_bdry;
+    blitz::Array<blitz::Array<blitz::Array<bool,1>,1>,1> d_transmission_elem_side_at_dirichlet_bdry;
+
+    blitz::Array<blitz::Array<blitz::Array<blitz::Array<libMesh::Point,1>,1>,1>,1> d_transmission_q_point_face;
+
+    blitz::Array<blitz::Array<blitz::Array<blitz::Array<libMesh::VectorValue<double>,1>,1>,1>,1> d_transmission_X_normal_JxW_face;
+    blitz::Array<blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1>,1> d_transmission_X_phi_face;
+    blitz::Array<blitz::Array<blitz::Array<blitz::Array<libMesh::VectorValue<double>,2>,1>,1>,1> d_transmission_X_dphi_face;
+
+    blitz::Array<blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1>,1> d_transmission_J_bar_phi_face;
 };
 }// namespace IBAMR
 

@@ -35,6 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// BLITZ INCLUDES
+#include <blitz/array.h>
+
 // LIBMESH INCLUDES
 #define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
 #include <../base/variable.h>
@@ -268,7 +271,7 @@ public:
 
     /*!
      * \return Pointers to a linear solver and sparse matrix corresponding to a
-     * L2 projection.
+     * L2 projection operator.
      */
     std::pair<libMesh::LinearSolver<double>*,libMesh::SparseMatrix<double>*>
     getL2ProjectionSolver(
@@ -276,6 +279,30 @@ public:
         const bool consistent_mass_matrix=true,
         const libMeshEnums::QuadratureType quad_type=QGAUSS,
         const libMeshEnums::Order quad_order=FIFTH);
+
+    /*!
+     * \return Pointer to vector representation of diagonal (lumped) L2 mass
+     * matrix.
+     */
+    libMesh::NumericVector<double>*
+    getDiagonalL2MassMatrix(
+        const std::string& system_name,
+        const libMeshEnums::QuadratureType quad_type=QGAUSS,
+        const libMeshEnums::Order quad_order=FIFTH);
+
+    /*!
+     * \brief Set U to be the L2 projection of F.
+     */
+    bool
+    computeL2Projection(
+        libMesh::NumericVector<double>& U,
+        libMesh::NumericVector<double>& F,
+        const std::string& system_name,
+        const bool consistent_mass_matrix=true,
+        const libMeshEnums::QuadratureType quad_type=QGAUSS,
+        const libMeshEnums::Order quad_order=FIFTH,
+        const double tol=1.0e-6,
+        const unsigned int max_its=100);
 
     ///
     ///  The following routines:
@@ -481,6 +508,16 @@ private:
         const std::string& system_name);
 
     /*!
+     * Routines to manage cached FE data.
+     */
+    void
+    clearCachedLEInteractionFEData();
+
+    void
+    computeCachedLEInteractionFEData(
+        const std::string& system_name);
+
+    /*!
      * Read object state from the restart file and initialize class data
      * members.  The database from which the restart data is read is determined
      * by the object_name specified in the constructor.
@@ -570,6 +607,14 @@ private:
     std::map<std::string,libMesh::LinearSolver<double>*> d_L2_projection_solvers;
     std::map<std::string,libMesh::SparseMatrix<double>*> d_L2_mass_matrices;
     std::map<std::string,bool> d_L2_consistent_mass_matrix;
+    std::map<std::string,libMesh::NumericVector<double>*> d_L2_diagonal_mass_matrices;
+
+    /*
+     * Cached FE data.
+     */
+    std::map<std::string,bool> d_cached_fe_system_data;
+    std::map<std::string,blitz::Array<blitz::Array<std::vector<std::vector<unsigned int> >,1>,1> > d_dof_indices;
+    std::map<std::string,blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1> > d_phi, d_phi_JxW;
 };
 }// namespace IBTK
 
