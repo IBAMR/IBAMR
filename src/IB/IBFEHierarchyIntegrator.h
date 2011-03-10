@@ -38,6 +38,9 @@
 // PETSC INCLUDES
 #include <petsc.h>
 
+// BLITZ INCLUDES
+#include <blitz/array.h>
+
 // IBAMR INCLUDES
 #include <ibamr/IBEulerianForceFunction.h>
 #include <ibamr/IBLagrangianForceStrategy.h>
@@ -47,9 +50,6 @@
 #include <ibtk/FEDataManager.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/LagMarker.h>
-
-// BLITZ INCLUDES
-#include <blitz/array.h>
 
 // LIBMESH INCLUDES
 #define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
@@ -847,8 +847,6 @@ private:
     /*
      * Cached data used to compute the projected dilatational strain field.
      */
-    blitz::Array<blitz::Array<libMesh::Point,1>,1> d_proj_strain_q_point;
-
     blitz::Array<std::vector<unsigned int>,1> d_proj_strain_J_bar_dof_indices;
     blitz::Array<blitz::Array<double,2>,1> d_proj_strain_J_bar_phi_JxW;
 

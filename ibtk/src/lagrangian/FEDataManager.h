@@ -38,6 +38,9 @@
 // BLITZ INCLUDES
 #include <blitz/array.h>
 
+// IBTK INCLUDES
+#include <ibtk/libmesh_utilities.h>
+
 // LIBMESH INCLUDES
 #define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
 #include <../base/variable.h>
@@ -49,9 +52,6 @@
 
 // PETSC INCLUDES
 #include <petsc.h>
-
-// IBTK INCLUDES
-#include <ibtk/libmesh_utilities.h>
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
@@ -205,9 +205,10 @@ public:
     getInterpUsesConsistentMassMatrix() const;
 
     /*!
-     * \return A const reference to the map from patch number to local elements.
+     * \return A const reference to the map from local patch number to local
+     * elements.
      */
-    const std::map<int,std::set<libMesh::Elem*> >&
+    const std::vector<std::vector<libMesh::Elem*> >&
     getActivePatchElements();
 
     /*!
@@ -494,7 +495,7 @@ private:
      */
     void
     collectActivePatchElements(
-        std::map<int,std::set<libMesh::Elem*> >& active_patch_elems,
+        std::vector<std::vector<libMesh::Elem*> >& active_patch_elems,
         const int level_number,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width);
 
@@ -504,7 +505,7 @@ private:
     void
     collectGhostDOFIndices(
         std::vector<unsigned int>& ghost_dofs,
-        const std::map<int,std::set<libMesh::Elem*> >& active_patch_elems,
+        const std::vector<std::vector<libMesh::Elem*> >& active_patch_elems,
         const std::string& system_name);
 
     /*!
@@ -592,7 +593,7 @@ private:
     /*
      * Data to manage mappings between mesh elements and grid patches.
      */
-    std::map<int,std::set<libMesh::Elem*> > d_active_patch_elems;
+    std::vector<std::vector<libMesh::Elem*> > d_active_patch_elems;
     std::map<std::string,std::vector<unsigned int> > d_active_patch_ghost_dofs;
 
     /*
@@ -604,10 +605,12 @@ private:
      * Linear solvers and related data for performing interpolation in the IB-FE
      * framework.
      */
-    std::map<std::string,libMesh::LinearSolver<double>*> d_L2_projection_solvers;
-    std::map<std::string,libMesh::SparseMatrix<double>*> d_L2_mass_matrices;
-    std::map<std::string,bool> d_L2_consistent_mass_matrix;
-    std::map<std::string,libMesh::NumericVector<double>*> d_L2_diagonal_mass_matrices;
+    std::map<std::string,libMesh::LinearSolver<double>*> d_L2_proj_solver;
+    std::map<std::string,libMesh::SparseMatrix<double>*> d_L2_proj_matrix;
+    std::map<std::string,libMesh::NumericVector<double>*> d_L2_proj_matrix_diag;
+    std::map<std::string,bool> d_L2_proj_consistent_mass_matrix;
+    std::map<std::string,libMeshEnums::QuadratureType> d_L2_proj_quad_type;
+    std::map<std::string,libMeshEnums::Order> d_L2_proj_quad_order;
 
     /*
      * Cached FE data.

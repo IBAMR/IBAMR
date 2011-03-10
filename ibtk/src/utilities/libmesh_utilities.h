@@ -35,17 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// LIBMESH INCLUDES
-#define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
-#include <numeric_vector.h>
-#include <tensor_value.h>
-#include <vector_value.h>
+// C++ STDLIB INCLUDES
+#include <vector>
 
 // BLITZ++ INCLUDES
 #include <blitz/array.h>
 
-// C++ STDLIB INCLUDES
-#include <vector>
+// LIBMESH INCLUDES
+#define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
+#include <dof_object.h>
+#include <numeric_vector.h>
+#include <point.h>
+#include <tensor_value.h>
+#include <vector_value.h>
 
 /////////////////////////////// FUNCTION DEFINITIONS /////////////////////////
 

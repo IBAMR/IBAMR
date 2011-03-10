@@ -1482,8 +1482,6 @@ IBFEHierarchyIntegrator::computeProjectedDilatationalStrain(
     for (int e = 0; e < std::distance(el_begin,el_end); ++e)
     {
         // Lookup cached data.
-        const blitz::Array<Point,1>& q_point = d_proj_strain_q_point(e);
-
         std::vector<unsigned int> J_bar_dof_indices = d_proj_strain_J_bar_dof_indices(e);
         const blitz::Array<double,2>& J_bar_phi_JxW = d_proj_strain_J_bar_phi_JxW(e);
 
@@ -1492,10 +1490,12 @@ IBFEHierarchyIntegrator::computeProjectedDilatationalStrain(
 
         // Compute the elemental right-hand-side entries.
         F_e.resize(J_bar_dof_indices.size());
-        for (int qp = 0; qp < q_point.extent(blitz::firstDim); ++qp)
+        const int n_qp    = J_bar_phi_JxW.extent(blitz::firstDim);
+        const int n_basis = J_bar_phi_JxW.extent(blitz::secondDim);
+        for (int qp = 0; qp < n_qp; ++qp)
         {
             const double J = compute_coordinate_mapping_jacobian_det(qp,X,X_dphi,X_dof_indices);
-            for (int k = 0; k < J_bar_phi_JxW.extent(blitz::secondDim); ++k)
+            for (int k = 0; k < n_basis; ++k)
             {
                 F_e(k) += J*J_bar_phi_JxW(qp,k);
             }
@@ -1574,7 +1574,9 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
         {
             F_e[i].resize(F_dof_indices[i].size());
         }
-        for (int qp = 0; qp < q_point.size(); ++qp)
+        const int n_qp    = F_phi_JxW.extent(blitz::firstDim);
+        const int n_basis = F_phi_JxW.extent(blitz::secondDim);
+        for (int qp = 0; qp < n_qp; ++qp)
         {
             const Point& s_qp = q_point(qp);
             const Point& X_qp = compute_coordinate(qp,X,X_phi,X_dof_indices);
@@ -1584,7 +1586,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
             // the quadrature point and add the corresponding forces to the
             // right-hand-side vector.
             const TensorValue<double> PP = d_PK1_stress_fcn(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_fcn_ctx);
-            for (int k = 0; k < F_dphi_JxW.extent(blitz::secondDim); ++k)
+            for (int k = 0; k < n_basis; ++k)
             {
                 const VectorValue<double> F_qp = -PP*F_dphi_JxW(qp,k);
                 for (unsigned int i = 0; i < NDIM; ++i)
@@ -1599,7 +1601,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                 // and add the corresponding forces to the right-hand-side
                 // vector.
                 const VectorValue<double> F_b = d_lag_body_force_fcn(dX_ds,X_qp,s_qp,elem,time,d_lag_body_force_fcn_ctx);
-                for (int k = 0; k < F_phi_JxW.extent(blitz::secondDim); ++k)
+                for (int k = 0; k < n_basis; ++k)
                 {
                     const VectorValue<double> F_qp = F_phi_JxW(qp,k)*F_b;
                     for (unsigned int i = 0; i < NDIM; ++i)
@@ -1628,8 +1630,8 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
             // Lookup cached data.
             const blitz::Array<Point,1>& q_point_face = d_interior_q_point_face(e)(side);
 
-            const blitz::Array<VectorValue<double>,1>& normal_face = d_interior_F_normal_face(e)(side);
-            const blitz::Array<double,2>& phi_JxW_face = d_interior_F_phi_JxW_face(e)(side);
+            const blitz::Array<VectorValue<double>,1>& F_normal_face = d_interior_F_normal_face(e)(side);
+            const blitz::Array<double,2>& F_phi_JxW_face = d_interior_F_phi_JxW_face(e)(side);
 
             const blitz::Array<double,2>& X_phi_face = d_interior_X_phi_face(e)(side);
             const blitz::Array<VectorValue<double>,2>& X_dphi_face = d_interior_X_dphi_face(e)(side);
@@ -1637,7 +1639,9 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
             const blitz::Array<double,2>* const J_bar_phi_face = (d_use_fbar_projection ? &d_interior_J_bar_phi_face(e)(side) : NULL);
 
             // Compute the elemental right-hand-side entries.
-            for (int qp = 0; qp < q_point_face.size(); ++qp)
+            const int n_qp    = F_phi_JxW_face.extent(blitz::firstDim);
+            const int n_basis = F_phi_JxW_face.extent(blitz::secondDim);
+            for (int qp = 0; qp < n_qp; ++qp)
             {
                 const Point& s_qp = q_point_face(qp);
                 const Point& X_qp = compute_coordinate(qp,X,X_phi_face,X_dof_indices);
@@ -1651,7 +1655,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                     // tensor at the quadrature point and add the corresponding
                     // force to the right-hand-side vector.
                     const TensorValue<double> PP = d_PK1_stress_fcn(dX_ds,X_qp,s_qp,elem,time,d_PK1_stress_fcn_ctx);
-                    F += PP*normal_face(qp);
+                    F += PP*F_normal_face(qp);
                 }
 
                 if (compute_pressure && !at_dirichlet_bdry)
@@ -1661,12 +1665,12 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                     // vector.
                     const double P = d_lag_pressure_fcn(dX_ds,X_qp,s_qp,elem,side,time,d_lag_pressure_fcn_ctx);
                     const double J = dX_ds.det();
-                    F -= P*J*tensor_inverse_transpose(dX_ds,NDIM)*normal_face(qp);
+                    F -= P*J*tensor_inverse_transpose(dX_ds,NDIM)*F_normal_face(qp);
                 }
 
-                for (int k = 0; k < phi_JxW_face.extent(blitz::secondDim); ++k)
+                for (int k = 0; k < n_basis; ++k)
                 {
-                    const VectorValue<double> F_qp = phi_JxW_face(qp,k)*F;
+                    const VectorValue<double> F_qp = F_phi_JxW_face(qp,k)*F;
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
                         F_e[i](k) += F_qp(i);
@@ -1706,23 +1710,33 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const int patch_num = patch->getPatchNumber();
         Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
         const Box<NDIM>& box = f_data->getGhostBox();
 
         // Loop over the elements and compute the values to be spread and the
         // positions of the quadrature points.
-        const std::map<int,std::set<Elem*> >& active_patch_elems = d_fe_data_manager->getActivePatchElements();
-        std::map<int,std::set<Elem*> >::const_iterator pos = active_patch_elems.find(patch_num);
-        if (pos == active_patch_elems.end()) continue;
+        const std::vector<Elem*>& active_patch_elems = d_fe_data_manager->getActivePatchElements()[local_patch_num];
+        if (active_patch_elems.empty()) continue;
+        const std::vector<Elem*>::const_iterator el_begin = active_patch_elems.begin();
+        const std::vector<Elem*>::const_iterator el_end   = active_patch_elems.end();
 
-        const std::set<Elem*>::const_iterator el_begin = pos->second.begin();
-        const std::set<Elem*>::const_iterator el_end   = pos->second.end();
-        if (el_begin == el_end) continue;
+        const blitz::Array<std::vector<std::vector<unsigned int> >,1>& patch_X_dof_indices = d_transmission_X_dof_indices(local_patch_num);
+        const blitz::Array<std::vector<unsigned int>,1>* const patch_J_bar_dof_indices = (d_use_fbar_projection ? &d_transmission_J_bar_dof_indices(local_patch_num) : NULL);
+
+        const blitz::Array<blitz::Array<bool,1>,1>& patch_elem_side_at_physical_bdry = d_transmission_elem_side_at_physical_bdry(local_patch_num);
+        const blitz::Array<blitz::Array<bool,1>,1>& patch_elem_side_at_dirichlet_bdry = d_transmission_elem_side_at_dirichlet_bdry(local_patch_num);
+
+        const blitz::Array<blitz::Array<blitz::Array<libMesh::Point,1>,1>,1>& patch_q_point_face = d_transmission_q_point_face(local_patch_num);
+
+        const blitz::Array<blitz::Array<blitz::Array<libMesh::VectorValue<double>,1>,1>,1>& patch_X_normal_JxW_face = d_transmission_X_normal_JxW_face(local_patch_num);
+        const blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1>& patch_X_phi_face = d_transmission_X_phi_face(local_patch_num);
+        const blitz::Array<blitz::Array<blitz::Array<libMesh::VectorValue<double>,2>,1>,1>& patch_X_dphi_face = d_transmission_X_dphi_face(local_patch_num);
+
+        const blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1>* const patch_J_bar_phi_face = (d_use_fbar_projection ? &d_transmission_J_bar_phi_face(local_patch_num) : NULL);
 
         int qp_offset = 0;
         std::vector<double> T_bdry, X_bdry;
-        for (std::set<Elem*>::const_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        for (std::vector<Elem*>::const_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             Elem* const elem = *el_it;
             const unsigned int e = std::distance(el_begin,el_it);
@@ -1731,27 +1745,27 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
                 // Skip non-physical boundaries.
-                const bool at_physical_bdry = d_transmission_elem_side_at_physical_bdry(local_patch_num)(e)(side);
+                const bool at_physical_bdry = patch_elem_side_at_physical_bdry(e)(side);
                 if (!at_physical_bdry) continue;
 
                 // Determine whether we need to compute surface forces along
                 // this part of the physical boundary; if not, skip the present
                 // side.
-                const bool at_dirichlet_bdry = d_transmission_elem_side_at_dirichlet_bdry(local_patch_num)(e)(side);
+                const bool at_dirichlet_bdry = patch_elem_side_at_dirichlet_bdry(e)(side);
                 const bool compute_transmission_force = d_split_interior_and_bdry_forces && !at_dirichlet_bdry;
                 const bool compute_pressure = (d_split_interior_and_bdry_forces && d_lag_pressure_fcn != NULL);
                 if (!(compute_transmission_force || compute_pressure)) continue;
 
                 // Lookup cached data.
-                const blitz::Array<Point,1>& q_point_face = d_transmission_q_point_face(local_patch_num)(e)(side);
+                const blitz::Array<Point,1>& q_point_face = patch_q_point_face(e)(side);
 
-                const std::vector<std::vector<unsigned int> >& X_dof_indices = d_transmission_X_dof_indices(local_patch_num)(e);
-                const blitz::Array<VectorValue<double>,1>& X_normal_JxW_face = d_transmission_X_normal_JxW_face(local_patch_num)(e)(side);
-                const blitz::Array<double,2>& X_phi_face = d_transmission_X_phi_face(local_patch_num)(e)(side);
-                const blitz::Array<VectorValue<double>,2>& X_dphi_face = d_transmission_X_dphi_face(local_patch_num)(e)(side);
+                const std::vector<std::vector<unsigned int> >& X_dof_indices = patch_X_dof_indices(e);
+                const blitz::Array<VectorValue<double>,1>& X_normal_JxW_face = patch_X_normal_JxW_face(e)(side);
+                const blitz::Array<double,2>& X_phi_face = patch_X_phi_face(e)(side);
+                const blitz::Array<VectorValue<double>,2>& X_dphi_face = patch_X_dphi_face(e)(side);
 
-                const std::vector<unsigned int>* const J_bar_dof_indices = (d_use_fbar_projection ? &d_transmission_J_bar_dof_indices(local_patch_num)(e) : NULL);
-                const blitz::Array<double,2>* const J_bar_phi_face = (d_use_fbar_projection ? &d_transmission_J_bar_phi_face(local_patch_num)(e)(side) : NULL);
+                const std::vector<unsigned int>* const J_bar_dof_indices = (d_use_fbar_projection ? &(*patch_J_bar_dof_indices)(e) : NULL);
+                const blitz::Array<double,2>* const J_bar_phi_face = (d_use_fbar_projection ? &(*patch_J_bar_phi_face)(e)(side) : NULL);
 
                 // Loop over boundary quadrature points.
                 const int n_qp = q_point_face.size();
@@ -1782,14 +1796,15 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
                         F -= P*J*tensor_inverse_transpose(dX_ds,NDIM)*X_normal_JxW_face(qp);
                     }
 
+                    const int idx = NDIM*qp_offset;
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
-                        T_bdry[NDIM*qp_offset+i] = F(i);
+                        T_bdry[idx+i] = F(i);
                     }
 
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
-                        X_bdry[NDIM*qp_offset+i] = X_qp(i);
+                        X_bdry[idx+i] = X_qp(i);
                     }
                 }
             }
@@ -1872,8 +1887,22 @@ IBFEHierarchyIntegrator::computeCachedProjectedDilatationalStrainFEData()
 
     const MeshBase& mesh = equation_systems->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    QGauss qrule(dim, FIFTH);
-    QGauss qrule_face(dim-1, FIFTH);
+    Order quad_order = CONSTANT;
+    switch (d_fe_order)
+    {
+        case FIRST:
+            quad_order = THIRD;
+            break;
+        case SECOND:
+            quad_order = FIFTH;
+            break;
+        default:
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ERROR("this statement should not be reached\n");
+#endif
+    }
+    QGauss qrule(dim, quad_order);
+    QGauss qrule_face(dim-1, quad_order);
 
     System& J_bar_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
     const DofMap& J_bar_dof_map = J_bar_system.get_dof_map();
@@ -1881,7 +1910,6 @@ IBFEHierarchyIntegrator::computeCachedProjectedDilatationalStrainFEData()
 
     AutoPtr<FEBase> J_bar_fe(FEBase::build(dim, J_bar_dof_map.variable_type(0)));
     J_bar_fe->attach_quadrature_rule(&qrule);
-    const std::vector<Point>& q_point = J_bar_fe->get_xyz();
     const std::vector<double>& J_bar_JxW = J_bar_fe->get_JxW();
     const std::vector<std::vector<double> >& J_bar_phi = J_bar_fe->get_phi();
 
@@ -1904,8 +1932,6 @@ IBFEHierarchyIntegrator::computeCachedProjectedDilatationalStrainFEData()
     const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
 
     const unsigned int sz = std::distance(el_begin,el_end);
-
-    d_proj_strain_q_point.resize(sz);
 
     d_proj_strain_J_bar_dof_indices.resize(sz);
     d_proj_strain_J_bar_phi_JxW.resize(sz);
@@ -1932,12 +1958,10 @@ IBFEHierarchyIntegrator::computeCachedProjectedDilatationalStrainFEData()
         }
 
         const int n_qp = qrule.n_points();
-        d_proj_strain_q_point(e).resize(n_qp);
         d_proj_strain_J_bar_phi_JxW(e).resize(n_qp,J_bar_phi.size());
         d_proj_strain_X_dphi(e).resize(n_qp,X_dphi.size());
         for (int qp = 0; qp < n_qp; ++qp)
         {
-            d_proj_strain_q_point(e)(qp) = q_point[qp];
             for (int k = 0; k < int(J_bar_phi.size()); ++k)
             {
                 d_proj_strain_J_bar_phi_JxW(e)(qp,k) = J_bar_JxW[qp]*J_bar_phi[k][qp];
@@ -1958,8 +1982,22 @@ IBFEHierarchyIntegrator::computeCachedInteriorForceDensityFEData()
 
     const MeshBase& mesh = equation_systems->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    QGauss qrule(dim, FIFTH);
-    QGauss qrule_face(dim-1, FIFTH);
+    Order quad_order = CONSTANT;
+    switch (d_fe_order)
+    {
+        case FIRST:
+            quad_order = THIRD;
+            break;
+        case SECOND:
+            quad_order = FIFTH;
+            break;
+        default:
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ERROR("this statement should not be reached\n");
+#endif
+    }
+    QGauss qrule(dim, quad_order);
+    QGauss qrule_face(dim-1, quad_order);
 
     System& F_system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
     const DofMap& F_dof_map = F_system.get_dof_map();
@@ -2207,8 +2245,8 @@ IBFEHierarchyIntegrator::computeCachedTransmissionForceDensityFEData()
 
     const MeshBase& mesh = equation_systems->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    QGauss qrule(dim, FIFTH);
-    QGauss qrule_face(dim-1, FIFTH);
+    QBase* qrule = d_fe_data_manager->getQuadratureRule();
+    AutoPtr<QBase> qrule_face = QBase::build(qrule->type(), dim-1, qrule->get_order());
 
     System& X_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
@@ -2221,10 +2259,10 @@ IBFEHierarchyIntegrator::computeCachedTransmissionForceDensityFEData()
 #endif
 
     AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
-    X_fe->attach_quadrature_rule(&qrule);
+    X_fe->attach_quadrature_rule(qrule);
 
     AutoPtr<FEBase> X_fe_face(FEBase::build(dim, X_dof_map.variable_type(0)));
-    X_fe_face->attach_quadrature_rule(&qrule_face);
+    X_fe_face->attach_quadrature_rule(qrule_face.get());
     const std::vector<Point>& q_point_face = X_fe_face->get_xyz();
     const std::vector<double>& X_JxW_face = X_fe_face->get_JxW();
     const std::vector<std::vector<double> >& X_phi_face = X_fe_face->get_phi();
@@ -2242,10 +2280,10 @@ IBFEHierarchyIntegrator::computeCachedTransmissionForceDensityFEData()
         J_bar_dof_map = &J_bar_system.get_dof_map();
 
         J_bar_fe = FEBase::build(dim, J_bar_dof_map->variable_type(0));
-        J_bar_fe->attach_quadrature_rule(&qrule);
+        J_bar_fe->attach_quadrature_rule(qrule);
 
         J_bar_fe_face = FEBase::build(dim, J_bar_dof_map->variable_type(0));
-        J_bar_fe_face->attach_quadrature_rule(&qrule_face);
+        J_bar_fe_face->attach_quadrature_rule(qrule_face.get());
         J_bar_phi_face = &(J_bar_fe_face->get_phi());
     }
 
@@ -2268,59 +2306,67 @@ IBFEHierarchyIntegrator::computeCachedTransmissionForceDensityFEData()
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const int patch_num = patch->getPatchNumber();
-
         // Loop over the elements.
-        const std::map<int,std::set<Elem*> >& active_patch_elems = d_fe_data_manager->getActivePatchElements();
-        std::map<int,std::set<Elem*> >::const_iterator pos = active_patch_elems.find(patch_num);
-        if (pos == active_patch_elems.end()) continue;
+        const std::vector<Elem*>& active_patch_elems = d_fe_data_manager->getActivePatchElements()[local_patch_num];
+        if (active_patch_elems.empty()) continue;
+        const std::vector<Elem*>::const_iterator el_begin = active_patch_elems.begin();
+        const std::vector<Elem*>::const_iterator el_end   = active_patch_elems.end();
 
-        const std::set<Elem*>::const_iterator el_begin = pos->second.begin();
-        const std::set<Elem*>::const_iterator el_end   = pos->second.end();
-        if (el_begin == el_end) continue;
+        blitz::Array<std::vector<std::vector<unsigned int> >,1>& patch_X_dof_indices = d_transmission_X_dof_indices(local_patch_num);
+        blitz::Array<std::vector<unsigned int>,1>* const patch_J_bar_dof_indices = (d_use_fbar_projection ? &d_transmission_J_bar_dof_indices(local_patch_num) : NULL);
 
-        const unsigned int sz = pos->second.size();
-        d_transmission_X_dof_indices(local_patch_num).resize(sz);
-        if (d_use_fbar_projection) d_transmission_J_bar_dof_indices(local_patch_num).resize(sz);
-        d_transmission_elem_side_at_physical_bdry(local_patch_num).resize(sz);
-        d_transmission_elem_side_at_dirichlet_bdry(local_patch_num).resize(sz);
-        d_transmission_q_point_face(local_patch_num).resize(sz);
-        d_transmission_X_normal_JxW_face(local_patch_num).resize(sz);
-        d_transmission_X_phi_face(local_patch_num).resize(sz);
-        d_transmission_X_dphi_face(local_patch_num).resize(sz);
-        if (d_use_fbar_projection) d_transmission_J_bar_phi_face(local_patch_num).resize(sz);
+        blitz::Array<blitz::Array<bool,1>,1>& patch_elem_side_at_physical_bdry = d_transmission_elem_side_at_physical_bdry(local_patch_num);
+        blitz::Array<blitz::Array<bool,1>,1>& patch_elem_side_at_dirichlet_bdry = d_transmission_elem_side_at_dirichlet_bdry(local_patch_num);
 
-        for (std::set<Elem*>::const_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        blitz::Array<blitz::Array<blitz::Array<libMesh::Point,1>,1>,1>& patch_q_point_face = d_transmission_q_point_face(local_patch_num);
+
+        blitz::Array<blitz::Array<blitz::Array<libMesh::VectorValue<double>,1>,1>,1>& patch_X_normal_JxW_face = d_transmission_X_normal_JxW_face(local_patch_num);
+        blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1>& patch_X_phi_face = d_transmission_X_phi_face(local_patch_num);
+        blitz::Array<blitz::Array<blitz::Array<libMesh::VectorValue<double>,2>,1>,1>& patch_X_dphi_face = d_transmission_X_dphi_face(local_patch_num);
+
+        blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1>* const patch_J_bar_phi_face = (d_use_fbar_projection ? &d_transmission_J_bar_phi_face(local_patch_num) : NULL);
+
+        const unsigned int sz = active_patch_elems.size();
+        patch_X_dof_indices.resize(sz);
+        if (d_use_fbar_projection) patch_J_bar_dof_indices->resize(sz);
+        patch_elem_side_at_physical_bdry.resize(sz);
+        patch_elem_side_at_dirichlet_bdry.resize(sz);
+        patch_q_point_face.resize(sz);
+        patch_X_normal_JxW_face.resize(sz);
+        patch_X_phi_face.resize(sz);
+        patch_X_dphi_face.resize(sz);
+        if (d_use_fbar_projection) patch_J_bar_phi_face->resize(sz);
+
+        for (std::vector<Elem*>::const_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             Elem* const elem = *el_it;
             const unsigned int e = std::distance(el_begin,el_it);
 
             // Compute cached data.
             X_fe->reinit(elem);
-            d_transmission_X_dof_indices(local_patch_num)(e).resize(NDIM);
+            patch_X_dof_indices(e).resize(NDIM);
             for (unsigned int i = 0; i < NDIM; ++i)
             {
                 X_dof_map.dof_indices(elem, X_dof_indices[i], i);
-                d_transmission_X_dof_indices(local_patch_num)(e)[i] = X_dof_indices[i];
+                patch_X_dof_indices(e)[i] = X_dof_indices[i];
             }
 
             if (d_use_fbar_projection)
             {
                 J_bar_fe->reinit(elem);
                 J_bar_dof_map->dof_indices(elem, J_bar_dof_indices);
-                d_transmission_J_bar_dof_indices(local_patch_num)(e) = J_bar_dof_indices;
+                (*patch_J_bar_dof_indices)(e) = J_bar_dof_indices;
             }
 
             // Loop over the element boundaries.
             const unsigned int n_sides = elem->n_sides();
-            d_transmission_elem_side_at_physical_bdry(local_patch_num)(e).resize(n_sides);
-            d_transmission_elem_side_at_dirichlet_bdry(local_patch_num)(e).resize(n_sides);
-            d_transmission_q_point_face(local_patch_num)(e).resize(n_sides);
-            d_transmission_X_normal_JxW_face(local_patch_num)(e).resize(n_sides);
-            d_transmission_X_phi_face(local_patch_num)(e).resize(n_sides);
-            d_transmission_X_dphi_face(local_patch_num)(e).resize(n_sides);
-            if (d_use_fbar_projection) d_transmission_J_bar_phi_face(local_patch_num)(e).resize(n_sides);
+            patch_elem_side_at_physical_bdry(e).resize(n_sides);
+            patch_elem_side_at_dirichlet_bdry(e).resize(n_sides);
+            patch_q_point_face(e).resize(n_sides);
+            patch_X_normal_JxW_face(e).resize(n_sides);
+            patch_X_phi_face(e).resize(n_sides);
+            patch_X_dphi_face(e).resize(n_sides);
+            if (d_use_fbar_projection) (*patch_J_bar_phi_face)(e).resize(n_sides);
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
                 // Skip non-physical boundaries.
@@ -2333,8 +2379,8 @@ IBFEHierarchyIntegrator::computeCachedTransmissionForceDensityFEData()
                     at_physical_bdry  = at_physical_bdry  || (elem->neighbor(side) == NULL && !X_dof_map.is_periodic_boundary(bdry_id));
                     at_dirichlet_bdry = at_dirichlet_bdry || (bdry_id == FEDataManager::DIRICHLET_BDRY_ID);
                 }
-                d_transmission_elem_side_at_physical_bdry (local_patch_num)(e)(side) = at_physical_bdry ;
-                d_transmission_elem_side_at_dirichlet_bdry(local_patch_num)(e)(side) = at_dirichlet_bdry;
+                patch_elem_side_at_physical_bdry (e)(side) = at_physical_bdry ;
+                patch_elem_side_at_dirichlet_bdry(e)(side) = at_dirichlet_bdry;
                 if (!at_physical_bdry) continue;
 
                 // Determine whether we need to compute surface forces along
@@ -2348,29 +2394,29 @@ IBFEHierarchyIntegrator::computeCachedTransmissionForceDensityFEData()
                 if (d_use_fbar_projection) J_bar_fe_face->reinit(elem, side);
 
                 // Compute cached data.
-                const int n_qp_face = qrule_face.n_points();
-                d_transmission_q_point_face(local_patch_num)(e)(side).resize(n_qp_face);
-                d_transmission_X_normal_JxW_face(local_patch_num)(e)(side).resize(n_qp_face);
-                d_transmission_X_phi_face(local_patch_num)(e)(side).resize(n_qp_face,X_phi_face.size());
-                d_transmission_X_dphi_face(local_patch_num)(e)(side).resize(n_qp_face,X_dphi_face.size());
-                if (d_use_fbar_projection) d_transmission_J_bar_phi_face(local_patch_num)(e)(side).resize(n_qp_face,J_bar_phi_face->size());
+                const int n_qp_face = qrule_face->n_points();
+                patch_q_point_face(e)(side).resize(n_qp_face);
+                patch_X_normal_JxW_face(e)(side).resize(n_qp_face);
+                patch_X_phi_face(e)(side).resize(n_qp_face,X_phi_face.size());
+                patch_X_dphi_face(e)(side).resize(n_qp_face,X_dphi_face.size());
+                if (d_use_fbar_projection) (*patch_J_bar_phi_face)(e)(side).resize(n_qp_face,J_bar_phi_face->size());
                 for (int qp = 0; qp < n_qp_face; ++qp)
                 {
-                    d_transmission_q_point_face(local_patch_num)(e)(side)(qp) = q_point_face[qp];
-                    d_transmission_X_normal_JxW_face(local_patch_num)(e)(side)(qp) = X_normal_face[qp]*X_JxW_face[qp];
+                    patch_q_point_face(e)(side)(qp) = q_point_face[qp];
+                    patch_X_normal_JxW_face(e)(side)(qp) = X_normal_face[qp]*X_JxW_face[qp];
                     for (int k = 0; k < int(X_phi_face.size()); ++k)
                     {
-                        d_transmission_X_phi_face(local_patch_num)(e)(side)(qp,k) = X_phi_face[k][qp];
+                        patch_X_phi_face(e)(side)(qp,k) = X_phi_face[k][qp];
                     }
                     for (int k = 0; k < int(X_dphi_face.size()); ++k)
                     {
-                        d_transmission_X_dphi_face(local_patch_num)(e)(side)(qp,k) = X_dphi_face[k][qp];
+                        patch_X_dphi_face(e)(side)(qp,k) = X_dphi_face[k][qp];
                     }
                     if (d_use_fbar_projection)
                     {
                         for (int k = 0; k < int(J_bar_phi_face->size()); ++k)
                         {
-                            d_transmission_J_bar_phi_face(local_patch_num)(e)(side)(qp,k) = (*J_bar_phi_face)[k][qp];
+                            (*patch_J_bar_phi_face)(e)(side)(qp,k) = (*J_bar_phi_face)[k][qp];
                         }
                     }
                 }
