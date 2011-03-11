@@ -88,6 +88,27 @@ static Pointer<Timer> t_put_to_database;
 
 // Version of FEDataManager restart file data.
 static const int FE_DATA_MANAGER_VERSION = 1;
+
+// Local helper functions.
+inline void
+flatten(
+    blitz::Array<Elem*,1>& elems,
+    const std::vector<std::vector<Elem*> >& elem_patch_map)
+{
+    std::set<Elem*> elem_set;
+    for (unsigned k = 0; k < elem_patch_map.size(); ++k)
+    {
+        elem_set.insert(elem_patch_map[k].begin(),elem_patch_map[k].end());
+    }
+
+    elems.resize(elem_set.size());
+    int k = 0;
+    for (std::set<Elem*>::const_iterator cit = elem_set.begin(); cit != elem_set.end(); ++cit, ++k)
+    {
+        elems(k) = *cit;
+    }
+    return;
+}// flatten
 }
 
 const short int FEDataManager::DIRICHLET_BDRY_ID;
@@ -216,21 +237,31 @@ FEDataManager::getInterpUsesConsistentMassMatrix() const
     return d_interp_uses_consistent_mass_matrix;
 }// getInterpUsesConsistentMassMatrix
 
-std::pair<const std::vector<std::vector<unsigned int> >&,const std::vector<Elem*>&>
-FEDataManager::getActivePatchElements()
+const blitz::Array<blitz::Array<unsigned int,1>,1>&
+FEDataManager::getActivePatchElementMapping()
 {
-    return std::make_pair(d_active_patch_elem_map,d_active_patch_elems);
-}// getActivePatchElements
+    return d_active_patch_elem_map;
+}// getActivePatchElementMapping
+
+const blitz::Array<Elem*,1>&
+FEDataManager::getActiveElements()
+{
+    return d_active_elems;
+}// getActiveElements
 
 void
 FEDataManager::reinitElementMappings()
 {
     // Reset the mappings between mesh elements and grid patches.
-    d_active_patch_elem_map.clear();
-    d_active_patch_elems.clear();
+    d_active_patch_elem_map.free();
+    d_active_elems.free();
     d_active_patch_ghost_dofs.clear();
-    collectActivePatchElements(d_active_patch_elem_map, d_active_patch_elems, d_level_number, d_ghost_width);
+    collectActivePatchElements(d_active_patch_elem_map, d_active_elems, d_level_number, d_ghost_width);
     clearCachedLEInteractionFEData();
+    System& coords_system = d_es->get_system<System>(COORDINATES_SYSTEM_NAME);
+    d_cached_fe_system_data[COORDINATES_SYSTEM_NAME] = new FESystemDataCache(coords_system, d_es->get_mesh());
+    d_cached_fe_system_data[COORDINATES_SYSTEM_NAME]->compute_phi() = true;
+    d_cached_fe_system_data[COORDINATES_SYSTEM_NAME]->computeCachedData(d_active_elems.begin(), d_active_elems.end(), d_qrule);
     return;
 }// reinitElementMappings
 
@@ -251,7 +282,7 @@ FEDataManager::getGhostedSolutionVector(
     {
         if (d_active_patch_ghost_dofs.count(system_name) == 0)
         {
-            collectGhostDOFIndices(d_active_patch_ghost_dofs[system_name], d_active_patch_elems, system_name);
+            collectGhostDOFIndices(d_active_patch_ghost_dofs[system_name], d_active_elems, system_name);
         }
         AutoPtr<NumericVector<double> > ghosted_solution = NumericVector<double>::build();
         ghosted_solution->init(solution->size(), solution->local_size(), d_active_patch_ghost_dofs[system_name], true, GHOSTED);
@@ -309,7 +340,7 @@ FEDataManager::spread(
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
-        const std::vector<unsigned int>& active_patch_elem_map = d_active_patch_elem_map[local_patch_num];
+        const blitz::Array<unsigned int,1>& active_patch_elem_map = d_active_patch_elem_map(local_patch_num);
         const int num_active_patch_elems = active_patch_elem_map.size();
         if (num_active_patch_elems == 0) continue;
 
@@ -319,7 +350,7 @@ FEDataManager::spread(
         std::vector<double> F_JxW_qp, X_qp;
         for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            const unsigned int e = active_patch_elem_map[e_idx];
+            const unsigned int e = active_patch_elem_map(e_idx);
             const blitz::Array<std::vector<unsigned int>,1>& dof_indices = cached_dof_indices(e);
             const blitz::Array<double,2>& phi_JxW = cached_phi_JxW(e);
             const int n_qp = phi_JxW.extent(blitz::firstDim);
@@ -421,7 +452,7 @@ FEDataManager::interp(
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
-        const std::vector<unsigned int>& active_patch_elem_map = d_active_patch_elem_map[local_patch_num];
+        const blitz::Array<unsigned int,1>& active_patch_elem_map = d_active_patch_elem_map(local_patch_num);
         const int num_active_patch_elems = active_patch_elem_map.size();
         if (num_active_patch_elems == 0) continue;
 
@@ -430,7 +461,7 @@ FEDataManager::interp(
         std::vector<double> F_qp, X_qp;
         for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            const unsigned int e = active_patch_elem_map[e_idx];
+            const unsigned int e = active_patch_elem_map(e_idx);
             const blitz::Array<std::vector<unsigned int>,1>& coords_dof_indices = cached_coords_dof_indices(e);
             const blitz::Array<double,2>& coords_phi = cached_coords_phi(e);
             const int n_qp = coords_phi.extent(blitz::firstDim);
@@ -474,7 +505,7 @@ FEDataManager::interp(
         std::vector<DenseVector<double> > rhs_e(n_vars);
         for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            const unsigned int e = active_patch_elem_map[e_idx];
+            const unsigned int e = active_patch_elem_map(e_idx);
             blitz::Array<std::vector<unsigned int>,1> dof_indices = cached_dof_indices(e);
             for (unsigned int i = 0; i < n_vars; ++i)
             {
@@ -795,8 +826,8 @@ FEDataManager::applyGradientDetector(
     {
         // Compute element bounding boxes and determine the active elements
         // associated with the prescribed patch level.
-        std::vector<std::vector<unsigned int> > active_level_elem_map;
-        std::vector<Elem*> active_level_elems;
+        blitz::Array<blitz::Array<unsigned int,1>,1> active_level_elem_map;
+        blitz::Array<Elem*,1> active_level_elems;
         const IntVector<NDIM> ghost_width = 1;
         collectActivePatchElements(active_level_elem_map, active_level_elems, level_number, ghost_width);
         std::vector<unsigned int> coords_ghost_dofs;
@@ -836,13 +867,13 @@ FEDataManager::applyGradientDetector(
 
             Pointer<CellData<NDIM,int> > tag_data = patch->getPatchData(tag_index);
 
-            const std::vector<unsigned int>& active_patch_elem_map = active_level_elem_map[local_patch_num];
+            const blitz::Array<unsigned int,1>& active_patch_elem_map = active_level_elem_map(local_patch_num);
             const int num_active_patch_elems = active_patch_elem_map.size();
             if (num_active_patch_elems == 0) continue;
             for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
-                const unsigned int e = active_patch_elem_map[e_idx];
-                const Elem* const elem = active_level_elems[e];
+                const unsigned int e = active_patch_elem_map(e_idx);
+                const Elem* const elem = active_level_elems(e);
                 coords_fe->reinit(elem);
                 for (unsigned int d = 0; d < dim; ++d)
                 {
@@ -945,7 +976,7 @@ FEDataManager::FEDataManager(
       d_ghost_width(ghost_width),
       d_es(NULL),
       d_level_number(-1),
-      d_active_patch_elems(),
+      d_active_elems(),
       d_active_patch_ghost_dofs(),
       d_L2_proj_solver(),
       d_L2_proj_matrix(),
@@ -1010,6 +1041,7 @@ FEDataManager::~FEDataManager()
     {
         delete (*it).second;
     }
+    clearCachedLEInteractionFEData();
     return;
 }// ~FEDataManager
 
@@ -1066,13 +1098,13 @@ FEDataManager::updateQuadPointCountData(
                 const double* const patch_dx = patch_geom->getDx();
 
                 // Keep track of the number of quadrature points in each Cartesian grid cell.
-                const std::vector<unsigned int>& active_patch_elem_map = d_active_patch_elem_map[local_patch_num];
+                const blitz::Array<unsigned int,1>& active_patch_elem_map = d_active_patch_elem_map(local_patch_num);
                 const int num_active_patch_elems = active_patch_elem_map.size();
                 if (num_active_patch_elems == 0) continue;
                 for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
                 {
-                    const unsigned int e = active_patch_elem_map[e_idx];
-                    const Elem* const elem = d_active_patch_elems[e];
+                    const unsigned int e = active_patch_elem_map(e_idx);
+                    const Elem* const elem = d_active_elems(e);
                     coords_fe->reinit(elem);
                     for (unsigned int d = 0; d < dim; ++d)
                     {
@@ -1154,8 +1186,8 @@ FEDataManager::computeActiveElementBoundingBoxes(
 
 void
 FEDataManager::collectActivePatchElements(
-    std::vector<std::vector<unsigned int> >& active_patch_elem_map,
-    std::vector<Elem*>& active_patch_elems,
+    blitz::Array<blitz::Array<unsigned int,1>,1>& active_patch_elem_map,
+    blitz::Array<Elem*,1>& active_elems,
     const int level_number,
     const IntVector<NDIM>& ghost_width)
 {
@@ -1164,32 +1196,31 @@ FEDataManager::collectActivePatchElements(
                 d_finest_ln   >= level_number);
 #endif
 
-    active_patch_elem_map.clear();
-    active_patch_elems.clear();
+    active_patch_elem_map.free();
+    active_elems.free();
 
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
     const int num_local_patches = level->getProcessorMapping().getNumberOfLocalIndices();
 
+    // Determine the collections of element pointers associated with each patch.
     std::vector<std::vector<Elem*> > active_patch_elem_vec;
     collectActivePatchElements_helper(active_patch_elem_vec, level_number, ghost_width);
-    std::set<Elem*> active_patch_elems_set;
-    for (int local_patch_num = 0; local_patch_num < num_local_patches; ++local_patch_num)
-    {
-        active_patch_elems_set.insert(active_patch_elem_vec[local_patch_num].begin(),active_patch_elem_vec[local_patch_num].end());
-    }
-    active_patch_elems.insert(active_patch_elems.end(), active_patch_elems_set.begin(), active_patch_elems_set.end());
 
+    // Keep only the unique element pointers.
+    flatten(active_elems, active_patch_elem_vec);
+
+    // Find the unique element indexes corresponding to each of the patches.
     active_patch_elem_map.resize(num_local_patches);
-    const std::vector<Elem*>::iterator el_begin = active_patch_elems.begin();
-    const std::vector<Elem*>::iterator el_end   = active_patch_elems.end();
+    Elem** const el_begin = &active_elems(0);
+    Elem** const el_end   = el_begin + active_elems.size();
     for (int local_patch_num = 0; local_patch_num < num_local_patches; ++local_patch_num)
     {
         const int num_elems = active_patch_elem_vec[local_patch_num].size();
-        active_patch_elem_map[local_patch_num].resize(num_elems);
+        active_patch_elem_map(local_patch_num).resize(num_elems);
         for (int k = 0; k < num_elems; ++k)
         {
             const Elem* const elem = active_patch_elem_vec[local_patch_num][k];
-            active_patch_elem_map[local_patch_num][k] = std::distance(el_begin,std::equal_range(el_begin,el_end,elem).first);
+            active_patch_elem_map(local_patch_num)(k) = std::lower_bound(el_begin,el_end,elem) - el_begin;
         }
     }
     return;
@@ -1301,7 +1332,9 @@ FEDataManager::collectActivePatchElements_helper(
         NumericVector<double>* X = getCoordsVector();
         AutoPtr<NumericVector<double> > X_ghost = NumericVector<double>::build();
         std::vector<unsigned int> coords_ghost_dofs;
-        collectGhostDOFIndices(coords_ghost_dofs, active_patch_elems, COORDINATES_SYSTEM_NAME);
+        blitz::Array<Elem*,1> active_elems;
+        flatten(active_elems, active_patch_elems);
+        collectGhostDOFIndices(coords_ghost_dofs, active_elems, COORDINATES_SYSTEM_NAME);
         X_ghost->init(X->size(), X->local_size(), coords_ghost_dofs, true, GHOSTED);
         X->localize(*X_ghost);
         coords_dof_map.enforce_constraints_exactly(coords_system, X_ghost.get());
@@ -1381,7 +1414,7 @@ FEDataManager::collectActivePatchElements_helper(
 void
 FEDataManager::collectGhostDOFIndices(
     std::vector<unsigned int>& ghost_dofs,
-    std::vector<Elem*>& active_patch_elems,
+    const blitz::Array<Elem*,1>& active_elems,
     const std::string& system_name)
 {
     ghost_dofs.clear();
@@ -1416,9 +1449,9 @@ FEDataManager::collectGhostDOFIndices(
 
     // Record the local DOFs associated with the active local elements.
     std::set<unsigned int> ghost_dof_set(constraint_dependency_dof_list.begin(), constraint_dependency_dof_list.end());
-    for (std::vector<Elem*>::const_iterator cit = active_patch_elems.begin(); cit != active_patch_elems.end(); ++cit)
+    for (int e = 0; e < active_elems.size(); ++e)
     {
-        const Elem* const elem = *cit;
+        const Elem* const elem = active_elems(e);
 
         // DOFs associated with the element.
         for (unsigned int var_num = 0; var_num < elem->n_vars(sys_num); ++var_num)
@@ -1457,6 +1490,11 @@ FEDataManager::collectGhostDOFIndices(
 void
 FEDataManager::clearCachedLEInteractionFEData()
 {
+    for (std::map<std::string,FESystemDataCache*>::const_iterator cit = d_cached_fe_system_data.begin();
+         cit != d_cached_fe_system_data.end(); ++cit)
+    {
+        delete cit->second;
+    }
     d_cached_fe_system_data.clear();
     return;
 }// clearCachedLEInteractionFEData
@@ -1466,7 +1504,10 @@ FEDataManager::computeCachedLEInteractionFEData(
     const std::string& system_name)
 {
     if (d_cached_fe_system_data[system_name] != NULL) return;
-    TBOX_ASSERT(false);
+    System& system = d_es->get_system<System>(system_name);
+    d_cached_fe_system_data[system_name] = new FESystemDataCache(system, d_es->get_mesh());
+    d_cached_fe_system_data[system_name]->compute_phi_JxW() = true;
+    d_cached_fe_system_data[system_name]->computeCachedData(d_active_elems.begin(), d_active_elems.end(), d_qrule);
     return;
 }// computeCachedLEInteractionFEData
 

@@ -94,9 +94,10 @@ compute_interpolation(
     std::vector<double> U(n_vars,0.0);
     for (unsigned int k = 0; k < phi.size(); ++k)
     {
+        const double& p = phi[k][qp];
         for (unsigned int i = 0; i < n_vars; ++i)
         {
-            U[i] += U_vec(dof_indices[i][k])*phi[k][qp];
+            U[i] += U_vec(dof_indices[i][k])*p;
         }
     }
     return U;
@@ -114,9 +115,10 @@ compute_interpolation(
     U = 0.0;
     for (int k = 0; k < phi.extent(blitz::secondDim); ++k)
     {
+        const double& p = phi(qp,k);
         for (unsigned int i = 0; i < n_vars; ++i)
         {
-            U(i) += U_vec(dof_indices(i)[k])*phi(qp,k);
+            U(i) += U_vec(dof_indices(i)[k])*p;
         }
     }
     return U;
@@ -133,9 +135,10 @@ compute_coordinate(
     libMesh::Point X_qp;
     for (unsigned int k = 0; k < phi.size(); ++k)
     {
+        const double& p = phi[k][qp];
         for (unsigned int i = 0; i < dim; ++i)
         {
-            X_qp(i) += X(dof_indices[i][k])*phi[k][qp];
+            X_qp(i) += X(dof_indices[i][k])*p;
         }
     }
     return X_qp;
@@ -152,9 +155,10 @@ compute_coordinate(
     libMesh::Point X_qp;
     for (int k = 0; k < phi.extent(blitz::secondDim); ++k)
     {
+        const double& p = phi(qp,k);
         for (unsigned int i = 0; i < dim; ++i)
         {
-            X_qp(i) += X(dof_indices(i)[k])*phi(qp,k);
+            X_qp(i) += X(dof_indices(i)[k])*p;
         }
     }
     return X_qp;
@@ -174,9 +178,10 @@ compute_coordinate_mapping_jacobian(
         const libMesh::VectorValue<double>& dphi_ds = dphi[k][qp];
         for (unsigned int j = 0; j < dim; ++j)
         {
+            const double& dp_ds = dphi_ds(j);
             for (unsigned int i = 0; i < dim; ++i)
             {
-                dX_ds(i,j) += X(dof_indices[i][k])*dphi_ds(j);
+                dX_ds(i,j) += X(dof_indices[i][k])*dp_ds;
             }
         }
     }
@@ -222,9 +227,10 @@ compute_coordinate_mapping_jacobian(
         const libMesh::VectorValue<double>& dphi_ds = dphi(qp,k);
         for (unsigned int j = 0; j < dim; ++j)
         {
+            const double& dp_ds = dphi_ds(j);
             for (unsigned int i = 0; i < dim; ++i)
             {
-                dX_ds(i,j) += X(dof_indices(i)[k])*dphi_ds(j);
+                dX_ds(i,j) += X(dof_indices(i)[k])*dp_ds;
             }
         }
     }

@@ -285,6 +285,8 @@ IBFEHierarchyIntegrator::~IBFEHierarchyIntegrator()
     if (d_proj_strain_J_bar_data != NULL) delete d_proj_strain_J_bar_data;
     if (d_interior_force_data != NULL) delete d_interior_force_data;
     if (d_interior_force_J_bar_data != NULL) delete d_interior_force_J_bar_data;
+    if (d_transmission_force_data != NULL) delete d_transmission_force_data;
+    if (d_transmission_force_J_bar_data != NULL) delete d_transmission_force_J_bar_data;
     return;
 }// ~IBFEHierarchyIntegrator
 
@@ -666,7 +668,6 @@ IBFEHierarchyIntegrator::initializeHierarchy()
         d_proj_strain_data = new FESystemDataCache(X_system, mesh);
         d_proj_strain_data->compute_dphi() = true;
         d_proj_strain_data->computeCachedData(active_local_el_begin, active_local_el_end, &qrule);
-
         System& J_bar_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
         d_proj_strain_J_bar_data = new FESystemDataCache(J_bar_system, mesh);
         d_proj_strain_J_bar_data->compute_phi_JxW() = true;
@@ -685,7 +686,6 @@ IBFEHierarchyIntegrator::initializeHierarchy()
     d_interior_force_data->compute_phi_JxW_face() = true;
     d_interior_force_data->compute_dphi_face() = true;
     d_interior_force_data->computeCachedData(active_local_el_begin, active_local_el_end, &qrule, &qrule_face);
-
     if (d_use_fbar_projection)
     {
         System& J_bar_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
@@ -695,7 +695,22 @@ IBFEHierarchyIntegrator::initializeHierarchy()
         d_interior_force_J_bar_data->computeCachedData(active_local_el_begin, active_local_el_end, &qrule, &qrule_face);
     }
 
-    computeCachedTransmissionForceDensityFEData();
+    const blitz::Array<Elem*,1>& active_elems = d_fe_data_manager->getActiveElements();
+    QBase* ib_qrule = d_fe_data_manager->getQuadratureRule();
+    AutoPtr<QBase> ib_qrule_face = QBase::build(ib_qrule->type(), ib_qrule->get_dim()-1, ib_qrule->get_order());
+    d_transmission_force_data = new FESystemDataCache(X_system, mesh);
+    d_transmission_force_data->compute_q_point_face() = true;
+    d_transmission_force_data->compute_normal_JxW_face() = true;
+    d_transmission_force_data->compute_phi_face() = true;
+    d_transmission_force_data->compute_dphi_face() = true;
+    d_transmission_force_data->computeCachedData(active_elems.begin(), active_elems.end(), ib_qrule, ib_qrule_face.get());
+    if (d_use_fbar_projection)
+    {
+        System& J_bar_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
+        d_transmission_force_J_bar_data = new FESystemDataCache(J_bar_system, mesh);
+        d_transmission_force_J_bar_data->compute_phi_face() = true;
+        d_transmission_force_J_bar_data->computeCachedData(active_elems.begin(), active_elems.end(), ib_qrule, ib_qrule_face.get());
+    }
 
     // Prune duplicate markers following initialization.
     LagMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
@@ -1143,7 +1158,14 @@ IBFEHierarchyIntegrator::regridHierarchy()
     d_fe_data_manager->reinitElementMappings();
 
     // Recompute cached FE data.
-    computeCachedTransmissionForceDensityFEData();
+    const blitz::Array<Elem*,1>& active_elems = d_fe_data_manager->getActiveElements();
+    QBase* ib_qrule = d_fe_data_manager->getQuadratureRule();
+    AutoPtr<QBase> ib_qrule_face = QBase::build(ib_qrule->type(), ib_qrule->get_dim()-1, ib_qrule->get_order());
+    d_transmission_force_data->computeCachedData(active_elems.begin(), active_elems.end(), ib_qrule, ib_qrule_face.get());
+    if (d_use_fbar_projection)
+    {
+        d_transmission_force_J_bar_data->computeCachedData(active_elems.begin(), active_elems.end(), ib_qrule, ib_qrule_face.get());
+    }
 
     // Prune duplicate markers following regridding.
     LagMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
@@ -1764,11 +1786,9 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
-        std::pair<const std::vector<std::vector<unsigned int> >&,const std::vector<libMesh::Elem*>&> mapping_data =
-            d_fe_data_manager->getActivePatchElements();
-        const std::vector<std::vector<unsigned int> >& active_level_elem_map = mapping_data.first;
-        const std::vector<Elem*>& active_level_elems = mapping_data.second;
-        const std::vector<unsigned int>& active_patch_elem_map = active_level_elem_map[local_patch_num];
+        const blitz::Array<blitz::Array<unsigned int,1>,1>& active_level_elem_map = d_fe_data_manager->getActivePatchElementMapping();
+        const blitz::Array<Elem*,1>& active_level_elems = d_fe_data_manager->getActiveElements();
+        const blitz::Array<unsigned int,1>& active_patch_elem_map = active_level_elem_map(local_patch_num);
         const int num_active_patch_elems = active_patch_elem_map.size();
         if (num_active_patch_elems == 0) continue;
 
@@ -1778,9 +1798,9 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
         std::vector<double> T_bdry, X_bdry;
         for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            const unsigned int e = active_patch_elem_map[e_idx];
+            const unsigned int e = active_patch_elem_map(e_idx);
             if (!d_transmission_force_data->elem_touches_physical_bdry(e)) continue;
-            Elem* const elem = active_level_elems[e];
+            Elem* const elem = active_level_elems(e);
 
             // Loop over the element boundaries.
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
@@ -1922,13 +1942,6 @@ IBFEHierarchyIntegrator::updateCoordinateMapping()
     dX_coords.close();
     return;
 }// updateCoordinateMapping
-
-void
-IBFEHierarchyIntegrator::computeCachedTransmissionForceDensityFEData()
-{
-    TBOX_ASSERT(false);
-    return;
-}// computeCachedTransmissionForceDensityFEData
 
 void
 IBFEHierarchyIntegrator::getFromInput(

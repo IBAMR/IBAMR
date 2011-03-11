@@ -644,12 +644,6 @@ private:
     updateCoordinateMapping();
 
     /*!
-     * \brief Compute cached FE data items.
-     */
-    void
-    computeCachedTransmissionForceDensityFEData();
-
-    /*!
      * Read input values, indicated above, from given database.  The boolean
      * argument is_from_restart should be set to true if the simulation is
      * beginning from restart.  Otherwise it should be set to false.

@@ -40,7 +40,9 @@ DIST_COMMON = $(pkg_include_HEADERS) $(srcdir)/Makefile.am \
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = libIBTK2d.a
 @SAMRAI3D_ENABLED_TRUE@am__append_2 = libIBTK3d.a
 @LIBMESH_ENABLED_TRUE@am__append_3 = $(top_srcdir)/src/lagrangian/FEDataManager.C \
+@LIBMESH_ENABLED_TRUE@	$(top_srcdir)/src/utilities/FESystemDataCache.C \
 @LIBMESH_ENABLED_TRUE@	$(top_srcdir)/src/lagrangian/FEDataManager.h \
+@LIBMESH_ENABLED_TRUE@	$(top_srcdir)/src/utilities/FESystemDataCache.h \
 @LIBMESH_ENABLED_TRUE@	$(top_srcdir)/src/utilities/libmesh_utilities.h \
 @LIBMESH_ENABLED_TRUE@	$(top_srcdir)/src/utilities/ibtk_utilities.h
 subdir = lib
@@ -203,7 +205,9 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/utilities/StreamableManager.C \
 	$(top_srcdir)/src/utilities/muParserCartGridFunction.C \
 	$(top_srcdir)/src/lagrangian/FEDataManager.C \
+	$(top_srcdir)/src/utilities/FESystemDataCache.C \
 	$(top_srcdir)/src/lagrangian/FEDataManager.h \
+	$(top_srcdir)/src/utilities/FESystemDataCache.h \
 	$(top_srcdir)/src/utilities/libmesh_utilities.h \
 	$(top_srcdir)/src/utilities/ibtk_utilities.h \
 	$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f \
@@ -223,7 +227,8 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f \
 	$(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
 @LIBMESH_ENABLED_TRUE@am__objects_1 =  \
-@LIBMESH_ENABLED_TRUE@	libIBTK2d_a-FEDataManager.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@	libIBTK2d_a-FEDataManager.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	libIBTK2d_a-FESystemDataCache.$(OBJEXT)
 am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-CartCellDoubleQuadraticCFInterpolation.$(OBJEXT) \
 	libIBTK2d_a-CartSideDoubleQuadraticCFInterpolation.$(OBJEXT) \
@@ -450,7 +455,9 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/utilities/StreamableManager.C \
 	$(top_srcdir)/src/utilities/muParserCartGridFunction.C \
 	$(top_srcdir)/src/lagrangian/FEDataManager.C \
+	$(top_srcdir)/src/utilities/FESystemDataCache.C \
 	$(top_srcdir)/src/lagrangian/FEDataManager.h \
+	$(top_srcdir)/src/utilities/FESystemDataCache.h \
 	$(top_srcdir)/src/utilities/libmesh_utilities.h \
 	$(top_srcdir)/src/utilities/ibtk_utilities.h \
 	$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.f \
@@ -469,7 +476,8 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f \
 	$(top_builddir)/src/solvers/impls/fortran/patchsmoothers3d.f
 @LIBMESH_ENABLED_TRUE@am__objects_3 =  \
-@LIBMESH_ENABLED_TRUE@	libIBTK3d_a-FEDataManager.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@	libIBTK3d_a-FEDataManager.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	libIBTK3d_a-FESystemDataCache.$(OBJEXT)
 am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-CartCellDoubleQuadraticCFInterpolation.$(OBJEXT) \
 	libIBTK3d_a-CartSideDoubleQuadraticCFInterpolation.$(OBJEXT) \
@@ -1366,6 +1374,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-FACPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-FACPreconditionerStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-FEDataManager.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-FESystemDataCache.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-FaceDataSynchronization.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Po@am__quote@
@@ -1473,6 +1482,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-FACPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-FACPreconditionerStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-FEDataManager.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-FESystemDataCache.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-FaceDataSynchronization.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Po@am__quote@
@@ -3164,6 +3174,20 @@ libIBTK2d_a-FEDataManager.obj: $(top_srcdir)/src/lagrangian/FEDataManager.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-FEDataManager.obj `if test -f '$(top_srcdir)/src/lagrangian/FEDataManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/FEDataManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/FEDataManager.C'; fi`
 
+libIBTK2d_a-FESystemDataCache.o: $(top_srcdir)/src/utilities/FESystemDataCache.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-FESystemDataCache.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-FESystemDataCache.Tpo -c -o libIBTK2d_a-FESystemDataCache.o `test -f '$(top_srcdir)/src/utilities/FESystemDataCache.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/FESystemDataCache.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-FESystemDataCache.Tpo $(DEPDIR)/libIBTK2d_a-FESystemDataCache.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/FESystemDataCache.C' object='libIBTK2d_a-FESystemDataCache.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-FESystemDataCache.o `test -f '$(top_srcdir)/src/utilities/FESystemDataCache.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/FESystemDataCache.C
+
+libIBTK2d_a-FESystemDataCache.obj: $(top_srcdir)/src/utilities/FESystemDataCache.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-FESystemDataCache.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-FESystemDataCache.Tpo -c -o libIBTK2d_a-FESystemDataCache.obj `if test -f '$(top_srcdir)/src/utilities/FESystemDataCache.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/FESystemDataCache.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/FESystemDataCache.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-FESystemDataCache.Tpo $(DEPDIR)/libIBTK2d_a-FESystemDataCache.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/FESystemDataCache.C' object='libIBTK2d_a-FESystemDataCache.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-FESystemDataCache.obj `if test -f '$(top_srcdir)/src/utilities/FESystemDataCache.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/FESystemDataCache.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/FESystemDataCache.C'; fi`
+
 libIBTK3d_a-HierarchyGhostCellInterpolation.o: $(top_srcdir)/src/boundary/HierarchyGhostCellInterpolation.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-HierarchyGhostCellInterpolation.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Tpo -c -o libIBTK3d_a-HierarchyGhostCellInterpolation.o `test -f '$(top_srcdir)/src/boundary/HierarchyGhostCellInterpolation.C' || echo '$(srcdir)/'`$(top_srcdir)/src/boundary/HierarchyGhostCellInterpolation.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Tpo $(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Po
@@ -4661,6 +4685,20 @@ libIBTK3d_a-FEDataManager.obj: $(top_srcdir)/src/lagrangian/FEDataManager.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/FEDataManager.C' object='libIBTK3d_a-FEDataManager.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-FEDataManager.obj `if test -f '$(top_srcdir)/src/lagrangian/FEDataManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/FEDataManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/FEDataManager.C'; fi`
+
+libIBTK3d_a-FESystemDataCache.o: $(top_srcdir)/src/utilities/FESystemDataCache.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-FESystemDataCache.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-FESystemDataCache.Tpo -c -o libIBTK3d_a-FESystemDataCache.o `test -f '$(top_srcdir)/src/utilities/FESystemDataCache.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/FESystemDataCache.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-FESystemDataCache.Tpo $(DEPDIR)/libIBTK3d_a-FESystemDataCache.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/FESystemDataCache.C' object='libIBTK3d_a-FESystemDataCache.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-FESystemDataCache.o `test -f '$(top_srcdir)/src/utilities/FESystemDataCache.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/FESystemDataCache.C
+
+libIBTK3d_a-FESystemDataCache.obj: $(top_srcdir)/src/utilities/FESystemDataCache.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-FESystemDataCache.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-FESystemDataCache.Tpo -c -o libIBTK3d_a-FESystemDataCache.obj `if test -f '$(top_srcdir)/src/utilities/FESystemDataCache.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/FESystemDataCache.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/FESystemDataCache.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-FESystemDataCache.Tpo $(DEPDIR)/libIBTK3d_a-FESystemDataCache.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/FESystemDataCache.C' object='libIBTK3d_a-FESystemDataCache.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-FESystemDataCache.obj `if test -f '$(top_srcdir)/src/utilities/FESystemDataCache.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/FESystemDataCache.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/FESystemDataCache.C'; fi`
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<

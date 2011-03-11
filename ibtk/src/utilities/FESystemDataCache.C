@@ -371,4 +371,36 @@ IBTK::FESystemDataCache::computeCachedData<libMesh::MeshBase::element_iterator>(
     libMesh::QBase* qrule=NULL,
     libMesh::QBase* qrule_face=NULL);
 
+template
+void
+IBTK::FESystemDataCache::computeCachedData<blitz::Array<Elem*,1>::iterator>(
+    const blitz::Array<Elem*,1>::iterator& elem_begin,
+    const blitz::Array<Elem*,1>::iterator& elem_end,
+    libMesh::QBase* qrule=NULL,
+    libMesh::QBase* qrule_face=NULL);
+
+template
+void
+IBTK::FESystemDataCache::computeCachedData<blitz::Array<Elem*,1>::const_iterator>(
+    const blitz::Array<Elem*,1>::const_iterator& elem_begin,
+    const blitz::Array<Elem*,1>::const_iterator& elem_end,
+    libMesh::QBase* qrule=NULL,
+    libMesh::QBase* qrule_face=NULL);
+
+template
+void
+IBTK::FESystemDataCache::computeCachedData<std::vector<Elem*>::iterator>(
+    const std::vector<Elem*>::iterator& elem_begin,
+    const std::vector<Elem*>::iterator& elem_end,
+    libMesh::QBase* qrule=NULL,
+    libMesh::QBase* qrule_face=NULL);
+
+template
+void
+IBTK::FESystemDataCache::computeCachedData<std::vector<Elem*>::const_iterator>(
+    const std::vector<Elem*>::const_iterator& elem_begin,
+    const std::vector<Elem*>::const_iterator& elem_end,
+    libMesh::QBase* qrule=NULL,
+    libMesh::QBase* qrule_face=NULL);
+
 //////////////////////////////////////////////////////////////////////////////

@@ -207,10 +207,16 @@ public:
 
     /*!
      * \return A const reference to the map from local patch number to local
-     * elements.
+     * element number.
      */
-    std::pair<const std::vector<std::vector<unsigned int> >&,const std::vector<libMesh::Elem*>&>
-    getActivePatchElements();
+    const blitz::Array<blitz::Array<unsigned int,1>,1>&
+    getActivePatchElementMapping();
+
+    /*!
+     * \return A const reference to the collection of local elements.
+     */
+    const blitz::Array<libMesh::Elem*,1>&
+    getActiveElements();
 
     /*!
      * \brief Reinitialize the mappings from elements to Cartesian grid patches.
@@ -496,8 +502,8 @@ private:
      */
     void
     collectActivePatchElements(
-        std::vector<std::vector<unsigned int> >& active_patch_elem_map,
-        std::vector<libMesh::Elem*>& active_patch_elems,
+        blitz::Array<blitz::Array<unsigned int,1>,1>& active_patch_elem_map,
+        blitz::Array<libMesh::Elem*,1>& active_elems,
         const int level_number,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width);
 
@@ -513,7 +519,7 @@ private:
     void
     collectGhostDOFIndices(
         std::vector<unsigned int>& ghost_dofs,
-        std::vector<libMesh::Elem*>& active_patch_elems,
+        const blitz::Array<libMesh::Elem*,1>& active_elems,
         const std::string& system_name);
 
     /*!
@@ -601,8 +607,8 @@ private:
     /*
      * Data to manage mappings between mesh elements and grid patches.
      */
-    std::vector<std::vector<unsigned int> > d_active_patch_elem_map;
-    std::vector<libMesh::Elem*> d_active_patch_elems;
+    blitz::Array<blitz::Array<unsigned int,1>,1> d_active_patch_elem_map;
+    blitz::Array<libMesh::Elem*,1> d_active_elems;
     std::map<std::string,std::vector<unsigned int> > d_active_patch_ghost_dofs;
 
     /*

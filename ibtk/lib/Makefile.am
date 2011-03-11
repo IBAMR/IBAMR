@@ -159,7 +159,8 @@ $(top_srcdir)/src/utilities/muParserCartGridFunction.C
 
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
-$(top_srcdir)/src/lagrangian/FEDataManager.C
+$(top_srcdir)/src/lagrangian/FEDataManager.C \
+$(top_srcdir)/src/utilities/FESystemDataCache.C
 endif
 
 pkg_include_HEADERS += \
@@ -306,6 +307,7 @@ $(top_srcdir)/src/utilities/muParserCartGridFunction.h
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
 $(top_srcdir)/src/lagrangian/FEDataManager.h \
+$(top_srcdir)/src/utilities/FESystemDataCache.h \
 $(top_srcdir)/src/utilities/libmesh_utilities.h \
 $(top_srcdir)/src/utilities/ibtk_utilities.h
 endif
