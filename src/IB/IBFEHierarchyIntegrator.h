@@ -48,6 +48,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/FEDataManager.h>
+#include <ibtk/FESystemDataCache.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/LagMarker.h>
 
@@ -646,12 +647,6 @@ private:
      * \brief Compute cached FE data items.
      */
     void
-    computeCachedProjectedDilatationalStrainFEData();
-
-    void
-    computeCachedInteriorForceDensityFEData();
-
-    void
     computeCachedTransmissionForceDensityFEData();
 
     /*!
@@ -847,58 +842,21 @@ private:
     /*
      * Cached data used to compute the projected dilatational strain field.
      */
-    blitz::Array<std::vector<unsigned int>,1> d_proj_strain_J_bar_dof_indices;
-    blitz::Array<blitz::Array<double,2>,1> d_proj_strain_J_bar_phi_JxW;
-
-    blitz::Array<std::vector<std::vector<unsigned int> >,1> d_proj_strain_X_dof_indices;
-    blitz::Array<blitz::Array<libMesh::VectorValue<double>,2>,1> d_proj_strain_X_dphi;
+    IBTK::FESystemDataCache* d_proj_strain_data;
+    IBTK::FESystemDataCache* d_proj_strain_J_bar_data;
 
     /*
      * Cached data used to compute the interior force density field.
      */
-    blitz::Array<blitz::Array<libMesh::Point,1>,1> d_interior_q_point;
-
-    blitz::Array<std::vector<std::vector<unsigned int> >,1> d_interior_F_dof_indices;
-    blitz::Array<blitz::Array<double,2>,1> d_interior_F_phi_JxW;
-    blitz::Array<blitz::Array<libMesh::VectorValue<double>,2>,1> d_interior_F_dphi_JxW;
-
-    blitz::Array<std::vector<std::vector<unsigned int> >,1> d_interior_X_dof_indices;
-    blitz::Array<blitz::Array<double,2>,1> d_interior_X_phi;
-    blitz::Array<blitz::Array<libMesh::VectorValue<double>,2>,1> d_interior_X_dphi;
-
-    blitz::Array<std::vector<unsigned int>,1> d_interior_J_bar_dof_indices;
-    blitz::Array<blitz::Array<double,2>,1> d_interior_J_bar_phi;
-
-    blitz::Array<blitz::Array<bool,1>,1> d_interior_elem_side_at_physical_bdry;
-    blitz::Array<blitz::Array<bool,1>,1> d_interior_elem_side_at_dirichlet_bdry;
-
-    blitz::Array<blitz::Array<blitz::Array<libMesh::Point,1>,1>,1> d_interior_q_point_face;
-
-    blitz::Array<blitz::Array<blitz::Array<libMesh::VectorValue<double>,1>,1>,1> d_interior_F_normal_face;
-    blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1> d_interior_F_phi_JxW_face;
-
-    blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1> d_interior_X_phi_face;
-    blitz::Array<blitz::Array<blitz::Array<libMesh::VectorValue<double>,2>,1>,1> d_interior_X_dphi_face;
-
-    blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1> d_interior_J_bar_phi_face;
+    IBTK::FESystemDataCache* d_interior_force_data;
+    IBTK::FESystemDataCache* d_interior_force_J_bar_data;
 
     /*
      * Cached data used to compute and to spread the transmission force density
      * field.
      */
-    blitz::Array<blitz::Array<std::vector<std::vector<unsigned int> >,1>,1> d_transmission_X_dof_indices;
-    blitz::Array<blitz::Array<std::vector<unsigned int>,1>,1> d_transmission_J_bar_dof_indices;
-
-    blitz::Array<blitz::Array<blitz::Array<bool,1>,1>,1> d_transmission_elem_side_at_physical_bdry;
-    blitz::Array<blitz::Array<blitz::Array<bool,1>,1>,1> d_transmission_elem_side_at_dirichlet_bdry;
-
-    blitz::Array<blitz::Array<blitz::Array<blitz::Array<libMesh::Point,1>,1>,1>,1> d_transmission_q_point_face;
-
-    blitz::Array<blitz::Array<blitz::Array<blitz::Array<libMesh::VectorValue<double>,1>,1>,1>,1> d_transmission_X_normal_JxW_face;
-    blitz::Array<blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1>,1> d_transmission_X_phi_face;
-    blitz::Array<blitz::Array<blitz::Array<blitz::Array<libMesh::VectorValue<double>,2>,1>,1>,1> d_transmission_X_dphi_face;
-
-    blitz::Array<blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1>,1> d_transmission_J_bar_phi_face;
+    IBTK::FESystemDataCache* d_transmission_force_data;
+    IBTK::FESystemDataCache* d_transmission_force_J_bar_data;
 };
 }// namespace IBAMR
 

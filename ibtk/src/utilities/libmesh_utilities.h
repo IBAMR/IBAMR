@@ -107,7 +107,7 @@ compute_interpolation(
     const int qp,
     const libMesh::NumericVector<double>& U_vec,
     const blitz::Array<double,2>& phi,
-    const std::vector<std::vector<unsigned int> >& dof_indices)
+    const blitz::Array<std::vector<unsigned int>,1>& dof_indices)
 {
     const unsigned int n_vars = dof_indices.size();
     blitz::Array<double,1> U(n_vars);
@@ -116,7 +116,7 @@ compute_interpolation(
     {
         for (unsigned int i = 0; i < n_vars; ++i)
         {
-            U(i) += U_vec(dof_indices[i][k])*phi(qp,k);
+            U(i) += U_vec(dof_indices(i)[k])*phi(qp,k);
         }
     }
     return U;
@@ -146,7 +146,7 @@ compute_coordinate(
     const int qp,
     const libMesh::NumericVector<double>& X,
     const blitz::Array<double,2>& phi,
-    const std::vector<std::vector<unsigned int> >& dof_indices)
+    const blitz::Array<std::vector<unsigned int>,1>& dof_indices)
 {
     const unsigned int dim = dof_indices.size();
     libMesh::Point X_qp;
@@ -154,7 +154,7 @@ compute_coordinate(
     {
         for (unsigned int i = 0; i < dim; ++i)
         {
-            X_qp(i) += X(dof_indices[i][k])*phi(qp,k);
+            X_qp(i) += X(dof_indices(i)[k])*phi(qp,k);
         }
     }
     return X_qp;
@@ -213,7 +213,7 @@ compute_coordinate_mapping_jacobian(
     const int qp,
     const libMesh::NumericVector<double>& X,
     const blitz::Array<libMesh::VectorValue<double>,2>& dphi,
-    const std::vector<std::vector<unsigned int> >& dof_indices)
+    const blitz::Array<std::vector<unsigned int>,1>& dof_indices)
 {
     const unsigned int dim = dof_indices.size();
     libMesh::TensorValue<double> dX_ds;
@@ -224,7 +224,7 @@ compute_coordinate_mapping_jacobian(
         {
             for (unsigned int i = 0; i < dim; ++i)
             {
-                dX_ds(i,j) += X(dof_indices[i][k])*dphi_ds(j);
+                dX_ds(i,j) += X(dof_indices(i)[k])*dphi_ds(j);
             }
         }
     }
@@ -240,7 +240,7 @@ compute_coordinate_mapping_jacobian(
     const int qp,
     const libMesh::NumericVector<double>& X,
     const blitz::Array<libMesh::VectorValue<double>,2>& dphi,
-    const std::vector<std::vector<unsigned int> >& dof_indices,
+    const blitz::Array<std::vector<unsigned int>,1>& dof_indices,
     const libMesh::NumericVector<double>* const proj_strain_J_bar,
     const blitz::Array<double,2>* const proj_strain_phi,
     const std::vector<unsigned int>* const proj_strain_dof_indices)
@@ -286,7 +286,7 @@ compute_coordinate_mapping_jacobian_det(
     const int qp,
     const libMesh::NumericVector<double>& X,
     const blitz::Array<libMesh::VectorValue<double>,2>& dphi,
-    const std::vector<std::vector<unsigned int> >& dof_indices)
+    const blitz::Array<std::vector<unsigned int>,1>& dof_indices)
 {
     libMesh::TensorValue<double> dX_ds = compute_coordinate_mapping_jacobian(qp, X, dphi, dof_indices);
     return dX_ds.det();
@@ -297,7 +297,7 @@ compute_coordinate_mapping_jacobian_det(
     const int qp,
     const libMesh::NumericVector<double>& X,
     const blitz::Array<libMesh::VectorValue<double>,2>& dphi,
-    const std::vector<std::vector<unsigned int> >& dof_indices,
+    const blitz::Array<std::vector<unsigned int>,1>& dof_indices,
     const libMesh::NumericVector<double>* const proj_strain_J_bar,
     const blitz::Array<double,2>* const proj_strain_phi,
     const std::vector<unsigned int>* const proj_strain_dof_indices)

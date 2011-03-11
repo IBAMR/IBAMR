@@ -485,6 +485,7 @@ EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/include/ibtk/FACPreconditioner.h \
 	$(top_srcdir)/include/ibtk/FACPreconditionerStrategy.h \
 	$(top_srcdir)/include/ibtk/FEDataManager.h \
+	$(top_srcdir)/include/ibtk/FESystemDataCache.h \
 	$(top_srcdir)/include/ibtk/FaceDataSynchronization.h \
 	$(top_srcdir)/include/ibtk/FaceSynchCopyFillPattern.h \
 	$(top_srcdir)/include/ibtk/FixedSizedStream.I \

@@ -39,6 +39,7 @@
 #include <blitz/array.h>
 
 // IBTK INCLUDES
+#include <ibtk/FESystemDataCache.h>
 #include <ibtk/libmesh_utilities.h>
 
 // LIBMESH INCLUDES
@@ -208,7 +209,7 @@ public:
      * \return A const reference to the map from local patch number to local
      * elements.
      */
-    const std::vector<std::vector<libMesh::Elem*> >&
+    std::pair<const std::vector<std::vector<unsigned int> >&,const std::vector<libMesh::Elem*>&>
     getActivePatchElements();
 
     /*!
@@ -495,6 +496,13 @@ private:
      */
     void
     collectActivePatchElements(
+        std::vector<std::vector<unsigned int> >& active_patch_elem_map,
+        std::vector<libMesh::Elem*>& active_patch_elems,
+        const int level_number,
+        const SAMRAI::hier::IntVector<NDIM>& ghost_width);
+
+    void
+    collectActivePatchElements_helper(
         std::vector<std::vector<libMesh::Elem*> >& active_patch_elems,
         const int level_number,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width);
@@ -505,7 +513,7 @@ private:
     void
     collectGhostDOFIndices(
         std::vector<unsigned int>& ghost_dofs,
-        const std::vector<std::vector<libMesh::Elem*> >& active_patch_elems,
+        std::vector<libMesh::Elem*>& active_patch_elems,
         const std::string& system_name);
 
     /*!
@@ -593,7 +601,8 @@ private:
     /*
      * Data to manage mappings between mesh elements and grid patches.
      */
-    std::vector<std::vector<libMesh::Elem*> > d_active_patch_elems;
+    std::vector<std::vector<unsigned int> > d_active_patch_elem_map;
+    std::vector<libMesh::Elem*> d_active_patch_elems;
     std::map<std::string,std::vector<unsigned int> > d_active_patch_ghost_dofs;
 
     /*
@@ -615,9 +624,7 @@ private:
     /*
      * Cached FE data.
      */
-    std::map<std::string,bool> d_cached_fe_system_data;
-    std::map<std::string,blitz::Array<blitz::Array<std::vector<std::vector<unsigned int> >,1>,1> > d_dof_indices;
-    std::map<std::string,blitz::Array<blitz::Array<blitz::Array<double,2>,1>,1> > d_phi, d_phi_JxW;
+    std::map<std::string,FESystemDataCache*> d_cached_fe_system_data;
 };
 }// namespace IBTK
 

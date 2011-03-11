@@ -67,6 +67,7 @@ EXTRA_DIST += $(top_srcdir)/include/ibtk/FACPreconditioner.I
 EXTRA_DIST += $(top_srcdir)/include/ibtk/FACPreconditioner.h
 EXTRA_DIST += $(top_srcdir)/include/ibtk/FACPreconditionerStrategy.h
 EXTRA_DIST += $(top_srcdir)/include/ibtk/FEDataManager.h
+EXTRA_DIST += $(top_srcdir)/include/ibtk/FESystemDataCache.h
 EXTRA_DIST += $(top_srcdir)/include/ibtk/FaceDataSynchronization.h
 EXTRA_DIST += $(top_srcdir)/include/ibtk/FaceSynchCopyFillPattern.h
 EXTRA_DIST += $(top_srcdir)/include/ibtk/FixedSizedStream.I
