@@ -201,7 +201,13 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
       d_V_idx(-1),
       d_F_idx(-1),
       d_mark_current_idx(-1),
-      d_mark_scratch_idx(-1)
+      d_mark_scratch_idx(-1),
+      d_proj_strain_data(NULL),
+      d_proj_strain_J_bar_data(NULL),
+      d_interior_force_data(NULL),
+      d_interior_force_J_bar_data(NULL),
+      d_transmission_force_data(NULL),
+      d_transmission_force_J_bar_data(NULL)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
@@ -1778,29 +1784,32 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
 {
     if (!d_split_interior_and_bdry_forces) return;
 
+    X_ghost.close();
+    if (J_bar_ghost != NULL) J_bar_ghost->close();
+
     // Loop over the patches to spread the transmission elastic force density
     // onto the grid.
+    const blitz::Array<blitz::Array<unsigned int,1>,1>& active_patch_element_map = d_fe_data_manager->getPatchActiveElementMap();
+    const blitz::Array<Elem*,1>& active_elems = d_fe_data_manager->getActiveElements();
     const int level_num = d_fe_data_manager->getLevelNumber();
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
-        const blitz::Array<blitz::Array<unsigned int,1>,1>& active_level_elem_map = d_fe_data_manager->getActivePatchElementMapping();
-        const blitz::Array<Elem*,1>& active_level_elems = d_fe_data_manager->getActiveElements();
-        const blitz::Array<unsigned int,1>& active_patch_elem_map = active_level_elem_map(local_patch_num);
-        const int num_active_patch_elems = active_patch_elem_map.size();
-        if (num_active_patch_elems == 0) continue;
+        const blitz::Array<unsigned int,1>& patch_elems = active_patch_element_map(local_patch_num);
+        const int num_patch_elems = patch_elems.size();
+        if (num_patch_elems == 0) continue;
 
         // Loop over the elements and compute the values to be spread and the
         // positions of the quadrature points.
         int qp_offset = 0;
         std::vector<double> T_bdry, X_bdry;
-        for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+        for (int e_idx = 0; e_idx < num_patch_elems; ++e_idx)
         {
-            const unsigned int e = active_patch_elem_map(e_idx);
+            const unsigned int e = patch_elems(e_idx);
             if (!d_transmission_force_data->elem_touches_physical_bdry(e)) continue;
-            Elem* const elem = active_level_elems(e);
+            Elem* const elem = active_elems(e);
 
             // Loop over the element boundaries.
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
@@ -1874,11 +1883,12 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
         // Spread the boundary forces to the grid.
         if (qp_offset > 0)
         {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
-        const Box<NDIM>& box = f_data->getGhostBox();
-
-            LEInteractor::spread(f_data, T_bdry, NDIM, X_bdry, NDIM, patch, box, d_fe_data_manager->getSpreadWeightingFunction());
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const std::string& spread_weighting_fcn = d_fe_data_manager->getSpreadWeightingFunction();
+            const hier::IntVector<NDIM>& ghost_width = d_fe_data_manager->getGhostCellWidth();
+            const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), ghost_width);
+            Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
+            LEInteractor::spread(f_data, T_bdry, NDIM, X_bdry, NDIM, patch, spread_box, spread_weighting_fcn);
         }
     }
     return;

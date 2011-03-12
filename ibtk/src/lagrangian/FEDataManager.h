@@ -207,10 +207,10 @@ public:
 
     /*!
      * \return A const reference to the map from local patch number to local
-     * element number.
+     * active element number.
      */
     const blitz::Array<blitz::Array<unsigned int,1>,1>&
-    getActivePatchElementMapping();
+    getPatchActiveElementMap();
 
     /*!
      * \return A const reference to the collection of local elements.
@@ -502,7 +502,7 @@ private:
      */
     void
     collectActivePatchElements(
-        blitz::Array<blitz::Array<unsigned int,1>,1>& active_patch_elem_map,
+        blitz::Array<blitz::Array<unsigned int,1>,1>& patch_active_elem_map,
         blitz::Array<libMesh::Elem*,1>& active_elems,
         const int level_number,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width);
@@ -607,7 +607,7 @@ private:
     /*
      * Data to manage mappings between mesh elements and grid patches.
      */
-    blitz::Array<blitz::Array<unsigned int,1>,1> d_active_patch_elem_map;
+    blitz::Array<blitz::Array<unsigned int,1>,1> d_patch_active_elem_map;
     blitz::Array<libMesh::Elem*,1> d_active_elems;
     std::map<std::string,std::vector<unsigned int> > d_active_patch_ghost_dofs;
 
