@@ -662,6 +662,7 @@ IBFEHierarchyIntegrator::initializeHierarchy()
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ERROR("this statement should not be reached\n");
 #endif
+            break;
     }
     const int dim = mesh.mesh_dimension();
     QGauss qrule(dim, quad_order);
