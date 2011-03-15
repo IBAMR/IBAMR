@@ -69,6 +69,7 @@ PK1_stress_function(
     const TensorValue<double>& dX_ds,
     const Point& X,
     const Point& s,
+    Elem* const elem,
     const int& e,
     const double& time,
     void* ctx)

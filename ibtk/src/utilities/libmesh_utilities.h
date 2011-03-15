@@ -43,7 +43,8 @@
 #include <dof_object.h>
 #include <petsc_vector.h>
 #include <point.h>
-#include <tensor_value.h>
+#include <type_tensor.h>
+#include <type_vector.h>
 #include <vector_value.h>
 
 /////////////////////////////// FUNCTION DEFINITIONS /////////////////////////
@@ -118,6 +119,22 @@ interpolate(
     return;
 }// interpolate
 
+inline void
+interpolate(
+    double& U,
+    const int qp,
+    const blitz::Array<double,1>& U_node,
+    const std::vector<std::vector<double> >& phi)
+{
+    const int n_nodes = U_node.extent(blitz::firstDim);
+    U = 0.0;
+    for (int k = 0; k < n_nodes; ++k)
+    {
+        U += U_node(k)*phi[k][qp];
+    }
+    return;
+}// interpolate
+
 inline double
 interpolate(
     const int qp,
@@ -133,16 +150,52 @@ interpolate(
     return U;
 }// interpolate
 
+inline double
+interpolate(
+    const int qp,
+    const blitz::Array<double,1>& U_node,
+    const std::vector<std::vector<double> >& phi)
+{
+    const int n_nodes = U_node.extent(blitz::firstDim);
+    double U = 0.0;
+    for (int k = 0; k < n_nodes; ++k)
+    {
+        U += U_node(k)*phi[k][qp];
+    }
+    return U;
+}// interpolate
+
 inline void
 interpolate(
-    std::vector<double>& U,
+    double* const U,
+    const int qp,
+    const blitz::Array<double,2>& U_node,
+    const blitz::Array<double,2>& phi)
+{
+    const int n_nodes = U_node.extent(blitz::firstDim);
+    const int n_vars  = U_node.extent(blitz::secondDim);
+    std::fill(U, U+n_vars, 0.0);
+    for (int k = 0; k < n_nodes; ++k)
+    {
+        const double& p = phi(qp,k);
+        for (int i = 0; i < n_vars; ++i)
+        {
+            U[i] += U_node(k,i)*p;
+        }
+    }
+    return;
+}// interpolate
+
+inline void
+interpolate(
+    double* const U,
     const int qp,
     const blitz::Array<double,2>& U_node,
     const std::vector<std::vector<double> >& phi)
 {
     const int n_nodes = U_node.extent(blitz::firstDim);
     const int n_vars  = U_node.extent(blitz::secondDim);
-    std::fill(U.begin(), U.end(), 0.0);
+    std::fill(U, U+n_vars, 0.0);
     for (int k = 0; k < n_nodes; ++k)
     {
         const double& p = phi[k][qp];
@@ -156,28 +209,7 @@ interpolate(
 
 inline void
 interpolate(
-    blitz::Array<double,1>& U,
-    const int qp,
-    const blitz::Array<double,2>& U_node,
-    const blitz::Array<double,2>& phi)
-{
-    const int n_nodes = U_node.extent(blitz::firstDim);
-    const int n_vars  = U_node.extent(blitz::secondDim);
-    U = 0.0;
-    for (int k = 0; k < n_nodes; ++k)
-    {
-        const double& p = phi(qp,k);
-        for (int i = 0; i < n_vars; ++i)
-        {
-            U(i) += U_node(k,i)*p;
-        }
-    }
-    return;
-}// interpolate
-
-inline void
-interpolate(
-    libMesh::VectorValue<double>& U,
+    libMesh::TypeVector<double>& U,
     const int qp,
     const blitz::Array<double,2>& U_node,
     const blitz::Array<double,2>& phi)
@@ -198,20 +230,20 @@ interpolate(
 
 inline void
 interpolate(
-    libMesh::Point& X,
+    libMesh::TypeVector<double>& U,
     const int qp,
-    const blitz::Array<double,2>& X_node,
-    const blitz::Array<double,2>& phi)
+    const blitz::Array<double,2>& U_node,
+    const std::vector<std::vector<double> >& phi)
 {
-    const int n_nodes = X_node.extent(blitz::firstDim);
-    const int n_vars  = X_node.extent(blitz::secondDim);
-    X.zero();
+    const int n_nodes = U_node.extent(blitz::firstDim);
+    const int n_vars  = U_node.extent(blitz::secondDim);
+    U.zero();
     for (int k = 0; k < n_nodes; ++k)
     {
-        const double& p = phi(qp,k);
+        const double& p = phi[k][qp];
         for (int i = 0; i < n_vars; ++i)
         {
-            X(i) += X_node(k,i)*p;
+            U(i) += U_node(k,i)*p;
         }
     }
     return;
@@ -219,7 +251,7 @@ interpolate(
 
 inline void
 jacobian(
-    libMesh::TensorValue<double>& dX_ds,
+    libMesh::TypeTensor<double>& dX_ds,
     const int qp,
     const blitz::Array<double,2>& X_node,
     const blitz::Array<libMesh::VectorValue<double>,2>& dphi)
@@ -248,7 +280,36 @@ jacobian(
 
 inline void
 jacobian(
-    libMesh::TensorValue<double>& dX_ds,
+    libMesh::TypeTensor<double>& dX_ds,
+    const int qp,
+    const blitz::Array<double,2>& X_node,
+    const std::vector<std::vector<libMesh::VectorValue<double> > >& dphi)
+{
+    const int n_nodes = X_node.extent(blitz::firstDim);
+    const int dim     = X_node.extent(blitz::secondDim);
+    dX_ds.zero();
+    for (int k = 0; k < n_nodes; ++k)
+    {
+        const libMesh::VectorValue<double>& dphi_ds = dphi[k][qp];
+        for (int i = 0; i < dim; ++i)
+        {
+            const double& X = X_node(k,i);
+            for (int j = 0; j < dim; ++j)
+            {
+                dX_ds(i,j) += X*dphi_ds(j);
+            }
+        }
+    }
+    if (dim == 2)
+    {
+        dX_ds(2,2) = 1.0;
+    }
+    return;
+}// jacobian
+
+inline void
+jacobian(
+    libMesh::TypeTensor<double>& dX_ds,
     const int qp,
     const blitz::Array<double,2>& X_node,
     const blitz::Array<libMesh::VectorValue<double>,2>& dphi,
@@ -256,8 +317,28 @@ jacobian(
     const blitz::Array<double,2>* const strain_phi)
 {
     jacobian(dX_ds, qp, X_node, dphi);
-    const int dim = dphi.extent(blitz::firstDim);
     if (strain_J_bar_node == NULL || strain_phi == NULL) return;
+    const int dim = X_node.extent(blitz::secondDim);
+    const double J = dX_ds.det();
+    const double J_bar = interpolate(qp,*strain_J_bar_node,*strain_phi);
+    const double alpha = pow(J_bar/J,1.0/double(dim));
+    dX_ds *= alpha;
+    if (dim == 2) dX_ds(2,2) = 1.0;
+    return;
+}// jacobian
+
+inline void
+jacobian(
+    libMesh::TypeTensor<double>& dX_ds,
+    const int qp,
+    const blitz::Array<double,2>& X_node,
+    const std::vector<std::vector<libMesh::VectorValue<double> > >& dphi,
+    const blitz::Array<double,1>* const strain_J_bar_node,
+    const std::vector<std::vector<double> >* const strain_phi)
+{
+    jacobian(dX_ds, qp, X_node, dphi);
+    if (strain_J_bar_node == NULL || strain_phi == NULL) return;
+    const int dim = X_node.extent(blitz::secondDim);
     const double J = dX_ds.det();
     const double J_bar = interpolate(qp,*strain_J_bar_node,*strain_phi);
     const double alpha = pow(J_bar/J,1.0/double(dim));
@@ -268,8 +349,8 @@ jacobian(
 
 inline void
 tensor_inverse_transpose(
-    libMesh::TensorValue<double>& A_inv_trans,
-    const libMesh::TensorValue<double>& A,
+    libMesh::TypeTensor<double>& A_inv_trans,
+    const libMesh::TypeTensor<double>& A,
     const int dim)
 {
     const double det_A = A.det();
@@ -302,9 +383,9 @@ tensor_inverse_transpose(
 
 inline void
 outer_product(
-    libMesh::TensorValue<double>& u_prod_v,
-    const libMesh::VectorValue<double>& u,
-    const libMesh::VectorValue<double>& v)
+    libMesh::TypeTensor<double>& u_prod_v,
+    const libMesh::TypeVector<double>& u,
+    const libMesh::TypeVector<double>& v)
 {
     for (unsigned int i = 0; i < LIBMESH_DIM; ++i)
     {

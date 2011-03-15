@@ -366,20 +366,12 @@ FEDataManager::spread(
             const blitz::Array<std::vector<unsigned int>,1>& dof_indices = cached_dof_indices(e);
             const blitz::Array<double,2>& phi_JxW = cached_phi_JxW(e);
             const int n_qp = phi_JxW.extent(blitz::firstDim);
-            const int n_basis = phi_JxW.extent(blitz::secondDim);
             get_values_for_interpolation(F_node, F_vec, dof_indices);
             F_JxW_qp.resize(F_JxW_qp.size()+n_vars*n_qp,0.0);
             for (int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = n_vars*(qp+qp_offset);
-                for (int k = 0; k < n_basis; ++k)
-                {
-                    const double& p_JxW = phi_JxW(qp,k);
-                    for (int i = 0; i < n_vars; ++i)
-                    {
-                        F_JxW_qp[idx+i] += F_node(k,i)*p_JxW;
-                    }
-                }
+                interpolate(&F_JxW_qp[idx],qp,F_node,phi_JxW);
             }
 
             const blitz::Array<std::vector<unsigned int>,1>& X_dof_indices = cached_X_dof_indices(e);
@@ -387,20 +379,12 @@ FEDataManager::spread(
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(X_phi.extent(blitz::firstDim) == n_qp);
 #endif
-            const int n_X_basis = X_phi.extent(blitz::secondDim);
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
             X_qp.resize(X_qp.size()+NDIM*n_qp,0.0);
             for (int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = NDIM*(qp+qp_offset);
-                for (int k = 0; k < n_X_basis; ++k)
-                {
-                    const double& p = X_phi(qp,k);
-                    for (int i = 0; i < NDIM; ++i)
-                    {
-                        X_qp[idx+i] += X_node(k,i)*p;
-                    }
-                }
+                interpolate(&X_qp[idx],qp,X_node,X_phi);
             }
 
             qp_offset += n_qp;
@@ -478,21 +462,13 @@ FEDataManager::interp(
             const blitz::Array<std::vector<unsigned int>,1>& X_dof_indices = cached_X_dof_indices(e);
             const blitz::Array<double,2>& X_phi = cached_X_phi(e);
             const int n_qp = X_phi.extent(blitz::firstDim);
-            const int n_basis = X_phi.extent(blitz::secondDim);
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
             F_qp.resize(F_qp.size()+n_vars*n_qp,0.0);
             X_qp.resize(X_qp.size()+NDIM  *n_qp,0.0);
             for (int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = NDIM*(qp+qp_offset);
-                for (int k = 0; k < n_basis; ++k)
-                {
-                    const double& p = X_phi(qp,k);
-                    for (int i = 0; i < NDIM; ++i)
-                    {
-                        X_qp[idx+i] += X_node(k,i)*p;
-                    }
-                }
+                interpolate(&X_qp[idx],qp,X_node,X_phi);
             }
             qp_offset += n_qp;
         }
@@ -899,7 +875,7 @@ FEDataManager::applyGradientDetector(
                 get_values_for_interpolation(X_node, *X_ghost_vec.get(), X_dof_indices);
                 for (unsigned int qp = 0; qp < d_qrule->n_points(); ++qp)
                 {
-                    interpolate(X_qp, qp, X_node, X_phi);
+                    interpolate(&X_qp[0], qp, X_node, X_phi);
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
                     tag_data->fill(1,Box<NDIM>::Box(i-Index<NDIM>(1),i+Index<NDIM>(1)));
                 }
@@ -1126,7 +1102,7 @@ FEDataManager::updateQuadPointCountData(
                     get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
                     for (unsigned int qp = 0; qp < d_qrule->n_points(); ++qp)
                     {
-                        interpolate(X_qp, qp, X_node, X_phi);
+                        interpolate(&X_qp[0], qp, X_node, X_phi);
                         const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
                         if (patch_box.contains(i)) (*qp_count_data)(i) += 1.0;
                     }
@@ -1398,7 +1374,7 @@ FEDataManager::collectActivePatchElements_helper(
                 get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
                 for (unsigned int qp = 0; qp < d_qrule->n_points() && !found_qp; ++qp)
                 {
-                    interpolate(X_qp, qp, X_node, X_phi);
+                    interpolate(&X_qp[0], qp, X_node, X_phi);
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
                     if (ghost_box.contains(i))
                     {

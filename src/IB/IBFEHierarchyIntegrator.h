@@ -129,7 +129,7 @@ public:
      */
     void
     registerPK1StressTensorFunction(
-        void (*PK1_stress_fcn)(libMesh::TensorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, const int& e, const double& time, void* ctx),
+        void (*PK1_stress_fcn)(libMesh::TensorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, const int& e, const double& time, void* ctx),
         void* PK1_stress_fcn_ctx=NULL);
 
     /*!
@@ -138,7 +138,7 @@ public:
      */
     void
     registerLagBodyForceFunction(
-        void (*lag_body_force_fcn)(libMesh::VectorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, const int& e, const double& time, void* ctx),
+        void (*lag_body_force_fcn)(libMesh::VectorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, const int& e, const double& time, void* ctx),
         void* lag_body_force_fcn_ctx=NULL);
 
     /*!
@@ -147,7 +147,7 @@ public:
      */
     void
     registerLagPressureFunction(
-        void (*lag_pressure_fcn)(double&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, const int& e, const unsigned short int side, const double& time, void* ctx),
+        void (*lag_pressure_fcn)(double&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, const int& e, const unsigned short int side, const double& time, void* ctx),
         void* lag_pressure_fcn_ctx=NULL);
 
     /*!
@@ -704,17 +704,17 @@ private:
     /*
      * Function used to compute the first Piola-Kirchhoff stress tensor.
      */
-    void (*d_PK1_stress_fcn)(libMesh::TensorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, const int& e, const double& time, void* ctx);
+    void (*d_PK1_stress_fcn)(libMesh::TensorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const, const int& e, const double& time, void* ctx);
     void* d_PK1_stress_fcn_ctx;
 
     /*
      * Optional function use to compute additional body and surface forces on
      * the Lagrangian mesh.
      */
-    void (*d_lag_body_force_fcn)(libMesh::VectorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, const int& e, const double& time, void* ctx);
+    void (*d_lag_body_force_fcn)(libMesh::VectorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const, const int& e, const double& time, void* ctx);
     void* d_lag_body_force_fcn_ctx;
 
-    void (*d_lag_pressure_fcn)(double&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, const int& e, const unsigned short int side, const double& time, void* ctx);
+    void (*d_lag_pressure_fcn)(double&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const, const int& e, const unsigned short int side, const double& time, void* ctx);
     void* d_lag_pressure_fcn_ctx;
 
     /*
