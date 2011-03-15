@@ -687,6 +687,8 @@ private:
     libMeshEnums::FEFamily d_fe_family;
     bool d_split_interior_and_bdry_forces;
     bool d_use_consistent_mass_matrix;
+    libMeshEnums::QuadratureType d_quad_type;
+    libMeshEnums::Order d_quad_order;
 
     /*
      * Fbar projection method parameters.
@@ -694,6 +696,8 @@ private:
     bool d_use_fbar_projection;
     libMeshEnums::Order d_J_bar_fe_order;
     libMeshEnums::FEFamily d_J_bar_fe_family;
+    libMeshEnums::QuadratureType d_J_bar_quad_type;
+    libMeshEnums::Order d_J_bar_quad_order;
 
     /*
      * Function used to compute the initial coordinates of the Lagrangian mesh.

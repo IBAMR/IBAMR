@@ -150,9 +150,13 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
       d_fe_family(LAGRANGE),
       d_split_interior_and_bdry_forces(false),
       d_use_consistent_mass_matrix(true),
+      d_quad_type(QGAUSS),
+      d_quad_order(THIRD),
       d_use_fbar_projection(false),
       d_J_bar_fe_order(CONSTANT),
       d_J_bar_fe_family(MONOMIAL),
+      d_J_bar_quad_type(QGAUSS),
+      d_J_bar_quad_order(THIRD),
       d_coordinate_mapping_fcn(NULL),
       d_coordinate_mapping_fcn_ctx(NULL),
       d_PK1_stress_fcn(NULL),
@@ -643,37 +647,24 @@ IBFEHierarchyIntegrator::initializeHierarchy()
     d_fe_data_manager->reinitElementMappings();
 
     // Compute cached FE data.
-    Order quad_order = CONSTANT;
-    switch (d_fe_order)
-    {
-        case FIRST:
-            quad_order = THIRD;
-            break;
-        case SECOND:
-            quad_order = FIFTH;
-            break;
-        default:
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ERROR("this statement should not be reached\n");
-#endif
-            break;
-    }
     const int dim = mesh.mesh_dimension();
-    QGauss qrule(dim, quad_order);
-    QGauss qrule_face(dim-1, quad_order);
     const MeshBase::const_element_iterator& active_local_el_begin = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator& active_local_el_end   = mesh.active_local_elements_end();
 
     if (d_use_fbar_projection)
     {
+        AutoPtr<QBase> J_bar_qrule = QBase::build(d_J_bar_quad_type, dim, d_J_bar_quad_order);
         d_proj_strain_data = new FESystemDataCache(X_system, mesh);
         d_proj_strain_data->compute_dphi() = true;
-        d_proj_strain_data->computeCachedData(active_local_el_begin, active_local_el_end, &qrule);
+        d_proj_strain_data->computeCachedData(active_local_el_begin, active_local_el_end, J_bar_qrule.get());
         System& J_bar_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
         d_proj_strain_J_bar_data = new FESystemDataCache(J_bar_system, mesh);
         d_proj_strain_J_bar_data->compute_phi_JxW() = true;
-        d_proj_strain_J_bar_data->computeCachedData(active_local_el_begin, active_local_el_end, &qrule);
+        d_proj_strain_J_bar_data->computeCachedData(active_local_el_begin, active_local_el_end, J_bar_qrule.get());
     }
+
+    AutoPtr<QBase> qrule = QBase::build(d_quad_type, dim, d_quad_order);
+    AutoPtr<QBase> qrule_face = QBase::build(d_quad_type, dim-1, d_quad_order);
 
     d_interior_force_data = new FESystemDataCache(X_system, mesh);
     d_interior_force_data->compute_q_point() = true;
@@ -686,14 +677,14 @@ IBFEHierarchyIntegrator::initializeHierarchy()
     d_interior_force_data->compute_phi_face() = true;
     d_interior_force_data->compute_phi_JxW_face() = true;
     d_interior_force_data->compute_dphi_face() = true;
-    d_interior_force_data->computeCachedData(active_local_el_begin, active_local_el_end, &qrule, &qrule_face);
+    d_interior_force_data->computeCachedData(active_local_el_begin, active_local_el_end, qrule.get(), qrule_face.get());
     if (d_use_fbar_projection)
     {
         System& J_bar_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
         d_interior_force_J_bar_data = new FESystemDataCache(J_bar_system, mesh);
         d_interior_force_J_bar_data->compute_phi() = true;
         d_interior_force_J_bar_data->compute_phi_face() = true;
-        d_interior_force_J_bar_data->computeCachedData(active_local_el_begin, active_local_el_end, &qrule, &qrule_face);
+        d_interior_force_J_bar_data->computeCachedData(active_local_el_begin, active_local_el_end, qrule.get(), qrule_face.get());
     }
 
     const blitz::Array<Elem*,1>& active_elems = d_fe_data_manager->getActiveElements();
@@ -1995,15 +1986,20 @@ IBFEHierarchyIntegrator::getFromInput(
     d_dt_max_time_min = db->getDoubleWithDefault("dt_max_time_min", d_dt_max_time_min);
 
     d_fe_order = Utility::string_to_enum<Order>(db->getStringWithDefault("fe_order", Utility::enum_to_string<Order>(d_fe_order)));
+    if (d_fe_order == SECOND) d_quad_order = FIFTH;
     d_fe_family = Utility::string_to_enum<FEFamily>(db->getStringWithDefault("fe_family", Utility::enum_to_string<FEFamily>(d_fe_family)));
     d_split_interior_and_bdry_forces = db->getBoolWithDefault("split_interior_and_bdry_forces", d_split_interior_and_bdry_forces);
     d_use_consistent_mass_matrix = db->getBoolWithDefault("use_consistent_mass_matrix", d_use_consistent_mass_matrix);
+    d_quad_type = Utility::string_to_enum<QuadratureType>(db->getStringWithDefault("quad_type", Utility::enum_to_string<QuadratureType>(d_quad_type)));
+    d_quad_order = Utility::string_to_enum<Order>(db->getStringWithDefault("quad_order", Utility::enum_to_string<Order>(d_quad_order)));
 
     d_use_fbar_projection = db->getBoolWithDefault("use_fbar_projection", d_use_fbar_projection);
     if (d_use_fbar_projection)
     {
         d_J_bar_fe_order = Utility::string_to_enum<Order>(db->getStringWithDefault("J_bar_fe_order", Utility::enum_to_string<Order>(d_J_bar_fe_order)));
         d_J_bar_fe_family = Utility::string_to_enum<FEFamily>(db->getStringWithDefault("J_bar_fe_family", Utility::enum_to_string<FEFamily>(d_J_bar_fe_family)));
+        d_J_bar_quad_type = Utility::string_to_enum<QuadratureType>(db->getStringWithDefault("J_bar_quad_type", Utility::enum_to_string<QuadratureType>(d_J_bar_quad_type)));
+        d_J_bar_quad_order = Utility::string_to_enum<Order>(db->getStringWithDefault("J_bar_quad_order", Utility::enum_to_string<Order>(d_J_bar_quad_order)));
     }
 
     d_do_log = db->getBoolWithDefault("enable_logging", d_do_log);
