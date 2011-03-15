@@ -28,7 +28,8 @@ $(top_srcdir)/src/third_party/muParser/muParserBytecode.cpp \
 $(top_srcdir)/src/third_party/muParser/muParserCallback.cpp \
 $(top_srcdir)/src/third_party/muParser/muParserError.cpp \
 $(top_srcdir)/src/third_party/muParser/muParserTokenReader.cpp \
-$(top_srcdir)/src/utilities/Interpolator.C
+$(top_srcdir)/src/utilities/Interpolator.C \
+$(top_builddir)/src/fortran/minmod.f
 
 pkg_include_HEADERS = \
 $(top_srcdir)/src/third_party/muParser/muParser.h \

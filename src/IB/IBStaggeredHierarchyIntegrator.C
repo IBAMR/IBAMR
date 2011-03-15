@@ -508,7 +508,7 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_V_idx = var_db->registerVariableAndContext(d_V_var, d_scratch, ghosts);
 
     d_F_var = new SideVariable<NDIM,double>(d_object_name+"::F");
-    d_F_idx = var_db->registerVariableAndContext(d_F_var, d_scratch, no_ghosts);
+    d_F_idx = var_db->registerVariableAndContext(d_F_var, d_scratch, SIDEG);
 
     if (d_using_orthonormal_directors)
     {

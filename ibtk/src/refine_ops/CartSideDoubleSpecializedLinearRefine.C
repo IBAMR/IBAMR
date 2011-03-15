@@ -107,7 +107,7 @@ const std::string CartSideDoubleSpecializedLinearRefine::s_op_name = "SPECIALIZE
 namespace
 {
 static const int REFINE_OP_PRIORITY = 0;
-static const int REFINE_OP_STENCIL_WIDTH = 0;
+static const int REFINE_OP_STENCIL_WIDTH = 1;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

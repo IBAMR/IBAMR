@@ -93,7 +93,8 @@ libIBTK_a_LIBADD =
 am_libIBTK_a_OBJECTS = lagrangian_delta.$(OBJEXT) muParser.$(OBJEXT) \
 	muParserBase.$(OBJEXT) muParserBytecode.$(OBJEXT) \
 	muParserCallback.$(OBJEXT) muParserError.$(OBJEXT) \
-	muParserTokenReader.$(OBJEXT) Interpolator.$(OBJEXT)
+	muParserTokenReader.$(OBJEXT) Interpolator.$(OBJEXT) \
+	minmod.$(OBJEXT)
 libIBTK_a_OBJECTS = $(am_libIBTK_a_OBJECTS)
 libIBTK2d_a_AR = $(AR) $(ARFLAGS)
 libIBTK2d_a_LIBADD =
@@ -952,7 +953,8 @@ $(top_srcdir)/src/third_party/muParser/muParserBytecode.cpp \
 $(top_srcdir)/src/third_party/muParser/muParserCallback.cpp \
 $(top_srcdir)/src/third_party/muParser/muParserError.cpp \
 $(top_srcdir)/src/third_party/muParser/muParserTokenReader.cpp \
-$(top_srcdir)/src/utilities/Interpolator.C
+$(top_srcdir)/src/utilities/Interpolator.C \
+$(top_builddir)/src/fortran/minmod.f
 
 pkg_include_HEADERS =  \
 	$(top_srcdir)/src/third_party/muParser/muParser.h \
@@ -4725,6 +4727,12 @@ lagrangian_delta.o: $(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f
 
 lagrangian_delta.obj: $(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o lagrangian_delta.obj `if test -f '$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f'; then $(CYGPATH_W) '$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f'; fi`
+
+minmod.o: $(top_builddir)/src/fortran/minmod.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o minmod.o `test -f '$(top_builddir)/src/fortran/minmod.f' || echo '$(srcdir)/'`$(top_builddir)/src/fortran/minmod.f
+
+minmod.obj: $(top_builddir)/src/fortran/minmod.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o minmod.obj `if test -f '$(top_builddir)/src/fortran/minmod.f'; then $(CYGPATH_W) '$(top_builddir)/src/fortran/minmod.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/fortran/minmod.f'; fi`
 
 quadcfinterpolation2d.o: $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o quadcfinterpolation2d.o `test -f '$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f
