@@ -17964,19 +17964,29 @@ LIBMESH_CONTRIBDIR=${LIBMESH_DIR}/contrib
 LIBMESH_CONTRIB_LIBDIR=${LIBMESH_DIR}/contrib/lib/${LIBMESH_HOSTTYPE}_${LIBMESH_COMPILE_MODE}
 
 if test "${LIBMESH_COMPILE_MODE}" == "opt" ; then
+  CPPFLAGS="${CPPFLAGS} `grep -A3 opt-mode $LIBMESH_DIR/Make.common | grep libmesh_CPPFLAGS | sed -e 's/.*libmesh_CPPFLAGS +=//'`"
   CXXFLAGS="${CXXFLAGS} `grep -A3 opt-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
+  CFLAGS="${CFLAGS} `grep -A3 opt-mode $LIBMESH_DIR/Make.common | grep libmesh_CFLAGS | sed -e 's/.*libmesh_CFLAGS   +=//'`"
 fi
 if test "${LIBMESH_COMPILE_MODE}" == "devel" ; then
+  CPPFLAGS="${CPPFLAGS} `grep -A3 devel-mode $LIBMESH_DIR/Make.common | grep libmesh_CPPFLAGS | sed -e 's/.*libmesh_CPPFLAGS +=//'`"
   CXXFLAGS="${CXXFLAGS} `grep -A3 devel-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
+  CFLAGS="${CFLAGS} `grep -A3 devel-mode $LIBMESH_DIR/Make.common | grep libmesh_CFLAGS | sed -e 's/.*libmesh_CFLAGS   +=//'`"
 fi
 if test "${LIBMESH_COMPILE_MODE}" == "dbg" ; then
+  CPPFLAGS="${CPPFLAGS} `grep -A3 debug-mode $LIBMESH_DIR/Make.common | grep libmesh_CPPFLAGS | sed -e 's/.*libmesh_CPPFLAGS +=//'`"
   CXXFLAGS="${CXXFLAGS} `grep -A3 debug-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
+  CFLAGS="${CFLAGS} `grep -A3 debug-mode $LIBMESH_DIR/Make.common | grep libmesh_CFLAGS | sed -e 's/.*libmesh_CFLAGS   +=//'`"
 fi
 if test "${LIBMESH_COMPILE_MODE}" == "prof" ; then
+  CPPFLAGS="${CPPFLAGS} `grep -A3 prof-mode $LIBMESH_DIR/Make.common | grep libmesh_CPPFLAGS | sed -e 's/.*libmesh_CPPFLAGS +=//'`"
   CXXFLAGS="${CXXFLAGS} `grep -A3 prof-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
+  CFLAGS="${CFLAGS} `grep -A3 prof-mode $LIBMESH_DIR/Make.common | grep libmesh_CFLAGS | sed -e 's/.*libmesh_CFLAGS   +=//'`"
 fi
 if test "${LIBMESH_COMPILE_MODE}" == "oprof" ; then
+  CPPFLAGS="${CPPFLAGS} `grep -A3 oprof-mode $LIBMESH_DIR/Make.common | grep libmesh_CPPFLAGS | sed -e 's/.*libmesh_CPPFLAGS +=//'`"
   CXXFLAGS="${CXXFLAGS} `grep -A3 oprof-mode $LIBMESH_DIR/Make.common | grep libmesh_CXXFLAGS | sed -e 's/.*libmesh_CXXFLAGS +=//'`"
+  CFLAGS="${CFLAGS} `grep -A3 oprof-mode $LIBMESH_DIR/Make.common | grep libmesh_CFLAGS | sed -e 's/.*libmesh_CFLAGS   +=//'`"
 fi
 
 LIBMESH_TECPLOT_LIBS=`grep "libmesh_LIBS" $LIBMESH_DIR/Make.common | grep "tecplot" | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
