@@ -355,12 +355,11 @@ INSStaggeredHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
                    << "  velocity boundary conditions must be registered prior to initialization\n"
                    << "  of the hierarchy integrator object." << std::endl);
     }
-#ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned l = 0; l < U_bc_coefs.size(); ++l)
+    std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(U_bc_coefs);
+    for (int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(U_bc_coefs[l] != NULL);
+        if (bc_coefs[d] == NULL) bc_coefs[d] = d_default_U_bc_coef;
     }
-#endif
     if (!d_U_bc_coefs.empty())
     {
         for (int d = 0; d < NDIM; ++d)
@@ -375,16 +374,16 @@ INSStaggeredHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
     d_U_bc_coefs.resize(NDIM,NULL);
     for (int d = 0; d < NDIM; ++d)
     {
-        d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,*d_problem_coefs,U_bc_coefs);
+        d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,*d_problem_coefs,bc_coefs);
     }
     d_U_star_bc_coefs.clear();
     d_U_star_bc_coefs.resize(NDIM,NULL);
     for (int d = 0; d < NDIM; ++d)
     {
-        d_U_star_bc_coefs[d] = new INSStaggeredIntermediateVelocityBcCoef(d,U_bc_coefs);
+        d_U_star_bc_coefs[d] = new INSStaggeredIntermediateVelocityBcCoef(d,bc_coefs);
     }
-    d_P_bc_coef = new INSStaggeredPressureBcCoef(*d_problem_coefs,U_bc_coefs);
-    d_Phi_bc_coef = new INSStaggeredProjectionBcCoef(U_bc_coefs);
+    d_P_bc_coef = new INSStaggeredPressureBcCoef(*d_problem_coefs,bc_coefs);
+    d_Phi_bc_coef = new INSStaggeredProjectionBcCoef(bc_coefs);
     return;
 }// registerVelocityPhysicalBcCoefs
 

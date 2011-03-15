@@ -3,10 +3,10 @@ MU = 0.01
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 1   // maximum number of levels in locally refined grid
+MAX_LEVELS = 2   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 64                                    // coarsest grid spacing
+N = 16                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 1.0                                   // width of computational domain
 RFAC = 4
@@ -17,12 +17,12 @@ CFL_MAX = 0.5
 DX = L/NFINEST
 DT = CFL_MAX*DX/U_MAX
 
-elem_type = "QUAD4"
-elem_order = "FIRST"
+elem_type = "QUAD9"
+elem_order = "SECOND"
 quad_type = "QGAUSS"
 quad_order = "NINTH"
 weighting_fcn = "IB_4"
-use_consistent_mass_matrix = TRUE
+use_consistent_mass_matrix = FALSE
 
 struct_mu = 0.1
 struct_lambda = 2^(3 - RFAC)*2.5e0*NFINEST/64.0
@@ -82,6 +82,8 @@ IBFEHierarchyIntegrator {
    enable_logging = TRUE
    split_interior_and_bdry_forces = FALSE
    fe_order = elem_order
+   use_fbar_projection = TRUE
+   use_consistent_mass_matrix = FALSE
 }
 
 INSStaggeredHierarchyIntegrator {

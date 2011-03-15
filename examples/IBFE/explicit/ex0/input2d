@@ -17,7 +17,7 @@ M = MFAC*NFINEST/64                       // Lagrangian mesh spacing
 DX = L/NFINEST
 DT = 0.25*DX
 
-smooth_case = TRUE
+smooth_case = FALSE
 
 elem_type = "QUAD4"
 elem_order = "FIRST"
@@ -87,11 +87,12 @@ IBFEHierarchyIntegrator {
    max_integrator_steps  = 10000000 // max number of simulation timesteps
    regrid_interval       = 2
    dt_max = DT
-   num_cycles = 1
+   num_cycles = 2
    enable_logging = TRUE
    split_interior_and_bdry_forces = TRUE
    fe_order = elem_order
-   use_fbar_projection = TRUE
+   use_fbar_projection = FALSE
+   consistent_mass_matrix = FALSE
 }
 
 INSStaggeredHierarchyIntegrator {
@@ -231,7 +232,7 @@ GriddingAlgorithm {
    }
 
    largest_patch_size {
-      level_0 =512,512 // largest patch allowed in hierarchy
+      level_0 = 64,512// largest patch allowed in hierarchy
                        // all finer levels will use same values as level_0...
    }
 

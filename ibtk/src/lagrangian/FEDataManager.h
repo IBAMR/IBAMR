@@ -40,7 +40,6 @@
 
 // IBTK INCLUDES
 #include <ibtk/FESystemDataCache.h>
-#include <ibtk/libmesh_utilities.h>
 
 // LIBMESH INCLUDES
 #define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
