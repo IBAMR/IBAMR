@@ -792,12 +792,14 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     NumericVector<double>* F_half_IB_ghost_ptr = d_fe_data_manager->getGhostedSolutionVector(FORCE_SYSTEM_NAME);
     NumericVector<double>& F_half_IB_ghost = *F_half_IB_ghost_ptr;
 
+    NumericVector<double>* J_bar_current = NULL;
     NumericVector<double>* J_bar_half = NULL;
     NumericVector<double>* J_bar_half_IB_ghost = NULL;
     if (d_use_fbar_projection)
     {
         System& J_bar_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
-        J_bar_half = J_bar_system.solution.get();
+        J_bar_current       = J_bar_system.solution.get();
+        J_bar_half          = J_bar_system.current_local_solution.get();
         J_bar_half_IB_ghost = d_fe_data_manager->getGhostedSolutionVector(PROJ_STRAIN_SYSTEM_NAME);
     }
 
@@ -889,6 +891,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
                            0.5, 0.5, 0.0,
                            dynamic_cast<PetscVector<double>*>(&X_current)->vec(),
                            dynamic_cast<PetscVector<double>*>(&X_new)->vec()); IBTK_CHKERRQ(ierr);
+        X_half.close();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
@@ -903,7 +906,11 @@ IBFEHierarchyIntegrator::advanceHierarchy(
 
         // Project the deformation, if necessary.
         t_advance_hierarchy_phase2->start();
-        if (d_use_fbar_projection) computeProjectedDilatationalStrain(*J_bar_half, X_half);
+        if (d_use_fbar_projection)
+        {
+            computeProjectedDilatationalStrain(*J_bar_half, X_half);
+            J_bar_half->close();
+        }
         t_advance_hierarchy_phase2->stop();
 
         // Compute F(n+1/2) = F(X(n+1/2),t(n+1/2)).
@@ -924,16 +931,19 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         t_advance_hierarchy_phase4->start();
         ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&X_half)->vec(), dynamic_cast<PetscVector<double>*>(&X_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
         ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&F_half)->vec(), dynamic_cast<PetscVector<double>*>(&F_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
+        X_half_IB_ghost.close();
+        F_half_IB_ghost.close();
         if (d_use_fbar_projection)
         {
             ierr = VecCopy(dynamic_cast<PetscVector<double>*>(J_bar_half)->vec(), dynamic_cast<PetscVector<double>*>(J_bar_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
+            J_bar_half_IB_ghost->close();
         }
         t_advance_hierarchy_phase4->stop();
 
         // Spread F(n+1/2) to f(n+1/2).
         t_advance_hierarchy_phase5->start();
         d_hier_sc_data_ops->setToScalar(d_F_idx, 0.0);
-        d_fe_data_manager->spread(d_F_idx, F_half_IB_ghost, X_half_IB_ghost, FORCE_SYSTEM_NAME, true, true);
+        d_fe_data_manager->spread(d_F_idx, F_half_IB_ghost, X_half_IB_ghost, FORCE_SYSTEM_NAME, false, false);
         if (d_split_interior_and_bdry_forces)
         {
             spreadTransmissionForceDensity(d_F_idx, X_half_IB_ghost, J_bar_half_IB_ghost, current_time+0.5*dt);
@@ -994,6 +1004,11 @@ IBFEHierarchyIntegrator::advanceHierarchy(
             Vec X_new_vec = X_new_data[ln]->getGlobalVec();
             ierr = VecCopy(X_new_vec, X_current_vec); IBTK_CHKERRQ(ierr);
         }
+    }
+    if (d_use_fbar_projection)
+    {
+        ierr = VecCopy(dynamic_cast<PetscVector<double>*>(J_bar_half)->vec(),
+                       dynamic_cast<PetscVector<double>*>(J_bar_current)->vec()); IBTK_CHKERRQ(ierr);
     }
 
     // Update the coordinate mapping dX = X - s.
@@ -1781,9 +1796,6 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
 {
     if (!d_split_interior_and_bdry_forces) return;
 
-    X_ghost_vec.close();
-    if (J_bar_ghost_vec != NULL) J_bar_ghost_vec->close();
-
     // Loop over the patches to spread the transmission elastic force density
     // onto the grid.
     const blitz::Array<blitz::Array<unsigned int,1>,1>& active_patch_element_map = d_fe_data_manager->getPatchActiveElementMap();
@@ -1923,8 +1935,8 @@ IBFEHierarchyIntegrator::initializeCoordinates()
             }
         }
     }
-    X_coords.close();
     X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_coords);
+    X_coords.close();
     return;
 }// initializeCoordinates
 
