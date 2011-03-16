@@ -383,7 +383,7 @@ main(
         fiber_axes_system.add_variable(os.str(), CONSTANT, MONOMIAL);
     }
 
-     // Process "Main" section of the input database.
+    // Process "Main" section of the input database.
     Pointer<Database> main_db = input_db->getDatabase("Main");
 
     // Configure logging options.

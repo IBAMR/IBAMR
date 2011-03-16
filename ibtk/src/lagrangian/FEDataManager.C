@@ -546,6 +546,7 @@ FEDataManager::getL2ProjectionSolver(
         AutoPtr<QBase> qrule = QBase::build(quad_type, dim, quad_order);
 
         System& system = d_es->get_system<System>(system_name);
+        const int sys_num = system.number();
         DofMap& dof_map = system.get_dof_map();
         // NOTE: Sparsity patterns are not automatically computed for all system
         // types; if it has not been computed for this system, we must compute
@@ -570,9 +571,9 @@ FEDataManager::getL2ProjectionSolver(
         DenseMatrix<double> M_e;
 
         // Loop over the mesh to construct the system matrix.
-        MeshBase::const_element_iterator       el_it  = mesh.active_local_elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-        for ( ; el_it != el_end; ++el_it)
+        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+        const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
+        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             const Elem* const elem = *el_it;
             fe->reinit(elem);
@@ -599,6 +600,48 @@ FEDataManager::getL2ProjectionSolver(
                 }
                 dof_map.constrain_element_matrix(M_e, dof_indices);
                 M_mat->add_matrix(M_e, dof_indices);
+            }
+        }
+
+        // Flush assemble the matrix.
+        M_mat->close();
+
+        // Reset values at Dirichlet boundaries.
+        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        {
+            Elem* const elem = *el_it;
+            for (unsigned int side = 0; side < elem->n_sides(); ++side)
+            {
+                if (elem->neighbor(side) != NULL) continue;
+                const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
+                const bool at_dirichlet_bdry = std::find(bdry_ids.begin(), bdry_ids.end(), DIRICHLET_BDRY_ID) != bdry_ids.end();
+                if (!at_dirichlet_bdry) continue;
+                fe->reinit(elem);
+                for (unsigned int n = 0; n < elem->n_nodes(); ++n)
+                {
+                    if (elem->is_node_on_side(n, side))
+                    {
+                        Node* node = elem->get_node(n);
+                        for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
+                        {
+                            dof_map.dof_indices(elem, dof_indices, var_num);
+                            const unsigned int n_comp = node->n_comp(sys_num, var_num);
+                            for (unsigned int comp = 0; comp < n_comp; ++comp)
+                            {
+                                const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
+                                if (dof_map.is_constrained_dof(node_dof_index))
+                                {
+                                    for (std::vector<unsigned int>::const_iterator cit = dof_indices.begin(); cit != dof_indices.end(); ++cit)
+                                    {
+                                        const unsigned int k = *cit;
+                                        M_mat->set(node_dof_index, k, (node_dof_index == k ? 1.0 : 0.0));
+                                        M_mat->set(k, node_dof_index, (node_dof_index == k ? 1.0 : 0.0));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -631,6 +674,7 @@ FEDataManager::getDiagonalL2MassMatrix(
         AutoPtr<QBase> qrule = QBase::build(quad_type, dim, quad_order);
 
         System& system = d_es->get_system<System>(system_name);
+        const int sys_num = system.number();
         DofMap& dof_map = system.get_dof_map();
         // NOTE: Sparsity patterns are not automatically computed for all system
         // types; if it has not been computed for this system, we must compute
@@ -649,9 +693,9 @@ FEDataManager::getDiagonalL2MassMatrix(
         DenseVector<double> M_e;
 
         // Loop over the mesh to construct the system matrix.
-        MeshBase::const_element_iterator       el_it  = mesh.active_local_elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-        for ( ; el_it != el_end; ++el_it)
+        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+        const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
+        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             const Elem* const elem = *el_it;
             fe->reinit(elem);
@@ -674,9 +718,40 @@ FEDataManager::getDiagonalL2MassMatrix(
             }
         }
 
+        // Flush assemble the vector representation of the diagonal matrix.
+        M_vec->close();
+
+        // Reset values at Dirichlet boundaries.
+        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        {
+            Elem* const elem = *el_it;
+            for (unsigned int side = 0; side < elem->n_sides(); ++side)
+            {
+                if (elem->neighbor(side) != NULL) continue;
+                const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
+                const bool at_dirichlet_bdry = std::find(bdry_ids.begin(), bdry_ids.end(), DIRICHLET_BDRY_ID) != bdry_ids.end();
+                if (!at_dirichlet_bdry) continue;
+                for (unsigned int n = 0; n < elem->n_nodes(); ++n)
+                {
+                    if (elem->is_node_on_side(n, side))
+                    {
+                        Node* node = elem->get_node(n);
+                        for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
+                        {
+                            const unsigned int n_comp = node->n_comp(sys_num, var_num);
+                            for (unsigned int comp = 0; comp < n_comp; ++comp)
+                            {
+                                const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
+                                if (dof_map.is_constrained_dof(node_dof_index)) M_vec->set(node_dof_index, 1.0);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Assemble the vector representation of the diagonal matrix.
         M_vec->close();
-        dof_map.enforce_constraints_exactly(system, M_vec);
 
         // Store the diagonal mass matrix.
         d_L2_proj_matrix_diag[system_name] = M_vec;
