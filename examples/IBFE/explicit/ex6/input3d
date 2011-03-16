@@ -11,8 +11,8 @@ NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 32.0                                  // width of computational domain (cm)
 DX = L/NFINEST                            // Cartesian grid spacing (cm)
 DS = 2.0*DX                               // (approximate) Lagrangian mesh spacing (cm)
-DT = 0.0004*DX                            // timestep size (s)
-CFL_MAX = 0.0625                          // maximum CFL number
+DT = 1.0e-4*64/NFINEST                    // timestep size (s)
+CFL_MAX = 0.5                             // maximum CFL number
 
 elem_order = "FIRST"
 quad_type = "QGAUSS"
@@ -99,7 +99,7 @@ IBFEHierarchyIntegrator {
    dt_max = DT
    num_cycles = 2
    enable_logging = TRUE
-   split_interior_and_bdry_forces = TRUE
+   split_interior_and_bdry_forces = FALSE
    fe_order = elem_order
    use_fbar_projection = use_fbar_projection
    use_consistent_mass_matrix = use_consistent_mass_matrix
