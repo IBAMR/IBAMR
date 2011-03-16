@@ -151,12 +151,12 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
       d_split_interior_and_bdry_forces(false),
       d_use_consistent_mass_matrix(true),
       d_quad_type(QGAUSS),
-      d_quad_order(THIRD),
+      d_quad_order(static_cast<Order>(2*static_cast<int>(d_fe_order) + 1)),
       d_use_fbar_projection(false),
       d_J_bar_fe_order(CONSTANT),
       d_J_bar_fe_family(MONOMIAL),
       d_J_bar_quad_type(QGAUSS),
-      d_J_bar_quad_order(THIRD),
+      d_J_bar_quad_order(static_cast<Order>(NDIM*static_cast<int>(d_fe_order) + static_cast<int>(d_J_bar_fe_order) + 1)),
       d_coordinate_mapping_fcn(NULL),
       d_coordinate_mapping_fcn_ctx(NULL),
       d_PK1_stress_fcn(NULL),
@@ -1986,11 +1986,11 @@ IBFEHierarchyIntegrator::getFromInput(
     d_dt_max_time_min = db->getDoubleWithDefault("dt_max_time_min", d_dt_max_time_min);
 
     d_fe_order = Utility::string_to_enum<Order>(db->getStringWithDefault("fe_order", Utility::enum_to_string<Order>(d_fe_order)));
-    if (d_fe_order == SECOND) d_quad_order = FIFTH;
     d_fe_family = Utility::string_to_enum<FEFamily>(db->getStringWithDefault("fe_family", Utility::enum_to_string<FEFamily>(d_fe_family)));
     d_split_interior_and_bdry_forces = db->getBoolWithDefault("split_interior_and_bdry_forces", d_split_interior_and_bdry_forces);
     d_use_consistent_mass_matrix = db->getBoolWithDefault("use_consistent_mass_matrix", d_use_consistent_mass_matrix);
     d_quad_type = Utility::string_to_enum<QuadratureType>(db->getStringWithDefault("quad_type", Utility::enum_to_string<QuadratureType>(d_quad_type)));
+    d_quad_order = static_cast<Order>(2*static_cast<int>(d_fe_order) + 1);
     d_quad_order = Utility::string_to_enum<Order>(db->getStringWithDefault("quad_order", Utility::enum_to_string<Order>(d_quad_order)));
 
     d_use_fbar_projection = db->getBoolWithDefault("use_fbar_projection", d_use_fbar_projection);
@@ -1999,6 +1999,7 @@ IBFEHierarchyIntegrator::getFromInput(
         d_J_bar_fe_order = Utility::string_to_enum<Order>(db->getStringWithDefault("J_bar_fe_order", Utility::enum_to_string<Order>(d_J_bar_fe_order)));
         d_J_bar_fe_family = Utility::string_to_enum<FEFamily>(db->getStringWithDefault("J_bar_fe_family", Utility::enum_to_string<FEFamily>(d_J_bar_fe_family)));
         d_J_bar_quad_type = Utility::string_to_enum<QuadratureType>(db->getStringWithDefault("J_bar_quad_type", Utility::enum_to_string<QuadratureType>(d_J_bar_quad_type)));
+        d_J_bar_quad_order = static_cast<Order>(NDIM*static_cast<int>(d_fe_order) + static_cast<int>(d_J_bar_fe_order) + 1);
         d_J_bar_quad_order = Utility::string_to_enum<Order>(db->getStringWithDefault("J_bar_quad_order", Utility::enum_to_string<Order>(d_J_bar_quad_order)));
     }
 

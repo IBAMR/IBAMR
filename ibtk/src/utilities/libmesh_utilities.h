@@ -349,8 +349,8 @@ jacobian(
 
 inline void
 tensor_inverse_transpose(
-    libMesh::TypeTensor<double>& A_inv_trans,
-    const libMesh::TypeTensor<double>& A,
+    libMesh::TensorValue<double>& A_inv_trans,
+    const libMesh::TensorValue<double>& A,
     const int dim)
 {
     const double det_A = A.det();
@@ -381,9 +381,43 @@ tensor_inverse_transpose(
     return;
 }// tensor_inverse_transpose
 
+inline libMesh::TensorValue<double>
+tensor_inverse_transpose(
+    const libMesh::TensorValue<double>& A,
+    const int dim)
+{
+    libMesh::TensorValue<double> A_inv_trans;
+    const double det_A = A.det();
+    if (dim == 2)
+    {
+        A_inv_trans(0,0) =  A(1,1)/det_A;
+        A_inv_trans(0,1) = -A(1,0)/det_A;
+        A_inv_trans(0,2) = 0.0;
+        A_inv_trans(1,0) = -A(0,1)/det_A;
+        A_inv_trans(1,1) =  A(0,0)/det_A;
+        A_inv_trans(1,2) = 0.0;
+        A_inv_trans(2,0) = 0.0;
+        A_inv_trans(2,1) = 0.0;
+        A_inv_trans(2,2) = 1.0;
+    }
+    else
+    {
+        A_inv_trans(0,0) =  (A(2,2)*A(1,1)-A(2,1)*A(1,2))/det_A;
+        A_inv_trans(0,1) = -(A(2,2)*A(1,0)-A(2,0)*A(1,2))/det_A;
+        A_inv_trans(0,2) =  (A(2,1)*A(1,0)-A(2,0)*A(1,1))/det_A;
+        A_inv_trans(1,0) = -(A(2,2)*A(0,1)-A(2,1)*A(0,2))/det_A;
+        A_inv_trans(1,1) =  (A(2,2)*A(0,0)-A(2,0)*A(0,2))/det_A;
+        A_inv_trans(1,2) = -(A(2,1)*A(0,0)-A(2,0)*A(0,1))/det_A;
+        A_inv_trans(2,0) =  (A(1,2)*A(0,1)-A(1,1)*A(0,2))/det_A;
+        A_inv_trans(2,1) = -(A(1,2)*A(0,0)-A(1,0)*A(0,2))/det_A;
+        A_inv_trans(2,2) =  (A(1,1)*A(0,0)-A(1,0)*A(0,1))/det_A;
+    }
+    return A_inv_trans;
+}// tensor_inverse_transpose
+
 inline void
 outer_product(
-    libMesh::TypeTensor<double>& u_prod_v,
+    libMesh::TensorValue<double>& u_prod_v,
     const libMesh::TypeVector<double>& u,
     const libMesh::TypeVector<double>& v)
 {
@@ -395,6 +429,22 @@ outer_product(
         }
     }
     return;
+}// outer_product
+
+inline libMesh::TensorValue<double>
+outer_product(
+    const libMesh::TypeVector<double>& u,
+    const libMesh::TypeVector<double>& v)
+{
+    libMesh::TensorValue<double> u_prod_v;
+    for (unsigned int i = 0; i < LIBMESH_DIM; ++i)
+    {
+        for (unsigned int j = 0; j < LIBMESH_DIM; ++j)
+        {
+            u_prod_v(i,j) = u(i)*v(j);
+        }
+    }
+    return u_prod_v;
 }// outer_product
 
 struct DofObjectComp
