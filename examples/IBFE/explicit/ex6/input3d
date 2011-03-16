@@ -3,20 +3,20 @@ MU = 0.01
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 2   // maximum number of levels in locally refined grid
+MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 32                                    // coarsest grid spacing
+N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 32.0                                  // width of computational domain (cm)
 DX = L/NFINEST                            // Cartesian grid spacing (cm)
-DS = 4.0*DX                               // (approximate) Lagrangian mesh spacing (cm)
-DT = 0.00025*DX                           // timestep size (s)
-CFL_MAX = 0.5                             // maximum CFL number
+DS = 2.0*DX                               // (approximate) Lagrangian mesh spacing (cm)
+DT = 0.0004*DX                            // timestep size (s)
+CFL_MAX = 0.0625                          // maximum CFL number
 
 elem_order = "FIRST"
 quad_type = "QGAUSS"
-quad_order = "FIFTEENTH"
+quad_order = "SEVENTH"
 weighting_fcn = "IB_4"
 use_consistent_mass_matrix = FALSE
 use_fbar_projection = TRUE

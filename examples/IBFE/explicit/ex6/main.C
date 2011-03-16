@@ -61,7 +61,7 @@ using namespace std;
 // Elasticity model data.
 namespace ModelData
 {
-unsigned int fiber_axes_system_number;
+unsigned int fiber_axes_sys_num;
 NumericVector<double>* E_ghost;
 
 // Stress tensor function.
@@ -73,18 +73,22 @@ PK1_stress_function(
     const Point& s,
     Elem* const elem,
     const int& e,
+    NumericVector<double>& X_vec,
     const double& time,
     void* ctx)
 {
     // Compute the matrix-type contribution to the stress tensor.
-    const double c1 = (elem->subdomain_id() == 2 ? 0.86  : 4.0) * 10000.0;
-    const double c2 = (elem->subdomain_id() == 2 ? 0.215 : 1.0) * 10000.0;
-    const double k1 = (elem->subdomain_id() == 2 ? 260.0 : 0.0) * 10000.0;
+    const double c1 = (elem->subdomain_id() == 2 ? 0.86  : 4.0) * 1.0e4;
+    const double c2 = (elem->subdomain_id() == 2 ? 0.215 : 1.0) * 1.0e4;
+    const double k1 = (elem->subdomain_id() == 2 ? 260.0 : 0.0) * 1.0e4;
     const double k2 = (elem->subdomain_id() == 2 ? 0.5   : 0.0);
     const TensorValue<double> CC = FF.transpose() * FF;
     const TensorValue<double> CC_inv_trans = tensor_inverse_transpose(CC, NDIM);
     const double I1 = CC.tr();
-    PP = (c1 + c2*I1)*FF - c2*FF*CC_inv_trans;
+    const double I3 = CC.det();
+    const double p0 = -(c1+2.0*c2);
+    const double beta = 1.0e3*max(c1,c2);
+    PP = (c1 + c2*I1)*FF + (p0 + beta*log(I3) - c2)*FF*CC_inv_trans;
 
     // If we are in the innermost or outermost layer, there are no other
     // contributions to the stress.
@@ -95,47 +99,65 @@ PK1_stress_function(
     VectorValue<double> a0;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        const int dof_index = elem->dof_number(fiber_axes_system_number,d+0*NDIM,0);
+        const int dof_index = elem->dof_number(fiber_axes_sys_num,d+0*NDIM,0);
         a0(d) = (*E_ghost)(dof_index);
     }
     const TensorValue<double> A0 = outer_product(a0,a0);
     const double I4 = CC.contract(A0);
     if (I4 >= 1.0)
     {
-        PP += k1*(I4-1)*(I4-1)*exp(k2*(I4-1)*(I4-1))*FF*A0;
+        PP += 2.0*k1*(I4-1)*exp(k2*(I4-1)*(I4-1))*FF*A0;
     }
 
     VectorValue<double> b0;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        const int dof_index = elem->dof_number(fiber_axes_system_number,d+1*NDIM,0);
+        const int dof_index = elem->dof_number(fiber_axes_sys_num,d+1*NDIM,0);
         b0(d) = (*E_ghost)(dof_index);
     }
     const TensorValue<double> B0 = outer_product(b0,b0);
     const double I6 = CC.contract(B0);
     if (I6 >= 1.0)
     {
-        PP += k1*(I6-1)*(I6-1)*exp(k2*(I6-1)*(I6-1))*FF*B0;
+        PP += 2.0*k1*(I6-1)*exp(k2*(I6-1)*(I6-1))*FF*B0;
     }
     return;
 }// PK1_stress_function
 
 // Applied pressure function
+int X_sys_num = -1;
 void
 pressure_function(
     double& P,
     const TensorValue<double>& dX_ds,
     const Point& X,
     const Point& s,
-    Elem* const,
+    Elem* const elem,
     const int& e,
     const unsigned short int side,
+    NumericVector<double>& X_vec,
     const double& time,
     void* ctx)
 {
-    if (side == 4)
+    const double p0 = 10.0 * (time < 0.1 ? time/0.1 : 1.0) * 1.0e6;
+    static const double kappa = 1.0e10;
+    if (side == 0 || side == 5)  // lower/upper z boundary
     {
-        P = 10.0 * 1000000.0;
+        double z_mean = 0.0;
+        AutoPtr<DofObject> side_dofs = elem->side(side);
+        Elem* face = dynamic_cast<Elem*>(side_dofs.get());
+        const int n_nodes = face->n_nodes();
+        for (int n = 0; n < n_nodes; ++n)
+        {
+            const int z_dof_index = face->get_node(n)->dof_number(X_sys_num, NDIM-1, 0);
+            z_mean += X_vec(z_dof_index);
+        }
+        z_mean /= double(n_nodes);
+        P = -p0 + (side == 0 ? -1.0 : 1.0)*kappa*(X(2) - z_mean);
+    }
+    else if (side == 4)  // inner radial boundary
+    {
+        P = p0;
     }
     else
     {
@@ -239,11 +261,10 @@ main(
     // Create a FE mesh corresponding to the 3-layer fiber-reinforced tube model
     // of Holzapfel and Gasser.
     static const double R_i =  100.0 * 0.1;  // inner radius (cm)
-    static const double R_o =  118.0 * 0.1;  // outer radius (cm)
     static const double t1  =    7.5 * 0.1;  // thickness of innermost isotropic layer (cm)
     static const double t2  =    8.0 * 0.1;  // thickness of orthotropic         layer (cm)
     static const double t3  =    2.5 * 0.1;  // thickness of outermost isotropic layer (cm)
-
+    static const double R_o = R_i+t1+t2+t3;  // outer radius (cm)
     static const double L   =    2.0 * R_o;  // prescribed length of tube (cm)
     static const double C_o = 2.0*M_PI*R_o;  // outer circumference of tube (cm)
 
@@ -256,7 +277,7 @@ main(
     static const int n_r3    = ceil(t3 / ds);
     static const int n_r     = n_r1+n_r2+n_r3;
     static const int n_theta = 4*ceil(C_o / 4.0 / ds);
-    static const int n_z     = 4*ceil(L / 4.0 / ds);
+    static const int n_z     = 2*ceil(L / 2.0 / ds);
 
     Mesh mesh(NDIM);
     mesh.set_mesh_dimension(NDIM);
@@ -266,28 +287,28 @@ main(
     // Build nodes.
     for (int k = 0; k <= n_z; ++k)
     {
-        const double z = double(k)*L/double(n_z+1) - 0.5*L;
+        const double z = double(k)*L/double(n_z) - 0.5*L;
         for (int j = 0; j < n_theta; ++j)
         {
             const double theta = double(j)*2.0*M_PI/double(n_theta);
             for (int i = 0; i < n_r1; ++i)
             {
                 const int idx = i + j*(n_r+1) + k*n_theta*(n_r+1);
-                const double r = R_i + double(i)*t1/double(n_r1+1);
+                const double r = R_i + double(i)*t1/double(n_r1);
                 Point x(r*cos(theta),r*sin(theta),z);
                 mesh.add_point(x,idx);
             }
             for (int i = n_r1; i < n_r1+n_r2; ++i)
             {
                 const int idx = i + j*(n_r+1) + k*n_theta*(n_r+1);
-                const double r = R_i + t1 + double(i-n_r1)*t2/double(n_r2+1);
+                const double r = R_i + t1 + double(i-n_r1)*t2/double(n_r2);
                 Point x(r*cos(theta),r*sin(theta),z);
                 mesh.add_point(x,idx);
             }
             for (int i = n_r1+n_r2; i <= n_r1+n_r2+n_r3; ++i)
             {
                 const int idx = i + j*(n_r+1) + k*n_theta*(n_r+1);
-                const double r = R_i + t1 + t2 + double(i-(n_r1+n_r2))*t3/double(n_r3+1);
+                const double r = R_i + t1 + t2 + double(i-(n_r1+n_r2))*t3/double(n_r3);
                 Point x(r*cos(theta),r*sin(theta),z);
                 mesh.add_point(x,idx);
             }
@@ -368,7 +389,7 @@ main(
 
     // Build an equation system that stores the material axes.
     ExplicitSystem& fiber_axes_system = equation_systems.add_system<ExplicitSystem>("fiber axes");
-    fiber_axes_system_number = fiber_axes_system.number();
+    fiber_axes_sys_num = fiber_axes_system.number();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         std::ostringstream os;
@@ -595,6 +616,9 @@ main(
     time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
     double dt_now = time_integrator->initializeHierarchy();
 
+    // Note the system number for the coordinates system.
+    X_sys_num = equation_systems.get_system<System>(fe_data_manager->COORDINATES_SYSTEM_NAME).number();
+
     // Setup the fiber axes.
     static const double gamma = 33.1 * M_PI / 180.0;
     const Point a0(0.0,cos(gamma),sin(gamma));
@@ -631,7 +655,7 @@ main(
         a /= a.size();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            const int dof_index = elem->dof_number(fiber_axes_system_number,d+0*NDIM,0);
+            const int dof_index = elem->dof_number(fiber_axes_sys_num,d+0*NDIM,0);
             E.set(dof_index, a(d));
         }
 
@@ -641,13 +665,14 @@ main(
         b /= b.size();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            const int dof_index = elem->dof_number(fiber_axes_system_number,d+1*NDIM,0);
+            const int dof_index = elem->dof_number(fiber_axes_sys_num,d+1*NDIM,0);
             E.set(dof_index, b(d));
         }
     }
     E.close();
     E.localize(*fiber_axes_system.current_local_solution);
     E_ghost = fiber_axes_system.current_local_solution.get();
+    E_ghost->close();
 
     // Close the restart manager.
     RestartManager::getManager()->closeRestartFile();

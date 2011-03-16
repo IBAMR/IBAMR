@@ -318,7 +318,7 @@ IBFEHierarchyIntegrator::registerInitialCoordinateMappingFunction(
 
 void
 IBFEHierarchyIntegrator::registerPK1StressTensorFunction(
-    void (*PK1_stress_fcn)(TensorValue<double>& PP, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, const int& e, const double& time, void* ctx),
+    void (*PK1_stress_fcn)(TensorValue<double>& PP, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, const int& e, NumericVector<double>& X_vec, const double& time, void* ctx),
     void* PK1_stress_fcn_ctx)
 {
     d_PK1_stress_fcn = PK1_stress_fcn;
@@ -328,7 +328,7 @@ IBFEHierarchyIntegrator::registerPK1StressTensorFunction(
 
 void
 IBFEHierarchyIntegrator::registerLagBodyForceFunction(
-    void (*lag_body_force_fcn)(VectorValue<double>& F, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, const int& e, const double& time, void* ctx),
+    void (*lag_body_force_fcn)(VectorValue<double>& F, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, const int& e, NumericVector<double>& X_vec, const double& time, void* ctx),
     void* lag_body_force_fcn_ctx)
 {
     d_lag_body_force_fcn = lag_body_force_fcn;
@@ -338,7 +338,7 @@ IBFEHierarchyIntegrator::registerLagBodyForceFunction(
 
 void
 IBFEHierarchyIntegrator::registerLagPressureFunction(
-    void (*lag_pressure_fcn)(double& P, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, const int& e, const unsigned short int side, const double& time, void* ctx),
+    void (*lag_pressure_fcn)(double& P, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, const int& e, const unsigned short int side, NumericVector<double>& X_vec, const double& time, void* ctx),
     void* lag_pressure_fcn_ctx)
 {
     d_lag_pressure_fcn = lag_pressure_fcn;
@@ -1671,7 +1671,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
             // Compute the value of the first Piola-Kirchhoff stress tensor at
             // the quadrature point and add the corresponding forces to the
             // right-hand-side vector.
-            d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,e,time,d_PK1_stress_fcn_ctx);
+            d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,e,X_vec,time,d_PK1_stress_fcn_ctx);
             for (int k = 0; k < n_basis; ++k)
             {
                 F_qp = -PP*dphi_JxW(qp,k);
@@ -1686,7 +1686,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                 // Compute the value of the body force at the quadrature point
                 // and add the corresponding forces to the right-hand-side
                 // vector.
-                d_lag_body_force_fcn(F_b,dX_ds,X_qp,s_qp,elem,e,time,d_lag_body_force_fcn_ctx);
+                d_lag_body_force_fcn(F_b,dX_ds,X_qp,s_qp,elem,e,X_vec,time,d_lag_body_force_fcn_ctx);
                 for (int k = 0; k < n_basis; ++k)
                 {
                     F_qp = phi_JxW(qp,k)*F_b;
@@ -1741,7 +1741,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                         // Compute the value of the first Piola-Kirchhoff stress
                         // tensor at the quadrature point and add the
                         // corresponding force to the right-hand-side vector.
-                        d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,e,time,d_PK1_stress_fcn_ctx);
+                        d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,e,X_vec,time,d_PK1_stress_fcn_ctx);
                         F += PP*normal_face(qp);
                     }
                     if (compute_pressure)
@@ -1749,7 +1749,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                         // Compute the value of the pressure at the quadrature
                         // point and add the corresponding force to the
                         // right-hand-side vector.
-                        d_lag_pressure_fcn(P,dX_ds,X_qp,s_qp,elem,e,side,time,d_lag_pressure_fcn_ctx);
+                        d_lag_pressure_fcn(P,dX_ds,X_qp,s_qp,elem,e,side,X_vec,time,d_lag_pressure_fcn_ctx);
                         tensor_inverse_transpose(dX_ds_inv_trans,dX_ds,NDIM);
                         F -= P*dX_ds.det()*dX_ds_inv_trans*normal_face(qp);
                     }
@@ -1861,14 +1861,14 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
                         // Compute the value of the first Piola-Kirchhoff stress
                         // tensor at the quadrature point and compute the
                         // corresponding force.
-                        d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,e,time,d_PK1_stress_fcn_ctx);
+                        d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,e,X_ghost_vec,time,d_PK1_stress_fcn_ctx);
                         F -= PP*normal_JxW_face(qp);
                     }
                     if (compute_pressure)
                     {
                         // Compute the value of the pressure at the quadrature
                         // point and compute the corresponding force.
-                        d_lag_pressure_fcn(P,dX_ds,X_qp,s_qp,elem,e,side,time,d_lag_pressure_fcn_ctx);
+                        d_lag_pressure_fcn(P,dX_ds,X_qp,s_qp,elem,e,side,X_ghost_vec,time,d_lag_pressure_fcn_ctx);
                         tensor_inverse_transpose(dX_ds_inv_trans,dX_ds,NDIM);
                         F -= P*dX_ds.det()*dX_ds_inv_trans*normal_JxW_face(qp);
                     }
