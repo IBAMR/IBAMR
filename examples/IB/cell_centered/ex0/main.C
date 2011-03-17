@@ -31,9 +31,6 @@
 #include <IBAMR_config.h>
 #include <SAMRAI_config.h>
 
-// Headers for IO routines for file locking
-#include <fcntl.h>
-
 // Headers for basic PETSc functions
 #include <petsc.h>
 
@@ -381,28 +378,6 @@ main(
         }
 
         const bool postprocess_data = (postprocess_interval > 0);
-
-        /*
-         * Create the lock file.
-         */
-        string lock_file_name;
-        if (main_db->keyExists("lock_file_name"))
-        {
-            lock_file_name = main_db->getString("lock_file_name");
-        }
-
-        const bool enable_lock_file = !lock_file_name.empty();
-
-        if (enable_lock_file && tbox::SAMRAI_MPI::getRank() == 0)
-        {
-            int fd = open(lock_file_name.c_str(), O_WRONLY | O_CREAT | O_EXCL);
-            if (fd < 0)
-            {
-                tbox::pout << "ERROR: could not create lock file: " << lock_file_name << endl;
-                tbox::SAMRAI_MPI::abort();
-                return -1;
-            }
-        }
 
         /*
          * Get the restart manager and root restart database.  If run is from
@@ -806,19 +781,6 @@ main(
                     patch_hierarchy, iteration_num, loop_time);
                 silo_data_writer->writePlotData(
                     iteration_num, loop_time);
-            }
-        }
-
-        /*
-         * Delete the lock file.
-         */
-        if (enable_lock_file && tbox::SAMRAI_MPI::getRank() == 0)
-        {
-            if (remove(lock_file_name.c_str()) != 0)
-            {
-                tbox::pout << "ERROR: could not remove lock file: " << lock_file_name << endl;
-                tbox::SAMRAI_MPI::abort();
-                return -1;
             }
         }
 
