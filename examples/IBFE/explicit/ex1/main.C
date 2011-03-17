@@ -86,6 +86,7 @@ PK1_stress_function(
     const Point& s,
     Elem* const elem,
     const int& e,
+    NumericVector<double>& X_vec,
     const double& time,
     void* ctx)
 {
