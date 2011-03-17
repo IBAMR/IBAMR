@@ -125,6 +125,7 @@ PK1_stress_function(
 }// PK1_stress_function
 
 // Applied pressure function
+double R_i, R_o;
 int X_sys_num = -1;
 void
 pressure_function(
@@ -139,8 +140,16 @@ pressure_function(
     const double& time,
     void* ctx)
 {
-    const double p0 = 10.0 * (time < 0.1 ? time/0.1 : 1.0) * 1.0e6;
-    static const double kappa = 1.0e10;
+    // The pressure applied along the inner radial boundary:
+    const double P_inner = 10.0 * (time < 0.1 ? time/0.1 : 1.0) * 1.0e6;
+
+    // The pressure applied along the top/bottom axial boundaries:
+    const double P_axial = - P_inner * R_i*R_i / (R_o*R_o - R_i*R_i);
+
+    // Penalty parameter.
+    static const double kappa = 1.0e8;
+
+    // Compute the pressure boundary condition.
     if (side == 0 || side == 5)  // lower/upper z boundary
     {
         double z_mean = 0.0;
@@ -153,11 +162,11 @@ pressure_function(
             z_mean += X_vec(z_dof_index);
         }
         z_mean /= double(n_nodes);
-        P = -p0 + (side == 0 ? -1.0 : 1.0)*kappa*(X(2) - z_mean);
+        P = P_axial + (side == 0 ? -1.0 : 1.0)*kappa*(X(2) - z_mean);
     }
     else if (side == 4)  // inner radial boundary
     {
-        P = p0;
+        P = P_inner;
     }
     else
     {
@@ -258,6 +267,10 @@ main(
     Pointer<Database> input_db = new InputDatabase("input_db");
     InputManager::getManager()->parseInputFile(input_filename, input_db);
 
+    // Split formulation is broken for complex constitutive models for parallel
+    // runs.
+    TBOX_ASSERT((SAMRAI_MPI::getNodes() == 1) || (!input_db->getDatabase("IBFEHierarchyIntegrator")->getBoolWithDefault("split_interior_and_bdry_forces",false)));
+
     // Create a FE mesh corresponding to the 3-layer fiber-reinforced tube model
     // of Holzapfel and Gasser.
     static const double R_i =  100.0 * 0.1;  // inner radius (cm)
@@ -268,10 +281,12 @@ main(
     static const double L   =    2.0 * R_o;  // prescribed length of tube (cm)
     static const double C_o = 2.0*M_PI*R_o;  // outer circumference of tube (cm)
 
-    static const double dx = input_db->getDouble("DX");
-    static const double ds = input_db->getDoubleWithDefault("DS",4.0*dx);
+    ModelData::R_i = R_i;
+    ModelData::R_o = R_o;
 
     // Determine the number of elements in the various directions (r,theta,z).
+    static const double dx = input_db->getDouble("DX");
+    static const double ds = input_db->getDoubleWithDefault("DS",4.0*dx);
     static const int n_r1    = ceil(t1 / ds);
     static const int n_r2    = ceil(t2 / ds);
     static const int n_r3    = ceil(t3 / ds);
