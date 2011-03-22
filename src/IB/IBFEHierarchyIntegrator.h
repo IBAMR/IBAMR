@@ -151,6 +151,15 @@ public:
         void* lag_pressure_fcn_ctx=NULL);
 
     /*!
+     * Register the (optional) function to compute surface force distributions
+     * on the Lagrangian finite element mesh.
+     */
+    void
+    registerLagSurfaceForceFunction(
+        void (*lag_surface_force_fcn)(libMesh::VectorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, const int& e, const unsigned short int side, libMesh::NumericVector<double>& X_vec, const double& time, void* ctx),
+        void* lag_surface_force_fcn_ctx=NULL);
+
+    /*!
      * Register the function used to compute the forces on the Lagrangian fiber
      * mesh.
      */
@@ -720,6 +729,9 @@ private:
 
     void (*d_lag_pressure_fcn)(double&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const, const int& e, const unsigned short int side, libMesh::NumericVector<double>& X_vec, const double& time, void* ctx);
     void* d_lag_pressure_fcn_ctx;
+
+    void (*d_lag_surface_force_fcn)(libMesh::VectorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const, const int& e, const unsigned short int side, libMesh::NumericVector<double>& X_vec, const double& time, void* ctx);
+    void* d_lag_surface_force_fcn_ctx;
 
     /*
      * Support for traditional fiber-based Lagrangian data.

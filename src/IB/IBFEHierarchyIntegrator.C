@@ -165,6 +165,8 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
       d_lag_body_force_fcn_ctx(NULL),
       d_lag_pressure_fcn(NULL),
       d_lag_pressure_fcn_ctx(NULL),
+      d_lag_surface_force_fcn(NULL),
+      d_lag_surface_force_fcn_ctx(NULL),
       d_lag_data_manager(lag_data_manager),
       d_hierarchy(hierarchy),
       d_gridding_alg(NULL),
@@ -345,6 +347,16 @@ IBFEHierarchyIntegrator::registerLagPressureFunction(
     d_lag_pressure_fcn_ctx = lag_pressure_fcn_ctx;
     return;
 }// registerLagPressureFunction
+
+void
+IBFEHierarchyIntegrator::registerLagSurfaceForceFunction(
+    void (*lag_surface_force_fcn)(VectorValue<double>& F, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, const int& e, const unsigned short int side, NumericVector<double>& X_vec, const double& time, void* ctx),
+    void* lag_surface_force_fcn_ctx)
+{
+    d_lag_surface_force_fcn = lag_surface_force_fcn;
+    d_lag_surface_force_fcn_ctx = lag_surface_force_fcn_ctx;
+    return;
+}// registerLagSurfaceForceFunction
 
 void
 IBFEHierarchyIntegrator::registerIBLagrangianForceStrategy(
@@ -1633,7 +1645,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     // interior elastic force density.
     const int num_elems = d_interior_force_data->num_elems();
     TensorValue<double> PP, dX_ds, dX_ds_inv_trans;
-    VectorValue<double> F, F_b, F_qp;
+    VectorValue<double> F, F_b, F_s, F_qp;
     Point X_qp;
     double P;
     blitz::Array<double,2> X_node;
@@ -1714,7 +1726,8 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                 const bool compute_transmission_force = (( d_split_interior_and_bdry_forces && !at_dirichlet_bdry) ||
                                                          (!d_split_interior_and_bdry_forces &&  at_dirichlet_bdry));
                 const bool compute_pressure = (!d_split_interior_and_bdry_forces && d_lag_pressure_fcn != NULL && !at_dirichlet_bdry);
-                if (!(compute_transmission_force || compute_pressure)) continue;
+                const bool compute_surface_force = (!d_split_interior_and_bdry_forces && d_lag_surface_force_fcn != NULL && !at_dirichlet_bdry);
+                if (!(compute_transmission_force || compute_pressure || compute_surface_force)) continue;
 
                 // Lookup cached data.
                 const blitz::Array<Point,1>& q_point_face = d_interior_force_data->q_point_face(e)(side);
@@ -1752,6 +1765,14 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                         d_lag_pressure_fcn(P,dX_ds,X_qp,s_qp,elem,e,side,X_vec,time,d_lag_pressure_fcn_ctx);
                         tensor_inverse_transpose(dX_ds_inv_trans,dX_ds,NDIM);
                         F -= P*dX_ds.det()*dX_ds_inv_trans*normal_face(qp);
+                    }
+                    if (compute_surface_force)
+                    {
+                        // Compute the value of the surface force at the
+                        // quadrature point and add the corresponding force to
+                        // the right-hand-side vector.
+                        d_lag_surface_force_fcn(F_s,dX_ds,X_qp,s_qp,elem,e,side,X_vec,time,d_lag_surface_force_fcn_ctx);
+                        F += F_s;
                     }
                     for (int k = 0; k < n_basis; ++k)
                     {
@@ -1796,7 +1817,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     TensorValue<double> PP, dX_ds, dX_ds_inv_trans;
-    VectorValue<double> F;
+    VectorValue<double> F, F_s;
     Point X_qp;
     double P;
     blitz::Array<double,2> X_node;
@@ -1831,7 +1852,8 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
                 const bool at_dirichlet_bdry = d_transmission_force_data->elem_side_at_dirichlet_bdry(e)(side);
                 const bool compute_transmission_force = d_split_interior_and_bdry_forces && !at_dirichlet_bdry;
                 const bool compute_pressure = (d_split_interior_and_bdry_forces && d_lag_pressure_fcn != NULL);
-                if (!(compute_transmission_force || compute_pressure)) continue;
+                const bool compute_surface_force = (d_split_interior_and_bdry_forces && d_lag_surface_force_fcn != NULL);
+                if (!(compute_transmission_force || compute_pressure || compute_surface_force)) continue;
 
                 // Lookup cached data.
                 const blitz::Array<Point,1>& q_point_face = d_transmission_force_data->q_point_face(e)(side);
@@ -1871,6 +1893,13 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
                         d_lag_pressure_fcn(P,dX_ds,X_qp,s_qp,elem,e,side,X_ghost_vec,time,d_lag_pressure_fcn_ctx);
                         tensor_inverse_transpose(dX_ds_inv_trans,dX_ds,NDIM);
                         F -= P*dX_ds.det()*dX_ds_inv_trans*normal_JxW_face(qp);
+                    }
+                    if (compute_surface_force)
+                    {
+                        // Compute the value of the surface force at the
+                        // quadrature point and compute the corresponding force.
+                        d_lag_surface_force_fcn(F_s,dX_ds,X_qp,s_qp,elem,e,side,X_ghost_vec,time,d_lag_surface_force_fcn_ctx);
+                        F += F_s;
                     }
                     const int idx = NDIM*qp_offset;
                     for (unsigned int i = 0; i < NDIM; ++i)
