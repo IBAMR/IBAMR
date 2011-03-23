@@ -174,7 +174,7 @@ compute_displacement(
     EquationSystems& equation_systems)
 {
     AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, CONSTANT);
-    System& X_system = equation_systems.get_system<System>(IBFEHierarchyIntegrator::COORD_MAPPING_SYSTEM_NAME);
+    System& X_system = equation_systems.get_system<System>(IBFEHierarchyIntegrator::COORDS_SYSTEM_NAME);
     DofMap& X_dof_map = X_system.get_dof_map();
     blitz::Array<vector<unsigned int>,1> X_dof_indices(NDIM);
     AutoPtr<FEBase> X_fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
