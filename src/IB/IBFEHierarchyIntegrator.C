@@ -160,12 +160,16 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
       d_coordinate_mapping_fcn(NULL),
       d_coordinate_mapping_fcn_ctx(NULL),
       d_PK1_stress_fcn(NULL),
+      d_PK1_stress_fcn_systems(NULL),
       d_PK1_stress_fcn_ctx(NULL),
       d_lag_body_force_fcn(NULL),
+      d_lag_body_force_fcn_systems(NULL),
       d_lag_body_force_fcn_ctx(NULL),
       d_lag_pressure_fcn(NULL),
+      d_lag_pressure_fcn_systems(NULL),
       d_lag_pressure_fcn_ctx(NULL),
       d_lag_surface_force_fcn(NULL),
+      d_lag_surface_force_fcn_systems(NULL),
       d_lag_surface_force_fcn_ctx(NULL),
       d_lag_data_manager(lag_data_manager),
       d_hierarchy(hierarchy),
@@ -320,40 +324,48 @@ IBFEHierarchyIntegrator::registerInitialCoordinateMappingFunction(
 
 void
 IBFEHierarchyIntegrator::registerPK1StressTensorFunction(
-    void (*PK1_stress_fcn)(TensorValue<double>& PP, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, const int& e, NumericVector<double>& X_vec, const double& time, void* ctx),
+    void (*PK1_stress_fcn)(TensorValue<double>& PP, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, const int& e, NumericVector<double>& X_vec, const std::vector<NumericVector<double>*>& system_data, const double& time, void* ctx),
+    std::vector<unsigned int> PK1_stress_fcn_systems,
     void* PK1_stress_fcn_ctx)
 {
     d_PK1_stress_fcn = PK1_stress_fcn;
+    d_PK1_stress_fcn_systems = PK1_stress_fcn_systems;
     d_PK1_stress_fcn_ctx = PK1_stress_fcn_ctx;
     return;
 }// registerPK1StressTensorFunction
 
 void
 IBFEHierarchyIntegrator::registerLagBodyForceFunction(
-    void (*lag_body_force_fcn)(VectorValue<double>& F, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, const int& e, NumericVector<double>& X_vec, const double& time, void* ctx),
+    void (*lag_body_force_fcn)(VectorValue<double>& F, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, const int& e, NumericVector<double>& X_vec, const std::vector<NumericVector<double>*>& system_data, const double& time, void* ctx),
+    std::vector<unsigned int> lag_body_force_fcn_systems,
     void* lag_body_force_fcn_ctx)
 {
     d_lag_body_force_fcn = lag_body_force_fcn;
+    d_lag_body_force_fcn_systems = lag_body_force_fcn_systems;
     d_lag_body_force_fcn_ctx = lag_body_force_fcn_ctx;
     return;
 }// registerLagBodyForceFunction
 
 void
 IBFEHierarchyIntegrator::registerLagPressureFunction(
-    void (*lag_pressure_fcn)(double& P, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, const int& e, const unsigned short int side, NumericVector<double>& X_vec, const double& time, void* ctx),
+    void (*lag_pressure_fcn)(double& P, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, const int& e, const unsigned short int side, NumericVector<double>& X_vec, const std::vector<NumericVector<double>*>& system_data, const double& time, void* ctx),
+    std::vector<unsigned int> lag_pressure_fcn_systems,
     void* lag_pressure_fcn_ctx)
 {
     d_lag_pressure_fcn = lag_pressure_fcn;
+    d_lag_pressure_fcn_systems = lag_pressure_fcn_systems;
     d_lag_pressure_fcn_ctx = lag_pressure_fcn_ctx;
     return;
 }// registerLagPressureFunction
 
 void
 IBFEHierarchyIntegrator::registerLagSurfaceForceFunction(
-    void (*lag_surface_force_fcn)(VectorValue<double>& F, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, const int& e, const unsigned short int side, NumericVector<double>& X_vec, const double& time, void* ctx),
+    void (*lag_surface_force_fcn)(VectorValue<double>& F, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, const int& e, const unsigned short int side, NumericVector<double>& X_vec, const std::vector<NumericVector<double>*>& system_data, const double& time, void* ctx),
+    std::vector<unsigned int> lag_surface_force_fcn_systems,
     void* lag_surface_force_fcn_ctx)
 {
     d_lag_surface_force_fcn = lag_surface_force_fcn;
+    d_lag_surface_force_fcn_systems = lag_surface_force_fcn_systems;
     d_lag_surface_force_fcn_ctx = lag_surface_force_fcn_ctx;
     return;
 }// registerLagSurfaceForceFunction
@@ -1636,6 +1648,43 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
         J_bar_dof_map = &J_bar_system.get_dof_map();
     }
 
+    // Setup extra data needed to compute stresses/forces.
+    std::vector<NumericVector<double>*> PK1_stress_fcn_data;
+    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems.begin();
+         cit != d_PK1_stress_fcn_systems.end(); ++cit)
+    {
+        System& system = equation_systems->get_system<System>(*cit);
+        system.update();
+        PK1_stress_fcn_data.push_back(system.current_local_solution.get());
+    }
+
+    std::vector<NumericVector<double>*> lag_body_force_fcn_data;
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_body_force_fcn_systems.begin();
+         cit != d_lag_body_force_fcn_systems.end(); ++cit)
+    {
+        System& system = equation_systems->get_system<System>(*cit);
+        system.update();
+        lag_body_force_fcn_data.push_back(system.current_local_solution.get());
+    }
+
+    std::vector<NumericVector<double>*> lag_pressure_fcn_data;
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems.begin();
+         cit != d_lag_pressure_fcn_systems.end(); ++cit)
+    {
+        System& system = equation_systems->get_system<System>(*cit);
+        system.update();
+        lag_pressure_fcn_data.push_back(system.current_local_solution.get());
+    }
+
+    std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems.begin();
+         cit != d_lag_surface_force_fcn_systems.end(); ++cit)
+    {
+        System& system = equation_systems->get_system<System>(*cit);
+        system.update();
+        lag_surface_force_fcn_data.push_back(system.current_local_solution.get());
+    }
+
     // Loop over the elements to accumulate the interior forces at the nodes of
     // the mesh.  These are computed via
     //
@@ -1683,7 +1732,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
             // Compute the value of the first Piola-Kirchhoff stress tensor at
             // the quadrature point and add the corresponding forces to the
             // right-hand-side vector.
-            d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,e,X_vec,time,d_PK1_stress_fcn_ctx);
+            d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,e,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctx);
             for (int k = 0; k < n_basis; ++k)
             {
                 F_qp = -PP*dphi_JxW(qp,k);
@@ -1698,7 +1747,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                 // Compute the value of the body force at the quadrature point
                 // and add the corresponding forces to the right-hand-side
                 // vector.
-                d_lag_body_force_fcn(F_b,dX_ds,X_qp,s_qp,elem,e,X_vec,time,d_lag_body_force_fcn_ctx);
+                d_lag_body_force_fcn(F_b,dX_ds,X_qp,s_qp,elem,e,X_vec,lag_body_force_fcn_data,time,d_lag_body_force_fcn_ctx);
                 for (int k = 0; k < n_basis; ++k)
                 {
                     F_qp = phi_JxW(qp,k)*F_b;
@@ -1754,7 +1803,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                         // Compute the value of the first Piola-Kirchhoff stress
                         // tensor at the quadrature point and add the
                         // corresponding force to the right-hand-side vector.
-                        d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,e,X_vec,time,d_PK1_stress_fcn_ctx);
+                        d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,e,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctx);
                         F += PP*normal_face(qp);
                     }
                     if (compute_pressure)
@@ -1762,7 +1811,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                         // Compute the value of the pressure at the quadrature
                         // point and add the corresponding force to the
                         // right-hand-side vector.
-                        d_lag_pressure_fcn(P,dX_ds,X_qp,s_qp,elem,e,side,X_vec,time,d_lag_pressure_fcn_ctx);
+                        d_lag_pressure_fcn(P,dX_ds,X_qp,s_qp,elem,e,side,X_vec,lag_pressure_fcn_data,time,d_lag_pressure_fcn_ctx);
                         tensor_inverse_transpose(dX_ds_inv_trans,dX_ds,NDIM);
                         F -= P*dX_ds.det()*dX_ds_inv_trans*normal_face(qp);
                     }
@@ -1771,7 +1820,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                         // Compute the value of the surface force at the
                         // quadrature point and add the corresponding force to
                         // the right-hand-side vector.
-                        d_lag_surface_force_fcn(F_s,dX_ds,X_qp,s_qp,elem,e,side,X_vec,time,d_lag_surface_force_fcn_ctx);
+                        d_lag_surface_force_fcn(F_s,dX_ds,X_qp,s_qp,elem,e,side,X_vec,lag_surface_force_fcn_data,time,d_lag_surface_force_fcn_ctx);
                         F += F_s;
                     }
                     for (int k = 0; k < n_basis; ++k)
@@ -1808,6 +1857,33 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     const double& time)
 {
     if (!d_split_interior_and_bdry_forces) return;
+
+    // Setup extra data needed to compute stresses/forces.
+    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
+
+    std::vector<NumericVector<double>*> PK1_stress_fcn_data;
+    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems.begin();
+         cit != d_PK1_stress_fcn_systems.end(); ++cit)
+    {
+        System& system = equation_systems->get_system<System>(*cit);
+        PK1_stress_fcn_data.push_back(d_fe_data_manager->getGhostedSolutionVector(system.name()));
+    }
+
+    std::vector<NumericVector<double>*> lag_pressure_fcn_data;
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems.begin();
+         cit != d_lag_pressure_fcn_systems.end(); ++cit)
+    {
+        System& system = equation_systems->get_system<System>(*cit);
+        lag_pressure_fcn_data.push_back(d_fe_data_manager->getGhostedSolutionVector(system.name()));
+    }
+
+    std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems.begin();
+         cit != d_lag_surface_force_fcn_systems.end(); ++cit)
+    {
+        System& system = equation_systems->get_system<System>(*cit);
+        lag_surface_force_fcn_data.push_back(d_fe_data_manager->getGhostedSolutionVector(system.name()));
+    }
 
     // Loop over the patches to spread the transmission elastic force density
     // onto the grid.
@@ -1883,14 +1959,14 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
                         // Compute the value of the first Piola-Kirchhoff stress
                         // tensor at the quadrature point and compute the
                         // corresponding force.
-                        d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,e,X_ghost_vec,time,d_PK1_stress_fcn_ctx);
+                        d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,e,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctx);
                         F -= PP*normal_JxW_face(qp);
                     }
                     if (compute_pressure)
                     {
                         // Compute the value of the pressure at the quadrature
                         // point and compute the corresponding force.
-                        d_lag_pressure_fcn(P,dX_ds,X_qp,s_qp,elem,e,side,X_ghost_vec,time,d_lag_pressure_fcn_ctx);
+                        d_lag_pressure_fcn(P,dX_ds,X_qp,s_qp,elem,e,side,X_ghost_vec,lag_pressure_fcn_data,time,d_lag_pressure_fcn_ctx);
                         tensor_inverse_transpose(dX_ds_inv_trans,dX_ds,NDIM);
                         F -= P*dX_ds.det()*dX_ds_inv_trans*normal_JxW_face(qp);
                     }
@@ -1898,7 +1974,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
                     {
                         // Compute the value of the surface force at the
                         // quadrature point and compute the corresponding force.
-                        d_lag_surface_force_fcn(F_s,dX_ds,X_qp,s_qp,elem,e,side,X_ghost_vec,time,d_lag_surface_force_fcn_ctx);
+                        d_lag_surface_force_fcn(F_s,dX_ds,X_qp,s_qp,elem,e,side,X_ghost_vec,lag_surface_force_fcn_data,time,d_lag_surface_force_fcn_ctx);
                         F += F_s;
                     }
                     const int idx = NDIM*qp_offset;
