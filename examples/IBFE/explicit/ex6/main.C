@@ -126,7 +126,7 @@ PK1_stress_function(
     return;
 }// PK1_stress_function
 
-// Applied surface force functions
+// Applied surface force functions.
 double kappa = 1.0e12;
 double t_ramp = 0.001;
 double R_i, R_o;

@@ -16,10 +16,10 @@ CFL_MAX = 0.5                             // maximum CFL number
 
 // penalty parameters
 kappa = 1.0e5 / DT
-t_ramp = 1.0e-3
+t_ramp = 0.1
 
-elem_type = "HEX8"
-elem_order = "FIRST"
+elem_type = "HEX27"
+elem_order = "SECOND"
 quad_type = "QGAUSS"
 quad_order = "FIFTH"
 weighting_fcn = "IB_4"
@@ -216,7 +216,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt" , "ExodusII"
-   viz_dump_interval     = int(t_ramp/10.0/DT) // zero to turn off
+   viz_dump_interval     = int(t_ramp/100/DT)  // zero to turn off
    viz_dump_dirname      = "viz_IB3d"
    visit_number_procs_per_file = 1
 

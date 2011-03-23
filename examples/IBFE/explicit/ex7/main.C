@@ -62,10 +62,8 @@ using namespace std;
 // Elasticity model data.
 namespace ModelData
 {
-unsigned int fiber_axes_sys_num;
-NumericVector<double>* E_ghost;
-
 // Stress tensor function.
+unsigned int fiber_axes_sys_num;
 void
 PK1_stress_function(
     TensorValue<double>& PP,
@@ -87,6 +85,8 @@ PK1_stress_function(
 
     // Determine the local fiber axes in the reference configuration and compute
     // the fiber contribution to the stress tensor.
+    NumericVector<double>* E_ghost = system_data[0];
+
     static const double k1 = 996.6 * 10000.0;
     static const double k2 = 524.6;
 
@@ -450,7 +450,9 @@ main(
         "GriddingAlgorithm", input_db->getDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
     // Configure the IBFE solver.
-    time_integrator->registerPK1StressTensorFunction(&PK1_stress_function);
+    vector<unsigned int> PK1_stress_function_systems;
+    PK1_stress_function_systems.push_back(fiber_axes_sys_num);
+    time_integrator->registerPK1StressTensorFunction(&PK1_stress_function, PK1_stress_function_systems);
     time_integrator->registerLagSurfaceForceFunction(&surface_force_function);
     if (use_nonuniform_load_balancer)
     {
@@ -544,8 +546,6 @@ main(
     }
     E.close();
     E.localize(*fiber_axes_system.current_local_solution);
-    E_ghost = fiber_axes_system.current_local_solution.get();
-    E_ghost->close();
 
     // Close the restart manager.
     RestartManager::getManager()->closeRestartFile();

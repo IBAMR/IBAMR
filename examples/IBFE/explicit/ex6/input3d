@@ -18,7 +18,7 @@ CFL_MAX = 0.5                             // maximum CFL number
 kappa = 1.0e6 / DT
 t_ramp = 1.0e-2
 
-elem_order = "FIRST"
+elem_order = "SECOND"
 quad_type = "QGAUSS"
 quad_order = "ELEVENTH"
 weighting_fcn = "IB_4"
