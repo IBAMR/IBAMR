@@ -11,11 +11,11 @@ NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 2.0                                   // width of computational domain (cm)
 DX = L/NFINEST                            // Cartesian grid spacing (cm)
 DS = DX                                   // (approximate) Lagrangian mesh spacing (cm)
-DT = 5.0e-7*NFINEST/128.0                 // timestep size (s)
+DT = 2.5e-7*NFINEST/128.0                 // timestep size (s)
 CFL_MAX = 0.5                             // maximum CFL number
 
 // penalty parameters
-kappa = 5.0e5 / DT
+kappa = 1.0e5 / DT
 t_ramp = 1.0e-3
 
 elem_type = "HEX8"
@@ -216,7 +216,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt" , "ExodusII"
-   viz_dump_interval     = int(1.0e-3/DT)  // zero to turn off
+   viz_dump_interval     = int(t_ramp/10.0/DT) // zero to turn off
    viz_dump_dirname      = "viz_IB3d"
    visit_number_procs_per_file = 1
 

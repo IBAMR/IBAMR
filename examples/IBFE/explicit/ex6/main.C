@@ -40,6 +40,7 @@
 #include <cell_hex8.h>
 #include <exodusII_io.h>
 #include <explicit_system.h>
+#include <fe_base.h>
 #include <mesh.h>
 #include <string_to_enum.h>
 
@@ -61,10 +62,8 @@ using namespace std;
 // Elasticity model data.
 namespace ModelData
 {
-unsigned int fiber_axes_sys_num;
-NumericVector<double>* E_ghost;
-
 // Stress tensor function.
+unsigned int fiber_axes_sys_num;
 void
 PK1_stress_function(
     TensorValue<double>& PP,
@@ -74,6 +73,7 @@ PK1_stress_function(
     Elem* const elem,
     const int& e,
     NumericVector<double>& X_vec,
+    const vector<NumericVector<double>*>& system_data,
     const double& time,
     void* ctx)
 {
@@ -83,12 +83,12 @@ PK1_stress_function(
     const double k1 = (elem->subdomain_id() == 2 ? 260.0 : 0.0) * 1.0e4;
     const double k2 = (elem->subdomain_id() == 2 ? 0.5   : 0.0);
     const TensorValue<double> CC = FF.transpose() * FF;
-    const TensorValue<double> CC_inv_trans = tensor_inverse_transpose(CC, NDIM);
+    const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
     const double I1 = CC.tr();
     const double I3 = CC.det();
     const double p0 = -(c1+2.0*c2);
     const double beta = 1.0e3*max(c1,c2);
-    PP = (c1 + c2*I1)*FF + (p0 + beta*log(I3) - c2)*FF*CC_inv_trans;
+    PP = (c1 + c2*I1)*FF + (p0 + beta*log(I3) - c2)*FF_inv_trans;
 
     // If we are in the innermost or outermost layer, there are no other
     // contributions to the stress.
@@ -96,6 +96,8 @@ PK1_stress_function(
 
     // Determine the local fiber axes in the reference configuration and compute
     // the fiber contribution to the stress tensor.
+    NumericVector<double>* E_ghost = system_data[0];
+
     VectorValue<double> a0;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -124,7 +126,9 @@ PK1_stress_function(
     return;
 }// PK1_stress_function
 
-// Applied pressure function
+// Applied surface force functions
+double kappa = 1.0e12;
+double t_ramp = 0.001;
 double R_i, R_o;
 int X_sys_num = -1;
 void
@@ -137,34 +141,15 @@ pressure_function(
     const int& e,
     const unsigned short int side,
     NumericVector<double>& X_vec,
+    const vector<NumericVector<double>*>& system_data,
     const double& time,
     void* ctx)
 {
     // The pressure applied along the inner radial boundary:
-    const double P_inner = 10.0 * (time < 0.1 ? time/0.1 : 1.0) * 1.0e6;
-
-    // The pressure applied along the top/bottom axial boundaries:
-    const double P_axial = - P_inner * R_i*R_i / (R_o*R_o - R_i*R_i);
-
-    // Penalty parameter.
-    static const double kappa = 1.0e8;
+    const double P_inner = 10.0 * min(1.0,time/t_ramp) * 1.0e6;
 
     // Compute the pressure boundary condition.
-    if (side == 0 || side == 5)  // lower/upper z boundary
-    {
-        double z_mean = 0.0;
-        AutoPtr<DofObject> side_dofs = elem->side(side);
-        Elem* face = dynamic_cast<Elem*>(side_dofs.get());
-        const int n_nodes = face->n_nodes();
-        for (int n = 0; n < n_nodes; ++n)
-        {
-            const int z_dof_index = face->get_node(n)->dof_number(X_sys_num, NDIM-1, 0);
-            z_mean += X_vec(z_dof_index);
-        }
-        z_mean /= double(n_nodes);
-        P = P_axial + (side == 0 ? -1.0 : 1.0)*kappa*(X(2) - z_mean);
-    }
-    else if (side == 4)  // inner radial boundary
+    if (side == 4)  // inner radial boundary
     {
         P = P_inner;
     }
@@ -174,6 +159,50 @@ pressure_function(
     }
     return;
 }// pressure_function
+
+void
+surface_force_function(
+    VectorValue<double>& F,
+    const TensorValue<double>& dX_ds,
+    const Point& X,
+    const Point& s,
+    Elem* const elem,
+    const int& e,
+    const unsigned short int side,
+    NumericVector<double>& X_vec,
+    const vector<NumericVector<double>*>& system_data,
+    const double& time,
+    void* ctx)
+{
+    F.zero();
+
+    // Only apply force at the top/bottom boundaries:
+    if (!(side == 0 || side == 5)) return;
+
+    // The pressure applied along the inner radial boundary:
+    const double P_inner = 10.0 * min(1.0,time/t_ramp) * 1.0e6;
+
+    // The total force to be applied at the axial boundaries:
+    const double F_axial = P_inner*R_i*R_i/(R_o*R_o-R_i*R_i);
+
+    // Apply a normal traction in the z direction:
+    F(2) = F_axial;
+    if (side == 0) F(2) = -F(2);
+
+    // Penalize deviations from planar:
+    AutoPtr<DofObject> side_dofs = elem->side(side);
+    Elem* face = dynamic_cast<Elem*>(side_dofs.get());
+    double z_mean = 0.0;
+    const int n_nodes = face->n_nodes();
+    for (int n = 0; n < n_nodes; ++n)
+    {
+        const int z_dof_index = face->get_node(n)->dof_number(X_sys_num, NDIM-1, 0);
+        z_mean += X_vec(z_dof_index);
+    }
+    z_mean /= double(n_nodes);
+    F(2) += kappa*(z_mean - X(2));
+    return;
+}// surface_force_function
 }
 using namespace ModelData;
 
@@ -221,6 +250,69 @@ dump_hier_data(
     equation_systems.write(file_name, (EquationSystems::WRITE_DATA | EquationSystems::WRITE_ADDITIONAL_DATA));
     return;
 }// dump_hier_data
+
+int principle_strains_sys_num = -1;
+void
+compute_principle_strains(
+    Mesh& mesh,
+    EquationSystems& equation_systems)
+{
+    AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, CONSTANT);
+    System& X_system = equation_systems.get_system<System>(X_sys_num);
+    DofMap& X_dof_map = X_system.get_dof_map();
+    blitz::Array<vector<unsigned int>,1> X_dof_indices(NDIM);
+    AutoPtr<FEBase> X_fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
+    X_fe->attach_quadrature_rule(qrule.get());
+    const vector<Point>& X_qpoint = X_fe->get_xyz();
+    const vector<vector<VectorValue<double> > >& X_dphi = X_fe->get_dphi();
+
+    System& lambda_system = equation_systems.get_system<System>(principle_strains_sys_num);
+
+    X_system.update();
+    NumericVector<double>& X_vec = *X_system.current_local_solution;
+    NumericVector<double>& lambda_vec = *lambda_system.solution.get();
+
+    MeshBase::const_element_iterator       el_it  = mesh.active_local_elements_begin();
+    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
+    for ( ; el_it != el_end; ++el_it)
+    {
+        const Elem* const elem = *el_it;
+
+        X_fe->reinit(elem);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            X_dof_map.dof_indices(elem, X_dof_indices(d), d);
+        }
+
+        TensorValue<double> dX_ds;
+        blitz::Array<double,2> X_node;
+        get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+        jacobian(dX_ds,0,X_node,X_dphi);
+
+        VectorValue<double> e_r(X_qpoint[0](0),X_qpoint[0](1),0);
+        e_r /= e_r.size();
+        const double lambda_r = (dX_ds*e_r).size();
+
+        VectorValue<double> e_z(0,0,1.0);
+        e_z /= e_z.size();
+        const double lambda_z = (dX_ds*e_z).size();
+
+        VectorValue<double> e_theta = e_z.cross(e_r);
+        e_theta /= e_theta.size();
+        const double lambda_theta = (dX_ds*e_theta).size();
+
+        const int lambda_r_dof_index = elem->dof_number(principle_strains_sys_num,0,0);
+        lambda_vec.set(lambda_r_dof_index,lambda_r);
+
+        const int lambda_theta_dof_index = elem->dof_number(principle_strains_sys_num,1,0);
+        lambda_vec.set(lambda_theta_dof_index,lambda_theta);
+
+        const int lambda_z_dof_index = elem->dof_number(principle_strains_sys_num,2,0);
+        lambda_vec.set(lambda_z_dof_index,lambda_z);
+    }
+    lambda_vec.close();
+    return;
+}
 }
 using namespace Postprocessing;
 
@@ -267,10 +359,6 @@ main(
     Pointer<Database> input_db = new InputDatabase("input_db");
     InputManager::getManager()->parseInputFile(input_filename, input_db);
 
-    // Split formulation is broken for complex constitutive models for parallel
-    // runs.
-    TBOX_ASSERT((SAMRAI_MPI::getNodes() == 1) || (!input_db->getDatabase("IBFEHierarchyIntegrator")->getBoolWithDefault("split_interior_and_bdry_forces",false)));
-
     // Create a FE mesh corresponding to the 3-layer fiber-reinforced tube model
     // of Holzapfel and Gasser.
     static const double R_i =  100.0 * 0.1;  // inner radius (cm)
@@ -292,7 +380,7 @@ main(
     static const int n_r3    = ceil(t3 / ds);
     static const int n_r     = n_r1+n_r2+n_r3;
     static const int n_theta = 4*ceil(C_o / 4.0 / ds);
-    static const int n_z     = 2*ceil(L / 2.0 / ds);
+    static const int n_z     = 4*ceil(L / 4.0 / ds);
 
     Mesh mesh(NDIM);
     mesh.set_mesh_dimension(NDIM);
@@ -407,17 +495,24 @@ main(
     fiber_axes_sys_num = fiber_axes_system.number();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        std::ostringstream os;
-        os << "A_" << d;
+        ostringstream os;
+        os << "a_" << d;
         fiber_axes_system.add_variable(os.str(), CONSTANT, MONOMIAL);
     }
 
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        std::ostringstream os;
-        os << "B_" << d;
+        ostringstream os;
+        os << "b_" << d;
         fiber_axes_system.add_variable(os.str(), CONSTANT, MONOMIAL);
     }
+
+    // Build an equation system that stores the principle strains.
+    ExplicitSystem& principle_strains_system = equation_systems.add_system<ExplicitSystem>("principle strains");
+    principle_strains_sys_num = principle_strains_system.number();
+    principle_strains_system.add_variable("lambda_r", CONSTANT, MONOMIAL);
+    principle_strains_system.add_variable("lambda_theta", CONSTANT, MONOMIAL);
+    principle_strains_system.add_variable("lambda_z", CONSTANT, MONOMIAL);
 
     // Process "Main" section of the input database.
     Pointer<Database> main_db = input_db->getDatabase("Main");
@@ -567,8 +662,11 @@ main(
         "GriddingAlgorithm", input_db->getDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
     // Configure the IBFE solver.
-    time_integrator->registerPK1StressTensorFunction(&PK1_stress_function);
+    vector<unsigned int> PK1_stress_function_systems;
+    PK1_stress_function_systems.push_back(fiber_axes_sys_num);
+    time_integrator->registerPK1StressTensorFunction(&PK1_stress_function, PK1_stress_function_systems);
     time_integrator->registerLagPressureFunction(&pressure_function);
+    time_integrator->registerLagSurfaceForceFunction(&surface_force_function);
     if (use_nonuniform_load_balancer)
     {
         time_integrator->registerLoadBalancer(load_balancer);
@@ -631,7 +729,9 @@ main(
     time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
     double dt_now = time_integrator->initializeHierarchy();
 
-    // Note the system number for the coordinates system.
+    // Setup the loading data.
+    kappa = input_db->getDoubleWithDefault("kappa",kappa);
+    t_ramp = input_db->getDoubleWithDefault("t_ramp",t_ramp);
     X_sys_num = equation_systems.get_system<System>(fe_data_manager->COORDINATES_SYSTEM_NAME).number();
 
     // Setup the fiber axes.
@@ -686,8 +786,9 @@ main(
     }
     E.close();
     E.localize(*fiber_axes_system.current_local_solution);
-    E_ghost = fiber_axes_system.current_local_solution.get();
-    E_ghost->close();
+
+    // Compute the initial principle strains.
+    compute_principle_strains(mesh, equation_systems);
 
     // Close the restart manager.
     RestartManager::getManager()->closeRestartFile();
@@ -745,6 +846,8 @@ main(
         double dt_new = time_integrator->advanceHierarchy(dt_now);
         loop_time += dt_now;
         dt_now = dt_new;
+
+        compute_principle_strains(mesh, equation_systems);
 
         pout <<                                                       endl;
         pout << "At end       of timestep # " << iteration_num - 1 << endl;

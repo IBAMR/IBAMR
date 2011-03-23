@@ -71,6 +71,7 @@ PK1_stress_function(
     Elem* const elem,
     const int& e,
     NumericVector<double>& X_vec,
+    const std::vector<NumericVector<double>*>& system_data,
     const double& time,
     void* ctx)
 {

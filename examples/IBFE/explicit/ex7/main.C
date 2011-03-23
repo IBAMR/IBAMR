@@ -75,17 +75,15 @@ PK1_stress_function(
     Elem* const elem,
     const int& e,
     NumericVector<double>& X_vec,
+    const std::vector<NumericVector<double>*>& system_data,
     const double& time,
     void* ctx)
 {
     // Compute the matrix-type contribution to the stress tensor.
     static const double c = 7.64 * 10000.0;
-    static const double p0 = -c;
-    static const double beta = 1.0e3*c;
     const TensorValue<double> CC = FF.transpose() * FF;
-    const TensorValue<double> CC_inv_trans = tensor_inverse_transpose(CC, NDIM);
-    const double I3 = CC.det();
-    PP = c*FF + (p0 + beta*log(I3))*FF*CC_inv_trans;
+    const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
+    PP = c*(FF - FF_inv_trans);
 
     // Determine the local fiber axes in the reference configuration and compute
     // the fiber contribution to the stress tensor.
@@ -134,6 +132,7 @@ surface_force_function(
     const int& e,
     const unsigned short int side,
     NumericVector<double>& X_vec,
+    const std::vector<NumericVector<double>*>& system_data,
     const double& time,
     void* ctx)
 {
@@ -256,10 +255,6 @@ main(
     // Create input database and parse all data in input file.
     Pointer<Database> input_db = new InputDatabase("input_db");
     InputManager::getManager()->parseInputFile(input_filename, input_db);
-
-    // Split formulation is broken for complex constitutive models for parallel
-    // runs.
-    TBOX_ASSERT((SAMRAI_MPI::getNodes() == 1) || (!input_db->getDatabase("IBFEHierarchyIntegrator")->getBoolWithDefault("split_interior_and_bdry_forces",false)));
 
     // Create a FE mesh corresponding to the single-layer fiber-reinforced strip
     // model of Gasser, Holzapfel and Ogden.
