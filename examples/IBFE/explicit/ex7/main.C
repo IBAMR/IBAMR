@@ -40,6 +40,7 @@
 #include <cell_hex8.h>
 #include <exodusII_io.h>
 #include <explicit_system.h>
+#include <fe_base.h>
 #include <mesh.h>
 #include <mesh_generation.h>
 #include <string_to_enum.h>
@@ -119,8 +120,11 @@ PK1_stress_function(
 }// PK1_stress_function
 
 // Applied surface force function.
+double W = 0.0;
+double T = 0.0;
+double L = 0.0;
+double F_load = 0.0;
 double kappa = 1.0e12;
-double t_ramp = 0.001;
 int X_sys_num = -1;
 void
 surface_force_function(
@@ -142,7 +146,7 @@ surface_force_function(
     if (!(side == 0 || side == 5)) return;
 
     // Apply a normal traction in the z direction.
-    F(2) = 0.5*(1.0*min(1.0,time/t_ramp)*1.0e5/(3.0*0.5*0.01));
+    F(2) = 0.5*F_load*1.0e5/(W*T);
     if (side == 0) F(2) = -F(2);
 
     // Penalize displacements in the x/y directions.
@@ -163,6 +167,45 @@ surface_force_function(
     F(2) += kappa*(z_mean - X(2));
     return;
 }// surface_force_function
+
+double
+compute_displacement(
+    Mesh& mesh,
+    EquationSystems& equation_systems)
+{
+    AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, CONSTANT);
+    System& X_system = equation_systems.get_system<System>(IBFEHierarchyIntegrator::COORD_MAPPING_SYSTEM_NAME);
+    DofMap& X_dof_map = X_system.get_dof_map();
+    blitz::Array<vector<unsigned int>,1> X_dof_indices(NDIM);
+    AutoPtr<FEBase> X_fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
+    X_fe->attach_quadrature_rule(qrule.get());
+    X_system.update();
+    NumericVector<double>& X_vec = *X_system.current_local_solution;
+
+    MeshBase::const_element_iterator       el_it  = mesh.active_local_elements_begin();
+    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
+    double X_max = -0.5*numeric_limits<double>::max();
+    double X_min =  0.5*numeric_limits<double>::max();
+    for ( ; el_it != el_end; ++el_it)
+    {
+        const Elem* const elem = *el_it;
+
+        X_fe->reinit(elem);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            X_dof_map.dof_indices(elem, X_dof_indices(d), d);
+        }
+
+        for (unsigned k = 0; k < X_dof_indices(2).size(); ++k)
+        {
+            X_max = max(X_max,X_vec(X_dof_indices(2)[k]));
+            X_min = min(X_min,X_vec(X_dof_indices(2)[k]));
+        }
+    }
+    X_max = SAMRAI_MPI::maxReduction(X_max);
+    X_min = SAMRAI_MPI::minReduction(X_min);
+    return (X_max - X_min) - L;
+}
 }
 using namespace ModelData;
 
@@ -272,6 +315,9 @@ main(
                                       n1, n2, n3,
                                       -0.5*W, 0.5*W, -0.5*T, 0.5*T, -0.5*L, 0.5*L,
                                       Utility::string_to_enum<ElemType>(elem_type));
+    ModelData::W = W;
+    ModelData::T = T;
+    ModelData::L = L;
 
     // Create the FE data manager that manages mappings between the FE mesh and
     // the Cartesian grid.
@@ -517,9 +563,11 @@ main(
     double dt_now = time_integrator->initializeHierarchy();
 
     // Setup the loading data.
-    kappa = input_db->getDoubleWithDefault("kappa",kappa);
-    t_ramp = input_db->getDoubleWithDefault("t_ramp",t_ramp);
-    X_sys_num = equation_systems.get_system<System>(fe_data_manager->COORDINATES_SYSTEM_NAME).number();
+    ModelData::kappa = input_db->getDoubleWithDefault("kappa",kappa);
+    ModelData::X_sys_num = equation_systems.get_system<System>(fe_data_manager->COORDINATES_SYSTEM_NAME).number();
+    double t_step = input_db->getDoubleWithDefault("t_step",6.25e-3);
+    double F_step = input_db->getDoubleWithDefault("F_step",0.0625);
+    ModelData::F_load = F_step;
 
     // Setup the fiber axes.
     static const double gamma = 49.98 * M_PI / 180.0;
@@ -600,9 +648,15 @@ main(
         pout << "At beginning of timestep # " << iteration_num - 1 << endl;
         pout << "Simulation time is " << loop_time                 << endl;
 
+        const double old_loop_time = loop_time;
         double dt_new = time_integrator->advanceHierarchy(dt_now);
         loop_time += dt_now;
         dt_now = dt_new;
+
+        if (fmod(loop_time,t_step) <= fmod(old_loop_time,t_step))
+        {
+            ModelData::F_load += F_step;
+        }
 
         pout <<                                                       endl;
         pout << "At end       of timestep # " << iteration_num - 1 << endl;
@@ -643,6 +697,20 @@ main(
             pout << "\nWriting timer data...\n\n";
             TimerManager::getManager()->print(plog);
         }
+
+        // Compute current displacements.
+        const int precision = pout.precision();
+        pout.setf(ios_base::scientific);
+        pout.precision(8);
+        pout << "time = " << loop_time;
+        pout << " F_load = ";
+        pout.precision(8);
+        pout << F_load;
+        pout << " displacement = ";
+        pout.precision(8);
+        pout << compute_displacement(mesh,equation_systems) << "\n";
+        pout.unsetf(ios_base::scientific);
+        pout.precision(precision);
     }
 
     // Shutdown SAMRAI.
