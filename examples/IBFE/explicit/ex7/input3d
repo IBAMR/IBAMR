@@ -11,15 +11,17 @@ NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 2.0                                   // width of computational domain (cm)
 DX = L/NFINEST                            // Cartesian grid spacing (cm)
 DS = DX                                   // (approximate) Lagrangian mesh spacing (cm)
-DT = 1.5625e-6*NFINEST/128.0              // timestep size (s)
+DT = 7.8125e-7*128/NFINEST                // timestep size (s)
 CFL_MAX = 4.8e4*DT                        // maximum CFL number
 
 // penalty parameter
-kappa = 2.5e-1/(DT^2)
+kappa = 1.25e-1/(DT^2)
 
 // loading parameters
-t_step = 2000*DT
+t_step = 4000*DT
 F_step = 0.0625
+F_max = 2.0
+t_end = t_step*F_max/F_step
 
 elem_type = "HEX8"
 elem_order = "FIRST"
@@ -100,7 +102,7 @@ VelocityBcCoefs_2 {
 
 IBFEHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
-   end_time              = 1.0e0    // final simulation time
+   end_time              = t_end    // final simulation time
    grow_dt               = 1.1e0    // growth factor for timesteps
    max_integrator_steps  = 10000000 // max number of simulation timesteps
    regrid_interval       = int(floor(1.0/CFL_MAX))
@@ -219,7 +221,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt" , "ExodusII"
-   viz_dump_interval     = 10 // int(t_step/DT/5.0)       // zero to turn off
+   viz_dump_interval     = int(t_step/DT/20.0)      // zero to turn off
    viz_dump_dirname      = "viz_IB3d"
    visit_number_procs_per_file = 1
 
