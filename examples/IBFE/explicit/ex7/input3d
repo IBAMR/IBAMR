@@ -1,6 +1,6 @@
 // physical parameters
-MU = 0.01
-RHO = 1.0
+RHO = 1.00  // gm cm^-3
+MU  = 0.04  // gm cm^-1 s^-1
 
 // grid spacing parameters
 MAX_LEVELS = 2   // maximum number of levels in locally refined grid
@@ -11,18 +11,18 @@ NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 2.0                                   // width of computational domain (cm)
 DX = L/NFINEST                            // Cartesian grid spacing (cm)
 DS = DX                                   // (approximate) Lagrangian mesh spacing (cm)
-DT = 2.5e-7*NFINEST/128.0                 // timestep size (s)
-CFL_MAX = 0.01                            // maximum CFL number
+DT = 1.5625e-6*NFINEST/128.0              // timestep size (s)
+CFL_MAX = 4.8e4*DT                        // maximum CFL number
 
 // penalty parameter
-kappa = 1.0e5 / DT
+kappa = 2.5e-1/(DT^2)
 
 // loading parameters
-t_step = 6.25e-3
+t_step = 2000*DT
 F_step = 0.0625
 
-elem_type = "HEX27"
-elem_order = "SECOND"
+elem_type = "HEX8"
+elem_order = "FIRST"
 quad_type = "QGAUSS"
 quad_order = "SEVENTH"
 weighting_fcn = "IB_4"
@@ -219,7 +219,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt" , "ExodusII"
-   viz_dump_interval     = int(t_step/DT/5.0)       // zero to turn off
+   viz_dump_interval     = 10 // int(t_step/DT/5.0)       // zero to turn off
    viz_dump_dirname      = "viz_IB3d"
    visit_number_procs_per_file = 1
 

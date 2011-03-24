@@ -82,7 +82,10 @@ PK1_stress_function(
     static const double c = 7.64 * 10000.0;
     const TensorValue<double> CC = FF.transpose() * FF;
     const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
-    PP = c*(FF - FF_inv_trans);
+    const double I3 = CC.det();
+    const double p0 = -c;
+    const double beta = 1.0e5*c;
+    PP = c*FF + (p0 + beta*log(I3))*FF_inv_trans;
 
     // Determine the local fiber axes in the reference configuration and compute
     // the fiber contribution to the stress tensor.
