@@ -247,12 +247,12 @@ FESystemDataCache::computeCachedData(
             {
                 // Determine whether this side touches the physical boundary.
                 const std::vector<short int>& bdry_ids = d_mesh.boundary_info->boundary_ids(elem, side);
-                bool at_physical_bdry  = false;
+                bool at_physical_bdry  = elem->neighbor(side) == NULL;
                 bool at_dirichlet_bdry = false;
                 for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
                 {
                     const short int bdry_id = *cit;
-                    at_physical_bdry  = at_physical_bdry  || (elem->neighbor(side) == NULL && !dof_map.is_periodic_boundary(bdry_id));
+                    at_physical_bdry  = at_physical_bdry  && !dof_map.is_periodic_boundary(bdry_id);
                     at_dirichlet_bdry = at_dirichlet_bdry || (bdry_id == FEDataManager::DIRICHLET_BDRY_ID);
                 }
                 side_at_physical_bdry (side) = at_physical_bdry ;
