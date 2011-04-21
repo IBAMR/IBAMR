@@ -73,33 +73,21 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define NAVIER_STOKES_SC_STABLEDT_FC FC_FUNC_(navier_stokes_sc_stabledt2d, NAVIER_STOKES_SC_STABLEDT2D)
 #define NAVIER_STOKES_SIDE_TO_FACE_FC FC_FUNC_(navier_stokes_side_to_face2d, NAVIER_STOKES_SIDE_TO_FACE2D)
+#define NAVIER_STOKES_STAGGERED_ADV_DIV_SOURCE_FC FC_FUNC_(navier_stokes_staggered_adv_div_source2d, NAVIER_STOKES_STAGGERED_ADV_DIV_SOURCE2D)
+#define NAVIER_STOKES_STAGGERED_CONS_DIV_SOURCE_FC FC_FUNC_(navier_stokes_staggered_cons_div_source2d, NAVIER_STOKES_STAGGERED_CONS_DIV_SOURCE2D)
+#define NAVIER_STOKES_STAGGERED_STABLEDT_FC FC_FUNC_(navier_stokes_staggered_stabledt2d, NAVIER_STOKES_STAGGERED_STABLEDT2D)
 #endif
 
 #if (NDIM == 3)
-#define NAVIER_STOKES_SC_STABLEDT_FC FC_FUNC_(navier_stokes_sc_stabledt3d, NAVIER_STOKES_SC_STABLEDT3D)
 #define NAVIER_STOKES_SIDE_TO_FACE_FC FC_FUNC_(navier_stokes_side_to_face3d, NAVIER_STOKES_SIDE_TO_FACE3D)
+#define NAVIER_STOKES_STAGGERED_ADV_DIV_SOURCE_FC FC_FUNC_(navier_stokes_staggered_adv_div_source3d, NAVIER_STOKES_STAGGERED_ADV_DIV_SOURCE3D)
+#define NAVIER_STOKES_STAGGERED_CONS_DIV_SOURCE_FC FC_FUNC_(navier_stokes_staggered_cons_div_source3d, NAVIER_STOKES_STAGGERED_CONS_DIV_SOURCE3D)
+#define NAVIER_STOKES_STAGGERED_STABLEDT_FC FC_FUNC_(navier_stokes_staggered_stabledt3d, NAVIER_STOKES_STAGGERED_STABLEDT3D)
 #endif
 
 extern "C"
 {
-    void
-    NAVIER_STOKES_SC_STABLEDT_FC(
-        const double* ,
-#if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int& , const int& ,
-        const double* , const double* ,
-#endif
-#if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const double* , const double* , const double* ,
-#endif
-        double&
-                                 );
-
     void
     NAVIER_STOKES_SIDE_TO_FACE_FC(
 #if (NDIM == 2)
@@ -115,6 +103,66 @@ extern "C"
         double* , double* , double* , const int&
 #endif
                                   );
+
+    void
+    NAVIER_STOKES_STAGGERED_ADV_DIV_SOURCE_FC(
+#if (NDIM == 2)
+        const int& , const int& , const int& , const int& ,
+        const int& , const int& ,
+        const int& , const int& ,
+        const int& , const int& ,
+        const double* , const double* ,
+        const double* ,
+        double* , double*
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double* ,
+        const double* ,
+        double* , double* , double*
+#endif
+                                              );
+
+    void
+    NAVIER_STOKES_STAGGERED_CONS_DIV_SOURCE_FC(
+#if (NDIM == 2)
+        const int& , const int& , const int& , const int& ,
+        const int& , const int& ,
+        const int& , const int& ,
+        const int& , const int& ,
+        const double* , const double* ,
+        const double* ,
+        double* , double*
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double* ,
+        const double* ,
+        double* , double* , double*
+#endif
+                                               );
+
+    void
+    NAVIER_STOKES_STAGGERED_STABLEDT_FC(
+        const double* ,
+#if (NDIM == 2)
+        const int& , const int& , const int& , const int& ,
+        const int& , const int& ,
+        const double* , const double* ,
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double* ,
+#endif
+        double&
+                                        );
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -142,6 +190,7 @@ static Pointer<Timer> t_initialize_level_data;
 static Pointer<Timer> t_reset_hierarchy_configuration;
 static Pointer<Timer> t_apply_gradient_detector;
 static Pointer<Timer> t_put_to_database;
+static Pointer<Timer> t_compute_div_source_term;
 
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
@@ -290,6 +339,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
         t_reset_hierarchy_configuration   = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration()");
         t_apply_gradient_detector         = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::applyGradientDetector()");
         t_put_to_database                 = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::putToDatabase()");
+        t_compute_div_source_term         = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredHierarchyIntegrator::computeDivSourceTerm()");
                   );
     return;
 }// INSStaggeredHierarchyIntegrator
@@ -408,12 +458,6 @@ INSStaggeredHierarchyIntegrator::registerSourceSpecification(
     Pointer<CartGridFunction> Q_fcn)
 {
     d_Q_fcn = Q_fcn;
-    pout << "\n"
-         << "WARNING: There is an extra term which should be added to the momentum equation\n"
-         << "         in the case that div u != 0.\n"
-         << "         At the present time, this term has NOT been incorporated into the\n"
-         << "         staggered-grid incompressible Navier-Stokes solver.\n"
-         << "\n";
     return;
 }// registerSourceSpecification
 
@@ -587,6 +631,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     if (!d_Q_fcn.isNull())
     {
         d_Q_var      = new CellVariable<NDIM,double>(d_object_name+"::Q"          );
+        d_F_div_var  = new SideVariable<NDIM,double>(d_object_name+"::F_div"      );
     }
 #if ( NDIM == 2)
     d_Omega_var      = new CellVariable<NDIM,double>(d_object_name+"::Omega"      );
@@ -609,7 +654,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Register state variables that are maintained by the
     // INSStaggeredHierarchyIntegrator.
-
     const IntVector<NDIM> cell_ghosts = CELLG;
     const IntVector<NDIM> side_ghosts = SIDEG;
     const IntVector<NDIM> no_ghosts = 0;
@@ -687,11 +731,18 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Register scratch variables that are maintained by the
     // INSStaggeredHierarchyIntegrator.
-
     registerVariable(      d_Phi_idx,       d_Phi_var, cell_ghosts);
     registerVariable( d_U_regrid_idx,  d_U_regrid_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
     registerVariable(    d_U_src_idx,     d_U_src_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
     registerVariable(d_indicator_idx, d_indicator_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
+    if (!d_Q_fcn.isNull())
+    {
+        registerVariable(d_F_div_idx, d_F_div_var, no_ghosts);
+    }
+    else
+    {
+        d_F_div_idx = -1;
+    }
 
     // Register variables for plotting.
     if (!d_visit_writer.isNull())
@@ -1025,8 +1076,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         d_regrid_projection_solver->setInitialGuessNonzero(false);
         d_regrid_projection_solver->setOperator(d_regrid_projection_op);
 
-        TBOX_ASSERT(d_gridding_alg->getMaxLevels() > 1);
-
         if (d_regrid_projection_fac_pc_db.isNull())
         {
             TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
@@ -1076,7 +1125,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchy()
 
     // Initialize the patch hierarchy.
     const bool initial_time = !RestartManager::getManager()->isFromRestart();
-
     if (!initial_time)
     {
         d_hierarchy->getFromRestart(d_gridding_alg->getMaxLevels());
@@ -1088,7 +1136,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchy()
     else
     {
         d_gridding_alg->makeCoarsestLevel(d_hierarchy,d_start_time);
-
         int level_number = 0;
         bool done = false;
         while (!done && (d_gridding_alg->levelCanBeRefined(level_number)))
@@ -1104,7 +1151,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchy()
         // when the coarser level initial data was set.
         const int coarsest_ln = 0;
         const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
         if (finest_ln > 0)
         {
             synchronizeNewLevels(d_hierarchy, coarsest_ln, finest_ln, d_start_time, initial_time);
@@ -1294,7 +1340,7 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
     const int coarsest_ln = 0;
 
     // Determine the divergence of the velocity field before regridding.
-    d_hier_math_ops->div(d_Div_U_current_idx, d_Div_U_var, 1.0, d_U_current_idx, d_U_var, d_no_fill_op, d_integrator_time, false);
+    d_hier_math_ops->div(d_Div_U_current_idx, d_Div_U_var, 1.0, d_U_current_idx, d_U_var, d_no_fill_op, d_integrator_time, false, -1.0, d_Q_current_idx, d_Q_var);
     const double Div_U_norm_1_pre  = d_hier_cc_data_ops->L1Norm( d_Div_U_current_idx, d_wgt_cc_idx);
     const double Div_U_norm_2_pre  = d_hier_cc_data_ops->L2Norm( d_Div_U_current_idx, d_wgt_cc_idx);
     const double Div_U_norm_oo_pre = d_hier_cc_data_ops->maxNorm(d_Div_U_current_idx, d_wgt_cc_idx);
@@ -1313,7 +1359,7 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
     }
 
     // Determine the divergence of the velocity field after regridding.
-    d_hier_math_ops->div(d_Div_U_current_idx, d_Div_U_var, 1.0, d_U_current_idx, d_U_var, d_no_fill_op, d_integrator_time, true);
+    d_hier_math_ops->div(d_Div_U_current_idx, d_Div_U_var, 1.0, d_U_current_idx, d_U_var, d_no_fill_op, d_integrator_time, true, -1.0, d_Q_current_idx, d_Q_var);
     const double Div_U_norm_1_post  = d_hier_cc_data_ops->L1Norm( d_Div_U_current_idx, d_wgt_cc_idx);
     const double Div_U_norm_2_post  = d_hier_cc_data_ops->L2Norm( d_Div_U_current_idx, d_wgt_cc_idx);
     const double Div_U_norm_oo_post = d_hier_cc_data_ops->maxNorm(d_Div_U_current_idx, d_wgt_cc_idx);
@@ -1412,7 +1458,6 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
 
     // Setup the operators and solvers.
     initializeOperatorsAndSolvers(current_time, new_time);
-
     if (d_normalize_pressure)
     {
         d_nul_vec = d_sol_vec->cloneVector(d_object_name+"::nul_vec");
@@ -1488,8 +1533,13 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     }
     if (!d_Q_fcn.isNull())
     {
-        d_Q_fcn->setDataOnPatchHierarchy(d_Q_scratch_idx, d_Q_var, d_hierarchy, current_time+0.5*dt);
-        d_hier_sc_data_ops->subtract(d_rhs_vec->getComponentDescriptorIndex(1), d_rhs_vec->getComponentDescriptorIndex(1), d_Q_scratch_idx);
+        d_Q_fcn->setDataOnPatchHierarchy(d_Q_current_idx, d_Q_var, d_hierarchy, current_time);
+        d_Q_fcn->setDataOnPatchHierarchy(d_Q_new_idx    , d_Q_var, d_hierarchy, new_time    );
+        d_hier_cc_data_ops->linearSum(d_Q_scratch_idx, 0.5, d_Q_current_idx, 0.5, d_Q_new_idx);
+        d_Q_bdry_bc_fill_op->fillData(current_time+0.5*dt);
+        computeDivSourceTerm(d_F_div_idx, d_Q_scratch_idx, U_half_idx);
+        d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0), d_rho, d_F_div_idx, d_rhs_vec->getComponentDescriptorIndex(0));
+        d_hier_cc_data_ops->subtract(d_rhs_vec->getComponentDescriptorIndex(1), d_rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
     }
 
     // Ensure there is no forcing at Dirichlet boundaries (the Dirichlet
@@ -1531,8 +1581,8 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     }
     if (!d_Q_fcn.isNull())
     {
-        d_hier_sc_data_ops->add(d_rhs_vec->getComponentDescriptorIndex(1), d_rhs_vec->getComponentDescriptorIndex(1), d_Q_scratch_idx);
-        d_hier_sc_data_ops->copyData(d_Q_new_idx, d_Q_scratch_idx);
+        d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0), -d_rho, d_F_div_idx, d_rhs_vec->getComponentDescriptorIndex(0));
+        d_hier_cc_data_ops->add(d_rhs_vec->getComponentDescriptorIndex(1), d_rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
     }
 
     // Execute any registered callback functions.
@@ -1638,7 +1688,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_finalize(
     // coarsening of U from fine levels to coarse levels.  In particular, this
     // means that we need to re-coarsen the data associated with patch data
     // descriptor index d_U_scratch_idx if we wish to compute, e.g., the
-    // divergence of the velocity field.  This operation
+    // divergence of the velocity field.
     d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
     d_hier_math_ops->curl(
         d_Omega_new_idx, d_Omega_var,
@@ -1766,8 +1816,7 @@ INSStaggeredHierarchyIntegrator::resetTimeDependentHierData(
     ++d_integrator_step;
 
     // Swap PatchData<NDIM> pointers between the current and new contexts.
-    for (std::list<Pointer<Variable<NDIM> > >::const_iterator sv = d_state_variables.begin();
-         sv != d_state_variables.end(); ++sv)
+    for (std::list<Pointer<Variable<NDIM> > >::const_iterator sv = d_state_variables.begin(); sv != d_state_variables.end(); ++sv)
     {
         const Pointer<Variable<NDIM> >& v = *sv;
         const int src_idx = var_db->mapVariableAndContextToIndex(v, getNewContext());
@@ -1775,19 +1824,15 @@ INSStaggeredHierarchyIntegrator::resetTimeDependentHierData(
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
-
                 Pointer<PatchData<NDIM> > src_data = patch->getPatchData(src_idx);
                 Pointer<PatchData<NDIM> > dst_data = patch->getPatchData(dst_idx);
-
 #ifdef DEBUG_CHECK_ASSERTIONS
                 TBOX_ASSERT(src_data->getBox() == dst_data->getBox());
                 TBOX_ASSERT(src_data->getGhostCellWidth() == dst_data->getGhostCellWidth());
 #endif
-
                 patch->setPatchData(dst_idx, src_data);
                 patch->setPatchData(src_idx, dst_data);
             }
@@ -2085,7 +2130,7 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
         // to some specified value.
         //
         // NOTE: This initial value for the pressure IS NOT USED by the time
-        // integrator and is only specified for purposes of visualization.
+        // integrator and is only used for purposes of visualization.
         if (d_P_init.isNull())
         {
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -2194,6 +2239,13 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     d_U_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
 
+    if (!d_Q_fcn.isNull())
+    {
+        InterpolationTransactionComponent Q_bc_component(d_Q_scratch_idx, CELL_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
+        d_Q_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+        d_Q_bdry_bc_fill_op->initializeOperatorState(Q_bc_component, d_hierarchy);
+    }
+
     // Setup the patch boundary synchronization objects.
     typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
     SynchronizationTransactionComponent synch_transaction = SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
@@ -2201,8 +2253,7 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     d_side_synch_op->initializeOperatorState(synch_transaction, d_hierarchy);
 
     // If we have added or removed a level, resize the schedule vectors.
-    for (RefineAlgMap::const_iterator it = d_ralgs.begin();
-         it!= d_ralgs.end(); ++it)
+    for (RefineAlgMap::const_iterator it = d_ralgs.begin(); it!= d_ralgs.end(); ++it)
     {
         d_rscheds[(*it).first].resize(finest_hier_level+1);
     }
@@ -2215,8 +2266,7 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
 
     // (Re)build refine communication schedules.  These are created for all
     // levels in the hierarchy.
-    for (RefineAlgMap::const_iterator it = d_ralgs.begin();
-         it!= d_ralgs.end(); ++it)
+    for (RefineAlgMap::const_iterator it = d_ralgs.begin(); it!= d_ralgs.end(); ++it)
     {
         for (int ln = coarsest_level; ln <= finest_hier_level; ++ln)
         {
@@ -2227,8 +2277,7 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
 
     // (Re)build coarsen communication schedules.  These are set only for levels
     // >= 1.
-    for (CoarsenAlgMap::const_iterator it = d_calgs.begin();
-         it!= d_calgs.end(); ++it)
+    for (CoarsenAlgMap::const_iterator it = d_calgs.begin(); it!= d_calgs.end(); ++it)
     {
         for (int ln = std::max(coarsest_level,1); ln <= finest_hier_level; ++ln)
         {
@@ -2414,11 +2463,6 @@ INSStaggeredHierarchyIntegrator::getSourceVar()
 ///      getScratchContext()
 ///
 ///  allow access to the various variable contexts maintained by the integrator.
-///
-
-///
-/// We simply reuse the VariableContext objects defined in the
-/// AdvDiffHierarchyIntegrator object.
 ///
 
 Pointer<VariableContext>
@@ -2682,21 +2726,35 @@ INSStaggeredHierarchyIntegrator::regridProjection()
     d_hier_math_ops->div(
         d_Div_U_scratch_idx, d_Div_U_var, // dst
         +1.0,                             // alpha
-        d_U_current_idx, d_U_var,         // src
-        d_no_fill_op,                     // src_bdry_fill
-        d_integrator_time,                // src_bdry_fill_time
-        U_current_cf_bdry_synch);         // src_cf_bdry_synch
+        d_U_current_idx, d_U_var,         // src1
+        d_no_fill_op,                     // src1_bdry_fill
+        d_integrator_time,                // src1_bdry_fill_time
+        U_current_cf_bdry_synch,          // src1_cf_bdry_synch
+        -1.0,                             // beta
+        d_Q_current_idx, d_Q_var);        // src2
     if (d_do_log)
     {
         const double Div_U_norm_1  = d_hier_cc_data_ops->L1Norm( d_Div_U_scratch_idx, d_wgt_cc_idx);
         const double Div_U_norm_2  = d_hier_cc_data_ops->L2Norm( d_Div_U_scratch_idx, d_wgt_cc_idx);
         const double Div_U_norm_oo = d_hier_cc_data_ops->maxNorm(d_Div_U_scratch_idx, d_wgt_cc_idx);
-        plog << d_object_name << "::regridProjection():\n"
-             << "  performing regrid projection\n"
-             << "  before projection:\n"
-             << "    ||Div U||_1  = " << Div_U_norm_1  << "\n"
-             << "    ||Div U||_2  = " << Div_U_norm_2  << "\n"
-             << "    ||Div U||_oo = " << Div_U_norm_oo << "\n";
+        if (d_Q_fcn.isNull())
+        {
+            plog << d_object_name << "::regridProjection():\n"
+                 << "  performing regrid projection\n"
+                 << "  before projection:\n"
+                 << "    ||Div U||_1  = " << Div_U_norm_1  << "\n"
+                 << "    ||Div U||_2  = " << Div_U_norm_2  << "\n"
+                 << "    ||Div U||_oo = " << Div_U_norm_oo << "\n";
+        }
+        else
+        {
+            plog << d_object_name << "::regridProjection():\n"
+                 << "  performing regrid projection\n"
+                 << "  before projection:\n"
+                 << "    ||Div U - Q||_1  = " << Div_U_norm_1  << "\n"
+                 << "    ||Div U - Q||_2  = " << Div_U_norm_2  << "\n"
+                 << "    ||Div U - Q||_oo = " << Div_U_norm_oo << "\n";
+        }
     }
 
     // Setup the solver vectors.
@@ -2765,17 +2823,29 @@ INSStaggeredHierarchyIntegrator::regridProjection()
         d_hier_math_ops->div(
             d_Div_U_scratch_idx, d_Div_U_var, // dst
             +1.0,                             // alpha
-            d_U_current_idx, d_U_var,         // src
-            d_no_fill_op,                     // src_bdry_fill
-            d_integrator_time,                // src_bdry_fill_time
-            U_current_cf_bdry_synch);         // src_cf_bdry_synch
+            d_U_current_idx, d_U_var,         // src1
+            d_no_fill_op,                     // src1_bdry_fill
+            d_integrator_time,                // src1_bdry_fill_time
+            U_current_cf_bdry_synch,          // src1_cf_bdry_synch
+            -1.0,                             // beta
+            d_Q_current_idx, d_Q_var);        // src2
         const double Div_U_norm_1  = d_hier_cc_data_ops->L1Norm( d_Div_U_scratch_idx, d_wgt_cc_idx);
         const double Div_U_norm_2  = d_hier_cc_data_ops->L2Norm( d_Div_U_scratch_idx, d_wgt_cc_idx);
         const double Div_U_norm_oo = d_hier_cc_data_ops->maxNorm(d_Div_U_scratch_idx, d_wgt_cc_idx);
-        plog << "  after projection:\n"
-             << "    ||Div U||_1  = " << Div_U_norm_1  << "\n"
-             << "    ||Div U||_2  = " << Div_U_norm_2  << "\n"
-             << "    ||Div U||_oo = " << Div_U_norm_oo << "\n";
+        if (d_Q_fcn.isNull())
+        {
+            plog << "  after projection:\n"
+                 << "    ||Div U||_1  = " << Div_U_norm_1  << "\n"
+                 << "    ||Div U||_2  = " << Div_U_norm_2  << "\n"
+                 << "    ||Div U||_oo = " << Div_U_norm_oo << "\n";
+        }
+        else
+        {
+            plog << "  after projection:\n"
+                 << "    ||Div U - Q||_1  = " << Div_U_norm_1  << "\n"
+                 << "    ||Div U - Q||_2  = " << Div_U_norm_2  << "\n"
+                 << "    ||Div U - Q||_oo = " << Div_U_norm_oo << "\n";
+        }
     }
 
     // Deallocate scratch data.
@@ -3005,24 +3075,105 @@ INSStaggeredHierarchyIntegrator::getPatchDt(
     const IntVector<NDIM>& U_ghost_cells = U_data->getGhostCellWidth();
 
     double stable_dt = std::numeric_limits<double>::max();
+    NAVIER_STOKES_STAGGERED_STABLEDT_FC(
 #if (NDIM == 2)
-    NAVIER_STOKES_SC_STABLEDT_FC(
         dx,
         ilower(0),iupper(0),ilower(1),iupper(1),
         U_ghost_cells(0),U_ghost_cells(1),
         U_data->getPointer(0),U_data->getPointer(1),
-        stable_dt);
+        stable_dt
 #endif
 #if (NDIM == 3)
-    NAVIER_STOKES_SC_STABLEDT_FC(
         dx,
         ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
         U_ghost_cells(0),U_ghost_cells(1),U_ghost_cells(2),
         U_data->getPointer(0),U_data->getPointer(1),U_data->getPointer(2),
-        stable_dt);
+        stable_dt
 #endif
+                                        );
     return stable_dt;
 }// getPatchDt
+
+void
+INSStaggeredHierarchyIntegrator::computeDivSourceTerm(
+    const int F_idx,
+    const int Q_idx,
+    const int U_idx)
+{
+    t_compute_div_source_term->start();
+
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            const Index<NDIM>& ilower = patch->getBox().lower();
+            const Index<NDIM>& iupper = patch->getBox().upper();
+
+            Pointer<SideData<NDIM,double> > U_data = patch->getPatchData(U_idx);
+            Pointer<CellData<NDIM,double> > Q_data = patch->getPatchData(Q_idx);
+            Pointer<SideData<NDIM,double> > F_data = patch->getPatchData(F_idx);
+
+            const IntVector<NDIM>& U_data_gc = U_data->getGhostCellWidth();
+            const IntVector<NDIM>& Q_data_gc = Q_data->getGhostCellWidth();
+            const IntVector<NDIM>& F_data_gc = F_data->getGhostCellWidth();
+
+            if (d_conservation_form)
+            {
+                NAVIER_STOKES_STAGGERED_CONS_DIV_SOURCE_FC(
+#if (NDIM == 2)
+                    ilower(0),iupper(0),ilower(1),iupper(1),
+                    U_data_gc(0),U_data_gc(1),
+                    Q_data_gc(0),Q_data_gc(1),
+                    F_data_gc(0),F_data_gc(1),
+                    U_data->getPointer(0),U_data->getPointer(1),
+                    Q_data->getPointer(),
+                    F_data->getPointer(0),F_data->getPointer(1)
+#endif
+#if (NDIM == 3)
+                    ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+                    U_data_gc(0),U_data_gc(1),U_data_gc(2),
+                    Q_data_gc(0),Q_data_gc(1),Q_data_gc(2),
+                    F_data_gc(0),F_data_gc(1),F_data_gc(2),
+                    U_data->getPointer(0),U_data->getPointer(1),U_data->getPointer(2),
+                    Q_data->getPointer(),
+                    F_data->getPointer(0),F_data->getPointer(1),F_data->getPointer(2)
+#endif
+                                                          );
+            }
+            else
+            {
+                NAVIER_STOKES_STAGGERED_ADV_DIV_SOURCE_FC(
+#if (NDIM == 2)
+                    ilower(0),iupper(0),ilower(1),iupper(1),
+                    U_data_gc(0),U_data_gc(1),
+                    Q_data_gc(0),Q_data_gc(1),
+                    F_data_gc(0),F_data_gc(1),
+                    U_data->getPointer(0),U_data->getPointer(1),
+                    Q_data->getPointer(),
+                    F_data->getPointer(0),F_data->getPointer(1)
+#endif
+#if (NDIM == 3)
+                    ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+                    U_data_gc(0),U_data_gc(1),U_data_gc(2),
+                    Q_data_gc(0),Q_data_gc(1),Q_data_gc(2),
+                    F_data_gc(0),F_data_gc(1),F_data_gc(2),
+                    U_data->getPointer(0),U_data->getPointer(1),U_data->getPointer(2),
+                    Q_data->getPointer(),
+                    F_data->getPointer(0),F_data->getPointer(1),F_data->getPointer(2)
+#endif
+                                                           );
+            }
+        }
+    }
+
+    t_compute_div_source_term->stop();
+    return;
+}// computeDivSourceTerm
 
 void
 INSStaggeredHierarchyIntegrator::getFromInput(

@@ -189,7 +189,7 @@ c     Determine the timestep size corresponding to a unit CFL number.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine navier_stokes_sc_stabledt3d(
+      subroutine navier_stokes_staggered_stabledt3d(
      &     dx,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     ngc0,ngc1,ngc2,

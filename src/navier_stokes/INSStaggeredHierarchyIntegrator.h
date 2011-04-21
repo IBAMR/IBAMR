@@ -849,6 +849,16 @@ private:
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx) const;
 
     /*!
+     * Compute the appropriate source term that must be added to the momentum
+     * equation when the fluid contains internal sources and sinks.
+     */
+    void
+    computeDivSourceTerm(
+        const int F_idx,
+        const int Q_idx,
+        const int U_idx);
+
+    /*!
      * Read input values, indicated above, from given database.  The boolean
      * argument is_from_restart should be set to true if the simulation is
      * beginning from restart.  Otherwise it should be set to false.
@@ -1091,7 +1101,7 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid;
 
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_no_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_Q_bdry_bc_fill_op, d_no_fill_op;
 
     SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_side_synch_op;
 
@@ -1147,6 +1157,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_F_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Q_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_F_div_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_var;
 #if (NDIM == 3)
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_Norm_var;
@@ -1182,7 +1193,7 @@ private:
      *
      * Scratch variables have only one context: scratch.
      */
-    int d_Phi_idx, d_U_regrid_idx, d_U_src_idx, d_indicator_idx;
+    int d_Phi_idx, d_U_regrid_idx, d_U_src_idx, d_indicator_idx, d_F_div_idx;
 
     /*
      * Patch data descriptors for all variables managed by the HierarchyMathOps
