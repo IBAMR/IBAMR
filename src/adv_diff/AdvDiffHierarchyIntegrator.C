@@ -1346,7 +1346,6 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
                        << "  unrecognized viscous timestepping type: " << d_viscous_timestepping_type << "." << std::endl);
         }
 
-
         // Deallocate temporary data.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
@@ -1354,7 +1353,6 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             level->deallocatePatchData(Q_temp_idx);
             level->deallocatePatchData(Psi_temp_idx);
         }
-
     }
 
     t_integrate_hierarchy->stop();
