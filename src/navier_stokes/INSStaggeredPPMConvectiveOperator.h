@@ -35,9 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/INSCoefs.h>
-
 // IBTK INCLUDES
 #include <ibtk/GeneralOperator.h>
 
@@ -72,7 +69,6 @@ public:
      * \brief Class constructor.
      */
     INSStaggeredPPMConvectiveOperator(
-        const INSCoefs& problem_coefs,
         const bool conservation_form);
 
     /*!
@@ -218,9 +214,6 @@ private:
 
     // Whether the operator is initialized.
     bool d_is_initialized;
-
-    // Problem coefficients.
-    const INSCoefs& d_problem_coefs;
 
     // Whether to use conservative or non-conservative differencing.
     const bool d_conservation_form;

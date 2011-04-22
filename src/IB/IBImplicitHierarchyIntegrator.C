@@ -849,7 +849,6 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
     // Setup the convective operator.
     d_convective_op_needs_init = true;
     d_convective_op = new INSStaggeredPPMConvectiveOperator(
-        *d_problem_coefs,
         d_conservation_form);
 
     // Setup the IB operator.

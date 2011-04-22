@@ -35,9 +35,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/INSCoefs.h>
-
 // IBTK INCLUDES
 #include <ibtk/GeneralOperator.h>
 
@@ -68,7 +65,6 @@ public:
      * \brief Class constructor.
      */
     INSStaggeredCenteredConvectiveOperator(
-        const INSCoefs& problem_coefs,
         const std::string& difference_form);
 
     /*!
@@ -214,9 +210,6 @@ private:
 
     // Whether the operator is initialized.
     bool d_is_initialized;
-
-    // Problem coefficients.
-    const INSCoefs& d_problem_coefs;
 
     // Determines which form of differencing to use.
     const std::string d_differencing_form;

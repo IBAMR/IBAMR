@@ -693,7 +693,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
                 d_helmholtz_specs[l]);
             d_helmholtz_fac_ops[l]->setPhysicalBcCoefs(d_Q_bc_coef[l]);
 
-            d_helmholtz_fac_pcs[l] = new IBTK::FACPreconditioner(
+            d_helmholtz_fac_pcs[l] = new FACPreconditioner(
                 d_object_name+"::FAC Preconditioner::"+name,
                 *d_helmholtz_fac_ops[l], d_fac_pc_db);
         }
@@ -1205,7 +1205,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             // Note that by choosing a = 2 - sqrt(2), nu1 == nu2.
             //
             // Ref: McCorquodale, Colella, Johansen.  "A Cartesian grid embedded
-            // boundary method for the heat equation on irregular domains." JCP
+            // boundary method for the heat equation on irregular domains."  JCP
             // 173, pp. 620-635 (2001)
             static const double nu1 = TGACoefs::nu1;
             static const double nu3 = TGACoefs::nu3;
@@ -1270,9 +1270,9 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         helmholtz_op->setTime(new_time);
         helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
 
-        Pointer<CCPoissonFACOperator>     helmholtz_fac_op = d_helmholtz_fac_ops[l];
-        Pointer<IBTK::FACPreconditioner > helmholtz_fac_pc = d_helmholtz_fac_pcs[l];
-        Pointer<KrylovLinearSolver>       helmholtz_solver = d_helmholtz_solvers[l];
+        Pointer<CCPoissonFACOperator> helmholtz_fac_op = d_helmholtz_fac_ops[l];
+        Pointer<FACPreconditioner>    helmholtz_fac_pc = d_helmholtz_fac_pcs[l];
+        Pointer<KrylovLinearSolver>   helmholtz_solver = d_helmholtz_solvers[l];
 
         if (d_helmholtz_solvers_need_init[l])
         {

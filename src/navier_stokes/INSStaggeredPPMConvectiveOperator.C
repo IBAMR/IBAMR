@@ -242,10 +242,8 @@ static Pointer<Timer> t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(
-    const INSCoefs& problem_coefs,
     const bool conservation_form)
     : d_is_initialized(false),
-      d_problem_coefs(problem_coefs),
       d_conservation_form(conservation_form),
       d_refine_alg(NULL),
       d_refine_op(NULL),

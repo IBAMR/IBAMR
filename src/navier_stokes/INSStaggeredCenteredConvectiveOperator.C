@@ -164,10 +164,8 @@ static Pointer<Timer> t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
-    const INSCoefs& problem_coefs,
     const std::string& differencing_form)
     : d_is_initialized(false),
-      d_problem_coefs(problem_coefs),
       d_differencing_form(differencing_form),
       d_refine_alg(NULL),
       d_refine_op(NULL),
