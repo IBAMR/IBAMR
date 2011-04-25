@@ -27,7 +27,7 @@ $(top_builddir)/src/fortran/sqrtm.f
 
 pkg_include_HEADERS = \
 $(top_srcdir)/src/adv_diff/TGACoefs.h \
-$(top_srcdir)/src/utilities/RegridMode.h \
+$(top_srcdir)/src/utilities/ibamr_enums.h \
 $(top_srcdir)/src/utilities/ibamr_utilities.h \
 $(top_srcdir)/src/utilities/namespaces.h
 

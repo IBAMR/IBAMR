@@ -164,7 +164,7 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Version of IBImplicitHierarchyIntegrator restart file data.
-static const int INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
+static const int IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION = 1;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -207,6 +207,8 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
     d_omega_max = 0.0;
 
     d_normalize_pressure = false;
+    d_convective_difference_form = ADVECTIVE;
+    d_creeping_flow = false;
 
     d_regrid_interval = 1;
     d_regrid_mode = STANDARD;
@@ -214,8 +216,6 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
     d_op_and_solver_init_dt = -1.0;
     d_integrator_time = std::numeric_limits<double>::quiet_NaN();
     d_integrator_step = std::numeric_limits<int>::max();
-
-    d_conservation_form = false;
 
     d_output_u = false;
     d_output_p = false;
@@ -849,7 +849,7 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
     // Setup the convective operator.
     d_convective_op_needs_init = true;
     d_convective_op = new INSStaggeredPPMConvectiveOperator(
-        d_conservation_form);
+        d_convective_difference_form);
 
     // Setup the IB operator.
     d_ib_op_needs_init = true;
@@ -1479,7 +1479,14 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(
 
     // Compute (u_half*grad)u_half.
     const int n_idx = d_n_vec->getComponentDescriptorIndex(0);
-    d_convective_op->applyConvectiveOperator(u_half_idx, n_idx);
+    if (d_creeping_flow)
+    {
+        d_hier_sc_data_ops->setToScalar(n_idx, 0.0);
+    }
+    else
+    {
+        d_convective_op->applyConvectiveOperator(u_half_idx, n_idx);
+    }
 
     // Setup the right-hand side vector.
     d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0), -d_rho, n_idx, d_rhs_vec->getComponentDescriptorIndex(0));
@@ -2616,8 +2623,8 @@ IBImplicitHierarchyIntegrator::putToDatabase(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
 #endif
-    db->putInteger("INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION",
-                   INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION);
+    db->putInteger("IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION",
+                   IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION);
 
     db->putDouble("d_u_scale", d_u_scale);
     db->putDouble("d_p_scale", d_p_scale);
@@ -2643,14 +2650,14 @@ IBImplicitHierarchyIntegrator::putToDatabase(
     db->putBool("d_using_default_tag_buffer", d_using_default_tag_buffer);
     db->putIntegerArray("d_tag_buffer", d_tag_buffer);
 
-    db->putBool("d_conservation_form", d_conservation_form);
-
     db->putBool("d_using_vorticity_tagging", d_using_vorticity_tagging);
     db->putDoubleArray("d_omega_rel_thresh", d_omega_rel_thresh);
     db->putDoubleArray("d_omega_abs_thresh", d_omega_abs_thresh);
     db->putDouble("d_omega_max", d_omega_max);
 
     db->putBool("d_normalize_pressure", d_normalize_pressure);
+    db->putString("d_convective_difference_form", enum_to_string<ConvectiveDifferencingType>(d_convective_difference_form));
+    db->putBool("d_creeping_flow", d_creeping_flow);
 
     db->putDouble("d_old_dt", d_old_dt);
     db->putDouble("d_op_and_solver_init_dt", d_op_and_solver_init_dt);
@@ -3134,7 +3141,7 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
                 poisson_pc_type = std::string(poisson_pc_type_str);
             }
 
-            std::string stokes_pc_shell_type;
+            std::string stokes_pc_shell_type = "none";
             if (stokes_pc_type == "shell")
             {
                 char stokes_pc_shell_type_str[len];
@@ -3151,10 +3158,6 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
                                "  invalid stokes shell preconditioner type: " << stokes_pc_shell_type << "\n"
                                "  valid stokes shell preconditioner types: projection, vanka, block_factorization, none" << std::endl);
                 }
-            }
-            else
-            {
-                stokes_pc_shell_type = "none";
             }
 
             // Setup the velocity subdomain solver.
@@ -3418,21 +3421,7 @@ IBImplicitHierarchyIntegrator::getFromInput(
     d_num_cycles = db->getIntegerWithDefault("num_cycles", d_num_cycles);
 
     d_regrid_interval = db->getIntegerWithDefault("regrid_interval", d_regrid_interval);
-    std::string regrid_mode_str = db->getStringWithDefault("regrid_mode", "STANDARD");
-    if (regrid_mode_str == "STANDARD")
-    {
-        d_regrid_mode = STANDARD;
-    }
-    else if (regrid_mode_str == "AGGRESSIVE")
-    {
-        d_regrid_mode = AGGRESSIVE;
-    }
-    else
-    {
-        TBOX_ERROR(d_object_name << ":  "
-                   << "Key data `regrid_mode' has invalid value " << regrid_mode_str << "\n"
-                   << "Valid options are: STANDARD, AGGRESSIVE" << std::endl);
-    }
+    d_regrid_mode = string_to_enum<RegridMode>(db->getStringWithDefault("regrid_mode", enum_to_string<RegridMode>(d_regrid_mode)));
 
     if (db->keyExists("tag_buffer"))
     {
@@ -3446,8 +3435,6 @@ IBImplicitHierarchyIntegrator::getFromInput(
                      << "Key data `tag_buffer' not found in input.  "
                      << "Default values used.  See class header for details.");
     }
-
-    d_conservation_form = db->getBoolWithDefault("conservation_form", d_conservation_form);
 
     d_using_vorticity_tagging = db->getBoolWithDefault("using_vorticity_tagging", d_using_vorticity_tagging);
 
@@ -3536,6 +3523,9 @@ IBImplicitHierarchyIntegrator::getFromInput(
         d_start_time = db->getDoubleWithDefault("start_time", d_start_time);
 
         d_normalize_pressure = db->getBoolWithDefault("normalize_pressure", d_normalize_pressure);
+        d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(
+            db->getStringWithDefault("convective_difference_form", enum_to_string<ConvectiveDifferencingType>(d_convective_difference_form)));
+        d_creeping_flow = db->getBoolWithDefault("creeping_flow", d_creeping_flow);
 
         if (db->keyExists("rho"))
         {
@@ -3594,8 +3584,8 @@ IBImplicitHierarchyIntegrator::getFromRestart()
                    << d_object_name << " not found in restart file.");
     }
 
-    int ver = db->getInteger("INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION");
-    if (ver != INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION)
+    int ver = db->getInteger("IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION");
+    if (ver != IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION)
     {
         TBOX_ERROR(d_object_name << ":  "
                    << "Restart file version different than class version.");
@@ -3625,14 +3615,14 @@ IBImplicitHierarchyIntegrator::getFromRestart()
     d_using_default_tag_buffer = db->getBool("d_using_default_tag_buffer");
     d_tag_buffer = db->getIntegerArray("d_tag_buffer");
 
-    d_conservation_form = db->getBool("d_conservation_form");
-
     d_using_vorticity_tagging = db->getBool("d_using_vorticity_tagging");
     d_omega_rel_thresh = db->getDoubleArray("d_omega_rel_thresh");
     d_omega_abs_thresh = db->getDoubleArray("d_omega_abs_thresh");
     d_omega_max = db->getDouble("d_omega_max");
 
     d_normalize_pressure = db->getBool("d_normalize_pressure");
+    d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("d_convective_difference_form"));
+    d_creeping_flow = db->getBool("d_creeping_flow");
 
     d_old_dt = db->getDouble("d_old_dt");
     d_op_and_solver_init_dt = db->getDouble("d_op_and_solver_init_dt");

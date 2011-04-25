@@ -126,7 +126,6 @@ IBImplicitJacobian::apply(
     Pointer<SideDataSynchronization> side_synch_op = new SideDataSynchronization();
     side_synch_op->initializeOperatorState(y_synch_transaction, y.getPatchHierarchy());
     side_synch_op->synchronizeData(0.0);
-
     return;
 }// apply
 

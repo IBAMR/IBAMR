@@ -69,7 +69,6 @@ discard_comments(
     string_stream.str(output_string);
     getline(string_stream, output_string, '%');
     string_stream.clear();
-
     return output_string;
 }// discard_comments
 
@@ -190,7 +189,6 @@ main(
 
     // Close the output file.
     file_stream.close();
-
     return 0;
 }// main
 

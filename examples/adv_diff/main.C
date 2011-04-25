@@ -260,6 +260,9 @@ main(
     const bool write_restart = restart_interval > 0
         && !restart_write_dirname.empty();
 
+    const ConvectiveDifferencingType difference_form = string_to_enum<ConvectiveDifferencingType>(main_db->getStringWithDefault("difference_form", enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
+    tbox::pout << "solving the advection-diffusion equation in " << enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
+
     int timer_dump_interval = 0;
     if (main_db->keyExists("timer_dump_interval"))
     {
@@ -326,9 +329,8 @@ main(
         input_db->getDatabase("LocationIndexRobinBcCoefs"));
     const double kappa = input_db->getDatabase("QInit")->getDouble("kappa");
     const double lambda = 0.0;
-    const bool consv_form = false;
     time_integrator->registerAdvectedAndDiffusedQuantity(
-        Q_var, kappa, lambda, consv_form, tbox::Pointer<CartGridFunction>(&Q_init,false),
+        Q_var, kappa, lambda, difference_form, tbox::Pointer<CartGridFunction>(&Q_init,false),
         &physical_bc_coef);
 
     tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =

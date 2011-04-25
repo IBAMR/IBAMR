@@ -376,6 +376,16 @@ main(
         }
 
         /*
+         * Create source function specification objects (when necessary).
+         */
+        if (input_db->keyExists("SourceSinkFunction"))
+        {
+            tbox::Pointer<CartGridFunction> q_fcn = new muParserCartGridFunction(
+                "q_fcn", input_db->getDatabase("SourceSinkFunction"), grid_geometry);
+            time_integrator->registerSourceSpecification(q_fcn);
+        }
+
+        /*
          * Set up visualization plot file writer.
          */
         tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer =

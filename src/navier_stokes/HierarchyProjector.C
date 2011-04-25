@@ -249,7 +249,7 @@ HierarchyProjector::HierarchyProjector(
     d_default_P_bc_coef = P_bc_coef;
 
     // Initialize the boundary conditions objects.
-    d_Phi_bc_coef = new INSProjectionBcCoef(d_P_idx,d_default_P_bc_coef,"pressure_update",d_w_fc_idx,d_default_u_bc_coefs,true);
+    d_Phi_bc_coef = new INSProjectionBcCoef(d_P_idx,d_default_P_bc_coef,PRESSURE_UPDATE,d_w_fc_idx,d_default_u_bc_coefs,true);
     setPressurePhysicalBcCoef(d_default_P_bc_coef);
     setVelocityPhysicalBcCoefs(d_default_u_bc_coefs);
 
@@ -441,7 +441,7 @@ HierarchyProjector::projectHierarchy(
     const double rho,
     const double dt,
     const double time,
-    const std::string& projection_type,
+    const ProjectionMethodType& projection_type,
     const int u_idx,
     const Pointer<FaceVariable<NDIM,double> >& u_var,
     const int P_idx,
@@ -472,7 +472,7 @@ HierarchyProjector::projectHierarchy(
     }
 
     // Fill the pressure data if we are using a pressure-increment projection.
-    if (projection_type == "pressure_increment")
+    if (projection_type == PRESSURE_INCREMENT)
     {
         d_hier_cc_data_ops->copyData(d_P_idx, P_idx);
         d_P_hier_bdry_fill_op->fillData(time);
@@ -581,7 +581,7 @@ HierarchyProjector::projectHierarchy(
     const double rho,
     const double dt,
     const double time,
-    const std::string& projection_type,
+    const ProjectionMethodType& projection_type,
     const int u_idx,
     const Pointer<SideVariable<NDIM,double> >& u_var,
     const int P_idx,
@@ -612,7 +612,7 @@ HierarchyProjector::projectHierarchy(
     }
 
     // Fill the pressure data if we are using a pressure-increment projection.
-    if (projection_type == "pressure_increment")
+    if (projection_type == PRESSURE_INCREMENT)
     {
         d_hier_cc_data_ops->copyData(d_P_idx, P_idx);
         d_P_hier_bdry_fill_op->fillData(time);

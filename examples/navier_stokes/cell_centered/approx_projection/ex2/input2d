@@ -23,7 +23,7 @@ INSHierarchyIntegrator {
 
    tag_buffer = 1
 
-   conservation_form = FALSE
+   convective_difference_form = "ADVECTIVE"
 
    using_vorticity_tagging = TRUE
    vorticity_abs_thresh = 0.3125 , 1.25 , 5.0

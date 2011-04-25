@@ -37,6 +37,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/GodunovAdvector.h>
+#include <ibamr/ibamr_enums.h>
 
 // IBTK INCLUDES
 #include <ibtk/CartExtrapPhysBdryOp.h>
@@ -172,9 +173,9 @@ public:
      * \brief Register a scalar-valued cell-centered quantity to be advected by
      * the GodunovAdvector according to the specified advection velocity.
      *
-     * Conservative differencing is employed in updating the value of the
-     * quantity when \p conservation_form is true.  Otherwise, non-conservative
-     * differencing is used to update the quantity.
+     * The form of the convective term is determined by the parameter \p
+     * difference_form.  Supported differencing forms are CONSERVATIVE and
+     * ADVECTIVE.
      *
      * Optional concrete IBTK::CartGridFunction and SAMRAI::solv::RobinBcCoefStrategy
      * objects allow for the specification of initial and boundary data for the
@@ -195,7 +196,7 @@ public:
     void
     registerAdvectedQuantity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        const bool conservation_form=true,
+        const ConvectiveDifferencingType difference_form=CONSERVATIVE,
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init=NULL,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
@@ -204,9 +205,9 @@ public:
      * \brief Register a vector-valued cell-centered quantity to be advected by
      * the GodunovAdvector according to the specified advection velocity.
      *
-     * Conservative differencing is employed in updating the value of the
-     * quantity when \p conservation_form is true.  Otherwise, non-conservative
-     * differencing is used to update the quantity.
+     * The form of the convective term is determined by the parameter \p
+     * difference_form.  Supported differencing forms are CONSERVATIVE and
+     * ADVECTIVE.
      *
      * Optional concrete IBTK::CartGridFunction and SAMRAI::solv::RobinBcCoefStrategy
      * objects allow for the specification of initial and boundary data for the
@@ -227,7 +228,7 @@ public:
     void
     registerAdvectedQuantity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        const bool conservation_form=true,
+        const ConvectiveDifferencingType difference_form=CONSERVATIVE,
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init=NULL,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
@@ -237,9 +238,9 @@ public:
      * the GodunovAdvector according to the specified advection velocity and
      * source term.
      *
-     * Conservative differencing is employed in updating the value of the
-     * quantity when \p conservation_form is true.  Otherwise, non-conservative
-     * differencing is used to update the quantity.
+     * The form of the convective term is determined by the parameter \p
+     * difference_form.  Supported differencing forms are CONSERVATIVE and
+     * ADVECTIVE.
      *
      * Optional concrete IBTK::CartGridFunction and SAMRAI::solv::RobinBcCoefStrategy
      * objects allow for the specification of initial and boundary data for the
@@ -266,7 +267,7 @@ public:
     registerAdvectedQuantityWithSourceTerm(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
-        const bool conservation_form=true,
+        const ConvectiveDifferencingType difference_form=CONSERVATIVE,
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init=NULL,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL,
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn=NULL,
@@ -277,9 +278,9 @@ public:
      * the GodunovAdvector according to the specified advection velocity and
      * source term.
      *
-     * Conservative differencing is employed in updating the value of the
-     * quantity when \p conservation_form is true.  Otherwise, non-conservative
-     * differencing is used to update the quantity.
+     * The form of the convective term is determined by the parameter \p
+     * difference_form.  Supported differencing forms are CONSERVATIVE and
+     * ADVECTIVE.
      *
      * Optional concrete IBTK::CartGridFunction and SAMRAI::solv::RobinBcCoefStrategy
      * objects allow for the specification of initial and boundary data for the
@@ -306,7 +307,7 @@ public:
     registerAdvectedQuantityWithSourceTerm(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
-        const bool conservation_form=true,
+        const ConvectiveDifferencingType difference_form=CONSERVATIVE,
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init=NULL,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn=NULL,
@@ -597,10 +598,10 @@ protected:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_grad_var;
 
     /*
-     * Indicates whether conservative or non-conservative differencing should be
-     * employed for a given quantity.
+     * Indicates the convective differencing form to be employed for a given
+     * quantity.
      */
-    std::vector<bool> d_Q_in_consv_form;
+    std::vector<ConvectiveDifferencingType> d_Q_difference_form;
 
     /*
      * When conservative differencing is employed for a quantity Q, we maintain

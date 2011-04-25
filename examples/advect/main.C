@@ -364,15 +364,8 @@ main(
         tbox::pout << "advection velocity u is NOT discretely divergence free.\n";
     }
 
-    const bool consv_form = main_db->getBoolWithDefault("consv_form", false);
-    if (consv_form)
-    {
-        tbox::pout << "solving the advection equation in CONSERVATION form.\n";
-    }
-    else
-    {
-        tbox::pout << "solving the advection equation in NON-CONSERVATION form.\n";
-    }
+    const ConvectiveDifferencingType difference_form = string_to_enum<ConvectiveDifferencingType>(main_db->getStringWithDefault("difference_form", enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
+    tbox::pout << "solving the advection equation in " << enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
 
     int timer_dump_interval = 0;
     if (main_db->keyExists("timer_dump_interval"))
@@ -439,7 +432,7 @@ main(
         "physical_bc_coef",
         input_db->getDatabase("LocationIndexRobinBcCoefs"));
     hyp_patch_ops->registerAdvectedQuantity(
-        Q_var, consv_form,
+        Q_var, difference_form,
         tbox::Pointer<CartGridFunction>(&Q_init,false),
         &physical_bc_coef);
 

@@ -190,7 +190,7 @@ surface_force_function(
     if (side == 0) F(2) = -F(2);
 
     // Penalize deviations from planar:
-    AutoPtr<DofObject> side_dofs = elem->side(side);
+    AutoPtr<DofObject> side_dofs(elem->side(side));
     Elem* face = dynamic_cast<Elem*>(side_dofs.get());
     double z_mean = 0.0;
     const int n_nodes = face->n_nodes();
@@ -366,7 +366,7 @@ main(
     static const double t2  =    8.0 * 0.1;  // thickness of orthotropic         layer (cm)
     static const double t3  =    2.5 * 0.1;  // thickness of outermost isotropic layer (cm)
     static const double R_o = R_i+t1+t2+t3;  // outer radius (cm)
-    static const double L   =    2.0 * R_o;  // prescribed length of tube (cm)
+    static const double L   =    2.0 * R_i;  // prescribed length of tube (cm)
     static const double C_o = 2.0*M_PI*R_o;  // outer circumference of tube (cm)
 
     ModelData::R_i = R_i;

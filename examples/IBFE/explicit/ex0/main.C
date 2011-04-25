@@ -420,6 +420,14 @@ main(
     }
     if (has_physical_boundaries) time_integrator->registerVelocityPhysicalBcCoefs(u_bc_coefs);
 
+    // Create body force function specification objects (when necessary).
+    if (input_db->keyExists("ForcingFunction"))
+    {
+        tbox::Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
+            "f_fcn", input_db->getDatabase("ForcingFunction"), grid_geometry);
+        time_integrator->registerEulBodyForceFunction(f_fcn);
+    }
+
     // Setup visualization plot file writers.
     Pointer<VisItDataWriter<NDIM> > visit_data_writer;
     if (uses_visit)

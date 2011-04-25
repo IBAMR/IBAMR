@@ -84,20 +84,22 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define NAVIER_STOKES_ADV_DIV_SOURCE_FC FC_FUNC_(navier_stokes_adv_div_source2d, NAVIER_STOKES_ADV_DIV_SOURCE2D)
-#define NAVIER_STOKES_CONS_DIV_SOURCE_FC FC_FUNC_(navier_stokes_cons_div_source2d, NAVIER_STOKES_CONS_DIV_SOURCE2D)
+#define NAVIER_STOKES_ADV_SOURCE_FC FC_FUNC_(navier_stokes_adv_source2d, NAVIER_STOKES_ADV_SOURCE2D)
+#define NAVIER_STOKES_CONS_SOURCE_FC FC_FUNC_(navier_stokes_cons_source2d, NAVIER_STOKES_CONS_SOURCE2D)
+#define NAVIER_STOKES_SKEW_SYM_SOURCE_FC FC_FUNC_(navier_stokes_skew_sym_source2d, NAVIER_STOKES_SKEW_SYM_SOURCE2D)
 #endif
 
 #if (NDIM == 3)
-#define NAVIER_STOKES_ADV_DIV_SOURCE_FC FC_FUNC_(navier_stokes_adv_div_source3d, NAVIER_STOKES_ADV_DIV_SOURCE3D)
-#define NAVIER_STOKES_CONS_DIV_SOURCE_FC FC_FUNC_(navier_stokes_cons_div_source3d, NAVIER_STOKES_CONS_DIV_SOURCE3D)
+#define NAVIER_STOKES_ADV_SOURCE_FC FC_FUNC_(navier_stokes_adv_source3d, NAVIER_STOKES_ADV_SOURCE3D)
+#define NAVIER_STOKES_CONS_SOURCE_FC FC_FUNC_(navier_stokes_cons_source3d, NAVIER_STOKES_CONS_SOURCE3D)
+#define NAVIER_STOKES_SKEW_SYM_SOURCE_FC FC_FUNC_(navier_stokes_skew_sym_source3d, NAVIER_STOKES_SKEW_SYM_SOURCE3D)
 #endif
 
 // Function interfaces
 extern "C"
 {
     void
-    NAVIER_STOKES_ADV_DIV_SOURCE_FC(
+    NAVIER_STOKES_ADV_SOURCE_FC(
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -116,7 +118,26 @@ extern "C"
         double*);
 
     void
-    NAVIER_STOKES_CONS_DIV_SOURCE_FC(
+    NAVIER_STOKES_CONS_SOURCE_FC(
+#if (NDIM == 2)
+        const int& , const int& , const int& , const int& ,
+        const int& , const int& ,
+        const int& , const int& ,
+        const int& , const int& ,
+        const double* , const double* ,
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double* ,
+#endif
+        const double* ,
+        double*);
+
+    void
+    NAVIER_STOKES_SKEW_SYM_SOURCE_FC(
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -234,8 +255,8 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     d_using_vorticity_tagging = false;
     d_Omega_max = 0.0;
 
-    d_velocity_projection_type = "pressure_increment";
-    d_pressure_projection_type = "pressure_update";
+    d_velocity_projection_type = PRESSURE_INCREMENT;
+    d_pressure_projection_type = PRESSURE_UPDATE;
 
     d_second_order_pressure_update = false;
     d_viscous_timestepping_type = d_adv_diff_hier_integrator->getViscousTimesteppingType();
@@ -254,7 +275,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     d_integrator_time = std::numeric_limits<double>::quiet_NaN();
     d_integrator_step = std::numeric_limits<int>::max();
 
-    d_conservation_form = false;
+    d_convective_difference_form = ADVECTIVE;
 
     d_output_P = false;
     d_output_F = false;
@@ -303,7 +324,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
         d_default_P_bc_coef->setBoundarySlope(2*d+1,0.0);
     }
 
-    d_Phi_bc_coef = new INSProjectionBcCoef(-1,NULL,"pressure_update",-1,std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),true);
+    d_Phi_bc_coef = new INSProjectionBcCoef(-1,NULL,PRESSURE_UPDATE,-1,std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),true);
 
     registerVelocityPhysicalBcCoefs(
         std::vector<RobinBcCoefStrategy<NDIM>*>(
@@ -320,22 +341,6 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     getFromInput(input_db, from_restart);
 
     // Determine whether we are using a hybrid projection algorithm.
-    if (d_velocity_projection_type != "pressure_increment" &&
-        d_velocity_projection_type != "pressure_update")
-    {
-        TBOX_ERROR(d_object_name << "::INSHierarchyIntegrator():\n"
-                   << "  invalid velocity projection type: " << d_velocity_projection_type << "\n"
-                   << "  valid choices are: ``pressure_increment'' or ``pressure_update''" << std::endl);
-    }
-
-    if (d_pressure_projection_type != "pressure_increment" &&
-        d_pressure_projection_type != "pressure_update")
-    {
-        TBOX_ERROR(d_object_name << "::INSHierarchyIntegrator():\n"
-                   << "  invalid pressure projection type: ``" << d_pressure_projection_type << "''\n"
-                   << "  valid choices are: ``pressure_increment'' or ``pressure_update''" << std::endl);
-    }
-
     if (!d_cc_hier_projector.isNull())
     {
         if (d_velocity_projection_type != d_pressure_projection_type)
@@ -349,23 +354,23 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
 
     if (d_velocity_projection_type != d_pressure_projection_type)
     {
-        if (d_velocity_projection_type != "pressure_increment")
+        if (d_velocity_projection_type != PRESSURE_INCREMENT)
         {
             TBOX_ERROR(d_object_name << "::INSHierarchyIntegrator():\n"
                        << "  invalid hybrid projection configuration.\n"
-                       << "  for hybrid projection, it is required that velocity projection type = ``pressure_increment''\n"
-                       << "  velocity projection type = " << d_velocity_projection_type << "\n"
-                       << "  pressure projection type = " << d_pressure_projection_type << std::endl);
+                       << "  for hybrid projection, it is required that velocity projection type = ``PRESSURE_INCREMENT''\n"
+                       << "  velocity projection type = " << enum_to_string<ProjectionMethodType>(d_velocity_projection_type) << "\n"
+                       << "  pressure projection type = " << enum_to_string<ProjectionMethodType>(d_pressure_projection_type) << std::endl);
         }
     }
 
     d_using_hybrid_projection = d_velocity_projection_type != d_pressure_projection_type;
 
-    pout << d_object_name << ": velocity projection type = ``" << d_velocity_projection_type << "''\n"
-         << d_object_name << ": pressure projection type = ``" << d_pressure_projection_type << "''\n"
+    pout << d_object_name << ": velocity projection type = ``" << enum_to_string<ProjectionMethodType>(d_velocity_projection_type) << "''\n"
+         << d_object_name << ": pressure projection type = ``" << enum_to_string<ProjectionMethodType>(d_pressure_projection_type) << "''\n"
          << d_object_name << ": using a  " << (d_using_hybrid_projection ? "HYBRID" : "STANDARD") << " approximate projection algorithm\n"
          << d_object_name << ": using a  " << (d_second_order_pressure_update ? "SECOND-ORDER" : "FIRST-ORDER") << " pressure update\n"
-         << d_object_name << ": using    " << (d_conservation_form ? "CONSERVATIVE" : "NON-CONSERVATIVE") << " differencing\n"
+         << d_object_name << ": using    " << enum_to_string<ConvectiveDifferencingType>(d_convective_difference_form) << " differencing\n"
          << d_object_name << ": using an " << (d_cc_hier_projector.isNull() ? "APPROXIMATE" : "EXACT") << " cell-centered projection algorithm\n";
 
     // Get initialization data for the FAC ops and FAC preconditioners.
@@ -922,7 +927,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
         d_intermediate_U_bc_coefs.begin(), d_intermediate_U_bc_coefs.end());
 
     d_adv_diff_hier_integrator->registerAdvectedAndDiffusedQuantityWithSourceTerm(
-        d_U_var, d_nu, d_lambda, d_F_U_var, d_conservation_form,
+        d_U_var, d_nu, d_lambda, d_F_U_var, d_convective_difference_form,
         d_U_init, U_bc_coefs,
         Pointer<CartGridFunction>(NULL),
         d_grad_Phi_var);
@@ -1146,7 +1151,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Setup hybrid pressure update solvers.
     d_helmholtz_spec = NULL;
-    if (d_using_hybrid_projection && d_pressure_projection_type == "pressure_update")
+    if (d_using_hybrid_projection && d_pressure_projection_type == PRESSURE_UPDATE)
     {
         d_helmholtz_spec = new PoissonSpecifications(d_object_name+"::helmholtz_spec");
         d_helmholtz_op = new CCLaplaceOperator(d_object_name+"::helmholtz_op",*d_helmholtz_spec,NULL);
@@ -1730,7 +1735,7 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     d_hier_fc_data_ops->copyData(d_u_adv_current_idx, d_u_current_idx);
 
     // Setup the forcing terms for velocity prediction.
-    if (d_velocity_projection_type == "pressure_increment")
+    if (d_velocity_projection_type == PRESSURE_INCREMENT)
     {
         d_hier_cc_data_ops->scale(d_F_U_current_idx, -(1.0/d_rho), d_Grad_P_idx);
     }
@@ -1874,7 +1879,7 @@ INSHierarchyIntegrator::integrateAdvDiff(
     // Setup time-centered forcing terms.
     d_hier_cc_data_ops->setToScalar(d_F_U_current_idx, 0.0);
 
-    if (d_velocity_projection_type == "pressure_increment")
+    if (d_velocity_projection_type == PRESSURE_INCREMENT)
     {
         d_hier_cc_data_ops->axpy(d_F_U_current_idx, -(1.0/d_rho), d_Grad_P_idx, d_F_U_current_idx);
     }
@@ -2114,8 +2119,8 @@ INSHierarchyIntegrator::updatePressure(
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(d_cc_hier_projector.isNull());
-        TBOX_ASSERT(d_velocity_projection_type == "pressure_increment" &&
-                    d_pressure_projection_type == "pressure_update");
+        TBOX_ASSERT(d_velocity_projection_type == PRESSURE_INCREMENT &&
+                    d_pressure_projection_type == PRESSURE_UPDATE);
 #endif
         // Allocate scratch data.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -2137,71 +2142,77 @@ INSHierarchyIntegrator::updatePressure(
         d_hier_cc_data_ops->scale(d_V_idx, (dt/d_rho), d_Grad_P_idx);
         d_hier_cc_data_ops->scale(d_F_U_scratch_idx, (dt/d_rho), d_Grad_P_idx);
 
-        if (d_viscous_timestepping_type == "BACKWARD_EULER")
+        switch (d_viscous_timestepping_type)
         {
-            // The backward Euler discretization is:
-            //
-            //     (I-dt*mu*L(t_new)) Q(n+1) = Q(n) + F(t_avg) dt
-            //
-            // where
-            //
-            //    t_new = (n+1) dt
-            //    t_avg = (t_new+t_old)/2
-            //
-            // Note that for simplicity of implementation, we always use a
-            // timestep-centered forcing term.
-            d_helmholtz_spec->setCConstant(1.0+dt*d_lambda);
-            d_helmholtz_spec->setDConstant(   -dt*d_nu    );
-        }
-        else if (d_viscous_timestepping_type == "CRANK_NICOLSON")
-        {
-            // The Crank-Nicolson discretization is:
-            //
-            //     (I-0.5*dt*mu*L(t_new)) Q(n+1) = (I+0.5*dt*mu*L(t_old)) Q(n) + F(t_avg) dt
-            //
-            // where
-            //
-            //    t_old = n dt
-            //    t_new = (n+1) dt
-            //    t_avg = (t_new+t_old)/2
-            d_helmholtz_spec->setCConstant(1.0+0.5*dt*d_lambda);
-            d_helmholtz_spec->setDConstant(   -0.5*dt*d_nu    );
-        }
-        else if (d_viscous_timestepping_type == "TGA")
-        {
-            // The TGA discretization is:
-            //
-            //     (I-nu2*dt*mu*L(t_int)) (I-nu1*dt*mu*L(t_new)) Q(n+1) = [(I+nu3*dt*mu*L(t_old)) Q(n) + (I+nu4*dt*mu*L) F(t_avg) dt]
-            //
-            // where
-            //
-            //    t_old = n dt
-            //    t_new = (n+1) dt
-            //    t_int = t_new - nu1*dt = t_old + (nu2+nu3)*dt
-            //    t_avg = (t_new+t_old)/2 = t_old + (nu1+nu2+nu4)*dt
-            //
-            // Following McCorquodale et al., the coefficients for the TGA
-            // discretization are:
-            //
-            //     nu1 = (a - sqrt(a^2-4*a+2))/2
-            //     nu2 = (a + sqrt(a^2-4*a+2))/2
-            //     nu3 = (1-a)
-            //     nu4 = (0.5-a)
-            //
-            // Note that by choosing a = 2 - sqrt(2), nu1 == nu2.
-            //
-            // Ref: McCorquodale, Colella, Johansen.  "A Cartesian grid embedded
-            // boundary method for the heat equation on irregular domains." JCP
-            // 173, pp. 620-635 (2001)
-            static const double nu1 = TGACoefs::nu1;
-            intermediate_time = new_time-nu1*dt;
-            d_helmholtz_spec->setCConstant(1.0+nu1*dt*d_lambda);
-            d_helmholtz_spec->setDConstant(   -nu1*dt*d_nu    );
-        }
-        else
-        {
-            TBOX_ERROR(d_object_name << "::updatePressure():\n"
-                       << "  unrecognized viscous timestepping scheme: ``" << d_viscous_timestepping_type << "''\n");
+            case BACKWARD_EULER:
+            {
+                // The backward Euler discretization is:
+                //
+                //     (I-dt*mu*L(t_new)) Q(n+1) = Q(n) + F(t_avg) dt
+                //
+                // where
+                //
+                //    t_new = (n+1) dt
+                //    t_avg = (t_new+t_old)/2
+                //
+                // Note that for simplicity of implementation, we always use a
+                // timestep-centered forcing term.
+                d_helmholtz_spec->setCConstant(1.0+dt*d_lambda);
+                d_helmholtz_spec->setDConstant(   -dt*d_nu    );
+                break;
+            }
+            case CRANK_NICOLSON:
+            {
+                // The Crank-Nicolson discretization is:
+                //
+                //     (I-0.5*dt*mu*L(t_new)) Q(n+1) = (I+0.5*dt*mu*L(t_old)) Q(n) + F(t_avg) dt
+                //
+                // where
+                //
+                //    t_old = n dt
+                //    t_new = (n+1) dt
+                //    t_avg = (t_new+t_old)/2
+                d_helmholtz_spec->setCConstant(1.0+0.5*dt*d_lambda);
+                d_helmholtz_spec->setDConstant(   -0.5*dt*d_nu    );
+                break;
+            }
+            case TGA:
+            {
+                // The TGA discretization is:
+                //
+                //     (I-nu2*dt*mu*L(t_int)) (I-nu1*dt*mu*L(t_new)) Q(n+1) = [(I+nu3*dt*mu*L(t_old)) Q(n) + (I+nu4*dt*mu*L) F(t_avg) dt]
+                //
+                // where
+                //
+                //    t_old = n dt
+                //    t_new = (n+1) dt
+                //    t_int = t_new - nu1*dt = t_old + (nu2+nu3)*dt
+                //    t_avg = (t_new+t_old)/2 = t_old + (nu1+nu2+nu4)*dt
+                //
+                // Following McCorquodale et al., the coefficients for the TGA
+                // discretization are:
+                //
+                //     nu1 = (a - sqrt(a^2-4*a+2))/2
+                //     nu2 = (a + sqrt(a^2-4*a+2))/2
+                //     nu3 = (1-a)
+                //     nu4 = (0.5-a)
+                //
+                // Note that by choosing a = 2 - sqrt(2), nu1 == nu2.
+                //
+                // Ref: McCorquodale, Colella, Johansen.  "A Cartesian grid
+                // embedded boundary method for the heat equation on irregular
+                // domains." JCP 173, pp. 620-635 (2001)
+                static const double nu1 = TGACoefs::nu1;
+                intermediate_time = new_time-nu1*dt;
+                d_helmholtz_spec->setCConstant(1.0+nu1*dt*d_lambda);
+                d_helmholtz_spec->setDConstant(   -nu1*dt*d_nu    );
+                break;
+            }
+            default:
+            {
+                TBOX_ERROR(d_object_name << "::updatePressure():\n"
+                           << "  unrecognized viscous timestepping scheme: ``" << enum_to_string<ViscousTimesteppingType>(d_viscous_timestepping_type) << "''\n");
+            }
         }
 
         // Setup the intermediate velocity bc coefs.
@@ -2238,7 +2249,7 @@ INSHierarchyIntegrator::updatePressure(
         // Solve for delta U^(n,*) = U~^(n,*) - U^(n,*).
         if (d_do_log) plog << d_object_name << "::updatePressure(): about to solve for U~^(n,*) - U^(n,*) . . . \n";
 
-        if (d_viscous_timestepping_type == "BACKWARD_EULER" || d_viscous_timestepping_type == "CRANK_NICOLSON")
+        if (d_viscous_timestepping_type == BACKWARD_EULER || d_viscous_timestepping_type == CRANK_NICOLSON)
         {
             d_helmholtz_op->setTime(new_time);
             if (d_helmholtz_using_FAC) d_helmholtz_fac_op->setTime(new_time);
@@ -2253,7 +2264,7 @@ INSHierarchyIntegrator::updatePressure(
                      <<"  WARNING: linear solver iterations == max iterations\n";
             }
         }
-        else if (d_viscous_timestepping_type == "TGA")
+        else if (d_viscous_timestepping_type == TGA)
         {
             d_helmholtz_op->setTime(intermediate_time);
             if (d_helmholtz_using_FAC) d_helmholtz_fac_op->setTime(intermediate_time);
@@ -2343,51 +2354,60 @@ INSHierarchyIntegrator::updatePressure(
     // Update the pressure.
     if (d_second_order_pressure_update)
     {
-        if (d_viscous_timestepping_type == "BACKWARD_EULER")
+        switch (d_viscous_timestepping_type)
         {
-            TBOX_ERROR(d_object_name << "::updatePressure():\n"
-                       << "  second-order pressure update is not available when using backward Euler for the viscous timestepping scheme.");
-        }
-        else if (d_viscous_timestepping_type == "CRANK_NICOLSON")
-        {
-            // The Crank-Nicolson discretization is:
-            //
-            //     (I-0.5*dt*mu*L(t_new)) Q(n+1) = (I+0.5*dt*mu*L(t_old)) Q(n) + F(t_avg) dt
-            //
-            // where
-            //
-            //    t_old = n dt
-            //    t_new = (n+1) dt
-            //    t_avg = (t_new+t_old)/2
-            PoissonSpecifications helmholtz_spec(d_object_name+"::helmholtz_spec");
-            helmholtz_spec.setCConstant(1.0+0.5*dt*d_lambda);
-            helmholtz_spec.setDConstant(   -0.5*dt*d_nu    );
-
-            d_hier_math_ops->laplace(
-                d_sol_idx      , d_sol_var,   // dst
-                helmholtz_spec            ,   // Poisson spec
-                Phi_scratch_idx, Phi_var  ,   // src
-                d_no_fill_op, current_time);
-        }
-        else if (d_viscous_timestepping_type == "TGA")
-        {
-            TBOX_ERROR(d_object_name << "::updatePressure():\n"
-                       << "  second-order pressure update is not available when using TGA as the viscous timestepping scheme.");
-        }
-        else
-        {
-            TBOX_ERROR(d_object_name << "::updatePressure():\n"
-                       << "  unrecognized viscous timestepping scheme: ``" << d_viscous_timestepping_type << "''\n");
+            case BACKWARD_EULER:
+            {
+                TBOX_ERROR(d_object_name << "::updatePressure():\n"
+                           << "  second-order pressure update is not available when using backward Euler for the viscous timestepping scheme.");
+                break;
+            }
+            case CRANK_NICOLSON:
+            {
+                // The Crank-Nicolson discretization is:
+                //
+                //     (I-0.5*dt*mu*L(t_new)) Q(n+1) = (I+0.5*dt*mu*L(t_old)) Q(n) + F(t_avg) dt
+                //
+                // where
+                //
+                //    t_old = n dt
+                //    t_new = (n+1) dt
+                //    t_avg = (t_new+t_old)/2
+                PoissonSpecifications helmholtz_spec(d_object_name+"::helmholtz_spec");
+                helmholtz_spec.setCConstant(1.0+0.5*dt*d_lambda);
+                helmholtz_spec.setDConstant(   -0.5*dt*d_nu    );
+                d_hier_math_ops->laplace(
+                    d_sol_idx      , d_sol_var,   // dst
+                    helmholtz_spec            ,   // Poisson spec
+                    Phi_scratch_idx, Phi_var  ,   // src
+                    d_no_fill_op, current_time);
+                break;
+            }
+            case TGA:
+            {
+                TBOX_ERROR(d_object_name << "::updatePressure():\n"
+                           << "  second-order pressure update is not available when using TGA as the viscous timestepping scheme.");
+                break;
+            }
+            default:
+            {
+                TBOX_ERROR(d_object_name << "::updatePressure():\n"
+                           << "  unrecognized viscous timestepping scheme\n");
+            }
         }
 
         // Update the pressure.
-        if (d_pressure_projection_type == "pressure_increment")
+        switch (d_pressure_projection_type)
         {
-            d_hier_cc_data_ops->add(d_P_new_idx, d_P_current_idx, d_sol_idx);
-        }
-        else if (d_pressure_projection_type == "pressure_update")
-        {
-            d_hier_cc_data_ops->copyData(d_P_new_idx, d_sol_idx);
+            case PRESSURE_INCREMENT:
+                d_hier_cc_data_ops->add(d_P_new_idx, d_P_current_idx, d_sol_idx);
+                break;
+            case PRESSURE_UPDATE:
+                d_hier_cc_data_ops->copyData(d_P_new_idx, d_sol_idx);
+                break;
+            default:
+                TBOX_ERROR(d_object_name << "::updatePressure():\n"
+                           << "  unrecognized pressure projection type\n");
         }
     }
     else
@@ -2395,13 +2415,17 @@ INSHierarchyIntegrator::updatePressure(
         // The basic first-order pressure update corresponding to a
         // discretization of the incompressible Euler equations (i.e.,
         // corresponding to the case of vanishing viscosity).
-        if (d_pressure_projection_type == "pressure_increment")
+        switch (d_pressure_projection_type)
         {
-            d_hier_cc_data_ops->add(d_P_new_idx, d_P_current_idx, Phi_scratch_idx);
-        }
-        else if (d_pressure_projection_type == "pressure_update")
-        {
-            d_hier_cc_data_ops->copyData(d_P_new_idx, Phi_scratch_idx);
+            case PRESSURE_INCREMENT:
+                d_hier_cc_data_ops->add(d_P_new_idx, d_P_current_idx, Phi_scratch_idx);
+                break;
+            case PRESSURE_UPDATE:
+                d_hier_cc_data_ops->copyData(d_P_new_idx, Phi_scratch_idx);
+                break;
+            default:
+                TBOX_ERROR(d_object_name << "::updatePressure():\n"
+                           << "  unrecognized pressure projection type\n");
         }
     }
 
@@ -3290,11 +3314,11 @@ INSHierarchyIntegrator::putToDatabase(
     db->putBool("d_using_default_tag_buffer", d_using_default_tag_buffer);
     db->putIntegerArray("d_tag_buffer", d_tag_buffer);
     db->putBool("d_using_synch_projection", d_using_synch_projection);
-    db->putBool("d_conservation_form", d_conservation_form);
+    db->putString("d_convective_difference_form", enum_to_string<ConvectiveDifferencingType>(d_convective_difference_form));
     db->putBool("d_using_vorticity_tagging", d_using_vorticity_tagging);
     db->putDouble("d_Omega_max", d_Omega_max);
-    db->putString("d_velocity_projection_type", d_velocity_projection_type);
-    db->putString("d_pressure_projection_type", d_pressure_projection_type);
+    db->putString("d_velocity_projection_type", enum_to_string<ProjectionMethodType>(d_velocity_projection_type));
+    db->putString("d_pressure_projection_type", enum_to_string<ProjectionMethodType>(d_pressure_projection_type));
     db->putBool("d_second_order_pressure_update", d_second_order_pressure_update);
     db->putBool("d_normalize_pressure", d_normalize_pressure);
     db->putDouble("d_old_dt", d_old_dt);
@@ -3404,7 +3428,6 @@ INSHierarchyIntegrator::registerVariable(
                             new_idx, // source
                             coarsen_operator);
     }
-
     return;
 }// registerVariable
 
@@ -3430,7 +3453,6 @@ INSHierarchyIntegrator::registerVariable(
     scratch_idx = var_db->registerVariableAndContext(
         variable, getScratchContext(), scratch_ghosts);
     d_scratch_data.setFlag(scratch_idx);
-
     return;
 }// registerVariable
 
@@ -3464,45 +3486,69 @@ INSHierarchyIntegrator::computeDivSourceTerm(
             const IntVector<NDIM>& Q_data_gc = Q_data->getGhostCellWidth();
             const IntVector<NDIM>& F_data_gc = F_data->getGhostCellWidth();
 
-            if (d_conservation_form)
+            switch (d_convective_difference_form)
             {
-                NAVIER_STOKES_CONS_DIV_SOURCE_FC(
+                case CONSERVATIVE:
+                    NAVIER_STOKES_CONS_SOURCE_FC(
 #if (NDIM == 2)
-                    ilower(0),iupper(0),ilower(1),iupper(1),
-                    u_data_gc(0),u_data_gc(1),
-                    Q_data_gc(0),Q_data_gc(1),
-                    F_data_gc(0),F_data_gc(1),
-                    u_data->getPointer(0),u_data->getPointer(1),
+                        ilower(0),iupper(0),ilower(1),iupper(1),
+                        u_data_gc(0),u_data_gc(1),
+                        Q_data_gc(0),Q_data_gc(1),
+                        F_data_gc(0),F_data_gc(1),
+                        u_data->getPointer(0),u_data->getPointer(1),
 #endif
 #if (NDIM == 3)
-                    ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                    u_data_gc(0),u_data_gc(1),u_data_gc(2),
-                    Q_data_gc(0),Q_data_gc(1),Q_data_gc(2),
-                    F_data_gc(0),F_data_gc(1),F_data_gc(2),
-                    u_data->getPointer(0),u_data->getPointer(1),u_data->getPointer(2),
+                        ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+                        u_data_gc(0),u_data_gc(1),u_data_gc(2),
+                        Q_data_gc(0),Q_data_gc(1),Q_data_gc(2),
+                        F_data_gc(0),F_data_gc(1),F_data_gc(2),
+                        u_data->getPointer(0),u_data->getPointer(1),u_data->getPointer(2),
 #endif
-                    Q_data->getPointer(),
-                    F_data->getPointer());
-            }
-            else
-            {
-                NAVIER_STOKES_ADV_DIV_SOURCE_FC(
+                        Q_data->getPointer(),
+                        F_data->getPointer());
+                    break;
+                case ADVECTIVE:
+                    NAVIER_STOKES_ADV_SOURCE_FC(
 #if (NDIM == 2)
-                    ilower(0),iupper(0),ilower(1),iupper(1),
-                    u_data_gc(0),u_data_gc(1),
-                    Q_data_gc(0),Q_data_gc(1),
-                    F_data_gc(0),F_data_gc(1),
-                    u_data->getPointer(0),u_data->getPointer(1),
+                        ilower(0),iupper(0),ilower(1),iupper(1),
+                        u_data_gc(0),u_data_gc(1),
+                        Q_data_gc(0),Q_data_gc(1),
+                        F_data_gc(0),F_data_gc(1),
+                        u_data->getPointer(0),u_data->getPointer(1),
 #endif
 #if (NDIM == 3)
-                    ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                    u_data_gc(0),u_data_gc(1),u_data_gc(2),
-                    Q_data_gc(0),Q_data_gc(1),Q_data_gc(2),
-                    F_data_gc(0),F_data_gc(1),F_data_gc(2),
-                    u_data->getPointer(0),u_data->getPointer(1),u_data->getPointer(2),
+                        ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+                        u_data_gc(0),u_data_gc(1),u_data_gc(2),
+                        Q_data_gc(0),Q_data_gc(1),Q_data_gc(2),
+                        F_data_gc(0),F_data_gc(1),F_data_gc(2),
+                        u_data->getPointer(0),u_data->getPointer(1),u_data->getPointer(2),
 #endif
-                    Q_data->getPointer(),
-                    F_data->getPointer());
+                        Q_data->getPointer(),
+                        F_data->getPointer());
+                    break;
+                case SKEW_SYMMETRIC:
+                    NAVIER_STOKES_SKEW_SYM_SOURCE_FC(
+#if (NDIM == 2)
+                        ilower(0),iupper(0),ilower(1),iupper(1),
+                        u_data_gc(0),u_data_gc(1),
+                        Q_data_gc(0),Q_data_gc(1),
+                        F_data_gc(0),F_data_gc(1),
+                        u_data->getPointer(0),u_data->getPointer(1),
+#endif
+#if (NDIM == 3)
+                        ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+                        u_data_gc(0),u_data_gc(1),u_data_gc(2),
+                        Q_data_gc(0),Q_data_gc(1),Q_data_gc(2),
+                        F_data_gc(0),F_data_gc(1),F_data_gc(2),
+                        u_data->getPointer(0),u_data->getPointer(1),u_data->getPointer(2),
+#endif
+                        Q_data->getPointer(),
+                        F_data->getPointer());
+                    break;
+                default:
+                    TBOX_ERROR("INSHierarchyIntegrator::computeDivSourceTerm():\n"
+                               << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_convective_difference_form) << " \n"
+                               << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
             }
         }
     }
@@ -3529,23 +3575,8 @@ INSHierarchyIntegrator::getFromInput(
 
     d_num_cycles = db->getIntegerWithDefault("num_cycles", d_num_cycles);
 
-    d_regrid_interval = db->getIntegerWithDefault(
-        "regrid_interval", d_regrid_interval);
-    std::string regrid_mode_str = db->getStringWithDefault("regrid_mode", "STANDARD");
-    if (regrid_mode_str == "STANDARD")
-    {
-        d_regrid_mode = STANDARD;
-    }
-    else if (regrid_mode_str == "AGGRESSIVE")
-    {
-        d_regrid_mode = AGGRESSIVE;
-    }
-    else
-    {
-        TBOX_ERROR(d_object_name << ":  "
-                   << "Key data `regrid_mode' has invalid value " << regrid_mode_str << "\n"
-                   << "Valid options are: STANDARD, AGGRESSIVE" << std::endl);
-    }
+    d_regrid_interval = db->getIntegerWithDefault("regrid_interval", d_regrid_interval);
+    d_regrid_mode = string_to_enum<RegridMode>(db->getStringWithDefault("regrid_mode", enum_to_string<RegridMode>(d_regrid_mode)));
 
     if (db->keyExists("tag_buffer"))
     {
@@ -3563,8 +3594,8 @@ INSHierarchyIntegrator::getFromInput(
     d_using_synch_projection = db->getBoolWithDefault(
         "using_synch_projection", d_using_synch_projection);
 
-    d_conservation_form = db->getBoolWithDefault(
-        "conservation_form", d_conservation_form);
+    d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(
+        db->getStringWithDefault("convective_difference_form", enum_to_string<ConvectiveDifferencingType>(d_convective_difference_form)));
 
     d_using_vorticity_tagging = db->getBoolWithDefault(
         "using_vorticity_tagging", d_using_vorticity_tagging);
@@ -3650,11 +3681,13 @@ INSHierarchyIntegrator::getFromInput(
         d_num_init_cycles = db->getIntegerWithDefault(
             "num_init_cycles", d_num_init_cycles);
 
-        d_velocity_projection_type = db->getStringWithDefault(
-            "velocity_projection_type", d_velocity_projection_type);
+        d_velocity_projection_type = string_to_enum<ProjectionMethodType>(
+            db->getStringWithDefault(
+                "velocity_projection_type", enum_to_string<ProjectionMethodType>(d_velocity_projection_type)));
 
-        d_pressure_projection_type = db->getStringWithDefault(
-            "pressure_projection_type", d_pressure_projection_type);
+        d_pressure_projection_type = string_to_enum<ProjectionMethodType>(
+            db->getStringWithDefault(
+                "pressure_projection_type", enum_to_string<ProjectionMethodType>(d_pressure_projection_type)));
 
         d_second_order_pressure_update = db->getBoolWithDefault(
             "second_order_pressure_update", d_second_order_pressure_update);
@@ -3732,11 +3765,11 @@ INSHierarchyIntegrator::getFromRestart()
     d_using_default_tag_buffer = db->getBool("d_using_default_tag_buffer");
     d_tag_buffer = db->getIntegerArray("d_tag_buffer");
     d_using_synch_projection = db->getBool("d_using_synch_projection");
-    d_conservation_form = db->getBool("d_conservation_form");
+    d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("d_convective_difference_form"));
     d_using_vorticity_tagging = db->getBool("d_using_vorticity_tagging");
     d_Omega_max = db->getDouble("d_Omega_max");
-    d_velocity_projection_type = db->getString("d_velocity_projection_type");
-    d_pressure_projection_type = db->getString("d_pressure_projection_type");
+    d_velocity_projection_type = string_to_enum<ProjectionMethodType>(db->getString("d_velocity_projection_type"));
+    d_pressure_projection_type = string_to_enum<ProjectionMethodType>(db->getString("d_pressure_projection_type"));
     d_second_order_pressure_update = db->getBool("d_second_order_pressure_update");
     d_normalize_pressure = db->getBool("d_normalize_pressure");
     d_old_dt = db->getDouble("d_old_dt");
@@ -3749,7 +3782,6 @@ INSHierarchyIntegrator::getFromRestart()
     d_mu = db->getDouble("d_mu");
     d_nu = db->getDouble("d_nu");
     d_lambda = db->getDouble("d_lambda");
-
     return;
 }// getFromRestart
 

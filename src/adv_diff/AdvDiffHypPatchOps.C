@@ -62,11 +62,6 @@
 #include <vector>
 
 // FORTRAN ROUTINES
-#if (NDIM == 1)
-#define ADV_DIFF_CONSDIFF_FC FC_FUNC_(adv_diff_consdiff1d, ADV_DIFF_CONSDIFF1D)
-#define ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC FC_FUNC_(adv_diff_consdiffwithdivsource1d, ADV_DIFF_CONSDIFFWITHDIVSOURCE1D)
-#endif
-
 #if (NDIM == 2)
 #define ADV_DIFF_CONSDIFF_FC FC_FUNC_(adv_diff_consdiff2d, ADV_DIFF_CONSDIFF2D)
 #define ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC FC_FUNC_(adv_diff_consdiffwithdivsource2d, ADV_DIFF_CONSDIFFWITHDIVSOURCE2D)
@@ -82,12 +77,6 @@ extern "C"
     void
     ADV_DIFF_CONSDIFF_FC(
         const double*, const double&,
-#if (NDIM == 1)
-        const int& , const int& ,
-        const int& ,
-        const int& ,
-        const double* ,
-#endif
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -105,16 +94,6 @@ extern "C"
     void
     ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC(
         const double*, const double&,
-#if (NDIM == 1)
-        const int& , const int& ,
-        const int& ,
-        const int& ,
-        const int& ,
-        const int& ,
-        const double* ,
-        const double* ,
-        const double* ,
-#endif
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -203,8 +182,6 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
     TBOX_ASSERT(d_Q_var.size() == d_q_integral_var.size());
 #endif
 
-    typedef std::vector<Pointer<CellVariable<NDIM,double> > > CellVariableVector;
-
     Pointer<FaceData<NDIM,double> > u_integral_data =
         (!d_u_integral_var.isNull()
          ? patch.getPatchData(d_u_integral_var, getDataContext())
@@ -215,44 +192,37 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
          ? u_integral_data->getGhostCellWidth()
          : 0);
 
+    typedef std::vector<Pointer<CellVariable<NDIM,double> > > CellVariableVector;
     for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
     {
+        const bool conservation_form = d_Q_difference_form[l] == CONSERVATIVE;
         Pointer<CellData<NDIM,double> > Q_data =
             patch.getPatchData(d_Q_var[l], getDataContext());
         Pointer<FaceData<NDIM,double> > flux_integral_data =
-            (d_Q_in_consv_form[l]
+            (conservation_form
              ? patch.getPatchData(d_flux_integral_var[l], getDataContext())
              : Pointer<PatchData<NDIM> >(NULL));
         Pointer<FaceData<NDIM,double> > q_integral_data =
-            ((!d_u_is_div_free) || (!d_Q_in_consv_form[l])
+            (!d_u_is_div_free || !conservation_form
              ? patch.getPatchData(d_q_integral_var[l], getDataContext())
              : Pointer<PatchData<NDIM> >(NULL));
 
         const IntVector<NDIM>& Q_data_ghost_cells = Q_data->getGhostCellWidth();
         const IntVector<NDIM>& flux_integral_data_ghost_cells =
-            (d_Q_in_consv_form[l]
+            (conservation_form
              ? flux_integral_data->getGhostCellWidth()
              : 0);
         const IntVector<NDIM>& q_integral_data_ghost_cells =
-            ((!d_u_is_div_free) || (!d_Q_in_consv_form[l])
+            (!d_u_is_div_free || !conservation_form
              ? q_integral_data->getGhostCellWidth()
              : 0);
 
-        if (d_Q_in_consv_form[l])
+        if (conservation_form)
         {
             for (int depth = 0; depth < Q_data->getDepth(); ++depth)
             {
                 if (d_u_is_div_free)
                 {
-#if (NDIM == 1)
-                    ADV_DIFF_CONSDIFF_FC(
-                        dx,dt,
-                        ilower(0),iupper(0),
-                        flux_integral_data_ghost_cells(0),
-                        Q_data_ghost_cells(0),
-                        flux_integral_data->getPointer(0,depth),
-                        Q_data->getPointer(depth));
-#endif
 #if (NDIM == 2)
                     ADV_DIFF_CONSDIFF_FC(
                         dx,dt,
@@ -277,19 +247,6 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
                 }
                 else
                 {
-#if (NDIM == 1)
-                    ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC(
-                        dx,dt,
-                        ilower(0),iupper(0),
-                        flux_integral_data_ghost_cells(0),
-                        q_integral_data_ghost_cells(0),
-                        u_integral_data_ghost_cells(0),
-                        Q_data_ghost_cells(0),
-                        flux_integral_data->getPointer(0,depth),
-                        q_integral_data->getPointer(0,depth),
-                        u_integral_data->getPointer(0),
-                        Q_data->getPointer(depth));
-#endif
 #if (NDIM == 2)
                     ADV_DIFF_CONSDIFFWITHDIVSOURCE_FC(
                         dx,dt,

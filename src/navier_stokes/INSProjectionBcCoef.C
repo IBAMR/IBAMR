@@ -146,7 +146,7 @@ namespace IBAMR
 INSProjectionBcCoef::INSProjectionBcCoef(
     const int P_idx,
     RobinBcCoefStrategy<NDIM>* const P_bc_coef,
-    const std::string& projection_type,
+    const ProjectionMethodType& projection_type,
     const int u_idx,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
     const bool homogeneous_bc)
@@ -194,14 +194,8 @@ INSProjectionBcCoef::setCurrentPressurePatchDataIndex(
 
 void
 INSProjectionBcCoef::setProjectionType(
-    const std::string& projection_type)
+    const ProjectionMethodType& projection_type)
 {
-    if (projection_type != "pressure_increment" && projection_type != "pressure_update")
-    {
-        TBOX_ERROR("INSProjectionBcCoef::setProjectionType():\n"
-                   << "  invalid velocity projection type: " << projection_type << "\n"
-                   << "  valid choices are: ``pressure_increment'' or ``pressure_update''" << std::endl);
-    }
     d_projection_type = projection_type;
     return;
 }// setProjectionType
@@ -332,7 +326,7 @@ INSProjectionBcCoef::setBcCoefs(
     {
         const int u_ghosts = (u_fc_data->getGhostCellWidth()).max();
         const int P_ghosts = (P_data->getGhostCellWidth()).max();
-        const int using_pressure_increment = (d_projection_type == "pressure_increment" ? 1 : 0);
+        const int using_pressure_increment = (d_projection_type == PRESSURE_INCREMENT ? 1 : 0);
         NAVIER_STOKES_FC_INHOMOGENEOUS_PROJECTION_BC_COEFS_FC(
             u_fc_data->getPointer(0), u_fc_data->getPointer(1),
 #if (NDIM == 3)
@@ -358,7 +352,7 @@ INSProjectionBcCoef::setBcCoefs(
     {
         const int u_ghosts = (u_sc_data->getGhostCellWidth()).max();
         const int P_ghosts = (P_data->getGhostCellWidth()).max();
-        const int using_pressure_increment = (d_projection_type == "pressure_increment" ? 1 : 0);
+        const int using_pressure_increment = (d_projection_type == PRESSURE_INCREMENT ? 1 : 0);
         NAVIER_STOKES_SC_INHOMOGENEOUS_PROJECTION_BC_COEFS_FC(
             u_sc_data->getPointer(0), u_sc_data->getPointer(1),
 #if (NDIM == 3)

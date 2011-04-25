@@ -96,8 +96,8 @@ EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredProjectionPreconditioner.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredStokesOperator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredVCStokesOperator.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/INSStaggeredVelocityBcCoef.h
-EXTRA_DIST += $(top_srcdir)/include/ibamr/RegridMode.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/TGACoefs.h
+EXTRA_DIST += $(top_srcdir)/include/ibamr/ibamr_enums.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/ibamr_utilities.h
 EXTRA_DIST += $(top_srcdir)/include/ibamr/namespaces.h
 

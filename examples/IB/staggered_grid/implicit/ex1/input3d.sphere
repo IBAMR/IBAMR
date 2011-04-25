@@ -114,7 +114,7 @@ IBStaggeredHierarchyIntegrator {
    rho = RHO
 
    normalize_pressure = FALSE
-   conservation_form = FALSE
+   convective_difference_form = "ADVECTIVE"
 
    tag_buffer = 3
    using_vorticity_tagging = TRUE

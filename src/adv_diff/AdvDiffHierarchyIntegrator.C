@@ -119,7 +119,7 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<GodunovAdvector> explicit_predictor,
     bool register_for_restart)
-    : d_viscous_timestepping_type("CRANK_NICOLSON"),
+    : d_viscous_timestepping_type(CRANK_NICOLSON),
       d_Q_var(),
       d_F_var(),
       d_Psi_var(),
@@ -129,7 +129,7 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_F_fcn(),
       d_Q_mu(),
       d_Q_lambda(),
-      d_Q_in_consv_form(),
+      d_Q_difference_form(),
       d_u_var(NULL),
       d_u_fcn(NULL),
       d_u_is_div_free(false),
@@ -311,7 +311,7 @@ AdvDiffHierarchyIntegrator::getName() const
     return d_object_name;
 }// getName
 
-const std::string&
+const ViscousTimesteppingType&
 AdvDiffHierarchyIntegrator::getViscousTimesteppingType() const
 {
     return d_viscous_timestepping_type;
@@ -343,13 +343,13 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
     Pointer<CellVariable<NDIM,double> > Q_var,
     const double Q_mu,
     const double Q_lambda,
-    const bool conservation_form,
+    const ConvectiveDifferencingType difference_form,
     Pointer<CartGridFunction> Q_init,
     RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
     Pointer<FaceVariable<NDIM,double> > grad_var)
 {
     registerAdvectedAndDiffusedQuantity(
-        Q_var, Q_mu, Q_lambda, conservation_form, Q_init,
+        Q_var, Q_mu, Q_lambda, difference_form, Q_init,
         std::vector<RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef),
         grad_var);
     return;
@@ -360,7 +360,7 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
     Pointer<CellVariable<NDIM,double> > Q_var,
     const double Q_mu,
     const double Q_lambda,
-    const bool conservation_form,
+    const ConvectiveDifferencingType difference_form,
     Pointer<CartGridFunction> Q_init,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef,
     Pointer<FaceVariable<NDIM,double> > grad_var)
@@ -388,12 +388,12 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantity(
                    << "  but " << Q_bc_coef_local.size() << " boundary condition coefficient objects were provided to the class constructor." << std::endl);
     }
 
-    d_Q_var          .push_back(Q_var);
-    d_Q_init         .push_back(Q_init);
-    d_Q_bc_coef      .push_back(Q_bc_coef_local);
-    d_Q_mu           .push_back(Q_mu);
-    d_Q_lambda       .push_back(Q_lambda);
-    d_Q_in_consv_form.push_back(conservation_form);
+    d_Q_var            .push_back(Q_var);
+    d_Q_init           .push_back(Q_init);
+    d_Q_bc_coef        .push_back(Q_bc_coef_local);
+    d_Q_mu             .push_back(Q_mu);
+    d_Q_lambda         .push_back(Q_lambda);
+    d_Q_difference_form.push_back(difference_form);
 
     d_grad_var.push_back(grad_var);
 
@@ -412,14 +412,14 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
     const double Q_mu,
     const double Q_lambda,
     Pointer<CellVariable<NDIM,double> > F_var,
-    const bool conservation_form,
+    const ConvectiveDifferencingType difference_form,
     Pointer<CartGridFunction> Q_init,
     RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
     Pointer<CartGridFunction> F_fcn,
     Pointer<FaceVariable<NDIM,double> > grad_var)
 {
     registerAdvectedAndDiffusedQuantityWithSourceTerm(
-        Q_var, Q_mu, Q_lambda, F_var, conservation_form, Q_init,
+        Q_var, Q_mu, Q_lambda, F_var, difference_form, Q_init,
         std::vector<RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef),
         F_fcn, grad_var);
     return;
@@ -431,7 +431,7 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
     const double Q_mu,
     const double Q_lambda,
     Pointer<CellVariable<NDIM,double> > F_var,
-    const bool conservation_form,
+    const ConvectiveDifferencingType difference_form,
     Pointer<CartGridFunction> Q_init,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef,
     Pointer<CartGridFunction> F_fcn,
@@ -460,12 +460,12 @@ AdvDiffHierarchyIntegrator::registerAdvectedAndDiffusedQuantityWithSourceTerm(
                    << "  but " << Q_bc_coef_local.size() << " boundary condition coefficient objects were provided to the class constructor." << std::endl);
     }
 
-    d_Q_var          .push_back(Q_var);
-    d_Q_init         .push_back(Q_init);
-    d_Q_bc_coef      .push_back(Q_bc_coef_local);
-    d_Q_mu           .push_back(Q_mu);
-    d_Q_lambda       .push_back(Q_lambda);
-    d_Q_in_consv_form.push_back(conservation_form);
+    d_Q_var            .push_back(Q_var);
+    d_Q_init           .push_back(Q_init);
+    d_Q_bc_coef        .push_back(Q_bc_coef_local);
+    d_Q_mu             .push_back(Q_mu);
+    d_Q_lambda         .push_back(Q_lambda);
+    d_Q_difference_form.push_back(difference_form);
 
     d_grad_var.push_back(grad_var);
 
@@ -621,7 +621,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     for (unsigned l = 0; l < d_Q_var.size(); ++l)
     {
         d_hyp_patch_ops->registerAdvectedQuantityWithSourceTerm(
-            d_Q_var[l], d_Psi_var[l], d_Q_in_consv_form[l], d_Q_init[l], d_Q_bc_coef[l],
+            d_Q_var[l], d_Psi_var[l], d_Q_difference_form[l], d_Q_init[l], d_Q_bc_coef[l],
             Pointer<CartGridFunction>(NULL), d_grad_var[l]);
         var_db->registerVariableAndContext(  d_Q_var[l], d_temp_context, CELLG);
         var_db->registerVariableAndContext(d_Psi_var[l], d_temp_context, CELLG);
@@ -829,7 +829,6 @@ bool
 AdvDiffHierarchyIntegrator::atRegridPoint() const
 {
     const int level_number = 0;
-
     return ((d_integrator_step > 0)
             && d_gridding_alg->levelCanBeRefined(level_number)
             && (d_regrid_interval == 0
@@ -1109,158 +1108,162 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         PoissonSpecifications& helmholtz_spec = d_helmholtz_specs[l];
         Pointer<CCLaplaceOperator> helmholtz_op = d_helmholtz_ops[l];
 
-        if (d_viscous_timestepping_type == "BACKWARD_EULER")
+        switch (d_viscous_timestepping_type)
         {
-            // The backward Euler discretization is:
-            //
-            //     (I-dt*mu*L(t_new)) Q(n+1) = Q(n) + F(t_avg) dt
-            //
-            // where
-            //
-            //    t_new = (n+1) dt
-            //    t_avg = (t_new+t_old)/2
-            //
-            // Note that for simplicity of implementation, we always use a
-            // timestep-centered forcing term.
-            helmholtz_spec.setCConstant(1.0+dt*lambda);
-            helmholtz_spec.setDConstant(   -dt*mu    );
-
-            PoissonSpecifications rhs_spec("rhs_spec");
-            rhs_spec.setCConstant(1.0);
-            rhs_spec.setDConstant(0.0);
-
-            d_hier_cc_data_ops->copyData(Q_temp_idx, Q_current_idx, false);
-            d_hier_bdry_fill_ops[l]->setHomogeneousBc(false);
-            d_hier_bdry_fill_ops[l]->fillData(current_time);
-
-            for (int depth = 0; depth < Q_depth; ++depth)
+            case BACKWARD_EULER:
             {
-                d_hier_math_ops->laplace(
-                    Psi_temp_idx, Psi_var,  // Psi(n+1/2)
-                    rhs_spec,               // Poisson spec
-                    Q_temp_idx  , Q_var  ,  // Q(n)
-                    d_no_fill_op,           // don't need to re-fill Q(n) data
-                    current_time,           // Q(n) bdry fill time
-                    dt,                     // gamma
-                    Q_new_idx   , Q_var  ,  // N(n+1/2) = (u*grad Q)(n+1/2)
-                    depth, depth, depth);   // dst_depth, src1_depth, src2_depth
+                // The backward Euler discretization is:
+                //
+                //     (I-dt*mu*L(t_new)) Q(n+1) = Q(n) + F(t_avg) dt
+                //
+                // where
+                //
+                //    t_new = (n+1) dt
+                //    t_avg = (t_new+t_old)/2
+                //
+                // Note that for simplicity of implementation, we always use a
+                // timestep-centered forcing term.
+                helmholtz_spec.setCConstant(1.0+dt*lambda);
+                helmholtz_spec.setDConstant(   -dt*mu    );
+
+                PoissonSpecifications rhs_spec("rhs_spec");
+                rhs_spec.setCConstant(1.0);
+                rhs_spec.setDConstant(0.0);
+
+                d_hier_cc_data_ops->copyData(Q_temp_idx, Q_current_idx, false);
+                d_hier_bdry_fill_ops[l]->setHomogeneousBc(false);
+                d_hier_bdry_fill_ops[l]->fillData(current_time);
+
+                for (int depth = 0; depth < Q_depth; ++depth)
+                {
+                    d_hier_math_ops->laplace(
+                        Psi_temp_idx, Psi_var,  // Psi(n+1/2)
+                        rhs_spec,               // Poisson spec
+                        Q_temp_idx  , Q_var  ,  // Q(n)
+                        d_no_fill_op,           // don't need to re-fill Q(n) data
+                        current_time,           // Q(n) bdry fill time
+                        dt,                     // gamma
+                        Q_new_idx   , Q_var  ,  // N(n+1/2) = (u*grad Q)(n+1/2)
+                        depth, depth, depth);   // dst_depth, src1_depth, src2_depth
+                }
+                break;
             }
-        }
-        else if (d_viscous_timestepping_type == "CRANK_NICOLSON")
-        {
-            // The Crank-Nicolson discretization is:
-            //
-            //     (I-0.5*dt*mu*L(t_new)) Q(n+1) = (I+0.5*dt*mu*L(t_old)) Q(n) + F(t_avg) dt
-            //
-            // where
-            //
-            //    t_old = n dt
-            //    t_new = (n+1) dt
-            //    t_avg = (t_new+t_old)/2
-            helmholtz_spec.setCConstant(1.0+0.5*dt*lambda);
-            helmholtz_spec.setDConstant(   -0.5*dt*mu    );
-
-            PoissonSpecifications rhs_spec("rhs_spec");
-            rhs_spec.setCConstant(1.0-0.5*dt*lambda);
-            rhs_spec.setDConstant(   +0.5*dt*mu    );
-
-            d_hier_cc_data_ops->copyData(Q_temp_idx, Q_current_idx, false);
-            d_hier_bdry_fill_ops[l]->setHomogeneousBc(false);
-            d_hier_bdry_fill_ops[l]->fillData(current_time);
-
-            for (int depth = 0; depth < Q_depth; ++depth)
+            case CRANK_NICOLSON:
             {
-                d_hier_math_ops->laplace(
-                    Psi_temp_idx, Psi_var,  // Psi(n+1/2)
-                    rhs_spec,               // Poisson spec
-                    Q_temp_idx  , Q_var  ,  // Q(n)
-                    d_no_fill_op,           // don't need to re-fill Q(n) data
-                    current_time,           // Q(n) bdry fill time
-                    dt,                     // gamma
-                    Q_new_idx   , Q_var  ,  // N(n+1/2) = (u*grad Q)(n+1/2)
-                    depth, depth, depth);   // dst_depth, src1_depth, src2_depth
+                // The Crank-Nicolson discretization is:
+                //
+                //     (I-0.5*dt*mu*L(t_new)) Q(n+1) = (I+0.5*dt*mu*L(t_old)) Q(n) + F(t_avg) dt
+                //
+                // where
+                //
+                //    t_old = n dt
+                //    t_new = (n+1) dt
+                //    t_avg = (t_new+t_old)/2
+                helmholtz_spec.setCConstant(1.0+0.5*dt*lambda);
+                helmholtz_spec.setDConstant(   -0.5*dt*mu    );
+
+                PoissonSpecifications rhs_spec("rhs_spec");
+                rhs_spec.setCConstant(1.0-0.5*dt*lambda);
+                rhs_spec.setDConstant(   +0.5*dt*mu    );
+
+                d_hier_cc_data_ops->copyData(Q_temp_idx, Q_current_idx, false);
+                d_hier_bdry_fill_ops[l]->setHomogeneousBc(false);
+                d_hier_bdry_fill_ops[l]->fillData(current_time);
+
+                for (int depth = 0; depth < Q_depth; ++depth)
+                {
+                    d_hier_math_ops->laplace(
+                        Psi_temp_idx, Psi_var,  // Psi(n+1/2)
+                        rhs_spec,               // Poisson spec
+                        Q_temp_idx  , Q_var  ,  // Q(n)
+                        d_no_fill_op,           // don't need to re-fill Q(n) data
+                        current_time,           // Q(n) bdry fill time
+                        dt,                     // gamma
+                        Q_new_idx   , Q_var  ,  // N(n+1/2) = (u*grad Q)(n+1/2)
+                        depth, depth, depth);   // dst_depth, src1_depth, src2_depth
+                }
+                break;
             }
-        }
-        else if (d_viscous_timestepping_type == "TGA")
-        {
-            // The TGA discretization is:
-            //
-            //     (I-nu2*dt*mu*L(t_int)) (I-nu1*dt*mu*L(t_new)) Q(n+1) = [(I+nu3*dt*mu*L(t_old)) Q(n) + (I+nu4*dt*mu*L) F(t_avg) dt]
-            //
-            // where
-            //
-            //    t_old = n dt
-            //    t_new = (n+1) dt
-            //    t_int = t_new - nu1*dt = t_old + (nu2+nu3)*dt
-            //    t_avg = (t_new+t_old)/2 = t_old + (nu1+nu2+nu4)*dt
-            //
-            // Following McCorquodale et al., the coefficients for the TGA
-            // discretization are:
-            //
-            //     nu1 = (a - sqrt(a^2-4*a+2))/2
-            //     nu2 = (a + sqrt(a^2-4*a+2))/2
-            //     nu3 = (1-a)
-            //     nu4 = (0.5-a)
-            //
-            // Note that by choosing a = 2 - sqrt(2), nu1 == nu2.
-            //
-            // Ref: McCorquodale, Colella, Johansen.  "A Cartesian grid embedded
-            // boundary method for the heat equation on irregular domains."  JCP
-            // 173, pp. 620-635 (2001)
-            static const double nu1 = TGACoefs::nu1;
-            static const double nu3 = TGACoefs::nu3;
-            static const double nu4 = TGACoefs::nu4;
-
-            intermediate_time = new_time-nu1*dt;
-
-            helmholtz_spec.setCConstant(1.0+nu1*dt*lambda);
-            helmholtz_spec.setDConstant(   -nu1*dt*mu    );
-
-            PoissonSpecifications rhs_spec2("rhs_spec2");
-            rhs_spec2.setCConstant(1.0-nu4*dt*lambda);
-            rhs_spec2.setDConstant(   +nu4*dt*mu);
-
-            d_hier_cc_data_ops->copyData(Q_temp_idx, Q_new_idx, false);
-            d_hier_bdry_fill_ops[l]->setHomogeneousBc(true);
-            d_hier_bdry_fill_ops[l]->fillData(current_time);
-
-            for (int depth = 0; depth < Q_depth; ++depth)
+            case TGA:
             {
-                d_hier_math_ops->laplace(
-                    Psi_temp_idx, Psi_var,  // Psi(n+1/2)
-                    rhs_spec2,              // Poisson spec
-                    Q_temp_idx  , Q_var  ,  // Q(n)
-                    d_no_fill_op,           // don't need to re-fill Q(n) data
-                    current_time,           // Q(n) bdry fill time
-                    0.0, -1, NULL,
-                    depth, depth, -1);      // dst_depth, src1_depth, src2_depth
+                // The TGA discretization is:
+                //
+                //     (I-nu2*dt*mu*L(t_int)) (I-nu1*dt*mu*L(t_new)) Q(n+1) = [(I+nu3*dt*mu*L(t_old)) Q(n) + (I+nu4*dt*mu*L) F(t_avg) dt]
+                //
+                // where
+                //
+                //    t_old = n dt
+                //    t_new = (n+1) dt
+                //    t_int = t_new - nu1*dt = t_old + (nu2+nu3)*dt
+                //    t_avg = (t_new+t_old)/2 = t_old + (nu1+nu2+nu4)*dt
+                //
+                // Following McCorquodale et al., the coefficients for the TGA
+                // discretization are:
+                //
+                //     nu1 = (a - sqrt(a^2-4*a+2))/2
+                //     nu2 = (a + sqrt(a^2-4*a+2))/2
+                //     nu3 = (1-a)
+                //     nu4 = (0.5-a)
+                //
+                // Note that by choosing a = 2 - sqrt(2), nu1 == nu2.
+                //
+                // Ref: McCorquodale, Colella, Johansen.  "A Cartesian grid
+                // embedded boundary method for the heat equation on irregular
+                // domains."  JCP 173, pp. 620-635 (2001)
+                static const double nu1 = TGACoefs::nu1;
+                static const double nu3 = TGACoefs::nu3;
+                static const double nu4 = TGACoefs::nu4;
+
+                intermediate_time = new_time-nu1*dt;
+
+                helmholtz_spec.setCConstant(1.0+nu1*dt*lambda);
+                helmholtz_spec.setDConstant(   -nu1*dt*mu    );
+
+                PoissonSpecifications rhs_spec2("rhs_spec2");
+                rhs_spec2.setCConstant(1.0-nu4*dt*lambda);
+                rhs_spec2.setDConstant(   +nu4*dt*mu);
+
+                d_hier_cc_data_ops->copyData(Q_temp_idx, Q_new_idx, false);
+                d_hier_bdry_fill_ops[l]->setHomogeneousBc(true);
+                d_hier_bdry_fill_ops[l]->fillData(current_time);
+
+                for (int depth = 0; depth < Q_depth; ++depth)
+                {
+                    d_hier_math_ops->laplace(
+                        Psi_temp_idx, Psi_var,  // Psi(n+1/2)
+                        rhs_spec2,              // Poisson spec
+                        Q_temp_idx  , Q_var  ,  // Q(n)
+                        d_no_fill_op,           // don't need to re-fill Q(n) data
+                        current_time,           // Q(n) bdry fill time
+                        0.0, -1, NULL,
+                        depth, depth, -1);      // dst_depth, src1_depth, src2_depth
+                }
+
+                PoissonSpecifications rhs_spec1("rhs_spec1");
+                rhs_spec1.setCConstant(1.0-nu3*dt*lambda);
+                rhs_spec1.setDConstant(   +nu3*dt*mu    );
+
+                d_hier_cc_data_ops->copyData(Q_temp_idx, Q_current_idx, false);
+                d_hier_bdry_fill_ops[l]->setHomogeneousBc(false);
+                d_hier_bdry_fill_ops[l]->fillData(current_time);
+
+                for (int depth = 0; depth < Q_depth; ++depth)
+                {
+                    d_hier_math_ops->laplace(
+                        Psi_temp_idx, Psi_var,  // Psi(n+1/2)
+                        rhs_spec1,              // Poisson spec
+                        Q_temp_idx  , Q_var  ,  // Q(n)
+                        d_no_fill_op,           // don't need to re-fill Q(n) data
+                        current_time,           // Q(n) bdry fill time
+                        dt,                     // gamma
+                        Psi_temp_idx, Psi_var,  // src2
+                        depth, depth, depth);   // dst_depth, src1_depth, src2_depth
+                }
+                break;
             }
-
-            PoissonSpecifications rhs_spec1("rhs_spec1");
-            rhs_spec1.setCConstant(1.0-nu3*dt*lambda);
-            rhs_spec1.setDConstant(   +nu3*dt*mu    );
-
-            d_hier_cc_data_ops->copyData(Q_temp_idx, Q_current_idx, false);
-            d_hier_bdry_fill_ops[l]->setHomogeneousBc(false);
-            d_hier_bdry_fill_ops[l]->fillData(current_time);
-
-            for (int depth = 0; depth < Q_depth; ++depth)
-            {
-                d_hier_math_ops->laplace(
-                    Psi_temp_idx, Psi_var,  // Psi(n+1/2)
-                    rhs_spec1,              // Poisson spec
-                    Q_temp_idx  , Q_var  ,  // Q(n)
-                    d_no_fill_op,           // don't need to re-fill Q(n) data
-                    current_time,           // Q(n) bdry fill time
-                    dt,                     // gamma
-                    Psi_temp_idx, Psi_var,  // src2
-                    depth, depth, depth);   // dst_depth, src1_depth, src2_depth
-            }
-        }
-        else
-        {
-            TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                       << "  unrecognized viscous timestepping type: " << d_viscous_timestepping_type << "." << std::endl);
+            default:
+                TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                           << "  unrecognized viscous timestepping type: " << d_viscous_timestepping_type << "." << std::endl);
         }
 
         // Initialize the linear solver.
@@ -1293,8 +1296,8 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         }
 
         // Solve for Q(n+1).
-        if (d_viscous_timestepping_type == "BACKWARD_EULER" ||
-            d_viscous_timestepping_type == "CRANK_NICOLSON")
+        if (d_viscous_timestepping_type == BACKWARD_EULER ||
+            d_viscous_timestepping_type == CRANK_NICOLSON)
         {
             helmholtz_op->setTime(new_time);
             if (d_using_FAC) helmholtz_fac_op->setTime(new_time);
@@ -1310,7 +1313,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
                      <<"  WARNING: linear solver iterations == max iterations\n";
             }
         }
-        else if (d_viscous_timestepping_type == "TGA")
+        else if (d_viscous_timestepping_type == TGA)
         {
             helmholtz_op->setTime(intermediate_time);
             if (d_using_FAC) helmholtz_fac_op->setTime(intermediate_time);
@@ -1757,7 +1760,7 @@ AdvDiffHierarchyIntegrator::putToDatabase(
 
     db->putInteger("ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION",
                    ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION);
-    db->putString("d_viscous_timestepping_type", d_viscous_timestepping_type);
+    db->putString("d_viscous_timestepping_type", enum_to_string<ViscousTimesteppingType>(d_viscous_timestepping_type));
     db->putDouble("d_start_time", d_start_time);
     db->putDouble("d_end_time", d_end_time);
     db->putDouble("d_grow_dt", d_grow_dt);
@@ -1789,23 +1792,8 @@ AdvDiffHierarchyIntegrator::getFromInput(
     d_max_integrator_steps = db->getIntegerWithDefault(
         "max_integrator_steps", d_max_integrator_steps);
 
-    d_regrid_interval = db->getIntegerWithDefault(
-        "regrid_interval", d_regrid_interval);
-    std::string regrid_mode_str = db->getStringWithDefault("regrid_mode", "STANDARD");
-    if (regrid_mode_str == "STANDARD")
-    {
-        d_regrid_mode = STANDARD;
-    }
-    else if (regrid_mode_str == "AGGRESSIVE")
-    {
-        d_regrid_mode = AGGRESSIVE;
-    }
-    else
-    {
-        TBOX_ERROR(d_object_name << ":  "
-                   << "Key data `regrid_mode' has invalid value " << regrid_mode_str << "\n"
-                   << "Valid options are: STANDARD, AGGRESSIVE" << std::endl);
-    }
+    d_regrid_interval = db->getIntegerWithDefault("regrid_interval", d_regrid_interval);
+    d_regrid_mode = string_to_enum<RegridMode>(db->getStringWithDefault("regrid_mode", enum_to_string<RegridMode>(d_regrid_mode)));
 
     if (db->keyExists("tag_buffer"))
     {
@@ -1829,10 +1817,10 @@ AdvDiffHierarchyIntegrator::getFromInput(
 
     if (!is_from_restart)
     {
-        d_viscous_timestepping_type = db->getStringWithDefault("viscous_timestepping_type", d_viscous_timestepping_type);
+        d_viscous_timestepping_type = string_to_enum<ViscousTimesteppingType>(
+            db->getStringWithDefault("viscous_timestepping_type", enum_to_string<ViscousTimesteppingType>(d_viscous_timestepping_type)));
         d_start_time = db->getDoubleWithDefault("start_time", d_start_time);
     }
-
     return;
 }// getFromInput
 
@@ -1861,7 +1849,7 @@ AdvDiffHierarchyIntegrator::getFromRestart()
                    << "Restart file version different than class version.");
     }
 
-    d_viscous_timestepping_type = db->getString("d_viscous_timestepping_type");
+    d_viscous_timestepping_type = string_to_enum<ViscousTimesteppingType>(db->getString("d_viscous_timestepping_type"));
     d_start_time = db->getDouble("d_start_time");
     d_end_time = db->getDouble("d_end_time");
     d_grow_dt = db->getDouble("d_grow_dt");
@@ -1871,7 +1859,6 @@ AdvDiffHierarchyIntegrator::getFromRestart()
     d_tag_buffer = db->getIntegerArray("d_tag_buffer");
     d_integrator_time = db->getDouble("d_integrator_time");
     d_integrator_step = db->getInteger("d_integrator_step");
-
     return;
 }// getFromRestart
 

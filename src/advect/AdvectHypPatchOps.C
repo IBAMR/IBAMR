@@ -76,12 +76,6 @@
 #include <limits>
 
 // FORTRAN ROUTINES
-#if (NDIM == 1)
-#define ADVECT_CONSDIFF_FC FC_FUNC_(advect_consdiff1d, ADVECT_CONSDIFF1D)
-#define ADVECT_CONSDIFFWITHDIVSOURCE_FC FC_FUNC_(advect_consdiffwithdivsource1d, ADVECT_CONSDIFFWITHDIVSOURCE1D)
-#define ADVECT_DETECTGRAD_FC FC_FUNC_(advect_detectgrad1d, ADVECT_DETECTGRAD1D)
-#endif
-
 #if (NDIM == 2)
 #define ADVECT_CONSDIFF_FC FC_FUNC_(advect_consdiff2d, ADVECT_CONSDIFF2D)
 #define ADVECT_CONSDIFFWITHDIVSOURCE_FC FC_FUNC_(advect_consdiffwithdivsource2d, ADVECT_CONSDIFFWITHDIVSOURCE2D)
@@ -99,12 +93,6 @@ extern "C"
     void
     ADVECT_CONSDIFF_FC(
         const double* ,
-#if (NDIM == 1)
-        const int& , const int& ,
-        const int& ,
-        const int& ,
-        const double* ,
-#endif
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -123,16 +111,6 @@ extern "C"
     void
     ADVECT_CONSDIFFWITHDIVSOURCE_FC(
         const double* , const double& ,
-#if (NDIM == 1)
-        const int& , const int& ,
-        const int& ,
-        const int& ,
-        const int& ,
-        const int& ,
-        const double* ,
-        const double* ,
-        const double* ,
-#endif
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -157,10 +135,6 @@ extern "C"
 
     void
     ADVECT_DETECTGRAD_FC(
-#if (NDIM == 1)
-        const int& , const int& ,
-        const int& , const int& , const int&,
-#endif
 #if (NDIM == 2)
         const int& , const int& ,
         const int& , const int& ,
@@ -217,7 +191,7 @@ AdvectHypPatchOps::AdvectHypPatchOps(
       d_Q_var(),
       d_F_var(),
       d_grad_var(),
-      d_Q_in_consv_form(),
+      d_Q_difference_form(),
       d_flux_integral_var(),
       d_q_integral_var(),
       d_u_integral_var(),
@@ -309,13 +283,13 @@ AdvectHypPatchOps::registerCoarseFineBoundaryRefinePatchStrategy(
 void
 AdvectHypPatchOps::registerAdvectedQuantity(
     Pointer<CellVariable<NDIM,double> > Q_var,
-    const bool conservation_form,
+    const ConvectiveDifferencingType difference_form,
     Pointer<CartGridFunction> Q_init,
     RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
     Pointer<FaceVariable<NDIM,double> > grad_var)
 {
     registerAdvectedQuantity(
-        Q_var, conservation_form, Q_init,
+        Q_var, difference_form, Q_init,
         std::vector<RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef),
         grad_var);
     return;
@@ -324,11 +298,19 @@ AdvectHypPatchOps::registerAdvectedQuantity(
 void
 AdvectHypPatchOps::registerAdvectedQuantity(
     Pointer<CellVariable<NDIM,double> > Q_var,
-    const bool conservation_form,
+    const ConvectiveDifferencingType difference_form,
     Pointer<CartGridFunction> Q_init,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef,
     Pointer<FaceVariable<NDIM,double> > grad_var)
 {
+    if (difference_form != ADVECTIVE && difference_form != CONSERVATIVE)
+    {
+        TBOX_ERROR("AdvectHypPatchOps::registerAdvectedQuantity():\n"
+                   << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(difference_form) << " \n"
+                   << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
+    }
+    const bool conservation_form = difference_form == CONSERVATIVE;
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_u_is_registered);
     TBOX_ASSERT(!Q_var.isNull());
@@ -372,7 +354,7 @@ AdvectHypPatchOps::registerAdvectedQuantity(
     d_Q_init   .push_back(Q_init);
     d_Q_bc_coef.push_back(Q_bc_coef_local);
 
-    d_Q_in_consv_form.push_back(conservation_form);
+    d_Q_difference_form.push_back(difference_form);
 
     d_grad_var.push_back(grad_var);
 
@@ -387,7 +369,6 @@ AdvectHypPatchOps::registerAdvectedQuantity(
         d_u_integral_var = new FaceVariable<NDIM,double>(
             d_object_name+"::"+d_u_var->getName()+" time integral");
     }
-
     return;
 }// registerAdvectedQuantity
 
@@ -395,14 +376,14 @@ void
 AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     Pointer<CellVariable<NDIM,double> > Q_var,
     Pointer<CellVariable<NDIM,double> > F_var,
-    const bool conservation_form,
+    const ConvectiveDifferencingType difference_form,
     Pointer<CartGridFunction> Q_init,
     RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
     Pointer<CartGridFunction> F_fcn,
     Pointer<FaceVariable<NDIM,double> > grad_var)
 {
     registerAdvectedQuantityWithSourceTerm(
-        Q_var, F_var, conservation_form, Q_init,
+        Q_var, F_var, difference_form, Q_init,
         std::vector<RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef),
         F_fcn, grad_var);
     return;
@@ -412,12 +393,20 @@ void
 AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     Pointer<CellVariable<NDIM,double> > Q_var,
     Pointer<CellVariable<NDIM,double> > F_var,
-    const bool conservation_form,
+    const ConvectiveDifferencingType difference_form,
     Pointer<CartGridFunction> Q_init,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef,
     Pointer<CartGridFunction> F_fcn,
     Pointer<FaceVariable<NDIM,double> > grad_var)
 {
+    if (difference_form != ADVECTIVE && difference_form != CONSERVATIVE)
+    {
+        TBOX_ERROR("AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm():\n"
+                   << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(difference_form) << " \n"
+                   << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
+    }
+    const bool conservation_form = difference_form == CONSERVATIVE;
+
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_u_is_registered);
     TBOX_ASSERT(!Q_var.isNull());
@@ -467,7 +456,7 @@ AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
     d_Q_init   .push_back(Q_init);
     d_Q_bc_coef.push_back(Q_bc_coef_local);
 
-    d_Q_in_consv_form.push_back(conservation_form);
+    d_Q_difference_form.push_back(difference_form);
 
     d_grad_var.push_back(grad_var);
 
@@ -482,7 +471,6 @@ AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
         d_u_integral_var = new FaceVariable<NDIM,double>(
             d_object_name+"::"+d_u_var->getName()+" time integral");
     }
-
     return;
 }// registerAdvectedQuantityWithSourceTerm
 
@@ -864,7 +852,7 @@ AdvectHypPatchOps::computeFluxesOnPatch(
     // differenced.
     for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
     {
-        if (d_Q_in_consv_form[l])
+        if (d_Q_difference_form[l] == CONSERVATIVE)
         {
             Pointer<FaceData<NDIM,double> > flux_integral_data =
                 getFluxIntegralData(l, patch, getDataContext());
@@ -882,7 +870,7 @@ AdvectHypPatchOps::computeFluxesOnPatch(
     // advection equation.
     for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
     {
-        if (!d_u_is_div_free || !d_Q_in_consv_form[l])
+        if (!d_u_is_div_free || d_Q_difference_form[l] != CONSERVATIVE)
         {
             Pointer<FaceData<NDIM,double> > q_integral_data =
                 getQIntegralData(l, patch, getDataContext());
@@ -962,107 +950,96 @@ AdvectHypPatchOps::conservativeDifferenceOnPatch(
              ? q_integral_data->getGhostCellWidth()
              : 0);
 
-        if (d_Q_in_consv_form[l])
+        switch (d_Q_difference_form[l])
         {
-            for (int depth = 0; depth < Q_data->getDepth(); ++depth)
+            case CONSERVATIVE:
             {
-                if (d_u_is_div_free)
+                for (int depth = 0; depth < Q_data->getDepth(); ++depth)
                 {
-#if (NDIM == 1)
-                    ADVECT_CONSDIFF_FC(
-                        dx,
-                        ilower(0),iupper(0),
-                        flux_integral_data_ghost_cells(0),
-                        Q_data_ghost_cells(0),
-                        flux_integral_data->getPointer(0,depth),
-                        Q_data->getPointer(depth));
-#endif
+                    if (d_u_is_div_free)
+                    {
 #if (NDIM == 2)
-                    ADVECT_CONSDIFF_FC(
-                        dx,
-                        ilower(0),iupper(0),ilower(1),iupper(1),
-                        flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),
-                        Q_data_ghost_cells(0),Q_data_ghost_cells(1),
-                        flux_integral_data->getPointer(0,depth),
-                        flux_integral_data->getPointer(1,depth),
-                        Q_data->getPointer(depth));
+                        ADVECT_CONSDIFF_FC(
+                            dx,
+                            ilower(0),iupper(0),ilower(1),iupper(1),
+                            flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),
+                            Q_data_ghost_cells(0),Q_data_ghost_cells(1),
+                            flux_integral_data->getPointer(0,depth),
+                            flux_integral_data->getPointer(1,depth),
+                            Q_data->getPointer(depth));
 #endif
 #if (NDIM == 3)
-                    ADVECT_CONSDIFF_FC(
-                        dx,
-                        ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                        flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),flux_integral_data_ghost_cells(2),
-                        Q_data_ghost_cells(0),Q_data_ghost_cells(1),Q_data_ghost_cells(2),
-                        flux_integral_data->getPointer(0,depth),
-                        flux_integral_data->getPointer(1,depth),
-                        flux_integral_data->getPointer(2,depth),
-                        Q_data->getPointer(depth));
+                        ADVECT_CONSDIFF_FC(
+                            dx,
+                            ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+                            flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),flux_integral_data_ghost_cells(2),
+                            Q_data_ghost_cells(0),Q_data_ghost_cells(1),Q_data_ghost_cells(2),
+                            flux_integral_data->getPointer(0,depth),
+                            flux_integral_data->getPointer(1,depth),
+                            flux_integral_data->getPointer(2,depth),
+                            Q_data->getPointer(depth));
 #endif
-                }
-                else
-                {
-#if (NDIM == 1)
-                    ADVECT_CONSDIFFWITHDIVSOURCE_FC(
-                        dx,dt,
-                        ilower(0),iupper(0),
-                        flux_integral_data_ghost_cells(0),
-                        q_integral_data_ghost_cells(0),
-                        u_integral_data_ghost_cells(0),
-                        Q_data_ghost_cells(0),
-                        flux_integral_data->getPointer(0,depth),
-                        q_integral_data->getPointer(0,depth),
-                        u_integral_data->getPointer(0),
-                        Q_data->getPointer(depth));
-#endif
+                    }
+                    else
+                    {
 #if (NDIM == 2)
-                    ADVECT_CONSDIFFWITHDIVSOURCE_FC(
-                        dx,dt,
-                        ilower(0),iupper(0),ilower(1),iupper(1),
-                        flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),
-                        q_integral_data_ghost_cells(0),q_integral_data_ghost_cells(1),
-                        u_integral_data_ghost_cells(0),u_integral_data_ghost_cells(1),
-                        Q_data_ghost_cells(0),Q_data_ghost_cells(1),
-                        flux_integral_data->getPointer(0,depth),
-                        flux_integral_data->getPointer(1,depth),
-                        q_integral_data->getPointer(0,depth),
-                        q_integral_data->getPointer(1,depth),
-                        u_integral_data->getPointer(0),
-                        u_integral_data->getPointer(1),
-                        Q_data->getPointer(depth));
+                        ADVECT_CONSDIFFWITHDIVSOURCE_FC(
+                            dx,dt,
+                            ilower(0),iupper(0),ilower(1),iupper(1),
+                            flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),
+                            q_integral_data_ghost_cells(0),q_integral_data_ghost_cells(1),
+                            u_integral_data_ghost_cells(0),u_integral_data_ghost_cells(1),
+                            Q_data_ghost_cells(0),Q_data_ghost_cells(1),
+                            flux_integral_data->getPointer(0,depth),
+                            flux_integral_data->getPointer(1,depth),
+                            q_integral_data->getPointer(0,depth),
+                            q_integral_data->getPointer(1,depth),
+                            u_integral_data->getPointer(0),
+                            u_integral_data->getPointer(1),
+                            Q_data->getPointer(depth));
 #endif
 #if (NDIM == 3)
-                    ADVECT_CONSDIFFWITHDIVSOURCE_FC(
-                        dx,dt,
-                        ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                        flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),flux_integral_data_ghost_cells(2),
-                        q_integral_data_ghost_cells(0),q_integral_data_ghost_cells(1),q_integral_data_ghost_cells(2),
-                        u_integral_data_ghost_cells(0),u_integral_data_ghost_cells(1),u_integral_data_ghost_cells(2),
-                        Q_data_ghost_cells(0),Q_data_ghost_cells(1),Q_data_ghost_cells(2),
-                        flux_integral_data->getPointer(0,depth),
-                        flux_integral_data->getPointer(1,depth),
-                        flux_integral_data->getPointer(2,depth),
-                        q_integral_data->getPointer(0,depth),
-                        q_integral_data->getPointer(1,depth),
-                        q_integral_data->getPointer(2,depth),
-                        u_integral_data->getPointer(0),
-                        u_integral_data->getPointer(1),
-                        u_integral_data->getPointer(2),
-                        Q_data->getPointer(depth));
+                        ADVECT_CONSDIFFWITHDIVSOURCE_FC(
+                            dx,dt,
+                            ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+                            flux_integral_data_ghost_cells(0),flux_integral_data_ghost_cells(1),flux_integral_data_ghost_cells(2),
+                            q_integral_data_ghost_cells(0),q_integral_data_ghost_cells(1),q_integral_data_ghost_cells(2),
+                            u_integral_data_ghost_cells(0),u_integral_data_ghost_cells(1),u_integral_data_ghost_cells(2),
+                            Q_data_ghost_cells(0),Q_data_ghost_cells(1),Q_data_ghost_cells(2),
+                            flux_integral_data->getPointer(0,depth),
+                            flux_integral_data->getPointer(1,depth),
+                            flux_integral_data->getPointer(2,depth),
+                            q_integral_data->getPointer(0,depth),
+                            q_integral_data->getPointer(1,depth),
+                            q_integral_data->getPointer(2,depth),
+                            u_integral_data->getPointer(0),
+                            u_integral_data->getPointer(1),
+                            u_integral_data->getPointer(2),
+                            Q_data->getPointer(depth));
 #endif
+                    }
                 }
+                break;
             }
-        }
-        else
-        {
-            Pointer<CellData<NDIM,double> > N_data =
-                new CellData<NDIM,double>(patch_box,Q_data->getDepth(),0);
-            d_godunov_advector->computeAdvectiveDerivative(
-                *N_data, *u_integral_data, *q_integral_data, patch);
-            patch_cc_data_ops.axpy(Q_data,  // dst
-                                   -1.0/dt, // alpha
-                                   N_data,  // src1
-                                   Q_data,  // src2
-                                   patch_box);
+            case ADVECTIVE:
+            {
+                Pointer<CellData<NDIM,double> > N_data =
+                    new CellData<NDIM,double>(patch_box,Q_data->getDepth(),0);
+                d_godunov_advector->computeAdvectiveDerivative(
+                    *N_data, *u_integral_data, *q_integral_data, patch);
+                patch_cc_data_ops.axpy(Q_data,  // dst
+                                       -1.0/dt, // alpha
+                                       N_data,  // src1
+                                       Q_data,  // src2
+                                       patch_box);
+                break;
+            }
+            default:
+            {
+                TBOX_ERROR("AdvectHypPatchOps::conservativeDifferenceOnPatch():\n"
+                           << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[l]) << " \n"
+                           << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
+            }
         }
     }
     return;
@@ -1538,10 +1515,6 @@ AdvectHypPatchOps::tagGradientDetectorCells(
                     for (int depth = 0; depth < var->getDepth(); ++depth)
                     {
                         ADVECT_DETECTGRAD_FC(
-#if (NDIM == 1)
-                            ilower(0),iupper(0),
-                            vghost(0),tagghost(0),d_ghosts(0),
-#endif
 #if (NDIM == 2)
                             ilower(0),iupper(0), ilower(1),iupper(1),
                             vghost(0),tagghost(0),d_ghosts(0),
@@ -1791,7 +1764,7 @@ AdvectHypPatchOps::getFluxIntegralData(
     Patch<NDIM>& patch,
     Pointer<VariableContext> context)
 {
-    if (d_Q_in_consv_form[l])
+    if (d_Q_difference_form[l] == CONSERVATIVE)
     {
         return patch.getPatchData(d_flux_integral_var[l], context);
     }
@@ -1807,7 +1780,7 @@ AdvectHypPatchOps::getQIntegralData(
     Patch<NDIM>& patch,
     Pointer<VariableContext> context)
 {
-    if (!d_u_is_div_free || !d_Q_in_consv_form[l])
+    if (!d_u_is_div_free || d_Q_difference_form[l] != CONSERVATIVE)
     {
         return patch.getPatchData(d_q_integral_var[l], context);
     }
@@ -2132,7 +2105,6 @@ AdvectHypPatchOps::getFromInput(
             }
         }
     } // refine db entry exists
-
     return;
 }// getFromInput
 
@@ -2202,7 +2174,6 @@ AdvectHypPatchOps::getFromRestart()
             d_rich_time_min = db->getDoubleArray("d_rich_time_min");
         }
     }
-
     return;
 }// getFromRestart
 

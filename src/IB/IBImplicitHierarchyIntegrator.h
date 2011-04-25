@@ -53,7 +53,7 @@
 #include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
 #include <ibamr/INSStaggeredProjectionPreconditioner.h>
 #include <ibamr/INSStaggeredStokesOperator.h>
-#include <ibamr/RegridMode.h>
+#include <ibamr/ibamr_enums.h>
 
 // IBTK INCLUDES
 #include <ibtk/CCLaplaceOperator.h>
@@ -1027,12 +1027,6 @@ private:
     SAMRAI::tbox::Array<int> d_tag_buffer;
 
     /*
-     * This boolean value determines whether the advection term is computed
-     * using conservative or non-conservative differencing.
-     */
-    bool d_conservation_form;
-
-    /*
      * Tag cells based on the relative and absolute magnitudes of the local
      * vorticity.
      */
@@ -1045,6 +1039,18 @@ private:
      * zero mean (i.e., discrete integral) at the end of each timestep.
      */
     bool d_normalize_pressure;
+
+    /*
+     * This enum determines the differencing form of the convective operator.
+     */
+    ConvectiveDifferencingType d_convective_difference_form;
+
+    /*
+     * This boolean value determines whether the convective acceleration term is
+     * included in the momentum equation.  (If it is not, this solver
+     * effectively solves the so-called creeping Stokes equations.)
+     */
+    bool d_creeping_flow;
 
     /*
      * Integrator data that evolves during time integration and maintains the

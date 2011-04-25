@@ -40,6 +40,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/INSProjectionBcCoef.h>
+#include <ibamr/ibamr_enums.h>
 
 // IBTK INCLUDES
 #include <ibtk/LinearOperator.h>
@@ -218,7 +219,7 @@ public:
         const double rho,
         const double dt,
         const double time,
-        const std::string& projection_type,
+        const ProjectionMethodType& projection_type,
         const int u_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >& u_var,
         const int P_idx,
@@ -243,7 +244,7 @@ public:
         const double rho,
         const double dt,
         const double time,
-        const std::string& projection_type,
+        const ProjectionMethodType& projection_type,
         const int u_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >& u_var,
         const int P_idx,

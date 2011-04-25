@@ -41,7 +41,7 @@
 // IBAMR INCLUDES
 #include <ibamr/AdvDiffHypPatchOps.h>
 #include <ibamr/GodunovAdvector.h>
-#include <ibamr/RegridMode.h>
+#include <ibamr/ibamr_enums.h>
 
 // IBTK INCLUDES
 #include <ibtk/CCLaplaceOperator.h>
@@ -152,7 +152,7 @@ public:
      * \note The choice of time integration scheme employed by the solver is set
      * via the input database provided to the class constructor.
      */
-    const std::string&
+    const ViscousTimesteppingType&
     getViscousTimesteppingType() const;
 
     /*!
@@ -201,7 +201,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const double Q_mu,
         const double Q_lambda,
-        const bool conservation_form=true,
+        const ConvectiveDifferencingType difference_form=CONSERVATIVE,
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init=NULL,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
@@ -234,7 +234,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         const double Q_mu,
         const double Q_lambda,
-        const bool conservation_form=true,
+        const ConvectiveDifferencingType difference_form=CONSERVATIVE,
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init=NULL,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
@@ -273,7 +273,7 @@ public:
         const double Q_mu,
         const double Q_lambda,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
-        const bool conservation_form=true,
+        const ConvectiveDifferencingType difference_form=CONSERVATIVE,
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init=NULL,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL,
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn=NULL,
@@ -313,7 +313,7 @@ public:
         const double Q_mu,
         const double Q_lambda,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
-        const bool conservation_form=true,
+        const ConvectiveDifferencingType difference_form=CONSERVATIVE,
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init=NULL,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn=NULL,
@@ -823,15 +823,10 @@ public:
 
 protected:
     /*!
-     * String indicating the time integration employed for the implicit
+     * Enum indicating the time integration employed for the implicit
      * discretization of the viscous terms.
-     *
-     * Choices are:
-     *     - BACKWARD_EULER
-     *     - CRANK_NICOLSON
-     *     - TGA
      */
-    std::string d_viscous_timestepping_type;
+    ViscousTimesteppingType d_viscous_timestepping_type;
 
     /*!
      * Advected and diffused quantities Q, source terms F (possibly NULL),
@@ -858,10 +853,10 @@ protected:
     std::vector<double> d_Q_mu, d_Q_lambda;
 
     /*!
-     * Whether each advected and diffused quantity is taken to be in
-     * conservation form (or not).
+     * The convective differencing form to be use for each advected and diffused
+     * quantity.
      */
-    std::vector<bool> d_Q_in_consv_form;
+    std::vector<ConvectiveDifferencingType> d_Q_difference_form;
 
     /*!
      * The advection velocity.

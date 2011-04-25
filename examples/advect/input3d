@@ -73,7 +73,7 @@ Main {
 // application parameters
    timestepping = "REFINED"
    u_is_div_free = TRUE
-   consv_form = TRUE
+   difference_form = "CONSERVATIVE"
 }
 
 CartesianGeometry {

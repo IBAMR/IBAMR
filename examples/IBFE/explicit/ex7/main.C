@@ -157,7 +157,7 @@ surface_force_function(
     F(1) = kappa*(s(1)-X(1));
 
     // Penalize deviations from planar.
-    AutoPtr<DofObject> side_dofs = elem->side(side);
+    AutoPtr<DofObject> side_dofs(elem->side(side));
     Elem* face = dynamic_cast<Elem*>(side_dofs.get());
     double z_mean = 0.0;
     const int n_nodes = face->n_nodes();

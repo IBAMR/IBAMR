@@ -42,7 +42,7 @@
 #include <ibamr/HierarchyProjector.h>
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
 #include <ibamr/INSProjectionBcCoef.h>
-#include <ibamr/RegridMode.h>
+#include <ibamr/ibamr_enums.h>
 
 // IBTK INCLUDES
 #include <ibtk/CCPoissonFACOperator.h>
@@ -1005,10 +1005,9 @@ private:
     bool d_using_synch_projection;
 
     /*
-     * This boolean value determines whether the advection term is computed
-     * using conservative or non-conservative differencing.
+     * This enum determines the differencing form of the convective operator.
      */
-    bool d_conservation_form;
+    ConvectiveDifferencingType d_convective_difference_form;
 
     /*
      * Tag cells based on the relative and absolute magnitudes of the local
@@ -1019,25 +1018,22 @@ private:
     double d_Omega_max;
 
     /*
-     * The types of projections to use for the velocity and pressure.
-     *
-     * Choices are: ``pressure_increment'' and ``pressure_update''.
+     * The types of projection methods to use for the velocity and pressure.
      *
      * NOTE: The velocity and pressure projection types may be different.
      */
-    std::string d_velocity_projection_type, d_pressure_projection_type;
+    ProjectionMethodType d_velocity_projection_type, d_pressure_projection_type;
     bool d_using_hybrid_projection;
 
     /*
      * This boolean value determines whether the pressure update is second-order
      * accurate in time.
      *
-     * The string indicates the type of viscous timestepping scheme that is
-     * being employed; its value is provided by class
-     * AdvDiffHierarchyIntegrator.
+     * The enum indicates the type of viscous timestepping scheme that is being
+     * employed; its value is provided by class AdvDiffHierarchyIntegrator.
      */
     bool d_second_order_pressure_update;
-    std::string d_viscous_timestepping_type;
+    ViscousTimesteppingType d_viscous_timestepping_type;
 
     /*
      * This boolean value determines whether the pressure is normalized to have

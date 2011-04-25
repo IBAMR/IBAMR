@@ -145,7 +145,6 @@ discard_comments(
     string_stream.str(output_string);
     getline(string_stream, output_string, '%');
     string_stream.clear();
-
     return output_string;
 }// discard_comments
 

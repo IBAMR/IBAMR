@@ -35,6 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// IBAMR INCLUDES
+#include <ibamr/ibamr_enums.h>
+
 // IBTK INCLUDES
 #include <ibtk/GeneralOperator.h>
 
@@ -65,7 +68,7 @@ public:
      * \brief Class constructor.
      */
     INSStaggeredCenteredConvectiveOperator(
-        const std::string& difference_form);
+        const ConvectiveDifferencingType& difference_form);
 
     /*!
      * \brief Virtual destructor.
@@ -212,7 +215,7 @@ private:
     bool d_is_initialized;
 
     // Determines which form of differencing to use.
-    const std::string d_differencing_form;
+    const ConvectiveDifferencingType d_difference_form;
 
     // Data communication algorithms, operators, and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_refine_alg;

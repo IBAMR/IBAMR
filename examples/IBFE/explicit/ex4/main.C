@@ -89,8 +89,7 @@ PK1_stress_function(
     const double& time,
     void* ctx)
 {
-    static const TensorValue<double> I(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);
-    PP = struct_mu*(dX_ds-I);
+    PP = struct_mu*dX_ds;
     if (use_div_penalization)
     {
         TensorValue<double> dX_ds_inv_trans;

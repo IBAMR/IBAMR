@@ -73,21 +73,39 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
+#define NAVIER_STOKES_SC_STABLEDT_FC FC_FUNC_(navier_stokes_sc_stabledt2d, NAVIER_STOKES_SC_STABLEDT2D)
 #define NAVIER_STOKES_SIDE_TO_FACE_FC FC_FUNC_(navier_stokes_side_to_face2d, NAVIER_STOKES_SIDE_TO_FACE2D)
-#define NAVIER_STOKES_STAGGERED_ADV_DIV_SOURCE_FC FC_FUNC_(navier_stokes_staggered_adv_div_source2d, NAVIER_STOKES_STAGGERED_ADV_DIV_SOURCE2D)
-#define NAVIER_STOKES_STAGGERED_CONS_DIV_SOURCE_FC FC_FUNC_(navier_stokes_staggered_cons_div_source2d, NAVIER_STOKES_STAGGERED_CONS_DIV_SOURCE2D)
-#define NAVIER_STOKES_STAGGERED_STABLEDT_FC FC_FUNC_(navier_stokes_staggered_stabledt2d, NAVIER_STOKES_STAGGERED_STABLEDT2D)
+#define NAVIER_STOKES_STAGGERED_ADV_SOURCE_FC FC_FUNC_(navier_stokes_staggered_adv_source2d, NAVIER_STOKES_STAGGERED_ADV_SOURCE2D)
+#define NAVIER_STOKES_STAGGERED_CONS_SOURCE_FC FC_FUNC_(navier_stokes_staggered_cons_source2d, NAVIER_STOKES_STAGGERED_CONS_SOURCE2D)
+#define NAVIER_STOKES_STAGGERED_SKEW_SYM_SOURCE_FC FC_FUNC_(navier_stokes_staggered_skew_sym_source2d, NAVIER_STOKES_STAGGERED_SKEW_SYM_SOURCE2D)
 #endif
 
 #if (NDIM == 3)
+#define NAVIER_STOKES_SC_STABLEDT_FC FC_FUNC_(navier_stokes_sc_stabledt3d, NAVIER_STOKES_SC_STABLEDT3D)
 #define NAVIER_STOKES_SIDE_TO_FACE_FC FC_FUNC_(navier_stokes_side_to_face3d, NAVIER_STOKES_SIDE_TO_FACE3D)
-#define NAVIER_STOKES_STAGGERED_ADV_DIV_SOURCE_FC FC_FUNC_(navier_stokes_staggered_adv_div_source3d, NAVIER_STOKES_STAGGERED_ADV_DIV_SOURCE3D)
-#define NAVIER_STOKES_STAGGERED_CONS_DIV_SOURCE_FC FC_FUNC_(navier_stokes_staggered_cons_div_source3d, NAVIER_STOKES_STAGGERED_CONS_DIV_SOURCE3D)
-#define NAVIER_STOKES_STAGGERED_STABLEDT_FC FC_FUNC_(navier_stokes_staggered_stabledt3d, NAVIER_STOKES_STAGGERED_STABLEDT3D)
+#define NAVIER_STOKES_STAGGERED_ADV_SOURCE_FC FC_FUNC_(navier_stokes_staggered_adv_source3d, NAVIER_STOKES_STAGGERED_ADV_SOURCE3D)
+#define NAVIER_STOKES_STAGGERED_CONS_SOURCE_FC FC_FUNC_(navier_stokes_staggered_cons_source3d, NAVIER_STOKES_STAGGERED_CONS_SOURCE3D)
+#define NAVIER_STOKES_STAGGERED_SKEW_SYM_SOURCE_FC FC_FUNC_(navier_stokes_staggered_skew_sym_source3d, NAVIER_STOKES_STAGGERED_SKEW_SYM_SOURCE3D)
 #endif
 
 extern "C"
 {
+    void
+    NAVIER_STOKES_SC_STABLEDT_FC(
+        const double* ,
+#if (NDIM == 2)
+        const int& , const int& , const int& , const int& ,
+        const int& , const int& ,
+        const double* , const double* ,
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double* ,
+#endif
+        double&
+                                        );
+
     void
     NAVIER_STOKES_SIDE_TO_FACE_FC(
 #if (NDIM == 2)
@@ -105,7 +123,7 @@ extern "C"
                                   );
 
     void
-    NAVIER_STOKES_STAGGERED_ADV_DIV_SOURCE_FC(
+    NAVIER_STOKES_STAGGERED_ADV_SOURCE_FC(
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -127,7 +145,7 @@ extern "C"
                                               );
 
     void
-    NAVIER_STOKES_STAGGERED_CONS_DIV_SOURCE_FC(
+    NAVIER_STOKES_STAGGERED_CONS_SOURCE_FC(
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -149,20 +167,26 @@ extern "C"
                                                );
 
     void
-    NAVIER_STOKES_STAGGERED_STABLEDT_FC(
-        const double* ,
+    NAVIER_STOKES_STAGGERED_SKEW_SYM_SOURCE_FC(
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
+        const int& , const int& ,
+        const int& , const int& ,
         const double* , const double* ,
+        const double* ,
+        double* , double*
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
         const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
         const double* , const double* , const double* ,
+        const double* ,
+        double* , double* , double*
 #endif
-        double&
-                                        );
+                                               );
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -252,6 +276,8 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     d_Omega_max = 0.0;
 
     d_normalize_pressure = false;
+    d_convective_difference_form = ADVECTIVE;
+    d_creeping_flow = false;
 
     d_regrid_interval = 1;
     d_regrid_mode = STANDARD;
@@ -259,8 +285,6 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     d_op_and_solver_init_dt = -1.0;
     d_integrator_time = std::numeric_limits<double>::quiet_NaN();
     d_integrator_step = std::numeric_limits<int>::max();
-
-    d_conservation_form = false;
 
     d_output_U = false;
     d_output_P = false;
@@ -832,7 +856,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     // Setup the convective operator.
     d_convective_op_needs_init = true;
     d_convective_op = new INSStaggeredPPMConvectiveOperator(
-        d_conservation_form);
+        d_convective_difference_form);
 
     // Setup the linear solver.
     const std::string stokes_prefix = "stokes_";
@@ -882,7 +906,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         poisson_pc_type = std::string(poisson_pc_type_str);
     }
 
-    std::string stokes_pc_shell_type;
+    std::string stokes_pc_shell_type = "none";
     if (stokes_pc_type == "shell")
     {
         char stokes_pc_shell_type_str[len];
@@ -899,10 +923,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
                        "  invalid stokes shell preconditioner type: " << stokes_pc_shell_type << "\n"
                        "  valid stokes shell preconditioner types: projection, vanka, block_factorization, none" << std::endl);
         }
-    }
-    else
-    {
-        stokes_pc_shell_type = "none";
     }
 
     // Setup the velocity subdomain solver.
@@ -1521,7 +1541,14 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
 
     // Compute (u_half*grad)u_half.
     const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
-    d_convective_op->applyConvectiveOperator(U_half_idx, N_idx);
+    if (d_creeping_flow)
+    {
+        d_hier_sc_data_ops->setToScalar(N_idx, 0.0);
+    }
+    else
+    {
+        d_convective_op->applyConvectiveOperator(U_half_idx, N_idx);
+    }
 
     // Setup the right-hand side vector.
     d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0), -d_rho, N_idx, d_rhs_vec->getComponentDescriptorIndex(0));
@@ -2568,14 +2595,14 @@ INSStaggeredHierarchyIntegrator::putToDatabase(
     db->putBool("d_using_default_tag_buffer", d_using_default_tag_buffer);
     db->putIntegerArray("d_tag_buffer", d_tag_buffer);
 
-    db->putBool("d_conservation_form", d_conservation_form);
-
     db->putBool("d_using_vorticity_tagging", d_using_vorticity_tagging);
     db->putDoubleArray("d_Omega_rel_thresh", d_Omega_rel_thresh);
     db->putDoubleArray("d_Omega_abs_thresh", d_Omega_abs_thresh);
     db->putDouble("d_Omega_max", d_Omega_max);
 
     db->putBool("d_normalize_pressure", d_normalize_pressure);
+    db->putString("d_convective_difference_form", enum_to_string<ConvectiveDifferencingType>(d_convective_difference_form));
+    db->putBool("d_creeping_flow", d_creeping_flow);
 
     db->putDouble("d_old_dt", d_old_dt);
     db->putDouble("d_op_and_solver_init_dt", d_op_and_solver_init_dt);
@@ -3074,7 +3101,7 @@ INSStaggeredHierarchyIntegrator::getPatchDt(
     const IntVector<NDIM>& U_ghost_cells = U_data->getGhostCellWidth();
 
     double stable_dt = std::numeric_limits<double>::max();
-    NAVIER_STOKES_STAGGERED_STABLEDT_FC(
+    NAVIER_STOKES_SC_STABLEDT_FC(
 #if (NDIM == 2)
         dx,
         ilower(0),iupper(0),ilower(1),iupper(1),
@@ -3121,51 +3148,78 @@ INSStaggeredHierarchyIntegrator::computeDivSourceTerm(
             const IntVector<NDIM>& Q_data_gc = Q_data->getGhostCellWidth();
             const IntVector<NDIM>& F_data_gc = F_data->getGhostCellWidth();
 
-            if (d_conservation_form)
+            switch (d_convective_difference_form)
             {
-                NAVIER_STOKES_STAGGERED_CONS_DIV_SOURCE_FC(
+                case CONSERVATIVE:
+                    NAVIER_STOKES_STAGGERED_CONS_SOURCE_FC(
 #if (NDIM == 2)
-                    ilower(0),iupper(0),ilower(1),iupper(1),
-                    U_data_gc(0),U_data_gc(1),
-                    Q_data_gc(0),Q_data_gc(1),
-                    F_data_gc(0),F_data_gc(1),
-                    U_data->getPointer(0),U_data->getPointer(1),
-                    Q_data->getPointer(),
-                    F_data->getPointer(0),F_data->getPointer(1)
+                        ilower(0),iupper(0),ilower(1),iupper(1),
+                        U_data_gc(0),U_data_gc(1),
+                        Q_data_gc(0),Q_data_gc(1),
+                        F_data_gc(0),F_data_gc(1),
+                        U_data->getPointer(0),U_data->getPointer(1),
+                        Q_data->getPointer(),
+                        F_data->getPointer(0),F_data->getPointer(1)
 #endif
 #if (NDIM == 3)
-                    ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                    U_data_gc(0),U_data_gc(1),U_data_gc(2),
-                    Q_data_gc(0),Q_data_gc(1),Q_data_gc(2),
-                    F_data_gc(0),F_data_gc(1),F_data_gc(2),
-                    U_data->getPointer(0),U_data->getPointer(1),U_data->getPointer(2),
-                    Q_data->getPointer(),
-                    F_data->getPointer(0),F_data->getPointer(1),F_data->getPointer(2)
-#endif
-                                                          );
-            }
-            else
-            {
-                NAVIER_STOKES_STAGGERED_ADV_DIV_SOURCE_FC(
-#if (NDIM == 2)
-                    ilower(0),iupper(0),ilower(1),iupper(1),
-                    U_data_gc(0),U_data_gc(1),
-                    Q_data_gc(0),Q_data_gc(1),
-                    F_data_gc(0),F_data_gc(1),
-                    U_data->getPointer(0),U_data->getPointer(1),
-                    Q_data->getPointer(),
-                    F_data->getPointer(0),F_data->getPointer(1)
-#endif
-#if (NDIM == 3)
-                    ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                    U_data_gc(0),U_data_gc(1),U_data_gc(2),
-                    Q_data_gc(0),Q_data_gc(1),Q_data_gc(2),
-                    F_data_gc(0),F_data_gc(1),F_data_gc(2),
-                    U_data->getPointer(0),U_data->getPointer(1),U_data->getPointer(2),
-                    Q_data->getPointer(),
-                    F_data->getPointer(0),F_data->getPointer(1),F_data->getPointer(2)
+                        ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+                        U_data_gc(0),U_data_gc(1),U_data_gc(2),
+                        Q_data_gc(0),Q_data_gc(1),Q_data_gc(2),
+                        F_data_gc(0),F_data_gc(1),F_data_gc(2),
+                        U_data->getPointer(0),U_data->getPointer(1),U_data->getPointer(2),
+                        Q_data->getPointer(),
+                        F_data->getPointer(0),F_data->getPointer(1),F_data->getPointer(2)
 #endif
                                                            );
+                    break;
+                case ADVECTIVE:
+                    NAVIER_STOKES_STAGGERED_ADV_SOURCE_FC(
+#if (NDIM == 2)
+                        ilower(0),iupper(0),ilower(1),iupper(1),
+                        U_data_gc(0),U_data_gc(1),
+                        Q_data_gc(0),Q_data_gc(1),
+                        F_data_gc(0),F_data_gc(1),
+                        U_data->getPointer(0),U_data->getPointer(1),
+                        Q_data->getPointer(),
+                        F_data->getPointer(0),F_data->getPointer(1)
+#endif
+#if (NDIM == 3)
+                        ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+                        U_data_gc(0),U_data_gc(1),U_data_gc(2),
+                        Q_data_gc(0),Q_data_gc(1),Q_data_gc(2),
+                        F_data_gc(0),F_data_gc(1),F_data_gc(2),
+                        U_data->getPointer(0),U_data->getPointer(1),U_data->getPointer(2),
+                        Q_data->getPointer(),
+                        F_data->getPointer(0),F_data->getPointer(1),F_data->getPointer(2)
+#endif
+                                                          );
+                    break;
+                case SKEW_SYMMETRIC:
+                    NAVIER_STOKES_STAGGERED_SKEW_SYM_SOURCE_FC(
+#if (NDIM == 2)
+                        ilower(0),iupper(0),ilower(1),iupper(1),
+                        U_data_gc(0),U_data_gc(1),
+                        Q_data_gc(0),Q_data_gc(1),
+                        F_data_gc(0),F_data_gc(1),
+                        U_data->getPointer(0),U_data->getPointer(1),
+                        Q_data->getPointer(),
+                        F_data->getPointer(0),F_data->getPointer(1)
+#endif
+#if (NDIM == 3)
+                        ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+                        U_data_gc(0),U_data_gc(1),U_data_gc(2),
+                        Q_data_gc(0),Q_data_gc(1),Q_data_gc(2),
+                        F_data_gc(0),F_data_gc(1),F_data_gc(2),
+                        U_data->getPointer(0),U_data->getPointer(1),U_data->getPointer(2),
+                        Q_data->getPointer(),
+                        F_data->getPointer(0),F_data->getPointer(1),F_data->getPointer(2)
+#endif
+                                                               );
+                    break;
+                default:
+                    TBOX_ERROR("INSStaggeredHierarchyIntegrator::computeDivSourceTerm():\n"
+                               << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_convective_difference_form) << " \n"
+                               << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
             }
         }
     }
@@ -3192,21 +3246,7 @@ INSStaggeredHierarchyIntegrator::getFromInput(
     d_num_cycles = db->getIntegerWithDefault("num_cycles", d_num_cycles);
 
     d_regrid_interval = db->getIntegerWithDefault("regrid_interval", d_regrid_interval);
-    std::string regrid_mode_str = db->getStringWithDefault("regrid_mode", "STANDARD");
-    if (regrid_mode_str == "STANDARD")
-    {
-        d_regrid_mode = STANDARD;
-    }
-    else if (regrid_mode_str == "AGGRESSIVE")
-    {
-        d_regrid_mode = AGGRESSIVE;
-    }
-    else
-    {
-        TBOX_ERROR(d_object_name << ":  "
-                   << "Key data `regrid_mode' has invalid value.\n"
-                   << "Valid options are: STANDARD, AGGRESSIVE" << std::endl);
-    }
+    d_regrid_mode = string_to_enum<RegridMode>(db->getStringWithDefault("regrid_mode", enum_to_string<RegridMode>(d_regrid_mode)));
 
     if (db->keyExists("tag_buffer"))
     {
@@ -3220,8 +3260,6 @@ INSStaggeredHierarchyIntegrator::getFromInput(
                      << "Key data `tag_buffer' not found in input.  "
                      << "Default values used.  See class header for details.");
     }
-
-    d_conservation_form = db->getBoolWithDefault("conservation_form", d_conservation_form);
 
     d_using_vorticity_tagging = db->getBoolWithDefault("using_vorticity_tagging", d_using_vorticity_tagging);
 
@@ -3308,6 +3346,8 @@ INSStaggeredHierarchyIntegrator::getFromInput(
         d_start_time = db->getDoubleWithDefault("start_time", d_start_time);
 
         d_normalize_pressure = db->getBoolWithDefault("normalize_pressure", d_normalize_pressure);
+        d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getStringWithDefault("convective_difference_form", enum_to_string<ConvectiveDifferencingType>(d_convective_difference_form)));
+        d_creeping_flow = db->getBoolWithDefault("creeping_flow", d_creeping_flow);
 
         if (db->keyExists("rho"))
         {
@@ -3387,14 +3427,14 @@ INSStaggeredHierarchyIntegrator::getFromRestart()
     d_using_default_tag_buffer = db->getBool("d_using_default_tag_buffer");
     d_tag_buffer = db->getIntegerArray("d_tag_buffer");
 
-    d_conservation_form = db->getBool("d_conservation_form");
-
     d_using_vorticity_tagging = db->getBool("d_using_vorticity_tagging");
     d_Omega_rel_thresh = db->getDoubleArray("d_Omega_rel_thresh");
     d_Omega_abs_thresh = db->getDoubleArray("d_Omega_abs_thresh");
     d_Omega_max = db->getDouble("d_Omega_max");
 
     d_normalize_pressure = db->getBool("d_normalize_pressure");
+    d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("d_convective_difference_form"));
+    d_creeping_flow = db->getBool("d_creeping_flow");
 
     d_old_dt = db->getDouble("d_old_dt");
     d_op_and_solver_init_dt = db->getDouble("d_op_and_solver_init_dt");
