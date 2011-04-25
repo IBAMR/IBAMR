@@ -1563,7 +1563,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         d_Q_fcn->setDataOnPatchHierarchy(d_Q_new_idx    , d_Q_var, d_hierarchy, new_time    );
         d_hier_cc_data_ops->linearSum(d_Q_scratch_idx, 0.5, d_Q_current_idx, 0.5, d_Q_new_idx);
         d_Q_bdry_bc_fill_op->fillData(current_time+0.5*dt);
-        computeDivSourceTerm(d_F_div_idx, d_Q_scratch_idx, U_half_idx);
+        if (!d_creeping_flow) computeDivSourceTerm(d_F_div_idx, d_Q_scratch_idx, U_half_idx);
         d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0), d_rho, d_F_div_idx, d_rhs_vec->getComponentDescriptorIndex(0));
         d_hier_cc_data_ops->subtract(d_rhs_vec->getComponentDescriptorIndex(1), d_rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
     }
