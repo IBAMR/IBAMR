@@ -78,7 +78,9 @@ inline ConvectiveDifferencingType
 string_to_enum<ConvectiveDifferencingType>(
     const std::string& val)
 {
+    if (strcasecmp(val.c_str(), "ADVECTION"     ) == 0) return ADVECTIVE;
     if (strcasecmp(val.c_str(), "ADVECTIVE"     ) == 0) return ADVECTIVE;
+    if (strcasecmp(val.c_str(), "CONSERVATION"  ) == 0) return CONSERVATIVE;
     if (strcasecmp(val.c_str(), "CONSERVATIVE"  ) == 0) return CONSERVATIVE;
     if (strcasecmp(val.c_str(), "DIVERGENCE"    ) == 0) return CONSERVATIVE;
     if (strcasecmp(val.c_str(), "SKEW_SYMMETRIC") == 0) return SKEW_SYMMETRIC;
