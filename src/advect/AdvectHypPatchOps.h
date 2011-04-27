@@ -446,14 +446,11 @@ public:
         const bool uses_richardson_extrapolation_too);
 
     ///
-    ///  The following routines:
+    ///  The following routine:
     ///
-    ///      setPhysicalBoundaryConditions(),
-    ///      getRefineOpStencilWidth(),
-    ///      preprocessRefine(),
-    ///      postprocessRefine()
+    ///      setPhysicalBoundaryConditions()
     ///
-    ///  are concrete implementations of functions declared in the
+    ///  is a concrete implementations of functions declared in the
     ///  xfer::RefinePatchStrategy abstract base class.
     ///
 
@@ -466,33 +463,6 @@ public:
         SAMRAI::hier::Patch<NDIM>& patch,
         const double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
-
-    /*!
-     * \brief Return maximum stencil width needed over user-defined data
-     * interpolation operations.
-     */
-    virtual SAMRAI::hier::IntVector<NDIM>
-    getRefineOpStencilWidth() const;
-
-    /*!
-     * \brief Preprocess data refine operations.
-     */
-    virtual void
-    preprocessRefine(
-        SAMRAI::hier::Patch<NDIM>& fine,
-        const SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::Box<NDIM>& fine_box,
-        const SAMRAI::hier::IntVector<NDIM>& ratio);
-
-    /*!
-     * \brief Postprocess data refine operations.
-     */
-    virtual void
-    postprocessRefine(
-        SAMRAI::hier::Patch<NDIM>& fine,
-        const SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::Box<NDIM>& fine_box,
-        const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     ///
     ///  The following routines:

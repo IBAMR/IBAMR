@@ -626,18 +626,20 @@ AdvectHypPatchOps::initializeDataOnPatch(
 {
     if (initial_time)
     {
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
              cit != d_u_var.end(); ++cit)
         {
             Pointer<FaceVariable<NDIM,double> > u_var = *cit;
-            Pointer<FaceData<NDIM,double> > u_data = patch.getPatchData(u_var, getDataContext());
+            const int u_idx = var_db->mapVariableAndContextToIndex(u_var, getDataContext());
             if (d_u_fcn[u_var].isNull())
             {
+                Pointer<FaceData<NDIM,double> > u_data = patch.getPatchData(u_idx);
                 u_data->fillAll(0.0);
             }
             else
             {
-                d_u_fcn[u_var]->setDataOnPatch(u_data, u_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
+                d_u_fcn[u_var]->setDataOnPatch(u_idx, u_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
             }
         }
 
@@ -645,14 +647,15 @@ AdvectHypPatchOps::initializeDataOnPatch(
              cit != d_F_var.end(); ++cit)
         {
             Pointer<CellVariable<NDIM,double> > F_var = *cit;
-            Pointer<CellData<NDIM,double> > F_data = patch.getPatchData(F_var, getDataContext());
+            const int F_idx = var_db->mapVariableAndContextToIndex(F_var, getDataContext());
             if (d_F_fcn[F_var].isNull())
             {
+                Pointer<CellData<NDIM,double> > F_data = patch.getPatchData(F_idx);
                 F_data->fillAll(0.0);
             }
             else
             {
-                d_F_fcn[F_var]->setDataOnPatch(F_data, F_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
+                d_F_fcn[F_var]->setDataOnPatch(F_idx, F_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
             }
         }
 
@@ -660,14 +663,15 @@ AdvectHypPatchOps::initializeDataOnPatch(
              cit != d_grad_Phi_var.end(); ++cit)
         {
             Pointer<FaceVariable<NDIM,double> > grad_Phi_var = *cit;
-            Pointer<FaceData<NDIM,double> > grad_Phi_data = patch.getPatchData(grad_Phi_var, getDataContext());
+            const int grad_Phi_idx = var_db->mapVariableAndContextToIndex(grad_Phi_var, getDataContext());
             if (d_grad_Phi_fcn[grad_Phi_var].isNull())
             {
+                Pointer<FaceData<NDIM,double> > grad_Phi_data = patch.getPatchData(grad_Phi_idx);
                 grad_Phi_data->fillAll(0.0);
             }
             else
             {
-                d_grad_Phi_fcn[grad_Phi_var]->setDataOnPatch(grad_Phi_data, grad_Phi_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
+                d_grad_Phi_fcn[grad_Phi_var]->setDataOnPatch(grad_Phi_idx, grad_Phi_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
             }
         }
 
@@ -675,14 +679,15 @@ AdvectHypPatchOps::initializeDataOnPatch(
              cit != d_Q_var.end(); ++cit)
         {
             Pointer<CellVariable<NDIM,double> > Q_var = *cit;
-            Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+            const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, getDataContext());
             if (d_Q_init[Q_var].isNull())
             {
+                Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
                 Q_data->fillAll(0.0);
             }
             else
             {
-                d_Q_init[Q_var]->setDataOnPatch(Q_data, Q_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
+                d_Q_init[Q_var]->setDataOnPatch(Q_idx, Q_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
             }
         }
     }
@@ -986,6 +991,7 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         Pointer<CellVariable<NDIM,double> > F_var = d_Q_F_map[Q_var];
+        if (F_var.isNull()) continue;
         Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -1022,6 +1028,7 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         Pointer<CellVariable<NDIM,double> > F_var = d_Q_F_map[Q_var];
+        if (F_var.isNull()) continue;
         Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
         if (!F_fcn.isNull())
         {
@@ -1201,14 +1208,11 @@ AdvectHypPatchOps::tagGradientDetectorCells(
 }// tagGradientDetectorCells
 
 ///
-///  The following routines:
+///  The following routine:
 ///
-///      setPhysicalBoundaryConditions(),
-///      getRefineOpStencilWidth(),
-///      preprocessRefine(),
-///      postprocessRefine()
+///      setPhysicalBoundaryConditions()
 ///
-///  are concrete implementations of functions declared in the
+///  is a concrete implementations of functions declared in the
 ///  RefinePatchStrategy abstract base class.
 ///
 
@@ -1254,34 +1258,6 @@ AdvectHypPatchOps::setPhysicalBoundaryConditions(
     d_extrap_bc_helper.setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
     return;
 }// setPhysicalBoundaryConditions
-
-IntVector<NDIM>
-AdvectHypPatchOps::getRefineOpStencilWidth() const
-{
-    return 0;
-}// getRefineOpStencilWidth
-
-void
-AdvectHypPatchOps::preprocessRefine(
-    Patch<NDIM>& fine,
-    const Patch<NDIM>& coarse,
-    const Box<NDIM>& fine_box,
-    const IntVector<NDIM>& ratio)
-{
-    // intentionally blank
-    return;
-}// preprocessRefine
-
-void
-AdvectHypPatchOps::postprocessRefine(
-    Patch<NDIM>& fine,
-    const Patch<NDIM>& coarse,
-    const Box<NDIM>& fine_box,
-    const IntVector<NDIM>& ratio)
-{
-    // intentionally blank
-    return;
-}// postprocessRefine
 
 ///
 ///  The following routines:

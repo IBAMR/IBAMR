@@ -436,6 +436,12 @@ AdvDiffHierarchyIntegrator::registerTransportedQuantity(
     d_Q_difference_form[Q_var] = CONSERVATIVE;
     d_Q_diffusion_coef[Q_var] = 0.0;
     d_Q_damping_coef[Q_var] = 0.0;
+
+    Pointer<CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
+    const int Q_depth = Q_factory->getDefaultDepth();
+    Pointer<CellVariable<NDIM,double> > Psi_var = new CellVariable<NDIM,double>(Q_var->getName()+"::Psi",Q_depth);
+    d_Psi_var.insert(Psi_var);
+    d_Q_Psi_map[Q_var] = Psi_var;
     return;
 }// registerTransportedQuantity
 
@@ -654,25 +660,24 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     d_temp_context = var_db->getContext(d_object_name+"::TEMP_CONTEXT");
 
     // Register variables with the hyperbolic level integrator.
-    TBOX_ASSERT(false);
-#if 0
     for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
          cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
         d_hyp_patch_ops->registerAdvectionVelocity(u_var,d_manage_u_data[u_var]);
-        d_hyp_patch_ops->setAdvectionVelocityIsDivergenceFree(d_u_is_div_free[u_var]);
-        if (!d_u_fcn [u_var].isNull()) d_hyp_patch_ops->setAdvectionVelocityFunction(d_u_fcn[u_var]);
+        d_hyp_patch_ops->setAdvectionVelocityIsDivergenceFree(u_var,d_u_is_div_free[u_var]);
+        if (!d_u_fcn[u_var].isNull()) d_hyp_patch_ops->setAdvectionVelocityFunction(u_var,d_u_fcn[u_var]);
     }
 
     for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_grad_Phi_var.begin();
          cit != d_grad_Phi_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > grad_Phi_var = *cit;
-        d_hyp_patch_ops->registerIncompressibilityFix(grad_Phi_var,d_manage_grad_Phi_data[grad_Phi_var]);
-        if (!d_grad_Phi_fcn [grad_Phi_var].isNull()) d_hyp_patch_ops->setIncompressibilityFixFunction(d_grad_Phi_fcn[grad_Phi_var]);
+        d_hyp_patch_ops->registerIncompressibilityFixTerm(grad_Phi_var,d_manage_grad_Phi_data[grad_Phi_var]);
+        if (!d_grad_Phi_fcn[grad_Phi_var].isNull()) d_hyp_patch_ops->setIncompressibilityFixTermFunction(grad_Phi_var,d_grad_Phi_fcn[grad_Phi_var]);
     }
 
+    const IntVector<NDIM> cell_ghosts = CELLG;
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin();
          cit != d_F_var.end(); ++cit)
     {
@@ -692,7 +697,8 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
          cit != d_Psi_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > Psi_var = *cit;
-        d_hyp_patch_ops->registerSourceTerm(Psi_var, true);
+        d_hyp_patch_ops->registerSourceTerm(Psi_var,true);
+        var_db->registerVariableAndContext(Psi_var, d_temp_context, CELLG);
     }
 
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
@@ -702,12 +708,12 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         d_hyp_patch_ops->registerTransportedQuantity(Q_var,d_manage_Q_data[Q_var]);
         d_hyp_patch_ops->setAdvectionVelocity(Q_var,d_Q_u_map[Q_var]);
         d_hyp_patch_ops->setSourceTerm(Q_var,d_Q_Psi_map[Q_var]);
-        if (!d_Q_grad_Phi_map[Q_var].isNull()) d_hyp_patch_ops->setIncompressibilityFixTerm(d_Q_grad_Phi_map[Q_var]);
-        d_hyp_patch_ops->setConvectiveDifferencingType(d_Q_difference_form[Q_var]);
-        if (!d_Q_init[Q_var].isNull()) d_hyp_patch_ops->setAdvectionVelocityInitialConditions(d_Q_init[Q_var]);
-        if (!d_Q_bc_coef[Q_var].empty()) d_hyp_patch_ops->setAdvectionVelocityBoundaryConditions(d_Q_bc_coef[Q_var]);
+        if (!d_Q_grad_Phi_map[Q_var].isNull()) d_hyp_patch_ops->setIncompressibilityFixTerm(Q_var,d_Q_grad_Phi_map[Q_var]);
+        d_hyp_patch_ops->setConvectiveDifferencingType(Q_var,d_Q_difference_form[Q_var]);
+        if (!d_Q_init[Q_var].isNull()) d_hyp_patch_ops->setInitialConditions(Q_var,d_Q_init[Q_var]);
+        if (!d_Q_bc_coef[Q_var].empty()) d_hyp_patch_ops->setBoundaryConditions(Q_var,d_Q_bc_coef[Q_var]);
+        var_db->registerVariableAndContext(Q_var, d_temp_context, CELLG);
     }
-#endif
 
     // Initialize the HyperbolicLevelIntegrator.
     //
