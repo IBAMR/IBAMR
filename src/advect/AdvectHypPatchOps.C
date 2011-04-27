@@ -801,7 +801,8 @@ AdvectHypPatchOps::computeFluxesOnPatch(
             Pointer<FaceData<NDIM,double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
             d_godunov_advector->computeFlux(*flux_integral_data, *u_data, *q_integral_data, patch, dt);
         }
-        else if (!conservation_form || !u_is_div_free)
+
+        if (!conservation_form || !u_is_div_free)
         {
             Pointer<FaceData<NDIM,double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
             patch_fc_data_ops.scale(q_integral_data, dt, q_integral_data, patch_box);
@@ -1047,7 +1048,7 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
 
     if (!d_compute_final_velocity) return;
 
-    // Update the advection velocity (or velocities).
+    // Update the advection velocity.
     for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
          cit != d_u_var.end(); ++cit)
     {
@@ -1055,7 +1056,7 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
         if (!d_u_fcn[u_var].isNull() && d_u_fcn[u_var]->isTimeDependent())
         {
             VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-            const int u_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
+            const int u_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getNewContext());
             d_u_fcn[u_var]->setDataOnPatchLevel(u_idx, u_var, level, current_time+dt);
         }
     }
