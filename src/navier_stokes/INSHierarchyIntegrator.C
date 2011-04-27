@@ -45,7 +45,6 @@
 #endif
 
 // IBAMR INCLUDES
-#include <ibamr/TGACoefs.h>
 #include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
@@ -919,18 +918,24 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     // AdvDiffHierarchyIntegrator.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    const bool u_adv_is_div_free = d_Q_fcn.isNull();
-    d_adv_diff_hier_integrator->registerAdvectionVelocity(
-        d_u_adv_var, u_adv_is_div_free);
+    d_adv_diff_hier_integrator->registerAdvectionVelocity(d_u_adv_var);
+    d_adv_diff_hier_integrator->setAdvectionVelocityIsDivergenceFree(d_u_adv_var, d_Q_fcn.isNull());
 
-    std::vector<RobinBcCoefStrategy<NDIM>*> U_bc_coefs(
-        d_intermediate_U_bc_coefs.begin(), d_intermediate_U_bc_coefs.end());
+    d_adv_diff_hier_integrator->registerSourceTerm(d_F_U_var);
 
-    d_adv_diff_hier_integrator->registerAdvectedAndDiffusedQuantityWithSourceTerm(
-        d_U_var, d_nu, d_lambda, d_F_U_var, d_convective_difference_form,
-        d_U_init, U_bc_coefs,
-        Pointer<CartGridFunction>(NULL),
-        d_grad_Phi_var);
+    d_adv_diff_hier_integrator->registerIncompressibilityFixTerm(d_grad_Phi_var, false);
+
+    std::vector<RobinBcCoefStrategy<NDIM>*> U_bc_coefs(d_intermediate_U_bc_coefs.begin(), d_intermediate_U_bc_coefs.end());
+
+    d_adv_diff_hier_integrator->registerTransportedQuantity(d_U_var);
+    d_adv_diff_hier_integrator->setAdvectionVelocity(d_U_var, d_u_adv_var);
+    d_adv_diff_hier_integrator->setSourceTerm(d_U_var, d_F_U_var);
+    d_adv_diff_hier_integrator->setIncompressibilityFixTerm(d_U_var, d_grad_Phi_var);
+    d_adv_diff_hier_integrator->setConvectiveDifferencingType(d_U_var, d_convective_difference_form);
+    d_adv_diff_hier_integrator->setDiffusionCoefficient(d_U_var, d_nu);
+    d_adv_diff_hier_integrator->setDampingCoefficient(d_U_var, d_lambda);
+    d_adv_diff_hier_integrator->setInitialConditions(d_U_var, d_U_init);
+    d_adv_diff_hier_integrator->setBoundaryConditions(d_U_var, U_bc_coefs);
 
     // Initialize the AdvDiffHierarchyIntegrator.
     //
@@ -940,26 +945,17 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     // Obtain the patch data descriptor indices for all variables registered
     // with the AdvDiffHierarchyIntegrator.
 
-    d_u_adv_current_idx = var_db->mapVariableAndContextToIndex(
-        d_u_adv_var, getCurrentContext());
-    d_u_adv_scratch_idx = var_db->mapVariableAndContextToIndex(
-        d_u_adv_var, getScratchContext());
-    d_u_adv_new_idx = var_db->mapVariableAndContextToIndex(
-        d_u_adv_var, getNewContext());
+    d_u_adv_current_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getCurrentContext());
+    d_u_adv_scratch_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getScratchContext());
+    d_u_adv_new_idx     = var_db->mapVariableAndContextToIndex(d_u_adv_var, getNewContext());
 
-    d_U_current_idx = var_db->mapVariableAndContextToIndex(
-        d_U_var, getCurrentContext());
-    d_U_scratch_idx = var_db->mapVariableAndContextToIndex(
-        d_U_var, getScratchContext());
-    d_U_new_idx = var_db->mapVariableAndContextToIndex(
-        d_U_var, getNewContext());
+    d_U_current_idx = var_db->mapVariableAndContextToIndex(d_U_var, getCurrentContext());
+    d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_var, getScratchContext());
+    d_U_new_idx     = var_db->mapVariableAndContextToIndex(d_U_var, getNewContext());
 
-    d_F_U_current_idx = var_db->mapVariableAndContextToIndex(
-        d_F_U_var, getCurrentContext());
-    d_F_U_scratch_idx = var_db->mapVariableAndContextToIndex(
-        d_F_U_var, getScratchContext());
-    d_F_U_new_idx = var_db->mapVariableAndContextToIndex(
-        d_F_U_var, getNewContext());
+    d_F_U_current_idx = var_db->mapVariableAndContextToIndex(d_F_U_var, getCurrentContext());
+    d_F_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_F_U_var, getScratchContext());
+    d_F_U_new_idx     = var_db->mapVariableAndContextToIndex(d_F_U_var, getNewContext());
 
     // Register variables for plotting.
     //
@@ -2098,7 +2094,6 @@ INSHierarchyIntegrator::updatePressure(
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    double intermediate_time = std::numeric_limits<double>::quiet_NaN();
     const double dt = new_time - current_time;
 
     // Reset the solution and rhs vectors.
@@ -2176,38 +2171,6 @@ INSHierarchyIntegrator::updatePressure(
                 d_helmholtz_spec->setDConstant(   -0.5*dt*d_nu    );
                 break;
             }
-            case TGA:
-            {
-                // The TGA discretization is:
-                //
-                //     (I-nu2*dt*mu*L(t_int)) (I-nu1*dt*mu*L(t_new)) Q(n+1) = [(I+nu3*dt*mu*L(t_old)) Q(n) + (I+nu4*dt*mu*L) F(t_avg) dt]
-                //
-                // where
-                //
-                //    t_old = n dt
-                //    t_new = (n+1) dt
-                //    t_int = t_new - nu1*dt = t_old + (nu2+nu3)*dt
-                //    t_avg = (t_new+t_old)/2 = t_old + (nu1+nu2+nu4)*dt
-                //
-                // Following McCorquodale et al., the coefficients for the TGA
-                // discretization are:
-                //
-                //     nu1 = (a - sqrt(a^2-4*a+2))/2
-                //     nu2 = (a + sqrt(a^2-4*a+2))/2
-                //     nu3 = (1-a)
-                //     nu4 = (0.5-a)
-                //
-                // Note that by choosing a = 2 - sqrt(2), nu1 == nu2.
-                //
-                // Ref: McCorquodale, Colella, Johansen.  "A Cartesian grid
-                // embedded boundary method for the heat equation on irregular
-                // domains." JCP 173, pp. 620-635 (2001)
-                static const double nu1 = TGACoefs::nu1;
-                intermediate_time = new_time-nu1*dt;
-                d_helmholtz_spec->setCConstant(1.0+nu1*dt*d_lambda);
-                d_helmholtz_spec->setDConstant(   -nu1*dt*d_nu    );
-                break;
-            }
             default:
             {
                 TBOX_ERROR(d_object_name << "::updatePressure():\n"
@@ -2249,54 +2212,26 @@ INSHierarchyIntegrator::updatePressure(
         // Solve for delta U^(n,*) = U~^(n,*) - U^(n,*).
         if (d_do_log) plog << d_object_name << "::updatePressure(): about to solve for U~^(n,*) - U^(n,*) . . . \n";
 
-        if (d_viscous_timestepping_type == BACKWARD_EULER || d_viscous_timestepping_type == CRANK_NICOLSON)
+        switch (d_viscous_timestepping_type)
         {
-            d_helmholtz_op->setTime(new_time);
-            if (d_helmholtz_using_FAC) d_helmholtz_fac_op->setTime(new_time);
-            d_helmholtz_solver->solveSystem(*vector_sol_vec,*vector_rhs_vec);
+            case BACKWARD_EULER:
+            case CRANK_NICOLSON:
+                d_helmholtz_op->setTime(new_time);
+                if (d_helmholtz_using_FAC) d_helmholtz_fac_op->setTime(new_time);
+                d_helmholtz_solver->solveSystem(*vector_sol_vec,*vector_rhs_vec);
 
-            if (d_do_log) plog << d_object_name << "::updatePressure(): linear solve number of iterations = " << d_helmholtz_solver->getNumIterations() << "\n";
-            if (d_do_log) plog << d_object_name << "::updatePressure(): linear solve residual norm        = " << d_helmholtz_solver->getResidualNorm()  << "\n";
+                if (d_do_log) plog << d_object_name << "::updatePressure(): linear solve number of iterations = " << d_helmholtz_solver->getNumIterations() << "\n";
+                if (d_do_log) plog << d_object_name << "::updatePressure(): linear solve residual norm        = " << d_helmholtz_solver->getResidualNorm()  << "\n";
 
-            if (d_helmholtz_solver->getNumIterations() == d_helmholtz_solver->getMaxIterations())
-            {
-                pout << d_object_name << "::updatePressure():"
-                     <<"  WARNING: linear solver iterations == max iterations\n";
-            }
-        }
-        else if (d_viscous_timestepping_type == TGA)
-        {
-            d_helmholtz_op->setTime(intermediate_time);
-            if (d_helmholtz_using_FAC) d_helmholtz_fac_op->setTime(intermediate_time);
-            d_helmholtz_solver->solveSystem(*vector_sol_vec,*vector_rhs_vec);
-
-            if (d_do_log) plog << d_object_name << "::updatePressure(): linear solve #1 number of iterations = " << d_helmholtz_solver->getNumIterations() << "\n";
-            if (d_do_log) plog << d_object_name << "::updatePressure(): linear solve #1 residual norm        = " << d_helmholtz_solver->getResidualNorm()  << "\n";
-
-            if (d_helmholtz_solver->getNumIterations() == d_helmholtz_solver->getMaxIterations())
-            {
-                pout << d_object_name << "::updatePressure():"
-                     <<"  WARNING: linear solver iterations == max iterations\n";
-            }
-
-            d_helmholtz_op->setTime(new_time);
-            if (d_helmholtz_using_FAC) d_helmholtz_fac_op->setTime(new_time);
-            vector_rhs_vec->copyVector(vector_sol_vec);
-            d_helmholtz_solver->solveSystem(*vector_sol_vec,*vector_rhs_vec);
-
-            if (d_do_log) plog << d_object_name << "::updatePressure(): linear solve #2 number of iterations = " << d_helmholtz_solver->getNumIterations() << "\n";
-            if (d_do_log) plog << d_object_name << "::updatePressure(): linear solve #2 residual norm        = " << d_helmholtz_solver->getResidualNorm()  << "\n";
-
-            if (d_helmholtz_solver->getNumIterations() == d_helmholtz_solver->getMaxIterations())
-            {
-                pout << d_object_name << "::updatePressure():"
-                     <<"  WARNING: linear solver iterations == max iterations\n";
-            }
-        }
-        else
-        {
-            TBOX_ERROR(d_object_name << "::updatePressure():\n"
-                       << "  unrecognized viscous timestepping type: " << d_viscous_timestepping_type << "." << std::endl);
+                if (d_helmholtz_solver->getNumIterations() == d_helmholtz_solver->getMaxIterations())
+                {
+                    pout << d_object_name << "::updatePressure():"
+                         <<"  WARNING: linear solver iterations == max iterations\n";
+                }
+                break;
+            default:
+                TBOX_ERROR(d_object_name << "::updatePressure():\n"
+                           << "  unrecognized viscous timestepping type: " << d_viscous_timestepping_type << "." << std::endl);
         }
 
         // Deallocate scratch data.
@@ -2381,12 +2316,6 @@ INSHierarchyIntegrator::updatePressure(
                     helmholtz_spec            ,   // Poisson spec
                     Phi_scratch_idx, Phi_var  ,   // src
                     d_no_fill_op, current_time);
-                break;
-            }
-            case TGA:
-            {
-                TBOX_ERROR(d_object_name << "::updatePressure():\n"
-                           << "  second-order pressure update is not available when using TGA as the viscous timestepping scheme.");
                 break;
             }
             default:

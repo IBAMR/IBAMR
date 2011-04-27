@@ -314,24 +314,25 @@ main(
             input_db->getDatabase("AdvDiffHierarchyIntegrator"),
             patch_hierarchy, predictor);
 
-    tbox::Pointer< pdat::FaceVariable<NDIM,double> > u_var =
-        new pdat::FaceVariable<NDIM,double>("u");
+    tbox::Pointer< pdat::FaceVariable<NDIM,double> > u_var = new pdat::FaceVariable<NDIM,double>("u");
     UFunction u_fcn("UFunction", grid_geometry, input_db->getDatabase("UFunction"));
     const bool u_is_div_free = true;
-    time_integrator->registerAdvectionVelocity(
-        u_var, u_is_div_free, tbox::Pointer<CartGridFunction>(&u_fcn,false));
+    time_integrator->registerAdvectionVelocity(u_var);
+    time_integrator->setAdvectionVelocityIsDivergenceFree(u_var, u_is_div_free);
+    time_integrator->setAdvectionVelocityFunction(u_var, tbox::Pointer<CartGridFunction>(&u_fcn,false));
 
-    tbox::Pointer< pdat::CellVariable<NDIM,double> > Q_var =
-        new pdat::CellVariable<NDIM,double>("Q");
+    tbox::Pointer< pdat::CellVariable<NDIM,double> > Q_var = new pdat::CellVariable<NDIM,double>("Q");
     QInit Q_init("QInit", grid_geometry, input_db->getDatabase("QInit"));
     solv::LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
         "physical_bc_coef",
         input_db->getDatabase("LocationIndexRobinBcCoefs"));
     const double kappa = input_db->getDatabase("QInit")->getDouble("kappa");
-    const double lambda = 0.0;
-    time_integrator->registerAdvectedAndDiffusedQuantity(
-        Q_var, kappa, lambda, difference_form, tbox::Pointer<CartGridFunction>(&Q_init,false),
-        &physical_bc_coef);
+    time_integrator->registerTransportedQuantity(Q_var);
+    time_integrator->setAdvectionVelocity(Q_var, u_var);
+    time_integrator->setDiffusionCoefficient(Q_var, kappa);
+    time_integrator->setConvectiveDifferencingType(Q_var, difference_form);
+    time_integrator->setInitialConditions(Q_var, tbox::Pointer<CartGridFunction>(&Q_init,false));
+    time_integrator->setBoundaryConditions(Q_var, &physical_bc_coef);
 
     tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
         new mesh::StandardTagAndInitialize<NDIM>(

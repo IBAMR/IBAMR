@@ -169,8 +169,6 @@ static const int CELLG = 4;
 static const int FLUXG = 1;
 
 // Values for cell tagging routines.
-static const int RICHARDSON_NEWLY_TAGGED   = -10;
-static const int RICHARDSON_ALREADY_TAGGED = -11;
 static const int TRUE_VAL  = 1;
 static const int FALSE_VAL = 0;
 
@@ -188,29 +186,32 @@ AdvectHypPatchOps::AdvectHypPatchOps(
     bool register_for_restart)
     : d_integrator(NULL),
       d_godunov_advector(godunov_advector),
-      d_Q_var(),
-      d_F_var(),
-      d_grad_var(),
-      d_Q_difference_form(),
-      d_flux_integral_var(),
-      d_q_integral_var(),
-      d_u_integral_var(),
-      d_Q_init(),
-      d_Q_bc_coef(),
-      d_F_fcn(),
-      d_u_var(NULL),
-      d_u_fcn(NULL),
-      d_u_is_div_free(false),
-      d_u_is_registered(false),
+      d_u_var(),
+      d_manage_u_data(),
+      d_u_is_div_free(),
+      d_u_fcn(),
       d_compute_init_velocity(true),
       d_compute_half_velocity(true),
       d_compute_final_velocity(true),
+      d_F_var(),
+      d_manage_F_data(),
+      d_F_fcn(),
+      d_grad_Phi_var(),
+      d_manage_grad_Phi_data(),
+      d_grad_Phi_fcn(),
+      d_Q_var(),
+      d_manage_Q_data(),
+      d_Q_u_map(),
+      d_Q_grad_Phi_map(),
+      d_Q_F_map(),
+      d_Q_difference_form(),
+      d_Q_init(),
+      d_Q_bc_coef(),
       d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
       d_grid_geometry(grid_geom),
       d_visit_writer(NULL),
       d_extrap_bc_helper(),
-      d_coarse_fine_bdry_op(NULL),
       d_ghosts(CELLG),
       d_flux_ghosts(FLUXG),
       d_extrap_type("CONSTANT"),
@@ -221,10 +222,7 @@ AdvectHypPatchOps::AdvectHypPatchOps(
       d_dev_time_min(),
       d_grad_tol(),
       d_grad_time_max(),
-      d_grad_time_min(),
-      d_rich_tol(),
-      d_rich_time_max(),
-      d_rich_time_min()
+      d_grad_time_min()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
@@ -235,8 +233,7 @@ AdvectHypPatchOps::AdvectHypPatchOps(
 
     if (d_registered_for_restart)
     {
-        RestartManager::getManager()->
-            registerRestartItem(d_object_name, this);
+        RestartManager::getManager()->registerRestartItem(d_object_name, this);
     }
 
     // Initialize object with data read from given input/restart databases.
@@ -262,244 +259,6 @@ AdvectHypPatchOps::getName() const
 }// getName
 
 void
-AdvectHypPatchOps::registerCoarseFineBoundaryRefinePatchStrategy(
-    Pointer<CoarseFineBoundaryRefinePatchStrategy> coarse_fine_bdry_op)
-{
-    d_coarse_fine_bdry_op = coarse_fine_bdry_op;
-    return;
-}// registerCoarseFineBoundaryRefinePatchStrategy
-
-///
-///  The following routines:
-///
-///      registerAdvectedQuantity(),
-///      registerAdvectedQuantityWithSourceTerm(),
-///      registerAdvectionVelocity(),
-///      registerVisItDataWriter()
-///
-///  allow the AdvectHypPatchOps to be used as a generic advection scheme.
-///
-
-void
-AdvectHypPatchOps::registerAdvectedQuantity(
-    Pointer<CellVariable<NDIM,double> > Q_var,
-    const ConvectiveDifferencingType difference_form,
-    Pointer<CartGridFunction> Q_init,
-    RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
-    Pointer<FaceVariable<NDIM,double> > grad_var)
-{
-    registerAdvectedQuantity(
-        Q_var, difference_form, Q_init,
-        std::vector<RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef),
-        grad_var);
-    return;
-}// registerAdvectedQuantity
-
-void
-AdvectHypPatchOps::registerAdvectedQuantity(
-    Pointer<CellVariable<NDIM,double> > Q_var,
-    const ConvectiveDifferencingType difference_form,
-    Pointer<CartGridFunction> Q_init,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef,
-    Pointer<FaceVariable<NDIM,double> > grad_var)
-{
-    if (difference_form != ADVECTIVE && difference_form != CONSERVATIVE)
-    {
-        TBOX_ERROR("AdvectHypPatchOps::registerAdvectedQuantity():\n"
-                   << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(difference_form) << " \n"
-                   << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
-    }
-    const bool conservation_form = difference_form == CONSERVATIVE;
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_u_is_registered);
-    TBOX_ASSERT(!Q_var.isNull());
-#endif
-    Pointer<CellDataFactory<NDIM,double> > Q_factory =
-        Q_var->getPatchDataFactory();
-    const int Q_depth = Q_factory->getDefaultDepth();
-
-    std::vector<RobinBcCoefStrategy<NDIM>*> Q_bc_coef_local = Q_bc_coef;
-    if (Q_bc_coef_local.empty())
-    {
-        Q_bc_coef_local = std::vector<RobinBcCoefStrategy<NDIM>*>(
-            Q_depth,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
-    }
-
-    if (Q_depth != int(Q_bc_coef_local.size()))
-    {
-        TBOX_ERROR(d_object_name << "::registerAdvectedQuantity():\n"
-                   << "  data depth for variable " << Q_var->getName() << " is " << Q_depth << "\n"
-                   << "  but " << Q_bc_coef_local.size() << " boundary condition coefficient objects were provided to the class constructor." << std::endl);
-    }
-
-    Pointer<FaceVariable<NDIM,double> > flux_integral_var;
-    Pointer<FaceVariable<NDIM,double> > q_integral_var;
-
-    if (conservation_form)
-    {
-        flux_integral_var = new FaceVariable<NDIM,double>(
-            d_object_name+"::"+Q_var->getName()+" advective flux time integral",
-            Q_factory->getDefaultDepth());
-    }
-
-    if (!d_u_is_div_free || !conservation_form)
-    {
-        q_integral_var = new FaceVariable<NDIM,double>(
-            d_object_name+"::"+Q_var->getName()+" time integral",
-            Q_factory->getDefaultDepth());
-    }
-
-    d_Q_var    .push_back(Q_var);
-    d_Q_init   .push_back(Q_init);
-    d_Q_bc_coef.push_back(Q_bc_coef_local);
-
-    d_Q_difference_form.push_back(difference_form);
-
-    d_grad_var.push_back(grad_var);
-
-    d_F_var.push_back(NULL);
-    d_F_fcn.push_back(NULL);
-
-    d_flux_integral_var.push_back(flux_integral_var);
-    d_q_integral_var.push_back(q_integral_var);
-
-    if (!conservation_form && d_u_integral_var.isNull())
-    {
-        d_u_integral_var = new FaceVariable<NDIM,double>(
-            d_object_name+"::"+d_u_var->getName()+" time integral");
-    }
-    return;
-}// registerAdvectedQuantity
-
-void
-AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
-    Pointer<CellVariable<NDIM,double> > Q_var,
-    Pointer<CellVariable<NDIM,double> > F_var,
-    const ConvectiveDifferencingType difference_form,
-    Pointer<CartGridFunction> Q_init,
-    RobinBcCoefStrategy<NDIM>* const Q_bc_coef,
-    Pointer<CartGridFunction> F_fcn,
-    Pointer<FaceVariable<NDIM,double> > grad_var)
-{
-    registerAdvectedQuantityWithSourceTerm(
-        Q_var, F_var, difference_form, Q_init,
-        std::vector<RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef),
-        F_fcn, grad_var);
-    return;
-}// registerAdvectedQuantityWithSourceTerm
-
-void
-AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm(
-    Pointer<CellVariable<NDIM,double> > Q_var,
-    Pointer<CellVariable<NDIM,double> > F_var,
-    const ConvectiveDifferencingType difference_form,
-    Pointer<CartGridFunction> Q_init,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef,
-    Pointer<CartGridFunction> F_fcn,
-    Pointer<FaceVariable<NDIM,double> > grad_var)
-{
-    if (difference_form != ADVECTIVE && difference_form != CONSERVATIVE)
-    {
-        TBOX_ERROR("AdvectHypPatchOps::registerAdvectedQuantityWithSourceTerm():\n"
-                   << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(difference_form) << " \n"
-                   << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
-    }
-    const bool conservation_form = difference_form == CONSERVATIVE;
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_u_is_registered);
-    TBOX_ASSERT(!Q_var.isNull());
-    TBOX_ASSERT(!F_var.isNull());
-#endif
-    Pointer<CellDataFactory<NDIM,double> > Q_factory =
-        Q_var->getPatchDataFactory();
-    const int Q_depth = Q_factory->getDefaultDepth();
-
-    std::vector<RobinBcCoefStrategy<NDIM>*> Q_bc_coef_local = Q_bc_coef;
-    if (Q_bc_coef_local.empty())
-    {
-        Q_bc_coef_local = std::vector<RobinBcCoefStrategy<NDIM>*>(
-            Q_depth,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
-    }
-
-    if (Q_depth != int(Q_bc_coef_local.size()))
-    {
-        TBOX_ERROR(d_object_name << "::registerAdvectedQuantityWithSourceTerm():\n"
-                   << "  data depth for variable " << Q_var->getName() << " is " << Q_depth << "\n"
-                   << "  but " << Q_bc_coef_local.size() << " boundary condition coefficient objects were provided to the class constructor." << std::endl);
-    }
-
-    Pointer<FaceVariable<NDIM,double> > flux_integral_var;
-    Pointer<FaceVariable<NDIM,double> > q_integral_var;
-
-    if (conservation_form)
-    {
-        flux_integral_var = new FaceVariable<NDIM,double>(
-            d_object_name+"::"+Q_var->getName()+" advective flux time integral",
-            Q_factory->getDefaultDepth());
-    }
-
-    if (!d_u_is_div_free || !conservation_form)
-    {
-        q_integral_var = new FaceVariable<NDIM,double>(
-            d_object_name+"::"+Q_var->getName()+" time integral",
-            Q_factory->getDefaultDepth());
-    }
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    Pointer<CellDataFactory<NDIM,double> > F_factory =
-        F_var->getPatchDataFactory();
-    TBOX_ASSERT(Q_factory->getDefaultDepth() == F_factory->getDefaultDepth());
-#endif
-    d_Q_var    .push_back(Q_var);
-    d_Q_init   .push_back(Q_init);
-    d_Q_bc_coef.push_back(Q_bc_coef_local);
-
-    d_Q_difference_form.push_back(difference_form);
-
-    d_grad_var.push_back(grad_var);
-
-    d_F_var.push_back(F_var);
-    d_F_fcn.push_back(F_fcn);
-
-    d_flux_integral_var.push_back(flux_integral_var);
-    d_q_integral_var.push_back(q_integral_var);
-
-    if (!conservation_form && d_u_integral_var.isNull())
-    {
-        d_u_integral_var = new FaceVariable<NDIM,double>(
-            d_object_name+"::"+d_u_var->getName()+" time integral");
-    }
-    return;
-}// registerAdvectedQuantityWithSourceTerm
-
-void
-AdvectHypPatchOps::registerAdvectionVelocity(
-    Pointer<FaceVariable<NDIM,double> > u_var,
-    const bool u_is_div_free,
-    Pointer<CartGridFunction> u_fcn)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_u_is_registered);
-    TBOX_ASSERT(!u_var.isNull());
-#endif
-    d_u_var = u_var;
-    d_u_fcn = u_fcn;
-    d_u_is_div_free = u_is_div_free;
-
-    if (!d_u_is_div_free)
-    {
-        d_u_integral_var = new FaceVariable<NDIM,double>(
-            d_object_name+"::"+u_var->getName()+" time integral");
-    }
-
-    d_u_is_registered = true;
-    return;
-}// registerAdvectionVelocity
-
-#if (NDIM>1)
-void
 AdvectHypPatchOps::registerVisItDataWriter(
     Pointer<VisItDataWriter<NDIM> > visit_writer)
 {
@@ -509,7 +268,201 @@ AdvectHypPatchOps::registerVisItDataWriter(
     d_visit_writer = visit_writer;
     return;
 }// registerVisItDataWriter
+
+void
+AdvectHypPatchOps::registerAdvectionVelocity(
+    Pointer<FaceVariable<NDIM,double> > u_var,
+    const bool manage_data)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!u_var.isNull());
 #endif
+    d_u_var.insert(u_var);
+    d_manage_u_data[u_var] = manage_data;
+    d_u_is_div_free[u_var] = true;
+    return;
+}// registerAdvectionVelocity
+
+void
+AdvectHypPatchOps::setAdvectionVelocityIsDivergenceFree(
+    Pointer<FaceVariable<NDIM,double> > u_var,
+    const bool is_div_free)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_u_var.find(u_var) != d_u_var.end());
+#endif
+    d_u_is_div_free[u_var] = is_div_free;
+    return;
+}// setAdvectionVelocityIsDivergenceFree
+
+void
+AdvectHypPatchOps::setAdvectionVelocityFunction(
+    Pointer<FaceVariable<NDIM,double> > u_var,
+    Pointer<IBTK::CartGridFunction> u_fcn)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_u_var.find(u_var) != d_u_var.end());
+#endif
+    d_u_fcn[u_var] = u_fcn;
+    return;
+}// setAdvectionVelocityFunction
+
+void
+AdvectHypPatchOps::registerSourceTerm(
+    Pointer<CellVariable<NDIM,double> > F_var,
+    const bool manage_data)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!F_var.isNull());
+#endif
+    d_F_var.insert(F_var);
+    d_manage_F_data[F_var] = manage_data;
+    return;
+}// registerSourceTerm
+
+void
+AdvectHypPatchOps::setSourceTermFunction(
+    Pointer<CellVariable<NDIM,double> > F_var,
+    Pointer<IBTK::CartGridFunction> F_fcn)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_F_var.find(F_var) != d_F_var.end());
+#endif
+    d_F_fcn[F_var] = F_fcn;
+    return;
+}// setSourceTermFunction
+
+void
+AdvectHypPatchOps::registerIncompressibilityFixTerm(
+    Pointer<FaceVariable<NDIM,double> > grad_Phi_var,
+    const bool manage_data)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!grad_Phi_var.isNull());
+#endif
+    d_grad_Phi_var.insert(grad_Phi_var);
+    d_manage_grad_Phi_data[grad_Phi_var] = manage_data;
+    return;
+}// registerIncompressibilityFixTerm
+
+void
+AdvectHypPatchOps::setIncompressibilityFixTermFunction(
+    Pointer<FaceVariable<NDIM,double> > grad_Phi_var,
+    Pointer<IBTK::CartGridFunction> grad_Phi_fcn)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_grad_Phi_var.find(grad_Phi_var) != d_grad_Phi_var.end());
+#endif
+    d_grad_Phi_fcn[grad_Phi_var] = grad_Phi_fcn;
+    return;
+}// setIncompressibilityFixTermFunction
+
+void
+AdvectHypPatchOps::registerTransportedQuantity(
+    Pointer<CellVariable<NDIM,double> > Q_var,
+    const bool manage_data)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!Q_var.isNull());
+#endif
+    d_Q_var.insert(Q_var);
+    d_manage_Q_data[Q_var] = manage_data;
+    d_Q_difference_form[Q_var] = CONSERVATIVE;
+    return;
+}// registerTransportedQuantity
+
+void
+AdvectHypPatchOps::setAdvectionVelocity(
+    Pointer<CellVariable<NDIM,double> > Q_var,
+    Pointer<FaceVariable<NDIM,double> > u_var)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
+    TBOX_ASSERT(d_u_var.find(u_var) != d_u_var.end());
+#endif
+    d_Q_u_map[Q_var] = u_var;
+    return;
+}// setAdvectionVelocity
+
+void
+AdvectHypPatchOps::setSourceTerm(
+    Pointer<CellVariable<NDIM,double> > Q_var,
+    Pointer<CellVariable<NDIM,double> > F_var)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
+    TBOX_ASSERT(d_F_var.find(F_var) != d_F_var.end());
+#endif
+    d_Q_F_map[Q_var] = F_var;
+    return;
+}// setSourceTerm
+
+void
+AdvectHypPatchOps::setIncompressibilityFixTerm(
+    Pointer<CellVariable<NDIM,double> > Q_var,
+    Pointer<FaceVariable<NDIM,double> > grad_Phi_var)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
+    TBOX_ASSERT(d_grad_Phi_var.find(grad_Phi_var) != d_grad_Phi_var.end());
+#endif
+    d_Q_grad_Phi_map[Q_var] = grad_Phi_var;
+    return;
+}// setIncompressibilityFixTerm
+
+void
+AdvectHypPatchOps::setConvectiveDifferencingType(
+    Pointer<CellVariable<NDIM,double> > Q_var,
+    const ConvectiveDifferencingType& difference_form)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
+#endif
+    d_Q_difference_form[Q_var] = difference_form;
+    return;
+}// setConvectiveDifferencingType
+
+void
+AdvectHypPatchOps::setInitialConditions(
+    Pointer<CellVariable<NDIM,double> > Q_var,
+    Pointer<IBTK::CartGridFunction> Q_init)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
+#endif
+    d_Q_init[Q_var] = Q_init;
+    return;
+}// setInitialConditions
+
+void
+AdvectHypPatchOps::setBoundaryConditions(
+    Pointer<CellVariable<NDIM,double> > Q_var,
+    RobinBcCoefStrategy<NDIM>* Q_bc_coef)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
+    Pointer<CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
+    const unsigned Q_depth = Q_factory->getDefaultDepth();
+    TBOX_ASSERT(Q_depth == 1);
+#endif
+    d_Q_bc_coef[Q_var] = std::vector<RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef);
+    return;
+}// setBoundaryConditions
+
+void
+AdvectHypPatchOps::setBoundaryConditions(
+    Pointer<CellVariable<NDIM,double> > Q_var,
+    std::vector<RobinBcCoefStrategy<NDIM>*> Q_bc_coef)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
+    Pointer<CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
+    const unsigned Q_depth = Q_factory->getDefaultDepth();
+    TBOX_ASSERT(Q_depth == Q_bc_coef.size());
+#endif
+    d_Q_bc_coef[Q_var] = Q_bc_coef;
+    return;
+}// setBoundaryConditions
 
 ///
 ///  The following routines:
@@ -521,8 +474,7 @@ AdvectHypPatchOps::registerVisItDataWriter(
 ///      conservativeDifferenceOnPatch(),
 ///      preprocessAdvanceLevelState(),
 ///      postprocessAdvanceLevelState(),
-///      tagGradientDetectorCells(),
-///      tagRichardsonExtrapolationCells()
+///      tagGradientDetectorCells()
 ///
 ///  are concrete implementations of functions declared in the
 ///  HyperbolicPatchStrategy abstract base class.
@@ -537,62 +489,26 @@ AdvectHypPatchOps::registerModelVariables(
 #endif
     d_integrator = integrator;
 
-    typedef std::vector<Pointer<CellVariable<NDIM,double> > > CellVariableVector;
-
-    for (CellVariableVector::iterator it = d_Q_var.begin(); it != d_Q_var.end(); ++it)
+    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
+         cit != d_u_var.end(); ++cit)
     {
-        Pointer<CellVariable<NDIM,double> > Q_var = *it;
-
-        d_integrator->registerVariable(
-            Q_var, d_ghosts,
-            HyperbolicLevelIntegrator<NDIM>::TIME_DEP,
-            d_grid_geometry,
-            "CONSERVATIVE_COARSEN",
-            "CONSERVATIVE_LINEAR_REFINE");
-
-#if (NDIM > 1)
-        if (!d_visit_writer.isNull())
+        Pointer<FaceVariable<NDIM,double> > u_var = *cit;
+        if (d_manage_u_data[u_var])
         {
-            const int Q_idx = VariableDatabase<NDIM>::getDatabase()->
-                mapVariableAndContextToIndex(
-                    Q_var, d_integrator->getPlotContext());
-
-            Pointer<CellDataFactory<NDIM,double> > Q_factory =
-                Q_var->getPatchDataFactory();
-
-            const int depth = Q_factory->getDefaultDepth();
-
-            if (depth == 1)
-            {
-                d_visit_writer->registerPlotQuantity(
-                    Q_var->getName(), "SCALAR", Q_idx);
-            }
-            else
-            {
-                if (depth == NDIM)
-                {
-                    d_visit_writer->registerPlotQuantity(
-                        Q_var->getName(), "VECTOR", Q_idx);
-                }
-
-                for (int d = 0; d < depth; ++d)
-                {
-                    std::ostringstream stream;
-                    stream << d;
-                    d_visit_writer->registerPlotQuantity(
-                        Q_var->getName()+"_"+stream.str(), "SCALAR", Q_idx, d);
-                }
-            }
+            d_integrator->registerVariable(
+                u_var, d_ghosts,
+                HyperbolicLevelIntegrator<NDIM>::TIME_DEP,
+                d_grid_geometry,
+                "CONSERVATIVE_COARSEN",
+                "CONSERVATIVE_LINEAR_REFINE");
         }
-#endif
     }
 
-    for (CellVariableVector::iterator it = d_F_var.begin(); it != d_F_var.end(); ++it)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin();
+         cit != d_F_var.end(); ++cit)
     {
-        Pointer<CellVariable<NDIM,double> > F_var = *it;
-
-        // Advected quantities do not necessarily have source terms!
-        if (!F_var.isNull())
+        Pointer<CellVariable<NDIM,double> > F_var = *cit;
+        if (d_manage_F_data[F_var])
         {
             d_integrator->registerVariable(
                 F_var, d_ghosts,
@@ -603,59 +519,101 @@ AdvectHypPatchOps::registerModelVariables(
         }
     }
 
-    typedef std::vector<Pointer<FaceVariable<NDIM,double> > > FaceVariableVector;
-    for (FaceVariableVector::iterator it = d_flux_integral_var.begin();
-         it != d_flux_integral_var.end(); ++it)
+    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_grad_Phi_var.begin();
+         cit != d_grad_Phi_var.end(); ++cit)
     {
-        Pointer<FaceVariable<NDIM,double> > flux_integral_var = *it;
-
-        // Not all quantities are conservatively differenced!
-        if (!flux_integral_var.isNull())
+        Pointer<FaceVariable<NDIM,double> > grad_Phi_var = *cit;
+        if (d_manage_grad_Phi_data[grad_Phi_var])
         {
             d_integrator->registerVariable(
-                flux_integral_var, d_flux_ghosts,
+                grad_Phi_var, d_ghosts,
+                HyperbolicLevelIntegrator<NDIM>::TIME_DEP,
+                d_grid_geometry,
+                "CONSERVATIVE_COARSEN",
+                "CONSERVATIVE_LINEAR_REFINE");
+        }
+    }
+
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
+         cit != d_Q_var.end(); ++cit)
+    {
+        Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+        Pointer<CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
+        if (d_manage_Q_data[Q_var])
+        {
+            d_integrator->registerVariable(
+                Q_var, d_ghosts,
+                HyperbolicLevelIntegrator<NDIM>::TIME_DEP,
+                d_grid_geometry,
+                "CONSERVATIVE_COARSEN",
+                "CONSERVATIVE_LINEAR_REFINE");
+        }
+
+        if (!d_visit_writer.isNull())
+        {
+            const int Q_idx = VariableDatabase<NDIM>::getDatabase()->mapVariableAndContextToIndex(Q_var, d_integrator->getPlotContext());
+            const int depth = Q_factory->getDefaultDepth();
+            if (depth == 1)
+            {
+                d_visit_writer->registerPlotQuantity(Q_var->getName(), "SCALAR", Q_idx);
+            }
+            else
+            {
+                if (depth == NDIM)
+                {
+                    d_visit_writer->registerPlotQuantity(Q_var->getName(), "VECTOR", Q_idx);
+                }
+                for (int d = 0; d < depth; ++d)
+                {
+                    std::ostringstream stream;
+                    stream << d;
+                    d_visit_writer->registerPlotQuantity(Q_var->getName()+"_"+stream.str(), "SCALAR", Q_idx, d);
+                }
+            }
+        }
+
+        const bool conservation_form = d_Q_difference_form[Q_var] == CONSERVATIVE;
+        if (conservation_form)
+        {
+            d_flux_integral_var[Q_var] = new FaceVariable<NDIM,double>(
+                d_object_name+"::"+Q_var->getName()+" advective flux time integral",
+                Q_factory->getDefaultDepth());
+            d_integrator->registerVariable(
+                d_flux_integral_var[Q_var], d_flux_ghosts,
                 HyperbolicLevelIntegrator<NDIM>::FLUX,
                 d_grid_geometry,
                 "CONSERVATIVE_COARSEN",
                 "NO_REFINE");
         }
-    }
 
-    for (FaceVariableVector::iterator it = d_q_integral_var.begin();
-         it != d_q_integral_var.end(); ++it)
-    {
-        Pointer<FaceVariable<NDIM,double> > q_integral_var = *it;
-
-        // Not all quantities are non-conservatively differenced!
-        if (!q_integral_var.isNull())
+        Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(!u_var.isNull());
+#endif
+        const bool u_is_div_free = d_u_is_div_free[u_var];
+        if (!conservation_form || !u_is_div_free)
         {
+            d_q_integral_var[Q_var] = new FaceVariable<NDIM,double>(
+                d_object_name+"::"+Q_var->getName()+" time integral",
+                Q_factory->getDefaultDepth());
             d_integrator->registerVariable(
-                q_integral_var, d_flux_ghosts,
+                d_q_integral_var[Q_var], d_flux_ghosts,
                 HyperbolicLevelIntegrator<NDIM>::FLUX,
                 d_grid_geometry,
                 "CONSERVATIVE_COARSEN",
                 "NO_REFINE");
+            if (d_u_integral_var[u_var].isNull())
+            {
+                d_u_integral_var[u_var] = new FaceVariable<NDIM,double>(
+                    d_object_name+"::"+u_var->getName()+" time integral");
+                d_integrator->registerVariable(
+                    d_u_integral_var[u_var], d_flux_ghosts,
+                    HyperbolicLevelIntegrator<NDIM>::FLUX,
+                    d_grid_geometry,
+                    "CONSERVATIVE_COARSEN",
+                    "NO_REFINE");
+            }
         }
-    }
-
-    d_integrator->registerVariable(
-        d_u_var, d_ghosts,
-        HyperbolicLevelIntegrator<NDIM>::TIME_DEP,
-        d_grid_geometry,
-        "CONSERVATIVE_COARSEN",
-        "CONSERVATIVE_LINEAR_REFINE");
-
-    // Note that this quantity is only required when non-conservative
-    // differencing is employed, or when the velocity field is not discretely
-    // divergence free.
-    if (!d_u_integral_var.isNull())
-    {
-        d_integrator->registerVariable(
-            d_u_integral_var, d_flux_ghosts,
-            HyperbolicLevelIntegrator<NDIM>::FLUX,
-            d_grid_geometry,
-            "CONSERVATIVE_COARSEN",
-            "NO_REFINE");
     }
     return;
 }// registerModelVariables
@@ -668,84 +626,64 @@ AdvectHypPatchOps::initializeDataOnPatch(
 {
     if (initial_time)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        typedef std::vector<Pointer<CellVariable<NDIM,double> > > CellVariableVector;
-
-        // We try to use the CartGridFunction associated with each
-        // advected quantity.  If there is no strategy associated with a given
-        // quantity, initialize its value to zero.
-        for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
+        for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
+             cit != d_u_var.end(); ++cit)
         {
-            Pointer<CellVariable<NDIM,double> > Q_var = d_Q_var[l];
-            const int Q_idx = var_db->mapVariableAndContextToIndex(
-                Q_var, getDataContext());
-            Pointer<CartGridFunction> Q_init = d_Q_init[l];
-
-            if (!Q_init.isNull())
+            Pointer<FaceVariable<NDIM,double> > u_var = *cit;
+            Pointer<FaceData<NDIM,double> > u_data = patch.getPatchData(u_var, getDataContext());
+            if (d_u_fcn[u_var].isNull())
             {
-                Q_init->setDataOnPatch(
-                    Q_idx, Q_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
+                u_data->fillAll(0.0);
             }
             else
             {
-                Pointer<CellData<NDIM,double> > Q_data =
-                    patch.getPatchData(Q_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(!Q_data.isNull());
-#endif
+                d_u_fcn[u_var]->setDataOnPatch(u_data, u_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
+            }
+        }
+
+        for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin();
+             cit != d_F_var.end(); ++cit)
+        {
+            Pointer<CellVariable<NDIM,double> > F_var = *cit;
+            Pointer<CellData<NDIM,double> > F_data = patch.getPatchData(F_var, getDataContext());
+            if (d_F_fcn[F_var].isNull())
+            {
+                F_data->fillAll(0.0);
+            }
+            else
+            {
+                d_F_fcn[F_var]->setDataOnPatch(F_data, F_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
+            }
+        }
+
+        for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_grad_Phi_var.begin();
+             cit != d_grad_Phi_var.end(); ++cit)
+        {
+            Pointer<FaceVariable<NDIM,double> > grad_Phi_var = *cit;
+            Pointer<FaceData<NDIM,double> > grad_Phi_data = patch.getPatchData(grad_Phi_var, getDataContext());
+            if (d_grad_Phi_fcn[grad_Phi_var].isNull())
+            {
+                grad_Phi_data->fillAll(0.0);
+            }
+            else
+            {
+                d_grad_Phi_fcn[grad_Phi_var]->setDataOnPatch(grad_Phi_data, grad_Phi_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
+            }
+        }
+
+        for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
+             cit != d_Q_var.end(); ++cit)
+        {
+            Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+            Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+            if (d_Q_init[Q_var].isNull())
+            {
                 Q_data->fillAll(0.0);
             }
-        }
-
-        // We try to use the CartGridFunction associated with the source
-        // term.  If there is no strategy associated with the source term,
-        // initialize its value to zero.
-        for (CellVariableVector::size_type l = 0; l < d_F_var.size(); ++l)
-        {
-            Pointer<CellVariable<NDIM,double> > F_var = d_F_var[l];
-
-            if (!F_var.isNull())
+            else
             {
-                const int F_idx = var_db->mapVariableAndContextToIndex(
-                    F_var, getDataContext());
-                Pointer<CartGridFunction>  F_fcn = d_F_fcn[l];
-
-                if (!F_fcn.isNull())
-                {
-                    F_fcn->setDataOnPatch(
-                        F_idx, F_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
-                }
-                else
-                {
-                    Pointer<CellData<NDIM,double> > F_data =
-                        patch.getPatchData(F_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-                    TBOX_ASSERT(!F_data.isNull());
-#endif
-                    F_data->fillAll(0.0);
-                }
+                d_Q_init[Q_var]->setDataOnPatch(Q_data, Q_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
             }
-        }
-
-        // We try to use the CartGridFunction associated with the
-        // advection velocity.  If there is no strategy associated with the
-        // advection velocity, initialize its value to zero.
-        const int u_idx = var_db->mapVariableAndContextToIndex(
-            d_u_var, getDataContext());
-
-        if (!d_u_fcn.isNull())
-        {
-            d_u_fcn->setDataOnPatch(
-                u_idx, d_u_var, Pointer<Patch<NDIM> >(&patch,false), data_time, initial_time);
-        }
-        else
-        {
-            Pointer<FaceData<NDIM,double> > u_data =
-                patch.getPatchData(u_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!u_data.isNull());
-#endif
-            u_data->fillAll(0.0);
         }
     }
     return;
@@ -757,18 +695,14 @@ AdvectHypPatchOps::computeStableDtOnPatch(
     const bool initial_time,
     const double dt_time)
 {
-    (void) initial_time;
-    (void) dt_time;
-
-    Pointer<FaceData<NDIM,double> > u_data =
-        patch.getPatchData(d_u_var, getDataContext());
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!u_data.isNull());
-#endif
-
-    const double stable_dt = d_godunov_advector->
-        computeStableDtOnPatch(*u_data,patch);
+    double stable_dt = std::numeric_limits<double>::max();
+    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
+         cit != d_u_var.end(); ++cit)
+    {
+        Pointer<FaceVariable<NDIM,double> > u_var = *cit;
+        Pointer<FaceData<NDIM,double> > u_data = patch.getPatchData(u_var, getDataContext());
+        stable_dt = std::min(stable_dt,d_godunov_advector->computeStableDtOnPatch(*u_data,patch));
+    }
     return stable_dt;
 }// computeStableDtOnPatch
 
@@ -778,57 +712,46 @@ AdvectHypPatchOps::computeFluxesOnPatch(
     const double time,
     const double dt)
 {
-    (void) time;
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_Q_var.size() == d_F_var.size());
-    TBOX_ASSERT(d_Q_var.size() == d_flux_integral_var.size());
-    TBOX_ASSERT(d_Q_var.size() == d_q_integral_var.size());
-#endif
-
     Pointer<PatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
     const Box<NDIM>& patch_box = patch.getBox();
 
-    Pointer<FaceData<NDIM,double> > u_data =
-        patch.getPatchData(d_u_var, getDataContext());
     PatchFaceDataOpsReal<NDIM,double> patch_fc_data_ops;
 
-    typedef std::vector<Pointer<CellVariable<NDIM,double> > > CellVariableVector;
-
-    // Predict time- and face-centered values.
-    for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
+         cit != d_Q_var.end(); ++cit)
     {
-        Pointer<CellData<NDIM,double> > Q_data =
-            patch.getPatchData(d_Q_var[l], getDataContext());
-        Pointer<FaceData<NDIM,double> > q_integral_data =
-            getQIntegralData(l, patch, getDataContext());
-        if (!d_F_var[l].isNull())
+        Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+        Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
+
+        Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+        Pointer<FaceData<NDIM,double> > u_data = patch.getPatchData(u_var, getDataContext());
+        Pointer<FaceData<NDIM,double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
+
+        // Predict time- and face-centered values.
+        if (!d_Q_F_map[Q_var].isNull())
         {
-            Pointer<CellData<NDIM,double> > F_data =
-                patch.getPatchData(d_F_var[l], getDataContext());
-            d_godunov_advector->predictValueWithSourceTerm(
-                *q_integral_data, *u_data, *Q_data, *F_data, patch, dt);
+            Pointer<CellData<NDIM,double> > F_data = patch.getPatchData(d_Q_F_map[Q_var], getDataContext());
+            d_godunov_advector->predictValueWithSourceTerm(*q_integral_data, *u_data, *Q_data, *F_data, patch, dt);
         }
         else
         {
-            d_godunov_advector->predictValue(
-                *q_integral_data, *u_data, *Q_data, patch, dt);
+            d_godunov_advector->predictValue(*q_integral_data, *u_data, *Q_data, patch, dt);
         }
-    }
 
-    // For incompressible flow problems, we allow for the specification of an
-    // auxiliary gradient that is used to enforce the incompressibility
-    // constraint in an extremely approximate manner.
-    for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
-    {
-        if (!d_grad_var[l].isNull())
+        // For incompressible flow problems, we allow for the specification of
+        // an auxiliary gradient that is used to enforce the incompressibility
+        // constraint in an extremely approximate manner.
+        Pointer<FaceVariable<NDIM,double> > grad_Phi_var = d_Q_grad_Phi_map[Q_var];
+        if (!grad_Phi_var.isNull())
         {
-            Pointer<FaceData<NDIM,double> > q_integral_data =
-                getQIntegralData(l, patch, getDataContext());
-            Pointer<FaceData<NDIM,double> > grad_data =
-                patch.getPatchData(d_grad_var[l], getDataContext());
-            d_godunov_advector->enforceIncompressibility(
-                *q_integral_data, *u_data, *grad_data, patch);
+            Pointer<FaceData<NDIM,double> > grad_Phi_data = patch.getPatchData(grad_Phi_var, getDataContext());
+            if (!d_grad_Phi_fcn[grad_Phi_var].isNull() && d_grad_Phi_fcn[grad_Phi_var]->isTimeDependent())
+            {
+                VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+                const int grad_Phi_idx = var_db->mapVariableAndContextToIndex(grad_Phi_var, getDataContext());
+                d_grad_Phi_fcn[grad_Phi_var]->setDataOnPatch(grad_Phi_idx, grad_Phi_var, Pointer<Patch<NDIM> >(&patch,false), time+0.5*dt);
+            }
+            d_godunov_advector->enforceIncompressibility(*q_integral_data, *u_data, *grad_Phi_data, patch);
         }
     }
 
@@ -840,60 +763,47 @@ AdvectHypPatchOps::computeFluxesOnPatch(
     }
 
     // Update the advection velocity.
-    if (!d_u_fcn.isNull() && d_u_fcn->isTimeDependent() && d_compute_half_velocity)
+    if (d_compute_half_velocity)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int u_idx = var_db->mapVariableAndContextToIndex(
-            d_u_var, getDataContext());
-        d_u_fcn->setDataOnPatch(u_idx, d_u_var, Pointer<Patch<NDIM> >(&patch,false), time+0.5*dt);
-    }
-
-    // Compute fluxes for those quantities that are to be conservatively
-    // differenced.
-    for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
-    {
-        if (d_Q_difference_form[l] == CONSERVATIVE)
+        for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
+             cit != d_u_var.end(); ++cit)
         {
-            Pointer<FaceData<NDIM,double> > flux_integral_data =
-                getFluxIntegralData(l, patch, getDataContext());
-            Pointer<FaceData<NDIM,double> > q_integral_data =
-                getQIntegralData(l, patch, getDataContext());
-            d_godunov_advector->computeFlux(
-                *flux_integral_data, *u_data, *q_integral_data, patch, dt);
+            Pointer<FaceVariable<NDIM,double> > u_var = *cit;
+            if (!d_u_fcn[u_var].isNull() && d_u_fcn[u_var]->isTimeDependent())
+            {
+                VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+                const int u_idx = var_db->mapVariableAndContextToIndex(u_var, getDataContext());
+                d_u_fcn[u_var]->setDataOnPatch(u_idx, u_var, Pointer<Patch<NDIM> >(&patch,false), time+0.5*dt);
+            }
         }
     }
 
-    // When u is not discretely divergence free or when Q is not conservatively
-    // differenced, we maintain the time integral of the predicted face values.
-    // These values are used in computing the proper source terms to maintain
-    // consistency between the conservative and non-conservative forms of the
-    // advection equation.
-    for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
+    // Compute fluxes and other face-centered quantities.
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
+         cit != d_Q_var.end(); ++cit)
     {
-        if (!d_u_is_div_free || d_Q_difference_form[l] != CONSERVATIVE)
-        {
-            Pointer<FaceData<NDIM,double> > q_integral_data =
-                getQIntegralData(l, patch, getDataContext());
-            patch_fc_data_ops.scale(q_integral_data, // dst
-                                    dt,              // alpha
-                                    q_integral_data, // src
-                                    patch_box);
-        }
-    }
+        Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+        Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
 
-    // When u is not discretely divergence free or when any quantity is not
-    // conservatively differenced, we maintain the time integral of the
-    // advection velocity.  This value is used in computing the proper source
-    // terms to maintain consistency between the conservative and
-    // non-conservative forms of the advection equation.
-    if (!d_u_integral_var.isNull())
-    {
-        Pointer<FaceData<NDIM,double> > u_integral_data =
-            patch.getPatchData(d_u_integral_var, getDataContext());
-        patch_fc_data_ops.scale(u_integral_data, // dst
-                                dt,              // alpha
-                                u_data,          // src
-                                patch_box);
+        Pointer<FaceData<NDIM,double> > u_data = patch.getPatchData(u_var, getDataContext());
+
+        const bool conservation_form = d_Q_difference_form[Q_var] == CONSERVATIVE;
+        const bool u_is_div_free = d_u_is_div_free[u_var];
+
+        if (conservation_form)
+        {
+            Pointer<FaceData<NDIM,double> > flux_integral_data = getFluxIntegralData(Q_var, patch, getDataContext());
+            Pointer<FaceData<NDIM,double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
+            d_godunov_advector->computeFlux(*flux_integral_data, *u_data, *q_integral_data, patch, dt);
+        }
+        else if (!conservation_form || !u_is_div_free)
+        {
+            Pointer<FaceData<NDIM,double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
+            patch_fc_data_ops.scale(q_integral_data, dt, q_integral_data, patch_box);
+
+            Pointer<FaceData<NDIM,double> > u_integral_data = getUIntegralData(Q_var, patch, getDataContext());
+            patch_fc_data_ops.scale(u_integral_data, dt, u_data, patch_box);
+        }
     }
     return;
 }// computeFluxesOnPatch
@@ -905,40 +815,23 @@ AdvectHypPatchOps::conservativeDifferenceOnPatch(
     const double dt,
     bool at_synchronization)
 {
-    (void) time;
-    (void) at_synchronization;
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_Q_var.size() == d_flux_integral_var.size());
-    TBOX_ASSERT(d_Q_var.size() == d_q_integral_var.size());
-#endif
-
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
-    const double* const dx = patch_geom->getDx();
-
     const Box<NDIM>& patch_box = patch.getBox();
     const Index<NDIM>& ilower = patch_box.lower();
     const Index<NDIM>& iupper = patch_box.upper();
 
-    Pointer<FaceData<NDIM,double> > u_integral_data =
-        (!d_u_integral_var.isNull()
-         ? patch.getPatchData(d_u_integral_var, getDataContext())
-         : Pointer<PatchData<NDIM> >(NULL));
-    const IntVector<NDIM>& u_integral_data_ghost_cells =
-        (!u_integral_data.isNull()
-         ? u_integral_data->getGhostCellWidth()
-         : 0);
-    PatchCellDataOpsReal<NDIM,double> patch_cc_data_ops;
-    typedef std::vector<Pointer<CellVariable<NDIM,double> > > CellVariableVector;
+    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
+    const double* const dx = patch_geom->getDx();
 
-    for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
+         cit != d_Q_var.end(); ++cit)
     {
-        Pointer<CellData<NDIM,double> > Q_data =
-            patch.getPatchData(d_Q_var[l], getDataContext());
-        Pointer<FaceData<NDIM,double> > flux_integral_data =
-            getFluxIntegralData(l, patch, getDataContext());
-        Pointer<FaceData<NDIM,double> > q_integral_data =
-            getQIntegralData(l, patch, getDataContext());
+        Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+        Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
+
+        Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+        Pointer<FaceData<NDIM,double> > flux_integral_data = getFluxIntegralData(Q_var, patch, getDataContext());
+        Pointer<FaceData<NDIM,double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
+        Pointer<FaceData<NDIM,double> > u_integral_data = getUIntegralData(Q_var, patch, getDataContext());
 
         const IntVector<NDIM>& Q_data_ghost_cells = Q_data->getGhostCellWidth();
         const IntVector<NDIM>& flux_integral_data_ghost_cells =
@@ -949,14 +842,20 @@ AdvectHypPatchOps::conservativeDifferenceOnPatch(
             (!q_integral_data.isNull()
              ? q_integral_data->getGhostCellWidth()
              : 0);
+        const IntVector<NDIM>& u_integral_data_ghost_cells =
+            (!u_integral_data.isNull()
+             ? u_integral_data->getGhostCellWidth()
+             : 0);
 
-        switch (d_Q_difference_form[l])
+        const bool u_is_div_free = d_u_is_div_free[u_var];
+
+        switch (d_Q_difference_form[Q_var])
         {
             case CONSERVATIVE:
             {
                 for (int depth = 0; depth < Q_data->getDepth(); ++depth)
                 {
-                    if (d_u_is_div_free)
+                    if (u_is_div_free)
                     {
 #if (NDIM == 2)
                         ADVECT_CONSDIFF_FC(
@@ -1023,21 +922,16 @@ AdvectHypPatchOps::conservativeDifferenceOnPatch(
             }
             case ADVECTIVE:
             {
-                Pointer<CellData<NDIM,double> > N_data =
-                    new CellData<NDIM,double>(patch_box,Q_data->getDepth(),0);
-                d_godunov_advector->computeAdvectiveDerivative(
-                    *N_data, *u_integral_data, *q_integral_data, patch);
-                patch_cc_data_ops.axpy(Q_data,  // dst
-                                       -1.0/dt, // alpha
-                                       N_data,  // src1
-                                       Q_data,  // src2
-                                       patch_box);
+                CellData<NDIM,double> N_data(patch_box,Q_data->getDepth(),0);
+                d_godunov_advector->computeAdvectiveDerivative(N_data, *u_integral_data, *q_integral_data, patch);
+                PatchCellDataOpsReal<NDIM,double> patch_cc_data_ops;
+                patch_cc_data_ops.axpy(Q_data, -1.0/dt, Pointer<CellData<NDIM,double> >(&N_data,false), Q_data, patch_box);
                 break;
             }
             default:
             {
                 TBOX_ERROR("AdvectHypPatchOps::conservativeDifferenceOnPatch():\n"
-                           << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[l]) << " \n"
+                           << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[Q_var]) << " \n"
                            << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
             }
         }
@@ -1054,52 +948,18 @@ AdvectHypPatchOps::preprocessAdvanceLevelState(
     bool last_step,
     bool regrid_advance)
 {
-    (void) dt;
-    (void) first_step;
-    (void) last_step;
-    (void) regrid_advance;
+    if (!d_compute_init_velocity) return;
 
     // Update the advection velocity.
-    if (!d_u_fcn.isNull() && d_u_fcn->isTimeDependent() && d_compute_init_velocity)
+    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
+         cit != d_u_var.end(); ++cit)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int u_idx = var_db->mapVariableAndContextToIndex(
-            d_u_var, d_integrator->getScratchContext());
-        d_u_fcn->setDataOnPatchLevel(u_idx, d_u_var, level, current_time);
-    }
-
-    if (!d_coarse_fine_bdry_op.isNull() && level->inHierarchy())
-    {
-        // Determine the patch data indices which require further modification
-        // at coarse-fine interfaces.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        ComponentSelector patch_data_indices;
-
-        typedef std::vector<Pointer<CellVariable<NDIM,double> > > CellVariableVector;
-        for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
+        Pointer<FaceVariable<NDIM,double> > u_var = *cit;
+        if (!d_u_fcn[u_var].isNull() && d_u_fcn[u_var]->isTimeDependent())
         {
-            Pointer<CellVariable<NDIM,double> > Q_var = d_Q_var[l];
-            const int Q_data_idx = var_db->mapVariableAndContextToIndex(
-                Q_var, d_integrator->getScratchContext());
-            patch_data_indices.setFlag(Q_data_idx);
-
-            Pointer<CellVariable<NDIM,double> > F_var = d_F_var[l];
-            if (!F_var.isNull())
-            {
-                const int F_data_idx = var_db->mapVariableAndContextToIndex(
-                    F_var, d_integrator->getScratchContext());
-                patch_data_indices.setFlag(F_data_idx);
-            }
-        }
-
-        d_coarse_fine_bdry_op->setPatchDataIndices(patch_data_indices);
-
-        const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const IntVector<NDIM>& ghost_width_to_fill = CELLG;
-            d_coarse_fine_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
+            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+            const int u_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
+            d_u_fcn[u_var]->setDataOnPatchLevel(u_idx, u_var, level, current_time);
         }
     }
     return;
@@ -1114,274 +974,86 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
     bool last_step,
     bool regrid_advance)
 {
-    (void) first_step;
-    (void) last_step;
-    (void) regrid_advance;
+    PatchCellDataOpsReal<NDIM,double> patch_cc_data_ops;
 
-    Pointer<PatchCellDataOpsReal<NDIM,double> > patch_cc_data_ops =
-        new PatchCellDataOpsReal<NDIM,double>();
-    typedef std::vector<Pointer<CellVariable<NDIM,double> > > CellVariableVector;
+    Pointer<VariableContext> new_context     = d_integrator->getNewContext();
+    Pointer<VariableContext> scratch_context = d_integrator->getScratchContext();
 
     // Update the values of any time-dependent source terms and add the values
     // of all source terms to the advected quantities.
-    for (CellVariableVector::size_type l = 0; l < d_F_var.size(); ++l)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
+         cit != d_Q_var.end(); ++cit)
     {
-        Pointer<VariableContext> new_context     = d_integrator->getNewContext();
-        Pointer<VariableContext> scratch_context = d_integrator->getScratchContext();
-
-        Pointer<CellVariable<NDIM,double> > Q_var   = d_Q_var[l];
-        Pointer<CellVariable<NDIM,double> > F_var = d_F_var[l];
-
-        Pointer<CartGridFunction> F_fcn = d_F_fcn[l];
-
-        if (!F_var.isNull() && !F_fcn.isNull() && F_fcn->isTimeDependent())
+        Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+        Pointer<CellVariable<NDIM,double> > F_var = d_Q_F_map[Q_var];
+        Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+
+            Pointer<CellData<NDIM,double> > Q_data = patch->getPatchData(Q_var, new_context);
+            Pointer<CellData<NDIM,double> > F_data = patch->getPatchData(F_var, scratch_context);
+
+            if (!F_fcn.isNull())
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& patch_box = patch->getBox();
-
-                Pointer<CellData<NDIM,double> > Q_data =
-                    patch->getPatchData(Q_var, new_context);
-                Pointer<CellData<NDIM,double> > F_data =
-                    patch->getPatchData(F_var, scratch_context);
-
-                patch_cc_data_ops->axpy(Q_data, // dst
-                                        0.5*dt, // alpha
-                                        F_data, // src1
-                                        Q_data, // src2
-                                        patch_box);
-            }
-
-            F_fcn->setDataOnPatchLevel(F_var, new_context, level, current_time+dt);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& patch_box = patch->getBox();
-
-                Pointer<CellData<NDIM,double> > Q_data =
-                    patch->getPatchData(Q_var, new_context);
-                Pointer<CellData<NDIM,double> > F_data =
-                    patch->getPatchData(F_var, scratch_context);
-
-                patch_cc_data_ops->axpy(Q_data, // dst
-                                        0.5*dt, // alpha
-                                        F_data, // src1
-                                        Q_data, // src2
-                                        patch_box);
-            }
-        }
-        else if (!F_var.isNull())
-        {
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& patch_box = patch->getBox();
-
-                Pointer<CellData<NDIM,double> > Q_data =
-                    patch->getPatchData(Q_var, new_context);
-                Pointer<CellData<NDIM,double> > F_data =
-                    patch->getPatchData(F_var, scratch_context);
-
-                patch_cc_data_ops->axpy(Q_data, // dst
-                                        dt,     // alpha
-                                        F_data, // src1
-                                        Q_data, // src2
-                                        patch_box);
-            }
-        }
-    }
-
-    // Update the advection velocity.
-    if (!d_u_fcn.isNull() && d_u_fcn->isTimeDependent() && d_compute_final_velocity)
-    {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int u_idx = var_db->mapVariableAndContextToIndex(
-            d_u_var, d_integrator->getNewContext());
-        d_u_fcn->setDataOnPatchLevel(u_idx, d_u_var, level, current_time+dt);
-    }
-    return;
-}// postprocessAdvanceLevelState
-
-void
-AdvectHypPatchOps::tagRichardsonExtrapolationCells(
-    Patch<NDIM>& patch,
-    const int error_level_number,
-    const Pointer<VariableContext> coarsened_fine,
-    const Pointer<VariableContext> advanced_coarse,
-    const double regrid_time,
-    const double deltat,
-    const int error_coarsen_ratio,
-    const bool initial_error,
-    const int tag_index,
-    const bool uses_gradient_detector_too)
-{
-    (void) initial_error;
-
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
-    const double* const dx = patch_geom->getDx();
-
-    const Box<NDIM>& patch_box = patch.getBox();
-
-    Pointer<CellData<NDIM,int> > tags = patch.getPatchData(tag_index);
-
-    // Possible tagging criteria includes
-    //    QVAL_RICHARDSON
-    // The criteria is specified over a time interval.
-    //
-    // Loop over criteria provided and check to make sure we are in the
-    // specified time interval.  If so, apply appropriate tagging for the level.
-    for (int ncrit = 0; ncrit < d_refinement_criteria.getSize(); ++ncrit)
-    {
-        std::string ref = d_refinement_criteria[ncrit];
-        Pointer<CellData<NDIM,double> > coarsened_fine_var;
-        Pointer<CellData<NDIM,double> > advanced_coarse_var;
-        int size;
-        double tol;
-        bool time_allowed;
-
-        if (ref == "QVAL_RICHARDSON")
-        {
-            size = d_rich_tol.getSize();
-            tol = (error_level_number < size
-                   ? d_rich_tol[error_level_number]
-                   : d_rich_tol[size-1]);
-            size = d_rich_time_min.getSize();
-            double time_min = (error_level_number < size
-                               ? d_rich_time_min[error_level_number]
-                               : d_rich_time_min[size-1]);
-            size = d_rich_time_max.getSize();
-            double time_max = (error_level_number < size
-                               ? d_rich_time_max[error_level_number]
-                               : d_rich_time_max[size-1]);
-            time_allowed = (time_min <= regrid_time) && (time_max > regrid_time);
-
-            if (time_allowed)
-            {
-                // We tag wherever the global error > specified tolerance
-                // (i.e. d_rich_tol).  The estimated global error is the local
-                // truncation error times the approximate number of steps used
-                // in the simulation.  Approximate the number of steps as:
-                //
-                //       steps = L / (s*deltat)
-                //
-                // where
-                //
-                //       L = length of problem domain
-                //       s = wave speed
-                //       delta t = timestep on current level
-                const double* const xdomainlo = d_grid_geometry->getXLower();
-                const double* const xdomainhi = d_grid_geometry->getXUpper();
-
-                double max_dx = 0.0;
-                double max_length = 0.0;
-
-                for (int idir = 0; idir < NDIM; ++idir)
-                {
-                    max_dx = std::max(max_dx, dx[idir]);
-                    double length = xdomainhi[idir] - xdomainlo[idir];
-                    max_length = std::max(max_length, length);
-                }
-
-                double max_wave_speed = max_dx / deltat;
-                double steps = max_length / (max_wave_speed * deltat);
-
-                // Tag cells where |w_c - w_f| * (r^n -1) * steps
-                //
-                // where
-                //       w_c = soln on coarse level
-                //       w_f = soln on fine level
-                //       r   = error coarsen ratio
-                //       n   = spatial order of scheme
-                int order = 2;
-                double r = error_coarsen_ratio;
-                double rnminus1 = pow(r,order) - 1;
-
-                double diff = 0.0;
-                double error = 0.0;
-
-                typedef std::vector<Pointer<CellVariable<NDIM,double> > > CellVariableVector;
-
-                for (CellVariableVector::size_type l = 0;
-                     l < d_Q_var.size(); ++l)
-                {
-                    coarsened_fine_var =
-                        patch.getPatchData(d_Q_var[l], coarsened_fine);
-                    advanced_coarse_var =
-                        patch.getPatchData(d_Q_var[l], advanced_coarse);
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-                    TBOX_ASSERT(!coarsened_fine_var.isNull());
-                    TBOX_ASSERT(!advanced_coarse_var.isNull());
-#endif
-
-                    for (CellIterator<NDIM> ic(patch_box); ic; ic++)
-                    {
-                        // Compute error norm.
-                        diff = 0.0;
-
-                        for (int depth = 0;
-                             depth < coarsened_fine_var->getDepth();
-                             ++depth)
-                        {
-                            diff += pow((*advanced_coarse_var)(ic(),0) -
-                                        (*coarsened_fine_var)(ic(),0),
-                                        2.0);
-                        }
-
-                        diff = sqrt(diff);
-                        error = std::abs(diff)*rnminus1*steps;
-
-                        // Tag cell if error exceeds the prescribed threshold.
-                        // Since we are operating on the actual tag values (not
-                        // temporary ones) distinguish here tags that were
-                        // previously set before coming into this routine and
-                        // those that are set here.
-                        //
-                        //     RICHARDSON_ALREADY_TAGGED: tagged before coming
-                        //     into this method
-                        //
-                        //     RICHARDSON_NEWLY_TAGGED: newly tagged in this
-                        //     method
-                        if (error > tol)
-                        {
-                            if ((*tags)(ic(),0))
-                            {
-                                (*tags)(ic(),0) = RICHARDSON_ALREADY_TAGGED;
-                            }
-                            else
-                            {
-                                (*tags)(ic(),0) = RICHARDSON_NEWLY_TAGGED;
-                            }
-                        }
-                    }
-                }
-            } // time_allowed
-        } // if QVAL_RICHARDSON
-    } // loop over refinement criteria
-
-    // If we are NOT performing gradient detector (i.e. only doing Richardson
-    // extrapolation) set tags marked in this method to TRUE_VAL and all others
-    // false.  Otherwise, leave tags set to the RICHARDSON_ALREADY_TAGGED and
-    // RICHARDSON_NEWLY_TAGGED.  We use this information in the gradient
-    // detector.
-    if (!uses_gradient_detector_too)
-    {
-        for (CellIterator<NDIM> ic(patch_box); ic; ic++)
-        {
-            if ((*tags)(ic(),0) == RICHARDSON_ALREADY_TAGGED ||
-                (*tags)(ic(),0) == RICHARDSON_NEWLY_TAGGED)
-            {
-                (*tags)(ic(),0) = TRUE_VAL;
+                patch_cc_data_ops.axpy(Q_data, 0.5*dt, F_data, Q_data, patch_box);
             }
             else
             {
-                (*tags)(ic(),0) = FALSE_VAL;
+                patch_cc_data_ops.axpy(Q_data, dt, F_data, Q_data, patch_box);
             }
         }
     }
+
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin();
+         cit != d_F_var.end(); ++cit)
+    {
+        Pointer<CellVariable<NDIM,double> > F_var = *cit;
+        Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
+        if (!F_fcn.isNull() && F_fcn->isTimeDependent())
+        {
+            F_fcn->setDataOnPatchLevel(F_var, new_context, level, current_time+dt);
+        }
+    }
+
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
+         cit != d_Q_var.end(); ++cit)
+    {
+        Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+        Pointer<CellVariable<NDIM,double> > F_var = d_Q_F_map[Q_var];
+        Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
+        if (!F_fcn.isNull())
+        {
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Box<NDIM>& patch_box = patch->getBox();
+
+                Pointer<CellData<NDIM,double> > Q_data = patch->getPatchData(Q_var, new_context);
+                Pointer<CellData<NDIM,double> > F_data = patch->getPatchData(F_var, scratch_context);
+
+                patch_cc_data_ops.axpy(Q_data, 0.5*dt, F_data, Q_data, patch_box);
+            }
+        }
+    }
+
+    if (!d_compute_final_velocity) return;
+
+    // Update the advection velocity (or velocities).
+    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
+         cit != d_u_var.end(); ++cit)
+    {
+        Pointer<FaceVariable<NDIM,double> > u_var = *cit;
+        if (!d_u_fcn[u_var].isNull() && d_u_fcn[u_var]->isTimeDependent())
+        {
+            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+            const int u_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
+            d_u_fcn[u_var]->setDataOnPatchLevel(u_idx, u_var, level, current_time+dt);
+        }
+    }
     return;
-}// tagRichardsonExtrapolationCells
+}// postprocessAdvanceLevelState
 
 void
 AdvectHypPatchOps::tagGradientDetectorCells(
@@ -1406,13 +1078,11 @@ AdvectHypPatchOps::tagGradientDetectorCells(
     const int refine_tag_val = TRUE_VAL;
 
     // Create a set of temporary tags and set to untagged value.
-    Pointer<CellData<NDIM,int> > temp_tags = new CellData<NDIM,int>(
-        patch_box, 1, d_ghosts);
-    temp_tags->fillAll(not_refine_tag_val);
+    CellData<NDIM,int> temp_tags(patch_box, 1, d_ghosts);
+    temp_tags.fillAll(not_refine_tag_val);
 
-    // Possible tagging criteria includes
-    //    QVAL_DEVIATION, QVAL_GRADIENT
-    // The criteria is specified over a time interval.
+    // Possible tagging criteria include: QVAL_DEVIATION, QVAL_GRADIENT.  The
+    // criteria are specified over a time interval.
     //
     // Loop over criteria provided and check to make sure we are in the
     // specified time interval.  If so, apply appropriate tagging for the level.
@@ -1448,19 +1118,12 @@ AdvectHypPatchOps::tagGradientDetectorCells(
             if (time_allowed)
             {
                 // Check for tags that have already been set in a previous step.
-                // Do NOT consider values tagged with value
-                // RICHARDSON_NEWLY_TAGGED since these were set most recently by
-                // Richardson extrapolation.
-                typedef std::vector<Pointer<CellVariable<NDIM,double> > > CellVariableVector;
-                for (CellVariableVector::size_type l = 0;
-                     l < d_Q_var.size(); ++l)
+                for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
+                     cit != d_Q_var.end(); ++cit)
                 {
-                    Pointer<CellData<NDIM,double> > var =
-                        patch.getPatchData(d_Q_var[l], getDataContext());
-#ifdef DEBUG_CHECK_ASSERTIONS
-                    TBOX_ASSERT(!var.isNull());
-#endif
-                    for (int depth = 0; depth < var->getDepth(); ++depth)
+                    Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+                    Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+                    for (int depth = 0; depth < Q_data->getDepth(); ++depth)
                     {
                         for (CellIterator<NDIM> ic(patch_box); ic; ic++)
                         {
@@ -1468,14 +1131,11 @@ AdvectHypPatchOps::tagGradientDetectorCells(
                             int tag_val = (*tags)(ic(),0);
                             if (tag_val)
                             {
-                                if (tag_val != RICHARDSON_NEWLY_TAGGED)
-                                {
-                                    locden *= 0.75;
-                                }
+                                locden *= 0.75;
                             }
-                            if (std::abs((*var)(ic(),depth)-dev) > locden)
+                            if (std::abs((*Q_data)(ic(),depth)-dev) > locden)
                             {
-                                (*temp_tags)(ic(),0) = refine_tag_val;
+                                temp_tags(ic(),0) = refine_tag_val;
                             }
                         }
                     }
@@ -1501,61 +1161,41 @@ AdvectHypPatchOps::tagGradientDetectorCells(
 
             if (time_allowed)
             {
-                typedef std::vector<Pointer<CellVariable<NDIM,double> > > CellVariableVector;
-                for (CellVariableVector::size_type l = 0;
-                     l < d_Q_var.size(); ++l)
+                for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
+                     cit != d_Q_var.end(); ++cit)
                 {
-                    Pointer<CellData<NDIM,double> > var =
-                        patch.getPatchData(d_Q_var[l], getDataContext());
-#ifdef DEBUG_CHECK_ASSERTIONS
-                    TBOX_ASSERT(!var.isNull());
-#endif
-                    const IntVector<NDIM>& vghost = var->getGhostCellWidth();
-
-                    for (int depth = 0; depth < var->getDepth(); ++depth)
+                    Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+                    Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+                    const IntVector<NDIM>& Q_ghost = Q_data->getGhostCellWidth();
+                    for (int depth = 0; depth < Q_data->getDepth(); ++depth)
                     {
                         ADVECT_DETECTGRAD_FC(
 #if (NDIM == 2)
                             ilower(0),iupper(0), ilower(1),iupper(1),
-                            vghost(0),tagghost(0),d_ghosts(0),
-                            vghost(1),tagghost(1),d_ghosts(1),
+                            Q_ghost(0),tagghost(0),d_ghosts(0),
+                            Q_ghost(1),tagghost(1),d_ghosts(1),
 #endif
 #if (NDIM == 3)
                             ilower(0),iupper(0), ilower(1),iupper(1),ilower(2),iupper(2),
-                            vghost(0),tagghost(0),d_ghosts(0),
-                            vghost(1),tagghost(1),d_ghosts(1),
-                            vghost(2),tagghost(2),d_ghosts(2),
+                            Q_ghost(0),tagghost(0),d_ghosts(0),
+                            Q_ghost(1),tagghost(1),d_ghosts(1),
+                            Q_ghost(2),tagghost(2),d_ghosts(2),
 #endif
                             dx,
                             tol,
                             refine_tag_val,
-                            var->getPointer(depth),
-                            tags->getPointer(),temp_tags->getPointer());
+                            Q_data->getPointer(depth),
+                            tags->getPointer(),temp_tags.getPointer());
                     }
                 }
             }
         }
     } // loop over criteria
 
-    // Adjust temp_tags from those tags set in Richardson extrapolation.  Here,
-    // we just reset any tags that were set in Richardson extrapolation to be
-    // the designated "refine_tag_val".
-    if (uses_richardson_extrapolation_too)
-    {
-        for (CellIterator<NDIM> ic(patch_box); ic; ic++)
-        {
-            if ((*tags)(ic(),0) == RICHARDSON_ALREADY_TAGGED ||
-                (*tags)(ic(),0) == RICHARDSON_NEWLY_TAGGED)
-            {
-                (*temp_tags)(ic(),0) = refine_tag_val;
-            }
-        }
-    }
-
     // Update tags.
     for (CellIterator<NDIM> ic(patch_box); ic; ic++)
     {
-        (*tags)(ic(),0) = (*temp_tags)(ic(),0);
+        (*tags)(ic(),0) = temp_tags(ic(),0);
     }
     return;
 }// tagGradientDetectorCells
@@ -1582,53 +1222,43 @@ AdvectHypPatchOps::setPhysicalBoundaryConditions(
     // variables and for any forcing terms.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    const int u_data_idx = var_db->mapVariableAndContextToIndex(
-        d_u_var, d_integrator->getScratchContext());
+    ComponentSelector u_patch_data_indices;
+    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
+         cit != d_u_var.end(); ++cit)
+    {
+        Pointer<FaceVariable<NDIM,double> > u_var = *cit;
+        const int u_data_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
+        u_patch_data_indices.setFlag(u_data_idx);
+    }
     d_extrap_bc_helper.setExtrapolationType(d_extrap_type);
-    d_extrap_bc_helper.setPatchDataIndex(u_data_idx);
+    d_extrap_bc_helper.setPatchDataIndices(u_patch_data_indices);
     d_extrap_bc_helper.setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
 
     ComponentSelector patch_data_indices;
-    typedef std::vector<Pointer<CellVariable<NDIM,double> > > CellVariableVector;
-    for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin();
+         cit != d_F_var.end(); ++cit)
     {
-        Pointer<CellVariable<NDIM,double> > Q_var = d_Q_var[l];
-        const int Q_data_idx = var_db->mapVariableAndContextToIndex(
-            Q_var, d_integrator->getScratchContext());
-        patch_data_indices.setFlag(Q_data_idx);
-
-        Pointer<CellVariable<NDIM,double> > F_var = d_F_var[l];
-        if (!F_var.isNull())
-        {
-            const int F_data_idx = var_db->mapVariableAndContextToIndex(
-                F_var, d_integrator->getScratchContext());
-            patch_data_indices.setFlag(F_data_idx);
-        }
+        Pointer<CellVariable<NDIM,double> > F_var = *cit;
+        const int F_data_idx = var_db->mapVariableAndContextToIndex(F_var, d_integrator->getScratchContext());
+        patch_data_indices.setFlag(F_data_idx);
     }
-
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
+         cit != d_Q_var.end(); ++cit)
+    {
+        Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+        const int Q_data_idx = var_db->mapVariableAndContextToIndex(Q_var, d_integrator->getScratchContext());
+        patch_data_indices.setFlag(Q_data_idx);
+    }
     d_extrap_bc_helper.setExtrapolationType(d_extrap_type);
     d_extrap_bc_helper.setPatchDataIndices(patch_data_indices);
     d_extrap_bc_helper.setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
-
-    if (!d_coarse_fine_bdry_op.isNull())
-    {
-        d_coarse_fine_bdry_op->setPatchDataIndices(patch_data_indices);
-        d_coarse_fine_bdry_op->setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
-    }
     return;
 }// setPhysicalBoundaryConditions
 
 IntVector<NDIM>
 AdvectHypPatchOps::getRefineOpStencilWidth() const
 {
-    if (!d_coarse_fine_bdry_op.isNull())
-    {
-        return d_coarse_fine_bdry_op->getRefineOpStencilWidth();
-    }
-    else
-    {
-        return 0;
-    }
+    return 0;
 }// getRefineOpStencilWidth
 
 void
@@ -1638,33 +1268,7 @@ AdvectHypPatchOps::preprocessRefine(
     const Box<NDIM>& fine_box,
     const IntVector<NDIM>& ratio)
 {
-    if (!d_coarse_fine_bdry_op.isNull())
-    {
-        // Determine the patch data indices which require further modification
-        // at coarse-fine interfaces.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        ComponentSelector patch_data_indices;
-
-        typedef std::vector<Pointer<CellVariable<NDIM,double> > > CellVariableVector;
-        for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
-        {
-            Pointer<CellVariable<NDIM,double> > Q_var = d_Q_var[l];
-            const int Q_data_idx = var_db->mapVariableAndContextToIndex(
-                Q_var, getDataContext());
-            patch_data_indices.setFlag(Q_data_idx);
-
-            Pointer<CellVariable<NDIM,double> > F_var = d_F_var[l];
-            if (!F_var.isNull())
-            {
-                const int F_data_idx = var_db->mapVariableAndContextToIndex(
-                    F_var, getDataContext());
-                patch_data_indices.setFlag(F_data_idx);
-            }
-        }
-
-        d_coarse_fine_bdry_op->setPatchDataIndices(patch_data_indices);
-        d_coarse_fine_bdry_op->preprocessRefine(fine, coarse, fine_box, ratio);
-    }
+    // intentionally blank
     return;
 }// preprocessRefine
 
@@ -1675,33 +1279,7 @@ AdvectHypPatchOps::postprocessRefine(
     const Box<NDIM>& fine_box,
     const IntVector<NDIM>& ratio)
 {
-    if (!d_coarse_fine_bdry_op.isNull())
-    {
-        // Determine the patch data indices which require further modification
-        // at coarse-fine interfaces.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        ComponentSelector patch_data_indices;
-
-        typedef std::vector<Pointer<CellVariable<NDIM,double> > > CellVariableVector;
-        for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
-        {
-            Pointer<CellVariable<NDIM,double> > Q_var = d_Q_var[l];
-            const int Q_data_idx = var_db->mapVariableAndContextToIndex(
-                Q_var, getDataContext());
-            patch_data_indices.setFlag(Q_data_idx);
-
-            Pointer<CellVariable<NDIM,double> > F_var = d_F_var[l];
-            if (!F_var.isNull())
-            {
-                const int F_data_idx = var_db->mapVariableAndContextToIndex(
-                    F_var, getDataContext());
-                patch_data_indices.setFlag(F_data_idx);
-            }
-        }
-
-        d_coarse_fine_bdry_op->setPatchDataIndices(patch_data_indices);
-        d_coarse_fine_bdry_op->postprocessRefine(fine, coarse, fine_box, ratio);
-    }
+    // intentionally blank
     return;
 }// postprocessRefine
 
@@ -1746,12 +1324,6 @@ AdvectHypPatchOps::putToDatabase(
             db->putDoubleArray("d_grad_time_max", d_grad_time_max);
             db->putDoubleArray("d_grad_time_min", d_grad_time_min);
         }
-        else if (d_refinement_criteria[i] == "QVAL_RICHARDSON")
-        {
-            db->putDoubleArray("d_rich_tol", d_rich_tol);
-            db->putDoubleArray("d_rich_time_max", d_rich_time_max);
-            db->putDoubleArray("d_rich_time_min", d_rich_time_min);
-        }
     }
     return;
 }// putToDatabase
@@ -1760,13 +1332,13 @@ AdvectHypPatchOps::putToDatabase(
 
 Pointer<FaceData<NDIM,double> >
 AdvectHypPatchOps::getFluxIntegralData(
-    const size_t l,
+    Pointer<CellVariable<NDIM,double> > Q_var,
     Patch<NDIM>& patch,
     Pointer<VariableContext> context)
 {
-    if (d_Q_difference_form[l] == CONSERVATIVE)
+    if (d_Q_difference_form[Q_var] == CONSERVATIVE)
     {
-        return patch.getPatchData(d_flux_integral_var[l], context);
+        return patch.getPatchData(d_flux_integral_var[Q_var], context);
     }
     else
     {
@@ -1776,19 +1348,36 @@ AdvectHypPatchOps::getFluxIntegralData(
 
 Pointer<FaceData<NDIM,double> >
 AdvectHypPatchOps::getQIntegralData(
-    const size_t l,
+    Pointer<CellVariable<NDIM,double> > Q_var,
     Patch<NDIM>& patch,
     Pointer<VariableContext> context)
 {
-    if (!d_u_is_div_free || d_Q_difference_form[l] != CONSERVATIVE)
+    if (!d_u_is_div_free[d_Q_u_map[Q_var]] || d_Q_difference_form[Q_var] != CONSERVATIVE)
     {
-        return patch.getPatchData(d_q_integral_var[l], context);
+        return patch.getPatchData(d_q_integral_var[Q_var], context);
     }
     else
     {
-        return getFluxIntegralData(l, patch, context);
+        return getFluxIntegralData(Q_var, patch, context);
     }
 }// getQIntegralData
+
+Pointer<FaceData<NDIM,double> >
+AdvectHypPatchOps::getUIntegralData(
+    Pointer<CellVariable<NDIM,double> > Q_var,
+    Patch<NDIM>& patch,
+    Pointer<VariableContext> context)
+{
+    Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
+    if (!d_u_is_div_free[u_var] || d_Q_difference_form[Q_var] != CONSERVATIVE)
+    {
+        return patch.getPatchData(d_u_integral_var[u_var], context);
+    }
+    else
+    {
+        return Pointer<FaceData<NDIM,double> >(NULL);
+    }
+}// getUIntegralData
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -1804,8 +1393,7 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
     if (!pgeom->getTouchesRegularBoundary()) return;
 
     // Compute the co-dimension one boundary boxes.
-    const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
-        PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
+    const Array<BoundaryBox<NDIM> > physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(patch);
 
     // There is nothing to do if the patch does not have any co-dimension one
     // boundary boxes.
@@ -1814,23 +1402,23 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
     // Loop over the boundary fill boxes and set boundary conditions at inflow
     // boundaries only.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<FaceData<NDIM,double> > u_data =
-        patch.getPatchData(d_u_var, getDataContext());
     const Box<NDIM>& patch_box = patch.getBox();
     const double* const dx = pgeom->getDx();
-    typedef std::vector<Pointer<CellVariable<NDIM,double> > > CellVariableVector;
-    for (CellVariableVector::size_type l = 0; l < d_Q_var.size(); ++l)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
+         cit != d_Q_var.end(); ++cit)
     {
-        Pointer<CellVariable<NDIM,double> > Q_var = d_Q_var[l];
-        const int Q_data_idx = var_db->mapVariableAndContextToIndex(
-            Q_var, d_integrator->getScratchContext());
-        Pointer<FaceData<NDIM,double> > q_integral_data =
-            getQIntegralData(l, patch, getDataContext());
+        Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+        Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
+
+        const int Q_data_idx = var_db->mapVariableAndContextToIndex(Q_var, d_integrator->getScratchContext());
+
+        Pointer<FaceData<NDIM,double> > u_data = patch.getPatchData(u_var, getDataContext());
+        Pointer<FaceData<NDIM,double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
 
         // Setup any extended Robin BC coef objects.
         for (int depth = 0; depth < q_integral_data->getDepth(); ++depth)
         {
-            ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_Q_bc_coef[l][depth]);
+            ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_Q_bc_coef[Q_var][depth]);
             if (extended_bc_coef != NULL)
             {
                 extended_bc_coef->setHomogeneousBc(false);
@@ -1848,24 +1436,24 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
 
             static const IntVector<NDIM> gcw_to_fill = 1;
             const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
-            const BoundaryBox<NDIM> trimmed_bdry_box(
-                bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
+            const BoundaryBox<NDIM> trimmed_bdry_box(bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
             const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
             // Loop over the boundary box indices and compute the nearest
             // interior index.
             for (int depth = 0; depth < q_integral_data->getDepth(); ++depth)
             {
-                Pointer<ArrayData<NDIM,double> > acoef_data =
-                    new ArrayData<NDIM,double>(bc_coef_box, 1);
-                Pointer<ArrayData<NDIM,double> > bcoef_data =
-                    new ArrayData<NDIM,double>(bc_coef_box, 1);
-                Pointer<ArrayData<NDIM,double> > gcoef_data =
-                    new ArrayData<NDIM,double>(bc_coef_box, 1);
+                ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
+                ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
+                ArrayData<NDIM,double> gcoef_data(bc_coef_box, 1);
 
-                d_Q_bc_coef[l][depth]->setBcCoefs(
-                    acoef_data, bcoef_data, gcoef_data, Q_var,
-                    patch, trimmed_bdry_box, fill_time);
+                Pointer<ArrayData<NDIM,double> > acoef_data_ptr(&acoef_data,false);
+                Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data,false);
+                Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(&gcoef_data,false);
+
+                d_Q_bc_coef[Q_var][depth]->setBcCoefs(
+                    acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr,
+                    Q_var, patch, trimmed_bdry_box, fill_time);
 
                 for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
                 {
@@ -1875,9 +1463,9 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
                     bool is_inflow_bdry = (is_lower && (*u_data)(i_f) > 0.0) || (!is_lower && (*u_data)(i_f) < 0.0);
                     if (is_inflow_bdry)
                     {
-                        const double& a = (*acoef_data)(i,0);
-                        const double& b = (*bcoef_data)(i,0);
-                        const double& g = (*gcoef_data)(i,0);
+                        const double& a = acoef_data(i,0);
+                        const double& b = bcoef_data(i,0);
+                        const double& g = gcoef_data(i,0);
                         const double& h = dx[bdry_normal_axis];
 
                         Index<NDIM> i_intr(i);
@@ -1911,8 +1499,6 @@ AdvectHypPatchOps::getFromInput(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
 #endif
-    (void) is_from_restart;
-
     d_compute_init_velocity  = db->getBoolWithDefault("compute_init_velocity" , d_compute_init_velocity);
     d_compute_half_velocity  = db->getBoolWithDefault("compute_half_velocity" , d_compute_half_velocity);
     d_compute_final_velocity = db->getBoolWithDefault("compute_final_velocity", d_compute_final_velocity);
@@ -1954,8 +1540,7 @@ AdvectHypPatchOps::getFromInput(
             if (error_key != "refine_criteria")
             {
                 if (!(error_key == "QVAL_DEVIATION" ||
-                      error_key == "QVAL_GRADIENT"  ||
-                      error_key == "QVAL_RICHARDSON"))
+                      error_key == "QVAL_GRADIENT"  ))
                 {
                     TBOX_ERROR(d_object_name << ":\n"
                                << "  Unknown refinement criteria: " << error_key
@@ -2047,39 +1632,6 @@ AdvectHypPatchOps::getFromInput(
                     }
                 }
 
-                if (!error_db.isNull() && error_key == "QVAL_RICHARDSON")
-                {
-                    if (error_db->keyExists("rich_tol"))
-                    {
-                        d_rich_tol = error_db->getDoubleArray("rich_tol");
-                    }
-                    else
-                    {
-                        TBOX_ERROR(d_object_name << ":\n"
-                                   << "  No key `rich_tol' found in data for "
-                                   << error_key << "\n");
-                    }
-
-                    if (error_db->keyExists("time_max"))
-                    {
-                        d_rich_time_max = error_db->getDoubleArray("time_max");
-                    }
-                    else
-                    {
-                        d_rich_time_max.resizeArray(1);
-                        d_rich_time_max[0] = std::numeric_limits<double>::max();
-                    }
-
-                    if (error_db->keyExists("time_min"))
-                    {
-                        d_rich_time_min = error_db->getDoubleArray("time_min");
-                    }
-                    else
-                    {
-                        d_rich_time_min.resizeArray(1);
-                        d_rich_time_min[0] = 0.0;
-                    }
-                }
             }
         } // loop over refine criteria
 
@@ -2166,12 +1718,6 @@ AdvectHypPatchOps::getFromRestart()
             d_grad_tol = db->getDoubleArray("d_grad_tol");
             d_grad_time_max = db->getDoubleArray("d_grad_time_max");
             d_grad_time_min = db->getDoubleArray("d_grad_time_min");
-        }
-        else if (d_refinement_criteria[i] == "QVAL_RICHARDSON")
-        {
-            d_rich_tol = db->getDoubleArray("d_rich_tol");
-            d_rich_time_max = db->getDoubleArray("d_rich_time_max");
-            d_rich_time_min = db->getDoubleArray("d_rich_time_min");
         }
     }
     return;

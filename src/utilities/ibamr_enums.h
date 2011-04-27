@@ -202,7 +202,6 @@ enum ViscousTimesteppingType
 {
     BACKWARD_EULER,
     CRANK_NICOLSON,
-    TGA,
     UNKNOWN_VISCOUS_TIMESTEPPING_METHOD=-1
 };
 
@@ -213,7 +212,6 @@ string_to_enum<ViscousTimesteppingType>(
 {
     if (strcasecmp(val.c_str(), "BACKWARD_EULER") == 0) return BACKWARD_EULER;
     if (strcasecmp(val.c_str(), "CRANK_NICOLSON") == 0) return CRANK_NICOLSON;
-    if (strcasecmp(val.c_str(), "TGA"           ) == 0) return TGA;
     return UNKNOWN_VISCOUS_TIMESTEPPING_METHOD;
 }// string_to_enum
 
@@ -224,7 +222,6 @@ enum_to_string<ViscousTimesteppingType>(
 {
     if (val == BACKWARD_EULER) return "BACKWARD_EULER";
     if (val == CRANK_NICOLSON) return "CRANK_NICOLSON";
-    if (val == TGA           ) return "TGA";
     return "UNKNOWN_VISCOUS_TIMESTEPPING_METHOD";
 }// enum_to_string
 

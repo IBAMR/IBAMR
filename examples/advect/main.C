@@ -418,23 +418,22 @@ main(
             input_db->getDatabase("AdvectHypPatchOps"),
             advector, grid_geometry);
 
-    tbox::Pointer< pdat::FaceVariable<NDIM,double> > u_var =
-        new pdat::FaceVariable<NDIM,double>("u");
+    tbox::Pointer< pdat::FaceVariable<NDIM,double> > u_var = new pdat::FaceVariable<NDIM,double>("u");
     UFunction u_fcn("UFunction", grid_geometry, input_db->getDatabase("UFunction"));
-    hyp_patch_ops->registerAdvectionVelocity(
-        u_var, u_is_div_free, tbox::Pointer<CartGridFunction>(&u_fcn,false));
+    hyp_patch_ops->registerAdvectionVelocity(u_var);
+    hyp_patch_ops->setAdvectionVelocityIsDivergenceFree(u_var, u_is_div_free);
+    hyp_patch_ops->setAdvectionVelocityFunction(u_var, tbox::Pointer<CartGridFunction>(&u_fcn,false));
 
-    tbox::Pointer< pdat::CellVariable<NDIM,double> > Q_var =
-        new pdat::CellVariable<NDIM,double>("Q");
-    QInit Q_init(
-        "QInit", grid_geometry, input_db->getDatabase("QInit"));
+    tbox::Pointer< pdat::CellVariable<NDIM,double> > Q_var = new pdat::CellVariable<NDIM,double>("Q");
+    QInit Q_init("QInit", grid_geometry, input_db->getDatabase("QInit"));
     solv::LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
         "physical_bc_coef",
         input_db->getDatabase("LocationIndexRobinBcCoefs"));
-    hyp_patch_ops->registerAdvectedQuantity(
-        Q_var, difference_form,
-        tbox::Pointer<CartGridFunction>(&Q_init,false),
-        &physical_bc_coef);
+    hyp_patch_ops->registerTransportedQuantity(Q_var);
+    hyp_patch_ops->setAdvectionVelocity(Q_var, u_var);
+    hyp_patch_ops->setConvectiveDifferencingType(Q_var, difference_form);
+    hyp_patch_ops->setInitialConditions(Q_var, tbox::Pointer<CartGridFunction>(&Q_init,false));
+    hyp_patch_ops->setBoundaryConditions(Q_var, &physical_bc_coef);
 
     tbox::Pointer<algs::HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator =
         new algs::HyperbolicLevelIntegrator<NDIM>(

@@ -115,9 +115,6 @@ public:
         const double dt,
         bool at_synchronization);
 
-#if 0
-    // NOTE: Should the following method be removed?
-
     /*!
      * Compute the values of any time-dependent source terms for use by the
      * explicit predictor.
@@ -138,7 +135,6 @@ public:
         bool first_step,
         bool last_step,
         bool regrid_advance);
-#endif
 
     /*!
      * Add source terms to the updated solution.

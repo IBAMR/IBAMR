@@ -89,8 +89,7 @@ LIBRARIES = $(lib_LIBRARIES)
 ARFLAGS = cru
 libIBAMR_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_a_LIBADD =
-am_libIBAMR_a_OBJECTS = godunov_helpers.$(OBJEXT) TGACoefs.$(OBJEXT) \
-	sqrtm.$(OBJEXT)
+am_libIBAMR_a_OBJECTS = godunov_helpers.$(OBJEXT) sqrtm.$(OBJEXT)
 libIBAMR_a_OBJECTS = $(am_libIBAMR_a_OBJECTS)
 libIBAMR2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR2d_a_LIBADD =
@@ -406,7 +405,7 @@ SOURCES = $(libIBAMR_a_SOURCES) $(libIBAMR2d_a_SOURCES) \
 	$(libIBAMR3d_a_SOURCES)
 DIST_SOURCES = $(libIBAMR_a_SOURCES) $(am__libIBAMR2d_a_SOURCES_DIST) \
 	$(am__libIBAMR3d_a_SOURCES_DIST)
-am__pkg_include_HEADERS_DIST = $(top_srcdir)/src/adv_diff/TGACoefs.h \
+am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/utilities/ibamr_enums.h \
 	$(top_srcdir)/src/utilities/ibamr_utilities.h \
 	$(top_srcdir)/src/utilities/namespaces.h \
@@ -811,11 +810,9 @@ SUFFIXES = .f.m4
 lib_LIBRARIES = libIBAMR.a $(am__append_1) $(am__append_2)
 libIBAMR_a_SOURCES = \
 $(top_builddir)/src/advect/fortran/godunov_helpers.f \
-$(top_srcdir)/src/adv_diff/TGACoefs.C \
 $(top_builddir)/src/fortran/sqrtm.f
 
-pkg_include_HEADERS = $(top_srcdir)/src/adv_diff/TGACoefs.h \
-	$(top_srcdir)/src/utilities/ibamr_enums.h \
+pkg_include_HEADERS = $(top_srcdir)/src/utilities/ibamr_enums.h \
 	$(top_srcdir)/src/utilities/ibamr_utilities.h \
 	$(top_srcdir)/src/utilities/namespaces.h \
 	$(top_srcdir)/src/IB/IBAnchorPointSpec.I \
@@ -1062,7 +1059,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TGACoefs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffHypPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvectHypPatchOps.Po@am__quote@
@@ -1201,20 +1197,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-TGACoefs.o: $(top_srcdir)/src/adv_diff/TGACoefs.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TGACoefs.o -MD -MP -MF $(DEPDIR)/TGACoefs.Tpo -c -o TGACoefs.o `test -f '$(top_srcdir)/src/adv_diff/TGACoefs.C' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/TGACoefs.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/TGACoefs.Tpo $(DEPDIR)/TGACoefs.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/adv_diff/TGACoefs.C' object='TGACoefs.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TGACoefs.o `test -f '$(top_srcdir)/src/adv_diff/TGACoefs.C' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/TGACoefs.C
-
-TGACoefs.obj: $(top_srcdir)/src/adv_diff/TGACoefs.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TGACoefs.obj -MD -MP -MF $(DEPDIR)/TGACoefs.Tpo -c -o TGACoefs.obj `if test -f '$(top_srcdir)/src/adv_diff/TGACoefs.C'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/TGACoefs.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/TGACoefs.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/TGACoefs.Tpo $(DEPDIR)/TGACoefs.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/adv_diff/TGACoefs.C' object='TGACoefs.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TGACoefs.obj `if test -f '$(top_srcdir)/src/adv_diff/TGACoefs.C'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/TGACoefs.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/TGACoefs.C'; fi`
 
 libIBAMR2d_a-IBAnchorPointSpec.o: $(top_srcdir)/src/IB/IBAnchorPointSpec.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBAnchorPointSpec.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpec.Tpo -c -o libIBAMR2d_a-IBAnchorPointSpec.o `test -f '$(top_srcdir)/src/IB/IBAnchorPointSpec.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBAnchorPointSpec.C
