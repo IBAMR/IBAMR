@@ -332,7 +332,7 @@ main(
     time_integrator->setDiffusionCoefficient(Q_var, kappa);
     time_integrator->setConvectiveDifferencingType(Q_var, difference_form);
     time_integrator->setInitialConditions(Q_var, tbox::Pointer<CartGridFunction>(&Q_init,false));
-    time_integrator->setBoundaryConditions(Q_var, &physical_bc_coef);
+    time_integrator->setPhysicalBcCoefs(Q_var, &physical_bc_coef);
 
     tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
         new mesh::StandardTagAndInitialize<NDIM>(

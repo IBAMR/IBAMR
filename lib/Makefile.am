@@ -181,7 +181,6 @@ $(top_builddir)/src/advect/fortran/advect_detect2d.f \
 $(top_builddir)/src/advect/fortran/advect_diff2d.f \
 $(top_builddir)/src/advect/fortran/advect_stable2d.f \
 $(top_builddir)/src/advect/fortran/godunov_predictors2d.f \
-$(top_builddir)/src/advect/fortran/weno_fluxes2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f \

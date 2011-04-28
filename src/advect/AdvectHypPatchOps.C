@@ -435,7 +435,7 @@ AdvectHypPatchOps::setInitialConditions(
 }// setInitialConditions
 
 void
-AdvectHypPatchOps::setBoundaryConditions(
+AdvectHypPatchOps::setPhysicalBcCoefs(
     Pointer<CellVariable<NDIM,double> > Q_var,
     RobinBcCoefStrategy<NDIM>* Q_bc_coef)
 {
@@ -447,10 +447,10 @@ AdvectHypPatchOps::setBoundaryConditions(
 #endif
     d_Q_bc_coef[Q_var] = std::vector<RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef);
     return;
-}// setBoundaryConditions
+}// setPhysicalBcCoefs
 
 void
-AdvectHypPatchOps::setBoundaryConditions(
+AdvectHypPatchOps::setPhysicalBcCoefs(
     Pointer<CellVariable<NDIM,double> > Q_var,
     std::vector<RobinBcCoefStrategy<NDIM>*> Q_bc_coef)
 {
@@ -462,7 +462,7 @@ AdvectHypPatchOps::setBoundaryConditions(
 #endif
     d_Q_bc_coef[Q_var] = Q_bc_coef;
     return;
-}// setBoundaryConditions
+}// setPhysicalBcCoefs
 
 ///
 ///  The following routines:
@@ -631,6 +631,7 @@ AdvectHypPatchOps::initializeDataOnPatch(
              cit != d_u_var.end(); ++cit)
         {
             Pointer<FaceVariable<NDIM,double> > u_var = *cit;
+            if (!d_manage_u_data[u_var]) continue;
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, getDataContext());
             if (d_u_fcn[u_var].isNull())
             {
@@ -647,6 +648,7 @@ AdvectHypPatchOps::initializeDataOnPatch(
              cit != d_F_var.end(); ++cit)
         {
             Pointer<CellVariable<NDIM,double> > F_var = *cit;
+            if (!d_manage_F_data[F_var]) continue;
             const int F_idx = var_db->mapVariableAndContextToIndex(F_var, getDataContext());
             if (d_F_fcn[F_var].isNull())
             {
@@ -663,6 +665,7 @@ AdvectHypPatchOps::initializeDataOnPatch(
              cit != d_grad_Phi_var.end(); ++cit)
         {
             Pointer<FaceVariable<NDIM,double> > grad_Phi_var = *cit;
+            if (!d_manage_grad_Phi_data[grad_Phi_var]) continue;
             const int grad_Phi_idx = var_db->mapVariableAndContextToIndex(grad_Phi_var, getDataContext());
             if (d_grad_Phi_fcn[grad_Phi_var].isNull())
             {
@@ -679,6 +682,7 @@ AdvectHypPatchOps::initializeDataOnPatch(
              cit != d_Q_var.end(); ++cit)
         {
             Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+            if (!d_manage_Q_data[Q_var]) continue;
             const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, getDataContext());
             if (d_Q_init[Q_var].isNull())
             {

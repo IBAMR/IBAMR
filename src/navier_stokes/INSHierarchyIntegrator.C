@@ -935,7 +935,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     d_adv_diff_hier_integrator->setDiffusionCoefficient(d_U_var, d_nu);
     d_adv_diff_hier_integrator->setDampingCoefficient(d_U_var, d_lambda);
     d_adv_diff_hier_integrator->setInitialConditions(d_U_var, d_U_init);
-    d_adv_diff_hier_integrator->setBoundaryConditions(d_U_var, U_bc_coefs);
+    d_adv_diff_hier_integrator->setPhysicalBcCoefs(d_U_var, U_bc_coefs);
 
     // Initialize the AdvDiffHierarchyIntegrator.
     //
@@ -1504,16 +1504,20 @@ INSHierarchyIntegrator::regridHierarchy()
 
     // Regrid the hierarchy.
     const int coarsest_ln = 0;
-    if (d_regrid_mode == STANDARD)
+    switch (d_regrid_mode)
     {
-        d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
-    }
-    else if (d_regrid_mode == AGGRESSIVE)
-    {
-        for (int k = 0; k < std::max(1,d_hierarchy->getFinestLevelNumber()); ++k)
-        {
+        case STANDARD:
             d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
-        }
+            break;
+        case AGGRESSIVE:
+            for (int k = 0; k < std::max(1,d_hierarchy->getFinestLevelNumber()); ++k)
+            {
+                d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
+            }
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::regridHierarchy():\n"
+                       << "  unrecognized regrid mode: " << enum_to_string<RegridMode>(d_regrid_mode) << "." << std::endl);
     }
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 

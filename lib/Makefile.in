@@ -161,7 +161,6 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/advect/fortran/advect_diff2d.f \
 	$(top_builddir)/src/advect/fortran/advect_stable2d.f \
 	$(top_builddir)/src/advect/fortran/godunov_predictors2d.f \
-	$(top_builddir)/src/advect/fortran/weno_fluxes2d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f \
@@ -233,7 +232,7 @@ am__objects_2 = libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 am_libIBAMR2d_a_OBJECTS = $(am__objects_2) \
 	adv_diff_consdiff2d.$(OBJEXT) advect_detect2d.$(OBJEXT) \
 	advect_diff2d.$(OBJEXT) advect_stable2d.$(OBJEXT) \
-	godunov_predictors2d.$(OBJEXT) weno_fluxes2d.$(OBJEXT) \
+	godunov_predictors2d.$(OBJEXT) \
 	navier_stokes_bdryop2d.$(OBJEXT) \
 	navier_stokes_divsource2d.$(OBJEXT) \
 	navier_stokes_stabledt2d.$(OBJEXT) \
@@ -954,7 +953,6 @@ $(top_builddir)/src/advect/fortran/advect_detect2d.f \
 $(top_builddir)/src/advect/fortran/advect_diff2d.f \
 $(top_builddir)/src/advect/fortran/advect_stable2d.f \
 $(top_builddir)/src/advect/fortran/godunov_predictors2d.f \
-$(top_builddir)/src/advect/fortran/weno_fluxes2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f \
@@ -2981,12 +2979,6 @@ godunov_predictors2d.o: $(top_builddir)/src/advect/fortran/godunov_predictors2d.
 
 godunov_predictors2d.obj: $(top_builddir)/src/advect/fortran/godunov_predictors2d.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o godunov_predictors2d.obj `if test -f '$(top_builddir)/src/advect/fortran/godunov_predictors2d.f'; then $(CYGPATH_W) '$(top_builddir)/src/advect/fortran/godunov_predictors2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/advect/fortran/godunov_predictors2d.f'; fi`
-
-weno_fluxes2d.o: $(top_builddir)/src/advect/fortran/weno_fluxes2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o weno_fluxes2d.o `test -f '$(top_builddir)/src/advect/fortran/weno_fluxes2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/advect/fortran/weno_fluxes2d.f
-
-weno_fluxes2d.obj: $(top_builddir)/src/advect/fortran/weno_fluxes2d.f
-	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o weno_fluxes2d.obj `if test -f '$(top_builddir)/src/advect/fortran/weno_fluxes2d.f'; then $(CYGPATH_W) '$(top_builddir)/src/advect/fortran/weno_fluxes2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/advect/fortran/weno_fluxes2d.f'; fi`
 
 navier_stokes_bdryop2d.o: $(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o navier_stokes_bdryop2d.o `test -f '$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f

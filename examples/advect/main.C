@@ -433,7 +433,7 @@ main(
     hyp_patch_ops->setAdvectionVelocity(Q_var, u_var);
     hyp_patch_ops->setConvectiveDifferencingType(Q_var, difference_form);
     hyp_patch_ops->setInitialConditions(Q_var, tbox::Pointer<CartGridFunction>(&Q_init,false));
-    hyp_patch_ops->setBoundaryConditions(Q_var, &physical_bc_coef);
+    hyp_patch_ops->setPhysicalBcCoefs(Q_var, &physical_bc_coef);
 
     tbox::Pointer<algs::HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator =
         new algs::HyperbolicLevelIntegrator<NDIM>(

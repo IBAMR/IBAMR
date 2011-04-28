@@ -1195,16 +1195,20 @@ IBImplicitHierarchyIntegrator::regridHierarchy()
     d_lag_data_manager->beginDataRedistribution();
 
     // Regrid the hierarchy.
-    if (d_regrid_mode == STANDARD)
+    switch (d_regrid_mode)
     {
-        d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
-    }
-    else if (d_regrid_mode == AGGRESSIVE)
-    {
-        for (int k = 0; k < std::max(1,d_hierarchy->getFinestLevelNumber()); ++k)
-        {
+        case STANDARD:
             d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
-        }
+            break;
+        case AGGRESSIVE:
+            for (int k = 0; k < std::max(1,d_hierarchy->getFinestLevelNumber()); ++k)
+            {
+                d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
+            }
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::regridHierarchy():\n"
+                       << "  unrecognized regrid mode: " << enum_to_string<RegridMode>(d_regrid_mode) << "." << std::endl);
     }
 
     // Determine the divergence of the velocity field after regridding.

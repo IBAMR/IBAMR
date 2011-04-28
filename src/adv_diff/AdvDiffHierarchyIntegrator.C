@@ -439,6 +439,8 @@ AdvDiffHierarchyIntegrator::registerTransportedQuantity(
 
     Pointer<CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
     const int Q_depth = Q_factory->getDefaultDepth();
+    d_Q_bc_coef[Q_var] = std::vector<RobinBcCoefStrategy<NDIM>*>(Q_depth,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
+
     Pointer<CellVariable<NDIM,double> > Psi_var = new CellVariable<NDIM,double>(Q_var->getName()+"::Psi",Q_depth);
     d_Psi_var.insert(Psi_var);
     d_Q_Psi_map[Q_var] = Psi_var;
@@ -533,7 +535,7 @@ AdvDiffHierarchyIntegrator::setInitialConditions(
 }// setInitialConditions
 
 void
-AdvDiffHierarchyIntegrator::setBoundaryConditions(
+AdvDiffHierarchyIntegrator::setPhysicalBcCoefs(
     Pointer<CellVariable<NDIM,double> > Q_var,
     RobinBcCoefStrategy<NDIM>* Q_bc_coef)
 {
@@ -545,10 +547,10 @@ AdvDiffHierarchyIntegrator::setBoundaryConditions(
 #endif
     d_Q_bc_coef[Q_var] = std::vector<RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef);
     return;
-}// setBoundaryConditions
+}// setPhysicalBcCoefs
 
 void
-AdvDiffHierarchyIntegrator::setBoundaryConditions(
+AdvDiffHierarchyIntegrator::setPhysicalBcCoefs(
     Pointer<CellVariable<NDIM,double> > Q_var,
     std::vector<RobinBcCoefStrategy<NDIM>*> Q_bc_coef)
 {
@@ -560,7 +562,7 @@ AdvDiffHierarchyIntegrator::setBoundaryConditions(
 #endif
     d_Q_bc_coef[Q_var] = Q_bc_coef;
     return;
-}// setBoundaryConditions
+}// setPhysicalBcCoefs
 
 ///
 ///  The following routines:
@@ -711,7 +713,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         if (!d_Q_grad_Phi_map[Q_var].isNull()) d_hyp_patch_ops->setIncompressibilityFixTerm(Q_var,d_Q_grad_Phi_map[Q_var]);
         d_hyp_patch_ops->setConvectiveDifferencingType(Q_var,d_Q_difference_form[Q_var]);
         if (!d_Q_init[Q_var].isNull()) d_hyp_patch_ops->setInitialConditions(Q_var,d_Q_init[Q_var]);
-        if (!d_Q_bc_coef[Q_var].empty()) d_hyp_patch_ops->setBoundaryConditions(Q_var,d_Q_bc_coef[Q_var]);
+        if (!d_Q_bc_coef[Q_var].empty()) d_hyp_patch_ops->setPhysicalBcCoefs(Q_var,d_Q_bc_coef[Q_var]);
         var_db->registerVariableAndContext(Q_var, d_temp_context, CELLG);
     }
 

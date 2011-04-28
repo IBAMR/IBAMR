@@ -330,7 +330,7 @@ public:
      * that has been registered with the hierarchy integrator.
      */
     void
-    setBoundaryConditions(
+    setPhysicalBcCoefs(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* Q_bc_coef);
 
@@ -339,7 +339,7 @@ public:
      * that has been registered with the hierarchy integrator.
      */
     void
-    setBoundaryConditions(
+    setPhysicalBcCoefs(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coef);
 
