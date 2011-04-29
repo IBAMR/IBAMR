@@ -1,5 +1,5 @@
-// Filename: IBInstrumentationSpec.I
-// Created on 11 Jun 2007 by Boyce Griffith
+// Filename: IBSourceSpecFactory.C
+// Created on 28 Apr 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,11 +30,26 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#include "IBSourceSpecFactory.h"
+
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
-#include <tbox/PIO.h>
-#include <tbox/Utilities.h>
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
+#define included_IBAMR_config
+#endif
+
+#ifndef included_SAMRAI_config
+#include <SAMRAI_config.h>
+#define included_SAMRAI_config
+#endif
+
+// IBAMR INCLUDES
+#include <ibamr/IBSourceSpec.h>
+#include <ibamr/namespaces.h>
+
+// IBTK INCLUDES
+#include <ibtk/StreamableManager.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -42,109 +57,59 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-inline bool
-IBInstrumentationSpec::getIsRegisteredWithStreamableManager()
-{
-    return s_registered_factory;
-}// getIsRegisteredWithStreamableManager
-
-inline const std::vector<std::string>&
-IBInstrumentationSpec::getInstrumentNames()
-{
-    return s_instrument_names;
-}// getInstrumentNames
+int IBSourceSpecFactory::s_class_id = -1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline
-IBInstrumentationSpec::IBInstrumentationSpec(
-    const int master_idx,
-    const int meter_idx,
-    const int node_idx)
-    : d_master_idx(master_idx),
-      d_meter_idx(meter_idx),
-      d_node_idx(node_idx)
+IBSourceSpecFactory::IBSourceSpecFactory()
 {
-    if (!s_registered_factory)
-    {
-        TBOX_ERROR("IBInstrumentationSpec::IBInstrumentationSpec():\n"
-                   << "  must call IBInstrumentationSpec::registerWithStreamableManager() before\n"
-                   << "  creating any IBInstrumentationSpec objects.\n");
-    }
+    setStreamableClassID(StreamableManager::getUnregisteredID());
     return;
-}// IBInstrumentationSpec
+}// IBSourceSpecFactory
 
-inline
-IBInstrumentationSpec::~IBInstrumentationSpec()
+IBSourceSpecFactory::~IBSourceSpecFactory()
 {
     // intentionally blank
     return;
-}// ~IBInstrumentationSpec
+}// ~IBSourceSpecFactory
 
-inline const int&
-IBInstrumentationSpec::getMasterNodeIndex() const
-{
-    return d_master_idx;
-}// getMasterNodeIndex
-
-inline int&
-IBInstrumentationSpec::getMasterNodeIndex()
-{
-    return d_master_idx;
-}// getMasterNodeIndex
-
-inline const int&
-IBInstrumentationSpec::getMeterIndex() const
-{
-    return d_meter_idx;
-}// getMeterIndex
-
-inline int&
-IBInstrumentationSpec::getMeterIndex()
-{
-    return d_meter_idx;
-}// getMeterIndex
-
-inline const int&
-IBInstrumentationSpec::getNodeIndex() const
-{
-    return d_node_idx;
-}// getNodeIndex
-
-inline int&
-IBInstrumentationSpec::getNodeIndex()
-{
-    return d_node_idx;
-}// getNodeIndex
-
-inline int
-IBInstrumentationSpec::getStreamableClassID() const
+int
+IBSourceSpecFactory::getStreamableClassID() const
 {
     return s_class_id;
 }// getStreamableClassID
 
-inline size_t
-IBInstrumentationSpec::getDataStreamSize() const
+void
+IBSourceSpecFactory::setStreamableClassID(
+    const int class_id)
 {
-    return 3*SAMRAI::tbox::AbstractStream::sizeofInt();
-}// getDataStreamSize
-
-inline void
-IBInstrumentationSpec::packStream(
-    SAMRAI::tbox::AbstractStream& stream)
-{
-    stream.pack(&d_master_idx,1);
-    stream.pack(&d_meter_idx,1);
-    stream.pack(&d_node_idx,1);
+    s_class_id = class_id;
     return;
-}// packStream
+}// setStreamableClassID
+
+Pointer<Streamable>
+IBSourceSpecFactory::unpackStream(
+    AbstractStream& stream,
+    const IntVector<NDIM>& offset)
+{
+    int master_idx;
+    stream.unpack(&master_idx,1);
+    int source_idx;
+    stream.unpack(&source_idx,1);
+    return new IBSourceSpec(master_idx,source_idx);
+}// unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
 } // namespace IBAMR
 
-/////////////////////////////// NAMESPACE ////////////////////////////////////
+/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
+
+#include <tbox/Pointer.C>
+template class Pointer<IBAMR::IBSourceSpecFactory>;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,5 @@
-// Filename: IBInstrumentationSpec.I
-// Created on 11 Jun 2007 by Boyce Griffith
+// Filename: IBSourceSpec.I
+// Created on 28 Apr 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -43,99 +43,99 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 inline bool
-IBInstrumentationSpec::getIsRegisteredWithStreamableManager()
+IBSourceSpec::getIsRegisteredWithStreamableManager()
 {
     return s_registered_factory;
 }// getIsRegisteredWithStreamableManager
 
-inline const std::vector<std::string>&
-IBInstrumentationSpec::getInstrumentNames()
+inline int
+IBSourceSpec::getNumSources(
+    const int ln)
 {
-    return s_instrument_names;
-}// getInstrumentNames
+    return s_num_sources[ln];
+}// getNumSources
+
+inline const std::vector<std::string>&
+IBSourceSpec::getSourceNames(
+    const int ln)
+{
+    return s_source_names[ln];
+}// getSourceNames
+
+inline const std::vector<double>&
+IBSourceSpec::getSourceRadii(
+    const int ln)
+{
+    return s_source_radii[ln];
+}// getSourceRadii
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 inline
-IBInstrumentationSpec::IBInstrumentationSpec(
+IBSourceSpec::IBSourceSpec(
     const int master_idx,
-    const int meter_idx,
-    const int node_idx)
+    const int source_idx)
     : d_master_idx(master_idx),
-      d_meter_idx(meter_idx),
-      d_node_idx(node_idx)
+      d_source_idx(source_idx)
 {
     if (!s_registered_factory)
     {
-        TBOX_ERROR("IBInstrumentationSpec::IBInstrumentationSpec():\n"
-                   << "  must call IBInstrumentationSpec::registerWithStreamableManager() before\n"
-                   << "  creating any IBInstrumentationSpec objects.\n");
+        TBOX_ERROR("IBSourceSpec::IBSourceSpec():\n"
+                   << "  must call IBSourceSpec::registerWithStreamableManager() before\n"
+                   << "  creating any IBSourceSpec objects.\n");
     }
     return;
-}// IBInstrumentationSpec
+}// IBSourceSpec
 
 inline
-IBInstrumentationSpec::~IBInstrumentationSpec()
+IBSourceSpec::~IBSourceSpec()
 {
     // intentionally blank
     return;
-}// ~IBInstrumentationSpec
+}// ~IBSourceSpec
 
 inline const int&
-IBInstrumentationSpec::getMasterNodeIndex() const
+IBSourceSpec::getMasterNodeIndex() const
 {
     return d_master_idx;
 }// getMasterNodeIndex
 
 inline int&
-IBInstrumentationSpec::getMasterNodeIndex()
+IBSourceSpec::getMasterNodeIndex()
 {
     return d_master_idx;
 }// getMasterNodeIndex
 
 inline const int&
-IBInstrumentationSpec::getMeterIndex() const
+IBSourceSpec::getSourceIndex() const
 {
-    return d_meter_idx;
-}// getMeterIndex
+    return d_source_idx;
+}// getSourceIndex
 
 inline int&
-IBInstrumentationSpec::getMeterIndex()
+IBSourceSpec::getSourceIndex()
 {
-    return d_meter_idx;
-}// getMeterIndex
-
-inline const int&
-IBInstrumentationSpec::getNodeIndex() const
-{
-    return d_node_idx;
-}// getNodeIndex
-
-inline int&
-IBInstrumentationSpec::getNodeIndex()
-{
-    return d_node_idx;
-}// getNodeIndex
+    return d_source_idx;
+}// getSourceIndex
 
 inline int
-IBInstrumentationSpec::getStreamableClassID() const
+IBSourceSpec::getStreamableClassID() const
 {
     return s_class_id;
 }// getStreamableClassID
 
 inline size_t
-IBInstrumentationSpec::getDataStreamSize() const
+IBSourceSpec::getDataStreamSize() const
 {
-    return 3*SAMRAI::tbox::AbstractStream::sizeofInt();
+    return 2*SAMRAI::tbox::AbstractStream::sizeofInt();
 }// getDataStreamSize
 
 inline void
-IBInstrumentationSpec::packStream(
+IBSourceSpec::packStream(
     SAMRAI::tbox::AbstractStream& stream)
 {
     stream.pack(&d_master_idx,1);
-    stream.pack(&d_meter_idx,1);
-    stream.pack(&d_node_idx,1);
+    stream.pack(&d_source_idx,1);
     return;
 }// packStream
 

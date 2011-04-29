@@ -242,9 +242,10 @@ namespace IBAMR
  * extension <TT>".inst"</TT> and have the following format:
  \verbatim
  M                                      # number of instruments in the file
- meter name 0                           # meter names
- meter name 1
- meter name 2
+ meter_name_0                           # meter names
+ meter_name_1
+ meter_name_2
+ ...
  N                                      # number of instrumentation points in the file
  i_0   meter_idx_0   meter_node_idx_0   # vertex index, meter index, node index within meter
  i_1   meter_idx_1   meter_node_idx_1
@@ -263,8 +264,8 @@ namespace IBAMR
  *
  \verbatim
  2           # number of instruments in the file
- meter 0     # meter names
- meter 1
+ meter0      # meter names
+ meter1
  6           # number of instrumentation points in the file
  0   0   0   # perimeter of meter 0 consists of vertices 0, 1, and 2
  1   0   1
@@ -276,6 +277,50 @@ namespace IBAMR
  *
  * \see IBInstrumentPanel
  * \see IBInstrumentationSpec
+ *
+ * <HR>
+ *
+ * <B>Source file format</B>
+ *
+ * Source input files (specifying the nodes employed to determine the
+ * time-dependent positions of internal sources and sinks) end with the
+ * extension <TT>".source"</TT> and have the following format:
+ \verbatim
+ M                    # number of sources/sinks in the file
+ source_name_0        # source/sink names
+ source_name_1
+ source_name_2
+ ...
+ source_radius_0      # source/sink radii
+ source_radius_1
+ source_radius_2
+ ...
+ N                    # number of source points in the file
+ i_0   source_idx_0   # vertex index, source index
+ i_1   source_idx_1
+ i_2   source_idx_2
+ ...
+ \endverbatim
+ * \note The position of each internal source/sink is the arithmetic mean of the
+ * positions of the nodes that are associated with that source/sink.
+ *
+ \verbatim
+ 2         # number of sources in the file
+ source0   # source/sink names
+ source1
+ 1.0       # source/sink radii
+ 0.5
+ 6         # number of source points in the file
+ 0   0     # position of source0 is determined from vertices 0, 1, and 2
+ 1   0
+ 2   0
+ 9   1     # position of source1 is determined from vertices 9, 10, and 11
+ 10  1
+ 11  1
+ \endverbatim
+ *
+ * \see IBStandardSourceGenerator
+ * \see IBSourceSpec
  *
  * <HR>
  *
@@ -530,6 +575,12 @@ private:
     readInstrumentationFiles();
 
     /*!
+     * \brief Read the source/sink data from one or more input files.
+     */
+    void
+    readSourceFiles();
+
+    /*!
      * \brief Determine the indices of any vertices initially located within the
      * specified patch.
      */
@@ -601,6 +652,15 @@ private:
      */
     std::pair<int,int>
     getVertexInstrumentationIndices(
+        const std::pair<int,int>& point_index,
+        const int level_number) const;
+
+    /*!
+     * \return The source indices associated with a particular node (or -1 if
+     * there is no source data associated with that node).
+     */
+    int
+    getVertexSourceIndices(
         const std::pair<int,int>& point_index,
         const int level_number) const;
 
@@ -824,6 +884,12 @@ private:
      */
     std::vector<std::vector<bool> > d_enable_instrumentation;
     std::vector<std::vector<std::map<int,std::pair<int,int> > > > d_instrument_idx;
+
+    /*
+     * Source information.
+     */
+    std::vector<std::vector<bool> > d_enable_sources;
+    std::vector<std::vector<std::map<int,int> > > d_source_idx;
 
     /*
      * Data required to specify connectivity information for visualization

@@ -728,6 +728,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     }
     if (d_source_strategy_needs_init && !d_source_strategy.isNull())
     {
+        // XXXX: This should not be done here?
         resetLagrangianSourceStrategy(current_time, initial_time);
         d_source_strategy_needs_init = false;
     }
@@ -1787,6 +1788,7 @@ IBStaggeredHierarchyIntegrator::initializeLevelData(
     LagMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, d_mark_init_posns, hierarchy, level_number, initial_time, old_level);
 
     // Determine the initial source/sink locations.
+    d_source_strategy->initializeLevelData(hierarchy, level_number, init_data_time, initial_time, d_lag_data_manager);
     if (initial_time)
     {
         d_X_src.resize(std::max(int(d_X_src.size()),level_number+1));
@@ -2487,48 +2489,51 @@ IBStaggeredHierarchyIntegrator::computeSourcePressures(
     const int wgt_idx = d_ins_hier_integrator->getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
 
     // Compute the normalization pressure.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
-    const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
-
-    Box<NDIM> interior_box = domain_box;
-    for (int d = 0; d < NDIM-1; ++d)
-    {
-        interior_box.grow(d,-1);
-    }
-
-    BoxList<NDIM> bdry_boxes;
-    bdry_boxes.removeIntersections(domain_box,interior_box);
-
     double p_norm = 0.0;
-    double vol = 0.0;
-    for (int ln = coarsest_level; ln <= finest_level; ++ln)
+    if (true)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        BoxList<NDIM> level_bdry_boxes(bdry_boxes);
-        level_bdry_boxes.refine(level->getRatio());
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+        TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
+        const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
+
+        Box<NDIM> interior_box = domain_box;
+        for (int d = 0; d < NDIM-1; ++d)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CellData<NDIM,double> > p_data = patch->getPatchData(P_new_idx);
-            const Pointer<CellData<NDIM,double> > wgt_data = patch->getPatchData(wgt_idx);
-            for (BoxList<NDIM>::Iterator blist(level_bdry_boxes); blist; blist++)
+            interior_box.grow(d,-1);
+        }
+
+        BoxList<NDIM> bdry_boxes;
+        bdry_boxes.removeIntersections(domain_box,interior_box);
+
+        double vol = 0.0;
+        for (int ln = coarsest_level; ln <= finest_level; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            BoxList<NDIM> level_bdry_boxes(bdry_boxes);
+            level_bdry_boxes.refine(level->getRatio());
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                for (Box<NDIM>::Iterator b(blist()*patch_box); b; b++)
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Box<NDIM>& patch_box = patch->getBox();
+                const Pointer<CellData<NDIM,double> > p_data = patch->getPatchData(P_new_idx);
+                const Pointer<CellData<NDIM,double> > wgt_data = patch->getPatchData(wgt_idx);
+                for (BoxList<NDIM>::Iterator blist(level_bdry_boxes); blist; blist++)
                 {
-                    const Index<NDIM>& i = b();
-                    p_norm += (*p_data)(i)*(*wgt_data)(i);
-                    vol += (*wgt_data)(i);
+                    for (Box<NDIM>::Iterator b(blist()*patch_box); b; b++)
+                    {
+                        const Index<NDIM>& i = b();
+                        p_norm += (*p_data)(i)*(*wgt_data)(i);
+                        vol += (*wgt_data)(i);
+                    }
                 }
             }
         }
+
+        SAMRAI_MPI::sumReduction(&p_norm,1);
+        SAMRAI_MPI::sumReduction(&vol,1);
+
+        p_norm /= vol;
     }
-
-    SAMRAI_MPI::sumReduction(&p_norm,1);
-    SAMRAI_MPI::sumReduction(&vol,1);
-
-    p_norm /= vol;
 
     // Reset the values of P_src.
     for (int ln = coarsest_level; ln <= finest_level; ++ln)
