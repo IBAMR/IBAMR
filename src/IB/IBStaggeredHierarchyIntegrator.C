@@ -1788,7 +1788,7 @@ IBStaggeredHierarchyIntegrator::initializeLevelData(
     LagMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, d_mark_init_posns, hierarchy, level_number, initial_time, old_level);
 
     // Determine the initial source/sink locations.
-    d_source_strategy->initializeLevelData(hierarchy, level_number, init_data_time, initial_time, d_lag_data_manager);
+    if (!d_source_strategy.isNull()) d_source_strategy->initializeLevelData(hierarchy, level_number, init_data_time, initial_time, d_lag_data_manager);
     if (initial_time)
     {
         d_X_src.resize(std::max(int(d_X_src.size()),level_number+1));

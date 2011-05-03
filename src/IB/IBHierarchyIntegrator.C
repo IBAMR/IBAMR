@@ -2396,7 +2396,7 @@ IBHierarchyIntegrator::initializeLevelData(
     }
 
     // Determine the initial source/sink locations.
-    d_source_strategy->initializeLevelData(hierarchy, level_number, init_data_time, initial_time, d_lag_data_manager);
+    if (!d_source_strategy.isNull()) d_source_strategy->initializeLevelData(hierarchy, level_number, init_data_time, initial_time, d_lag_data_manager);
     if (initial_time)
     {
         d_X_src.resize(std::max(int(d_X_src.size()),level_number+1));
