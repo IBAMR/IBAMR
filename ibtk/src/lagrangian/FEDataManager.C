@@ -649,7 +649,7 @@ FEDataManager::getL2ProjectionSolver(
         M_mat->close();
 
         // Setup the solver.
-        solver->same_preconditioner = true;
+        solver->reuse_preconditioner(true);
 
         // Store the solver, mass matrix, and configuration options.
         d_L2_proj_solver[system_name] = solver;

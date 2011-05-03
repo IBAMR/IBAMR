@@ -58,7 +58,6 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBStaggeredHierarchyIntegrator.h>
 #include <ibamr/IBStandardForceGen.h>
-#include <ibamr/IBStandardSourceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibtk/LagSiloDataWriter.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -416,7 +415,7 @@ main(
         tbox::Pointer<IBStandardForceGen> force_generator = new IBStandardForceGen(
             spring_force_generator, beam_force_generator, target_point_force_generator);
 
-        tbox::Pointer<IBStandardSourceGen> source_generator = new IBStandardSourceGen();
+        tbox::Pointer<IBLagrangianSourceStrategy> source_generator = NULL;
 
         myPostProcessor* t_post_processor = new myPostProcessor();
         t_post_processor->d_force_generator = force_generator;
@@ -642,8 +641,6 @@ main(
             tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++"  << endl;
             tbox::pout << "At beginning of timestep # " <<  iteration_num - 1 << endl;
             tbox::pout << "Simulation time is " << loop_time                  << endl;
-
-            source_generator->getSourceStrengths(1)[0] = 1.0;
 
             dt_old = dt_now;
             double dt_new = time_integrator->advanceHierarchy(dt_now);

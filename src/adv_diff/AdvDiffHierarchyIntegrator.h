@@ -88,7 +88,7 @@ namespace IBAMR
  * are governed by the advection-diffusion equation.
  *
  * Each quantity \f$ Q \f$ managed by the integrator may have a unique diffusion
- * coefficient \f$ \mu \f$ and drag coefficient \f$ \lambda \f$, and may
+ * coefficient \f$ \kappa \f$ and drag coefficient \f$ \lambda \f$, and may
  * optionally have a forcing term \f$ F \f$.  Only one advection velocity \f$
  * \vec{u}^{\mbox{\scriptsize ADV}} \f$ may be registered with the integrator.
  *
@@ -305,7 +305,7 @@ public:
     void
     setDiffusionCoefficient(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        const double& mu);
+        const double& kappa);
 
     /*!
      * Set the scalar linear damping coefficient corresponding to a quantity

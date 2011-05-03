@@ -176,11 +176,6 @@ INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
       d_U_var(NULL),
       d_U_scratch_idx(-1)
 {
-#if (NDIM != 2)
-    TBOX_ERROR("INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator():\n"
-               << "  incomplete implementation for NDIM != 2\n");
-#endif
-
     if (d_difference_form != ADVECTIVE &&
         d_difference_form != CONSERVATIVE &&
         d_difference_form != SKEW_SYMMETRIC)

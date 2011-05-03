@@ -51,9 +51,9 @@ namespace IBTK
  * boundaries.
  *
  * \note We synchronize data one axis at a time because edge-centered values can
- * be shared by more than two patches.  For instance, to synchronize nodal
- * values in three spatial dimensions, we first synchronize values in the x
- * direction, then in the y direction, and finally in the z direction.
+ * be shared by more than two patches.  For instance, to synchronize edge values
+ * in three spatial dimensions, we first synchronize values in the x direction,
+ * then in the y direction, and finally in the z direction.
  */
 class EdgeSynchCopyFillPattern
     : public virtual SAMRAI::xfer::VariableFillPattern<NDIM>

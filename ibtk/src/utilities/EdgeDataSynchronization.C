@@ -141,8 +141,8 @@ EdgeDataSynchronization::initializeOperatorState(
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(data_idx, var);
-            Pointer<EdgeVariable<NDIM,double> > nc_var = var;
-            if (nc_var.isNull())
+            Pointer<EdgeVariable<NDIM,double> > ec_var = var;
+            if (ec_var.isNull())
             {
                 TBOX_ERROR("EdgeDataSynchronization::initializeOperatorState():\n"
                            << "  only double-precision edge-centered data is supported." << std::endl);
@@ -245,8 +245,8 @@ EdgeDataSynchronization::resetTransactionComponents(
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
             Pointer<Variable<NDIM> > var;
             var_db->mapIndexToVariable(data_idx, var);
-            Pointer<EdgeVariable<NDIM,double> > nc_var = var;
-            if (nc_var.isNull())
+            Pointer<EdgeVariable<NDIM,double> > ec_var = var;
+            if (ec_var.isNull())
             {
                 TBOX_ERROR("EdgeDataSynchronization::resetTransactionComponents():\n"
                            << "  only double-precision edge-centered data is supported." << std::endl);

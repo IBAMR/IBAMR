@@ -501,12 +501,12 @@ AdvDiffHierarchyIntegrator::setConvectiveDifferencingType(
 void
 AdvDiffHierarchyIntegrator::setDiffusionCoefficient(
     Pointer<CellVariable<NDIM,double> > Q_var,
-    const double& mu)
+    const double& kappa)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
 #endif
-    d_Q_diffusion_coef[Q_var] = mu;
+    d_Q_diffusion_coef[Q_var] = kappa;
     return;
 }// setDiffusionCoefficient
 
@@ -1046,7 +1046,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         Pointer<CellVariable<NDIM,double> > Q_var   = *cit;
         Pointer<CellVariable<NDIM,double> > F_var   = d_Q_F_map[Q_var];
         Pointer<CellVariable<NDIM,double> > Psi_var = d_Q_Psi_map[Q_var];
-        const double mu = d_Q_diffusion_coef[Q_var];
+        const double kappa = d_Q_diffusion_coef[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
 
         Pointer<CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
@@ -1069,15 +1069,15 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         d_hier_bdry_fill_ops[l]->setHomogeneousBc(false);
         d_hier_bdry_fill_ops[l]->fillData(current_time);
 
-        PoissonSpecifications mu_spec("mu_spec");
-        mu_spec.setCConstant(-lambda);
-        mu_spec.setDConstant(+mu    );
+        PoissonSpecifications kappa_spec("kappa_spec");
+        kappa_spec.setCConstant(-lambda);
+        kappa_spec.setDConstant(+kappa );
 
         for (int depth = 0; depth < Q_depth; ++depth)
         {
             d_hier_math_ops->laplace(
                 Psi_current_idx, Psi_var,  // Psi(n)
-                mu_spec,                   // Poisson spec
+                kappa_spec,                // Poisson spec
                 Q_temp_idx     , Q_var  ,  // Q(n)
                 d_no_fill_op,              // don't need to re-fill Q(n) data
                 current_time,              // Q(n) bdry fill time
@@ -1154,7 +1154,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         Pointer<CellVariable<NDIM,double> > Q_var   = *cit;
         Pointer<CellVariable<NDIM,double> > F_var   = d_Q_F_map[Q_var];
         Pointer<CellVariable<NDIM,double> > Psi_var = d_Q_Psi_map[Q_var];
-        const double mu = d_Q_diffusion_coef[Q_var];
+        const double kappa = d_Q_diffusion_coef[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
         const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef = d_Q_bc_coef[Q_var];
 
@@ -1192,7 +1192,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             {
                 // The backward Euler discretization is:
                 //
-                //     (I-dt*mu*L(t_new)) Q(n+1) = Q(n) + F(t_avg) dt
+                //     (I-dt*kappa*L(t_new)) Q(n+1) = Q(n) + F(t_avg) dt
                 //
                 // where
                 //
@@ -1202,7 +1202,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
                 // Note that for simplicity of implementation, we always use a
                 // timestep-centered forcing term.
                 helmholtz_spec.setCConstant(1.0+dt*lambda);
-                helmholtz_spec.setDConstant(   -dt*mu    );
+                helmholtz_spec.setDConstant(   -dt*kappa );
 
                 PoissonSpecifications rhs_spec("rhs_spec");
                 rhs_spec.setCConstant(1.0);
@@ -1230,7 +1230,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             {
                 // The Crank-Nicolson discretization is:
                 //
-                //     (I-0.5*dt*mu*L(t_new)) Q(n+1) = (I+0.5*dt*mu*L(t_old)) Q(n) + F(t_avg) dt
+                //     (I-0.5*dt*kappa*L(t_new)) Q(n+1) = (I+0.5*dt*kappa*L(t_old)) Q(n) + F(t_avg) dt
                 //
                 // where
                 //
@@ -1238,11 +1238,11 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
                 //    t_new = (n+1) dt
                 //    t_avg = (t_new+t_old)/2
                 helmholtz_spec.setCConstant(1.0+0.5*dt*lambda);
-                helmholtz_spec.setDConstant(   -0.5*dt*mu    );
+                helmholtz_spec.setDConstant(   -0.5*dt*kappa );
 
                 PoissonSpecifications rhs_spec("rhs_spec");
                 rhs_spec.setCConstant(1.0-0.5*dt*lambda);
-                rhs_spec.setDConstant(   +0.5*dt*mu    );
+                rhs_spec.setDConstant(   +0.5*dt*kappa );
 
                 d_hier_cc_data_ops->copyData(Q_temp_idx, Q_current_idx, false);
                 d_hier_bdry_fill_ops[l]->setHomogeneousBc(false);
