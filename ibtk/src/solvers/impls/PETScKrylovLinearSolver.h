@@ -160,7 +160,7 @@ public:
      * will return the value "none".
      */
     const std::string&
-    getPCShellType();
+    getPCShellType() const;
 
     /*!
      * \name Functions to access the underlying PETSc objects.

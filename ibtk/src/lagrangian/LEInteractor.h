@@ -673,7 +673,7 @@ private:
      * based on the LNodeIndexData values.
      */
     static void
-    getLocalIndices(
+    buildLocalIndices(
         std::vector<int>& local_indices,
         std::vector<double>& periodic_offsets,
         const SAMRAI::hier::Box<NDIM>& box,
@@ -686,7 +686,7 @@ private:
      * based on the positions of the Lagrangian mesh nodes.
      */
     static void
-    getLocalIndices(
+    buildLocalIndices(
         std::vector<int>& local_indices,
         const SAMRAI::hier::Box<NDIM>& box,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,

@@ -189,7 +189,7 @@ StreamableManager::registerFactory(
     // These barriers ensure that each factory is assigned the same class ID
     // number on each MPI process.
     SAMRAI_MPI::barrier();
-    const int factory_id = getUniqueID();
+    const int factory_id = createUniqueID();
     SAMRAI_MPI::barrier();
     factory->setStreamableClassID(factory_id);
     efficient_add_or_update(d_factory_map, factory_id, factory);
@@ -248,10 +248,10 @@ StreamableManager::~StreamableManager()
 }// ~StreamableManager
 
 int
-StreamableManager::getUniqueID()
+StreamableManager::createUniqueID()
 {
     return s_current_id_number++;
-}// getUniqueID
+}// createUniqueID
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -93,6 +93,12 @@ public:
     getBufferStart();
 
     /*!
+     * Return a const pointer to the start of the message buffer.
+     */
+    const void*
+    getBufferStart() const;
+
+    /*!
      * Return the current size of the buffer in bytes.
      */
     int

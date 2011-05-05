@@ -372,7 +372,7 @@ public:
     SAMRAI::tbox::Pointer<LNodeLevelData>
     getLNodeLevelData(
         const std::string& quantity_name,
-        const int level_number);
+        const int level_number) const;
 
     /*!
      * \brief Allocate new Lagrangian level data with the specified name and

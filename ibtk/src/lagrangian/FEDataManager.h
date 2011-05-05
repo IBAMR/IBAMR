@@ -209,13 +209,13 @@ public:
      * active element number.
      */
     const blitz::Array<blitz::Array<unsigned int,1>,1>&
-    getPatchActiveElementMap();
+    getPatchActiveElementMap() const;
 
     /*!
      * \return A const reference to the collection of local elements.
      */
     const blitz::Array<libMesh::Elem*,1>&
-    getActiveElements();
+    getActiveElements() const;
 
     /*!
      * \brief Reinitialize the mappings from elements to Cartesian grid patches.
@@ -229,27 +229,27 @@ public:
      */
     libMesh::NumericVector<double>*
     getSolutionVector(
-        const std::string& system_name);
+        const std::string& system_name) const;
 
     /*!
      * \return A pointer to the ghosted solution vector associated with the
      * specified system.
      */
     libMesh::NumericVector<double>*
-    getGhostedSolutionVector(
+    buildGhostedSolutionVector(
         const std::string& system_name);
 
     /*!
      * \return A pointer to the unghosted coordinates (nodal position) vector.
      */
     libMesh::NumericVector<double>*
-    getCoordsVector();
+    getCoordsVector() const;
 
     /*!
      * \return A pointer to the ghosted coordinates (nodal position) vector.
      */
     libMesh::NumericVector<double>*
-    getGhostedCoordsVector();
+    buildGhostedCoordsVector();
 
     /*!
      * \brief Spread a density from the FE mesh to the Cartesian grid.
@@ -281,7 +281,7 @@ public:
      * L2 projection operator.
      */
     std::pair<libMesh::LinearSolver<double>*,libMesh::SparseMatrix<double>*>
-    getL2ProjectionSolver(
+    buildL2ProjectionSolver(
         const std::string& system_name,
         const bool consistent_mass_matrix=true,
         const libMeshEnums::QuadratureType quad_type=QGAUSS,
@@ -292,7 +292,7 @@ public:
      * matrix.
      */
     libMesh::NumericVector<double>*
-    getDiagonalL2MassMatrix(
+    buildDiagonalL2MassMatrix(
         const std::string& system_name,
         const libMeshEnums::QuadratureType quad_type=QGAUSS,
         const libMeshEnums::Order quad_order=FIFTH);

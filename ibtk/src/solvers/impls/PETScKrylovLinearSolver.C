@@ -225,7 +225,7 @@ PETScKrylovLinearSolver::setValidPCShellTypes(
 }// setValidPCShellTypes
 
 const std::string&
-PETScKrylovLinearSolver::getPCShellType()
+PETScKrylovLinearSolver::getPCShellType() const
 {
     return d_pc_shell_type;
 }// getPCShellType

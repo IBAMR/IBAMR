@@ -50,6 +50,12 @@ FixedSizedStream::getBufferStart()
     return static_cast<void*>(&d_buffer[0]);
 }// getBufferStart
 
+inline const void*
+FixedSizedStream::getBufferStart() const
+{
+    return static_cast<const void*>(&d_buffer[0]);
+}// getBufferStart
+
 inline int
 FixedSizedStream::getCurrentSize() const
 {

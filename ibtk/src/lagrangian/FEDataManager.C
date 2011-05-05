@@ -238,13 +238,13 @@ FEDataManager::getInterpUsesConsistentMassMatrix() const
 }// getInterpUsesConsistentMassMatrix
 
 const blitz::Array<blitz::Array<unsigned int,1>,1>&
-FEDataManager::getPatchActiveElementMap()
+FEDataManager::getPatchActiveElementMap() const
 {
     return d_patch_active_elem_map;
 }// getPatchActiveElementMap
 
 const blitz::Array<Elem*,1>&
-FEDataManager::getActiveElements()
+FEDataManager::getActiveElements() const
 {
     return d_active_elems;
 }// getActiveElements
@@ -277,14 +277,14 @@ FEDataManager::reinitElementMappings()
 
 NumericVector<double>*
 FEDataManager::getSolutionVector(
-    const std::string& system_name)
+    const std::string& system_name) const
 {
     System& system = d_es->get_system<System>(system_name);
     return system.solution.get();
 }// getSolutionVector
 
 NumericVector<double>*
-FEDataManager::getGhostedSolutionVector(
+FEDataManager::buildGhostedSolutionVector(
     const std::string& system_name)
 {
     NumericVector<double>* sol_vec = getSolutionVector(system_name);
@@ -303,19 +303,19 @@ FEDataManager::getGhostedSolutionVector(
     sol_vec->localize(*sol_ghost_vec);
     system.get_dof_map().enforce_constraints_exactly(system, sol_ghost_vec);
     return sol_ghost_vec;
-}// getGhostedSolutionVector
+}// buildGhostedSolutionVector
 
 NumericVector<double>*
-FEDataManager::getCoordsVector()
+FEDataManager::getCoordsVector() const
 {
     return getSolutionVector(COORDINATES_SYSTEM_NAME);
 }// getCoordsVector
 
 NumericVector<double>*
-FEDataManager::getGhostedCoordsVector()
+FEDataManager::buildGhostedCoordsVector()
 {
-    return getGhostedSolutionVector(COORDINATES_SYSTEM_NAME);
-}// getGhostedCoordsVector
+    return buildGhostedSolutionVector(COORDINATES_SYSTEM_NAME);
+}// buildGhostedCoordsVector
 
 void
 FEDataManager::spread(
@@ -531,7 +531,7 @@ FEDataManager::interp(
 }// interp
 
 std::pair<LinearSolver<double>*,SparseMatrix<double>*>
-FEDataManager::getL2ProjectionSolver(
+FEDataManager::buildL2ProjectionSolver(
     const std::string& system_name,
     const bool consistent_mass_matrix,
     const QuadratureType quad_type,
@@ -659,10 +659,10 @@ FEDataManager::getL2ProjectionSolver(
         d_L2_proj_quad_order[system_name] = quad_order;
     }
     return std::make_pair(d_L2_proj_solver[system_name], d_L2_proj_matrix[system_name]);
-}// getL2ProjectionSolver
+}// buildL2ProjectionSolver
 
 NumericVector<double>*
-FEDataManager::getDiagonalL2MassMatrix(
+FEDataManager::buildDiagonalL2MassMatrix(
     const std::string& system_name,
     const QuadratureType quad_type,
     const Order quad_order)
@@ -757,7 +757,7 @@ FEDataManager::getDiagonalL2MassMatrix(
         d_L2_proj_matrix_diag[system_name] = M_vec;
     }
     return d_L2_proj_matrix_diag[system_name];
-}// getDiagonalL2MassMatrix
+}// buildDiagonalL2MassMatrix
 
 bool
 FEDataManager::computeL2Projection(
@@ -780,7 +780,7 @@ FEDataManager::computeL2Projection(
     if (consistent_mass_matrix)
     {
         std::pair<libMesh::LinearSolver<double>*,SparseMatrix<double>*> proj_solver_components =
-            getL2ProjectionSolver(system_name, consistent_mass_matrix, quad_type, quad_order);
+            buildL2ProjectionSolver(system_name, consistent_mass_matrix, quad_type, quad_order);
         PetscLinearSolver<double>* solver = dynamic_cast<PetscLinearSolver<double>*>(proj_solver_components.first);
         PetscMatrix<double>* M_mat = dynamic_cast<PetscMatrix<double>*>(proj_solver_components.second);
         solver->solve(*M_mat, *M_mat, U_vec, F_vec, tol, max_its);
@@ -790,7 +790,7 @@ FEDataManager::computeL2Projection(
     }
     else
     {
-        PetscVector<double>* M_diag_vec = dynamic_cast<PetscVector<double>*>(getDiagonalL2MassMatrix(system_name,quad_type,quad_order));
+        PetscVector<double>* M_diag_vec = dynamic_cast<PetscVector<double>*>(buildDiagonalL2MassMatrix(system_name,quad_type,quad_order));
         Vec M_diag_petsc_vec = M_diag_vec->vec();
         Vec U_petsc_vec = dynamic_cast<PetscVector<double>*>(&U_vec)->vec();
         Vec F_petsc_vec = dynamic_cast<PetscVector<double>*>(&F_vec)->vec();
@@ -1132,7 +1132,7 @@ FEDataManager::updateQuadPointCountData(
     X_fe->attach_quadrature_rule(d_qrule);
     const std::vector<std::vector<double> >& X_phi = X_fe->get_phi();
     NumericVector<double>* X_vec = getCoordsVector();
-    NumericVector<double>* X_ghost_vec = getGhostedCoordsVector();
+    NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
     X_vec->localize(*X_ghost_vec);
     X_dof_map.enforce_constraints_exactly(X_system, X_ghost_vec);
     blitz::Array<double,2> X_node;

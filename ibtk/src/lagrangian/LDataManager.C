@@ -803,14 +803,15 @@ LDataManager::getGlobalNodeOffset(
 Pointer<LNodeLevelData>
 LDataManager::getLNodeLevelData(
     const std::string& quantity_name,
-    const int level_number)
+    const int level_number) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_lag_quantity_data[level_number].find(quantity_name) != d_lag_quantity_data[level_number].end());
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
+    TBOX_ASSERT(d_lag_quantity_data[level_number].count(quantity_name) > 0);
 #endif
-    return d_lag_quantity_data[level_number][quantity_name];
+    return d_lag_quantity_data[level_number].find(quantity_name)->second;
 }// getLNodeLevelData
 
 Pointer<LNodeLevelData>
@@ -2393,7 +2394,7 @@ LDataManager::initializeLevelData(
             // 1. Determine the number of local (on processor) nodes to be
             //    allocated on the patch level and allocate space for the local
             //    and non-local index data.
-            const int num_local_nodes = d_lag_init->getLocalNodeCountOnPatchLevel(
+            const int num_local_nodes = d_lag_init->computeLocalNodeCountOnPatchLevel(
                 hierarchy, level_number, init_data_time, can_be_refined, initial_time);
 
             d_local_lag_indices  [level_number].resize(num_local_nodes,-1);

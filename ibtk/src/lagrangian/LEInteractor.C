@@ -845,7 +845,7 @@ LEInteractor::interpolate(
     // Generate a list of local indices which lie in the specified box.
     std::vector<int> local_indices;
     std::vector<double> periodic_offsets;
-    getLocalIndices(local_indices, periodic_offsets, interp_box, patch, periodic_shift, idx_data);
+    buildLocalIndices(local_indices, periodic_offsets, interp_box, patch, periodic_shift, idx_data);
     if (local_indices.empty()) return;
 
     // Interpolate.
@@ -908,7 +908,7 @@ LEInteractor::interpolate(
     // Generate a list of local indices which lie in the specified box.
     std::vector<int> local_indices;
     std::vector<double> periodic_offsets;
-    getLocalIndices(local_indices, periodic_offsets, interp_box, patch, periodic_shift, idx_data);
+    buildLocalIndices(local_indices, periodic_offsets, interp_box, patch, periodic_shift, idx_data);
     if (local_indices.empty()) return;
     const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
 
@@ -1005,7 +1005,7 @@ LEInteractor::interpolate(
     // Generate a list of local indices which lie in the specified box and set
     // all periodic offsets to zero.
     std::vector<int> local_indices;
-    getLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
+    buildLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
     std::vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
     if (local_indices.empty()) return;
 
@@ -1086,7 +1086,7 @@ LEInteractor::interpolate(
     // Generate a list of local indices which lie in the specified box and set
     // all periodic offsets to zero.
     std::vector<int> local_indices;
-    getLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
+    buildLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
     std::vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
     if (local_indices.empty()) return;
     const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
@@ -1231,7 +1231,7 @@ LEInteractor::spread(
     // Generate a list of local indices which lie in the specified box.
     std::vector<int> local_indices;
     std::vector<double> periodic_offsets;
-    getLocalIndices(local_indices, periodic_offsets, spread_box, patch, periodic_shift, idx_data);
+    buildLocalIndices(local_indices, periodic_offsets, spread_box, patch, periodic_shift, idx_data);
     if (local_indices.empty()) return;
 
     // Spread.
@@ -1293,7 +1293,7 @@ LEInteractor::spread(
     // Generate a list of local indices which lie in the specified box.
     std::vector<int> local_indices;
     std::vector<double> periodic_offsets;
-    getLocalIndices(local_indices, periodic_offsets, spread_box, patch, periodic_shift, idx_data);
+    buildLocalIndices(local_indices, periodic_offsets, spread_box, patch, periodic_shift, idx_data);
     if (local_indices.empty()) return;
     const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
 
@@ -1408,7 +1408,7 @@ LEInteractor::spread(
     // Generate a list of local indices which lie in the specified box and set
     // all periodic offsets to zero.
     std::vector<int> local_indices;
-    getLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
+    buildLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
     std::vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
     if (local_indices.empty()) return;
 
@@ -1469,7 +1469,7 @@ LEInteractor::spread(
     // Generate a list of local indices which lie in the specified box and set
     // all periodic offsets to zero.
     std::vector<int> local_indices;
-    getLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
+    buildLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
     std::vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
     if (local_indices.empty()) return;
     const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
@@ -2241,7 +2241,7 @@ LEInteractor::spread(
 }// spread
 
 void
-LEInteractor::getLocalIndices(
+LEInteractor::buildLocalIndices(
     std::vector<int>& local_indices,
     std::vector<double>& periodic_offsets,
     const Box<NDIM>& box,
@@ -2305,7 +2305,7 @@ LEInteractor::getLocalIndices(
     {
         if (s_sort_mode != SORT_INCREASING_LAG_IDX && s_sort_mode != SORT_DECREASING_LAG_IDX)
         {
-            TBOX_ERROR("LEInteractor::getLocalIndices():\n"
+            TBOX_ERROR("LEInteractor::buildLocalIndices():\n"
                        << "  invalid debug sort mode; s_sort_mode = " << s_sort_mode << ".\n");
         }
 
@@ -2357,10 +2357,10 @@ LEInteractor::getLocalIndices(
         }
     }
     return;
-}// getLocalIndices
+}// buildLocalIndices
 
 void
-LEInteractor::getLocalIndices(
+LEInteractor::buildLocalIndices(
     std::vector<int>& local_indices,
     const Box<NDIM>& box,
     const Pointer<Patch<NDIM> >& patch,
@@ -2389,7 +2389,7 @@ LEInteractor::getLocalIndices(
         if (box.contains(i)) local_indices.push_back(k);
     }
     return;
-}// getLocalIndices
+}// buildLocalIndices
 
 void
 LEInteractor::userDefinedInterpolate(

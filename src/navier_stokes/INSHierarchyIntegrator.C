@@ -1362,7 +1362,7 @@ INSHierarchyIntegrator::advanceHierarchy(
 }// advanceHierarchy
 
 double
-INSHierarchyIntegrator::getStableTimestep()
+INSHierarchyIntegrator::getStableTimestep() const
 {
     t_get_stable_timestep->start();
 
@@ -3149,37 +3149,37 @@ INSHierarchyIntegrator::applyGradientDetector(
 ///
 
 Pointer<CellVariable<NDIM,double> >
-INSHierarchyIntegrator::getVelocityVar()
+INSHierarchyIntegrator::getVelocityVar() const
 {
     return d_U_var;
 }// getVelocityVar
 
 Pointer<CellVariable<NDIM,double> >
-INSHierarchyIntegrator::getPressureVar()
+INSHierarchyIntegrator::getPressureVar() const
 {
     return d_P_var;
 }// getPressureVar
 
 Pointer<CellVariable<NDIM,double> >
-INSHierarchyIntegrator::getExtrapolatedPressureVar()
+INSHierarchyIntegrator::getExtrapolatedPressureVar() const
 {
     return d_P_extrap_var;
 }// getExtrapolatedPressureVar
 
 Pointer<FaceVariable<NDIM,double> >
-INSHierarchyIntegrator::getAdvectionVelocityVar()
+INSHierarchyIntegrator::getAdvectionVelocityVar() const
 {
     return d_u_adv_var;
 }// getAdvectionVelocityVar
 
 Pointer<CellVariable<NDIM,double> >
-INSHierarchyIntegrator::getForceVar()
+INSHierarchyIntegrator::getForceVar() const
 {
     return d_F_var;
 }// getForceVar
 
 Pointer<CellVariable<NDIM,double> >
-INSHierarchyIntegrator::getSourceVar()
+INSHierarchyIntegrator::getSourceVar() const
 {
     return d_Q_var;
 }// getSourceVar

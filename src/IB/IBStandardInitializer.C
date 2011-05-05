@@ -284,7 +284,7 @@ IBStandardInitializer::getLevelHasLagrangianData(
 }// getLevelHasLagrangianData
 
 int
-IBStandardInitializer::getLocalNodeCountOnPatchLevel(
+IBStandardInitializer::computeLocalNodeCountOnPatchLevel(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
@@ -306,7 +306,7 @@ IBStandardInitializer::getLocalNodeCountOnPatchLevel(
         local_node_count += patch_vertices.size();
     }
     return local_node_count;
-}// getLocalNodeCountOnPatchLevel
+}// computeLocalNodeCountOnPatchLevel
 
 void
 IBStandardInitializer::initializeStructureIndexingOnPatchLevel(

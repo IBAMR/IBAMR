@@ -186,11 +186,11 @@ protected:
     /*!
      * Generate a unique ID number.
      *
-     * Every call to getUniqueID() returns a different integer, simplifying the
-     * task of generating ID numbers for StreamableFactory objects.
+     * Every call to createUniqueID() returns a different integer, simplifying
+     * the task of generating ID numbers for StreamableFactory objects.
      */
     static int
-    getUniqueID();
+    createUniqueID();
 
 private:
     typedef std::map<int,SAMRAI::tbox::Pointer<StreamableFactory> > StreamableFactoryMap;

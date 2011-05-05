@@ -68,7 +68,7 @@ CopyToRootTransaction::~CopyToRootTransaction()
 }// CopyToRootTransaction
 
 Pointer<PatchData<NDIM> >
-CopyToRootTransaction::getRootPatchData()
+CopyToRootTransaction::getRootPatchData() const
 {
     return d_dst_patch_data;
 }// getRootPatchData

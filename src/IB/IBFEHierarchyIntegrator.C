@@ -801,10 +801,10 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     NumericVector<double>& U_half = *(U_system.              solution);
     NumericVector<double>& F_half = *(F_system.              solution);
 
-    NumericVector<double>* X_half_IB_ghost_ptr = d_fe_data_manager->getGhostedCoordsVector();
+    NumericVector<double>* X_half_IB_ghost_ptr = d_fe_data_manager->buildGhostedCoordsVector();
     NumericVector<double>& X_half_IB_ghost = *X_half_IB_ghost_ptr;
 
-    NumericVector<double>* F_half_IB_ghost_ptr = d_fe_data_manager->getGhostedSolutionVector(FORCE_SYSTEM_NAME);
+    NumericVector<double>* F_half_IB_ghost_ptr = d_fe_data_manager->buildGhostedSolutionVector(FORCE_SYSTEM_NAME);
     NumericVector<double>& F_half_IB_ghost = *F_half_IB_ghost_ptr;
 
     NumericVector<double>* J_bar_current = NULL;
@@ -815,7 +815,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         System& J_bar_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
         J_bar_current       = J_bar_system.solution.get();
         J_bar_half          = J_bar_system.current_local_solution.get();
-        J_bar_half_IB_ghost = d_fe_data_manager->getGhostedSolutionVector(PROJ_STRAIN_SYSTEM_NAME);
+        J_bar_half_IB_ghost = d_fe_data_manager->buildGhostedSolutionVector(PROJ_STRAIN_SYSTEM_NAME);
     }
 
     // Initialize the various LNodeLevelData objects on each level of the patch hierarchy.
@@ -1866,7 +1866,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
          cit != d_PK1_stress_fcn_systems.end(); ++cit)
     {
         System& system = equation_systems->get_system<System>(*cit);
-        PK1_stress_fcn_data.push_back(d_fe_data_manager->getGhostedSolutionVector(system.name()));
+        PK1_stress_fcn_data.push_back(d_fe_data_manager->buildGhostedSolutionVector(system.name()));
     }
 
     std::vector<NumericVector<double>*> lag_pressure_fcn_data;
@@ -1874,7 +1874,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
          cit != d_lag_pressure_fcn_systems.end(); ++cit)
     {
         System& system = equation_systems->get_system<System>(*cit);
-        lag_pressure_fcn_data.push_back(d_fe_data_manager->getGhostedSolutionVector(system.name()));
+        lag_pressure_fcn_data.push_back(d_fe_data_manager->buildGhostedSolutionVector(system.name()));
     }
 
     std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
@@ -1882,7 +1882,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
          cit != d_lag_surface_force_fcn_systems.end(); ++cit)
     {
         System& system = equation_systems->get_system<System>(*cit);
-        lag_surface_force_fcn_data.push_back(d_fe_data_manager->getGhostedSolutionVector(system.name()));
+        lag_surface_force_fcn_data.push_back(d_fe_data_manager->buildGhostedSolutionVector(system.name()));
     }
 
     // Loop over the patches to spread the transmission elastic force density

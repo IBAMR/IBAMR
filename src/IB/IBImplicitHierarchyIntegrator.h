@@ -391,7 +391,7 @@ public:
      */
     virtual double
     getStableTimestep(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx) const;
 
     /*!
      * Return true if the current step count indicates that regridding should
@@ -680,7 +680,7 @@ public:
      * Return a pointer to the fluid velocity state variable.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >
-    getVelocityVar();
+    getVelocityVar() const;
 
     /*!
      * Return a pointer to the fluid pressure state variable.
@@ -688,7 +688,7 @@ public:
      * \note The pressure state variable is defined at time level n-1/2.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
-    getPressureVar();
+    getPressureVar() const;
 
     /*!
      * Return a pointer to the fluid pressure variable extrapolated forward in
@@ -697,19 +697,19 @@ public:
      * \note The pressure state variable is defined at time level n-1/2.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
-    getExtrapolatedPressureVar();
+    getExtrapolatedPressureVar() const;
 
     /*!
      * Return a pointer to the body force variable.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >
-    getForceVar();
+    getForceVar() const;
 
     /*!
      * Return a pointer to the source strength variable.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
-    getSourceVar();
+    getSourceVar() const;
 
     ///
     ///  The following routines:

@@ -160,13 +160,13 @@ public:
      * \brief Return a constant reference to the source data.
      */
     inline const std::vector<LNodeIndexTransactionComponent>&
-    getSourceData() { return d_src_index_set; }
+    getSourceData() const { return d_src_index_set; }
 
     /*!
      * \brief Return a constant reference to the destination data.
      */
     inline const std::vector<LNodeIndexTransactionComponent>&
-    getDestinationData() { return d_dst_index_set; }
+    getDestinationData() const { return d_dst_index_set; }
 
     /*!
      * \brief Return a boolean indicating whether this transaction can estimate

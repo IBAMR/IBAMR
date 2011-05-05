@@ -83,6 +83,13 @@ public:
     /*!
      * \brief Allow access to the current S J R = S J S^{*} matrices.
      */
+    const std::vector<Mat>&
+    getSJRMats() const
+        { return d_SJR_mats; }
+
+    /*!
+     * \brief Allow access to the current S J R = S J S^{*} matrices.
+     */
     std::vector<Mat>&
     getSJRMats()
         { return d_SJR_mats; }

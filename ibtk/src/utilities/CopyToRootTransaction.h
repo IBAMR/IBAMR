@@ -74,7 +74,7 @@ public:
      * Return a pointer to the data on the root process.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
-    getRootPatchData();
+    getRootPatchData() const;
 
     /*!
      * Return a boolean indicating whether this transaction can estimate the

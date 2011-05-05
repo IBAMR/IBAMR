@@ -1057,7 +1057,7 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
 
 double
 IBImplicitHierarchyIntegrator::getStableTimestep(
-    Pointer<VariableContext> ctx)
+    Pointer<VariableContext> ctx) const
 {
     t_get_stable_timestep->start();
 
@@ -2506,31 +2506,31 @@ IBImplicitHierarchyIntegrator::applyGradientDetector(
 ///
 
 Pointer<SideVariable<NDIM,double> >
-IBImplicitHierarchyIntegrator::getVelocityVar()
+IBImplicitHierarchyIntegrator::getVelocityVar() const
 {
     return d_u_var;
 }// getVelocityVar
 
 Pointer<CellVariable<NDIM,double> >
-IBImplicitHierarchyIntegrator::getPressureVar()
+IBImplicitHierarchyIntegrator::getPressureVar() const
 {
     return d_p_var;
 }// getPressureVar
 
 Pointer<CellVariable<NDIM,double> >
-IBImplicitHierarchyIntegrator::getExtrapolatedPressureVar()
+IBImplicitHierarchyIntegrator::getExtrapolatedPressureVar() const
 {
     return d_p_extrap_var;
 }// getExtrapolatedPressureVar
 
 Pointer<SideVariable<NDIM,double> >
-IBImplicitHierarchyIntegrator::getForceVar()
+IBImplicitHierarchyIntegrator::getForceVar() const
 {
     return d_f_var;
 }// getForceVar
 
 Pointer<CellVariable<NDIM,double> >
-IBImplicitHierarchyIntegrator::getSourceVar()
+IBImplicitHierarchyIntegrator::getSourceVar() const
 {
     return d_q_var;
 }// getSourceVar
