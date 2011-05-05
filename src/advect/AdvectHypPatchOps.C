@@ -587,9 +587,6 @@ AdvectHypPatchOps::registerModelVariables(
         }
 
         Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(!u_var.isNull());
-#endif
         const bool u_is_div_free = d_u_is_div_free[u_var];
         if (!conservation_form || !u_is_div_free)
         {
@@ -602,7 +599,7 @@ AdvectHypPatchOps::registerModelVariables(
                 d_grid_geometry,
                 "CONSERVATIVE_COARSEN",
                 "NO_REFINE");
-            if (d_u_integral_var[u_var].isNull())
+            if (!u_var.isNull() && d_u_integral_var[u_var].isNull())
             {
                 d_u_integral_var[u_var] = new FaceVariable<NDIM,double>(
                     d_object_name+"::"+u_var->getName()+" time integral");
@@ -731,12 +728,17 @@ AdvectHypPatchOps::computeFluxesOnPatch(
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
-
-        Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
-        Pointer<FaceData<NDIM,double> > u_data = patch.getPatchData(u_var, getDataContext());
         Pointer<FaceData<NDIM,double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
 
+        if (u_var.isNull())
+        {
+            q_integral_data->fillAll(0.0);
+            continue;
+        }
+
         // Predict time- and face-centered values.
+        Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+        Pointer<FaceData<NDIM,double> > u_data = patch.getPatchData(u_var, getDataContext());
         if (!d_Q_F_map[Q_var].isNull())
         {
             Pointer<CellData<NDIM,double> > F_data = patch.getPatchData(d_Q_F_map[Q_var], getDataContext());
@@ -794,6 +796,8 @@ AdvectHypPatchOps::computeFluxesOnPatch(
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
 
+        if (u_var.isNull()) continue;
+
         Pointer<FaceData<NDIM,double> > u_data = patch.getPatchData(u_var, getDataContext());
 
         const bool conservation_form = d_Q_difference_form[Q_var] == CONSERVATIVE;
@@ -837,6 +841,8 @@ AdvectHypPatchOps::conservativeDifferenceOnPatch(
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
+
+        if (u_var.isNull()) continue;
 
         Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
         Pointer<FaceData<NDIM,double> > flux_integral_data = getFluxIntegralData(Q_var, patch, getDataContext());
@@ -1317,6 +1323,9 @@ AdvectHypPatchOps::getFluxIntegralData(
     Patch<NDIM>& patch,
     Pointer<VariableContext> context)
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!Q_var.isNull());
+#endif
     if (d_Q_difference_form[Q_var] == CONSERVATIVE)
     {
         return patch.getPatchData(d_flux_integral_var[Q_var], context);
@@ -1333,6 +1342,9 @@ AdvectHypPatchOps::getQIntegralData(
     Patch<NDIM>& patch,
     Pointer<VariableContext> context)
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!Q_var.isNull());
+#endif
     if (!d_u_is_div_free[d_Q_u_map[Q_var]] || d_Q_difference_form[Q_var] != CONSERVATIVE)
     {
         return patch.getPatchData(d_q_integral_var[Q_var], context);
@@ -1349,8 +1361,11 @@ AdvectHypPatchOps::getUIntegralData(
     Patch<NDIM>& patch,
     Pointer<VariableContext> context)
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!Q_var.isNull());
+#endif
     Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
-    if (!d_u_is_div_free[u_var] || d_Q_difference_form[Q_var] != CONSERVATIVE)
+    if (!u_var.isNull() && (!d_u_is_div_free[u_var] || d_Q_difference_form[Q_var] != CONSERVATIVE))
     {
         return patch.getPatchData(d_u_integral_var[u_var], context);
     }
@@ -1390,6 +1405,8 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
+
+        if (u_var.isNull()) continue;
 
         const int Q_data_idx = var_db->mapVariableAndContextToIndex(Q_var, d_integrator->getScratchContext());
 
