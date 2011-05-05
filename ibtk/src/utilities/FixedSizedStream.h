@@ -43,6 +43,9 @@
 // SAMRAI INCLUDES
 #include <tbox/AbstractStream.h>
 
+// C++ STDLIB INCLUDES
+#include <vector>
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
@@ -428,7 +431,7 @@ private:
     /*
      * The buffer.
      */
-    char* const d_buffer;
+    std::vector<char> d_buffer;
 };
 }// namespace IBTK
 

@@ -47,9 +47,6 @@
 // IBTK INCLUDES
 #include <ibtk/namespaces.h>
 
-// IBTK THIRD-PARTY INCLUDES
-#include <ibtk/muParser.h>
-
 // SAMRAI INCLUDES
 #include <CartesianPatchGeometry.h>
 
@@ -78,9 +75,9 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(
       d_acoef_function_strings(),
       d_bcoef_function_strings(),
       d_gcoef_function_strings(),
-      d_acoef_parsers(),
-      d_bcoef_parsers(),
-      d_gcoef_parsers(),
+      d_acoef_parsers(2*NDIM),
+      d_bcoef_parsers(2*NDIM),
+      d_gcoef_parsers(2*NDIM),
       d_parser_time(new double),
       d_parser_posn(new double[NDIM])
 {
@@ -126,9 +123,7 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(
             TBOX_WARNING("muParserRobinBcCoefs::muParserRobinBcCoefs():\n"
                          << "  no function corresponding to key ``" << key_name <<"'' found for side = " << d << "; using acoef = 0.0." << std::endl);
         }
-        d_acoef_parsers.push_back(new mu::Parser());
-        d_acoef_parsers.back()->SetExpr(d_acoef_function_strings.back());
-        d_all_parsers.push_back(d_acoef_parsers.back());
+        d_acoef_parsers[d].SetExpr(d_acoef_function_strings.back());
 
         key_name = "bcoef" + postfix;
         if (input_db->isString(key_name))
@@ -141,9 +136,7 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(
             TBOX_WARNING("muParserRobinBcCoefs::muParserRobinBcCoefs():\n"
                          << "  no function corresponding to key ``" << key_name <<"'' found for side = " << d << "; using bcoef = 0.0." << std::endl);
         }
-        d_bcoef_parsers.push_back(new mu::Parser());
-        d_bcoef_parsers.back()->SetExpr(d_bcoef_function_strings.back());
-        d_all_parsers.push_back(d_bcoef_parsers.back());
+        d_bcoef_parsers[d].SetExpr(d_bcoef_function_strings.back());
 
         key_name = "gcoef" + postfix;
         if (input_db->isString(key_name))
@@ -156,16 +149,21 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(
             TBOX_WARNING("muParserRobinBcCoefs::muParserRobinBcCoefs():\n"
                          << "  no function corresponding to key ``" << key_name <<"'' found for side = " << d << "; using gcoef = 0.0." << std::endl);
         }
-        d_gcoef_parsers.push_back(new mu::Parser());
-        d_gcoef_parsers.back()->SetExpr(d_gcoef_function_strings.back());
-        d_all_parsers.push_back(d_gcoef_parsers.back());
+        d_gcoef_parsers[d].SetExpr(d_gcoef_function_strings.back());
     }
 
     // Define the default and user-provided constants.
+    std::vector<mu::Parser*> all_parsers(3*2*NDIM);
+    for (int d = 0; d < 2*NDIM; ++d)
+    {
+        all_parsers[3*d  ] = &d_acoef_parsers[d];
+        all_parsers[3*d+1] = &d_bcoef_parsers[d];
+        all_parsers[3*d+2] = &d_gcoef_parsers[d];
+    }
     const double pi = 3.1415926535897932384626433832795;
     const double* const xLower = grid_geom->getXLower();
     const double* const xUpper = grid_geom->getXUpper();
-    for (std::vector<mu::Parser*>::const_iterator cit = d_all_parsers.begin(); cit != d_all_parsers.end(); ++cit)
+    for (std::vector<mu::Parser*>::const_iterator cit = all_parsers.begin(); cit != all_parsers.end(); ++cit)
     {
         // Various names for pi.
         (*cit)->DefineConst("pi", pi);
@@ -257,11 +255,7 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(
 
 muParserRobinBcCoefs::~muParserRobinBcCoefs()
 {
-    for (std::vector<mu::Parser*>::const_iterator cit = d_all_parsers.begin(); cit != d_all_parsers.end(); ++cit)
-    {
-        delete (*cit);
-    }
-    delete d_parser_time;
+    delete   d_parser_time;
     delete[] d_parser_posn;
     return;
 }// ~muParserRobinBcCoefs
@@ -301,9 +295,9 @@ muParserRobinBcCoefs::setBcCoefs(
     TBOX_ASSERT(!fill_gcoef_data || bc_coef_box == gcoef_data->getBox());
 #endif
 
-    mu::Parser* const acoef_parser = d_acoef_parsers[location_index];
-    mu::Parser* const bcoef_parser = d_bcoef_parsers[location_index];
-    mu::Parser* const gcoef_parser = d_gcoef_parsers[location_index];
+    const mu::Parser& acoef_parser = d_acoef_parsers[location_index];
+    const mu::Parser& bcoef_parser = d_bcoef_parsers[location_index];
+    const mu::Parser& gcoef_parser = d_gcoef_parsers[location_index];
     *d_parser_time = fill_time;
     for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
     {
@@ -319,9 +313,9 @@ muParserRobinBcCoefs::setBcCoefs(
                 d_parser_posn[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d)));
             }
         }
-        if (fill_acoef_data) (*acoef_data)(i,0) = acoef_parser->Eval();
-        if (fill_bcoef_data) (*bcoef_data)(i,0) = bcoef_parser->Eval();
-        if (fill_gcoef_data) (*gcoef_data)(i,0) = gcoef_parser->Eval();
+        if (fill_acoef_data) (*acoef_data)(i,0) = acoef_parser.Eval();
+        if (fill_bcoef_data) (*bcoef_data)(i,0) = bcoef_parser.Eval();
+        if (fill_gcoef_data) (*gcoef_data)(i,0) = gcoef_parser.Eval();
     }
     return;
 }// setBcCoefs

@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // SAMRAI INCLUDES
-#include <CoarsenOperator.h>
+#include <CartesianCellDoubleWeightedAverage.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -160,7 +160,7 @@ private:
     /*!
      * "Backup" coarsen operator for even refinement ratios less than 4.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_weighted_average_coarsen_op;
+    SAMRAI::geom::CartesianCellDoubleWeightedAverage<NDIM> d_weighted_average_coarsen_op;
 };
 }// namespace IBTK
 

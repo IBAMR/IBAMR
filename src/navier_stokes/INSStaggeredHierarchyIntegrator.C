@@ -104,7 +104,7 @@ extern "C"
         const double* , const double* , const double* ,
 #endif
         double&
-                                        );
+                                 );
 
     void
     NAVIER_STOKES_SIDE_TO_FACE_FC(
@@ -142,7 +142,7 @@ extern "C"
         const double* ,
         double* , double* , double*
 #endif
-                                              );
+                                          );
 
     void
     NAVIER_STOKES_STAGGERED_CONS_SOURCE_FC(
@@ -164,7 +164,7 @@ extern "C"
         const double* ,
         double* , double* , double*
 #endif
-                                               );
+                                           );
 
     void
     NAVIER_STOKES_STAGGERED_SKEW_SYM_SOURCE_FC(
@@ -344,6 +344,28 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     d_current_context = var_db->getContext(d_object_name+"::CURRENT");
     d_new_context     = var_db->getContext(d_object_name+"::NEW"    );
     d_scratch_context = var_db->getContext(d_object_name+"::SCRATCH");
+
+    // Initialize all variables.
+    d_U_var          = new SideVariable<NDIM,double>(d_object_name+"::U"          );
+    d_U_cc_var       = new CellVariable<NDIM,double>(d_object_name+"::U_cc",  NDIM);
+    d_P_var          = new CellVariable<NDIM,double>(d_object_name+"::P"          );
+    d_P_extrap_var   = new CellVariable<NDIM,double>(d_object_name+"::P_extrap"   );
+    d_F_var          = new SideVariable<NDIM,double>(d_object_name+"::F"          );
+    d_F_cc_var       = new CellVariable<NDIM,double>(d_object_name+"::F_cc",  NDIM);
+    d_Q_var          = new CellVariable<NDIM,double>(d_object_name+"::Q"          );
+    d_F_div_var      = new SideVariable<NDIM,double>(d_object_name+"::F_div"      );
+#if ( NDIM == 2)
+    d_Omega_var      = new CellVariable<NDIM,double>(d_object_name+"::Omega"      );
+#endif
+#if ( NDIM == 3)
+    d_Omega_var      = new CellVariable<NDIM,double>(d_object_name+"::Omega", NDIM);
+    d_Omega_Norm_var = new CellVariable<NDIM,double>(d_object_name+"::||Omega||_2");
+#endif
+    d_Div_U_var      = new CellVariable<NDIM,double>(d_object_name+"::Div_U"      );
+    d_Phi_var        = new CellVariable<NDIM,double>(d_object_name+"::Phi"        );
+    d_U_regrid_var   = new SideVariable<NDIM,double>(d_object_name+"::U_regrid"   );
+    d_U_src_var      = new SideVariable<NDIM,double>(d_object_name+"::U_src"      );
+    d_indicator_var  = new SideVariable<NDIM,double>(d_object_name+"::indicator"  );
 
     // Setup Timers.
     IBAMR_DO_ONCE(
@@ -641,34 +663,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
             }
         }
     }
-
-    // Initialize all variables.
-    d_U_var          = new SideVariable<NDIM,double>(d_object_name+"::U"          );
-    d_U_cc_var       = new CellVariable<NDIM,double>(d_object_name+"::U_cc",  NDIM);
-    d_P_var          = new CellVariable<NDIM,double>(d_object_name+"::P"          );
-    d_P_extrap_var   = new CellVariable<NDIM,double>(d_object_name+"::P_extrap"   );
-    if (!d_F_fcn.isNull())
-    {
-        d_F_var      = new SideVariable<NDIM,double>(d_object_name+"::F"          );
-        d_F_cc_var   = new CellVariable<NDIM,double>(d_object_name+"::F_cc",  NDIM);
-    }
-    if (!d_Q_fcn.isNull())
-    {
-        d_Q_var      = new CellVariable<NDIM,double>(d_object_name+"::Q"          );
-        d_F_div_var  = new SideVariable<NDIM,double>(d_object_name+"::F_div"      );
-    }
-#if ( NDIM == 2)
-    d_Omega_var      = new CellVariable<NDIM,double>(d_object_name+"::Omega"      );
-#endif
-#if ( NDIM == 3)
-    d_Omega_var      = new CellVariable<NDIM,double>(d_object_name+"::Omega", NDIM);
-    d_Omega_Norm_var = new CellVariable<NDIM,double>(d_object_name+"::||Omega||_2");
-#endif
-    d_Div_U_var      = new CellVariable<NDIM,double>(d_object_name+"::Div_U"      );
-    d_Phi_var        = new CellVariable<NDIM,double>(d_object_name+"::Phi"        );
-    d_U_regrid_var   = new SideVariable<NDIM,double>(d_object_name+"::U_regrid"   );
-    d_U_src_var      = new SideVariable<NDIM,double>(d_object_name+"::U_src"      );
-    d_indicator_var  = new SideVariable<NDIM,double>(d_object_name+"::indicator"  );
 
     // Create the default communication algorithms.
     d_fill_after_regrid = new RefineAlgorithm<NDIM>();
@@ -3120,7 +3114,7 @@ INSStaggeredHierarchyIntegrator::getPatchDt(
         U_data->getPointer(0),U_data->getPointer(1),U_data->getPointer(2),
         stable_dt
 #endif
-                                        );
+                                 );
     return stable_dt;
 }// getPatchDt
 

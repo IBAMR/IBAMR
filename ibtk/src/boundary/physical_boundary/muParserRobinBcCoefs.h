@@ -35,6 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// IBTK THIRD-PARTY INCLUDES
+#include <ibtk/muParser.h>
+
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
 #include <RobinBcCoefStrategy.h>
@@ -42,13 +45,6 @@
 // C++ STDLIB INCLUDES
 #include <map>
 #include <vector>
-
-/////////////////////////////// FORWARD DECLARATIONS /////////////////////////
-
-namespace mu
-{
-class Parser;
-}// namespace mu
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -196,10 +192,9 @@ private:
     /*!
      * The mu::Parser objects which evaluate the data-setting functions.
      */
-    std::vector<mu::Parser*> d_acoef_parsers;
-    std::vector<mu::Parser*> d_bcoef_parsers;
-    std::vector<mu::Parser*> d_gcoef_parsers;
-    std::vector<mu::Parser*> d_all_parsers;
+    std::vector<mu::Parser> d_acoef_parsers;
+    std::vector<mu::Parser> d_bcoef_parsers;
+    std::vector<mu::Parser> d_gcoef_parsers;
 
     /*!
      * Time and position variables.

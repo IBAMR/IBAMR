@@ -60,7 +60,7 @@ FixedSizedStream::FixedSizedStream(
     : d_buffer_size(bytes),
       d_current_size(0),
       d_buffer_index(0),
-      d_buffer(new char[d_buffer_size])
+      d_buffer(d_buffer_size)
 {
     // intentionally blank
     return;
@@ -72,15 +72,15 @@ FixedSizedStream::FixedSizedStream(
     : d_buffer_size(bytes),
       d_current_size(0),
       d_buffer_index(0),
-      d_buffer(new char[d_buffer_size])
+      d_buffer(d_buffer_size)
 {
-    memcpy(static_cast<void*>(d_buffer), buffer, bytes);
+    memcpy(static_cast<void*>(&d_buffer[0]), buffer, bytes);
     return;
 }// FixedSizedStream
 
 FixedSizedStream::~FixedSizedStream()
 {
-    delete[] d_buffer;
+    // intentionally blank
     return;
 }// ~FixedSizedStream
 

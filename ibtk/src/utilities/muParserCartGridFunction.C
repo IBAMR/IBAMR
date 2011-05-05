@@ -47,9 +47,6 @@
 // IBTK INCLUDES
 #include <ibtk/namespaces.h>
 
-// IBTK THIRD-PARTY INCLUDES
-#include <ibtk/muParser.h>
-
 // SAMRAI INCLUDES
 #include <CartesianPatchGeometry.h>
 #include <CellData.h>
@@ -78,8 +75,8 @@ muParserCartGridFunction::muParserCartGridFunction(
       d_constants(),
       d_function_strings(),
       d_parsers(),
-      d_parser_time(new double),
-      d_parser_posn(new double[NDIM])
+      d_parser_time(),
+      d_parser_posn()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
@@ -109,8 +106,8 @@ muParserCartGridFunction::muParserCartGridFunction(
     {
         // Assume scalar-valued function.
         d_function_strings.push_back(input_db->getString("function"));
-        d_parsers.push_back(new mu::Parser());
-        d_parsers.back()->SetExpr(d_function_strings.back());
+        d_parsers.resize(1);
+        d_parsers.back().SetExpr(d_function_strings.back());
     }
     else
     {
@@ -120,8 +117,8 @@ muParserCartGridFunction::muParserCartGridFunction(
         while (input_db->isString(key_name))
         {
             d_function_strings.push_back(input_db->getString(key_name));
-            d_parsers.push_back(new mu::Parser());
-            d_parsers.back()->SetExpr(d_function_strings.back());
+            d_parsers.resize(d_parsers.size()+1);
+            d_parsers.back().SetExpr(d_function_strings.back());
 
             ++d;
             std::ostringstream stream;
@@ -142,12 +139,12 @@ muParserCartGridFunction::muParserCartGridFunction(
     const double pi = 3.1415926535897932384626433832795;
     const double* const xLower = grid_geom->getXLower();
     const double* const xUpper = grid_geom->getXUpper();
-    for (std::vector<mu::Parser*>::const_iterator cit = d_parsers.begin(); cit != d_parsers.end(); ++cit)
+    for (std::vector<mu::Parser>::iterator it = d_parsers.begin(); it != d_parsers.end(); ++it)
     {
         // Various names for pi.
-        (*cit)->DefineConst("pi", pi);
-        (*cit)->DefineConst("Pi", pi);
-        (*cit)->DefineConst("PI", pi);
+        it->DefineConst("pi", pi);
+        it->DefineConst("Pi", pi);
+        it->DefineConst("PI", pi);
 
         // The extents of the domain.
         for (int d = 0; d < NDIM; ++d)
@@ -156,77 +153,77 @@ muParserCartGridFunction::muParserCartGridFunction(
             stream << d;
             const std::string postfix = stream.str();
 
-            (*cit)->DefineConst("X_LOWER" + postfix, xLower[d]);
-            (*cit)->DefineConst("X_lower" + postfix, xLower[d]);
-            (*cit)->DefineConst("x_lower" + postfix, xLower[d]);
-            (*cit)->DefineConst("x_LOWER" + postfix, xLower[d]);
-            (*cit)->DefineConst("X_Lower" + postfix, xLower[d]);
-            (*cit)->DefineConst("X_lower" + postfix, xLower[d]);
-            (*cit)->DefineConst("XLower"  + postfix, xLower[d]);
-            (*cit)->DefineConst("Xlower"  + postfix, xLower[d]);
-            (*cit)->DefineConst("x_Lower" + postfix, xLower[d]);
-            (*cit)->DefineConst("x_lower" + postfix, xLower[d]);
-            (*cit)->DefineConst("xLower"  + postfix, xLower[d]);
-            (*cit)->DefineConst("xlower"  + postfix, xLower[d]);
+            it->DefineConst("X_LOWER" + postfix, xLower[d]);
+            it->DefineConst("X_lower" + postfix, xLower[d]);
+            it->DefineConst("x_lower" + postfix, xLower[d]);
+            it->DefineConst("x_LOWER" + postfix, xLower[d]);
+            it->DefineConst("X_Lower" + postfix, xLower[d]);
+            it->DefineConst("X_lower" + postfix, xLower[d]);
+            it->DefineConst("XLower"  + postfix, xLower[d]);
+            it->DefineConst("Xlower"  + postfix, xLower[d]);
+            it->DefineConst("x_Lower" + postfix, xLower[d]);
+            it->DefineConst("x_lower" + postfix, xLower[d]);
+            it->DefineConst("xLower"  + postfix, xLower[d]);
+            it->DefineConst("xlower"  + postfix, xLower[d]);
 
-            (*cit)->DefineConst("X_LOWER_" + postfix, xLower[d]);
-            (*cit)->DefineConst("X_lower_" + postfix, xLower[d]);
-            (*cit)->DefineConst("x_lower_" + postfix, xLower[d]);
-            (*cit)->DefineConst("x_LOWER_" + postfix, xLower[d]);
-            (*cit)->DefineConst("X_Lower_" + postfix, xLower[d]);
-            (*cit)->DefineConst("X_lower_" + postfix, xLower[d]);
-            (*cit)->DefineConst("XLower_"  + postfix, xLower[d]);
-            (*cit)->DefineConst("Xlower_"  + postfix, xLower[d]);
-            (*cit)->DefineConst("x_Lower_" + postfix, xLower[d]);
-            (*cit)->DefineConst("x_lower_" + postfix, xLower[d]);
-            (*cit)->DefineConst("xLower_"  + postfix, xLower[d]);
-            (*cit)->DefineConst("xlower_"  + postfix, xLower[d]);
+            it->DefineConst("X_LOWER_" + postfix, xLower[d]);
+            it->DefineConst("X_lower_" + postfix, xLower[d]);
+            it->DefineConst("x_lower_" + postfix, xLower[d]);
+            it->DefineConst("x_LOWER_" + postfix, xLower[d]);
+            it->DefineConst("X_Lower_" + postfix, xLower[d]);
+            it->DefineConst("X_lower_" + postfix, xLower[d]);
+            it->DefineConst("XLower_"  + postfix, xLower[d]);
+            it->DefineConst("Xlower_"  + postfix, xLower[d]);
+            it->DefineConst("x_Lower_" + postfix, xLower[d]);
+            it->DefineConst("x_lower_" + postfix, xLower[d]);
+            it->DefineConst("xLower_"  + postfix, xLower[d]);
+            it->DefineConst("xlower_"  + postfix, xLower[d]);
 
-            (*cit)->DefineConst("X_UPPER" + postfix, xUpper[d]);
-            (*cit)->DefineConst("X_upper" + postfix, xUpper[d]);
-            (*cit)->DefineConst("x_upper" + postfix, xUpper[d]);
-            (*cit)->DefineConst("x_UPPER" + postfix, xUpper[d]);
-            (*cit)->DefineConst("X_Upper" + postfix, xUpper[d]);
-            (*cit)->DefineConst("X_upper" + postfix, xUpper[d]);
-            (*cit)->DefineConst("XUpper"  + postfix, xUpper[d]);
-            (*cit)->DefineConst("Xupper"  + postfix, xUpper[d]);
-            (*cit)->DefineConst("x_Upper" + postfix, xUpper[d]);
-            (*cit)->DefineConst("x_upper" + postfix, xUpper[d]);
-            (*cit)->DefineConst("xUpper"  + postfix, xUpper[d]);
-            (*cit)->DefineConst("xupper"  + postfix, xUpper[d]);
+            it->DefineConst("X_UPPER" + postfix, xUpper[d]);
+            it->DefineConst("X_upper" + postfix, xUpper[d]);
+            it->DefineConst("x_upper" + postfix, xUpper[d]);
+            it->DefineConst("x_UPPER" + postfix, xUpper[d]);
+            it->DefineConst("X_Upper" + postfix, xUpper[d]);
+            it->DefineConst("X_upper" + postfix, xUpper[d]);
+            it->DefineConst("XUpper"  + postfix, xUpper[d]);
+            it->DefineConst("Xupper"  + postfix, xUpper[d]);
+            it->DefineConst("x_Upper" + postfix, xUpper[d]);
+            it->DefineConst("x_upper" + postfix, xUpper[d]);
+            it->DefineConst("xUpper"  + postfix, xUpper[d]);
+            it->DefineConst("xupper"  + postfix, xUpper[d]);
 
-            (*cit)->DefineConst("X_UPPER_" + postfix, xUpper[d]);
-            (*cit)->DefineConst("X_upper_" + postfix, xUpper[d]);
-            (*cit)->DefineConst("x_upper_" + postfix, xUpper[d]);
-            (*cit)->DefineConst("x_UPPER_" + postfix, xUpper[d]);
-            (*cit)->DefineConst("X_Upper_" + postfix, xUpper[d]);
-            (*cit)->DefineConst("X_upper_" + postfix, xUpper[d]);
-            (*cit)->DefineConst("XUpper_"  + postfix, xUpper[d]);
-            (*cit)->DefineConst("Xupper_"  + postfix, xUpper[d]);
-            (*cit)->DefineConst("x_Upper_" + postfix, xUpper[d]);
-            (*cit)->DefineConst("x_upper_" + postfix, xUpper[d]);
-            (*cit)->DefineConst("xUpper_"  + postfix, xUpper[d]);
-            (*cit)->DefineConst("xupper_"  + postfix, xUpper[d]);
+            it->DefineConst("X_UPPER_" + postfix, xUpper[d]);
+            it->DefineConst("X_upper_" + postfix, xUpper[d]);
+            it->DefineConst("x_upper_" + postfix, xUpper[d]);
+            it->DefineConst("x_UPPER_" + postfix, xUpper[d]);
+            it->DefineConst("X_Upper_" + postfix, xUpper[d]);
+            it->DefineConst("X_upper_" + postfix, xUpper[d]);
+            it->DefineConst("XUpper_"  + postfix, xUpper[d]);
+            it->DefineConst("Xupper_"  + postfix, xUpper[d]);
+            it->DefineConst("x_Upper_" + postfix, xUpper[d]);
+            it->DefineConst("x_upper_" + postfix, xUpper[d]);
+            it->DefineConst("xUpper_"  + postfix, xUpper[d]);
+            it->DefineConst("xupper_"  + postfix, xUpper[d]);
         }
 
         // User-provided constants.
         for (std::map<std::string,double>::const_iterator map_cit = d_constants.begin(); map_cit != d_constants.end(); ++map_cit)
         {
-            (*cit)->DefineConst((*map_cit).first, (*map_cit).second);
+            it->DefineConst((*map_cit).first, (*map_cit).second);
         }
 
         // Variables.
-        (*cit)->DefineVar("T", d_parser_time);
-        (*cit)->DefineVar("t", d_parser_time);
+        it->DefineVar("T", &d_parser_time);
+        it->DefineVar("t", &d_parser_time);
         for (int d = 0; d < NDIM; ++d)
         {
             std::ostringstream stream;
             stream << d;
             const std::string postfix = stream.str();
-            (*cit)->DefineVar("X" + postfix, &(d_parser_posn[d]));
-            (*cit)->DefineVar("x" + postfix, &(d_parser_posn[d]));
-            (*cit)->DefineVar("X_" + postfix, &(d_parser_posn[d]));
-            (*cit)->DefineVar("x_" + postfix, &(d_parser_posn[d]));
+            it->DefineVar("X" + postfix, &(d_parser_posn[d]));
+            it->DefineVar("x" + postfix, &(d_parser_posn[d]));
+            it->DefineVar("X_" + postfix, &(d_parser_posn[d]));
+            it->DefineVar("x_" + postfix, &(d_parser_posn[d]));
         }
     }
     return;
@@ -234,12 +231,7 @@ muParserCartGridFunction::muParserCartGridFunction(
 
 muParserCartGridFunction::~muParserCartGridFunction()
 {
-    for (std::vector<mu::Parser*>::const_iterator cit = d_parsers.begin(); cit != d_parsers.end(); ++cit)
-    {
-        delete (*cit);
-    }
-    delete d_parser_time;
-    delete[] d_parser_posn;
+    // intentionally blank
     return;
 }// ~muParserCartGridFunction
 
@@ -258,7 +250,7 @@ muParserCartGridFunction::setDataOnPatch(
     const bool initial_time,
     Pointer<PatchLevel<NDIM> > level)
 {
-    *d_parser_time = data_time;
+    d_parser_time = data_time;
 
     const Box<NDIM>& patch_box = patch->getBox();
     const Index<NDIM>& patch_lower = patch_box.lower();
@@ -291,7 +283,7 @@ muParserCartGridFunction::setDataOnPatch(
                 {
                     d_parser_posn[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
                 }
-                (*cc_data)(i,data_depth) = d_parsers[function_depth]->Eval();
+                (*cc_data)(i,data_depth) = d_parsers[function_depth].Eval();
             }
         }
     }
@@ -338,7 +330,7 @@ muParserCartGridFunction::setDataOnPatch(
                             d_parser_posn[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
                         }
                     }
-                    (*fc_data)(i,data_depth) = d_parsers[function_depth]->Eval();
+                    (*fc_data)(i,data_depth) = d_parsers[function_depth].Eval();
                 }
             }
         }
@@ -358,7 +350,7 @@ muParserCartGridFunction::setDataOnPatch(
                 {
                     d_parser_posn[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d)));
                 }
-                (*nc_data)(i,data_depth) = d_parsers[function_depth]->Eval();
+                (*nc_data)(i,data_depth) = d_parsers[function_depth].Eval();
             }
         }
     }
@@ -405,7 +397,7 @@ muParserCartGridFunction::setDataOnPatch(
                             d_parser_posn[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
                         }
                     }
-                    (*sc_data)(i,data_depth) = d_parsers[function_depth]->Eval();
+                    (*sc_data)(i,data_depth) = d_parsers[function_depth].Eval();
                 }
             }
         }

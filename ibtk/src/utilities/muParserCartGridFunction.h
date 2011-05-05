@@ -38,6 +38,9 @@
 // IBTK INCLUDES
 #include <ibtk/CartGridFunction.h>
 
+// IBTK THIRD-PARTY INCLUDES
+#include <ibtk/muParser.h>
+
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
 #include <tbox/Database.h>
@@ -45,13 +48,6 @@
 // C++ STDLIB INCLUDES
 #include <map>
 #include <vector>
-
-/////////////////////////////// FORWARD DECLARATIONS /////////////////////////
-
-namespace mu
-{
-class Parser;
-}// namespace mu
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -159,13 +155,13 @@ private:
     /*!
      * The mu::Parser objects which evaluate the data-setting functions.
      */
-    std::vector<mu::Parser*> d_parsers;
+    std::vector<mu::Parser> d_parsers;
 
     /*!
      * Time and position variables.
      */
-    double* d_parser_time;
-    double* d_parser_posn;
+    double d_parser_time;
+    double d_parser_posn[NDIM];
 };
 }// namespace IBTK
 

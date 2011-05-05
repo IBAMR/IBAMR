@@ -47,7 +47,7 @@ namespace IBTK
 inline void*
 FixedSizedStream::getBufferStart()
 {
-    return static_cast<void*>(d_buffer);
+    return static_cast<void*>(&d_buffer[0]);
 }// getBufferStart
 
 inline int

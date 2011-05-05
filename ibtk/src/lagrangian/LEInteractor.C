@@ -914,7 +914,7 @@ LEInteractor::interpolate(
 
     // Interpolate.
     double x_lower_axis[NDIM], x_upper_axis[NDIM];
-    double* Q_data_axis = new double[local_sz];
+    std::vector<double> Q_data_axis(local_sz);
     for (int axis = 0; axis < NDIM; ++axis)
     {
         std::vector<int> use_alt_one_sided_delta(NDIM,0);
@@ -930,7 +930,7 @@ LEInteractor::interpolate(
         }
         x_lower_axis[axis] -= 0.5*dx[axis];
         x_upper_axis[axis] += 0.5*dx[axis];
-        interpolate(Q_data_axis, 1, X_data, X_depth,
+        interpolate(&Q_data_axis[0], 1, X_data, X_depth,
                     q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(), 1,
                     x_lower_axis, x_upper_axis, dx,
                     patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
@@ -942,7 +942,6 @@ LEInteractor::interpolate(
             Q_data[NDIM*local_indices[k]+axis] = Q_data_axis[local_indices[k]];
         }
     }
-    delete[] Q_data_axis;
 
     t_interpolate->stop();
     return;
@@ -1094,7 +1093,7 @@ LEInteractor::interpolate(
 
     // Interpolate.
     double x_lower_axis[NDIM], x_upper_axis[NDIM];
-    double* Q_data_axis = new double[local_sz];
+    std::vector<double> Q_data_axis(local_sz);
     for (int axis = 0; axis < NDIM; ++axis)
     {
         std::vector<int> use_alt_one_sided_delta(NDIM,0);
@@ -1110,7 +1109,7 @@ LEInteractor::interpolate(
         }
         x_lower_axis[axis] -= 0.5*dx[axis];
         x_upper_axis[axis] += 0.5*dx[axis];
-        interpolate(Q_data_axis, 1, X_data, X_depth,
+        interpolate(&Q_data_axis[0], 1, X_data, X_depth,
                     q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(), 1,
                     x_lower_axis, x_upper_axis, dx,
                     patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
@@ -1122,7 +1121,6 @@ LEInteractor::interpolate(
             Q_data[NDIM*local_indices[k]+axis] = Q_data_axis[local_indices[k]];
         }
     }
-    delete[] Q_data_axis;
 
     t_interpolate->stop();
     return;
@@ -1301,7 +1299,7 @@ LEInteractor::spread(
 
     // Spread.
     double x_lower_axis[NDIM], x_upper_axis[NDIM];
-    double* Q_data_axis = new double[local_sz];
+    std::vector<double> Q_data_axis(local_sz);
     for (int axis = 0; axis < NDIM; ++axis)
     {
         std::vector<int> use_alt_one_sided_delta(NDIM,0);
@@ -1321,14 +1319,13 @@ LEInteractor::spread(
             Q_data_axis[local_indices[k]] = Q_data[NDIM*local_indices[k]+axis];
         }
         spread(q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(),axis), q_data->getGhostCellWidth(), 1,
-               Q_data_axis, 1, X_data, X_depth,
+               &Q_data_axis[0], 1, X_data, X_depth,
                x_lower_axis, x_upper_axis, dx,
                patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
                use_alt_one_sided_delta,
                local_indices, periodic_offsets,
                spread_fcn);
     }
-    delete[] Q_data_axis;
 
     t_spread->stop();
     return;
@@ -1479,7 +1476,7 @@ LEInteractor::spread(
 
     // Spread.
     double x_lower_axis[NDIM], x_upper_axis[NDIM];
-    double* Q_data_axis = new double[local_sz];
+    std::vector<double> Q_data_axis(local_sz);
     for (int axis = 0; axis < NDIM; ++axis)
     {
         std::vector<int> use_alt_one_sided_delta(NDIM,0);
@@ -1499,14 +1496,13 @@ LEInteractor::spread(
             Q_data_axis[local_indices[k]] = Q_data[NDIM*local_indices[k]+axis];
         }
         spread(q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(),axis), q_data->getGhostCellWidth(), 1,
-               Q_data_axis, 1, X_data, X_depth,
+               &Q_data_axis[0], 1, X_data, X_depth,
                x_lower_axis, x_upper_axis, dx,
                patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
                use_alt_one_sided_delta,
                local_indices, periodic_offsets,
                spread_fcn);
     }
-    delete[] Q_data_axis;
 
     t_spread->stop();
     return;
