@@ -395,16 +395,46 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     }
 
     // Obtain the Hierarchy data operations objects.
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager =
-        HierarchyDataOpsManager<NDIM>::getManager();
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
 
-    Pointer<CellVariable<NDIM,double> > cc_var =
-        new CellVariable<NDIM,double>("cc_var");
-    Pointer<FaceVariable<NDIM,double> > fc_var =
-        new FaceVariable<NDIM,double>("fc_var");
-
+    Pointer<CellVariable<NDIM,double> > cc_var = new CellVariable<NDIM,double>("cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy, true);
+
+    Pointer<FaceVariable<NDIM,double> > fc_var = new FaceVariable<NDIM,double>("fc_var");
     d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(fc_var, hierarchy, true);
+
+    // Initialize all variables.
+    //
+    // Data corresponding to U, F_U, and u_adv are maintained by the
+    // AdvDiffHierarchyIntegrator.
+    //
+    // All other data are managed by the INSHierarchyIntegrator.
+    d_U_var          = new CellVariable<NDIM,double>(d_object_name+"::U"       ,NDIM);
+    d_U_star_var     = new CellVariable<NDIM,double>(d_object_name+"::U_star"  ,NDIM);
+    d_F_U_var        = new CellVariable<NDIM,double>(d_object_name+"::F_U"     ,NDIM);
+    d_u_var          = new FaceVariable<NDIM,double>(d_object_name+"::u"            );
+    d_u_adv_var      = new FaceVariable<NDIM,double>(d_object_name+"::u_adv"        );
+    d_P_var          = new CellVariable<NDIM,double>(d_object_name+"::P"            );
+    d_P_extrap_var   = new CellVariable<NDIM,double>(d_object_name+"::P_extrap"     );
+    d_Grad_P_var     = new CellVariable<NDIM,double>(d_object_name+"::Grad P"  ,NDIM);
+    d_Phi_var        = new CellVariable<NDIM,double>(d_object_name+"::Phi"          );
+    d_Grad_Phi_var   = new CellVariable<NDIM,double>(d_object_name+"::Grad Phi",NDIM);
+    d_grad_Phi_var   = new FaceVariable<NDIM,double>(d_object_name+"::grad Phi"     );
+    d_V_var          = new CellVariable<NDIM,double>(d_object_name+"::V"       ,NDIM);
+    d_F_var          = new CellVariable<NDIM,double>(d_object_name+"::F"       ,NDIM);
+    d_Q_var          = new CellVariable<NDIM,double>(d_object_name+"::Q"            );
+    d_F_div_var      = new CellVariable<NDIM,double>(d_object_name+"::F_div"   ,NDIM);
+#if (NDIM == 2)
+    d_Omega_var      = new CellVariable<NDIM,double>(d_object_name+"::Omega"        );
+#endif
+#if (NDIM == 3)
+    d_Omega_var      = new CellVariable<NDIM,double>(d_object_name+"::Omega"   ,NDIM);
+    d_Omega_Norm_var = new CellVariable<NDIM,double>(d_object_name+"::|Omega||_2"   );
+#endif
+    d_Div_U_var      = new CellVariable<NDIM,double>(d_object_name+"::Div U"        );
+    d_Div_u_var      = new CellVariable<NDIM,double>(d_object_name+"::Div u"        );
+    d_Div_u_adv_var  = new CellVariable<NDIM,double>(d_object_name+"::Div u_adv"    );
+    d_Phi_tilde_var  = new CellVariable<NDIM,double>(d_object_name+"::Phi_tilde"    );
 
     // Setup Timers.
     IBAMR_DO_ONCE(
@@ -686,69 +716,6 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
         }
     }
 
-    // Initialize all variables.
-    //
-    // Data corresponding to U, F_U, and u_adv are maintained by the
-    // AdvDiffHierarchyIntegrator.
-    //
-    // All other data is managed by the INSHierarchyIntegrator.
-    d_U_var = new CellVariable<NDIM,double>(d_object_name+"::U",NDIM);
-    d_U_star_var = new CellVariable<NDIM,double>(d_object_name+"::U_star",NDIM);
-    d_F_U_var = new CellVariable<NDIM,double>(d_object_name+"::F_U",NDIM);
-    d_u_var = new FaceVariable<NDIM,double>(d_object_name+"::u");
-    d_u_adv_var = new FaceVariable<NDIM,double>(d_object_name+"::u_adv");
-
-    d_P_var = new CellVariable<NDIM,double>(d_object_name+"::P");
-    d_P_extrap_var = new CellVariable<NDIM,double>(d_object_name+"::P_extrap");
-    d_Grad_P_var = new CellVariable<NDIM,double>(d_object_name+"::Grad P",NDIM);
-
-    d_Phi_var = new CellVariable<NDIM,double>(d_object_name+"::Phi");
-    d_Grad_Phi_var = new CellVariable<NDIM,double>(d_object_name+"::Grad Phi",NDIM);
-    d_grad_Phi_var = new FaceVariable<NDIM,double>(d_object_name+"::grad Phi");
-
-    d_V_var = new CellVariable<NDIM,double>(d_object_name+"::V",NDIM);
-
-    if (!d_F_fcn.isNull())
-    {
-        d_F_var = new CellVariable<NDIM,double>(d_object_name+"::F",NDIM);
-    }
-    if (!d_Q_fcn.isNull())
-    {
-        d_Q_var = new CellVariable<NDIM,double>(d_object_name+"::Q");
-        d_F_div_var = new CellVariable<NDIM,double>(d_object_name+"::F_div",NDIM);
-    }
-    if (d_output_Omega || d_using_vorticity_tagging)
-    {
-        const int depth = (NDIM == 2) ? 1 : NDIM;
-        d_Omega_var = new CellVariable<NDIM,double>(d_object_name+"::Omega",depth);
-#if (NDIM == 3)
-        d_Omega_Norm_var = new CellVariable<NDIM,double>(d_object_name+"::|Omega|_2");
-#endif
-    }
-    if (d_output_Div_U)
-    {
-        d_Div_U_var = new CellVariable<NDIM,double>(d_object_name+"::Div U");
-    }
-    if (d_output_Div_u)
-    {
-        d_Div_u_var = new CellVariable<NDIM,double>(d_object_name+"::Div u");
-    }
-    if (d_output_Div_u_adv)
-    {
-        d_Div_u_adv_var = new CellVariable<NDIM,double>(d_object_name+"::Div u_adv");
-    }
-
-    if (d_using_hybrid_projection)
-    {
-        d_Phi_tilde_var = new CellVariable<NDIM,double>(d_object_name+"::Phi_tilde");
-    }
-
-    if (d_using_hybrid_projection || d_second_order_pressure_update)
-    {
-        d_sol_var = new CellVariable<NDIM,double>(d_object_name+"::sol_var");
-        d_rhs_var = new CellVariable<NDIM,double>(d_object_name+"::rhs_var");
-    }
-
     // Create the default communication algorithms.
     d_fill_after_regrid = new RefineAlgorithm<NDIM>();
 
@@ -907,12 +874,6 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     registerVariable(d_grad_Phi_idx, d_grad_Phi_var, face_ghosts);
 
     registerVariable(d_V_idx, d_V_var, cell_ghosts);
-
-    if (d_using_hybrid_projection || d_second_order_pressure_update)
-    {
-        registerVariable(d_sol_idx, d_sol_var, cell_ghosts);
-        registerVariable(d_rhs_idx, d_rhs_var, cell_ghosts);
-    }
 
     // Register state variables that are maintained by the
     // AdvDiffHierarchyIntegrator.
@@ -2100,19 +2061,6 @@ INSHierarchyIntegrator::updatePressure(
 
     const double dt = new_time - current_time;
 
-    // Reset the solution and rhs vectors.
-    Pointer<SAMRAIVectorReal<NDIM,double> > scalar_sol_vec, scalar_rhs_vec;
-    if (d_using_hybrid_projection || d_second_order_pressure_update)
-    {
-        scalar_sol_vec = new SAMRAIVectorReal<NDIM,double>(
-            d_object_name+"::scalar_sol_vec", d_hierarchy, coarsest_ln, finest_ln);
-        scalar_sol_vec->addComponent(d_sol_var,d_sol_idx,d_wgt_idx,d_hier_cc_data_ops);
-
-        scalar_rhs_vec = new SAMRAIVectorReal<NDIM,double>(
-            d_object_name+"::scalar_rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
-        scalar_rhs_vec->addComponent(d_rhs_var,d_rhs_idx,d_wgt_idx,d_hier_cc_data_ops);
-    }
-
     // Update the value of Phi.
     if (d_using_hybrid_projection)
     {
@@ -2315,32 +2263,34 @@ INSHierarchyIntegrator::updatePressure(
                 PoissonSpecifications helmholtz_spec(d_object_name+"::helmholtz_spec");
                 helmholtz_spec.setCConstant(1.0+0.5*dt*d_lambda);
                 helmholtz_spec.setDConstant(   -0.5*dt*d_nu    );
-                d_hier_math_ops->laplace(
-                    d_sol_idx      , d_sol_var,   // dst
-                    helmholtz_spec            ,   // Poisson spec
-                    Phi_scratch_idx, Phi_var  ,   // src
-                    d_no_fill_op, current_time);
-                break;
+                switch (d_pressure_projection_type)
+                {
+                    case PRESSURE_INCREMENT:
+                        d_hier_math_ops->laplace(
+                            d_P_new_idx    , d_P_var  ,   // dst
+                            helmholtz_spec            ,   // Poisson spec
+                            Phi_scratch_idx, Phi_var  ,   // src1
+                            d_no_fill_op, current_time,
+                            1.0,                          // beta
+                            d_P_current_idx, d_P_var  );  // src2
+                        break;
+                    case PRESSURE_UPDATE:
+                        d_hier_math_ops->laplace(
+                            d_P_new_idx    , d_P_var  ,   // dst
+                            helmholtz_spec            ,   // Poisson spec
+                            Phi_scratch_idx, Phi_var  ,   // src
+                            d_no_fill_op, current_time);
+                        break;
+                    default:
+                        TBOX_ERROR(d_object_name << "::updatePressure():\n"
+                                   << "  unrecognized pressure projection type\n");
+                }
             }
             default:
             {
                 TBOX_ERROR(d_object_name << "::updatePressure():\n"
                            << "  unrecognized viscous timestepping scheme\n");
             }
-        }
-
-        // Update the pressure.
-        switch (d_pressure_projection_type)
-        {
-            case PRESSURE_INCREMENT:
-                d_hier_cc_data_ops->add(d_P_new_idx, d_P_current_idx, d_sol_idx);
-                break;
-            case PRESSURE_UPDATE:
-                d_hier_cc_data_ops->copyData(d_P_new_idx, d_sol_idx);
-                break;
-            default:
-                TBOX_ERROR(d_object_name << "::updatePressure():\n"
-                           << "  unrecognized pressure projection type\n");
         }
     }
     else

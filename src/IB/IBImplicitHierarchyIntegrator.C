@@ -287,6 +287,29 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
     d_new_context     = var_db->getContext(d_object_name+"::NEW"    );
     d_scratch_context = var_db->getContext(d_object_name+"::SCRATCH");
 
+    // Initialize all variables.
+    d_u_var          = new SideVariable<NDIM,double>(d_object_name+"::u"          );
+    d_u_cc_var       = new CellVariable<NDIM,double>(d_object_name+"::u_cc"  ,NDIM);
+    d_p_var          = new CellVariable<NDIM,double>(d_object_name+"::p"          );
+    d_p_extrap_var   = new CellVariable<NDIM,double>(d_object_name+"::p_extrap"   );
+    d_f_var          = new SideVariable<NDIM,double>(d_object_name+"::f"          );
+    d_f_cc_var       = new CellVariable<NDIM,double>(d_object_name+"::f_cc"  ,NDIM);
+    d_q_var          = new CellVariable<NDIM,double>(d_object_name+"::q"          );
+#if (NDIM == 2)
+    d_omega_var      = new CellVariable<NDIM,double>(d_object_name+"::omega"      );
+#endif
+#if (NDIM == 3)
+    d_omega_var      = new CellVariable<NDIM,double>(d_object_name+"::omega" ,NDIM);
+    d_omega_norm_var = new CellVariable<NDIM,double>(d_object_name+"::||omega||_2");
+#endif
+    d_div_u_var      = new CellVariable<NDIM,double>(d_object_name+"::div_u"      );
+    d_phi_var        = new CellVariable<NDIM,double>(d_object_name+"::phi"        );
+    d_ib_dof_var     = new SideVariable<NDIM,int   >(d_object_name+"::ib_dof"     );
+    d_u_half_ib_var  = new SideVariable<NDIM,double>(d_object_name+"::u_half_ib"  );
+    d_u_regrid_var   = new SideVariable<NDIM,double>(d_object_name+"::u_regrid"   );
+    d_u_src_var      = new SideVariable<NDIM,double>(d_object_name+"::u_src"      );
+    d_indicator_var  = new SideVariable<NDIM,double>(d_object_name+"::indicator"  );
+
     // Setup Timers.
     IBAMR_DO_ONCE(
         t_initialize_hierarchy_integrator = TimerManager::getManager()->getTimer("IBAMR::IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator()");
@@ -635,35 +658,6 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
             }
         }
     }
-
-    // Initialize all variables.
-    d_u_var          = new SideVariable<NDIM,double>(d_object_name+"::u"          );
-    d_u_cc_var       = new CellVariable<NDIM,double>(d_object_name+"::u_cc",  NDIM);
-    d_p_var          = new CellVariable<NDIM,double>(d_object_name+"::p"          );
-    d_p_extrap_var   = new CellVariable<NDIM,double>(d_object_name+"::p_extrap"   );
-    if (!d_f_fcn.isNull())
-    {
-        d_f_var      = new SideVariable<NDIM,double>(d_object_name+"::f"          );
-        d_f_cc_var   = new CellVariable<NDIM,double>(d_object_name+"::f_cc",  NDIM);
-    }
-    if (!d_q_fcn.isNull())
-    {
-        d_q_var      = new CellVariable<NDIM,double>(d_object_name+"::q"          );
-    }
-#if ( NDIM == 2)
-    d_omega_var      = new CellVariable<NDIM,double>(d_object_name+"::omega"      );
-#endif
-#if ( NDIM == 3)
-    d_omega_var      = new CellVariable<NDIM,double>(d_object_name+"::omega", NDIM);
-    d_omega_norm_var = new CellVariable<NDIM,double>(d_object_name+"::||omega||_2");
-#endif
-    d_div_u_var      = new CellVariable<NDIM,double>(d_object_name+"::div_u"      );
-    d_phi_var        = new CellVariable<NDIM,double>(d_object_name+"::phi"        );
-    d_ib_dof_var     = new SideVariable<NDIM,int   >(d_object_name+"::ib_dof"     );
-    d_u_half_ib_var  = new SideVariable<NDIM,double>(d_object_name+"::u_half_ib"  );
-    d_u_regrid_var   = new SideVariable<NDIM,double>(d_object_name+"::u_regrid"   );
-    d_u_src_var      = new SideVariable<NDIM,double>(d_object_name+"::u_src"      );
-    d_indicator_var  = new SideVariable<NDIM,double>(d_object_name+"::indicator"  );
 
     // Create the default communication algorithms.
     d_fill_after_regrid = new RefineAlgorithm<NDIM>();

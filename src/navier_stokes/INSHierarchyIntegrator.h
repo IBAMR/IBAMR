@@ -1242,13 +1242,6 @@ private:
      */
     int d_wgt_idx;
 
-    /*
-     * Data and solvers required by the hybrid projection scheme and/or by the
-     * second-order pressure update.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_sol_var, d_rhs_var;
-    int d_sol_idx, d_rhs_idx;
-
     int d_helmholtz_max_iterations;
     double d_helmholtz_abs_residual_tol, d_helmholtz_rel_residual_tol;
     bool d_helmholtz_using_FAC;
