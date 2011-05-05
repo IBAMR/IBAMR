@@ -522,10 +522,10 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Pointer<Timer> t_interpolate;
-static Pointer<Timer> t_interpolate_f77;
-static Pointer<Timer> t_spread;
-static Pointer<Timer> t_spread_f77;
+static Timer* t_interpolate;
+static Timer* t_interpolate_f77;
+static Timer* t_spread;
+static Timer* t_spread_f77;
 
 inline double
 ib4_delta_fcn(

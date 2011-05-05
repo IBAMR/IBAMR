@@ -96,22 +96,22 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Pointer<Timer> t_map_lagrangian_to_petsc;
-static Pointer<Timer> t_map_petsc_to_lagrangian;
-static Pointer<Timer> t_begin_data_redistribution;
-static Pointer<Timer> t_end_data_redistribution;
-static Pointer<Timer> t_update_workload_data;
-static Pointer<Timer> t_update_irregular_cell_data;
-static Pointer<Timer> t_restore_location_pointers;
-static Pointer<Timer> t_invalidate_location_pointers;
-static Pointer<Timer> t_initialize_level_data;
-static Pointer<Timer> t_reset_hierarchy_configuration;
-static Pointer<Timer> t_apply_gradient_detector;
-static Pointer<Timer> t_put_to_database;
-static Pointer<Timer> t_begin_nonlocal_data_fill;
-static Pointer<Timer> t_end_nonlocal_data_fill;
-static Pointer<Timer> t_compute_node_distribution;
-static Pointer<Timer> t_compute_node_offsets;
+static Timer* t_map_lagrangian_to_petsc;
+static Timer* t_map_petsc_to_lagrangian;
+static Timer* t_begin_data_redistribution;
+static Timer* t_end_data_redistribution;
+static Timer* t_update_workload_data;
+static Timer* t_update_irregular_cell_data;
+static Timer* t_restore_location_pointers;
+static Timer* t_invalidate_location_pointers;
+static Timer* t_initialize_level_data;
+static Timer* t_reset_hierarchy_configuration;
+static Timer* t_apply_gradient_detector;
+static Timer* t_put_to_database;
+static Timer* t_begin_nonlocal_data_fill;
+static Timer* t_end_nonlocal_data_fill;
+static Timer* t_compute_node_distribution;
+static Timer* t_compute_node_offsets;
 
 // Assume max(U)dt/dx <= 2.
 static const int CFL_WIDTH = 2;

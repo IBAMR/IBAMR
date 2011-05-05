@@ -100,28 +100,28 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Pointer<Timer> t_initialize_hierarchy_integrator;
-static Pointer<Timer> t_initialize_hierarchy;
-static Pointer<Timer> t_advance_hierarchy;
-static Pointer<Timer> t_advance_hierarchy_init;
-static Pointer<Timer> t_advance_hierarchy_phase1;
-static Pointer<Timer> t_advance_hierarchy_phase2;
-static Pointer<Timer> t_advance_hierarchy_phase3;
-static Pointer<Timer> t_advance_hierarchy_phase4;
-static Pointer<Timer> t_advance_hierarchy_phase5;
-static Pointer<Timer> t_advance_hierarchy_phase6;
-static Pointer<Timer> t_advance_hierarchy_phase7;
-static Pointer<Timer> t_advance_hierarchy_phase8;
-static Pointer<Timer> t_advance_hierarchy_finalize;
-static Pointer<Timer> t_regrid_hierarchy;
-static Pointer<Timer> t_synchronize_hierarchy;
-static Pointer<Timer> t_synchronize_new_levels;
-static Pointer<Timer> t_reset_time_dependent_data;
-static Pointer<Timer> t_reset_data_to_preadvance_state;
-static Pointer<Timer> t_initialize_level_data;
-static Pointer<Timer> t_reset_hierarchy_configuration;
-static Pointer<Timer> t_apply_gradient_detector;
-static Pointer<Timer> t_put_to_database;
+static Timer* t_initialize_hierarchy_integrator;
+static Timer* t_initialize_hierarchy;
+static Timer* t_advance_hierarchy;
+static Timer* t_advance_hierarchy_init;
+static Timer* t_advance_hierarchy_phase1;
+static Timer* t_advance_hierarchy_phase2;
+static Timer* t_advance_hierarchy_phase3;
+static Timer* t_advance_hierarchy_phase4;
+static Timer* t_advance_hierarchy_phase5;
+static Timer* t_advance_hierarchy_phase6;
+static Timer* t_advance_hierarchy_phase7;
+static Timer* t_advance_hierarchy_phase8;
+static Timer* t_advance_hierarchy_finalize;
+static Timer* t_regrid_hierarchy;
+static Timer* t_synchronize_hierarchy;
+static Timer* t_synchronize_new_levels;
+static Timer* t_reset_time_dependent_data;
+static Timer* t_reset_data_to_preadvance_state;
+static Timer* t_initialize_level_data;
+static Timer* t_reset_hierarchy_configuration;
+static Timer* t_apply_gradient_detector;
+static Timer* t_put_to_database;
 
 // Version of IBFEHierarchyIntegrator restart file data.
 static const int IB_FE_HIERARCHY_INTEGRATOR_VERSION = 1;

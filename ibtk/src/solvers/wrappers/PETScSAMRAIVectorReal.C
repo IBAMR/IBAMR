@@ -66,37 +66,37 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Pointer<Timer> t_vec_duplicate;
-static Pointer<Timer> t_vec_dot;
-static Pointer<Timer> t_vec_m_dot;
-static Pointer<Timer> t_vec_norm;
-static Pointer<Timer> t_vec_t_dot;
-static Pointer<Timer> t_vec_m_t_dot;
-static Pointer<Timer> t_vec_scale;
-static Pointer<Timer> t_vec_copy;
-static Pointer<Timer> t_vec_set;
-static Pointer<Timer> t_vec_swap;
-static Pointer<Timer> t_vec_axpy;
-static Pointer<Timer> t_vec_axpby;
-static Pointer<Timer> t_vec_maxpy;
-static Pointer<Timer> t_vec_aypx;
-static Pointer<Timer> t_vec_waxpy;
-static Pointer<Timer> t_vec_axpbypcz;
-static Pointer<Timer> t_vec_pointwise_mult;
-static Pointer<Timer> t_vec_pointwise_divide;
-static Pointer<Timer> t_vec_get_size;
-static Pointer<Timer> t_vec_get_local_size;
-static Pointer<Timer> t_vec_max;
-static Pointer<Timer> t_vec_min;
-static Pointer<Timer> t_vec_set_random;
-static Pointer<Timer> t_vec_destroy;
-static Pointer<Timer> t_vec_dot_local;
-static Pointer<Timer> t_vec_t_dot_local;
-static Pointer<Timer> t_vec_norm_local;
-static Pointer<Timer> t_vec_m_dot_local;
-static Pointer<Timer> t_vec_m_t_dot_local;
-static Pointer<Timer> t_vec_max_pointwise_divide;
-static Pointer<Timer> t_vec_dot_norm2;
+static Timer* t_vec_duplicate;
+static Timer* t_vec_dot;
+static Timer* t_vec_m_dot;
+static Timer* t_vec_norm;
+static Timer* t_vec_t_dot;
+static Timer* t_vec_m_t_dot;
+static Timer* t_vec_scale;
+static Timer* t_vec_copy;
+static Timer* t_vec_set;
+static Timer* t_vec_swap;
+static Timer* t_vec_axpy;
+static Timer* t_vec_axpby;
+static Timer* t_vec_maxpy;
+static Timer* t_vec_aypx;
+static Timer* t_vec_waxpy;
+static Timer* t_vec_axpbypcz;
+static Timer* t_vec_pointwise_mult;
+static Timer* t_vec_pointwise_divide;
+static Timer* t_vec_get_size;
+static Timer* t_vec_get_local_size;
+static Timer* t_vec_max;
+static Timer* t_vec_min;
+static Timer* t_vec_set_random;
+static Timer* t_vec_destroy;
+static Timer* t_vec_dot_local;
+static Timer* t_vec_t_dot_local;
+static Timer* t_vec_norm_local;
+static Timer* t_vec_m_dot_local;
+static Timer* t_vec_m_t_dot_local;
+static Timer* t_vec_max_pointwise_divide;
+static Timer* t_vec_dot_norm2;
 
 // Static functions for linkage with PETSc solver package routines.  These
 // functions are intended to match those in the PETSc _VecOps structure.

@@ -65,10 +65,10 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Pointer<Timer> t_project_hierarchy;
-static Pointer<Timer> t_initialize_level_data;
-static Pointer<Timer> t_reset_hierarchy_configuration;
-static Pointer<Timer> t_put_to_database;
+static Timer* t_project_hierarchy;
+static Timer* t_initialize_level_data;
+static Timer* t_reset_hierarchy_configuration;
+static Timer* t_put_to_database;
 
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);

@@ -68,9 +68,9 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Pointer<Timer> t_solve_system;
-static Pointer<Timer> t_initialize_solver_state;
-static Pointer<Timer> t_deallocate_solver_state;
+static Timer* t_solve_system;
+static Timer* t_initialize_solver_state;
+static Timer* t_deallocate_solver_state;
 
 // Number of ghosts cells used for each variable quantity.
 static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);

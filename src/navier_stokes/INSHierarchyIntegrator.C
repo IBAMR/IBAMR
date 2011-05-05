@@ -164,24 +164,24 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Pointer<Timer> t_initialize_hierarchy_integrator;
-static Pointer<Timer> t_initialize_hierarchy;
-static Pointer<Timer> t_advance_hierarchy;
-static Pointer<Timer> t_get_stable_timestep;
-static Pointer<Timer> t_regrid_hierarchy;
-static Pointer<Timer> t_predict_advection_velocity;
-static Pointer<Timer> t_integrate_adv_diff;
-static Pointer<Timer> t_project_velocity;
-static Pointer<Timer> t_update_pressure;
-static Pointer<Timer> t_synchronize_hierarchy;
-static Pointer<Timer> t_synchronize_new_levels;
-static Pointer<Timer> t_reset_time_dependent_data;
-static Pointer<Timer> t_reset_data_to_preadvance_state;
-static Pointer<Timer> t_initialize_level_data;
-static Pointer<Timer> t_reset_hierarchy_configuration;
-static Pointer<Timer> t_apply_gradient_detector;
-static Pointer<Timer> t_put_to_database;
-static Pointer<Timer> t_compute_div_source_term;
+static Timer* t_initialize_hierarchy_integrator;
+static Timer* t_initialize_hierarchy;
+static Timer* t_advance_hierarchy;
+static Timer* t_get_stable_timestep;
+static Timer* t_regrid_hierarchy;
+static Timer* t_predict_advection_velocity;
+static Timer* t_integrate_adv_diff;
+static Timer* t_project_velocity;
+static Timer* t_update_pressure;
+static Timer* t_synchronize_hierarchy;
+static Timer* t_synchronize_new_levels;
+static Timer* t_reset_time_dependent_data;
+static Timer* t_reset_data_to_preadvance_state;
+static Timer* t_initialize_level_data;
+static Timer* t_reset_hierarchy_configuration;
+static Timer* t_apply_gradient_detector;
+static Timer* t_put_to_database;
+static Timer* t_compute_div_source_term;
 
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);

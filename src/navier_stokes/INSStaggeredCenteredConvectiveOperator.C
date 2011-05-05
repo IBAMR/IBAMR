@@ -155,10 +155,10 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Timers.
-static Pointer<Timer> t_apply_convective_operator;
-static Pointer<Timer> t_apply;
-static Pointer<Timer> t_initialize_operator_state;
-static Pointer<Timer> t_deallocate_operator_state;
+static Timer* t_apply_convective_operator;
+static Timer* t_apply;
+static Timer* t_initialize_operator_state;
+static Timer* t_deallocate_operator_state;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

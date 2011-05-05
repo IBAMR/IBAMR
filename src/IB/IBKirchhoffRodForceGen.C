@@ -188,8 +188,8 @@ compute_force_and_torque(
 }// compute_force_and_torque
 
 // Timers.
-static Pointer<Timer> t_compute_lagrangian_force_and_torque;
-static Pointer<Timer> t_initialize_level_data;
+static Timer* t_compute_lagrangian_force_and_torque;
+static Timer* t_initialize_level_data;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

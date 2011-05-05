@@ -90,10 +90,10 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Pointer<Timer> t_initialize_hierarchy_independent_data;
-static Pointer<Timer> t_initialize_hierarchy_dependent_data;
-static Pointer<Timer> t_read_instrument_data;
-static Pointer<Timer> t_write_plot_data;
+static Timer* t_initialize_hierarchy_independent_data;
+static Timer* t_initialize_hierarchy_dependent_data;
+static Timer* t_read_instrument_data;
+static Timer* t_write_plot_data;
 
 // The rank of the root MPI process and the MPI tag number.
 static const int SILO_MPI_ROOT = 0;
