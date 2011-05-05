@@ -179,6 +179,8 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/utilities/CartGridFunction.C \
 	$(top_srcdir)/src/utilities/CellNoCornersFillPattern.C \
 	$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C \
+	$(top_srcdir)/src/utilities/CopyToRootSchedule.C \
+	$(top_srcdir)/src/utilities/CopyToRootTransaction.C \
 	$(top_srcdir)/src/utilities/DebuggingUtilities.C \
 	$(top_srcdir)/src/utilities/EdgeDataSynchronization.C \
 	$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C \
@@ -310,6 +312,8 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-CartGridFunction.$(OBJEXT) \
 	libIBTK2d_a-CellNoCornersFillPattern.$(OBJEXT) \
 	libIBTK2d_a-CoarsenPatchStrategySet.$(OBJEXT) \
+	libIBTK2d_a-CopyToRootSchedule.$(OBJEXT) \
+	libIBTK2d_a-CopyToRootTransaction.$(OBJEXT) \
 	libIBTK2d_a-DebuggingUtilities.$(OBJEXT) \
 	libIBTK2d_a-EdgeDataSynchronization.$(OBJEXT) \
 	libIBTK2d_a-EdgeSynchCopyFillPattern.$(OBJEXT) \
@@ -429,6 +433,8 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/utilities/CartGridFunction.C \
 	$(top_srcdir)/src/utilities/CellNoCornersFillPattern.C \
 	$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C \
+	$(top_srcdir)/src/utilities/CopyToRootSchedule.C \
+	$(top_srcdir)/src/utilities/CopyToRootTransaction.C \
 	$(top_srcdir)/src/utilities/DebuggingUtilities.C \
 	$(top_srcdir)/src/utilities/EdgeDataSynchronization.C \
 	$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C \
@@ -559,6 +565,8 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-CartGridFunction.$(OBJEXT) \
 	libIBTK3d_a-CellNoCornersFillPattern.$(OBJEXT) \
 	libIBTK3d_a-CoarsenPatchStrategySet.$(OBJEXT) \
+	libIBTK3d_a-CopyToRootSchedule.$(OBJEXT) \
+	libIBTK3d_a-CopyToRootTransaction.$(OBJEXT) \
 	libIBTK3d_a-DebuggingUtilities.$(OBJEXT) \
 	libIBTK3d_a-EdgeDataSynchronization.$(OBJEXT) \
 	libIBTK3d_a-EdgeSynchCopyFillPattern.$(OBJEXT) \
@@ -1077,6 +1085,8 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/utilities/CellNoCornersFillPattern.h \
 	$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.I \
 	$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.h \
+	$(top_srcdir)/src/utilities/CopyToRootSchedule.h \
+	$(top_srcdir)/src/utilities/CopyToRootTransaction.h \
 	$(top_srcdir)/src/utilities/DebuggingUtilities.h \
 	$(top_srcdir)/src/utilities/EdgeDataSynchronization.h \
 	$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.h \
@@ -1193,6 +1203,8 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/utilities/CartGridFunction.C \
 	$(top_srcdir)/src/utilities/CellNoCornersFillPattern.C \
 	$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C \
+	$(top_srcdir)/src/utilities/CopyToRootSchedule.C \
+	$(top_srcdir)/src/utilities/CopyToRootTransaction.C \
 	$(top_srcdir)/src/utilities/DebuggingUtilities.C \
 	$(top_srcdir)/src/utilities/EdgeDataSynchronization.C \
 	$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C \
@@ -1367,6 +1379,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CellNoCornersFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CoarseFineBoundaryRefinePatchStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CoarsenPatchStrategySet.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CopyToRootSchedule.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CopyToRootTransaction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-DebuggingUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-DiagonalScalingOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-DiagonalScalingPreconditioner.Po@am__quote@
@@ -1475,6 +1489,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CellNoCornersFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CoarseFineBoundaryRefinePatchStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CoarsenPatchStrategySet.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CopyToRootSchedule.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CopyToRootTransaction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-DebuggingUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-DiagonalScalingOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-DiagonalScalingPreconditioner.Po@am__quote@
@@ -2797,6 +2813,34 @@ libIBTK2d_a-CoarsenPatchStrategySet.obj: $(top_srcdir)/src/utilities/CoarsenPatc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C' object='libIBTK2d_a-CoarsenPatchStrategySet.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CoarsenPatchStrategySet.obj `if test -f '$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C'; fi`
+
+libIBTK2d_a-CopyToRootSchedule.o: $(top_srcdir)/src/utilities/CopyToRootSchedule.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CopyToRootSchedule.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CopyToRootSchedule.Tpo -c -o libIBTK2d_a-CopyToRootSchedule.o `test -f '$(top_srcdir)/src/utilities/CopyToRootSchedule.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/CopyToRootSchedule.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-CopyToRootSchedule.Tpo $(DEPDIR)/libIBTK2d_a-CopyToRootSchedule.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/CopyToRootSchedule.C' object='libIBTK2d_a-CopyToRootSchedule.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CopyToRootSchedule.o `test -f '$(top_srcdir)/src/utilities/CopyToRootSchedule.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/CopyToRootSchedule.C
+
+libIBTK2d_a-CopyToRootSchedule.obj: $(top_srcdir)/src/utilities/CopyToRootSchedule.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CopyToRootSchedule.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CopyToRootSchedule.Tpo -c -o libIBTK2d_a-CopyToRootSchedule.obj `if test -f '$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-CopyToRootSchedule.Tpo $(DEPDIR)/libIBTK2d_a-CopyToRootSchedule.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/CopyToRootSchedule.C' object='libIBTK2d_a-CopyToRootSchedule.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CopyToRootSchedule.obj `if test -f '$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; fi`
+
+libIBTK2d_a-CopyToRootTransaction.o: $(top_srcdir)/src/utilities/CopyToRootTransaction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CopyToRootTransaction.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CopyToRootTransaction.Tpo -c -o libIBTK2d_a-CopyToRootTransaction.o `test -f '$(top_srcdir)/src/utilities/CopyToRootTransaction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/CopyToRootTransaction.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-CopyToRootTransaction.Tpo $(DEPDIR)/libIBTK2d_a-CopyToRootTransaction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/CopyToRootTransaction.C' object='libIBTK2d_a-CopyToRootTransaction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CopyToRootTransaction.o `test -f '$(top_srcdir)/src/utilities/CopyToRootTransaction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/CopyToRootTransaction.C
+
+libIBTK2d_a-CopyToRootTransaction.obj: $(top_srcdir)/src/utilities/CopyToRootTransaction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CopyToRootTransaction.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CopyToRootTransaction.Tpo -c -o libIBTK2d_a-CopyToRootTransaction.obj `if test -f '$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-CopyToRootTransaction.Tpo $(DEPDIR)/libIBTK2d_a-CopyToRootTransaction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/CopyToRootTransaction.C' object='libIBTK2d_a-CopyToRootTransaction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CopyToRootTransaction.obj `if test -f '$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; fi`
 
 libIBTK2d_a-DebuggingUtilities.o: $(top_srcdir)/src/utilities/DebuggingUtilities.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-DebuggingUtilities.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-DebuggingUtilities.Tpo -c -o libIBTK2d_a-DebuggingUtilities.o `test -f '$(top_srcdir)/src/utilities/DebuggingUtilities.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/DebuggingUtilities.C
@@ -4309,6 +4353,34 @@ libIBTK3d_a-CoarsenPatchStrategySet.obj: $(top_srcdir)/src/utilities/CoarsenPatc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C' object='libIBTK3d_a-CoarsenPatchStrategySet.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CoarsenPatchStrategySet.obj `if test -f '$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C'; fi`
+
+libIBTK3d_a-CopyToRootSchedule.o: $(top_srcdir)/src/utilities/CopyToRootSchedule.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CopyToRootSchedule.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CopyToRootSchedule.Tpo -c -o libIBTK3d_a-CopyToRootSchedule.o `test -f '$(top_srcdir)/src/utilities/CopyToRootSchedule.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/CopyToRootSchedule.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-CopyToRootSchedule.Tpo $(DEPDIR)/libIBTK3d_a-CopyToRootSchedule.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/CopyToRootSchedule.C' object='libIBTK3d_a-CopyToRootSchedule.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CopyToRootSchedule.o `test -f '$(top_srcdir)/src/utilities/CopyToRootSchedule.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/CopyToRootSchedule.C
+
+libIBTK3d_a-CopyToRootSchedule.obj: $(top_srcdir)/src/utilities/CopyToRootSchedule.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CopyToRootSchedule.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CopyToRootSchedule.Tpo -c -o libIBTK3d_a-CopyToRootSchedule.obj `if test -f '$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-CopyToRootSchedule.Tpo $(DEPDIR)/libIBTK3d_a-CopyToRootSchedule.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/CopyToRootSchedule.C' object='libIBTK3d_a-CopyToRootSchedule.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CopyToRootSchedule.obj `if test -f '$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; fi`
+
+libIBTK3d_a-CopyToRootTransaction.o: $(top_srcdir)/src/utilities/CopyToRootTransaction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CopyToRootTransaction.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CopyToRootTransaction.Tpo -c -o libIBTK3d_a-CopyToRootTransaction.o `test -f '$(top_srcdir)/src/utilities/CopyToRootTransaction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/CopyToRootTransaction.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-CopyToRootTransaction.Tpo $(DEPDIR)/libIBTK3d_a-CopyToRootTransaction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/CopyToRootTransaction.C' object='libIBTK3d_a-CopyToRootTransaction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CopyToRootTransaction.o `test -f '$(top_srcdir)/src/utilities/CopyToRootTransaction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/CopyToRootTransaction.C
+
+libIBTK3d_a-CopyToRootTransaction.obj: $(top_srcdir)/src/utilities/CopyToRootTransaction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CopyToRootTransaction.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CopyToRootTransaction.Tpo -c -o libIBTK3d_a-CopyToRootTransaction.obj `if test -f '$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-CopyToRootTransaction.Tpo $(DEPDIR)/libIBTK3d_a-CopyToRootTransaction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/CopyToRootTransaction.C' object='libIBTK3d_a-CopyToRootTransaction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CopyToRootTransaction.obj `if test -f '$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; fi`
 
 libIBTK3d_a-DebuggingUtilities.o: $(top_srcdir)/src/utilities/DebuggingUtilities.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-DebuggingUtilities.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-DebuggingUtilities.Tpo -c -o libIBTK3d_a-DebuggingUtilities.o `test -f '$(top_srcdir)/src/utilities/DebuggingUtilities.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/DebuggingUtilities.C

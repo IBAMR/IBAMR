@@ -131,6 +131,8 @@ $(top_srcdir)/src/solvers/wrappers/PETScSNESJacobianJOWrapper.C \
 $(top_srcdir)/src/utilities/CartGridFunction.C \
 $(top_srcdir)/src/utilities/CellNoCornersFillPattern.C \
 $(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C \
+$(top_srcdir)/src/utilities/CopyToRootSchedule.C \
+$(top_srcdir)/src/utilities/CopyToRootTransaction.C \
 $(top_srcdir)/src/utilities/DebuggingUtilities.C \
 $(top_srcdir)/src/utilities/EdgeDataSynchronization.C \
 $(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C \
@@ -269,6 +271,8 @@ $(top_srcdir)/src/utilities/CartGridFunction.h \
 $(top_srcdir)/src/utilities/CellNoCornersFillPattern.h \
 $(top_srcdir)/src/utilities/CoarsenPatchStrategySet.I \
 $(top_srcdir)/src/utilities/CoarsenPatchStrategySet.h \
+$(top_srcdir)/src/utilities/CopyToRootSchedule.h \
+$(top_srcdir)/src/utilities/CopyToRootTransaction.h \
 $(top_srcdir)/src/utilities/DebuggingUtilities.h \
 $(top_srcdir)/src/utilities/EdgeDataSynchronization.h \
 $(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.h \
