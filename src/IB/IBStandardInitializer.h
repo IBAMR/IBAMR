@@ -280,9 +280,9 @@ namespace IBAMR
  *
  * <HR>
  *
- * <B>Source file format</B>
+ * <B>Source/sink file format</B>
  *
- * Source input files (specifying the nodes employed to determine the
+ * Source/sink input files (specifying the nodes employed to determine the
  * time-dependent positions of internal sources and sinks) end with the
  * extension <TT>".source"</TT> and have the following format:
  \verbatim
@@ -295,8 +295,8 @@ namespace IBAMR
  source_radius_1
  source_radius_2
  ...
- N                    # number of source points in the file
- i_0   source_idx_0   # vertex index, source index
+ N                    # number of source/sink points in the file
+ i_0   source_idx_0   # vertex index, source/sink index
  i_1   source_idx_1
  i_2   source_idx_2
  ...
@@ -305,12 +305,12 @@ namespace IBAMR
  * positions of the nodes that are associated with that source/sink.
  *
  \verbatim
- 2         # number of sources in the file
+ 2         # number of sources/sinks in the file
  source0   # source/sink names
  source1
  1.0       # source/sink radii
  0.5
- 6         # number of source points in the file
+ 6         # number of source/sink points in the file
  0   0     # position of source0 is determined from vertices 0, 1, and 2
  1   0
  2   0
