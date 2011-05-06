@@ -486,12 +486,16 @@ EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/include/ibamr/IBRodForceSpec.I \
 	$(top_srcdir)/include/ibamr/IBRodForceSpec.h \
 	$(top_srcdir)/include/ibamr/IBRodForceSpecFactory.h \
+	$(top_srcdir)/include/ibamr/IBSourceSpec.I \
+	$(top_srcdir)/include/ibamr/IBSourceSpec.h \
+	$(top_srcdir)/include/ibamr/IBSourceSpecFactory.h \
 	$(top_srcdir)/include/ibamr/IBSpringForceGen.h \
 	$(top_srcdir)/include/ibamr/IBSpringForceSpec.I \
 	$(top_srcdir)/include/ibamr/IBSpringForceSpec.h \
 	$(top_srcdir)/include/ibamr/IBSpringForceSpecFactory.h \
 	$(top_srcdir)/include/ibamr/IBStaggeredHierarchyIntegrator.h \
 	$(top_srcdir)/include/ibamr/IBStandardForceGen.h \
+	$(top_srcdir)/include/ibamr/IBStandardSourceGen.h \
 	$(top_srcdir)/include/ibamr/IBStandardInitializer.h \
 	$(top_srcdir)/include/ibamr/IBTargetPointForceGen.h \
 	$(top_srcdir)/include/ibamr/IBTargetPointForceSpec.I \
@@ -514,7 +518,7 @@ EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/include/ibamr/INSStaggeredStokesOperator.h \
 	$(top_srcdir)/include/ibamr/INSStaggeredVCStokesOperator.h \
 	$(top_srcdir)/include/ibamr/INSStaggeredVelocityBcCoef.h \
-	$(top_srcdir)/include/ibamr/TGACoefs.h \
+	$(top_srcdir)/include/ibamr/ibamr_enums.h \
 	$(top_srcdir)/include/ibamr/ibamr_utilities.h \
 	$(top_srcdir)/include/ibamr/namespaces.h
 all: all-recursive

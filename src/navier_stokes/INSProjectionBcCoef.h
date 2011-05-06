@@ -35,6 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// IBAMR INCLUDES
+#include <ibamr/ibamr_enums.h>
+
 // IBTK INCLUDES
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
 
@@ -71,7 +74,7 @@ public:
     INSProjectionBcCoef(
         const int P_idx,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const P_bc_coef,
-        const std::string& projection_type,
+        const ProjectionMethodType& projection_type,
         const int u_idx,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
         const bool homogeneous_bc=false);
@@ -112,14 +115,13 @@ public:
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const P_bc_coef);
 
     /*!
-     * \brief Set the type of projection to perform ("pressure_increment" or
-     * "pressure_update").
+     * \brief Set the type of projection to perform.
      *
-     * \param projection_type  The type of projection ("pressure_increment" or "pressure_update").
+     * \param projection_type  The type of projection (PRESSURE_INCREMENT or PRESSURE_UPDATE).
      */
     void
     setProjectionType(
-        const std::string& projection_type);
+        const ProjectionMethodType& projection_type);
 
     /*!
      * \brief Reset the patch data descriptor index for the face-centered
@@ -285,9 +287,9 @@ private:
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
 
     /*
-     * The type of projection (pressure-increment or pressure-update).
+     * The type of projection.
      */
-    std::string d_projection_type;
+    ProjectionMethodType d_projection_type;
 
     /*
      * The patch data index corresponding to the intermediate velocity.

@@ -759,11 +759,9 @@ GodunovAdvector::getFromRestart()
         TBOX_ERROR(d_object_name << "::getFromRestart():\n"
                    << "  Restart file version different than class version.");
     }
-
 #if (NDIM == 3)
     d_using_full_ctu = db->getBool("d_using_full_ctu");
 #endif
-
     return;
 }// getFromRestart
 

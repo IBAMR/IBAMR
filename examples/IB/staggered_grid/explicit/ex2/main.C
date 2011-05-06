@@ -834,7 +834,6 @@ main(
                 delete (*cit);
             }
         }
-
     }// cleanup all smart Pointers prior to shutdown
 
     tbox::SAMRAIManager::shutdown();

@@ -69,6 +69,9 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
+#define LAGRANGIAN_PIECEWISE_CONSTANT_INTERP_FC FC_FUNC_(lagrangian_piecewise_constant_interp2d, LAGRANGIAN_PIECEWISE_CONSTANT_INTERP2D)
+#define LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC FC_FUNC_(lagrangian_piecewise_constant_spread2d, LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD2D)
+
 #define LAGRANGIAN_PIECEWISE_LINEAR_INTERP_FC FC_FUNC_(lagrangian_piecewise_linear_interp2d, LAGRANGIAN_PIECEWISE_LINEAR_INTERP2D)
 #define LAGRANGIAN_PIECEWISE_LINEAR_SPREAD_FC FC_FUNC_(lagrangian_piecewise_linear_spread2d, LAGRANGIAN_PIECEWISE_LINEAR_SPREAD2D)
 
@@ -100,6 +103,9 @@
 #endif
 
 #if (NDIM == 3)
+#define LAGRANGIAN_PIECEWISE_CONSTANT_INTERP_FC FC_FUNC_(lagrangian_piecewise_constant_interp3d, LAGRANGIAN_PIECEWISE_CONSTANT_INTERP3D)
+#define LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC FC_FUNC_(lagrangian_piecewise_constant_spread3d, LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD3D)
+
 #define LAGRANGIAN_IB_3_INTERP_FC FC_FUNC_(lagrangian_ib_3_interp3d, LAGRANGIAN_IB_3_INTERP3D)
 #define LAGRANGIAN_IB_3_SPREAD_FC FC_FUNC_(lagrangian_ib_3_spread3d, LAGRANGIAN_IB_3_SPREAD3D)
 
@@ -114,6 +120,38 @@
 
 extern "C"
 {
+    void
+    LAGRANGIAN_PIECEWISE_CONSTANT_INTERP_FC(
+        const double* , const double* , const double* , const int& ,
+#if (NDIM == 2)
+        const int& , const int& , const int& , const int& ,
+        const int& , const int& ,
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+#endif
+        const double* ,
+        const int* , const double* , const int& ,
+        const double* , double*
+                                               );
+
+    void
+    LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC(
+        const double* , const double* , const double* , const int& ,
+        const int* , const double* , const int& ,
+        const double* , const double* ,
+#if (NDIM == 2)
+        const int& , const int& , const int& , const int& ,
+        const int& , const int& ,
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+#endif
+        double*
+                                          );
+
 #if (NDIM == 2)
     void
     LAGRANGIAN_PIECEWISE_LINEAR_INTERP_FC(
@@ -484,10 +522,10 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Pointer<Timer> t_interpolate;
-static Pointer<Timer> t_interpolate_f77;
-static Pointer<Timer> t_spread;
-static Pointer<Timer> t_spread_f77;
+static Timer* t_interpolate;
+static Timer* t_interpolate_f77;
+static Timer* t_spread;
+static Timer* t_spread_f77;
 
 inline double
 ib4_delta_fcn(
@@ -647,6 +685,7 @@ int
 LEInteractor::getStencilSize(
     const std::string& weighting_fcn)
 {
+    if (weighting_fcn == "PIECEWISE_CONSTANT") return 1;
 #if (NDIM == 2)
     if (weighting_fcn == "PIECEWISE_LINEAR") return 2;
     if (weighting_fcn == "WIDE_PIECEWISE_LINEAR") return 4;
@@ -673,6 +712,7 @@ double
 LEInteractor::getC(
     const std::string& weighting_fcn)
 {
+    if (weighting_fcn == "PIECEWISE_CONSTANT") return 1.0;
 #if (NDIM == 2)
     if (weighting_fcn == "PIECEWISE_LINEAR" ||
         weighting_fcn == "WIDE_PIECEWISE_LINEAR" ||
@@ -805,7 +845,7 @@ LEInteractor::interpolate(
     // Generate a list of local indices which lie in the specified box.
     std::vector<int> local_indices;
     std::vector<double> periodic_offsets;
-    getLocalIndices(local_indices, periodic_offsets, interp_box, patch, periodic_shift, idx_data);
+    buildLocalIndices(local_indices, periodic_offsets, interp_box, patch, periodic_shift, idx_data);
     if (local_indices.empty()) return;
 
     // Interpolate.
@@ -868,13 +908,13 @@ LEInteractor::interpolate(
     // Generate a list of local indices which lie in the specified box.
     std::vector<int> local_indices;
     std::vector<double> periodic_offsets;
-    getLocalIndices(local_indices, periodic_offsets, interp_box, patch, periodic_shift, idx_data);
+    buildLocalIndices(local_indices, periodic_offsets, interp_box, patch, periodic_shift, idx_data);
     if (local_indices.empty()) return;
     const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
 
     // Interpolate.
     double x_lower_axis[NDIM], x_upper_axis[NDIM];
-    double* Q_data_axis = new double[local_sz];
+    std::vector<double> Q_data_axis(local_sz);
     for (int axis = 0; axis < NDIM; ++axis)
     {
         std::vector<int> use_alt_one_sided_delta(NDIM,0);
@@ -890,7 +930,7 @@ LEInteractor::interpolate(
         }
         x_lower_axis[axis] -= 0.5*dx[axis];
         x_upper_axis[axis] += 0.5*dx[axis];
-        interpolate(Q_data_axis, 1, X_data, X_depth,
+        interpolate(&Q_data_axis[0], 1, X_data, X_depth,
                     q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(), 1,
                     x_lower_axis, x_upper_axis, dx,
                     patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
@@ -902,7 +942,6 @@ LEInteractor::interpolate(
             Q_data[NDIM*local_indices[k]+axis] = Q_data_axis[local_indices[k]];
         }
     }
-    delete[] Q_data_axis;
 
     t_interpolate->stop();
     return;
@@ -966,7 +1005,7 @@ LEInteractor::interpolate(
     // Generate a list of local indices which lie in the specified box and set
     // all periodic offsets to zero.
     std::vector<int> local_indices;
-    getLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
+    buildLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
     std::vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
     if (local_indices.empty()) return;
 
@@ -1047,14 +1086,14 @@ LEInteractor::interpolate(
     // Generate a list of local indices which lie in the specified box and set
     // all periodic offsets to zero.
     std::vector<int> local_indices;
-    getLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
+    buildLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
     std::vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
     if (local_indices.empty()) return;
     const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
 
     // Interpolate.
     double x_lower_axis[NDIM], x_upper_axis[NDIM];
-    double* Q_data_axis = new double[local_sz];
+    std::vector<double> Q_data_axis(local_sz);
     for (int axis = 0; axis < NDIM; ++axis)
     {
         std::vector<int> use_alt_one_sided_delta(NDIM,0);
@@ -1070,7 +1109,7 @@ LEInteractor::interpolate(
         }
         x_lower_axis[axis] -= 0.5*dx[axis];
         x_upper_axis[axis] += 0.5*dx[axis];
-        interpolate(Q_data_axis, 1, X_data, X_depth,
+        interpolate(&Q_data_axis[0], 1, X_data, X_depth,
                     q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(), 1,
                     x_lower_axis, x_upper_axis, dx,
                     patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
@@ -1082,7 +1121,6 @@ LEInteractor::interpolate(
             Q_data[NDIM*local_indices[k]+axis] = Q_data_axis[local_indices[k]];
         }
     }
-    delete[] Q_data_axis;
 
     t_interpolate->stop();
     return;
@@ -1193,7 +1231,7 @@ LEInteractor::spread(
     // Generate a list of local indices which lie in the specified box.
     std::vector<int> local_indices;
     std::vector<double> periodic_offsets;
-    getLocalIndices(local_indices, periodic_offsets, spread_box, patch, periodic_shift, idx_data);
+    buildLocalIndices(local_indices, periodic_offsets, spread_box, patch, periodic_shift, idx_data);
     if (local_indices.empty()) return;
 
     // Spread.
@@ -1255,13 +1293,13 @@ LEInteractor::spread(
     // Generate a list of local indices which lie in the specified box.
     std::vector<int> local_indices;
     std::vector<double> periodic_offsets;
-    getLocalIndices(local_indices, periodic_offsets, spread_box, patch, periodic_shift, idx_data);
+    buildLocalIndices(local_indices, periodic_offsets, spread_box, patch, periodic_shift, idx_data);
     if (local_indices.empty()) return;
     const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
 
     // Spread.
     double x_lower_axis[NDIM], x_upper_axis[NDIM];
-    double* Q_data_axis = new double[local_sz];
+    std::vector<double> Q_data_axis(local_sz);
     for (int axis = 0; axis < NDIM; ++axis)
     {
         std::vector<int> use_alt_one_sided_delta(NDIM,0);
@@ -1281,14 +1319,13 @@ LEInteractor::spread(
             Q_data_axis[local_indices[k]] = Q_data[NDIM*local_indices[k]+axis];
         }
         spread(q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(),axis), q_data->getGhostCellWidth(), 1,
-               Q_data_axis, 1, X_data, X_depth,
+               &Q_data_axis[0], 1, X_data, X_depth,
                x_lower_axis, x_upper_axis, dx,
                patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
                use_alt_one_sided_delta,
                local_indices, periodic_offsets,
                spread_fcn);
     }
-    delete[] Q_data_axis;
 
     t_spread->stop();
     return;
@@ -1371,7 +1408,7 @@ LEInteractor::spread(
     // Generate a list of local indices which lie in the specified box and set
     // all periodic offsets to zero.
     std::vector<int> local_indices;
-    getLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
+    buildLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
     std::vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
     if (local_indices.empty()) return;
 
@@ -1432,14 +1469,14 @@ LEInteractor::spread(
     // Generate a list of local indices which lie in the specified box and set
     // all periodic offsets to zero.
     std::vector<int> local_indices;
-    getLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
+    buildLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
     std::vector<double> periodic_offsets(NDIM*local_indices.size(),0.0);
     if (local_indices.empty()) return;
     const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
 
     // Spread.
     double x_lower_axis[NDIM], x_upper_axis[NDIM];
-    double* Q_data_axis = new double[local_sz];
+    std::vector<double> Q_data_axis(local_sz);
     for (int axis = 0; axis < NDIM; ++axis)
     {
         std::vector<int> use_alt_one_sided_delta(NDIM,0);
@@ -1459,14 +1496,13 @@ LEInteractor::spread(
             Q_data_axis[local_indices[k]] = Q_data[NDIM*local_indices[k]+axis];
         }
         spread(q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(),axis), q_data->getGhostCellWidth(), 1,
-               Q_data_axis, 1, X_data, X_depth,
+               &Q_data_axis[0], 1, X_data, X_depth,
                x_lower_axis, x_upper_axis, dx,
                patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
                use_alt_one_sided_delta,
                local_indices, periodic_offsets,
                spread_fcn);
     }
-    delete[] Q_data_axis;
 
     t_spread->stop();
     return;
@@ -1501,7 +1537,23 @@ LEInteractor::interpolate(
     const int local_indices_size = local_indices.size();
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
-    if (interp_fcn == "PIECEWISE_LINEAR")
+    if (interp_fcn == "PIECEWISE_CONSTANT")
+    {
+        LAGRANGIAN_PIECEWISE_CONSTANT_INTERP_FC(
+            dx,x_lower,x_upper,q_depth,
+#if (NDIM == 2)
+            ilower(0),iupper(0),ilower(1),iupper(1),
+            q_gcw(0),q_gcw(1),
+#endif
+#if (NDIM == 3)
+            ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+            q_gcw(0),q_gcw(1),q_gcw(2),
+#endif
+            q_data,
+            &local_indices[0], &periodic_offsets[0], local_indices_size,
+            X_data,Q_data);
+    }
+    else if (interp_fcn == "PIECEWISE_LINEAR")
     {
 #if (NDIM == 2)
         LAGRANGIAN_PIECEWISE_LINEAR_INTERP_FC(
@@ -1768,7 +1820,36 @@ LEInteractor::spread(
     const int local_indices_size = local_indices.size();
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
-    if (spread_fcn == "PIECEWISE_LINEAR")
+    if (spread_fcn == "PIECEWISE_CONSTANT")
+    {
+        if (s_precision_mode == DOUBLE)
+        {
+            LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC(
+                dx,x_lower,x_upper,q_depth,
+                &local_indices[0], &periodic_offsets[0], local_indices_size,
+                X_data, Q_data,
+#if (NDIM == 2)
+                ilower(0),iupper(0),ilower(1),iupper(1),
+                q_gcw(0),q_gcw(1),
+#endif
+#if (NDIM == 3)
+                ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+                q_gcw(0),q_gcw(1),q_gcw(2),
+#endif
+                q_data);
+        }
+        else if (s_precision_mode == DOUBLE_DOUBLE)
+        {
+            TBOX_ERROR("LEInteractor::spread():\n"
+                       << "  extended precision not currently supported for PIECEWISE_CONSTANT delta function.\n");
+        }
+        else
+        {
+            TBOX_ERROR("LEInteractor::spread():\n"
+                       << "  invalid precision mode; s_precision_mode = " << s_precision_mode << ".\n");
+        }
+    }
+    else if (spread_fcn == "PIECEWISE_LINEAR")
     {
 #if (NDIM == 2)
         if (s_precision_mode == DOUBLE)
@@ -2160,7 +2241,7 @@ LEInteractor::spread(
 }// spread
 
 void
-LEInteractor::getLocalIndices(
+LEInteractor::buildLocalIndices(
     std::vector<int>& local_indices,
     std::vector<double>& periodic_offsets,
     const Box<NDIM>& box,
@@ -2224,7 +2305,7 @@ LEInteractor::getLocalIndices(
     {
         if (s_sort_mode != SORT_INCREASING_LAG_IDX && s_sort_mode != SORT_DECREASING_LAG_IDX)
         {
-            TBOX_ERROR("LEInteractor::getLocalIndices():\n"
+            TBOX_ERROR("LEInteractor::buildLocalIndices():\n"
                        << "  invalid debug sort mode; s_sort_mode = " << s_sort_mode << ".\n");
         }
 
@@ -2276,10 +2357,10 @@ LEInteractor::getLocalIndices(
         }
     }
     return;
-}// getLocalIndices
+}// buildLocalIndices
 
 void
-LEInteractor::getLocalIndices(
+LEInteractor::buildLocalIndices(
     std::vector<int>& local_indices,
     const Box<NDIM>& box,
     const Pointer<Patch<NDIM> >& patch,
@@ -2308,7 +2389,7 @@ LEInteractor::getLocalIndices(
         if (box.contains(i)) local_indices.push_back(k);
     }
     return;
-}// getLocalIndices
+}// buildLocalIndices
 
 void
 LEInteractor::userDefinedInterpolate(

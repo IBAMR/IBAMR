@@ -108,14 +108,14 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Pointer<Timer> t_restrict_residual;
-static Pointer<Timer> t_prolong_error;
-static Pointer<Timer> t_prolong_error_and_correct;
-static Pointer<Timer> t_smooth_error;
-static Pointer<Timer> t_solve_coarsest_level;
-static Pointer<Timer> t_compute_residual;
-static Pointer<Timer> t_initialize_operator_state;
-static Pointer<Timer> t_deallocate_operator_state;
+static Timer* t_restrict_residual;
+static Timer* t_prolong_error;
+static Timer* t_prolong_error_and_correct;
+static Timer* t_smooth_error;
+static Timer* t_solve_coarsest_level;
+static Timer* t_compute_residual;
+static Timer* t_initialize_operator_state;
+static Timer* t_deallocate_operator_state;
 
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);

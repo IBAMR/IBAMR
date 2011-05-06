@@ -62,6 +62,79 @@ class LNodeIndexTransaction
 {
 public:
     /*!
+     * \brief Struct LNodeIndexTransaction::LNodeIndexTransactionComponent
+     * encapsulates the individual data items that are communicated via class
+     * LNodeIndexTransaction.
+     */
+    class LNodeIndexTransactionComponent
+    {
+    public:
+        friend class LNodeIndexTransaction;
+
+        /*!
+         * \brief Default constructor.
+         */
+        inline
+        LNodeIndexTransactionComponent(
+            SAMRAI::tbox::Pointer<LNodeIndex> lag_idx=SAMRAI::tbox::Pointer<LNodeIndex>(NULL),
+            std::vector<double> posn=std::vector<double>())
+            : lag_idx(lag_idx),
+              posn(posn)
+            {
+                // intentionally blank
+                return;
+            }// LNodeIndexTransactionComponent
+
+        /*!
+         * \brief Copy constructor.
+         *
+         * \param from The value to copy to this object.
+         */
+        inline
+        LNodeIndexTransactionComponent(
+            const LNodeIndexTransactionComponent& from)
+            : lag_idx(from.lag_idx),
+              posn(from.posn)
+            {
+                // intentionally blank
+                return;
+            }// LNodeIndexTransactionComponent
+
+        /*!
+         * \brief Assignment operator.
+         *
+         * \param that The value to assign to this object.
+         *
+         * \return A reference to this object.
+         */
+        inline LNodeIndexTransactionComponent&
+        operator=(
+            const LNodeIndexTransactionComponent& that)
+            {
+                if (this != &that)
+                {
+                    lag_idx = that.lag_idx;
+                    posn = that.posn;
+                }
+                return *this;
+            }// operator=
+
+        /*!
+         * \brief Destructor.
+         */
+        inline
+        ~LNodeIndexTransactionComponent()
+            {
+                //intentionally blank
+                return;
+            }// ~LNodeIndexTransactionComponent
+
+        // Data.
+        SAMRAI::tbox::Pointer<LNodeIndex> lag_idx;
+        std::vector<double> posn;
+    };
+
+    /*!
      * \brief Class constructor.
      */
     LNodeIndexTransaction(
@@ -74,7 +147,7 @@ public:
     LNodeIndexTransaction(
         const int src_proc,
         const int dst_proc,
-        const std::vector<std::pair<SAMRAI::tbox::Pointer<LNodeIndex>,std::vector<double> > >& src_index_set);
+        const std::vector<LNodeIndexTransactionComponent>& src_index_set);
 
     /*!
      * \brief The virtual destructor for the copy transaction releases all
@@ -86,14 +159,14 @@ public:
     /*!
      * \brief Return a constant reference to the source data.
      */
-    inline const std::vector<std::pair<SAMRAI::tbox::Pointer<LNodeIndex>,std::vector<double> > >&
-    getSourceData() { return d_src_index_set; }
+    inline const std::vector<LNodeIndexTransactionComponent>&
+    getSourceData() const { return d_src_index_set; }
 
     /*!
      * \brief Return a constant reference to the destination data.
      */
-    inline const std::vector<std::pair<SAMRAI::tbox::Pointer<LNodeIndex>,std::vector<double> > >&
-    getDestinationData() { return d_dst_index_set; }
+    inline const std::vector<LNodeIndexTransactionComponent>&
+    getDestinationData() const { return d_dst_index_set; }
 
     /*!
      * \brief Return a boolean indicating whether this transaction can estimate
@@ -196,11 +269,11 @@ private:
     operator=(
         const LNodeIndexTransaction& that);
 
-    std::vector<std::pair<SAMRAI::tbox::Pointer<LNodeIndex>,std::vector<double> > > d_src_index_set;
+    std::vector<LNodeIndexTransactionComponent> d_src_index_set;
     int d_src_proc;
     int d_outgoing_bytes;
 
-    std::vector<std::pair<SAMRAI::tbox::Pointer<LNodeIndex>,std::vector<double> > > d_dst_index_set;
+    std::vector<LNodeIndexTransactionComponent> d_dst_index_set;
     int d_dst_proc;
 };
 }// namespace IBTK

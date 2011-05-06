@@ -36,6 +36,8 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // SAMRAI INCLUDES
+#include <CartesianSideDoubleConservativeLinearRefine.h>
+#include <CartesianSideDoubleWeightedAverage.h>
 #include <CoarsenOperator.h>
 #include <RefineOperator.h>
 #include <RefinePatchStrategy.h>
@@ -204,12 +206,12 @@ private:
     /*!
      * The standard conservative linear refine operator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_conservative_linear_refine_op;
+    SAMRAI::geom::CartesianSideDoubleConservativeLinearRefine<NDIM> d_conservative_linear_refine_op;
 
     /*!
      * The standard conservative coarsening operator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_conservative_coarsen_op;
+    SAMRAI::geom::CartesianSideDoubleWeightedAverage<NDIM> d_conservative_coarsen_op;
 };
 }// namespace IBTK
 

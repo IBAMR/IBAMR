@@ -40,7 +40,9 @@ DIST_COMMON = $(pkg_include_HEADERS) $(srcdir)/Makefile.am \
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = libIBTK2d.a
 @SAMRAI3D_ENABLED_TRUE@am__append_2 = libIBTK3d.a
 @LIBMESH_ENABLED_TRUE@am__append_3 = $(top_srcdir)/src/lagrangian/FEDataManager.C \
+@LIBMESH_ENABLED_TRUE@	$(top_srcdir)/src/utilities/FESystemDataCache.C \
 @LIBMESH_ENABLED_TRUE@	$(top_srcdir)/src/lagrangian/FEDataManager.h \
+@LIBMESH_ENABLED_TRUE@	$(top_srcdir)/src/utilities/FESystemDataCache.h \
 @LIBMESH_ENABLED_TRUE@	$(top_srcdir)/src/utilities/libmesh_utilities.h \
 @LIBMESH_ENABLED_TRUE@	$(top_srcdir)/src/utilities/ibtk_utilities.h
 subdir = lib
@@ -92,7 +94,7 @@ am_libIBTK_a_OBJECTS = lagrangian_delta.$(OBJEXT) muParser.$(OBJEXT) \
 	muParserBase.$(OBJEXT) muParserBytecode.$(OBJEXT) \
 	muParserCallback.$(OBJEXT) muParserError.$(OBJEXT) \
 	muParserTokenReader.$(OBJEXT) Interpolator.$(OBJEXT) \
-	ParallelEdgeMap.$(OBJEXT)
+	minmod.$(OBJEXT)
 libIBTK_a_OBJECTS = $(am_libIBTK_a_OBJECTS)
 libIBTK2d_a_AR = $(AR) $(ARFLAGS)
 libIBTK2d_a_LIBADD =
@@ -139,6 +141,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.C \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.C \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C \
+	$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C \
 	$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C \
 	$(top_srcdir)/src/refine_ops/LagMarkerRefine.C \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C \
@@ -176,27 +179,38 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/utilities/CartGridFunction.C \
 	$(top_srcdir)/src/utilities/CellNoCornersFillPattern.C \
 	$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C \
+	$(top_srcdir)/src/utilities/CopyToRootSchedule.C \
+	$(top_srcdir)/src/utilities/CopyToRootTransaction.C \
 	$(top_srcdir)/src/utilities/DebuggingUtilities.C \
+	$(top_srcdir)/src/utilities/EdgeDataSynchronization.C \
+	$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C \
+	$(top_srcdir)/src/utilities/FaceDataSynchronization.C \
+	$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C \
 	$(top_srcdir)/src/utilities/FixedSizedStream.C \
 	$(top_srcdir)/src/utilities/IndexUtilities.C \
 	$(top_srcdir)/src/utilities/IndexSet.C \
 	$(top_srcdir)/src/utilities/LagMarkerUtilities.C \
+	$(top_srcdir)/src/utilities/NodeDataSynchronization.C \
+	$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C \
 	$(top_srcdir)/src/utilities/NormOps.C \
 	$(top_srcdir)/src/utilities/PETScMatOps.C \
 	$(top_srcdir)/src/utilities/PETScVecOps.C \
+	$(top_srcdir)/src/utilities/ParallelEdgeMap.C \
+	$(top_srcdir)/src/utilities/ParallelMap.C \
+	$(top_srcdir)/src/utilities/ParallelSet.C \
 	$(top_srcdir)/src/utilities/RefinePatchStrategySet.C \
 	$(top_srcdir)/src/utilities/SideDataSynchronization.C \
 	$(top_srcdir)/src/utilities/SideNoCornersFillPattern.C \
 	$(top_srcdir)/src/utilities/SideSynchCopyFillPattern.C \
-	$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C \
-	$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C \
 	$(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.C \
 	$(top_srcdir)/src/utilities/Streamable.C \
 	$(top_srcdir)/src/utilities/StreamableFactory.C \
 	$(top_srcdir)/src/utilities/StreamableManager.C \
 	$(top_srcdir)/src/utilities/muParserCartGridFunction.C \
 	$(top_srcdir)/src/lagrangian/FEDataManager.C \
+	$(top_srcdir)/src/utilities/FESystemDataCache.C \
 	$(top_srcdir)/src/lagrangian/FEDataManager.h \
+	$(top_srcdir)/src/utilities/FESystemDataCache.h \
 	$(top_srcdir)/src/utilities/libmesh_utilities.h \
 	$(top_srcdir)/src/utilities/ibtk_utilities.h \
 	$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f \
@@ -212,10 +226,12 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/math/fortran/laplace2d.f \
 	$(top_builddir)/src/math/fortran/miscmath2d.f \
 	$(top_builddir)/src/math/fortran/vclaplace2d.f \
+	$(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f \
 	$(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f \
 	$(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
 @LIBMESH_ENABLED_TRUE@am__objects_1 =  \
-@LIBMESH_ENABLED_TRUE@	libIBTK2d_a-FEDataManager.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@	libIBTK2d_a-FEDataManager.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	libIBTK2d_a-FESystemDataCache.$(OBJEXT)
 am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-CartCellDoubleQuadraticCFInterpolation.$(OBJEXT) \
 	libIBTK2d_a-CartSideDoubleQuadraticCFInterpolation.$(OBJEXT) \
@@ -258,6 +274,7 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.$(OBJEXT) \
 	libIBTK2d_a-CartCellDoubleQuadraticRefine.$(OBJEXT) \
 	libIBTK2d_a-CartSideDoubleDivPreservingRefine.$(OBJEXT) \
+	libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.$(OBJEXT) \
 	libIBTK2d_a-VecCellRefineAdapter.$(OBJEXT) \
 	libIBTK2d_a-LagMarkerRefine.$(OBJEXT) \
 	libIBTK2d_a-BGaussSeidelPreconditioner.$(OBJEXT) \
@@ -295,20 +312,29 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-CartGridFunction.$(OBJEXT) \
 	libIBTK2d_a-CellNoCornersFillPattern.$(OBJEXT) \
 	libIBTK2d_a-CoarsenPatchStrategySet.$(OBJEXT) \
+	libIBTK2d_a-CopyToRootSchedule.$(OBJEXT) \
+	libIBTK2d_a-CopyToRootTransaction.$(OBJEXT) \
 	libIBTK2d_a-DebuggingUtilities.$(OBJEXT) \
+	libIBTK2d_a-EdgeDataSynchronization.$(OBJEXT) \
+	libIBTK2d_a-EdgeSynchCopyFillPattern.$(OBJEXT) \
+	libIBTK2d_a-FaceDataSynchronization.$(OBJEXT) \
+	libIBTK2d_a-FaceSynchCopyFillPattern.$(OBJEXT) \
 	libIBTK2d_a-FixedSizedStream.$(OBJEXT) \
 	libIBTK2d_a-IndexUtilities.$(OBJEXT) \
 	libIBTK2d_a-IndexSet.$(OBJEXT) \
 	libIBTK2d_a-LagMarkerUtilities.$(OBJEXT) \
+	libIBTK2d_a-NodeDataSynchronization.$(OBJEXT) \
+	libIBTK2d_a-NodeSynchCopyFillPattern.$(OBJEXT) \
 	libIBTK2d_a-NormOps.$(OBJEXT) \
 	libIBTK2d_a-PETScMatOps.$(OBJEXT) \
 	libIBTK2d_a-PETScVecOps.$(OBJEXT) \
+	libIBTK2d_a-ParallelEdgeMap.$(OBJEXT) \
+	libIBTK2d_a-ParallelMap.$(OBJEXT) \
+	libIBTK2d_a-ParallelSet.$(OBJEXT) \
 	libIBTK2d_a-RefinePatchStrategySet.$(OBJEXT) \
 	libIBTK2d_a-SideDataSynchronization.$(OBJEXT) \
 	libIBTK2d_a-SideNoCornersFillPattern.$(OBJEXT) \
 	libIBTK2d_a-SideSynchCopyFillPattern.$(OBJEXT) \
-	libIBTK2d_a-SideSynchCopyTransaction.$(OBJEXT) \
-	libIBTK2d_a-SideSynchCopyTransactionFactory.$(OBJEXT) \
 	libIBTK2d_a-StandardTagAndInitStrategySet.$(OBJEXT) \
 	libIBTK2d_a-Streamable.$(OBJEXT) \
 	libIBTK2d_a-StreamableFactory.$(OBJEXT) \
@@ -321,7 +347,8 @@ am_libIBTK2d_a_OBJECTS = $(am__objects_2) \
 	curl2d.$(OBJEXT) div2d.$(OBJEXT) flux2d.$(OBJEXT) \
 	grad2d.$(OBJEXT) graddetect2d.$(OBJEXT) interp2d.$(OBJEXT) \
 	laplace2d.$(OBJEXT) miscmath2d.$(OBJEXT) vclaplace2d.$(OBJEXT) \
-	divpreservingrefine2d.$(OBJEXT) patchsmoothers2d.$(OBJEXT)
+	cart_side_refine2d.$(OBJEXT) divpreservingrefine2d.$(OBJEXT) \
+	patchsmoothers2d.$(OBJEXT)
 libIBTK2d_a_OBJECTS = $(am_libIBTK2d_a_OBJECTS)
 libIBTK3d_a_AR = $(AR) $(ARFLAGS)
 libIBTK3d_a_LIBADD =
@@ -368,6 +395,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.C \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.C \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C \
+	$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C \
 	$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C \
 	$(top_srcdir)/src/refine_ops/LagMarkerRefine.C \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C \
@@ -405,27 +433,38 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/utilities/CartGridFunction.C \
 	$(top_srcdir)/src/utilities/CellNoCornersFillPattern.C \
 	$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C \
+	$(top_srcdir)/src/utilities/CopyToRootSchedule.C \
+	$(top_srcdir)/src/utilities/CopyToRootTransaction.C \
 	$(top_srcdir)/src/utilities/DebuggingUtilities.C \
+	$(top_srcdir)/src/utilities/EdgeDataSynchronization.C \
+	$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C \
+	$(top_srcdir)/src/utilities/FaceDataSynchronization.C \
+	$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C \
 	$(top_srcdir)/src/utilities/FixedSizedStream.C \
 	$(top_srcdir)/src/utilities/IndexUtilities.C \
 	$(top_srcdir)/src/utilities/IndexSet.C \
 	$(top_srcdir)/src/utilities/LagMarkerUtilities.C \
+	$(top_srcdir)/src/utilities/NodeDataSynchronization.C \
+	$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C \
 	$(top_srcdir)/src/utilities/NormOps.C \
 	$(top_srcdir)/src/utilities/PETScMatOps.C \
 	$(top_srcdir)/src/utilities/PETScVecOps.C \
+	$(top_srcdir)/src/utilities/ParallelEdgeMap.C \
+	$(top_srcdir)/src/utilities/ParallelMap.C \
+	$(top_srcdir)/src/utilities/ParallelSet.C \
 	$(top_srcdir)/src/utilities/RefinePatchStrategySet.C \
 	$(top_srcdir)/src/utilities/SideDataSynchronization.C \
 	$(top_srcdir)/src/utilities/SideNoCornersFillPattern.C \
 	$(top_srcdir)/src/utilities/SideSynchCopyFillPattern.C \
-	$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C \
-	$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C \
 	$(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.C \
 	$(top_srcdir)/src/utilities/Streamable.C \
 	$(top_srcdir)/src/utilities/StreamableFactory.C \
 	$(top_srcdir)/src/utilities/StreamableManager.C \
 	$(top_srcdir)/src/utilities/muParserCartGridFunction.C \
 	$(top_srcdir)/src/lagrangian/FEDataManager.C \
+	$(top_srcdir)/src/utilities/FESystemDataCache.C \
 	$(top_srcdir)/src/lagrangian/FEDataManager.h \
+	$(top_srcdir)/src/utilities/FESystemDataCache.h \
 	$(top_srcdir)/src/utilities/libmesh_utilities.h \
 	$(top_srcdir)/src/utilities/ibtk_utilities.h \
 	$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.f \
@@ -440,10 +479,12 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/math/fortran/interp3d.f \
 	$(top_builddir)/src/math/fortran/laplace3d.f \
 	$(top_builddir)/src/math/fortran/miscmath3d.f \
+	$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f \
 	$(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f \
 	$(top_builddir)/src/solvers/impls/fortran/patchsmoothers3d.f
 @LIBMESH_ENABLED_TRUE@am__objects_3 =  \
-@LIBMESH_ENABLED_TRUE@	libIBTK3d_a-FEDataManager.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@	libIBTK3d_a-FEDataManager.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	libIBTK3d_a-FESystemDataCache.$(OBJEXT)
 am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-CartCellDoubleQuadraticCFInterpolation.$(OBJEXT) \
 	libIBTK3d_a-CartSideDoubleQuadraticCFInterpolation.$(OBJEXT) \
@@ -486,6 +527,7 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.$(OBJEXT) \
 	libIBTK3d_a-CartCellDoubleQuadraticRefine.$(OBJEXT) \
 	libIBTK3d_a-CartSideDoubleDivPreservingRefine.$(OBJEXT) \
+	libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.$(OBJEXT) \
 	libIBTK3d_a-VecCellRefineAdapter.$(OBJEXT) \
 	libIBTK3d_a-LagMarkerRefine.$(OBJEXT) \
 	libIBTK3d_a-BGaussSeidelPreconditioner.$(OBJEXT) \
@@ -523,20 +565,29 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-CartGridFunction.$(OBJEXT) \
 	libIBTK3d_a-CellNoCornersFillPattern.$(OBJEXT) \
 	libIBTK3d_a-CoarsenPatchStrategySet.$(OBJEXT) \
+	libIBTK3d_a-CopyToRootSchedule.$(OBJEXT) \
+	libIBTK3d_a-CopyToRootTransaction.$(OBJEXT) \
 	libIBTK3d_a-DebuggingUtilities.$(OBJEXT) \
+	libIBTK3d_a-EdgeDataSynchronization.$(OBJEXT) \
+	libIBTK3d_a-EdgeSynchCopyFillPattern.$(OBJEXT) \
+	libIBTK3d_a-FaceDataSynchronization.$(OBJEXT) \
+	libIBTK3d_a-FaceSynchCopyFillPattern.$(OBJEXT) \
 	libIBTK3d_a-FixedSizedStream.$(OBJEXT) \
 	libIBTK3d_a-IndexUtilities.$(OBJEXT) \
 	libIBTK3d_a-IndexSet.$(OBJEXT) \
 	libIBTK3d_a-LagMarkerUtilities.$(OBJEXT) \
+	libIBTK3d_a-NodeDataSynchronization.$(OBJEXT) \
+	libIBTK3d_a-NodeSynchCopyFillPattern.$(OBJEXT) \
 	libIBTK3d_a-NormOps.$(OBJEXT) \
 	libIBTK3d_a-PETScMatOps.$(OBJEXT) \
 	libIBTK3d_a-PETScVecOps.$(OBJEXT) \
+	libIBTK3d_a-ParallelEdgeMap.$(OBJEXT) \
+	libIBTK3d_a-ParallelMap.$(OBJEXT) \
+	libIBTK3d_a-ParallelSet.$(OBJEXT) \
 	libIBTK3d_a-RefinePatchStrategySet.$(OBJEXT) \
 	libIBTK3d_a-SideDataSynchronization.$(OBJEXT) \
 	libIBTK3d_a-SideNoCornersFillPattern.$(OBJEXT) \
 	libIBTK3d_a-SideSynchCopyFillPattern.$(OBJEXT) \
-	libIBTK3d_a-SideSynchCopyTransaction.$(OBJEXT) \
-	libIBTK3d_a-SideSynchCopyTransactionFactory.$(OBJEXT) \
 	libIBTK3d_a-StandardTagAndInitStrategySet.$(OBJEXT) \
 	libIBTK3d_a-Streamable.$(OBJEXT) \
 	libIBTK3d_a-StreamableFactory.$(OBJEXT) \
@@ -549,7 +600,8 @@ am_libIBTK3d_a_OBJECTS = $(am__objects_4) \
 	curl3d.$(OBJEXT) div3d.$(OBJEXT) flux3d.$(OBJEXT) \
 	grad3d.$(OBJEXT) graddetect3d.$(OBJEXT) interp3d.$(OBJEXT) \
 	laplace3d.$(OBJEXT) miscmath3d.$(OBJEXT) \
-	divpreservingrefine3d.$(OBJEXT) patchsmoothers3d.$(OBJEXT)
+	cart_side_refine3d.$(OBJEXT) divpreservingrefine3d.$(OBJEXT) \
+	patchsmoothers3d.$(OBJEXT)
 libIBTK3d_a_OBJECTS = $(am_libIBTK3d_a_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -910,7 +962,7 @@ $(top_srcdir)/src/third_party/muParser/muParserCallback.cpp \
 $(top_srcdir)/src/third_party/muParser/muParserError.cpp \
 $(top_srcdir)/src/third_party/muParser/muParserTokenReader.cpp \
 $(top_srcdir)/src/utilities/Interpolator.C \
-$(top_srcdir)/src/utilities/ParallelEdgeMap.C
+$(top_builddir)/src/fortran/minmod.f
 
 pkg_include_HEADERS =  \
 	$(top_srcdir)/src/third_party/muParser/muParser.h \
@@ -926,7 +978,6 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/utilities/IBTK_CHKERRQ.h \
 	$(top_srcdir)/src/utilities/Interpolator.I \
 	$(top_srcdir)/src/utilities/Interpolator.h \
-	$(top_srcdir)/src/utilities/ParallelEdgeMap.h \
 	$(top_srcdir)/src/utilities/compiler_hints.h \
 	$(top_srcdir)/src/utilities/efficient_add_or_update.h \
 	$(top_srcdir)/src/utilities/namespaces.h \
@@ -980,6 +1031,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.h \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.h \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.h \
+	$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.h \
 	$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.h \
 	$(top_srcdir)/src/refine_ops/LagMarkerRefine.h \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.I \
@@ -1033,7 +1085,13 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/utilities/CellNoCornersFillPattern.h \
 	$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.I \
 	$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.h \
+	$(top_srcdir)/src/utilities/CopyToRootSchedule.h \
+	$(top_srcdir)/src/utilities/CopyToRootTransaction.h \
 	$(top_srcdir)/src/utilities/DebuggingUtilities.h \
+	$(top_srcdir)/src/utilities/EdgeDataSynchronization.h \
+	$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.h \
+	$(top_srcdir)/src/utilities/FaceDataSynchronization.h \
+	$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.h \
 	$(top_srcdir)/src/utilities/FixedSizedStream.I \
 	$(top_srcdir)/src/utilities/FixedSizedStream.h \
 	$(top_srcdir)/src/utilities/IndexUtilities.I \
@@ -1041,16 +1099,19 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/utilities/IndexSet.I \
 	$(top_srcdir)/src/utilities/IndexSet.h \
 	$(top_srcdir)/src/utilities/LagMarkerUtilities.h \
+	$(top_srcdir)/src/utilities/NodeDataSynchronization.h \
+	$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.h \
 	$(top_srcdir)/src/utilities/NormOps.h \
 	$(top_srcdir)/src/utilities/PETScMatOps.h \
 	$(top_srcdir)/src/utilities/PETScVecOps.h \
+	$(top_srcdir)/src/utilities/ParallelEdgeMap.h \
+	$(top_srcdir)/src/utilities/ParallelMap.h \
+	$(top_srcdir)/src/utilities/ParallelSet.h \
 	$(top_srcdir)/src/utilities/RefinePatchStrategySet.I \
 	$(top_srcdir)/src/utilities/RefinePatchStrategySet.h \
 	$(top_srcdir)/src/utilities/SideDataSynchronization.h \
 	$(top_srcdir)/src/utilities/SideNoCornersFillPattern.h \
 	$(top_srcdir)/src/utilities/SideSynchCopyFillPattern.h \
-	$(top_srcdir)/src/utilities/SideSynchCopyTransaction.h \
-	$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.h \
 	$(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.I \
 	$(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.h \
 	$(top_srcdir)/src/utilities/Stashable.h \
@@ -1104,6 +1165,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.C \
 	$(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.C \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C \
+	$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C \
 	$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C \
 	$(top_srcdir)/src/refine_ops/LagMarkerRefine.C \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C \
@@ -1141,20 +1203,29 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/utilities/CartGridFunction.C \
 	$(top_srcdir)/src/utilities/CellNoCornersFillPattern.C \
 	$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C \
+	$(top_srcdir)/src/utilities/CopyToRootSchedule.C \
+	$(top_srcdir)/src/utilities/CopyToRootTransaction.C \
 	$(top_srcdir)/src/utilities/DebuggingUtilities.C \
+	$(top_srcdir)/src/utilities/EdgeDataSynchronization.C \
+	$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C \
+	$(top_srcdir)/src/utilities/FaceDataSynchronization.C \
+	$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C \
 	$(top_srcdir)/src/utilities/FixedSizedStream.C \
 	$(top_srcdir)/src/utilities/IndexUtilities.C \
 	$(top_srcdir)/src/utilities/IndexSet.C \
 	$(top_srcdir)/src/utilities/LagMarkerUtilities.C \
+	$(top_srcdir)/src/utilities/NodeDataSynchronization.C \
+	$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C \
 	$(top_srcdir)/src/utilities/NormOps.C \
 	$(top_srcdir)/src/utilities/PETScMatOps.C \
 	$(top_srcdir)/src/utilities/PETScVecOps.C \
+	$(top_srcdir)/src/utilities/ParallelEdgeMap.C \
+	$(top_srcdir)/src/utilities/ParallelMap.C \
+	$(top_srcdir)/src/utilities/ParallelSet.C \
 	$(top_srcdir)/src/utilities/RefinePatchStrategySet.C \
 	$(top_srcdir)/src/utilities/SideDataSynchronization.C \
 	$(top_srcdir)/src/utilities/SideNoCornersFillPattern.C \
 	$(top_srcdir)/src/utilities/SideSynchCopyFillPattern.C \
-	$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C \
-	$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C \
 	$(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.C \
 	$(top_srcdir)/src/utilities/Streamable.C \
 	$(top_srcdir)/src/utilities/StreamableFactory.C \
@@ -1176,6 +1247,7 @@ $(top_builddir)/src/math/fortran/interp2d.f \
 $(top_builddir)/src/math/fortran/laplace2d.f \
 $(top_builddir)/src/math/fortran/miscmath2d.f \
 $(top_builddir)/src/math/fortran/vclaplace2d.f \
+$(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f \
 $(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f \
 $(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
 
@@ -1193,6 +1265,7 @@ $(top_builddir)/src/math/fortran/graddetect3d.f \
 $(top_builddir)/src/math/fortran/interp3d.f \
 $(top_builddir)/src/math/fortran/laplace3d.f \
 $(top_builddir)/src/math/fortran/miscmath3d.f \
+$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f \
 $(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f \
 $(top_builddir)/src/solvers/impls/fortran/patchsmoothers3d.f
 
@@ -1282,7 +1355,6 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Interpolator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ParallelEdgeMap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-BJacobiPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CCDivGradHypreLevelSolver.Po@am__quote@
@@ -1302,17 +1374,25 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CartSideDoubleCubicCoarsen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CartSideDoubleDivPreservingRefine.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CartSideDoubleQuadraticCFInterpolation.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CartSideRobinPhysBdryOp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CellNoCornersFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CoarseFineBoundaryRefinePatchStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CoarsenPatchStrategySet.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CopyToRootSchedule.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CopyToRootTransaction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-DebuggingUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-DiagonalScalingOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-DiagonalScalingPreconditioner.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-EdgeDataSynchronization.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-EdgeSynchCopyFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-ExtendedRobinBcCoefStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-FACPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-FACPreconditionerStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-FEDataManager.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-FESystemDataCache.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-FaceDataSynchronization.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-GeneralOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellInterpolation.Po@am__quote@
@@ -1342,6 +1422,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LinearOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LinearSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-NewtonKrylovSolver.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-NodeSynchCopyFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-NormOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScKrylovLinearSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScMFFDJacobianOperator.Po@am__quote@
@@ -1356,6 +1438,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScSNESJacobianJOWrapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScVecOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScVecUtilities.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-ParallelMap.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-ParallelSet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PatchMathOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PatchVecCellDataBasicOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PatchVecCellDataOpsReal.Po@am__quote@
@@ -1368,8 +1453,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-SideDataSynchronization.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-SideNoCornersFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-SideSynchCopyFillPattern.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-SideSynchCopyTransaction.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-SideSynchCopyTransactionFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-StandardTagAndInitStrategySet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-Streamable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-StreamableFactory.Po@am__quote@
@@ -1401,17 +1484,25 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CartSideDoubleCubicCoarsen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CartSideDoubleDivPreservingRefine.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CartSideDoubleQuadraticCFInterpolation.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CartSideRobinPhysBdryOp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CellNoCornersFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CoarseFineBoundaryRefinePatchStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CoarsenPatchStrategySet.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CopyToRootSchedule.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CopyToRootTransaction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-DebuggingUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-DiagonalScalingOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-DiagonalScalingPreconditioner.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-EdgeDataSynchronization.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-EdgeSynchCopyFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-ExtendedRobinBcCoefStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-FACPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-FACPreconditionerStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-FEDataManager.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-FESystemDataCache.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-FaceDataSynchronization.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-GeneralOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Po@am__quote@
@@ -1441,6 +1532,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LinearOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LinearSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-NewtonKrylovSolver.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-NodeSynchCopyFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-NormOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScKrylovLinearSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScMFFDJacobianOperator.Po@am__quote@
@@ -1455,6 +1548,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScSNESJacobianJOWrapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScVecOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScVecUtilities.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-ParallelMap.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-ParallelSet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PatchMathOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PatchVecCellDataBasicOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PatchVecCellDataOpsReal.Po@am__quote@
@@ -1467,8 +1563,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-SideDataSynchronization.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-SideNoCornersFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-SideSynchCopyFillPattern.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-SideSynchCopyTransaction.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-SideSynchCopyTransactionFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-StandardTagAndInitStrategySet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-Streamable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-StreamableFactory.Po@am__quote@
@@ -1599,20 +1693,6 @@ Interpolator.obj: $(top_srcdir)/src/utilities/Interpolator.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/Interpolator.C' object='Interpolator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o Interpolator.obj `if test -f '$(top_srcdir)/src/utilities/Interpolator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/Interpolator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/Interpolator.C'; fi`
-
-ParallelEdgeMap.o: $(top_srcdir)/src/utilities/ParallelEdgeMap.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ParallelEdgeMap.o -MD -MP -MF $(DEPDIR)/ParallelEdgeMap.Tpo -c -o ParallelEdgeMap.o `test -f '$(top_srcdir)/src/utilities/ParallelEdgeMap.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/ParallelEdgeMap.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ParallelEdgeMap.Tpo $(DEPDIR)/ParallelEdgeMap.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/ParallelEdgeMap.C' object='ParallelEdgeMap.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ParallelEdgeMap.o `test -f '$(top_srcdir)/src/utilities/ParallelEdgeMap.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/ParallelEdgeMap.C
-
-ParallelEdgeMap.obj: $(top_srcdir)/src/utilities/ParallelEdgeMap.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ParallelEdgeMap.obj -MD -MP -MF $(DEPDIR)/ParallelEdgeMap.Tpo -c -o ParallelEdgeMap.obj `if test -f '$(top_srcdir)/src/utilities/ParallelEdgeMap.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ParallelEdgeMap.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ParallelEdgeMap.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ParallelEdgeMap.Tpo $(DEPDIR)/ParallelEdgeMap.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/ParallelEdgeMap.C' object='ParallelEdgeMap.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ParallelEdgeMap.obj `if test -f '$(top_srcdir)/src/utilities/ParallelEdgeMap.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ParallelEdgeMap.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ParallelEdgeMap.C'; fi`
 
 libIBTK2d_a-HierarchyGhostCellInterpolation.o: $(top_srcdir)/src/boundary/HierarchyGhostCellInterpolation.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-HierarchyGhostCellInterpolation.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-HierarchyGhostCellInterpolation.Tpo -c -o libIBTK2d_a-HierarchyGhostCellInterpolation.o `test -f '$(top_srcdir)/src/boundary/HierarchyGhostCellInterpolation.C' || echo '$(srcdir)/'`$(top_srcdir)/src/boundary/HierarchyGhostCellInterpolation.C
@@ -2202,6 +2282,20 @@ libIBTK2d_a-CartSideDoubleDivPreservingRefine.obj: $(top_srcdir)/src/refine_ops/
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CartSideDoubleDivPreservingRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C'; fi`
 
+libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.o: $(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Tpo -c -o libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.o `test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Tpo $(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C' object='libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.o `test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C
+
+libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.obj: $(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Tpo -c -o libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Tpo $(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C' object='libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; fi`
+
 libIBTK2d_a-VecCellRefineAdapter.o: $(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-VecCellRefineAdapter.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-VecCellRefineAdapter.Tpo -c -o libIBTK2d_a-VecCellRefineAdapter.o `test -f '$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-VecCellRefineAdapter.Tpo $(DEPDIR)/libIBTK2d_a-VecCellRefineAdapter.Po
@@ -2720,6 +2814,34 @@ libIBTK2d_a-CoarsenPatchStrategySet.obj: $(top_srcdir)/src/utilities/CoarsenPatc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CoarsenPatchStrategySet.obj `if test -f '$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C'; fi`
 
+libIBTK2d_a-CopyToRootSchedule.o: $(top_srcdir)/src/utilities/CopyToRootSchedule.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CopyToRootSchedule.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CopyToRootSchedule.Tpo -c -o libIBTK2d_a-CopyToRootSchedule.o `test -f '$(top_srcdir)/src/utilities/CopyToRootSchedule.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/CopyToRootSchedule.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-CopyToRootSchedule.Tpo $(DEPDIR)/libIBTK2d_a-CopyToRootSchedule.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/CopyToRootSchedule.C' object='libIBTK2d_a-CopyToRootSchedule.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CopyToRootSchedule.o `test -f '$(top_srcdir)/src/utilities/CopyToRootSchedule.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/CopyToRootSchedule.C
+
+libIBTK2d_a-CopyToRootSchedule.obj: $(top_srcdir)/src/utilities/CopyToRootSchedule.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CopyToRootSchedule.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CopyToRootSchedule.Tpo -c -o libIBTK2d_a-CopyToRootSchedule.obj `if test -f '$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-CopyToRootSchedule.Tpo $(DEPDIR)/libIBTK2d_a-CopyToRootSchedule.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/CopyToRootSchedule.C' object='libIBTK2d_a-CopyToRootSchedule.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CopyToRootSchedule.obj `if test -f '$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; fi`
+
+libIBTK2d_a-CopyToRootTransaction.o: $(top_srcdir)/src/utilities/CopyToRootTransaction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CopyToRootTransaction.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CopyToRootTransaction.Tpo -c -o libIBTK2d_a-CopyToRootTransaction.o `test -f '$(top_srcdir)/src/utilities/CopyToRootTransaction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/CopyToRootTransaction.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-CopyToRootTransaction.Tpo $(DEPDIR)/libIBTK2d_a-CopyToRootTransaction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/CopyToRootTransaction.C' object='libIBTK2d_a-CopyToRootTransaction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CopyToRootTransaction.o `test -f '$(top_srcdir)/src/utilities/CopyToRootTransaction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/CopyToRootTransaction.C
+
+libIBTK2d_a-CopyToRootTransaction.obj: $(top_srcdir)/src/utilities/CopyToRootTransaction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CopyToRootTransaction.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CopyToRootTransaction.Tpo -c -o libIBTK2d_a-CopyToRootTransaction.obj `if test -f '$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-CopyToRootTransaction.Tpo $(DEPDIR)/libIBTK2d_a-CopyToRootTransaction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/CopyToRootTransaction.C' object='libIBTK2d_a-CopyToRootTransaction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CopyToRootTransaction.obj `if test -f '$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; fi`
+
 libIBTK2d_a-DebuggingUtilities.o: $(top_srcdir)/src/utilities/DebuggingUtilities.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-DebuggingUtilities.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-DebuggingUtilities.Tpo -c -o libIBTK2d_a-DebuggingUtilities.o `test -f '$(top_srcdir)/src/utilities/DebuggingUtilities.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/DebuggingUtilities.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-DebuggingUtilities.Tpo $(DEPDIR)/libIBTK2d_a-DebuggingUtilities.Po
@@ -2733,6 +2855,62 @@ libIBTK2d_a-DebuggingUtilities.obj: $(top_srcdir)/src/utilities/DebuggingUtiliti
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/DebuggingUtilities.C' object='libIBTK2d_a-DebuggingUtilities.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-DebuggingUtilities.obj `if test -f '$(top_srcdir)/src/utilities/DebuggingUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/DebuggingUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/DebuggingUtilities.C'; fi`
+
+libIBTK2d_a-EdgeDataSynchronization.o: $(top_srcdir)/src/utilities/EdgeDataSynchronization.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-EdgeDataSynchronization.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-EdgeDataSynchronization.Tpo -c -o libIBTK2d_a-EdgeDataSynchronization.o `test -f '$(top_srcdir)/src/utilities/EdgeDataSynchronization.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/EdgeDataSynchronization.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-EdgeDataSynchronization.Tpo $(DEPDIR)/libIBTK2d_a-EdgeDataSynchronization.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/EdgeDataSynchronization.C' object='libIBTK2d_a-EdgeDataSynchronization.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-EdgeDataSynchronization.o `test -f '$(top_srcdir)/src/utilities/EdgeDataSynchronization.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/EdgeDataSynchronization.C
+
+libIBTK2d_a-EdgeDataSynchronization.obj: $(top_srcdir)/src/utilities/EdgeDataSynchronization.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-EdgeDataSynchronization.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-EdgeDataSynchronization.Tpo -c -o libIBTK2d_a-EdgeDataSynchronization.obj `if test -f '$(top_srcdir)/src/utilities/EdgeDataSynchronization.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/EdgeDataSynchronization.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/EdgeDataSynchronization.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-EdgeDataSynchronization.Tpo $(DEPDIR)/libIBTK2d_a-EdgeDataSynchronization.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/EdgeDataSynchronization.C' object='libIBTK2d_a-EdgeDataSynchronization.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-EdgeDataSynchronization.obj `if test -f '$(top_srcdir)/src/utilities/EdgeDataSynchronization.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/EdgeDataSynchronization.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/EdgeDataSynchronization.C'; fi`
+
+libIBTK2d_a-EdgeSynchCopyFillPattern.o: $(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-EdgeSynchCopyFillPattern.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-EdgeSynchCopyFillPattern.Tpo -c -o libIBTK2d_a-EdgeSynchCopyFillPattern.o `test -f '$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-EdgeSynchCopyFillPattern.Tpo $(DEPDIR)/libIBTK2d_a-EdgeSynchCopyFillPattern.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C' object='libIBTK2d_a-EdgeSynchCopyFillPattern.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-EdgeSynchCopyFillPattern.o `test -f '$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C
+
+libIBTK2d_a-EdgeSynchCopyFillPattern.obj: $(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-EdgeSynchCopyFillPattern.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-EdgeSynchCopyFillPattern.Tpo -c -o libIBTK2d_a-EdgeSynchCopyFillPattern.obj `if test -f '$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-EdgeSynchCopyFillPattern.Tpo $(DEPDIR)/libIBTK2d_a-EdgeSynchCopyFillPattern.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C' object='libIBTK2d_a-EdgeSynchCopyFillPattern.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-EdgeSynchCopyFillPattern.obj `if test -f '$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C'; fi`
+
+libIBTK2d_a-FaceDataSynchronization.o: $(top_srcdir)/src/utilities/FaceDataSynchronization.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-FaceDataSynchronization.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-FaceDataSynchronization.Tpo -c -o libIBTK2d_a-FaceDataSynchronization.o `test -f '$(top_srcdir)/src/utilities/FaceDataSynchronization.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/FaceDataSynchronization.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-FaceDataSynchronization.Tpo $(DEPDIR)/libIBTK2d_a-FaceDataSynchronization.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/FaceDataSynchronization.C' object='libIBTK2d_a-FaceDataSynchronization.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-FaceDataSynchronization.o `test -f '$(top_srcdir)/src/utilities/FaceDataSynchronization.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/FaceDataSynchronization.C
+
+libIBTK2d_a-FaceDataSynchronization.obj: $(top_srcdir)/src/utilities/FaceDataSynchronization.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-FaceDataSynchronization.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-FaceDataSynchronization.Tpo -c -o libIBTK2d_a-FaceDataSynchronization.obj `if test -f '$(top_srcdir)/src/utilities/FaceDataSynchronization.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/FaceDataSynchronization.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/FaceDataSynchronization.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-FaceDataSynchronization.Tpo $(DEPDIR)/libIBTK2d_a-FaceDataSynchronization.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/FaceDataSynchronization.C' object='libIBTK2d_a-FaceDataSynchronization.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-FaceDataSynchronization.obj `if test -f '$(top_srcdir)/src/utilities/FaceDataSynchronization.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/FaceDataSynchronization.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/FaceDataSynchronization.C'; fi`
+
+libIBTK2d_a-FaceSynchCopyFillPattern.o: $(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-FaceSynchCopyFillPattern.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Tpo -c -o libIBTK2d_a-FaceSynchCopyFillPattern.o `test -f '$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Tpo $(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C' object='libIBTK2d_a-FaceSynchCopyFillPattern.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-FaceSynchCopyFillPattern.o `test -f '$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C
+
+libIBTK2d_a-FaceSynchCopyFillPattern.obj: $(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-FaceSynchCopyFillPattern.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Tpo -c -o libIBTK2d_a-FaceSynchCopyFillPattern.obj `if test -f '$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Tpo $(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C' object='libIBTK2d_a-FaceSynchCopyFillPattern.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-FaceSynchCopyFillPattern.obj `if test -f '$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C'; fi`
 
 libIBTK2d_a-FixedSizedStream.o: $(top_srcdir)/src/utilities/FixedSizedStream.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-FixedSizedStream.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-FixedSizedStream.Tpo -c -o libIBTK2d_a-FixedSizedStream.o `test -f '$(top_srcdir)/src/utilities/FixedSizedStream.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/FixedSizedStream.C
@@ -2790,6 +2968,34 @@ libIBTK2d_a-LagMarkerUtilities.obj: $(top_srcdir)/src/utilities/LagMarkerUtiliti
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LagMarkerUtilities.obj `if test -f '$(top_srcdir)/src/utilities/LagMarkerUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/LagMarkerUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/LagMarkerUtilities.C'; fi`
 
+libIBTK2d_a-NodeDataSynchronization.o: $(top_srcdir)/src/utilities/NodeDataSynchronization.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-NodeDataSynchronization.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Tpo -c -o libIBTK2d_a-NodeDataSynchronization.o `test -f '$(top_srcdir)/src/utilities/NodeDataSynchronization.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/NodeDataSynchronization.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Tpo $(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/NodeDataSynchronization.C' object='libIBTK2d_a-NodeDataSynchronization.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-NodeDataSynchronization.o `test -f '$(top_srcdir)/src/utilities/NodeDataSynchronization.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/NodeDataSynchronization.C
+
+libIBTK2d_a-NodeDataSynchronization.obj: $(top_srcdir)/src/utilities/NodeDataSynchronization.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-NodeDataSynchronization.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Tpo -c -o libIBTK2d_a-NodeDataSynchronization.obj `if test -f '$(top_srcdir)/src/utilities/NodeDataSynchronization.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/NodeDataSynchronization.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/NodeDataSynchronization.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Tpo $(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/NodeDataSynchronization.C' object='libIBTK2d_a-NodeDataSynchronization.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-NodeDataSynchronization.obj `if test -f '$(top_srcdir)/src/utilities/NodeDataSynchronization.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/NodeDataSynchronization.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/NodeDataSynchronization.C'; fi`
+
+libIBTK2d_a-NodeSynchCopyFillPattern.o: $(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-NodeSynchCopyFillPattern.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-NodeSynchCopyFillPattern.Tpo -c -o libIBTK2d_a-NodeSynchCopyFillPattern.o `test -f '$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-NodeSynchCopyFillPattern.Tpo $(DEPDIR)/libIBTK2d_a-NodeSynchCopyFillPattern.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C' object='libIBTK2d_a-NodeSynchCopyFillPattern.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-NodeSynchCopyFillPattern.o `test -f '$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C
+
+libIBTK2d_a-NodeSynchCopyFillPattern.obj: $(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-NodeSynchCopyFillPattern.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-NodeSynchCopyFillPattern.Tpo -c -o libIBTK2d_a-NodeSynchCopyFillPattern.obj `if test -f '$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-NodeSynchCopyFillPattern.Tpo $(DEPDIR)/libIBTK2d_a-NodeSynchCopyFillPattern.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C' object='libIBTK2d_a-NodeSynchCopyFillPattern.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-NodeSynchCopyFillPattern.obj `if test -f '$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C'; fi`
+
 libIBTK2d_a-NormOps.o: $(top_srcdir)/src/utilities/NormOps.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-NormOps.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-NormOps.Tpo -c -o libIBTK2d_a-NormOps.o `test -f '$(top_srcdir)/src/utilities/NormOps.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/NormOps.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-NormOps.Tpo $(DEPDIR)/libIBTK2d_a-NormOps.Po
@@ -2831,6 +3037,48 @@ libIBTK2d_a-PETScVecOps.obj: $(top_srcdir)/src/utilities/PETScVecOps.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/PETScVecOps.C' object='libIBTK2d_a-PETScVecOps.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PETScVecOps.obj `if test -f '$(top_srcdir)/src/utilities/PETScVecOps.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/PETScVecOps.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/PETScVecOps.C'; fi`
+
+libIBTK2d_a-ParallelEdgeMap.o: $(top_srcdir)/src/utilities/ParallelEdgeMap.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-ParallelEdgeMap.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Tpo -c -o libIBTK2d_a-ParallelEdgeMap.o `test -f '$(top_srcdir)/src/utilities/ParallelEdgeMap.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/ParallelEdgeMap.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Tpo $(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/ParallelEdgeMap.C' object='libIBTK2d_a-ParallelEdgeMap.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-ParallelEdgeMap.o `test -f '$(top_srcdir)/src/utilities/ParallelEdgeMap.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/ParallelEdgeMap.C
+
+libIBTK2d_a-ParallelEdgeMap.obj: $(top_srcdir)/src/utilities/ParallelEdgeMap.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-ParallelEdgeMap.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Tpo -c -o libIBTK2d_a-ParallelEdgeMap.obj `if test -f '$(top_srcdir)/src/utilities/ParallelEdgeMap.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ParallelEdgeMap.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ParallelEdgeMap.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Tpo $(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/ParallelEdgeMap.C' object='libIBTK2d_a-ParallelEdgeMap.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-ParallelEdgeMap.obj `if test -f '$(top_srcdir)/src/utilities/ParallelEdgeMap.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ParallelEdgeMap.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ParallelEdgeMap.C'; fi`
+
+libIBTK2d_a-ParallelMap.o: $(top_srcdir)/src/utilities/ParallelMap.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-ParallelMap.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-ParallelMap.Tpo -c -o libIBTK2d_a-ParallelMap.o `test -f '$(top_srcdir)/src/utilities/ParallelMap.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/ParallelMap.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-ParallelMap.Tpo $(DEPDIR)/libIBTK2d_a-ParallelMap.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/ParallelMap.C' object='libIBTK2d_a-ParallelMap.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-ParallelMap.o `test -f '$(top_srcdir)/src/utilities/ParallelMap.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/ParallelMap.C
+
+libIBTK2d_a-ParallelMap.obj: $(top_srcdir)/src/utilities/ParallelMap.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-ParallelMap.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-ParallelMap.Tpo -c -o libIBTK2d_a-ParallelMap.obj `if test -f '$(top_srcdir)/src/utilities/ParallelMap.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ParallelMap.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ParallelMap.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-ParallelMap.Tpo $(DEPDIR)/libIBTK2d_a-ParallelMap.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/ParallelMap.C' object='libIBTK2d_a-ParallelMap.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-ParallelMap.obj `if test -f '$(top_srcdir)/src/utilities/ParallelMap.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ParallelMap.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ParallelMap.C'; fi`
+
+libIBTK2d_a-ParallelSet.o: $(top_srcdir)/src/utilities/ParallelSet.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-ParallelSet.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-ParallelSet.Tpo -c -o libIBTK2d_a-ParallelSet.o `test -f '$(top_srcdir)/src/utilities/ParallelSet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/ParallelSet.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-ParallelSet.Tpo $(DEPDIR)/libIBTK2d_a-ParallelSet.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/ParallelSet.C' object='libIBTK2d_a-ParallelSet.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-ParallelSet.o `test -f '$(top_srcdir)/src/utilities/ParallelSet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/ParallelSet.C
+
+libIBTK2d_a-ParallelSet.obj: $(top_srcdir)/src/utilities/ParallelSet.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-ParallelSet.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-ParallelSet.Tpo -c -o libIBTK2d_a-ParallelSet.obj `if test -f '$(top_srcdir)/src/utilities/ParallelSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ParallelSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ParallelSet.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-ParallelSet.Tpo $(DEPDIR)/libIBTK2d_a-ParallelSet.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/ParallelSet.C' object='libIBTK2d_a-ParallelSet.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-ParallelSet.obj `if test -f '$(top_srcdir)/src/utilities/ParallelSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ParallelSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ParallelSet.C'; fi`
 
 libIBTK2d_a-RefinePatchStrategySet.o: $(top_srcdir)/src/utilities/RefinePatchStrategySet.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-RefinePatchStrategySet.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-RefinePatchStrategySet.Tpo -c -o libIBTK2d_a-RefinePatchStrategySet.o `test -f '$(top_srcdir)/src/utilities/RefinePatchStrategySet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/RefinePatchStrategySet.C
@@ -2887,34 +3135,6 @@ libIBTK2d_a-SideSynchCopyFillPattern.obj: $(top_srcdir)/src/utilities/SideSynchC
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/SideSynchCopyFillPattern.C' object='libIBTK2d_a-SideSynchCopyFillPattern.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-SideSynchCopyFillPattern.obj `if test -f '$(top_srcdir)/src/utilities/SideSynchCopyFillPattern.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/SideSynchCopyFillPattern.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/SideSynchCopyFillPattern.C'; fi`
-
-libIBTK2d_a-SideSynchCopyTransaction.o: $(top_srcdir)/src/utilities/SideSynchCopyTransaction.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-SideSynchCopyTransaction.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-SideSynchCopyTransaction.Tpo -c -o libIBTK2d_a-SideSynchCopyTransaction.o `test -f '$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-SideSynchCopyTransaction.Tpo $(DEPDIR)/libIBTK2d_a-SideSynchCopyTransaction.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C' object='libIBTK2d_a-SideSynchCopyTransaction.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-SideSynchCopyTransaction.o `test -f '$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C
-
-libIBTK2d_a-SideSynchCopyTransaction.obj: $(top_srcdir)/src/utilities/SideSynchCopyTransaction.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-SideSynchCopyTransaction.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-SideSynchCopyTransaction.Tpo -c -o libIBTK2d_a-SideSynchCopyTransaction.obj `if test -f '$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-SideSynchCopyTransaction.Tpo $(DEPDIR)/libIBTK2d_a-SideSynchCopyTransaction.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C' object='libIBTK2d_a-SideSynchCopyTransaction.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-SideSynchCopyTransaction.obj `if test -f '$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C'; fi`
-
-libIBTK2d_a-SideSynchCopyTransactionFactory.o: $(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-SideSynchCopyTransactionFactory.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-SideSynchCopyTransactionFactory.Tpo -c -o libIBTK2d_a-SideSynchCopyTransactionFactory.o `test -f '$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-SideSynchCopyTransactionFactory.Tpo $(DEPDIR)/libIBTK2d_a-SideSynchCopyTransactionFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C' object='libIBTK2d_a-SideSynchCopyTransactionFactory.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-SideSynchCopyTransactionFactory.o `test -f '$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C
-
-libIBTK2d_a-SideSynchCopyTransactionFactory.obj: $(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-SideSynchCopyTransactionFactory.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-SideSynchCopyTransactionFactory.Tpo -c -o libIBTK2d_a-SideSynchCopyTransactionFactory.obj `if test -f '$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-SideSynchCopyTransactionFactory.Tpo $(DEPDIR)/libIBTK2d_a-SideSynchCopyTransactionFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C' object='libIBTK2d_a-SideSynchCopyTransactionFactory.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-SideSynchCopyTransactionFactory.obj `if test -f '$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C'; fi`
 
 libIBTK2d_a-StandardTagAndInitStrategySet.o: $(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-StandardTagAndInitStrategySet.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-StandardTagAndInitStrategySet.Tpo -c -o libIBTK2d_a-StandardTagAndInitStrategySet.o `test -f '$(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.C
@@ -2999,6 +3219,20 @@ libIBTK2d_a-FEDataManager.obj: $(top_srcdir)/src/lagrangian/FEDataManager.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/FEDataManager.C' object='libIBTK2d_a-FEDataManager.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-FEDataManager.obj `if test -f '$(top_srcdir)/src/lagrangian/FEDataManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/FEDataManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/FEDataManager.C'; fi`
+
+libIBTK2d_a-FESystemDataCache.o: $(top_srcdir)/src/utilities/FESystemDataCache.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-FESystemDataCache.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-FESystemDataCache.Tpo -c -o libIBTK2d_a-FESystemDataCache.o `test -f '$(top_srcdir)/src/utilities/FESystemDataCache.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/FESystemDataCache.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-FESystemDataCache.Tpo $(DEPDIR)/libIBTK2d_a-FESystemDataCache.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/FESystemDataCache.C' object='libIBTK2d_a-FESystemDataCache.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-FESystemDataCache.o `test -f '$(top_srcdir)/src/utilities/FESystemDataCache.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/FESystemDataCache.C
+
+libIBTK2d_a-FESystemDataCache.obj: $(top_srcdir)/src/utilities/FESystemDataCache.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-FESystemDataCache.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-FESystemDataCache.Tpo -c -o libIBTK2d_a-FESystemDataCache.obj `if test -f '$(top_srcdir)/src/utilities/FESystemDataCache.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/FESystemDataCache.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/FESystemDataCache.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-FESystemDataCache.Tpo $(DEPDIR)/libIBTK2d_a-FESystemDataCache.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/FESystemDataCache.C' object='libIBTK2d_a-FESystemDataCache.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-FESystemDataCache.obj `if test -f '$(top_srcdir)/src/utilities/FESystemDataCache.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/FESystemDataCache.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/FESystemDataCache.C'; fi`
 
 libIBTK3d_a-HierarchyGhostCellInterpolation.o: $(top_srcdir)/src/boundary/HierarchyGhostCellInterpolation.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-HierarchyGhostCellInterpolation.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Tpo -c -o libIBTK3d_a-HierarchyGhostCellInterpolation.o `test -f '$(top_srcdir)/src/boundary/HierarchyGhostCellInterpolation.C' || echo '$(srcdir)/'`$(top_srcdir)/src/boundary/HierarchyGhostCellInterpolation.C
@@ -3588,6 +3822,20 @@ libIBTK3d_a-CartSideDoubleDivPreservingRefine.obj: $(top_srcdir)/src/refine_ops/
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CartSideDoubleDivPreservingRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C'; fi`
 
+libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.o: $(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Tpo -c -o libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.o `test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Tpo $(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C' object='libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.o `test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C
+
+libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.obj: $(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Tpo -c -o libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Tpo $(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C' object='libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C'; fi`
+
 libIBTK3d_a-VecCellRefineAdapter.o: $(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-VecCellRefineAdapter.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-VecCellRefineAdapter.Tpo -c -o libIBTK3d_a-VecCellRefineAdapter.o `test -f '$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-VecCellRefineAdapter.Tpo $(DEPDIR)/libIBTK3d_a-VecCellRefineAdapter.Po
@@ -4106,6 +4354,34 @@ libIBTK3d_a-CoarsenPatchStrategySet.obj: $(top_srcdir)/src/utilities/CoarsenPatc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CoarsenPatchStrategySet.obj `if test -f '$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C'; fi`
 
+libIBTK3d_a-CopyToRootSchedule.o: $(top_srcdir)/src/utilities/CopyToRootSchedule.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CopyToRootSchedule.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CopyToRootSchedule.Tpo -c -o libIBTK3d_a-CopyToRootSchedule.o `test -f '$(top_srcdir)/src/utilities/CopyToRootSchedule.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/CopyToRootSchedule.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-CopyToRootSchedule.Tpo $(DEPDIR)/libIBTK3d_a-CopyToRootSchedule.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/CopyToRootSchedule.C' object='libIBTK3d_a-CopyToRootSchedule.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CopyToRootSchedule.o `test -f '$(top_srcdir)/src/utilities/CopyToRootSchedule.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/CopyToRootSchedule.C
+
+libIBTK3d_a-CopyToRootSchedule.obj: $(top_srcdir)/src/utilities/CopyToRootSchedule.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CopyToRootSchedule.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CopyToRootSchedule.Tpo -c -o libIBTK3d_a-CopyToRootSchedule.obj `if test -f '$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-CopyToRootSchedule.Tpo $(DEPDIR)/libIBTK3d_a-CopyToRootSchedule.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/CopyToRootSchedule.C' object='libIBTK3d_a-CopyToRootSchedule.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CopyToRootSchedule.obj `if test -f '$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/CopyToRootSchedule.C'; fi`
+
+libIBTK3d_a-CopyToRootTransaction.o: $(top_srcdir)/src/utilities/CopyToRootTransaction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CopyToRootTransaction.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CopyToRootTransaction.Tpo -c -o libIBTK3d_a-CopyToRootTransaction.o `test -f '$(top_srcdir)/src/utilities/CopyToRootTransaction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/CopyToRootTransaction.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-CopyToRootTransaction.Tpo $(DEPDIR)/libIBTK3d_a-CopyToRootTransaction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/CopyToRootTransaction.C' object='libIBTK3d_a-CopyToRootTransaction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CopyToRootTransaction.o `test -f '$(top_srcdir)/src/utilities/CopyToRootTransaction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/CopyToRootTransaction.C
+
+libIBTK3d_a-CopyToRootTransaction.obj: $(top_srcdir)/src/utilities/CopyToRootTransaction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CopyToRootTransaction.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CopyToRootTransaction.Tpo -c -o libIBTK3d_a-CopyToRootTransaction.obj `if test -f '$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-CopyToRootTransaction.Tpo $(DEPDIR)/libIBTK3d_a-CopyToRootTransaction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/CopyToRootTransaction.C' object='libIBTK3d_a-CopyToRootTransaction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CopyToRootTransaction.obj `if test -f '$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/CopyToRootTransaction.C'; fi`
+
 libIBTK3d_a-DebuggingUtilities.o: $(top_srcdir)/src/utilities/DebuggingUtilities.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-DebuggingUtilities.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-DebuggingUtilities.Tpo -c -o libIBTK3d_a-DebuggingUtilities.o `test -f '$(top_srcdir)/src/utilities/DebuggingUtilities.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/DebuggingUtilities.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-DebuggingUtilities.Tpo $(DEPDIR)/libIBTK3d_a-DebuggingUtilities.Po
@@ -4119,6 +4395,62 @@ libIBTK3d_a-DebuggingUtilities.obj: $(top_srcdir)/src/utilities/DebuggingUtiliti
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/DebuggingUtilities.C' object='libIBTK3d_a-DebuggingUtilities.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-DebuggingUtilities.obj `if test -f '$(top_srcdir)/src/utilities/DebuggingUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/DebuggingUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/DebuggingUtilities.C'; fi`
+
+libIBTK3d_a-EdgeDataSynchronization.o: $(top_srcdir)/src/utilities/EdgeDataSynchronization.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-EdgeDataSynchronization.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-EdgeDataSynchronization.Tpo -c -o libIBTK3d_a-EdgeDataSynchronization.o `test -f '$(top_srcdir)/src/utilities/EdgeDataSynchronization.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/EdgeDataSynchronization.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-EdgeDataSynchronization.Tpo $(DEPDIR)/libIBTK3d_a-EdgeDataSynchronization.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/EdgeDataSynchronization.C' object='libIBTK3d_a-EdgeDataSynchronization.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-EdgeDataSynchronization.o `test -f '$(top_srcdir)/src/utilities/EdgeDataSynchronization.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/EdgeDataSynchronization.C
+
+libIBTK3d_a-EdgeDataSynchronization.obj: $(top_srcdir)/src/utilities/EdgeDataSynchronization.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-EdgeDataSynchronization.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-EdgeDataSynchronization.Tpo -c -o libIBTK3d_a-EdgeDataSynchronization.obj `if test -f '$(top_srcdir)/src/utilities/EdgeDataSynchronization.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/EdgeDataSynchronization.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/EdgeDataSynchronization.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-EdgeDataSynchronization.Tpo $(DEPDIR)/libIBTK3d_a-EdgeDataSynchronization.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/EdgeDataSynchronization.C' object='libIBTK3d_a-EdgeDataSynchronization.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-EdgeDataSynchronization.obj `if test -f '$(top_srcdir)/src/utilities/EdgeDataSynchronization.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/EdgeDataSynchronization.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/EdgeDataSynchronization.C'; fi`
+
+libIBTK3d_a-EdgeSynchCopyFillPattern.o: $(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-EdgeSynchCopyFillPattern.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-EdgeSynchCopyFillPattern.Tpo -c -o libIBTK3d_a-EdgeSynchCopyFillPattern.o `test -f '$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-EdgeSynchCopyFillPattern.Tpo $(DEPDIR)/libIBTK3d_a-EdgeSynchCopyFillPattern.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C' object='libIBTK3d_a-EdgeSynchCopyFillPattern.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-EdgeSynchCopyFillPattern.o `test -f '$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C
+
+libIBTK3d_a-EdgeSynchCopyFillPattern.obj: $(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-EdgeSynchCopyFillPattern.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-EdgeSynchCopyFillPattern.Tpo -c -o libIBTK3d_a-EdgeSynchCopyFillPattern.obj `if test -f '$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-EdgeSynchCopyFillPattern.Tpo $(DEPDIR)/libIBTK3d_a-EdgeSynchCopyFillPattern.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C' object='libIBTK3d_a-EdgeSynchCopyFillPattern.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-EdgeSynchCopyFillPattern.obj `if test -f '$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C'; fi`
+
+libIBTK3d_a-FaceDataSynchronization.o: $(top_srcdir)/src/utilities/FaceDataSynchronization.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-FaceDataSynchronization.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-FaceDataSynchronization.Tpo -c -o libIBTK3d_a-FaceDataSynchronization.o `test -f '$(top_srcdir)/src/utilities/FaceDataSynchronization.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/FaceDataSynchronization.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-FaceDataSynchronization.Tpo $(DEPDIR)/libIBTK3d_a-FaceDataSynchronization.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/FaceDataSynchronization.C' object='libIBTK3d_a-FaceDataSynchronization.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-FaceDataSynchronization.o `test -f '$(top_srcdir)/src/utilities/FaceDataSynchronization.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/FaceDataSynchronization.C
+
+libIBTK3d_a-FaceDataSynchronization.obj: $(top_srcdir)/src/utilities/FaceDataSynchronization.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-FaceDataSynchronization.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-FaceDataSynchronization.Tpo -c -o libIBTK3d_a-FaceDataSynchronization.obj `if test -f '$(top_srcdir)/src/utilities/FaceDataSynchronization.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/FaceDataSynchronization.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/FaceDataSynchronization.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-FaceDataSynchronization.Tpo $(DEPDIR)/libIBTK3d_a-FaceDataSynchronization.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/FaceDataSynchronization.C' object='libIBTK3d_a-FaceDataSynchronization.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-FaceDataSynchronization.obj `if test -f '$(top_srcdir)/src/utilities/FaceDataSynchronization.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/FaceDataSynchronization.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/FaceDataSynchronization.C'; fi`
+
+libIBTK3d_a-FaceSynchCopyFillPattern.o: $(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-FaceSynchCopyFillPattern.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Tpo -c -o libIBTK3d_a-FaceSynchCopyFillPattern.o `test -f '$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Tpo $(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C' object='libIBTK3d_a-FaceSynchCopyFillPattern.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-FaceSynchCopyFillPattern.o `test -f '$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C
+
+libIBTK3d_a-FaceSynchCopyFillPattern.obj: $(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-FaceSynchCopyFillPattern.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Tpo -c -o libIBTK3d_a-FaceSynchCopyFillPattern.obj `if test -f '$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Tpo $(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C' object='libIBTK3d_a-FaceSynchCopyFillPattern.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-FaceSynchCopyFillPattern.obj `if test -f '$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C'; fi`
 
 libIBTK3d_a-FixedSizedStream.o: $(top_srcdir)/src/utilities/FixedSizedStream.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-FixedSizedStream.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-FixedSizedStream.Tpo -c -o libIBTK3d_a-FixedSizedStream.o `test -f '$(top_srcdir)/src/utilities/FixedSizedStream.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/FixedSizedStream.C
@@ -4176,6 +4508,34 @@ libIBTK3d_a-LagMarkerUtilities.obj: $(top_srcdir)/src/utilities/LagMarkerUtiliti
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LagMarkerUtilities.obj `if test -f '$(top_srcdir)/src/utilities/LagMarkerUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/LagMarkerUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/LagMarkerUtilities.C'; fi`
 
+libIBTK3d_a-NodeDataSynchronization.o: $(top_srcdir)/src/utilities/NodeDataSynchronization.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-NodeDataSynchronization.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Tpo -c -o libIBTK3d_a-NodeDataSynchronization.o `test -f '$(top_srcdir)/src/utilities/NodeDataSynchronization.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/NodeDataSynchronization.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Tpo $(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/NodeDataSynchronization.C' object='libIBTK3d_a-NodeDataSynchronization.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-NodeDataSynchronization.o `test -f '$(top_srcdir)/src/utilities/NodeDataSynchronization.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/NodeDataSynchronization.C
+
+libIBTK3d_a-NodeDataSynchronization.obj: $(top_srcdir)/src/utilities/NodeDataSynchronization.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-NodeDataSynchronization.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Tpo -c -o libIBTK3d_a-NodeDataSynchronization.obj `if test -f '$(top_srcdir)/src/utilities/NodeDataSynchronization.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/NodeDataSynchronization.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/NodeDataSynchronization.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Tpo $(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/NodeDataSynchronization.C' object='libIBTK3d_a-NodeDataSynchronization.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-NodeDataSynchronization.obj `if test -f '$(top_srcdir)/src/utilities/NodeDataSynchronization.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/NodeDataSynchronization.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/NodeDataSynchronization.C'; fi`
+
+libIBTK3d_a-NodeSynchCopyFillPattern.o: $(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-NodeSynchCopyFillPattern.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-NodeSynchCopyFillPattern.Tpo -c -o libIBTK3d_a-NodeSynchCopyFillPattern.o `test -f '$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-NodeSynchCopyFillPattern.Tpo $(DEPDIR)/libIBTK3d_a-NodeSynchCopyFillPattern.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C' object='libIBTK3d_a-NodeSynchCopyFillPattern.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-NodeSynchCopyFillPattern.o `test -f '$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C
+
+libIBTK3d_a-NodeSynchCopyFillPattern.obj: $(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-NodeSynchCopyFillPattern.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-NodeSynchCopyFillPattern.Tpo -c -o libIBTK3d_a-NodeSynchCopyFillPattern.obj `if test -f '$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-NodeSynchCopyFillPattern.Tpo $(DEPDIR)/libIBTK3d_a-NodeSynchCopyFillPattern.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C' object='libIBTK3d_a-NodeSynchCopyFillPattern.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-NodeSynchCopyFillPattern.obj `if test -f '$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C'; fi`
+
 libIBTK3d_a-NormOps.o: $(top_srcdir)/src/utilities/NormOps.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-NormOps.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-NormOps.Tpo -c -o libIBTK3d_a-NormOps.o `test -f '$(top_srcdir)/src/utilities/NormOps.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/NormOps.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-NormOps.Tpo $(DEPDIR)/libIBTK3d_a-NormOps.Po
@@ -4217,6 +4577,48 @@ libIBTK3d_a-PETScVecOps.obj: $(top_srcdir)/src/utilities/PETScVecOps.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/PETScVecOps.C' object='libIBTK3d_a-PETScVecOps.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PETScVecOps.obj `if test -f '$(top_srcdir)/src/utilities/PETScVecOps.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/PETScVecOps.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/PETScVecOps.C'; fi`
+
+libIBTK3d_a-ParallelEdgeMap.o: $(top_srcdir)/src/utilities/ParallelEdgeMap.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-ParallelEdgeMap.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Tpo -c -o libIBTK3d_a-ParallelEdgeMap.o `test -f '$(top_srcdir)/src/utilities/ParallelEdgeMap.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/ParallelEdgeMap.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Tpo $(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/ParallelEdgeMap.C' object='libIBTK3d_a-ParallelEdgeMap.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-ParallelEdgeMap.o `test -f '$(top_srcdir)/src/utilities/ParallelEdgeMap.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/ParallelEdgeMap.C
+
+libIBTK3d_a-ParallelEdgeMap.obj: $(top_srcdir)/src/utilities/ParallelEdgeMap.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-ParallelEdgeMap.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Tpo -c -o libIBTK3d_a-ParallelEdgeMap.obj `if test -f '$(top_srcdir)/src/utilities/ParallelEdgeMap.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ParallelEdgeMap.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ParallelEdgeMap.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Tpo $(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/ParallelEdgeMap.C' object='libIBTK3d_a-ParallelEdgeMap.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-ParallelEdgeMap.obj `if test -f '$(top_srcdir)/src/utilities/ParallelEdgeMap.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ParallelEdgeMap.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ParallelEdgeMap.C'; fi`
+
+libIBTK3d_a-ParallelMap.o: $(top_srcdir)/src/utilities/ParallelMap.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-ParallelMap.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-ParallelMap.Tpo -c -o libIBTK3d_a-ParallelMap.o `test -f '$(top_srcdir)/src/utilities/ParallelMap.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/ParallelMap.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-ParallelMap.Tpo $(DEPDIR)/libIBTK3d_a-ParallelMap.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/ParallelMap.C' object='libIBTK3d_a-ParallelMap.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-ParallelMap.o `test -f '$(top_srcdir)/src/utilities/ParallelMap.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/ParallelMap.C
+
+libIBTK3d_a-ParallelMap.obj: $(top_srcdir)/src/utilities/ParallelMap.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-ParallelMap.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-ParallelMap.Tpo -c -o libIBTK3d_a-ParallelMap.obj `if test -f '$(top_srcdir)/src/utilities/ParallelMap.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ParallelMap.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ParallelMap.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-ParallelMap.Tpo $(DEPDIR)/libIBTK3d_a-ParallelMap.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/ParallelMap.C' object='libIBTK3d_a-ParallelMap.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-ParallelMap.obj `if test -f '$(top_srcdir)/src/utilities/ParallelMap.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ParallelMap.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ParallelMap.C'; fi`
+
+libIBTK3d_a-ParallelSet.o: $(top_srcdir)/src/utilities/ParallelSet.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-ParallelSet.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-ParallelSet.Tpo -c -o libIBTK3d_a-ParallelSet.o `test -f '$(top_srcdir)/src/utilities/ParallelSet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/ParallelSet.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-ParallelSet.Tpo $(DEPDIR)/libIBTK3d_a-ParallelSet.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/ParallelSet.C' object='libIBTK3d_a-ParallelSet.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-ParallelSet.o `test -f '$(top_srcdir)/src/utilities/ParallelSet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/ParallelSet.C
+
+libIBTK3d_a-ParallelSet.obj: $(top_srcdir)/src/utilities/ParallelSet.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-ParallelSet.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-ParallelSet.Tpo -c -o libIBTK3d_a-ParallelSet.obj `if test -f '$(top_srcdir)/src/utilities/ParallelSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ParallelSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ParallelSet.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-ParallelSet.Tpo $(DEPDIR)/libIBTK3d_a-ParallelSet.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/ParallelSet.C' object='libIBTK3d_a-ParallelSet.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-ParallelSet.obj `if test -f '$(top_srcdir)/src/utilities/ParallelSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/ParallelSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/ParallelSet.C'; fi`
 
 libIBTK3d_a-RefinePatchStrategySet.o: $(top_srcdir)/src/utilities/RefinePatchStrategySet.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-RefinePatchStrategySet.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-RefinePatchStrategySet.Tpo -c -o libIBTK3d_a-RefinePatchStrategySet.o `test -f '$(top_srcdir)/src/utilities/RefinePatchStrategySet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/RefinePatchStrategySet.C
@@ -4273,34 +4675,6 @@ libIBTK3d_a-SideSynchCopyFillPattern.obj: $(top_srcdir)/src/utilities/SideSynchC
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/SideSynchCopyFillPattern.C' object='libIBTK3d_a-SideSynchCopyFillPattern.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-SideSynchCopyFillPattern.obj `if test -f '$(top_srcdir)/src/utilities/SideSynchCopyFillPattern.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/SideSynchCopyFillPattern.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/SideSynchCopyFillPattern.C'; fi`
-
-libIBTK3d_a-SideSynchCopyTransaction.o: $(top_srcdir)/src/utilities/SideSynchCopyTransaction.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-SideSynchCopyTransaction.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-SideSynchCopyTransaction.Tpo -c -o libIBTK3d_a-SideSynchCopyTransaction.o `test -f '$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-SideSynchCopyTransaction.Tpo $(DEPDIR)/libIBTK3d_a-SideSynchCopyTransaction.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C' object='libIBTK3d_a-SideSynchCopyTransaction.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-SideSynchCopyTransaction.o `test -f '$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C
-
-libIBTK3d_a-SideSynchCopyTransaction.obj: $(top_srcdir)/src/utilities/SideSynchCopyTransaction.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-SideSynchCopyTransaction.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-SideSynchCopyTransaction.Tpo -c -o libIBTK3d_a-SideSynchCopyTransaction.obj `if test -f '$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-SideSynchCopyTransaction.Tpo $(DEPDIR)/libIBTK3d_a-SideSynchCopyTransaction.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C' object='libIBTK3d_a-SideSynchCopyTransaction.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-SideSynchCopyTransaction.obj `if test -f '$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C'; fi`
-
-libIBTK3d_a-SideSynchCopyTransactionFactory.o: $(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-SideSynchCopyTransactionFactory.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-SideSynchCopyTransactionFactory.Tpo -c -o libIBTK3d_a-SideSynchCopyTransactionFactory.o `test -f '$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-SideSynchCopyTransactionFactory.Tpo $(DEPDIR)/libIBTK3d_a-SideSynchCopyTransactionFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C' object='libIBTK3d_a-SideSynchCopyTransactionFactory.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-SideSynchCopyTransactionFactory.o `test -f '$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C
-
-libIBTK3d_a-SideSynchCopyTransactionFactory.obj: $(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-SideSynchCopyTransactionFactory.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-SideSynchCopyTransactionFactory.Tpo -c -o libIBTK3d_a-SideSynchCopyTransactionFactory.obj `if test -f '$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-SideSynchCopyTransactionFactory.Tpo $(DEPDIR)/libIBTK3d_a-SideSynchCopyTransactionFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C' object='libIBTK3d_a-SideSynchCopyTransactionFactory.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-SideSynchCopyTransactionFactory.obj `if test -f '$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C'; fi`
 
 libIBTK3d_a-StandardTagAndInitStrategySet.o: $(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-StandardTagAndInitStrategySet.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-StandardTagAndInitStrategySet.Tpo -c -o libIBTK3d_a-StandardTagAndInitStrategySet.o `test -f '$(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.C
@@ -4386,6 +4760,20 @@ libIBTK3d_a-FEDataManager.obj: $(top_srcdir)/src/lagrangian/FEDataManager.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-FEDataManager.obj `if test -f '$(top_srcdir)/src/lagrangian/FEDataManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/FEDataManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/FEDataManager.C'; fi`
 
+libIBTK3d_a-FESystemDataCache.o: $(top_srcdir)/src/utilities/FESystemDataCache.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-FESystemDataCache.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-FESystemDataCache.Tpo -c -o libIBTK3d_a-FESystemDataCache.o `test -f '$(top_srcdir)/src/utilities/FESystemDataCache.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/FESystemDataCache.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-FESystemDataCache.Tpo $(DEPDIR)/libIBTK3d_a-FESystemDataCache.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/FESystemDataCache.C' object='libIBTK3d_a-FESystemDataCache.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-FESystemDataCache.o `test -f '$(top_srcdir)/src/utilities/FESystemDataCache.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/FESystemDataCache.C
+
+libIBTK3d_a-FESystemDataCache.obj: $(top_srcdir)/src/utilities/FESystemDataCache.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-FESystemDataCache.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-FESystemDataCache.Tpo -c -o libIBTK3d_a-FESystemDataCache.obj `if test -f '$(top_srcdir)/src/utilities/FESystemDataCache.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/FESystemDataCache.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/FESystemDataCache.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-FESystemDataCache.Tpo $(DEPDIR)/libIBTK3d_a-FESystemDataCache.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/FESystemDataCache.C' object='libIBTK3d_a-FESystemDataCache.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-FESystemDataCache.obj `if test -f '$(top_srcdir)/src/utilities/FESystemDataCache.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/FESystemDataCache.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/FESystemDataCache.C'; fi`
+
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
@@ -4411,6 +4799,12 @@ lagrangian_delta.o: $(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f
 
 lagrangian_delta.obj: $(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o lagrangian_delta.obj `if test -f '$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f'; then $(CYGPATH_W) '$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f'; fi`
+
+minmod.o: $(top_builddir)/src/fortran/minmod.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o minmod.o `test -f '$(top_builddir)/src/fortran/minmod.f' || echo '$(srcdir)/'`$(top_builddir)/src/fortran/minmod.f
+
+minmod.obj: $(top_builddir)/src/fortran/minmod.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o minmod.obj `if test -f '$(top_builddir)/src/fortran/minmod.f'; then $(CYGPATH_W) '$(top_builddir)/src/fortran/minmod.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/fortran/minmod.f'; fi`
 
 quadcfinterpolation2d.o: $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o quadcfinterpolation2d.o `test -f '$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f
@@ -4489,6 +4883,12 @@ vclaplace2d.o: $(top_builddir)/src/math/fortran/vclaplace2d.f
 
 vclaplace2d.obj: $(top_builddir)/src/math/fortran/vclaplace2d.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o vclaplace2d.obj `if test -f '$(top_builddir)/src/math/fortran/vclaplace2d.f'; then $(CYGPATH_W) '$(top_builddir)/src/math/fortran/vclaplace2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/math/fortran/vclaplace2d.f'; fi`
+
+cart_side_refine2d.o: $(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o cart_side_refine2d.o `test -f '$(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f
+
+cart_side_refine2d.obj: $(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o cart_side_refine2d.obj `if test -f '$(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f'; then $(CYGPATH_W) '$(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f'; fi`
 
 divpreservingrefine2d.o: $(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o divpreservingrefine2d.o `test -f '$(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f
@@ -4573,6 +4973,12 @@ miscmath3d.o: $(top_builddir)/src/math/fortran/miscmath3d.f
 
 miscmath3d.obj: $(top_builddir)/src/math/fortran/miscmath3d.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o miscmath3d.obj `if test -f '$(top_builddir)/src/math/fortran/miscmath3d.f'; then $(CYGPATH_W) '$(top_builddir)/src/math/fortran/miscmath3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/math/fortran/miscmath3d.f'; fi`
+
+cart_side_refine3d.o: $(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o cart_side_refine3d.o `test -f '$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f' || echo '$(srcdir)/'`$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f
+
+cart_side_refine3d.obj: $(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o cart_side_refine3d.obj `if test -f '$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f'; then $(CYGPATH_W) '$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f'; fi`
 
 divpreservingrefine3d.o: $(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o divpreservingrefine3d.o `test -f '$(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f' || echo '$(srcdir)/'`$(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f

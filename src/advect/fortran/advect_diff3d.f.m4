@@ -417,3 +417,93 @@ c
       end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Computes the skew-symmetric derivative N = 0.5([u_ADV*grad(q)] +
+c     div[q*u_ADV]).
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine skew_sym_derivative3d(
+     &     dx,
+     &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
+     &     nuadvgc0,nuadvgc1,nuadvgc2,
+     &     nqgc0,nqgc1,nqgc2,
+     &     uadv0,uadv1,uadv2,
+     &     q0,q1,q2,
+     &     nNgc0,nNgc1,nNgc2,
+     &     N)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+c
+c     Input.
+c
+      INTEGER ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2
+
+      INTEGER nuadvgc0,nuadvgc1,nuadvgc2
+      INTEGER nqgc0,nqgc1,nqgc2
+      INTEGER nNgc0,nNgc1,nNgc2
+
+      REAL dx(0:NDIM-1)
+
+      REAL uadv0(FACE3d0VECG(ifirst,ilast,nuadvgc))
+      REAL uadv1(FACE3d1VECG(ifirst,ilast,nuadvgc))
+      REAL uadv2(FACE3d2VECG(ifirst,ilast,nuadvgc))
+
+      REAL q0(FACE3d0VECG(ifirst,ilast,nqgc))
+      REAL q1(FACE3d1VECG(ifirst,ilast,nqgc))
+      REAL q2(FACE3d2VECG(ifirst,ilast,nqgc))
+c
+c     Input/Output.
+c
+      REAL N(CELL3dVECG(ifirst,ilast,nNgc))
+c
+c     Local variables.
+c
+      INTEGER ic0,ic1,ic2
+      REAL U,V,W
+      REAL Qx0,Qx1,Qx2
+      REAL QUx0,QVx1,QWx2
+c
+c     Compute 0.5*((U,V,W)*grad(q) + div[q*(U,V,W)]).
+c
+      do ic2 = ifirst2,ilast2
+         do ic1 = ifirst1,ilast1
+            do ic0 = ifirst0,ilast0
+               U = 0.5d0*(uadv0(ic0+1,ic1,ic2)+uadv0(ic0,ic1,ic2))
+               Qx0 = (q0(ic0+1,ic1,ic2)-q0(ic0,ic1,ic2))/dx(0)
+               QUx0 = (uadv0(ic0+1,ic1,ic2)*q0(ic0+1,ic1,ic2)-
+     &              uadv0(ic0,ic1,ic2)*q0(ic0,ic1,ic2))/dx(0)
+               N(ic0,ic1,ic2) = 0.5d0*(U*Qx0+QUx0)
+            enddo
+         enddo
+      enddo
+
+      do ic0 = ifirst0,ilast0
+         do ic2 = ifirst2,ilast2
+            do ic1 = ifirst1,ilast1
+               V = 0.5d0*(uadv1(ic1+1,ic2,ic0)+uadv1(ic1,ic2,ic0))
+               Qx1 = (q1(ic1+1,ic2,ic0)-q1(ic1,ic2,ic0))/dx(1)
+               QVx1 = (uadv1(ic1+1,ic2,ic0)*q1(ic1+1,ic2,ic0)-
+     &              uadv1(ic1,ic2,ic0)*q1(ic1,ic2,ic0))/dx(1)
+               N(ic0,ic1,ic2) = N(ic0,ic1,ic2) + 0.5d0*(V*Qx1+QVx1)
+            enddo
+         enddo
+      enddo
+
+      do ic1 = ifirst1,ilast1
+         do ic0 = ifirst0,ilast0
+            do ic2 = ifirst2,ilast2
+               W = 0.5d0*(uadv2(ic2+1,ic0,ic1)+uadv2(ic2,ic0,ic1))
+               Qx2 = (q2(ic2+1,ic0,ic1)-q2(ic2,ic0,ic1))/dx(2)
+               QWx2 = (uadv2(ic2+1,ic0,ic1)*q2(ic2+1,ic0,ic1)-
+     &              uadv2(ic2,ic0,ic1)*q2(ic2,ic0,ic1))/dx(2)
+               N(ic0,ic1,ic2) = N(ic0,ic1,ic2) + 0.5d0*(W*Qx2+QWx2)
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

@@ -130,22 +130,22 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Pointer<Timer> t_initialize_hierarchy_integrator;
-static Pointer<Timer> t_initialize_hierarchy;
-static Pointer<Timer> t_advance_hierarchy;
-static Pointer<Timer> t_get_stable_timestep;
-static Pointer<Timer> t_regrid_hierarchy;
-static Pointer<Timer> t_integrate_hierarchy_initialize;
-static Pointer<Timer> t_integrate_hierarchy;
-static Pointer<Timer> t_integrate_hierarchy_finalize;
-static Pointer<Timer> t_synchronize_hierarchy;
-static Pointer<Timer> t_synchronize_new_levels;
-static Pointer<Timer> t_reset_time_dependent_data;
-static Pointer<Timer> t_reset_data_to_preadvance_state;
-static Pointer<Timer> t_initialize_level_data;
-static Pointer<Timer> t_reset_hierarchy_configuration;
-static Pointer<Timer> t_apply_gradient_detector;
-static Pointer<Timer> t_put_to_database;
+static Timer* t_initialize_hierarchy_integrator;
+static Timer* t_initialize_hierarchy;
+static Timer* t_advance_hierarchy;
+static Timer* t_get_stable_timestep;
+static Timer* t_regrid_hierarchy;
+static Timer* t_integrate_hierarchy_initialize;
+static Timer* t_integrate_hierarchy;
+static Timer* t_integrate_hierarchy_finalize;
+static Timer* t_synchronize_hierarchy;
+static Timer* t_synchronize_new_levels;
+static Timer* t_reset_time_dependent_data;
+static Timer* t_reset_data_to_preadvance_state;
+static Timer* t_initialize_level_data;
+static Timer* t_reset_hierarchy_configuration;
+static Timer* t_apply_gradient_detector;
+static Timer* t_put_to_database;
 
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
@@ -164,7 +164,7 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Version of IBImplicitHierarchyIntegrator restart file data.
-static const int INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
+static const int IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION = 1;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -207,14 +207,15 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
     d_omega_max = 0.0;
 
     d_normalize_pressure = false;
+    d_convective_difference_form = ADVECTIVE;
+    d_creeping_flow = false;
 
     d_regrid_interval = 1;
+    d_regrid_mode = STANDARD;
     d_old_dt = -1.0;
     d_op_and_solver_init_dt = -1.0;
     d_integrator_time = std::numeric_limits<double>::quiet_NaN();
     d_integrator_step = std::numeric_limits<int>::max();
-
-    d_conservation_form = false;
 
     d_output_u = false;
     d_output_p = false;
@@ -285,6 +286,29 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
     d_current_context = var_db->getContext(d_object_name+"::CURRENT");
     d_new_context     = var_db->getContext(d_object_name+"::NEW"    );
     d_scratch_context = var_db->getContext(d_object_name+"::SCRATCH");
+
+    // Initialize all variables.
+    d_u_var          = new SideVariable<NDIM,double>(d_object_name+"::u"          );
+    d_u_cc_var       = new CellVariable<NDIM,double>(d_object_name+"::u_cc"  ,NDIM);
+    d_p_var          = new CellVariable<NDIM,double>(d_object_name+"::p"          );
+    d_p_extrap_var   = new CellVariable<NDIM,double>(d_object_name+"::p_extrap"   );
+    d_f_var          = new SideVariable<NDIM,double>(d_object_name+"::f"          );
+    d_f_cc_var       = new CellVariable<NDIM,double>(d_object_name+"::f_cc"  ,NDIM);
+    d_q_var          = new CellVariable<NDIM,double>(d_object_name+"::q"          );
+#if (NDIM == 2)
+    d_omega_var      = new CellVariable<NDIM,double>(d_object_name+"::omega"      );
+#endif
+#if (NDIM == 3)
+    d_omega_var      = new CellVariable<NDIM,double>(d_object_name+"::omega" ,NDIM);
+    d_omega_norm_var = new CellVariable<NDIM,double>(d_object_name+"::||omega||_2");
+#endif
+    d_div_u_var      = new CellVariable<NDIM,double>(d_object_name+"::div_u"      );
+    d_phi_var        = new CellVariable<NDIM,double>(d_object_name+"::phi"        );
+    d_ib_dof_var     = new SideVariable<NDIM,int   >(d_object_name+"::ib_dof"     );
+    d_u_half_ib_var  = new SideVariable<NDIM,double>(d_object_name+"::u_half_ib"  );
+    d_u_regrid_var   = new SideVariable<NDIM,double>(d_object_name+"::u_regrid"   );
+    d_u_src_var      = new SideVariable<NDIM,double>(d_object_name+"::u_src"      );
+    d_indicator_var  = new SideVariable<NDIM,double>(d_object_name+"::indicator"  );
 
     // Setup Timers.
     IBAMR_DO_ONCE(
@@ -635,35 +659,6 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
         }
     }
 
-    // Initialize all variables.
-    d_u_var          = new SideVariable<NDIM,double>(d_object_name+"::u"          );
-    d_u_cc_var       = new CellVariable<NDIM,double>(d_object_name+"::u_cc",  NDIM);
-    d_p_var          = new CellVariable<NDIM,double>(d_object_name+"::p"          );
-    d_p_extrap_var   = new CellVariable<NDIM,double>(d_object_name+"::p_extrap"   );
-    if (!d_f_fcn.isNull())
-    {
-        d_f_var      = new SideVariable<NDIM,double>(d_object_name+"::f"          );
-        d_f_cc_var   = new CellVariable<NDIM,double>(d_object_name+"::f_cc",  NDIM);
-    }
-    if (!d_q_fcn.isNull())
-    {
-        d_q_var      = new CellVariable<NDIM,double>(d_object_name+"::q"          );
-    }
-#if ( NDIM == 2)
-    d_omega_var      = new CellVariable<NDIM,double>(d_object_name+"::omega"      );
-#endif
-#if ( NDIM == 3)
-    d_omega_var      = new CellVariable<NDIM,double>(d_object_name+"::omega", NDIM);
-    d_omega_norm_var = new CellVariable<NDIM,double>(d_object_name+"::||omega||_2");
-#endif
-    d_div_u_var      = new CellVariable<NDIM,double>(d_object_name+"::div_u"      );
-    d_phi_var        = new CellVariable<NDIM,double>(d_object_name+"::phi"        );
-    d_ib_dof_var     = new SideVariable<NDIM,int   >(d_object_name+"::ib_dof"     );
-    d_u_half_ib_var  = new SideVariable<NDIM,double>(d_object_name+"::u_half_ib"  );
-    d_u_regrid_var   = new SideVariable<NDIM,double>(d_object_name+"::u_regrid"   );
-    d_u_src_var      = new SideVariable<NDIM,double>(d_object_name+"::u_src"      );
-    d_indicator_var  = new SideVariable<NDIM,double>(d_object_name+"::indicator"  );
-
     // Create the default communication algorithms.
     d_fill_after_regrid = new RefineAlgorithm<NDIM>();
 
@@ -848,8 +843,7 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
     // Setup the convective operator.
     d_convective_op_needs_init = true;
     d_convective_op = new INSStaggeredPPMConvectiveOperator(
-        *d_problem_coefs,
-        d_conservation_form);
+        d_convective_difference_form);
 
     // Setup the IB operator.
     d_ib_op_needs_init = true;
@@ -1057,7 +1051,7 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
 
 double
 IBImplicitHierarchyIntegrator::getStableTimestep(
-    Pointer<VariableContext> ctx)
+    Pointer<VariableContext> ctx) const
 {
     t_get_stable_timestep->start();
 
@@ -1194,8 +1188,22 @@ IBImplicitHierarchyIntegrator::regridHierarchy()
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement.\n";
     d_lag_data_manager->beginDataRedistribution();
 
-    // Regrid the hierarchy
-    d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
+    // Regrid the hierarchy.
+    switch (d_regrid_mode)
+    {
+        case STANDARD:
+            d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
+            break;
+        case AGGRESSIVE:
+            for (int k = 0; k < std::max(1,d_hierarchy->getFinestLevelNumber()); ++k)
+            {
+                d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
+            }
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::regridHierarchy():\n"
+                       << "  unrecognized regrid mode: " << enum_to_string<RegridMode>(d_regrid_mode) << "." << std::endl);
+    }
 
     // Determine the divergence of the velocity field after regridding.
     d_hier_math_ops->div(d_div_u_current_idx, d_div_u_var, 1.0, d_u_current_idx, d_u_var, d_no_fill_op, d_integrator_time, true);
@@ -1469,7 +1477,14 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(
 
     // Compute (u_half*grad)u_half.
     const int n_idx = d_n_vec->getComponentDescriptorIndex(0);
-    d_convective_op->applyConvectiveOperator(u_half_idx, n_idx);
+    if (d_creeping_flow)
+    {
+        d_hier_sc_data_ops->setToScalar(n_idx, 0.0);
+    }
+    else
+    {
+        d_convective_op->applyConvectiveOperator(u_half_idx, n_idx);
+    }
 
     // Setup the right-hand side vector.
     d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0), -d_rho, n_idx, d_rhs_vec->getComponentDescriptorIndex(0));
@@ -2485,31 +2500,31 @@ IBImplicitHierarchyIntegrator::applyGradientDetector(
 ///
 
 Pointer<SideVariable<NDIM,double> >
-IBImplicitHierarchyIntegrator::getVelocityVar()
+IBImplicitHierarchyIntegrator::getVelocityVar() const
 {
     return d_u_var;
 }// getVelocityVar
 
 Pointer<CellVariable<NDIM,double> >
-IBImplicitHierarchyIntegrator::getPressureVar()
+IBImplicitHierarchyIntegrator::getPressureVar() const
 {
     return d_p_var;
 }// getPressureVar
 
 Pointer<CellVariable<NDIM,double> >
-IBImplicitHierarchyIntegrator::getExtrapolatedPressureVar()
+IBImplicitHierarchyIntegrator::getExtrapolatedPressureVar() const
 {
     return d_p_extrap_var;
 }// getExtrapolatedPressureVar
 
 Pointer<SideVariable<NDIM,double> >
-IBImplicitHierarchyIntegrator::getForceVar()
+IBImplicitHierarchyIntegrator::getForceVar() const
 {
     return d_f_var;
 }// getForceVar
 
 Pointer<CellVariable<NDIM,double> >
-IBImplicitHierarchyIntegrator::getSourceVar()
+IBImplicitHierarchyIntegrator::getSourceVar() const
 {
     return d_q_var;
 }// getSourceVar
@@ -2606,8 +2621,8 @@ IBImplicitHierarchyIntegrator::putToDatabase(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
 #endif
-    db->putInteger("INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION",
-                   INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION);
+    db->putInteger("IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION",
+                   IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION);
 
     db->putDouble("d_u_scale", d_u_scale);
     db->putDouble("d_p_scale", d_p_scale);
@@ -2633,14 +2648,14 @@ IBImplicitHierarchyIntegrator::putToDatabase(
     db->putBool("d_using_default_tag_buffer", d_using_default_tag_buffer);
     db->putIntegerArray("d_tag_buffer", d_tag_buffer);
 
-    db->putBool("d_conservation_form", d_conservation_form);
-
     db->putBool("d_using_vorticity_tagging", d_using_vorticity_tagging);
     db->putDoubleArray("d_omega_rel_thresh", d_omega_rel_thresh);
     db->putDoubleArray("d_omega_abs_thresh", d_omega_abs_thresh);
     db->putDouble("d_omega_max", d_omega_max);
 
     db->putBool("d_normalize_pressure", d_normalize_pressure);
+    db->putString("d_convective_difference_form", enum_to_string<ConvectiveDifferencingType>(d_convective_difference_form));
+    db->putBool("d_creeping_flow", d_creeping_flow);
 
     db->putDouble("d_old_dt", d_old_dt);
     db->putDouble("d_op_and_solver_init_dt", d_op_and_solver_init_dt);
@@ -3124,7 +3139,7 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
                 poisson_pc_type = std::string(poisson_pc_type_str);
             }
 
-            std::string stokes_pc_shell_type;
+            std::string stokes_pc_shell_type = "none";
             if (stokes_pc_type == "shell")
             {
                 char stokes_pc_shell_type_str[len];
@@ -3141,10 +3156,6 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
                                "  invalid stokes shell preconditioner type: " << stokes_pc_shell_type << "\n"
                                "  valid stokes shell preconditioner types: projection, vanka, block_factorization, none" << std::endl);
                 }
-            }
-            else
-            {
-                stokes_pc_shell_type = "none";
             }
 
             // Setup the velocity subdomain solver.
@@ -3408,6 +3419,7 @@ IBImplicitHierarchyIntegrator::getFromInput(
     d_num_cycles = db->getIntegerWithDefault("num_cycles", d_num_cycles);
 
     d_regrid_interval = db->getIntegerWithDefault("regrid_interval", d_regrid_interval);
+    d_regrid_mode = string_to_enum<RegridMode>(db->getStringWithDefault("regrid_mode", enum_to_string<RegridMode>(d_regrid_mode)));
 
     if (db->keyExists("tag_buffer"))
     {
@@ -3421,8 +3433,6 @@ IBImplicitHierarchyIntegrator::getFromInput(
                      << "Key data `tag_buffer' not found in input.  "
                      << "Default values used.  See class header for details.");
     }
-
-    d_conservation_form = db->getBoolWithDefault("conservation_form", d_conservation_form);
 
     d_using_vorticity_tagging = db->getBoolWithDefault("using_vorticity_tagging", d_using_vorticity_tagging);
 
@@ -3511,6 +3521,9 @@ IBImplicitHierarchyIntegrator::getFromInput(
         d_start_time = db->getDoubleWithDefault("start_time", d_start_time);
 
         d_normalize_pressure = db->getBoolWithDefault("normalize_pressure", d_normalize_pressure);
+        d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(
+            db->getStringWithDefault("convective_difference_form", enum_to_string<ConvectiveDifferencingType>(d_convective_difference_form)));
+        d_creeping_flow = db->getBoolWithDefault("creeping_flow", d_creeping_flow);
 
         if (db->keyExists("rho"))
         {
@@ -3569,8 +3582,8 @@ IBImplicitHierarchyIntegrator::getFromRestart()
                    << d_object_name << " not found in restart file.");
     }
 
-    int ver = db->getInteger("INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION");
-    if (ver != INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION)
+    int ver = db->getInteger("IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION");
+    if (ver != IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION)
     {
         TBOX_ERROR(d_object_name << ":  "
                    << "Restart file version different than class version.");
@@ -3600,14 +3613,14 @@ IBImplicitHierarchyIntegrator::getFromRestart()
     d_using_default_tag_buffer = db->getBool("d_using_default_tag_buffer");
     d_tag_buffer = db->getIntegerArray("d_tag_buffer");
 
-    d_conservation_form = db->getBool("d_conservation_form");
-
     d_using_vorticity_tagging = db->getBool("d_using_vorticity_tagging");
     d_omega_rel_thresh = db->getDoubleArray("d_omega_rel_thresh");
     d_omega_abs_thresh = db->getDoubleArray("d_omega_abs_thresh");
     d_omega_max = db->getDouble("d_omega_max");
 
     d_normalize_pressure = db->getBool("d_normalize_pressure");
+    d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("d_convective_difference_form"));
+    d_creeping_flow = db->getBool("d_creeping_flow");
 
     d_old_dt = db->getDouble("d_old_dt");
     d_op_and_solver_init_dt = db->getDouble("d_op_and_solver_init_dt");

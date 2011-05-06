@@ -476,15 +476,15 @@ CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(
     {
         const int& patch_data_index = *cit;
         Pointer<SideData<NDIM,double> > data = patch.getPatchData(patch_data_index);
-        Pointer<SideData<NDIM,double> > data_copy = new SideData<NDIM,double>(data->getBox(), data->getDepth(), data->getGhostCellWidth());
-        data_copy->copyOnBox(*data,data->getGhostBox());
+        SideData<NDIM,double> data_copy(data->getBox(), data->getDepth(), data->getGhostCellWidth());
+        data_copy.copyOnBox(*data,data->getGhostBox());
         Pointer<SideData<NDIM,int> > indicator_data = patch.getPatchData(d_sc_indicator_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(!data.isNull());
         TBOX_ASSERT(!indicator_data.isNull());
 #endif
         const int U_ghosts = (data->getGhostCellWidth()).max();
-        const int W_ghosts = (data_copy->getGhostCellWidth()).max();
+        const int W_ghosts = (data_copy.getGhostCellWidth()).max();
         const int indicator_ghosts = (indicator_data->getGhostCellWidth()).max();
 #ifdef DEBUG_CHECK_ASSERTIONS
         if (U_ghosts != (data->getGhostCellWidth()).min())
@@ -492,7 +492,7 @@ CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(
             TBOX_ERROR("CartSideDoubleQuadraticCFInterpolation::computeNormalExtension():\n"
                        << "   patch data does not have uniform ghost cell widths" << std::endl);
         }
-        if (W_ghosts != (data_copy->getGhostCellWidth()).min())
+        if (W_ghosts != (data_copy.getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartSideDoubleQuadraticCFInterpolation::computeNormalExtension():\n"
                        << "   patch data does not have uniform ghost cell widths" << std::endl);
@@ -516,10 +516,10 @@ CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(
 #if (NDIM == 3)
                 double* const U2 = data->getPointer(2,depth);
 #endif
-                const double* const W0 = data_copy->getPointer(0,depth);
-                const double* const W1 = data_copy->getPointer(1,depth);
+                const double* const W0 = data_copy.getPointer(0,depth);
+                const double* const W1 = data_copy.getPointer(1,depth);
 #if (NDIM == 3)
-                const double* const W2 = data_copy->getPointer(2,depth);
+                const double* const W2 = data_copy.getPointer(2,depth);
 #endif
                 const int* const indicator0 = indicator_data->getPointer(0,depth);
                 const int* const indicator1 = indicator_data->getPointer(1,depth);

@@ -43,6 +43,9 @@
 // SAMRAI INCLUDES
 #include <tbox/AbstractStream.h>
 
+// C++ STDLIB INCLUDES
+#include <vector>
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
@@ -64,28 +67,18 @@ class FixedSizedStream
     : public SAMRAI::tbox::AbstractStream
 {
 public:
-    enum StreamMode
-    {
-        Read,
-        Write
-    };
-
     /*!
-     * Create a message stream of the specified size in bytes and the stream
-     * mode (either FixedSizedStream::Read or FixedSizedStream::Write).
+     * Create a message stream of the specified size in bytes.
      */
     FixedSizedStream(
-        const int bytes,
-        const StreamMode mode);
+        const int bytes);
 
     /*!
-     * Create a message stream with the specified buffer and stream mode (either
-     * FixedSizedStream::Read or FixedSizedStream::Write).
+     * Create a message stream with the specified buffer.
      */
     FixedSizedStream(
         const void* const buffer,
-        const int bytes,
-        const StreamMode mode);
+        const int bytes);
 
     /*!
      * Virtual destructor for a message stream.
@@ -98,6 +91,12 @@ public:
      */
     void*
     getBufferStart();
+
+    /*!
+     * Return a const pointer to the start of the message buffer.
+     */
+    const void*
+    getBufferStart() const;
 
     /*!
      * Return the current size of the buffer in bytes.
@@ -438,7 +437,7 @@ private:
     /*
      * The buffer.
      */
-    char* const d_buffer;
+    std::vector<char> d_buffer;
 };
 }// namespace IBTK
 

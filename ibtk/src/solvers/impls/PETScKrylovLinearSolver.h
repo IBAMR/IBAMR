@@ -160,7 +160,7 @@ public:
      * will return the value "none".
      */
     const std::string&
-    getPCShellType();
+    getPCShellType() const;
 
     /*!
      * \name Functions to access the underlying PETSc objects.
@@ -597,8 +597,8 @@ private:
     bool d_is_initialized, d_reinitializing_solver;
     bool d_do_log;
 
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_solver_x, d_solver_b, d_solver_n;
-    Vec d_petsc_x, d_petsc_b, d_petsc_n;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_solver_x, d_solver_b;
+    Vec d_petsc_x, d_petsc_b;
 
     std::string d_options_prefix;
 
@@ -612,8 +612,13 @@ private:
 
     SAMRAI::tbox::Pointer<LinearOperator> d_A;
     SAMRAI::tbox::Pointer<LinearSolver> d_pc_solver;
+
     bool d_nullsp_contains_constant_vector;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_nullsp_basis;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_solver_nullsp_constant;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_solver_nullsp_basis;
+    Vec d_petsc_nullsp_constant;
+    std::vector<Vec> d_petsc_nullsp_basis;
+    bool d_solver_has_attached_nullsp;
 
     bool d_initial_guess_nonzero;
 

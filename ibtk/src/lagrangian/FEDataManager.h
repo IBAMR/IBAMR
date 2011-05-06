@@ -35,6 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// BLITZ INCLUDES
+#include <blitz/array.h>
+
+// IBTK INCLUDES
+#include <ibtk/FESystemDataCache.h>
+
 // LIBMESH INCLUDES
 #define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
 #include <../base/variable.h>
@@ -46,9 +52,6 @@
 
 // PETSC INCLUDES
 #include <petsc.h>
-
-// IBTK INCLUDES
-#include <ibtk/libmesh_utilities.h>
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
@@ -202,10 +205,17 @@ public:
     getInterpUsesConsistentMassMatrix() const;
 
     /*!
-     * \return A const reference to the map from patch number to local elements.
+     * \return A const reference to the map from local patch number to local
+     * active element number.
      */
-    const std::map<int,std::set<libMesh::Elem*> >&
-    getActivePatchElements();
+    const blitz::Array<blitz::Array<unsigned int,1>,1>&
+    getPatchActiveElementMap() const;
+
+    /*!
+     * \return A const reference to the collection of local elements.
+     */
+    const blitz::Array<libMesh::Elem*,1>&
+    getActiveElements() const;
 
     /*!
      * \brief Reinitialize the mappings from elements to Cartesian grid patches.
@@ -219,27 +229,27 @@ public:
      */
     libMesh::NumericVector<double>*
     getSolutionVector(
-        const std::string& system_name);
+        const std::string& system_name) const;
 
     /*!
      * \return A pointer to the ghosted solution vector associated with the
      * specified system.
      */
     libMesh::NumericVector<double>*
-    getGhostedSolutionVector(
+    buildGhostedSolutionVector(
         const std::string& system_name);
 
     /*!
      * \return A pointer to the unghosted coordinates (nodal position) vector.
      */
     libMesh::NumericVector<double>*
-    getCoordsVector();
+    getCoordsVector() const;
 
     /*!
      * \return A pointer to the ghosted coordinates (nodal position) vector.
      */
     libMesh::NumericVector<double>*
-    getGhostedCoordsVector();
+    buildGhostedCoordsVector();
 
     /*!
      * \brief Spread a density from the FE mesh to the Cartesian grid.
@@ -268,14 +278,38 @@ public:
 
     /*!
      * \return Pointers to a linear solver and sparse matrix corresponding to a
-     * L2 projection.
+     * L2 projection operator.
      */
     std::pair<libMesh::LinearSolver<double>*,libMesh::SparseMatrix<double>*>
-    getL2ProjectionSolver(
+    buildL2ProjectionSolver(
         const std::string& system_name,
         const bool consistent_mass_matrix=true,
         const libMeshEnums::QuadratureType quad_type=QGAUSS,
         const libMeshEnums::Order quad_order=FIFTH);
+
+    /*!
+     * \return Pointer to vector representation of diagonal (lumped) L2 mass
+     * matrix.
+     */
+    libMesh::NumericVector<double>*
+    buildDiagonalL2MassMatrix(
+        const std::string& system_name,
+        const libMeshEnums::QuadratureType quad_type=QGAUSS,
+        const libMeshEnums::Order quad_order=FIFTH);
+
+    /*!
+     * \brief Set U to be the L2 projection of F.
+     */
+    bool
+    computeL2Projection(
+        libMesh::NumericVector<double>& U,
+        libMesh::NumericVector<double>& F,
+        const std::string& system_name,
+        const bool consistent_mass_matrix=true,
+        const libMeshEnums::QuadratureType quad_type=QGAUSS,
+        const libMeshEnums::Order quad_order=FIFTH,
+        const double tol=1.0e-6,
+        const unsigned int max_its=100);
 
     ///
     ///  The following routines:
@@ -467,7 +501,14 @@ private:
      */
     void
     collectActivePatchElements(
-        std::map<int,std::set<libMesh::Elem*> >& active_patch_elems,
+        blitz::Array<blitz::Array<unsigned int,1>,1>& patch_active_elem_map,
+        blitz::Array<libMesh::Elem*,1>& active_elems,
+        const int level_number,
+        const SAMRAI::hier::IntVector<NDIM>& ghost_width);
+
+    void
+    collectActivePatchElements_helper(
+        std::vector<std::vector<libMesh::Elem*> >& active_patch_elems,
         const int level_number,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width);
 
@@ -477,7 +518,17 @@ private:
     void
     collectGhostDOFIndices(
         std::vector<unsigned int>& ghost_dofs,
-        const std::map<int,std::set<libMesh::Elem*> >& active_patch_elems,
+        const blitz::Array<libMesh::Elem*,1>& active_elems,
+        const std::string& system_name);
+
+    /*!
+     * Routines to manage cached FE data.
+     */
+    void
+    clearCachedLEInteractionFEData();
+
+    void
+    computeCachedLEInteractionFEData(
         const std::string& system_name);
 
     /*!
@@ -555,7 +606,8 @@ private:
     /*
      * Data to manage mappings between mesh elements and grid patches.
      */
-    std::map<int,std::set<libMesh::Elem*> > d_active_patch_elems;
+    blitz::Array<blitz::Array<unsigned int,1>,1> d_patch_active_elem_map;
+    blitz::Array<libMesh::Elem*,1> d_active_elems;
     std::map<std::string,std::vector<unsigned int> > d_active_patch_ghost_dofs;
 
     /*
@@ -567,9 +619,17 @@ private:
      * Linear solvers and related data for performing interpolation in the IB-FE
      * framework.
      */
-    std::map<std::string,libMesh::LinearSolver<double>*> d_L2_projection_solvers;
-    std::map<std::string,libMesh::SparseMatrix<double>*> d_L2_mass_matrices;
-    std::map<std::string,bool> d_L2_consistent_mass_matrix;
+    std::map<std::string,libMesh::LinearSolver<double>*> d_L2_proj_solver;
+    std::map<std::string,libMesh::SparseMatrix<double>*> d_L2_proj_matrix;
+    std::map<std::string,libMesh::NumericVector<double>*> d_L2_proj_matrix_diag;
+    std::map<std::string,bool> d_L2_proj_consistent_mass_matrix;
+    std::map<std::string,libMeshEnums::QuadratureType> d_L2_proj_quad_type;
+    std::map<std::string,libMeshEnums::Order> d_L2_proj_quad_order;
+
+    /*
+     * Cached FE data.
+     */
+    std::map<std::string,FESystemDataCache*> d_cached_fe_system_data;
 };
 }// namespace IBTK
 

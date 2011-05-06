@@ -46,7 +46,7 @@ INSStaggeredHierarchyIntegrator {
 
    tag_buffer = int(ceil(W/8))
 
-   conservation_form = FALSE
+   convective_difference_form = "ADVECTIVE"
    using_vorticity_tagging = FALSE
 
    output_U = TRUE

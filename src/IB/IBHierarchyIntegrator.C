@@ -93,18 +93,18 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Pointer<Timer> t_initialize_hierarchy_integrator;
-static Pointer<Timer> t_initialize_hierarchy;
-static Pointer<Timer> t_advance_hierarchy;
-static Pointer<Timer> t_regrid_hierarchy;
-static Pointer<Timer> t_synchronize_hierarchy;
-static Pointer<Timer> t_synchronize_new_levels;
-static Pointer<Timer> t_reset_time_dependent_data;
-static Pointer<Timer> t_reset_data_to_preadvance_state;
-static Pointer<Timer> t_initialize_level_data;
-static Pointer<Timer> t_reset_hierarchy_configuration;
-static Pointer<Timer> t_apply_gradient_detector;
-static Pointer<Timer> t_put_to_database;
+static Timer* t_initialize_hierarchy_integrator;
+static Timer* t_initialize_hierarchy;
+static Timer* t_advance_hierarchy;
+static Timer* t_regrid_hierarchy;
+static Timer* t_synchronize_hierarchy;
+static Timer* t_synchronize_new_levels;
+static Timer* t_reset_time_dependent_data;
+static Timer* t_reset_data_to_preadvance_state;
+static Timer* t_initialize_level_data;
+static Timer* t_reset_hierarchy_configuration;
+static Timer* t_apply_gradient_detector;
+static Timer* t_put_to_database;
 
 // Version of IBHierarchyIntegrator restart file data.
 static const int IB_HIERARCHY_INTEGRATOR_VERSION = 1;
@@ -935,6 +935,7 @@ IBHierarchyIntegrator::advanceHierarchy(
     }
     if (d_source_strategy_needs_init && !d_source_strategy.isNull())
     {
+        // XXXX: This should not be done here?
         resetLagrangianSourceStrategy(current_time, initial_time);
         d_source_strategy_needs_init = false;
     }
@@ -2395,7 +2396,8 @@ IBHierarchyIntegrator::initializeLevelData(
     }
 
     // Determine the initial source/sink locations.
-    if (initial_time && !d_source_strategy.isNull())
+    if (!d_source_strategy.isNull()) d_source_strategy->initializeLevelData(hierarchy, level_number, init_data_time, initial_time, d_lag_data_manager);
+    if (initial_time)
     {
         d_X_src.resize(std::max(int(d_X_src.size()),level_number+1));
         d_r_src.resize(std::max(int(d_r_src.size()),level_number+1));
@@ -2403,21 +2405,22 @@ IBHierarchyIntegrator::initializeLevelData(
         d_Q_src.resize(std::max(int(d_Q_src.size()),level_number+1));
         d_n_src.resize(std::max(int(d_n_src.size()),level_number+1),0);
 
-        d_n_src[level_number] = d_source_strategy->getNumSources(hierarchy, level_number, d_integrator_time, d_lag_data_manager);
-
-        d_X_src[level_number].resize(d_n_src[level_number], std::vector<double>(NDIM,std::numeric_limits<double>::quiet_NaN()));
-        d_r_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
-        d_P_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
-        d_Q_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
-
-        if (d_n_src[level_number] > 0)
+        if (!d_source_strategy.isNull())
         {
-            d_source_strategy->getSourceLocations(
-                d_X_src[level_number], d_r_src[level_number],
-                (d_lag_data_manager->levelContainsLagrangianData(level_number)
-                 ? d_lag_data_manager->getLNodeLevelData(LDataManager::POSN_DATA_NAME,level_number)
-                 : Pointer<LNodeLevelData>(NULL)),
-                hierarchy, level_number, d_integrator_time, d_lag_data_manager);
+            d_n_src[level_number] = d_source_strategy->getNumSources(hierarchy, level_number, d_integrator_time, d_lag_data_manager);
+            d_X_src[level_number].resize(d_n_src[level_number], std::vector<double>(NDIM,std::numeric_limits<double>::quiet_NaN()));
+            d_r_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
+            d_P_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
+            d_Q_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
+            if (d_n_src[level_number] > 0)
+            {
+                d_source_strategy->getSourceLocations(
+                    d_X_src[level_number], d_r_src[level_number],
+                    (d_lag_data_manager->levelContainsLagrangianData(level_number)
+                     ? d_lag_data_manager->getLNodeLevelData(LDataManager::POSN_DATA_NAME,level_number)
+                     : Pointer<LNodeLevelData>(NULL)),
+                    hierarchy, level_number, d_integrator_time, d_lag_data_manager);
+            }
         }
     }
 

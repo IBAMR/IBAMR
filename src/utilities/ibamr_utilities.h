@@ -35,6 +35,8 @@
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 
+#include <tbox/PIO.h>
+
 #define IBAMR_DO_ONCE(task)                                      \
     do                                                           \
     {                                                            \
@@ -87,6 +89,23 @@
                                << "."                                   \
                                << std::endl;                            \
         });
+
+/////////////////////////////// FUNCTION DEFINITIONS /////////////////////////
+
+namespace std
+{
+template<typename T>
+struct less<SAMRAI::tbox::Pointer<T> >
+{
+    inline bool
+    operator()(
+        const SAMRAI::tbox::Pointer<T>& k1,
+        const SAMRAI::tbox::Pointer<T>& k2) const
+        {
+            return k1.getPointer() < k2.getPointer();
+        }
+};
+};
 
 //////////////////////////////////////////////////////////////////////////////
 

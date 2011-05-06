@@ -69,9 +69,9 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Pointer<Timer> t_apply;
-static Pointer<Timer> t_initialize_operator_state;
-static Pointer<Timer> t_deallocate_operator_state;
+static Timer* t_apply;
+static Timer* t_initialize_operator_state;
+static Timer* t_deallocate_operator_state;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

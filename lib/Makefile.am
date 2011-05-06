@@ -22,11 +22,10 @@ clean-local:
 ## Dimension-independent library
 libIBAMR_a_SOURCES = \
 $(top_builddir)/src/advect/fortran/godunov_helpers.f \
-$(top_srcdir)/src/adv_diff/TGACoefs.C \
 $(top_builddir)/src/fortran/sqrtm.f
 
 pkg_include_HEADERS = \
-$(top_srcdir)/src/adv_diff/TGACoefs.h \
+$(top_srcdir)/src/utilities/ibamr_enums.h \
 $(top_srcdir)/src/utilities/ibamr_utilities.h \
 $(top_srcdir)/src/utilities/namespaces.h
 
@@ -61,11 +60,14 @@ $(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C \
 $(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C \
 $(top_srcdir)/src/IB/IBRodForceSpec.C \
 $(top_srcdir)/src/IB/IBRodForceSpecFactory.C \
+$(top_srcdir)/src/IB/IBSourceSpec.C \
+$(top_srcdir)/src/IB/IBSourceSpecFactory.C \
 $(top_srcdir)/src/IB/IBSpringForceGen.C \
 $(top_srcdir)/src/IB/IBSpringForceSpec.C \
 $(top_srcdir)/src/IB/IBSpringForceSpecFactory.C \
 $(top_srcdir)/src/IB/IBStaggeredHierarchyIntegrator.C \
 $(top_srcdir)/src/IB/IBStandardForceGen.C \
+$(top_srcdir)/src/IB/IBStandardSourceGen.C \
 $(top_srcdir)/src/IB/IBStandardInitializer.C \
 $(top_srcdir)/src/IB/IBTargetPointForceGen.C \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.C \
@@ -135,12 +137,16 @@ $(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.h \
 $(top_srcdir)/src/IB/IBRodForceSpec.I \
 $(top_srcdir)/src/IB/IBRodForceSpec.h \
 $(top_srcdir)/src/IB/IBRodForceSpecFactory.h \
+$(top_srcdir)/src/IB/IBSourceSpec.I \
+$(top_srcdir)/src/IB/IBSourceSpec.h \
+$(top_srcdir)/src/IB/IBSourceSpecFactory.h \
 $(top_srcdir)/src/IB/IBSpringForceGen.h \
 $(top_srcdir)/src/IB/IBSpringForceSpec.I \
 $(top_srcdir)/src/IB/IBSpringForceSpec.h \
 $(top_srcdir)/src/IB/IBSpringForceSpecFactory.h \
 $(top_srcdir)/src/IB/IBStaggeredHierarchyIntegrator.h \
 $(top_srcdir)/src/IB/IBStandardForceGen.h \
+$(top_srcdir)/src/IB/IBStandardSourceGen.h \
 $(top_srcdir)/src/IB/IBStandardInitializer.h \
 $(top_srcdir)/src/IB/IBTargetPointForceGen.h \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.I \
@@ -182,10 +188,8 @@ $(top_builddir)/src/advect/fortran/advect_detect2d.f \
 $(top_builddir)/src/advect/fortran/advect_diff2d.f \
 $(top_builddir)/src/advect/fortran/advect_stable2d.f \
 $(top_builddir)/src/advect/fortran/godunov_predictors2d.f \
-$(top_builddir)/src/advect/fortran/weno_fluxes2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f \
-$(top_builddir)/src/navier_stokes/fortran/navier_stokes_godunov_predictors2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f

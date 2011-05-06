@@ -38,6 +38,9 @@
 // PETSC INCLUDES
 #include <petsc.h>
 
+// BLITZ INCLUDES
+#include <blitz/array.h>
+
 // IBAMR INCLUDES
 #include <ibamr/IBEulerianForceFunction.h>
 #include <ibamr/IBLagrangianForceStrategy.h>
@@ -45,6 +48,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/FEDataManager.h>
+#include <ibtk/FESystemDataCache.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/LagMarker.h>
 
@@ -70,11 +74,11 @@ class IBFEHierarchyIntegrator
       public SAMRAI::tbox::Serializable
 {
 public:
-    static const std::string                 COORDINATES_SYSTEM_NAME;
-    static const std::string          COORDINATE_MAPPING_SYSTEM_NAME;
-    static const std::string                       FORCE_SYSTEM_NAME;
-    static const std::string                    VELOCITY_SYSTEM_NAME;
-    static const std::string PROJECTED_DILATIONAL_STRAIN_SYSTEM_NAME;
+    static const std::string        COORDS_SYSTEM_NAME;
+    static const std::string COORD_MAPPING_SYSTEM_NAME;
+    static const std::string         FORCE_SYSTEM_NAME;
+    static const std::string      VELOCITY_SYSTEM_NAME;
+    static const std::string   PROJ_STRAIN_SYSTEM_NAME;
 
     /*!
      * Constructor.
@@ -107,41 +111,65 @@ public:
     getName() const;
 
     /*!
-     * Set the function used to initialize the physical coordinates from the
-     * Lagrangian coordinates.
+     * Register the (optional) function used to initialize the physical
+     * coordinates from the Lagrangian coordinates.
      *
      * \note If no function is provided, the initial physical coordinates are
-     * taken to be the same as the Lagrangian coordinate system.
+     * taken to be the same as the Lagrangian coordinate system, i.e., the
+     * initial coordinate mapping is assumed to be the identity mapping.
      */
     void
-    setInitialCoordinateMappingFunction(
-        libMesh::Point (*coordinate_mapping_function)(const libMesh::Point& s, void* ctx),
-        void* coordinate_mapping_function_ctx=NULL);
+    registerInitialCoordinateMappingFunction(
+        void (*coordinate_mapping_fcn)(libMesh::Point&, const libMesh::Point& s, void* ctx),
+        void* coordinate_mapping_fcn_ctx=NULL);
 
     /*!
-     * Set the function to compute the first Piola-Kirchhoff stress tensor, used
-     * to compute the forces on the Lagrangian finite element mesh.
+     * Register the function to compute the first Piola-Kirchhoff stress tensor,
+     * used to compute the forces on the Lagrangian finite element mesh.
      */
     void
-    setPK1StressTensorFunction(
-        libMesh::TensorValue<double> (*PK1_stress_function)(const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, const double& time, void* ctx),
-        void* PK1_stress_function_ctx=NULL);
+    registerPK1StressTensorFunction(
+        void (*PK1_stress_fcn)(libMesh::TensorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, const int& e, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx),
+        std::vector<unsigned int> PK1_stress_fcn_systems=std::vector<unsigned int>(),
+        void* PK1_stress_fcn_ctx=NULL);
 
     /*!
-     * Set the (optional) function to compute "extra" forces (e.g., penalty
-     * forces) on the Lagrangian finite element mesh.
+     * Register the (optional) function to compute body force distributions on
+     * the Lagrangian finite element mesh.
      */
     void
-    setExtraForceFunction(
-        void (*extra_force_function)(libMesh::NumericVector<double>& F, libMesh::NumericVector<double>& X, libMesh::EquationSystems* equation_systems, const std::string& force_system_name, const std::string& coords_system_name, const double& time, void* ctx),
-        void* extra_force_function_ctx=NULL);
+    registerLagBodyForceFunction(
+        void (*lag_body_force_fcn)(libMesh::VectorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, const int& e, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx),
+        std::vector<unsigned int> lag_body_force_fcn_systems=std::vector<unsigned int>(),
+        void* lag_body_force_fcn_ctx=NULL);
 
     /*!
-     * Set the function used to compute the forces on the Lagrangian fiber mesh.
+     * Register the (optional) function to compute surface pressure
+     * distributions on the Lagrangian finite element mesh.
      */
     void
-    setLagrangianForceStrategy(
-        SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> lag_force_strategy);
+    registerLagPressureFunction(
+        void (*lag_pressure_fcn)(double&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, const int& e, const unsigned short int side, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx),
+        std::vector<unsigned int> lag_pressure_fcn_systems=std::vector<unsigned int>(),
+        void* lag_pressure_fcn_ctx=NULL);
+
+    /*!
+     * Register the (optional) function to compute surface force distributions
+     * on the Lagrangian finite element mesh.
+     */
+    void
+    registerLagSurfaceForceFunction(
+        void (*lag_surface_force_fcn)(libMesh::VectorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, const int& e, const unsigned short int side, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx),
+        std::vector<unsigned int> lag_surface_force_fcn_systems=std::vector<unsigned int>(),
+        void* lag_surface_force_fcn_ctx=NULL);
+
+    /*!
+     * Register the function used to compute the forces on the Lagrangian fiber
+     * mesh.
+     */
+    void
+    registerIBLagrangianForceStrategy(
+        SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> ib_lag_force_strategy);
 
     /*!
      * Supply initial conditions for the (side centered) velocity.
@@ -158,13 +186,12 @@ public:
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs);
 
     /*!
-     * Supply an optional side centered body forcing term.
-     *
-     * \note This forcing term will be added to the Eulerian force density.
+     * Register an (optional) function to compute body forces on the Cartesian
+     * grid.
      */
     void
-    registerBodyForceSpecification(
-        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn);
+    registerEulBodyForceFunction(
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> eul_body_force_fcn);
 
     /*!
      * Register a VisIt data writer so this class will write plot files that may
@@ -589,7 +616,8 @@ private:
      */
     void
     computeProjectedDilatationalStrain(
-        libMesh::NumericVector<double>& X);
+        libMesh::NumericVector<double>& J_bar_vec,
+        libMesh::NumericVector<double>& X_vec);
 
     /*
      * \brief Compute the interior elastic density, possibly splitting off the
@@ -598,18 +626,20 @@ private:
      */
     void
     computeInteriorForceDensity(
-        libMesh::NumericVector<double>& G,
-        libMesh::NumericVector<double>& X,
+        libMesh::NumericVector<double>& G_vec,
+        libMesh::NumericVector<double>& X_vec,
+        libMesh::NumericVector<double>* J_bar_vec,
         const double& time);
 
     /*!
-     * \brief Spread the normal component of the transmission force density
-     * along the physical boundary of the Lagrangian structure.
+     * \brief Spread the transmission force density along the physical boundary
+     * of the Lagrangian structure.
      */
     void
-    spreadBoundaryForceDensity(
+    spreadTransmissionForceDensity(
         const int f_data_idx,
-        libMesh::NumericVector<double>& X_ghost,
+        libMesh::NumericVector<double>& X_ghost_vec,
+        libMesh::NumericVector<double>* J_bar_ghost_vec,
         const double& time);
 
     /*!
@@ -670,39 +700,53 @@ private:
     libMeshEnums::FEFamily d_fe_family;
     bool d_split_interior_and_bdry_forces;
     bool d_use_consistent_mass_matrix;
+    libMeshEnums::QuadratureType d_quad_type;
+    libMeshEnums::Order d_quad_order;
 
     /*
      * Fbar projection method parameters.
      */
     bool d_use_fbar_projection;
-    libMeshEnums::Order d_projected_strain_fe_order;
-    libMeshEnums::FEFamily d_projected_strain_fe_family;
+    libMeshEnums::Order d_J_bar_fe_order;
+    libMeshEnums::FEFamily d_J_bar_fe_family;
+    libMeshEnums::QuadratureType d_J_bar_quad_type;
+    libMeshEnums::Order d_J_bar_quad_order;
 
     /*
      * Function used to compute the initial coordinates of the Lagrangian mesh.
      */
-    libMesh::Point (*d_coordinate_mapping_function)(const libMesh::Point& s, void* ctx);
-    void* d_coordinate_mapping_function_ctx;
+    void (*d_coordinate_mapping_fcn)(libMesh::Point&, const libMesh::Point& s, void* ctx);
+    void* d_coordinate_mapping_fcn_ctx;
 
     /*
      * Function used to compute the first Piola-Kirchhoff stress tensor.
      */
-    libMesh::TensorValue<double> (*d_PK1_stress_function)(const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, const double& time, void* ctx);
-    void* d_PK1_stress_function_ctx;
+    void (*d_PK1_stress_fcn)(libMesh::TensorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const, const int& e, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx);
+    std::vector<unsigned int> d_PK1_stress_fcn_systems;
+    void* d_PK1_stress_fcn_ctx;
 
     /*
-     * Optional function use to compute "extra" forces (e.g., penalty forces) on
-     * the Lagrangian finite element mesh.
+     * Optional function use to compute additional body and surface forces on
+     * the Lagrangian mesh.
      */
-    void (*d_extra_force_function)(libMesh::NumericVector<double>& F, libMesh::NumericVector<double>& X, libMesh::EquationSystems* equation_systems, const std::string& force_system_name, const std::string& coords_system_name, const double& time, void* ctx);
-    void* d_extra_force_function_ctx;
+    void (*d_lag_body_force_fcn)(libMesh::VectorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const, const int& e, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx);
+    std::vector<unsigned int> d_lag_body_force_fcn_systems;
+    void* d_lag_body_force_fcn_ctx;
+
+    void (*d_lag_pressure_fcn)(double&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const, const int& e, const unsigned short int side, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx);
+    std::vector<unsigned int> d_lag_pressure_fcn_systems;
+    void* d_lag_pressure_fcn_ctx;
+
+    void (*d_lag_surface_force_fcn)(libMesh::VectorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const, const int& e, const unsigned short int side, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx);
+    std::vector<unsigned int> d_lag_surface_force_fcn_systems;
+    void* d_lag_surface_force_fcn_ctx;
 
     /*
      * Support for traditional fiber-based Lagrangian data.
      */
     IBTK::LDataManager* d_lag_data_manager;
-    SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> d_lag_force_strategy;
-    bool d_lag_force_strategy_needs_init;
+    SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> d_ib_lag_force_strategy;
+    bool d_ib_lag_force_strategy_needs_init;
 
     /*
      * Pointers to the patch hierarchy and gridding algorithm objects associated
@@ -735,7 +779,7 @@ private:
      * An externally-specified body force generator and a force specification
      * function to be passed to the incompressible flow solver.
      */
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_body_force_fcn;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_eul_body_force_fcn;
     SAMRAI::tbox::Pointer<IBEulerianForceFunction> d_eulerian_force_fcn;
 
     /*
@@ -812,6 +856,25 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > > d_mark_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current, d_scratch;
     int d_V_idx, d_F_idx, d_mark_current_idx, d_mark_scratch_idx;
+
+    /*
+     * Cached data used to compute the projected dilatational strain field.
+     */
+    IBTK::FESystemDataCache* d_proj_strain_data;
+    IBTK::FESystemDataCache* d_proj_strain_J_bar_data;
+
+    /*
+     * Cached data used to compute the interior force density field.
+     */
+    IBTK::FESystemDataCache* d_interior_force_data;
+    IBTK::FESystemDataCache* d_interior_force_J_bar_data;
+
+    /*
+     * Cached data used to compute and to spread the transmission force density
+     * field.
+     */
+    IBTK::FESystemDataCache* d_transmission_force_data;
+    IBTK::FESystemDataCache* d_transmission_force_J_bar_data;
 };
 }// namespace IBAMR
 

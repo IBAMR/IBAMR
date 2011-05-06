@@ -233,20 +233,18 @@ static const int GADVECTG = 4;
 static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 
 // Timers.
-static Pointer<Timer> t_apply_convective_operator;
-static Pointer<Timer> t_apply;
-static Pointer<Timer> t_initialize_operator_state;
-static Pointer<Timer> t_deallocate_operator_state;
+static Timer* t_apply_convective_operator;
+static Timer* t_apply;
+static Timer* t_initialize_operator_state;
+static Timer* t_deallocate_operator_state;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(
-    const INSCoefs& problem_coefs,
-    const bool conservation_form)
+    const ConvectiveDifferencingType& difference_form)
     : d_is_initialized(false),
-      d_problem_coefs(problem_coefs),
-      d_conservation_form(conservation_form),
+      d_difference_form(difference_form),
       d_refine_alg(NULL),
       d_refine_op(NULL),
       d_refine_scheds(),
@@ -256,6 +254,14 @@ INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(
       d_U_var(NULL),
       d_U_scratch_idx(-1)
 {
+    if (d_difference_form != ADVECTIVE &&
+        d_difference_form != CONSERVATIVE)
+    {
+        TBOX_ERROR("INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator():\n"
+                   << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
+                   << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
+    }
+
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> context = var_db->getContext("INSStaggeredPPMConvectiveOperator::CONTEXT");
 
@@ -473,61 +479,66 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
 #endif
             for (int axis = 0; axis < NDIM; ++axis)
             {
-                if (d_conservation_form)
+                switch (d_difference_form)
                 {
+                    case CONSERVATIVE:
 #if (NDIM == 2)
-                    CONVECT_DERIVATIVE_FC(
-                        dx,
-                        side_boxes[axis].lower(0), side_boxes[axis].upper(0),
-                        side_boxes[axis].lower(1), side_boxes[axis].upper(1),
-                        U_adv_data [axis]->getGhostCellWidth()(0), U_adv_data [axis]->getGhostCellWidth()(1),
-                        U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1),
-                        U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),
-                        U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),
-                        N_data->getGhostCellWidth()(0), N_data->getGhostCellWidth()(1),
-                        N_data->getPointer(axis));
+                        CONVECT_DERIVATIVE_FC(
+                            dx,
+                            side_boxes[axis].lower(0), side_boxes[axis].upper(0),
+                            side_boxes[axis].lower(1), side_boxes[axis].upper(1),
+                            U_adv_data [axis]->getGhostCellWidth()(0), U_adv_data [axis]->getGhostCellWidth()(1),
+                            U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1),
+                            U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),
+                            U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),
+                            N_data->getGhostCellWidth()(0), N_data->getGhostCellWidth()(1),
+                            N_data->getPointer(axis));
 #endif
 #if (NDIM == 3)
-                    CONVECT_DERIVATIVE_FC(
-                        dx,
-                        side_boxes[axis].lower(0), side_boxes[axis].upper(0),
-                        side_boxes[axis].lower(1), side_boxes[axis].upper(1),
-                        side_boxes[axis].lower(2), side_boxes[axis].upper(2),
-                        U_adv_data [axis]->getGhostCellWidth()(0), U_adv_data [axis]->getGhostCellWidth()(1), U_adv_data [axis]->getGhostCellWidth()(2),
-                        U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1), U_half_data[axis]->getGhostCellWidth()(2),
-                        U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),          U_adv_data [axis]->getPointer(2),
-                        U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),          U_half_data[axis]->getPointer(2),
-                        N_data->getGhostCellWidth()(0), N_data->getGhostCellWidth()(1), N_data->getGhostCellWidth()(2),
-                        N_data->getPointer(axis));
+                        CONVECT_DERIVATIVE_FC(
+                            dx,
+                            side_boxes[axis].lower(0), side_boxes[axis].upper(0),
+                            side_boxes[axis].lower(1), side_boxes[axis].upper(1),
+                            side_boxes[axis].lower(2), side_boxes[axis].upper(2),
+                            U_adv_data [axis]->getGhostCellWidth()(0), U_adv_data [axis]->getGhostCellWidth()(1), U_adv_data [axis]->getGhostCellWidth()(2),
+                            U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1), U_half_data[axis]->getGhostCellWidth()(2),
+                            U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),          U_adv_data [axis]->getPointer(2),
+                            U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),          U_half_data[axis]->getPointer(2),
+                            N_data->getGhostCellWidth()(0), N_data->getGhostCellWidth()(1), N_data->getGhostCellWidth()(2),
+                            N_data->getPointer(axis));
 #endif
-                }
-                else
-                {
+                        break;
+                    case ADVECTIVE:
 #if (NDIM == 2)
-                    ADVECT_DERIVATIVE_FC(
-                        dx,
-                        side_boxes[axis].lower(0), side_boxes[axis].upper(0),
-                        side_boxes[axis].lower(1), side_boxes[axis].upper(1),
-                        U_adv_data [axis]->getGhostCellWidth()(0), U_adv_data [axis]->getGhostCellWidth()(1),
-                        U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1),
-                        U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),
-                        U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),
-                        N_data->getGhostCellWidth()(0), N_data->getGhostCellWidth()(1),
-                        N_data->getPointer(axis));
+                        ADVECT_DERIVATIVE_FC(
+                            dx,
+                            side_boxes[axis].lower(0), side_boxes[axis].upper(0),
+                            side_boxes[axis].lower(1), side_boxes[axis].upper(1),
+                            U_adv_data [axis]->getGhostCellWidth()(0), U_adv_data [axis]->getGhostCellWidth()(1),
+                            U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1),
+                            U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),
+                            U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),
+                            N_data->getGhostCellWidth()(0), N_data->getGhostCellWidth()(1),
+                            N_data->getPointer(axis));
 #endif
 #if (NDIM == 3)
-                    ADVECT_DERIVATIVE_FC(
-                        dx,
-                        side_boxes[axis].lower(0), side_boxes[axis].upper(0),
-                        side_boxes[axis].lower(1), side_boxes[axis].upper(1),
-                        side_boxes[axis].lower(2), side_boxes[axis].upper(2),
-                        U_adv_data [axis]->getGhostCellWidth()(0), U_adv_data [axis]->getGhostCellWidth()(1), U_adv_data [axis]->getGhostCellWidth()(2),
-                        U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1), U_half_data[axis]->getGhostCellWidth()(2),
-                        U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),          U_adv_data [axis]->getPointer(2),
-                        U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),          U_half_data[axis]->getPointer(2),
-                        N_data->getGhostCellWidth()(0), N_data->getGhostCellWidth()(1), N_data->getGhostCellWidth()(2),
-                        N_data->getPointer(axis));
+                        ADVECT_DERIVATIVE_FC(
+                            dx,
+                            side_boxes[axis].lower(0), side_boxes[axis].upper(0),
+                            side_boxes[axis].lower(1), side_boxes[axis].upper(1),
+                            side_boxes[axis].lower(2), side_boxes[axis].upper(2),
+                            U_adv_data [axis]->getGhostCellWidth()(0), U_adv_data [axis]->getGhostCellWidth()(1), U_adv_data [axis]->getGhostCellWidth()(2),
+                            U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1), U_half_data[axis]->getGhostCellWidth()(2),
+                            U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),          U_adv_data [axis]->getPointer(2),
+                            U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),          U_half_data[axis]->getPointer(2),
+                            N_data->getGhostCellWidth()(0), N_data->getGhostCellWidth()(1), N_data->getGhostCellWidth()(2),
+                            N_data->getPointer(axis));
 #endif
+                        break;
+                    default:
+                        TBOX_ERROR("INSStaggeredPPMConvectiveOperator::applyConvectiveOperator():\n"
+                                   << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
+                                   << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
                 }
             }
         }

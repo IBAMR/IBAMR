@@ -126,7 +126,7 @@ IBInstrumentationSpec::getStreamableClassID() const
 inline size_t
 IBInstrumentationSpec::getDataStreamSize() const
 {
-    return 5*SAMRAI::tbox::AbstractStream::sizeofInt();
+    return 3*SAMRAI::tbox::AbstractStream::sizeofInt();
 }// getDataStreamSize
 
 inline void

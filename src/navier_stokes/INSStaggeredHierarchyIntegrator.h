@@ -47,6 +47,7 @@
 #include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
 #include <ibamr/INSStaggeredProjectionPreconditioner.h>
 #include <ibamr/INSStaggeredStokesOperator.h>
+#include <ibamr/ibamr_enums.h>
 
 // IBTK INCLUDES
 #include <ibtk/CCLaplaceOperator.h>
@@ -185,12 +186,30 @@ public:
     ///
     ///  The following routines:
     ///
+    ///      registerPreprocessIntegrateHierarchyCallback(),
+    ///      registerPostprocessIntegrateHierarchyCallback(),
     ///      registerRegridHierarchyCallback(),
     ///      registerApplyGradientDetectorCallback()
     ///
     ///  allow for the registration of callback functions that are executed by
     ///  the hierarchy integrator.
     ///
+
+    /*!
+     * \brief Callback registration function.
+     */
+    void
+    registerPreprocessIntegrateHierarchyCallback(
+        void (*callback)(const double current_time, const double new_time, const int cycle_num, void* ctx),
+        void* ctx);
+
+    /*!
+     * \brief Callback registration function.
+     */
+    void
+    registerPostprocessIntegrateHierarchyCallback(
+        void (*callback)(const double current_time, const double new_time, const int cycle_num, void* ctx),
+        void* ctx);
 
     /*!
      * \brief Callback registration function.
@@ -324,7 +343,7 @@ public:
      */
     virtual double
     getStableTimestep(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx) const;
 
     /*!
      * Return true if the current step count indicates that regridding should
@@ -425,7 +444,8 @@ public:
     virtual void
     integrateHierarchy(
         const double current_time,
-        const double new_time);
+        const double new_time,
+        const int cycle_num);
 
     /*!
      * Clean up data following call to integrateHierarchy().
@@ -607,7 +627,7 @@ public:
      * Return a pointer to the fluid velocity state variable.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >
-    getVelocityVar();
+    getVelocityVar() const;
 
     /*!
      * Return a pointer to the fluid pressure state variable.
@@ -615,7 +635,7 @@ public:
      * \note The pressure state variable is defined at time level n-1/2.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
-    getPressureVar();
+    getPressureVar() const;
 
     /*!
      * Return a pointer to the fluid pressure variable extrapolated forward in
@@ -624,19 +644,19 @@ public:
      * \note The pressure state variable is defined at time level n-1/2.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
-    getExtrapolatedPressureVar();
+    getExtrapolatedPressureVar() const;
 
     /*!
      * Return a pointer to the body force variable.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >
-    getForceVar();
+    getForceVar() const;
 
     /*!
      * Return a pointer to the source strength variable.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
-    getSourceVar();
+    getSourceVar() const;
 
     ///
     ///  The following routines:
@@ -829,6 +849,16 @@ private:
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx) const;
 
     /*!
+     * Compute the appropriate source term that must be added to the momentum
+     * equation when the fluid contains internal sources and sinks.
+     */
+    void
+    computeDivSourceTerm(
+        const int F_idx,
+        const int Q_idx,
+        const int U_idx);
+
+    /*!
      * Read input values, indicated above, from given database.  The boolean
      * argument is_from_restart should be set to true if the simulation is
      * beginning from restart.  Otherwise it should be set to false.
@@ -903,8 +933,15 @@ private:
     /*
      * The regrid interval indicates the number of integration steps taken
      * between invocations of the regridding process.
+     *
+     * The regrid mode indicates whether to use "standard" regridding (grid
+     * generation involves only one call to
+     * SAMRAI::mesh::GriddingAlgorithm::regridAllFinerLevels()) or "agressive"
+     * regridding (grid generation involes multiple calls to
+     * SAMRAI::mesh::GriddingAlgorithm::regridAllFinerLevels()).
      */
     int d_regrid_interval;
+    RegridMode d_regrid_mode;
 
     /*
      * The tag buffer indicates the number of cells on each level by which
@@ -916,12 +953,6 @@ private:
      */
     bool d_using_default_tag_buffer;
     SAMRAI::tbox::Array<int> d_tag_buffer;
-
-    /*
-     * This boolean value determines whether the advection term is computed
-     * using conservative or non-conservative differencing.
-     */
-    bool d_conservation_form;
 
     /*
      * Tag cells based on the relative and absolute magnitudes of the local
@@ -936,6 +967,18 @@ private:
      * zero mean (i.e., discrete integral) at the end of each timestep.
      */
     bool d_normalize_pressure;
+
+    /*
+     * This enum determines the differencing form of the convective operator.
+     */
+    ConvectiveDifferencingType d_convective_difference_form;
+
+    /*
+     * This boolean value determines whether the convective acceleration term is
+     * included in the momentum equation.  (If it is not, this solver
+     * effectively solves the so-called creeping Stokes equations.)
+     */
+    bool d_creeping_flow;
 
     /*
      * Integrator data that evolves during time integration and maintains the
@@ -993,6 +1036,7 @@ private:
     /*
      * Hierarchy operators and solvers.
      */
+    bool d_vectors_need_init;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_U_scratch_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_U_rhs_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_U_half_vec;
@@ -1064,7 +1108,7 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid;
 
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_no_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_Q_bdry_bc_fill_op, d_no_fill_op;
 
     SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_side_synch_op;
 
@@ -1120,6 +1164,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_F_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Q_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_F_div_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_var;
 #if (NDIM == 3)
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_Norm_var;
@@ -1155,7 +1200,7 @@ private:
      *
      * Scratch variables have only one context: scratch.
      */
-    int d_Phi_idx, d_U_regrid_idx, d_U_src_idx, d_indicator_idx;
+    int d_Phi_idx, d_U_regrid_idx, d_U_src_idx, d_indicator_idx, d_F_div_idx;
 
     /*
      * Patch data descriptors for all variables managed by the HierarchyMathOps
@@ -1168,6 +1213,12 @@ private:
     /*!
      * \brief Callback function pointers and callback contexts.
      */
+    std::vector<void (*)(const double current_time, const double new_time, const int cycle_num, void* ctx)> d_preprocess_integrate_hierarchy_callbacks;
+    std::vector<void*> d_preprocess_integrate_hierarchy_callback_ctxs;
+
+    std::vector<void (*)(const double current_time, const double new_time, const int cycle_num, void* ctx)> d_postprocess_integrate_hierarchy_callbacks;
+    std::vector<void*> d_postprocess_integrate_hierarchy_callback_ctxs;
+
     std::vector<void (*)(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy, const double regrid_data_time, const bool initial_time, void* ctx)> d_regrid_hierarchy_callbacks;
     std::vector<void*> d_regrid_hierarchy_callback_ctxs;
 

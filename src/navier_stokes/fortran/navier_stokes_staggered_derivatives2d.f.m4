@@ -46,7 +46,7 @@ c     to the given velocity field.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine navier_stokes_staggered_divergence_derivative2d(
+      subroutine navier_stokes_staggered_div_derivative2d(
      &     dx,
      &     ifirst0,ilast0,
      &     ifirst1,ilast1,
@@ -127,12 +127,12 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Compute the advection form of the convection term corresponding to
+c     Compute the advective form of the convection term corresponding to
 c     the given velocity field.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine navier_stokes_staggered_advection_derivative2d(
+      subroutine navier_stokes_staggered_adv_derivative2d(
      &     dx,
      &     ifirst0,ilast0,
      &     ifirst1,ilast1,
@@ -218,7 +218,7 @@ c     corresponding to the given velocity field.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine navier_stokes_staggered_skew_symmetric_derivative2d(
+      subroutine navier_stokes_staggered_skew_sym_derivative2d(
      &     dx,
      &     ifirst0,ilast0,
      &     ifirst1,ilast1,

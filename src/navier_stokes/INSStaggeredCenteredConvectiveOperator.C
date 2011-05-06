@@ -61,21 +61,21 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define NAVIER_STOKES_STAGGERED_DIVERGENCE_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_divergence_derivative2d,NAVIER_STOKES_STAGGERED_DIVERGENCE_DERIVATIVE2D)
-#define NAVIER_STOKES_STAGGERED_ADVECTION_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_advection_derivative2d,NAVIER_STOKES_STAGGERED_ADVECTION_DERIVATIVE2D)
-#define NAVIER_STOKES_STAGGERED_SKEW_SYMMETRIC_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_skew_symmetric_derivative2d,NAVIER_STOKES_STAGGERED_SKEW_SYMMETRIC_DERIVATIVE2D)
+#define NAVIER_STOKES_STAGGERED_ADV_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_adv_derivative2d,NAVIER_STOKES_STAGGERED_ADV_DERIVATIVE2D)
+#define NAVIER_STOKES_STAGGERED_DIV_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_div_derivative2d,NAVIER_STOKES_STAGGERED_DIV_DERIVATIVE2D)
+#define NAVIER_STOKES_STAGGERED_SKEW_SYM_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_skew_sym_derivative2d,NAVIER_STOKES_STAGGERED_SKEW_SYM_DERIVATIVE2D)
 #endif
 
 #if (NDIM == 3)
-#define NAVIER_STOKES_STAGGERED_DIVERGENCE_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_divergence_derivative3d,NAVIER_STOKES_STAGGERED_DIVERGENCE_DERIVATIVE3D)
-#define NAVIER_STOKES_STAGGERED_ADVECTION_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_advection_derivative3d,NAVIER_STOKES_STAGGERED_ADVECTION_DERIVATIVE3D)
-#define NAVIER_STOKES_STAGGERED_SKEW_SYMMETRIC_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_skew_symmetric_derivative3d,NAVIER_STOKES_STAGGERED_SKEW_SYMMETRIC_DERIVATIVE3D)
+#define NAVIER_STOKES_STAGGERED_ADV_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_adv_derivative3d,NAVIER_STOKES_STAGGERED_ADV_DERIVATIVE3D)
+#define NAVIER_STOKES_STAGGERED_DIV_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_div_derivative3d,NAVIER_STOKES_STAGGERED_DIV_DERIVATIVE3D)
+#define NAVIER_STOKES_STAGGERED_SKEW_SYM_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_skew_sym_derivative3d,NAVIER_STOKES_STAGGERED_SKEW_SYM_DERIVATIVE3D)
 #endif
 
 extern "C"
 {
     void
-    NAVIER_STOKES_STAGGERED_DIVERGENCE_DERIVATIVE_FC(
+    NAVIER_STOKES_STAGGERED_ADV_DERIVATIVE_FC(
         const double* ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -91,10 +91,10 @@ extern "C"
         const int& , const int& , const int& ,
         double* , double* , double*
 #endif
-                                                     );
+                                              );
 
     void
-    NAVIER_STOKES_STAGGERED_ADVECTION_DERIVATIVE_FC(
+    NAVIER_STOKES_STAGGERED_DIV_DERIVATIVE_FC(
         const double* ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -110,10 +110,10 @@ extern "C"
         const int& , const int& , const int& ,
         double* , double* , double*
 #endif
-                                                    );
+                                              );
 
     void
-    NAVIER_STOKES_STAGGERED_SKEW_SYMMETRIC_DERIVATIVE_FC(
+    NAVIER_STOKES_STAGGERED_SKEW_SYM_DERIVATIVE_FC(
         const double* ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -129,7 +129,7 @@ extern "C"
         const int& , const int& , const int& ,
         double* , double* , double*
 #endif
-                                                         );
+                                                   );
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -155,20 +155,18 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Timers.
-static Pointer<Timer> t_apply_convective_operator;
-static Pointer<Timer> t_apply;
-static Pointer<Timer> t_initialize_operator_state;
-static Pointer<Timer> t_deallocate_operator_state;
+static Timer* t_apply_convective_operator;
+static Timer* t_apply;
+static Timer* t_initialize_operator_state;
+static Timer* t_deallocate_operator_state;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
-    const INSCoefs& problem_coefs,
-    const std::string& differencing_form)
+    const ConvectiveDifferencingType& difference_form)
     : d_is_initialized(false),
-      d_problem_coefs(problem_coefs),
-      d_differencing_form(differencing_form),
+      d_difference_form(difference_form),
       d_refine_alg(NULL),
       d_refine_op(NULL),
       d_refine_scheds(),
@@ -178,18 +176,13 @@ INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
       d_U_var(NULL),
       d_U_scratch_idx(-1)
 {
-#if (NDIM != 2)
-    TBOX_ERROR("INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator():\n"
-               << "  incomplete implementation for NDIM != 2\n");
-#endif
-
-    if (d_differencing_form != "divergence" &&
-        d_differencing_form != "advection" &&
-        d_differencing_form != "skew-symmetric")
+    if (d_difference_form != ADVECTIVE &&
+        d_difference_form != CONSERVATIVE &&
+        d_difference_form != SKEW_SYMMETRIC)
     {
         TBOX_ERROR("INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator():\n"
-                   << "  invalid differencing form: " << d_differencing_form << " \n"
-                   << "  valid choices are: divergence, advection, skew-symmetric\n");
+                   << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
+                   << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -271,74 +264,78 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
             const IntVector<NDIM>& N_ghosts = N_data->getGhostCellWidth();
             const IntVector<NDIM>& U_ghosts = U_data->getGhostCellWidth();
 
-            if (d_differencing_form == "divergence")
+            switch (d_difference_form)
             {
-                NAVIER_STOKES_STAGGERED_DIVERGENCE_DERIVATIVE_FC(
-                    dx,
+                case CONSERVATIVE:
+                    NAVIER_STOKES_STAGGERED_DIV_DERIVATIVE_FC(
+                        dx,
 #if (NDIM == 2)
-                    patch_lower(0), patch_upper(0),
-                    patch_lower(1), patch_upper(1),
-                    U_ghosts(0), U_ghosts(1),
-                    U_data->getPointer(0), U_data->getPointer(1),
-                    N_ghosts(0), N_ghosts(1),
-                    N_data->getPointer(0), N_data->getPointer(1)
+                        patch_lower(0), patch_upper(0),
+                        patch_lower(1), patch_upper(1),
+                        U_ghosts(0), U_ghosts(1),
+                        U_data->getPointer(0), U_data->getPointer(1),
+                        N_ghosts(0), N_ghosts(1),
+                        N_data->getPointer(0), N_data->getPointer(1)
 #endif
 #if (NDIM == 3)
-                    patch_lower(0), patch_upper(0),
-                    patch_lower(1), patch_upper(1),
-                    patch_lower(2), patch_upper(2),
-                    U_ghosts(0), U_ghosts(1), U_ghosts(2),
-                    U_data->getPointer(0), U_data->getPointer(1), U_data->getPointer(2),
-                    N_ghosts(0), N_ghosts(1), N_ghosts(2),
-                    N_data->getPointer(0), N_data->getPointer(1), N_data->getPointer(2)
+                        patch_lower(0), patch_upper(0),
+                        patch_lower(1), patch_upper(1),
+                        patch_lower(2), patch_upper(2),
+                        U_ghosts(0), U_ghosts(1), U_ghosts(2),
+                        U_data->getPointer(0), U_data->getPointer(1), U_data->getPointer(2),
+                        N_ghosts(0), N_ghosts(1), N_ghosts(2),
+                        N_data->getPointer(0), N_data->getPointer(1), N_data->getPointer(2)
 #endif
-                                                                 );
-            }
-            else if (d_differencing_form == "advection")
-            {
-                NAVIER_STOKES_STAGGERED_ADVECTION_DERIVATIVE_FC(
-                    dx,
+                                                              );
+                    break;
+                case ADVECTIVE:
+                    NAVIER_STOKES_STAGGERED_ADV_DERIVATIVE_FC(
+                        dx,
 #if (NDIM == 2)
-                    patch_lower(0), patch_upper(0),
-                    patch_lower(1), patch_upper(1),
-                    U_ghosts(0), U_ghosts(1),
-                    U_data->getPointer(0), U_data->getPointer(1),
-                    N_ghosts(0), N_ghosts(1),
-                    N_data->getPointer(0), N_data->getPointer(1)
+                        patch_lower(0), patch_upper(0),
+                        patch_lower(1), patch_upper(1),
+                        U_ghosts(0), U_ghosts(1),
+                        U_data->getPointer(0), U_data->getPointer(1),
+                        N_ghosts(0), N_ghosts(1),
+                        N_data->getPointer(0), N_data->getPointer(1)
 #endif
 #if (NDIM == 3)
-                    patch_lower(0), patch_upper(0),
-                    patch_lower(1), patch_upper(1),
-                    patch_lower(2), patch_upper(2),
-                    U_ghosts(0), U_ghosts(1), U_ghosts(2),
-                    U_data->getPointer(0), U_data->getPointer(1), U_data->getPointer(2),
-                    N_ghosts(0), N_ghosts(1), N_ghosts(2),
-                    N_data->getPointer(0), N_data->getPointer(1), N_data->getPointer(2)
+                        patch_lower(0), patch_upper(0),
+                        patch_lower(1), patch_upper(1),
+                        patch_lower(2), patch_upper(2),
+                        U_ghosts(0), U_ghosts(1), U_ghosts(2),
+                        U_data->getPointer(0), U_data->getPointer(1), U_data->getPointer(2),
+                        N_ghosts(0), N_ghosts(1), N_ghosts(2),
+                        N_data->getPointer(0), N_data->getPointer(1), N_data->getPointer(2)
 #endif
-                                                                );
-            }
-            else if (d_differencing_form == "skew-symmetric")
-            {
-                NAVIER_STOKES_STAGGERED_SKEW_SYMMETRIC_DERIVATIVE_FC(
-                    dx,
+                                                              );
+                    break;
+                case SKEW_SYMMETRIC:
+                    NAVIER_STOKES_STAGGERED_SKEW_SYM_DERIVATIVE_FC(
+                        dx,
 #if (NDIM == 2)
-                    patch_lower(0), patch_upper(0),
-                    patch_lower(1), patch_upper(1),
-                    U_ghosts(0), U_ghosts(1),
-                    U_data->getPointer(0), U_data->getPointer(1),
-                    N_ghosts(0), N_ghosts(1),
-                    N_data->getPointer(0), N_data->getPointer(1)
+                        patch_lower(0), patch_upper(0),
+                        patch_lower(1), patch_upper(1),
+                        U_ghosts(0), U_ghosts(1),
+                        U_data->getPointer(0), U_data->getPointer(1),
+                        N_ghosts(0), N_ghosts(1),
+                        N_data->getPointer(0), N_data->getPointer(1)
 #endif
 #if (NDIM == 3)
-                    patch_lower(0), patch_upper(0),
-                    patch_lower(1), patch_upper(1),
-                    patch_lower(2), patch_upper(2),
-                    U_ghosts(0), U_ghosts(1), U_ghosts(2),
-                    U_data->getPointer(0), U_data->getPointer(1), U_data->getPointer(2),
-                    N_ghosts(0), N_ghosts(1), N_ghosts(2),
-                    N_data->getPointer(0), N_data->getPointer(1), N_data->getPointer(2)
+                        patch_lower(0), patch_upper(0),
+                        patch_lower(1), patch_upper(1),
+                        patch_lower(2), patch_upper(2),
+                        U_ghosts(0), U_ghosts(1), U_ghosts(2),
+                        U_data->getPointer(0), U_data->getPointer(1), U_data->getPointer(2),
+                        N_ghosts(0), N_ghosts(1), N_ghosts(2),
+                        N_data->getPointer(0), N_data->getPointer(1), N_data->getPointer(2)
 #endif
-                                                                     );
+                                                                   );
+                    break;
+                default:
+                    TBOX_ERROR("INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator():\n"
+                               << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
+                               << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
             }
         }
     }

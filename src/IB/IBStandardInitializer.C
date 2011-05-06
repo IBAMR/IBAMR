@@ -49,6 +49,7 @@
 #include <ibamr/IBBeamForceSpec.h>
 #include <ibamr/IBInstrumentationSpec.h>
 #include <ibamr/IBRodForceSpec.h>
+#include <ibamr/IBSourceSpec.h>
 #include <ibamr/IBSpringForceSpec.h>
 #include <ibamr/IBTargetPointForceSpec.h>
 #include <ibamr/namespaces.h>
@@ -174,6 +175,8 @@ IBStandardInitializer::IBStandardInitializer(
       d_directors(),
       d_enable_instrumentation(),
       d_instrument_idx(),
+      d_enable_sources(),
+      d_source_idx(),
       d_global_index_offset()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -186,6 +189,7 @@ IBStandardInitializer::IBStandardInitializer(
     IBBeamForceSpec::registerWithStreamableManager();
     IBInstrumentationSpec::registerWithStreamableManager();
     IBRodForceSpec::registerWithStreamableManager();
+    IBSourceSpec::registerWithStreamableManager();
     IBSpringForceSpec::registerWithStreamableManager();
     IBTargetPointForceSpec::registerWithStreamableManager();
 
@@ -225,6 +229,9 @@ IBStandardInitializer::IBStandardInitializer(
 
         // Process the (optional) instrumentation information.
         readInstrumentationFiles();
+
+        // Process the (optional) source information.
+        readSourceFiles();
 
         // Wait for all processes to finish.
         SAMRAI_MPI::barrier();
@@ -277,7 +284,7 @@ IBStandardInitializer::getLevelHasLagrangianData(
 }// getLevelHasLagrangianData
 
 int
-IBStandardInitializer::getLocalNodeCountOnPatchLevel(
+IBStandardInitializer::computeLocalNodeCountOnPatchLevel(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
@@ -299,7 +306,7 @@ IBStandardInitializer::getLocalNodeCountOnPatchLevel(
         local_node_count += patch_vertices.size();
     }
     return local_node_count;
-}// getLocalNodeCountOnPatchLevel
+}// computeLocalNodeCountOnPatchLevel
 
 void
 IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
@@ -1408,37 +1415,17 @@ IBStandardInitializer::readRodFiles()
                     curr_idx += d_vertex_offset[ln][j];
                     next_idx += d_vertex_offset[ln][j];
 
-                    // Check to see if the edge has already been inserted in the
-                    // edge map.
-                    Edge e;
-                    e.first  = std::min(curr_idx,next_idx);
-                    e.second = std::max(curr_idx,next_idx);
-                    bool duplicate_edge = false;
-                    for (std::multimap<int,Edge>::const_iterator it =
-                             d_rod_edge_map[ln][j].lower_bound(e.first);
-                         it != d_rod_edge_map[ln][j].upper_bound(e.first); ++it)
-                    {
-                        const Edge& other_e = it->second;
-                        if (e.first  == other_e.first &&
-                            e.second == other_e.second)
-                        {
-                            // This is a duplicate edge and should not be
-                            // inserted into the edge map.
-                            duplicate_edge = true;
-                        }
-                    }
-
                     // Initialize the map data corresponding to the present
                     // edge.
-                    if (!duplicate_edge)
-                    {
-                        d_rod_edge_map[ln][j].insert(std::make_pair(e.first,e));
-                    }
+                    Edge e;
+                    e.first  = curr_idx;
+                    e.second = next_idx;
+                    d_rod_edge_map[ln][j].insert(std::make_pair(e.first,e));
 
                     // Initialize the map data corresponding to the present rod.
                     //
                     // Note that in the rod property map, each edge is
-                    // associated with only the "current" vertex.
+                    // associated with only the "cur1rent" vertex.
                     RodSpec& rod_spec = d_rod_spec_data[ln][j][e];
                     rod_spec.properties = properties;
                     rod_spec.subdomain_idx = subdomain_idx;
@@ -2205,6 +2192,182 @@ IBStandardInitializer::readInstrumentationFiles()
 }// readInstrumentationFiles
 
 void
+IBStandardInitializer::readSourceFiles()
+{
+    std::string line_string;
+    const int rank = SAMRAI_MPI::getRank();
+    const int nodes = SAMRAI_MPI::getNodes();
+    int flag = 1;
+    int sz = 1;
+
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        int source_offset = 0;
+        std::vector<std::string> source_names;
+        std::vector<double> source_radii;
+        const int num_base_filename = d_base_filename[ln].size();
+        d_source_idx[ln].resize(num_base_filename);
+        for (int j = 0; j < num_base_filename; ++j)
+        {
+            // Wait for the previous MPI process to finish reading the current file.
+            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
+
+            const std::string source_filename = d_base_filename[ln][j] + ".source";
+            std::ifstream file_stream;
+            file_stream.open(source_filename.c_str(), std::ios::in);
+            if (file_stream.is_open() && d_enable_sources[ln][j])
+            {
+                plog << d_object_name << ":  "
+                     << "processing source data from ASCII input file named " << source_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+
+                // The first line in the file indicates the number of sources in
+                // the input file.
+                int num_source;
+                if (!std::getline(file_stream, line_string))
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << source_filename << std::endl);
+                }
+                else
+                {
+                    line_string = discard_comments(line_string);
+                    std::istringstream line_stream(line_string);
+                    if (!(line_stream >> num_source))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << source_filename << std::endl);
+                    }
+                }
+
+                if (num_source <= 0)
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << source_filename << std::endl);
+                }
+
+                // The next several lines in the file indicate the names of the
+                // sources in the input file.
+                for (int m = 0; m < num_source; ++m)
+                {
+                    if (!std::getline(file_stream, line_string))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << m+2 << " of file " << source_filename << std::endl);
+                    }
+                    else
+                    {
+                        line_string = discard_comments(line_string);
+
+                        // trim leading whitespace
+                        std::string::size_type notwhite = line_string.find_first_not_of(" \t\n");
+                        line_string.erase(0,notwhite);
+
+                        // trim trailing whitespace
+                        notwhite = line_string.find_last_not_of(" \t\n");
+                        line_string.erase(notwhite+1);
+
+                        source_names.push_back(line_string);
+                    }
+                }
+
+                // The next several lines in the file indicate the sizes of the
+                // sources in the input file.
+                for (int m = 0; m < num_source; ++m)
+                {
+                    if (!std::getline(file_stream, line_string))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << m+2 << " of file " << source_filename << std::endl);
+                    }
+                    else
+                    {
+                        line_string = discard_comments(line_string);
+                        std::istringstream line_stream(line_string);
+                        double r;
+                        if (!(line_stream >> r) || r <= 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << num_source+m+2 << " of file " << source_filename << std::endl);
+                        }
+                        source_radii.push_back(r);
+                    }
+                }
+
+                // The next line in the file indicates the number of source
+                // points in the input file.
+                int num_source_pts;
+                if (!std::getline(file_stream, line_string))
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << 2*num_source+2 << " of file " << source_filename << std::endl);
+                }
+                else
+                {
+                    line_string = discard_comments(line_string);
+                    std::istringstream line_stream(line_string);
+                    if (!(line_stream >> num_source_pts) || (num_source_pts <= 0))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << 2*num_source+2 << " of file " << source_filename << std::endl);
+                    }
+                }
+
+                // Each successive line indicates the vertex number and source
+                // number of the IB points in the input file.
+                for (int k = 0; k < num_source_pts; ++k)
+                {
+                    int n;
+                    if (!std::getline(file_stream, line_string))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << 2*num_source+k+3 << " of file " << source_filename << std::endl);
+                    }
+                    else
+                    {
+                        line_string = discard_comments(line_string);
+                        std::istringstream line_stream(line_string);
+                        if (!(line_stream >> n))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << 2*num_source+k+3 << " of file " << source_filename << std::endl);
+                        }
+                        else if ((n < 0) || (n >= d_num_vertex[ln][j]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << 2*num_source+k+3 << " of file " << source_filename << std::endl
+                                       << "  vertex index " << n << " is out of range" << std::endl);
+                        }
+
+                        int& source_idx = d_source_idx[ln][j][n];
+
+                        if (!(line_stream >> source_idx))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << 2*num_source+k+3 << " of file " << source_filename << std::endl);
+                        }
+                        else if (source_idx < 0 || source_idx >= num_source)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << 2*num_source+k+3 << " of file " << source_filename << std::endl
+                                       << "  meter index " << source_idx << " is out of range" << std::endl);
+                        }
+
+                        // Correct the source index to account for source
+                        // indices from earlier files.
+                        source_idx += source_offset;
+                    }
+                }
+
+                // Increment the meter offset.
+                source_offset += num_source;
+
+                // Close the input file.
+                file_stream.close();
+
+                plog << d_object_name << ":  "
+                     << "read " << num_source_pts << " source points from ASCII input file named " << source_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+            }
+
+            // Free the next MPI process to start reading the current file.
+            if (d_use_file_batons && rank != nodes-1) SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
+        }
+        IBSourceSpec::setNumSources(ln,source_offset);
+        IBSourceSpec::setSourceNames(ln,source_names);
+        IBSourceSpec::setSourceRadii(ln,source_radii);
+    }
+    return;
+}// readSourceFiles
+
+void
 IBStandardInitializer::getPatchVertices(
     std::vector<std::pair<int,int> >& patch_vertices,
     const Pointer<Patch<NDIM> > patch,
@@ -2295,8 +2458,7 @@ IBStandardInitializer::getVertexInstrumentationIndices(
     const std::pair<int,int>& point_index,
     const int level_number) const
 {
-    std::map<int,std::pair<int,int> >::const_iterator it =
-        d_instrument_idx[level_number][point_index.first].find(point_index.second);
+    std::map<int,std::pair<int,int> >::const_iterator it = d_instrument_idx[level_number][point_index.first].find(point_index.second);
     if (it != d_instrument_idx[level_number][point_index.first].end())
     {
         return it->second;
@@ -2306,6 +2468,22 @@ IBStandardInitializer::getVertexInstrumentationIndices(
         return std::make_pair(-1,-1);
     }
 }// getVertexInstrumentationIndices
+
+int
+IBStandardInitializer::getVertexSourceIndices(
+    const std::pair<int,int>& point_index,
+    const int level_number) const
+{
+    std::map<int,int>::const_iterator it = d_source_idx[level_number][point_index.first].find(point_index.second);
+    if (it != d_source_idx[level_number][point_index.first].end())
+    {
+        return it->second;
+    }
+    else
+    {
+        return -1;
+    }
+}// getVertexSourceIndices
 
 std::vector<Pointer<Streamable> >
 IBStandardInitializer::initializeSpecs(
@@ -2350,9 +2528,7 @@ IBStandardInitializer::initializeSpecs(
         }
         if (slave_idxs.size() > 0)
         {
-            vertex_specs.push_back(
-                new IBSpringForceSpec(
-                    mastr_idx, slave_idxs, force_fcn_idxs, stiffness, rest_length, subdomain_idxs));
+            vertex_specs.push_back(new IBSpringForceSpec(mastr_idx, slave_idxs, force_fcn_idxs, stiffness, rest_length, subdomain_idxs));
         }
     }
 
@@ -2374,9 +2550,7 @@ IBStandardInitializer::initializeSpecs(
         }
         if (!beam_neighbor_idxs.empty())
         {
-            vertex_specs.push_back(
-                new IBBeamForceSpec(
-                    mastr_idx, beam_neighbor_idxs, beam_bend_rigidity, beam_mesh_dependent_curvature, beam_subdomain_idxs));
+            vertex_specs.push_back(new IBBeamForceSpec(mastr_idx, beam_neighbor_idxs, beam_bend_rigidity, beam_mesh_dependent_curvature, beam_subdomain_idxs));
         }
     }
 
@@ -2410,9 +2584,7 @@ IBStandardInitializer::initializeSpecs(
         }
         if (!rod_next_idxs.empty())
         {
-            vertex_specs.push_back(
-                new IBRodForceSpec(
-                    mastr_idx, rod_next_idxs, rod_material_params, rod_subdomain_idxs));
+            vertex_specs.push_back(new IBRodForceSpec(mastr_idx, rod_next_idxs, rod_material_params, rod_subdomain_idxs));
         }
     }
 
@@ -2425,9 +2597,7 @@ IBStandardInitializer::initializeSpecs(
         const double eta_target = spec_data.damping;
         const int subdomain_idx = spec_data.subdomain_idx;
         const std::vector<double> X_target = getVertexPosn(point_index, level_number);
-        vertex_specs.push_back(
-            new IBTargetPointForceSpec(
-                mastr_idx, kappa_target, eta_target, X_target, subdomain_idx));
+        vertex_specs.push_back(new IBTargetPointForceSpec(mastr_idx, kappa_target, eta_target, X_target, subdomain_idx));
     }
 
     // Initialize any anchor point specifications associated with the present
@@ -2450,9 +2620,18 @@ IBStandardInitializer::initializeSpecs(
         const std::pair<int,int> inst_idx = getVertexInstrumentationIndices(point_index, level_number);
         if (inst_idx.first != -1 && inst_idx.second != -1)
         {
-            vertex_specs.push_back(
-                new IBInstrumentationSpec(
-                    mastr_idx, inst_idx.first, inst_idx.second));
+            vertex_specs.push_back(new IBInstrumentationSpec(mastr_idx, inst_idx.first, inst_idx.second));
+        }
+    }
+
+    // Initialize any source specifications associated with the present
+    // vertex.
+    if (d_enable_sources[level_number][j])
+    {
+        const int source_idx = getVertexSourceIndices(point_index, level_number);
+        if (source_idx != -1)
+        {
+            vertex_specs.push_back(new IBSourceSpec(mastr_idx, source_idx));
         }
     }
     return vertex_specs;
@@ -2552,6 +2731,9 @@ IBStandardInitializer::getFromInput(
 
     d_enable_instrumentation.resize(d_max_levels);
     d_instrument_idx.resize(d_max_levels);
+
+    d_enable_sources.resize(d_max_levels);
+    d_source_idx.resize(d_max_levels);
 
     d_global_index_offset.resize(d_max_levels);
 
@@ -2679,6 +2861,8 @@ IBStandardInitializer::getFromInput(
 
         d_enable_instrumentation[ln].resize(num_base_filename,true);
 
+        d_enable_sources[ln].resize(num_base_filename,true);
+
         for (int j = 0; j < num_base_filename; ++j)
         {
             const std::string& base_filename = d_base_filename[ln][j];
@@ -2716,6 +2900,10 @@ IBStandardInitializer::getFromInput(
                 if (sub_db->keyExists("enable_instrumentation"))
                 {
                     d_enable_instrumentation[ln][j] = sub_db->getBool("enable_instrumentation");
+                }
+                if (sub_db->keyExists("enable_sources"))
+                {
+                    d_enable_sources[ln][j] = sub_db->getBool("enable_sources");
                 }
 
                 // Determine whether to use uniform values for any particular
@@ -2853,7 +3041,7 @@ IBStandardInitializer::getFromInput(
             pout << "  base filename: " << base_filename << std::endl
                  << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy" << std::endl
                  << "     required files: " << base_filename << ".vertex" << std::endl
-                 << "     optional files: " << base_filename << ".spring, " << base_filename << ".beam, " << base_filename << ".rod, " << base_filename << ".target, " << base_filename << ".anchor, " << base_filename << ".mass, " << base_filename << ".director, " << base_filename << ".inst" << std::endl;
+                 << "     optional files: " << base_filename << ".spring, " << base_filename << ".beam, " << base_filename << ".rod, " << base_filename << ".target, " << base_filename << ".anchor, " << base_filename << ".mass, " << base_filename << ".director, " << base_filename << ".inst" << ".source" << std::endl;
             if (!d_enable_springs[ln][j])
             {
                 pout << "  NOTE: spring forces are DISABLED for " << base_filename << std::endl;
@@ -2980,6 +3168,11 @@ IBStandardInitializer::getFromInput(
             if (!d_enable_instrumentation[ln][j])
             {
                 pout << "  NOTE: instrumentation is DISABLED for " << base_filename << std::endl;
+            }
+
+            if (!d_enable_sources[ln][j])
+            {
+                pout << "  NOTE: sources/sinks are DISABLED for " << base_filename << std::endl;
             }
 
             pout << std::endl;

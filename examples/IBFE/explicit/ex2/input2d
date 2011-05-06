@@ -43,7 +43,7 @@ VelocityBcCoefs_0 {
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
 
-   gcoef_function_0 = "-1.0"
+   gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
@@ -86,7 +86,7 @@ INSStaggeredHierarchyIntegrator {
 
    tag_buffer = 1
 
-   conservation_form = FALSE
+   convective_difference_form = "ADVECTIVE"
    using_vorticity_tagging = FALSE
 
    output_U = TRUE

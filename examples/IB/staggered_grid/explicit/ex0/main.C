@@ -31,9 +31,6 @@
 #include <IBAMR_config.h>
 #include <SAMRAI_config.h>
 
-// Headers for basic PETSc functions
-#include <petsc.h>
-
 // Headers for basic SAMRAI objects
 #include <PatchLevel.h>
 #include <VariableDatabase.h>
@@ -576,7 +573,7 @@ main(
         double dt_old = 0.0;
 
         int iteration_num = time_integrator->getIntegratorStep();
-
+#if 0
         /*
          * At specified intervals, write state data for post-processing.
          */
@@ -634,7 +631,7 @@ main(
             PetscViewerDestroy(viewer);
             VecDestroy(X_lag_vec);
         }
-
+#endif
         while (!tbox::MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
                time_integrator->stepsRemaining())
         {
@@ -687,7 +684,7 @@ main(
 
                 if (stop_after_writing_restart) break;
             }
-
+#if 0
             /*
              * At specified intervals, write state data for post-processing.
              */
@@ -745,7 +742,7 @@ main(
                 PetscViewerDestroy(viewer);
                 VecDestroy(X_lag_vec);
             }
-
+#endif
             /*
              * At specified intervals, post-process data.
              */
@@ -790,7 +787,6 @@ main(
                 delete (*cit);
             }
         }
-
     }// cleanup all smart Pointers prior to shutdown
 
     tbox::SAMRAIManager::shutdown();

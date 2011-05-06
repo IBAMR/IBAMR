@@ -438,6 +438,32 @@ main(
         time_integrator->registerVelocityInitialConditions(u_init);
 
         /*
+         * Create boundary condition specification objects (when necessary).
+         */
+        const hier::IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
+        const bool periodic_domain = periodic_shift.min() != 0;
+
+        vector<solv::RobinBcCoefStrategy<NDIM>*> u_bc_coefs;
+        if (!periodic_domain)
+        {
+            for (int d = 0; d < NDIM; ++d)
+            {
+                ostringstream bc_coefs_name_stream;
+                bc_coefs_name_stream << "u_bc_coefs_" << d;
+                const string bc_coefs_name = bc_coefs_name_stream.str();
+
+                ostringstream bc_coefs_db_name_stream;
+                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
+                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+
+                u_bc_coefs.push_back(
+                    new muParserRobinBcCoefs(
+                        bc_coefs_name, input_db->getDatabase(bc_coefs_db_name), grid_geometry));
+            }
+            time_integrator->registerVelocityPhysicalBcCoefs(u_bc_coefs);
+        }
+
+        /*
          * Set up visualization plot file writer.
          */
         tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer =
@@ -599,6 +625,17 @@ main(
             }
         }
 
+        /*
+         * Cleanup boundary condition specification objects (when necessary).
+         */
+        if (!periodic_domain)
+        {
+            for (vector<solv::RobinBcCoefStrategy<NDIM>*>::const_iterator cit = u_bc_coefs.begin();
+                 cit != u_bc_coefs.end(); ++cit)
+            {
+                delete (*cit);
+            }
+        }
     }// cleanup all smart Pointers prior to shutdown
 
     tbox::SAMRAIManager::shutdown();

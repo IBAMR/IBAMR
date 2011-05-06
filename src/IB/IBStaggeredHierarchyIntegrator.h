@@ -860,6 +860,10 @@ private:
     RefinePatchStrategyMap d_rstrategies;
     RefineSchedMap         d_rscheds;
 
+    RefineAlgMap           d_palgs;
+    RefinePatchStrategyMap d_pstrategies;
+    RefineSchedMap         d_pscheds;
+
     CoarsenAlgMap           d_calgs;
     CoarsenPatchStrategyMap d_cstrategies;
     CoarsenSchedMap         d_cscheds;

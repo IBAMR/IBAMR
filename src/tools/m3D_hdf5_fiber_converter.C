@@ -285,6 +285,5 @@ main(
     status = H5Fclose(fiber_file_id);
 
     output_fstream.close();
-
     return -1;
 }// main

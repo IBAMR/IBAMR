@@ -128,7 +128,7 @@ public:
      */
     size_t
     getDataStreamSize(
-        const SAMRAI::tbox::Pointer<Streamable>& data_items) const;
+        const SAMRAI::tbox::Pointer<Streamable>& data_item) const;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack a
@@ -144,7 +144,7 @@ public:
     void
     packStream(
         SAMRAI::tbox::AbstractStream& stream,
-        SAMRAI::tbox::Pointer<Streamable>& data_items);
+        SAMRAI::tbox::Pointer<Streamable>& data_item);
 
     /*!
      * \brief Pack a vector of Streamable objects into the output stream.
@@ -161,7 +161,7 @@ public:
     unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
         const SAMRAI::hier::IntVector<NDIM>& offset,
-        SAMRAI::tbox::Pointer<Streamable>& data_items);
+        SAMRAI::tbox::Pointer<Streamable>& data_item);
 
     /*!
      * \brief Unpack a vector of Streamable objects from the data stream.
@@ -186,11 +186,11 @@ protected:
     /*!
      * Generate a unique ID number.
      *
-     * Every call to getUniqueID() returns a different integer, simplifying the
-     * task of generating ID numbers for StreamableFactory objects.
+     * Every call to createUniqueID() returns a different integer, simplifying
+     * the task of generating ID numbers for StreamableFactory objects.
      */
     static int
-    getUniqueID();
+    createUniqueID();
 
 private:
     typedef std::map<int,SAMRAI::tbox::Pointer<StreamableFactory> > StreamableFactoryMap;

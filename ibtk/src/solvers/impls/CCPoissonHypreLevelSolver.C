@@ -72,10 +72,10 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Pointer<Timer> t_solve_system;
-static Pointer<Timer> t_solve_system_hypre;
-static Pointer<Timer> t_initialize_solver_state;
-static Pointer<Timer> t_deallocate_solver_state;
+static Timer* t_solve_system;
+static Timer* t_solve_system_hypre;
+static Timer* t_initialize_solver_state;
+static Timer* t_deallocate_solver_state;
 
 // hypre solver options.
 static const int RAP_TYPE_GALERKIN             = 0;
@@ -593,13 +593,12 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
             D_data->fill(d_poisson_spec.getDConstant());
         }
 
-        Pointer<SideData<NDIM,double> > off_diagonal =
-            new SideData<NDIM,double>(patch_box, 1, no_ghosts);
-        off_diagonal->fill(0.0);
+        SideData<NDIM,double> off_diagonal(patch_box, 1, no_ghosts);
+        off_diagonal.fill(0.0);
         for (int axis = 0; axis < NDIM; ++axis)
         {
             Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
-            array_ops.scale(off_diagonal->getArrayData(axis),
+            array_ops.scale(off_diagonal.getArrayData(axis),
                             1.0/(dx[axis]*dx[axis]),
                             D_data->getArrayData(axis),
                             side_box);
@@ -624,9 +623,8 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
             else C_data->fill(d_poisson_spec.getCConstant());
         }
 
-        Pointer<CellData<NDIM,double> > diagonal =
-            new CellData<NDIM,double>(patch_box, 1, no_ghosts);
-        diagonal->copy(*C_data);
+        CellData<NDIM,double> diagonal(patch_box, 1, no_ghosts);
+        diagonal.copy(*C_data);
 
         for (Box<NDIM>::Iterator b(patch_box); b; b++)
         {
@@ -634,9 +632,9 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 const SideIndex<NDIM> ilower(i, axis, SideIndex<NDIM>::Lower);
-                (*diagonal)(i) -= (*off_diagonal)(ilower);
+                diagonal(i) -= off_diagonal(ilower);
                 const SideIndex<NDIM> iupper(i, axis, SideIndex<NDIM>::Upper);
-                (*diagonal)(i) -= (*off_diagonal)(iupper);
+                diagonal(i) -= off_diagonal(iupper);
             }
         }
 
@@ -668,14 +666,15 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
             const Box<NDIM> bc_coef_box =
                 PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-            Pointer<ArrayData<NDIM,double> > acoef_data =
-                new ArrayData<NDIM,double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM,double> > bcoef_data =
-                new ArrayData<NDIM,double>(bc_coef_box, 1);
-            Pointer<ArrayData<NDIM,double> > gcoef_data = NULL;
+            ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
+            ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
+
+            Pointer<ArrayData<NDIM,double> > acoef_data_ptr(&acoef_data, false);
+            Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data, false);
+            Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(NULL);
 
             d_bc_coef->setBcCoefs(
-                acoef_data, bcoef_data, gcoef_data, NULL,
+                acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL,
                 *patch, trimmed_bdry_box, d_apply_time);
 
             const int location_index = bdry_box.getLocationIndex();
@@ -686,8 +685,8 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
             for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
             {
                 const Index<NDIM>& i_s_bdry = b();
-                const double& a = (*acoef_data)(i_s_bdry,0);
-                const double& b = (*bcoef_data)(i_s_bdry,0);
+                const double& a = acoef_data(i_s_bdry,0);
+                const double& b = bcoef_data(i_s_bdry,0);
                 const double& h = dx[bdry_normal_axis];
 
                 // i_s_bdry: side index located on physical boundary
@@ -703,15 +702,15 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
                 if (bdry_lower_side)
                 {
                     const SideIndex<NDIM> ilower(i_c_intr, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                    (*diagonal)(i_c_intr) += (*off_diagonal)(ilower)*(-(a*h-2.0*b)/(a*h+2.0*b));
-                    (*off_diagonal)(ilower) = 0.0;
+                    diagonal(i_c_intr) += off_diagonal(ilower)*(-(a*h-2.0*b)/(a*h+2.0*b));
+                    off_diagonal(ilower) = 0.0;
                 }
 
                 if (bdry_upper_side)
                 {
                     const SideIndex<NDIM> iupper(i_c_intr, bdry_normal_axis, SideIndex<NDIM>::Upper);
-                    (*diagonal)(i_c_intr) += (*off_diagonal)(iupper)*(-(a*h-2.0*b)/(a*h+2.0*b));
-                    (*off_diagonal)(iupper) = 0.0;
+                    diagonal(i_c_intr) += off_diagonal(iupper)*(-(a*h-2.0*b)/(a*h+2.0*b));
+                    off_diagonal(iupper) = 0.0;
                 }
             }
         }
@@ -729,31 +728,25 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
         {
             Index<NDIM> i = b();
 
-            const SideIndex<NDIM> ixlower(
-                i, SideIndex<NDIM>::X, SideIndex<NDIM>::Lower);
-            mat_vals[0] = (*off_diagonal)(ixlower);
+            const SideIndex<NDIM> ixlower(i, SideIndex<NDIM>::X, SideIndex<NDIM>::Lower);
+            mat_vals[0] = off_diagonal(ixlower);
 
-            const SideIndex<NDIM> iylower(
-                i, SideIndex<NDIM>::Y, SideIndex<NDIM>::Lower);
-            mat_vals[1] = (*off_diagonal)(iylower);
+            const SideIndex<NDIM> iylower(i, SideIndex<NDIM>::Y, SideIndex<NDIM>::Lower);
+            mat_vals[1] = off_diagonal(iylower);
 #if (NDIM == 3)
-            SideIndex<NDIM> izlower(
-                i, SideIndex<NDIM>::Z, SideIndex<NDIM>::Lower);
-            mat_vals[2] = (*off_diagonal)(izlower);
+            SideIndex<NDIM> izlower(i, SideIndex<NDIM>::Z, SideIndex<NDIM>::Lower);
+            mat_vals[2] = off_diagonal(izlower);
 #endif
-            const SideIndex<NDIM> ixupper(
-                i, SideIndex<NDIM>::X, SideIndex<NDIM>::Upper);
-            mat_vals[NDIM+0] = (*off_diagonal)(ixupper);
+            const SideIndex<NDIM> ixupper(i, SideIndex<NDIM>::X, SideIndex<NDIM>::Upper);
+            mat_vals[NDIM+0] = off_diagonal(ixupper);
 
-            const SideIndex<NDIM> iyupper(
-                i, SideIndex<NDIM>::Y, SideIndex<NDIM>::Upper);
-            mat_vals[NDIM+1] = (*off_diagonal)(iyupper);
+            const SideIndex<NDIM> iyupper(i, SideIndex<NDIM>::Y, SideIndex<NDIM>::Upper);
+            mat_vals[NDIM+1] = off_diagonal(iyupper);
 #if (NDIM == 3)
-            SideIndex<NDIM> izupper(
-                i, SideIndex<NDIM>::Z, SideIndex<NDIM>::Upper);
-            mat_vals[NDIM+2] = (*off_diagonal)(izupper);
+            SideIndex<NDIM> izupper(i, SideIndex<NDIM>::Z, SideIndex<NDIM>::Upper);
+            mat_vals[NDIM+2] = off_diagonal(izupper);
 #endif
-            mat_vals[2*NDIM] = (*diagonal)(i);
+            mat_vals[2*NDIM] = diagonal(i);
 
             HYPRE_StructMatrixSetValues(d_matrix, i, stencil_sz, stencil_indices, &mat_vals[0]);
         }
@@ -1327,15 +1320,15 @@ CCPoissonHypreLevelSolver::solveSystem(
                 b_data->getGhostCellWidth());
             b_data->copy(*(patch->getPatchData(b_idx)));
 
-            Pointer<OutersideData<NDIM,double> > D_os_data =
-                new OutersideData<NDIM,double>(patch_box, 1);
+            OutersideData<NDIM,double> D_os_data(patch_box, 1);
+            Pointer<OutersideData<NDIM,double> > D_os_data_ptr(&D_os_data,false);
             if (!d_poisson_spec.dIsConstant())
             {
-                D_os_data->copy(*patch->getPatchData(d_poisson_spec.getDPatchDataId()));
+                D_os_data.copy(*patch->getPatchData(d_poisson_spec.getDPatchDataId()));
             }
             else
             {
-                D_os_data->fillAll(d_poisson_spec.getDConstant());
+                D_os_data.fillAll(d_poisson_spec.getDConstant());
             }
 
             const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
@@ -1344,12 +1337,12 @@ CCPoissonHypreLevelSolver::solveSystem(
             if (d_grid_aligned_anisotropy)
             {
                 adjustBoundaryRhsEntries_aligned(
-                    b_data, D_os_data, d_bc_coef, patch, physical_codim1_boxes, dx);
+                    b_data, D_os_data_ptr, d_bc_coef, patch, physical_codim1_boxes, dx);
             }
             else
             {
                 adjustBoundaryRhsEntries_nonaligned(
-                    b_data, D_os_data, d_bc_coef, patch, physical_codim1_boxes, dx);
+                    b_data, D_os_data_ptr, d_bc_coef, patch, physical_codim1_boxes, dx);
             }
         }
         copyToHypre(d_rhs_vec, b_data, patch_box);
@@ -1591,15 +1584,16 @@ CCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_aligned(
         const Box<NDIM> bc_coef_box =
             PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-        Pointer<ArrayData<NDIM,double> > acoef_data =
-            new ArrayData<NDIM,double>(bc_coef_box, 1);
-        Pointer<ArrayData<NDIM,double> > bcoef_data =
-            new ArrayData<NDIM,double>(bc_coef_box, 1);
-        Pointer<ArrayData<NDIM,double> > gcoef_data =
-            new ArrayData<NDIM,double>(bc_coef_box, 1);
+        ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
+        ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
+        ArrayData<NDIM,double> gcoef_data(bc_coef_box, 1);
+
+        Pointer<ArrayData<NDIM,double> > acoef_data_ptr(&acoef_data, false);
+        Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data, false);
+        Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(&gcoef_data, false);
 
         d_bc_coef->setBcCoefs(
-            acoef_data, bcoef_data, gcoef_data, NULL,
+            acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL,
             *patch, trimmed_bdry_box, d_apply_time);
 
         const int location_index = bdry_box.getLocationIndex();
@@ -1614,9 +1608,9 @@ CCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_aligned(
         for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
         {
             const Index<NDIM>& i_s_bdry = b();
-            const double& a = (*acoef_data)(i_s_bdry,0);
-            const double& b = (*bcoef_data)(i_s_bdry,0);
-            const double& g = (*gcoef_data)(i_s_bdry,0);
+            const double& a = acoef_data(i_s_bdry,0);
+            const double& b = bcoef_data(i_s_bdry,0);
+            const double& g = gcoef_data(i_s_bdry,0);
             const double& h = dx[bdry_normal_axis];
 
             Index<NDIM> i_c_intr = i_s_bdry;
@@ -1670,15 +1664,16 @@ CCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_nonaligned(
         const Box<NDIM> bc_coef_box =
             PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-        Pointer<ArrayData<NDIM,double> > acoef_data =
-            new ArrayData<NDIM,double>(bc_coef_box, 1);
-        Pointer<ArrayData<NDIM,double> > bcoef_data =
-            new ArrayData<NDIM,double>(bc_coef_box, 1);
-        Pointer<ArrayData<NDIM,double> > gcoef_data =
-            new ArrayData<NDIM,double>(bc_coef_box, 1);
+        ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
+        ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
+        ArrayData<NDIM,double> gcoef_data(bc_coef_box, 1);
+
+        Pointer<ArrayData<NDIM,double> > acoef_data_ptr(&acoef_data, false);
+        Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data, false);
+        Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(&gcoef_data, false);
 
         d_bc_coef->setBcCoefs(
-            acoef_data, bcoef_data, gcoef_data, NULL,
+            acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL,
             *patch, trimmed_bdry_box, d_apply_time);
 
         const int location_index = bdry_box.getLocationIndex();
@@ -1693,9 +1688,9 @@ CCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_nonaligned(
         for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
         {
             const Index<NDIM>& i_s_bdry = b();
-            const double& a = (*acoef_data)(i_s_bdry,0);
-            const double& b = (*bcoef_data)(i_s_bdry,0);
-            const double& g = (*gcoef_data)(i_s_bdry,0);
+            const double& a = acoef_data(i_s_bdry,0);
+            const double& b = bcoef_data(i_s_bdry,0);
+            const double& g = gcoef_data(i_s_bdry,0);
             const double& h = dx[bdry_normal_axis];
 
             Index<NDIM> i_c_intr = i_s_bdry;

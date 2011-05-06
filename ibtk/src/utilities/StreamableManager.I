@@ -45,22 +45,22 @@ namespace IBTK
 
 inline size_t
 StreamableManager::getDataStreamSize(
-    const SAMRAI::tbox::Pointer<Streamable>& data_items) const
+    const SAMRAI::tbox::Pointer<Streamable>& data_item) const
 {
-    return SAMRAI::tbox::AbstractStream::sizeofInt() + data_items->getDataStreamSize();
-}//getDataStreamSize
+    return SAMRAI::tbox::AbstractStream::sizeofInt() + data_item->getDataStreamSize();
+}// getDataStreamSize
 
 inline void
 StreamableManager::packStream(
     SAMRAI::tbox::AbstractStream& stream,
-    SAMRAI::tbox::Pointer<Streamable>& data_items)
+    SAMRAI::tbox::Pointer<Streamable>& data_item)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!data_items.isNull());
+    TBOX_ASSERT(!data_item.isNull());
 #endif
-    const int streamable_id = data_items->getStreamableClassID();
+    const int streamable_id = data_item->getStreamableClassID();
     stream.pack(&streamable_id,1);
-    data_items->packStream(stream);
+    data_item->packStream(stream);
     return;
 }// packStream
 
@@ -68,14 +68,14 @@ inline void
 StreamableManager::unpackStream(
     SAMRAI::tbox::AbstractStream& stream,
     const SAMRAI::hier::IntVector<NDIM>& offset,
-    SAMRAI::tbox::Pointer<Streamable>& data_items)
+    SAMRAI::tbox::Pointer<Streamable>& data_item)
 {
     int streamable_id;
     stream.unpack(&streamable_id,1);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_factory_map.count(streamable_id) == 1);
 #endif
-    data_items = d_factory_map[streamable_id]->unpackStream(stream,offset);
+    data_item = d_factory_map[streamable_id]->unpackStream(stream,offset);
     return;
 }// unpackStream
 

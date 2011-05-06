@@ -357,7 +357,7 @@ public:
      * corresponding to the curvilinear volume element (dq dr ds).  The
      * spreading formula is
      *
-     *     q(i,j,k) = Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
+     *     q(i,j,k) = q(i,j,k) + Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
      *
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
@@ -386,7 +386,7 @@ public:
      * corresponding to the curvilinear volume element (dq dr ds).  The
      * spreading formula is
      *
-     *     q(i,j,k) = Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
+     *     q(i,j,k) = q(i,j,k) + Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
      *
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
@@ -415,7 +415,7 @@ public:
      * corresponding to the curvilinear volume element (dq dr ds).  The
      * spreading formula is
      *
-     *     q(i,j,k) = Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
+     *     q(i,j,k) = q(i,j,k) + Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
      *
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
@@ -446,7 +446,7 @@ public:
      * corresponding to the curvilinear volume element (dq dr ds).  The
      * spreading formula is
      *
-     *     q(i,j,k) = Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
+     *     q(i,j,k) = q(i,j,k) + Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
      *
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
@@ -475,7 +475,7 @@ public:
      * corresponding to the curvilinear volume element (dq dr ds).  The
      * spreading formula is
      *
-     *     q(i,j,k) = Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
+     *     q(i,j,k) = q(i,j,k) + Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
      *
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
@@ -504,7 +504,7 @@ public:
      * corresponding to the curvilinear volume element (dq dr ds).  The
      * spreading formula is
      *
-     *     q(i,j,k) = Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
+     *     q(i,j,k) = q(i,j,k) + Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
      *
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
@@ -533,7 +533,7 @@ public:
      * corresponding to the curvilinear volume element (dq dr ds).  The
      * spreading formula is
      *
-     *     q(i,j,k) = Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
+     *     q(i,j,k) = q(i,j,k) + Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
      *
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
@@ -564,7 +564,7 @@ public:
      * corresponding to the curvilinear volume element (dq dr ds).  The
      * spreading formula is
      *
-     *     q(i,j,k) = Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
+     *     q(i,j,k) = q(i,j,k) + Sum_{q,r,s} Q(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
      *
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
@@ -673,7 +673,7 @@ private:
      * based on the LNodeIndexData values.
      */
     static void
-    getLocalIndices(
+    buildLocalIndices(
         std::vector<int>& local_indices,
         std::vector<double>& periodic_offsets,
         const SAMRAI::hier::Box<NDIM>& box,
@@ -686,7 +686,7 @@ private:
      * based on the positions of the Lagrangian mesh nodes.
      */
     static void
-    getLocalIndices(
+    buildLocalIndices(
         std::vector<int>& local_indices,
         const SAMRAI::hier::Box<NDIM>& box,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,

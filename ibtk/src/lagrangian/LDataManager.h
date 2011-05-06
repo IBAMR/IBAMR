@@ -43,6 +43,7 @@
 #include <ibtk/LNodeInitStrategy.h>
 #include <ibtk/LNodeIndex.h>
 #include <ibtk/LNodeIndexVariable.h>
+#include <ibtk/ParallelSet.h>
 
 // PETSc INCLUDES
 #include <petscvec.h>
@@ -205,7 +206,7 @@ public:
      * corresponding to the curvilinear volume element (dq dr ds).  The
      * spreading formula is
      *
-     *     f(i,j,k) = Sum_{q,r,s} F(q,r,s) delta_h(x(i,j,k) - X(q,r,s)) ds(q,r,s)
+     *     f(i,j,k) = f(i,j,k) + Sum_{q,r,s} F(q,r,s) delta_h(x(i,j,k) - X(q,r,s)) ds(q,r,s)
      *
      * This is the standard regularized delta function spreading operation,
      * which spreads densities, \em NOT values.
@@ -216,6 +217,7 @@ public:
         std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& F_data,
         std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
         std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& ds_data,
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
         const bool F_data_ghost_node_update=true,
         const bool X_data_ghost_node_update=true,
         const bool ds_data_ghost_node_update=true,
@@ -229,7 +231,7 @@ public:
      * corresponding to the curvilinear volume element (dq dr ds).  The
      * spreading formula is
      *
-     *     f(i,j,k) = Sum_{q,r,s} F(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
+     *     f(i,j,k) = f(i,j,k) + Sum_{q,r,s} F(q,r,s) delta_h(x(i,j,k) - X(q,r,s))
      *
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operation spreads values, \em NOT densities.
@@ -239,6 +241,7 @@ public:
         const int f_data_idx,
         std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& F_data,
         std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
         const bool F_data_ghost_node_update=true,
         const bool X_data_ghost_node_update=true,
         const int coarsest_ln=-1,
@@ -253,7 +256,8 @@ public:
         const int f_data_idx,
         std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& F_data,
         std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
-        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_refine_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > f_synch_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_ghost_fill_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
         const double fill_data_time=0.0,
         const int coarsest_ln=-1,
         const int finest_ln=-1);
@@ -270,7 +274,8 @@ public:
         const int f_data_idx,
         std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& F_data,
         std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
-        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_refine_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > f_synch_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_ghost_fill_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
         const double fill_data_time=0.0,
         const int coarsest_ln=-1,
         const int finest_ln=-1);
@@ -367,7 +372,7 @@ public:
     SAMRAI::tbox::Pointer<LNodeLevelData>
     getLNodeLevelData(
         const std::string& quantity_name,
-        const int level_number);
+        const int level_number) const;
 
     /*!
      * \brief Allocate new Lagrangian level data with the specified name and
@@ -903,6 +908,34 @@ private:
         const LDataManager& that);
 
     /*!
+     * \brief Version of the spreading routine specialized to the case in which
+     * there is Lagrangian data only on finest_ln.
+     */
+    void
+    spread_specialized(
+        const int f_data_idx,
+        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& F_data,
+        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
+        const bool F_data_ghost_node_update,
+        const bool X_data_ghost_node_update,
+        const int coarsest_ln,
+        const int finest_ln);
+
+    /*!
+     * \brief Version of the interpolation routine specialized to the case in
+     * which there is Lagrangian data only on finest_ln.
+     */
+    void
+    interp_specialized(
+        const int f_data_idx,
+        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& F_data,
+        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_ghost_fill_scheds,
+        const double fill_data_time,
+        const int coarsest_ln,
+        const int finest_ln);
+
+    /*!
      * \brief Common implementation of scatterPETScToLagrangian() and
      * scatterLagrangianToPetsc().
      */
@@ -1132,7 +1165,7 @@ private:
     std::vector<std::map<int,std::string> > d_strct_id_to_strct_name_map;
     std::vector<std::map<int,std::pair<int,int> > > d_strct_id_to_lag_idx_range_map;
     std::vector<std::map<int,int> > d_last_lag_idx_to_strct_id_map;
-    std::vector<std::map<int,bool> > d_strct_activation_map;
+    std::vector<IBTK::ParallelSet> d_inactive_strcts;
     std::vector<std::vector<int> > d_displaced_strct_ids;
     std::vector<std::vector<std::pair<std::vector<double>,std::vector<double> > > > d_displaced_strct_bounding_boxes;
     std::vector<std::vector<SAMRAI::tbox::Pointer<LNodeIndex> > > d_displaced_strct_lnode_idxs;

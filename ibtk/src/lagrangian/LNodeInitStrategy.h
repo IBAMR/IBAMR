@@ -83,7 +83,7 @@ public:
      * \return The number of local nodes on the patch level.
      */
     virtual int
-    getLocalNodeCountOnPatchLevel(
+    computeLocalNodeCountOnPatchLevel(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,

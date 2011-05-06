@@ -37,11 +37,12 @@
 
 // IBAMR INCLUDES
 #include <ibamr/GodunovAdvector.h>
+#include <ibamr/ibamr_enums.h>
+#include <ibamr/ibamr_utilities.h>
 
 // IBTK INCLUDES
 #include <ibtk/CartExtrapPhysBdryOp.h>
 #include <ibtk/CartGridFunction.h>
-#include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -65,7 +66,9 @@
 #include <tbox/Serializable.h>
 
 // C++ STDLIB INCLUDES
+#include <map>
 #include <ostream>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -145,203 +148,174 @@ public:
     getName() const;
 
     /*!
-     * Register a coarse-fine interface refine patch strategy with the advection
-     * patch strategy.
-     *
-     * \note Support for sophisticated coarse-fine interface discretizations is
-     * still experimental.  Note that it is the caller's responsibility to ensure
-     * that the coarse-fine boundary data associated with the coarse-fine
-     * interface operator remains consistent.
-     */
-    void
-    registerCoarseFineBoundaryRefinePatchStrategy(
-        SAMRAI::tbox::Pointer<IBTK::CoarseFineBoundaryRefinePatchStrategy> coarse_fine_bdry_op);
-
-    ///
-    ///  The following routines:
-    ///
-    ///      registerAdvectedQuantity(),
-    ///      registerAdvectedQuantityWithSourceTerm(),
-    ///      registerAdvectionVelocity(),
-    ///      registerVisItDataWriter()
-    ///
-    ///  allow the AdvectHypPatchOps to be used as a generic advection scheme.
-    ///
-
-    /*!
-     * \brief Register a scalar-valued cell-centered quantity to be advected by
-     * the GodunovAdvector according to the specified advection velocity.
-     *
-     * Conservative differencing is employed in updating the value of the
-     * quantity when \p conservation_form is true.  Otherwise, non-conservative
-     * differencing is used to update the quantity.
-     *
-     * Optional concrete IBTK::CartGridFunction and SAMRAI::solv::RobinBcCoefStrategy
-     * objects allow for the specification of initial and boundary data for the
-     * advected quantity Q.  If an initialization object is not specified, Q is
-     * initialized to zero.  If a boundary condition object is not specified for
-     * Q, it is necessary that the computational domain have only periodic
-     * boundaries, i.e., the domain has no "physical" boundaries.
-     *
-     * When the advected quantity Q is an incompressible velocity field, an
-     * optional face-centered gradient may be specified that approximately
-     * enforces the incompressibility constraint.  The gradient is subtracted
-     * from the predicted face-centered and time-centered values prior to the
-     * computation of the advective fluxes.
-     *
-     * \note The advection velocity must be registered with the patch strategy
-     * prior to the registration of advected quantities.
-     */
-    void
-    registerAdvectedQuantity(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init=NULL,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
-
-    /*!
-     * \brief Register a vector-valued cell-centered quantity to be advected by
-     * the GodunovAdvector according to the specified advection velocity.
-     *
-     * Conservative differencing is employed in updating the value of the
-     * quantity when \p conservation_form is true.  Otherwise, non-conservative
-     * differencing is used to update the quantity.
-     *
-     * Optional concrete IBTK::CartGridFunction and SAMRAI::solv::RobinBcCoefStrategy
-     * objects allow for the specification of initial and boundary data for the
-     * advected quantity Q.  If an initialization object is not specified, Q is
-     * initialized to zero.  If a boundary condition object is not specified for
-     * Q, it is necessary that the computational domain have only periodic
-     * boundaries, i.e., the domain has no "physical" boundaries.
-     *
-     * When the advected quantity Q is an incompressible velocity field, an
-     * optional face-centered gradient may be specified that approximately
-     * enforces the incompressibility constraint.  The gradient is subtracted
-     * from the predicted face-centered and time-centered values prior to the
-     * computation of the advective fluxes.
-     *
-     * \note The advection velocity must be registered with the patch strategy
-     * prior to the registration of advected quantities.
-     */
-    void
-    registerAdvectedQuantity(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init=NULL,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
-
-    /*!
-     * \brief Register a scalar-valued cell-centered quantity to be advected by
-     * the GodunovAdvector according to the specified advection velocity and
-     * source term.
-     *
-     * Conservative differencing is employed in updating the value of the
-     * quantity when \p conservation_form is true.  Otherwise, non-conservative
-     * differencing is used to update the quantity.
-     *
-     * Optional concrete IBTK::CartGridFunction and SAMRAI::solv::RobinBcCoefStrategy
-     * objects allow for the specification of initial and boundary data for the
-     * advected quantity Q.  If an initialization object is not specified, Q is
-     * initialized to zero.  If a boundary condition object is not specified for
-     * Q, it is necessary that the computational domain have only periodic
-     * boundaries, i.e., that the domain has no "physical" boundaries.
-     *
-     * The value of the source term is determined by an (optional)
-     * IBTK::CartGridFunction object.  This allows for the specification of either a
-     * constant or a time-dependent source term.  If this object is not
-     * provided, the source term is initialized to zero.
-     *
-     * When the advected quantity Q is an incompressible velocity field, an
-     * optional face-centered gradient may be specified that approximately
-     * enforces the incompressibility constraint.  The gradient is subtracted
-     * from the predicted face-centered and time-centered values prior to the
-     * computation of the advective fluxes.
-     *
-     * \note The advection velocity must be registered with the patch strategy
-     * prior to the registration of advected quantities.
-     */
-    void
-    registerAdvectedQuantityWithSourceTerm(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
-        const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init=NULL,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const Q_bc_coef=NULL,
-        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn=NULL,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
-
-    /*!
-     * \brief Register a vector-valued cell-centered quantity to be advected by
-     * the GodunovAdvector according to the specified advection velocity and
-     * source term.
-     *
-     * Conservative differencing is employed in updating the value of the
-     * quantity when \p conservation_form is true.  Otherwise, non-conservative
-     * differencing is used to update the quantity.
-     *
-     * Optional concrete IBTK::CartGridFunction and SAMRAI::solv::RobinBcCoefStrategy
-     * objects allow for the specification of initial and boundary data for the
-     * advected quantity Q.  If an initialization object is not specified, Q is
-     * initialized to zero.  If a boundary condition object is not specified for
-     * Q, it is necessary that the computational domain have only periodic
-     * boundaries, i.e., that the domain has no "physical" boundaries.
-     *
-     * The value of the source term is determined by an (optional)
-     * IBTK::CartGridFunction object.  This allows for the specification of either a
-     * constant or a time-dependent source term.  If this object is not
-     * provided, the source term is initialized to zero.
-     *
-     * When the advected quantity Q is an incompressible velocity field, an
-     * optional face-centered gradient may be specified that approximately
-     * enforces the incompressibility constraint.  The gradient is subtracted
-     * from the predicted face-centered and time-centered values prior to the
-     * computation of the advective fluxes.
-     *
-     * \note The advection velocity must be registered with the patch strategy
-     * prior to the registration of advected quantities.
-     */
-    void
-    registerAdvectedQuantityWithSourceTerm(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
-        const bool conservation_form=true,
-        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init=NULL,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs=std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
-        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn=NULL,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_var=NULL);
-
-    /*!
-     * \brief Register a face-centered advection velocity, used by the
-     * GodunovAdvector to advect the cell-centered quantities registered with
-     * the patch strategy.
-     *
-     * An optional IBTK::CartGridFunction object allows for the specification of a
-     * constant or time-dependent advection velocity.  If this object is not
-     * provided, the advection velocity is initialized to zero.
-     *
-     * The value of \p u_is_div_free determines whether the patch strategy
-     * assumes that the discrete divergence of the advection velocity is zero.
-     *
-     * \note The advection velocity must be registered with the patch strategy
-     * prior to the registration of advected quantities.
-     */
-    void
-    registerAdvectionVelocity(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
-        const bool u_is_div_free,
-        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> u_fcn=NULL);
-
-#if (NDIM>1)
-    /*!
      * Register a VisIt data writer so this class will write plot files that may
      * be postprocessed with the VisIt visualization tool.
      */
     void
     registerVisItDataWriter(
         SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
-#endif
+
+    /*!
+     * Register a face-centered advection velocity to be used to advect
+     * cell-centered quantities by the hierarchy integrator.
+     *
+     * \note By default, data management for the registered advection velocity
+     * will be handled by the hierarchy integrator.
+     *
+     * \note By default, each registered advection velocity is assumed to be
+     * divergence free.
+     */
+    void
+    registerAdvectionVelocity(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
+        const bool manage_data=true);
+
+    /*!
+     * Indicate whether a particular advection velocity is discretely divergence
+     * free.
+     */
+    void
+    setAdvectionVelocityIsDivergenceFree(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
+        const bool is_div_free);
+
+    /*!
+     * Set an IBTK::CartGridFunction object that specifies the value of a
+     * particular advection velocity.
+     */
+    void
+    setAdvectionVelocityFunction(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> u_fcn);
+
+    /*!
+     * Register a cell-centered source term.
+     *
+     * \note By default, data management for the registered source term will be
+     * handled by the hierarchy integrator.
+     */
+    void
+    registerSourceTerm(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
+        const bool manage_data=true);
+
+    /*!
+     * Set an IBTK::CartGridFunction object that specifies the value of a
+     * particular source term.
+     */
+    void
+    setSourceTermFunction(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn);
+
+    /*!
+     * Register a face-centered "incompressibility fix" term.
+     *
+     * This term will be \em subtracted from the predicted face-centered values
+     * generated by the explicit predictor.  Such terms are useful in
+     * cell-centered incompressible flow solvers to account approximately for
+     * the incompressibility of the velocity field.
+     *
+     * \note By default, data management for the registered advection velocity
+     * will be handled by the hierarchy integrator.
+     */
+    void
+    registerIncompressibilityFixTerm(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_Phi_var,
+        const bool manage_data=true);
+
+    /*!
+     * Set an IBTK::CartGridFunction object that specifies the value of a
+     * particular source term.
+     */
+    void
+    setIncompressibilityFixTermFunction(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_Phi_var,
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> grad_Phi_fcn);
+
+    /*!
+     * Register a cell-centered quantity to be advected and diffused by the
+     * hierarchy integrator.
+     *
+     * \note By default, data management for the registered quantity will be
+     * handled by the hierarchy integrator.
+     */
+    void
+    registerTransportedQuantity(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        const bool manage_data=true);
+
+    /*!
+     * Set the face-centered advection velocity to be used with a particular
+     * cell-centered quantity.
+     *
+     * \note The specified advection velocity must have been already registered
+     * with the hierarchy integrator.
+     */
+    void
+    setAdvectionVelocity(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var);
+
+    /*!
+     * Set the cell-centered source term to be used with a particular
+     * cell-centered quantity.
+     *
+     * \note The specified source term must have been already registered with
+     * the hierarchy integrator.
+     */
+    void
+    setSourceTerm(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var);
+
+    /*!
+     * Set the face-centered "incompressibility fix" term to be used with a
+     * particular cell-centered quantity.
+     *
+     * \note The specified "incompressibility fix" term must have been already
+     * registered with the hierarchy integrator.
+     */
+    void
+    setIncompressibilityFixTerm(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_Phi_var);
+
+    /*!
+     * Set the convective differencing form for a quantity that has been
+     * registered with the hierarchy integrator.
+     */
+    void
+    setConvectiveDifferencingType(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        const ConvectiveDifferencingType& difference_form);
+
+    /*!
+     * Set a grid function to provide initial conditions for a quantity that has
+     * been registered with the hierarchy integrator.
+     */
+    void
+    setInitialConditions(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init);
+
+    /*!
+     * Set an object to provide boundary conditions for a scalar-valued quantity
+     * that has been registered with the hierarchy integrator.
+     */
+    void
+    setPhysicalBcCoefs(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* Q_bc_coef);
+
+    /*!
+     * Set objects to provide boundary conditions for a vector-valued quantity
+     * that has been registered with the hierarchy integrator.
+     */
+    void
+    setPhysicalBcCoefs(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coef);
 
     ///
     ///  The following routines:
@@ -461,22 +435,6 @@ public:
         bool regrid_advance);
 
     /*!
-     * \brief Tag cells for refinement using Richardson extrapolation.
-     */
-    virtual void
-    tagRichardsonExtrapolationCells(
-        SAMRAI::hier::Patch<NDIM>& patch,
-        const int error_level_number,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> coarsened_fine,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> advanced_coarse,
-        const double regrid_time,
-        const double deltat,
-        const int error_coarsen_ratio,
-        const bool initial_error,
-        const int tag_index,
-        const bool uses_gradient_detector_too);
-
-    /*!
      * \brief Tag cells for refinement using a gradient detector.
      */
     virtual void
@@ -488,14 +446,11 @@ public:
         const bool uses_richardson_extrapolation_too);
 
     ///
-    ///  The following routines:
+    ///  The following routine:
     ///
-    ///      setPhysicalBoundaryConditions(),
-    ///      getRefineOpStencilWidth(),
-    ///      preprocessRefine(),
-    ///      postprocessRefine()
+    ///      setPhysicalBoundaryConditions()
     ///
-    ///  are concrete implementations of functions declared in the
+    ///  is a concrete implementations of functions declared in the
     ///  xfer::RefinePatchStrategy abstract base class.
     ///
 
@@ -508,33 +463,6 @@ public:
         SAMRAI::hier::Patch<NDIM>& patch,
         const double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
-
-    /*!
-     * \brief Return maximum stencil width needed over user-defined data
-     * interpolation operations.
-     */
-    virtual SAMRAI::hier::IntVector<NDIM>
-    getRefineOpStencilWidth() const;
-
-    /*!
-     * \brief Preprocess data refine operations.
-     */
-    virtual void
-    preprocessRefine(
-        SAMRAI::hier::Patch<NDIM>& fine,
-        const SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::Box<NDIM>& fine_box,
-        const SAMRAI::hier::IntVector<NDIM>& ratio);
-
-    /*!
-     * \brief Postprocess data refine operations.
-     */
-    virtual void
-    postprocessRefine(
-        SAMRAI::hier::Patch<NDIM>& fine,
-        const SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::Box<NDIM>& fine_box,
-        const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     ///
     ///  The following routines:
@@ -563,7 +491,7 @@ protected:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> >
     getFluxIntegralData(
-        const size_t l,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         SAMRAI::hier::Patch<NDIM>& patch,
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context);
 
@@ -573,7 +501,17 @@ protected:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> >
     getQIntegralData(
-        const size_t l,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        SAMRAI::hier::Patch<NDIM>& patch,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context);
+
+    /*!
+     * \brief Get a pointer to the requested u integral patch data on the
+     * specified patch.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM,double> >
+    getUIntegralData(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         SAMRAI::hier::Patch<NDIM>& patch,
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> context);
 
@@ -589,51 +527,54 @@ protected:
     SAMRAI::tbox::Pointer<GodunovAdvector> d_godunov_advector;
 
     /*
-     * Advected quantities Q, source terms F (possibly NULL) and the optional
-     * face-centered gradient terms used to enforce incompressibility.
+     * Advection velocity data.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_var;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_F_var;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_grad_var;
+    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_u_var;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >,bool> d_manage_u_data, d_u_is_div_free;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >,SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_u_fcn;
+    bool d_compute_init_velocity, d_compute_half_velocity, d_compute_final_velocity;
 
     /*
-     * Indicates whether conservative or non-conservative differencing should be
-     * employed for a given quantity.
+     * Source term data.
      */
-    std::vector<bool> d_Q_in_consv_form;
+    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_F_var;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,bool> d_manage_F_data;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_F_fcn;
+
+    /*
+     * Incompressibility fix data.
+     */
+    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_grad_Phi_var;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >,bool> d_manage_grad_Phi_data;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >,SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_grad_Phi_fcn;
+
+    /*
+     * Transported quantities.
+     */
+    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_var;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,bool> d_manage_Q_data;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_Q_u_map, d_Q_grad_Phi_map;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_F_map;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,ConvectiveDifferencingType> d_Q_difference_form;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_Q_init;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coef;
 
     /*
      * When conservative differencing is employed for a quantity Q, we maintain
      * the time integral of the advective flux corresponding to that quantity.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_flux_integral_var;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_flux_integral_var;
 
     /*
      * When non-conservative differencing is employed for a quantity Q, we
      * maintain the time integral of the predicted value and the advection
      * velocity.
      *
-     * These values must also be maintained when the advection velocity is not
-     * discretely divergence free.
+     * These values must also be maintained in the case in which the advection
+     * velocity is not discretely divergence free.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_q_integral_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_u_integral_var;
-
-    /*
-     * Objects to set initial and boundary conditions as well as forcing terms
-     * for each advected quantity.
-     */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_Q_init;
-    std::vector<std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coef;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_F_fcn;
-
-    /*
-     * The advection velocity.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_u_var;
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_u_fcn;
-    bool d_u_is_div_free, d_u_is_registered;
-    bool d_compute_init_velocity, d_compute_half_velocity, d_compute_final_velocity;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_q_integral_var;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_u_integral_var;
 
 private:
     /*!
@@ -712,7 +653,6 @@ private:
      * Boundary condition extrapolation helpers.
      */
     IBTK::CartExtrapPhysBdryOp d_extrap_bc_helper;
-    SAMRAI::tbox::Pointer<IBTK::CoarseFineBoundaryRefinePatchStrategy> d_coarse_fine_bdry_op;
 
     /*
      *  Parameters for numerical method:
@@ -729,8 +669,7 @@ private:
     std::string d_extrap_type;
 
     /*
-     * Refinement criteria parameters for gradient detection and Richardson
-     * extrapolation.
+     * Refinement criteria parameters for gradient detection.
      */
     SAMRAI::tbox::Array<std::string> d_refinement_criteria;
     SAMRAI::tbox::Array<double> d_dev_tol;
@@ -740,9 +679,6 @@ private:
     SAMRAI::tbox::Array<double> d_grad_tol;
     SAMRAI::tbox::Array<double> d_grad_time_max;
     SAMRAI::tbox::Array<double> d_grad_time_min;
-    SAMRAI::tbox::Array<double> d_rich_tol;
-    SAMRAI::tbox::Array<double> d_rich_time_max;
-    SAMRAI::tbox::Array<double> d_rich_time_min;
 };
 }// namespace IBAMR
 

@@ -52,7 +52,6 @@
 #include <ibtk/RefinePatchStrategySet.h>
 #include <ibtk/SideNoCornersFillPattern.h>
 #include <ibtk/SideSynchCopyFillPattern.h>
-#include <ibtk/SideSynchCopyTransactionFactory.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
@@ -109,14 +108,14 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Pointer<Timer> t_restrict_residual;
-static Pointer<Timer> t_prolong_error;
-static Pointer<Timer> t_prolong_error_and_correct;
-static Pointer<Timer> t_smooth_error;
-static Pointer<Timer> t_solve_coarsest_level;
-static Pointer<Timer> t_compute_residual;
-static Pointer<Timer> t_initialize_operator_state;
-static Pointer<Timer> t_deallocate_operator_state;
+static Timer* t_restrict_residual;
+static Timer* t_prolong_error;
+static Timer* t_prolong_error_and_correct;
+static Timer* t_smooth_error;
+static Timer* t_solve_coarsest_level;
+static Timer* t_compute_residual;
+static Timer* t_initialize_operator_state;
+static Timer* t_deallocate_operator_state;
 
 // Number of ghosts cells used for each variable quantity.
 static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
@@ -1081,7 +1080,7 @@ SCPoissonFACOperator::initializeOperatorState(
 
         d_side_synch_refine_schedules[dst_ln] =
             d_side_synch_refine_algorithm->createSchedule(
-                d_hierarchy->getPatchLevel(dst_ln), NULL, new SideSynchCopyTransactionFactory());
+                d_hierarchy->getPatchLevel(dst_ln));
     }
 
     d_ghostfill_nocoarse_refine_schedules[d_coarsest_ln] =
@@ -1090,7 +1089,7 @@ SCPoissonFACOperator::initializeOperatorState(
 
     d_side_synch_refine_schedules[d_coarsest_ln] =
         d_side_synch_refine_algorithm->createSchedule(
-            d_hierarchy->getPatchLevel(d_coarsest_ln), NULL, new SideSynchCopyTransactionFactory());
+            d_hierarchy->getPatchLevel(d_coarsest_ln));
 
     for (int dst_ln = d_coarsest_ln; dst_ln < d_finest_ln; ++dst_ln)
     {

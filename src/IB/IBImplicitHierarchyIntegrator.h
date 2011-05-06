@@ -53,6 +53,7 @@
 #include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
 #include <ibamr/INSStaggeredProjectionPreconditioner.h>
 #include <ibamr/INSStaggeredStokesOperator.h>
+#include <ibamr/ibamr_enums.h>
 
 // IBTK INCLUDES
 #include <ibtk/CCLaplaceOperator.h>
@@ -390,7 +391,7 @@ public:
      */
     virtual double
     getStableTimestep(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx) const;
 
     /*!
      * Return true if the current step count indicates that regridding should
@@ -679,7 +680,7 @@ public:
      * Return a pointer to the fluid velocity state variable.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >
-    getVelocityVar();
+    getVelocityVar() const;
 
     /*!
      * Return a pointer to the fluid pressure state variable.
@@ -687,7 +688,7 @@ public:
      * \note The pressure state variable is defined at time level n-1/2.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
-    getPressureVar();
+    getPressureVar() const;
 
     /*!
      * Return a pointer to the fluid pressure variable extrapolated forward in
@@ -696,19 +697,19 @@ public:
      * \note The pressure state variable is defined at time level n-1/2.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
-    getExtrapolatedPressureVar();
+    getExtrapolatedPressureVar() const;
 
     /*!
      * Return a pointer to the body force variable.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >
-    getForceVar();
+    getForceVar() const;
 
     /*!
      * Return a pointer to the source strength variable.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
-    getSourceVar();
+    getSourceVar() const;
 
     ///
     ///  The following routines:
@@ -1004,8 +1005,15 @@ private:
     /*
      * The regrid interval indicates the number of integration steps taken
      * between invocations of the regridding process.
+     *
+     * The regrid mode indicates whether to use "standard" regridding (grid
+     * generation involves only one call to
+     * SAMRAI::mesh::GriddingAlgorithm::regridAllFinerLevels()) or "agressive"
+     * regridding (grid generation involes multiple calls to
+     * SAMRAI::mesh::GriddingAlgorithm::regridAllFinerLevels()).
      */
     int d_regrid_interval;
+    RegridMode d_regrid_mode;
 
     /*
      * The tag buffer indicates the number of cells on each level by which
@@ -1017,12 +1025,6 @@ private:
      */
     bool d_using_default_tag_buffer;
     SAMRAI::tbox::Array<int> d_tag_buffer;
-
-    /*
-     * This boolean value determines whether the advection term is computed
-     * using conservative or non-conservative differencing.
-     */
-    bool d_conservation_form;
 
     /*
      * Tag cells based on the relative and absolute magnitudes of the local
@@ -1037,6 +1039,18 @@ private:
      * zero mean (i.e., discrete integral) at the end of each timestep.
      */
     bool d_normalize_pressure;
+
+    /*
+     * This enum determines the differencing form of the convective operator.
+     */
+    ConvectiveDifferencingType d_convective_difference_form;
+
+    /*
+     * This boolean value determines whether the convective acceleration term is
+     * included in the momentum equation.  (If it is not, this solver
+     * effectively solves the so-called creeping Stokes equations.)
+     */
+    bool d_creeping_flow;
 
     /*
      * Integrator data that evolves during time integration and maintains the

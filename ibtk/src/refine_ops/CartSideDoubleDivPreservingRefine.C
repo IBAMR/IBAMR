@@ -49,8 +49,6 @@
 
 // SAMRAI INCLUDES
 #include <CartesianPatchGeometry.h>
-#include <CartesianSideDoubleConservativeLinearRefine.h>
-#include <CartesianSideDoubleWeightedAverage.h>
 #include <SideData.h>
 #include <SideVariable.h>
 #include <tbox/MathUtilities.h>
@@ -110,8 +108,8 @@ CartSideDoubleDivPreservingRefine::CartSideDoubleDivPreservingRefine(
       d_indicator_idx(indicator_idx),
       d_fill_time(fill_time),
       d_phys_bdry_op(phys_bdry_op),
-      d_conservative_linear_refine_op(new CartesianSideDoubleConservativeLinearRefine<NDIM>()),
-      d_conservative_coarsen_op(new CartesianSideDoubleWeightedAverage<NDIM>())
+      d_conservative_linear_refine_op(),
+      d_conservative_coarsen_op()
 {
     // intentionally blank
     return;
@@ -199,7 +197,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
     if (ratio == IntVector<NDIM>(2))
     {
         // Perform (limited) conservative prolongation of the coarse grid data.
-        d_conservative_linear_refine_op->refine(fine, coarse, d_u_dst_idx, d_u_dst_idx, fine_box, ratio);
+        d_conservative_linear_refine_op.refine(fine, coarse, d_u_dst_idx, d_u_dst_idx, fine_box, ratio);
 
         // Reset the values of any fine grid values for which the indicator data
         // is set to "1".
@@ -310,8 +308,8 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
             TBOX_ASSERT(    u_src_fdata->getGhostBox().contains(Box<NDIM>::refine(intermediate_box,ratio/2)));
             TBOX_ASSERT(indicator_fdata->getGhostBox().contains(Box<NDIM>::refine(intermediate_box,ratio/2)));
 #endif
-            d_conservative_coarsen_op->coarsen(intermediate, fine,     d_u_src_idx,     d_u_src_idx, intermediate_box, ratio/2);
-            d_conservative_coarsen_op->coarsen(intermediate, fine, d_indicator_idx, d_indicator_idx, intermediate_box, ratio/2);
+            d_conservative_coarsen_op.coarsen(intermediate, fine,     d_u_src_idx,     d_u_src_idx, intermediate_box, ratio/2);
+            d_conservative_coarsen_op.coarsen(intermediate, fine, d_indicator_idx, d_indicator_idx, intermediate_box, ratio/2);
         }
 
         // Recursively refine from the coarse patch to the fine patch.

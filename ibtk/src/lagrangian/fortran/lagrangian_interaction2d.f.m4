@@ -42,6 +42,128 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Interpolate u onto V at the positions specified by X using the
+c     piecewise constant delta function.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine lagrangian_piecewise_constant_interp2d(
+     &     dx,x_lower,x_upper,depth,
+     &     ifirst0,ilast0,ifirst1,ilast1,
+     &     nugc0,nugc1,
+     &     u,
+     &     indices,Xshift,nindices,
+     &     X,V)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER depth
+      INTEGER ifirst0,ilast0,ifirst1,ilast1
+      INTEGER nugc0,nugc1
+      INTEGER nindices
+
+      INTEGER indices(0:nindices-1)
+
+      REAL Xshift(0:NDIM-1,0:nindices-1)
+
+      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL u(CELL2dVECG(ifirst,ilast,nugc),0:depth-1)
+      REAL X(0:NDIM-1,0:*)
+c
+c     Input/Output.
+c
+      REAL V(0:depth-1,0:*)
+c
+c     Local variables.
+c
+      INTEGER ic0,ic1
+      INTEGER d,l,s
+c
+c     Use the piecewise constant delta function to interpolate u onto V.
+c
+      do l = 0,nindices-1
+         s = indices(l)
+c
+c     Determine the Cartesian cell in which X(s) is located.
+c
+         ic0 = NINT((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)-0.5d0)+ifirst0
+         ic1 = NINT((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)-0.5d0)+ifirst1
+c
+c     Interpolate u onto V.
+c
+         do d = 0,depth-1
+            V(d,s) = u(ic0,ic1,d)
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Spread V onto u at the positions specified by X using the
+c     piecewise constant delta function.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine lagrangian_piecewise_constant_spread2d(
+     &     dx,x_lower,x_upper,depth,
+     &     indices,Xshift,nindices,
+     &     X,V,
+     &     ifirst0,ilast0,ifirst1,ilast1,
+     &     nugc0,nugc1,
+     &     u)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER depth
+      INTEGER nindices
+      INTEGER ifirst0,ilast0,ifirst1,ilast1
+      INTEGER nugc0,nugc1
+
+      INTEGER indices(0:nindices-1)
+
+      REAL Xshift(0:NDIM-1,0:nindices-1)
+
+      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL u(CELL2dVECG(ifirst,ilast,nugc),0:depth-1)
+      REAL X(0:NDIM-1,0:*)
+c
+c     Input/Output.
+c
+      REAL V(0:depth-1,0:*)
+c
+c     Local variables.
+c
+      INTEGER ic0,ic1
+      INTEGER d,l,s
+c
+c     Use the piecewise constant delta function to spread V onto u.
+c
+      do l = 0,nindices-1
+         s = indices(l)
+c
+c     Determine the Cartesian cell in which X(s) is located.
+c
+         ic0 = NINT((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)-0.5d0)+ifirst0
+         ic1 = NINT((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)-0.5d0)+ifirst1
+c
+c     Spread V onto u.
+c
+         do d = 0,depth-1
+            u(ic0,ic1,d) = u(ic0,ic1,d) + V(d,s)/(dx(0)*dx(1))
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Interpolate u onto V at the positions specified by X using the
 c     piecewise linear delta function.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

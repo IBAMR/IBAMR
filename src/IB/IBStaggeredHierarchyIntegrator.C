@@ -51,6 +51,7 @@
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
+#include <ibtk/CartSideDoubleSpecializedLinearRefine.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/LNodeIndexData.h>
@@ -133,18 +134,18 @@ interpolate_directors(
 }// interpolate_directors
 
 // Timers.
-static Pointer<Timer> t_initialize_hierarchy_integrator;
-static Pointer<Timer> t_initialize_hierarchy;
-static Pointer<Timer> t_advance_hierarchy;
-static Pointer<Timer> t_regrid_hierarchy;
-static Pointer<Timer> t_synchronize_hierarchy;
-static Pointer<Timer> t_synchronize_new_levels;
-static Pointer<Timer> t_reset_time_dependent_data;
-static Pointer<Timer> t_reset_data_to_preadvance_state;
-static Pointer<Timer> t_initialize_level_data;
-static Pointer<Timer> t_reset_hierarchy_configuration;
-static Pointer<Timer> t_apply_gradient_detector;
-static Pointer<Timer> t_put_to_database;
+static Timer* t_initialize_hierarchy_integrator;
+static Timer* t_initialize_hierarchy;
+static Timer* t_advance_hierarchy;
+static Timer* t_regrid_hierarchy;
+static Timer* t_synchronize_hierarchy;
+static Timer* t_synchronize_new_levels;
+static Timer* t_reset_time_dependent_data;
+static Timer* t_reset_data_to_preadvance_state;
+static Timer* t_initialize_level_data;
+static Timer* t_reset_hierarchy_configuration;
+static Timer* t_apply_gradient_detector;
+static Timer* t_put_to_database;
 
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
@@ -241,6 +242,9 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
       d_ralgs(),
       d_rstrategies(),
       d_rscheds(),
+      d_palgs(),
+      d_pstrategies(),
+      d_pscheds(),
       d_calgs(),
       d_cstrategies(),
       d_cscheds(),
@@ -504,7 +508,7 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     d_V_idx = var_db->registerVariableAndContext(d_V_var, d_scratch, ghosts);
 
     d_F_var = new SideVariable<NDIM,double>(d_object_name+"::F");
-    d_F_idx = var_db->registerVariableAndContext(d_F_var, d_scratch, no_ghosts);
+    d_F_idx = var_db->registerVariableAndContext(d_F_var, d_scratch, SIDEG);
 
     if (d_using_orthonormal_directors)
     {
@@ -548,6 +552,11 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     // Create several communications algorithms, used in filling ghost cell data
     // and synchronizing data on the patch hierarchy.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+
+    IBAMR_DO_ONCE(
+        grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
+                  );
+
     Pointer<RefineOperator<NDIM> > refine_operator;
     Pointer<CoarsenOperator<NDIM> > coarsen_operator;
 
@@ -557,18 +566,25 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     const int P_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVar(), d_ins_hier_integrator->getNewContext());
     const int P_scratch_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVar(), d_ins_hier_integrator->getScratchContext());
 
-    d_ralgs["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"] = new RefineAlgorithm<NDIM>();
-    refine_operator = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getVelocityVar(), "CONSERVATIVE_LINEAR_REFINE");
-    d_ralgs["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"]->registerRefine(d_V_idx, U_current_idx, d_V_idx, refine_operator);
-    d_rstrategies["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"] = new CartExtrapPhysBdryOp(d_V_idx, "LINEAR");
+    d_ralgs["U->V::C->S::GHOST_FILL"] = new RefineAlgorithm<NDIM>();
+    refine_operator = NULL;
+    d_ralgs["U->V::C->S::GHOST_FILL"]->registerRefine(d_V_idx, U_current_idx, d_V_idx, refine_operator);
 
-    d_ralgs["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"] = new RefineAlgorithm<NDIM>();
-    refine_operator = grid_geom->lookupRefineOperator(d_V_var, "CONSERVATIVE_LINEAR_REFINE");
-    d_ralgs["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"]->registerRefine(d_V_idx, d_V_idx, d_V_idx, refine_operator);
+    d_ralgs["V->V::S->S::GHOST_FILL"] = new RefineAlgorithm<NDIM>();
+    refine_operator = NULL;
+    d_ralgs["V->V::S->S::GHOST_FILL"]->registerRefine(d_V_idx, d_V_idx, d_V_idx, refine_operator);
 
     d_calgs["U->U::C->C::CONSERVATIVE_COARSEN"] = new CoarsenAlgorithm<NDIM>();
     coarsen_operator = grid_geom->lookupCoarsenOperator(d_V_var, "CONSERVATIVE_COARSEN");
     d_calgs["U->U::C->C::CONSERVATIVE_COARSEN"]->registerCoarsen(U_current_idx, U_current_idx, coarsen_operator);
+
+    d_calgs["V->V::S->S::CONSERVATIVE_COARSEN"] = new CoarsenAlgorithm<NDIM>();
+    coarsen_operator = grid_geom->lookupCoarsenOperator(d_V_var, "CONSERVATIVE_COARSEN");
+    d_calgs["V->V::S->S::CONSERVATIVE_COARSEN"]->registerCoarsen(d_V_idx, d_V_idx, coarsen_operator);
+
+    d_palgs["F->F::S->S::PROLONGATION"] = new RefineAlgorithm<NDIM>();
+    refine_operator = grid_geom->lookupRefineOperator(d_F_var, "SPECIALIZED_LINEAR_REFINE");
+    d_palgs["F->F::S->S::PROLONGATION"]->registerRefine(d_F_idx, d_F_idx, d_F_idx, refine_operator);
 
     d_ralgs["INSTRUMENTATION_DATA_FILL"] = new RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getVelocityVar(), "CONSERVATIVE_LINEAR_REFINE");
@@ -586,9 +602,17 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         refine_operator = grid_geom->lookupRefineOperator(d_N_var, "CONSERVATIVE_LINEAR_REFINE");
         d_ralgs["N->N::S->S::CONSERVATIVE_LINEAR_REFINE"]->registerRefine(d_N_idx, d_N_idx, d_N_idx, refine_operator);
 
-        d_ralgs["W->W::S->S::CONSERVATIVE_LINEAR_REFINE"] = new RefineAlgorithm<NDIM>();
-        refine_operator = grid_geom->lookupRefineOperator(d_W_var, "CONSERVATIVE_LINEAR_REFINE");
-        d_ralgs["W->W::S->S::CONSERVATIVE_LINEAR_REFINE"]->registerRefine(d_W_idx, d_W_idx, d_W_idx, refine_operator);
+        d_palgs["N->N::S->S::PROLONGATION"] = new RefineAlgorithm<NDIM>();
+        refine_operator = grid_geom->lookupRefineOperator(d_N_var, "SPECIALIZED_LINEAR_REFINE");
+        d_palgs["N->N::S->S::PROLONGATION"]->registerRefine(d_N_idx, d_N_idx, d_N_idx, refine_operator);
+
+        d_ralgs["W->W::S->S::GHOST_FILL"] = new RefineAlgorithm<NDIM>();
+        refine_operator = NULL;
+        d_ralgs["W->W::S->S::GHOST_FILL"]->registerRefine(d_W_idx, d_W_idx, d_W_idx, refine_operator);
+
+        d_calgs["W->W::S->S::CONSERVATIVE_COARSEN"] = new CoarsenAlgorithm<NDIM>();
+        coarsen_operator = grid_geom->lookupCoarsenOperator(d_W_var, "CONSERVATIVE_COARSEN");
+        d_calgs["W->W::S->S::CONSERVATIVE_COARSEN"]->registerCoarsen(d_W_idx, d_W_idx, coarsen_operator);
     }
 
     // Set the current integration time.
@@ -704,6 +728,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     }
     if (d_source_strategy_needs_init && !d_source_strategy.isNull())
     {
+        // XXXX: This should not be done here?
         resetLagrangianSourceStrategy(current_time, initial_time);
         d_source_strategy_needs_init = false;
     }
@@ -799,7 +824,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        d_rscheds["U->V::C->S::CONSERVATIVE_LINEAR_REFINE"][ln]->fillData(current_time);
+        d_rscheds["U->V::C->S::GHOST_FILL"][ln]->fillData(current_time);
     }
     d_lag_data_manager->interp(d_V_idx, U_data, X_data);
     resetAnchorPointValues(U_data, coarsest_ln, finest_ln);
@@ -1032,7 +1057,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         {
             d_hier_sc_data_ops->setToScalar(d_N_idx, 0.0, false);
             resetAnchorPointValues(N_half_data, coarsest_ln, finest_ln);
-            d_lag_data_manager->spread(d_N_idx, N_half_data, X_half_data, true, true);
+            d_lag_data_manager->spread(d_N_idx, N_half_data, X_half_data, d_pscheds["N->N::S->S::PROLONGATION"], true, true);
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1042,7 +1067,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
             d_hier_sc_data_ops->scale(d_F_idx, 0.5, d_F_idx);
         }
         resetAnchorPointValues(F_half_data, coarsest_ln, finest_ln);
-        d_lag_data_manager->spread(d_F_idx, F_half_data, X_half_data, true, true);
+        d_lag_data_manager->spread(d_F_idx, F_half_data, X_half_data, d_pscheds["F->F::S->S::PROLONGATION"], true, true);
 
         // Compute the source/sink strengths corresponding to any distributed
         // internal fluid sources or sinks.
@@ -1052,13 +1077,13 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         }
 
         // Solve the incompressible Navier-Stokes equations.
-        d_ins_hier_integrator->integrateHierarchy(current_time, new_time);
+        d_ins_hier_integrator->integrateHierarchy(current_time, new_time, cycle);
 
         // Set u(n+1/2) = 0.5*(u(n) + u(n+1)).
         d_hier_sc_data_ops->linearSum(d_V_idx, 0.5, U_current_idx, 0.5, U_new_idx);
 
         // Interpolate u(n+1/2) to U(n+1/2).
-        d_lag_data_manager->interp(d_V_idx, U_half_data, X_half_data, d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"], current_time);
+        d_lag_data_manager->interp(d_V_idx, U_half_data, X_half_data, d_cscheds["V->V::S->S::CONSERVATIVE_COARSEN"], d_rscheds["V->V::S->S::GHOST_FILL"], current_time);
         resetAnchorPointValues(U_half_data, coarsest_ln, finest_ln);
 
         // Set X(n+1) = X(n) + dt*U(n+1/2).
@@ -1097,7 +1122,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
             hier_math_ops->curl(d_W_idx, d_W_var, d_V_idx, d_V_var, NULL, current_time);
 
             // Interpolate w(n+1/2) to W(n+1/2).
-            d_lag_data_manager->interp(d_W_idx, W_half_data, X_half_data, d_rscheds["W->W::S->S::CONSERVATIVE_LINEAR_REFINE"], current_time);
+            d_lag_data_manager->interp(d_W_idx, W_half_data, X_half_data, d_cscheds["W->W::S->S::CONSERVATIVE_COARSEN"], d_rscheds["W->W::S->S::GHOST_FILL"], current_time);
             resetAnchorPointValues(W_half_data, coarsest_ln, finest_ln);
 
             // Compute D(n+1) from D(n) and W(n+1/2), and compute D(n+1/2) from
@@ -1345,7 +1370,7 @@ IBStaggeredHierarchyIntegrator::postProcessData()
 
     // Interpolate u(n) from the Cartesian grid onto the Lagrangian mesh.
     d_hier_sc_data_ops->copyData(d_V_idx, U_current_idx);
-    d_lag_data_manager->interp(d_V_idx, U_data, X_data, d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"], d_integrator_time);
+    d_lag_data_manager->interp(d_V_idx, U_data, X_data, d_cscheds["V->V::S->S::CONSERVATIVE_COARSEN"], d_rscheds["V->V::S->S::GHOST_FILL"], d_integrator_time);
     resetAnchorPointValues(U_data, coarsest_ln, finest_ln);
 
     // Compute F(n) = F(X(n),U(n),n), the Lagrangian force corresponding to
@@ -1468,17 +1493,21 @@ IBStaggeredHierarchyIntegrator::regridHierarchy()
 {
     t_regrid_hierarchy->start();
 
+    // Determine the current range of hierarchy levels.
+    const int coarsest_ln_before_regrid = 0;
+    const int finest_ln_before_regrid = d_hierarchy->getFinestLevelNumber();
+
     // Update the marker data.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): resetting markers particles.\n";
     LagMarkerUtilities::collectMarkersOnPatchHierarchy(d_mark_current_idx, d_hierarchy);
 
     // Update the workload pre-regridding.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
-    d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
+    d_lag_data_manager->updateWorkloadData(coarsest_ln_before_regrid,finest_ln_before_regrid);
 
     // Before regridding, begin Lagrangian data movement.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement.\n";
-    d_lag_data_manager->beginDataRedistribution();
+    d_lag_data_manager->beginDataRedistribution(coarsest_ln_before_regrid,finest_ln_before_regrid);
 
     // We use the INSStaggeredHierarchyIntegrator to handle as much structured
     // data management as possible.
@@ -1487,7 +1516,7 @@ IBStaggeredHierarchyIntegrator::regridHierarchy()
 
     // After regridding, finish Lagrangian data movement.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement.\n";
-    d_lag_data_manager->endDataRedistribution();
+    d_lag_data_manager->endDataRedistribution(coarsest_ln_before_regrid,finest_ln_before_regrid);
 
     // Update the workload post-regridding.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
@@ -1759,6 +1788,7 @@ IBStaggeredHierarchyIntegrator::initializeLevelData(
     LagMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, d_mark_init_posns, hierarchy, level_number, initial_time, old_level);
 
     // Determine the initial source/sink locations.
+    if (!d_source_strategy.isNull()) d_source_strategy->initializeLevelData(hierarchy, level_number, init_data_time, initial_time, d_lag_data_manager);
     if (initial_time)
     {
         d_X_src.resize(std::max(int(d_X_src.size()),level_number+1));
@@ -1834,6 +1864,11 @@ IBStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
         d_rscheds[(*it).first].resize(finest_hier_level+1);
     }
 
+    for (RefineAlgMap::const_iterator it = d_palgs.begin(); it != d_palgs.end(); ++it)
+    {
+        d_pscheds[(*it).first].resize(finest_hier_level+1);
+    }
+
     for (CoarsenAlgMap::const_iterator it = d_calgs.begin(); it != d_calgs.end(); ++it)
     {
         d_cscheds[(*it).first].resize(finest_hier_level+1);
@@ -1847,6 +1882,17 @@ IBStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
             d_rscheds[(*it).first][ln] = (*it).second->createSchedule(level, ln-1, hierarchy, d_rstrategies[(*it).first]);
+        }
+    }
+
+    // (Re)build generic prolongation communication schedules.  These are set only for levels
+    // >= 1.
+    for (RefineAlgMap::const_iterator it = d_palgs.begin(); it != d_palgs.end(); ++it)
+    {
+        for (int ln = std::max(coarsest_level,1); ln <= finest_hier_level; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+            d_pscheds[(*it).first][ln] = (*it).second->createSchedule(level, Pointer<PatchLevel<NDIM> >(), ln-1, d_hierarchy, d_pstrategies[(*it).first]);
         }
     }
 
@@ -2443,48 +2489,51 @@ IBStaggeredHierarchyIntegrator::computeSourcePressures(
     const int wgt_idx = d_ins_hier_integrator->getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
 
     // Compute the normalization pressure.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
-    const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
-
-    Box<NDIM> interior_box = domain_box;
-    for (int d = 0; d < NDIM-1; ++d)
-    {
-        interior_box.grow(d,-1);
-    }
-
-    BoxList<NDIM> bdry_boxes;
-    bdry_boxes.removeIntersections(domain_box,interior_box);
-
     double p_norm = 0.0;
-    double vol = 0.0;
-    for (int ln = coarsest_level; ln <= finest_level; ++ln)
+    if (true)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        BoxList<NDIM> level_bdry_boxes(bdry_boxes);
-        level_bdry_boxes.refine(level->getRatio());
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+        TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
+        const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
+
+        Box<NDIM> interior_box = domain_box;
+        for (int d = 0; d < NDIM-1; ++d)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CellData<NDIM,double> > p_data = patch->getPatchData(P_new_idx);
-            const Pointer<CellData<NDIM,double> > wgt_data = patch->getPatchData(wgt_idx);
-            for (BoxList<NDIM>::Iterator blist(level_bdry_boxes); blist; blist++)
+            interior_box.grow(d,-1);
+        }
+
+        BoxList<NDIM> bdry_boxes;
+        bdry_boxes.removeIntersections(domain_box,interior_box);
+
+        double vol = 0.0;
+        for (int ln = coarsest_level; ln <= finest_level; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            BoxList<NDIM> level_bdry_boxes(bdry_boxes);
+            level_bdry_boxes.refine(level->getRatio());
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                for (Box<NDIM>::Iterator b(blist()*patch_box); b; b++)
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Box<NDIM>& patch_box = patch->getBox();
+                const Pointer<CellData<NDIM,double> > p_data = patch->getPatchData(P_new_idx);
+                const Pointer<CellData<NDIM,double> > wgt_data = patch->getPatchData(wgt_idx);
+                for (BoxList<NDIM>::Iterator blist(level_bdry_boxes); blist; blist++)
                 {
-                    const Index<NDIM>& i = b();
-                    p_norm += (*p_data)(i)*(*wgt_data)(i);
-                    vol += (*wgt_data)(i);
+                    for (Box<NDIM>::Iterator b(blist()*patch_box); b; b++)
+                    {
+                        const Index<NDIM>& i = b();
+                        p_norm += (*p_data)(i)*(*wgt_data)(i);
+                        vol += (*wgt_data)(i);
+                    }
                 }
             }
         }
+
+        SAMRAI_MPI::sumReduction(&p_norm,1);
+        SAMRAI_MPI::sumReduction(&vol,1);
+
+        p_norm /= vol;
     }
-
-    SAMRAI_MPI::sumReduction(&p_norm,1);
-    SAMRAI_MPI::sumReduction(&vol,1);
-
-    p_norm /= vol;
 
     // Reset the values of P_src.
     for (int ln = coarsest_level; ln <= finest_level; ++ln)

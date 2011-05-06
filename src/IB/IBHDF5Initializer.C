@@ -220,7 +220,7 @@ IBHDF5Initializer::getLevelHasLagrangianData(
 }// getLevelHasLagrangianData
 
 int
-IBHDF5Initializer::getLocalNodeCountOnPatchLevel(
+IBHDF5Initializer::computeLocalNodeCountOnPatchLevel(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
@@ -229,13 +229,13 @@ IBHDF5Initializer::getLocalNodeCountOnPatchLevel(
 {
     if (!can_be_refined && level_number != d_max_levels-1)
     {
-        TBOX_WARNING(d_object_name << "::getLocalNodeCountOnPatchLevel():\n  Input database key `max_levels' = " << d_max_levels << " but finest level in the hierarchy is " << level_number << "\n"
+        TBOX_WARNING(d_object_name << "::computeLocalNodeCountOnPatchLevel():\n  Input database key `max_levels' = " << d_max_levels << " but finest level in the hierarchy is " << level_number << "\n"
                      << "  some Lagrangian data may not be properly initialized.\n");
     }
 
     buildLevelDataCache(hierarchy, level_number, init_data_time, can_be_refined, initial_time);
     return std::accumulate(d_level_num_local_vertex.begin(),d_level_num_local_vertex.end(),0);
-}// getLocalNodeCountOnPatchLevel
+}// computeLocalNodeCountOnPatchLevel
 
 int
 IBHDF5Initializer::initializeDataOnPatchLevel(

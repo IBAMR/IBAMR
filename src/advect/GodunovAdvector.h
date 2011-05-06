@@ -90,18 +90,6 @@ class GodunovAdvector
 {
 public:
     /*!
-     * Enumerated type for the different supported fluxes/limiters available.
-     */
-    enum FLUX_TYPE
-    {
-        CTU_ONLY = -1,
-        SECOND_ORDER = 0,
-        FOURTH_ORDER = 1,
-        MC_LIMITED = 2,
-        MUSCL_LIMITED = 3
-    };
-
-    /*!
      * The constructor for GodunovAdvector sets default parameters for the
      * advection predictor.  The constructor also registers this object for
      * restart with the restart manager using the object name.

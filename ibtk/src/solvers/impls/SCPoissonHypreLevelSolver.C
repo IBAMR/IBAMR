@@ -71,10 +71,10 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Pointer<Timer> t_solve_system;
-static Pointer<Timer> t_solve_system_hypre;
-static Pointer<Timer> t_initialize_solver_state;
-static Pointer<Timer> t_deallocate_solver_state;
+static Timer* t_solve_system;
+static Timer* t_solve_system_hypre;
+static Timer* t_initialize_solver_state;
+static Timer* t_deallocate_solver_state;
 
 // hypre solver options.
 static const int RELAX_TYPE_JACOBI                       = 0;

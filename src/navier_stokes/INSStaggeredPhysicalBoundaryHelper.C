@@ -237,10 +237,13 @@ INSStaggeredPhysicalBoundaryHelper::cacheBcCoefData(
                 const int bdry_normal_axis = location_index / 2;
 
                 const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-                Pointer<ArrayData<NDIM,double> > acoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
-                Pointer<ArrayData<NDIM,double> > bcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
-                Pointer<ArrayData<NDIM,double> > gcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
-                u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, u_var, *patch, trimmed_bdry_box, fill_time);
+                ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
+                ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
+                ArrayData<NDIM,double> gcoef_data(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM,double> > acoef_data_ptr(&acoef_data, false);
+                Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data, false);
+                Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(&gcoef_data, false);
+                u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, u_var, *patch, trimmed_bdry_box, fill_time);
 
                 dirichlet_bdry_locs[n] = new ArrayData<NDIM,bool>(bc_coef_box, 1);
                 ArrayData<NDIM,bool>& bdry_locs_data = *dirichlet_bdry_locs[n];
@@ -249,9 +252,9 @@ INSStaggeredPhysicalBoundaryHelper::cacheBcCoefData(
                 for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
                 {
                     const Index<NDIM>& i = it();
-                    const double& alpha = (*acoef_data)(i,0);
-                    const double& beta  = (*bcoef_data)(i,0);
-                    const double& gamma = (*gcoef_data)(i,0);
+                    const double& alpha = acoef_data(i,0);
+                    const double& beta  = bcoef_data(i,0);
+                    const double& gamma = gcoef_data(i,0);
 #ifdef DEBUG_CHECK_ASSERTIONS
                     TBOX_ASSERT(MathUtilities<double>::equalEps(alpha+beta,1.0));
                     TBOX_ASSERT(MathUtilities<double>::equalEps(alpha,1.0) || MathUtilities<double>::equalEps(beta,1.0));

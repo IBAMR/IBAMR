@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/INSCoefs.h>
+#include <ibamr/ibamr_enums.h>
 
 // IBTK INCLUDES
 #include <ibtk/GeneralOperator.h>
@@ -72,8 +72,7 @@ public:
      * \brief Class constructor.
      */
     INSStaggeredPPMConvectiveOperator(
-        const INSCoefs& problem_coefs,
-        const bool conservation_form);
+        const ConvectiveDifferencingType& difference_form);
 
     /*!
      * \brief Virtual destructor.
@@ -219,11 +218,8 @@ private:
     // Whether the operator is initialized.
     bool d_is_initialized;
 
-    // Problem coefficients.
-    const INSCoefs& d_problem_coefs;
-
-    // Whether to use conservative or non-conservative differencing.
-    const bool d_conservation_form;
+    // Determines which form of differencing to use.
+    const ConvectiveDifferencingType d_difference_form;
 
     // Data communication algorithms, operators, and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_refine_alg;

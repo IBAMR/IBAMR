@@ -48,9 +48,6 @@ namespace IBTK
  * calculate overlaps according to a pattern which limits overlaps to the
  * side-centered ghost region surrounding a patch appropriate for
  * "synchronizing" side-centered values at patch boundaries.
- *
- * \see SideSynchCopyTransaction
- * \see SideSynchCopyTransactionFactory
  */
 class SideSynchCopyFillPattern
     : public virtual SAMRAI::xfer::VariableFillPattern<NDIM>

@@ -29,7 +29,7 @@ $(top_srcdir)/src/third_party/muParser/muParserCallback.cpp \
 $(top_srcdir)/src/third_party/muParser/muParserError.cpp \
 $(top_srcdir)/src/third_party/muParser/muParserTokenReader.cpp \
 $(top_srcdir)/src/utilities/Interpolator.C \
-$(top_srcdir)/src/utilities/ParallelEdgeMap.C
+$(top_builddir)/src/fortran/minmod.f
 
 pkg_include_HEADERS = \
 $(top_srcdir)/src/third_party/muParser/muParser.h \
@@ -45,7 +45,6 @@ $(top_srcdir)/src/third_party/muParser/muParserTokenReader.h \
 $(top_srcdir)/src/utilities/IBTK_CHKERRQ.h \
 $(top_srcdir)/src/utilities/Interpolator.I \
 $(top_srcdir)/src/utilities/Interpolator.h \
-$(top_srcdir)/src/utilities/ParallelEdgeMap.h \
 $(top_srcdir)/src/utilities/compiler_hints.h \
 $(top_srcdir)/src/utilities/efficient_add_or_update.h \
 $(top_srcdir)/src/utilities/namespaces.h
@@ -94,6 +93,7 @@ $(top_srcdir)/src/patch_data/VecCellVariable.C \
 $(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.C \
 $(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.C \
 $(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C \
+$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C \
 $(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C \
 $(top_srcdir)/src/refine_ops/LagMarkerRefine.C \
 $(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C \
@@ -131,20 +131,29 @@ $(top_srcdir)/src/solvers/wrappers/PETScSNESJacobianJOWrapper.C \
 $(top_srcdir)/src/utilities/CartGridFunction.C \
 $(top_srcdir)/src/utilities/CellNoCornersFillPattern.C \
 $(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C \
+$(top_srcdir)/src/utilities/CopyToRootSchedule.C \
+$(top_srcdir)/src/utilities/CopyToRootTransaction.C \
 $(top_srcdir)/src/utilities/DebuggingUtilities.C \
+$(top_srcdir)/src/utilities/EdgeDataSynchronization.C \
+$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.C \
+$(top_srcdir)/src/utilities/FaceDataSynchronization.C \
+$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C \
 $(top_srcdir)/src/utilities/FixedSizedStream.C \
 $(top_srcdir)/src/utilities/IndexUtilities.C \
 $(top_srcdir)/src/utilities/IndexSet.C \
 $(top_srcdir)/src/utilities/LagMarkerUtilities.C \
+$(top_srcdir)/src/utilities/NodeDataSynchronization.C \
+$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C \
 $(top_srcdir)/src/utilities/NormOps.C \
 $(top_srcdir)/src/utilities/PETScMatOps.C \
 $(top_srcdir)/src/utilities/PETScVecOps.C \
+$(top_srcdir)/src/utilities/ParallelEdgeMap.C \
+$(top_srcdir)/src/utilities/ParallelMap.C \
+$(top_srcdir)/src/utilities/ParallelSet.C \
 $(top_srcdir)/src/utilities/RefinePatchStrategySet.C \
 $(top_srcdir)/src/utilities/SideDataSynchronization.C \
 $(top_srcdir)/src/utilities/SideNoCornersFillPattern.C \
 $(top_srcdir)/src/utilities/SideSynchCopyFillPattern.C \
-$(top_srcdir)/src/utilities/SideSynchCopyTransaction.C \
-$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.C \
 $(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.C \
 $(top_srcdir)/src/utilities/Streamable.C \
 $(top_srcdir)/src/utilities/StreamableFactory.C \
@@ -153,7 +162,8 @@ $(top_srcdir)/src/utilities/muParserCartGridFunction.C
 
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
-$(top_srcdir)/src/lagrangian/FEDataManager.C
+$(top_srcdir)/src/lagrangian/FEDataManager.C \
+$(top_srcdir)/src/utilities/FESystemDataCache.C
 endif
 
 pkg_include_HEADERS += \
@@ -207,6 +217,7 @@ $(top_srcdir)/src/patch_data/VecCellVariable.h \
 $(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.h \
 $(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.h \
 $(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.h \
+$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.h \
 $(top_srcdir)/src/refine_ops/VecCellRefineAdapter.h \
 $(top_srcdir)/src/refine_ops/LagMarkerRefine.h \
 $(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.I \
@@ -260,7 +271,13 @@ $(top_srcdir)/src/utilities/CartGridFunction.h \
 $(top_srcdir)/src/utilities/CellNoCornersFillPattern.h \
 $(top_srcdir)/src/utilities/CoarsenPatchStrategySet.I \
 $(top_srcdir)/src/utilities/CoarsenPatchStrategySet.h \
+$(top_srcdir)/src/utilities/CopyToRootSchedule.h \
+$(top_srcdir)/src/utilities/CopyToRootTransaction.h \
 $(top_srcdir)/src/utilities/DebuggingUtilities.h \
+$(top_srcdir)/src/utilities/EdgeDataSynchronization.h \
+$(top_srcdir)/src/utilities/EdgeSynchCopyFillPattern.h \
+$(top_srcdir)/src/utilities/FaceDataSynchronization.h \
+$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.h \
 $(top_srcdir)/src/utilities/FixedSizedStream.I \
 $(top_srcdir)/src/utilities/FixedSizedStream.h \
 $(top_srcdir)/src/utilities/IndexUtilities.I \
@@ -268,16 +285,19 @@ $(top_srcdir)/src/utilities/IndexUtilities.h \
 $(top_srcdir)/src/utilities/IndexSet.I \
 $(top_srcdir)/src/utilities/IndexSet.h \
 $(top_srcdir)/src/utilities/LagMarkerUtilities.h \
+$(top_srcdir)/src/utilities/NodeDataSynchronization.h \
+$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.h \
 $(top_srcdir)/src/utilities/NormOps.h \
 $(top_srcdir)/src/utilities/PETScMatOps.h \
 $(top_srcdir)/src/utilities/PETScVecOps.h \
+$(top_srcdir)/src/utilities/ParallelEdgeMap.h \
+$(top_srcdir)/src/utilities/ParallelMap.h \
+$(top_srcdir)/src/utilities/ParallelSet.h \
 $(top_srcdir)/src/utilities/RefinePatchStrategySet.I \
 $(top_srcdir)/src/utilities/RefinePatchStrategySet.h \
 $(top_srcdir)/src/utilities/SideDataSynchronization.h \
 $(top_srcdir)/src/utilities/SideNoCornersFillPattern.h \
 $(top_srcdir)/src/utilities/SideSynchCopyFillPattern.h \
-$(top_srcdir)/src/utilities/SideSynchCopyTransaction.h \
-$(top_srcdir)/src/utilities/SideSynchCopyTransactionFactory.h \
 $(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.I \
 $(top_srcdir)/src/utilities/StandardTagAndInitStrategySet.h \
 $(top_srcdir)/src/utilities/Stashable.h \
@@ -292,6 +312,7 @@ $(top_srcdir)/src/utilities/muParserCartGridFunction.h
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
 $(top_srcdir)/src/lagrangian/FEDataManager.h \
+$(top_srcdir)/src/utilities/FESystemDataCache.h \
 $(top_srcdir)/src/utilities/libmesh_utilities.h \
 $(top_srcdir)/src/utilities/ibtk_utilities.h
 endif
@@ -311,6 +332,7 @@ $(top_builddir)/src/math/fortran/interp2d.f \
 $(top_builddir)/src/math/fortran/laplace2d.f \
 $(top_builddir)/src/math/fortran/miscmath2d.f \
 $(top_builddir)/src/math/fortran/vclaplace2d.f \
+$(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f \
 $(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f \
 $(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
 
@@ -328,5 +350,6 @@ $(top_builddir)/src/math/fortran/graddetect3d.f \
 $(top_builddir)/src/math/fortran/interp3d.f \
 $(top_builddir)/src/math/fortran/laplace3d.f \
 $(top_builddir)/src/math/fortran/miscmath3d.f \
+$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f \
 $(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f \
 $(top_builddir)/src/solvers/impls/fortran/patchsmoothers3d.f

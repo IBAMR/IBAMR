@@ -37,7 +37,6 @@
 // IBTK INCLUDES
 #include <ibtk/CartSideDoubleCubicCoarsen.h>
 #include <ibtk/SideSynchCopyFillPattern.h>
-#include <ibtk/SideSynchCopyTransactionFactory.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
@@ -145,13 +144,13 @@ SideDataSynchronization::initializeOperatorState(
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(data_idx, var);
         Pointer<SideVariable<NDIM,double> > sc_var = var;
-        Pointer<RefineOperator<NDIM> > refine_op = NULL;
-        Pointer<VariableFillPattern<NDIM> > fill_pattern = new SideSynchCopyFillPattern();
         if (sc_var.isNull())
         {
             TBOX_ERROR("SideDataSynchronization::initializeOperatorState():\n"
-                       << "  only double-precision side-centered data is presently supported." << std::endl);
+                       << "  only double-precision side-centered data is supported." << std::endl);
         }
+        Pointer<RefineOperator<NDIM> > refine_op = NULL;
+        Pointer<VariableFillPattern<NDIM> > fill_pattern = new SideSynchCopyFillPattern();
         d_refine_alg->registerRefine(data_idx,  // destination
                                      data_idx,  // source
                                      data_idx,  // temporary work space
@@ -159,14 +158,11 @@ SideDataSynchronization::initializeOperatorState(
                                      fill_pattern);
     }
 
-    RefinePatchStrategy<NDIM>* refine_strategy = NULL;
-    Pointer<RefineTransactionFactory<NDIM> > refine_trans_factory =
-        new SideSynchCopyTransactionFactory();
     d_refine_scheds.resize(d_finest_ln+1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        d_refine_scheds[ln] = d_refine_alg->createSchedule(level, refine_strategy, refine_trans_factory);
+        d_refine_scheds[ln] = d_refine_alg->createSchedule(level);
     }
 
     // Indicate the operator is initialized.
@@ -249,13 +245,13 @@ SideDataSynchronization::resetTransactionComponents(
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(data_idx, var);
         Pointer<SideVariable<NDIM,double> > sc_var = var;
-        Pointer<RefineOperator<NDIM> > refine_op = NULL;
-        Pointer<VariableFillPattern<NDIM> > fill_pattern = new SideSynchCopyFillPattern();
         if (sc_var.isNull())
         {
             TBOX_ERROR("SideDataSynchronization::resetTransactionComponents():\n"
-                       << "  only double-precision cell-centered or side-centered data is presently supported." << std::endl);
+                       << "  only double-precision side-centered data is supported." << std::endl);
         }
+        Pointer<RefineOperator<NDIM> > refine_op = NULL;
+        Pointer<VariableFillPattern<NDIM> > fill_pattern = new SideSynchCopyFillPattern();
         d_refine_alg->registerRefine(data_idx,  // destination
                                      data_idx,  // source
                                      data_idx,  // temporary work space

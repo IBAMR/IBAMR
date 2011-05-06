@@ -45,6 +45,7 @@
 #endif
 
 // IBTK INCLUDES
+#include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -66,7 +67,7 @@ ParallelEdgeMap::ParallelEdgeMap()
       d_pending_additions(),
       d_pending_removals()
 {
-    // intentionally blank
+    IBTK_DEPRECATED_CLASS2("ParallelEdgeMap","ParallelMap");
     return;
 }// ParallelEdgeMap
 

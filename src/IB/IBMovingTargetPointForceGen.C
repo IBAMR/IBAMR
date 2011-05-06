@@ -73,10 +73,10 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Pointer<Timer> t_compute_lagrangian_force;
-static Pointer<Timer> t_compute_lagrangian_force_jacobian;
-static Pointer<Timer> t_compute_lagrangian_force_jacobian_nonzero_structure;
-static Pointer<Timer> t_initialize_level_data;
+static Timer* t_compute_lagrangian_force;
+static Timer* t_compute_lagrangian_force_jacobian;
+static Timer* t_compute_lagrangian_force_jacobian_nonzero_structure;
+static Timer* t_initialize_level_data;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

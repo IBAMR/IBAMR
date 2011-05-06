@@ -42,6 +42,7 @@
 #include <ibamr/HierarchyProjector.h>
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
 #include <ibamr/INSProjectionBcCoef.h>
+#include <ibamr/ibamr_enums.h>
 
 // IBTK INCLUDES
 #include <ibtk/CCPoissonFACOperator.h>
@@ -348,7 +349,7 @@ public:
      * computation progresses.
      */
     virtual double
-    getStableTimestep();
+    getStableTimestep() const;
 
     /*!
      * Return true if the current step count indicates that regridding should
@@ -673,7 +674,7 @@ public:
      * Return a pointer to the fluid velocity state variable.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
-    getVelocityVar();
+    getVelocityVar() const;
 
     /*!
      * Return a pointer to the fluid pressure state variable.
@@ -681,7 +682,7 @@ public:
      * \note The pressure state variable is defined at time level n-1/2.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
-    getPressureVar();
+    getPressureVar() const;
 
     /*!
      * Return a pointer to the fluid pressure variable extrapolated forward in
@@ -690,25 +691,25 @@ public:
      * \note The pressure state variable is defined at time level n-1/2.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
-    getExtrapolatedPressureVar();
+    getExtrapolatedPressureVar() const;
 
     /*!
      * Return a pointer to the advection velocity variable.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >
-    getAdvectionVelocityVar();
+    getAdvectionVelocityVar() const;
 
     /*!
      * Return a pointer to the body force variable.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
-    getForceVar();
+    getForceVar() const;
 
     /*!
      * Return a pointer to the source strength variable.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
-    getSourceVar();
+    getSourceVar() const;
 
     ///
     ///  The following routines:
@@ -975,8 +976,15 @@ private:
     /*
      * The regrid interval indicates the number of integration steps taken
      * between invocations of the regridding process.
+     *
+     * The regrid mode indicates whether to use "standard" regridding (grid
+     * generation involves only one call to
+     * SAMRAI::mesh::GriddingAlgorithm::regridAllFinerLevels()) or "agressive"
+     * regridding (grid generation involes multiple calls to
+     * SAMRAI::mesh::GriddingAlgorithm::regridAllFinerLevels()).
      */
     int d_regrid_interval;
+    RegridMode d_regrid_mode;
 
     /*
      * The tag buffer indicates the number of cells on each level by which
@@ -997,10 +1005,9 @@ private:
     bool d_using_synch_projection;
 
     /*
-     * This boolean value determines whether the advection term is computed
-     * using conservative or non-conservative differencing.
+     * This enum determines the differencing form of the convective operator.
      */
-    bool d_conservation_form;
+    ConvectiveDifferencingType d_convective_difference_form;
 
     /*
      * Tag cells based on the relative and absolute magnitudes of the local
@@ -1011,25 +1018,22 @@ private:
     double d_Omega_max;
 
     /*
-     * The types of projections to use for the velocity and pressure.
-     *
-     * Choices are: ``pressure_increment'' and ``pressure_update''.
+     * The types of projection methods to use for the velocity and pressure.
      *
      * NOTE: The velocity and pressure projection types may be different.
      */
-    std::string d_velocity_projection_type, d_pressure_projection_type;
+    ProjectionMethodType d_velocity_projection_type, d_pressure_projection_type;
     bool d_using_hybrid_projection;
 
     /*
      * This boolean value determines whether the pressure update is second-order
      * accurate in time.
      *
-     * The string indicates the type of viscous timestepping scheme that is
-     * being employed; its value is provided by class
-     * AdvDiffHierarchyIntegrator.
+     * The enum indicates the type of viscous timestepping scheme that is being
+     * employed; its value is provided by class AdvDiffHierarchyIntegrator.
      */
     bool d_second_order_pressure_update;
-    std::string d_viscous_timestepping_type;
+    ViscousTimesteppingType d_viscous_timestepping_type;
 
     /*
      * This boolean value determines whether the pressure is normalized to have
@@ -1237,13 +1241,6 @@ private:
      * Such variables have only one context.
      */
     int d_wgt_idx;
-
-    /*
-     * Data and solvers required by the hybrid projection scheme and/or by the
-     * second-order pressure update.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_sol_var, d_rhs_var;
-    int d_sol_idx, d_rhs_idx;
 
     int d_helmholtz_max_iterations;
     double d_helmholtz_abs_residual_tol, d_helmholtz_rel_residual_tol;

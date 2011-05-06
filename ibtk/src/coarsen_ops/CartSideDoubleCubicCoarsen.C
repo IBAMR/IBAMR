@@ -49,7 +49,6 @@
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
-#include <CartesianSideDoubleWeightedAverage.h>
 #include <CartesianPatchGeometry.h>
 #include <SideData.h>
 #include <SideVariable.h>
@@ -108,7 +107,7 @@ static const int COARSEN_OP_PRIORITY = 0;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CartSideDoubleCubicCoarsen::CartSideDoubleCubicCoarsen()
-    : d_weighted_average_coarsen_op(new CartesianSideDoubleWeightedAverage<NDIM>())
+    : d_weighted_average_coarsen_op()
 {
     // intentionally blank
     return;
@@ -144,7 +143,7 @@ CartSideDoubleCubicCoarsen::getOperatorPriority() const
 IntVector<NDIM>
 CartSideDoubleCubicCoarsen::getStencilWidth() const
 {
-    return d_weighted_average_coarsen_op->getStencilWidth();
+    return d_weighted_average_coarsen_op.getStencilWidth();
 }// getStencilWidth
 
 void
@@ -163,7 +162,7 @@ CartSideDoubleCubicCoarsen::coarsen(
                          << "  cubic coarsening requires a refinement ratio of 4 or larger.\n"
                          << "  reverting to weighted averaging." << std::endl);
                      );
-        d_weighted_average_coarsen_op->coarsen(coarse, fine, dst_component, src_component, coarse_box, ratio);
+        d_weighted_average_coarsen_op.coarsen(coarse, fine, dst_component, src_component, coarse_box, ratio);
         return;
     }
     Pointer<SideData<NDIM,double> > cdata = coarse.getPatchData(dst_component);

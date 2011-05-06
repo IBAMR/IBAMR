@@ -155,6 +155,5 @@ main(
     status = H5Fclose(marker_file_id);
 
     output_fstream.close();
-
     return -1;
 }// main

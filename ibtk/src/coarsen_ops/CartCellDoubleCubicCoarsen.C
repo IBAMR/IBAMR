@@ -49,7 +49,6 @@
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
-#include <CartesianCellDoubleWeightedAverage.h>
 #include <CartesianPatchGeometry.h>
 #include <CellData.h>
 #include <CellVariable.h>
@@ -100,7 +99,7 @@ static const int COARSEN_OP_PRIORITY = 0;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CartCellDoubleCubicCoarsen::CartCellDoubleCubicCoarsen()
-    : d_weighted_average_coarsen_op(new CartesianCellDoubleWeightedAverage<NDIM>())
+    : d_weighted_average_coarsen_op()
 {
     // intentionally blank
     return;
@@ -136,7 +135,7 @@ CartCellDoubleCubicCoarsen::getOperatorPriority() const
 IntVector<NDIM>
 CartCellDoubleCubicCoarsen::getStencilWidth() const
 {
-    return d_weighted_average_coarsen_op->getStencilWidth();
+    return d_weighted_average_coarsen_op.getStencilWidth();
 }// getStencilWidth
 
 void
@@ -155,7 +154,7 @@ CartCellDoubleCubicCoarsen::coarsen(
                          << "  cubic coarsening requires a refinement ratio of 4 or larger.\n"
                          << "  reverting to weighted averaging." << std::endl);
                      );
-        d_weighted_average_coarsen_op->coarsen(coarse, fine, dst_component, src_component, coarse_box, ratio);
+        d_weighted_average_coarsen_op.coarsen(coarse, fine, dst_component, src_component, coarse_box, ratio);
         return;
     }
     Pointer<CellData<NDIM,double> > cdata = coarse.getPatchData(dst_component);
