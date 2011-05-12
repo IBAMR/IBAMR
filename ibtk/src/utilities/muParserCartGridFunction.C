@@ -209,7 +209,7 @@ muParserCartGridFunction::muParserCartGridFunction(
         // User-provided constants.
         for (std::map<std::string,double>::const_iterator map_cit = d_constants.begin(); map_cit != d_constants.end(); ++map_cit)
         {
-            it->DefineConst((*map_cit).first, (*map_cit).second);
+            it->DefineConst(map_cit->first, map_cit->second);
         }
 
         // Variables.

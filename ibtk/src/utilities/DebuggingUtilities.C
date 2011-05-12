@@ -492,7 +492,7 @@ DebuggingUtilities::saveSideData(
 
 void
 DebuggingUtilities::saveLagrangianData(
-    const Pointer<LMeshData> lag_data,
+    const Pointer<LData> lag_data,
     const bool save_ghost_nodes,
     const std::string& filename,
     const std::string& dirname)
@@ -526,9 +526,9 @@ DebuggingUtilities::saveLagrangianData(
             }
             if (save_ghost_nodes)
             {
-                const int num_nonlocal_nodes = lag_data->getLocalGhostNodeCount();
-                of.write(reinterpret_cast<const char*>(&num_nonlocal_nodes),sizeof(int));
-                for (int i = 0; i < num_nonlocal_nodes; ++i)
+                const int num_ghost_nodes = lag_data->getGhostNodeCount();
+                of.write(reinterpret_cast<const char*>(&num_ghost_nodes),sizeof(int));
+                for (int i = 0; i < num_ghost_nodes; ++i)
                 {
                     for (int d = 0; d < depth; ++d)
                     {

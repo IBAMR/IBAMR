@@ -188,7 +188,7 @@ BJacobiPreconditioner::initializeSolverState(
     for (std::map<int,Pointer<LinearSolver> >::iterator it = d_pc_map.begin();
          it != d_pc_map.end(); ++it)
     {
-        const int comp = (*it).first;
+        const int comp = it->first;
         SAMRAIVectorReal<NDIM,double> x_comp(
             x_name+"_component", hierarchy, coarsest_ln, finest_ln);
         SAMRAIVectorReal<NDIM,double> b_comp(
@@ -217,7 +217,7 @@ BJacobiPreconditioner::deallocateSolverState()
     for (std::map<int,Pointer<LinearSolver> >::iterator it = d_pc_map.begin();
          it != d_pc_map.end(); ++it)
     {
-        const int comp = (*it).first;
+        const int comp = it->first;
         d_pc_map[comp]->deallocateSolverState();
     }
 

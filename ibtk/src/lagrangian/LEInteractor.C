@@ -742,8 +742,8 @@ LEInteractor::getC(
 
 void
 LEInteractor::interpolate(
-    Pointer<LMeshData>& Q_data,
-    const Pointer<LMeshData>& X_data,
+    Pointer<LData>& Q_data,
+    const Pointer<LData>& X_data,
     const Pointer<LNodeIndexData>& idx_data,
     const Pointer<CellData<NDIM,double> > q_data,
     const Pointer<Patch<NDIM> >& patch,
@@ -760,7 +760,6 @@ LEInteractor::interpolate(
     TBOX_ASSERT(Q_data->getDepth() == q_data->getDepth());
     TBOX_ASSERT(X_data->getDepth() == NDIM);
 #endif
-    if (Q_data->getLocalNodeCount() == 0) return;
     interpolate(Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
                 X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(),
                 idx_data,
@@ -773,8 +772,8 @@ LEInteractor::interpolate(
 
 void
 LEInteractor::interpolate(
-    Pointer<LMeshData>& Q_data,
-    const Pointer<LMeshData>& X_data,
+    Pointer<LData>& Q_data,
+    const Pointer<LData>& X_data,
     const Pointer<LNodeIndexData>& idx_data,
     const Pointer<SideData<NDIM,double> > q_data,
     const Pointer<Patch<NDIM> >& patch,
@@ -797,7 +796,6 @@ LEInteractor::interpolate(
     TBOX_ASSERT(X_data->getDepth() == NDIM);
     TBOX_ASSERT(q_data->getDepth() == 1);
 #endif
-    if (Q_data->getLocalNodeCount() == 0) return;
     interpolate(Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
                 X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(),
                 idx_data,
@@ -1133,8 +1131,8 @@ LEInteractor::interpolate(
 void
 LEInteractor::spread(
     Pointer<CellData<NDIM,double> > q_data,
-    const Pointer<LMeshData>& Q_data,
-    const Pointer<LMeshData>& X_data,
+    const Pointer<LData>& Q_data,
+    const Pointer<LData>& X_data,
     const Pointer<LNodeIndexData>& idx_data,
     const Pointer<Patch<NDIM> >& patch,
     const Box<NDIM>& spread_box,
@@ -1150,7 +1148,6 @@ LEInteractor::spread(
     TBOX_ASSERT(Q_data->getDepth() == q_data->getDepth());
     TBOX_ASSERT(X_data->getDepth() == NDIM);
 #endif
-    if (Q_data->getLocalNodeCount() == 0 && Q_data->getLocalGhostNodeCount() == 0) return;
     spread(q_data,
            Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
            X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(),
@@ -1164,8 +1161,8 @@ LEInteractor::spread(
 void
 LEInteractor::spread(
     Pointer<SideData<NDIM,double> > q_data,
-    const Pointer<LMeshData>& Q_data,
-    const Pointer<LMeshData>& X_data,
+    const Pointer<LData>& Q_data,
+    const Pointer<LData>& X_data,
     const Pointer<LNodeIndexData>& idx_data,
     const Pointer<Patch<NDIM> >& patch,
     const Box<NDIM>& spread_box,
@@ -1187,7 +1184,6 @@ LEInteractor::spread(
     TBOX_ASSERT(Q_data->getDepth() == NDIM);
     TBOX_ASSERT(X_data->getDepth() == NDIM);
 #endif
-    if (Q_data->getLocalNodeCount() == 0 && Q_data->getLocalGhostNodeCount() == 0) return;
     spread(q_data,
            Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
            X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(),

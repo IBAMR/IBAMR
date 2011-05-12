@@ -66,10 +66,10 @@ $(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.C \
 $(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.C \
 $(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C \
 $(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.C \
+$(top_srcdir)/src/lagrangian/LData.C \
 $(top_srcdir)/src/lagrangian/LDataManager.C \
 $(top_srcdir)/src/lagrangian/LEInteractor.C \
 $(top_srcdir)/src/lagrangian/LMesh.C \
-$(top_srcdir)/src/lagrangian/LMeshData.C \
 $(top_srcdir)/src/lagrangian/LNode.C \
 $(top_srcdir)/src/lagrangian/LNodeIndex.C \
 $(top_srcdir)/src/lagrangian/LNodeIndexData.C \
@@ -184,12 +184,12 @@ $(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.h \
 $(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.h \
 $(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.h \
 $(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.h \
+$(top_srcdir)/src/lagrangian/LData.I \
+$(top_srcdir)/src/lagrangian/LData.h \
 $(top_srcdir)/src/lagrangian/LDataManager.h \
 $(top_srcdir)/src/lagrangian/LEInteractor.h \
 $(top_srcdir)/src/lagrangian/LMesh.I \
 $(top_srcdir)/src/lagrangian/LMesh.h \
-$(top_srcdir)/src/lagrangian/LMeshData.I \
-$(top_srcdir)/src/lagrangian/LMeshData.h \
 $(top_srcdir)/src/lagrangian/LNode.I \
 $(top_srcdir)/src/lagrangian/LNode.h \
 $(top_srcdir)/src/lagrangian/LNodeIndex.I \

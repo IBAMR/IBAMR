@@ -85,9 +85,9 @@ public:
      */
     virtual void
     computeLagrangianForce(
-        SAMRAI::tbox::Pointer<IBTK::LMeshData> F_data,
-        SAMRAI::tbox::Pointer<IBTK::LMeshData> X_data,
-        SAMRAI::tbox::Pointer<IBTK::LMeshData> U_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> F_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,
@@ -122,9 +122,9 @@ public:
         Mat& J_mat,
         MatAssemblyType assembly_type,
         const double X_coef,
-        SAMRAI::tbox::Pointer<IBTK::LMeshData> X_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
         const double U_coef,
-        SAMRAI::tbox::Pointer<IBTK::LMeshData> U_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,
@@ -139,8 +139,8 @@ public:
      */
     virtual double
     computeLagrangianEnergy(
-        SAMRAI::tbox::Pointer<IBTK::LMeshData> X_data,
-        SAMRAI::tbox::Pointer<IBTK::LMeshData> U_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,

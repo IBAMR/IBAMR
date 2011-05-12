@@ -113,7 +113,7 @@ public:
     getSourceLocations(
         std::vector<std::vector<double> >& X_src,
         std::vector<double>& r_src,
-        tbox::Pointer<LMeshData> X_data,
+        tbox::Pointer<LData> X_data,
         const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,

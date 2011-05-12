@@ -58,7 +58,7 @@ LDataManager::getLagrangianStructureNames(
     for (std::map<int,std::string>::const_iterator cit(d_strct_id_to_strct_name_map[level_number].begin());
          cit != d_strct_id_to_strct_name_map[level_number].end(); ++cit)
     {
-        ret_val.push_back((*cit).second);
+        ret_val.push_back(cit->second);
     }
     return ret_val;
 }// getLagrangianStructureNames
@@ -75,7 +75,7 @@ LDataManager::getLagrangianStructureIDs(
     for (std::map<std::string,int>::const_iterator cit(d_strct_name_to_strct_id_map[level_number].begin());
          cit != d_strct_name_to_strct_id_map[level_number].end(); ++cit)
     {
-        ret_val.push_back((*cit).second);
+        ret_val.push_back(cit->second);
     }
     return ret_val;
 }// getLagrangianStructureIDs
@@ -91,7 +91,7 @@ LDataManager::getLagrangianStructureID(
 #endif
     std::map<int,int>::const_iterator cit = d_last_lag_idx_to_strct_id_map[level_number].lower_bound(lagrangian_index);
     if (UNLIKELY(cit == d_last_lag_idx_to_strct_id_map[level_number].end())) return -1;
-    const int strct_id = (*cit).second;
+    const int strct_id = cit->second;
 #ifdef DEBUG_CHECK_ASSERTIONS
     const std::pair<int,int>& idx_range = getLagrangianStructureIndexRange(strct_id, level_number);
     TBOX_ASSERT(idx_range.first <= lagrangian_index && lagrangian_index < idx_range.second);
@@ -110,7 +110,7 @@ LDataManager::getLagrangianStructureID(
 #endif
     std::map<std::string,int>::const_iterator cit = d_strct_name_to_strct_id_map[level_number].find(structure_name);
     if (UNLIKELY(cit == d_strct_name_to_strct_id_map[level_number].end())) return -1;
-    return (*cit).second;
+    return cit->second;
 }// getLagrangianStructureID
 
 inline std::string
@@ -124,7 +124,7 @@ LDataManager::getLagrangianStructureName(
 #endif
     std::map<int,std::string>::const_iterator cit = d_strct_id_to_strct_name_map[level_number].find(structure_id);
     if (UNLIKELY(cit == d_strct_id_to_strct_name_map[level_number].end())) return std::string("UNKNOWN");
-    return (*cit).second;
+    return cit->second;
 }// getLagrangianStructureName
 
 inline std::pair<int,int>
@@ -138,7 +138,7 @@ LDataManager::getLagrangianStructureIndexRange(
 #endif
     std::map<int,std::pair<int,int> >::const_iterator cit = d_strct_id_to_lag_idx_range_map[level_number].find(structure_id);
     if (UNLIKELY(cit == d_strct_id_to_lag_idx_range_map[level_number].end())) return std::make_pair(-1,-1);
-    return (*cit).second;
+    return cit->second;
 }// getLagrangianStructureIndexRange
 
 inline bool

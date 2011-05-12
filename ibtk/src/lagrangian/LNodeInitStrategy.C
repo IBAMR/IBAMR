@@ -87,8 +87,8 @@ int
 LNodeInitStrategy::initializeMassDataOnPatchLevel(
     const int global_index_offset,
     const int local_index_offset,
-    Pointer<LMeshData>& M_data,
-    Pointer<LMeshData>& K_data,
+    Pointer<LData>& M_data,
+    Pointer<LData>& K_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
@@ -105,7 +105,7 @@ int
 LNodeInitStrategy::initializeDirectorDataOnPatchLevel(
     const int global_index_offset,
     const int local_index_offset,
-    Pointer<LMeshData>& D_data,
+    Pointer<LData>& D_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,

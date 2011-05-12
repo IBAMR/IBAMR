@@ -457,7 +457,7 @@ build_local_ucd_mesh(
     for (std::multimap<int,std::pair<int,int> >::const_iterator it = edge_map.begin();
          it != edge_map.end(); ++it)
     {
-        std::pair<int,int> e = (*it).second;
+        std::pair<int,int> e = it->second;
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(vertices.count(e.first ) == 1);
         TBOX_ASSERT(vertices.count(e.second) == 1);
@@ -474,8 +474,8 @@ build_local_ucd_mesh(
     for (std::set<std::pair<int,int> >::const_iterator it = local_edge_set.begin();
          it != local_edge_set.end(); ++it)
     {
-        const int e1 = (*it).first;
-        const int e2 = (*it).second;
+        const int e1 = it->first;
+        const int e2 = it->second;
         local_edge_map.insert(std::make_pair(local_vertex_map[e1],local_vertex_map[e2]));
     }
 
@@ -515,8 +515,8 @@ build_local_ucd_mesh(
     for (std::multimap<int,int>::const_iterator it = local_edge_map.begin();
          it != local_edge_map.end(); ++it)
     {
-        nodelist.push_back((*it).first);
-        nodelist.push_back((*it).second);
+        nodelist.push_back(it->first);
+        nodelist.push_back(it->second);
     }
     int lnodelist = nodelist.size();
     int nshapetypes = 1;
@@ -620,7 +620,7 @@ LagSiloDataWriter::LagSiloDataWriter(
       d_ucd_mesh_names(d_finest_ln+1),
       d_ucd_mesh_vertices(d_finest_ln+1),
       d_ucd_mesh_edge_maps(d_finest_ln+1),
-      d_coords_data(d_finest_ln+1,Pointer<LMeshData>(NULL)),
+      d_coords_data(d_finest_ln+1,Pointer<LData>(NULL)),
       d_nvars(d_finest_ln+1,0),
       d_var_names(d_finest_ln+1),
       d_var_start_depths(d_finest_ln+1),
@@ -667,7 +667,7 @@ LagSiloDataWriter::~LagSiloDataWriter()
         for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
              it != d_dst_vec[ln].end(); ++it)
         {
-            Vec& v = (*it).second;
+            Vec& v = it->second;
             if (v)
             {
                 ierr = VecDestroy(v);
@@ -677,7 +677,7 @@ LagSiloDataWriter::~LagSiloDataWriter()
         for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
              it != d_vec_scatter[ln].end(); ++it)
         {
-            VecScatter& vs = (*it).second;
+            VecScatter& vs = it->second;
             if (vs)
             {
                 ierr = VecScatterDestroy(vs);
@@ -720,7 +720,7 @@ LagSiloDataWriter::resetLevels(
         for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
              it != d_dst_vec[ln].end(); ++it)
         {
-            Vec& v = (*it).second;
+            Vec& v = it->second;
             if (v != static_cast<Vec>(NULL))
             {
                 ierr = VecDestroy(v);  IBTK_CHKERRQ(ierr);
@@ -729,7 +729,7 @@ LagSiloDataWriter::resetLevels(
         for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
              it != d_vec_scatter[ln].end(); ++it)
         {
-            VecScatter& vs = (*it).second;
+            VecScatter& vs = it->second;
             if (vs != static_cast<VecScatter>(NULL))
             {
                 ierr = VecScatterDestroy(vs);  IBTK_CHKERRQ(ierr);
@@ -742,7 +742,7 @@ LagSiloDataWriter::resetLevels(
         for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
              it != d_dst_vec[ln].end(); ++it)
         {
-            Vec& v = (*it).second;
+            Vec& v = it->second;
             if (v != static_cast<Vec>(NULL))
             {
                 ierr = VecDestroy(v);  IBTK_CHKERRQ(ierr);
@@ -751,7 +751,7 @@ LagSiloDataWriter::resetLevels(
         for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
              it != d_vec_scatter[ln].end(); ++it)
         {
-            VecScatter& vs = (*it).second;
+            VecScatter& vs = it->second;
             if (vs != static_cast<VecScatter>(NULL))
             {
                 ierr = VecScatterDestroy(vs);  IBTK_CHKERRQ(ierr);
@@ -1057,7 +1057,7 @@ LagSiloDataWriter::registerUnstructuredMesh(
     for (std::multimap<int,std::pair<int,int> >::const_iterator it = edge_map.begin();
          it != edge_map.end(); ++it)
     {
-        const std::pair<int,int>& e = (*it).second;
+        const std::pair<int,int>& e = it->second;
         vertices.insert(e.first );
         vertices.insert(e.second);
     }
@@ -1084,7 +1084,7 @@ LagSiloDataWriter::registerUnstructuredMesh(
 
 void
 LagSiloDataWriter::registerCoordsData(
-    Pointer<LMeshData> coords_data,
+    Pointer<LData> coords_data,
     const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
@@ -1105,7 +1105,7 @@ LagSiloDataWriter::registerCoordsData(
 void
 LagSiloDataWriter::registerVariableData(
     const std::string& var_name,
-    Pointer<LMeshData> var_data,
+    Pointer<LData> var_data,
     const int level_number)
 {
     const int start_depth = 0;
@@ -1117,7 +1117,7 @@ LagSiloDataWriter::registerVariableData(
 void
 LagSiloDataWriter::registerVariableData(
     const std::string& var_name,
-    Pointer<LMeshData> var_data,
+    Pointer<LData> var_data,
     const int start_depth,
     const int var_depth,
     const int level_number)
@@ -1273,7 +1273,7 @@ LagSiloDataWriter::writePlotData(
             ierr = VecDuplicate(d_dst_vec[ln][NDIM], &local_X_vec);
             IBTK_CHKERRQ(ierr);
 
-            Vec& global_X_vec = d_coords_data[ln]->getVec();
+            Vec global_X_vec = d_coords_data[ln]->getVec();
             ierr = VecScatterBegin(d_vec_scatter[ln][NDIM], global_X_vec, local_X_vec,
                                    INSERT_VALUES, SCATTER_FORWARD);
             IBTK_CHKERRQ(ierr);
@@ -1295,7 +1295,7 @@ LagSiloDataWriter::writePlotData(
                 ierr = VecDuplicate(d_dst_vec[ln][var_depth], &local_v_vec);
                 IBTK_CHKERRQ(ierr);
 
-                Vec& global_v_vec = d_var_data[ln][v]->getVec();
+                Vec global_v_vec = d_var_data[ln][v]->getVec();
                 ierr = VecScatterBegin(d_vec_scatter[ln][var_depth], global_v_vec, local_v_vec,
                                        INSERT_VALUES, SCATTER_FORWARD);
                 IBTK_CHKERRQ(ierr);
@@ -2114,8 +2114,8 @@ LagSiloDataWriter::putToDatabase(
                 for (std::multimap<int,std::pair<int,int> >::const_iterator cit = d_ucd_mesh_edge_maps[ln][mesh].begin();
                      cit != d_ucd_mesh_edge_maps[ln][mesh].end(); ++cit)
                 {
-                    const int i = (*cit).first;
-                    std::pair<int,int> e = (*cit).second;
+                    const int i = cit->first;
+                    std::pair<int,int> e = cit->second;
                     ucd_mesh_edge_maps_vector.push_back(i);
                     ucd_mesh_edge_maps_vector.push_back(e.first);
                     ucd_mesh_edge_maps_vector.push_back(e.second);
@@ -2230,8 +2230,8 @@ LagSiloDataWriter::buildVecScatters(
     for (std::map<int,std::vector<int> >::iterator it = src_is_idxs.begin();
          it != src_is_idxs.end(); ++it)
     {
-        const int depth = (*it).first;
-        const std::vector<int>& idxs = (*it).second;
+        const int depth = it->first;
+        const std::vector<int>& idxs = it->second;
 
         IS src_is;
         ierr = ISCreateBlock(PETSC_COMM_WORLD, depth, idxs.size(),

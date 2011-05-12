@@ -429,9 +429,9 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
             for (std::vector<std::pair<Box<NDIM>,std::pair<int,int> > >::const_iterator it = bdry_fill_boxes.begin();
                  it != bdry_fill_boxes.end(); ++it)
             {
-                const Box<NDIM>& bdry_fill_box = (*it).first;
-                const int location_index = (*it).second.first;
-                const int codim = (*it).second.second;
+                const Box<NDIM>& bdry_fill_box = it->first;
+                const int location_index = it->second.first;
+                const int codim = it->second.second;
 #if (NDIM == 2)
                 const bool is_lower[NDIM] = { PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
                                               PhysicalBoundaryUtilities::isLower(location_index, codim, 1) };
@@ -531,9 +531,9 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_vec_cell(
             for (std::vector<std::pair<Box<NDIM>,std::pair<int,int> > >::const_iterator it = bdry_fill_boxes.begin();
                  it != bdry_fill_boxes.end(); ++it)
             {
-                const Box<NDIM>& bdry_fill_box = (*it).first;
-                const int location_index = (*it).second.first;
-                const int codim = (*it).second.second;
+                const Box<NDIM>& bdry_fill_box = it->first;
+                const int location_index = it->second.first;
+                const int codim = it->second.second;
 #if (NDIM == 2)
                 const bool is_lower[NDIM] = { PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
                                               PhysicalBoundaryUtilities::isLower(location_index, codim, 1) };
@@ -640,9 +640,9 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
             for (std::vector<std::pair<Box<NDIM>,std::pair<int,int> > >::const_iterator it = bdry_fill_boxes.begin();
                  it != bdry_fill_boxes.end(); ++it)
             {
-                const Box<NDIM>& bdry_fill_box = (*it).first;
-                const int location_index = (*it).second.first;
-                const int codim = (*it).second.second;
+                const Box<NDIM>& bdry_fill_box = it->first;
+                const int location_index = it->second.first;
+                const int codim = it->second.second;
 #if (NDIM == 2)
                 const bool is_lower[NDIM] = { PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
                                               PhysicalBoundaryUtilities::isLower(location_index, codim, 1) };
@@ -749,9 +749,9 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
             for (std::vector<std::pair<Box<NDIM>,std::pair<int,int> > >::const_iterator it = bdry_fill_boxes.begin();
                  it != bdry_fill_boxes.end(); ++it)
             {
-                const Box<NDIM>& bdry_fill_box = (*it).first;
-                const int location_index = (*it).second.first;
-                const int codim = (*it).second.second;
+                const Box<NDIM>& bdry_fill_box = it->first;
+                const int location_index = it->second.first;
+                const int codim = it->second.second;
 #if (NDIM == 2)
                 const bool is_lower[NDIM] = { PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
                                               PhysicalBoundaryUtilities::isLower(location_index, codim, 1) };
@@ -851,9 +851,9 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
             for (std::vector<std::pair<Box<NDIM>,std::pair<int,int> > >::const_iterator it = bdry_fill_boxes.begin();
                  it != bdry_fill_boxes.end(); ++it)
             {
-                const Box<NDIM>& bdry_fill_box = (*it).first;
-                const int location_index = (*it).second.first;
-                const int codim = (*it).second.second;
+                const Box<NDIM>& bdry_fill_box = it->first;
+                const int location_index = it->second.first;
+                const int codim = it->second.second;
 #if (NDIM == 2)
                 const bool is_lower[NDIM] = { PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
                                               PhysicalBoundaryUtilities::isLower(location_index, codim, 1) };

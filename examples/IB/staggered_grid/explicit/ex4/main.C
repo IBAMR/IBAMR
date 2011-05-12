@@ -640,7 +640,7 @@ update_triads(
 
     // Update the director triads for all anchored points.
     const int finest_ln = hierarchy->getFinestLevelNumber();
-    tbox::Pointer<LMeshData> D_data = lag_manager->getLMeshData("D", finest_ln);
+    tbox::Pointer<LData> D_data = lag_manager->getLMeshData("D", finest_ln);
     blitz::Array<double,2>& D_array = *D_data->getLocalFormVecArray();
     tbox::Pointer<hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(finest_ln);
     for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -707,7 +707,7 @@ output_data(
     /*
      * Write Lagrangian data.
      */
-    tbox::Pointer<LMeshData> X_data = lag_manager->getLMeshData("X", finest_hier_level);
+    tbox::Pointer<LData> X_data = lag_manager->getLMeshData("X", finest_hier_level);
     Vec X_petsc_vec = X_data->getVec();
     Vec X_lag_vec;
     VecDuplicate(X_petsc_vec, &X_lag_vec);
@@ -758,7 +758,7 @@ output_data(
     }
     VecDestroy(X_lag_vec);
 
-    tbox::Pointer<LMeshData> D_data = lag_manager->getLMeshData("D", finest_hier_level);
+    tbox::Pointer<LData> D_data = lag_manager->getLMeshData("D", finest_hier_level);
     Vec D_petsc_vec = D_data->getVec();
     Vec D_lag_vec;
     VecDuplicate(D_petsc_vec, &D_lag_vec);

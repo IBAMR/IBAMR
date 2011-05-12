@@ -105,7 +105,7 @@ INSStaggeredPhysicalBoundaryHelper::zeroValuesAtDirichletBoundaries(
             const int n_physical_codim1_boxes = physical_codim1_boxes.size();
 
             // Compute the locations of the Dirichlet boundary.
-            const std::vector<Pointer<ArrayData<NDIM,bool> > >& dirichlet_bdry_locs = (*d_dirichlet_bdry_locs[ln].find(patch_num)).second;
+            const std::vector<Pointer<ArrayData<NDIM,bool> > >& dirichlet_bdry_locs = d_dirichlet_bdry_locs[ln].find(patch_num)->second;
             for (int n = 0; n < n_physical_codim1_boxes; ++n)
             {
                 const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
@@ -153,8 +153,8 @@ INSStaggeredPhysicalBoundaryHelper::resetValuesAtDirichletBoundaries(
             const int n_physical_codim1_boxes = physical_codim1_boxes.size();
 
             // Compute the locations of the Dirichlet boundary.
-            const std::vector<Pointer<ArrayData<NDIM,bool> > >& dirichlet_bdry_locs = (*d_dirichlet_bdry_locs[ln].find(patch_num)).second;
-            const std::vector<Pointer<ArrayData<NDIM,double> > >& dirichlet_bdry_vals = (*d_dirichlet_bdry_vals[ln].find(patch_num)).second;
+            const std::vector<Pointer<ArrayData<NDIM,bool> > >& dirichlet_bdry_locs = d_dirichlet_bdry_locs[ln].find(patch_num)->second;
+            const std::vector<Pointer<ArrayData<NDIM,double> > >& dirichlet_bdry_vals = d_dirichlet_bdry_vals[ln].find(patch_num)->second;
             for (int n = 0; n < n_physical_codim1_boxes; ++n)
             {
                 const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];

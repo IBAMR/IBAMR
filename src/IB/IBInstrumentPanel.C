@@ -705,7 +705,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
         if (lag_manager->levelContainsLagrangianData(ln))
         {
             // Extract the local position array.
-            Pointer<LMeshData> X_data = lag_manager->getLMeshData(LDataManager::POSN_DATA_NAME,ln);
+            Pointer<LData> X_data = lag_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
             Vec X_vec = X_data->getVec();
             double* X_arr;
             int ierr = VecGetArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
@@ -962,9 +962,9 @@ IBInstrumentPanel::readInstrumentData(
                     {
                         for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
                         {
-                            const int& meter_num = (*it).second.meter_num;
-                            const blitz::TinyVector<double,NDIM>& X = *((*it).second.X);
-                            const blitz::TinyVector<double,NDIM>& dA = *((*it).second.dA);
+                            const int& meter_num = it->second.meter_num;
+                            const blitz::TinyVector<double,NDIM>& X = *(it->second.X);
+                            const blitz::TinyVector<double,NDIM>& dA = *(it->second.dA);
                             const blitz::TinyVector<double,NDIM> U = linear_interp<NDIM>(X, i, X_cell, *U_cc_data, patch_lower, patch_upper, xLower, xUpper, dx);
                             d_flow_values[meter_num] += blitz::dot(U,dA);
                         }
@@ -973,9 +973,9 @@ IBInstrumentPanel::readInstrumentData(
                     {
                         for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
                         {
-                            const int& meter_num = (*it).second.meter_num;
-                            const blitz::TinyVector<double,NDIM>& X = *((*it).second.X);
-                            const blitz::TinyVector<double,NDIM>& dA = *((*it).second.dA);
+                            const int& meter_num = it->second.meter_num;
+                            const blitz::TinyVector<double,NDIM>& X = *(it->second.X);
+                            const blitz::TinyVector<double,NDIM>& dA = *(it->second.dA);
                             const blitz::TinyVector<double,NDIM> U = linear_interp(X, i, X_cell, *U_sc_data, patch_lower, patch_upper, xLower, xUpper, dx);
                             d_flow_values[meter_num] += blitz::dot(U,dA);
                         }
@@ -984,9 +984,9 @@ IBInstrumentPanel::readInstrumentData(
                     {
                         for (WebPatchMap::const_iterator it = patch_range.first; it != patch_range.second; ++it)
                         {
-                            const int& meter_num = (*it).second.meter_num;
-                            const blitz::TinyVector<double,NDIM>& X = *((*it).second.X);
-                            const blitz::TinyVector<double,NDIM>& dA = *((*it).second.dA);
+                            const int& meter_num = it->second.meter_num;
+                            const blitz::TinyVector<double,NDIM>& X = *(it->second.X);
+                            const blitz::TinyVector<double,NDIM>& dA = *(it->second.dA);
                             const blitz::TinyVector<double,1> P = linear_interp<1>(X, i, X_cell, *P_cc_data, patch_lower, patch_upper, xLower, xUpper, dx);
                             d_mean_pres_values[meter_num] += P(0)*norm(dA);
                             A                 [meter_num] += norm(dA);
@@ -1008,8 +1008,8 @@ IBInstrumentPanel::readInstrumentData(
                     {
                         for (WebCentroidMap::const_iterator it = centroid_range.first; it != centroid_range.second; ++it)
                         {
-                            const int& meter_num = (*it).second.meter_num;
-                            const blitz::TinyVector<double,NDIM>& X = *((*it).second.X);
+                            const int& meter_num = it->second.meter_num;
+                            const blitz::TinyVector<double,NDIM>& X = *(it->second.X);
                             const blitz::TinyVector<double,1> P = linear_interp<1>(X, i, X_cell, *P_cc_data, patch_lower, patch_upper, xLower, xUpper, dx);
                             d_point_pres_values[meter_num] = P(0);
                         }
@@ -1050,7 +1050,7 @@ IBInstrumentPanel::readInstrumentData(
         if (lag_manager->levelContainsLagrangianData(ln))
         {
             // Extract the local velocity array.
-            Pointer<LMeshData> U_data = lag_manager->getLMeshData(LDataManager::VEL_DATA_NAME,ln);
+            Pointer<LData> U_data = lag_manager->getLData(LDataManager::VEL_DATA_NAME,ln);
             Vec U_vec = U_data->getVec();
             double* U_arr;
             int ierr = VecGetArray(U_vec, &U_arr);  IBTK_CHKERRQ(ierr);

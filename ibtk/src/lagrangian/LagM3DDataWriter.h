@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/LMeshData.h>
+#include <ibtk/LData.h>
 
 // SAMRAI INCLUDES
 #include <IntVector.h>
@@ -152,7 +152,7 @@ public:
      */
     void
     registerCoordsData(
-        SAMRAI::tbox::Pointer<LMeshData> coords_data,
+        SAMRAI::tbox::Pointer<LData> coords_data,
         const int level_number);
 
     /*!
@@ -315,7 +315,7 @@ private:
     /*
      * Coordinate data for plotting.
      */
-    std::vector<SAMRAI::tbox::Pointer<LMeshData> > d_coords_data;
+    std::vector<SAMRAI::tbox::Pointer<LData> > d_coords_data;
 
     /*
      * Data for obtaining local data.

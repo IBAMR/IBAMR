@@ -1,4 +1,4 @@
-// Filename: LMeshData.h
+// Filename: LData.h
 // Created on 08 Mar 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_LMeshData
-#define included_LMeshData
+#ifndef included_LData
+#define included_LData
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -49,104 +49,162 @@
 // BLITZ++ INCLUDES
 #include <blitz/array.h>
 
-/////////////////////////////// FORWARD DECLARATIONS /////////////////////////
-
-namespace IBTK
-{
-class LDataManager;
-}// namespace IBTK
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
 {
 /*!
- * \brief Class LMeshData provides storage for a single scalar- or
- * vector-valued quantity defined at the nodes of the Lagrangian mesh.
+ * \brief Class LData provides storage for a single scalar- or vector-valued
+ * Lagrangian quantity.
  */
-class LMeshData
+class LData
     : public SAMRAI::tbox::Serializable
 {
 public:
     /*!
-     * \brief Destructor.
+     * \brief Constructor.
+     *
+     * \note This constructor will allocate an appropriately sized PETSc Vec
+     * object.  Data management for this PETSc Vec object is handled by the
+     * LData object.
      */
-    ~LMeshData();
+    LData(
+        const std::string& name,
+        const int num_local_nodes,
+        const int depth,
+        const std::vector<int>& nonlocal_petsc_indices=std::vector<int>(0));
 
     /*!
-     * \brief Returns a const reference to the name of this LMeshData
-     * object.
+     * \brief Constructor.
+     *
+     * \note This constructor \em does \em not allocate a PETSc Vec object.
+     * Instead, it assumes responsibilities for data management for the supplied
+     * PETSc Vec object.  In particular, the caller \em must \em not destroy the
+     * PETSc Vec object provided to the class constructor.
+     *
+     * \note The blocksize of the supplied PETSc Vec object \em must be set
+     * appropriately.  Its value is used to determine the data depth (i.e., the
+     * number of data components per node).
+     */
+    LData(
+        const std::string& name,
+        Vec vec,
+        const std::vector<int>& nonlocal_petsc_indices=std::vector<int>(0));
+
+    /*!
+     * \brief Constructor.
+     */
+    LData(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
+    /*!
+     * \brief Virtual destructor.
+     */
+    virtual ~LData();
+
+    /*!
+     * \brief Reset data items.
+     *
+     * \note The LData object assumes responsibilities for data management for
+     * the supplied PETSc Vec object.  In particular, the caller \em must \em
+     * not destroy the PETSc Vec object provided to resetData().
+     *
+     * \note The blocksize of the supplied PETSc Vec object \em must be set
+     * appropriately.  Its value is used to determine the data depth (i.e., the
+     * number of data components per node).
+     */
+    virtual void
+    resetData(
+        Vec vec,
+        const std::vector<int>& nonlocal_petsc_indices=std::vector<int>(0));
+
+    /*!
+     * \brief Returns a const reference to the name of this LData object.
      */
     const std::string&
     getName() const;
 
     /*!
-     * \brief Returns the total number of nodes of the Lagrangian data.
+     * \brief Returns the total number of Lagrangian nodes.
      */
     int
     getGlobalNodeCount() const;
 
     /*!
-     * \brief Returns the number of local (i.e., on processor) nodes of the
-     * Lagrangian data.
+     * \brief Returns the number of local (i.e., on processor) Lagrangian nodes.
      *
-     * \note This count does not include ghost nodes.
+     * \note This count does not include ghost nodes (if any).
      */
     int
     getLocalNodeCount() const;
 
     /*!
-     * \brief Returns the number of local ghost nodes of the Lagrangian data.
+     * \brief Returns the number of local ghost nodes associated with the LData
+     * object.
      */
     int
-    getLocalGhostNodeCount() const;
+    getGhostNodeCount() const;
 
     /*!
-     * \brief Returns the depth (i.e., number of components per node) of the
+     * \brief Returns the depth (i.e., the number of components per node) of the
      * Lagrangian data.
      */
     int
     getDepth() const;
 
     /*!
-     * \brief Returns the PETSc Vec object that contains the mesh data.
+     * \brief Returns the PETSc Vec object that stores the data.
      *
-     * \note getVec() automatically calls restoreArrays().
+     * \note getVec() calls restoreArrays(), which invalidates any oustanding
+     * references to the underlying array data.
      *
      * \see restoreArrays()
      */
-    Vec&
+    Vec
     getVec();
 
     /*!
      * \brief Returns a \em reference to a blitz::Array object that wraps the
-     * array corresponding to the PETSc Vec object.
+     * array corresponding to the PETSc Vec object.  This method is appropriate
+     * only for \em scalar-valued quantities.
      *
      * \note Only local data are accessible via the returned array.  Nonlocal
      * data must be accessed via appropriate PETSc function calls.
      *
      * \note The returned array is indexed using the \em global PETSc indexing
      * scheme.
+     *
+     * \note Any outstanding references to the underlying array data are
+     * invalidated by restoreArrays().
+     *
+     * \see restoreArrays()
      */
     blitz::Array<double,1>*
     getArray();
 
     /*!
      * \brief Returns a \em reference to a blitz::Array object that wraps the
-     * array corresponding to the PETSc Vec object.
+     * array corresponding to the PETSc Vec object.  This method is appropriate
+     * only for \em scalar-valued quantities.
      *
      * \note Only local data are accessible via the returned array.  Nonlocal
      * data must be accessed via appropriate PETSc function calls.
      *
      * \note The returned array is indexed using the \em local PETSc indexing
      * scheme.
+     *
+     * \note Any outstanding references to the underlying array data are
+     * invalidated by restoreArrays().
+     *
+     * \see restoreArrays()
      */
     blitz::Array<double,1>*
     getLocalFormArray();
 
     /*!
      * \brief Returns a reference to a blitz::Array object that wraps the array
-     * corresponding to the ghosted local part of the PETSc Vec object.
+     * corresponding to the \em ghosted local part of the PETSc Vec object.
+     * This method is appropriate only for \em scalar-valued quantities.
      *
      * \note Only local (i.e., on processor) and ghost node data are accessible
      * via this array.  All other nonlocal data must be accessed via appropriate
@@ -154,39 +212,58 @@ public:
      *
      * \note The returned array object is indexed using the \em local PETSc
      * indexing scheme.
+     *
+     * \note Any outstanding references to the underlying array data are
+     * invalidated by restoreArrays().
+     *
+     * \see restoreArrays()
      */
     blitz::Array<double,1>*
     getGhostedLocalFormArray();
 
     /*!
      * \brief Returns a \em reference to a blitz::Array object that wraps the
-     * array corresponding to the PETSc Vec object.
+     * array corresponding to the PETSc Vec object.  This method is appropriate
+     * for \em either scalar- or vector-valued quantities.
      *
      * \note Only local data are accessible via the returned array.  Nonlocal
      * data must be accessed via appropriate PETSc function calls.
      *
      * \note The returned array is indexed using the \em global PETSc indexing
      * scheme.
+     *
+     * \note Any outstanding references to the underlying array data are
+     * invalidated by restoreArrays().
+     *
+     * \see restoreArrays()
      */
     blitz::Array<double,2>*
     getVecArray();
 
     /*!
      * \brief Returns a \em reference to a blitz::Array object that wraps the
-     * array corresponding to the PETSc Vec object.
+     * array corresponding to the PETSc Vec object.  This method is appropriate
+     * for \em either scalar- or vector-valued quantities.
      *
      * \note Only local data are accessible via the returned array.  Nonlocal
      * data must be accessed via appropriate PETSc function calls.
      *
      * \note The returned array is indexed using the \em local PETSc indexing
      * scheme.
+     *
+     * \note Any outstanding references to the underlying array data are
+     * invalidated by restoreArrays().
+     *
+     * \see restoreArrays()
      */
     blitz::Array<double,2>*
     getLocalFormVecArray();
 
     /*!
      * \brief Returns a reference to a blitz::Array object that wraps the array
-     * corresponding to the ghosted local part of the PETSc Vec object.
+     * corresponding to the \em ghosted local part of the PETSc Vec object.
+     * This method is appropriate for \em either scalar- or vector-valued
+     * quantities.
      *
      * \note Only local (i.e., on processor) and ghost node data are accessible
      * via this array.  All other nonlocal data must be accessed via appropriate
@@ -194,6 +271,11 @@ public:
      *
      * \note The returned array object is indexed using the \em local PETSc
      * indexing scheme.
+     *
+     * \note Any outstanding references to the underlying array data are
+     * invalidated by restoreArrays().
+     *
+     * \see restoreArrays()
      */
     blitz::Array<double,2>*
     getGhostedLocalFormVecArray();
@@ -201,6 +283,9 @@ public:
     /*!
      * \brief Restore any arrays extracted via calls to getArray(),
      * getLocalFormArray(), and getGhostedLocalFormArray().
+     *
+     * \note Any outstanding references to the underlying array data are
+     * invalidated by restoreArrays().
      */
     void
     restoreArrays();
@@ -224,39 +309,13 @@ public:
     putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
-protected:
-    friend class LDataManager;
-
-    /*!
-     * \brief Constructor.
-     */
-    LMeshData(
-        const std::string& name,
-        const int num_local_nodes,
-        const int depth,
-        const std::vector<int>& nonlocal_petsc_indices=std::vector<int>(0));
-
-    /*!
-     * \brief Constructor.
-     */
-    LMeshData(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
-
-    /*!
-     * \brief Reset the PETSc Vec and related data.
-     */
-    void
-    resetData(
-        Vec& new_global_vec,
-        const std::vector<int>& new_nonlocal_petsc_indices);
-
 private:
     /*!
      * \brief Default constructor.
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LMeshData();
+    LData();
 
     /*!
      * \brief Copy constructor.
@@ -265,8 +324,8 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LMeshData(
-        const LMeshData& from);
+    LData(
+        const LData& from);
 
     /*
      * Extract the array data.
@@ -275,7 +334,7 @@ private:
     void getGhostedLocalFormArrayCommon();
 
     /*
-     * The name of the LMeshData object.
+     * The name of the LData object.
      */
     std::string d_name;
 
@@ -292,10 +351,10 @@ private:
     /*
      * The number of local ghost nodes.
      */
-    int d_local_ghost_node_count;
+    int d_ghost_node_count;
 
     /*
-     * The depth (i.e., number of components per node) of the LMeshData.
+     * The depth (i.e., number of components per node) of the LData.
      */
     int d_depth;
 
@@ -311,7 +370,7 @@ private:
     Vec d_global_vec;
     double* d_array;
     blitz::Array<double,1> d_blitz_array, d_blitz_local_array;
-    blitz::Array<double,2> d_blitz_vec_array, d_blitz_vec_local_array;
+    blitz::Array<double,2> d_blitz_vec_array, d_blitz_local_vec_array;
 
     /*
      * The array corresponding to the PETSc Vec object in local form, its
@@ -326,8 +385,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/LMeshData.I>
+#include <ibtk/LData.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LMeshData
+#endif //#ifndef included_LData

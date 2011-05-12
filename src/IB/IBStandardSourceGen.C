@@ -196,7 +196,7 @@ void
 IBStandardSourceGen::getSourceLocations(
     std::vector<std::vector<double> >& X_src,
     std::vector<double>& r_src,
-    Pointer<LMeshData> X_data,
+    Pointer<LData> X_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,

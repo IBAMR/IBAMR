@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/LMeshData.h>
+#include <ibtk/LData.h>
 
 // SAMRAI INCLUDES
 #include <PatchHierarchy.h>
@@ -46,6 +46,13 @@
 
 // C++ STDLIB INCLUDES
 #include <map>
+
+/////////////////////////////// FORWARD DECLARATIONS /////////////////////////
+
+namespace IBTK
+{
+class LDataManager;
+}
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -103,7 +110,7 @@ public:
         const double init_data_time,
         const bool can_be_refined,
         const bool initial_time,
-        IBTK::LDataManager* const lag_manager);
+        LDataManager* const lag_manager);
 
     /*!
      * \brief Initialize the LNodeIndex and LNodeLevel data needed to specify
@@ -116,8 +123,8 @@ public:
         const int lag_node_index_idx,
         const int global_index_offset,
         const int local_index_offset,
-        SAMRAI::tbox::Pointer<LMeshData>& X_data,
-        SAMRAI::tbox::Pointer<LMeshData>& U_data,
+        SAMRAI::tbox::Pointer<LData>& X_data,
+        SAMRAI::tbox::Pointer<LData>& U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
@@ -138,8 +145,8 @@ public:
     initializeMassDataOnPatchLevel(
         const int global_index_offset,
         const int local_index_offset,
-        SAMRAI::tbox::Pointer<LMeshData>& M_data,
-        SAMRAI::tbox::Pointer<LMeshData>& K_data,
+        SAMRAI::tbox::Pointer<LData>& M_data,
+        SAMRAI::tbox::Pointer<LData>& K_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
@@ -160,7 +167,7 @@ public:
     initializeDirectorDataOnPatchLevel(
         const int global_index_offset,
         const int local_index_offset,
-        SAMRAI::tbox::Pointer<LMeshData>& D_data,
+        SAMRAI::tbox::Pointer<LData>& D_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,

@@ -145,11 +145,11 @@ FEDataManager::freeAllManagers()
     for (std::map<std::string,FEDataManager*>::iterator it = s_data_manager_instances.begin();
          it != s_data_manager_instances.end(); ++it)
     {
-        if ((*it).second)
+        if (it->second)
         {
-            delete (*it).second;
+            delete it->second;
         }
-        (*it).second = NULL;
+        it->second = NULL;
     }
     return;
 }// freeManager
@@ -256,7 +256,7 @@ FEDataManager::reinitElementMappings()
     for (std::map<std::string,NumericVector<double>*>::iterator it = d_system_ghost_vec.begin();
          it != d_system_ghost_vec.end(); ++it)
     {
-        delete (*it).second;
+        delete it->second;
     }
     d_system_ghost_vec.clear();
 
@@ -1086,22 +1086,22 @@ FEDataManager::~FEDataManager()
     for (std::map<std::string,NumericVector<double>*>::iterator it = d_system_ghost_vec.begin();
          it != d_system_ghost_vec.end(); ++it)
     {
-        delete (*it).second;
+        delete it->second;
     }
     for (std::map<std::string,LinearSolver<double>*>::iterator it = d_L2_proj_solver.begin();
          it != d_L2_proj_solver.end(); ++it)
     {
-        delete (*it).second;
+        delete it->second;
     }
     for (std::map<std::string,SparseMatrix<double>*>::iterator it = d_L2_proj_matrix.begin();
          it != d_L2_proj_matrix.end(); ++it)
     {
-        delete (*it).second;
+        delete it->second;
     }
     for (std::map<std::string,NumericVector<double>*>::iterator it = d_L2_proj_matrix_diag.begin();
          it != d_L2_proj_matrix_diag.end(); ++it)
     {
-        delete (*it).second;
+        delete it->second;
     }
     clearCachedLEInteractionFEData();
     return;

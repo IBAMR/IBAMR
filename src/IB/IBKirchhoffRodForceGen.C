@@ -431,11 +431,11 @@ IBKirchhoffRodForceGen::initializeLevelData(
 
 void
 IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
-    Pointer<LMeshData> F_data,
-    Pointer<LMeshData> N_data,
-    Pointer<LMeshData> X_data,
-    Pointer<LMeshData> D_data,
-    Pointer<LMeshData> U_data,
+    Pointer<LData> F_data,
+    Pointer<LData> N_data,
+    Pointer<LData> X_data,
+    Pointer<LData> D_data,
+    Pointer<LData> U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,

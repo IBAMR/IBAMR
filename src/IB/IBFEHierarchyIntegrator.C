@@ -289,12 +289,12 @@ IBFEHierarchyIntegrator::~IBFEHierarchyIntegrator()
 
     for (RefinePatchStrategyMap::iterator it = d_rstrategies.begin(); it != d_rstrategies.end(); ++it)
     {
-        delete (*it).second;
+        delete it->second;
     }
 
     for (CoarsenPatchStrategyMap::iterator it = d_cstrategies.begin(); it != d_cstrategies.end(); ++it)
     {
-        delete (*it).second;
+        delete it->second;
     }
 
     if (d_proj_strain_data != NULL) delete d_proj_strain_data;
@@ -818,21 +818,21 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         J_bar_half_IB_ghost = d_fe_data_manager->buildGhostedSolutionVector(PROJ_STRAIN_SYSTEM_NAME);
     }
 
-    // Initialize the various LMeshData objects on each level of the patch hierarchy.
-    std::vector<Pointer<LMeshData> > X_current_data(finest_ln+1);
-    std::vector<Pointer<LMeshData> > X_new_data(finest_ln+1);
-    std::vector<Pointer<LMeshData> > X_half_data(finest_ln+1);
-    std::vector<Pointer<LMeshData> > U_half_data(finest_ln+1);
-    std::vector<Pointer<LMeshData> > F_half_data(finest_ln+1);
+    // Initialize the various LData objects on each level of the patch hierarchy.
+    std::vector<Pointer<LData> > X_current_data(finest_ln+1);
+    std::vector<Pointer<LData> > X_new_data(finest_ln+1);
+    std::vector<Pointer<LData> > X_half_data(finest_ln+1);
+    std::vector<Pointer<LData> > U_half_data(finest_ln+1);
+    std::vector<Pointer<LData> > F_half_data(finest_ln+1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
         {
-            X_current_data[ln] = d_lag_data_manager->getLMeshData(LDataManager::POSN_DATA_NAME,ln);
-            X_new_data    [ln] = d_lag_data_manager->createLMeshData("X_new" ,ln,NDIM);
-            X_half_data   [ln] = d_lag_data_manager->createLMeshData("X_half",ln,NDIM);
-            U_half_data   [ln] = d_lag_data_manager->createLMeshData("U_half",ln,NDIM);
-            F_half_data   [ln] = d_lag_data_manager->createLMeshData("F_half",ln,NDIM);
+            X_current_data[ln] = d_lag_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
+            X_new_data    [ln] = d_lag_data_manager->createLData("X_new" ,ln,NDIM);
+            X_half_data   [ln] = d_lag_data_manager->createLData("X_half",ln,NDIM);
+            U_half_data   [ln] = d_lag_data_manager->createLData("U_half",ln,NDIM);
+            F_half_data   [ln] = d_lag_data_manager->createLData("F_half",ln,NDIM);
         }
     }
 
@@ -1378,12 +1378,12 @@ IBFEHierarchyIntegrator::resetHierarchyConfiguration(
     // If we have added or removed a level, resize the schedule vectors.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin(); it != d_ralgs.end(); ++it)
     {
-        d_rscheds[(*it).first].resize(finest_hier_level+1);
+        d_rscheds[it->first].resize(finest_hier_level+1);
     }
 
     for (CoarsenAlgMap::const_iterator it = d_calgs.begin(); it != d_calgs.end(); ++it)
     {
-        d_cscheds[(*it).first].resize(finest_hier_level+1);
+        d_cscheds[it->first].resize(finest_hier_level+1);
     }
 
     // (Re)build generic refine communication schedules.  These are created for
@@ -1393,7 +1393,7 @@ IBFEHierarchyIntegrator::resetHierarchyConfiguration(
         for (int ln = coarsest_level; ln <= finest_hier_level; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            d_rscheds[(*it).first][ln] = (*it).second->createSchedule(level, ln-1, hierarchy, d_rstrategies[(*it).first]);
+            d_rscheds[it->first][ln] = it->second->createSchedule(level, ln-1, hierarchy, d_rstrategies[it->first]);
         }
     }
 
@@ -1405,7 +1405,7 @@ IBFEHierarchyIntegrator::resetHierarchyConfiguration(
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
             Pointer<PatchLevel<NDIM> > coarser_level = hierarchy->getPatchLevel(ln-1);
-            d_cscheds[(*it).first][ln] = (*it).second->createSchedule(coarser_level, level, d_cstrategies[(*it).first]);
+            d_cscheds[it->first][ln] = it->second->createSchedule(coarser_level, level, d_cstrategies[it->first]);
         }
     }
 

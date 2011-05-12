@@ -242,8 +242,8 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
     const int lag_node_index_idx,
     const int global_index_offset,
     const int local_index_offset,
-    Pointer<LMeshData>& X_data,
-    Pointer<LMeshData>& U_data,
+    Pointer<LData>& X_data,
+    Pointer<LData>& U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
@@ -403,8 +403,8 @@ int
 IBHDF5Initializer::initializeMassDataOnPatchLevel(
     const int global_index_offset,
     const int local_index_offset,
-    Pointer<LMeshData>& M_data,
-    Pointer<LMeshData>& K_data,
+    Pointer<LData>& M_data,
+    Pointer<LData>& K_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
@@ -1206,7 +1206,7 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
                         it = spring_data_map.insert(spring_data_map.end(), std::make_pair(node1_idx,new IBSpringForceSpec()));
                     }
 
-                    Pointer<IBSpringForceSpec> old_spring_data = (*it).second;
+                    Pointer<IBSpringForceSpec> old_spring_data = it->second;
                     TBOX_ASSERT(old_spring_data->getMasterNodeIndex() == -1 ||
                                 old_spring_data->getMasterNodeIndex() == node1_idx);
 
@@ -1223,7 +1223,7 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
                     Pointer<IBSpringForceSpec> new_spring_data = new IBSpringForceSpec(
                         node1_idx, slave_idxs, force_fcn_idxs, stiffnesses, rest_lengths);
 
-                    (*it).second = new_spring_data;
+                    it->second = new_spring_data;
                 }
             }
         }
@@ -1473,7 +1473,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
                         it = beam_data_map.insert(beam_data_map.end(), std::make_pair(node2_idx,new IBBeamForceSpec()));
                     }
 
-                    Pointer<IBBeamForceSpec> old_beam_data = (*it).second;
+                    Pointer<IBBeamForceSpec> old_beam_data = it->second;
                     TBOX_ASSERT(old_beam_data->getMasterNodeIndex() == -1 ||
                                 old_beam_data->getMasterNodeIndex() == node2_idx);
 
@@ -1488,7 +1488,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
                     Pointer<IBBeamForceSpec> new_beam_data = new IBBeamForceSpec(
                         node2_idx, neighbor_idxs, bend_rigidities, rest_curvatures);
 
-                    (*it).second = new_beam_data;
+                    it->second = new_beam_data;
                 }
             }
         }
@@ -1661,12 +1661,12 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
                     std::map<int,Pointer<IBTargetPointForceSpec> >::iterator it = target_point_data_map.find(node_idx);
                     if (it == target_point_data_map.end())
                     {
-                        target_point_data = (*target_point_data_map.insert(target_point_data_map.end(), std::make_pair(node_idx,new IBTargetPointForceSpec()))).second;
+                        target_point_data = target_point_data_map.insert(target_point_data_map.end(), std::make_pair(node_idx,new IBTargetPointForceSpec()))->second;
                         TBOX_ASSERT(target_point_data->getMasterNodeIndex() == -1);
                     }
                     else
                     {
-                        target_point_data = (*it).second;
+                        target_point_data = it->second;
                         TBOX_ASSERT(target_point_data->getMasterNodeIndex() == node_idx);
                     }
                     target_point_data->getMasterNodeIndex() = node_idx;
@@ -1863,12 +1863,12 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
                     std::map<int,Pointer<IBInstrumentationSpec> >::iterator it = inst_point_data_map.find(node_idx);
                     if (it == inst_point_data_map.end())
                     {
-                        inst_point_data = (*inst_point_data_map.insert(inst_point_data_map.end(), std::make_pair(node_idx,new IBInstrumentationSpec()))).second;
+                        inst_point_data = inst_point_data_map.insert(inst_point_data_map.end(), std::make_pair(node_idx,new IBInstrumentationSpec()))->second;
                         TBOX_ASSERT(inst_point_data->getMasterNodeIndex() == -1);
                     }
                     else
                     {
-                        inst_point_data = (*it).second;
+                        inst_point_data = it->second;
                         TBOX_ASSERT(inst_point_data->getMasterNodeIndex() == node_idx);
                     }
                     inst_point_data->getMasterNodeIndex() = node_idx;
@@ -1954,7 +1954,7 @@ IBHDF5Initializer::initializeSpecs(
             d_level_spring_data_map[j].find(k);
         if (cit != d_level_spring_data_map[j].end())
         {
-            Pointer<IBSpringForceSpec> spring_data = (*cit).second;
+            Pointer<IBSpringForceSpec> spring_data = cit->second;
             if (specs_need_reset)
             {
                 if (d_using_uniform_spring_force_fcn_idx[ln][j])
@@ -1991,7 +1991,7 @@ IBHDF5Initializer::initializeSpecs(
             d_level_beam_data_map[j].find(k);
         if (cit != d_level_beam_data_map[j].end())
         {
-            Pointer<IBBeamForceSpec> beam_data = (*cit).second;
+            Pointer<IBBeamForceSpec> beam_data = cit->second;
             if (specs_need_reset)
             {
                 if (d_using_uniform_beam_bend_rigidity[ln][j])
@@ -2004,8 +2004,8 @@ IBHDF5Initializer::initializeSpecs(
                 for (std::vector<std::pair<int,int> >::iterator it = neighbor_idxs.begin();
                      it != neighbor_idxs.end(); ++it)
                 {
-                    (*it).first  += vertex_offset;
-                    (*it).second += vertex_offset;
+                    it->first  += vertex_offset;
+                    it->second += vertex_offset;
                 }
             }
             vertex_specs.push_back(beam_data);
@@ -2032,7 +2032,7 @@ IBHDF5Initializer::initializeSpecs(
                 d_level_target_point_data_map[j].find(k);
             if (cit != d_level_target_point_data_map[j].end())
             {
-                Pointer<IBTargetPointForceSpec> target_point_data = (*cit).second;
+                Pointer<IBTargetPointForceSpec> target_point_data = cit->second;
                 if (specs_need_reset)
                 {
                     target_point_data->getMasterNodeIndex() += vertex_offset;
@@ -2065,7 +2065,7 @@ IBHDF5Initializer::initializeSpecs(
             d_level_inst_point_data_map[j].find(k);
         if (cit != d_level_inst_point_data_map[j].end())
         {
-            Pointer<IBInstrumentationSpec> inst_point_data = (*cit).second;
+            Pointer<IBInstrumentationSpec> inst_point_data = cit->second;
             if (specs_need_reset)
             {
                 inst_point_data->getMasterNodeIndex() += vertex_offset;

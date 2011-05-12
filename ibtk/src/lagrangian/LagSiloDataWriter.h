@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/LMeshData.h>
+#include <ibtk/LData.h>
 
 // SAMRAI INCLUDES
 #include <IntVector.h>
@@ -174,7 +174,7 @@ public:
      */
     void
     registerCoordsData(
-        SAMRAI::tbox::Pointer<LMeshData> coords_data,
+        SAMRAI::tbox::Pointer<LData> coords_data,
         const int level_number);
 
     /*!
@@ -183,7 +183,7 @@ public:
     void
     registerVariableData(
         const std::string& var_name,
-        SAMRAI::tbox::Pointer<LMeshData> var_data,
+        SAMRAI::tbox::Pointer<LData> var_data,
         const int level_number);
 
     /*!
@@ -193,7 +193,7 @@ public:
     void
     registerVariableData(
         const std::string& var_name,
-        SAMRAI::tbox::Pointer<LMeshData> var_data,
+        SAMRAI::tbox::Pointer<LData> var_data,
         const int start_depth,
         const int var_depth,
         const int level_number);
@@ -373,12 +373,12 @@ private:
     /*
      * Coordinates and variable data for plotting.
      */
-    std::vector<SAMRAI::tbox::Pointer<LMeshData> > d_coords_data;
+    std::vector<SAMRAI::tbox::Pointer<LData> > d_coords_data;
 
     std::vector<int> d_nvars;
     std::vector<std::vector<std::string > > d_var_names;
     std::vector<std::vector<int> > d_var_start_depths, d_var_plot_depths, d_var_depths;
-    std::vector<std::vector<SAMRAI::tbox::Pointer<LMeshData> > > d_var_data;
+    std::vector<std::vector<SAMRAI::tbox::Pointer<LData> > > d_var_data;
 
     /*
      * Data for obtaining local data.

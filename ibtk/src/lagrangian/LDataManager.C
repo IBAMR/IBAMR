@@ -50,7 +50,7 @@
 #include <ibtk/LEInteractor.h>
 #include <ibtk/LNodeIndexData.h>
 #include <ibtk/LNodeIndexTransaction.h>
-#include <ibtk/LMeshData.h>
+#include <ibtk/LData.h>
 #include <ibtk/LagSiloDataWriter.h>
 #include <ibtk/namespaces.h>
 
@@ -141,12 +141,12 @@ get_canonical_cell_index(
     return shifted_idx;
 }// get_canonical_cell_index
 
-struct BeginLMeshDataNonlocalFill
-    : std::unary_function<std::pair<std::string,Pointer<LMeshData> >,void>
+struct BeginLDataNonlocalFill
+    : std::unary_function<std::pair<std::string,Pointer<LData> >,void>
 {
     inline void
     operator()(
-        const std::pair<std::string,Pointer<LMeshData> >& data) const
+        const std::pair<std::string,Pointer<LData> >& data) const
         {
             data.second->beginGhostUpdate();
             return;
@@ -190,12 +190,12 @@ struct InvalidateLNodeIndexLocationPointers
         }
 };
 
-struct EndLMeshDataNonlocalFill
-    : std::unary_function<std::pair<std::string,Pointer<LMeshData> >,void>
+struct EndLDataNonlocalFill
+    : std::unary_function<std::pair<std::string,Pointer<LData> >,void>
 {
     inline void
     operator()(
-        const std::pair<std::string,Pointer<LMeshData> >& data) const
+        const std::pair<std::string,Pointer<LData> >& data) const
         {
             data.second->endGhostUpdate();
             return;
@@ -312,11 +312,11 @@ LDataManager::freeAllManagers()
     for (std::map<std::string,LDataManager*>::iterator it = s_data_manager_instances.begin();
          it != s_data_manager_instances.end(); ++it)
     {
-        if ((*it).second)
+        if (it->second)
         {
-            delete (*it).second;
+            delete it->second;
         }
-        (*it).second = NULL;
+        it->second = NULL;
     }
     return;
 }// freeManager
@@ -415,9 +415,9 @@ LDataManager::getSpreadWeightingFunction() const
 void
 LDataManager::spread(
     const int f_data_idx,
-    std::vector<Pointer<LMeshData> >& F_data,
-    std::vector<Pointer<LMeshData> >& X_data,
-    std::vector<Pointer<LMeshData> >& ds_data,
+    std::vector<Pointer<LData> >& F_data,
+    std::vector<Pointer<LData> >& X_data,
+    std::vector<Pointer<LData> >& ds_data,
     std::vector<Pointer<RefineSchedule<NDIM> > > f_prolongation_scheds,
     const bool F_data_ghost_node_update,
     const bool X_data_ghost_node_update,
@@ -435,17 +435,17 @@ LDataManager::spread(
     }
 
     // Compute F*ds.
-    std::vector<Pointer<LMeshData> > F_ds_data(F_data.size());
+    std::vector<Pointer<LData> > F_ds_data(F_data.size());
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (levelContainsLagrangianData(ln))
         {
             const int depth = F_data[ln]->getDepth();
-            F_ds_data[ln] = new LMeshData("", getNumberOfLocalNodes(ln), depth, d_nonlocal_petsc_indices[ln][depth]);
+            F_ds_data[ln] = new LData("", getNumberOfLocalNodes(ln), depth, d_nonlocal_petsc_indices[ln][depth]);
             blitz::Array<double,2>&       F_ds_arr = *F_ds_data[ln]->getGhostedLocalFormVecArray();
             const blitz::Array<double,2>&    F_arr = *   F_data[ln]->getGhostedLocalFormVecArray();
             const blitz::Array<double,1>&   ds_arr = *  ds_data[ln]->getGhostedLocalFormArray();
-            for (int k = 0; k < F_data[ln]->getLocalNodeCount() + F_data[ln]->getLocalGhostNodeCount(); ++k)
+            for (int k = 0; k < F_data[ln]->getLocalNodeCount() + F_data[ln]->getGhostNodeCount(); ++k)
             {
                 for (int d = 0; d < depth; ++d)
                 {
@@ -466,8 +466,8 @@ LDataManager::spread(
 void
 LDataManager::spread(
     const int f_data_idx,
-    std::vector<Pointer<LMeshData> >& F_data,
-    std::vector<Pointer<LMeshData> >& X_data,
+    std::vector<Pointer<LData> >& F_data,
+    std::vector<Pointer<LData> >& X_data,
     std::vector<Pointer<RefineSchedule<NDIM> > > f_prolongation_scheds,
     const bool F_data_ghost_node_update,
     const bool X_data_ghost_node_update,
@@ -582,8 +582,8 @@ LDataManager::spread(
 void
 LDataManager::interp(
     const int f_data_idx,
-    std::vector<Pointer<LMeshData> >& F_data,
-    std::vector<Pointer<LMeshData> >& X_data,
+    std::vector<Pointer<LData> >& F_data,
+    std::vector<Pointer<LData> >& X_data,
     std::vector<Pointer<CoarsenSchedule<NDIM> > > f_synch_scheds,
     std::vector<Pointer<RefineSchedule<NDIM> > > f_ghost_fill_scheds,
     const double fill_data_time,
@@ -658,8 +658,8 @@ LDataManager::interp(
 void
 LDataManager::interpolate(
     const int f_data_idx,
-    std::vector<Pointer<LMeshData> >& F_data,
-    std::vector<Pointer<LMeshData> >& X_data,
+    std::vector<Pointer<LData> >& F_data,
+    std::vector<Pointer<LData> >& X_data,
     std::vector<Pointer<CoarsenSchedule<NDIM> > > f_synch_scheds,
     std::vector<Pointer<RefineSchedule<NDIM> > > f_ghost_fill_scheds,
     const double fill_data_time,
@@ -801,8 +801,8 @@ LDataManager::getGlobalNodeOffset(
     return d_node_offset[level_number];
 }// getGlobalNodeOffset
 
-Pointer<LMeshData>
-LDataManager::getLMeshData(
+Pointer<LData>
+LDataManager::getLData(
     const std::string& quantity_name,
     const int level_number) const
 {
@@ -813,10 +813,10 @@ LDataManager::getLMeshData(
     TBOX_ASSERT(d_lag_quantity_data[level_number].count(quantity_name) > 0);
 #endif
     return d_lag_quantity_data[level_number].find(quantity_name)->second;
-}// getLMeshData
+}// getLData
 
-Pointer<LMeshData>
-LDataManager::createLMeshData(
+Pointer<LData>
+LDataManager::createLData(
     const std::string& quantity_name,
     const int level_number,
     const int depth,
@@ -846,7 +846,7 @@ LDataManager::createLMeshData(
         created_nonlocal_petsc_indices = true;
     }
 
-    Pointer<LMeshData> ret_val = new LMeshData(
+    Pointer<LData> ret_val = new LData(
         quantity_name, getNumberOfLocalNodes(level_number), depth, d_nonlocal_petsc_indices[level_number][depth]);
 
     if (maintain_data)
@@ -859,7 +859,7 @@ LDataManager::createLMeshData(
         d_nonlocal_petsc_indices[level_number].erase(depth);
     }
     return ret_val;
-}// createLMeshData
+}// createLData
 
 int
 LDataManager::getLNodeIndexPatchDescriptorIndex() const
@@ -1211,7 +1211,7 @@ LDataManager::inactivateLagrangianStructures(
 
 void
 LDataManager::zeroInactivatedComponents(
-    Pointer<LMeshData> lag_data,
+    Pointer<LData> lag_data,
     const int level_number) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1231,7 +1231,7 @@ LDataManager::zeroInactivatedComponents(
          cit != d_inactive_strcts[level_number].getSet().end(); ++cit)
     {
         const int strct_id = *cit;
-        const std::pair<int,int>& lag_index_range = (*d_strct_id_to_lag_idx_range_map[level_number].find(strct_id)).second;
+        const std::pair<int,int>& lag_index_range = d_strct_id_to_lag_idx_range_map[level_number].find(strct_id)->second;
         for (int l = lag_index_range.first; l < lag_index_range.second; ++l)
         {
             idxs.push_back(l);
@@ -1401,7 +1401,7 @@ LDataManager::beginDataRedistribution(
             if (d_needs_synch[level_number])
             {
                 TBOX_WARNING("LDataManager::beginDataRedistribution():\n" <<
-                             "\tLMeshData is not synchronized with LNodeIndexData.\n" <<
+                             "\tLData is not synchronized with LNodeIndexData.\n" <<
                              "\tLagrangian node position data is probably invalid!\n");
             }
 
@@ -1527,7 +1527,7 @@ LDataManager::beginDataRedistribution(
                             // IMPORTANT NOTE: The location of a node is itself
                             // a *quantity* living on the Lagrangian mesh.
                             // Until the Lagrangian data is redistributed, the
-                            // patch still owns the LMeshData associated
+                            // patch still owns the LData associated
                             // with the old LNodeIndex distribution.  Thus it is
                             // the responsibility of this patch to update the
                             // location of the node if the node leaves via a
@@ -1595,7 +1595,7 @@ LDataManager::endDataRedistribution(
         if (d_level_contains_lag_data[level_number] && (!d_needs_synch[level_number]))
         {
             TBOX_WARNING("LDataManager::endDataRedistribution():\n" <<
-                         "\tLMeshData is already synchronized with LNodeIndexData.\n" <<
+                         "\tLData is already synchronized with LNodeIndexData.\n" <<
                          "\tlevel = " << level_number << "\n");
         }
     }
@@ -1753,14 +1753,14 @@ LDataManager::endDataRedistribution(
         }
     }
 
-    // Define the PETSc data needed to communicate the LMeshData from its
+    // Define the PETSc data needed to communicate the LData from its
     // old configuration to its new configuration.
     int ierr;
 
     std::vector<AO> new_ao(finest_ln+1);
 
-    std::vector<std::vector<Vec> > src(finest_ln+1);
-    std::vector<std::vector<Vec> > dst(finest_ln+1);
+    std::vector<std::vector<Vec> > src_vec(finest_ln+1);
+    std::vector<std::vector<Vec> > dst_vec(finest_ln+1);
     std::vector<std::vector<VecScatter> > scatter(finest_ln+1);
     std::vector<std::map<int,IS> > src_IS(finest_ln+1);
     std::vector<std::map<int,IS> > dst_IS(finest_ln+1);
@@ -1812,11 +1812,11 @@ LDataManager::endDataRedistribution(
         // Compute the new data distribution and start scattering.
         if (d_level_contains_lag_data[level_number])
         {
-            std::map<std::string,Pointer<LMeshData> >& level_data = d_lag_quantity_data[level_number];
+            std::map<std::string,Pointer<LData> >& level_data = d_lag_quantity_data[level_number];
             const std::vector<int>::size_type num_data = level_data.size();
 
-            src[    level_number].resize(num_data);
-            dst[    level_number].resize(num_data);
+            src_vec[level_number].resize(num_data);
+            dst_vec[level_number].resize(num_data);
             scatter[level_number].resize(num_data);
 
             // Obtain pointers to the patch local and ghost index sets.
@@ -1851,11 +1851,11 @@ LDataManager::endDataRedistribution(
             num_local_nodes   [level_number] = d_local_lag_indices   [level_number].size();
             num_nonlocal_nodes[level_number] = d_nonlocal_lag_indices[level_number].size();
 
-            std::map<std::string, Pointer<LMeshData> >::iterator it;
+            std::map<std::string, Pointer<LData> >::iterator it;
             int i;
             for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
             {
-                Pointer<LMeshData> data = (*it).second;
+                Pointer<LData> data = it->second;
 #ifdef DEBUG_CHECK_ASSERTIONS
                 TBOX_ASSERT(!data.isNull());
 #endif
@@ -1945,7 +1945,7 @@ LDataManager::endDataRedistribution(
                 }
 
                 // Create the destination Vec and VecScatter contexts.
-                src[level_number][i] = data->getVec();
+                src_vec[level_number][i] = data->getVec();
 
                 if (depth == 1)
                 {
@@ -1953,7 +1953,7 @@ LDataManager::endDataRedistribution(
                                           num_local_nodes[level_number], PETSC_DECIDE,
                                           num_nonlocal_nodes[level_number],
                                           num_nonlocal_nodes[level_number] > 0 ? &d_nonlocal_petsc_indices[level_number][depth][0] : NULL,
-                                          &dst[level_number][i]);
+                                          &dst_vec[level_number][i]);
                     IBTK_CHKERRQ(ierr);
                 }
                 else
@@ -1962,14 +1962,14 @@ LDataManager::endDataRedistribution(
                                                depth*num_local_nodes[level_number], PETSC_DECIDE,
                                                num_nonlocal_nodes[level_number],
                                                num_nonlocal_nodes[level_number] > 0 ? &d_nonlocal_petsc_indices[level_number][depth][0] : NULL,
-                                               &dst[level_number][i]);
+                                               &dst_vec[level_number][i]);
                     IBTK_CHKERRQ(ierr);
                 }
-                ierr = VecSetBlockSize(dst[level_number][i], depth);
+                ierr = VecSetBlockSize(dst_vec[level_number][i], depth);
                 IBTK_CHKERRQ(ierr);
 
-                ierr = VecScatterCreate(src[level_number][i], src_IS[level_number][depth],
-                                        dst[level_number][i], dst_IS[level_number][depth],
+                ierr = VecScatterCreate(src_vec[level_number][i], src_IS[level_number][depth],
+                                        dst_vec[level_number][i], dst_IS[level_number][depth],
                                         &scatter[level_number][i]);
                 IBTK_CHKERRQ(ierr);
             }
@@ -1981,12 +1981,12 @@ LDataManager::endDataRedistribution(
     {
         if (d_level_contains_lag_data[level_number])
         {
-            std::map<std::string,Pointer<LMeshData> >& level_data = d_lag_quantity_data[level_number];
-            std::map<std::string,Pointer<LMeshData> >::iterator it;
+            std::map<std::string,Pointer<LData> >& level_data = d_lag_quantity_data[level_number];
+            std::map<std::string,Pointer<LData> >::iterator it;
             int i;
             for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
             {
-                ierr = VecScatterBegin(scatter[level_number][i], src[level_number][i], dst[level_number][i], INSERT_VALUES, SCATTER_FORWARD); IBTK_CHKERRQ(ierr);
+                ierr = VecScatterBegin(scatter[level_number][i], src_vec[level_number][i], dst_vec[level_number][i], INSERT_VALUES, SCATTER_FORWARD); IBTK_CHKERRQ(ierr);
             }
         }// if (d_level_contains_lag_data[level_number])
     }// for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
@@ -1996,12 +1996,12 @@ LDataManager::endDataRedistribution(
     {
         if (d_level_contains_lag_data[level_number])
         {
-            std::map<std::string,Pointer<LMeshData> >& level_data = d_lag_quantity_data[level_number];
-            std::map<std::string,Pointer<LMeshData> >::iterator it;
+            std::map<std::string,Pointer<LData> >& level_data = d_lag_quantity_data[level_number];
+            std::map<std::string,Pointer<LData> >::iterator it;
             int i;
             for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
             {
-                ierr = VecScatterEnd(scatter[level_number][i], src[level_number][i], dst[level_number][i], INSERT_VALUES, SCATTER_FORWARD); IBTK_CHKERRQ(ierr);
+                ierr = VecScatterEnd(scatter[level_number][i], src_vec[level_number][i], dst_vec[level_number][i], INSERT_VALUES, SCATTER_FORWARD); IBTK_CHKERRQ(ierr);
             }
         }// if (d_level_contains_lag_data[level_number])
     }// for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
@@ -2011,30 +2011,29 @@ LDataManager::endDataRedistribution(
     {
         if (d_level_contains_lag_data[level_number])
         {
-            std::map<std::string,Pointer<LMeshData> >& level_data = d_lag_quantity_data[level_number];
-            std::map<std::string,Pointer<LMeshData> >::iterator it;
+            std::map<std::string,Pointer<LData> >& level_data = d_lag_quantity_data[level_number];
+            std::map<std::string,Pointer<LData> >::iterator it;
             int i;
             for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
             {
                 ierr = VecScatterDestroy(scatter[level_number][i]); IBTK_CHKERRQ(ierr);
-                ierr = VecDestroy(src[level_number][i]); IBTK_CHKERRQ(ierr);
             }
         }// if (d_level_contains_lag_data[level_number])
     }// for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
 
-    // Reset data pointers.
+    // Reset data.
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (d_level_contains_lag_data[level_number])
         {
-            std::map<std::string,Pointer<LMeshData> >& level_data = d_lag_quantity_data[level_number];
-            std::map<std::string,Pointer<LMeshData> >::iterator it;
+            std::map<std::string,Pointer<LData> >& level_data = d_lag_quantity_data[level_number];
+            std::map<std::string,Pointer<LData> >::iterator it;
             int i;
             for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
             {
-                Pointer<LMeshData> data = (*it).second;
+                Pointer<LData> data = it->second;
                 const int depth = data->getDepth();
-                data->resetData(dst[level_number][i], d_nonlocal_petsc_indices[level_number][depth]);
+                data->resetData(dst_vec[level_number][i], d_nonlocal_petsc_indices[level_number][depth]);
             }
         }// if (d_level_contains_lag_data[level_number])
     }// for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
@@ -2059,14 +2058,14 @@ LDataManager::endDataRedistribution(
         for (std::map<int,IS>::iterator it = src_IS[level_number].begin();
              it != src_IS[level_number].end(); ++it)
         {
-            ierr = ISDestroy((*it).second);
+            ierr = ISDestroy(it->second);
             IBTK_CHKERRQ(ierr);
         }
 
         for (std::map<int,IS>::iterator it = dst_IS[level_number].begin();
              it != dst_IS[level_number].end(); ++it)
         {
-            ierr = ISDestroy((*it).second);
+            ierr = ISDestroy(it->second);
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -2407,12 +2406,12 @@ LDataManager::initializeLevelData(
 
             computeNodeOffsets(d_num_nodes[level_number], d_node_offset[level_number], num_local_nodes);
 
-            // 2. Allocate LMeshData corresponding to the curvilinear mesh
+            // 2. Allocate LData corresponding to the curvilinear mesh
             //    node positions and velocities.
             static const bool maintain_data = true;
-            createLMeshData(     POSN_DATA_NAME, level_number, NDIM, maintain_data);
-            createLMeshData(INIT_POSN_DATA_NAME, level_number, NDIM, maintain_data);
-            createLMeshData(      VEL_DATA_NAME, level_number, NDIM, maintain_data);
+            createLData(     POSN_DATA_NAME, level_number, NDIM, maintain_data);
+            createLData(INIT_POSN_DATA_NAME, level_number, NDIM, maintain_data);
+            createLData(      VEL_DATA_NAME, level_number, NDIM, maintain_data);
 
             // 3. Initialize the Lagrangian data.
             d_lag_init->initializeStructureIndexingOnPatchLevel(
@@ -2424,13 +2423,13 @@ LDataManager::initializeLevelData(
             for (std::map<int,std::string>::const_iterator cit(d_strct_id_to_strct_name_map[level_number].begin());
                  cit != d_strct_id_to_strct_name_map[level_number].end(); ++cit)
             {
-                d_strct_name_to_strct_id_map[level_number][(*cit).second] = (*cit).first;
+                d_strct_name_to_strct_id_map[level_number][cit->second] = cit->first;
             }
 
             for (std::map<int,std::pair<int,int> >::const_iterator cit(d_strct_id_to_lag_idx_range_map[level_number].begin());
                  cit != d_strct_id_to_lag_idx_range_map[level_number].end(); ++cit)
             {
-                d_last_lag_idx_to_strct_id_map[level_number][(*cit).second.second-1] = (*cit).first;
+                d_last_lag_idx_to_strct_id_map[level_number][cit->second.second-1] = cit->first;
             }
 
             // WARNING: If either of the following offsets is ever nonzero, note
@@ -2793,11 +2792,11 @@ LDataManager::putToDatabase(
             for (std::map<int,std::string>::iterator it = d_strct_id_to_strct_name_map[level_number].begin();
                  it != d_strct_id_to_strct_name_map[level_number].end(); ++it)
             {
-                const int id = (*it).first;
+                const int id = it->first;
                 lstruct_ids.push_back(id);
-                lstruct_names.push_back((*it).second);
-                lstruct_lag_idx_range_first.push_back((*d_strct_id_to_lag_idx_range_map[level_number].find(id)).second.first);
-                lstruct_lag_idx_range_second.push_back((*d_strct_id_to_lag_idx_range_map[level_number].find(id)).second.second);
+                lstruct_names.push_back(it->second);
+                lstruct_lag_idx_range_first.push_back(d_strct_id_to_lag_idx_range_map[level_number].find(id)->second.first);
+                lstruct_lag_idx_range_second.push_back(d_strct_id_to_lag_idx_range_map[level_number].find(id)->second.second);
                 lstruct_activation.push_back(int(d_inactive_strcts[level_number].getSet().find(id) != d_inactive_strcts[level_number].getSet().end()));
             }
             level_db->putInteger("n_lstructs", lstruct_ids.size());
@@ -2811,11 +2810,11 @@ LDataManager::putToDatabase(
             }
 
             std::vector<std::string> ldata_names;
-            for (std::map<std::string,Pointer<LMeshData> >::iterator it = d_lag_quantity_data[level_number].begin();
+            for (std::map<std::string,Pointer<LData> >::iterator it = d_lag_quantity_data[level_number].begin();
                  it != d_lag_quantity_data[level_number].end(); ++it)
             {
-                ldata_names.push_back((*it).first);
-                (*it).second->putToDatabase(level_db->putDatabase(ldata_names.back()));
+                ldata_names.push_back(it->first);
+                it->second->putToDatabase(level_db->putDatabase(ldata_names.back()));
             }
             level_db->putInteger("n_ldata_names", ldata_names.size());
             if (!ldata_names.empty())
@@ -3067,8 +3066,8 @@ LDataManager::~LDataManager()
 void
 LDataManager::spread_specialized(
     const int f_data_idx,
-    std::vector<Pointer<LMeshData> >& F_data,
-    std::vector<Pointer<LMeshData> >& X_data,
+    std::vector<Pointer<LData> >& F_data,
+    std::vector<Pointer<LData> >& X_data,
     const bool F_data_ghost_node_update,
     const bool X_data_ghost_node_update,
     const int coarsest_ln,
@@ -3116,8 +3115,8 @@ LDataManager::spread_specialized(
 void
 LDataManager::interp_specialized(
     const int f_data_idx,
-    std::vector<Pointer<LMeshData> >& F_data,
-    std::vector<Pointer<LMeshData> >& X_data,
+    std::vector<Pointer<LData> >& F_data,
+    std::vector<Pointer<LData> >& X_data,
     std::vector<Pointer<RefineSchedule<NDIM> > > f_ghost_fill_scheds,
     const double fill_data_time,
     const int coarsest_ln,
@@ -3247,10 +3246,10 @@ LDataManager::beginNonlocalDataFill(
 
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
-        std::map<std::string,Pointer<LMeshData> >& level_data = d_lag_quantity_data[level_number];
+        std::map<std::string,Pointer<LData> >& level_data = d_lag_quantity_data[level_number];
         for_each(level_data.begin(),
                  level_data.end(),
-                 BeginLMeshDataNonlocalFill());
+                 BeginLDataNonlocalFill());
     }
 
     t_begin_nonlocal_data_fill->stop();
@@ -3274,10 +3273,10 @@ LDataManager::endNonlocalDataFill(
 
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
-        std::map<std::string,Pointer<LMeshData> >& level_data = d_lag_quantity_data[level_number];
+        std::map<std::string,Pointer<LData> >& level_data = d_lag_quantity_data[level_number];
         for_each(level_data.begin(),
                  level_data.end(),
-                 EndLMeshDataNonlocalFill());
+                 EndLDataNonlocalFill());
     }
 
     t_end_nonlocal_data_fill->stop();
@@ -3687,13 +3686,13 @@ LDataManager::getFromRestart()
             for (std::map<int,std::string>::const_iterator cit(d_strct_id_to_strct_name_map[level_number].begin());
                  cit != d_strct_id_to_strct_name_map[level_number].end(); ++cit)
             {
-                d_strct_name_to_strct_id_map[level_number][(*cit).second] = (*cit).first;
+                d_strct_name_to_strct_id_map[level_number][cit->second] = cit->first;
             }
 
             for (std::map<int,std::pair<int,int> >::const_iterator cit(d_strct_id_to_lag_idx_range_map[level_number].begin());
                  cit != d_strct_id_to_lag_idx_range_map[level_number].end(); ++cit)
             {
-                d_last_lag_idx_to_strct_id_map[level_number][(*cit).second.second-1] = (*cit).first;
+                d_last_lag_idx_to_strct_id_map[level_number][cit->second.second-1] = cit->first;
             }
 
             const int n_ldata_names = level_db->getIntegerWithDefault("n_ldata_names",0);
@@ -3710,7 +3709,7 @@ LDataManager::getFromRestart()
                  it != ldata_names.end(); ++it)
             {
                 const std::string& ldata_name = *it;
-                d_lag_quantity_data[level_number][ldata_name] = new LMeshData(level_db->getDatabase(ldata_name));
+                d_lag_quantity_data[level_number][ldata_name] = new LData(level_db->getDatabase(ldata_name));
                 data_depths.insert(d_lag_quantity_data[level_number][ldata_name]->getDepth());
             }
 

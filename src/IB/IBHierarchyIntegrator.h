@@ -703,7 +703,7 @@ private:
      */
     void
     resetAnchorPointValues(
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LMeshData> > V_data,
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > V_data,
         const int coarsest_ln,
         const int finest_ln);
 
@@ -720,7 +720,7 @@ private:
         const int coarsest_level,
         const int finest_level,
         const double data_time,
-        const std::vector<SAMRAI::tbox::Pointer<IBTK::LMeshData> >& X_data);
+        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data);
 
     /*!
      * Get the values of the pressures at the positions of the distributed
@@ -734,7 +734,7 @@ private:
         const int coarsest_level,
         const int finest_level,
         const double data_time,
-        const std::vector<SAMRAI::tbox::Pointer<IBTK::LMeshData> >& X_data);
+        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data);
 
     /*!
      * Read input values, indicated above, from given database.  The boolean

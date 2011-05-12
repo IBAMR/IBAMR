@@ -556,9 +556,9 @@ main(
              */
             const int ln = patch_hierarchy->getFinestLevelNumber();
             LDataManager* lag_manager = time_integrator->getLDataManager();
-            tbox::Pointer<LMeshData> X_data = lag_manager->getLMeshData("X",ln);
-            tbox::Pointer<LMeshData> U_data = lag_manager->getLMeshData("U",ln);
-            tbox::Pointer<LMeshData> F_data = lag_manager->createLMeshData("F",ln,NDIM);
+            tbox::Pointer<LData> X_data = lag_manager->getLMeshData("X",ln);
+            tbox::Pointer<LData> U_data = lag_manager->getLMeshData("U",ln);
+            tbox::Pointer<LData> F_data = lag_manager->createLMeshData("F",ln,NDIM);
             force_generator->computeLagrangianForce(
                 F_data, X_data, U_data,
                 patch_hierarchy, ln, loop_time, lag_manager);

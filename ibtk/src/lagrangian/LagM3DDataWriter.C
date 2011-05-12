@@ -124,7 +124,7 @@ LagM3DDataWriter::LagM3DDataWriter(
       d_block_nfibers(d_finest_ln+1),
       d_block_ngroups(d_finest_ln+1),
       d_block_first_lag_idx(d_finest_ln+1),
-      d_coords_data(d_finest_ln+1,Pointer<LMeshData>(NULL)),
+      d_coords_data(d_finest_ln+1,Pointer<LData>(NULL)),
       d_ao(d_finest_ln+1),
       d_build_vec_scatters(d_finest_ln+1),
       d_src_vec(d_finest_ln+1),
@@ -150,7 +150,7 @@ LagM3DDataWriter::~LagM3DDataWriter()
         for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
              it != d_dst_vec[ln].end(); ++it)
         {
-            Vec& v = (*it).second;
+            Vec& v = it->second;
             if (v)
             {
                 ierr = VecDestroy(v);
@@ -160,7 +160,7 @@ LagM3DDataWriter::~LagM3DDataWriter()
         for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
              it != d_vec_scatter[ln].end(); ++it)
         {
-            VecScatter& vs = (*it).second;
+            VecScatter& vs = it->second;
             if (vs)
             {
                 ierr = VecScatterDestroy(vs);
@@ -203,7 +203,7 @@ LagM3DDataWriter::resetLevels(
         for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
              it != d_dst_vec[ln].end(); ++it)
         {
-            Vec& v = (*it).second;
+            Vec& v = it->second;
             if (v != static_cast<Vec>(NULL))
             {
                 ierr = VecDestroy(v);  IBTK_CHKERRQ(ierr);
@@ -212,7 +212,7 @@ LagM3DDataWriter::resetLevels(
         for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
              it != d_vec_scatter[ln].end(); ++it)
         {
-            VecScatter& vs = (*it).second;
+            VecScatter& vs = it->second;
             if (vs != static_cast<VecScatter>(NULL))
             {
                 ierr = VecScatterDestroy(vs);  IBTK_CHKERRQ(ierr);
@@ -225,7 +225,7 @@ LagM3DDataWriter::resetLevels(
         for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
              it != d_dst_vec[ln].end(); ++it)
         {
-            Vec& v = (*it).second;
+            Vec& v = it->second;
             if (v != static_cast<Vec>(NULL))
             {
                 ierr = VecDestroy(v);  IBTK_CHKERRQ(ierr);
@@ -234,7 +234,7 @@ LagM3DDataWriter::resetLevels(
         for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
              it != d_vec_scatter[ln].end(); ++it)
         {
-            VecScatter& vs = (*it).second;
+            VecScatter& vs = it->second;
             if (vs != static_cast<VecScatter>(NULL))
             {
                 ierr = VecScatterDestroy(vs);  IBTK_CHKERRQ(ierr);
@@ -370,7 +370,7 @@ LagM3DDataWriter::registerLogicallyCartesianBlock(
 
 void
 LagM3DDataWriter::registerCoordsData(
-    Pointer<LMeshData> coords_data,
+    Pointer<LData> coords_data,
     const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
@@ -503,7 +503,7 @@ LagM3DDataWriter::writePlotData(
     for (std::vector<std::vector<int> >::const_iterator cit = d_block_nfibers.begin();
          cit != d_block_nfibers.end(); ++cit)
     {
-        num_local_fibers += std::accumulate((*cit).begin(), (*cit).end(), 0);
+        num_local_fibers += std::accumulate(cit->begin(), cit->end(), 0);
     }
     std::vector<int> num_fibers_proc(mpi_size,0);
     SAMRAI_MPI::allGather(num_local_fibers, &num_fibers_proc[0]);
@@ -516,7 +516,7 @@ LagM3DDataWriter::writePlotData(
     for (std::vector<std::vector<int> >::const_iterator cit = d_block_ngroups.begin();
          cit != d_block_ngroups.end(); ++cit)
     {
-        num_local_groups += std::accumulate((*cit).begin(), (*cit).end(), 0);
+        num_local_groups += std::accumulate(cit->begin(), cit->end(), 0);
     }
     std::vector<int> num_groups_proc(mpi_size,0);
     SAMRAI_MPI::allGather(num_local_groups, &num_groups_proc[0]);
@@ -1025,7 +1025,7 @@ LagM3DDataWriter::writePlotData(
             ierr = VecDuplicate(d_dst_vec[ln][NDIM], &local_X_vec);
             IBTK_CHKERRQ(ierr);
 
-            Vec& global_X_vec = d_coords_data[ln]->getVec();
+            Vec global_X_vec = d_coords_data[ln]->getVec();
             ierr = VecScatterBegin(d_vec_scatter[ln][NDIM], global_X_vec, local_X_vec,
                                    INSERT_VALUES, SCATTER_FORWARD);
             IBTK_CHKERRQ(ierr);
@@ -1155,8 +1155,8 @@ LagM3DDataWriter::buildVecScatters(
     for (std::map<int,std::vector<int> >::iterator it = src_is_idxs.begin();
          it != src_is_idxs.end(); ++it)
     {
-        const int depth = (*it).first;
-        const std::vector<int>& idxs = (*it).second;
+        const int depth = it->first;
+        const std::vector<int>& idxs = it->second;
 
         IS src_is;
         ierr = ISCreateBlock(PETSC_COMM_WORLD, depth, idxs.size(),

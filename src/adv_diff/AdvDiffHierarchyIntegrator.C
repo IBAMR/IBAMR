@@ -297,7 +297,7 @@ AdvDiffHierarchyIntegrator::~AdvDiffHierarchyIntegrator()
     for (CoarsenPatchStrategyMap::iterator it = d_cstrategies.begin();
          it != d_cstrategies.end(); ++it)
     {
-        delete (*it).second;
+        delete it->second;
     }
 
     // Deallocate all solver components.
@@ -1583,7 +1583,7 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
     // If we have added or removed a level, resize the schedule vectors.
     for (CoarsenAlgMap::const_iterator it = d_calgs.begin(); it != d_calgs.end(); ++it)
     {
-        d_cscheds[(*it).first].resize(finest_hier_level+1);
+        d_cscheds[it->first].resize(finest_hier_level+1);
     }
 
     // (Re)build coarsen communication schedules.  These are set only for levels
@@ -1594,7 +1594,7 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
             Pointer<PatchLevel<NDIM> > coarser_level = hierarchy->getPatchLevel(ln-1);
-            d_cscheds[(*it).first][ln] = (*it).second->createSchedule(coarser_level, level, d_cstrategies[(*it).first]);
+            d_cscheds[it->first][ln] = it->second->createSchedule(coarser_level, level, d_cstrategies[it->first]);
         }
     }
 

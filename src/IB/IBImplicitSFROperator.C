@@ -137,10 +137,10 @@ IBImplicitSFROperator::apply(
 
     LDataManager* lag_data_manager = d_ib_implicit_integrator->d_lag_data_manager;
 
-    std::vector<Pointer<LMeshData> >& X_data = d_ib_implicit_integrator->d_X_data;
-    std::vector<Pointer<LMeshData> >& X_half_data = d_ib_implicit_integrator->d_X_half_data;
-    std::vector<Pointer<LMeshData> >& U_half_data = d_ib_implicit_integrator->d_U_half_data;
-    std::vector<Pointer<LMeshData> >& F_half_data = d_ib_implicit_integrator->d_F_half_data;
+    std::vector<Pointer<LData> >& X_data = d_ib_implicit_integrator->d_X_data;
+    std::vector<Pointer<LData> >& X_half_data = d_ib_implicit_integrator->d_X_half_data;
+    std::vector<Pointer<LData> >& U_half_data = d_ib_implicit_integrator->d_U_half_data;
+    std::vector<Pointer<LData> >& F_half_data = d_ib_implicit_integrator->d_F_half_data;
 
     std::vector<Mat>& R_mats = d_ib_implicit_integrator->d_R_mats;
 

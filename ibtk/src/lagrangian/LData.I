@@ -1,4 +1,4 @@
-// Filename: LMeshData.I
+// Filename: LData.I
 // Created on 17 Apr 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -50,44 +50,44 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 inline const std::string&
-LMeshData::getName() const
+LData::getName() const
 {
     return d_name;
 }// getName
 
 inline int
-LMeshData::getGlobalNodeCount() const
+LData::getGlobalNodeCount() const
 {
     return d_global_node_count;
 }// getGlobalNodeCount
 
 inline int
-LMeshData::getLocalNodeCount() const
+LData::getLocalNodeCount() const
 {
     return d_local_node_count;
 }// getLocalNodeCount
 
 inline int
-LMeshData::getLocalGhostNodeCount() const
+LData::getGhostNodeCount() const
 {
-    return d_local_ghost_node_count;
-}// getLocalGhostNodeCount
+    return d_ghost_node_count;
+}// getGhostNodeCount
 
 inline int
-LMeshData::getDepth() const
+LData::getDepth() const
 {
     return d_depth;
 }// getDepth
 
-inline Vec&
-LMeshData::getVec()
+inline Vec
+LData::getVec()
 {
     restoreArrays();
     return d_global_vec;
 }// getVec
 
 inline blitz::Array<double,1>*
-LMeshData::getArray()
+LData::getArray()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_depth == 1);
@@ -97,7 +97,7 @@ LMeshData::getArray()
 }// getArray
 
 inline blitz::Array<double,1>*
-LMeshData::getLocalFormArray()
+LData::getLocalFormArray()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_depth == 1);
@@ -107,7 +107,7 @@ LMeshData::getLocalFormArray()
 }// getLocalFormArray
 
 inline blitz::Array<double,1>*
-LMeshData::getGhostedLocalFormArray()
+LData::getGhostedLocalFormArray()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_depth == 1);
@@ -117,28 +117,28 @@ LMeshData::getGhostedLocalFormArray()
 }// getGhostedLocalFormArray
 
 inline blitz::Array<double,2>*
-LMeshData::getVecArray()
+LData::getVecArray()
 {
     if (d_array == NULL) getArrayCommon();
     return &d_blitz_vec_array;
 }// getVecArray
 
 inline blitz::Array<double,2>*
-LMeshData::getLocalFormVecArray()
+LData::getLocalFormVecArray()
 {
     if (d_array == NULL) getArrayCommon();
-    return &d_blitz_vec_local_array;
+    return &d_blitz_local_vec_array;
 }// getLocalFormVecArray
 
 inline blitz::Array<double,2>*
-LMeshData::getGhostedLocalFormVecArray()
+LData::getGhostedLocalFormVecArray()
 {
     if (d_ghosted_local_array == NULL) getGhostedLocalFormArrayCommon();
     return &d_blitz_vec_ghosted_local_array;
 }// getGhostedLocalFormVecArray
 
 inline void
-LMeshData::restoreArrays()
+LData::restoreArrays()
 {
     if (d_array != NULL)
     {
@@ -147,7 +147,7 @@ LMeshData::restoreArrays()
         d_blitz_array.free();
         d_blitz_local_array.free();
         d_blitz_vec_array.free();
-        d_blitz_vec_local_array.free();
+        d_blitz_local_vec_array.free();
     }
     if (d_ghosted_local_array != NULL)
     {
@@ -165,14 +165,14 @@ LMeshData::restoreArrays()
 }// restoreArray
 
 inline void
-LMeshData::beginGhostUpdate()
+LData::beginGhostUpdate()
 {
     const int ierr = VecGhostUpdateBegin(getVec(),INSERT_VALUES,SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);
     return;
 }// beginGhostUpdate
 
 inline void
-LMeshData::endGhostUpdate()
+LData::endGhostUpdate()
 {
     const int ierr = VecGhostUpdateEnd(getVec(),INSERT_VALUES,SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);
     return;
@@ -181,7 +181,7 @@ LMeshData::endGhostUpdate()
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 inline void
-LMeshData::getArrayCommon()
+LData::getArrayCommon()
 {
     if (d_array == NULL)
     {
@@ -200,13 +200,13 @@ LMeshData::getArrayCommon()
             d_blitz_local_array.reference(blitz::Array<double,1>(d_array, shape, blitz::neverDeleteData));
         }
         d_blitz_vec_array.reference(blitz::Array<double,2>(d_array, vec_shape, blitz::neverDeleteData, vec_global_storage));
-        d_blitz_vec_local_array.reference(blitz::Array<double,2>(d_array, vec_shape, blitz::neverDeleteData));
+        d_blitz_local_vec_array.reference(blitz::Array<double,2>(d_array, vec_shape, blitz::neverDeleteData));
     }
     return;
 }// getArrayCommon
 
 inline void
-LMeshData::getGhostedLocalFormArrayCommon()
+LData::getGhostedLocalFormArrayCommon()
 {
     if (d_ghosted_local_vec == PETSC_NULL)
     {

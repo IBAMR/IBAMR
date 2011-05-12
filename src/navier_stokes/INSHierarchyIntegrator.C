@@ -470,13 +470,13 @@ INSHierarchyIntegrator::~INSHierarchyIntegrator()
     for (RefinePatchStrategyMap::iterator it = d_rstrategies.begin();
          it != d_rstrategies.end(); ++it)
     {
-        delete (*it).second;
+        delete it->second;
     }
 
     for (CoarsenPatchStrategyMap::iterator it = d_cstrategies.begin();
          it != d_cstrategies.end(); ++it)
     {
-        delete (*it).second;
+        delete it->second;
     }
 
     if (d_helmholtz_spec != NULL) delete d_helmholtz_spec;
@@ -2915,13 +2915,13 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();
          it!= d_ralgs.end(); ++it)
     {
-        d_rscheds[(*it).first].resize(finest_hier_level+1);
+        d_rscheds[it->first].resize(finest_hier_level+1);
     }
 
     for (CoarsenAlgMap::const_iterator it = d_calgs.begin();
          it!= d_calgs.end(); ++it)
     {
-        d_cscheds[(*it).first].resize(finest_hier_level+1);
+        d_cscheds[it->first].resize(finest_hier_level+1);
     }
 
     // (Re)build refine communication schedules.  These are created for all
@@ -2933,8 +2933,8 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
 
-            d_rscheds[(*it).first][ln] = (*it).second->
-                createSchedule(level, ln-1, hierarchy, d_rstrategies[(*it).first]);
+            d_rscheds[it->first][ln] = it->second->
+                createSchedule(level, ln-1, hierarchy, d_rstrategies[it->first]);
         }
     }
 
@@ -2949,8 +2949,8 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
             Pointer<PatchLevel<NDIM> > coarser_level =
                 hierarchy->getPatchLevel(ln-1);
 
-            d_cscheds[(*it).first][ln] = (*it).second->
-                createSchedule(coarser_level, level, d_cstrategies[(*it).first]);
+            d_cscheds[it->first][ln] = it->second->
+                createSchedule(coarser_level, level, d_cstrategies[it->first]);
         }
     }
 

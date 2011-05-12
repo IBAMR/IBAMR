@@ -916,7 +916,7 @@ private:
      */
     void
     resetAnchorPointValues(
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LMeshData> > V_data,
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > V_data,
         const int coarsest_ln,
         const int finest_ln);
 
@@ -1328,12 +1328,12 @@ private:
     /*
      * Lagrangian data.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LMeshData> > d_X_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LMeshData> > d_X_mid_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LMeshData> > d_X_new_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LMeshData> > d_X_half_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LMeshData> > d_U_half_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LMeshData> > d_F_half_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_mid_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_new_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_half_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_U_half_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_F_half_data;
 
     /*
      * List of local indices of local anchor points.

@@ -342,13 +342,13 @@ IBImplicitHierarchyIntegrator::~IBImplicitHierarchyIntegrator()
     for (RefinePatchStrategyMap::iterator it = d_rstrategies.begin();
          it != d_rstrategies.end(); ++it)
     {
-        delete (*it).second;
+        delete it->second;
     }
 
     for (CoarsenPatchStrategyMap::iterator it = d_cstrategies.begin();
          it != d_cstrategies.end(); ++it)
     {
-        delete (*it).second;
+        delete it->second;
     }
 
     if (d_helmholtz_spec != NULL) delete d_helmholtz_spec;
@@ -1245,12 +1245,12 @@ IBImplicitHierarchyIntegrator::regridHierarchy()
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(ln == finest_ln_after_regrid);
 #endif
-            d_X_data     [ln] = d_lag_data_manager->getLMeshData(LDataManager::POSN_DATA_NAME,ln);
-            d_X_mid_data [ln] = d_lag_data_manager->createLMeshData("X_mid" ,ln,NDIM);
-            d_X_new_data [ln] = d_lag_data_manager->createLMeshData("X_new" ,ln,NDIM);
-            d_X_half_data[ln] = d_lag_data_manager->createLMeshData("X_half",ln,NDIM);
-            d_U_half_data[ln] = d_lag_data_manager->createLMeshData("U_half",ln,NDIM);
-            d_F_half_data[ln] = d_lag_data_manager->createLMeshData("F_half",ln,NDIM);
+            d_X_data     [ln] = d_lag_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
+            d_X_mid_data [ln] = d_lag_data_manager->createLData("X_mid" ,ln,NDIM);
+            d_X_new_data [ln] = d_lag_data_manager->createLData("X_new" ,ln,NDIM);
+            d_X_half_data[ln] = d_lag_data_manager->createLData("X_half",ln,NDIM);
+            d_U_half_data[ln] = d_lag_data_manager->createLData("U_half",ln,NDIM);
+            d_F_half_data[ln] = d_lag_data_manager->createLData("F_half",ln,NDIM);
         }
     }
 
@@ -1291,7 +1291,7 @@ IBImplicitHierarchyIntegrator::regridHierarchy()
                 }
             }
 
-            Pointer<LMeshData> X_data = d_lag_data_manager->getLMeshData(LDataManager::POSN_DATA_NAME,ln);
+            Pointer<LData> X_data = d_lag_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
             const blitz::Array<double,2>& X_array = *X_data->getLocalFormVecArray();
             for (int i = 0; i < X_data->getLocalNodeCount(); ++i)
             {
@@ -1345,12 +1345,12 @@ IBImplicitHierarchyIntegrator::integrateHierarchy_initialize(
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(ln == finest_ln);
 #endif
-            d_X_data     [ln] = d_lag_data_manager->getLMeshData(LDataManager::POSN_DATA_NAME,ln);
-            d_X_mid_data [ln] = d_lag_data_manager->createLMeshData("X_mid" ,ln,NDIM);
-            d_X_new_data [ln] = d_lag_data_manager->createLMeshData("X_new" ,ln,NDIM);
-            d_X_half_data[ln] = d_lag_data_manager->createLMeshData("X_half",ln,NDIM);
-            d_U_half_data[ln] = d_lag_data_manager->createLMeshData("U_half",ln,NDIM);
-            d_F_half_data[ln] = d_lag_data_manager->createLMeshData("F_half",ln,NDIM);
+            d_X_data     [ln] = d_lag_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
+            d_X_mid_data [ln] = d_lag_data_manager->createLData("X_mid" ,ln,NDIM);
+            d_X_new_data [ln] = d_lag_data_manager->createLData("X_new" ,ln,NDIM);
+            d_X_half_data[ln] = d_lag_data_manager->createLData("X_half",ln,NDIM);
+            d_U_half_data[ln] = d_lag_data_manager->createLData("U_half",ln,NDIM);
+            d_F_half_data[ln] = d_lag_data_manager->createLData("F_half",ln,NDIM);
         }
     }
 
@@ -2319,13 +2319,13 @@ IBImplicitHierarchyIntegrator::resetHierarchyConfiguration(
     for (RefineAlgMap::const_iterator it = d_ralgs.begin();
          it!= d_ralgs.end(); ++it)
     {
-        d_rscheds[(*it).first].resize(finest_hier_level+1);
+        d_rscheds[it->first].resize(finest_hier_level+1);
     }
 
     for (CoarsenAlgMap::const_iterator it = d_calgs.begin();
          it!= d_calgs.end(); ++it)
     {
-        d_cscheds[(*it).first].resize(finest_hier_level+1);
+        d_cscheds[it->first].resize(finest_hier_level+1);
     }
 
     // (Re)build refine communication schedules.  These are created for all
@@ -2336,7 +2336,7 @@ IBImplicitHierarchyIntegrator::resetHierarchyConfiguration(
         for (int ln = coarsest_level; ln <= finest_hier_level; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            d_rscheds[(*it).first][ln] = (*it).second->createSchedule(level, ln-1, hierarchy, d_rstrategies[(*it).first]);
+            d_rscheds[it->first][ln] = it->second->createSchedule(level, ln-1, hierarchy, d_rstrategies[it->first]);
         }
     }
 
@@ -2349,7 +2349,7 @@ IBImplicitHierarchyIntegrator::resetHierarchyConfiguration(
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
             Pointer<PatchLevel<NDIM> > coarser_level = hierarchy->getPatchLevel(ln-1);
-            d_cscheds[(*it).first][ln] = (*it).second->createSchedule(coarser_level, level, d_cstrategies[(*it).first]);
+            d_cscheds[it->first][ln] = it->second->createSchedule(coarser_level, level, d_cstrategies[it->first]);
         }
     }
 
@@ -3375,7 +3375,7 @@ IBImplicitHierarchyIntegrator::resetLagrangianForceStrategy(
 
 void
 IBImplicitHierarchyIntegrator::resetAnchorPointValues(
-    std::vector<Pointer<LMeshData> > V_data,
+    std::vector<Pointer<LData> > V_data,
     const int coarsest_ln,
     const int finest_ln)
 {

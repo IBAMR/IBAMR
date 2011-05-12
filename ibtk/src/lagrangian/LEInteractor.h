@@ -37,7 +37,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/LNodeIndexData.h>
-#include <ibtk/LMeshData.h>
+#include <ibtk/LData.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -145,8 +145,8 @@ public:
      */
     static void
     interpolate(
-        SAMRAI::tbox::Pointer<LMeshData>& Q_data,
-        const SAMRAI::tbox::Pointer<LMeshData>& X_data,
+        SAMRAI::tbox::Pointer<LData>& Q_data,
+        const SAMRAI::tbox::Pointer<LData>& X_data,
         const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
@@ -171,8 +171,8 @@ public:
      */
     static void
     interpolate(
-        SAMRAI::tbox::Pointer<LMeshData>& Q_data,
-        const SAMRAI::tbox::Pointer<LMeshData>& X_data,
+        SAMRAI::tbox::Pointer<LData>& Q_data,
+        const SAMRAI::tbox::Pointer<LData>& X_data,
         const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
@@ -365,8 +365,8 @@ public:
     static void
     spread(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
-        const SAMRAI::tbox::Pointer<LMeshData>& Q_data,
-        const SAMRAI::tbox::Pointer<LMeshData>& X_data,
+        const SAMRAI::tbox::Pointer<LData>& Q_data,
+        const SAMRAI::tbox::Pointer<LData>& X_data,
         const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& spread_box,
@@ -394,8 +394,8 @@ public:
     static void
     spread(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
-        const SAMRAI::tbox::Pointer<LMeshData>& Q_data,
-        const SAMRAI::tbox::Pointer<LMeshData>& X_data,
+        const SAMRAI::tbox::Pointer<LData>& Q_data,
+        const SAMRAI::tbox::Pointer<LData>& X_data,
         const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& spread_box,

@@ -505,13 +505,13 @@ EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/include/ibtk/Interpolator.h \
 	$(top_srcdir)/include/ibtk/JacobianOperator.h \
 	$(top_srcdir)/include/ibtk/KrylovLinearSolver.h \
+	$(top_srcdir)/include/ibtk/LData.I \
+	$(top_srcdir)/include/ibtk/LData.h \
 	$(top_srcdir)/include/ibtk/LDataManager.I \
 	$(top_srcdir)/include/ibtk/LDataManager.h \
 	$(top_srcdir)/include/ibtk/LEInteractor.h \
 	$(top_srcdir)/include/ibtk/LMesh.I \
 	$(top_srcdir)/include/ibtk/LMesh.h \
-	$(top_srcdir)/include/ibtk/LMeshData.I \
-	$(top_srcdir)/include/ibtk/LMeshData.h \
 	$(top_srcdir)/include/ibtk/LNode.I \
 	$(top_srcdir)/include/ibtk/LNode.h \
 	$(top_srcdir)/include/ibtk/LNodeIndex.I \
