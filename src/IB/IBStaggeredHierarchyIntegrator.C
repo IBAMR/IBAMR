@@ -755,57 +755,57 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         }
     }
 
-    // Initialize the various LNodeLevelData objects on each level of the patch hierarchy.
-    std::vector<Pointer<LNodeLevelData> > X_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > U_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > X_new_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > X_half_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > U_half_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > F_half_data(finest_ln+1);
+    // Initialize the various LMeshData objects on each level of the patch hierarchy.
+    std::vector<Pointer<LMeshData> > X_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > U_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > X_new_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > X_half_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > U_half_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > F_half_data(finest_ln+1);
 
-    std::vector<Pointer<LNodeLevelData> > K_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > M_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > Y_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > dY_dt_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > Y_new_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > dY_dt_new_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > F_K_half_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > K_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > M_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > Y_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > dY_dt_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > Y_new_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > dY_dt_new_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > F_K_half_data(finest_ln+1);
 
-    std::vector<Pointer<LNodeLevelData> > D_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > D_new_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > D_half_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > N_half_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > W_half_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > D_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > D_new_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > D_half_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > N_half_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > W_half_data(finest_ln+1);
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
-            X_data[ln] = d_lag_data_manager->getLNodeLevelData(LDataManager::POSN_DATA_NAME,ln);
-            U_data[ln] = d_lag_data_manager->getLNodeLevelData(LDataManager::VEL_DATA_NAME,ln);
-            X_new_data[ln] = d_lag_data_manager->createLNodeLevelData("X_new",ln,NDIM);
-            X_half_data[ln] = d_lag_data_manager->createLNodeLevelData("X_half",ln,NDIM);
-            U_half_data[ln] = d_lag_data_manager->createLNodeLevelData("U_half",ln,NDIM);
-            F_half_data[ln] = d_lag_data_manager->createLNodeLevelData("F_half",ln,NDIM);
+            X_data[ln] = d_lag_data_manager->getLMeshData(LDataManager::POSN_DATA_NAME,ln);
+            U_data[ln] = d_lag_data_manager->getLMeshData(LDataManager::VEL_DATA_NAME,ln);
+            X_new_data[ln] = d_lag_data_manager->createLMeshData("X_new",ln,NDIM);
+            X_half_data[ln] = d_lag_data_manager->createLMeshData("X_half",ln,NDIM);
+            U_half_data[ln] = d_lag_data_manager->createLMeshData("U_half",ln,NDIM);
+            F_half_data[ln] = d_lag_data_manager->createLMeshData("F_half",ln,NDIM);
 
             if (d_using_pIB_method)
             {
-                K_data[ln]         = d_lag_data_manager->getLNodeLevelData("K",ln);
-                M_data[ln]         = d_lag_data_manager->getLNodeLevelData("M",ln);
-                Y_data[ln]         = d_lag_data_manager->getLNodeLevelData("Y",ln);
-                dY_dt_data[ln]     = d_lag_data_manager->getLNodeLevelData("dY_dt",ln);
-                Y_new_data[ln]     = d_lag_data_manager->createLNodeLevelData("Y_new",ln,NDIM);
-                dY_dt_new_data[ln] = d_lag_data_manager->createLNodeLevelData("dY_dt_new",ln,NDIM);
-                F_K_half_data[ln]  = d_lag_data_manager->createLNodeLevelData("F_K_half",ln,NDIM);
+                K_data[ln]         = d_lag_data_manager->getLMeshData("K",ln);
+                M_data[ln]         = d_lag_data_manager->getLMeshData("M",ln);
+                Y_data[ln]         = d_lag_data_manager->getLMeshData("Y",ln);
+                dY_dt_data[ln]     = d_lag_data_manager->getLMeshData("dY_dt",ln);
+                Y_new_data[ln]     = d_lag_data_manager->createLMeshData("Y_new",ln,NDIM);
+                dY_dt_new_data[ln] = d_lag_data_manager->createLMeshData("dY_dt_new",ln,NDIM);
+                F_K_half_data[ln]  = d_lag_data_manager->createLMeshData("F_K_half",ln,NDIM);
             }
 
             if (d_using_orthonormal_directors)
             {
-                D_data[ln]      = d_lag_data_manager->getLNodeLevelData("D",ln);
-                D_new_data[ln]  = d_lag_data_manager->createLNodeLevelData("D_new",ln,3*3);
-                D_half_data[ln] = d_lag_data_manager->createLNodeLevelData("D_half",ln,3*3);
-                N_half_data[ln] = d_lag_data_manager->createLNodeLevelData("N_half",ln,3);
-                W_half_data[ln] = d_lag_data_manager->createLNodeLevelData("W_half",ln,3);
+                D_data[ln]      = d_lag_data_manager->getLMeshData("D",ln);
+                D_new_data[ln]  = d_lag_data_manager->createLMeshData("D_new",ln,3*3);
+                D_half_data[ln] = d_lag_data_manager->createLMeshData("D_half",ln,3*3);
+                N_half_data[ln] = d_lag_data_manager->createLMeshData("N_half",ln,3);
+                W_half_data[ln] = d_lag_data_manager->createLMeshData("W_half",ln,3);
             }
         }
     }
@@ -834,8 +834,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     {
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
-            Vec X_vec = X_data[ln]->getGlobalVec();
-            Vec X_half_vec = X_half_data[ln]->getGlobalVec();
+            Vec X_vec = X_data[ln]->getVec();
+            Vec X_half_vec = X_half_data[ln]->getVec();
             int ierr = VecCopy(X_vec, X_half_vec);  IBTK_CHKERRQ(ierr);
         }
     }
@@ -845,8 +845,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     {
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
-            Vec X_vec = X_data[ln]->getGlobalVec();
-            Vec X_new_vec = X_new_data[ln]->getGlobalVec();
+            Vec X_vec = X_data[ln]->getVec();
+            Vec X_new_vec = X_new_data[ln]->getVec();
             int ierr = VecCopy(X_vec, X_new_vec);  IBTK_CHKERRQ(ierr);
         }
     }
@@ -870,8 +870,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     {
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
-            Vec U_vec = U_data[ln]->getGlobalVec();
-            Vec U_half_vec = U_half_data[ln]->getGlobalVec();
+            Vec U_vec = U_data[ln]->getVec();
+            Vec U_half_vec = U_half_data[ln]->getVec();
             int ierr = VecCopy(U_vec, U_half_vec);  IBTK_CHKERRQ(ierr);
         }
     }
@@ -886,10 +886,10 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                 if (d_lag_data_manager->levelContainsLagrangianData(ln))
                 {
                     int ierr;
-                    Vec X_vec = X_data[ln]->getGlobalVec();
-                    Vec U_vec = U_data[ln]->getGlobalVec();
-                    Vec Y_vec = Y_data[ln]->getGlobalVec();
-                    Vec dY_dt_vec = dY_dt_data[ln]->getGlobalVec();
+                    Vec X_vec = X_data[ln]->getVec();
+                    Vec U_vec = U_data[ln]->getVec();
+                    Vec Y_vec = Y_data[ln]->getVec();
+                    Vec dY_dt_vec = dY_dt_data[ln]->getVec();
                     ierr = VecCopy(X_vec, Y_vec);  IBTK_CHKERRQ(ierr);
                     ierr = VecCopy(U_vec, dY_dt_vec);  IBTK_CHKERRQ(ierr);
                 }
@@ -901,8 +901,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         {
             if (d_lag_data_manager->levelContainsLagrangianData(ln))
             {
-                Vec Y_vec = Y_data[ln]->getGlobalVec();
-                Vec Y_new_vec = Y_new_data[ln]->getGlobalVec();
+                Vec Y_vec = Y_data[ln]->getVec();
+                Vec Y_new_vec = Y_new_data[ln]->getVec();
                 int ierr = VecCopy(Y_vec, Y_new_vec);  IBTK_CHKERRQ(ierr);
             }
         }
@@ -912,8 +912,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         {
             if (d_lag_data_manager->levelContainsLagrangianData(ln))
             {
-                Vec dY_dt_vec = dY_dt_data[ln]->getGlobalVec();
-                Vec dY_dt_new_vec = dY_dt_new_data[ln]->getGlobalVec();
+                Vec dY_dt_vec = dY_dt_data[ln]->getVec();
+                Vec dY_dt_new_vec = dY_dt_new_data[ln]->getVec();
                 int ierr = VecCopy(dY_dt_vec, dY_dt_new_vec);  IBTK_CHKERRQ(ierr);
             }
         }
@@ -926,8 +926,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         {
             if (d_lag_data_manager->levelContainsLagrangianData(ln))
             {
-                Vec D_vec = D_data[ln]->getGlobalVec();
-                Vec D_half_vec = D_half_data[ln]->getGlobalVec();
+                Vec D_vec = D_data[ln]->getVec();
+                Vec D_half_vec = D_half_data[ln]->getVec();
                 int ierr = VecCopy(D_vec, D_half_vec);  IBTK_CHKERRQ(ierr);
             }
         }
@@ -937,8 +937,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         {
             if (d_lag_data_manager->levelContainsLagrangianData(ln))
             {
-                Vec D_vec = D_data[ln]->getGlobalVec();
-                Vec D_new_vec = D_new_data[ln]->getGlobalVec();
+                Vec D_vec = D_data[ln]->getVec();
+                Vec D_new_vec = D_new_data[ln]->getVec();
                 int ierr = VecCopy(D_vec, D_new_vec);  IBTK_CHKERRQ(ierr);
             }
         }
@@ -954,7 +954,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         {
             if (d_lag_data_manager->levelContainsLagrangianData(ln))
             {
-                Vec F_half_vec = F_half_data[ln]->getGlobalVec();
+                Vec F_half_vec = F_half_data[ln]->getVec();
                 int ierr = VecSet(F_half_vec, 0.0);  IBTK_CHKERRQ(ierr);
                 if (!d_using_orthonormal_directors)
                 {
@@ -962,7 +962,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                 }
                 else
                 {
-                    Vec N_half_vec = N_half_data[ln]->getGlobalVec();
+                    Vec N_half_vec = N_half_data[ln]->getVec();
                     int ierr = VecSet(N_half_vec, 0.0);  IBTK_CHKERRQ(ierr);
                     d_force_strategy->computeLagrangianForceAndTorque(F_half_data[ln], N_half_data[ln], X_half_data[ln], D_half_data[ln], U_half_data[ln], d_hierarchy, ln, current_time+0.5*dt, d_lag_data_manager);
                 }
@@ -979,14 +979,14 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                 {
                     int ierr;
 
-                    Vec K_vec = K_data[ln]->getGlobalVec();
-                    Vec M_vec = M_data[ln]->getGlobalVec();
-                    Vec X_half_vec = X_half_data[ln]->getGlobalVec();
-                    Vec Y_vec = Y_data[ln]->getGlobalVec();
-                    Vec Y_new_vec = Y_new_data[ln]->getGlobalVec();
-                    Vec dY_dt_vec = dY_dt_data[ln]->getGlobalVec();
-                    Vec dY_dt_new_vec = dY_dt_new_data[ln]->getGlobalVec();
-                    Vec F_K_half_vec = F_K_half_data[ln]->getGlobalVec();
+                    Vec K_vec = K_data[ln]->getVec();
+                    Vec M_vec = M_data[ln]->getVec();
+                    Vec X_half_vec = X_half_data[ln]->getVec();
+                    Vec Y_vec = Y_data[ln]->getVec();
+                    Vec Y_new_vec = Y_new_data[ln]->getVec();
+                    Vec dY_dt_vec = dY_dt_data[ln]->getVec();
+                    Vec dY_dt_new_vec = dY_dt_new_data[ln]->getVec();
+                    Vec F_K_half_vec = F_K_half_data[ln]->getVec();
 
                     int n_local = 0;
                     ierr = VecGetLocalSize(M_vec, &n_local);  IBTK_CHKERRQ(ierr);
@@ -1045,7 +1045,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                     ierr = VecRestoreArray(dY_dt_new_vec, &dY_dt_new_arr);  IBTK_CHKERRQ(ierr);
                     ierr = VecRestoreArray(F_K_half_vec, &F_K_half_arr);  IBTK_CHKERRQ(ierr);
 
-                    Vec F_half_vec = F_half_data[ln]->getGlobalVec();
+                    Vec F_half_vec = F_half_data[ln]->getVec();
                     ierr = VecAXPY(F_half_vec,1.0,F_K_half_vec);  IBTK_CHKERRQ(ierr);
                 }
             }
@@ -1092,9 +1092,9 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
             if (d_lag_data_manager->levelContainsLagrangianData(ln))
             {
                 int ierr;
-                Vec X_vec = X_data[ln]->getGlobalVec();
-                Vec X_new_vec = X_new_data[ln]->getGlobalVec();
-                Vec U_half_vec = U_half_data[ln]->getGlobalVec();
+                Vec X_vec = X_data[ln]->getVec();
+                Vec X_new_vec = X_new_data[ln]->getVec();
+                Vec U_half_vec = U_half_data[ln]->getVec();
                 ierr = VecWAXPY(X_new_vec, dt, U_half_vec, X_vec);  IBTK_CHKERRQ(ierr);
             }
         }
@@ -1108,9 +1108,9 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
             if (d_lag_data_manager->levelContainsLagrangianData(ln))
             {
                 int ierr;
-                Vec X_vec = X_data[ln]->getGlobalVec();
-                Vec X_new_vec = X_new_data[ln]->getGlobalVec();
-                Vec X_half_vec = X_half_data[ln]->getGlobalVec();
+                Vec X_vec = X_data[ln]->getVec();
+                Vec X_new_vec = X_new_data[ln]->getVec();
+                Vec X_half_vec = X_half_data[ln]->getVec();
                 ierr = VecCopy(X_vec, X_half_vec);  IBTK_CHKERRQ(ierr);
                 ierr = VecAXPBY(X_half_vec, 0.5, 0.5, X_new_vec);  IBTK_CHKERRQ(ierr);
             }
@@ -1131,22 +1131,26 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
             {
                 if (d_lag_data_manager->levelContainsLagrangianData(ln))
                 {
+                    blitz::Array<double,2>&      D_array = *     D_data[ln]->getLocalFormVecArray();
+                    blitz::Array<double,2>& D_half_array = *D_half_data[ln]->getLocalFormVecArray();
+                    blitz::Array<double,2>&  D_new_array = * D_new_data[ln]->getLocalFormVecArray();
+                    blitz::Array<double,2>& W_half_array = *W_half_data[ln]->getLocalFormVecArray();
                     const int n_local = d_lag_data_manager->getNumberOfLocalNodes(ln);
                     for (int l = 0; l < n_local; ++l)
                     {
                         std::vector<double*> D(3);
                         for (int alpha = 0; alpha < 3; ++alpha)
                         {
-                            D[alpha] = &(*D_data[ln])(l,3*alpha);
+                            D[alpha] = &D_array(l,3*alpha);
                         }
 
                         std::vector<double*> D_new(3);
                         for (int alpha = 0; alpha < 3; ++alpha)
                         {
-                            D_new[alpha] = &(*D_new_data[ln])(l,3*alpha);
+                            D_new[alpha] = &D_new_array(l,3*alpha);
                         }
 
-                        double* W_half = &(*W_half_data[ln])(l,0);
+                        double* W_half = &W_half_array(l,0);
 
                         blitz::Array<double,1> e(W_half, blitz::shape(3), blitz::duplicateData);
                         blitz::firstIndex i;
@@ -1194,11 +1198,15 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                         std::vector<double*> D_half(3);
                         for (int alpha = 0; alpha < 3; ++alpha)
                         {
-                            D_half[alpha] = &(*D_half_data[ln])(l,3*alpha);
+                            D_half[alpha] = &D_half_array(l,3*alpha);
                         }
 
                         interpolate_directors(D_half, D, D_new);
                     }
+                    D_data     [ln]->restoreArrays();
+                    D_half_data[ln]->restoreArrays();
+                    D_new_data [ln]->restoreArrays();
+                    W_half_data[ln]->restoreArrays();
                 }
             }
         }
@@ -1231,8 +1239,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     {
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
-            Vec X_vec = X_data[ln]->getGlobalVec();
-            Vec X_new_vec = X_new_data[ln]->getGlobalVec();
+            Vec X_vec = X_data[ln]->getVec();
+            Vec X_new_vec = X_new_data[ln]->getVec();
             int ierr = VecCopy(X_new_vec, X_vec);  IBTK_CHKERRQ(ierr);
         }
     }
@@ -1258,8 +1266,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         {
             if (d_lag_data_manager->levelContainsLagrangianData(ln))
             {
-                Vec Y_vec = Y_data[ln]->getGlobalVec();
-                Vec Y_new_vec = Y_new_data[ln]->getGlobalVec();
+                Vec Y_vec = Y_data[ln]->getVec();
+                Vec Y_new_vec = Y_new_data[ln]->getVec();
                 int ierr = VecCopy(Y_new_vec, Y_vec);  IBTK_CHKERRQ(ierr);
             }
         }
@@ -1269,8 +1277,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         {
             if (d_lag_data_manager->levelContainsLagrangianData(ln))
             {
-                Vec dY_dt_vec = dY_dt_data[ln]->getGlobalVec();
-                Vec dY_dt_new_vec = dY_dt_new_data[ln]->getGlobalVec();
+                Vec dY_dt_vec = dY_dt_data[ln]->getVec();
+                Vec dY_dt_new_vec = dY_dt_new_data[ln]->getVec();
                 int ierr = VecCopy(dY_dt_new_vec, dY_dt_vec);  IBTK_CHKERRQ(ierr);
             }
         }
@@ -1283,8 +1291,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         {
             if (d_lag_data_manager->levelContainsLagrangianData(ln))
             {
-                Vec D_vec = D_data[ln]->getGlobalVec();
-                Vec D_new_vec = D_new_data[ln]->getGlobalVec();
+                Vec D_vec = D_data[ln]->getVec();
+                Vec D_new_vec = D_new_data[ln]->getVec();
                 int ierr = VecCopy(D_new_vec, D_vec);  IBTK_CHKERRQ(ierr);
             }
         }
@@ -1353,18 +1361,18 @@ IBStaggeredHierarchyIntegrator::postProcessData()
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
 
     // Initialize data on each level of the patch hierarchy.
-    std::vector<Pointer<LNodeLevelData> > X_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > F_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > U_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > X_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > F_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > U_data(finest_ln+1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_V_idx, current_time);
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
-            X_data[ln] = d_lag_data_manager->getLNodeLevelData(LDataManager::POSN_DATA_NAME,ln);
-            U_data[ln] = d_lag_data_manager->getLNodeLevelData(LDataManager::VEL_DATA_NAME,ln);
-            F_data[ln] = d_lag_data_manager->createLNodeLevelData("F",ln,NDIM);
+            X_data[ln] = d_lag_data_manager->getLMeshData(LDataManager::POSN_DATA_NAME,ln);
+            U_data[ln] = d_lag_data_manager->getLMeshData(LDataManager::VEL_DATA_NAME,ln);
+            F_data[ln] = d_lag_data_manager->createLMeshData("F",ln,NDIM);
         }
     }
 
@@ -1385,7 +1393,7 @@ IBStaggeredHierarchyIntegrator::postProcessData()
     {
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
-            Vec F_vec = F_data[ln]->getGlobalVec();
+            Vec F_vec = F_data[ln]->getVec();
             int ierr = VecSet(F_vec, 0.0);  IBTK_CHKERRQ(ierr);
             d_force_strategy->computeLagrangianForce(F_data[ln], X_data[ln], U_data[ln], d_hierarchy, ln, current_time, d_lag_data_manager);
         }
@@ -1532,12 +1540,12 @@ IBStaggeredHierarchyIntegrator::regridHierarchy()
     d_post_processor_needs_init  = true;
 
     // Look up the re-distributed Lagrangian position data.
-    std::vector<Pointer<LNodeLevelData> > X_data(d_hierarchy->getFinestLevelNumber()+1);
+    std::vector<Pointer<LMeshData> > X_data(d_hierarchy->getFinestLevelNumber()+1);
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
-            X_data[ln] = d_lag_data_manager->getLNodeLevelData(LDataManager::POSN_DATA_NAME,ln);
+            X_data[ln] = d_lag_data_manager->getLMeshData(LDataManager::POSN_DATA_NAME,ln);
         }
     }
 
@@ -1571,19 +1579,20 @@ IBStaggeredHierarchyIntegrator::regridHierarchy()
                 }
             }
 
+            const blitz::Array<double,2>& X_array = *X_data[ln]->getLocalFormVecArray();
             for (int i = 0; i < X_data[ln]->getLocalNodeCount(); ++i)
             {
                 for (int d = 0; d < NDIM; ++d)
                 {
                     if ((periodic_shift[d] == 0) &&
-                        ((*X_data[ln])(i,d) - grid_xLower[d] <= eps ||
-                         grid_xUpper[d] - (*X_data[ln])(i,d) <= eps))
+                        (X_array(i,d) <= grid_xLower[d]+eps || X_array(i,d) >= grid_xUpper[d]-eps))
                     {
                         d_anchor_point_local_idxs[ln].insert(i);
                         break;
                     }
                 }
             }
+            X_data[ln]->restoreArrays();
         }
     }
 
@@ -1743,10 +1752,10 @@ IBStaggeredHierarchyIntegrator::initializeLevelData(
 
         if (d_using_pIB_method)
         {
-            Pointer<LNodeLevelData> M_data = d_lag_data_manager->createLNodeLevelData("M",level_number,1,manage_data);
-            Pointer<LNodeLevelData> K_data = d_lag_data_manager->createLNodeLevelData("K",level_number,1,manage_data);
-            Pointer<LNodeLevelData> Y_data = d_lag_data_manager->createLNodeLevelData("Y",level_number,NDIM,manage_data);
-            Pointer<LNodeLevelData> dY_dt_data = d_lag_data_manager->createLNodeLevelData("dY_dt",level_number,NDIM,manage_data);
+            Pointer<LMeshData> M_data = d_lag_data_manager->createLMeshData("M",level_number,1,manage_data);
+            Pointer<LMeshData> K_data = d_lag_data_manager->createLMeshData("K",level_number,1,manage_data);
+            Pointer<LMeshData> Y_data = d_lag_data_manager->createLMeshData("Y",level_number,NDIM,manage_data);
+            Pointer<LMeshData> dY_dt_data = d_lag_data_manager->createLMeshData("dY_dt",level_number,NDIM,manage_data);
 
             static const int global_index_offset = 0;
             static const int local_index_offset = 0;
@@ -1765,7 +1774,7 @@ IBStaggeredHierarchyIntegrator::initializeLevelData(
 
         if (d_using_orthonormal_directors)
         {
-            Pointer<LNodeLevelData> D_data = d_lag_data_manager->createLNodeLevelData("D",level_number,3*3,manage_data);
+            Pointer<LMeshData> D_data = d_lag_data_manager->createLMeshData("D",level_number,3*3,manage_data);
 
             static const int global_index_offset = 0;
             static const int local_index_offset = 0;
@@ -1809,8 +1818,8 @@ IBStaggeredHierarchyIntegrator::initializeLevelData(
                 d_source_strategy->getSourceLocations(
                     d_X_src[level_number], d_r_src[level_number],
                     (d_lag_data_manager->levelContainsLagrangianData(level_number)
-                     ? d_lag_data_manager->getLNodeLevelData(LDataManager::POSN_DATA_NAME,level_number)
-                     : Pointer<LNodeLevelData>(NULL)),
+                     ? d_lag_data_manager->getLMeshData(LDataManager::POSN_DATA_NAME,level_number)
+                     : Pointer<LMeshData>(NULL)),
                     hierarchy, level_number, d_integrator_time, d_lag_data_manager);
             }
         }
@@ -2249,7 +2258,7 @@ IBStaggeredHierarchyIntegrator::updateIBInstrumentationData(
 
 void
 IBStaggeredHierarchyIntegrator::resetAnchorPointValues(
-    std::vector<Pointer<LNodeLevelData> > V_data,
+    std::vector<Pointer<LMeshData> > V_data,
     const int coarsest_ln,
     const int finest_ln)
 {
@@ -2261,7 +2270,7 @@ IBStaggeredHierarchyIntegrator::resetAnchorPointValues(
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(depth == NDIM);
 #endif
-            Vec V_vec = V_data[ln]->getGlobalVec();
+            Vec V_vec = V_data[ln]->getVec();
             double* V_arr;
             int ierr = VecGetArray(V_vec, &V_arr);  IBTK_CHKERRQ(ierr);
             for (std::set<int>::const_iterator cit = d_anchor_point_local_idxs[ln].begin(); cit != d_anchor_point_local_idxs[ln].end(); ++cit)
@@ -2283,7 +2292,7 @@ IBStaggeredHierarchyIntegrator::computeSourceStrengths(
     const int coarsest_level,
     const int finest_level,
     const double data_time,
-    const std::vector<Pointer<LNodeLevelData> >& X_data)
+    const std::vector<Pointer<LMeshData> >& X_data)
 {
     if (d_source_strategy.isNull()) return;
 
@@ -2478,7 +2487,7 @@ IBStaggeredHierarchyIntegrator::computeSourcePressures(
     const int coarsest_level,
     const int finest_level,
     const double data_time,
-    const std::vector<Pointer<LNodeLevelData> >& X_data)
+    const std::vector<Pointer<LMeshData> >& X_data)
 {
     if (d_source_strategy.isNull()) return;
 

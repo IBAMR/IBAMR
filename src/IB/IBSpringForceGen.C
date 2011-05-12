@@ -314,9 +314,9 @@ IBSpringForceGen::initializeLevelData(
 
 void
 IBSpringForceGen::computeLagrangianForce(
-    Pointer<LNodeLevelData> F_data,
-    Pointer<LNodeLevelData> X_data,
-    Pointer<LNodeLevelData> U_data,
+    Pointer<LMeshData> F_data,
+    Pointer<LMeshData> X_data,
+    Pointer<LMeshData> U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
@@ -344,7 +344,7 @@ IBSpringForceGen::computeLagrangianForce(
     ierr = VecSetBlockSize(D_vec, NDIM);                                          IBTK_CHKERRQ(ierr);
 
     // Compute the node displacements.
-    ierr = MatMult(d_D_mats[level_number], X_data->getGlobalVec(), D_vec);
+    ierr = MatMult(d_D_mats[level_number], X_data->getVec(), D_vec);
     IBTK_CHKERRQ(ierr);
 
     // Compute the spring forces acting on the nodes of the Lagrangian mesh.
@@ -387,7 +387,7 @@ IBSpringForceGen::computeLagrangianForce(
     ierr = VecRestoreArray(D_vec, &D_vals);  IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(D_vec);                IBTK_CHKERRQ(ierr);
 
-    Vec F_vec = F_data->getGlobalVec();
+    Vec F_vec = F_data->getVec();
 #if 0
     ierr = VecSetValuesBlocked(F_vec,
                                petsc_mastr_node_idxs.size(),
@@ -515,9 +515,9 @@ IBSpringForceGen::computeLagrangianForceJacobian(
     Mat& J_mat,
     MatAssemblyType assembly_type,
     const double X_coef,
-    Pointer<LNodeLevelData> X_data,
+    Pointer<LMeshData> X_data,
     const double U_coef,
-    Pointer<LNodeLevelData> U_data,
+    Pointer<LMeshData> U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
@@ -545,7 +545,7 @@ IBSpringForceGen::computeLagrangianForceJacobian(
     ierr = VecSetBlockSize(D_vec, NDIM);                                          IBTK_CHKERRQ(ierr);
 
     // Compute the node displacements.
-    ierr = MatMult(d_D_mats[level_number], X_data->getGlobalVec(), D_vec);
+    ierr = MatMult(d_D_mats[level_number], X_data->getVec(), D_vec);
     IBTK_CHKERRQ(ierr);
 
     // Compute the force Jacobians and insert them into the Jacobian matrix.
@@ -624,8 +624,8 @@ IBSpringForceGen::computeLagrangianForceJacobian(
 
 double
 IBSpringForceGen::computeLagrangianEnergy(
-    Pointer<LNodeLevelData> X_data,
-    Pointer<LNodeLevelData> U_data,
+    Pointer<LMeshData> X_data,
+    Pointer<LMeshData> U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
@@ -656,7 +656,7 @@ IBSpringForceGen::computeLagrangianEnergy(
     ierr = VecSetBlockSize(D_vec, NDIM);                                          IBTK_CHKERRQ(ierr);
 
     // Compute the node displacements.
-    ierr = MatMult(d_D_mats[level_number], X_data->getGlobalVec(), D_vec);
+    ierr = MatMult(d_D_mats[level_number], X_data->getVec(), D_vec);
     IBTK_CHKERRQ(ierr);
 
     // Compute the energy stored in a collection of linear springs with the

@@ -93,9 +93,9 @@ IBLagrangianForceStrategySet::initializeLevelData(
 
 void
 IBLagrangianForceStrategySet::computeLagrangianForce(
-    Pointer<LNodeLevelData> F_data,
-    Pointer<LNodeLevelData> X_data,
-    Pointer<LNodeLevelData> U_data,
+    Pointer<LMeshData> F_data,
+    Pointer<LMeshData> X_data,
+    Pointer<LMeshData> U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
@@ -133,9 +133,9 @@ IBLagrangianForceStrategySet::computeLagrangianForceJacobian(
     Mat& J_mat,
     MatAssemblyType assembly_type,
     const double X_coef,
-    Pointer<LNodeLevelData> X_data,
+    Pointer<LMeshData> X_data,
     const double U_coef,
-    Pointer<LNodeLevelData> U_data,
+    Pointer<LMeshData> U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
@@ -158,8 +158,8 @@ IBLagrangianForceStrategySet::computeLagrangianForceJacobian(
 
 double
 IBLagrangianForceStrategySet::computeLagrangianEnergy(
-    Pointer<LNodeLevelData> X_data,
-    Pointer<LNodeLevelData> U_data,
+    Pointer<LMeshData> X_data,
+    Pointer<LMeshData> U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,

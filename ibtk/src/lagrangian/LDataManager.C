@@ -50,7 +50,7 @@
 #include <ibtk/LEInteractor.h>
 #include <ibtk/LNodeIndexData.h>
 #include <ibtk/LNodeIndexTransaction.h>
-#include <ibtk/LNodeLevelData.h>
+#include <ibtk/LMeshData.h>
 #include <ibtk/LagSiloDataWriter.h>
 #include <ibtk/namespaces.h>
 
@@ -141,12 +141,12 @@ get_canonical_cell_index(
     return shifted_idx;
 }// get_canonical_cell_index
 
-struct BeginLNodeLevelDataNonlocalFill
-    : std::unary_function<std::pair<std::string,Pointer<LNodeLevelData> >,void>
+struct BeginLMeshDataNonlocalFill
+    : std::unary_function<std::pair<std::string,Pointer<LMeshData> >,void>
 {
     inline void
     operator()(
-        const std::pair<std::string,Pointer<LNodeLevelData> >& data) const
+        const std::pair<std::string,Pointer<LMeshData> >& data) const
         {
             data.second->beginGhostUpdate();
             return;
@@ -159,22 +159,23 @@ class RestoreLNodeIndexLocationPointers
 public:
     inline
     RestoreLNodeIndexLocationPointers(
-        double* const X_arr)
-        : d_X_arr(X_arr)
+        const blitz::Array<double,2>& X_data)
+        : d_X_data(X_data)
         {
             return;
         }
 
     inline void
     operator()(
-        const Pointer<LNodeIndex>& data) const
+        const Pointer<LNodeIndex>& node_idx) const
         {
-            data->setNodeLocation(&(d_X_arr[NDIM*data->getLocalPETScIndex()]));
+            const int local_idx = node_idx->getLocalPETScIndex();
+            node_idx->setNodeLocation(&(d_X_data(local_idx,0)));
             return;
         }
 
 private:
-    double* const d_X_arr;
+    const blitz::Array<double,2>& d_X_data;
 };
 
 struct InvalidateLNodeIndexLocationPointers
@@ -189,12 +190,12 @@ struct InvalidateLNodeIndexLocationPointers
         }
 };
 
-struct EndLNodeLevelDataNonlocalFill
-    : std::unary_function<std::pair<std::string,Pointer<LNodeLevelData> >,void>
+struct EndLMeshDataNonlocalFill
+    : std::unary_function<std::pair<std::string,Pointer<LMeshData> >,void>
 {
     inline void
     operator()(
-        const std::pair<std::string,Pointer<LNodeLevelData> >& data) const
+        const std::pair<std::string,Pointer<LMeshData> >& data) const
         {
             data.second->endGhostUpdate();
             return;
@@ -414,9 +415,9 @@ LDataManager::getSpreadWeightingFunction() const
 void
 LDataManager::spread(
     const int f_data_idx,
-    std::vector<Pointer<LNodeLevelData> >& F_data,
-    std::vector<Pointer<LNodeLevelData> >& X_data,
-    std::vector<Pointer<LNodeLevelData> >& ds_data,
+    std::vector<Pointer<LMeshData> >& F_data,
+    std::vector<Pointer<LMeshData> >& X_data,
+    std::vector<Pointer<LMeshData> >& ds_data,
     std::vector<Pointer<RefineSchedule<NDIM> > > f_prolongation_scheds,
     const bool F_data_ghost_node_update,
     const bool X_data_ghost_node_update,
@@ -434,26 +435,26 @@ LDataManager::spread(
     }
 
     // Compute F*ds.
-    std::vector<Pointer<LNodeLevelData> > F_ds_data(F_data.size());
+    std::vector<Pointer<LMeshData> > F_ds_data(F_data.size());
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (levelContainsLagrangianData(ln))
         {
             const int depth = F_data[ln]->getDepth();
-            F_ds_data[ln] = new LNodeLevelData("", getNumberOfLocalNodes(ln), depth, d_nonlocal_petsc_indices[ln][depth]);
-            double* const F_ds_arr = F_ds_data[ln]->getLocalFormArray();
-            const double* const F_arr = F_data[ln]->getLocalFormArray();
-            const double* const ds_arr = ds_data[ln]->getLocalFormArray();
+            F_ds_data[ln] = new LMeshData("", getNumberOfLocalNodes(ln), depth, d_nonlocal_petsc_indices[ln][depth]);
+            blitz::Array<double,2>&       F_ds_arr = *F_ds_data[ln]->getGhostedLocalFormVecArray();
+            const blitz::Array<double,2>&    F_arr = *   F_data[ln]->getGhostedLocalFormVecArray();
+            const blitz::Array<double,1>&   ds_arr = *  ds_data[ln]->getGhostedLocalFormArray();
             for (int k = 0; k < F_data[ln]->getLocalNodeCount() + F_data[ln]->getLocalGhostNodeCount(); ++k)
             {
                 for (int d = 0; d < depth; ++d)
                 {
-                    F_ds_arr[depth*k+d] = F_arr[depth*k+d]*ds_arr[k];
+                    F_ds_arr(k,d) = F_arr(k,d)*ds_arr(k);
                 }
             }
-            F_ds_data[ln]->restoreLocalFormVec();
-            F_data[ln]->restoreLocalFormVec();
-            ds_data[ln]->restoreLocalFormVec();
+            F_ds_data[ln]->restoreArrays();
+            F_data   [ln]->restoreArrays();
+            ds_data  [ln]->restoreArrays();
         }
     }
 
@@ -465,8 +466,8 @@ LDataManager::spread(
 void
 LDataManager::spread(
     const int f_data_idx,
-    std::vector<Pointer<LNodeLevelData> >& F_data,
-    std::vector<Pointer<LNodeLevelData> >& X_data,
+    std::vector<Pointer<LMeshData> >& F_data,
+    std::vector<Pointer<LMeshData> >& X_data,
     std::vector<Pointer<RefineSchedule<NDIM> > > f_prolongation_scheds,
     const bool F_data_ghost_node_update,
     const bool X_data_ghost_node_update,
@@ -581,8 +582,8 @@ LDataManager::spread(
 void
 LDataManager::interp(
     const int f_data_idx,
-    std::vector<Pointer<LNodeLevelData> >& F_data,
-    std::vector<Pointer<LNodeLevelData> >& X_data,
+    std::vector<Pointer<LMeshData> >& F_data,
+    std::vector<Pointer<LMeshData> >& X_data,
     std::vector<Pointer<CoarsenSchedule<NDIM> > > f_synch_scheds,
     std::vector<Pointer<RefineSchedule<NDIM> > > f_ghost_fill_scheds,
     const double fill_data_time,
@@ -657,8 +658,8 @@ LDataManager::interp(
 void
 LDataManager::interpolate(
     const int f_data_idx,
-    std::vector<Pointer<LNodeLevelData> >& F_data,
-    std::vector<Pointer<LNodeLevelData> >& X_data,
+    std::vector<Pointer<LMeshData> >& F_data,
+    std::vector<Pointer<LMeshData> >& X_data,
     std::vector<Pointer<CoarsenSchedule<NDIM> > > f_synch_scheds,
     std::vector<Pointer<RefineSchedule<NDIM> > > f_ghost_fill_scheds,
     const double fill_data_time,
@@ -800,8 +801,8 @@ LDataManager::getGlobalNodeOffset(
     return d_node_offset[level_number];
 }// getGlobalNodeOffset
 
-Pointer<LNodeLevelData>
-LDataManager::getLNodeLevelData(
+Pointer<LMeshData>
+LDataManager::getLMeshData(
     const std::string& quantity_name,
     const int level_number) const
 {
@@ -812,10 +813,10 @@ LDataManager::getLNodeLevelData(
     TBOX_ASSERT(d_lag_quantity_data[level_number].count(quantity_name) > 0);
 #endif
     return d_lag_quantity_data[level_number].find(quantity_name)->second;
-}// getLNodeLevelData
+}// getLMeshData
 
-Pointer<LNodeLevelData>
-LDataManager::createLNodeLevelData(
+Pointer<LMeshData>
+LDataManager::createLMeshData(
     const std::string& quantity_name,
     const int level_number,
     const int depth,
@@ -845,7 +846,7 @@ LDataManager::createLNodeLevelData(
         created_nonlocal_petsc_indices = true;
     }
 
-    Pointer<LNodeLevelData> ret_val = new LNodeLevelData(
+    Pointer<LMeshData> ret_val = new LMeshData(
         quantity_name, getNumberOfLocalNodes(level_number), depth, d_nonlocal_petsc_indices[level_number][depth]);
 
     if (maintain_data)
@@ -858,7 +859,7 @@ LDataManager::createLNodeLevelData(
         d_nonlocal_petsc_indices[level_number].erase(depth);
     }
     return ret_val;
-}// createLNodeLevelData
+}// createLMeshData
 
 int
 LDataManager::getLNodeIndexPatchDescriptorIndex() const
@@ -989,12 +990,10 @@ LDataManager::reinitLagrangianStructure(
     d_displaced_strct_ids[level_number].push_back(structure_id);
 
     // Compute the bounding box of the structure in its reference configuration.
+    const blitz::Array<double,2>& X0_data = *d_lag_quantity_data[level_number][INIT_POSN_DATA_NAME]->getLocalFormVecArray();
     std::vector<double> X_lower(NDIM, (std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon())));
     std::vector<double> X_upper(NDIM,-(std::numeric_limits<double>::max()-sqrt(std::numeric_limits<double>::epsilon())));
     std::pair<int,int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
-
-    double* X0_data = d_lag_quantity_data[level_number][INIT_POSN_DATA_NAME]->getLocalFormArray();
-
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
@@ -1009,7 +1008,7 @@ LDataManager::reinitLagrangianStructure(
             if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
             {
                 const int local_idx = node_idx.getLocalPETScIndex();
-                const double* const X0 = &X0_data[NDIM*local_idx];
+                const double* const X0 = &X0_data(local_idx,0);
                 for (int d = 0; d < NDIM; ++d)
                 {
                     X_lower[d] = std::min(X_lower[d],X0[d]);
@@ -1018,7 +1017,6 @@ LDataManager::reinitLagrangianStructure(
             }
         }
     }
-
     SAMRAI_MPI::minReduction(&X_lower[0],NDIM);
     SAMRAI_MPI::maxReduction(&X_upper[0],NDIM);
     std::pair<std::vector<double>,std::vector<double> > bounding_box = std::make_pair(X_lower,X_upper);
@@ -1051,6 +1049,7 @@ LDataManager::reinitLagrangianStructure(
     // For each node within the shifted structure: update the position of the
     // node; excise that node from the LNodeIndexData patch data structure; and
     // collect that node into a set of shifted Lagrangian nodes.
+    blitz::Array<double,2>& X_data = *d_lag_quantity_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -1071,8 +1070,8 @@ LDataManager::reinitLagrangianStructure(
                     if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
                     {
                         const int local_idx = node_idx->getLocalPETScIndex();
-                        const double* const X0 = &X0_data[NDIM*local_idx];
-                        double* const X = node_idx->getNodeLocation();
+                        double* const X = &X_data(local_idx,0);
+                        const double* const X0 = &X0_data(local_idx,0);
                         for (int d = 0; d < NDIM; ++d)
                         {
                             X[d] = X0[d] + dX[d];
@@ -1090,6 +1089,8 @@ LDataManager::reinitLagrangianStructure(
             }
         }
     }
+    d_lag_quantity_data[level_number][     POSN_DATA_NAME]->restoreArrays();
+    d_lag_quantity_data[level_number][INIT_POSN_DATA_NAME]->restoreArrays();
     return;
 }// reinitLagrangianStructure
 
@@ -1127,6 +1128,7 @@ LDataManager::displaceLagrangianStructure(
     // For each node within the shifted structure: update the position of the
     // node; excise that node from the LNodeIndexData patch data structure; and
     // collect that node into a set of shifted Lagrangian nodes.
+    blitz::Array<double,2>& X_data = *d_lag_quantity_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
     std::pair<int,int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -1148,7 +1150,8 @@ LDataManager::displaceLagrangianStructure(
                     const int lag_idx = node_idx->getLagrangianIndex();
                     if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
                     {
-                        double* const X = node_idx->getNodeLocation();
+                        const int local_idx = node_idx->getLocalPETScIndex();
+                        double* const X = &X_data(local_idx,0);
                         for (int d = 0; d < NDIM; ++d)
                         {
                             X[d] += dX[d];
@@ -1166,6 +1169,7 @@ LDataManager::displaceLagrangianStructure(
             }
         }
     }
+    d_lag_quantity_data[level_number][POSN_DATA_NAME]->restoreArrays();
     return;
 }// displaceLagrangianStructure
 
@@ -1207,7 +1211,7 @@ LDataManager::inactivateLagrangianStructures(
 
 void
 LDataManager::zeroInactivatedComponents(
-    Pointer<LNodeLevelData> lag_data,
+    Pointer<LMeshData> lag_data,
     const int level_number) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1242,7 +1246,7 @@ LDataManager::zeroInactivatedComponents(
 
     // Determine the local extents of the global PETSc Vec.
     int ierr;
-    Vec lag_data_vec = lag_data->getGlobalVec();
+    Vec lag_data_vec = lag_data->getVec();
     int lo, hi, bs;
     ierr = VecGetOwnershipRange(lag_data_vec, &lo, &hi);  IBTK_CHKERRQ(ierr);
     ierr = VecGetBlockSize(lag_data_vec, &bs);  IBTK_CHKERRQ(ierr);
@@ -1397,15 +1401,15 @@ LDataManager::beginDataRedistribution(
             if (d_needs_synch[level_number])
             {
                 TBOX_WARNING("LDataManager::beginDataRedistribution():\n" <<
-                             "\tLNodeLevelData is not synchronized with LNodeIndexData.\n" <<
+                             "\tLMeshData is not synchronized with LNodeIndexData.\n" <<
                              "\tLagrangian node position data is probably invalid!\n");
             }
 
             // Ensure that no IB points manage to escape the computational
             // domain.
+            blitz::Array<double,2>& X_data = *d_lag_quantity_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
             static const double edge_tol = sqrt(std::numeric_limits<double>::epsilon());
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
-            restoreLocationPointers(level_number,level_number);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -1415,7 +1419,8 @@ LDataManager::beginDataRedistribution(
                      it != idx_data->lnode_index_end(); ++it)
                 {
                     const LNodeIndex& node_idx = *it;
-                    double* const X = node_idx.getNodeLocation();
+                    const int local_idx = node_idx.getLocalPETScIndex();
+                    double* const X = &X_data(local_idx,0);
                     for (int d = 0; d < NDIM; ++d)
                     {
                         if (periodic_shift[d] == 0)
@@ -1426,16 +1431,11 @@ LDataManager::beginDataRedistribution(
                     }
                 }
             }
+            d_lag_quantity_data[level_number][POSN_DATA_NAME]->restoreArrays();
 
             // Update the ghost values of the Lagrangian nodal positions.
             d_lag_quantity_data[level_number][POSN_DATA_NAME]->beginGhostUpdate();
             d_lag_quantity_data[level_number][POSN_DATA_NAME]->  endGhostUpdate();
-
-            // Ensure that the location pointers are properly set for each
-            // LNodeIndex.  They are directly used below to locate the
-            // Lagrangian nodes.  They are also used to re-sort the node index
-            // sets in an attempt to maximize data locality.
-            restoreLocationPointers(level_number,level_number);
         }
     }
 
@@ -1444,6 +1444,7 @@ LDataManager::beginDataRedistribution(
         if (d_level_contains_lag_data[level_number])
         {
             // Update the index patch data on the level.
+            blitz::Array<double,2>& X_data = *d_lag_quantity_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
@@ -1458,8 +1459,7 @@ LDataManager::beginDataRedistribution(
                 const bool touches_periodic_bdry = patch_geom->getTouchesPeriodicBoundary();
 
                 Pointer<LNodeIndexData> current_idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-                Pointer<LNodeIndexData> new_idx_data = new LNodeIndexData(
-                    current_idx_data->getBox(), current_idx_data->getGhostCellWidth());
+                Pointer<LNodeIndexData> new_idx_data = new LNodeIndexData(current_idx_data->getBox(), current_idx_data->getGhostCellWidth());
 
                 // Initialize LNodeIndexSet objects for each cell index in the
                 // patch interior that will contain the LNodeIndex objects AFTER
@@ -1481,7 +1481,8 @@ LDataManager::beginDataRedistribution(
                         for (LNodeIndexSet::const_iterator n = old_node_set->begin(); n != old_node_set->end(); ++n)
                         {
                             const LNodeIndexSet::value_type& node_idx = *n;
-                            double* const X = node_idx->getNodeLocation();
+                            const int local_idx = node_idx->getLocalPETScIndex();
+                            double* const X = &X_data(local_idx,0);
                             for (int d = 0; d < NDIM; ++d)
                             {
                                 X_shifted[d] = X[d] + double(periodic_offset(d))*patchDx[d];
@@ -1526,7 +1527,7 @@ LDataManager::beginDataRedistribution(
                             // IMPORTANT NOTE: The location of a node is itself
                             // a *quantity* living on the Lagrangian mesh.
                             // Until the Lagrangian data is redistributed, the
-                            // patch still owns the LNodeLevelData associated
+                            // patch still owns the LMeshData associated
                             // with the old LNodeIndex distribution.  Thus it is
                             // the responsibility of this patch to update the
                             // location of the node if the node leaves via a
@@ -1556,6 +1557,7 @@ LDataManager::beginDataRedistribution(
                 // Swap the old and new patch data pointers.
                 patch->setPatchData(d_lag_node_index_current_idx, new_idx_data);
             }
+            d_lag_quantity_data[level_number][POSN_DATA_NAME]->restoreArrays();
         }
     }
 
@@ -1593,7 +1595,7 @@ LDataManager::endDataRedistribution(
         if (d_level_contains_lag_data[level_number] && (!d_needs_synch[level_number]))
         {
             TBOX_WARNING("LDataManager::endDataRedistribution():\n" <<
-                         "\tLNodeLevelData is already synchronized with LNodeIndexData.\n" <<
+                         "\tLMeshData is already synchronized with LNodeIndexData.\n" <<
                          "\tlevel = " << level_number << "\n");
         }
     }
@@ -1751,7 +1753,7 @@ LDataManager::endDataRedistribution(
         }
     }
 
-    // Define the PETSc data needed to communicate the LNodeLevelData from its
+    // Define the PETSc data needed to communicate the LMeshData from its
     // old configuration to its new configuration.
     int ierr;
 
@@ -1810,7 +1812,7 @@ LDataManager::endDataRedistribution(
         // Compute the new data distribution and start scattering.
         if (d_level_contains_lag_data[level_number])
         {
-            std::map<std::string,Pointer<LNodeLevelData> >& level_data = d_lag_quantity_data[level_number];
+            std::map<std::string,Pointer<LMeshData> >& level_data = d_lag_quantity_data[level_number];
             const std::vector<int>::size_type num_data = level_data.size();
 
             src[    level_number].resize(num_data);
@@ -1849,11 +1851,11 @@ LDataManager::endDataRedistribution(
             num_local_nodes   [level_number] = d_local_lag_indices   [level_number].size();
             num_nonlocal_nodes[level_number] = d_nonlocal_lag_indices[level_number].size();
 
-            std::map<std::string, Pointer<LNodeLevelData> >::iterator it;
+            std::map<std::string, Pointer<LMeshData> >::iterator it;
             int i;
             for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
             {
-                Pointer<LNodeLevelData> data = (*it).second;
+                Pointer<LMeshData> data = (*it).second;
 #ifdef DEBUG_CHECK_ASSERTIONS
                 TBOX_ASSERT(!data.isNull());
 #endif
@@ -1943,7 +1945,7 @@ LDataManager::endDataRedistribution(
                 }
 
                 // Create the destination Vec and VecScatter contexts.
-                src[level_number][i] = data->getGlobalVec();
+                src[level_number][i] = data->getVec();
 
                 if (depth == 1)
                 {
@@ -1979,8 +1981,8 @@ LDataManager::endDataRedistribution(
     {
         if (d_level_contains_lag_data[level_number])
         {
-            std::map<std::string,Pointer<LNodeLevelData> >& level_data = d_lag_quantity_data[level_number];
-            std::map<std::string,Pointer<LNodeLevelData> >::iterator it;
+            std::map<std::string,Pointer<LMeshData> >& level_data = d_lag_quantity_data[level_number];
+            std::map<std::string,Pointer<LMeshData> >::iterator it;
             int i;
             for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
             {
@@ -1994,8 +1996,8 @@ LDataManager::endDataRedistribution(
     {
         if (d_level_contains_lag_data[level_number])
         {
-            std::map<std::string,Pointer<LNodeLevelData> >& level_data = d_lag_quantity_data[level_number];
-            std::map<std::string,Pointer<LNodeLevelData> >::iterator it;
+            std::map<std::string,Pointer<LMeshData> >& level_data = d_lag_quantity_data[level_number];
+            std::map<std::string,Pointer<LMeshData> >::iterator it;
             int i;
             for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
             {
@@ -2009,8 +2011,8 @@ LDataManager::endDataRedistribution(
     {
         if (d_level_contains_lag_data[level_number])
         {
-            std::map<std::string,Pointer<LNodeLevelData> >& level_data = d_lag_quantity_data[level_number];
-            std::map<std::string,Pointer<LNodeLevelData> >::iterator it;
+            std::map<std::string,Pointer<LMeshData> >& level_data = d_lag_quantity_data[level_number];
+            std::map<std::string,Pointer<LMeshData> >::iterator it;
             int i;
             for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
             {
@@ -2025,12 +2027,12 @@ LDataManager::endDataRedistribution(
     {
         if (d_level_contains_lag_data[level_number])
         {
-            std::map<std::string,Pointer<LNodeLevelData> >& level_data = d_lag_quantity_data[level_number];
-            std::map<std::string,Pointer<LNodeLevelData> >::iterator it;
+            std::map<std::string,Pointer<LMeshData> >& level_data = d_lag_quantity_data[level_number];
+            std::map<std::string,Pointer<LMeshData> >::iterator it;
             int i;
             for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
             {
-                Pointer<LNodeLevelData> data = (*it).second;
+                Pointer<LMeshData> data = (*it).second;
                 const int depth = data->getDepth();
                 data->resetData(dst[level_number][i], d_nonlocal_petsc_indices[level_number][depth]);
             }
@@ -2108,19 +2110,15 @@ LDataManager::updateWorkloadData(
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
-
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-
             const Pointer<LNodeIndexData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
             Pointer<CellData<NDIM,double> > workload_data = patch->getPatchData(d_workload_idx);
             Pointer<CellData<NDIM,double> > node_count_data = patch->getPatchData(d_node_count_idx);
-
             workload_data->fillAll(d_alpha_work);
             node_count_data->fillAll(0.0);
-
             for (LNodeIndexData::LNodeIndexSetPatchIterator it(*idx_data); it; it++)
             {
                 const Index<NDIM>& i = it.getIndex();
@@ -2157,7 +2155,6 @@ LDataManager::updateIrregularCellData(
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
-
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -2194,18 +2191,21 @@ LDataManager::restoreLocationPointers(
 
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        if (d_level_contains_lag_data[level_number])
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<LNodeIndexData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            for (LNodeIndexData::LNodeIndexSetPatchIterator it(*idx_data); it; it++)
+            const blitz::Array<double,2>& X_data = *d_lag_quantity_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                const LNodeIndexSet& node_set = *it;
-                for_each(node_set.begin(),
-                         node_set.end(),
-                         RestoreLNodeIndexLocationPointers(d_lag_quantity_data[level_number][POSN_DATA_NAME]->getLocalFormArray()));
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<LNodeIndexData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+                for (LNodeIndexData::LNodeIndexSetPatchIterator it(*idx_data); it; it++)
+                {
+                    const LNodeIndexSet& node_set = *it;
+                    for_each(node_set.begin(), node_set.end(), RestoreLNodeIndexLocationPointers(X_data));
+                }
             }
+            d_lag_quantity_data[level_number][POSN_DATA_NAME]->restoreArrays();
         }
     }
 
@@ -2230,17 +2230,18 @@ LDataManager::invalidateLocationPointers(
 
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        if (d_level_contains_lag_data[level_number])
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<LNodeIndexData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            for (LNodeIndexData::LNodeIndexSetPatchIterator it(*idx_data); it; it++)
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                const LNodeIndexSet& node_set = *it;
-                for_each(node_set.begin(),
-                         node_set.end(),
-                         InvalidateLNodeIndexLocationPointers());
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<LNodeIndexData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+                for (LNodeIndexData::LNodeIndexSetPatchIterator it(*idx_data); it; it++)
+                {
+                    const LNodeIndexSet& node_set = *it;
+                    for_each(node_set.begin(), node_set.end(), InvalidateLNodeIndexLocationPointers());
+                }
             }
         }
     }
@@ -2406,12 +2407,12 @@ LDataManager::initializeLevelData(
 
             computeNodeOffsets(d_num_nodes[level_number], d_node_offset[level_number], num_local_nodes);
 
-            // 2. Allocate LNodeLevelData corresponding to the curvilinear mesh
+            // 2. Allocate LMeshData corresponding to the curvilinear mesh
             //    node positions and velocities.
             static const bool maintain_data = true;
-            createLNodeLevelData(     POSN_DATA_NAME, level_number, NDIM, maintain_data);
-            createLNodeLevelData(INIT_POSN_DATA_NAME, level_number, NDIM, maintain_data);
-            createLNodeLevelData(      VEL_DATA_NAME, level_number, NDIM, maintain_data);
+            createLMeshData(     POSN_DATA_NAME, level_number, NDIM, maintain_data);
+            createLMeshData(INIT_POSN_DATA_NAME, level_number, NDIM, maintain_data);
+            createLMeshData(      VEL_DATA_NAME, level_number, NDIM, maintain_data);
 
             // 3. Initialize the Lagrangian data.
             d_lag_init->initializeStructureIndexingOnPatchLevel(
@@ -2446,8 +2447,8 @@ LDataManager::initializeLevelData(
                 hierarchy, level_number,
                 init_data_time, can_be_refined, initial_time, this);
 
-            ierr = VecCopy(d_lag_quantity_data[level_number][     POSN_DATA_NAME]->getGlobalVec(),
-                           d_lag_quantity_data[level_number][INIT_POSN_DATA_NAME]->getGlobalVec());
+            ierr = VecCopy(d_lag_quantity_data[level_number][     POSN_DATA_NAME]->getVec(),
+                           d_lag_quantity_data[level_number][INIT_POSN_DATA_NAME]->getVec());
             IBTK_CHKERRQ(ierr);
 
             if (num_local_nodes != num_initialized_local_nodes)
@@ -2810,7 +2811,7 @@ LDataManager::putToDatabase(
             }
 
             std::vector<std::string> ldata_names;
-            for (std::map<std::string,Pointer<LNodeLevelData> >::iterator it = d_lag_quantity_data[level_number].begin();
+            for (std::map<std::string,Pointer<LMeshData> >::iterator it = d_lag_quantity_data[level_number].begin();
                  it != d_lag_quantity_data[level_number].end(); ++it)
             {
                 ldata_names.push_back((*it).first);
@@ -3066,8 +3067,8 @@ LDataManager::~LDataManager()
 void
 LDataManager::spread_specialized(
     const int f_data_idx,
-    std::vector<Pointer<LNodeLevelData> >& F_data,
-    std::vector<Pointer<LNodeLevelData> >& X_data,
+    std::vector<Pointer<LMeshData> >& F_data,
+    std::vector<Pointer<LMeshData> >& X_data,
     const bool F_data_ghost_node_update,
     const bool X_data_ghost_node_update,
     const int coarsest_ln,
@@ -3115,8 +3116,8 @@ LDataManager::spread_specialized(
 void
 LDataManager::interp_specialized(
     const int f_data_idx,
-    std::vector<Pointer<LNodeLevelData> >& F_data,
-    std::vector<Pointer<LNodeLevelData> >& X_data,
+    std::vector<Pointer<LMeshData> >& F_data,
+    std::vector<Pointer<LMeshData> >& X_data,
     std::vector<Pointer<RefineSchedule<NDIM> > > f_ghost_fill_scheds,
     const double fill_data_time,
     const int coarsest_ln,
@@ -3246,10 +3247,10 @@ LDataManager::beginNonlocalDataFill(
 
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
-        std::map<std::string,Pointer<LNodeLevelData> >& level_data = d_lag_quantity_data[level_number];
+        std::map<std::string,Pointer<LMeshData> >& level_data = d_lag_quantity_data[level_number];
         for_each(level_data.begin(),
                  level_data.end(),
-                 BeginLNodeLevelDataNonlocalFill());
+                 BeginLMeshDataNonlocalFill());
     }
 
     t_begin_nonlocal_data_fill->stop();
@@ -3273,10 +3274,10 @@ LDataManager::endNonlocalDataFill(
 
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
-        std::map<std::string,Pointer<LNodeLevelData> >& level_data = d_lag_quantity_data[level_number];
+        std::map<std::string,Pointer<LMeshData> >& level_data = d_lag_quantity_data[level_number];
         for_each(level_data.begin(),
                  level_data.end(),
-                 EndLNodeLevelDataNonlocalFill());
+                 EndLMeshDataNonlocalFill());
     }
 
     t_end_nonlocal_data_fill->stop();
@@ -3709,7 +3710,7 @@ LDataManager::getFromRestart()
                  it != ldata_names.end(); ++it)
             {
                 const std::string& ldata_name = *it;
-                d_lag_quantity_data[level_number][ldata_name] = new LNodeLevelData(level_db->getDatabase(ldata_name));
+                d_lag_quantity_data[level_number][ldata_name] = new LMeshData(level_db->getDatabase(ldata_name));
                 data_depths.insert(d_lag_quantity_data[level_number][ldata_name]->getDepth());
             }
 

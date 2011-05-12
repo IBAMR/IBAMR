@@ -690,8 +690,8 @@ output_data(
     /*
      * Write Lagrangian data.
      */
-    tbox::Pointer<LNodeLevelData> X_data = lag_manager->getLNodeLevelData("X", finest_hier_level);
-    Vec X_petsc_vec = X_data->getGlobalVec();
+    tbox::Pointer<LMeshData> X_data = lag_manager->getLMeshData("X", finest_hier_level);
+    Vec X_petsc_vec = X_data->getVec();
     Vec X_lag_vec;
     VecDuplicate(X_petsc_vec, &X_lag_vec);
     lag_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
@@ -741,8 +741,8 @@ output_data(
     }
     VecDestroy(X_lag_vec);
 
-    tbox::Pointer<LNodeLevelData> D_data = lag_manager->getLNodeLevelData("D", finest_hier_level);
-    Vec D_petsc_vec = D_data->getGlobalVec();
+    tbox::Pointer<LMeshData> D_data = lag_manager->getLMeshData("D", finest_hier_level);
+    Vec D_petsc_vec = D_data->getVec();
     Vec D_lag_vec;
     VecDuplicate(D_petsc_vec, &D_lag_vec);
     lag_manager->scatterPETScToLagrangian(D_petsc_vec, D_lag_vec, finest_hier_level);

@@ -334,8 +334,8 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     const int lag_node_index_idx,
     const int global_index_offset,
     const int local_index_offset,
-    Pointer<LNodeLevelData>& X_data,
-    Pointer<LNodeLevelData>& U_data,
+    Pointer<LMeshData>& X_data,
+    Pointer<LMeshData>& U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
@@ -356,6 +356,8 @@ IBStandardInitializer::initializeDataOnPatchLevel(
 
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
+    blitz::Array<double,2>& X_array = *X_data->getGhostedLocalFormVecArray();
+    blitz::Array<double,2>& U_array = *U_data->getGhostedLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -382,18 +384,17 @@ IBStandardInitializer::initializeDataOnPatchLevel(
              it != patch_vertices.end(); ++it)
         {
             const std::pair<int,int>& point_idx = (*it);
-            const int current_global_idx = getCanonicalLagrangianIndex(
-                point_idx, level_number) + global_index_offset;
-            const int current_local_idx = ++local_idx + local_index_offset;
+            const int lagrangian_idx = getCanonicalLagrangianIndex(point_idx, level_number) + global_index_offset;
+            const int local_petsc_idx = ++local_idx + local_index_offset;
+            const int global_petsc_idx = local_petsc_idx+global_index_offset;
 
             // Get the coordinates of the present vertex.
             const std::vector<double> X = getVertexPosn(point_idx, level_number);
 
             // Initialize the location of the present vertex.
-            double* const node_X = &(*X_data)(current_local_idx);
             for (int d = 0; d < NDIM; ++d)
             {
-                node_X[d] = X[d];
+                X_array(local_petsc_idx,d) = X[d];
 
                 if (X[d] <= XLower[d])
                 {
@@ -412,13 +413,11 @@ IBStandardInitializer::initializeDataOnPatchLevel(
 
             // Get the index of the cell in which the present vertex is
             // initially located.
-            const CellIndex<NDIM> idx = IndexUtilities::getCellIndex(
-                X, xLower, xUpper, dx, patch_lower, patch_upper);
+            const CellIndex<NDIM> idx = IndexUtilities::getCellIndex(X, xLower, xUpper, dx, patch_lower, patch_upper);
 
             // Initialize the specification objects associated with the present
             // vertex.
-            std::vector<Pointer<Streamable> > specs = initializeSpecs(
-                point_idx, global_index_offset, level_number);
+            std::vector<Pointer<Streamable> > specs = initializeSpecs(point_idx, global_index_offset, level_number);
 
             // Create or retrieve a pointer to the LNodeIndexSet associated with
             // the current Cartesian grid cell.
@@ -429,16 +428,17 @@ IBStandardInitializer::initializeDataOnPatchLevel(
             LNodeIndexSet* const node_set = index_data->getItem(idx);
             static const IntVector<NDIM> periodic_offset(0);
             static const std::vector<double> periodic_displacement(NDIM,0.0);
-            node_set->push_back(new LNodeIndex(current_global_idx, current_local_idx,
-                                               &(*X_data)(current_local_idx),
+            node_set->push_back(new LNodeIndex(lagrangian_idx, global_petsc_idx, local_petsc_idx,
+                                               &X_array(local_petsc_idx,0),
                                                periodic_offset, periodic_displacement,
                                                specs));
 
             // Initialize the velocity of the present vertex.
-            double* const node_U = &(*U_data)(current_local_idx);
-            std::fill(node_U,node_U+NDIM,0.0);
+            std::fill(&U_array(local_petsc_idx,0),&U_array(local_petsc_idx,0)+NDIM,0.0);
         }
     }
+    X_data->restoreArrays();
+    U_data->restoreArrays();
 
     d_level_is_initialized[level_number] = true;
 
@@ -456,8 +456,8 @@ int
 IBStandardInitializer::initializeMassDataOnPatchLevel(
     const int global_index_offset,
     const int local_index_offset,
-    Pointer<LNodeLevelData>& M_data,
-    Pointer<LNodeLevelData>& K_data,
+    Pointer<LMeshData>& M_data,
+    Pointer<LMeshData>& K_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
@@ -469,6 +469,8 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
 
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
+    blitz::Array<double,2>& M_array = *M_data->getGhostedLocalFormVecArray();
+    blitz::Array<double,2>& K_array = *K_data->getGhostedLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -485,7 +487,7 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
              it != patch_vertices.end(); ++it)
         {
             const std::pair<int,int>& point_idx = (*it);
-            const int current_local_idx = ++local_idx + local_index_offset;
+            const int local_petsc_idx = ++local_idx + local_index_offset;
 
             // Initialize the mass and penalty stiffness coefficient
             // corresponding to the present vertex.
@@ -496,16 +498,18 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
             // Avoid division by zero at massless nodes.
             if (MathUtilities<double>::equalEps(M,0.0))
             {
-                (*M_data)(current_local_idx) = std::numeric_limits<double>::epsilon();
-                (*K_data)(current_local_idx) = 0.0;
+                M_array(local_petsc_idx) = std::numeric_limits<double>::epsilon();
+                K_array(local_petsc_idx) = 0.0;
             }
             else
             {
-                (*M_data)(current_local_idx) = M;
-                (*K_data)(current_local_idx) = K;
+                M_array(local_petsc_idx) = M;
+                K_array(local_petsc_idx) = K;
             }
         }
     }
+    M_data->restoreArrays();
+    K_data->restoreArrays();
     return local_node_count;
 }// initializeMassOnPatchLevel
 
@@ -513,7 +517,7 @@ int
 IBStandardInitializer::initializeDirectorDataOnPatchLevel(
     const int global_index_offset,
     const int local_index_offset,
-    Pointer<LNodeLevelData>& D_data,
+    Pointer<LMeshData>& D_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
@@ -525,6 +529,7 @@ IBStandardInitializer::initializeDirectorDataOnPatchLevel(
 
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
+    blitz::Array<double,2>& D_array = *D_data->getGhostedLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -541,16 +546,17 @@ IBStandardInitializer::initializeDirectorDataOnPatchLevel(
              it != patch_vertices.end(); ++it)
         {
             const std::pair<int,int>& point_idx = (*it);
-            const int current_local_idx = ++local_idx + local_index_offset;
+            const int local_petsc_idx = ++local_idx + local_index_offset;
 
             // Initialize the director corresponding to the present vertex.
             const std::vector<double>& D = getVertexDirectors(point_idx, level_number);
             for (int d = 0; d < 3*3; ++d)
             {
-                (*D_data)(current_local_idx,d)= D[d];
+                D_array(local_petsc_idx,d)= D[d];
             }
         }
     }
+    D_data->restoreArrays();
     return local_node_count;
 }// initializeDirectorOnPatchLevel
 

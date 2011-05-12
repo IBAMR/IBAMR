@@ -124,7 +124,7 @@ LagM3DDataWriter::LagM3DDataWriter(
       d_block_nfibers(d_finest_ln+1),
       d_block_ngroups(d_finest_ln+1),
       d_block_first_lag_idx(d_finest_ln+1),
-      d_coords_data(d_finest_ln+1,Pointer<LNodeLevelData>(NULL)),
+      d_coords_data(d_finest_ln+1,Pointer<LMeshData>(NULL)),
       d_ao(d_finest_ln+1),
       d_build_vec_scatters(d_finest_ln+1),
       d_src_vec(d_finest_ln+1),
@@ -370,7 +370,7 @@ LagM3DDataWriter::registerLogicallyCartesianBlock(
 
 void
 LagM3DDataWriter::registerCoordsData(
-    Pointer<LNodeLevelData> coords_data,
+    Pointer<LMeshData> coords_data,
     const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
@@ -1025,7 +1025,7 @@ LagM3DDataWriter::writePlotData(
             ierr = VecDuplicate(d_dst_vec[ln][NDIM], &local_X_vec);
             IBTK_CHKERRQ(ierr);
 
-            Vec& global_X_vec = d_coords_data[ln]->getGlobalVec();
+            Vec& global_X_vec = d_coords_data[ln]->getVec();
             ierr = VecScatterBegin(d_vec_scatter[ln][NDIM], global_X_vec, local_X_vec,
                                    INSERT_VALUES, SCATTER_FORWARD);
             IBTK_CHKERRQ(ierr);
@@ -1147,7 +1147,7 @@ LagM3DDataWriter::buildVecScatters(
     std::transform(ref_is_idxs.begin(), ref_is_idxs.end(),
                    src_is_idxs[NDIM].begin(),
                    std::bind2nd(std::multiplies<int>(),NDIM));
-    d_src_vec[level_number][NDIM] = d_coords_data[level_number]->getGlobalVec();
+    d_src_vec[level_number][NDIM] = d_coords_data[level_number]->getVec();
 
     // Create the VecScatters to scatter data from the global PETSc Vec to
     // contiguous local subgrids.  VecScatter objects are individually created

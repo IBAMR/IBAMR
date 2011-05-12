@@ -1245,12 +1245,12 @@ IBImplicitHierarchyIntegrator::regridHierarchy()
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(ln == finest_ln_after_regrid);
 #endif
-            d_X_data     [ln] = d_lag_data_manager->getLNodeLevelData(LDataManager::POSN_DATA_NAME,ln);
-            d_X_mid_data [ln] = d_lag_data_manager->createLNodeLevelData("X_mid" ,ln,NDIM);
-            d_X_new_data [ln] = d_lag_data_manager->createLNodeLevelData("X_new" ,ln,NDIM);
-            d_X_half_data[ln] = d_lag_data_manager->createLNodeLevelData("X_half",ln,NDIM);
-            d_U_half_data[ln] = d_lag_data_manager->createLNodeLevelData("U_half",ln,NDIM);
-            d_F_half_data[ln] = d_lag_data_manager->createLNodeLevelData("F_half",ln,NDIM);
+            d_X_data     [ln] = d_lag_data_manager->getLMeshData(LDataManager::POSN_DATA_NAME,ln);
+            d_X_mid_data [ln] = d_lag_data_manager->createLMeshData("X_mid" ,ln,NDIM);
+            d_X_new_data [ln] = d_lag_data_manager->createLMeshData("X_new" ,ln,NDIM);
+            d_X_half_data[ln] = d_lag_data_manager->createLMeshData("X_half",ln,NDIM);
+            d_U_half_data[ln] = d_lag_data_manager->createLMeshData("U_half",ln,NDIM);
+            d_F_half_data[ln] = d_lag_data_manager->createLMeshData("F_half",ln,NDIM);
         }
     }
 
@@ -1291,20 +1291,21 @@ IBImplicitHierarchyIntegrator::regridHierarchy()
                 }
             }
 
-            Pointer<LNodeLevelData> X_data = d_lag_data_manager->getLNodeLevelData(LDataManager::POSN_DATA_NAME,ln);
+            Pointer<LMeshData> X_data = d_lag_data_manager->getLMeshData(LDataManager::POSN_DATA_NAME,ln);
+            const blitz::Array<double,2>& X_array = *X_data->getLocalFormVecArray();
             for (int i = 0; i < X_data->getLocalNodeCount(); ++i)
             {
                 for (int d = 0; d < NDIM; ++d)
                 {
                     if ((periodic_shift[d] == 0) &&
-                        ((*X_data)(i,d) - grid_xLower[d] <= eps ||
-                         grid_xUpper[d] - (*X_data)(i,d) <= eps))
+                        (X_array(i,d) <= grid_xLower[d]+eps || X_array(i,d) >= grid_xUpper[d]-eps))
                     {
                         d_anchor_point_local_idxs[ln].insert(i);
                         break;
                     }
                 }
             }
+            X_data->restoreArrays();
         }
     }
 
@@ -1344,12 +1345,12 @@ IBImplicitHierarchyIntegrator::integrateHierarchy_initialize(
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(ln == finest_ln);
 #endif
-            d_X_data     [ln] = d_lag_data_manager->getLNodeLevelData(LDataManager::POSN_DATA_NAME,ln);
-            d_X_mid_data [ln] = d_lag_data_manager->createLNodeLevelData("X_mid" ,ln,NDIM);
-            d_X_new_data [ln] = d_lag_data_manager->createLNodeLevelData("X_new" ,ln,NDIM);
-            d_X_half_data[ln] = d_lag_data_manager->createLNodeLevelData("X_half",ln,NDIM);
-            d_U_half_data[ln] = d_lag_data_manager->createLNodeLevelData("U_half",ln,NDIM);
-            d_F_half_data[ln] = d_lag_data_manager->createLNodeLevelData("F_half",ln,NDIM);
+            d_X_data     [ln] = d_lag_data_manager->getLMeshData(LDataManager::POSN_DATA_NAME,ln);
+            d_X_mid_data [ln] = d_lag_data_manager->createLMeshData("X_mid" ,ln,NDIM);
+            d_X_new_data [ln] = d_lag_data_manager->createLMeshData("X_new" ,ln,NDIM);
+            d_X_half_data[ln] = d_lag_data_manager->createLMeshData("X_half",ln,NDIM);
+            d_U_half_data[ln] = d_lag_data_manager->createLMeshData("U_half",ln,NDIM);
+            d_F_half_data[ln] = d_lag_data_manager->createLMeshData("F_half",ln,NDIM);
         }
     }
 
@@ -1443,8 +1444,8 @@ IBImplicitHierarchyIntegrator::integrateHierarchy_initialize(
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
             PetscErrorCode ierr;
-            Vec X_vec     = d_X_data    [ln]->getGlobalVec();
-            Vec X_new_vec = d_X_new_data[ln]->getGlobalVec();
+            Vec X_vec     = d_X_data    [ln]->getVec();
+            Vec X_new_vec = d_X_new_data[ln]->getVec();
             ierr = VecCopy(X_vec,X_new_vec);  IBTK_CHKERRQ(ierr);
         }
     }
@@ -1505,9 +1506,9 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
             PetscErrorCode ierr;
-            Vec X_vec     = d_X_data    [ln]->getGlobalVec();
-            Vec X_new_vec = d_X_new_data[ln]->getGlobalVec();
-            Vec X_mid_vec = d_X_mid_data[ln]->getGlobalVec();
+            Vec X_vec     = d_X_data    [ln]->getVec();
+            Vec X_new_vec = d_X_new_data[ln]->getVec();
+            Vec X_mid_vec = d_X_mid_data[ln]->getVec();
             ierr = VecCopy(X_vec,X_mid_vec);  IBTK_CHKERRQ(ierr);
             ierr = VecAXPBY(X_mid_vec,0.5,0.5,X_new_vec);  IBTK_CHKERRQ(ierr);
             d_X_mid_data[ln]->beginGhostUpdate();
@@ -1523,7 +1524,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(
         {
             int ierr;
             Pointer<PatchLevel<NDIM> > patch_level = d_hierarchy->getPatchLevel(ln);
-            Vec X_mid_vec = d_X_mid_data[ln]->getGlobalVec();
+            Vec X_mid_vec = d_X_mid_data[ln]->getVec();
             PETScMatUtilities::constructPatchLevelInterpOp(
                 d_R_mats[ln], X_mid_vec,
                 d_u_half_ib_idx, d_u_half_ib_var, d_ib_dof_idx, d_ib_dof_var,
@@ -1650,14 +1651,14 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(
         {
             int ierr;
             Pointer<PatchLevel<NDIM> > patch_level = d_hierarchy->getPatchLevel(ln);
-            Vec U_half_vec = d_U_half_data[ln]->getGlobalVec();
+            Vec U_half_vec = d_U_half_data[ln]->getVec();
             Vec u_half_ib_vec = static_cast<Vec>(NULL);
             PETScVecUtilities::constructPatchLevelVec(u_half_ib_vec, d_u_half_ib_idx, d_u_half_ib_var, patch_level);
             PETScVecUtilities::copyToPatchLevelVec(u_half_ib_vec, d_u_half_ib_idx, d_u_half_ib_var, patch_level);
             ierr = MatMult(d_R_mats[ln], u_half_ib_vec, U_half_vec); IBTK_CHKERRQ(ierr);
             ierr = VecDestroy(u_half_ib_vec); IBTK_CHKERRQ(ierr);
-            Vec X_vec = d_X_data[ln]->getGlobalVec();
-            Vec X_new_vec = d_X_new_data[ln]->getGlobalVec();
+            Vec X_vec = d_X_data[ln]->getVec();
+            Vec X_new_vec = d_X_new_data[ln]->getVec();
             ierr = VecWAXPY(X_new_vec, dt, U_half_vec, X_vec);  IBTK_CHKERRQ(ierr);
         }
     }
@@ -1883,8 +1884,8 @@ IBImplicitHierarchyIntegrator::resetTimeDependentHierData(
             if (d_lag_data_manager->levelContainsLagrangianData(ln))
             {
                 PetscErrorCode ierr;
-                Vec X_vec     = d_X_data    [ln]->getGlobalVec();
-                Vec X_new_vec = d_X_new_data[ln]->getGlobalVec();
+                Vec X_vec     = d_X_data    [ln]->getVec();
+                Vec X_new_vec = d_X_new_data[ln]->getVec();
                 ierr = VecCopy(X_new_vec,X_vec);  IBTK_CHKERRQ(ierr);
             }
         }
@@ -3374,7 +3375,7 @@ IBImplicitHierarchyIntegrator::resetLagrangianForceStrategy(
 
 void
 IBImplicitHierarchyIntegrator::resetAnchorPointValues(
-    std::vector<Pointer<LNodeLevelData> > V_data,
+    std::vector<Pointer<LMeshData> > V_data,
     const int coarsest_ln,
     const int finest_ln)
 {
@@ -3383,7 +3384,7 @@ IBImplicitHierarchyIntegrator::resetAnchorPointValues(
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
             const int depth = V_data[ln]->getDepth();
-            Vec V_vec = V_data[ln]->getGlobalVec();
+            Vec V_vec = V_data[ln]->getVec();
             double* V_arr;
             int ierr = VecGetArray(V_vec, &V_arr);  IBTK_CHKERRQ(ierr);
             for (std::set<int>::const_iterator cit = d_anchor_point_local_idxs[ln].begin();

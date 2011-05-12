@@ -177,7 +177,7 @@ IBImplicitModHelmholtzPETScLevelSolver::setSJRMat(
 
 void
 IBImplicitModHelmholtzPETScLevelSolver::setPoissonSpecifications(
-    const SAMRAI::solv::PoissonSpecifications& poisson_spec)
+    const PoissonSpecifications& poisson_spec)
 {
     d_poisson_spec = poisson_spec;
     return;

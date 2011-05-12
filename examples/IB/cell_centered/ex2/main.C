@@ -574,9 +574,9 @@ main(
             X_idx[0] = lag_manager->getNumberOfNodes(finest_hier_level) - 1;
             lag_manager->mapLagrangianToPETSc(X_idx, finest_hier_level);
 
-            tbox::Pointer<LNodeLevelData> X_data = lag_manager->getLNodeLevelData(
+            tbox::Pointer<LMeshData> X_data = lag_manager->getLMeshData(
                 "X", finest_hier_level);
-            Vec X_vec = X_data->getGlobalVec();
+            Vec X_vec = X_data->getVec();
 
             int ilower, iupper;
             int ierr = VecGetOwnershipRange(X_vec, &ilower, &iupper);  IBTK_CHKERRQ(ierr);

@@ -242,8 +242,8 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
     const int lag_node_index_idx,
     const int global_index_offset,
     const int local_index_offset,
-    Pointer<LNodeLevelData>& X_data,
-    Pointer<LNodeLevelData>& U_data,
+    Pointer<LMeshData>& X_data,
+    Pointer<LMeshData>& U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
@@ -266,6 +266,8 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
 
     // Loop over all vertices in the specified level and initialize the data in
     // the appropriate Cartesian grid patches.
+    blitz::Array<double,2>& X_array = *X_data->getGhostedLocalFormVecArray();
+    blitz::Array<double,2>& U_array = *U_data->getGhostedLocalFormVecArray();
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
     const int num_filenames = d_filenames[level_number].size();
     int local_idx = -1;
@@ -280,8 +282,9 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
             const int patch_num = d_level_patch_nums[j][k];
 
             // Compute the index information for the present vertex.
-            const int current_global_idx = getCanonicalLagrangianIndex(vertex_idx,global_index_offset);
-            const int current_local_idx = ++local_idx + local_index_offset;
+            const int lagrangian_idx = getCanonicalLagrangianIndex(vertex_idx,global_index_offset);
+            const int local_petsc_idx = ++local_idx + local_index_offset;
+            const int global_petsc_idx = local_petsc_idx+global_index_offset;
 
             // Ensure the point lies within the physical domain.
             for (int d = 0; d < NDIM; ++d)
@@ -309,8 +312,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
 
             // Ensure the point lies with the present grid patch.
             Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom =
-                patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
             const double* const patchXLower = patch_geom->getXLower();
             const double* const patchXUpper = patch_geom->getXUpper();
             for (int d = 0; d < NDIM; ++d)
@@ -334,17 +336,14 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
             }
 
             // Initialize the position of the present vertex.
-            double* const vertex_X = &(*X_data)(current_local_idx);
-            std::copy(X.begin(),X.end(),vertex_X);
+            std::copy(X.begin(),X.end(),&X_array(local_petsc_idx,0));
 
             // Initialize the velocity of the present vertex.
-            double* const vertex_U = &(*U_data)(current_local_idx);
-            std::fill(vertex_U,vertex_U+NDIM,0.0);
+            std::fill(&U_array(local_petsc_idx,0),&U_array(local_petsc_idx,0)+NDIM,0.0);
 
             // Initialize the specification objects associated with the present
             // vertex.
-            std::vector<Pointer<Streamable> > vertex_specs = initializeSpecs(
-                std::make_pair(j,k), vertex_idx, global_index_offset);
+            std::vector<Pointer<Streamable> > vertex_specs = initializeSpecs(std::make_pair(j,k), vertex_idx, global_index_offset);
 
             // Initialize the LNodeIndex data.
             const Box<NDIM>& patch_box = patch->getBox();
@@ -367,9 +366,11 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
             LNodeIndexSet* const node_set = index_data->getItem(i);
             const IntVector<NDIM> periodic_offset(0);
             const std::vector<double> periodic_displacement(NDIM,0.0);
-            node_set->push_back(new LNodeIndex(current_global_idx, current_local_idx, &(*X_data)(current_local_idx), periodic_offset, periodic_displacement, vertex_specs));
+            node_set->push_back(new LNodeIndex(lagrangian_idx, global_petsc_idx, local_petsc_idx, &X_array(local_petsc_idx,0), periodic_offset, periodic_displacement, vertex_specs));
         }
     }
+    X_data->restoreArrays();
+    U_data->restoreArrays();
 
     // Sanity check.
     const int expected_local_node_count = std::accumulate(d_level_num_local_vertex.begin(),d_level_num_local_vertex.end(),0);
@@ -402,8 +403,8 @@ int
 IBHDF5Initializer::initializeMassDataOnPatchLevel(
     const int global_index_offset,
     const int local_index_offset,
-    Pointer<LNodeLevelData>& M_data,
-    Pointer<LNodeLevelData>& K_data,
+    Pointer<LMeshData>& M_data,
+    Pointer<LMeshData>& K_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,

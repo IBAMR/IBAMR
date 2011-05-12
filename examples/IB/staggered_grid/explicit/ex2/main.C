@@ -97,9 +97,9 @@ public:
         const int u_idx,
         const int p_idx,
         const int f_idx,
-        std::vector<tbox::Pointer<LNodeLevelData> > F_data,
-        std::vector<tbox::Pointer<LNodeLevelData> > X_data,
-        std::vector<tbox::Pointer<LNodeLevelData> > U_data,
+        std::vector<tbox::Pointer<LMeshData> > F_data,
+        std::vector<tbox::Pointer<LMeshData> > X_data,
+        std::vector<tbox::Pointer<LMeshData> > U_data,
         const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level_number,
         const int finest_level_number,
@@ -664,8 +664,8 @@ main(
              */
             const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
             LDataManager* lag_manager = time_integrator->getLDataManager();
-            tbox::Pointer<LNodeLevelData> X_data = lag_manager->getLNodeLevelData("X", finest_hier_level);
-            Vec X_petsc_vec = X_data->getGlobalVec();
+            tbox::Pointer<LMeshData> X_data = lag_manager->getLMeshData("X", finest_hier_level);
+            Vec X_petsc_vec = X_data->getVec();
             Vec X_lag_vec;
             VecDuplicate(X_petsc_vec, &X_lag_vec);
             lag_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
@@ -775,8 +775,8 @@ main(
                  */
                 const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
                 LDataManager* lag_manager = time_integrator->getLDataManager();
-                tbox::Pointer<LNodeLevelData> X_data = lag_manager->getLNodeLevelData("X", finest_hier_level);
-                Vec X_petsc_vec = X_data->getGlobalVec();
+                tbox::Pointer<LMeshData> X_data = lag_manager->getLMeshData("X", finest_hier_level);
+                Vec X_petsc_vec = X_data->getVec();
                 Vec X_lag_vec;
                 VecDuplicate(X_petsc_vec, &X_lag_vec);
                 lag_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);

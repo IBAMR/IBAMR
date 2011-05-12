@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/LNodeLevelData.h>
+#include <ibtk/LMeshData.h>
 #include <ibtk/LDataManager.h>
 
 // SAMRAI INCLUDES
@@ -92,9 +92,9 @@ public:
         const int u_idx,
         const int p_idx,
         const int f_idx,
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > F_data,
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > X_data,
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> > U_data,
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LMeshData> > F_data,
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LMeshData> > X_data,
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LMeshData> > U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level_number,
         const int finest_level_number,

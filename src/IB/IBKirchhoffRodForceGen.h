@@ -93,11 +93,11 @@ public:
      */
     virtual void
     computeLagrangianForceAndTorque(
-        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> F_data,
-        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> N_data,
-        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
-        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> D_data,
-        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> U_data,
+        SAMRAI::tbox::Pointer<IBTK::LMeshData> F_data,
+        SAMRAI::tbox::Pointer<IBTK::LMeshData> N_data,
+        SAMRAI::tbox::Pointer<IBTK::LMeshData> X_data,
+        SAMRAI::tbox::Pointer<IBTK::LMeshData> D_data,
+        SAMRAI::tbox::Pointer<IBTK::LMeshData> U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,

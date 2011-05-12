@@ -76,7 +76,7 @@
 namespace IBTK
 {
 class LNodeIndexSet;
-class LNodeLevelData;
+class LMeshData;
 class LagSiloDataWriter;
 #if (NDIM == 3)
 class LagM3DDataWriter;
@@ -89,7 +89,7 @@ namespace IBTK
 {
 /*!
  * \brief Class LDataManager coordinates the irregular distribution of
- * LNodeIndexData and LNodeLevelData on the patch hierarchy.
+ * LNodeIndexData and LMeshData on the patch hierarchy.
  *
  * The manager class is responsible for maintaining this data distribution and
  * for all inter-processor communications.  All access to instantiated
@@ -103,19 +103,19 @@ class LDataManager
 {
 public:
     /*!
-     * The name of the LNodeLevelData that specifies the current positions of
+     * The name of the LMeshData that specifies the current positions of
      * the curvilinear mesh nodes.
      */
     static const std::string POSN_DATA_NAME;
 
     /*!
-     * The name of the LNodeLevelData that specifies the initial positions of
+     * The name of the LMeshData that specifies the initial positions of
      * the curvilinear mesh nodes.
      */
     static const std::string INIT_POSN_DATA_NAME;
 
     /*!
-     * The name of the LNodeLevelData that specifies the velocities of the
+     * The name of the LMeshData that specifies the velocities of the
      * curvilinear mesh nodes.
      */
     static const std::string VEL_DATA_NAME;
@@ -214,9 +214,9 @@ public:
     void
     spread(
         const int f_data_idx,
-        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& F_data,
-        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
-        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& ds_data,
+        std::vector<SAMRAI::tbox::Pointer<LMeshData> >& F_data,
+        std::vector<SAMRAI::tbox::Pointer<LMeshData> >& X_data,
+        std::vector<SAMRAI::tbox::Pointer<LMeshData> >& ds_data,
         std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
         const bool F_data_ghost_node_update=true,
         const bool X_data_ghost_node_update=true,
@@ -239,8 +239,8 @@ public:
     void
     spread(
         const int f_data_idx,
-        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& F_data,
-        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
+        std::vector<SAMRAI::tbox::Pointer<LMeshData> >& F_data,
+        std::vector<SAMRAI::tbox::Pointer<LMeshData> >& X_data,
         std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
         const bool F_data_ghost_node_update=true,
         const bool X_data_ghost_node_update=true,
@@ -254,8 +254,8 @@ public:
     void
     interp(
         const int f_data_idx,
-        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& F_data,
-        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
+        std::vector<SAMRAI::tbox::Pointer<LMeshData> >& F_data,
+        std::vector<SAMRAI::tbox::Pointer<LMeshData> >& X_data,
         std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > f_synch_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
         std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_ghost_fill_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
         const double fill_data_time=0.0,
@@ -272,8 +272,8 @@ public:
     void
     interpolate(
         const int f_data_idx,
-        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& F_data,
-        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
+        std::vector<SAMRAI::tbox::Pointer<LMeshData> >& F_data,
+        std::vector<SAMRAI::tbox::Pointer<LMeshData> >& X_data,
         std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > f_synch_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
         std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_ghost_fill_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
         const double fill_data_time=0.0,
@@ -369,8 +369,8 @@ public:
      * \brief Get the specified Lagrangian quantity data on the given patch
      * hierarchy level.
      */
-    SAMRAI::tbox::Pointer<LNodeLevelData>
-    getLNodeLevelData(
+    SAMRAI::tbox::Pointer<LMeshData>
+    getLMeshData(
         const std::string& quantity_name,
         const int level_number) const;
 
@@ -382,8 +382,8 @@ public:
      * \note Quantities maintained by the LDataManager must have unique names.
      * The name "X" is reserved for the nodal coordinates.
      */
-    SAMRAI::tbox::Pointer<LNodeLevelData>
-    createLNodeLevelData(
+    SAMRAI::tbox::Pointer<LMeshData>
+    createLMeshData(
         const std::string& quantity_name,
         const int level_number,
         const int depth=1,
@@ -584,12 +584,12 @@ public:
         const int level_number) const;
 
     /*!
-     * \brief Set the components of the supplied LNodeLevelData object to zero
+     * \brief Set the components of the supplied LMeshData object to zero
      * for those entries that correspond to inactivated structures.
      */
     void
     zeroInactivatedComponents(
-        SAMRAI::tbox::Pointer<LNodeLevelData> lag_data,
+        SAMRAI::tbox::Pointer<LMeshData> lag_data,
         const int level_number) const;
 
     /*!
@@ -728,7 +728,7 @@ public:
      * routine updates these pointers based on the current state of the
      * Lagrangian nodal position data.
      *
-     * \note It is important to note that any operation on the LNodeLevelData
+     * \note It is important to note that any operation on the LMeshData
      * that results in the restoration of the local form of the underlying PETSc
      * Vec object has the potential to invalidate these pointers.
      */
@@ -914,8 +914,8 @@ private:
     void
     spread_specialized(
         const int f_data_idx,
-        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& F_data,
-        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
+        std::vector<SAMRAI::tbox::Pointer<LMeshData> >& F_data,
+        std::vector<SAMRAI::tbox::Pointer<LMeshData> >& X_data,
         const bool F_data_ghost_node_update,
         const bool X_data_ghost_node_update,
         const int coarsest_ln,
@@ -928,8 +928,8 @@ private:
     void
     interp_specialized(
         const int f_data_idx,
-        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& F_data,
-        std::vector<SAMRAI::tbox::Pointer<LNodeLevelData> >& X_data,
+        std::vector<SAMRAI::tbox::Pointer<LMeshData> >& F_data,
+        std::vector<SAMRAI::tbox::Pointer<LMeshData> >& X_data,
         std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_ghost_fill_scheds,
         const double fill_data_time,
         const int coarsest_ln,
@@ -1174,10 +1174,10 @@ private:
     /*!
      * The Lagrangian quantity data owned by the manager object.
      */
-    std::vector<std::map<std::string,SAMRAI::tbox::Pointer<LNodeLevelData> > > d_lag_quantity_data;
+    std::vector<std::map<std::string,SAMRAI::tbox::Pointer<LMeshData> > > d_lag_quantity_data;
 
     /*!
-     * Indicates whether the LNodeLevelData is in synch with the
+     * Indicates whether the LMeshData is in synch with the
      * LNodeIndexData.
      */
     std::vector<bool> d_needs_synch;
@@ -1237,7 +1237,7 @@ private:
      *
      * \note These sets are used to create the VecScatter objects used to
      * transfer data from the old PETSc ordering to the new PETSc ordering.
-     * Since the ordering is different for different depths of LNodeLevelData,
+     * Since the ordering is different for different depths of LMeshData,
      * we compute one set of indices for each depth that is being reordered.
      */
     std::vector<std::map<int,std::vector<int> > > d_nonlocal_petsc_indices;

@@ -132,10 +132,10 @@ IBImplicitSJROperator::formJacobian(
 
     LDataManager* lag_data_manager = d_ib_implicit_integrator->d_lag_data_manager;
 
-    std::vector<Pointer<LNodeLevelData> >& X_data = d_ib_implicit_integrator->d_X_data;
-    std::vector<Pointer<LNodeLevelData> >& X_mid_data = d_ib_implicit_integrator->d_X_mid_data;
-    std::vector<Pointer<LNodeLevelData> >& X_half_data = d_ib_implicit_integrator->d_X_half_data;
-    std::vector<Pointer<LNodeLevelData> >& U_half_data = d_ib_implicit_integrator->d_U_half_data;
+    std::vector<Pointer<LMeshData> >& X_data = d_ib_implicit_integrator->d_X_data;
+    std::vector<Pointer<LMeshData> >& X_mid_data = d_ib_implicit_integrator->d_X_mid_data;
+    std::vector<Pointer<LMeshData> >& X_half_data = d_ib_implicit_integrator->d_X_half_data;
+    std::vector<Pointer<LMeshData> >& U_half_data = d_ib_implicit_integrator->d_U_half_data;
 
     std::vector<Mat>& R_mats = d_ib_implicit_integrator->d_R_mats;
 
@@ -153,9 +153,9 @@ IBImplicitSJROperator::formJacobian(
     {
         if (lag_data_manager->levelContainsLagrangianData(ln))
         {
-            Vec X_vec = X_data[ln]->getGlobalVec();
-            Vec X_half_vec = X_half_data[ln]->getGlobalVec();
-            Vec U_half_vec = U_half_data[ln]->getGlobalVec();
+            Vec X_vec = X_data[ln]->getVec();
+            Vec X_half_vec = X_half_data[ln]->getVec();
+            Vec U_half_vec = U_half_data[ln]->getVec();
             ierr = VecWAXPY(X_half_vec, 0.5*d_dt, U_half_vec, X_vec);  IBTK_CHKERRQ(ierr);
         }
     }

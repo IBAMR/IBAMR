@@ -431,11 +431,11 @@ IBKirchhoffRodForceGen::initializeLevelData(
 
 void
 IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
-    Pointer<LNodeLevelData> F_data,
-    Pointer<LNodeLevelData> N_data,
-    Pointer<LNodeLevelData> X_data,
-    Pointer<LNodeLevelData> D_data,
-    Pointer<LNodeLevelData> U_data,
+    Pointer<LMeshData> F_data,
+    Pointer<LMeshData> N_data,
+    Pointer<LMeshData> X_data,
+    Pointer<LMeshData> D_data,
+    Pointer<LMeshData> U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
@@ -460,7 +460,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     ierr = MatGetOwnershipRange(d_D_next_mats[level_number], &i_start, &i_stop);
     IBTK_CHKERRQ(ierr);
 
-    Vec D_vec = D_data->getGlobalVec();
+    Vec D_vec = D_data->getVec();
 
     Vec D_next_vec;
     ierr = VecCreateMPI(PETSC_COMM_WORLD, i_stop-i_start, PETSC_DECIDE, &D_next_vec);  IBTK_CHKERRQ(ierr);
@@ -469,15 +469,15 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     ierr = MatGetOwnershipRange(d_X_next_mats[level_number], &i_start, &i_stop);
     IBTK_CHKERRQ(ierr);
 
-    Vec X_vec = X_data->getGlobalVec();
+    Vec X_vec = X_data->getVec();
 
     Vec X_next_vec;
     ierr = VecCreateMPI(PETSC_COMM_WORLD, i_stop-i_start, PETSC_DECIDE, &X_next_vec);  IBTK_CHKERRQ(ierr);
     ierr = VecSetBlockSize(X_next_vec, NDIM);                                          IBTK_CHKERRQ(ierr);
 
     // Compute the node displacements.
-    ierr = MatMult(d_D_next_mats[level_number], D_data->getGlobalVec(), D_next_vec);  IBTK_CHKERRQ(ierr);
-    ierr = MatMult(d_X_next_mats[level_number], X_data->getGlobalVec(), X_next_vec);  IBTK_CHKERRQ(ierr);
+    ierr = MatMult(d_D_next_mats[level_number], D_data->getVec(), D_next_vec);  IBTK_CHKERRQ(ierr);
+    ierr = MatMult(d_X_next_mats[level_number], X_data->getVec(), X_next_vec);  IBTK_CHKERRQ(ierr);
 
     // Compute the rod forces acting on the nodes of the Lagrangian mesh.
     double* D_vals;
@@ -547,7 +547,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     ierr = VecRestoreArray(X_next_vec, &X_next_vals);  IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(X_next_vec);                     IBTK_CHKERRQ(ierr);
 
-    Vec F_vec = F_data->getGlobalVec();
+    Vec F_vec = F_data->getVec();
     ierr = PETScVecOps::VecSetValuesBlocked(F_vec,
                                             petsc_curr_node_idxs.size(),
                                             !petsc_curr_node_idxs.empty() ? &petsc_curr_node_idxs[0] : PETSC_NULL,
@@ -559,7 +559,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
                                             !petsc_next_node_idxs.empty() ? &    F_next_node_vals[0] : PETSC_NULL,
                                             ADD_VALUES);  IBTK_CHKERRQ(ierr);
 
-    Vec N_vec = N_data->getGlobalVec();
+    Vec N_vec = N_data->getVec();
     ierr = PETScVecOps::VecSetValuesBlocked(N_vec,
                                             petsc_curr_node_idxs.size(),
                                             !petsc_curr_node_idxs.empty() ? &petsc_curr_node_idxs[0] : PETSC_NULL,

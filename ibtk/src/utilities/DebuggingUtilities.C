@@ -492,7 +492,7 @@ DebuggingUtilities::saveSideData(
 
 void
 DebuggingUtilities::saveLagrangianData(
-    const Pointer<LNodeLevelData> lag_data,
+    const Pointer<LMeshData> lag_data,
     const bool save_ghost_nodes,
     const std::string& filename,
     const std::string& dirname)
@@ -504,6 +504,7 @@ DebuggingUtilities::saveLagrangianData(
     }
     Utilities::recursiveMkdir(truncated_dirname);
 
+    const blitz::Array<double,2>& array_data = *lag_data->getGhostedLocalFormVecArray();
     const int rank = SAMRAI_MPI::getRank();
     const int nodes = SAMRAI_MPI::getNodes();
     for (int n = 0; n < nodes; ++n)
@@ -520,7 +521,7 @@ DebuggingUtilities::saveLagrangianData(
             {
                 for (int d = 0; d < depth; ++d)
                 {
-                    of.write(reinterpret_cast<const char*>(&(*lag_data)(i,d)),sizeof(double));
+                    of.write(reinterpret_cast<const char*>(&(array_data(i,d))),sizeof(double));
                 }
             }
             if (save_ghost_nodes)
@@ -531,7 +532,7 @@ DebuggingUtilities::saveLagrangianData(
                 {
                     for (int d = 0; d < depth; ++d)
                     {
-                        of.write(reinterpret_cast<const char*>(&(*lag_data)(i+num_local_nodes,d)),sizeof(double));
+                        of.write(reinterpret_cast<const char*>(&(array_data(i+num_local_nodes,d))),sizeof(double));
                     }
                 }
             }
@@ -539,6 +540,7 @@ DebuggingUtilities::saveLagrangianData(
         }
         SAMRAI_MPI::barrier();
     }
+    lag_data->restoreArrays();
     return;
 }// saveLagrangianData
 

@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/LNodeLevelData.h>
+#include <ibtk/LMeshData.h>
 
 // SAMRAI INCLUDES
 #include <PatchHierarchy.h>
@@ -116,8 +116,8 @@ public:
         const int lag_node_index_idx,
         const int global_index_offset,
         const int local_index_offset,
-        SAMRAI::tbox::Pointer<LNodeLevelData>& X_data,
-        SAMRAI::tbox::Pointer<LNodeLevelData>& U_data,
+        SAMRAI::tbox::Pointer<LMeshData>& X_data,
+        SAMRAI::tbox::Pointer<LMeshData>& U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
@@ -138,8 +138,8 @@ public:
     initializeMassDataOnPatchLevel(
         const int global_index_offset,
         const int local_index_offset,
-        SAMRAI::tbox::Pointer<LNodeLevelData>& M_data,
-        SAMRAI::tbox::Pointer<LNodeLevelData>& K_data,
+        SAMRAI::tbox::Pointer<LMeshData>& M_data,
+        SAMRAI::tbox::Pointer<LMeshData>& K_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
@@ -160,7 +160,7 @@ public:
     initializeDirectorDataOnPatchLevel(
         const int global_index_offset,
         const int local_index_offset,
-        SAMRAI::tbox::Pointer<LNodeLevelData>& D_data,
+        SAMRAI::tbox::Pointer<LMeshData>& D_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,

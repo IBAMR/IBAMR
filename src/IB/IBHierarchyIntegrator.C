@@ -945,21 +945,21 @@ IBHierarchyIntegrator::advanceHierarchy(
         d_post_processor_needs_init = false;
     }
 
-    std::vector<Pointer<LNodeLevelData> > X_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > F_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > U_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > X_new_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > F_new_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > U_new_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > X_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > F_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > U_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > X_new_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > F_new_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > U_new_data(finest_ln+1);
 
-    std::vector<Pointer<LNodeLevelData> > K_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > M_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > Y_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > dY_dt_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > F_K_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > Y_new_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > dY_dt_new_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > F_K_new_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > K_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > M_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > Y_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > dY_dt_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > F_K_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > Y_new_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > dY_dt_new_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > F_K_new_data(finest_ln+1);
 
     // Synchronize the Cartesian grid velocity u(n) on the patch hierarchy.
     //
@@ -1050,47 +1050,30 @@ IBHierarchyIntegrator::advanceHierarchy(
         }
     }
 
-    // Initialize the various LNodeLevelData objects, including X_data, F_data,
+    // Initialize the various LMeshData objects, including X_data, F_data,
     // U_data, and X_new_data, on each level of the patch hierarchy.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
-            X_data[ln] = d_lag_data_manager->getLNodeLevelData(LDataManager::POSN_DATA_NAME,ln);
-            U_data[ln] = d_lag_data_manager->getLNodeLevelData(LDataManager::VEL_DATA_NAME,ln);
-            F_data[ln] = d_lag_data_manager->createLNodeLevelData("F",ln,NDIM);
+            X_data    [ln] = d_lag_data_manager->getLMeshData(LDataManager::POSN_DATA_NAME,ln);
+            U_data    [ln] = d_lag_data_manager->getLMeshData(LDataManager::VEL_DATA_NAME,ln);
+            F_data    [ln] = d_lag_data_manager->createLMeshData("F",ln,NDIM);
 
-            X_data[ln]->restoreLocalFormVec();
-            U_data[ln]->restoreLocalFormVec();
-            F_data[ln]->restoreLocalFormVec();
-
-            X_new_data[ln] = d_lag_data_manager->createLNodeLevelData("X_new",ln,NDIM);
-            U_new_data[ln] = d_lag_data_manager->createLNodeLevelData("U_new",ln,NDIM);
-            F_new_data[ln] = d_lag_data_manager->createLNodeLevelData("F_new",ln,NDIM);
-
-            X_new_data[ln]->restoreLocalFormVec();
-            U_new_data[ln]->restoreLocalFormVec();
-            F_new_data[ln]->restoreLocalFormVec();
+            X_new_data[ln] = d_lag_data_manager->createLMeshData("X_new",ln,NDIM);
+            U_new_data[ln] = d_lag_data_manager->createLMeshData("U_new",ln,NDIM);
+            F_new_data[ln] = d_lag_data_manager->createLMeshData("F_new",ln,NDIM);
 
             if (d_using_pIB_method)
             {
-                K_data[ln]         = d_lag_data_manager->getLNodeLevelData("K",ln);
-                M_data[ln]         = d_lag_data_manager->getLNodeLevelData("M",ln);
-                Y_data    [ln]     = d_lag_data_manager->getLNodeLevelData("Y",ln);
-                dY_dt_data[ln]     = d_lag_data_manager->getLNodeLevelData("dY_dt",ln);
-                F_K_data  [ln]     = d_lag_data_manager->createLNodeLevelData("F_K",ln,NDIM);
-                Y_new_data    [ln] = d_lag_data_manager->createLNodeLevelData("Y_new",ln,NDIM);
-                dY_dt_new_data[ln] = d_lag_data_manager->createLNodeLevelData("dY_dt_new",ln,NDIM);
-                F_K_new_data  [ln] = d_lag_data_manager->createLNodeLevelData("F_K_new",ln,NDIM);
-
-                K_data[ln]        ->restoreLocalFormVec();
-                M_data[ln]        ->restoreLocalFormVec();
-                Y_data    [ln]    ->restoreLocalFormVec();
-                dY_dt_data[ln]    ->restoreLocalFormVec();
-                F_K_data  [ln]    ->restoreLocalFormVec();
-                Y_new_data    [ln]->restoreLocalFormVec();
-                dY_dt_new_data[ln]->restoreLocalFormVec();
-                F_K_new_data  [ln]->restoreLocalFormVec();
+                K_data[ln]         = d_lag_data_manager->getLMeshData("K",ln);
+                M_data[ln]         = d_lag_data_manager->getLMeshData("M",ln);
+                Y_data    [ln]     = d_lag_data_manager->getLMeshData("Y",ln);
+                dY_dt_data[ln]     = d_lag_data_manager->getLMeshData("dY_dt",ln);
+                F_K_data  [ln]     = d_lag_data_manager->createLMeshData("F_K",ln,NDIM);
+                Y_new_data    [ln] = d_lag_data_manager->createLMeshData("Y_new",ln,NDIM);
+                dY_dt_new_data[ln] = d_lag_data_manager->createLMeshData("dY_dt_new",ln,NDIM);
+                F_K_new_data  [ln] = d_lag_data_manager->createLMeshData("F_K_new",ln,NDIM);
             }
         }
     }
@@ -1134,7 +1117,7 @@ IBHierarchyIntegrator::advanceHierarchy(
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
             if (d_do_log) plog << d_object_name << "::advanceHierarchy(): computing F(n) on level number " << ln << "\n";
-            Vec F_vec = F_data[ln]->getGlobalVec();
+            Vec F_vec = F_data[ln]->getVec();
             int ierr = VecSet(F_vec, 0.0);  IBTK_CHKERRQ(ierr);
             d_force_strategy->computeLagrangianForce(
                 F_data[ln], X_data[ln], U_data[ln],
@@ -1143,11 +1126,11 @@ IBHierarchyIntegrator::advanceHierarchy(
             {
                 // Add the penalty force associated with the massive ghost
                 // particles, i.e., F_K = K*(Y-X).
-                Vec K_vec = K_data[ln]->getGlobalVec();
-                Vec F_vec = F_data[ln]->getGlobalVec();
-                Vec X_vec = X_data[ln]->getGlobalVec();
-                Vec Y_vec = Y_data[ln]->getGlobalVec();
-                Vec F_K_vec = F_K_data[ln]->getGlobalVec();
+                Vec K_vec = K_data[ln]->getVec();
+                Vec F_vec = F_data[ln]->getVec();
+                Vec X_vec = X_data[ln]->getVec();
+                Vec Y_vec = Y_data[ln]->getVec();
+                Vec F_K_vec = F_K_data[ln]->getVec();
 
                 if (initial_time)
                 {
@@ -1272,23 +1255,23 @@ IBHierarchyIntegrator::advanceHierarchy(
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
             if (d_do_log) plog << d_object_name << "::advanceHierarchy(): computing X~(n+1) on level number " << ln << "\n";
-            Vec U_vec = U_data[ln]->getGlobalVec();
-            Vec X_vec = X_data[ln]->getGlobalVec();
-            Vec X_new_vec = X_new_data[ln]->getGlobalVec();
+            Vec U_vec = U_data[ln]->getVec();
+            Vec X_vec = X_data[ln]->getVec();
+            Vec X_new_vec = X_new_data[ln]->getVec();
             int ierr = VecWAXPY(X_new_vec, dt, U_vec, X_vec);  IBTK_CHKERRQ(ierr);
             if (d_using_pIB_method)
             {
                 // Advance the positions and velocities of the massive ghost
                 // particles forward in time via forward Euler.
-                Vec M_vec = M_data[ln]->getGlobalVec();
+                Vec M_vec = M_data[ln]->getVec();
 
-                Vec Y_vec = Y_data[ln]->getGlobalVec();
-                Vec Y_new_vec = Y_new_data[ln]->getGlobalVec();
+                Vec Y_vec = Y_data[ln]->getVec();
+                Vec Y_new_vec = Y_new_data[ln]->getVec();
 
-                Vec dY_dt_vec = dY_dt_data[ln]->getGlobalVec();
-                Vec dY_dt_new_vec = dY_dt_new_data[ln]->getGlobalVec();
+                Vec dY_dt_vec = dY_dt_data[ln]->getVec();
+                Vec dY_dt_new_vec = dY_dt_new_data[ln]->getVec();
 
-                Vec F_K_vec = F_K_data[ln]->getGlobalVec();
+                Vec F_K_vec = F_K_data[ln]->getVec();
 
                 if (initial_time)
                 {
@@ -1335,7 +1318,7 @@ IBHierarchyIntegrator::advanceHierarchy(
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
             if (d_do_log) plog << d_object_name << "::advanceHierarchy(): computing F~(n+1) on level number " << ln << "\n";
-            Vec F_new_vec = F_new_data[ln]->getGlobalVec();
+            Vec F_new_vec = F_new_data[ln]->getVec();
             int ierr = VecSet(F_new_vec, 0.0);  IBTK_CHKERRQ(ierr);
             d_force_strategy->computeLagrangianForce(
                 F_new_data[ln], X_new_data[ln], U_data[ln],
@@ -1344,11 +1327,11 @@ IBHierarchyIntegrator::advanceHierarchy(
             {
                 // Add the penalty force associated with the massive ghost
                 // particles, i.e., F_K = K*(Y-X).
-                Vec K_vec = K_data[ln]->getGlobalVec();
-                Vec F_new_vec = F_new_data[ln]->getGlobalVec();
-                Vec X_new_vec = X_new_data[ln]->getGlobalVec();
-                Vec Y_new_vec = Y_new_data[ln]->getGlobalVec();
-                Vec F_K_new_vec = F_K_new_data[ln]->getGlobalVec();
+                Vec K_vec = K_data[ln]->getVec();
+                Vec F_new_vec = F_new_data[ln]->getVec();
+                Vec X_new_vec = X_new_data[ln]->getVec();
+                Vec Y_new_vec = Y_new_data[ln]->getVec();
+                Vec F_K_new_vec = F_K_new_data[ln]->getVec();
 
                 int n_local = 0;
                 ierr = VecGetLocalSize(K_vec, &n_local);  IBTK_CHKERRQ(ierr);
@@ -1619,9 +1602,9 @@ IBHierarchyIntegrator::advanceHierarchy(
             //    t_{n+1}.
             if (d_do_log) plog << d_object_name << "::advanceHierarchy(): computing X(n+1) on level number " << ln << "\n";
 
-            Vec U_new_vec = U_new_data[ln]->getGlobalVec();
-            Vec X_vec = X_data[ln]->getGlobalVec();
-            Vec X_new_vec = X_new_data[ln]->getGlobalVec();
+            Vec U_new_vec = U_new_data[ln]->getVec();
+            Vec X_vec = X_data[ln]->getVec();
+            Vec X_new_vec = X_new_data[ln]->getVec();
             ierr = VecAXPY(X_new_vec, dt, U_new_vec);  IBTK_CHKERRQ(ierr);
             ierr = VecAXPBY(X_vec, 0.5, 0.5, X_new_vec);  IBTK_CHKERRQ(ierr);
 
@@ -1629,15 +1612,15 @@ IBHierarchyIntegrator::advanceHierarchy(
             {
                 // Advance the positions and velocities of the massive ghost
                 // particles forward in time via 2nd order SSP Runge-Kutta.
-                Vec M_vec = M_data[ln]->getGlobalVec();
+                Vec M_vec = M_data[ln]->getVec();
 
-                Vec Y_vec = Y_data[ln]->getGlobalVec();
-                Vec Y_new_vec = Y_new_data[ln]->getGlobalVec();
+                Vec Y_vec = Y_data[ln]->getVec();
+                Vec Y_new_vec = Y_new_data[ln]->getVec();
 
-                Vec dY_dt_vec = dY_dt_data[ln]->getGlobalVec();
-                Vec dY_dt_new_vec = dY_dt_new_data[ln]->getGlobalVec();
+                Vec dY_dt_vec = dY_dt_data[ln]->getVec();
+                Vec dY_dt_new_vec = dY_dt_new_data[ln]->getVec();
 
-                Vec F_K_new_vec = F_K_new_data[ln]->getGlobalVec();
+                Vec F_K_new_vec = F_K_new_data[ln]->getVec();
 
                 int n_local = 0;
                 ierr = VecGetLocalSize(M_vec, &n_local);  IBTK_CHKERRQ(ierr);
@@ -1870,18 +1853,18 @@ IBHierarchyIntegrator::postProcessData()
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
 
     // Initialize data on each level of the patch hierarchy.
-    std::vector<Pointer<LNodeLevelData> > X_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > F_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > U_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > X_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > F_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > U_data(finest_ln+1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_V_idx, current_time);
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
-            X_data[ln] = d_lag_data_manager->getLNodeLevelData(LDataManager::POSN_DATA_NAME,ln);
-            U_data[ln] = d_lag_data_manager->getLNodeLevelData(LDataManager::VEL_DATA_NAME,ln);
-            F_data[ln] = d_lag_data_manager->createLNodeLevelData("F",ln,NDIM);
+            X_data[ln] = d_lag_data_manager->getLMeshData(LDataManager::POSN_DATA_NAME,ln);
+            U_data[ln] = d_lag_data_manager->getLMeshData(LDataManager::VEL_DATA_NAME,ln);
+            F_data[ln] = d_lag_data_manager->createLMeshData("F",ln,NDIM);
         }
     }
 
@@ -1921,7 +1904,7 @@ IBHierarchyIntegrator::postProcessData()
     {
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
-            Vec F_vec = F_data[ln]->getGlobalVec();
+            Vec F_vec = F_data[ln]->getVec();
             int ierr = VecSet(F_vec, 0.0);  IBTK_CHKERRQ(ierr);
             d_force_strategy->computeLagrangianForce(
                 F_data[ln], X_data[ln], U_data[ln],
@@ -2088,12 +2071,12 @@ IBHierarchyIntegrator::regridHierarchy()
     d_post_processor_needs_init  = true;
 
     // Look up the re-distributed Lagrangian position data.
-    std::vector<Pointer<LNodeLevelData> > X_data(d_hierarchy->getFinestLevelNumber()+1);
+    std::vector<Pointer<LMeshData> > X_data(d_hierarchy->getFinestLevelNumber()+1);
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         if (d_lag_data_manager->levelContainsLagrangianData(ln))
         {
-            X_data[ln] = d_lag_data_manager->getLNodeLevelData(LDataManager::POSN_DATA_NAME,ln);
+            X_data[ln] = d_lag_data_manager->getLMeshData(LDataManager::POSN_DATA_NAME,ln);
         }
     }
 
@@ -2127,19 +2110,20 @@ IBHierarchyIntegrator::regridHierarchy()
                 }
             }
 
+            const blitz::Array<double,2>& X_array = *X_data[ln]->getLocalFormVecArray();
             for (int i = 0; i < X_data[ln]->getLocalNodeCount(); ++i)
             {
                 for (int d = 0; d < NDIM; ++d)
                 {
                     if ((periodic_shift[d] == 0) &&
-                        ((*X_data[ln])(i,d) - grid_xLower[d] <= eps ||
-                         grid_xUpper[d] - (*X_data[ln])(i,d) <= eps))
+                        (X_array(i,d) <= grid_xLower[d]+eps || X_array(i,d) >= grid_xUpper[d]-eps))
                     {
                         d_anchor_point_local_idxs[ln].insert(i);
                         break;
                     }
                 }
             }
+            X_data[ln]->restoreArrays();
         }
     }
 
@@ -2323,10 +2307,10 @@ IBHierarchyIntegrator::initializeLevelData(
         static const bool manage_data = true;
         if (d_using_pIB_method)
         {
-            Pointer<LNodeLevelData> M_data = d_lag_data_manager->createLNodeLevelData("M",level_number,1,manage_data);
-            Pointer<LNodeLevelData> K_data = d_lag_data_manager->createLNodeLevelData("K",level_number,1,manage_data);
-            Pointer<LNodeLevelData> Y_data = d_lag_data_manager->createLNodeLevelData("Y",level_number,NDIM,manage_data);
-            Pointer<LNodeLevelData> dY_dt_data = d_lag_data_manager->createLNodeLevelData("dY_dt",level_number,NDIM,manage_data);
+            Pointer<LMeshData> M_data = d_lag_data_manager->createLMeshData("M",level_number,1,manage_data);
+            Pointer<LMeshData> K_data = d_lag_data_manager->createLMeshData("K",level_number,1,manage_data);
+            Pointer<LMeshData> Y_data = d_lag_data_manager->createLMeshData("Y",level_number,NDIM,manage_data);
+            Pointer<LMeshData> dY_dt_data = d_lag_data_manager->createLMeshData("dY_dt",level_number,NDIM,manage_data);
 
             static const int global_index_offset = 0;
             static const int local_index_offset = 0;
@@ -2417,8 +2401,8 @@ IBHierarchyIntegrator::initializeLevelData(
                 d_source_strategy->getSourceLocations(
                     d_X_src[level_number], d_r_src[level_number],
                     (d_lag_data_manager->levelContainsLagrangianData(level_number)
-                     ? d_lag_data_manager->getLNodeLevelData(LDataManager::POSN_DATA_NAME,level_number)
-                     : Pointer<LNodeLevelData>(NULL)),
+                     ? d_lag_data_manager->getLMeshData(LDataManager::POSN_DATA_NAME,level_number)
+                     : Pointer<LMeshData>(NULL)),
                     hierarchy, level_number, d_integrator_time, d_lag_data_manager);
             }
         }
@@ -3085,7 +3069,7 @@ IBHierarchyIntegrator::countMarkers(
 
 void
 IBHierarchyIntegrator::resetAnchorPointValues(
-    std::vector<Pointer<LNodeLevelData> > V_data,
+    std::vector<Pointer<LMeshData> > V_data,
     const int coarsest_ln,
     const int finest_ln)
 {
@@ -3097,7 +3081,7 @@ IBHierarchyIntegrator::resetAnchorPointValues(
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(depth == NDIM);
 #endif
-            Vec V_vec = V_data[ln]->getGlobalVec();
+            Vec V_vec = V_data[ln]->getVec();
             double* V_arr;
             int ierr = VecGetArray(V_vec, &V_arr);  IBTK_CHKERRQ(ierr);
             for (std::set<int>::const_iterator cit = d_anchor_point_local_idxs[ln].begin();
@@ -3120,7 +3104,7 @@ IBHierarchyIntegrator::computeSourceStrengths(
     const int coarsest_level,
     const int finest_level,
     const double data_time,
-    const std::vector<Pointer<LNodeLevelData> >& X_data)
+    const std::vector<Pointer<LMeshData> >& X_data)
 {
     if (d_source_strategy.isNull()) return;
 
@@ -3342,7 +3326,7 @@ IBHierarchyIntegrator::computeSourcePressures(
     const int coarsest_level,
     const int finest_level,
     const double data_time,
-    const std::vector<Pointer<LNodeLevelData> >& X_data)
+    const std::vector<Pointer<LMeshData> >& X_data)
 {
     if (d_source_strategy.isNull()) return;
 

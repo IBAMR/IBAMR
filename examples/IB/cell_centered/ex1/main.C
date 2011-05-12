@@ -556,20 +556,22 @@ main(
              */
             const int ln = patch_hierarchy->getFinestLevelNumber();
             LDataManager* lag_manager = time_integrator->getLDataManager();
-            tbox::Pointer<LNodeLevelData> X_data = lag_manager->getLNodeLevelData("X",ln);
-            tbox::Pointer<LNodeLevelData> U_data = lag_manager->getLNodeLevelData("U",ln);
-            tbox::Pointer<LNodeLevelData> F_data = lag_manager->createLNodeLevelData("F",ln,NDIM);
+            tbox::Pointer<LMeshData> X_data = lag_manager->getLMeshData("X",ln);
+            tbox::Pointer<LMeshData> U_data = lag_manager->getLMeshData("U",ln);
+            tbox::Pointer<LMeshData> F_data = lag_manager->createLMeshData("F",ln,NDIM);
             force_generator->computeLagrangianForce(
                 F_data, X_data, U_data,
                 patch_hierarchy, ln, loop_time, lag_manager);
 
             double F_D = 0.0;
             double F_L = 0.0;
+            blitz::Array<double,2>& F_array = *F_data->getLocalFormVecArray();
             for (int i = 0; i < F_data->getLocalNodeCount(); ++i)
             {
-                F_D -= (*F_data)(i,0);
-                F_L -= (*F_data)(i,1);
+                F_D -= F_array(i,0);
+                F_L -= F_array(i,1);
             }
+            F_data->restoreArrays();
 
             F_D = tbox::SAMRAI_MPI::sumReduction(F_D);
             F_L = tbox::SAMRAI_MPI::sumReduction(F_L);

@@ -135,7 +135,7 @@ IBStandardSourceGen::getSourceRadii(
 
 void
 IBStandardSourceGen::initializeLevelData(
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
     const bool initial_time,
@@ -196,7 +196,7 @@ void
 IBStandardSourceGen::getSourceLocations(
     std::vector<std::vector<double> >& X_src,
     std::vector<double>& r_src,
-    Pointer<LNodeLevelData> X_data,
+    Pointer<LMeshData> X_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
@@ -214,7 +214,7 @@ IBStandardSourceGen::getSourceLocations(
 
     // Determine the positions of the sources.
     std::fill(X_src.begin(),X_src.end(),std::vector<double>(NDIM,0.0));
-    Vec X_vec = X_data->getGlobalVec();
+    Vec X_vec = X_data->getVec();
     double* X_arr;
     int ierr = VecGetArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
     const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();

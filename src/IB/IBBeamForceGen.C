@@ -338,9 +338,9 @@ IBBeamForceGen::initializeLevelData(
 
 void
 IBBeamForceGen::computeLagrangianForce(
-    Pointer<LNodeLevelData> F_data,
-    Pointer<LNodeLevelData> X_data,
-    Pointer<LNodeLevelData> U_data,
+    Pointer<LMeshData> F_data,
+    Pointer<LMeshData> X_data,
+    Pointer<LMeshData> U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
@@ -372,8 +372,8 @@ IBBeamForceGen::computeLagrangianForce(
     ierr = VecSetBlockSize(D_prev_vec, NDIM);                                          IBTK_CHKERRQ(ierr);
 
     // Compute the node displacements.
-    ierr = MatMult(d_D_next_mats[level_number], X_data->getGlobalVec(), D_next_vec);  IBTK_CHKERRQ(ierr);
-    ierr = MatMult(d_D_prev_mats[level_number], X_data->getGlobalVec(), D_prev_vec);  IBTK_CHKERRQ(ierr);
+    ierr = MatMult(d_D_next_mats[level_number], X_data->getVec(), D_next_vec);  IBTK_CHKERRQ(ierr);
+    ierr = MatMult(d_D_prev_mats[level_number], X_data->getVec(), D_prev_vec);  IBTK_CHKERRQ(ierr);
 
     // Compute the beam forces acting on the nodes of the Lagrangian mesh.
     double* D_next_vals;
@@ -415,7 +415,7 @@ IBBeamForceGen::computeLagrangianForce(
     ierr = VecRestoreArray(D_prev_vec, &D_prev_vals);  IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(D_prev_vec);                    IBTK_CHKERRQ(ierr);
 
-    Vec F_vec = F_data->getGlobalVec();
+    Vec F_vec = F_data->getVec();
 #if 0
     ierr = VecSetValuesBlocked(F_vec,
                                petsc_mastr_node_idxs.size(),
@@ -588,9 +588,9 @@ IBBeamForceGen::computeLagrangianForceJacobian(
     Mat& J_mat,
     MatAssemblyType assembly_type,
     const double X_coef,
-    Pointer<LNodeLevelData> X_data,
+    Pointer<LMeshData> X_data,
     const double U_coef,
-    Pointer<LNodeLevelData> U_data,
+    Pointer<LMeshData> U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
@@ -658,8 +658,8 @@ IBBeamForceGen::computeLagrangianForceJacobian(
 
 double
 IBBeamForceGen::computeLagrangianEnergy(
-    Pointer<LNodeLevelData> X_data,
-    Pointer<LNodeLevelData> U_data,
+    Pointer<LMeshData> X_data,
+    Pointer<LMeshData> U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,

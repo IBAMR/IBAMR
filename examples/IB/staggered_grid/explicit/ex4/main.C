@@ -640,7 +640,8 @@ update_triads(
 
     // Update the director triads for all anchored points.
     const int finest_ln = hierarchy->getFinestLevelNumber();
-    tbox::Pointer<LNodeLevelData> D_data = lag_manager->getLNodeLevelData("D", finest_ln);
+    tbox::Pointer<LMeshData> D_data = lag_manager->getLMeshData("D", finest_ln);
+    blitz::Array<double,2>& D_array = *D_data->getLocalFormVecArray();
     tbox::Pointer<hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(finest_ln);
     for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
@@ -666,23 +667,24 @@ update_triads(
                 // local_petsc_idx.
                 const int local_petsc_idx = node_idx.getLocalPETScIndex();
 
-                double* D1 = &(*D_data)(local_petsc_idx,0);
+                double* D1 = &D_array(local_petsc_idx,0);
                 D1[0] =  cos(angw*current_time);
                 D1[1] =  sin(angw*current_time);
                 D1[2] = 0.0;
 
-                double* D2 = &(*D_data)(local_petsc_idx,3);
+                double* D2 = &D_array(local_petsc_idx,3);
                 D2[0] = -sin(angw*current_time);
                 D2[1] =  cos(angw*current_time);
                 D2[2] = 0.0;
 
-                double* D3 = &(*D_data)(local_petsc_idx,6);
+                double* D3 = &D_array(local_petsc_idx,6);
                 D3[0] = 0.0;
                 D3[1] = 0.0;
                 D3[2] = 1.0;
             }
         }
     }
+    D_data->restoreArrays();
     return;
 }// update_triads
 
@@ -705,8 +707,8 @@ output_data(
     /*
      * Write Lagrangian data.
      */
-    tbox::Pointer<LNodeLevelData> X_data = lag_manager->getLNodeLevelData("X", finest_hier_level);
-    Vec X_petsc_vec = X_data->getGlobalVec();
+    tbox::Pointer<LMeshData> X_data = lag_manager->getLMeshData("X", finest_hier_level);
+    Vec X_petsc_vec = X_data->getVec();
     Vec X_lag_vec;
     VecDuplicate(X_petsc_vec, &X_lag_vec);
     lag_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
@@ -756,8 +758,8 @@ output_data(
     }
     VecDestroy(X_lag_vec);
 
-    tbox::Pointer<LNodeLevelData> D_data = lag_manager->getLNodeLevelData("D", finest_hier_level);
-    Vec D_petsc_vec = D_data->getGlobalVec();
+    tbox::Pointer<LMeshData> D_data = lag_manager->getLMeshData("D", finest_hier_level);
+    Vec D_petsc_vec = D_data->getVec();
     Vec D_lag_vec;
     VecDuplicate(D_petsc_vec, &D_lag_vec);
     lag_manager->scatterPETScToLagrangian(D_petsc_vec, D_lag_vec, finest_hier_level);

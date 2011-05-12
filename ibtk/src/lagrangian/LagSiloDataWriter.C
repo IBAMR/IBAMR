@@ -620,7 +620,7 @@ LagSiloDataWriter::LagSiloDataWriter(
       d_ucd_mesh_names(d_finest_ln+1),
       d_ucd_mesh_vertices(d_finest_ln+1),
       d_ucd_mesh_edge_maps(d_finest_ln+1),
-      d_coords_data(d_finest_ln+1,Pointer<LNodeLevelData>(NULL)),
+      d_coords_data(d_finest_ln+1,Pointer<LMeshData>(NULL)),
       d_nvars(d_finest_ln+1,0),
       d_var_names(d_finest_ln+1),
       d_var_start_depths(d_finest_ln+1),
@@ -1084,7 +1084,7 @@ LagSiloDataWriter::registerUnstructuredMesh(
 
 void
 LagSiloDataWriter::registerCoordsData(
-    Pointer<LNodeLevelData> coords_data,
+    Pointer<LMeshData> coords_data,
     const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
@@ -1105,7 +1105,7 @@ LagSiloDataWriter::registerCoordsData(
 void
 LagSiloDataWriter::registerVariableData(
     const std::string& var_name,
-    Pointer<LNodeLevelData> var_data,
+    Pointer<LMeshData> var_data,
     const int level_number)
 {
     const int start_depth = 0;
@@ -1117,7 +1117,7 @@ LagSiloDataWriter::registerVariableData(
 void
 LagSiloDataWriter::registerVariableData(
     const std::string& var_name,
-    Pointer<LNodeLevelData> var_data,
+    Pointer<LMeshData> var_data,
     const int start_depth,
     const int var_depth,
     const int level_number)
@@ -1273,7 +1273,7 @@ LagSiloDataWriter::writePlotData(
             ierr = VecDuplicate(d_dst_vec[ln][NDIM], &local_X_vec);
             IBTK_CHKERRQ(ierr);
 
-            Vec& global_X_vec = d_coords_data[ln]->getGlobalVec();
+            Vec& global_X_vec = d_coords_data[ln]->getVec();
             ierr = VecScatterBegin(d_vec_scatter[ln][NDIM], global_X_vec, local_X_vec,
                                    INSERT_VALUES, SCATTER_FORWARD);
             IBTK_CHKERRQ(ierr);
@@ -1295,7 +1295,7 @@ LagSiloDataWriter::writePlotData(
                 ierr = VecDuplicate(d_dst_vec[ln][var_depth], &local_v_vec);
                 IBTK_CHKERRQ(ierr);
 
-                Vec& global_v_vec = d_var_data[ln][v]->getGlobalVec();
+                Vec& global_v_vec = d_var_data[ln][v]->getVec();
                 ierr = VecScatterBegin(d_vec_scatter[ln][var_depth], global_v_vec, local_v_vec,
                                        INSERT_VALUES, SCATTER_FORWARD);
                 IBTK_CHKERRQ(ierr);
@@ -2209,7 +2209,7 @@ LagSiloDataWriter::buildVecScatters(
     std::transform(ref_is_idxs.begin(), ref_is_idxs.end(),
                    src_is_idxs[NDIM].begin(),
                    std::bind2nd(std::multiplies<int>(),NDIM));
-    d_src_vec[level_number][NDIM] = d_coords_data[level_number]->getGlobalVec();
+    d_src_vec[level_number][NDIM] = d_coords_data[level_number]->getVec();
 
     for (int v = 0; v < d_nvars[level_number]; ++v)
     {
@@ -2220,7 +2220,7 @@ LagSiloDataWriter::buildVecScatters(
             std::transform(ref_is_idxs.begin(), ref_is_idxs.end(),
                            src_is_idxs[var_depth].begin(),
                            std::bind2nd(std::multiplies<int>(),var_depth));
-            d_src_vec[level_number][var_depth] = d_var_data[level_number][v]->getGlobalVec();
+            d_src_vec[level_number][var_depth] = d_var_data[level_number][v]->getVec();
         }
     }
 

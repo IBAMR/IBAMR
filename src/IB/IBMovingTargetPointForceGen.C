@@ -115,9 +115,9 @@ IBMovingTargetPointForceGen::registerPositionAndVelocityFunction(
 
 void
 IBMovingTargetPointForceGen::computeLagrangianForce(
-    Pointer<LNodeLevelData> F_data,
-    Pointer<LNodeLevelData> X_data,
-    Pointer<LNodeLevelData> U_data,
+    Pointer<LMeshData> F_data,
+    Pointer<LMeshData> X_data,
+    Pointer<LMeshData> U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
@@ -130,15 +130,15 @@ IBMovingTargetPointForceGen::computeLagrangianForce(
     int ierr;
 
     // Extract the local arrays.
-    Vec F_vec = F_data->getGlobalVec();
+    Vec F_vec = F_data->getVec();
     double* F_arr;
     ierr = VecGetArray(F_vec, &F_arr);  IBTK_CHKERRQ(ierr);
 
-    Vec X_vec = X_data->getGlobalVec();
+    Vec X_vec = X_data->getVec();
     double* X_arr;
     ierr = VecGetArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
 
-    Vec U_vec = U_data->getGlobalVec();
+    Vec U_vec = U_data->getVec();
     double* U_arr;
     ierr = VecGetArray(U_vec, &U_arr);  IBTK_CHKERRQ(ierr);
 
@@ -273,9 +273,9 @@ IBMovingTargetPointForceGen::computeLagrangianForceJacobian(
     Mat& J_mat,
     MatAssemblyType assembly_type,
     const double X_coef,
-    Pointer<LNodeLevelData> X_data,
+    Pointer<LMeshData> X_data,
     const double U_coef,
-    Pointer<LNodeLevelData> U_data,
+    Pointer<LMeshData> U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
@@ -350,8 +350,8 @@ IBMovingTargetPointForceGen::computeLagrangianForceJacobian(
 
 double
 IBMovingTargetPointForceGen::computeLagrangianEnergy(
-    Pointer<LNodeLevelData> X_data,
-    Pointer<LNodeLevelData> U_data,
+    Pointer<LMeshData> X_data,
+    Pointer<LMeshData> U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,

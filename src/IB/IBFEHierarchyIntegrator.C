@@ -818,27 +818,21 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         J_bar_half_IB_ghost = d_fe_data_manager->buildGhostedSolutionVector(PROJ_STRAIN_SYSTEM_NAME);
     }
 
-    // Initialize the various LNodeLevelData objects on each level of the patch hierarchy.
-    std::vector<Pointer<LNodeLevelData> > X_current_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > X_new_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > X_half_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > U_half_data(finest_ln+1);
-    std::vector<Pointer<LNodeLevelData> > F_half_data(finest_ln+1);
+    // Initialize the various LMeshData objects on each level of the patch hierarchy.
+    std::vector<Pointer<LMeshData> > X_current_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > X_new_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > X_half_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > U_half_data(finest_ln+1);
+    std::vector<Pointer<LMeshData> > F_half_data(finest_ln+1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
         {
-            X_current_data[ln] = d_lag_data_manager->getLNodeLevelData(LDataManager::POSN_DATA_NAME,ln);
-            X_new_data    [ln] = d_lag_data_manager->createLNodeLevelData("X_new" ,ln,NDIM);
-            X_half_data   [ln] = d_lag_data_manager->createLNodeLevelData("X_half",ln,NDIM);
-            U_half_data   [ln] = d_lag_data_manager->createLNodeLevelData("U_half",ln,NDIM);
-            F_half_data   [ln] = d_lag_data_manager->createLNodeLevelData("F_half",ln,NDIM);
-
-            X_current_data[ln]->restoreLocalFormVec();
-            X_new_data    [ln]->restoreLocalFormVec();
-            X_half_data   [ln]->restoreLocalFormVec();
-            U_half_data   [ln]->restoreLocalFormVec();
-            F_half_data   [ln]->restoreLocalFormVec();
+            X_current_data[ln] = d_lag_data_manager->getLMeshData(LDataManager::POSN_DATA_NAME,ln);
+            X_new_data    [ln] = d_lag_data_manager->createLMeshData("X_new" ,ln,NDIM);
+            X_half_data   [ln] = d_lag_data_manager->createLMeshData("X_half",ln,NDIM);
+            U_half_data   [ln] = d_lag_data_manager->createLMeshData("U_half",ln,NDIM);
+            F_half_data   [ln] = d_lag_data_manager->createLMeshData("F_half",ln,NDIM);
         }
     }
 
@@ -873,8 +867,8 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     {
         if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
         {
-            Vec X_current_vec = X_current_data[ln]->getGlobalVec();
-            Vec X_new_vec = X_new_data[ln]->getGlobalVec();
+            Vec X_current_vec = X_current_data[ln]->getVec();
+            Vec X_new_vec = X_new_data[ln]->getVec();
             ierr = VecCopy(X_current_vec, X_new_vec); IBTK_CHKERRQ(ierr);
         }
     }
@@ -911,9 +905,9 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         {
             if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
             {
-                Vec X_current_vec = X_current_data[ln]->getGlobalVec();
-                Vec X_new_vec = X_new_data[ln]->getGlobalVec();
-                Vec X_half_vec = X_half_data[ln]->getGlobalVec();
+                Vec X_current_vec = X_current_data[ln]->getVec();
+                Vec X_new_vec = X_new_data[ln]->getVec();
+                Vec X_half_vec = X_half_data[ln]->getVec();
                 ierr = VecAXPBYPCZ(X_half_vec, 0.5, 0.5, 0.0, X_current_vec, X_new_vec); IBTK_CHKERRQ(ierr);
             }
         }
@@ -935,7 +929,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         {
             if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
             {
-                Vec F_half_vec = F_half_data[ln]->getGlobalVec();
+                Vec F_half_vec = F_half_data[ln]->getVec();
                 ierr = VecSet(F_half_vec, 0.0); IBTK_CHKERRQ(ierr);
                 d_ib_lag_force_strategy->computeLagrangianForce(F_half_data[ln], X_half_data[ln], U_half_data[ln], d_hierarchy, ln, current_time+0.5*dt, d_lag_data_manager);
             }
@@ -995,9 +989,9 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         {
             if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
             {
-                Vec X_current_vec = X_current_data[ln]->getGlobalVec();
-                Vec X_new_vec = X_new_data[ln]->getGlobalVec();
-                Vec U_half_vec = U_half_data[ln]->getGlobalVec();
+                Vec X_current_vec = X_current_data[ln]->getVec();
+                Vec X_new_vec = X_new_data[ln]->getVec();
+                Vec U_half_vec = U_half_data[ln]->getVec();
                 ierr = VecWAXPY(X_new_vec, dt, U_half_vec, X_current_vec); IBTK_CHKERRQ(ierr);
             }
         }
@@ -1015,8 +1009,8 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     {
         if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
         {
-            Vec X_current_vec = X_current_data[ln]->getGlobalVec();
-            Vec X_new_vec = X_new_data[ln]->getGlobalVec();
+            Vec X_current_vec = X_current_data[ln]->getVec();
+            Vec X_new_vec = X_new_data[ln]->getVec();
             ierr = VecCopy(X_new_vec, X_current_vec); IBTK_CHKERRQ(ierr);
         }
     }

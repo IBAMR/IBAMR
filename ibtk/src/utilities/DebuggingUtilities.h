@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/LNodeLevelData.h>
+#include <ibtk/LMeshData.h>
 
 // SAMRAI INCLUDES
 #include <PatchHierarchy.h>
@@ -140,7 +140,7 @@ public:
      */
     static void
     saveLagrangianData(
-        const SAMRAI::tbox::Pointer<LNodeLevelData> lag_data,
+        const SAMRAI::tbox::Pointer<LMeshData> lag_data,
         const bool save_ghost_nodes,
         const std::string& filename,
         const std::string& dirname);

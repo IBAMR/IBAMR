@@ -37,7 +37,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/LDataManager.h>
-#include <ibtk/LNodeLevelData.h>
+#include <ibtk/LMeshData.h>
 
 // SAMRAI INCLUDES
 #include <PatchHierarchy.h>
@@ -121,7 +121,7 @@ public:
     getSourceLocations(
         std::vector<std::vector<double> >& X_src,
         std::vector<double>& r_src,
-        SAMRAI::tbox::Pointer<IBTK::LNodeLevelData> X_data,
+        SAMRAI::tbox::Pointer<IBTK::LMeshData> X_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,

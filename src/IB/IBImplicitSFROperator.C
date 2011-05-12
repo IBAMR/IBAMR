@@ -137,10 +137,10 @@ IBImplicitSFROperator::apply(
 
     LDataManager* lag_data_manager = d_ib_implicit_integrator->d_lag_data_manager;
 
-    std::vector<Pointer<LNodeLevelData> >& X_data = d_ib_implicit_integrator->d_X_data;
-    std::vector<Pointer<LNodeLevelData> >& X_half_data = d_ib_implicit_integrator->d_X_half_data;
-    std::vector<Pointer<LNodeLevelData> >& U_half_data = d_ib_implicit_integrator->d_U_half_data;
-    std::vector<Pointer<LNodeLevelData> >& F_half_data = d_ib_implicit_integrator->d_F_half_data;
+    std::vector<Pointer<LMeshData> >& X_data = d_ib_implicit_integrator->d_X_data;
+    std::vector<Pointer<LMeshData> >& X_half_data = d_ib_implicit_integrator->d_X_half_data;
+    std::vector<Pointer<LMeshData> >& U_half_data = d_ib_implicit_integrator->d_U_half_data;
+    std::vector<Pointer<LMeshData> >& F_half_data = d_ib_implicit_integrator->d_F_half_data;
 
     std::vector<Mat>& R_mats = d_ib_implicit_integrator->d_R_mats;
 
@@ -154,7 +154,7 @@ IBImplicitSFROperator::apply(
     {
         if (lag_data_manager->levelContainsLagrangianData(ln))
         {
-            Vec U_half_vec = U_half_data[ln]->getGlobalVec();
+            Vec U_half_vec = U_half_data[ln]->getVec();
             Vec u_half_ib_vec = static_cast<Vec>(NULL);
             Pointer<PatchLevel<NDIM> > patch_level = hierarchy->getPatchLevel(ln);
             PETScVecUtilities::constructPatchLevelVec(u_half_ib_vec, u_half_ib_idx, u_half_ib_var, patch_level);
@@ -169,9 +169,9 @@ IBImplicitSFROperator::apply(
     {
         if (lag_data_manager->levelContainsLagrangianData(ln))
         {
-            Vec X_vec = X_data[ln]->getGlobalVec();
-            Vec X_half_vec = X_half_data[ln]->getGlobalVec();
-            Vec U_half_vec = U_half_data[ln]->getGlobalVec();
+            Vec X_vec = X_data[ln]->getVec();
+            Vec X_half_vec = X_half_data[ln]->getVec();
+            Vec U_half_vec = U_half_data[ln]->getVec();
             ierr = VecWAXPY(X_half_vec, 0.5*d_dt, U_half_vec, X_vec);  IBTK_CHKERRQ(ierr);
         }
     }
@@ -181,7 +181,7 @@ IBImplicitSFROperator::apply(
     {
         if (lag_data_manager->levelContainsLagrangianData(ln))
         {
-            Vec F_half_vec = F_half_data[ln]->getGlobalVec();
+            Vec F_half_vec = F_half_data[ln]->getVec();
             ierr = VecSet(F_half_vec, 0.0);  IBTK_CHKERRQ(ierr);
             lag_force_strategy->computeLagrangianForce(F_half_data[ln], X_half_data[ln], U_half_data[ln], hierarchy, ln, d_current_time+0.5*d_dt, lag_data_manager);
             Pointer<PatchLevel<NDIM> > patch_level = hierarchy->getPatchLevel(ln);
@@ -203,7 +203,7 @@ IBImplicitSFROperator::apply(
         if (lag_data_manager->levelContainsLagrangianData(ln))
         {
             Pointer<PatchLevel<NDIM> > patch_level = hierarchy->getPatchLevel(ln);
-            Vec F_half_vec = F_half_data[ln]->getGlobalVec();
+            Vec F_half_vec = F_half_data[ln]->getVec();
             Vec f_half_vec = static_cast<Vec>(NULL);
             PETScVecUtilities::constructPatchLevelVec(f_half_vec, f_half_idx, f_half_var, patch_level);
             if (zero_y_before_spread)
