@@ -146,7 +146,6 @@ $(top_srcdir)/src/utilities/FaceDataSynchronization.C \
 $(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C \
 $(top_srcdir)/src/utilities/FixedSizedStream.C \
 $(top_srcdir)/src/utilities/IndexUtilities.C \
-$(top_srcdir)/src/utilities/IndexSet.C \
 $(top_srcdir)/src/utilities/LMarkerUtilities.C \
 $(top_srcdir)/src/utilities/NodeDataSynchronization.C \
 $(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C \
@@ -313,8 +312,6 @@ $(top_srcdir)/src/utilities/FixedSizedStream.I \
 $(top_srcdir)/src/utilities/FixedSizedStream.h \
 $(top_srcdir)/src/utilities/IndexUtilities.I \
 $(top_srcdir)/src/utilities/IndexUtilities.h \
-$(top_srcdir)/src/utilities/IndexSet.I \
-$(top_srcdir)/src/utilities/IndexSet.h \
 $(top_srcdir)/src/utilities/LMarkerUtilities.h \
 $(top_srcdir)/src/utilities/NodeDataSynchronization.h \
 $(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.h \

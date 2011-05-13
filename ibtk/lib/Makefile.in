@@ -194,7 +194,6 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C \
 	$(top_srcdir)/src/utilities/FixedSizedStream.C \
 	$(top_srcdir)/src/utilities/IndexUtilities.C \
-	$(top_srcdir)/src/utilities/IndexSet.C \
 	$(top_srcdir)/src/utilities/LMarkerUtilities.C \
 	$(top_srcdir)/src/utilities/NodeDataSynchronization.C \
 	$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C \
@@ -328,7 +327,6 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-FaceSynchCopyFillPattern.$(OBJEXT) \
 	libIBTK2d_a-FixedSizedStream.$(OBJEXT) \
 	libIBTK2d_a-IndexUtilities.$(OBJEXT) \
-	libIBTK2d_a-IndexSet.$(OBJEXT) \
 	libIBTK2d_a-LMarkerUtilities.$(OBJEXT) \
 	libIBTK2d_a-NodeDataSynchronization.$(OBJEXT) \
 	libIBTK2d_a-NodeSynchCopyFillPattern.$(OBJEXT) \
@@ -455,7 +453,6 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C \
 	$(top_srcdir)/src/utilities/FixedSizedStream.C \
 	$(top_srcdir)/src/utilities/IndexUtilities.C \
-	$(top_srcdir)/src/utilities/IndexSet.C \
 	$(top_srcdir)/src/utilities/LMarkerUtilities.C \
 	$(top_srcdir)/src/utilities/NodeDataSynchronization.C \
 	$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C \
@@ -588,7 +585,6 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-FaceSynchCopyFillPattern.$(OBJEXT) \
 	libIBTK3d_a-FixedSizedStream.$(OBJEXT) \
 	libIBTK3d_a-IndexUtilities.$(OBJEXT) \
-	libIBTK3d_a-IndexSet.$(OBJEXT) \
 	libIBTK3d_a-LMarkerUtilities.$(OBJEXT) \
 	libIBTK3d_a-NodeDataSynchronization.$(OBJEXT) \
 	libIBTK3d_a-NodeSynchCopyFillPattern.$(OBJEXT) \
@@ -1135,8 +1131,6 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/utilities/FixedSizedStream.h \
 	$(top_srcdir)/src/utilities/IndexUtilities.I \
 	$(top_srcdir)/src/utilities/IndexUtilities.h \
-	$(top_srcdir)/src/utilities/IndexSet.I \
-	$(top_srcdir)/src/utilities/IndexSet.h \
 	$(top_srcdir)/src/utilities/LMarkerUtilities.h \
 	$(top_srcdir)/src/utilities/NodeDataSynchronization.h \
 	$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.h \
@@ -1257,7 +1251,6 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C \
 	$(top_srcdir)/src/utilities/FixedSizedStream.C \
 	$(top_srcdir)/src/utilities/IndexUtilities.C \
-	$(top_srcdir)/src/utilities/IndexSet.C \
 	$(top_srcdir)/src/utilities/LMarkerUtilities.C \
 	$(top_srcdir)/src/utilities/NodeDataSynchronization.C \
 	$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C \
@@ -1443,7 +1436,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellInterpolation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-HierarchyMathOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-HierarchyVecCellDataOpsReal.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-IndexSet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-JacobianOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-KrylovLinearSolver.Po@am__quote@
@@ -1558,7 +1550,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-HierarchyMathOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-HierarchyVecCellDataOpsReal.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-IndexSet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-JacobianOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-KrylovLinearSolver.Po@am__quote@
@@ -3078,20 +3069,6 @@ libIBTK2d_a-IndexUtilities.obj: $(top_srcdir)/src/utilities/IndexUtilities.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/IndexUtilities.C' object='libIBTK2d_a-IndexUtilities.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-IndexUtilities.obj `if test -f '$(top_srcdir)/src/utilities/IndexUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/IndexUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/IndexUtilities.C'; fi`
-
-libIBTK2d_a-IndexSet.o: $(top_srcdir)/src/utilities/IndexSet.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-IndexSet.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-IndexSet.Tpo -c -o libIBTK2d_a-IndexSet.o `test -f '$(top_srcdir)/src/utilities/IndexSet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/IndexSet.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-IndexSet.Tpo $(DEPDIR)/libIBTK2d_a-IndexSet.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/IndexSet.C' object='libIBTK2d_a-IndexSet.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-IndexSet.o `test -f '$(top_srcdir)/src/utilities/IndexSet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/IndexSet.C
-
-libIBTK2d_a-IndexSet.obj: $(top_srcdir)/src/utilities/IndexSet.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-IndexSet.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-IndexSet.Tpo -c -o libIBTK2d_a-IndexSet.obj `if test -f '$(top_srcdir)/src/utilities/IndexSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/IndexSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/IndexSet.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-IndexSet.Tpo $(DEPDIR)/libIBTK2d_a-IndexSet.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/IndexSet.C' object='libIBTK2d_a-IndexSet.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-IndexSet.obj `if test -f '$(top_srcdir)/src/utilities/IndexSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/IndexSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/IndexSet.C'; fi`
 
 libIBTK2d_a-LMarkerUtilities.o: $(top_srcdir)/src/utilities/LMarkerUtilities.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LMarkerUtilities.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Tpo -c -o libIBTK2d_a-LMarkerUtilities.o `test -f '$(top_srcdir)/src/utilities/LMarkerUtilities.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/LMarkerUtilities.C
@@ -4688,20 +4665,6 @@ libIBTK3d_a-IndexUtilities.obj: $(top_srcdir)/src/utilities/IndexUtilities.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/IndexUtilities.C' object='libIBTK3d_a-IndexUtilities.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-IndexUtilities.obj `if test -f '$(top_srcdir)/src/utilities/IndexUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/IndexUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/IndexUtilities.C'; fi`
-
-libIBTK3d_a-IndexSet.o: $(top_srcdir)/src/utilities/IndexSet.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-IndexSet.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-IndexSet.Tpo -c -o libIBTK3d_a-IndexSet.o `test -f '$(top_srcdir)/src/utilities/IndexSet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/IndexSet.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-IndexSet.Tpo $(DEPDIR)/libIBTK3d_a-IndexSet.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/IndexSet.C' object='libIBTK3d_a-IndexSet.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-IndexSet.o `test -f '$(top_srcdir)/src/utilities/IndexSet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/IndexSet.C
-
-libIBTK3d_a-IndexSet.obj: $(top_srcdir)/src/utilities/IndexSet.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-IndexSet.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-IndexSet.Tpo -c -o libIBTK3d_a-IndexSet.obj `if test -f '$(top_srcdir)/src/utilities/IndexSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/IndexSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/IndexSet.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-IndexSet.Tpo $(DEPDIR)/libIBTK3d_a-IndexSet.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/IndexSet.C' object='libIBTK3d_a-IndexSet.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-IndexSet.obj `if test -f '$(top_srcdir)/src/utilities/IndexSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/IndexSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/IndexSet.C'; fi`
 
 libIBTK3d_a-LMarkerUtilities.o: $(top_srcdir)/src/utilities/LMarkerUtilities.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LMarkerUtilities.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Tpo -c -o libIBTK3d_a-LMarkerUtilities.o `test -f '$(top_srcdir)/src/utilities/LMarkerUtilities.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/LMarkerUtilities.C
