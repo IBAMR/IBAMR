@@ -57,7 +57,7 @@
 #include <ibtk/CartSideDoubleDivPreservingRefine.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/LNodeIndexData.h>
+#include <ibtk/LNodeIndexSetData.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScVecUtilities.h>
@@ -465,24 +465,24 @@ IBImplicitHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(
 }// registerAdvDiffHierarchyIntegrator
 
 void
-IBImplicitHierarchyIntegrator::registerLNodeInitStrategy(
-    Pointer<LNodeInitStrategy> lag_init_strategy)
+IBImplicitHierarchyIntegrator::registerLInitStrategy(
+    Pointer<LInitStrategy> lag_init_strategy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!lag_init_strategy.isNull());
 #endif
     d_lag_init_strategy = lag_init_strategy;
-    d_lag_data_manager->registerLNodeInitStrategy(d_lag_init_strategy);
+    d_lag_data_manager->registerLInitStrategy(d_lag_init_strategy);
     return;
-}// registerLNodeInitStrategy
+}// registerLInitStrategy
 
 void
-IBImplicitHierarchyIntegrator::freeLNodeInitStrategy()
+IBImplicitHierarchyIntegrator::freeLInitStrategy()
 {
     d_lag_init_strategy.setNull();
-    d_lag_data_manager->freeLNodeInitStrategy();
+    d_lag_data_manager->freeLInitStrategy();
     return;
-}// freeLNodeInitStrategy
+}// freeLInitStrategy
 
 void
 IBImplicitHierarchyIntegrator::registerIBLagrangianForceStrategy(
@@ -511,29 +511,29 @@ IBImplicitHierarchyIntegrator::registerVisItDataWriter(
 }// registerVisItDataWriter
 
 void
-IBImplicitHierarchyIntegrator::registerLagSiloDataWriter(
-    Pointer<LagSiloDataWriter> silo_writer)
+IBImplicitHierarchyIntegrator::registerLSiloDataWriter(
+    Pointer<LSiloDataWriter> silo_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!silo_writer.isNull());
 #endif
     d_silo_writer = silo_writer;
-    d_lag_data_manager->registerLagSiloDataWriter(d_silo_writer);
+    d_lag_data_manager->registerLSiloDataWriter(d_silo_writer);
     return;
-}// registerLagSiloDataWriter
+}// registerLSiloDataWriter
 
 #if (NDIM == 3)
 void
-IBImplicitHierarchyIntegrator::registerLagM3DDataWriter(
-    Pointer<LagM3DDataWriter> m3D_writer)
+IBImplicitHierarchyIntegrator::registerLM3DDataWriter(
+    Pointer<LM3DDataWriter> m3D_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!m3D_writer.isNull());
 #endif
     d_m3D_writer = m3D_writer;
-    d_lag_data_manager->registerLagM3DDataWriter(d_m3D_writer);
+    d_lag_data_manager->registerLM3DDataWriter(d_m3D_writer);
     return;
-}// registerLagM3DDataWriter
+}// registerLM3DDataWriter
 #endif
 
 void
@@ -1278,9 +1278,9 @@ IBImplicitHierarchyIntegrator::regridHierarchy()
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
                 const int lag_node_index_idx = d_lag_data_manager->getLNodeIndexPatchDescriptorIndex();
-                const Pointer<LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
-                for (LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
-                     it != idx_data->lnode_index_end(); ++it)
+                const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
+                for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
+                     it != idx_data->data_end(); ++it)
                 {
                     const LNodeIndex& node_idx = *it;
                     Pointer<IBAnchorPointSpec> anchor_point_spec = node_idx.getNodeData<IBAnchorPointSpec>();

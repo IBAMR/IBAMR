@@ -49,7 +49,7 @@
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
-#include <ibtk/LNodeIndexData.h>
+#include <ibtk/LNodeIndexSetData.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -165,9 +165,9 @@ IBStandardSourceGen::initializeLevelData(
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
-        for (LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
-             it != idx_data->lnode_index_end(); ++it)
+        const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
+        for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
+             it != idx_data->data_end(); ++it)
         {
             const LNodeIndex& node_idx = *it;
             Pointer<IBSourceSpec> spec = node_idx.getNodeData<IBSourceSpec>();
@@ -223,9 +223,9 @@ IBStandardSourceGen::getSourceLocations(
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
-        for (LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
-             it != idx_data->lnode_index_end(); ++it)
+        const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
+        for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
+             it != idx_data->data_end(); ++it)
         {
             const LNodeIndex& node_idx = *it;
             Pointer<IBSourceSpec> spec = node_idx.getNodeData<IBSourceSpec>();

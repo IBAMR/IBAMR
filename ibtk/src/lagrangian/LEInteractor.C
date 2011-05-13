@@ -551,23 +551,23 @@ ib4_delta_fcn(
 }// ib4_delta_fcn
 
 struct GetLocalPETScIndex
-    : std::unary_function<Pointer<LNodeIndex>,int>
+    : std::unary_function<const LNodeIndex&,int>
 {
     inline int
     operator()(
-        const Pointer<LNodeIndex>& index) const
+        const LNodeIndex& index) const
         {
-            return index->getLocalPETScIndex();
+            return index.getLocalPETScIndex();
         }
 };
 
 struct SortModeComp
-    : std::binary_function<std::pair<Pointer<LNodeIndex>,std::vector<double> >,std::pair<Pointer<LNodeIndex>,std::vector<double> >,bool>
+    : std::binary_function<std::pair<const LNodeIndex*,std::vector<double> >,std::pair<const LNodeIndex*,std::vector<double> >,bool>
 {
     inline bool
     operator()(
-        const std::pair<Pointer<LNodeIndex>,std::vector<double> >& lhs,
-        const std::pair<Pointer<LNodeIndex>,std::vector<double> >& rhs) const
+        const std::pair<const LNodeIndex*,std::vector<double> >& lhs,
+        const std::pair<const LNodeIndex*,std::vector<double> >& rhs) const
         {
             if (LEInteractor::s_sort_mode == LEInteractor::SORT_INCREASING_LAG_IDX) return lhs.first->getLagrangianIndex() < rhs.first->getLagrangianIndex();
             if (LEInteractor::s_sort_mode == LEInteractor::SORT_DECREASING_LAG_IDX) return lhs.first->getLagrangianIndex() > rhs.first->getLagrangianIndex();
@@ -744,7 +744,7 @@ void
 LEInteractor::interpolate(
     Pointer<LData>& Q_data,
     const Pointer<LData>& X_data,
-    const Pointer<LNodeIndexData>& idx_data,
+    const Pointer<LNodeIndexSetData>& idx_data,
     const Pointer<CellData<NDIM,double> > q_data,
     const Pointer<Patch<NDIM> >& patch,
     const Box<NDIM>& interp_box,
@@ -774,7 +774,7 @@ void
 LEInteractor::interpolate(
     Pointer<LData>& Q_data,
     const Pointer<LData>& X_data,
-    const Pointer<LNodeIndexData>& idx_data,
+    const Pointer<LNodeIndexSetData>& idx_data,
     const Pointer<SideData<NDIM,double> > q_data,
     const Pointer<Patch<NDIM> >& patch,
     const Box<NDIM>& interp_box,
@@ -812,7 +812,7 @@ LEInteractor::interpolate(
     const int Q_depth,
     const double* const X_data,
     const int X_depth,
-    const Pointer<LNodeIndexData>& idx_data,
+    const Pointer<LNodeIndexSetData>& idx_data,
     const Pointer<CellData<NDIM,double> > q_data,
     const Pointer<Patch<NDIM> >& patch,
     const Box<NDIM>& interp_box,
@@ -869,7 +869,7 @@ LEInteractor::interpolate(
     const int Q_depth,
     const double* const X_data,
     const int X_depth,
-    const Pointer<LNodeIndexData>& idx_data,
+    const Pointer<LNodeIndexSetData>& idx_data,
     const Pointer<SideData<NDIM,double> > q_data,
     const Pointer<Patch<NDIM> >& patch,
     const Box<NDIM>& interp_box,
@@ -1133,7 +1133,7 @@ LEInteractor::spread(
     Pointer<CellData<NDIM,double> > q_data,
     const Pointer<LData>& Q_data,
     const Pointer<LData>& X_data,
-    const Pointer<LNodeIndexData>& idx_data,
+    const Pointer<LNodeIndexSetData>& idx_data,
     const Pointer<Patch<NDIM> >& patch,
     const Box<NDIM>& spread_box,
     const IntVector<NDIM>& periodic_shift,
@@ -1163,7 +1163,7 @@ LEInteractor::spread(
     Pointer<SideData<NDIM,double> > q_data,
     const Pointer<LData>& Q_data,
     const Pointer<LData>& X_data,
-    const Pointer<LNodeIndexData>& idx_data,
+    const Pointer<LNodeIndexSetData>& idx_data,
     const Pointer<Patch<NDIM> >& patch,
     const Box<NDIM>& spread_box,
     const IntVector<NDIM>& periodic_shift,
@@ -1201,7 +1201,7 @@ LEInteractor::spread(
     const int Q_depth,
     const double* const X_data,
     const int X_depth,
-    const Pointer<LNodeIndexData>& idx_data,
+    const Pointer<LNodeIndexSetData>& idx_data,
     const Pointer<Patch<NDIM> >& patch,
     const Box<NDIM>& spread_box,
     const IntVector<NDIM>& periodic_shift,
@@ -1258,7 +1258,7 @@ LEInteractor::spread(
     const int Q_depth,
     const double* const X_data,
     const int X_depth,
-    const Pointer<LNodeIndexData>& idx_data,
+    const Pointer<LNodeIndexSetData>& idx_data,
     const Pointer<Patch<NDIM> >& patch,
     const Box<NDIM>& spread_box,
     const IntVector<NDIM>& periodic_shift,
@@ -2251,11 +2251,11 @@ LEInteractor::buildLocalIndices(
     const Box<NDIM>& box,
     const Pointer<Patch<NDIM> >& patch,
     const IntVector<NDIM>& periodic_shift,
-    const Pointer<LNodeIndexData>& idx_data)
+    const Pointer<LNodeIndexSetData>& idx_data)
 {
     local_indices.clear();
     periodic_offsets.clear();
-    const int upper_bound = idx_data->getInteriorLocalIndices().size() + idx_data->getGhostLocalIndices().size();
+    const int upper_bound = idx_data->getInteriorLocalPETScIndices().size() + idx_data->getGhostLocalPETScIndices().size();
     if (upper_bound == 0) return;
 
     const Box<NDIM>& patch_box = patch->getBox();
@@ -2269,7 +2269,7 @@ LEInteractor::buildLocalIndices(
     periodic_offsets.reserve(NDIM*upper_bound);
     if (s_sort_mode == NO_SORT)
     {
-        for (LNodeIndexData::LNodeIndexSetPatchIterator it(*idx_data); it; it++)
+        for (LNodeIndexSetData::SetIterator it(*idx_data); it; it++)
         {
             const Index<NDIM>& i = it.getIndex();
             if (box.contains(i))
@@ -2313,10 +2313,10 @@ LEInteractor::buildLocalIndices(
                        << "  invalid debug sort mode; s_sort_mode = " << s_sort_mode << ".\n");
         }
 
-        std::vector<std::pair<Pointer<LNodeIndex>,std::vector<double> > > box_idxs_and_offsets;
+        std::vector<std::pair<const LNodeIndex*,std::vector<double> > > box_idxs_and_offsets;
         box_idxs_and_offsets.reserve(upper_bound);
 
-        for (LNodeIndexData::LNodeIndexSetPatchIterator it(*idx_data); it; it++)
+        for (LNodeIndexSetData::SetIterator it(*idx_data); it; it++)
         {
             const Index<NDIM>& i = it.getIndex();
             if (box.contains(i))
@@ -2345,7 +2345,7 @@ LEInteractor::buildLocalIndices(
 
                 for (LNodeIndexSet::const_iterator cit = node_set.begin(); cit != node_set.end(); ++cit)
                 {
-                    box_idxs_and_offsets.push_back(std::make_pair(*cit,node_offset));
+                    box_idxs_and_offsets.push_back(std::make_pair(&*cit,node_offset));
                 }
             }
         }

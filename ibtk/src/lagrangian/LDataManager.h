@@ -40,9 +40,8 @@
 #include <vector>
 
 // IBTK INCLUDES
-#include <ibtk/LNodeInitStrategy.h>
-#include <ibtk/LNodeIndex.h>
-#include <ibtk/LNodeIndexVariable.h>
+#include <ibtk/LInitStrategy.h>
+#include <ibtk/LNodeIndexSetVariable.h>
 #include <ibtk/ParallelSet.h>
 
 // PETSc INCLUDES
@@ -75,11 +74,10 @@
 
 namespace IBTK
 {
-class LNodeIndexSet;
 class LData;
-class LagSiloDataWriter;
+class LSiloDataWriter;
 #if (NDIM == 3)
-class LagM3DDataWriter;
+class LM3DDataWriter;
 #endif
 }// namespace IBTK
 
@@ -285,8 +283,8 @@ public:
      * the initial configuration of the curvilinear mesh nodes.
      */
     void
-    registerLNodeInitStrategy(
-        SAMRAI::tbox::Pointer<LNodeInitStrategy> lag_init);
+    registerLInitStrategy(
+        SAMRAI::tbox::Pointer<LInitStrategy> lag_init);
 
     /*!
      * Free the concrete initialization strategy object.
@@ -295,7 +293,7 @@ public:
      * no longer needed.
      */
     void
-    freeLNodeInitStrategy();
+    freeLInitStrategy();
 
     /*!
      * \brief Register a VisIt data writer with the manager.
@@ -308,16 +306,16 @@ public:
      * \brief Register a Silo data writer with the manager.
      */
     void
-    registerLagSiloDataWriter(
-        SAMRAI::tbox::Pointer<LagSiloDataWriter> silo_writer);
+    registerLSiloDataWriter(
+        SAMRAI::tbox::Pointer<LSiloDataWriter> silo_writer);
 
 #if (NDIM == 3)
     /*!
      * \brief Register a myocardial3D data writer with the manager.
      */
     void
-    registerLagM3DDataWriter(
-        SAMRAI::tbox::Pointer<LagM3DDataWriter> m3D_writer);
+    registerLM3DDataWriter(
+        SAMRAI::tbox::Pointer<LM3DDataWriter> m3D_writer);
 #endif
 
     /*!
@@ -1001,8 +999,6 @@ private:
         std::vector<int>& nonlocal_petsc_indices,
         int& num_nodes,
         int& node_offset,
-        std::map<int,std::vector<int>*>& patch_interior_local_indices,
-        std::map<int,std::vector<int>*>& patch_ghost_local_indices,
         const int level_number);
 
     /*!
@@ -1059,9 +1055,9 @@ private:
      * variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
-    SAMRAI::tbox::Pointer<LagSiloDataWriter> d_silo_writer;
+    SAMRAI::tbox::Pointer<LSiloDataWriter> d_silo_writer;
 #if (NDIM == 3)
-    SAMRAI::tbox::Pointer<LagM3DDataWriter> d_m3D_writer;
+    SAMRAI::tbox::Pointer<LM3DDataWriter> d_m3D_writer;
 #endif
 
     /*
@@ -1073,14 +1069,14 @@ private:
      * Objects used to specify and initialize the Lagrangian data on the patch
      * hierarchy.
      */
-    SAMRAI::tbox::Pointer<LNodeInitStrategy> d_lag_init;
+    SAMRAI::tbox::Pointer<LInitStrategy> d_lag_init;
     std::vector<bool> d_level_contains_lag_data;
 
     /*
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
      * LNodeIndexData used to define the data distribution.
      */
-    SAMRAI::tbox::Pointer<LNodeIndexVariable> d_lag_node_index_var;
+    SAMRAI::tbox::Pointer<LNodeIndexSetVariable> d_lag_node_index_var;
     int d_lag_node_index_current_idx, d_lag_node_index_scratch_idx;
 
     /*
@@ -1165,10 +1161,10 @@ private:
     std::vector<std::map<int,std::string> > d_strct_id_to_strct_name_map;
     std::vector<std::map<int,std::pair<int,int> > > d_strct_id_to_lag_idx_range_map;
     std::vector<std::map<int,int> > d_last_lag_idx_to_strct_id_map;
-    std::vector<IBTK::ParallelSet> d_inactive_strcts;
+    std::vector<ParallelSet> d_inactive_strcts;
     std::vector<std::vector<int> > d_displaced_strct_ids;
     std::vector<std::vector<std::pair<std::vector<double>,std::vector<double> > > > d_displaced_strct_bounding_boxes;
-    std::vector<std::vector<SAMRAI::tbox::Pointer<LNodeIndex> > > d_displaced_strct_lnode_idxs;
+    std::vector<std::vector<LNodeIndex> > d_displaced_strct_lnode_idxs;
     std::vector<std::vector<std::vector<double> > > d_displaced_strct_lnode_posns;
 
     /*!
@@ -1177,8 +1173,7 @@ private:
     std::vector<std::map<std::string,SAMRAI::tbox::Pointer<LData> > > d_lag_quantity_data;
 
     /*!
-     * Indicates whether the LData is in synch with the
-     * LNodeIndexData.
+     * Indicates whether the LData is in synch with the LNodeIndexData.
      */
     std::vector<bool> d_needs_synch;
 

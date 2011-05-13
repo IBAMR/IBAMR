@@ -60,9 +60,9 @@
 #include <ibtk/CCPoissonFACOperator.h>
 #include <ibtk/CartGridFunction.h>
 #if (NDIM == 3)
-#include <ibtk/LagM3DDataWriter.h>
+#include <ibtk/LM3DDataWriter.h>
 #endif
-#include <ibtk/LagSiloDataWriter.h>
+#include <ibtk/LSiloDataWriter.h>
 #include <ibtk/FACPreconditioner.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/PETScMFFDJacobianOperator.h>
@@ -194,8 +194,8 @@ public:
      * the initial configuration of the curvilinear mesh nodes.
      */
     void
-    registerLNodeInitStrategy(
-        SAMRAI::tbox::Pointer<IBTK::LNodeInitStrategy> lag_init_strategy);
+    registerLInitStrategy(
+        SAMRAI::tbox::Pointer<IBTK::LInitStrategy> lag_init_strategy);
 
     /*!
      * Free the concrete initialization strategy object.
@@ -204,7 +204,7 @@ public:
      * no longer needed.
      */
     void
-    freeLNodeInitStrategy();
+    freeLInitStrategy();
 
     /*!
      * Register a concrete strategy object with the integrator that specifies
@@ -227,8 +227,8 @@ public:
      * files that may be postprocessed with the VisIt visualization tool.
      */
     void
-    registerLagSiloDataWriter(
-        SAMRAI::tbox::Pointer<IBTK::LagSiloDataWriter> silo_writer);
+    registerLSiloDataWriter(
+        SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> silo_writer);
 
 #if (NDIM == 3)
     /*!
@@ -237,8 +237,8 @@ public:
      * program.
      */
     void
-    registerLagM3DDataWriter(
-        SAMRAI::tbox::Pointer<IBTK::LagM3DDataWriter> m3D_writer);
+    registerLM3DDataWriter(
+        SAMRAI::tbox::Pointer<IBTK::LM3DDataWriter> m3D_writer);
 #endif
 
     /*!
@@ -979,9 +979,9 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
     double d_u_scale, d_p_scale, d_f_scale, d_q_scale;
     bool d_output_u, d_output_p, d_output_f, d_output_q, d_output_omega, d_output_div_u;
-    SAMRAI::tbox::Pointer<IBTK::LagSiloDataWriter> d_silo_writer;
+    SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> d_silo_writer;
 #if (NDIM == 3)
-    SAMRAI::tbox::Pointer<IBTK::LagM3DDataWriter> d_m3D_writer;
+    SAMRAI::tbox::Pointer<IBTK::LM3DDataWriter> d_m3D_writer;
 #endif
 
     /*
@@ -1317,7 +1317,7 @@ private:
      * The specification and initialization information for the Lagrangian data
      * used by the integrator.
      */
-    SAMRAI::tbox::Pointer<IBTK::LNodeInitStrategy> d_lag_init_strategy;
+    SAMRAI::tbox::Pointer<IBTK::LInitStrategy> d_lag_init_strategy;
 
     /*
      * The force generators.

@@ -49,19 +49,6 @@
 
 namespace IBTK
 {
-
-struct LNodeIndexLessThan
-    : std::binary_function<SAMRAI::tbox::Pointer<LNodeIndex>,SAMRAI::tbox::Pointer<LNodeIndex>,bool>
-{
-    inline bool
-    operator()(
-        const SAMRAI::tbox::Pointer<LNodeIndex>& lhs,
-        const SAMRAI::tbox::Pointer<LNodeIndex>& rhs) const
-        {
-            return *lhs < *rhs;
-        }
-};
-
 struct CellIndexFortranOrder
     : std::binary_function<SAMRAI::pdat::CellIndex<NDIM>,SAMRAI::pdat::CellIndex<NDIM>,bool>
 {

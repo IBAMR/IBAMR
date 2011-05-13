@@ -58,7 +58,8 @@
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/LEInteractor.h>
-#include <ibtk/LagMarkerUtilities.h>
+#include <ibtk/LMarkerSetData.h>
+#include <ibtk/LMarkerUtilities.h>
 #include <ibtk/libmesh_utilities.h>
 
 // LIBMESH INCLUDES
@@ -82,7 +83,6 @@ using namespace libMesh;
 #include <CoarsenOperator.h>
 #include <HierarchyDataOpsManager.h>
 #include <Index.h>
-#include <IndexData.h>
 #include <Patch.h>
 #include <VariableDatabase.h>
 #include <tbox/MathUtilities.h>
@@ -240,7 +240,7 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
     getFromInput(input_db, from_restart);
 
     // Read in the marker initial positions.
-    if (!from_restart) d_num_mark = LagMarkerUtilities::readMarkerPositions(d_mark_init_posns, d_mark_input_file_name, d_hierarchy);
+    if (!from_restart) d_num_mark = LMarkerUtilities::readMarkerPositions(d_mark_init_posns, d_mark_input_file_name, d_hierarchy);
 
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
@@ -516,7 +516,7 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     d_F_var = new SideVariable<NDIM,double>(d_object_name+"::F");
     d_F_idx = var_db->registerVariableAndContext(d_F_var, d_scratch, no_ghosts);
 
-    d_mark_var = new IndexVariable<NDIM,LagMarker,CellGeometry<NDIM> >(d_object_name+"::mark");
+    d_mark_var = new LMarkerSetVariable(d_object_name+"::mark");
     d_mark_current_idx = var_db->registerVariableAndContext(d_mark_var, getCurrentContext(), ghosts);
     d_mark_scratch_idx = var_db->registerVariableAndContext(d_mark_var, getScratchContext(), ghosts);
     if (d_registered_for_restart)
@@ -729,7 +729,7 @@ IBFEHierarchyIntegrator::initializeHierarchy()
     }
 
     // Prune duplicate markers following initialization.
-    LagMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
+    LMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
 
     // Indicate that the force strategy needs to be re-initialized.
     d_ib_lag_force_strategy_needs_init = true;
@@ -881,8 +881,8 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<IndexData<NDIM,LagMarker,CellGeometry<NDIM> > > mark_data         = patch->getPatchData(d_mark_current_idx);
-            Pointer<IndexData<NDIM,LagMarker,CellGeometry<NDIM> > > mark_scratch_data = patch->getPatchData(d_mark_scratch_idx);
+            Pointer<LMarkerSetData> mark_data         = patch->getPatchData(d_mark_current_idx);
+            Pointer<LMarkerSetData> mark_scratch_data = patch->getPatchData(d_mark_scratch_idx);
             mark_scratch_data->copy(*mark_data);
         }
     }
@@ -995,7 +995,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
                 ierr = VecWAXPY(X_new_vec, dt, U_half_vec, X_current_vec); IBTK_CHKERRQ(ierr);
             }
         }
-        LagMarkerUtilities::advectMarkers(d_mark_current_idx, d_mark_scratch_idx, d_V_idx, dt, d_fe_data_manager->getInterpWeightingFunction(), d_hierarchy);
+        LMarkerUtilities::advectMarkers(d_mark_current_idx, d_mark_scratch_idx, d_V_idx, dt, d_fe_data_manager->getInterpWeightingFunction(), d_hierarchy);
         t_advance_hierarchy_phase8->stop();
     }
     d_ins_hier_integrator->integrateHierarchy_finalize(current_time, new_time);
@@ -1030,8 +1030,8 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<IndexData<NDIM,LagMarker,CellGeometry<NDIM> > > mark_data = patch->getPatchData(d_mark_current_idx);
-            Pointer<IndexData<NDIM,LagMarker,CellGeometry<NDIM> > > mark_scratch_data = patch->getPatchData(d_mark_scratch_idx);
+            Pointer<LMarkerSetData> mark_data = patch->getPatchData(d_mark_current_idx);
+            Pointer<LMarkerSetData> mark_scratch_data = patch->getPatchData(d_mark_scratch_idx);
             mark_data->copy(*mark_scratch_data);
         }
         level->deallocatePatchData(d_mark_scratch_idx);
@@ -1155,7 +1155,7 @@ IBFEHierarchyIntegrator::regridHierarchy()
 
     // Update the marker data.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): resetting markers particles.\n";
-    LagMarkerUtilities::collectMarkersOnPatchHierarchy(d_mark_current_idx, d_hierarchy);
+    LMarkerUtilities::collectMarkersOnPatchHierarchy(d_mark_current_idx, d_hierarchy);
 
     // Begin Lagrangian data redistribution.
     if (d_lag_data_manager != NULL)
@@ -1190,7 +1190,7 @@ IBFEHierarchyIntegrator::regridHierarchy()
     }
 
     // Prune duplicate markers following regridding.
-    LagMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
+    LMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
 
     t_regrid_hierarchy->stop();
     return;
@@ -1334,7 +1334,7 @@ IBFEHierarchyIntegrator::initializeLevelData(
     }
 
     // Initialize marker data.
-    LagMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, d_mark_init_posns, hierarchy, level_number, initial_time, old_level);
+    LMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, d_mark_init_posns, hierarchy, level_number, initial_time, old_level);
 
     t_initialize_level_data->stop();
     return;
@@ -1458,16 +1458,16 @@ IBFEHierarchyIntegrator::applyGradientDetector(
 ///
 ///  The following routines:
 ///
-///      getLagMarkerVar()
+///      getLMarkerSetVar()
 ///
 ///  allows access to the various state variables maintained by the integrator.
 ///
 
-Pointer<IndexVariable<NDIM,LagMarker,CellGeometry<NDIM> > >
-IBFEHierarchyIntegrator::getLagMarkerVar() const
+Pointer<LMarkerSetVariable>
+IBFEHierarchyIntegrator::getLMarkerSetVar() const
 {
     return d_mark_var;
-}// getLagMarkerVar
+}// getLMarkerSetVar
 
 ///
 ///  The following routines:

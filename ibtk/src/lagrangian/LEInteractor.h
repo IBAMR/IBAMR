@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/LNodeIndexData.h>
+#include <ibtk/LNodeIndexSetData.h>
 #include <ibtk/LData.h>
 
 // SAMRAI INCLUDES
@@ -147,7 +147,7 @@ public:
     interpolate(
         SAMRAI::tbox::Pointer<LData>& Q_data,
         const SAMRAI::tbox::Pointer<LData>& X_data,
-        const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
+        const SAMRAI::tbox::Pointer<LNodeIndexSetData>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& interp_box,
@@ -173,7 +173,7 @@ public:
     interpolate(
         SAMRAI::tbox::Pointer<LData>& Q_data,
         const SAMRAI::tbox::Pointer<LData>& X_data,
-        const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
+        const SAMRAI::tbox::Pointer<LNodeIndexSetData>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& interp_box,
@@ -201,7 +201,7 @@ public:
         const int Q_depth,
         const double* const X_data,
         const int X_depth,
-        const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
+        const SAMRAI::tbox::Pointer<LNodeIndexSetData>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& interp_box,
@@ -229,7 +229,7 @@ public:
         const int Q_depth,
         const double* const X_data,
         const int X_depth,
-        const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
+        const SAMRAI::tbox::Pointer<LNodeIndexSetData>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& interp_box,
@@ -367,7 +367,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<LData>& Q_data,
         const SAMRAI::tbox::Pointer<LData>& X_data,
-        const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
+        const SAMRAI::tbox::Pointer<LNodeIndexSetData>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& spread_box,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
@@ -396,7 +396,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<LData>& Q_data,
         const SAMRAI::tbox::Pointer<LData>& X_data,
-        const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
+        const SAMRAI::tbox::Pointer<LNodeIndexSetData>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& spread_box,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
@@ -427,7 +427,7 @@ public:
         const int Q_depth,
         const double* const X_data,
         const int X_depth,
-        const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
+        const SAMRAI::tbox::Pointer<LNodeIndexSetData>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& spread_box,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
@@ -458,7 +458,7 @@ public:
         const int Q_depth,
         const double* const X_data,
         const int X_depth,
-        const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data,
+        const SAMRAI::tbox::Pointer<LNodeIndexSetData>& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& spread_box,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
@@ -670,7 +670,7 @@ private:
 
     /*!
      * \brief Compute the local PETSc indices located within the provided box
-     * based on the LNodeIndexData values.
+     * based on the LNodeIndexSetData values.
      */
     static void
     buildLocalIndices(
@@ -679,7 +679,7 @@ private:
         const SAMRAI::hier::Box<NDIM>& box,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-        const SAMRAI::tbox::Pointer<LNodeIndexData>& idx_data);
+        const SAMRAI::tbox::Pointer<LNodeIndexSetData>& idx_data);
 
     /*!
      * \brief Compute the local PETSc indices located within the provided box

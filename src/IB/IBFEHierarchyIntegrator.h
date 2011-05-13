@@ -50,14 +50,11 @@
 #include <ibtk/FEDataManager.h>
 #include <ibtk/FESystemDataCache.h>
 #include <ibtk/LDataManager.h>
-#include <ibtk/LagMarker.h>
+#include <ibtk/LMarkerSetVariable.h>
 
 // LIBMESH INCLUDES
 #define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
 #include <dof_map.h>
-
-// SAMRAI INCLUDES
-#include <IndexVariable.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -400,7 +397,7 @@ public:
     ///
     ///  The following routines:
     ///
-    ///      getLagMarkerVar()
+    ///      getLMarkerSetVar()
     ///
     ///  allows access to the various state variables maintained by the
     ///  integrator.
@@ -409,8 +406,8 @@ public:
     /*!
      * Return a pointer to the LagMarker index data state variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > >
-    getLagMarkerVar() const;
+    SAMRAI::tbox::Pointer<IBTK::LMarkerSetVariable>
+    getLMarkerSetVar() const;
 
     ///
     ///  The following routines:
@@ -853,7 +850,7 @@ private:
      * Variables and variable contexts.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_V_var, d_F_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > > d_mark_var;
+    SAMRAI::tbox::Pointer<IBTK::LMarkerSetVariable> d_mark_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current, d_scratch;
     int d_V_idx, d_F_idx, d_mark_current_idx, d_mark_scratch_idx;
 

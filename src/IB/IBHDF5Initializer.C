@@ -53,7 +53,8 @@
 
 // IBTK INCLUDES
 #include <ibtk/IndexUtilities.h>
-#include <ibtk/LNodeIndexData.h>
+#include <ibtk/LNodeIndexSet.h>
+#include <ibtk/LNodeIndexSetData.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -358,7 +359,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
                            << "  assigned patch number = " << patch_num << "\n"
                            << "  assigned patch box = " << patch_box << "\n");
             }
-            Pointer<LNodeIndexData> index_data = patch->getPatchData(lag_node_index_idx);
+            Pointer<LNodeIndexSetData> index_data = patch->getPatchData(lag_node_index_idx);
             if (!index_data->isElement(i))
             {
                 index_data->appendItemPointer(i, new LNodeIndexSet());
@@ -366,7 +367,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
             LNodeIndexSet* const node_set = index_data->getItem(i);
             const IntVector<NDIM> periodic_offset(0);
             const std::vector<double> periodic_displacement(NDIM,0.0);
-            node_set->push_back(new LNodeIndex(lagrangian_idx, global_petsc_idx, local_petsc_idx, &X_array(local_petsc_idx,0), periodic_offset, periodic_displacement, vertex_specs));
+            node_set->push_back(LNodeIndex(lagrangian_idx, global_petsc_idx, local_petsc_idx, &X_array(local_petsc_idx,0), periodic_offset, periodic_displacement, vertex_specs));
         }
     }
     X_data->restoreArrays();

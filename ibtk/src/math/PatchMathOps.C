@@ -2560,7 +2560,7 @@ PatchMathOps::interp(
             ,patch_box.lower(2),patch_box.upper(2)
 #endif
                          );
-    }// for (int depth = 0; depth < src->getDepth(); ++depth)
+    }
     return;
 }// interp
 
@@ -2631,7 +2631,7 @@ PatchMathOps::interp(
             ,patch_box.lower(2),patch_box.upper(2)
 #endif
                          );
-    }// for (int depth = 0; depth < src->getDepth(); ++depth)
+    }
     return;
 }// interp
 
@@ -2711,7 +2711,7 @@ PatchMathOps::interp(
             ,patch_box.lower(2),patch_box.upper(2)
 #endif
                          );
-    }// for (int depth = 0; depth < dst->getDepth(); ++depth)
+    }
     return;
 }// interp
 
@@ -2791,7 +2791,7 @@ PatchMathOps::interp(
             ,patch_box.lower(2),patch_box.upper(2)
 #endif
                          );
-    }// for (int depth = 0; depth < dst->getDepth(); ++depth)
+    }
     return;
 }// interp
 

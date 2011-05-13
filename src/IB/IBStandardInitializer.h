@@ -36,8 +36,8 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/LNodeInitStrategy.h>
-#include <ibtk/LagSiloDataWriter.h>
+#include <ibtk/LInitStrategy.h>
+#include <ibtk/LSiloDataWriter.h>
 #include <ibtk/Streamable.h>
 
 // C++ STDLIB INCLUDES
@@ -49,7 +49,7 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBStandardInitializer is a concrete LNodeInitStrategy that
+ * \brief Class IBStandardInitializer is a concrete LInitStrategy that
  * initializes the configuration of one or more Lagrangian structures from input
  * files.
  *
@@ -103,7 +103,7 @@ namespace IBAMR
  * 0.0 and the force function index will be set to \a 0.  This corresponds to a
  * linear spring with zero rest length.
  *
- * \note Spring specifications are used by class LagSiloDataWriter to construct
+ * \note Spring specifications are used by class LSiloDataWriter to construct
  * unstructured mesh representations of the Lagrangian structures.
  * Consequently, even if your structure does not have any springs, it may be
  * worthwhile to generate a spring input file with all spring constants set to
@@ -344,7 +344,7 @@ namespace IBAMR
  \endverbatim
 */
 class IBStandardInitializer
-    : public IBTK::LNodeInitStrategy
+    : public IBTK::LInitStrategy
 {
 public:
     /*!
@@ -364,8 +364,8 @@ public:
      * \brief Register a Silo data writer with the IB initializer object.
      */
     void
-    registerLagSiloDataWriter(
-        SAMRAI::tbox::Pointer<IBTK::LagSiloDataWriter> silo_writer);
+    registerLSiloDataWriter(
+        SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> silo_writer);
 
     /*!
      * \brief Determine whether there are any Lagrangian nodes on the specified
@@ -517,7 +517,7 @@ private:
      * grid.
      */
     void
-    initializeLagSiloDataWriter(
+    initializeLSiloDataWriter(
         const int level_number);
 
     /*!
@@ -706,7 +706,7 @@ private:
     /*
      * An (optional) Lagrangian Silo data writer.
      */
-    SAMRAI::tbox::Pointer<IBTK::LagSiloDataWriter> d_silo_writer;
+    SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> d_silo_writer;
 
     /*
      * The base filenames of the structures are used to generate unique names

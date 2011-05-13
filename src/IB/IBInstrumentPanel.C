@@ -52,7 +52,7 @@
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IndexUtilities.h>
-#include <ibtk/LNodeIndexData.h>
+#include <ibtk/LNodeIndexSetData.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -541,7 +541,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
-    // The patch data descriptor index for the LNodeIndexData.
+    // The patch data descriptor index for the LNodeIndexSetData.
     const int lag_node_index_idx = lag_manager-> getLNodeIndexPatchDescriptorIndex();
 
     // Determine how many flow meters/pressure gauges are present in the local
@@ -557,9 +557,9 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
-                for (LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
-                     it != idx_data->lnode_index_end(); ++it)
+                const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
+                for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
+                     it != idx_data->data_end(); ++it)
                 {
                     const LNodeIndex& node_idx = *it;
                     Pointer<IBInstrumentationSpec> spec = node_idx.getNodeData<IBInstrumentationSpec>();
@@ -688,7 +688,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     d_instrument_read_timestep_num = timestep_num;
     d_instrument_read_time = data_time;
 
-    // The patch data descriptor index for the LNodeIndexData.
+    // The patch data descriptor index for the LNodeIndexSetData.
     const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
 
     // Loop over all local nodes to determine the positions of the local
@@ -716,9 +716,9 @@ IBInstrumentPanel::initializeHierarchyDependentData(
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
-                for (LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
-                     it != idx_data->lnode_index_end(); ++it)
+                const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
+                for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
+                     it != idx_data->data_end(); ++it)
                 {
                     const LNodeIndex& node_idx = *it;
                     Pointer<IBInstrumentationSpec> spec = node_idx.getNodeData<IBInstrumentationSpec>();
@@ -1031,7 +1031,7 @@ IBInstrumentPanel::readInstrumentData(
         d_mean_pres_values[m] /= A[m];
     }
 
-    // The patch data descriptor index for the LNodeIndexData.
+    // The patch data descriptor index for the LNodeIndexSetData.
     const int lag_node_index_idx = lag_manager-> getLNodeIndexPatchDescriptorIndex();
 
     // Loop over all local nodes to determine the velocities of the local
@@ -1061,9 +1061,9 @@ IBInstrumentPanel::readInstrumentData(
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
-                for (LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
-                     it != idx_data->lnode_index_end(); ++it)
+                const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
+                for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
+                     it != idx_data->data_end(); ++it)
                 {
                     const LNodeIndex& node_idx = *it;
                     Pointer<IBInstrumentationSpec> spec = node_idx.getNodeData<IBInstrumentationSpec>();

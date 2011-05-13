@@ -62,8 +62,8 @@
 #include <ibamr/IBStaggeredHierarchyIntegrator.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
-#include <ibtk/LagSiloDataWriter.h>
 #include <ibtk/LEInteractor.h>
+#include <ibtk/LSiloDataWriter.h>
 #include <ibtk/PETScVecOps.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -336,7 +336,7 @@ main(
             new IBStandardInitializer(
                 "IBStandardInitializer",
                 input_db->getDatabase("IBStandardInitializer"));
-        time_integrator->registerLNodeInitStrategy(initializer);
+        time_integrator->registerLInitStrategy(initializer);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(
@@ -406,16 +406,16 @@ main(
             new appu::VisItDataWriter<NDIM>(
                 "VisIt Writer",
                 visit_dump_dirname, visit_number_procs_per_file);
-        tbox::Pointer<LagSiloDataWriter> silo_data_writer =
-            new LagSiloDataWriter(
-                "LagSiloDataWriter",
+        tbox::Pointer<LSiloDataWriter> silo_data_writer =
+            new LSiloDataWriter(
+                "LSiloDataWriter",
                 visit_dump_dirname);
 
         if (uses_visit)
         {
-            initializer->registerLagSiloDataWriter(silo_data_writer);
+            initializer->registerLSiloDataWriter(silo_data_writer);
             time_integrator->registerVisItDataWriter(visit_data_writer);
-            time_integrator->registerLagSiloDataWriter(silo_data_writer);
+            time_integrator->registerLSiloDataWriter(silo_data_writer);
         }
 
         /*
@@ -429,7 +429,7 @@ main(
         /*
          * Deallocate the Lagrangian initializer, as it is no longer needed.
          */
-        time_integrator->freeLNodeInitStrategy();
+        time_integrator->freeLInitStrategy();
         initializer.setNull();
 
         /*

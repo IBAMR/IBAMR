@@ -54,12 +54,13 @@
 #include <ibtk/CartSideDoubleSpecializedLinearRefine.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IndexUtilities.h>
-#include <ibtk/LNodeIndexData.h>
-#include <ibtk/LagMarkerUtilities.h>
-#include <ibtk/LagSiloDataWriter.h>
 #if (NDIM == 3)
-#include <ibtk/LagM3DDataWriter.h>
+#include <ibtk/LM3DDataWriter.h>
 #endif
+#include <ibtk/LMarkerSetData.h>
+#include <ibtk/LMarkerUtilities.h>
+#include <ibtk/LNodeIndexSetData.h>
+#include <ibtk/LSiloDataWriter.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -68,7 +69,6 @@
 #include <CoarsenOperator.h>
 #include <HierarchyDataOpsManager.h>
 #include <Index.h>
-#include <IndexData.h>
 #include <Patch.h>
 #include <VariableDatabase.h>
 #include <tbox/MathUtilities.h>
@@ -235,7 +235,6 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
       d_is_initialized(false),
       d_do_log(false),
       d_mark_input_file_name(""),
-      d_num_mark(0),
       d_mark_init_posns(),
       d_hier_cc_data_ops(),
       d_hier_sc_data_ops(),
@@ -298,7 +297,7 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
     d_ghosts = d_lag_data_manager->getGhostCellWidth();
 
     // Read in the marker initial positions.
-    if (!from_restart) d_num_mark = LagMarkerUtilities::readMarkerPositions(d_mark_init_posns, d_mark_input_file_name, d_hierarchy);
+    if (!from_restart) LMarkerUtilities::readMarkerPositions(d_mark_init_posns, d_mark_input_file_name, d_hierarchy);
 
     // Create the instrument panel object.
     d_instrument_panel = new IBInstrumentPanel(d_object_name+"::IBInstrumentPanel", (input_db->isDatabase("IBInstrumentPanel") ? input_db->getDatabase("IBInstrumentPanel") : Pointer<Database>(NULL)));
@@ -395,24 +394,24 @@ IBStaggeredHierarchyIntegrator::registerBodyForceSpecification(
 }// registerBodyForceSpecification
 
 void
-IBStaggeredHierarchyIntegrator::registerLNodeInitStrategy(
-    Pointer<LNodeInitStrategy> lag_init)
+IBStaggeredHierarchyIntegrator::registerLInitStrategy(
+    Pointer<LInitStrategy> lag_init)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!lag_init.isNull());
 #endif
     d_lag_init = lag_init;
-    d_lag_data_manager->registerLNodeInitStrategy(d_lag_init);
+    d_lag_data_manager->registerLInitStrategy(d_lag_init);
     return;
-}// registerLNodeInitStrategy
+}// registerLInitStrategy
 
 void
-IBStaggeredHierarchyIntegrator::freeLNodeInitStrategy()
+IBStaggeredHierarchyIntegrator::freeLInitStrategy()
 {
     d_lag_init.setNull();
-    d_lag_data_manager->freeLNodeInitStrategy();
+    d_lag_data_manager->freeLInitStrategy();
     return;
-}// freeLNodeInitStrategy
+}// freeLInitStrategy
 
 void
 IBStaggeredHierarchyIntegrator::registerVisItDataWriter(
@@ -428,29 +427,29 @@ IBStaggeredHierarchyIntegrator::registerVisItDataWriter(
 }// registerVisItDataWriter
 
 void
-IBStaggeredHierarchyIntegrator::registerLagSiloDataWriter(
-    Pointer<LagSiloDataWriter> silo_writer)
+IBStaggeredHierarchyIntegrator::registerLSiloDataWriter(
+    Pointer<LSiloDataWriter> silo_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!silo_writer.isNull());
 #endif
     d_silo_writer = silo_writer;
-    d_lag_data_manager->registerLagSiloDataWriter(d_silo_writer);
+    d_lag_data_manager->registerLSiloDataWriter(d_silo_writer);
     return;
-}// registerLagSiloDataWriter
+}// registerLSiloDataWriter
 
 #if (NDIM == 3)
 void
-IBStaggeredHierarchyIntegrator::registerLagM3DDataWriter(
-    Pointer<LagM3DDataWriter> m3D_writer)
+IBStaggeredHierarchyIntegrator::registerLM3DDataWriter(
+    Pointer<LM3DDataWriter> m3D_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!m3D_writer.isNull());
 #endif
     d_m3D_writer = m3D_writer;
-    d_lag_data_manager->registerLagM3DDataWriter(d_m3D_writer);
+    d_lag_data_manager->registerLM3DDataWriter(d_m3D_writer);
     return;
-}// registerLagM3DDataWriter
+}// registerLM3DDataWriter
 #endif
 
 void
@@ -525,7 +524,7 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         d_Q_idx = var_db->registerVariableAndContext(d_Q_var, d_scratch, no_ghosts);
     }
 
-    d_mark_var = new IndexVariable<NDIM,LagMarker,CellGeometry<NDIM> >(d_object_name+"::mark");
+    d_mark_var = new LMarkerSetVariable(d_object_name+"::mark");
     d_mark_current_idx = var_db->registerVariableAndContext(d_mark_var, getCurrentContext(), ghosts);
     d_mark_scratch_idx = var_db->registerVariableAndContext(d_mark_var, getScratchContext(), ghosts);
     if (d_registered_for_restart)
@@ -656,7 +655,7 @@ IBStaggeredHierarchyIntegrator::initializeHierarchy()
     d_lag_data_manager->updateWorkloadData(coarsest_ln, finest_ln);
 
     // Prune duplicate markers following initialization.
-    LagMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
+    LMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
 
     // Initialize the instrumentation data.
     d_instrument_panel->initializeHierarchyIndependentData(d_hierarchy, d_lag_data_manager);
@@ -669,8 +668,8 @@ IBStaggeredHierarchyIntegrator::initializeHierarchy()
         }
     }
 
-    // Indicate that the force strategy and post processor need to be
-    // re-initialized.
+    // Indicate that the force and source strategies and the post processor need
+    // to be re-initialized.
     d_force_strategy_needs_init = true;
     d_source_strategy_needs_init = true;
     d_post_processor_needs_init = true;
@@ -859,8 +858,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<IndexData<NDIM,LagMarker,CellGeometry<NDIM> > > mark_data         = patch->getPatchData(d_mark_current_idx);
-            Pointer<IndexData<NDIM,LagMarker,CellGeometry<NDIM> > > mark_scratch_data = patch->getPatchData(d_mark_scratch_idx);
+            Pointer<LMarkerSetData> mark_data         = patch->getPatchData(d_mark_current_idx);
+            Pointer<LMarkerSetData> mark_scratch_data = patch->getPatchData(d_mark_scratch_idx);
             mark_scratch_data->copy(*mark_data);
         }
     }
@@ -1100,7 +1099,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         }
 
         // Set X_mark(n+1) = X_mark(n) + dt*U(n+1/2).
-        LagMarkerUtilities::advectMarkers(d_mark_current_idx, d_mark_scratch_idx, d_V_idx, dt, d_interp_delta_fcn, d_hierarchy);
+        LMarkerUtilities::advectMarkers(d_mark_current_idx, d_mark_scratch_idx, d_V_idx, dt, d_interp_delta_fcn, d_hierarchy);
 
         // Set X(n+1/2) = 0.5*(X(n) + X(n+1)).
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1252,8 +1251,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<IndexData<NDIM,LagMarker,CellGeometry<NDIM> > > mark_data = patch->getPatchData(d_mark_current_idx);
-            Pointer<IndexData<NDIM,LagMarker,CellGeometry<NDIM> > > mark_scratch_data = patch->getPatchData(d_mark_scratch_idx);
+            Pointer<LMarkerSetData> mark_data = patch->getPatchData(d_mark_current_idx);
+            Pointer<LMarkerSetData> mark_scratch_data = patch->getPatchData(d_mark_scratch_idx);
             mark_data->copy(*mark_scratch_data);
         }
         level->deallocatePatchData(d_mark_scratch_idx);
@@ -1507,7 +1506,7 @@ IBStaggeredHierarchyIntegrator::regridHierarchy()
 
     // Update the marker data.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): resetting markers particles.\n";
-    LagMarkerUtilities::collectMarkersOnPatchHierarchy(d_mark_current_idx, d_hierarchy);
+    LMarkerUtilities::collectMarkersOnPatchHierarchy(d_mark_current_idx, d_hierarchy);
 
     // Update the workload pre-regridding.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
@@ -1531,7 +1530,7 @@ IBStaggeredHierarchyIntegrator::regridHierarchy()
     d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
 
     // Prune duplicate markers following regridding.
-    LagMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
+    LMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
 
     // Indicate that the force and (optional) source strategies and
     // post-processor need to be re-initialized.
@@ -1566,9 +1565,9 @@ IBStaggeredHierarchyIntegrator::regridHierarchy()
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
                 const int lag_node_index_idx = d_lag_data_manager->getLNodeIndexPatchDescriptorIndex();
-                const Pointer<LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
-                for (LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
-                     it != idx_data->lnode_index_end(); ++it)
+                const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
+                for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
+                     it != idx_data->data_end(); ++it)
                 {
                     const LNodeIndex& node_idx = *it;
                     Pointer<IBAnchorPointSpec> anchor_point_spec = node_idx.getNodeData<IBAnchorPointSpec>();
@@ -1794,7 +1793,7 @@ IBStaggeredHierarchyIntegrator::initializeLevelData(
     }
 
     // Initialize marker data.
-    LagMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, d_mark_init_posns, hierarchy, level_number, initial_time, old_level);
+    LMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, d_mark_init_posns, hierarchy, level_number, initial_time, old_level);
 
     // Determine the initial source/sink locations.
     if (!d_source_strategy.isNull()) d_source_strategy->initializeLevelData(hierarchy, level_number, init_data_time, initial_time, d_lag_data_manager);
@@ -2022,16 +2021,16 @@ IBStaggeredHierarchyIntegrator::applyGradientDetector(
 ///
 ///  The following routines:
 ///
-///      getLagMarkerVar()
+///      getLMarkerSetVar()
 ///
 ///  allows access to the various state variables maintained by the integrator.
 ///
 
-Pointer<IndexVariable<NDIM,LagMarker,CellGeometry<NDIM> > >
-IBStaggeredHierarchyIntegrator::getLagMarkerVar() const
+Pointer<LMarkerSetVariable>
+IBStaggeredHierarchyIntegrator::getLMarkerSetVar() const
 {
     return d_mark_var;
-}// getLagMarkerVar
+}// getLMarkerSetVar
 
 ///
 ///  The following routines:
@@ -2144,16 +2143,6 @@ IBStaggeredHierarchyIntegrator::putToDatabase(
     db->putDouble("d_dt_max", d_dt_max);
     db->putDouble("d_dt_max_time_max", d_dt_max_time_max);
     db->putDouble("d_dt_max_time_min", d_dt_max_time_min);
-
-    db->putString("d_mark_input_file_name", d_mark_input_file_name);
-    db->putInteger("d_num_mark", d_num_mark);
-    if (d_num_mark > 0)
-    {
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(NDIM*d_num_mark == int(d_mark_init_posns.size()));
-#endif
-        db->putDoubleArray("d_mark_init_posns", &d_mark_init_posns[0], d_mark_init_posns.size());
-    }
 
     t_put_to_database->stop();
     return;
@@ -2809,14 +2798,6 @@ IBStaggeredHierarchyIntegrator::getFromRestart()
     d_dt_max = db->getDouble("d_dt_max");
     d_dt_max_time_max = db->getDouble("d_dt_max_time_max");
     d_dt_max_time_min = db->getDouble("d_dt_max_time_min");
-
-    d_mark_input_file_name = db->getString("d_mark_input_file_name");
-    d_num_mark = db->getInteger("d_num_mark");
-    d_mark_init_posns.resize(NDIM*d_num_mark);
-    if (d_num_mark > 0)
-    {
-        db->getDoubleArray("d_mark_init_posns", &d_mark_init_posns[0], d_mark_init_posns.size());
-    }
     return;
 }// getFromRestart
 

@@ -40,7 +40,6 @@
 
 // SAMRAI INCLUDES
 #include <Index.h>
-#include <IntVector.h>
 #include <tbox/AbstractStream.h>
 #include <tbox/DescribedClass.h>
 #include <tbox/Pointer.h>

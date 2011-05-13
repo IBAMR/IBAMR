@@ -112,24 +112,28 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C \
 	$(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.C \
 	$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.C \
-	$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C \
+	$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C \
 	$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.C \
+	$(top_srcdir)/src/lagrangian/FEDataManager.C \
 	$(top_srcdir)/src/lagrangian/LData.C \
 	$(top_srcdir)/src/lagrangian/LDataManager.C \
 	$(top_srcdir)/src/lagrangian/LEInteractor.C \
+	$(top_srcdir)/src/lagrangian/LIndexSetData.C \
+	$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C \
+	$(top_srcdir)/src/lagrangian/LIndexSetVariable.C \
+	$(top_srcdir)/src/lagrangian/LInitStrategy.C \
+	$(top_srcdir)/src/lagrangian/LM3DDataWriter.C \
+	$(top_srcdir)/src/lagrangian/LMarker.C \
 	$(top_srcdir)/src/lagrangian/LMesh.C \
 	$(top_srcdir)/src/lagrangian/LNode.C \
 	$(top_srcdir)/src/lagrangian/LNodeIndex.C \
-	$(top_srcdir)/src/lagrangian/LNodeIndexData.C \
-	$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C \
-	$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C \
-	$(top_srcdir)/src/lagrangian/LNodeIndexSet.C \
-	$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C \
-	$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C \
-	$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C \
-	$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C \
-	$(top_srcdir)/src/lagrangian/LagMarker.C \
-	$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C \
+	$(top_srcdir)/src/lagrangian/LSet.C \
+	$(top_srcdir)/src/lagrangian/LSetData.C \
+	$(top_srcdir)/src/lagrangian/LSetDataFactory.C \
+	$(top_srcdir)/src/lagrangian/LSetDataIterator.C \
+	$(top_srcdir)/src/lagrangian/LSetVariable.C \
+	$(top_srcdir)/src/lagrangian/LSiloDataWriter.C \
+	$(top_srcdir)/src/lagrangian/LTransaction.C \
 	$(top_srcdir)/src/math/HierarchyMathOps.C \
 	$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.C \
 	$(top_srcdir)/src/math/PETScMatUtilities.C \
@@ -145,7 +149,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C \
 	$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C \
-	$(top_srcdir)/src/refine_ops/LagMarkerRefine.C \
+	$(top_srcdir)/src/refine_ops/LMarkerRefine.C \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C \
@@ -191,7 +195,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/utilities/FixedSizedStream.C \
 	$(top_srcdir)/src/utilities/IndexUtilities.C \
 	$(top_srcdir)/src/utilities/IndexSet.C \
-	$(top_srcdir)/src/utilities/LagMarkerUtilities.C \
+	$(top_srcdir)/src/utilities/LMarkerUtilities.C \
 	$(top_srcdir)/src/utilities/NodeDataSynchronization.C \
 	$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C \
 	$(top_srcdir)/src/utilities/NormOps.C \
@@ -209,7 +213,6 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/utilities/StreamableFactory.C \
 	$(top_srcdir)/src/utilities/StreamableManager.C \
 	$(top_srcdir)/src/utilities/muParserCartGridFunction.C \
-	$(top_srcdir)/src/lagrangian/FEDataManager.C \
 	$(top_srcdir)/src/utilities/FESystemDataCache.C \
 	$(top_srcdir)/src/lagrangian/FEDataManager.h \
 	$(top_srcdir)/src/utilities/FESystemDataCache.h \
@@ -247,21 +250,24 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-muParserRobinBcCoefs.$(OBJEXT) \
 	libIBTK2d_a-CartCellDoubleCubicCoarsen.$(OBJEXT) \
 	libIBTK2d_a-CartSideDoubleCubicCoarsen.$(OBJEXT) \
-	libIBTK2d_a-LagMarkerCoarsen.$(OBJEXT) \
+	libIBTK2d_a-LMarkerCoarsen.$(OBJEXT) \
 	libIBTK2d_a-VecCellCoarsenAdapter.$(OBJEXT) \
+	libIBTK2d_a-FEDataManager.$(OBJEXT) \
 	libIBTK2d_a-LData.$(OBJEXT) libIBTK2d_a-LDataManager.$(OBJEXT) \
-	libIBTK2d_a-LEInteractor.$(OBJEXT) libIBTK2d_a-LMesh.$(OBJEXT) \
+	libIBTK2d_a-LEInteractor.$(OBJEXT) \
+	libIBTK2d_a-LIndexSetData.$(OBJEXT) \
+	libIBTK2d_a-LIndexSetDataFactory.$(OBJEXT) \
+	libIBTK2d_a-LIndexSetVariable.$(OBJEXT) \
+	libIBTK2d_a-LInitStrategy.$(OBJEXT) \
+	libIBTK2d_a-LM3DDataWriter.$(OBJEXT) \
+	libIBTK2d_a-LMarker.$(OBJEXT) libIBTK2d_a-LMesh.$(OBJEXT) \
 	libIBTK2d_a-LNode.$(OBJEXT) libIBTK2d_a-LNodeIndex.$(OBJEXT) \
-	libIBTK2d_a-LNodeIndexData.$(OBJEXT) \
-	libIBTK2d_a-LNodeIndexDataFactory.$(OBJEXT) \
-	libIBTK2d_a-LNodeIndexIterator.$(OBJEXT) \
-	libIBTK2d_a-LNodeIndexSet.$(OBJEXT) \
-	libIBTK2d_a-LNodeIndexTransaction.$(OBJEXT) \
-	libIBTK2d_a-LNodeIndexVariable.$(OBJEXT) \
-	libIBTK2d_a-LNodeInitStrategy.$(OBJEXT) \
-	libIBTK2d_a-LagM3DDataWriter.$(OBJEXT) \
-	libIBTK2d_a-LagMarker.$(OBJEXT) \
-	libIBTK2d_a-LagSiloDataWriter.$(OBJEXT) \
+	libIBTK2d_a-LSet.$(OBJEXT) libIBTK2d_a-LSetData.$(OBJEXT) \
+	libIBTK2d_a-LSetDataFactory.$(OBJEXT) \
+	libIBTK2d_a-LSetDataIterator.$(OBJEXT) \
+	libIBTK2d_a-LSetVariable.$(OBJEXT) \
+	libIBTK2d_a-LSiloDataWriter.$(OBJEXT) \
+	libIBTK2d_a-LTransaction.$(OBJEXT) \
 	libIBTK2d_a-HierarchyMathOps.$(OBJEXT) \
 	libIBTK2d_a-HierarchyVecCellDataOpsReal.$(OBJEXT) \
 	libIBTK2d_a-PETScMatUtilities.$(OBJEXT) \
@@ -277,7 +283,7 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-CartSideDoubleDivPreservingRefine.$(OBJEXT) \
 	libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.$(OBJEXT) \
 	libIBTK2d_a-VecCellRefineAdapter.$(OBJEXT) \
-	libIBTK2d_a-LagMarkerRefine.$(OBJEXT) \
+	libIBTK2d_a-LMarkerRefine.$(OBJEXT) \
 	libIBTK2d_a-BGaussSeidelPreconditioner.$(OBJEXT) \
 	libIBTK2d_a-BJacobiPreconditioner.$(OBJEXT) \
 	libIBTK2d_a-CCDivGradHypreLevelSolver.$(OBJEXT) \
@@ -323,7 +329,7 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-FixedSizedStream.$(OBJEXT) \
 	libIBTK2d_a-IndexUtilities.$(OBJEXT) \
 	libIBTK2d_a-IndexSet.$(OBJEXT) \
-	libIBTK2d_a-LagMarkerUtilities.$(OBJEXT) \
+	libIBTK2d_a-LMarkerUtilities.$(OBJEXT) \
 	libIBTK2d_a-NodeDataSynchronization.$(OBJEXT) \
 	libIBTK2d_a-NodeSynchCopyFillPattern.$(OBJEXT) \
 	libIBTK2d_a-NormOps.$(OBJEXT) \
@@ -367,24 +373,28 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C \
 	$(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.C \
 	$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.C \
-	$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C \
+	$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C \
 	$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.C \
+	$(top_srcdir)/src/lagrangian/FEDataManager.C \
 	$(top_srcdir)/src/lagrangian/LData.C \
 	$(top_srcdir)/src/lagrangian/LDataManager.C \
 	$(top_srcdir)/src/lagrangian/LEInteractor.C \
+	$(top_srcdir)/src/lagrangian/LIndexSetData.C \
+	$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C \
+	$(top_srcdir)/src/lagrangian/LIndexSetVariable.C \
+	$(top_srcdir)/src/lagrangian/LInitStrategy.C \
+	$(top_srcdir)/src/lagrangian/LM3DDataWriter.C \
+	$(top_srcdir)/src/lagrangian/LMarker.C \
 	$(top_srcdir)/src/lagrangian/LMesh.C \
 	$(top_srcdir)/src/lagrangian/LNode.C \
 	$(top_srcdir)/src/lagrangian/LNodeIndex.C \
-	$(top_srcdir)/src/lagrangian/LNodeIndexData.C \
-	$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C \
-	$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C \
-	$(top_srcdir)/src/lagrangian/LNodeIndexSet.C \
-	$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C \
-	$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C \
-	$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C \
-	$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C \
-	$(top_srcdir)/src/lagrangian/LagMarker.C \
-	$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C \
+	$(top_srcdir)/src/lagrangian/LSet.C \
+	$(top_srcdir)/src/lagrangian/LSetData.C \
+	$(top_srcdir)/src/lagrangian/LSetDataFactory.C \
+	$(top_srcdir)/src/lagrangian/LSetDataIterator.C \
+	$(top_srcdir)/src/lagrangian/LSetVariable.C \
+	$(top_srcdir)/src/lagrangian/LSiloDataWriter.C \
+	$(top_srcdir)/src/lagrangian/LTransaction.C \
 	$(top_srcdir)/src/math/HierarchyMathOps.C \
 	$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.C \
 	$(top_srcdir)/src/math/PETScMatUtilities.C \
@@ -400,7 +410,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C \
 	$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C \
-	$(top_srcdir)/src/refine_ops/LagMarkerRefine.C \
+	$(top_srcdir)/src/refine_ops/LMarkerRefine.C \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C \
@@ -446,7 +456,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/utilities/FixedSizedStream.C \
 	$(top_srcdir)/src/utilities/IndexUtilities.C \
 	$(top_srcdir)/src/utilities/IndexSet.C \
-	$(top_srcdir)/src/utilities/LagMarkerUtilities.C \
+	$(top_srcdir)/src/utilities/LMarkerUtilities.C \
 	$(top_srcdir)/src/utilities/NodeDataSynchronization.C \
 	$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C \
 	$(top_srcdir)/src/utilities/NormOps.C \
@@ -464,7 +474,6 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/utilities/StreamableFactory.C \
 	$(top_srcdir)/src/utilities/StreamableManager.C \
 	$(top_srcdir)/src/utilities/muParserCartGridFunction.C \
-	$(top_srcdir)/src/lagrangian/FEDataManager.C \
 	$(top_srcdir)/src/utilities/FESystemDataCache.C \
 	$(top_srcdir)/src/lagrangian/FEDataManager.h \
 	$(top_srcdir)/src/utilities/FESystemDataCache.h \
@@ -501,21 +510,24 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-muParserRobinBcCoefs.$(OBJEXT) \
 	libIBTK3d_a-CartCellDoubleCubicCoarsen.$(OBJEXT) \
 	libIBTK3d_a-CartSideDoubleCubicCoarsen.$(OBJEXT) \
-	libIBTK3d_a-LagMarkerCoarsen.$(OBJEXT) \
+	libIBTK3d_a-LMarkerCoarsen.$(OBJEXT) \
 	libIBTK3d_a-VecCellCoarsenAdapter.$(OBJEXT) \
+	libIBTK3d_a-FEDataManager.$(OBJEXT) \
 	libIBTK3d_a-LData.$(OBJEXT) libIBTK3d_a-LDataManager.$(OBJEXT) \
-	libIBTK3d_a-LEInteractor.$(OBJEXT) libIBTK3d_a-LMesh.$(OBJEXT) \
+	libIBTK3d_a-LEInteractor.$(OBJEXT) \
+	libIBTK3d_a-LIndexSetData.$(OBJEXT) \
+	libIBTK3d_a-LIndexSetDataFactory.$(OBJEXT) \
+	libIBTK3d_a-LIndexSetVariable.$(OBJEXT) \
+	libIBTK3d_a-LInitStrategy.$(OBJEXT) \
+	libIBTK3d_a-LM3DDataWriter.$(OBJEXT) \
+	libIBTK3d_a-LMarker.$(OBJEXT) libIBTK3d_a-LMesh.$(OBJEXT) \
 	libIBTK3d_a-LNode.$(OBJEXT) libIBTK3d_a-LNodeIndex.$(OBJEXT) \
-	libIBTK3d_a-LNodeIndexData.$(OBJEXT) \
-	libIBTK3d_a-LNodeIndexDataFactory.$(OBJEXT) \
-	libIBTK3d_a-LNodeIndexIterator.$(OBJEXT) \
-	libIBTK3d_a-LNodeIndexSet.$(OBJEXT) \
-	libIBTK3d_a-LNodeIndexTransaction.$(OBJEXT) \
-	libIBTK3d_a-LNodeIndexVariable.$(OBJEXT) \
-	libIBTK3d_a-LNodeInitStrategy.$(OBJEXT) \
-	libIBTK3d_a-LagM3DDataWriter.$(OBJEXT) \
-	libIBTK3d_a-LagMarker.$(OBJEXT) \
-	libIBTK3d_a-LagSiloDataWriter.$(OBJEXT) \
+	libIBTK3d_a-LSet.$(OBJEXT) libIBTK3d_a-LSetData.$(OBJEXT) \
+	libIBTK3d_a-LSetDataFactory.$(OBJEXT) \
+	libIBTK3d_a-LSetDataIterator.$(OBJEXT) \
+	libIBTK3d_a-LSetVariable.$(OBJEXT) \
+	libIBTK3d_a-LSiloDataWriter.$(OBJEXT) \
+	libIBTK3d_a-LTransaction.$(OBJEXT) \
 	libIBTK3d_a-HierarchyMathOps.$(OBJEXT) \
 	libIBTK3d_a-HierarchyVecCellDataOpsReal.$(OBJEXT) \
 	libIBTK3d_a-PETScMatUtilities.$(OBJEXT) \
@@ -531,7 +543,7 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-CartSideDoubleDivPreservingRefine.$(OBJEXT) \
 	libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.$(OBJEXT) \
 	libIBTK3d_a-VecCellRefineAdapter.$(OBJEXT) \
-	libIBTK3d_a-LagMarkerRefine.$(OBJEXT) \
+	libIBTK3d_a-LMarkerRefine.$(OBJEXT) \
 	libIBTK3d_a-BGaussSeidelPreconditioner.$(OBJEXT) \
 	libIBTK3d_a-BJacobiPreconditioner.$(OBJEXT) \
 	libIBTK3d_a-CCDivGradHypreLevelSolver.$(OBJEXT) \
@@ -577,7 +589,7 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-FixedSizedStream.$(OBJEXT) \
 	libIBTK3d_a-IndexUtilities.$(OBJEXT) \
 	libIBTK3d_a-IndexSet.$(OBJEXT) \
-	libIBTK3d_a-LagMarkerUtilities.$(OBJEXT) \
+	libIBTK3d_a-LMarkerUtilities.$(OBJEXT) \
 	libIBTK3d_a-NodeDataSynchronization.$(OBJEXT) \
 	libIBTK3d_a-NodeSynchCopyFillPattern.$(OBJEXT) \
 	libIBTK3d_a-NormOps.$(OBJEXT) \
@@ -996,32 +1008,53 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.h \
 	$(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.h \
 	$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.h \
-	$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.h \
+	$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.h \
 	$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.h \
+	$(top_srcdir)/src/lagrangian/FEDataManager.h \
 	$(top_srcdir)/src/lagrangian/LData.I \
 	$(top_srcdir)/src/lagrangian/LData.h \
+	$(top_srcdir)/src/lagrangian/LDataManager.I \
 	$(top_srcdir)/src/lagrangian/LDataManager.h \
 	$(top_srcdir)/src/lagrangian/LEInteractor.h \
+	$(top_srcdir)/src/lagrangian/LIndexSetData.I \
+	$(top_srcdir)/src/lagrangian/LIndexSetData.h \
+	$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.h \
+	$(top_srcdir)/src/lagrangian/LIndexSetVariable.h \
+	$(top_srcdir)/src/lagrangian/LInitStrategy.h \
+	$(top_srcdir)/src/lagrangian/LM3DDataWriter.h \
+	$(top_srcdir)/src/lagrangian/LMarker.I \
+	$(top_srcdir)/src/lagrangian/LMarker.h \
+	$(top_srcdir)/src/lagrangian/LMarkerSet.h \
+	$(top_srcdir)/src/lagrangian/LMarkerSetData.h \
+	$(top_srcdir)/src/lagrangian/LMarkerSetDataFactory.h \
+	$(top_srcdir)/src/lagrangian/LMarkerSetDataIterator.h \
+	$(top_srcdir)/src/lagrangian/LMarkerSetVariable.h \
 	$(top_srcdir)/src/lagrangian/LMesh.I \
 	$(top_srcdir)/src/lagrangian/LMesh.h \
 	$(top_srcdir)/src/lagrangian/LNode.I \
 	$(top_srcdir)/src/lagrangian/LNode.h \
 	$(top_srcdir)/src/lagrangian/LNodeIndex.I \
 	$(top_srcdir)/src/lagrangian/LNodeIndex.h \
-	$(top_srcdir)/src/lagrangian/LNodeIndexData.I \
-	$(top_srcdir)/src/lagrangian/LNodeIndexData.h \
-	$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.h \
-	$(top_srcdir)/src/lagrangian/LNodeIndexIterator.I \
-	$(top_srcdir)/src/lagrangian/LNodeIndexIterator.h \
-	$(top_srcdir)/src/lagrangian/LNodeIndexSet.I \
 	$(top_srcdir)/src/lagrangian/LNodeIndexSet.h \
-	$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.h \
-	$(top_srcdir)/src/lagrangian/LNodeIndexVariable.h \
-	$(top_srcdir)/src/lagrangian/LNodeInitStrategy.h \
-	$(top_srcdir)/src/lagrangian/LagM3DDataWriter.h \
-	$(top_srcdir)/src/lagrangian/LagMarker.I \
-	$(top_srcdir)/src/lagrangian/LagMarker.h \
-	$(top_srcdir)/src/lagrangian/LagSiloDataWriter.h \
+	$(top_srcdir)/src/lagrangian/LNodeIndexSetData.h \
+	$(top_srcdir)/src/lagrangian/LNodeIndexSetDataFactory.h \
+	$(top_srcdir)/src/lagrangian/LNodeIndexSetDataIterator.h \
+	$(top_srcdir)/src/lagrangian/LNodeIndexSetVariable.h \
+	$(top_srcdir)/src/lagrangian/LNodeSet.h \
+	$(top_srcdir)/src/lagrangian/LNodeSetData.h \
+	$(top_srcdir)/src/lagrangian/LNodeSetDataFactory.h \
+	$(top_srcdir)/src/lagrangian/LNodeSetDataIterator.h \
+	$(top_srcdir)/src/lagrangian/LNodeSetVariable.h \
+	$(top_srcdir)/src/lagrangian/LSet.I \
+	$(top_srcdir)/src/lagrangian/LSet.h \
+	$(top_srcdir)/src/lagrangian/LSetData.I \
+	$(top_srcdir)/src/lagrangian/LSetData.h \
+	$(top_srcdir)/src/lagrangian/LSetDataFactory.h \
+	$(top_srcdir)/src/lagrangian/LSetDataIterator.I \
+	$(top_srcdir)/src/lagrangian/LSetDataIterator.h \
+	$(top_srcdir)/src/lagrangian/LSetVariable.h \
+	$(top_srcdir)/src/lagrangian/LSiloDataWriter.h \
+	$(top_srcdir)/src/lagrangian/LTransaction.h \
 	$(top_srcdir)/src/math/HierarchyMathOps.h \
 	$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.h \
 	$(top_srcdir)/src/math/PETScMatUtilities.h \
@@ -1039,7 +1072,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.h \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.h \
 	$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.h \
-	$(top_srcdir)/src/refine_ops/LagMarkerRefine.h \
+	$(top_srcdir)/src/refine_ops/LMarkerRefine.h \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.I \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.h \
 	$(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.I \
@@ -1104,7 +1137,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/utilities/IndexUtilities.h \
 	$(top_srcdir)/src/utilities/IndexSet.I \
 	$(top_srcdir)/src/utilities/IndexSet.h \
-	$(top_srcdir)/src/utilities/LagMarkerUtilities.h \
+	$(top_srcdir)/src/utilities/LMarkerUtilities.h \
 	$(top_srcdir)/src/utilities/NodeDataSynchronization.h \
 	$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.h \
 	$(top_srcdir)/src/utilities/NormOps.h \
@@ -1142,24 +1175,28 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C \
 	$(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.C \
 	$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.C \
-	$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C \
+	$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C \
 	$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.C \
+	$(top_srcdir)/src/lagrangian/FEDataManager.C \
 	$(top_srcdir)/src/lagrangian/LData.C \
 	$(top_srcdir)/src/lagrangian/LDataManager.C \
 	$(top_srcdir)/src/lagrangian/LEInteractor.C \
+	$(top_srcdir)/src/lagrangian/LIndexSetData.C \
+	$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C \
+	$(top_srcdir)/src/lagrangian/LIndexSetVariable.C \
+	$(top_srcdir)/src/lagrangian/LInitStrategy.C \
+	$(top_srcdir)/src/lagrangian/LM3DDataWriter.C \
+	$(top_srcdir)/src/lagrangian/LMarker.C \
 	$(top_srcdir)/src/lagrangian/LMesh.C \
 	$(top_srcdir)/src/lagrangian/LNode.C \
 	$(top_srcdir)/src/lagrangian/LNodeIndex.C \
-	$(top_srcdir)/src/lagrangian/LNodeIndexData.C \
-	$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C \
-	$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C \
-	$(top_srcdir)/src/lagrangian/LNodeIndexSet.C \
-	$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C \
-	$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C \
-	$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C \
-	$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C \
-	$(top_srcdir)/src/lagrangian/LagMarker.C \
-	$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C \
+	$(top_srcdir)/src/lagrangian/LSet.C \
+	$(top_srcdir)/src/lagrangian/LSetData.C \
+	$(top_srcdir)/src/lagrangian/LSetDataFactory.C \
+	$(top_srcdir)/src/lagrangian/LSetDataIterator.C \
+	$(top_srcdir)/src/lagrangian/LSetVariable.C \
+	$(top_srcdir)/src/lagrangian/LSiloDataWriter.C \
+	$(top_srcdir)/src/lagrangian/LTransaction.C \
 	$(top_srcdir)/src/math/HierarchyMathOps.C \
 	$(top_srcdir)/src/math/HierarchyVecCellDataOpsReal.C \
 	$(top_srcdir)/src/math/PETScMatUtilities.C \
@@ -1175,7 +1212,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C \
 	$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C \
 	$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C \
-	$(top_srcdir)/src/refine_ops/LagMarkerRefine.C \
+	$(top_srcdir)/src/refine_ops/LMarkerRefine.C \
 	$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C \
@@ -1221,7 +1258,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/utilities/FixedSizedStream.C \
 	$(top_srcdir)/src/utilities/IndexUtilities.C \
 	$(top_srcdir)/src/utilities/IndexSet.C \
-	$(top_srcdir)/src/utilities/LagMarkerUtilities.C \
+	$(top_srcdir)/src/utilities/LMarkerUtilities.C \
 	$(top_srcdir)/src/utilities/NodeDataSynchronization.C \
 	$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C \
 	$(top_srcdir)/src/utilities/NormOps.C \
@@ -1413,22 +1450,25 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LData.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LDataManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LEInteractor.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LIndexSetData.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LIndexSetDataFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LIndexSetVariable.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LInitStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LM3DDataWriter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LMarker.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LMarkerRefine.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LMesh.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LNode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LNodeIndex.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LNodeIndexData.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LNodeIndexDataFactory.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LNodeIndexIterator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LNodeIndexSet.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LNodeIndexTransaction.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LNodeIndexVariable.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LNodeInitStrategy.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LagM3DDataWriter.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LagMarker.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LagMarkerCoarsen.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LagMarkerRefine.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LagMarkerUtilities.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LagSiloDataWriter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LSet.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LSetData.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LSetDataFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LSetDataIterator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LSetVariable.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LSiloDataWriter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LTransaction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LinearOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LinearSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-NewtonKrylovSolver.Po@am__quote@
@@ -1525,22 +1565,25 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LData.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LDataManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LEInteractor.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LIndexSetData.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LIndexSetDataFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LIndexSetVariable.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LInitStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LM3DDataWriter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LMarker.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LMesh.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LNode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LNodeIndex.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LNodeIndexData.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LNodeIndexDataFactory.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LNodeIndexIterator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LNodeIndexSet.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LNodeIndexTransaction.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LNodeIndexVariable.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LNodeInitStrategy.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LagM3DDataWriter.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LagMarker.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LagMarkerCoarsen.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LagMarkerRefine.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LagMarkerUtilities.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LagSiloDataWriter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LSet.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LSetData.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LSetDataFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LSetDataIterator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LSetVariable.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LSiloDataWriter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LTransaction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LinearOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LinearSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-NewtonKrylovSolver.Po@am__quote@
@@ -1888,19 +1931,19 @@ libIBTK2d_a-CartSideDoubleCubicCoarsen.obj: $(top_srcdir)/src/coarsen_ops/CartSi
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CartSideDoubleCubicCoarsen.obj `if test -f '$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.C'; fi`
 
-libIBTK2d_a-LagMarkerCoarsen.o: $(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LagMarkerCoarsen.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LagMarkerCoarsen.Tpo -c -o libIBTK2d_a-LagMarkerCoarsen.o `test -f '$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LagMarkerCoarsen.Tpo $(DEPDIR)/libIBTK2d_a-LagMarkerCoarsen.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C' object='libIBTK2d_a-LagMarkerCoarsen.o' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-LMarkerCoarsen.o: $(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LMarkerCoarsen.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Tpo -c -o libIBTK2d_a-LMarkerCoarsen.o `test -f '$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Tpo $(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C' object='libIBTK2d_a-LMarkerCoarsen.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LagMarkerCoarsen.o `test -f '$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LMarkerCoarsen.o `test -f '$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C
 
-libIBTK2d_a-LagMarkerCoarsen.obj: $(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LagMarkerCoarsen.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LagMarkerCoarsen.Tpo -c -o libIBTK2d_a-LagMarkerCoarsen.obj `if test -f '$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LagMarkerCoarsen.Tpo $(DEPDIR)/libIBTK2d_a-LagMarkerCoarsen.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C' object='libIBTK2d_a-LagMarkerCoarsen.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-LMarkerCoarsen.obj: $(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LMarkerCoarsen.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Tpo -c -o libIBTK2d_a-LMarkerCoarsen.obj `if test -f '$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Tpo $(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C' object='libIBTK2d_a-LMarkerCoarsen.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LagMarkerCoarsen.obj `if test -f '$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LMarkerCoarsen.obj `if test -f '$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C'; fi`
 
 libIBTK2d_a-VecCellCoarsenAdapter.o: $(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-VecCellCoarsenAdapter.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-VecCellCoarsenAdapter.Tpo -c -o libIBTK2d_a-VecCellCoarsenAdapter.o `test -f '$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.C
@@ -1915,6 +1958,20 @@ libIBTK2d_a-VecCellCoarsenAdapter.obj: $(top_srcdir)/src/coarsen_ops/VecCellCoar
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.C' object='libIBTK2d_a-VecCellCoarsenAdapter.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-VecCellCoarsenAdapter.obj `if test -f '$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.C'; fi`
+
+libIBTK2d_a-FEDataManager.o: $(top_srcdir)/src/lagrangian/FEDataManager.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-FEDataManager.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-FEDataManager.Tpo -c -o libIBTK2d_a-FEDataManager.o `test -f '$(top_srcdir)/src/lagrangian/FEDataManager.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/FEDataManager.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-FEDataManager.Tpo $(DEPDIR)/libIBTK2d_a-FEDataManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/FEDataManager.C' object='libIBTK2d_a-FEDataManager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-FEDataManager.o `test -f '$(top_srcdir)/src/lagrangian/FEDataManager.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/FEDataManager.C
+
+libIBTK2d_a-FEDataManager.obj: $(top_srcdir)/src/lagrangian/FEDataManager.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-FEDataManager.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-FEDataManager.Tpo -c -o libIBTK2d_a-FEDataManager.obj `if test -f '$(top_srcdir)/src/lagrangian/FEDataManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/FEDataManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/FEDataManager.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-FEDataManager.Tpo $(DEPDIR)/libIBTK2d_a-FEDataManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/FEDataManager.C' object='libIBTK2d_a-FEDataManager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-FEDataManager.obj `if test -f '$(top_srcdir)/src/lagrangian/FEDataManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/FEDataManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/FEDataManager.C'; fi`
 
 libIBTK2d_a-LData.o: $(top_srcdir)/src/lagrangian/LData.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LData.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LData.Tpo -c -o libIBTK2d_a-LData.o `test -f '$(top_srcdir)/src/lagrangian/LData.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LData.C
@@ -1958,6 +2015,90 @@ libIBTK2d_a-LEInteractor.obj: $(top_srcdir)/src/lagrangian/LEInteractor.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LEInteractor.obj `if test -f '$(top_srcdir)/src/lagrangian/LEInteractor.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LEInteractor.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LEInteractor.C'; fi`
 
+libIBTK2d_a-LIndexSetData.o: $(top_srcdir)/src/lagrangian/LIndexSetData.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LIndexSetData.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LIndexSetData.Tpo -c -o libIBTK2d_a-LIndexSetData.o `test -f '$(top_srcdir)/src/lagrangian/LIndexSetData.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LIndexSetData.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LIndexSetData.Tpo $(DEPDIR)/libIBTK2d_a-LIndexSetData.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LIndexSetData.C' object='libIBTK2d_a-LIndexSetData.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LIndexSetData.o `test -f '$(top_srcdir)/src/lagrangian/LIndexSetData.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LIndexSetData.C
+
+libIBTK2d_a-LIndexSetData.obj: $(top_srcdir)/src/lagrangian/LIndexSetData.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LIndexSetData.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LIndexSetData.Tpo -c -o libIBTK2d_a-LIndexSetData.obj `if test -f '$(top_srcdir)/src/lagrangian/LIndexSetData.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LIndexSetData.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LIndexSetData.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LIndexSetData.Tpo $(DEPDIR)/libIBTK2d_a-LIndexSetData.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LIndexSetData.C' object='libIBTK2d_a-LIndexSetData.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LIndexSetData.obj `if test -f '$(top_srcdir)/src/lagrangian/LIndexSetData.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LIndexSetData.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LIndexSetData.C'; fi`
+
+libIBTK2d_a-LIndexSetDataFactory.o: $(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LIndexSetDataFactory.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LIndexSetDataFactory.Tpo -c -o libIBTK2d_a-LIndexSetDataFactory.o `test -f '$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LIndexSetDataFactory.Tpo $(DEPDIR)/libIBTK2d_a-LIndexSetDataFactory.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C' object='libIBTK2d_a-LIndexSetDataFactory.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LIndexSetDataFactory.o `test -f '$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C
+
+libIBTK2d_a-LIndexSetDataFactory.obj: $(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LIndexSetDataFactory.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LIndexSetDataFactory.Tpo -c -o libIBTK2d_a-LIndexSetDataFactory.obj `if test -f '$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LIndexSetDataFactory.Tpo $(DEPDIR)/libIBTK2d_a-LIndexSetDataFactory.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C' object='libIBTK2d_a-LIndexSetDataFactory.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LIndexSetDataFactory.obj `if test -f '$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C'; fi`
+
+libIBTK2d_a-LIndexSetVariable.o: $(top_srcdir)/src/lagrangian/LIndexSetVariable.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LIndexSetVariable.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LIndexSetVariable.Tpo -c -o libIBTK2d_a-LIndexSetVariable.o `test -f '$(top_srcdir)/src/lagrangian/LIndexSetVariable.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LIndexSetVariable.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LIndexSetVariable.Tpo $(DEPDIR)/libIBTK2d_a-LIndexSetVariable.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LIndexSetVariable.C' object='libIBTK2d_a-LIndexSetVariable.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LIndexSetVariable.o `test -f '$(top_srcdir)/src/lagrangian/LIndexSetVariable.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LIndexSetVariable.C
+
+libIBTK2d_a-LIndexSetVariable.obj: $(top_srcdir)/src/lagrangian/LIndexSetVariable.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LIndexSetVariable.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LIndexSetVariable.Tpo -c -o libIBTK2d_a-LIndexSetVariable.obj `if test -f '$(top_srcdir)/src/lagrangian/LIndexSetVariable.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LIndexSetVariable.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LIndexSetVariable.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LIndexSetVariable.Tpo $(DEPDIR)/libIBTK2d_a-LIndexSetVariable.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LIndexSetVariable.C' object='libIBTK2d_a-LIndexSetVariable.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LIndexSetVariable.obj `if test -f '$(top_srcdir)/src/lagrangian/LIndexSetVariable.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LIndexSetVariable.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LIndexSetVariable.C'; fi`
+
+libIBTK2d_a-LInitStrategy.o: $(top_srcdir)/src/lagrangian/LInitStrategy.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LInitStrategy.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LInitStrategy.Tpo -c -o libIBTK2d_a-LInitStrategy.o `test -f '$(top_srcdir)/src/lagrangian/LInitStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LInitStrategy.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LInitStrategy.Tpo $(DEPDIR)/libIBTK2d_a-LInitStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LInitStrategy.C' object='libIBTK2d_a-LInitStrategy.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LInitStrategy.o `test -f '$(top_srcdir)/src/lagrangian/LInitStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LInitStrategy.C
+
+libIBTK2d_a-LInitStrategy.obj: $(top_srcdir)/src/lagrangian/LInitStrategy.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LInitStrategy.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LInitStrategy.Tpo -c -o libIBTK2d_a-LInitStrategy.obj `if test -f '$(top_srcdir)/src/lagrangian/LInitStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LInitStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LInitStrategy.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LInitStrategy.Tpo $(DEPDIR)/libIBTK2d_a-LInitStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LInitStrategy.C' object='libIBTK2d_a-LInitStrategy.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LInitStrategy.obj `if test -f '$(top_srcdir)/src/lagrangian/LInitStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LInitStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LInitStrategy.C'; fi`
+
+libIBTK2d_a-LM3DDataWriter.o: $(top_srcdir)/src/lagrangian/LM3DDataWriter.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LM3DDataWriter.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LM3DDataWriter.Tpo -c -o libIBTK2d_a-LM3DDataWriter.o `test -f '$(top_srcdir)/src/lagrangian/LM3DDataWriter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LM3DDataWriter.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LM3DDataWriter.Tpo $(DEPDIR)/libIBTK2d_a-LM3DDataWriter.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LM3DDataWriter.C' object='libIBTK2d_a-LM3DDataWriter.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LM3DDataWriter.o `test -f '$(top_srcdir)/src/lagrangian/LM3DDataWriter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LM3DDataWriter.C
+
+libIBTK2d_a-LM3DDataWriter.obj: $(top_srcdir)/src/lagrangian/LM3DDataWriter.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LM3DDataWriter.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LM3DDataWriter.Tpo -c -o libIBTK2d_a-LM3DDataWriter.obj `if test -f '$(top_srcdir)/src/lagrangian/LM3DDataWriter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LM3DDataWriter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LM3DDataWriter.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LM3DDataWriter.Tpo $(DEPDIR)/libIBTK2d_a-LM3DDataWriter.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LM3DDataWriter.C' object='libIBTK2d_a-LM3DDataWriter.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LM3DDataWriter.obj `if test -f '$(top_srcdir)/src/lagrangian/LM3DDataWriter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LM3DDataWriter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LM3DDataWriter.C'; fi`
+
+libIBTK2d_a-LMarker.o: $(top_srcdir)/src/lagrangian/LMarker.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LMarker.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LMarker.Tpo -c -o libIBTK2d_a-LMarker.o `test -f '$(top_srcdir)/src/lagrangian/LMarker.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LMarker.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LMarker.Tpo $(DEPDIR)/libIBTK2d_a-LMarker.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LMarker.C' object='libIBTK2d_a-LMarker.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LMarker.o `test -f '$(top_srcdir)/src/lagrangian/LMarker.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LMarker.C
+
+libIBTK2d_a-LMarker.obj: $(top_srcdir)/src/lagrangian/LMarker.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LMarker.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LMarker.Tpo -c -o libIBTK2d_a-LMarker.obj `if test -f '$(top_srcdir)/src/lagrangian/LMarker.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LMarker.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LMarker.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LMarker.Tpo $(DEPDIR)/libIBTK2d_a-LMarker.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LMarker.C' object='libIBTK2d_a-LMarker.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LMarker.obj `if test -f '$(top_srcdir)/src/lagrangian/LMarker.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LMarker.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LMarker.C'; fi`
+
 libIBTK2d_a-LMesh.o: $(top_srcdir)/src/lagrangian/LMesh.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LMesh.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LMesh.Tpo -c -o libIBTK2d_a-LMesh.o `test -f '$(top_srcdir)/src/lagrangian/LMesh.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LMesh.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LMesh.Tpo $(DEPDIR)/libIBTK2d_a-LMesh.Po
@@ -2000,145 +2141,103 @@ libIBTK2d_a-LNodeIndex.obj: $(top_srcdir)/src/lagrangian/LNodeIndex.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LNodeIndex.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndex.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndex.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndex.C'; fi`
 
-libIBTK2d_a-LNodeIndexData.o: $(top_srcdir)/src/lagrangian/LNodeIndexData.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LNodeIndexData.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LNodeIndexData.Tpo -c -o libIBTK2d_a-LNodeIndexData.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexData.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexData.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LNodeIndexData.Tpo $(DEPDIR)/libIBTK2d_a-LNodeIndexData.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexData.C' object='libIBTK2d_a-LNodeIndexData.o' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-LSet.o: $(top_srcdir)/src/lagrangian/LSet.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LSet.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LSet.Tpo -c -o libIBTK2d_a-LSet.o `test -f '$(top_srcdir)/src/lagrangian/LSet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSet.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LSet.Tpo $(DEPDIR)/libIBTK2d_a-LSet.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSet.C' object='libIBTK2d_a-LSet.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LNodeIndexData.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexData.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexData.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LSet.o `test -f '$(top_srcdir)/src/lagrangian/LSet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSet.C
 
-libIBTK2d_a-LNodeIndexData.obj: $(top_srcdir)/src/lagrangian/LNodeIndexData.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LNodeIndexData.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LNodeIndexData.Tpo -c -o libIBTK2d_a-LNodeIndexData.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexData.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexData.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexData.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LNodeIndexData.Tpo $(DEPDIR)/libIBTK2d_a-LNodeIndexData.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexData.C' object='libIBTK2d_a-LNodeIndexData.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-LSet.obj: $(top_srcdir)/src/lagrangian/LSet.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LSet.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LSet.Tpo -c -o libIBTK2d_a-LSet.obj `if test -f '$(top_srcdir)/src/lagrangian/LSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSet.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LSet.Tpo $(DEPDIR)/libIBTK2d_a-LSet.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSet.C' object='libIBTK2d_a-LSet.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LNodeIndexData.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexData.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexData.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexData.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LSet.obj `if test -f '$(top_srcdir)/src/lagrangian/LSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSet.C'; fi`
 
-libIBTK2d_a-LNodeIndexDataFactory.o: $(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LNodeIndexDataFactory.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LNodeIndexDataFactory.Tpo -c -o libIBTK2d_a-LNodeIndexDataFactory.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LNodeIndexDataFactory.Tpo $(DEPDIR)/libIBTK2d_a-LNodeIndexDataFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C' object='libIBTK2d_a-LNodeIndexDataFactory.o' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-LSetData.o: $(top_srcdir)/src/lagrangian/LSetData.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LSetData.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LSetData.Tpo -c -o libIBTK2d_a-LSetData.o `test -f '$(top_srcdir)/src/lagrangian/LSetData.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSetData.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LSetData.Tpo $(DEPDIR)/libIBTK2d_a-LSetData.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSetData.C' object='libIBTK2d_a-LSetData.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LNodeIndexDataFactory.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LSetData.o `test -f '$(top_srcdir)/src/lagrangian/LSetData.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSetData.C
 
-libIBTK2d_a-LNodeIndexDataFactory.obj: $(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LNodeIndexDataFactory.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LNodeIndexDataFactory.Tpo -c -o libIBTK2d_a-LNodeIndexDataFactory.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LNodeIndexDataFactory.Tpo $(DEPDIR)/libIBTK2d_a-LNodeIndexDataFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C' object='libIBTK2d_a-LNodeIndexDataFactory.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-LSetData.obj: $(top_srcdir)/src/lagrangian/LSetData.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LSetData.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LSetData.Tpo -c -o libIBTK2d_a-LSetData.obj `if test -f '$(top_srcdir)/src/lagrangian/LSetData.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSetData.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSetData.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LSetData.Tpo $(DEPDIR)/libIBTK2d_a-LSetData.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSetData.C' object='libIBTK2d_a-LSetData.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LNodeIndexDataFactory.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LSetData.obj `if test -f '$(top_srcdir)/src/lagrangian/LSetData.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSetData.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSetData.C'; fi`
 
-libIBTK2d_a-LNodeIndexIterator.o: $(top_srcdir)/src/lagrangian/LNodeIndexIterator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LNodeIndexIterator.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LNodeIndexIterator.Tpo -c -o libIBTK2d_a-LNodeIndexIterator.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LNodeIndexIterator.Tpo $(DEPDIR)/libIBTK2d_a-LNodeIndexIterator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C' object='libIBTK2d_a-LNodeIndexIterator.o' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-LSetDataFactory.o: $(top_srcdir)/src/lagrangian/LSetDataFactory.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LSetDataFactory.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LSetDataFactory.Tpo -c -o libIBTK2d_a-LSetDataFactory.o `test -f '$(top_srcdir)/src/lagrangian/LSetDataFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSetDataFactory.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LSetDataFactory.Tpo $(DEPDIR)/libIBTK2d_a-LSetDataFactory.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSetDataFactory.C' object='libIBTK2d_a-LSetDataFactory.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LNodeIndexIterator.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LSetDataFactory.o `test -f '$(top_srcdir)/src/lagrangian/LSetDataFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSetDataFactory.C
 
-libIBTK2d_a-LNodeIndexIterator.obj: $(top_srcdir)/src/lagrangian/LNodeIndexIterator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LNodeIndexIterator.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LNodeIndexIterator.Tpo -c -o libIBTK2d_a-LNodeIndexIterator.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LNodeIndexIterator.Tpo $(DEPDIR)/libIBTK2d_a-LNodeIndexIterator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C' object='libIBTK2d_a-LNodeIndexIterator.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-LSetDataFactory.obj: $(top_srcdir)/src/lagrangian/LSetDataFactory.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LSetDataFactory.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LSetDataFactory.Tpo -c -o libIBTK2d_a-LSetDataFactory.obj `if test -f '$(top_srcdir)/src/lagrangian/LSetDataFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSetDataFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSetDataFactory.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LSetDataFactory.Tpo $(DEPDIR)/libIBTK2d_a-LSetDataFactory.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSetDataFactory.C' object='libIBTK2d_a-LSetDataFactory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LNodeIndexIterator.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LSetDataFactory.obj `if test -f '$(top_srcdir)/src/lagrangian/LSetDataFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSetDataFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSetDataFactory.C'; fi`
 
-libIBTK2d_a-LNodeIndexSet.o: $(top_srcdir)/src/lagrangian/LNodeIndexSet.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LNodeIndexSet.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LNodeIndexSet.Tpo -c -o libIBTK2d_a-LNodeIndexSet.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexSet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexSet.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LNodeIndexSet.Tpo $(DEPDIR)/libIBTK2d_a-LNodeIndexSet.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexSet.C' object='libIBTK2d_a-LNodeIndexSet.o' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-LSetDataIterator.o: $(top_srcdir)/src/lagrangian/LSetDataIterator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LSetDataIterator.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LSetDataIterator.Tpo -c -o libIBTK2d_a-LSetDataIterator.o `test -f '$(top_srcdir)/src/lagrangian/LSetDataIterator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSetDataIterator.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LSetDataIterator.Tpo $(DEPDIR)/libIBTK2d_a-LSetDataIterator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSetDataIterator.C' object='libIBTK2d_a-LSetDataIterator.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LNodeIndexSet.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexSet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexSet.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LSetDataIterator.o `test -f '$(top_srcdir)/src/lagrangian/LSetDataIterator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSetDataIterator.C
 
-libIBTK2d_a-LNodeIndexSet.obj: $(top_srcdir)/src/lagrangian/LNodeIndexSet.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LNodeIndexSet.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LNodeIndexSet.Tpo -c -o libIBTK2d_a-LNodeIndexSet.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexSet.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LNodeIndexSet.Tpo $(DEPDIR)/libIBTK2d_a-LNodeIndexSet.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexSet.C' object='libIBTK2d_a-LNodeIndexSet.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-LSetDataIterator.obj: $(top_srcdir)/src/lagrangian/LSetDataIterator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LSetDataIterator.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LSetDataIterator.Tpo -c -o libIBTK2d_a-LSetDataIterator.obj `if test -f '$(top_srcdir)/src/lagrangian/LSetDataIterator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSetDataIterator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSetDataIterator.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LSetDataIterator.Tpo $(DEPDIR)/libIBTK2d_a-LSetDataIterator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSetDataIterator.C' object='libIBTK2d_a-LSetDataIterator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LNodeIndexSet.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexSet.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LSetDataIterator.obj `if test -f '$(top_srcdir)/src/lagrangian/LSetDataIterator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSetDataIterator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSetDataIterator.C'; fi`
 
-libIBTK2d_a-LNodeIndexTransaction.o: $(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LNodeIndexTransaction.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LNodeIndexTransaction.Tpo -c -o libIBTK2d_a-LNodeIndexTransaction.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LNodeIndexTransaction.Tpo $(DEPDIR)/libIBTK2d_a-LNodeIndexTransaction.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C' object='libIBTK2d_a-LNodeIndexTransaction.o' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-LSetVariable.o: $(top_srcdir)/src/lagrangian/LSetVariable.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LSetVariable.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LSetVariable.Tpo -c -o libIBTK2d_a-LSetVariable.o `test -f '$(top_srcdir)/src/lagrangian/LSetVariable.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSetVariable.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LSetVariable.Tpo $(DEPDIR)/libIBTK2d_a-LSetVariable.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSetVariable.C' object='libIBTK2d_a-LSetVariable.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LNodeIndexTransaction.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LSetVariable.o `test -f '$(top_srcdir)/src/lagrangian/LSetVariable.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSetVariable.C
 
-libIBTK2d_a-LNodeIndexTransaction.obj: $(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LNodeIndexTransaction.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LNodeIndexTransaction.Tpo -c -o libIBTK2d_a-LNodeIndexTransaction.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LNodeIndexTransaction.Tpo $(DEPDIR)/libIBTK2d_a-LNodeIndexTransaction.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C' object='libIBTK2d_a-LNodeIndexTransaction.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-LSetVariable.obj: $(top_srcdir)/src/lagrangian/LSetVariable.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LSetVariable.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LSetVariable.Tpo -c -o libIBTK2d_a-LSetVariable.obj `if test -f '$(top_srcdir)/src/lagrangian/LSetVariable.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSetVariable.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSetVariable.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LSetVariable.Tpo $(DEPDIR)/libIBTK2d_a-LSetVariable.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSetVariable.C' object='libIBTK2d_a-LSetVariable.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LNodeIndexTransaction.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LSetVariable.obj `if test -f '$(top_srcdir)/src/lagrangian/LSetVariable.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSetVariable.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSetVariable.C'; fi`
 
-libIBTK2d_a-LNodeIndexVariable.o: $(top_srcdir)/src/lagrangian/LNodeIndexVariable.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LNodeIndexVariable.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LNodeIndexVariable.Tpo -c -o libIBTK2d_a-LNodeIndexVariable.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LNodeIndexVariable.Tpo $(DEPDIR)/libIBTK2d_a-LNodeIndexVariable.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C' object='libIBTK2d_a-LNodeIndexVariable.o' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-LSiloDataWriter.o: $(top_srcdir)/src/lagrangian/LSiloDataWriter.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LSiloDataWriter.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LSiloDataWriter.Tpo -c -o libIBTK2d_a-LSiloDataWriter.o `test -f '$(top_srcdir)/src/lagrangian/LSiloDataWriter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSiloDataWriter.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LSiloDataWriter.Tpo $(DEPDIR)/libIBTK2d_a-LSiloDataWriter.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSiloDataWriter.C' object='libIBTK2d_a-LSiloDataWriter.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LNodeIndexVariable.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LSiloDataWriter.o `test -f '$(top_srcdir)/src/lagrangian/LSiloDataWriter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSiloDataWriter.C
 
-libIBTK2d_a-LNodeIndexVariable.obj: $(top_srcdir)/src/lagrangian/LNodeIndexVariable.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LNodeIndexVariable.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LNodeIndexVariable.Tpo -c -o libIBTK2d_a-LNodeIndexVariable.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LNodeIndexVariable.Tpo $(DEPDIR)/libIBTK2d_a-LNodeIndexVariable.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C' object='libIBTK2d_a-LNodeIndexVariable.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-LSiloDataWriter.obj: $(top_srcdir)/src/lagrangian/LSiloDataWriter.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LSiloDataWriter.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LSiloDataWriter.Tpo -c -o libIBTK2d_a-LSiloDataWriter.obj `if test -f '$(top_srcdir)/src/lagrangian/LSiloDataWriter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSiloDataWriter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSiloDataWriter.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LSiloDataWriter.Tpo $(DEPDIR)/libIBTK2d_a-LSiloDataWriter.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSiloDataWriter.C' object='libIBTK2d_a-LSiloDataWriter.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LNodeIndexVariable.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LSiloDataWriter.obj `if test -f '$(top_srcdir)/src/lagrangian/LSiloDataWriter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSiloDataWriter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSiloDataWriter.C'; fi`
 
-libIBTK2d_a-LNodeInitStrategy.o: $(top_srcdir)/src/lagrangian/LNodeInitStrategy.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LNodeInitStrategy.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LNodeInitStrategy.Tpo -c -o libIBTK2d_a-LNodeInitStrategy.o `test -f '$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LNodeInitStrategy.Tpo $(DEPDIR)/libIBTK2d_a-LNodeInitStrategy.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C' object='libIBTK2d_a-LNodeInitStrategy.o' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-LTransaction.o: $(top_srcdir)/src/lagrangian/LTransaction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LTransaction.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LTransaction.Tpo -c -o libIBTK2d_a-LTransaction.o `test -f '$(top_srcdir)/src/lagrangian/LTransaction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LTransaction.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LTransaction.Tpo $(DEPDIR)/libIBTK2d_a-LTransaction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LTransaction.C' object='libIBTK2d_a-LTransaction.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LNodeInitStrategy.o `test -f '$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LTransaction.o `test -f '$(top_srcdir)/src/lagrangian/LTransaction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LTransaction.C
 
-libIBTK2d_a-LNodeInitStrategy.obj: $(top_srcdir)/src/lagrangian/LNodeInitStrategy.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LNodeInitStrategy.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LNodeInitStrategy.Tpo -c -o libIBTK2d_a-LNodeInitStrategy.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LNodeInitStrategy.Tpo $(DEPDIR)/libIBTK2d_a-LNodeInitStrategy.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C' object='libIBTK2d_a-LNodeInitStrategy.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-LTransaction.obj: $(top_srcdir)/src/lagrangian/LTransaction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LTransaction.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LTransaction.Tpo -c -o libIBTK2d_a-LTransaction.obj `if test -f '$(top_srcdir)/src/lagrangian/LTransaction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LTransaction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LTransaction.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LTransaction.Tpo $(DEPDIR)/libIBTK2d_a-LTransaction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LTransaction.C' object='libIBTK2d_a-LTransaction.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LNodeInitStrategy.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C'; fi`
-
-libIBTK2d_a-LagM3DDataWriter.o: $(top_srcdir)/src/lagrangian/LagM3DDataWriter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LagM3DDataWriter.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LagM3DDataWriter.Tpo -c -o libIBTK2d_a-LagM3DDataWriter.o `test -f '$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LagM3DDataWriter.Tpo $(DEPDIR)/libIBTK2d_a-LagM3DDataWriter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C' object='libIBTK2d_a-LagM3DDataWriter.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LagM3DDataWriter.o `test -f '$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C
-
-libIBTK2d_a-LagM3DDataWriter.obj: $(top_srcdir)/src/lagrangian/LagM3DDataWriter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LagM3DDataWriter.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LagM3DDataWriter.Tpo -c -o libIBTK2d_a-LagM3DDataWriter.obj `if test -f '$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LagM3DDataWriter.Tpo $(DEPDIR)/libIBTK2d_a-LagM3DDataWriter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C' object='libIBTK2d_a-LagM3DDataWriter.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LagM3DDataWriter.obj `if test -f '$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C'; fi`
-
-libIBTK2d_a-LagMarker.o: $(top_srcdir)/src/lagrangian/LagMarker.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LagMarker.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LagMarker.Tpo -c -o libIBTK2d_a-LagMarker.o `test -f '$(top_srcdir)/src/lagrangian/LagMarker.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LagMarker.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LagMarker.Tpo $(DEPDIR)/libIBTK2d_a-LagMarker.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LagMarker.C' object='libIBTK2d_a-LagMarker.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LagMarker.o `test -f '$(top_srcdir)/src/lagrangian/LagMarker.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LagMarker.C
-
-libIBTK2d_a-LagMarker.obj: $(top_srcdir)/src/lagrangian/LagMarker.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LagMarker.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LagMarker.Tpo -c -o libIBTK2d_a-LagMarker.obj `if test -f '$(top_srcdir)/src/lagrangian/LagMarker.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LagMarker.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LagMarker.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LagMarker.Tpo $(DEPDIR)/libIBTK2d_a-LagMarker.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LagMarker.C' object='libIBTK2d_a-LagMarker.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LagMarker.obj `if test -f '$(top_srcdir)/src/lagrangian/LagMarker.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LagMarker.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LagMarker.C'; fi`
-
-libIBTK2d_a-LagSiloDataWriter.o: $(top_srcdir)/src/lagrangian/LagSiloDataWriter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LagSiloDataWriter.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LagSiloDataWriter.Tpo -c -o libIBTK2d_a-LagSiloDataWriter.o `test -f '$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LagSiloDataWriter.Tpo $(DEPDIR)/libIBTK2d_a-LagSiloDataWriter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C' object='libIBTK2d_a-LagSiloDataWriter.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LagSiloDataWriter.o `test -f '$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C
-
-libIBTK2d_a-LagSiloDataWriter.obj: $(top_srcdir)/src/lagrangian/LagSiloDataWriter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LagSiloDataWriter.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LagSiloDataWriter.Tpo -c -o libIBTK2d_a-LagSiloDataWriter.obj `if test -f '$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LagSiloDataWriter.Tpo $(DEPDIR)/libIBTK2d_a-LagSiloDataWriter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C' object='libIBTK2d_a-LagSiloDataWriter.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LagSiloDataWriter.obj `if test -f '$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LTransaction.obj `if test -f '$(top_srcdir)/src/lagrangian/LTransaction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LTransaction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LTransaction.C'; fi`
 
 libIBTK2d_a-HierarchyMathOps.o: $(top_srcdir)/src/math/HierarchyMathOps.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-HierarchyMathOps.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-HierarchyMathOps.Tpo -c -o libIBTK2d_a-HierarchyMathOps.o `test -f '$(top_srcdir)/src/math/HierarchyMathOps.C' || echo '$(srcdir)/'`$(top_srcdir)/src/math/HierarchyMathOps.C
@@ -2350,19 +2449,19 @@ libIBTK2d_a-VecCellRefineAdapter.obj: $(top_srcdir)/src/refine_ops/VecCellRefine
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-VecCellRefineAdapter.obj `if test -f '$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C'; fi`
 
-libIBTK2d_a-LagMarkerRefine.o: $(top_srcdir)/src/refine_ops/LagMarkerRefine.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LagMarkerRefine.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LagMarkerRefine.Tpo -c -o libIBTK2d_a-LagMarkerRefine.o `test -f '$(top_srcdir)/src/refine_ops/LagMarkerRefine.C' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/LagMarkerRefine.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LagMarkerRefine.Tpo $(DEPDIR)/libIBTK2d_a-LagMarkerRefine.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/LagMarkerRefine.C' object='libIBTK2d_a-LagMarkerRefine.o' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-LMarkerRefine.o: $(top_srcdir)/src/refine_ops/LMarkerRefine.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LMarkerRefine.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LMarkerRefine.Tpo -c -o libIBTK2d_a-LMarkerRefine.o `test -f '$(top_srcdir)/src/refine_ops/LMarkerRefine.C' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/LMarkerRefine.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LMarkerRefine.Tpo $(DEPDIR)/libIBTK2d_a-LMarkerRefine.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/LMarkerRefine.C' object='libIBTK2d_a-LMarkerRefine.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LagMarkerRefine.o `test -f '$(top_srcdir)/src/refine_ops/LagMarkerRefine.C' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/LagMarkerRefine.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LMarkerRefine.o `test -f '$(top_srcdir)/src/refine_ops/LMarkerRefine.C' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/LMarkerRefine.C
 
-libIBTK2d_a-LagMarkerRefine.obj: $(top_srcdir)/src/refine_ops/LagMarkerRefine.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LagMarkerRefine.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LagMarkerRefine.Tpo -c -o libIBTK2d_a-LagMarkerRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/LagMarkerRefine.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/LagMarkerRefine.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/LagMarkerRefine.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LagMarkerRefine.Tpo $(DEPDIR)/libIBTK2d_a-LagMarkerRefine.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/LagMarkerRefine.C' object='libIBTK2d_a-LagMarkerRefine.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-LMarkerRefine.obj: $(top_srcdir)/src/refine_ops/LMarkerRefine.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LMarkerRefine.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LMarkerRefine.Tpo -c -o libIBTK2d_a-LMarkerRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/LMarkerRefine.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/LMarkerRefine.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/LMarkerRefine.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LMarkerRefine.Tpo $(DEPDIR)/libIBTK2d_a-LMarkerRefine.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/LMarkerRefine.C' object='libIBTK2d_a-LMarkerRefine.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LagMarkerRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/LagMarkerRefine.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/LagMarkerRefine.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/LagMarkerRefine.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LMarkerRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/LMarkerRefine.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/LMarkerRefine.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/LMarkerRefine.C'; fi`
 
 libIBTK2d_a-BGaussSeidelPreconditioner.o: $(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-BGaussSeidelPreconditioner.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Tpo -c -o libIBTK2d_a-BGaussSeidelPreconditioner.o `test -f '$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C
@@ -2994,19 +3093,19 @@ libIBTK2d_a-IndexSet.obj: $(top_srcdir)/src/utilities/IndexSet.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-IndexSet.obj `if test -f '$(top_srcdir)/src/utilities/IndexSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/IndexSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/IndexSet.C'; fi`
 
-libIBTK2d_a-LagMarkerUtilities.o: $(top_srcdir)/src/utilities/LagMarkerUtilities.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LagMarkerUtilities.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LagMarkerUtilities.Tpo -c -o libIBTK2d_a-LagMarkerUtilities.o `test -f '$(top_srcdir)/src/utilities/LagMarkerUtilities.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/LagMarkerUtilities.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LagMarkerUtilities.Tpo $(DEPDIR)/libIBTK2d_a-LagMarkerUtilities.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/LagMarkerUtilities.C' object='libIBTK2d_a-LagMarkerUtilities.o' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-LMarkerUtilities.o: $(top_srcdir)/src/utilities/LMarkerUtilities.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LMarkerUtilities.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Tpo -c -o libIBTK2d_a-LMarkerUtilities.o `test -f '$(top_srcdir)/src/utilities/LMarkerUtilities.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/LMarkerUtilities.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Tpo $(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/LMarkerUtilities.C' object='libIBTK2d_a-LMarkerUtilities.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LagMarkerUtilities.o `test -f '$(top_srcdir)/src/utilities/LagMarkerUtilities.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/LagMarkerUtilities.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LMarkerUtilities.o `test -f '$(top_srcdir)/src/utilities/LMarkerUtilities.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/LMarkerUtilities.C
 
-libIBTK2d_a-LagMarkerUtilities.obj: $(top_srcdir)/src/utilities/LagMarkerUtilities.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LagMarkerUtilities.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LagMarkerUtilities.Tpo -c -o libIBTK2d_a-LagMarkerUtilities.obj `if test -f '$(top_srcdir)/src/utilities/LagMarkerUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/LagMarkerUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/LagMarkerUtilities.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LagMarkerUtilities.Tpo $(DEPDIR)/libIBTK2d_a-LagMarkerUtilities.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/LagMarkerUtilities.C' object='libIBTK2d_a-LagMarkerUtilities.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK2d_a-LMarkerUtilities.obj: $(top_srcdir)/src/utilities/LMarkerUtilities.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LMarkerUtilities.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Tpo -c -o libIBTK2d_a-LMarkerUtilities.obj `if test -f '$(top_srcdir)/src/utilities/LMarkerUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/LMarkerUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/LMarkerUtilities.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Tpo $(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/LMarkerUtilities.C' object='libIBTK2d_a-LMarkerUtilities.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LagMarkerUtilities.obj `if test -f '$(top_srcdir)/src/utilities/LagMarkerUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/LagMarkerUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/LagMarkerUtilities.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LMarkerUtilities.obj `if test -f '$(top_srcdir)/src/utilities/LMarkerUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/LMarkerUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/LMarkerUtilities.C'; fi`
 
 libIBTK2d_a-NodeDataSynchronization.o: $(top_srcdir)/src/utilities/NodeDataSynchronization.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-NodeDataSynchronization.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Tpo -c -o libIBTK2d_a-NodeDataSynchronization.o `test -f '$(top_srcdir)/src/utilities/NodeDataSynchronization.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/NodeDataSynchronization.C
@@ -3246,20 +3345,6 @@ libIBTK2d_a-muParserCartGridFunction.obj: $(top_srcdir)/src/utilities/muParserCa
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-muParserCartGridFunction.obj `if test -f '$(top_srcdir)/src/utilities/muParserCartGridFunction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/muParserCartGridFunction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/muParserCartGridFunction.C'; fi`
 
-libIBTK2d_a-FEDataManager.o: $(top_srcdir)/src/lagrangian/FEDataManager.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-FEDataManager.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-FEDataManager.Tpo -c -o libIBTK2d_a-FEDataManager.o `test -f '$(top_srcdir)/src/lagrangian/FEDataManager.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/FEDataManager.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-FEDataManager.Tpo $(DEPDIR)/libIBTK2d_a-FEDataManager.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/FEDataManager.C' object='libIBTK2d_a-FEDataManager.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-FEDataManager.o `test -f '$(top_srcdir)/src/lagrangian/FEDataManager.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/FEDataManager.C
-
-libIBTK2d_a-FEDataManager.obj: $(top_srcdir)/src/lagrangian/FEDataManager.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-FEDataManager.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-FEDataManager.Tpo -c -o libIBTK2d_a-FEDataManager.obj `if test -f '$(top_srcdir)/src/lagrangian/FEDataManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/FEDataManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/FEDataManager.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-FEDataManager.Tpo $(DEPDIR)/libIBTK2d_a-FEDataManager.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/FEDataManager.C' object='libIBTK2d_a-FEDataManager.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-FEDataManager.obj `if test -f '$(top_srcdir)/src/lagrangian/FEDataManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/FEDataManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/FEDataManager.C'; fi`
-
 libIBTK2d_a-FESystemDataCache.o: $(top_srcdir)/src/utilities/FESystemDataCache.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-FESystemDataCache.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-FESystemDataCache.Tpo -c -o libIBTK2d_a-FESystemDataCache.o `test -f '$(top_srcdir)/src/utilities/FESystemDataCache.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/FESystemDataCache.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-FESystemDataCache.Tpo $(DEPDIR)/libIBTK2d_a-FESystemDataCache.Po
@@ -3456,19 +3541,19 @@ libIBTK3d_a-CartSideDoubleCubicCoarsen.obj: $(top_srcdir)/src/coarsen_ops/CartSi
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CartSideDoubleCubicCoarsen.obj `if test -f '$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.C'; fi`
 
-libIBTK3d_a-LagMarkerCoarsen.o: $(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LagMarkerCoarsen.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LagMarkerCoarsen.Tpo -c -o libIBTK3d_a-LagMarkerCoarsen.o `test -f '$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LagMarkerCoarsen.Tpo $(DEPDIR)/libIBTK3d_a-LagMarkerCoarsen.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C' object='libIBTK3d_a-LagMarkerCoarsen.o' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-LMarkerCoarsen.o: $(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LMarkerCoarsen.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Tpo -c -o libIBTK3d_a-LMarkerCoarsen.o `test -f '$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Tpo $(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C' object='libIBTK3d_a-LMarkerCoarsen.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LagMarkerCoarsen.o `test -f '$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LMarkerCoarsen.o `test -f '$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C
 
-libIBTK3d_a-LagMarkerCoarsen.obj: $(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LagMarkerCoarsen.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LagMarkerCoarsen.Tpo -c -o libIBTK3d_a-LagMarkerCoarsen.obj `if test -f '$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LagMarkerCoarsen.Tpo $(DEPDIR)/libIBTK3d_a-LagMarkerCoarsen.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C' object='libIBTK3d_a-LagMarkerCoarsen.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-LMarkerCoarsen.obj: $(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LMarkerCoarsen.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Tpo -c -o libIBTK3d_a-LMarkerCoarsen.obj `if test -f '$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Tpo $(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C' object='libIBTK3d_a-LMarkerCoarsen.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LagMarkerCoarsen.obj `if test -f '$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/coarsen_ops/LagMarkerCoarsen.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LMarkerCoarsen.obj `if test -f '$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C'; fi`
 
 libIBTK3d_a-VecCellCoarsenAdapter.o: $(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-VecCellCoarsenAdapter.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-VecCellCoarsenAdapter.Tpo -c -o libIBTK3d_a-VecCellCoarsenAdapter.o `test -f '$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.C
@@ -3483,6 +3568,20 @@ libIBTK3d_a-VecCellCoarsenAdapter.obj: $(top_srcdir)/src/coarsen_ops/VecCellCoar
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.C' object='libIBTK3d_a-VecCellCoarsenAdapter.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-VecCellCoarsenAdapter.obj `if test -f '$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.C'; fi`
+
+libIBTK3d_a-FEDataManager.o: $(top_srcdir)/src/lagrangian/FEDataManager.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-FEDataManager.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-FEDataManager.Tpo -c -o libIBTK3d_a-FEDataManager.o `test -f '$(top_srcdir)/src/lagrangian/FEDataManager.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/FEDataManager.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-FEDataManager.Tpo $(DEPDIR)/libIBTK3d_a-FEDataManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/FEDataManager.C' object='libIBTK3d_a-FEDataManager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-FEDataManager.o `test -f '$(top_srcdir)/src/lagrangian/FEDataManager.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/FEDataManager.C
+
+libIBTK3d_a-FEDataManager.obj: $(top_srcdir)/src/lagrangian/FEDataManager.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-FEDataManager.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-FEDataManager.Tpo -c -o libIBTK3d_a-FEDataManager.obj `if test -f '$(top_srcdir)/src/lagrangian/FEDataManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/FEDataManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/FEDataManager.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-FEDataManager.Tpo $(DEPDIR)/libIBTK3d_a-FEDataManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/FEDataManager.C' object='libIBTK3d_a-FEDataManager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-FEDataManager.obj `if test -f '$(top_srcdir)/src/lagrangian/FEDataManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/FEDataManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/FEDataManager.C'; fi`
 
 libIBTK3d_a-LData.o: $(top_srcdir)/src/lagrangian/LData.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LData.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LData.Tpo -c -o libIBTK3d_a-LData.o `test -f '$(top_srcdir)/src/lagrangian/LData.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LData.C
@@ -3526,6 +3625,90 @@ libIBTK3d_a-LEInteractor.obj: $(top_srcdir)/src/lagrangian/LEInteractor.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LEInteractor.obj `if test -f '$(top_srcdir)/src/lagrangian/LEInteractor.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LEInteractor.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LEInteractor.C'; fi`
 
+libIBTK3d_a-LIndexSetData.o: $(top_srcdir)/src/lagrangian/LIndexSetData.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LIndexSetData.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LIndexSetData.Tpo -c -o libIBTK3d_a-LIndexSetData.o `test -f '$(top_srcdir)/src/lagrangian/LIndexSetData.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LIndexSetData.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LIndexSetData.Tpo $(DEPDIR)/libIBTK3d_a-LIndexSetData.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LIndexSetData.C' object='libIBTK3d_a-LIndexSetData.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LIndexSetData.o `test -f '$(top_srcdir)/src/lagrangian/LIndexSetData.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LIndexSetData.C
+
+libIBTK3d_a-LIndexSetData.obj: $(top_srcdir)/src/lagrangian/LIndexSetData.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LIndexSetData.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LIndexSetData.Tpo -c -o libIBTK3d_a-LIndexSetData.obj `if test -f '$(top_srcdir)/src/lagrangian/LIndexSetData.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LIndexSetData.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LIndexSetData.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LIndexSetData.Tpo $(DEPDIR)/libIBTK3d_a-LIndexSetData.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LIndexSetData.C' object='libIBTK3d_a-LIndexSetData.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LIndexSetData.obj `if test -f '$(top_srcdir)/src/lagrangian/LIndexSetData.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LIndexSetData.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LIndexSetData.C'; fi`
+
+libIBTK3d_a-LIndexSetDataFactory.o: $(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LIndexSetDataFactory.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LIndexSetDataFactory.Tpo -c -o libIBTK3d_a-LIndexSetDataFactory.o `test -f '$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LIndexSetDataFactory.Tpo $(DEPDIR)/libIBTK3d_a-LIndexSetDataFactory.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C' object='libIBTK3d_a-LIndexSetDataFactory.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LIndexSetDataFactory.o `test -f '$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C
+
+libIBTK3d_a-LIndexSetDataFactory.obj: $(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LIndexSetDataFactory.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LIndexSetDataFactory.Tpo -c -o libIBTK3d_a-LIndexSetDataFactory.obj `if test -f '$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LIndexSetDataFactory.Tpo $(DEPDIR)/libIBTK3d_a-LIndexSetDataFactory.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C' object='libIBTK3d_a-LIndexSetDataFactory.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LIndexSetDataFactory.obj `if test -f '$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LIndexSetDataFactory.C'; fi`
+
+libIBTK3d_a-LIndexSetVariable.o: $(top_srcdir)/src/lagrangian/LIndexSetVariable.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LIndexSetVariable.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LIndexSetVariable.Tpo -c -o libIBTK3d_a-LIndexSetVariable.o `test -f '$(top_srcdir)/src/lagrangian/LIndexSetVariable.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LIndexSetVariable.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LIndexSetVariable.Tpo $(DEPDIR)/libIBTK3d_a-LIndexSetVariable.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LIndexSetVariable.C' object='libIBTK3d_a-LIndexSetVariable.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LIndexSetVariable.o `test -f '$(top_srcdir)/src/lagrangian/LIndexSetVariable.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LIndexSetVariable.C
+
+libIBTK3d_a-LIndexSetVariable.obj: $(top_srcdir)/src/lagrangian/LIndexSetVariable.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LIndexSetVariable.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LIndexSetVariable.Tpo -c -o libIBTK3d_a-LIndexSetVariable.obj `if test -f '$(top_srcdir)/src/lagrangian/LIndexSetVariable.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LIndexSetVariable.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LIndexSetVariable.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LIndexSetVariable.Tpo $(DEPDIR)/libIBTK3d_a-LIndexSetVariable.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LIndexSetVariable.C' object='libIBTK3d_a-LIndexSetVariable.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LIndexSetVariable.obj `if test -f '$(top_srcdir)/src/lagrangian/LIndexSetVariable.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LIndexSetVariable.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LIndexSetVariable.C'; fi`
+
+libIBTK3d_a-LInitStrategy.o: $(top_srcdir)/src/lagrangian/LInitStrategy.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LInitStrategy.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LInitStrategy.Tpo -c -o libIBTK3d_a-LInitStrategy.o `test -f '$(top_srcdir)/src/lagrangian/LInitStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LInitStrategy.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LInitStrategy.Tpo $(DEPDIR)/libIBTK3d_a-LInitStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LInitStrategy.C' object='libIBTK3d_a-LInitStrategy.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LInitStrategy.o `test -f '$(top_srcdir)/src/lagrangian/LInitStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LInitStrategy.C
+
+libIBTK3d_a-LInitStrategy.obj: $(top_srcdir)/src/lagrangian/LInitStrategy.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LInitStrategy.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LInitStrategy.Tpo -c -o libIBTK3d_a-LInitStrategy.obj `if test -f '$(top_srcdir)/src/lagrangian/LInitStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LInitStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LInitStrategy.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LInitStrategy.Tpo $(DEPDIR)/libIBTK3d_a-LInitStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LInitStrategy.C' object='libIBTK3d_a-LInitStrategy.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LInitStrategy.obj `if test -f '$(top_srcdir)/src/lagrangian/LInitStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LInitStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LInitStrategy.C'; fi`
+
+libIBTK3d_a-LM3DDataWriter.o: $(top_srcdir)/src/lagrangian/LM3DDataWriter.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LM3DDataWriter.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LM3DDataWriter.Tpo -c -o libIBTK3d_a-LM3DDataWriter.o `test -f '$(top_srcdir)/src/lagrangian/LM3DDataWriter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LM3DDataWriter.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LM3DDataWriter.Tpo $(DEPDIR)/libIBTK3d_a-LM3DDataWriter.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LM3DDataWriter.C' object='libIBTK3d_a-LM3DDataWriter.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LM3DDataWriter.o `test -f '$(top_srcdir)/src/lagrangian/LM3DDataWriter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LM3DDataWriter.C
+
+libIBTK3d_a-LM3DDataWriter.obj: $(top_srcdir)/src/lagrangian/LM3DDataWriter.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LM3DDataWriter.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LM3DDataWriter.Tpo -c -o libIBTK3d_a-LM3DDataWriter.obj `if test -f '$(top_srcdir)/src/lagrangian/LM3DDataWriter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LM3DDataWriter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LM3DDataWriter.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LM3DDataWriter.Tpo $(DEPDIR)/libIBTK3d_a-LM3DDataWriter.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LM3DDataWriter.C' object='libIBTK3d_a-LM3DDataWriter.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LM3DDataWriter.obj `if test -f '$(top_srcdir)/src/lagrangian/LM3DDataWriter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LM3DDataWriter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LM3DDataWriter.C'; fi`
+
+libIBTK3d_a-LMarker.o: $(top_srcdir)/src/lagrangian/LMarker.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LMarker.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LMarker.Tpo -c -o libIBTK3d_a-LMarker.o `test -f '$(top_srcdir)/src/lagrangian/LMarker.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LMarker.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LMarker.Tpo $(DEPDIR)/libIBTK3d_a-LMarker.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LMarker.C' object='libIBTK3d_a-LMarker.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LMarker.o `test -f '$(top_srcdir)/src/lagrangian/LMarker.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LMarker.C
+
+libIBTK3d_a-LMarker.obj: $(top_srcdir)/src/lagrangian/LMarker.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LMarker.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LMarker.Tpo -c -o libIBTK3d_a-LMarker.obj `if test -f '$(top_srcdir)/src/lagrangian/LMarker.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LMarker.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LMarker.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LMarker.Tpo $(DEPDIR)/libIBTK3d_a-LMarker.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LMarker.C' object='libIBTK3d_a-LMarker.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LMarker.obj `if test -f '$(top_srcdir)/src/lagrangian/LMarker.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LMarker.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LMarker.C'; fi`
+
 libIBTK3d_a-LMesh.o: $(top_srcdir)/src/lagrangian/LMesh.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LMesh.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LMesh.Tpo -c -o libIBTK3d_a-LMesh.o `test -f '$(top_srcdir)/src/lagrangian/LMesh.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LMesh.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LMesh.Tpo $(DEPDIR)/libIBTK3d_a-LMesh.Po
@@ -3568,145 +3751,103 @@ libIBTK3d_a-LNodeIndex.obj: $(top_srcdir)/src/lagrangian/LNodeIndex.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LNodeIndex.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndex.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndex.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndex.C'; fi`
 
-libIBTK3d_a-LNodeIndexData.o: $(top_srcdir)/src/lagrangian/LNodeIndexData.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LNodeIndexData.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LNodeIndexData.Tpo -c -o libIBTK3d_a-LNodeIndexData.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexData.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexData.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LNodeIndexData.Tpo $(DEPDIR)/libIBTK3d_a-LNodeIndexData.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexData.C' object='libIBTK3d_a-LNodeIndexData.o' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-LSet.o: $(top_srcdir)/src/lagrangian/LSet.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LSet.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LSet.Tpo -c -o libIBTK3d_a-LSet.o `test -f '$(top_srcdir)/src/lagrangian/LSet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSet.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LSet.Tpo $(DEPDIR)/libIBTK3d_a-LSet.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSet.C' object='libIBTK3d_a-LSet.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LNodeIndexData.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexData.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexData.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LSet.o `test -f '$(top_srcdir)/src/lagrangian/LSet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSet.C
 
-libIBTK3d_a-LNodeIndexData.obj: $(top_srcdir)/src/lagrangian/LNodeIndexData.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LNodeIndexData.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LNodeIndexData.Tpo -c -o libIBTK3d_a-LNodeIndexData.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexData.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexData.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexData.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LNodeIndexData.Tpo $(DEPDIR)/libIBTK3d_a-LNodeIndexData.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexData.C' object='libIBTK3d_a-LNodeIndexData.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-LSet.obj: $(top_srcdir)/src/lagrangian/LSet.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LSet.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LSet.Tpo -c -o libIBTK3d_a-LSet.obj `if test -f '$(top_srcdir)/src/lagrangian/LSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSet.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LSet.Tpo $(DEPDIR)/libIBTK3d_a-LSet.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSet.C' object='libIBTK3d_a-LSet.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LNodeIndexData.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexData.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexData.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexData.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LSet.obj `if test -f '$(top_srcdir)/src/lagrangian/LSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSet.C'; fi`
 
-libIBTK3d_a-LNodeIndexDataFactory.o: $(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LNodeIndexDataFactory.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LNodeIndexDataFactory.Tpo -c -o libIBTK3d_a-LNodeIndexDataFactory.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LNodeIndexDataFactory.Tpo $(DEPDIR)/libIBTK3d_a-LNodeIndexDataFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C' object='libIBTK3d_a-LNodeIndexDataFactory.o' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-LSetData.o: $(top_srcdir)/src/lagrangian/LSetData.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LSetData.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LSetData.Tpo -c -o libIBTK3d_a-LSetData.o `test -f '$(top_srcdir)/src/lagrangian/LSetData.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSetData.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LSetData.Tpo $(DEPDIR)/libIBTK3d_a-LSetData.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSetData.C' object='libIBTK3d_a-LSetData.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LNodeIndexDataFactory.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LSetData.o `test -f '$(top_srcdir)/src/lagrangian/LSetData.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSetData.C
 
-libIBTK3d_a-LNodeIndexDataFactory.obj: $(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LNodeIndexDataFactory.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LNodeIndexDataFactory.Tpo -c -o libIBTK3d_a-LNodeIndexDataFactory.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LNodeIndexDataFactory.Tpo $(DEPDIR)/libIBTK3d_a-LNodeIndexDataFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C' object='libIBTK3d_a-LNodeIndexDataFactory.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-LSetData.obj: $(top_srcdir)/src/lagrangian/LSetData.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LSetData.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LSetData.Tpo -c -o libIBTK3d_a-LSetData.obj `if test -f '$(top_srcdir)/src/lagrangian/LSetData.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSetData.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSetData.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LSetData.Tpo $(DEPDIR)/libIBTK3d_a-LSetData.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSetData.C' object='libIBTK3d_a-LSetData.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LNodeIndexDataFactory.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexDataFactory.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LSetData.obj `if test -f '$(top_srcdir)/src/lagrangian/LSetData.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSetData.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSetData.C'; fi`
 
-libIBTK3d_a-LNodeIndexIterator.o: $(top_srcdir)/src/lagrangian/LNodeIndexIterator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LNodeIndexIterator.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LNodeIndexIterator.Tpo -c -o libIBTK3d_a-LNodeIndexIterator.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LNodeIndexIterator.Tpo $(DEPDIR)/libIBTK3d_a-LNodeIndexIterator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C' object='libIBTK3d_a-LNodeIndexIterator.o' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-LSetDataFactory.o: $(top_srcdir)/src/lagrangian/LSetDataFactory.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LSetDataFactory.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LSetDataFactory.Tpo -c -o libIBTK3d_a-LSetDataFactory.o `test -f '$(top_srcdir)/src/lagrangian/LSetDataFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSetDataFactory.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LSetDataFactory.Tpo $(DEPDIR)/libIBTK3d_a-LSetDataFactory.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSetDataFactory.C' object='libIBTK3d_a-LSetDataFactory.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LNodeIndexIterator.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LSetDataFactory.o `test -f '$(top_srcdir)/src/lagrangian/LSetDataFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSetDataFactory.C
 
-libIBTK3d_a-LNodeIndexIterator.obj: $(top_srcdir)/src/lagrangian/LNodeIndexIterator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LNodeIndexIterator.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LNodeIndexIterator.Tpo -c -o libIBTK3d_a-LNodeIndexIterator.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LNodeIndexIterator.Tpo $(DEPDIR)/libIBTK3d_a-LNodeIndexIterator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C' object='libIBTK3d_a-LNodeIndexIterator.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-LSetDataFactory.obj: $(top_srcdir)/src/lagrangian/LSetDataFactory.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LSetDataFactory.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LSetDataFactory.Tpo -c -o libIBTK3d_a-LSetDataFactory.obj `if test -f '$(top_srcdir)/src/lagrangian/LSetDataFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSetDataFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSetDataFactory.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LSetDataFactory.Tpo $(DEPDIR)/libIBTK3d_a-LSetDataFactory.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSetDataFactory.C' object='libIBTK3d_a-LSetDataFactory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LNodeIndexIterator.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexIterator.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LSetDataFactory.obj `if test -f '$(top_srcdir)/src/lagrangian/LSetDataFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSetDataFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSetDataFactory.C'; fi`
 
-libIBTK3d_a-LNodeIndexSet.o: $(top_srcdir)/src/lagrangian/LNodeIndexSet.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LNodeIndexSet.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LNodeIndexSet.Tpo -c -o libIBTK3d_a-LNodeIndexSet.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexSet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexSet.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LNodeIndexSet.Tpo $(DEPDIR)/libIBTK3d_a-LNodeIndexSet.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexSet.C' object='libIBTK3d_a-LNodeIndexSet.o' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-LSetDataIterator.o: $(top_srcdir)/src/lagrangian/LSetDataIterator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LSetDataIterator.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LSetDataIterator.Tpo -c -o libIBTK3d_a-LSetDataIterator.o `test -f '$(top_srcdir)/src/lagrangian/LSetDataIterator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSetDataIterator.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LSetDataIterator.Tpo $(DEPDIR)/libIBTK3d_a-LSetDataIterator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSetDataIterator.C' object='libIBTK3d_a-LSetDataIterator.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LNodeIndexSet.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexSet.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexSet.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LSetDataIterator.o `test -f '$(top_srcdir)/src/lagrangian/LSetDataIterator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSetDataIterator.C
 
-libIBTK3d_a-LNodeIndexSet.obj: $(top_srcdir)/src/lagrangian/LNodeIndexSet.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LNodeIndexSet.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LNodeIndexSet.Tpo -c -o libIBTK3d_a-LNodeIndexSet.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexSet.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LNodeIndexSet.Tpo $(DEPDIR)/libIBTK3d_a-LNodeIndexSet.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexSet.C' object='libIBTK3d_a-LNodeIndexSet.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-LSetDataIterator.obj: $(top_srcdir)/src/lagrangian/LSetDataIterator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LSetDataIterator.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LSetDataIterator.Tpo -c -o libIBTK3d_a-LSetDataIterator.obj `if test -f '$(top_srcdir)/src/lagrangian/LSetDataIterator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSetDataIterator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSetDataIterator.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LSetDataIterator.Tpo $(DEPDIR)/libIBTK3d_a-LSetDataIterator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSetDataIterator.C' object='libIBTK3d_a-LSetDataIterator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LNodeIndexSet.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexSet.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LSetDataIterator.obj `if test -f '$(top_srcdir)/src/lagrangian/LSetDataIterator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSetDataIterator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSetDataIterator.C'; fi`
 
-libIBTK3d_a-LNodeIndexTransaction.o: $(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LNodeIndexTransaction.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LNodeIndexTransaction.Tpo -c -o libIBTK3d_a-LNodeIndexTransaction.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LNodeIndexTransaction.Tpo $(DEPDIR)/libIBTK3d_a-LNodeIndexTransaction.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C' object='libIBTK3d_a-LNodeIndexTransaction.o' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-LSetVariable.o: $(top_srcdir)/src/lagrangian/LSetVariable.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LSetVariable.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LSetVariable.Tpo -c -o libIBTK3d_a-LSetVariable.o `test -f '$(top_srcdir)/src/lagrangian/LSetVariable.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSetVariable.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LSetVariable.Tpo $(DEPDIR)/libIBTK3d_a-LSetVariable.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSetVariable.C' object='libIBTK3d_a-LSetVariable.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LNodeIndexTransaction.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LSetVariable.o `test -f '$(top_srcdir)/src/lagrangian/LSetVariable.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSetVariable.C
 
-libIBTK3d_a-LNodeIndexTransaction.obj: $(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LNodeIndexTransaction.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LNodeIndexTransaction.Tpo -c -o libIBTK3d_a-LNodeIndexTransaction.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LNodeIndexTransaction.Tpo $(DEPDIR)/libIBTK3d_a-LNodeIndexTransaction.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C' object='libIBTK3d_a-LNodeIndexTransaction.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-LSetVariable.obj: $(top_srcdir)/src/lagrangian/LSetVariable.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LSetVariable.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LSetVariable.Tpo -c -o libIBTK3d_a-LSetVariable.obj `if test -f '$(top_srcdir)/src/lagrangian/LSetVariable.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSetVariable.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSetVariable.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LSetVariable.Tpo $(DEPDIR)/libIBTK3d_a-LSetVariable.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSetVariable.C' object='libIBTK3d_a-LSetVariable.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LNodeIndexTransaction.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexTransaction.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LSetVariable.obj `if test -f '$(top_srcdir)/src/lagrangian/LSetVariable.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSetVariable.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSetVariable.C'; fi`
 
-libIBTK3d_a-LNodeIndexVariable.o: $(top_srcdir)/src/lagrangian/LNodeIndexVariable.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LNodeIndexVariable.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LNodeIndexVariable.Tpo -c -o libIBTK3d_a-LNodeIndexVariable.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LNodeIndexVariable.Tpo $(DEPDIR)/libIBTK3d_a-LNodeIndexVariable.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C' object='libIBTK3d_a-LNodeIndexVariable.o' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-LSiloDataWriter.o: $(top_srcdir)/src/lagrangian/LSiloDataWriter.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LSiloDataWriter.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LSiloDataWriter.Tpo -c -o libIBTK3d_a-LSiloDataWriter.o `test -f '$(top_srcdir)/src/lagrangian/LSiloDataWriter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSiloDataWriter.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LSiloDataWriter.Tpo $(DEPDIR)/libIBTK3d_a-LSiloDataWriter.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSiloDataWriter.C' object='libIBTK3d_a-LSiloDataWriter.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LNodeIndexVariable.o `test -f '$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LSiloDataWriter.o `test -f '$(top_srcdir)/src/lagrangian/LSiloDataWriter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LSiloDataWriter.C
 
-libIBTK3d_a-LNodeIndexVariable.obj: $(top_srcdir)/src/lagrangian/LNodeIndexVariable.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LNodeIndexVariable.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LNodeIndexVariable.Tpo -c -o libIBTK3d_a-LNodeIndexVariable.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LNodeIndexVariable.Tpo $(DEPDIR)/libIBTK3d_a-LNodeIndexVariable.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C' object='libIBTK3d_a-LNodeIndexVariable.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-LSiloDataWriter.obj: $(top_srcdir)/src/lagrangian/LSiloDataWriter.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LSiloDataWriter.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LSiloDataWriter.Tpo -c -o libIBTK3d_a-LSiloDataWriter.obj `if test -f '$(top_srcdir)/src/lagrangian/LSiloDataWriter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSiloDataWriter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSiloDataWriter.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LSiloDataWriter.Tpo $(DEPDIR)/libIBTK3d_a-LSiloDataWriter.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LSiloDataWriter.C' object='libIBTK3d_a-LSiloDataWriter.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LNodeIndexVariable.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeIndexVariable.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LSiloDataWriter.obj `if test -f '$(top_srcdir)/src/lagrangian/LSiloDataWriter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LSiloDataWriter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LSiloDataWriter.C'; fi`
 
-libIBTK3d_a-LNodeInitStrategy.o: $(top_srcdir)/src/lagrangian/LNodeInitStrategy.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LNodeInitStrategy.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LNodeInitStrategy.Tpo -c -o libIBTK3d_a-LNodeInitStrategy.o `test -f '$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LNodeInitStrategy.Tpo $(DEPDIR)/libIBTK3d_a-LNodeInitStrategy.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C' object='libIBTK3d_a-LNodeInitStrategy.o' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-LTransaction.o: $(top_srcdir)/src/lagrangian/LTransaction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LTransaction.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LTransaction.Tpo -c -o libIBTK3d_a-LTransaction.o `test -f '$(top_srcdir)/src/lagrangian/LTransaction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LTransaction.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LTransaction.Tpo $(DEPDIR)/libIBTK3d_a-LTransaction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LTransaction.C' object='libIBTK3d_a-LTransaction.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LNodeInitStrategy.o `test -f '$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LTransaction.o `test -f '$(top_srcdir)/src/lagrangian/LTransaction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LTransaction.C
 
-libIBTK3d_a-LNodeInitStrategy.obj: $(top_srcdir)/src/lagrangian/LNodeInitStrategy.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LNodeInitStrategy.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LNodeInitStrategy.Tpo -c -o libIBTK3d_a-LNodeInitStrategy.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LNodeInitStrategy.Tpo $(DEPDIR)/libIBTK3d_a-LNodeInitStrategy.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C' object='libIBTK3d_a-LNodeInitStrategy.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-LTransaction.obj: $(top_srcdir)/src/lagrangian/LTransaction.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LTransaction.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LTransaction.Tpo -c -o libIBTK3d_a-LTransaction.obj `if test -f '$(top_srcdir)/src/lagrangian/LTransaction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LTransaction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LTransaction.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LTransaction.Tpo $(DEPDIR)/libIBTK3d_a-LTransaction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LTransaction.C' object='libIBTK3d_a-LTransaction.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LNodeInitStrategy.obj `if test -f '$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LNodeInitStrategy.C'; fi`
-
-libIBTK3d_a-LagM3DDataWriter.o: $(top_srcdir)/src/lagrangian/LagM3DDataWriter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LagM3DDataWriter.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LagM3DDataWriter.Tpo -c -o libIBTK3d_a-LagM3DDataWriter.o `test -f '$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LagM3DDataWriter.Tpo $(DEPDIR)/libIBTK3d_a-LagM3DDataWriter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C' object='libIBTK3d_a-LagM3DDataWriter.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LagM3DDataWriter.o `test -f '$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C
-
-libIBTK3d_a-LagM3DDataWriter.obj: $(top_srcdir)/src/lagrangian/LagM3DDataWriter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LagM3DDataWriter.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LagM3DDataWriter.Tpo -c -o libIBTK3d_a-LagM3DDataWriter.obj `if test -f '$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LagM3DDataWriter.Tpo $(DEPDIR)/libIBTK3d_a-LagM3DDataWriter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C' object='libIBTK3d_a-LagM3DDataWriter.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LagM3DDataWriter.obj `if test -f '$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LagM3DDataWriter.C'; fi`
-
-libIBTK3d_a-LagMarker.o: $(top_srcdir)/src/lagrangian/LagMarker.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LagMarker.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LagMarker.Tpo -c -o libIBTK3d_a-LagMarker.o `test -f '$(top_srcdir)/src/lagrangian/LagMarker.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LagMarker.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LagMarker.Tpo $(DEPDIR)/libIBTK3d_a-LagMarker.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LagMarker.C' object='libIBTK3d_a-LagMarker.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LagMarker.o `test -f '$(top_srcdir)/src/lagrangian/LagMarker.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LagMarker.C
-
-libIBTK3d_a-LagMarker.obj: $(top_srcdir)/src/lagrangian/LagMarker.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LagMarker.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LagMarker.Tpo -c -o libIBTK3d_a-LagMarker.obj `if test -f '$(top_srcdir)/src/lagrangian/LagMarker.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LagMarker.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LagMarker.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LagMarker.Tpo $(DEPDIR)/libIBTK3d_a-LagMarker.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LagMarker.C' object='libIBTK3d_a-LagMarker.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LagMarker.obj `if test -f '$(top_srcdir)/src/lagrangian/LagMarker.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LagMarker.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LagMarker.C'; fi`
-
-libIBTK3d_a-LagSiloDataWriter.o: $(top_srcdir)/src/lagrangian/LagSiloDataWriter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LagSiloDataWriter.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LagSiloDataWriter.Tpo -c -o libIBTK3d_a-LagSiloDataWriter.o `test -f '$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LagSiloDataWriter.Tpo $(DEPDIR)/libIBTK3d_a-LagSiloDataWriter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C' object='libIBTK3d_a-LagSiloDataWriter.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LagSiloDataWriter.o `test -f '$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C
-
-libIBTK3d_a-LagSiloDataWriter.obj: $(top_srcdir)/src/lagrangian/LagSiloDataWriter.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LagSiloDataWriter.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LagSiloDataWriter.Tpo -c -o libIBTK3d_a-LagSiloDataWriter.obj `if test -f '$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LagSiloDataWriter.Tpo $(DEPDIR)/libIBTK3d_a-LagSiloDataWriter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C' object='libIBTK3d_a-LagSiloDataWriter.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LagSiloDataWriter.obj `if test -f '$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LagSiloDataWriter.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LTransaction.obj `if test -f '$(top_srcdir)/src/lagrangian/LTransaction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/LTransaction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/LTransaction.C'; fi`
 
 libIBTK3d_a-HierarchyMathOps.o: $(top_srcdir)/src/math/HierarchyMathOps.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-HierarchyMathOps.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-HierarchyMathOps.Tpo -c -o libIBTK3d_a-HierarchyMathOps.o `test -f '$(top_srcdir)/src/math/HierarchyMathOps.C' || echo '$(srcdir)/'`$(top_srcdir)/src/math/HierarchyMathOps.C
@@ -3918,19 +4059,19 @@ libIBTK3d_a-VecCellRefineAdapter.obj: $(top_srcdir)/src/refine_ops/VecCellRefine
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-VecCellRefineAdapter.obj `if test -f '$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C'; fi`
 
-libIBTK3d_a-LagMarkerRefine.o: $(top_srcdir)/src/refine_ops/LagMarkerRefine.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LagMarkerRefine.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LagMarkerRefine.Tpo -c -o libIBTK3d_a-LagMarkerRefine.o `test -f '$(top_srcdir)/src/refine_ops/LagMarkerRefine.C' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/LagMarkerRefine.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LagMarkerRefine.Tpo $(DEPDIR)/libIBTK3d_a-LagMarkerRefine.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/LagMarkerRefine.C' object='libIBTK3d_a-LagMarkerRefine.o' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-LMarkerRefine.o: $(top_srcdir)/src/refine_ops/LMarkerRefine.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LMarkerRefine.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LMarkerRefine.Tpo -c -o libIBTK3d_a-LMarkerRefine.o `test -f '$(top_srcdir)/src/refine_ops/LMarkerRefine.C' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/LMarkerRefine.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LMarkerRefine.Tpo $(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/LMarkerRefine.C' object='libIBTK3d_a-LMarkerRefine.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LagMarkerRefine.o `test -f '$(top_srcdir)/src/refine_ops/LagMarkerRefine.C' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/LagMarkerRefine.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LMarkerRefine.o `test -f '$(top_srcdir)/src/refine_ops/LMarkerRefine.C' || echo '$(srcdir)/'`$(top_srcdir)/src/refine_ops/LMarkerRefine.C
 
-libIBTK3d_a-LagMarkerRefine.obj: $(top_srcdir)/src/refine_ops/LagMarkerRefine.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LagMarkerRefine.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LagMarkerRefine.Tpo -c -o libIBTK3d_a-LagMarkerRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/LagMarkerRefine.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/LagMarkerRefine.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/LagMarkerRefine.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LagMarkerRefine.Tpo $(DEPDIR)/libIBTK3d_a-LagMarkerRefine.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/LagMarkerRefine.C' object='libIBTK3d_a-LagMarkerRefine.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-LMarkerRefine.obj: $(top_srcdir)/src/refine_ops/LMarkerRefine.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LMarkerRefine.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LMarkerRefine.Tpo -c -o libIBTK3d_a-LMarkerRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/LMarkerRefine.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/LMarkerRefine.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/LMarkerRefine.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LMarkerRefine.Tpo $(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/refine_ops/LMarkerRefine.C' object='libIBTK3d_a-LMarkerRefine.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LagMarkerRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/LagMarkerRefine.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/LagMarkerRefine.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/LagMarkerRefine.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LMarkerRefine.obj `if test -f '$(top_srcdir)/src/refine_ops/LMarkerRefine.C'; then $(CYGPATH_W) '$(top_srcdir)/src/refine_ops/LMarkerRefine.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/refine_ops/LMarkerRefine.C'; fi`
 
 libIBTK3d_a-BGaussSeidelPreconditioner.o: $(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-BGaussSeidelPreconditioner.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-BGaussSeidelPreconditioner.Tpo -c -o libIBTK3d_a-BGaussSeidelPreconditioner.o `test -f '$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/BGaussSeidelPreconditioner.C
@@ -4562,19 +4703,19 @@ libIBTK3d_a-IndexSet.obj: $(top_srcdir)/src/utilities/IndexSet.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-IndexSet.obj `if test -f '$(top_srcdir)/src/utilities/IndexSet.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/IndexSet.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/IndexSet.C'; fi`
 
-libIBTK3d_a-LagMarkerUtilities.o: $(top_srcdir)/src/utilities/LagMarkerUtilities.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LagMarkerUtilities.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LagMarkerUtilities.Tpo -c -o libIBTK3d_a-LagMarkerUtilities.o `test -f '$(top_srcdir)/src/utilities/LagMarkerUtilities.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/LagMarkerUtilities.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LagMarkerUtilities.Tpo $(DEPDIR)/libIBTK3d_a-LagMarkerUtilities.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/LagMarkerUtilities.C' object='libIBTK3d_a-LagMarkerUtilities.o' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-LMarkerUtilities.o: $(top_srcdir)/src/utilities/LMarkerUtilities.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LMarkerUtilities.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Tpo -c -o libIBTK3d_a-LMarkerUtilities.o `test -f '$(top_srcdir)/src/utilities/LMarkerUtilities.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/LMarkerUtilities.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Tpo $(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/LMarkerUtilities.C' object='libIBTK3d_a-LMarkerUtilities.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LagMarkerUtilities.o `test -f '$(top_srcdir)/src/utilities/LagMarkerUtilities.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/LagMarkerUtilities.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LMarkerUtilities.o `test -f '$(top_srcdir)/src/utilities/LMarkerUtilities.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/LMarkerUtilities.C
 
-libIBTK3d_a-LagMarkerUtilities.obj: $(top_srcdir)/src/utilities/LagMarkerUtilities.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LagMarkerUtilities.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LagMarkerUtilities.Tpo -c -o libIBTK3d_a-LagMarkerUtilities.obj `if test -f '$(top_srcdir)/src/utilities/LagMarkerUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/LagMarkerUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/LagMarkerUtilities.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LagMarkerUtilities.Tpo $(DEPDIR)/libIBTK3d_a-LagMarkerUtilities.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/LagMarkerUtilities.C' object='libIBTK3d_a-LagMarkerUtilities.obj' libtool=no @AMDEPBACKSLASH@
+libIBTK3d_a-LMarkerUtilities.obj: $(top_srcdir)/src/utilities/LMarkerUtilities.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LMarkerUtilities.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Tpo -c -o libIBTK3d_a-LMarkerUtilities.obj `if test -f '$(top_srcdir)/src/utilities/LMarkerUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/LMarkerUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/LMarkerUtilities.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Tpo $(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/LMarkerUtilities.C' object='libIBTK3d_a-LMarkerUtilities.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LagMarkerUtilities.obj `if test -f '$(top_srcdir)/src/utilities/LagMarkerUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/LagMarkerUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/LagMarkerUtilities.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LMarkerUtilities.obj `if test -f '$(top_srcdir)/src/utilities/LMarkerUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/LMarkerUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/LMarkerUtilities.C'; fi`
 
 libIBTK3d_a-NodeDataSynchronization.o: $(top_srcdir)/src/utilities/NodeDataSynchronization.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-NodeDataSynchronization.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Tpo -c -o libIBTK3d_a-NodeDataSynchronization.o `test -f '$(top_srcdir)/src/utilities/NodeDataSynchronization.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/NodeDataSynchronization.C
@@ -4813,20 +4954,6 @@ libIBTK3d_a-muParserCartGridFunction.obj: $(top_srcdir)/src/utilities/muParserCa
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/muParserCartGridFunction.C' object='libIBTK3d_a-muParserCartGridFunction.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-muParserCartGridFunction.obj `if test -f '$(top_srcdir)/src/utilities/muParserCartGridFunction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/muParserCartGridFunction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/muParserCartGridFunction.C'; fi`
-
-libIBTK3d_a-FEDataManager.o: $(top_srcdir)/src/lagrangian/FEDataManager.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-FEDataManager.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-FEDataManager.Tpo -c -o libIBTK3d_a-FEDataManager.o `test -f '$(top_srcdir)/src/lagrangian/FEDataManager.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/FEDataManager.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-FEDataManager.Tpo $(DEPDIR)/libIBTK3d_a-FEDataManager.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/FEDataManager.C' object='libIBTK3d_a-FEDataManager.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-FEDataManager.o `test -f '$(top_srcdir)/src/lagrangian/FEDataManager.C' || echo '$(srcdir)/'`$(top_srcdir)/src/lagrangian/FEDataManager.C
-
-libIBTK3d_a-FEDataManager.obj: $(top_srcdir)/src/lagrangian/FEDataManager.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-FEDataManager.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-FEDataManager.Tpo -c -o libIBTK3d_a-FEDataManager.obj `if test -f '$(top_srcdir)/src/lagrangian/FEDataManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/FEDataManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/FEDataManager.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-FEDataManager.Tpo $(DEPDIR)/libIBTK3d_a-FEDataManager.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/lagrangian/FEDataManager.C' object='libIBTK3d_a-FEDataManager.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-FEDataManager.obj `if test -f '$(top_srcdir)/src/lagrangian/FEDataManager.C'; then $(CYGPATH_W) '$(top_srcdir)/src/lagrangian/FEDataManager.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/lagrangian/FEDataManager.C'; fi`
 
 libIBTK3d_a-FESystemDataCache.o: $(top_srcdir)/src/utilities/FESystemDataCache.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-FESystemDataCache.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-FESystemDataCache.Tpo -c -o libIBTK3d_a-FESystemDataCache.o `test -f '$(top_srcdir)/src/utilities/FESystemDataCache.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/FESystemDataCache.C

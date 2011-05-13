@@ -54,9 +54,7 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/LEInteractor.h>
-#include <ibtk/LNodeIndexData.h>
-#include <ibtk/LagMarkerCoarsen.h>
-#include <ibtk/LagMarkerRefine.h>
+#include <ibtk/LNodeIndexSetData.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -68,7 +66,6 @@
 #include <CoarsenOperator.h>
 #include <HierarchyDataOpsManager.h>
 #include <Index.h>
-#include <IndexData.h>
 #include <Patch.h>
 #include <PatchCellDataOpsReal.h>
 #include <VariableDatabase.h>
@@ -212,8 +209,6 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_dt_max_time_min(-(d_dt_max_time_max-std::numeric_limits<double>::epsilon())),
       d_is_initialized(false),
       d_do_log(false),
-      d_mark_input_file_name(""),
-      d_mark_init_posns(),
       d_reinterpolate_after_regrid(false),
       d_hier_cc_data_ops(),
       d_ralgs(),
@@ -235,7 +230,6 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_W_var(NULL),
       d_F_var(NULL),
       d_Q_var(NULL),
-      d_mark_var(NULL),
       d_current(NULL),
       d_scratch(NULL),
       d_V_idx(-1),
@@ -243,8 +237,6 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_F_idx(-1),
       d_F_scratch1_idx(-1),
       d_F_scratch2_idx(-1),
-      d_mark_current_idx(-1),
-      d_mark_scratch_idx(-1),
       d_Q_idx(-1),
       d_Q_scratch_idx(-1)
 {
@@ -276,102 +268,6 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
              << "         recommended usage is to employ the same delta functions for both interpolation and spreading.\n";
     }
 
-    // Read in the initial marker positions.
-    if (!from_restart && !d_mark_input_file_name.empty())
-    {
-        const int mpi_rank = SAMRAI_MPI::getRank();
-        const int mpi_size = SAMRAI_MPI::getNodes();
-
-        Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-        const double* const grid_xLower = grid_geom->getXLower();
-        const double* const grid_xUpper = grid_geom->getXUpper();
-
-        for (int rank = 0; rank < mpi_size; ++rank)
-        {
-            if (rank == mpi_rank)
-            {
-                std::string line_string;
-                std::ifstream file_stream(d_mark_input_file_name.c_str(), std::ios::in);
-
-                // The first entry in the file is the number of markers.
-                int num_marks;
-                if (!std::getline(file_stream, line_string))
-                {
-                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << d_mark_input_file_name << "\n");
-                }
-                else
-                {
-                    line_string = discard_comments(line_string);
-                    std::istringstream line_stream(line_string);
-                    if (!(line_stream >> num_marks))
-                    {
-                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << d_mark_input_file_name << "\n");
-                    }
-                }
-
-                if (num_marks <= 0)
-                {
-                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << d_mark_input_file_name << "\n");
-                }
-
-                // Each successive line provides the initial position of each
-                // marker in the input file.
-                d_mark_init_posns.resize(NDIM*num_marks,0.0);
-                for (int k = 0; k < num_marks; ++k)
-                {
-                    if (!std::getline(file_stream, line_string))
-                    {
-                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << d_mark_input_file_name << "\n");
-                    }
-                    else
-                    {
-                        line_string = discard_comments(line_string);
-                        std::istringstream line_stream(line_string);
-                        for (int d = 0; d < NDIM; ++d)
-                        {
-                            if (!(line_stream >> d_mark_init_posns[NDIM*k+d]))
-                            {
-                                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << d_mark_input_file_name << "\n");
-                            }
-                        }
-
-                        // Ensure the initial marker position lies within the
-                        // physical domain.
-                        const double* const X = &d_mark_init_posns[NDIM*k];
-                        for (int d = 0; d < NDIM; ++d)
-                        {
-                            if (MathUtilities<double>::equalEps(X[d],grid_xLower[d]))
-                            {
-                                TBOX_ERROR(d_object_name << "::IBHierarchyIntegrator():\n"
-                                           << "  encountered marker intersecting lower physical boundary.\n"
-                                           << "  please ensure that all markers are within the computational domain."<< std::endl);
-                            }
-                            else if (X[d] <= grid_xLower[d])
-                            {
-                                TBOX_ERROR(d_object_name << "::IBHierarchyIntegrator():\n"
-                                           << "  encountered marker below lower physical boundary\n"
-                                           << "  please ensure that all markers are within the computational domain."<< std::endl);
-                            }
-
-                            if (MathUtilities<double>::equalEps(X[d],grid_xUpper[d]))
-                            {
-                                TBOX_ERROR(d_object_name << "::IBHierarchyIntegrator():\n"
-                                           << "  encountered marker intersecting upper physical boundary.\n"
-                                           << "  please ensure that all markers are within the computational domain."<< std::endl);
-                            }
-                            else if (X[d] >= grid_xUpper[d])
-                            {
-                                TBOX_ERROR(d_object_name << "::IBHierarchyIntegrator():\n"
-                                           << "  encountered marker above upper physical boundary\n"
-                                           << "  please ensure that all markers are within the computational domain."<< std::endl);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     // Get the Lagrangian Data Manager.
     d_lag_data_manager = LDataManager::getManager(d_object_name+"::LDataManager",
                                                   d_interp_delta_fcn, d_spread_delta_fcn,
@@ -380,11 +276,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     d_ghosts = d_lag_data_manager->getGhostCellWidth();
 
     // Create the instrument panel object.
-    d_instrument_panel = new IBInstrumentPanel(
-        d_object_name+"::IBInstrumentPanel",
-        (input_db->isDatabase("IBInstrumentPanel")
-         ? input_db->getDatabase("IBInstrumentPanel")
-         : Pointer<Database>(NULL)));
+    d_instrument_panel = new IBInstrumentPanel(d_object_name+"::IBInstrumentPanel", (input_db->isDatabase("IBInstrumentPanel") ? input_db->getDatabase("IBInstrumentPanel") : Pointer<Database>(NULL)));
 
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
@@ -505,24 +397,24 @@ IBHierarchyIntegrator::registerBodyForceSpecification(
 }// registerBodyForceSpecification
 
 void
-IBHierarchyIntegrator::registerLNodeInitStrategy(
-    Pointer<LNodeInitStrategy> lag_init)
+IBHierarchyIntegrator::registerLInitStrategy(
+    Pointer<LInitStrategy> lag_init)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!lag_init.isNull());
 #endif
     d_lag_init = lag_init;
-    d_lag_data_manager->registerLNodeInitStrategy(d_lag_init);
+    d_lag_data_manager->registerLInitStrategy(d_lag_init);
     return;
-}// registerLNodeInitStrategy
+}// registerLInitStrategy
 
 void
-IBHierarchyIntegrator::freeLNodeInitStrategy()
+IBHierarchyIntegrator::freeLInitStrategy()
 {
     d_lag_init.setNull();
-    d_lag_data_manager->freeLNodeInitStrategy();
+    d_lag_data_manager->freeLInitStrategy();
     return;
-}// freeLNodeInitStrategy
+}// freeLInitStrategy
 
 void
 IBHierarchyIntegrator::registerVisItDataWriter(
@@ -538,29 +430,29 @@ IBHierarchyIntegrator::registerVisItDataWriter(
 }// registerVisItDataWriter
 
 void
-IBHierarchyIntegrator::registerLagSiloDataWriter(
-    Pointer<LagSiloDataWriter> silo_writer)
+IBHierarchyIntegrator::registerLSiloDataWriter(
+    Pointer<LSiloDataWriter> silo_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!silo_writer.isNull());
 #endif
     d_silo_writer = silo_writer;
-    d_lag_data_manager->registerLagSiloDataWriter(d_silo_writer);
+    d_lag_data_manager->registerLSiloDataWriter(d_silo_writer);
     return;
-}// registerLagSiloDataWriter
+}// registerLSiloDataWriter
 
 #if (NDIM == 3)
 void
-IBHierarchyIntegrator::registerLagM3DDataWriter(
-    Pointer<LagM3DDataWriter> m3D_writer)
+IBHierarchyIntegrator::registerLM3DDataWriter(
+    Pointer<LM3DDataWriter> m3D_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!m3D_writer.isNull());
 #endif
     d_m3D_writer = m3D_writer;
-    d_lag_data_manager->registerLagM3DDataWriter(d_m3D_writer);
+    d_lag_data_manager->registerLM3DDataWriter(d_m3D_writer);
     return;
-}// registerLagM3DDataWriter
+}// registerLM3DDataWriter
 #endif
 
 void
@@ -631,14 +523,6 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
         d_Q_var = new CellVariable<NDIM,double>(d_object_name+"::Q",1);
         d_Q_idx = var_db->registerVariableAndContext(d_Q_var, d_current, no_ghosts);
         d_Q_scratch_idx = var_db->registerVariableAndContext(d_Q_var, d_scratch, source_ghosts);
-    }
-
-    d_mark_var = new IndexVariable<NDIM,LagMarker,CellGeometry<NDIM> >(d_object_name+"::mark");
-    d_mark_current_idx = var_db->registerVariableAndContext(d_mark_var, getCurrentContext(), ghosts);
-    d_mark_scratch_idx = var_db->registerVariableAndContext(d_mark_var, d_scratch, ghosts);
-    if (d_registered_for_restart)
-    {
-        var_db->registerPatchDataForRestart(d_mark_current_idx);
     }
 
     // Initialize the objects used to manage Lagrangian-Eulerian interaction.
@@ -832,8 +716,7 @@ IBHierarchyIntegrator::initializeHierarchy()
     // Use the INSHierarchyIntegrator to initialize the patch hierarchy.
     double dt_next = d_ins_hier_integrator->initializeHierarchy();
 
-    if (d_integrator_time >= d_dt_max_time_min &&
-        d_integrator_time <= d_dt_max_time_max)
+    if (d_integrator_time >= d_dt_max_time_min && d_integrator_time <= d_dt_max_time_max)
     {
         dt_next = std::min(dt_next, d_dt_max);
     }
@@ -848,37 +731,21 @@ IBHierarchyIntegrator::initializeHierarchy()
     d_lag_data_manager->endDataRedistribution();
 
     // Update the workload.
-    d_lag_data_manager->updateWorkloadData(
-        coarsest_ln, finest_ln);
-
-    // Prune duplicate markers following initialization.
-    pruneDuplicateMarkers(0,d_hierarchy->getFinestLevelNumber());
-
-    // Ensure that we haven't misplaced any of the markers.
-    const int num_marks = d_mark_init_posns.size()/NDIM;
-    const int num_marks_after_init = countMarkers(0,d_hierarchy->getFinestLevelNumber(),true);
-    if (num_marks != num_marks_after_init)
-    {
-        TBOX_ERROR(d_object_name << "::initializeHierarchy()\n"
-                   << "  number of marker particles is incorrect\n"
-                   << "  expected number of markers = " << num_marks << "\n"
-                   << "  actual   number of markers = " << num_marks_after_init << "\n");
-    }
+    d_lag_data_manager->updateWorkloadData(coarsest_ln, finest_ln);
 
     // Initialize the instrumentation data.
-    d_instrument_panel->initializeHierarchyIndependentData(
-        d_hierarchy, d_lag_data_manager);
+    d_instrument_panel->initializeHierarchyIndependentData(d_hierarchy, d_lag_data_manager);
     if (d_instrument_panel->isInstrumented())
     {
-        d_instrument_panel->initializeHierarchyDependentData(
-            d_hierarchy, d_lag_data_manager, d_integrator_step, d_integrator_time);
+        d_instrument_panel->initializeHierarchyDependentData(d_hierarchy, d_lag_data_manager, d_integrator_step, d_integrator_time);
         if (d_total_flow_volume.empty())
         {
             d_total_flow_volume.resize(d_instrument_panel->getFlowValues().size(),0.0);
         }
     }
 
-    // Indicate that the force and source strategies need to be re-initialized.
+    // Indicate that the force and source strategies and the post processor need
+    // to be re-initialized.
     d_force_strategy_needs_init  = true;
     d_source_strategy_needs_init = true;
     d_post_processor_needs_init  = true;
@@ -902,9 +769,7 @@ IBHierarchyIntegrator::advanceHierarchy(
     const bool initial_time   = MathUtilities<double>::equalEps(current_time,d_start_time);
 
     // Regrid the patch hierarchy.
-    const bool do_regrid = (d_regrid_interval == 0
-                            ? false
-                            : (d_integrator_step % d_regrid_interval == 0));
+    const bool do_regrid = (d_regrid_interval == 0 ? false : (d_integrator_step % d_regrid_interval == 0));
     if (do_regrid)
     {
         if (d_do_log) plog << d_object_name << "::advanceHierarchy(): regridding prior to timestep " << d_integrator_step << "\n";
@@ -980,76 +845,6 @@ IBHierarchyIntegrator::advanceHierarchy(
         }
     }
 
-    // Compute the initial updated marker positions.
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(d_mark_scratch_idx, d_integrator_time);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CellData<NDIM,double> > v_data = patch->getPatchData(d_V_idx);
-            const Pointer<IndexData<NDIM,LagMarker,CellGeometry<NDIM> > > mark_data = patch->getPatchData(d_mark_current_idx);
-            Pointer<IndexData<NDIM,LagMarker,CellGeometry<NDIM> > > mark_scratch_data = patch->getPatchData(d_mark_scratch_idx);
-
-            // Collect the positions and velocities of all markers in the patch.
-            std::vector<double> U_mark, X_mark;
-            for (IndexData<NDIM,LagMarker,CellGeometry<NDIM> >::Iterator it(*mark_data); it; it++)
-            {
-                const Index<NDIM>& i = it.getIndex();
-                if (patch_box.contains(i))
-                {
-                    const LagMarker& mark = it();
-                    const std::vector<double>& X = mark.getPositions();
-                    const std::vector<double>& U = mark.getVelocities();
-                    X_mark.insert(X_mark.end(), X.begin(), X.end());
-                    U_mark.insert(U_mark.end(), U.begin(), U.end());
-                }
-            }
-
-            // When necessary, interpolate the velocity field.
-            if (initial_time || d_reinterpolate_after_regrid)
-            {
-                LEInteractor::interpolate(
-                    U_mark, NDIM, X_mark, NDIM, v_data,
-                    patch, patch_box, d_interp_delta_fcn);
-            }
-
-            // Update the marker positions.
-            for (size_t k = 0; k < X_mark.size()/NDIM; ++k)
-            {
-                double* const X = &X_mark[NDIM*k];
-                const double* const U = &U_mark[NDIM*k];
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    X[d] += dt*U[d];
-                }
-            }
-
-            // Store the marker positions and velocities in the scratch marker
-            // patch data.
-            mark_scratch_data->copy(*mark_data);
-            int marker_offset = 0;
-            for (IndexData<NDIM,LagMarker,CellGeometry<NDIM> >::Iterator it(*mark_scratch_data); it; it++)
-            {
-                const Index<NDIM>& i = it.getIndex();
-                if (patch_box.contains(i))
-                {
-                    LagMarker& mark = it();
-                    const int nmarks = mark.getNumberOfMarkers();
-                    std::vector<double> X(X_mark.begin()+NDIM*marker_offset,
-                                          X_mark.begin()+NDIM*(marker_offset+nmarks));
-                    std::vector<double> U(U_mark.begin()+NDIM*marker_offset,
-                                          U_mark.begin()+NDIM*(marker_offset+nmarks));
-                    mark.setPositions(X);
-                    mark.setVelocities(U);
-                    marker_offset += nmarks;
-                }
-            }
-        }
-    }
-
     // Initialize the various LData objects, including X_data, F_data,
     // U_data, and X_new_data, on each level of the patch hierarchy.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1097,7 +892,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
                     const Box<NDIM>& patch_box = patch->getBox();
                     const Pointer<CellData<NDIM,double> > v_data = patch->getPatchData(d_V_idx);
-                    const Pointer<LNodeIndexData> idx_data = patch->getPatchData(
+                    const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(
                         d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
                     LEInteractor::interpolate(
                         U_data[ln], X_data[ln], idx_data, v_data,
@@ -1238,7 +1033,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                 const Box<NDIM>& patch_box = patch->getBox();
                 Pointer<CellData<NDIM,double> > f_current_data = patch->getPatchData(
                     d_ins_hier_integrator->getForceVar(), d_ins_hier_integrator->getCurrentContext());
-                const Pointer<LNodeIndexData> idx_data = patch->getPatchData(
+                const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(
                     d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
                 LEInteractor::spread(
                     f_current_data, F_data[ln], X_data[ln], idx_data,
@@ -1415,7 +1210,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                 const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
                 const Box<NDIM>& patch_box = patch->getBox();
                 Pointer<CellData<NDIM,double> > f_new_data = patch->getPatchData(d_F_idx);
-                const Pointer<LNodeIndexData> idx_data = patch->getPatchData(
+                const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(
                     d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
                 LEInteractor::spread(
                     f_new_data, F_new_data[ln], X_new_data[ln], idx_data,
@@ -1587,7 +1382,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
                 const Pointer<CellData<NDIM,double> > w_data = patch->getPatchData(d_W_idx);
-                const Pointer<LNodeIndexData> idx_data = patch->getPatchData(
+                const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(
                     d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
 
                 LEInteractor::interpolate(
@@ -1658,7 +1453,7 @@ IBHierarchyIntegrator::advanceHierarchy(
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
                 const Pointer<CellData<NDIM,double> > w_data = patch->getPatchData(d_W_idx);
-                const Pointer<LNodeIndexData> idx_data = patch->getPatchData(
+                const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(
                     d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
 
                 LEInteractor::interpolate(
@@ -1667,113 +1462,6 @@ IBHierarchyIntegrator::advanceHierarchy(
                     d_interp_delta_fcn);
             }
         }
-    }
-
-    // Compute the final updated marker positions.
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CellData<NDIM,double> > w_data = patch->getPatchData(d_W_idx);
-            Pointer<IndexData<NDIM,LagMarker,CellGeometry<NDIM> > > mark_data = patch->getPatchData(d_mark_current_idx);
-            const Pointer<IndexData<NDIM,LagMarker,CellGeometry<NDIM> > > mark_scratch_data = patch->getPatchData(d_mark_scratch_idx);
-
-            // Collect the current and predicted new positions of all markers in
-            // the patch.
-            std::vector<double> X_mark_current;
-            for (IndexData<NDIM,LagMarker,CellGeometry<NDIM> >::Iterator it(*mark_data); it; it++)
-            {
-                const Index<NDIM>& i = it.getIndex();
-                if (patch_box.contains(i))
-                {
-                    const LagMarker& mark = it();
-                    const std::vector<double>& X = mark.getPositions();
-                    X_mark_current.insert(X_mark_current.end(), X.begin(), X.end());
-                }
-            }
-
-            std::vector<double> X_mark_new;
-            for (IndexData<NDIM,LagMarker,CellGeometry<NDIM> >::Iterator it(*mark_scratch_data); it; it++)
-            {
-                const Index<NDIM>& i = it.getIndex();
-                if (patch_box.contains(i))
-                {
-                    const LagMarker& mark = it();
-                    const std::vector<double>& X = mark.getPositions();
-                    X_mark_new.insert(X_mark_new.end(), X.begin(), X.end());
-                }
-            }
-
-            // Interpolate the velocity field at the predicted new marker
-            // positions.
-            std::vector<double> U_mark_new(X_mark_new.size(),0.0);
-            LEInteractor::interpolate(
-                U_mark_new, NDIM, X_mark_new, NDIM, w_data,
-                patch, patch_box, d_interp_delta_fcn);
-
-            // Update the marker positions.
-            for (size_t k = 0; k < X_mark_new.size()/NDIM; ++k)
-            {
-                double* const X_current = &X_mark_current[NDIM*k];
-                double* const X_new = &X_mark_new[NDIM*k];
-                const double* const U_new = &U_mark_new[NDIM*k];
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    X_new[d] += dt*U_new[d];
-                    X_new[d] = 0.5*(X_current[d]+X_new[d]);
-                }
-            }
-
-            // Re-interpolate the velocity field at the final marker positions.
-            LEInteractor::interpolate(
-                U_mark_new, NDIM, X_mark_new, NDIM, w_data,
-                patch, patch_box, d_interp_delta_fcn);
-
-            // Prevent markers from leaving the computational domain.
-            static const double edge_tol = 1.0e-6;
-            const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
-            if (periodic_shift.min() == 0)
-            {
-                const double* const xLower = grid_geom->getXLower();
-                const double* const xUpper = grid_geom->getXUpper();
-                for (size_t k = 0; k < X_mark_new.size()/NDIM; ++k)
-                {
-                    double* const X = &X_mark_new[NDIM*k];
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        if (periodic_shift[d] == 0)
-                        {
-                            X[d] = std::max(X[d],xLower[d]+edge_tol);
-                            X[d] = std::min(X[d],xUpper[d]-edge_tol);
-                        }
-                    }
-                }
-            }
-
-            // Store the marker positions and velocities in the current marker
-            // patch data.
-            int marker_offset = 0;
-            for (IndexData<NDIM,LagMarker,CellGeometry<NDIM> >::Iterator it(*mark_data); it; it++)
-            {
-                const Index<NDIM>& i = it.getIndex();
-                if (patch_box.contains(i))
-                {
-                    LagMarker& mark = it();
-                    const int nmarks = mark.getNumberOfMarkers();
-                    std::vector<double> X(X_mark_new.begin()+NDIM*marker_offset,
-                                          X_mark_new.begin()+NDIM*(marker_offset+nmarks));
-                    std::vector<double> U(U_mark_new.begin()+NDIM*marker_offset,
-                                          U_mark_new.begin()+NDIM*(marker_offset+nmarks));
-                    mark.setPositions(X);
-                    mark.setVelocities(U);
-                    marker_offset += nmarks;
-                }
-            }
-        }
-        level->deallocatePatchData(d_mark_scratch_idx);
     }
 
     // Update the instrumentation data.
@@ -1881,7 +1569,7 @@ IBHierarchyIntegrator::postProcessData()
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
                 const Pointer<CellData<NDIM,double> > v_data = patch->getPatchData(d_V_idx);
-                const Pointer<LNodeIndexData> idx_data = patch->getPatchData(
+                const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(
                     d_lag_data_manager->getLNodeIndexPatchDescriptorIndex());
                 LEInteractor::interpolate(
                     U_data[ln], X_data[ln], idx_data, v_data,
@@ -2014,29 +1702,17 @@ IBHierarchyIntegrator::regridHierarchy()
 {
     t_regrid_hierarchy->start();
 
-    // Update the marker data.
-    if (d_do_log) plog << d_object_name << "::regridHierarchy(): resetting markers particles.\n";
-    const int num_marks = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
-
-    collectMarkersOnPatchHierarchy();
-    const int num_marks_after_collection = countMarkers(0,d_hierarchy->getFinestLevelNumber(),false);
-    const int num_marks_after_collection_level_0 = countMarkers(0,0,false);
-    if (num_marks != num_marks_after_collection || num_marks != num_marks_after_collection_level_0)
-    {
-        TBOX_ERROR(d_object_name << "::regridHierarchy()\n"
-                   << "  number of marker particles changed during collection to coarsest level\n"
-                   << "  number of markers in hierarchy before collection to coarsest level = " << num_marks << "\n"
-                   << "  number of markers in hierarchy after  collection to coarsest level = " << num_marks_after_collection << "\n"
-                   << "  number of markers on level 0   after  collection to coarsest level = " << num_marks_after_collection_level_0 << "\n");
-    }
+    // Determine the current range of hierarchy levels.
+    const int coarsest_ln_before_regrid = 0;
+    const int finest_ln_before_regrid = d_hierarchy->getFinestLevelNumber();
 
     // Update the workload pre-regridding.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
-    d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
+    d_lag_data_manager->updateWorkloadData(coarsest_ln_before_regrid,finest_ln_before_regrid);
 
     // Before regridding, begin Lagrangian data movement.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement.\n";
-    d_lag_data_manager->beginDataRedistribution();
+    d_lag_data_manager->beginDataRedistribution(coarsest_ln_before_regrid,finest_ln_before_regrid);
 
     // We use the INSHierarchyIntegrator to handle as much structured data
     // management as possible.
@@ -2045,24 +1721,11 @@ IBHierarchyIntegrator::regridHierarchy()
 
     // After regridding, finish Lagrangian data movement.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement.\n";
-    d_lag_data_manager->endDataRedistribution();
+    d_lag_data_manager->endDataRedistribution(coarsest_ln_before_regrid,finest_ln_before_regrid);
 
     // Update the workload post-regridding.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
     d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
-
-    // Prune duplicate markers following regridding.
-    pruneDuplicateMarkers(0,d_hierarchy->getFinestLevelNumber());
-
-    // Ensure that we haven't misplaced any of the markers.
-    const int num_marks_after_regrid = countMarkers(0,d_hierarchy->getFinestLevelNumber(),true);
-    if (num_marks != num_marks_after_regrid)
-    {
-        TBOX_ERROR(d_object_name << "::regridHierarchy()\n"
-                   << "  number of marker particles changed during regrid\n"
-                   << "  number of markers before regrid = " << num_marks << "\n"
-                   << "  number of markers after  regrid = " << num_marks_after_regrid << "\n");
-    }
 
     // Indicate that the force and (optional) source strategies and
     // post-processor need to be re-initialized.
@@ -2097,9 +1760,9 @@ IBHierarchyIntegrator::regridHierarchy()
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
                 const int lag_node_index_idx = d_lag_data_manager->getLNodeIndexPatchDescriptorIndex();
-                const Pointer<LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
-                for (LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
-                     it != idx_data->lnode_index_end(); ++it)
+                const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
+                for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
+                     it != idx_data->data_end(); ++it)
                 {
                     const LNodeIndex& node_idx = *it;
                     Pointer<IBAnchorPointSpec> anchor_point_spec = node_idx.getNodeData<IBAnchorPointSpec>();
@@ -2259,48 +1922,6 @@ IBHierarchyIntegrator::initializeLevelData(
         can_be_refined, initial_time, old_level,
         allocate_data);
 
-    // Allocate storage needed to initialize the level and fill data from
-    // coarser levels in AMR hierarchy, if any.
-    //
-    // Since time gets set when we allocate data, re-stamp it to current time if
-    // we don't need to allocate.
-    if (allocate_data)
-    {
-        level->allocatePatchData(d_mark_current_idx, init_data_time);
-    }
-    else
-    {
-        level->setTime(init_data_time, d_mark_current_idx);
-    }
-
-    // On the coarsest level of the patch hierarchy, copy marker data from the
-    // old coarse level.  Otherwise, refine marker data from the coarsest level
-    // of the patch hierarchy.
-    if (!old_level.isNull() && level_number == 0)
-    {
-        Pointer<RefineAlgorithm<NDIM> > copy_mark_alg = new RefineAlgorithm<NDIM>();
-        copy_mark_alg->registerRefine(d_mark_current_idx, d_mark_current_idx, d_mark_scratch_idx, NULL);
-        Pointer<PatchLevel<NDIM> > dst_level = level;
-        Pointer<PatchLevel<NDIM> > src_level = old_level;
-        RefinePatchStrategy<NDIM>* refine_mark_op = NULL;
-        level->allocatePatchData(d_mark_scratch_idx, init_data_time);
-        copy_mark_alg->createSchedule(dst_level, src_level, refine_mark_op)->fillData(init_data_time);
-        level->deallocatePatchData(d_mark_scratch_idx);
-    }
-    else if (level_number > 0)
-    {
-        Pointer<RefineAlgorithm<NDIM> > refine_mark_alg = new RefineAlgorithm<NDIM>();
-        refine_mark_alg->registerRefine(d_mark_current_idx, d_mark_current_idx, d_mark_scratch_idx, new LagMarkerRefine());
-        RefinePatchStrategy<NDIM>* refine_mark_op = NULL;
-        for (int ln = 1; ln <= level_number; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > dst_level = hierarchy->getPatchLevel(ln);
-            level->allocatePatchData(d_mark_scratch_idx, init_data_time);
-            refine_mark_alg->createSchedule(dst_level, NULL, ln-1, hierarchy, refine_mark_op)->fillData(init_data_time);
-            level->deallocatePatchData(d_mark_scratch_idx);
-        }
-    }
-
     // Setup the pIB data at the initial time only.
     if (initial_time && d_lag_init->getLevelHasLagrangianData(level_number, can_be_refined))
     {
@@ -2324,57 +1945,6 @@ IBHierarchyIntegrator::initializeLevelData(
             {
                 d_silo_writer->registerVariableData("M", M_data, level_number);
                 d_silo_writer->registerVariableData("Y", Y_data, level_number);
-            }
-        }
-    }
-
-    // Initialize the marker data, but do so only on the coarsest level of the
-    // patch hierarchy.  Marker data on finer levels is initialized via
-    // refinement.
-    if (initial_time && !d_mark_input_file_name.empty() && level_number == 0)
-    {
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const Index<NDIM>& patch_lower = patch_box.lower();
-            const Index<NDIM>& patch_upper = patch_box.upper();
-            const double* const patchXLower = patch_geom->getXLower();
-            const double* const patchXUpper = patch_geom->getXUpper();
-            const double* const patchDx = patch_geom->getDx();
-
-            Pointer<IndexData<NDIM,LagMarker,CellGeometry<NDIM> > > mark_data = patch->getPatchData(d_mark_current_idx);
-            for (size_t k = 0; k < d_mark_init_posns.size()/NDIM; ++k)
-            {
-                const double* const X = &d_mark_init_posns[NDIM*k];
-                static const std::vector<double> U(NDIM,0.0);
-                const bool patch_owns_node_at_loc =
-                    ((  patchXLower[0] <= X[0])&&(X[0] < patchXUpper[0]))
-#if (NDIM > 1)
-                    &&((patchXLower[1] <= X[1])&&(X[1] < patchXUpper[1]))
-#if (NDIM > 2)
-                    &&((patchXLower[2] <= X[2])&&(X[2] < patchXUpper[2]))
-#endif
-#endif
-                    ;
-                if (patch_owns_node_at_loc)
-                {
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(
-                        X, patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
-                    if (!mark_data->isElement(i))
-                    {
-                        mark_data->appendItem(i, LagMarker());
-                    }
-                    LagMarker& new_mark = *(mark_data->getItem(i));
-                    std::vector<double>& new_X = new_mark.getPositions();
-                    std::vector<double>& new_U = new_mark.getVelocities();
-                    std::vector<int>& new_idx = new_mark.getIndices();
-
-                    new_X.insert(new_X.end(),X,X+NDIM);
-                    new_U.insert(new_U.end(),U.begin(),U.end());
-                    new_idx.push_back(k);
-                }
             }
         }
     }
@@ -2631,20 +2201,6 @@ IBHierarchyIntegrator::applyGradientDetector(
 ///
 ///  The following routines:
 ///
-///      getLagMarkerVar()
-///
-///  allows access to the various state variables maintained by the integrator.
-///
-
-Pointer<IndexVariable<NDIM,LagMarker,CellGeometry<NDIM> > >
-IBHierarchyIntegrator::getLagMarkerVar() const
-{
-    return d_mark_var;
-}// getLagMarkerVar
-
-///
-///  The following routines:
-///
 ///      getCurrentContext(),
 ///      getNewContext(),
 ///      getScratchContext()
@@ -2855,217 +2411,6 @@ IBHierarchyIntegrator::updateIBInstrumentationData(
     }
     return;
 }// updateIBInstrumentationData
-
-void
-IBHierarchyIntegrator::collectMarkersOnPatchHierarchy()
-{
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
-    // Collect all marker data on the patch hierarchy.
-    Pointer<CoarsenAlgorithm<NDIM> > mark_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    mark_coarsen_alg->registerCoarsen(d_mark_scratch_idx, // destination
-                                      d_mark_current_idx, // source
-                                      new LagMarkerCoarsen());
-    for (int ln = finest_ln; ln > coarsest_ln; --ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        Pointer<PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(ln-1);
-
-        // Allocate scratch data.
-        coarser_level->allocatePatchData(d_mark_scratch_idx);
-
-        // Coarsen fine data onto coarser level.
-        CoarsenPatchStrategy<NDIM>* mark_coarsen_op = NULL;
-        mark_coarsen_alg->createSchedule(coarser_level, level, mark_coarsen_op)->coarsenData();
-
-        // Merge the coarsened fine data with the coarse data.
-        for (PatchLevel<NDIM>::Iterator p(coarser_level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = coarser_level->getPatch(p());
-            Pointer<IndexData<NDIM,LagMarker,CellGeometry<NDIM> > > mark_current_data = patch->getPatchData(d_mark_current_idx);
-            Pointer<IndexData<NDIM,LagMarker,CellGeometry<NDIM> > > mark_scratch_data = patch->getPatchData(d_mark_scratch_idx);
-            for (IndexData<NDIM,LagMarker,CellGeometry<NDIM> >::Iterator it(*mark_scratch_data); it; it++)
-            {
-                const Index<NDIM>& i = it.getIndex();
-                if (!mark_current_data->isElement(i))
-                {
-                    mark_current_data->appendItem(i,LagMarker());
-                }
-                LagMarker& dst_mark = *(mark_current_data->getItem(i));
-                const LagMarker& src_mark = it();
-                dst_mark.addMarker(src_mark);
-            }
-        }
-
-        // Clear the fine data.
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<IndexData<NDIM,LagMarker,CellGeometry<NDIM> > > mark_current_data = patch->getPatchData(d_mark_current_idx);
-            mark_current_data->removeAllItems();
-        }
-
-        // Deallocate scratch data.
-        coarser_level->deallocatePatchData(d_mark_scratch_idx);
-    }
-
-    // Reset the assignment of markers to Cartesian grid cells on the coarsest
-    // level of the patch hierarchy.
-    //
-    // NOTE: It is important to do this only *after* collecting markers on the
-    // patch hierarchy, as markers which have left a fine level through the
-    // coarse-fine interface are discarded by this procedure.
-    Pointer<RefineAlgorithm<NDIM> > mark_level_fill_alg = new RefineAlgorithm<NDIM>();
-    mark_level_fill_alg->registerRefine(d_mark_current_idx, // destination
-                                        d_mark_current_idx, // source
-                                        d_mark_scratch_idx, // temporary work space
-                                        NULL);
-
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(coarsest_ln);
-    level->allocatePatchData(d_mark_scratch_idx, d_integrator_time);
-    mark_level_fill_alg->createSchedule(level,NULL)->fillData(d_integrator_time);
-    level->deallocatePatchData(d_mark_scratch_idx);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-        const Index<NDIM>& patch_lower = patch_box.lower();
-        const Index<NDIM>& patch_upper = patch_box.upper();
-        const double* const patchXLower = patch_geom->getXLower();
-        const double* const patchXUpper = patch_geom->getXUpper();
-        const double* const patchDx = patch_geom->getDx();
-
-        Pointer<IndexData<NDIM,LagMarker,CellGeometry<NDIM> > > current_mark_data = patch->getPatchData(d_mark_current_idx);
-        Pointer<IndexData<NDIM,LagMarker,CellGeometry<NDIM> > > new_mark_data = new IndexData<NDIM,LagMarker,CellGeometry<NDIM> >(
-            current_mark_data->getBox(), current_mark_data->getGhostCellWidth());
-
-        for (IndexData<NDIM,LagMarker,CellGeometry<NDIM> >::Iterator it(*current_mark_data); it; it++)
-        {
-            const LagMarker& old_mark = it();
-            const std::vector<double>& old_X = old_mark.getPositions();
-            const std::vector<double>& old_U = old_mark.getVelocities();
-            const std::vector<int>& old_idx = old_mark.getIndices();
-            const IntVector<NDIM>& offset = old_mark.getPeriodicOffset();
-            double X_shifted[NDIM];
-
-            for (int k = 0; k < old_mark.getNumberOfMarkers(); ++k)
-            {
-                const double* const X = &old_X[NDIM*k];
-                const double* const U = &old_U[NDIM*k];
-                const int& idx = old_idx[k];
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    X_shifted[d] = X[d] + double(offset(d))*patchDx[d];
-                }
-
-                const bool patch_owns_node_at_new_loc =
-                    ((  patchXLower[0] <= X_shifted[0])&&(X_shifted[0] < patchXUpper[0]))
-#if (NDIM > 1)
-                    &&((patchXLower[1] <= X_shifted[1])&&(X_shifted[1] < patchXUpper[1]))
-#if (NDIM > 2)
-                    &&((patchXLower[2] <= X_shifted[2])&&(X_shifted[2] < patchXUpper[2]))
-#endif
-#endif
-                    ;
-
-                if (patch_owns_node_at_new_loc)
-                {
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(
-                        X_shifted, patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
-                    if (!new_mark_data->isElement(i))
-                    {
-                        new_mark_data->appendItem(i, LagMarker());
-                    }
-
-                    LagMarker& new_mark = *(new_mark_data->getItem(i));
-                    std::vector<double>& new_X = new_mark.getPositions();
-                    std::vector<double>& new_U = new_mark.getVelocities();
-                    std::vector<int>& new_idx = new_mark.getIndices();
-
-                    new_X.insert(new_X.end(),X_shifted,X_shifted+NDIM);
-                    new_U.insert(new_U.end(),U,U+NDIM);
-                    new_idx.push_back(idx);
-                }
-            }
-        }
-
-        // Swap the old and new patch data pointers.
-        patch->setPatchData(d_mark_current_idx, new_mark_data);
-    }
-    return;
-}// collectMarkersOnPatchHierarchy
-
-void
-IBHierarchyIntegrator::pruneDuplicateMarkers(
-    const int coarsest_ln,
-    const int finest_ln)
-{
-    const int finest_hier_level_number = d_hierarchy->getFinestLevelNumber();
-    for (int ln = coarsest_ln; ln <= std::min(finest_ln,finest_hier_level_number-1); ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        Pointer<PatchLevel<NDIM> > finer_level = d_hierarchy->getPatchLevel(ln+1);
-        BoxArray<NDIM> refined_region_boxes = finer_level->getBoxes();
-        const IntVector<NDIM>& ratio = finer_level->getRatioToCoarserLevel();
-        refined_region_boxes.coarsen(ratio);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<IndexData<NDIM,LagMarker,CellGeometry<NDIM> > > mark_data = patch->getPatchData(d_mark_current_idx);
-            const Box<NDIM>& ghost_box = mark_data->getGhostBox();
-            for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
-            {
-                const Box<NDIM>& refined_box = refined_region_boxes[i];
-                const Box<NDIM> intersection = ghost_box * refined_box;
-                if (!intersection.empty())
-                {
-                    mark_data->removeInsideBox(intersection);
-                }
-            }
-        }
-    }
-    return;
-}// pruneDuplicateMarkers
-
-int
-IBHierarchyIntegrator::countMarkers(
-    const int coarsest_ln,
-    const int finest_ln,
-    const bool log_results)
-{
-    std::vector<int> num_marks(finest_ln+1,0);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<IndexData<NDIM,LagMarker,CellGeometry<NDIM> > > mark_data = patch->getPatchData(d_mark_current_idx);
-            for (IndexData<NDIM,LagMarker,CellGeometry<NDIM> >::Iterator it(*mark_data); it; it++)
-            {
-                const Index<NDIM>& i = it.getIndex();
-                if (patch_box.contains(i))
-                {
-                    const LagMarker& mark = it();
-                    num_marks[ln] += mark.getNumberOfMarkers();
-                }
-            }
-        }
-    }
-    SAMRAI_MPI::sumReduction(&num_marks[0],finest_ln+1);
-    if (log_results)
-    {
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            plog << "number of markers on level " << ln << ": " << num_marks[ln] << "\n";
-        }
-    }
-    return std::accumulate(num_marks.begin(), num_marks.end(), 0);
-}// countMarkers
 
 void
 IBHierarchyIntegrator::resetAnchorPointValues(
@@ -3543,8 +2888,6 @@ IBHierarchyIntegrator::getFromInput(
                              << "Using penalty-IB method but key data `gravitational_acceleration' not found in input.");
             }
         }
-
-        d_mark_input_file_name = db->getStringWithDefault("marker_input_file_name", d_mark_input_file_name);
     }
     return;
 }// getFromInput

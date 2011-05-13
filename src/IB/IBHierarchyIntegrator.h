@@ -49,19 +49,17 @@
 
 // IBTK INCLUDES
 #include <ibtk/LDataManager.h>
-#include <ibtk/LNodeInitStrategy.h>
+#include <ibtk/LInitStrategy.h>
 #if (NDIM == 3)
-#include <ibtk/LagM3DDataWriter.h>
+#include <ibtk/LM3DDataWriter.h>
 #endif
-#include <ibtk/LagMarker.h>
-#include <ibtk/LagSiloDataWriter.h>
+#include <ibtk/LSiloDataWriter.h>
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
 #include <CoarsenAlgorithm.h>
 #include <CoarsenSchedule.h>
 #include <GriddingAlgorithm.h>
-#include <IndexVariable.h>
 #include <IntVector.h>
 #include <LoadBalancer.h>
 #include <PatchHierarchy.h>
@@ -169,8 +167,8 @@ public:
      * the initial configuration of the curvilinear mesh nodes.
      */
     void
-    registerLNodeInitStrategy(
-        SAMRAI::tbox::Pointer<IBTK::LNodeInitStrategy> lag_init);
+    registerLInitStrategy(
+        SAMRAI::tbox::Pointer<IBTK::LInitStrategy> lag_init);
 
     /*!
      * Free the concrete initialization strategy object.
@@ -179,7 +177,7 @@ public:
      * no longer needed.
      */
     void
-    freeLNodeInitStrategy();
+    freeLInitStrategy();
 
     /*!
      * Register a VisIt data writer so this class will write plot files that may
@@ -194,8 +192,8 @@ public:
      * files that may be postprocessed with the VisIt visualization tool.
      */
     void
-    registerLagSiloDataWriter(
-        SAMRAI::tbox::Pointer<IBTK::LagSiloDataWriter> silo_writer);
+    registerLSiloDataWriter(
+        SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> silo_writer);
 
 #if (NDIM == 3)
     /*!
@@ -204,8 +202,8 @@ public:
      * program.
      */
     void
-    registerLagM3DDataWriter(
-        SAMRAI::tbox::Pointer<IBTK::LagM3DDataWriter> m3D_writer);
+    registerLM3DDataWriter(
+        SAMRAI::tbox::Pointer<IBTK::LM3DDataWriter> m3D_writer);
 #endif
 
     /*!
@@ -531,21 +529,6 @@ public:
     ///
     ///  The following routines:
     ///
-    ///      getLagMarkerVar()
-    ///
-    ///  allows access to the various state variables maintained by the
-    ///  integrator.
-    ///
-
-    /*!
-     * Return a pointer to the LagMarker index data state variable.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > >
-    getLagMarkerVar() const;
-
-    ///
-    ///  The following routines:
-    ///
     ///      getCurrentContext(),
     ///      getNewContext(),
     ///      getScratchContext()
@@ -673,31 +656,6 @@ private:
         const double data_time);
 
     /*!
-     * Collect all marker data onto the coarsest level of the patch hierarchy to
-     * prepare for regridding the patch hierarchy.
-     */
-    void
-    collectMarkersOnPatchHierarchy();
-
-    /*!
-     * Prune marker data in refined regions of the specified levels of the patch
-     * hierarchy.
-     */
-    void
-    pruneDuplicateMarkers(
-        const int coarsest_ln,
-        const int finest_ln);
-
-    /*!
-     * Count the markers.
-     */
-    int
-    countMarkers(
-        const int coarsest_ln,
-        const int finest_ln,
-        const bool log_results);
-
-    /*!
      * Set the elements of the Lagrangian vector to zero at anchored nodes of
      * the curvilinear mesh.
      */
@@ -794,9 +752,9 @@ private:
      * variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
-    SAMRAI::tbox::Pointer<IBTK::LagSiloDataWriter> d_silo_writer;
+    SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> d_silo_writer;
 #if (NDIM == 3)
-    SAMRAI::tbox::Pointer<IBTK::LagM3DDataWriter> d_m3D_writer;
+    SAMRAI::tbox::Pointer<IBTK::LM3DDataWriter> d_m3D_writer;
 #endif
 
     /*
@@ -835,7 +793,7 @@ private:
      * The specification and initialization information for the Lagrangian data
      * used by the integrator.
      */
-    SAMRAI::tbox::Pointer<IBTK::LNodeInitStrategy> d_lag_init;
+    SAMRAI::tbox::Pointer<IBTK::LInitStrategy> d_lag_init;
 
     /*
      * The force generators.
@@ -919,12 +877,6 @@ private:
     bool d_do_log;
 
     /*
-     * Input file for initial marker positions, indices, and clouds.
-     */
-    std::string d_mark_input_file_name;
-    std::vector<double> d_mark_init_posns;
-
-    /*
      * Indicates whether the velocity field needs to be re-projected.
      */
     bool d_reinterpolate_after_regrid;
@@ -955,9 +907,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_V_var, d_W_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Q_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::IndexVariable<NDIM,IBTK::LagMarker,SAMRAI::pdat::CellGeometry<NDIM> > > d_mark_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current, d_scratch;
-    int d_V_idx, d_W_idx, d_F_idx, d_F_scratch1_idx, d_F_scratch2_idx, d_mark_current_idx, d_mark_scratch_idx, d_Q_idx, d_Q_scratch_idx;
+    int d_V_idx, d_W_idx, d_F_idx, d_F_scratch1_idx, d_F_scratch2_idx, d_Q_idx, d_Q_scratch_idx;
 
     /*
      * List of local indices of local anchor points.

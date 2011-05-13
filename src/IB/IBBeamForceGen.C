@@ -51,7 +51,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/LNodeIndexData.h>
+#include <ibtk/LNodeIndexSetData.h>
 #include <ibtk/PETScVecOps.h>
 
 // SAMRAI INCLUDES
@@ -186,7 +186,7 @@ IBBeamForceGen::initializeLevelData(
     bend_rigidities.clear();
     mesh_dependent_curvatures.clear();
 
-    // The patch data descriptor index for the LNodeIndexData.
+    // The patch data descriptor index for the LNodeIndexSetData.
     const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
 
     // Determine the "next" and "prev" node indices for all beams associated
@@ -195,9 +195,8 @@ IBBeamForceGen::initializeLevelData(
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
-        for (LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
-             it != idx_data->lnode_index_end(); ++it)
+        const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
+        for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box); it != idx_data->data_end(); ++it)
         {
             const LNodeIndex& node_idx = *it;
             const Pointer<IBBeamForceSpec> force_spec = node_idx.getNodeData<IBBeamForceSpec>();

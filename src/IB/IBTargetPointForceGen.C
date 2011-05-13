@@ -51,7 +51,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/LNodeIndexData.h>
+#include <ibtk/LNodeIndexSetData.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -144,7 +144,7 @@ IBTargetPointForceGen::computeLagrangianForce(
                    << "  physical domain must be a single box.\n");
     }
 
-    // Get the patch data descriptor index for the LNodeIndexData.
+    // Get the patch data descriptor index for the LNodeIndexSetData.
     const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
 
     // Compute the penalty force associated with the Lagrangian target points.
@@ -155,9 +155,9 @@ IBTargetPointForceGen::computeLagrangianForce(
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
-        for (LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
-             it != idx_data->lnode_index_end(); ++it)
+        const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
+        for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
+             it != idx_data->data_end(); ++it)
         {
             const LNodeIndex& node_idx = *it;
             Pointer<IBTargetPointForceSpec> force_spec = node_idx.getNodeData<IBTargetPointForceSpec>();
@@ -228,7 +228,7 @@ IBTargetPointForceGen::computeLagrangianForceJacobianNonzeroStructure(
 
     t_compute_lagrangian_force_jacobian_nonzero_structure->start();
 
-    // Get the patch data descriptor index for the LNodeIndexData.
+    // Get the patch data descriptor index for the LNodeIndexSetData.
     const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
 
     // Determine the PETSc indices of the target point nodes and the
@@ -238,9 +238,9 @@ IBTargetPointForceGen::computeLagrangianForceJacobianNonzeroStructure(
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
-        for (LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
-             it != idx_data->lnode_index_end(); ++it)
+        const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
+        for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
+             it != idx_data->data_end(); ++it)
         {
             const LNodeIndex& node_idx = *it;
             Pointer<IBTargetPointForceSpec> force_spec = node_idx.getNodeData<IBTargetPointForceSpec>();
@@ -279,7 +279,7 @@ IBTargetPointForceGen::computeLagrangianForceJacobian(
 
     int ierr;
 
-    // Get the patch data descriptor index for the LNodeIndexData.
+    // Get the patch data descriptor index for the LNodeIndexSetData.
     const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
 
     // Determine the PETSc indices of the target point nodes and the
@@ -292,9 +292,9 @@ IBTargetPointForceGen::computeLagrangianForceJacobian(
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
-        for (LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
-             it != idx_data->lnode_index_end(); ++it)
+        const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
+        for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
+             it != idx_data->data_end(); ++it)
         {
             const LNodeIndex& node_idx = *it;
             Pointer<IBTargetPointForceSpec> force_spec = node_idx.getNodeData<IBTargetPointForceSpec>();

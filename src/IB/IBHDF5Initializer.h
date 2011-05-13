@@ -42,7 +42,7 @@
 #include <ibamr/IBTargetPointForceSpec.h>
 
 // IBTK INCLUDES
-#include <ibtk/LNodeInitStrategy.h>
+#include <ibtk/LInitStrategy.h>
 
 // IBTK INCLUDES
 #include <ibtk/Streamable.h>
@@ -60,12 +60,11 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBHDF5Initializer is a concrete LNodeInitStrategy that
- * initializes the configuration of one or more Lagrangian structures from HDF5
- * input files.
+ * \brief Class IBHDF5Initializer is a concrete LInitStrategy that initializes
+ * the configuration of one or more Lagrangian structures from HDF5 input files.
  */
 class IBHDF5Initializer
-    : public IBTK::LNodeInitStrategy
+    : public IBTK::LInitStrategy
 {
 public:
     /*!

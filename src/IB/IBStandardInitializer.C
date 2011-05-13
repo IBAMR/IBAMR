@@ -56,7 +56,8 @@
 
 // IBTK INCLUDES
 #include <ibtk/IndexUtilities.h>
-#include <ibtk/LNodeIndexData.h>
+#include <ibtk/LNodeIndexSet.h>
+#include <ibtk/LNodeIndexSetData.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -246,8 +247,8 @@ IBStandardInitializer::~IBStandardInitializer()
 }// ~IBStandardInitializer
 
 void
-IBStandardInitializer::registerLagSiloDataWriter(
-    Pointer<LagSiloDataWriter> silo_writer)
+IBStandardInitializer::registerLSiloDataWriter(
+    Pointer<LSiloDataWriter> silo_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!silo_writer.isNull());
@@ -268,12 +269,12 @@ IBStandardInitializer::registerLagSiloDataWriter(
         {
             if (d_level_is_initialized[ln])
             {
-                initializeLagSiloDataWriter(ln);
+                initializeLSiloDataWriter(ln);
             }
         }
     }
     return;
-}// registerLagSiloDataWriter
+}// registerLSiloDataWriter
 
 bool
 IBStandardInitializer::getLevelHasLagrangianData(
@@ -373,7 +374,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
         const double* const xUpper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
 
-        Pointer<LNodeIndexData> index_data = patch->getPatchData(lag_node_index_idx);
+        Pointer<LNodeIndexSetData> index_data = patch->getPatchData(lag_node_index_idx);
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -428,10 +429,10 @@ IBStandardInitializer::initializeDataOnPatchLevel(
             LNodeIndexSet* const node_set = index_data->getItem(idx);
             static const IntVector<NDIM> periodic_offset(0);
             static const std::vector<double> periodic_displacement(NDIM,0.0);
-            node_set->push_back(new LNodeIndex(lagrangian_idx, global_petsc_idx, local_petsc_idx,
-                                               &X_array(local_petsc_idx,0),
-                                               periodic_offset, periodic_displacement,
-                                               specs));
+            node_set->push_back(LNodeIndex(lagrangian_idx, global_petsc_idx, local_petsc_idx,
+                                           &X_array(local_petsc_idx,0),
+                                           periodic_offset, periodic_displacement,
+                                           specs));
 
             // Initialize the velocity of the present vertex.
             std::fill(&U_array(local_petsc_idx,0),&U_array(local_petsc_idx,0)+NDIM,0.0);
@@ -447,7 +448,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     // locally refined grid.
     if (!d_silo_writer.isNull())
     {
-        initializeLagSiloDataWriter(level_number);
+        initializeLSiloDataWriter(level_number);
     }
     return local_node_count;
 }// initializeDataOnPatchLevel
@@ -619,7 +620,7 @@ IBStandardInitializer::tagCellsForInitialRefinement(
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IBStandardInitializer::initializeLagSiloDataWriter(
+IBStandardInitializer::initializeLSiloDataWriter(
     const int level_number)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -673,7 +674,7 @@ IBStandardInitializer::initializeLagSiloDataWriter(
         }
     }
     return;
-}// initializeLagSiloDataWriter
+}// initializeLSiloDataWriter
 
 void
 IBStandardInitializer::readVertexFiles()
