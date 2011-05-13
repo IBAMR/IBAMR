@@ -740,11 +740,12 @@ LEInteractor::getC(
     return -1;
 }// getC
 
+template<class T>
 void
 LEInteractor::interpolate(
     Pointer<LData>& Q_data,
     const Pointer<LData>& X_data,
-    const Pointer<LNodeIndexSetData>& idx_data,
+    const Pointer<LIndexSetData<T> >& idx_data,
     const Pointer<CellData<NDIM,double> > q_data,
     const Pointer<Patch<NDIM> >& patch,
     const Box<NDIM>& interp_box,
@@ -770,11 +771,12 @@ LEInteractor::interpolate(
     return;
 }// interpolate
 
+template<class T>
 void
 LEInteractor::interpolate(
     Pointer<LData>& Q_data,
     const Pointer<LData>& X_data,
-    const Pointer<LNodeIndexSetData>& idx_data,
+    const Pointer<LIndexSetData<T> >& idx_data,
     const Pointer<SideData<NDIM,double> > q_data,
     const Pointer<Patch<NDIM> >& patch,
     const Box<NDIM>& interp_box,
@@ -806,13 +808,14 @@ LEInteractor::interpolate(
     return;
 }// interpolate
 
+template<class T>
 void
 LEInteractor::interpolate(
     double* const Q_data,
     const int Q_depth,
     const double* const X_data,
     const int X_depth,
-    const Pointer<LNodeIndexSetData>& idx_data,
+    const Pointer<LIndexSetData<T> >& idx_data,
     const Pointer<CellData<NDIM,double> > q_data,
     const Pointer<Patch<NDIM> >& patch,
     const Box<NDIM>& interp_box,
@@ -863,13 +866,14 @@ LEInteractor::interpolate(
     return;
 }// interpolate
 
+template<class T>
 void
 LEInteractor::interpolate(
     double* const Q_data,
     const int Q_depth,
     const double* const X_data,
     const int X_depth,
-    const Pointer<LNodeIndexSetData>& idx_data,
+    const Pointer<LIndexSetData<T> >& idx_data,
     const Pointer<SideData<NDIM,double> > q_data,
     const Pointer<Patch<NDIM> >& patch,
     const Box<NDIM>& interp_box,
@@ -1128,12 +1132,13 @@ LEInteractor::interpolate(
     return;
 }// interpolate
 
+template<class T>
 void
 LEInteractor::spread(
     Pointer<CellData<NDIM,double> > q_data,
     const Pointer<LData>& Q_data,
     const Pointer<LData>& X_data,
-    const Pointer<LNodeIndexSetData>& idx_data,
+    const Pointer<LIndexSetData<T> >& idx_data,
     const Pointer<Patch<NDIM> >& patch,
     const Box<NDIM>& spread_box,
     const IntVector<NDIM>& periodic_shift,
@@ -1158,12 +1163,13 @@ LEInteractor::spread(
     return;
 }// spread
 
+template<class T>
 void
 LEInteractor::spread(
     Pointer<SideData<NDIM,double> > q_data,
     const Pointer<LData>& Q_data,
     const Pointer<LData>& X_data,
-    const Pointer<LNodeIndexSetData>& idx_data,
+    const Pointer<LIndexSetData<T> >& idx_data,
     const Pointer<Patch<NDIM> >& patch,
     const Box<NDIM>& spread_box,
     const IntVector<NDIM>& periodic_shift,
@@ -1194,6 +1200,7 @@ LEInteractor::spread(
     return;
 }// spread
 
+template<class T>
 void
 LEInteractor::spread(
     Pointer<CellData<NDIM,double> > q_data,
@@ -1201,7 +1208,7 @@ LEInteractor::spread(
     const int Q_depth,
     const double* const X_data,
     const int X_depth,
-    const Pointer<LNodeIndexSetData>& idx_data,
+    const Pointer<LIndexSetData<T> >& idx_data,
     const Pointer<Patch<NDIM> >& patch,
     const Box<NDIM>& spread_box,
     const IntVector<NDIM>& periodic_shift,
@@ -1251,6 +1258,7 @@ LEInteractor::spread(
     return;
 }// spread
 
+template<class T>
 void
 LEInteractor::spread(
     Pointer<SideData<NDIM,double> > q_data,
@@ -1258,7 +1266,7 @@ LEInteractor::spread(
     const int Q_depth,
     const double* const X_data,
     const int X_depth,
-    const Pointer<LNodeIndexSetData>& idx_data,
+    const Pointer<LIndexSetData<T> >& idx_data,
     const Pointer<Patch<NDIM> >& patch,
     const Box<NDIM>& spread_box,
     const IntVector<NDIM>& periodic_shift,
@@ -2244,6 +2252,7 @@ LEInteractor::spread(
     return;
 }// spread
 
+template<class T>
 void
 LEInteractor::buildLocalIndices(
     std::vector<int>& local_indices,
@@ -2251,7 +2260,7 @@ LEInteractor::buildLocalIndices(
     const Box<NDIM>& box,
     const Pointer<Patch<NDIM> >& patch,
     const IntVector<NDIM>& periodic_shift,
-    const Pointer<LNodeIndexSetData>& idx_data)
+    const Pointer<LIndexSetData<T> >& idx_data)
 {
     local_indices.clear();
     periodic_offsets.clear();
@@ -2269,13 +2278,13 @@ LEInteractor::buildLocalIndices(
     periodic_offsets.reserve(NDIM*upper_bound);
     if (s_sort_mode == NO_SORT)
     {
-        for (LNodeIndexSetData::SetIterator it(*idx_data); it; it++)
+        for (typename LIndexSetData<T> ::SetIterator it(*idx_data); it; it++)
         {
             const Index<NDIM>& i = it.getIndex();
             if (box.contains(i))
             {
-                const LNodeIndexSet& node_set = it.getItem();
-                const LNodeIndexSet::size_type num_ids = node_set.size();
+                const LSet<T>& node_set = it.getItem();
+                const typename LSet<T>::size_type num_ids = node_set.size();
 
                 std::vector<int> offset(NDIM,0);
                 static const int lower = 0;
@@ -2292,7 +2301,7 @@ LEInteractor::buildLocalIndices(
                     }
                 }
                 periodic_offsets.resize(periodic_offsets.size()+NDIM*num_ids);
-                for (LNodeIndexSet::size_type n = 0; n < num_ids; ++n)
+                for (typename LSet<T>::size_type n = 0; n < num_ids; ++n)
                 {
                     for (int d = 0; d < NDIM; ++d)
                     {
@@ -2316,12 +2325,12 @@ LEInteractor::buildLocalIndices(
         std::vector<std::pair<const LNodeIndex*,std::vector<double> > > box_idxs_and_offsets;
         box_idxs_and_offsets.reserve(upper_bound);
 
-        for (LNodeIndexSetData::SetIterator it(*idx_data); it; it++)
+        for (typename LIndexSetData<T> ::SetIterator it(*idx_data); it; it++)
         {
             const Index<NDIM>& i = it.getIndex();
             if (box.contains(i))
             {
-                const LNodeIndexSet& node_set = it.getItem();
+                const LSet<T>& node_set = it.getItem();
 
                 std::vector<int> offset(NDIM,0);
                 static const int lower = 0;
@@ -2343,7 +2352,7 @@ LEInteractor::buildLocalIndices(
                     node_offset[d] = double(offset[d])*dx[d];
                 }
 
-                for (LNodeIndexSet::const_iterator cit = node_set.begin(); cit != node_set.end(); ++cit)
+                for (typename LSet<T>::const_iterator cit = node_set.begin(); cit != node_set.end(); ++cit)
                 {
                     box_idxs_and_offsets.push_back(std::make_pair(&*cit,node_offset));
                 }
@@ -2648,5 +2657,103 @@ LEInteractor::userDefinedSpread(
 } // namespace IBTK
 
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
+
+#include <ibtk/LNode.h>
+
+template void IBTK::LEInteractor::interpolate(
+    SAMRAI::tbox::Pointer<LData>& Q_data,
+    const SAMRAI::tbox::Pointer<LData>& X_data,
+    const SAMRAI::tbox::Pointer<LIndexSetData<LNode> >& idx_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+    const SAMRAI::hier::Box<NDIM>& interp_box,
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const std::string& interp_fcn);
+
+template void IBTK::LEInteractor::interpolate(
+    SAMRAI::tbox::Pointer<LData>& Q_data,
+    const SAMRAI::tbox::Pointer<LData>& X_data,
+    const SAMRAI::tbox::Pointer<LIndexSetData<LNode> >& idx_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+    const SAMRAI::hier::Box<NDIM>& interp_box,
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const std::string& interp_fcn);
+
+template void IBTK::LEInteractor::interpolate(
+    double* const Q_data,
+    const int Q_depth,
+    const double* const X_data,
+    const int X_depth,
+    const SAMRAI::tbox::Pointer<LIndexSetData<LNode> >& idx_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+    const SAMRAI::hier::Box<NDIM>& interp_box,
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const std::string& interp_fcn);
+
+template void IBTK::LEInteractor::interpolate(
+    double* const Q_data,
+    const int Q_depth,
+    const double* const X_data,
+    const int X_depth,
+    const SAMRAI::tbox::Pointer<LIndexSetData<LNode> >& idx_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+    const SAMRAI::hier::Box<NDIM>& interp_box,
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const std::string& interp_fcn);
+
+template void IBTK::LEInteractor::spread(
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
+    const SAMRAI::tbox::Pointer<LData>& Q_data,
+    const SAMRAI::tbox::Pointer<LData>& X_data,
+    const SAMRAI::tbox::Pointer<LIndexSetData<LNode> >& idx_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+    const SAMRAI::hier::Box<NDIM>& spread_box,
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const std::string& spread_fcn);
+
+template void IBTK::LEInteractor::spread(
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
+    const SAMRAI::tbox::Pointer<LData>& Q_data,
+    const SAMRAI::tbox::Pointer<LData>& X_data,
+    const SAMRAI::tbox::Pointer<LIndexSetData<LNode> >& idx_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+    const SAMRAI::hier::Box<NDIM>& spread_box,
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const std::string& spread_fcn);
+
+template void IBTK::LEInteractor::spread(
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
+    const double* const Q_data,
+    const int Q_depth,
+    const double* const X_data,
+    const int X_depth,
+    const SAMRAI::tbox::Pointer<LIndexSetData<LNode> >& idx_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+    const SAMRAI::hier::Box<NDIM>& spread_box,
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const std::string& spread_fcn);
+
+template void IBTK::LEInteractor::spread(
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
+    const double* const Q_data,
+    const int Q_depth,
+    const double* const X_data,
+    const int X_depth,
+    const SAMRAI::tbox::Pointer<LIndexSetData<LNode> >& idx_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+    const SAMRAI::hier::Box<NDIM>& spread_box,
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const std::string& spread_fcn);
+
+template void IBTK::LEInteractor::buildLocalIndices(
+    std::vector<int>& local_indices,
+    std::vector<double>& periodic_offsets,
+    const SAMRAI::hier::Box<NDIM>& box,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const SAMRAI::tbox::Pointer<LIndexSetData<LNode> >& idx_data);
 
 //////////////////////////////////////////////////////////////////////////////

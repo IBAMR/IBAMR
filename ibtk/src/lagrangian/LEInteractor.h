@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/LNodeIndexSetData.h>
+#include <ibtk/LIndexSetData.h>
 #include <ibtk/LData.h>
 
 // SAMRAI INCLUDES
@@ -143,11 +143,12 @@ public:
      *
      * This is the standard regularized delta function interpolation operation.
      */
+    template<class T>
     static void
     interpolate(
         SAMRAI::tbox::Pointer<LData>& Q_data,
         const SAMRAI::tbox::Pointer<LData>& X_data,
-        const SAMRAI::tbox::Pointer<LNodeIndexSetData>& idx_data,
+        const SAMRAI::tbox::Pointer<LIndexSetData<T> >& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& interp_box,
@@ -169,11 +170,12 @@ public:
      *
      * This is the standard regularized delta function interpolation operation.
      */
+    template<class T>
     static void
     interpolate(
         SAMRAI::tbox::Pointer<LData>& Q_data,
         const SAMRAI::tbox::Pointer<LData>& X_data,
-        const SAMRAI::tbox::Pointer<LNodeIndexSetData>& idx_data,
+        const SAMRAI::tbox::Pointer<LIndexSetData<T> >& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& interp_box,
@@ -195,13 +197,14 @@ public:
      *
      * This is the standard regularized delta function interpolation operation.
      */
+    template<class T>
     static void
     interpolate(
         double* const Q_data,
         const int Q_depth,
         const double* const X_data,
         const int X_depth,
-        const SAMRAI::tbox::Pointer<LNodeIndexSetData>& idx_data,
+        const SAMRAI::tbox::Pointer<LIndexSetData<T> >& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& interp_box,
@@ -223,13 +226,14 @@ public:
      *
      * This is the standard regularized delta function interpolation operation.
      */
+    template<class T>
     static void
     interpolate(
         double* const Q_data,
         const int Q_depth,
         const double* const X_data,
         const int X_depth,
-        const SAMRAI::tbox::Pointer<LNodeIndexSetData>& idx_data,
+        const SAMRAI::tbox::Pointer<LIndexSetData<T> >& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& interp_box,
@@ -362,12 +366,13 @@ public:
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
      */
+    template<class T>
     static void
     spread(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<LData>& Q_data,
         const SAMRAI::tbox::Pointer<LData>& X_data,
-        const SAMRAI::tbox::Pointer<LNodeIndexSetData>& idx_data,
+        const SAMRAI::tbox::Pointer<LIndexSetData<T> >& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& spread_box,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
@@ -391,12 +396,13 @@ public:
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
      */
+    template<class T>
     static void
     spread(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
         const SAMRAI::tbox::Pointer<LData>& Q_data,
         const SAMRAI::tbox::Pointer<LData>& X_data,
-        const SAMRAI::tbox::Pointer<LNodeIndexSetData>& idx_data,
+        const SAMRAI::tbox::Pointer<LIndexSetData<T> >& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& spread_box,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
@@ -420,6 +426,7 @@ public:
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
      */
+    template<class T>
     static void
     spread(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
@@ -427,7 +434,7 @@ public:
         const int Q_depth,
         const double* const X_data,
         const int X_depth,
-        const SAMRAI::tbox::Pointer<LNodeIndexSetData>& idx_data,
+        const SAMRAI::tbox::Pointer<LIndexSetData<T> >& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& spread_box,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
@@ -451,6 +458,7 @@ public:
      * Unlike the standard regularized delta function spreading operation, the
      * implemented operations spreads values, NOT densities.
      */
+    template<class T>
     static void
     spread(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
@@ -458,7 +466,7 @@ public:
         const int Q_depth,
         const double* const X_data,
         const int X_depth,
-        const SAMRAI::tbox::Pointer<LNodeIndexSetData>& idx_data,
+        const SAMRAI::tbox::Pointer<LIndexSetData<T> >& idx_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::Box<NDIM>& spread_box,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
@@ -672,6 +680,7 @@ private:
      * \brief Compute the local PETSc indices located within the provided box
      * based on the LNodeIndexSetData values.
      */
+    template<class T>
     static void
     buildLocalIndices(
         std::vector<int>& local_indices,
@@ -679,7 +688,7 @@ private:
         const SAMRAI::hier::Box<NDIM>& box,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-        const SAMRAI::tbox::Pointer<LNodeIndexSetData>& idx_data);
+        const SAMRAI::tbox::Pointer<LIndexSetData<T> >& idx_data);
 
     /*!
      * \brief Compute the local PETSc indices located within the provided box
