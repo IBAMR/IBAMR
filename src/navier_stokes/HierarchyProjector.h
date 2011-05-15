@@ -165,14 +165,14 @@ public:
      */
     void
     setVelocityPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs);
 
     /*!
      * Returns a vector of pointers to the SAMRAI::solv::RobinBcCoefStrategy
      * object employed by the projector to specify physical boundary conditions
      * for the velocity.
      */
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>&
+    const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>&
     getVelocityPhysicalBcCoefs() const;
 
     /*!
@@ -475,8 +475,8 @@ private:
     bool d_initial_guess_nonzero;
 
     SAMRAI::solv::PoissonSpecifications d_poisson_spec;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_default_u_bc_coefs;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_u_bc_coefs;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_default_u_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_P_bc_coef;
     INSProjectionBcCoef* d_Phi_bc_coef;

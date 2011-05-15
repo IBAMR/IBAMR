@@ -81,7 +81,7 @@ SimpleIBSourceGen::initializeLevelData(
     const int level_number,
     const double init_data_time,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
     // Method initializeLevelData() is used to initialize any hierarchy-specific
     // data required to compute the source/sink strengths and is called after
@@ -96,7 +96,7 @@ SimpleIBSourceGen::getNumSources(
     const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
     // Method getNumSources() is used to specify the number of sources/sinks on
     // each level of the patch hierarchy.  In general, you probably want
@@ -125,7 +125,7 @@ SimpleIBSourceGen::getSourceLocations(
     const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
     // Recall that we have 4 sources/sinks located on level 0 of the patch
     // hierarchy.
@@ -162,7 +162,7 @@ SimpleIBSourceGen::setSourcePressures(
     const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
     // Method setSourcePressures() is used to provide to class SimpleIBSourceGen
     // the pressures at each of the internal sources/sinks relative to the mean
@@ -179,7 +179,7 @@ SimpleIBSourceGen::computeSourceStrengths(
     const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
     // Recall that we have 4 sources/sinks located on level 0 of the patch
     // hierarchy.

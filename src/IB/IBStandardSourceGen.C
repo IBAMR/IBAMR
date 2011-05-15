@@ -48,9 +48,6 @@
 #include <ibamr/IBSourceSpec.h>
 #include <ibamr/namespaces.h>
 
-// IBTK INCLUDES
-#include <ibtk/LNodeIndexSetData.h>
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -139,7 +136,7 @@ IBStandardSourceGen::initializeLevelData(
     const int level_number,
     const double init_data_time,
     const bool initial_time,
-    IBTK::LDataManager* const lag_manager)
+    IBTK::LDataManager* const l_data_manager)
 {
     d_n_src              .resize(std::max(level_number+1,int(d_n_src.size())),0);
     d_source_names       .resize(std::max(level_number+1,int(d_source_names.size())));
@@ -159,23 +156,17 @@ IBStandardSourceGen::initializeLevelData(
     d_P_src[level_number].resize(d_n_src[level_number],0.0);
 
     std::fill(d_num_perimeter_nodes[level_number].begin(),d_num_perimeter_nodes[level_number].end(),0);
-    const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const std::vector<LNode*>& local_nodes = mesh->getNodes();
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+         cit != local_nodes.end(); ++cit)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
-        for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
-             it != idx_data->data_end(); ++it)
+        const LNode& node_idx = **cit;
+        Pointer<IBSourceSpec> spec = node_idx.getNodeData<IBSourceSpec>();
+        if (!spec.isNull())
         {
-            const LNodeIndex& node_idx = *it;
-            Pointer<IBSourceSpec> spec = node_idx.getNodeData<IBSourceSpec>();
-            if (!spec.isNull())
-            {
-                const int source_idx = spec->getSourceIndex();
-                ++d_num_perimeter_nodes[level_number][source_idx];
-            }
+            const int source_idx = spec->getSourceIndex();
+            ++d_num_perimeter_nodes[level_number][source_idx];
         }
     }
     SAMRAI_MPI::sumReduction(&d_num_perimeter_nodes[level_number][0],d_num_perimeter_nodes[level_number].size());
@@ -187,7 +178,7 @@ IBStandardSourceGen::getNumSources(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
     return d_n_src[level_number];
 }// getNumSources
@@ -200,7 +191,7 @@ IBStandardSourceGen::getSourceLocations(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
     if (d_n_src[level_number] == 0) return;
 
@@ -217,27 +208,21 @@ IBStandardSourceGen::getSourceLocations(
     Vec X_vec = X_data->getVec();
     double* X_arr;
     int ierr = VecGetArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
-    const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const std::vector<LNode*>& local_nodes = mesh->getNodes();
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+         cit != local_nodes.end(); ++cit)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
-        for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
-             it != idx_data->data_end(); ++it)
+        const LNode& node_idx = **cit;
+        Pointer<IBSourceSpec> spec = node_idx.getNodeData<IBSourceSpec>();
+        if (!spec.isNull())
         {
-            const LNodeIndex& node_idx = *it;
-            Pointer<IBSourceSpec> spec = node_idx.getNodeData<IBSourceSpec>();
-            if (!spec.isNull())
+            const int& petsc_idx = node_idx.getLocalPETScIndex();
+            const double* const X = &X_arr[NDIM*petsc_idx];
+            const int source_idx = spec->getSourceIndex();
+            for (int d = 0; d < NDIM; ++d)
             {
-                const int& petsc_idx = node_idx.getLocalPETScIndex();
-                const double* const X = &X_arr[NDIM*petsc_idx];
-                const int source_idx = spec->getSourceIndex();
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    X_src[source_idx][d] += X[d]/double(d_num_perimeter_nodes[level_number][source_idx]);
-                }
+                X_src[source_idx][d] += X[d]/double(d_num_perimeter_nodes[level_number][source_idx]);
             }
         }
     }
@@ -262,7 +247,7 @@ IBStandardSourceGen::setSourcePressures(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
     d_P_src[level_number] = P_src;
     return;
@@ -274,7 +259,7 @@ IBStandardSourceGen::computeSourceStrengths(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
     Q_src = d_Q_src[level_number];
     return;

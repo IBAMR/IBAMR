@@ -44,6 +44,9 @@
 #include <LocationIndexRobinBcCoefs.h>
 #include <PoissonSpecifications.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
@@ -70,7 +73,7 @@ public:
     SCLaplaceOperator(
         const std::string& object_name,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
         const bool homogeneous_bc=true);
 
     /*!
@@ -99,7 +102,7 @@ public:
      */
     virtual void
     setPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
 
     /*!
      * \brief Specify whether the boundary conditions are homogeneous.
@@ -274,7 +277,7 @@ private:
     // Problem specification and mathematical operators.
     SAMRAI::solv::PoissonSpecifications d_poisson_spec;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_bc_coef;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs;
     bool d_homogeneous_bc;
 
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM,double> > d_hier_sc_data_ops;

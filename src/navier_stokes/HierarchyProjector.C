@@ -128,7 +128,7 @@ HierarchyProjector::HierarchyProjector(
       d_rel_residual_tol(1.0e-8),
       d_initial_guess_nonzero(true),
       d_poisson_spec(d_object_name+"::Poisson spec"),
-      d_u_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
+      d_u_bc_coefs(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_default_u_bc_coefs(),
       d_P_bc_coef(NULL),
       d_default_P_bc_coef(),
@@ -233,7 +233,7 @@ HierarchyProjector::HierarchyProjector(
             u_bc_coef->setBoundaryValue(location_index,0.0);
         }
 
-        d_default_u_bc_coefs.push_back(u_bc_coef);
+        d_default_u_bc_coefs[d] = u_bc_coef;
     }
 
     // Setup a default pressure boundary condition object to specify homogeneous
@@ -313,7 +313,6 @@ HierarchyProjector::~HierarchyProjector()
     {
         delete d_default_u_bc_coefs[d];
     }
-    d_default_u_bc_coefs.clear();
     return;
 }// ~HierarchyProjector
 
@@ -377,17 +376,12 @@ HierarchyProjector::isManagingHierarchyMathOps() const
 
 void
 HierarchyProjector::setVelocityPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs)
 {
-    if (u_bc_coefs.size() != NDIM)
-    {
-        TBOX_ERROR(d_object_name << "::setVelocityPhysicalBcCoefs():\n"
-                   << "  precisely NDIM boundary condition objects must be provided." << std::endl);
-    }
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned l = 0; l < u_bc_coefs.size(); ++l)
+    for (unsigned d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(u_bc_coefs[l] != NULL);
+        TBOX_ASSERT(u_bc_coefs[d] != NULL);
     }
 #endif
     d_u_bc_coefs = u_bc_coefs;
@@ -395,7 +389,7 @@ HierarchyProjector::setVelocityPhysicalBcCoefs(
     return;
 }// setVelocityPhysicalBcCoefs
 
-const std::vector<RobinBcCoefStrategy<NDIM>*>&
+const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>&
 HierarchyProjector::getVelocityPhysicalBcCoefs() const
 {
     return d_u_bc_coefs;

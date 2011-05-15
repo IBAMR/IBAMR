@@ -146,14 +146,13 @@ PETScMatUtilities::constructPatchLaplaceOp(
 
 void
 PETScMatUtilities::constructPatchLaplaceOps(
-    std::vector<Mat>& mats,
+    blitz::TinyVector<Mat,NDIM>& mats,
     const double C,
     const double D,
     SideData<NDIM,double>& src_data,
     SideData<NDIM,double>& dst_data,
     Patch<NDIM>& patch)
 {
-    mats.resize(NDIM);
     const Box<NDIM>& patch_box = patch.getBox();
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(patch_box == src_data.getBox());
@@ -768,7 +767,7 @@ PETScMatUtilities::constructPatchLevelInterpOp(
             const Index<NDIM>& stencil_box_lower = stencil_box.lower();
 
             // Compute the weights of the 1-dimensional delta functions.
-            std::vector<std::vector<double> > w(NDIM,std::vector<double>(stencil_sz,0.0));
+            blitz::TinyVector<std::vector<double>,NDIM> w(std::vector<double>(stencil_sz,0.0));
             for (int d = 0; d < NDIM; ++d)
             {
                 for (int i = stencil_box_lower(d), j = 0; i <= stencil_box.upper()(d); ++i, ++j)
@@ -866,7 +865,7 @@ PETScMatUtilities::constructBoxLaplaceOp(
     static const int x_axis = 0; (void) x_axis;
     static const int y_axis = 1; (void) y_axis;
     static const int z_axis = 2; (void) z_axis;
-    std::vector<int> num_cells(NDIM);
+    blitz::TinyVector<int,NDIM> num_cells;
     for (int d = 0; d < NDIM; ++d)
     {
         num_cells[d] = src_ghost_box.numberCells(d);

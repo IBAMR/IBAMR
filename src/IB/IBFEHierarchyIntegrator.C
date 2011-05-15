@@ -141,7 +141,7 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
     Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
     FEDataManager* fe_data_manager,
-    LDataManager* lag_data_manager,
+    LDataManager* l_data_manager,
     bool register_for_restart)
     : d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
@@ -171,7 +171,7 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
       d_lag_surface_force_fcn(NULL),
       d_lag_surface_force_fcn_systems(NULL),
       d_lag_surface_force_fcn_ctx(NULL),
-      d_lag_data_manager(lag_data_manager),
+      d_l_data_manager(l_data_manager),
       d_hierarchy(hierarchy),
       d_gridding_alg(NULL),
       d_visit_writer(NULL),
@@ -389,7 +389,7 @@ IBFEHierarchyIntegrator::registerVelocityInitialConditions(
 
 void
 IBFEHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs)
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs)
 {
     if (d_is_initialized)
     {
@@ -658,13 +658,13 @@ IBFEHierarchyIntegrator::initializeHierarchy()
     }
 
     // Reset the Lagrangian data manager.
-    if (d_lag_data_manager != NULL)
+    if (d_l_data_manager != NULL)
     {
         const int coarsest_ln = 0;
         const int finest_ln = d_hierarchy->getFinestLevelNumber();
-        d_lag_data_manager->beginDataRedistribution();
-        d_lag_data_manager->endDataRedistribution();
-        d_lag_data_manager->updateWorkloadData(coarsest_ln, finest_ln);
+        d_l_data_manager->beginDataRedistribution();
+        d_l_data_manager->endDataRedistribution();
+        d_l_data_manager->updateWorkloadData(coarsest_ln, finest_ln);
     }
 
     // Initialize the FE data manager.
@@ -778,9 +778,9 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     {
         for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
+            if (d_l_data_manager != NULL && d_l_data_manager->levelContainsLagrangianData(ln))
             {
-                d_ib_lag_force_strategy->initializeLevelData(d_hierarchy, ln, current_time, initial_time, d_lag_data_manager);
+                d_ib_lag_force_strategy->initializeLevelData(d_hierarchy, ln, current_time, initial_time, d_l_data_manager);
             }
         }
         d_ib_lag_force_strategy_needs_init = false;
@@ -826,13 +826,13 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     std::vector<Pointer<LData> > F_half_data(finest_ln+1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
+        if (d_l_data_manager != NULL && d_l_data_manager->levelContainsLagrangianData(ln))
         {
-            X_current_data[ln] = d_lag_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
-            X_new_data    [ln] = d_lag_data_manager->createLData("X_new" ,ln,NDIM);
-            X_half_data   [ln] = d_lag_data_manager->createLData("X_half",ln,NDIM);
-            U_half_data   [ln] = d_lag_data_manager->createLData("U_half",ln,NDIM);
-            F_half_data   [ln] = d_lag_data_manager->createLData("F_half",ln,NDIM);
+            X_current_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
+            X_new_data    [ln] = d_l_data_manager->createLData("X_new" ,ln,NDIM);
+            X_half_data   [ln] = d_l_data_manager->createLData("X_half",ln,NDIM);
+            U_half_data   [ln] = d_l_data_manager->createLData("U_half",ln,NDIM);
+            F_half_data   [ln] = d_l_data_manager->createLData("F_half",ln,NDIM);
         }
     }
 
@@ -865,7 +865,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
                    dynamic_cast<PetscVector<double>*>(&X_new)->vec()); IBTK_CHKERRQ(ierr);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
+        if (d_l_data_manager != NULL && d_l_data_manager->levelContainsLagrangianData(ln))
         {
             Vec X_current_vec = X_current_data[ln]->getVec();
             Vec X_new_vec = X_new_data[ln]->getVec();
@@ -903,7 +903,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         X_half.close();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
+            if (d_l_data_manager != NULL && d_l_data_manager->levelContainsLagrangianData(ln))
             {
                 Vec X_current_vec = X_current_data[ln]->getVec();
                 Vec X_new_vec = X_new_data[ln]->getVec();
@@ -927,11 +927,11 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         computeInteriorForceDensity(F_half, X_half, J_bar_half, current_time+0.5*dt);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
+            if (d_l_data_manager != NULL && d_l_data_manager->levelContainsLagrangianData(ln))
             {
                 Vec F_half_vec = F_half_data[ln]->getVec();
                 ierr = VecSet(F_half_vec, 0.0); IBTK_CHKERRQ(ierr);
-                d_ib_lag_force_strategy->computeLagrangianForce(F_half_data[ln], X_half_data[ln], U_half_data[ln], d_hierarchy, ln, current_time+0.5*dt, d_lag_data_manager);
+                d_ib_lag_force_strategy->computeLagrangianForce(F_half_data[ln], X_half_data[ln], U_half_data[ln], d_hierarchy, ln, current_time+0.5*dt, d_l_data_manager);
             }
         }
         t_advance_hierarchy_phase3->stop();
@@ -957,9 +957,9 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         {
             spreadTransmissionForceDensity(d_F_idx, X_half_IB_ghost, J_bar_half_IB_ghost, current_time+0.5*dt);
         }
-        if (d_lag_data_manager != NULL)
+        if (d_l_data_manager != NULL)
         {
-            d_lag_data_manager->spread(d_F_idx, F_half_data, X_half_data);
+            d_l_data_manager->spread(d_F_idx, F_half_data, X_half_data);
         }
         t_advance_hierarchy_phase5->stop();
 
@@ -973,9 +973,9 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         t_advance_hierarchy_phase7->start();
         d_hier_sc_data_ops->linearSum(d_V_idx, 0.5, U_current_idx, 0.5, U_new_idx);
         d_fe_data_manager->interp(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::GHOST_FILL"], current_time, false);
-        if (d_lag_data_manager != NULL)
+        if (d_l_data_manager != NULL)
         {
-            d_lag_data_manager->interp(d_V_idx, U_half_data, X_half_data, std::vector<Pointer<CoarsenSchedule<NDIM> > >(), std::vector<Pointer<RefineSchedule<NDIM> > >(), current_time, false);
+            d_l_data_manager->interp(d_V_idx, U_half_data, X_half_data, std::vector<Pointer<CoarsenSchedule<NDIM> > >(), std::vector<Pointer<RefineSchedule<NDIM> > >(), current_time, false);
         }
         t_advance_hierarchy_phase7->stop();
 
@@ -987,7 +987,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
                         dynamic_cast<PetscVector<double>*>(&X_current)->vec()); IBTK_CHKERRQ(ierr);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
+            if (d_l_data_manager != NULL && d_l_data_manager->levelContainsLagrangianData(ln))
             {
                 Vec X_current_vec = X_current_data[ln]->getVec();
                 Vec X_new_vec = X_new_data[ln]->getVec();
@@ -1007,7 +1007,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
                    dynamic_cast<PetscVector<double>*>(&X_current)->vec()); IBTK_CHKERRQ(ierr);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (d_lag_data_manager != NULL && d_lag_data_manager->levelContainsLagrangianData(ln))
+        if (d_l_data_manager != NULL && d_l_data_manager->levelContainsLagrangianData(ln))
         {
             Vec X_current_vec = X_current_data[ln]->getVec();
             Vec X_new_vec = X_new_data[ln]->getVec();
@@ -1158,10 +1158,10 @@ IBFEHierarchyIntegrator::regridHierarchy()
     LMarkerUtilities::collectMarkersOnPatchHierarchy(d_mark_current_idx, d_hierarchy);
 
     // Begin Lagrangian data redistribution.
-    if (d_lag_data_manager != NULL)
+    if (d_l_data_manager != NULL)
     {
-        d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
-        d_lag_data_manager->beginDataRedistribution();
+        d_l_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
+        d_l_data_manager->beginDataRedistribution();
     }
 
     // We use the INSStaggeredHierarchyIntegrator to handle as much structured
@@ -1169,10 +1169,10 @@ IBFEHierarchyIntegrator::regridHierarchy()
     d_ins_hier_integrator->regridHierarchy();
 
     // Complete Lagrangian data redistribution.
-    if (d_lag_data_manager != NULL)
+    if (d_l_data_manager != NULL)
     {
-        d_lag_data_manager->endDataRedistribution();
-        d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
+        d_l_data_manager->endDataRedistribution();
+        d_l_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
     }
     d_ib_lag_force_strategy_needs_init = true;
 
@@ -1308,11 +1308,11 @@ IBFEHierarchyIntegrator::initializeLevelData(
     d_fe_data_manager->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
 
     // Initialize the Lagrangian data manager.
-    if (d_lag_data_manager != NULL)
+    if (d_l_data_manager != NULL)
     {
-        d_lag_data_manager->setPatchHierarchy(hierarchy);
-        d_lag_data_manager->resetLevels(0,hierarchy->getFinestLevelNumber());
-        d_lag_data_manager->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
+        d_l_data_manager->setPatchHierarchy(hierarchy);
+        d_l_data_manager->resetLevels(0,hierarchy->getFinestLevelNumber());
+        d_l_data_manager->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     }
 
     // We use the INSStaggeredHierarchyIntegrator to handle as much structured
@@ -1362,9 +1362,9 @@ IBFEHierarchyIntegrator::resetHierarchyConfiguration(
     d_fe_data_manager->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_hier_level);
 
     // Reset the Lagrangian data manager.
-    if (d_lag_data_manager != NULL)
+    if (d_l_data_manager != NULL)
     {
-        d_lag_data_manager->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_hier_level);
+        d_l_data_manager->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_hier_level);
     }
 
     // We use the INSStaggeredHierarchyIntegrator to handle as much structured
@@ -1446,9 +1446,9 @@ IBFEHierarchyIntegrator::applyGradientDetector(
 
     // Tag cells which contain Lagragian nodes.
     d_fe_data_manager->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
-    if (d_lag_data_manager != NULL)
+    if (d_l_data_manager != NULL)
     {
-        d_lag_data_manager->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
+        d_l_data_manager->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     }
 
     t_apply_gradient_detector->stop();
@@ -1541,16 +1541,6 @@ IBFEHierarchyIntegrator::putToDatabase(
     {
         db->putInteger("instrument_names_sz", instrument_names.size());
         db->putStringArray("instrument_names", &instrument_names[0], instrument_names.size());
-    }
-
-    db->putString("d_mark_input_file_name", d_mark_input_file_name);
-    db->putInteger("d_num_mark", d_num_mark);
-    if (d_num_mark > 0)
-    {
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(NDIM*d_num_mark == int(d_mark_init_posns.size()));
-#endif
-        db->putDoubleArray("d_mark_init_posns", &d_mark_init_posns[0], d_mark_init_posns.size());
     }
 
     t_put_to_database->stop();
@@ -2154,14 +2144,6 @@ IBFEHierarchyIntegrator::getFromRestart()
         std::vector<std::string> instrument_names(sz);
         db->getStringArray("instrument_names", &instrument_names[0], sz);
         IBInstrumentationSpec::setInstrumentNames(instrument_names);
-    }
-
-    d_mark_input_file_name = db->getString("d_mark_input_file_name");
-    d_num_mark = db->getInteger("d_num_mark");
-    d_mark_init_posns.resize(NDIM*d_num_mark);
-    if (d_num_mark > 0)
-    {
-        db->getDoubleArray("d_mark_init_posns", &d_mark_init_posns[0], d_mark_init_posns.size());
     }
     return;
 }// getFromRestart

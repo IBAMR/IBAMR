@@ -307,27 +307,27 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     // Setup default boundary condition objects that specify homogeneous
     // Dirichlet boundary conditions for the velocity and homogeneous Neumann
     // boundary conditions for the pressure.
-    d_default_U_bc_coef = new LocationIndexRobinBcCoefs<NDIM>(
-        d_object_name+"::default_U_bc_coef", Pointer<Database>(NULL));
+    d_default_U_bc_coef = new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_U_bc_coef", Pointer<Database>(NULL));
     for (int d = 0; d < NDIM; ++d)
     {
         d_default_U_bc_coef->setBoundaryValue(2*d  ,0.0);
         d_default_U_bc_coef->setBoundaryValue(2*d+1,0.0);
     }
+    for (int d = 0; d < NDIM; ++d)
+    {
+        d_intermediate_U_bc_coefs[d] = new INSIntermediateVelocityBcCoef(d,-1,blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(d_default_U_bc_coef),false);
+    }
 
-    d_default_P_bc_coef = new LocationIndexRobinBcCoefs<NDIM>(
-        d_object_name+"::default_P_bc_coef", Pointer<Database>(NULL));
+    d_default_P_bc_coef = new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_P_bc_coef", Pointer<Database>(NULL));
     for (int d = 0; d < NDIM; ++d)
     {
         d_default_P_bc_coef->setBoundarySlope(2*d  ,0.0);
         d_default_P_bc_coef->setBoundarySlope(2*d+1,0.0);
     }
 
-    d_Phi_bc_coef = new INSProjectionBcCoef(-1,NULL,PRESSURE_UPDATE,-1,std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),true);
+    d_Phi_bc_coef = new INSProjectionBcCoef(-1,NULL,PRESSURE_UPDATE,-1,blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),true);
 
-    registerVelocityPhysicalBcCoefs(
-        std::vector<RobinBcCoefStrategy<NDIM>*>(
-            NDIM,d_default_U_bc_coef));
+    registerVelocityPhysicalBcCoefs(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(d_default_U_bc_coef));
 
     registerPressurePhysicalBcCoef(d_default_P_bc_coef);
 
@@ -489,7 +489,6 @@ INSHierarchyIntegrator::~INSHierarchyIntegrator()
     {
         delete d_intermediate_U_bc_coefs[d];
     }
-    d_intermediate_U_bc_coefs.clear();
     return;
 }// ~INSHierarchyIntegrator
 
@@ -509,7 +508,7 @@ INSHierarchyIntegrator::registerVelocityInitialConditions(
 
 void
 INSHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs)
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs)
 {
     if (d_is_initialized)
     {
@@ -518,30 +517,17 @@ INSHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
                    << "  of the hierarchy integrator object." << std::endl);
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned l = 0; l < U_bc_coefs.size(); ++l)
+    for (unsigned d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(U_bc_coefs[l] != NULL);
+        TBOX_ASSERT(U_bc_coefs[d] != NULL);
     }
 #endif
     d_U_bc_coefs = U_bc_coefs;
     d_hier_projector->setVelocityPhysicalBcCoefs(d_U_bc_coefs);
-
-    if (d_intermediate_U_bc_coefs.empty())
+    for (int d = 0; d < NDIM; ++d)
     {
-        d_intermediate_U_bc_coefs.resize(NDIM,NULL);
-        for (int d = 0; d < NDIM; ++d)
-        {
-            d_intermediate_U_bc_coefs[d] = new INSIntermediateVelocityBcCoef(d,-1,d_U_bc_coefs,false);
-        }
+        d_intermediate_U_bc_coefs[d]->setVelocityPhysicalBcCoefs(d_U_bc_coefs);
     }
-    else
-    {
-        for (int d = 0; d < NDIM; ++d)
-        {
-            d_intermediate_U_bc_coefs[d]->setVelocityPhysicalBcCoefs(d_U_bc_coefs);
-        }
-    }
-
     d_Phi_bc_coef->setVelocityPhysicalBcCoefs(d_U_bc_coefs);
     return;
 }// registerVelocityPhysicalBcCoefs
@@ -886,7 +872,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
 
     d_adv_diff_hier_integrator->registerIncompressibilityFixTerm(d_grad_Phi_var, false);
 
-    std::vector<RobinBcCoefStrategy<NDIM>*> U_bc_coefs(d_intermediate_U_bc_coefs.begin(), d_intermediate_U_bc_coefs.end());
+    std::vector<RobinBcCoefStrategy<NDIM>*> U_bc_coefs(d_intermediate_U_bc_coefs.data(), d_intermediate_U_bc_coefs.data()+NDIM);
 
     d_adv_diff_hier_integrator->registerTransportedQuantity(d_U_var);
     d_adv_diff_hier_integrator->setAdvectionVelocity(d_U_var, d_u_adv_var);
@@ -2142,8 +2128,7 @@ INSHierarchyIntegrator::updatePressure(
         }
 
         // Initialize the linear solver.
-        std::vector<RobinBcCoefStrategy<NDIM>*> U_bc_coefs(
-            d_intermediate_U_bc_coefs.begin(), d_intermediate_U_bc_coefs.end());
+        std::vector<RobinBcCoefStrategy<NDIM>*> U_bc_coefs(d_intermediate_U_bc_coefs.data(), d_intermediate_U_bc_coefs.data()+NDIM);
 
         d_helmholtz_op->setPoissonSpecifications(*d_helmholtz_spec);
         d_helmholtz_op->setPhysicalBcCoefs(U_bc_coefs);
@@ -2957,8 +2942,7 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
     // Initialize the interpolation operators.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
 
-    std::vector<RobinBcCoefStrategy<NDIM>*> U_bc_coefs(
-        d_intermediate_U_bc_coefs.begin(), d_intermediate_U_bc_coefs.end());
+    std::vector<RobinBcCoefStrategy<NDIM>*> U_bc_coefs(d_intermediate_U_bc_coefs.begin(), d_intermediate_U_bc_coefs.begin()+NDIM);
     InterpolationTransactionComponent V_transaction_comp(d_V_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, U_bc_coefs);
     d_V_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_V_bdry_fill_op->initializeOperatorState(V_transaction_comp, d_hierarchy);

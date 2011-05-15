@@ -104,7 +104,7 @@ discard_comments(
 
 int
 LMarkerUtilities::readMarkerPositions(
-    std::vector<double>& mark_init_posns,
+    std::vector<blitz::TinyVector<double,NDIM> >& mark_init_posns,
     const std::string& mark_input_file_name,
     Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
@@ -148,7 +148,7 @@ LMarkerUtilities::readMarkerPositions(
 
             // Each successive line provides the initial position of each
             // marker in the input file.
-            mark_init_posns.resize(NDIM*num_mark,0.0);
+            mark_init_posns.resize(num_mark);
             for (int k = 0; k < num_mark; ++k)
             {
                 if (!std::getline(file_stream, line_string))
@@ -161,7 +161,7 @@ LMarkerUtilities::readMarkerPositions(
                     std::istringstream line_stream(line_string);
                     for (int d = 0; d < NDIM; ++d)
                     {
-                        if (!(line_stream >> mark_init_posns[NDIM*k+d]))
+                        if (!(line_stream >> mark_init_posns[k][d]))
                         {
                             TBOX_ERROR("LMarkerUtilities::readMarkerPositions():\n  Invalid entry in input file encountered on line " << k+2 << " of file " << mark_input_file_name << "\n");
                         }
@@ -169,7 +169,7 @@ LMarkerUtilities::readMarkerPositions(
 
                     // Ensure the initial marker position lies within the
                     // physical domain.
-                    const double* const X = &mark_init_posns[NDIM*k];
+                    const double* const X = mark_init_posns[k].data();
                     for (int d = 0; d < NDIM; ++d)
                     {
                         if (MathUtilities<double>::equalEps(X[d],grid_xLower[d]))
@@ -243,7 +243,7 @@ LMarkerUtilities::advectMarkers(
                  it != mark_current_data->data_end(); ++it)
             {
                 const LMarker& mark = *it;
-                const std::vector<double>& X = mark.getPosition();
+                const blitz::TinyVector<double,NDIM>& X = mark.getPosition();
                 X_mark.insert(X_mark.end(), X.begin(), X.end());
 #ifdef DEBUG_CHECK_ASSERTIONS
                 const int& idx = mark.getIndex();
@@ -261,7 +261,7 @@ LMarkerUtilities::advectMarkers(
                  it != mark_new_data->data_end(); ++it)
             {
                 const LMarker& mark = *it;
-                const std::vector<double>& X = mark.getPosition();
+                const blitz::TinyVector<double,NDIM>& X = mark.getPosition();
                 X_mark_new.insert(X_mark_new.end(), X.begin(), X.end());
 #ifdef DEBUG_CHECK_ASSERTIONS
                 const int& idx = mark.getIndex();
@@ -324,7 +324,7 @@ LMarkerUtilities::advectMarkers(
                  it != mark_new_data->data_end(); ++it, ++marker_offset)
             {
                 LMarker& mark = *it;
-                std::vector<double>& X = mark.getPosition();
+                blitz::TinyVector<double,NDIM>& X = mark.getPosition();
                 for (int d = 0; d < NDIM; ++d)
                 {
                     X[d] = X_mark_new[NDIM*marker_offset+d];
@@ -379,9 +379,8 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(
                     mark_current_data->appendItemPointer(i, new LMarkerSet());
                 }
                 LMarkerSet& dst_mark_set = *(mark_current_data->getItem(i));
-                LMarkerSet::DataSet& dst_mark_set_data = dst_mark_set.getDataSet();
                 const LMarkerSet& src_mark_set = it();
-                dst_mark_set_data.insert(dst_mark_set_data.end(), src_mark_set.begin(), src_mark_set.end());
+                dst_mark_set.insert(dst_mark_set.end(), src_mark_set.begin(), src_mark_set.end());
             }
         }
 
@@ -440,7 +439,7 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(
              it != mark_data->data_end(); ++it)
         {
             const LMarker& mark = *it;
-            const std::vector<double>& X = mark.getPosition();
+            const blitz::TinyVector<double,NDIM>& X = mark.getPosition();
             const IntVector<NDIM>& offset = mark.getPeriodicOffset();
             double X_shifted[NDIM];
             for (int d = 0; d < NDIM; ++d)
@@ -489,7 +488,7 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(
 void
 LMarkerUtilities::initializeMarkersOnLevel(
     const int mark_idx,
-    const std::vector<double>& mark_init_posns,
+    const std::vector<blitz::TinyVector<double,NDIM> >& mark_init_posns,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const bool initial_time,
@@ -514,11 +513,10 @@ LMarkerUtilities::initializeMarkersOnLevel(
             const double* const patchDx = patch_geom->getDx();
 
             Pointer<LMarkerSetData> mark_data = patch->getPatchData(mark_idx);
-            for (unsigned k = 0; k < mark_init_posns.size()/NDIM; ++k)
+            for (unsigned k = 0; k < mark_init_posns.size(); ++k)
             {
-                std::vector<double> X;
-                X.insert(X.end(),&mark_init_posns[NDIM*k],&mark_init_posns[NDIM*k]+NDIM);
-                static const std::vector<double> U(NDIM,0.0);
+                const blitz::TinyVector<double,NDIM>& X = mark_init_posns[k];
+                static const blitz::TinyVector<double,NDIM> U(0.0);
                 const bool patch_owns_mark_at_loc =
                     ((  patchXLower[0] <= X[0])&&(X[0] < patchXUpper[0]))
 #if (NDIM > 1)

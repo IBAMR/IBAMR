@@ -133,6 +133,20 @@ public:
         const LSet& that);
 
     /*!
+     * \return A reference to the nth element of the set.
+     */
+    reference
+    operator[](
+        size_type n);
+
+    /*!
+     * \return A const reference to the nth element of the set.
+     */
+    const_reference
+    operator[](
+        size_type n) const;
+
+    /*!
      * \return A const_iterator pointing to the beginning of the set of indices.
      */
     const_iterator
@@ -174,6 +188,33 @@ public:
     void
     push_back(
         const value_type& value);
+
+    /*!
+     * \brief Inserts x before pos.
+     */
+    iterator
+    insert(
+        iterator pos,
+        const T& x);
+
+    /*!
+     * \brief Inserts the range [first,last) before pos.
+     */
+    template <class InputIterator>
+    void
+    insert(
+        iterator pos,
+        InputIterator first,
+        InputIterator last);
+
+    /*!
+     * \brief Inserts n copies of x before pos.
+     */
+    void
+    insert(
+        iterator pos,
+        size_type n,
+        const T& x);
 
     /*!
      * \brief Return a const reference to the set of data items.

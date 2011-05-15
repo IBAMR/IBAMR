@@ -138,7 +138,7 @@ public:
     void
     initializeHierarchyIndependentData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        IBTK::LDataManager* const lag_manager);
+        IBTK::LDataManager* const l_data_manager);
 
     /*!
      * \brief Initialize hierarchy- and configuration-dependent data.
@@ -146,7 +146,7 @@ public:
     void
     initializeHierarchyDependentData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        IBTK::LDataManager* const lag_manager,
+        IBTK::LDataManager* const l_data_manager,
         const int timestep_num,
         const double data_time);
 
@@ -159,7 +159,7 @@ public:
         const int U_data_idx,
         const int P_data_idx,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        IBTK::LDataManager* const lag_manager,
+        IBTK::LDataManager* const l_data_manager,
         const int timestep_num,
         const double data_time);
 

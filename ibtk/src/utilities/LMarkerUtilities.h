@@ -35,6 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // C++ STDLIB INCLUDES
 #include <vector>
 
@@ -62,7 +65,7 @@ public:
      */
     static int
     readMarkerPositions(
-        std::vector<double>& mark_init_posns,
+        std::vector<blitz::TinyVector<double,NDIM> >& mark_init_posns,
         const std::string& mark_input_file_name,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
@@ -98,7 +101,7 @@ public:
     static void
     initializeMarkersOnLevel(
         const int mark_idx,
-        const std::vector<double>& mark_init_posns,
+        const std::vector<blitz::TinyVector<double,NDIM> >& mark_init_posns,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const bool initial_time,

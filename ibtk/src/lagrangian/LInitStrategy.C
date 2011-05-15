@@ -76,7 +76,7 @@ LInitStrategy::initializeStructureIndexingOnPatchLevel(
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
     TBOX_WARNING("LInitStrategy::initializeStructureIndexingOnPatchLevel()\n"
                  << "  default implementation employed, no indexing data provided.\n");
@@ -94,7 +94,7 @@ LInitStrategy::initializeMassDataOnPatchLevel(
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
     TBOX_WARNING("LInitStrategy::initializeMassDataOnPatchLevel()\n"
                  << "  default implementation employed, no mass data initialized.\n");
@@ -111,7 +111,7 @@ LInitStrategy::initializeDirectorDataOnPatchLevel(
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
     TBOX_WARNING("LInitStrategy::initializeDirectorDataOnPatchLevel()\n"
                  << "  default implementation employed, no director data initialized.\n");

@@ -82,7 +82,7 @@ IBLagrangianSourceStrategy::initializeLevelData(
     const int level_number,
     const double init_data_time,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
     // intentionally blank
     return;

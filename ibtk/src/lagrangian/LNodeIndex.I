@@ -56,17 +56,13 @@ LNodeIndex::LNodeIndex(
     const int lagrangian_nidx,
     const int global_petsc_nidx,
     const int local_petsc_nidx,
-    const double* const X_ptr,
     const SAMRAI::hier::IntVector<NDIM>& periodic_offset,
-    const std::vector<double>& periodic_displacement,
-    const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data)
+    const blitz::TinyVector<double,NDIM>& periodic_displacement)
     : d_lagrangian_nidx(lagrangian_nidx),
       d_global_petsc_nidx(global_petsc_nidx),
       d_local_petsc_nidx(local_petsc_nidx),
-      d_X_ptr(X_ptr),
       d_offset(periodic_offset),
-      d_displacement(periodic_displacement),
-      d_node_data(node_data)
+      d_displacement(periodic_displacement)
 {
     // intentionally blank
     return;
@@ -78,10 +74,8 @@ LNodeIndex::LNodeIndex(
     : d_lagrangian_nidx(from.d_lagrangian_nidx),
       d_global_petsc_nidx(from.d_global_petsc_nidx),
       d_local_petsc_nidx(from.d_local_petsc_nidx),
-      d_X_ptr(from.d_X_ptr),
       d_offset(from.d_offset),
-      d_displacement(from.d_displacement),
-      d_node_data(from.d_node_data)
+      d_displacement(from.d_displacement)
 {
     // intentionally blank
     return;
@@ -147,37 +141,15 @@ LNodeIndex::setLocalPETScIndex(
     return;
 }// setLocalPETScIndex
 
-inline const double*
-LNodeIndex::getNodeLocation() const
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_X_ptr != NULL);
-#endif
-    return d_X_ptr;
-}// getNodeLocation
-
-inline void
-LNodeIndex::setNodeLocation(
-    const double* const X_ptr)
-{
-    d_X_ptr = X_ptr;
-    return;
-}// setNodeLocation
-
 inline void
 LNodeIndex::registerPeriodicShift(
     const SAMRAI::hier::IntVector<NDIM>& offset,
-    const std::vector<double>& displacement)
+    const blitz::TinyVector<double,NDIM>& displacement)
 {
     d_offset += offset;
     for (int d = 0; d < NDIM; ++d)
     {
         d_displacement[d] += displacement[d];
-    }
-    for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::iterator it = d_node_data.begin();
-         it != d_node_data.end(); ++it)
-    {
-        (*it)->registerPeriodicShift(offset, displacement);
     }
     return;
 }// registerPeriodicShift
@@ -188,59 +160,11 @@ LNodeIndex::getPeriodicOffset() const
     return d_offset;
 }// getPeriodicOffset
 
-inline const std::vector<double>&
+inline const blitz::TinyVector<double,NDIM>&
 LNodeIndex::getPeriodicDisplacement() const
 {
     return d_displacement;
 }// getPeriodicDisplacement
-
-inline const std::vector<SAMRAI::tbox::Pointer<Streamable> >&
-LNodeIndex::getNodeData() const
-{
-    return d_node_data;
-}// getNodeData
-
-inline std::vector<SAMRAI::tbox::Pointer<Streamable> >&
-LNodeIndex::getNodeData()
-{
-    return d_node_data;
-}// getNodeData
-
-inline void
-LNodeIndex::setNodeData(
-    const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data)
-{
-    d_node_data = node_data;
-    return;
-}// setNodeData
-
-template<typename T>
-inline SAMRAI::tbox::Pointer<T>
-LNodeIndex::getNodeData() const
-{
-    SAMRAI::tbox::Pointer<T> ret_val = NULL;
-    for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::const_iterator cit = d_node_data.begin();
-         cit != d_node_data.end(); ++cit)
-    {
-        ret_val = (*cit);
-        if (!ret_val.isNull()) break;
-    }
-    return ret_val;
-}// getNodeData
-
-template<typename T>
-inline std::vector<SAMRAI::tbox::Pointer<T> >
-LNodeIndex::getNodeDataVector() const
-{
-    std::vector<SAMRAI::tbox::Pointer<T> > ret_val;
-    for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::const_iterator cit = d_node_data.begin();
-         cit != d_node_data.end(); ++cit)
-    {
-        SAMRAI::tbox::Pointer<T> it_val = (*cit);
-        if (!it_val.isNull()) ret_val.push_back(it_val);
-    }
-    return ret_val;
-}// getNodeDataVector
 
 inline void
 LNodeIndex::copySourceItem(
@@ -255,8 +179,7 @@ LNodeIndex::copySourceItem(
 inline size_t
 LNodeIndex::getDataStreamSize() const
 {
-    return (3+NDIM)*SAMRAI::tbox::AbstractStream::sizeofInt() + NDIM*SAMRAI::tbox::AbstractStream::sizeofDouble()
-        + StreamableManager::getManager()->getDataStreamSize(d_node_data);
+    return (3+NDIM)*SAMRAI::tbox::AbstractStream::sizeofInt() + NDIM*SAMRAI::tbox::AbstractStream::sizeofDouble();
 }// getDataStreamSize
 
 inline void
@@ -267,8 +190,7 @@ LNodeIndex::packStream(
     stream.pack(&d_global_petsc_nidx, 1);
     stream.pack(&d_local_petsc_nidx, 1);
     stream.pack(d_offset, NDIM);
-    stream.pack(&d_displacement[0], NDIM);
-    StreamableManager::getManager()->packStream(stream, d_node_data);
+    stream.pack(d_displacement.data(), NDIM);
     return;
 }// packStream
 
@@ -280,12 +202,8 @@ LNodeIndex::unpackStream(
     stream.unpack(&d_lagrangian_nidx, 1);
     stream.unpack(&d_global_petsc_nidx, 1);
     stream.unpack(&d_local_petsc_nidx, 1);
-    d_X_ptr = NULL;
     stream.unpack(d_offset, NDIM);
-    d_displacement.resize(NDIM);
-    stream.unpack(&d_displacement[0], NDIM);
-    d_node_data.clear();
-    StreamableManager::getManager()->unpackStream(stream, offset, d_node_data);
+    stream.unpack(d_displacement.data(), NDIM);
     return;
 }// unpackStream
 
@@ -298,47 +216,10 @@ LNodeIndex::assignThatToThis(
     d_lagrangian_nidx = that.d_lagrangian_nidx;
     d_global_petsc_nidx = that.d_global_petsc_nidx;
     d_local_petsc_nidx = that.d_local_petsc_nidx;
-    d_X_ptr = that.d_X_ptr;
     d_offset = that.d_offset;
     d_displacement = that.d_displacement;
-    d_node_data = that.d_node_data;
     return;
 }// assignThatToThis
-
-//////////////////////////////////////////////////////////////////////////////
-
-inline bool
-operator<(
-    const LNodeIndex& lhs,
-    const LNodeIndex& rhs)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(lhs.d_X_ptr != NULL);
-    TBOX_ASSERT(rhs.d_X_ptr != NULL);
-#if ((NDIM>3) || (NDIM<1))
-    TBOX_ERROR("operator<(const LNodeIndex&,const LNodeIndex&): not implemented for NDIM=="
-               << NDIM << endl);
-#endif
-#endif
-    return (lhs.d_X_ptr[0]<rhs.d_X_ptr[0]) ||
-#if (NDIM>1)
-        ((lhs.d_X_ptr[0]==rhs.d_X_ptr[0])&&
-         (lhs.d_X_ptr[1]< rhs.d_X_ptr[1])) ||
-#if (NDIM>2)
-        ((lhs.d_X_ptr[0]==rhs.d_X_ptr[0])&&
-         (lhs.d_X_ptr[1]==rhs.d_X_ptr[1])&&
-         (lhs.d_X_ptr[2]< rhs.d_X_ptr[2])) ||
-#endif
-#endif
-        ((lhs.d_X_ptr[0]==rhs.d_X_ptr[0])&&
-#if (NDIM>1)
-         (lhs.d_X_ptr[1]==rhs.d_X_ptr[1])&&
-#if (NDIM>2)
-         (lhs.d_X_ptr[2]==rhs.d_X_ptr[2])&&
-#endif
-#endif
-         (lhs.d_lagrangian_nidx<rhs.d_lagrangian_nidx));
-}// operator<
 
 //////////////////////////////////////////////////////////////////////////////
 

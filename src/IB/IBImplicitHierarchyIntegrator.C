@@ -57,7 +57,6 @@
 #include <ibtk/CartSideDoubleDivPreservingRefine.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/LNodeIndexSetData.h>
 #include <ibtk/PETScSAMRAIVectorReal.h>
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScVecUtilities.h>
@@ -251,8 +250,12 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
     {
         d_default_u_bc_coef->setBoundaryValue(2*d  ,0.0);
         d_default_u_bc_coef->setBoundaryValue(2*d+1,0.0);
+        d_u_bc_coefs[d] = NULL;
+        d_u_star_bc_coefs[d] = NULL;
     }
-    registerVelocityPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,d_default_u_bc_coef));
+    d_p_bc_coef = NULL;
+    d_phi_bc_coef = NULL;
+    registerVelocityPhysicalBcCoefs(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(d_default_u_bc_coef));
 
     // Initialize object with data read from the input and restart databases.
     const bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -266,11 +269,11 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
     d_problem_coefs = new INSCoefs(d_rho, d_mu, d_lambda);
 
     // Get the Lagrangian Data Manager.
-    d_lag_data_manager = LDataManager::getManager(d_object_name+"::LDataManager",
+    d_l_data_manager = LDataManager::getManager(d_object_name+"::LDataManager",
                                                   d_delta_fcn, d_delta_fcn,
                                                   d_ghosts,
                                                   d_registered_for_restart);
-    d_ghosts = d_lag_data_manager->getGhostCellWidth();
+    d_ghosts = d_l_data_manager->getGhostCellWidth();
 
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
@@ -354,16 +357,13 @@ IBImplicitHierarchyIntegrator::~IBImplicitHierarchyIntegrator()
     if (d_helmholtz_spec != NULL) delete d_helmholtz_spec;
     if (d_poisson_spec != NULL) delete d_poisson_spec;
     delete d_default_u_bc_coef;
-    if (!d_u_bc_coefs.empty())
+    for (int d = 0; d < NDIM; ++d)
     {
-        for (int d = 0; d < NDIM; ++d)
-        {
-            delete d_u_bc_coefs[d];
-            delete d_u_star_bc_coefs[d];
-        }
-        delete d_p_bc_coef;
-        delete d_phi_bc_coef;
+        if (d_u_bc_coefs[d] != NULL) delete d_u_bc_coefs[d];
+        if (d_u_star_bc_coefs[d] != NULL) delete d_u_star_bc_coefs[d];
     }
+    if (d_p_bc_coef != NULL) delete d_p_bc_coef;
+    if (d_phi_bc_coef != NULL) delete d_phi_bc_coef;
     delete d_problem_coefs;
     if (d_regrid_projection_spec != NULL) delete d_regrid_projection_spec;
     return;
@@ -385,7 +385,7 @@ IBImplicitHierarchyIntegrator::registerVelocityInitialConditions(
 
 void
 IBImplicitHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs)
 {
     if (d_is_initialized)
     {
@@ -394,31 +394,21 @@ IBImplicitHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
                    << "  of the hierarchy integrator object." << std::endl);
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned l = 0; l < u_bc_coefs.size(); ++l)
+    for (unsigned d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(u_bc_coefs[l] != NULL);
+        TBOX_ASSERT(u_bc_coefs[d] != NULL);
     }
 #endif
-    if (!d_u_bc_coefs.empty())
+    for (int d = 0; d < NDIM; ++d)
     {
-        for (int d = 0; d < NDIM; ++d)
-        {
-            delete d_u_bc_coefs[d];
-            delete d_u_star_bc_coefs[d];
-        }
-        delete d_p_bc_coef;
-        delete d_phi_bc_coef;
+        if (d_u_bc_coefs[d] != NULL) delete d_u_bc_coefs[d];
+        if (d_u_star_bc_coefs[d] != NULL) delete d_u_star_bc_coefs[d];
     }
-    d_u_bc_coefs.clear();
-    d_u_bc_coefs.resize(NDIM,NULL);
+    if (d_p_bc_coef != NULL) delete d_p_bc_coef;
+    if (d_phi_bc_coef != NULL) delete d_phi_bc_coef;
     for (int d = 0; d < NDIM; ++d)
     {
         d_u_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,*d_problem_coefs,u_bc_coefs);
-    }
-    d_u_star_bc_coefs.clear();
-    d_u_star_bc_coefs.resize(NDIM,NULL);
-    for (int d = 0; d < NDIM; ++d)
-    {
         d_u_star_bc_coefs[d] = new INSStaggeredIntermediateVelocityBcCoef(d,u_bc_coefs);
     }
     d_p_bc_coef = new INSStaggeredPressureBcCoef(*d_problem_coefs,u_bc_coefs);
@@ -472,7 +462,7 @@ IBImplicitHierarchyIntegrator::registerLInitStrategy(
     TBOX_ASSERT(!lag_init_strategy.isNull());
 #endif
     d_lag_init_strategy = lag_init_strategy;
-    d_lag_data_manager->registerLInitStrategy(d_lag_init_strategy);
+    d_l_data_manager->registerLInitStrategy(d_lag_init_strategy);
     return;
 }// registerLInitStrategy
 
@@ -480,7 +470,7 @@ void
 IBImplicitHierarchyIntegrator::freeLInitStrategy()
 {
     d_lag_init_strategy.setNull();
-    d_lag_data_manager->freeLInitStrategy();
+    d_l_data_manager->freeLInitStrategy();
     return;
 }// freeLInitStrategy
 
@@ -518,7 +508,7 @@ IBImplicitHierarchyIntegrator::registerLSiloDataWriter(
     TBOX_ASSERT(!silo_writer.isNull());
 #endif
     d_silo_writer = silo_writer;
-    d_lag_data_manager->registerLSiloDataWriter(d_silo_writer);
+    d_l_data_manager->registerLSiloDataWriter(d_silo_writer);
     return;
 }// registerLSiloDataWriter
 
@@ -531,7 +521,7 @@ IBImplicitHierarchyIntegrator::registerLM3DDataWriter(
     TBOX_ASSERT(!m3D_writer.isNull());
 #endif
     d_m3D_writer = m3D_writer;
-    d_lag_data_manager->registerLM3DDataWriter(d_m3D_writer);
+    d_l_data_manager->registerLM3DDataWriter(d_m3D_writer);
     return;
 }// registerLM3DDataWriter
 #endif
@@ -544,7 +534,7 @@ IBImplicitHierarchyIntegrator::registerLoadBalancer(
     TBOX_ASSERT(!load_balancer.isNull());
 #endif
     d_load_balancer = load_balancer;
-    d_lag_data_manager->registerLoadBalancer(d_load_balancer);
+    d_l_data_manager->registerLoadBalancer(d_load_balancer);
     return;
 }// registerLoadBalancer
 
@@ -971,13 +961,13 @@ IBImplicitHierarchyIntegrator::initializeHierarchy()
     }
 
     // Reset the Lagrangian data distribution.
-    d_lag_data_manager->beginDataRedistribution();
-    d_lag_data_manager->endDataRedistribution();
+    d_l_data_manager->beginDataRedistribution();
+    d_l_data_manager->endDataRedistribution();
 
     // Update the workload.
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    d_lag_data_manager->updateWorkloadData(coarsest_ln, finest_ln);
+    d_l_data_manager->updateWorkloadData(coarsest_ln, finest_ln);
 
     // Indicate that the force strategy needs to be re-initialized.
     d_lag_force_strategy_needs_init = true;
@@ -1149,7 +1139,7 @@ IBImplicitHierarchyIntegrator::getGriddingAlgorithm() const
 LDataManager*
 IBImplicitHierarchyIntegrator::getLDataManager() const
 {
-    return d_lag_data_manager;
+    return d_l_data_manager;
 }// getLDataManager
 
 ///
@@ -1182,11 +1172,11 @@ IBImplicitHierarchyIntegrator::regridHierarchy()
 
     // Update the workload pre-regridding.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
-    d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
+    d_l_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
 
     // Before regridding, begin Lagrangian data movement.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement.\n";
-    d_lag_data_manager->beginDataRedistribution();
+    d_l_data_manager->beginDataRedistribution();
 
     // Regrid the hierarchy.
     switch (d_regrid_mode)
@@ -1229,7 +1219,7 @@ IBImplicitHierarchyIntegrator::regridHierarchy()
 
     // After regridding, finish Lagrangian data movement.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement.\n";
-    d_lag_data_manager->endDataRedistribution();
+    d_l_data_manager->endDataRedistribution();
 
     // Reset the various Lagrangian objects.
     d_X_data     .resize(finest_ln_after_regrid+1);
@@ -1240,23 +1230,23 @@ IBImplicitHierarchyIntegrator::regridHierarchy()
     d_F_half_data.resize(finest_ln_after_regrid+1);
     for (int ln = coarsest_ln; ln <= finest_ln_after_regrid; ++ln)
     {
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        if (d_l_data_manager->levelContainsLagrangianData(ln))
         {
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(ln == finest_ln_after_regrid);
 #endif
-            d_X_data     [ln] = d_lag_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
-            d_X_mid_data [ln] = d_lag_data_manager->createLData("X_mid" ,ln,NDIM);
-            d_X_new_data [ln] = d_lag_data_manager->createLData("X_new" ,ln,NDIM);
-            d_X_half_data[ln] = d_lag_data_manager->createLData("X_half",ln,NDIM);
-            d_U_half_data[ln] = d_lag_data_manager->createLData("U_half",ln,NDIM);
-            d_F_half_data[ln] = d_lag_data_manager->createLData("F_half",ln,NDIM);
+            d_X_data     [ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
+            d_X_mid_data [ln] = d_l_data_manager->createLData("X_mid" ,ln,NDIM);
+            d_X_new_data [ln] = d_l_data_manager->createLData("X_new" ,ln,NDIM);
+            d_X_half_data[ln] = d_l_data_manager->createLData("X_half",ln,NDIM);
+            d_U_half_data[ln] = d_l_data_manager->createLData("U_half",ln,NDIM);
+            d_F_half_data[ln] = d_l_data_manager->createLData("F_half",ln,NDIM);
         }
     }
 
     // Update the workload post-regridding.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
-    d_lag_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
+    d_l_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
 
     // Indicate that the force strategy needs to be re-initialized.
     d_lag_force_strategy_needs_init  = true;
@@ -1270,28 +1260,22 @@ IBImplicitHierarchyIntegrator::regridHierarchy()
     for (int ln = coarsest_ln; ln <= finest_ln_after_regrid; ++ln)
     {
         d_anchor_point_local_idxs[ln].clear();
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        if (d_l_data_manager->levelContainsLagrangianData(ln))
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+            const std::vector<LNode*>& local_nodes = mesh->getNodes();
+            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+                 cit != local_nodes.end(); ++cit)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& patch_box = patch->getBox();
-                const int lag_node_index_idx = d_lag_data_manager->getLNodeIndexPatchDescriptorIndex();
-                const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
-                for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
-                     it != idx_data->data_end(); ++it)
+                const LNode& node_idx = **cit;
+                Pointer<IBAnchorPointSpec> anchor_point_spec = node_idx.getNodeData<IBAnchorPointSpec>();
+                if (!anchor_point_spec.isNull())
                 {
-                    const LNodeIndex& node_idx = *it;
-                    Pointer<IBAnchorPointSpec> anchor_point_spec = node_idx.getNodeData<IBAnchorPointSpec>();
-                    if (!anchor_point_spec.isNull())
-                    {
-                        d_anchor_point_local_idxs[ln].insert(node_idx.getLocalPETScIndex());
-                    }
+                    d_anchor_point_local_idxs[ln].insert(node_idx.getLocalPETScIndex());
                 }
             }
 
-            Pointer<LData> X_data = d_lag_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
+            Pointer<LData> X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
             const blitz::Array<double,2>& X_array = *X_data->getLocalFormVecArray();
             for (int i = 0; i < X_data->getLocalNodeCount(); ++i)
             {
@@ -1340,17 +1324,17 @@ IBImplicitHierarchyIntegrator::integrateHierarchy_initialize(
     d_F_half_data.resize(finest_ln+1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        if (d_l_data_manager->levelContainsLagrangianData(ln))
         {
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(ln == finest_ln);
 #endif
-            d_X_data     [ln] = d_lag_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
-            d_X_mid_data [ln] = d_lag_data_manager->createLData("X_mid" ,ln,NDIM);
-            d_X_new_data [ln] = d_lag_data_manager->createLData("X_new" ,ln,NDIM);
-            d_X_half_data[ln] = d_lag_data_manager->createLData("X_half",ln,NDIM);
-            d_U_half_data[ln] = d_lag_data_manager->createLData("U_half",ln,NDIM);
-            d_F_half_data[ln] = d_lag_data_manager->createLData("F_half",ln,NDIM);
+            d_X_data     [ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
+            d_X_mid_data [ln] = d_l_data_manager->createLData("X_mid" ,ln,NDIM);
+            d_X_new_data [ln] = d_l_data_manager->createLData("X_new" ,ln,NDIM);
+            d_X_half_data[ln] = d_l_data_manager->createLData("X_half",ln,NDIM);
+            d_U_half_data[ln] = d_l_data_manager->createLData("U_half",ln,NDIM);
+            d_F_half_data[ln] = d_l_data_manager->createLData("F_half",ln,NDIM);
         }
     }
 
@@ -1441,7 +1425,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy_initialize(
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        if (d_l_data_manager->levelContainsLagrangianData(ln))
         {
             PetscErrorCode ierr;
             Vec X_vec     = d_X_data    [ln]->getVec();
@@ -1503,7 +1487,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(
     // Compute X_mid := 0.5*(X(n)+X(n+1)).
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        if (d_l_data_manager->levelContainsLagrangianData(ln))
         {
             PetscErrorCode ierr;
             Vec X_vec     = d_X_data    [ln]->getVec();
@@ -1520,7 +1504,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(
     d_R_mats.resize(finest_ln+1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        if (d_l_data_manager->levelContainsLagrangianData(ln))
         {
             int ierr;
             Pointer<PatchLevel<NDIM> > patch_level = d_hierarchy->getPatchLevel(ln);
@@ -1529,7 +1513,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(
                 d_R_mats[ln], X_mid_vec,
                 d_u_half_ib_idx, d_u_half_ib_var, d_ib_dof_idx, d_ib_dof_var,
                 patch_level);
-            const int global_node_offset = d_lag_data_manager->getGlobalNodeOffset(ln);
+            const int global_node_offset = d_l_data_manager->getGlobalNodeOffset(ln);
             std::vector<int> anchored_rows;
             anchored_rows.reserve(NDIM*d_anchor_point_local_idxs.size());
             for (std::set<int>::const_iterator cit = d_anchor_point_local_idxs[ln].begin();
@@ -1647,7 +1631,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(
     // Interpolate u(n+1/2) to U(n+1/2) and set X(n+1) = X(n) + dt*U(n+1/2).
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        if (d_l_data_manager->levelContainsLagrangianData(ln))
         {
             int ierr;
             Pointer<PatchLevel<NDIM> > patch_level = d_hierarchy->getPatchLevel(ln);
@@ -1666,7 +1650,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(
     // Destroy the restriction matrices.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        if (d_l_data_manager->levelContainsLagrangianData(ln))
         {
             int ierr;
             ierr = MatDestroy(d_R_mats[ln]);  IBTK_CHKERRQ(ierr);
@@ -1881,7 +1865,7 @@ IBImplicitHierarchyIntegrator::resetTimeDependentHierData(
                 patch->setPatchData(src_idx, dst_data);
             }
 
-            if (d_lag_data_manager->levelContainsLagrangianData(ln))
+            if (d_l_data_manager->levelContainsLagrangianData(ln))
             {
                 PetscErrorCode ierr;
                 Vec X_vec     = d_X_data    [ln]->getVec();
@@ -2243,9 +2227,9 @@ IBImplicitHierarchyIntegrator::initializeLevelData(
     }
 
     // We use the LDataManager to handle unstructured data management.
-    d_lag_data_manager->setPatchHierarchy(hierarchy);
-    d_lag_data_manager->resetLevels(0,hierarchy->getFinestLevelNumber());
-    d_lag_data_manager->initializeLevelData(
+    d_l_data_manager->setPatchHierarchy(hierarchy);
+    d_l_data_manager->resetLevels(0,hierarchy->getFinestLevelNumber());
+    d_l_data_manager->initializeLevelData(
         hierarchy, level_number, init_data_time,
         can_be_refined, initial_time, old_level,
         allocate_data);
@@ -2276,7 +2260,7 @@ IBImplicitHierarchyIntegrator::resetHierarchyConfiguration(
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
 
     // We use the LDataManager to handle unstructured data management.
-    d_lag_data_manager->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
+    d_l_data_manager->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
 
     // Reset the Hierarchy data operations for the new hierarchy configuration.
     d_hier_cc_data_ops->setPatchHierarchy(hierarchy);
@@ -2417,7 +2401,7 @@ IBImplicitHierarchyIntegrator::applyGradientDetector(
     }
 
     // Tag cells which contain Lagrangian nodes.
-    d_lag_data_manager->applyGradientDetector(hierarchy, level_number, error_data_time,
+    d_l_data_manager->applyGradientDetector(hierarchy, level_number, error_data_time,
                                               tag_index, initial_time,
                                               uses_richardson_extrapolation_too);
 
@@ -3363,11 +3347,11 @@ IBImplicitHierarchyIntegrator::resetLagrangianForceStrategy(
 {
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        if (d_l_data_manager->levelContainsLagrangianData(ln))
         {
             d_lag_force_strategy->initializeLevelData(
                 d_hierarchy, ln, init_data_time, initial_time,
-                d_lag_data_manager);
+                d_l_data_manager);
         }
     }
     return;
@@ -3381,7 +3365,7 @@ IBImplicitHierarchyIntegrator::resetAnchorPointValues(
 {
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (d_lag_data_manager->levelContainsLagrangianData(ln))
+        if (d_l_data_manager->levelContainsLagrangianData(ln))
         {
             const int depth = V_data[ln]->getDepth();
             Vec V_vec = V_data[ln]->getVec();

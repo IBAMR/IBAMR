@@ -51,7 +51,6 @@
 
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/LNodeIndexSetData.h>
 #include <ibtk/PETScVecOps.h>
 
 // SAMRAI INCLUDES
@@ -134,9 +133,9 @@ IBBeamForceGen::initializeLevelData(
     const int level_number,
     const double init_data_time,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+    if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
     t_initialize_level_data->start();
 
@@ -186,56 +185,52 @@ IBBeamForceGen::initializeLevelData(
     bend_rigidities.clear();
     mesh_dependent_curvatures.clear();
 
-    // The patch data descriptor index for the LNodeIndexSetData.
-    const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
+    // The LMesh object provides the set of local Lagrangian nodes.
+    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_num);
+    const std::vector<LNode*>& local_nodes = mesh->getNodes();
 
     // Determine the "next" and "prev" node indices for all beams associated
     // with the present MPI process.
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+         cit != local_nodes.end(); ++cit)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
-        for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box); it != idx_data->data_end(); ++it)
+        const LNode& node_idx = **cit;
+        const Pointer<IBBeamForceSpec> force_spec = node_idx.getNodeData<IBBeamForceSpec>();
+        if (!force_spec.isNull())
         {
-            const LNodeIndex& node_idx = *it;
-            const Pointer<IBBeamForceSpec> force_spec = node_idx.getNodeData<IBBeamForceSpec>();
-            if (!force_spec.isNull())
+            const int& mastr_idx = node_idx.getLagrangianIndex();
+            const unsigned num_beams = force_spec->getNumberOfBeams();
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
+#endif
+            const std::vector<std::pair<int,int> >& nghbrs = force_spec->getNeighborNodeIndices();
+            const std::vector<double>& bend = force_spec->getBendingRigidities();
+            const std::vector<std::vector<double> >& curv = force_spec->getMeshDependentCurvatures();
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(num_beams == nghbrs.size());
+            TBOX_ASSERT(num_beams == bend.size());
+            TBOX_ASSERT(num_beams == curv.size());
+#endif
+            for (unsigned k = 0; k < num_beams; ++k)
             {
-                const int& mastr_idx = node_idx.getLagrangianIndex();
-                const unsigned num_beams = force_spec->getNumberOfBeams();
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
-#endif
-                const std::vector<std::pair<int,int> >& nghbrs = force_spec->getNeighborNodeIndices();
-                const std::vector<double>& bend = force_spec->getBendingRigidities();
-                const std::vector<std::vector<double> >& curv = force_spec->getMeshDependentCurvatures();
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(num_beams == nghbrs.size());
-                TBOX_ASSERT(num_beams == bend.size());
-                TBOX_ASSERT(num_beams == curv.size());
-#endif
-                for (unsigned k = 0; k < num_beams; ++k)
-                {
-                    petsc_mastr_node_idxs.push_back(mastr_idx);
-                    petsc_next_node_idxs.push_back(nghbrs[k].first );
-                    petsc_prev_node_idxs.push_back(nghbrs[k].second);
-                    bend_rigidities.push_back(bend[k]);
-                    mesh_dependent_curvatures.push_back(curv[k]);
-                }
+                petsc_mastr_node_idxs.push_back(mastr_idx);
+                petsc_next_node_idxs.push_back(nghbrs[k].first );
+                petsc_prev_node_idxs.push_back(nghbrs[k].second);
+                bend_rigidities.push_back(bend[k]);
+                mesh_dependent_curvatures.push_back(curv[k]);
             }
         }
     }
 
     // Map the Lagrangian node indices to the PETSc indices corresponding to the
     // present data distribution.
-    lag_manager->mapLagrangianToPETSc(petsc_mastr_node_idxs, level_num);
-    lag_manager->mapLagrangianToPETSc(petsc_next_node_idxs, level_num);
-    lag_manager->mapLagrangianToPETSc(petsc_prev_node_idxs, level_num);
+    l_data_manager->mapLagrangianToPETSc(petsc_mastr_node_idxs, level_num);
+    l_data_manager->mapLagrangianToPETSc(petsc_next_node_idxs, level_num);
+    l_data_manager->mapLagrangianToPETSc(petsc_prev_node_idxs, level_num);
 
     // Determine the global node offset and the number of local nodes.
-    const int global_node_offset = lag_manager->getGlobalNodeOffset(level_num);
-    const int num_local_nodes = lag_manager->getNumberOfLocalNodes(level_num);
+    const int global_node_offset = l_data_manager->getGlobalNodeOffset(level_num);
+    const int num_local_nodes = l_data_manager->getNumberOfLocalNodes(level_num);
 
     // Determine the non-zero structure for the matrices.
     const int local_sz = petsc_mastr_node_idxs.size();
@@ -343,9 +338,9 @@ IBBeamForceGen::computeLagrangianForce(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+    if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
     t_compute_lagrangian_force->start();
 
@@ -463,9 +458,9 @@ IBBeamForceGen::computeLagrangianForceJacobianNonzeroStructure(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+    if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
     t_compute_lagrangian_force_jacobian_nonzero_structure->start();
 
@@ -483,8 +478,8 @@ IBBeamForceGen::computeLagrangianForceJacobianNonzeroStructure(
     const int local_sz = petsc_mastr_node_idxs.size();
 
     // Determine the global node offset and the number of local nodes.
-    const int global_node_offset = lag_manager->getGlobalNodeOffset(level_number);
-    const int num_local_nodes = lag_manager->getNumberOfLocalNodes(level_number);
+    const int global_node_offset = l_data_manager->getGlobalNodeOffset(level_number);
+    const int num_local_nodes = l_data_manager->getNumberOfLocalNodes(level_number);
 
     // Determine the non-zero structure for the matrix used to store the
     // Jacobian of the force.
@@ -593,9 +588,9 @@ IBBeamForceGen::computeLagrangianForceJacobian(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+    if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
     t_compute_lagrangian_force_jacobian->start();
 
@@ -662,7 +657,7 @@ IBBeamForceGen::computeLagrangianEnergy(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
     TBOX_WARNING("IBBeamForceGen::computeLagrangianEnergy():\n"
                  << "  unimplemented; returning 0.0." << std::endl);

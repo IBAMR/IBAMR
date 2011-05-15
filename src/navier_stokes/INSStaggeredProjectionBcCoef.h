@@ -38,8 +38,8 @@
 // IBTK INCLUDES
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
 
-// C++ STDLIB INCLUDES
-#include <vector>
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -73,7 +73,7 @@ public:
      * class constructor.
      */
     INSStaggeredProjectionBcCoef(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
         const bool homogeneous_bc=false);
 
     /*!
@@ -90,7 +90,7 @@ public:
      */
     void
     setVelocityPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs);
 
     /*!
      * \name Implementation of IBTK::ExtendedRobinBcCoefStrategy interface.
@@ -214,7 +214,7 @@ private:
     /*
      * The boundary condition specification objects for the updated velocity.
      */
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_u_bc_coefs;
 
     /*
      * The patch data index corresponding to the current value of P.

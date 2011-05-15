@@ -46,6 +46,121 @@ namespace IBTK
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+inline const SAMRAI::hier::IntVector<NDIM>&
+LDataManager::getGhostCellWidth() const
+{
+    return d_ghost_width;
+}// getGhostCellWidth
+
+inline const std::string&
+LDataManager::getInterpWeightingFunction() const
+{
+    return d_interp_weighting_fcn;
+}// getInterpWeightingFunction
+
+inline const std::string&
+LDataManager::getSpreadWeightingFunction() const
+{
+    return d_spread_weighting_fcn;
+}// getSpreadWeightingFunction
+
+inline bool
+LDataManager::levelContainsLagrangianData(
+    const int level_number) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(level_number >= 0);
+#endif
+    if (!(d_coarsest_ln <= level_number &&
+          d_finest_ln   >= level_number))
+    {
+        return false;
+    }
+    else
+    {
+        return d_level_contains_lag_data[level_number];
+    }
+}// levelContainsLagrangianData
+
+inline int
+LDataManager::getNumberOfNodes(
+    const int level_number) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(level_number >= 0);
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
+                d_finest_ln   >= level_number);
+#endif
+    return d_num_nodes[level_number];
+}// getNumberOfNodes
+
+inline int
+LDataManager::getNumberOfLocalNodes(
+    const int level_number) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(level_number >= 0);
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
+                d_finest_ln   >= level_number);
+#endif
+    return d_local_lag_indices[level_number].size();
+}// getNumberOfLocalNodes
+
+inline int
+LDataManager::getGlobalNodeOffset(
+    const int level_number) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(level_number >= 0);
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
+                d_finest_ln   >= level_number);
+#endif
+    return d_node_offset[level_number];
+}// getGlobalNodeOffset
+
+inline SAMRAI::tbox::Pointer<LMesh>
+LDataManager::getLMesh(
+    const int level_number) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(level_number >= 0);
+    TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
+#endif
+    return d_lag_mesh[level_number];
+}// getLMesh
+
+inline SAMRAI::tbox::Pointer<LData>
+LDataManager::getLData(
+    const std::string& quantity_name,
+    const int level_number) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_lag_mesh_data[level_number].find(quantity_name) != d_lag_mesh_data[level_number].end());
+    TBOX_ASSERT(level_number >= 0);
+    TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
+    TBOX_ASSERT(d_lag_mesh_data[level_number].count(quantity_name) > 0);
+#endif
+    return d_lag_mesh_data[level_number].find(quantity_name)->second;
+}// getLData
+
+inline int
+LDataManager::getLNodePatchDescriptorIndex() const
+{
+    return d_lag_node_index_current_idx;
+}// getLNodePatchDescriptorIndex
+
+inline int
+LDataManager::getWorkloadPatchDescriptorIndex() const
+{
+    return d_workload_idx;
+}// getWorkloadPatchDescriptorIndex
+
+inline int
+LDataManager::getNodeCountPatchDescriptorIndex() const
+{
+    return d_node_count_idx;
+}// getNodeCountPatchDescriptorIndex
+
 inline std::vector<std::string>
 LDataManager::getLagrangianStructureNames(
     const int level_number) const

@@ -90,9 +90,9 @@ struct IndexComp
         const Index<NDIM>& rhs) const
         {
             return (lhs(0) < rhs(0)
-#if (NDIM>1)
+#if (NDIM > 1)
                     || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
-#if (NDIM>2)
+#if (NDIM > 2)
                     || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
@@ -204,7 +204,7 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(
 
     // Initialize the boundary conditions objects.
     setHomogeneousBc(d_homogeneous_bc);
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)));
+    setPhysicalBcCoefs(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)));
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -241,26 +241,17 @@ SCPoissonHypreLevelSolver::setPoissonSpecifications(
 
 void
 SCPoissonHypreLevelSolver::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    if (bc_coefs.size() != NDIM)
+    for (unsigned d = 0; d < NDIM; ++d)
     {
-        TBOX_ERROR(d_object_name << "setPhysicalBcCoefs::()\n"
-                   << "  " << NDIM << " boundary condition objects required (one for each component of the side-centered vector field)" << std::endl);
-    }
-#endif
-
-    d_bc_coefs.resize(bc_coefs.size());
-    for (unsigned l = 0; l < bc_coefs.size(); ++l)
-    {
-        if (bc_coefs[l] != NULL)
+        if (bc_coefs[d] != NULL)
         {
-            d_bc_coefs[l] = bc_coefs[l];
+            d_bc_coefs[d] = bc_coefs[d];
         }
         else
         {
-            d_bc_coefs[l] = d_default_bc_coef;
+            d_bc_coefs[d] = d_default_bc_coef;
         }
     }
     return;
@@ -1331,7 +1322,7 @@ void
 SCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_constant_coefficients(
     Pointer<SideData<NDIM,double> >& rhs_data,
     const double D,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const Pointer<Patch<NDIM> >& patch,
     const Array<BoundaryBox<NDIM> >& physical_codim1_boxes,
     const double* const dx)

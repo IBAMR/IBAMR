@@ -134,7 +134,7 @@ public:
      */
     void
     registerVelocityPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs);
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs);
 
     /*!
      * Supply initial conditions for the (cell centered) pressure.
@@ -772,7 +772,7 @@ private:
      * The LDataManager is used to coordinate the distribution of Lagrangian
      * data on the patch hierarchy.
      */
-    IBTK::LDataManager* d_lag_data_manager;
+    IBTK::LDataManager* d_l_data_manager;
 
     /*
      * Instrumentation (flow meter and pressure gauge) algorithms and data
@@ -786,7 +786,7 @@ private:
      * used by the integrator.
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_U_init, d_P_init;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
 
     /*

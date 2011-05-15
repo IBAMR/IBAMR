@@ -60,6 +60,9 @@
 #include <tbox/Pointer.h>
 #include <tbox/Utilities.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // C++ STDLIB INCLUDES
 #include <map>
 
@@ -259,7 +262,7 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp()
 
 CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
     const int patch_data_index,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
     : d_patch_data_indices(),
       d_bc_coefs(),
@@ -273,7 +276,7 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
 
 CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
     const std::set<int>& patch_data_indices,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
     : d_patch_data_indices(),
       d_bc_coefs(),
@@ -287,7 +290,7 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
 
 CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
     const ComponentSelector& patch_data_indices,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
     : d_patch_data_indices(),
       d_bc_coefs(),
@@ -343,14 +346,13 @@ CartSideRobinPhysBdryOp::setPatchDataIndices(
 
 void
 CartSideRobinPhysBdryOp::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned l = 0; l < bc_coefs.size(); ++l)
+    for (unsigned d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(bc_coefs[l] != NULL);
+        TBOX_ASSERT(bc_coefs[d] != NULL);
     }
-    TBOX_ASSERT(bc_coefs.size() == NDIM);
 #endif
     d_bc_coefs = bc_coefs;
     return;
@@ -386,22 +388,14 @@ CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(
             TBOX_ERROR("CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
                        << "  patch data index " << patch_data_idx << " does not correspond to a side-centered double precision variable." << std::endl);
         }
-
-        if (NDIM != int(d_bc_coefs.size()))
-        {
-            TBOX_ERROR("CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
-                       << "  data depth for patch data index " << patch_data_idx << " is " << NDIM << "\n"
-                       << "  but " << d_bc_coefs.size() << " boundary condition coefficient objects were provided to the class constructor." << std::endl);
-        }
     }
 
     // Indicate whether we are employing homogeneous or inhomogeneous boundary
     // conditions for all extended Robin BC coef strategy objects employed by
     // this object.
-    for (std::vector<RobinBcCoefStrategy<NDIM>*>::iterator it = d_bc_coefs.begin();
-         it != d_bc_coefs.end(); ++it)
+    for (int d = 0; d < NDIM; ++d)
     {
-        ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(*it);
+        ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
         if (extended_bc_coef != NULL)
         {
             extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
@@ -542,7 +536,7 @@ CartSideRobinPhysBdryOp::setCodimension1BdryValues(
     }
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
-    std::vector<double*> U(NDIM,static_cast<double*>(NULL));
+    blitz::TinyVector<double*,NDIM> U;
     for (int axis = 0; axis < NDIM; ++axis)
     {
         U[axis] = patch_data->getPointer(axis);
@@ -777,7 +771,7 @@ CartSideRobinPhysBdryOp::setCodimension2BdryValues(
     }
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
-    std::vector<double*> U(NDIM,static_cast<double*>(NULL));
+    blitz::TinyVector<double*,NDIM> U;
     for (int axis = 0; axis < NDIM; ++axis)
     {
         U[axis] = patch_data->getPointer(axis);
@@ -889,7 +883,7 @@ CartSideRobinPhysBdryOp::setCodimension3BdryValues(
     }
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
-    std::vector<double*> U(NDIM,static_cast<double*>(NULL));
+    blitz::TinyVector<double*,NDIM> U;
     for (int axis = 0; axis < NDIM; ++axis)
     {
         U[axis] = patch_data->getPointer(axis);

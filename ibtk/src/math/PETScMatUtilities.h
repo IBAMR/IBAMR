@@ -46,8 +46,8 @@
 #include <SideData.h>
 #include <SideVariable.h>
 
-// C++ STDLIB INCLUDES
-#include <vector>
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -87,7 +87,7 @@ public:
      */
     static void
     constructPatchLaplaceOps(
-        std::vector<Mat>& mats,
+        blitz::TinyVector<Mat,NDIM>& mats,
         const double C,
         const double D,
         SAMRAI::pdat::SideData<NDIM,double>& src_data,

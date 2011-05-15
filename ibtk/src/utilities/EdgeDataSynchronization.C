@@ -54,8 +54,8 @@ EdgeDataSynchronization::EdgeDataSynchronization()
       d_finest_ln(-1),
       d_coarsen_alg(NULL),
       d_coarsen_scheds(),
-      d_refine_alg(NDIM),
-      d_refine_scheds(NDIM)
+      d_refine_alg(),
+      d_refine_scheds()
 {
     // intentionally blank
     return;

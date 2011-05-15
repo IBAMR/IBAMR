@@ -39,7 +39,7 @@
 #include <ibtk/LNode.h>
 
 // SAMRAI INCLUDES
-#include <tbox/Serializable.h>
+#include <tbox/DescribedClass.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -49,15 +49,14 @@ namespace IBTK
  * \brief Class LMesh is a collection of LNode objects.
  */
 class LMesh
-    : public SAMRAI::tbox::Serializable
+    : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
      * \brief Constructor.
      */
     LMesh(
-        const std::string& object_name,
-        const bool register_for_restart=true);
+        const std::string& object_name);
 
     /*!
      * \brief Destructor.
@@ -71,13 +70,13 @@ public:
      */
     void
     setNodes(
-        const std::vector<LNode>& nodes,
+        const std::vector<LNode*>& nodes,
         const bool sorted=false);
 
     /*!
      * \brief Return a const reference to the set of local LNode objects.
      */
-    const std::vector<LNode>&
+    const std::vector<LNode*>&
     getNodes() const;
 
     /*!
@@ -106,13 +105,13 @@ public:
      */
     void
     setGhostNodes(
-        const std::vector<LNode>& ghost_nodes,
+        const std::vector<LNode*>& ghost_nodes,
         const bool sorted=false);
 
     /*!
      * \brief Return a const reference to the set of local ghost LNode objects.
      */
-    const std::vector<LNode>&
+    const std::vector<LNode*>&
     getGhostNodes() const;
 
     /*!
@@ -135,13 +134,6 @@ public:
      */
     const std::vector<int>&
     getGhostLocalPETScIndices() const;
-
-    /*!
-     * \brief Write out object state to the given database.
-     */
-    void
-    putToDatabase(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
 private:
     /*!
@@ -167,17 +159,10 @@ private:
     operator=(
         const LMesh& that);
 
-    /*!
-     * \brief Retrieve data from a restart database.
-     */
-    void
-    getFromRestart();
-
     const std::string& d_object_name;
-    const bool d_registered_for_restart;
-    std::vector<LNode> d_nodes;
+    std::vector<LNode*> d_nodes;
     std::vector<int> d_lag_idxs, d_global_petsc_idxs, d_local_petsc_idxs;
-    std::vector<LNode> d_ghost_nodes;
+    std::vector<LNode*> d_ghost_nodes;
     std::vector<int> d_ghost_lag_idxs, d_ghost_global_petsc_idxs, d_ghost_local_petsc_idxs;
 };
 

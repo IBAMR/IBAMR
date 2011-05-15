@@ -106,8 +106,8 @@ public:
         const bool initial_time);
 
     /*!
-     * \brief Initialize the LNodeIndex and LNodeLevel data needed to specify
-     * the configuration of the curvilinear mesh on the patch level.
+     * \brief Initialize the LNode and LData data needed to specify the
+     * configuration of the curvilinear mesh on the patch level.
      *
      * \return The number of local nodes initialized on the patch level.
      */
@@ -123,11 +123,11 @@ public:
         const double init_data_time,
         const bool can_be_refined,
         const bool initial_time,
-        IBTK::LDataManager* const lag_manager);
+        IBTK::LDataManager* const l_data_manager);
 
     /*!
-     * \brief Initialize the LNodeLevel data needed to specify the mass and
-     * spring constant data required by the penalty IB method.
+     * \brief Initialize the LData needed to specify the mass and spring
+     * constant data required by the penalty IB method.
      *
      * \return The number of local nodes initialized on the patch level.
      */
@@ -142,7 +142,7 @@ public:
         const double init_data_time,
         const bool can_be_refined,
         const bool initial_time,
-        IBTK::LDataManager* const lag_manager);
+        IBTK::LDataManager* const l_data_manager);
 
     /*!
      * \brief Tag cells for initial refinement.

@@ -58,12 +58,11 @@ LNode::LNode(
     const int lagrangian_nidx,
     const int global_petsc_nidx,
     const int local_petsc_nidx,
-    const double* const X_ptr,
     const SAMRAI::hier::IntVector<NDIM>& periodic_offset,
-    const std::vector<double>& periodic_displacement,
+    const blitz::TinyVector<double,NDIM>& periodic_displacement,
     const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data)
-    : LNodeIndex(lagrangian_nidx, global_petsc_nidx, local_petsc_nidx,
-                 X_ptr, periodic_offset, periodic_displacement, node_data)
+    : LNodeIndex(lagrangian_nidx, global_petsc_nidx, local_petsc_nidx, periodic_offset, periodic_displacement),
+      d_node_data(node_data)
 {
     // intentionally blank
     return;
@@ -72,7 +71,8 @@ LNode::LNode(
 inline
 LNode::LNode(
     const LNode& from)
-    : LNodeIndex(from)
+    : LNodeIndex(from),
+      d_node_data(from.d_node_data)
 {
     // intentionally blank
     return;
@@ -92,21 +92,122 @@ LNode::operator=(
     if (this != &that)
     {
         LNodeIndex::operator=(that);
+        assignThatToThis(that);
     }
     return *this;
 }// operator=
 
+inline void
+LNode::registerPeriodicShift(
+    const SAMRAI::hier::IntVector<NDIM>& offset,
+    const blitz::TinyVector<double,NDIM>& displacement)
+{
+    LNodeIndex::registerPeriodicShift(offset, displacement);
+    for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::iterator it = d_node_data.begin();
+         it != d_node_data.end(); ++it)
+    {
+        (*it)->registerPeriodicShift(offset, displacement);
+    }
+    return;
+}// registerPeriodicShift
+
+
+inline const std::vector<SAMRAI::tbox::Pointer<Streamable> >&
+LNode::getNodeData() const
+{
+    return d_node_data;
+}// getNodeData
+
+inline std::vector<SAMRAI::tbox::Pointer<Streamable> >&
+LNode::getNodeData()
+{
+    return d_node_data;
+}// getNodeData
+
+inline void
+LNode::setNodeData(
+    const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data)
+{
+    d_node_data = node_data;
+    return;
+}// setNodeData
+
+template<typename T>
+inline SAMRAI::tbox::Pointer<T>
+LNode::getNodeData() const
+{
+    SAMRAI::tbox::Pointer<T> ret_val = NULL;
+    for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::const_iterator cit = d_node_data.begin();
+         cit != d_node_data.end(); ++cit)
+    {
+        ret_val = (*cit);
+        if (!ret_val.isNull()) break;
+    }
+    return ret_val;
+}// getNodeData
+
+template<typename T>
+inline std::vector<SAMRAI::tbox::Pointer<T> >
+LNode::getNodeDataVector() const
+{
+    std::vector<SAMRAI::tbox::Pointer<T> > ret_val;
+    for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::const_iterator cit = d_node_data.begin();
+         cit != d_node_data.end(); ++cit)
+    {
+        SAMRAI::tbox::Pointer<T> it_val = (*cit);
+        if (!it_val.isNull()) ret_val.push_back(it_val);
+    }
+    return ret_val;
+}// getNodeDataVector
+
+inline void
+LNode::copySourceItem(
+    const SAMRAI::hier::Index<NDIM>& src_index,
+    const SAMRAI::hier::IntVector<NDIM>& src_offset,
+    const LNode& src_item)
+{
+    LNodeIndex::copySourceItem(src_index, src_offset, src_item);
+    assignThatToThis(src_item);
+    return;
+}// copySourceItem
+
+inline size_t
+LNode::getDataStreamSize() const
+{
+    return LNodeIndex::getDataStreamSize() + StreamableManager::getManager()->getDataStreamSize(d_node_data);
+}// getDataStreamSize
+
+inline void
+LNode::packStream(
+    SAMRAI::tbox::AbstractStream& stream)
+{
+    LNodeIndex::packStream(stream);
+    StreamableManager::getManager()->packStream(stream, d_node_data);
+    return;
+}// packStream
+
+inline void
+LNode::unpackStream(
+    SAMRAI::tbox::AbstractStream& stream,
+    const SAMRAI::hier::IntVector<NDIM>& offset)
+{
+    LNodeIndex::unpackStream(stream, offset);
+    d_node_data.clear();
+    StreamableManager::getManager()->unpackStream(stream, offset, d_node_data);
+    return;
+}// unpackStream
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////
-
-inline bool
-operator<(
-    const LNode& lhs,
-    const LNode& rhs)
+inline void
+LNode::assignThatToThis(
+    const LNode& that)
 {
-    return lhs.getGlobalPETScIndex() < rhs.getGlobalPETScIndex();
-}// operator<
+    d_node_data = that.d_node_data;
+    return;
+}// assignThatToThis
+
+//////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 

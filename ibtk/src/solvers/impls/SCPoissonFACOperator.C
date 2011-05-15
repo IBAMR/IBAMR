@@ -176,9 +176,8 @@ SCPoissonFACOperator::SCPoissonFACOperator(
       d_context(NULL),
       d_side_scratch_idx(-1),
       d_bc_op(NULL),
-      d_default_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(
-                            d_object_name+"::default_bc_coef", Pointer<Database>(NULL))),
-      d_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(1,d_default_bc_coef)),
+      d_default_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_bc_coef", Pointer<Database>(NULL))),
+      d_bc_coefs(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(d_default_bc_coef)),
       d_apply_time(0.0),
       d_cf_bdry_op(),
       d_op_stencil_fill_pattern(),
@@ -233,7 +232,7 @@ SCPoissonFACOperator::SCPoissonFACOperator(
     }
 
     // Initialize the boundary conditions objects.
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,d_default_bc_coef));
+    setPhysicalBcCoefs(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(d_default_bc_coef));
 
     // Setup scratch variables.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -282,18 +281,17 @@ SCPoissonFACOperator::setPoissonSpecifications(
 
 void
 SCPoissonFACOperator::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
 {
-    d_bc_coefs.resize(bc_coefs.size());
-    for (unsigned l = 0; l < bc_coefs.size(); ++l)
+    for (unsigned d = 0; d < NDIM; ++d)
     {
-        if (bc_coefs[l] != NULL)
+        if (bc_coefs[d] != NULL)
         {
-            d_bc_coefs[l] = bc_coefs[l];
+            d_bc_coefs[d] = bc_coefs[d];
         }
         else
         {
-            d_bc_coefs[l] = d_default_bc_coef;
+            d_bc_coefs[d] = d_default_bc_coef;
         }
     }
     return;
@@ -1123,12 +1121,9 @@ SCPoissonFACOperator::initializeOperatorState(
                 const Box<NDIM>& patch_box = patch->getBox();
                 const Box<NDIM>  ghost_box = Box<NDIM>::grow(patch_box, d_gcw);
 
-                std::vector<Vec>& e = d_patch_vec_e[ln][patch_counter];
-                std::vector<Vec>& f = d_patch_vec_f[ln][patch_counter];
-                std::vector<Mat>& A = d_patch_mat  [ln][patch_counter];
-                e.resize(NDIM);
-                f.resize(NDIM);
-                A.resize(NDIM);
+                blitz::TinyVector<Vec,NDIM>& e = d_patch_vec_e[ln][patch_counter];
+                blitz::TinyVector<Vec,NDIM>& f = d_patch_vec_f[ln][patch_counter];
+                blitz::TinyVector<Mat,NDIM>& A = d_patch_mat  [ln][patch_counter];
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
                     int ierr;
@@ -1159,8 +1154,6 @@ SCPoissonFACOperator::initializeOperatorState(
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-
-            d_patch_bc_box_overlap[ln][patch_counter].resize(NDIM);
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box,axis);
@@ -1186,7 +1179,6 @@ SCPoissonFACOperator::initializeOperatorState(
             int patch_counter1 = 0;
             for (PatchLevel<NDIM>::Iterator p1(level); p1; p1++, ++patch_counter1)
             {
-                d_patch_smoother_bc_boxes[ln][patch_counter1].resize(NDIM);
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
                     d_patch_smoother_bc_boxes[ln][patch_counter1][axis].clear();
@@ -1263,33 +1255,33 @@ SCPoissonFACOperator::deallocateOperatorState()
             {
                 int ierr;
 
-                for (std::vector<std::vector<Vec> >::iterator it = d_patch_vec_e[ln].begin();
+                for (std::vector<blitz::TinyVector<Vec,NDIM> >::iterator it = d_patch_vec_e[ln].begin();
                      it != d_patch_vec_e[ln].end(); ++it)
                 {
-                    std::vector<Vec>& e = *it;
-                    for (unsigned k = 0; k < e.size(); ++k)
+                    blitz::TinyVector<Vec,NDIM>& e = *it;
+                    for (unsigned d = 0; d < NDIM; ++d)
                     {
-                        ierr = VecDestroy(e[k]);  IBTK_CHKERRQ(ierr);
+                        ierr = VecDestroy(e[d]);  IBTK_CHKERRQ(ierr);
                     }
                 }
                 d_patch_vec_e[ln].clear();
-                for (std::vector<std::vector<Vec> >::iterator it = d_patch_vec_f[ln].begin();
+                for (std::vector<blitz::TinyVector<Vec,NDIM> >::iterator it = d_patch_vec_f[ln].begin();
                      it != d_patch_vec_f[ln].end(); ++it)
                 {
-                    std::vector<Vec>& f = *it;
-                    for (unsigned k = 0; k < f.size(); ++k)
+                    blitz::TinyVector<Vec,NDIM>& f = *it;
+                    for (unsigned d = 0; d < NDIM; ++d)
                     {
-                        ierr = VecDestroy(f[k]);  IBTK_CHKERRQ(ierr);
+                        ierr = VecDestroy(f[d]);  IBTK_CHKERRQ(ierr);
                     }
                 }
                 d_patch_vec_f[ln].clear();
-                for (std::vector<std::vector<Mat> >::iterator it = d_patch_mat[ln].begin();
+                for (std::vector<blitz::TinyVector<Mat,NDIM> >::iterator it = d_patch_mat[ln].begin();
                      it != d_patch_mat[ln].end(); ++it)
                 {
-                    std::vector<Mat>& A = *it;
-                    for (unsigned k = 0; k < A.size(); ++k)
+                    blitz::TinyVector<Mat,NDIM>& A = *it;
+                    for (unsigned d = 0; d < NDIM; ++d)
                     {
-                        ierr = MatDestroy(A[k]);  IBTK_CHKERRQ(ierr);
+                        ierr = MatDestroy(A[d]);  IBTK_CHKERRQ(ierr);
                     }
                 }
                 d_patch_mat[ln].clear();
@@ -1533,7 +1525,7 @@ SCPoissonFACOperator::buildPatchLaplaceOperator(
     static const int x_axis = 0; (void) x_axis;
     static const int y_axis = 1; (void) y_axis;
     static const int z_axis = 2; (void) z_axis;
-    std::vector<int> num_cells(NDIM);
+    blitz::TinyVector<int,NDIM> num_cells;
     for (int d = 0; d < NDIM; ++d)
     {
         num_cells[d] = ghost_box.numberCells(d);
@@ -1649,12 +1641,12 @@ SCPoissonFACOperator::sanityCheck()
                    << "  invalid coarse solver maximum iterations: " << d_coarse_solver_max_its << std::endl);
     }
 
-    for (unsigned l = 0; l < d_bc_coefs.size(); ++l)
+    for (unsigned d = 0; d < NDIM; ++d)
     {
-        if (d_bc_coefs[l] == NULL)
+        if (d_bc_coefs[d] == NULL)
         {
             TBOX_ERROR(d_object_name << ":\n"
-                       << "  invalid physical bc object at depth = " << l << std::endl);
+                       << "  invalid physical bc object at depth = " << d << std::endl);
         }
     }
     return;

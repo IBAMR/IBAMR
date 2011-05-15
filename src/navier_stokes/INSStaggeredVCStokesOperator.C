@@ -96,7 +96,7 @@ INSStaggeredVCStokesOperator::INSStaggeredVCStokesOperator(
       d_hier_math_ops(hier_math_ops),
       d_homogeneous_bc(false),
       d_correcting_rhs(false),
-      d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))),
+      d_U_bc_coefs(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL))),
       d_P_bc_coef(NULL),
       d_U_P_MU_bdry_fill_op(Pointer<HierarchyGhostCellInterpolation>(NULL)),
       d_no_fill_op(Pointer<HierarchyGhostCellInterpolation>(NULL)),

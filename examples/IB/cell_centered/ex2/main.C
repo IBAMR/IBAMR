@@ -64,7 +64,7 @@
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSHierarchyIntegrator.h>
-#include <ibtk/LagSiloDataWriter.h>
+#include <ibtk/LSiloDataWriter.h>
 
 #include "GravitationalBodyForce.h"
 #include "PressureBcCoefs.h"
@@ -343,21 +343,19 @@ main(
         /*
          * Create boundary condition specification objects.
          */
-        solv::LocationIndexRobinBcCoefs<NDIM> u0_bc_coef(
-            "u0_bc_coef", tbox::Pointer<tbox::Database>(NULL));
+        solv::LocationIndexRobinBcCoefs<NDIM> u0_bc_coef("u0_bc_coef", tbox::Pointer<tbox::Database>(NULL));
         u0_bc_coef.setBoundaryValue(0, 0.0);  // x lower boundary
         u0_bc_coef.setBoundaryValue(1, 0.0);  // x upper boundary
         u0_bc_coef.setBoundaryValue(2, 0.0);  // y lower boundary
         u0_bc_coef.setBoundaryValue(3, 0.0);  // y upper boundary
 
-        solv::LocationIndexRobinBcCoefs<NDIM> u1_bc_coef(
-            "u1_bc_coef", tbox::Pointer<tbox::Database>(NULL));
+        solv::LocationIndexRobinBcCoefs<NDIM> u1_bc_coef("u1_bc_coef", tbox::Pointer<tbox::Database>(NULL));
         u1_bc_coef.setBoundarySlope(0, 0.0);  // x lower boundary
         u1_bc_coef.setBoundarySlope(1, 0.0);  // x upper boundary
         u1_bc_coef.setBoundarySlope(2, 0.0);  // y lower boundary
         u1_bc_coef.setBoundarySlope(3, 0.0);  // y upper boundary
 
-        vector<solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(NDIM);
+        blitz::TinyVector<solv::RobinBcCoefStrategy<NDIM>*,NDIM> U_bc_coefs;
         U_bc_coefs[0] = &u0_bc_coef;
         U_bc_coefs[1] = &u1_bc_coef;
 
@@ -436,7 +434,7 @@ main(
             new IBStandardInitializer(
                 "IBStandardInitializer",
                 input_db->getDatabase("IBStandardInitializer"));
-        time_integrator->registerLNodeInitStrategy(initializer);
+        time_integrator->registerLInitStrategy(initializer);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(
@@ -465,16 +463,16 @@ main(
             new appu::VisItDataWriter<NDIM>(
                 "VisIt Writer",
                 visit_dump_dirname, visit_number_procs_per_file);
-        tbox::Pointer<LagSiloDataWriter> silo_data_writer =
-            new LagSiloDataWriter(
-                "LagSiloDataWriter",
+        tbox::Pointer<LSiloDataWriter> silo_data_writer =
+            new LSiloDataWriter(
+                "LSiloDataWriter",
                 visit_dump_dirname);
 
         if (uses_visit)
         {
-            initializer->registerLagSiloDataWriter(silo_data_writer);
+            initializer->registerLSiloDataWriter(silo_data_writer);
             time_integrator->registerVisItDataWriter(visit_data_writer);
-            time_integrator->registerLagSiloDataWriter(silo_data_writer);
+            time_integrator->registerLSiloDataWriter(silo_data_writer);
         }
 
         /*
@@ -488,7 +486,7 @@ main(
         /*
          * Deallocate the Lagrangian initializer, as it is no longer needed.
          */
-        time_integrator->freeLNodeInitStrategy();
+        time_integrator->freeLInitStrategy();
         initializer.setNull();
 
         /*
@@ -568,13 +566,13 @@ main(
              * Determine the coordinates of the free end of the filament.
              */
             int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
-            LDataManager* lag_manager = time_integrator->getLDataManager();
+            LDataManager* l_data_manager = time_integrator->getLDataManager();
 
             vector<int> X_idx(1,-1);
-            X_idx[0] = lag_manager->getNumberOfNodes(finest_hier_level) - 1;
-            lag_manager->mapLagrangianToPETSc(X_idx, finest_hier_level);
+            X_idx[0] = l_data_manager->getNumberOfNodes(finest_hier_level) - 1;
+            l_data_manager->mapLagrangianToPETSc(X_idx, finest_hier_level);
 
-            tbox::Pointer<LData> X_data = lag_manager->getLMeshData(
+            tbox::Pointer<LData> X_data = l_data_manager->getLData(
                 "X", finest_hier_level);
             Vec X_vec = X_data->getVec();
 

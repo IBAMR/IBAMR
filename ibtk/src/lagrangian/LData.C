@@ -45,7 +45,6 @@
 #endif
 
 // IBTK INCLUDES
-#include <ibtk/LDataManager.h>
 #include <ibtk/namespaces.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

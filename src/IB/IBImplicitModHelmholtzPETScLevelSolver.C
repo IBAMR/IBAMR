@@ -187,24 +187,23 @@ void
 IBImplicitModHelmholtzPETScLevelSolver::setPhysicalBcCoef(
     RobinBcCoefStrategy<NDIM>* const bc_coef)
 {
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(1,bc_coef));
+    setPhysicalBcCoefs(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(bc_coef));
     return;
 }// setPhysicalBcCoef
 
 void
 IBImplicitModHelmholtzPETScLevelSolver::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
 {
-    d_bc_coefs.resize(bc_coefs.size());
-    for (unsigned l = 0; l < bc_coefs.size(); ++l)
+    for (unsigned d = 0; d < NDIM; ++d)
     {
-        if (bc_coefs[l] != NULL)
+        if (bc_coefs[d] != NULL)
         {
-            d_bc_coefs[l] = bc_coefs[l];
+            d_bc_coefs[d] = bc_coefs[d];
         }
         else
         {
-            d_bc_coefs[l] = d_default_bc_coef;
+            d_bc_coefs[d] = d_default_bc_coef;
         }
     }
     return;

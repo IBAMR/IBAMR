@@ -914,7 +914,7 @@ FEDataManager::applyGradientDetector(
         X_vec->localize(*X_ghost_vec);
         X_dof_map.enforce_constraints_exactly(X_system, X_ghost_vec.get());
         blitz::Array<double,2> X_node;
-        std::vector<double> X_qp(NDIM);
+        blitz::TinyVector<double,NDIM> X_qp;
 
         // Tag cells for refinement whenever they contain element quadrature
         // points.
@@ -1136,7 +1136,7 @@ FEDataManager::updateQuadPointCountData(
     X_vec->localize(*X_ghost_vec);
     X_dof_map.enforce_constraints_exactly(X_system, X_ghost_vec);
     blitz::Array<double,2> X_node;
-    std::vector<double> X_qp(NDIM);
+    blitz::TinyVector<double,NDIM> X_qp;
 
     // Set the node count data on the specified range of levels of the
     // hierarchy.
@@ -1409,7 +1409,7 @@ FEDataManager::collectActivePatchElements_helper(
         X_vec->localize(*X_ghost_vec);
         X_dof_map.enforce_constraints_exactly(X_system, X_ghost_vec.get());
         blitz::Array<double,2> X_node;
-        std::vector<double> X_qp(NDIM);
+        blitz::TinyVector<double,NDIM> X_qp;
 
         // Keep only those elements that have a quadrature point on the local
         // patch.  We also keep track of whether we added any new elements to

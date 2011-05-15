@@ -45,8 +45,8 @@
 #include <SideData.h>
 #include <SideVariable.h>
 
-// C++ STDLIB INCLUDES
-#include <vector>
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -87,7 +87,7 @@ public:
      */
     static void
     constructPatchVecWrappers(
-        std::vector<Vec>& vecs,
+        blitz::TinyVector<Vec,NDIM>& vecs,
         SAMRAI::pdat::SideData<NDIM,double>& data);
 
     /*!
@@ -116,7 +116,7 @@ public:
      * \return Total number of DOF indices associated with each component axis
      * of the patch data object.
      */
-    static std::vector<int>
+    static blitz::TinyVector<int,NDIM>
     constructPatchDOFIndices(
         SAMRAI::pdat::SideData<NDIM,int>& dof_index,
         SAMRAI::pdat::SideData<NDIM,double>& data);

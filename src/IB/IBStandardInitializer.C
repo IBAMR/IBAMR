@@ -56,8 +56,8 @@
 
 // IBTK INCLUDES
 #include <ibtk/IndexUtilities.h>
-#include <ibtk/LNodeIndexSet.h>
-#include <ibtk/LNodeIndexSetData.h>
+#include <ibtk/LNodeSet.h>
+#include <ibtk/LNodeSetData.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -317,9 +317,9 @@ IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    (void) lag_manager;
+    (void) l_data_manager;
     int offset = 0;
     for (int j = 0; j < int(d_base_filename[level_number].size()); ++j)
     {
@@ -342,9 +342,9 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    (void) lag_manager;
+    (void) l_data_manager;
 
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
@@ -365,8 +365,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom =
-            patch->getPatchGeometry();
+        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const Box<NDIM>& patch_box = patch->getBox();
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
         const CellIndex<NDIM>& patch_upper = patch_box.upper();
@@ -374,7 +373,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
         const double* const xUpper = patch_geom->getXUpper();
         const double* const dx = patch_geom->getDx();
 
-        Pointer<LNodeIndexSetData> index_data = patch->getPatchData(lag_node_index_idx);
+        Pointer<LNodeSetData> index_data = patch->getPatchData(lag_node_index_idx);
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -420,19 +419,16 @@ IBStandardInitializer::initializeDataOnPatchLevel(
             // vertex.
             std::vector<Pointer<Streamable> > specs = initializeSpecs(point_idx, global_index_offset, level_number);
 
-            // Create or retrieve a pointer to the LNodeIndexSet associated with
-            // the current Cartesian grid cell.
+            // Create or retrieve a pointer to the LNodeSet associated with the
+            // current Cartesian grid cell.
             if (!index_data->isElement(idx))
             {
-                index_data->appendItemPointer(idx, new LNodeIndexSet());
+                index_data->appendItemPointer(idx, new LNodeSet());
             }
-            LNodeIndexSet* const node_set = index_data->getItem(idx);
+            LNodeSet* const node_set = index_data->getItem(idx);
             static const IntVector<NDIM> periodic_offset(0);
-            static const std::vector<double> periodic_displacement(NDIM,0.0);
-            node_set->push_back(LNodeIndex(lagrangian_idx, global_petsc_idx, local_petsc_idx,
-                                           &X_array(local_petsc_idx,0),
-                                           periodic_offset, periodic_displacement,
-                                           specs));
+            static const blitz::TinyVector<double,NDIM> periodic_displacement(0.0);
+            node_set->push_back(LNode(lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, specs));
 
             // Initialize the velocity of the present vertex.
             std::fill(&U_array(local_petsc_idx,0),&U_array(local_petsc_idx,0)+NDIM,0.0);
@@ -464,9 +460,9 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    (void) lag_manager;
+    (void) l_data_manager;
 
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
@@ -524,9 +520,9 @@ IBStandardInitializer::initializeDirectorDataOnPatchLevel(
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    (void) lag_manager;
+    (void) l_data_manager;
 
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.

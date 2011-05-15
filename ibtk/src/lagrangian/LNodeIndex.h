@@ -35,17 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
-#include <ibtk/Streamable.h>
-
 // SAMRAI INCLUDES
 #include <Index.h>
 #include <tbox/AbstractStream.h>
 #include <tbox/DescribedClass.h>
 #include <tbox/Pointer.h>
 
-// C++ STDLIB INCLUDES
-#include <vector>
+// BLITZ++ INCLUDES
+#include <blitz/array.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -53,18 +50,13 @@ namespace IBTK
 {
 /*!
  * \brief Class LNodeIndex provides Lagrangian and <A
- * HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> indexing information and
- * data storage for a single node of a Lagrangian mesh.
+ * HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> indexing information for a
+ * single node of a Lagrangian mesh.
  */
 class LNodeIndex
     : public SAMRAI::tbox::DescribedClass
 {
 public:
-    friend bool
-    operator<(
-        const LNodeIndex& lhs,
-        const LNodeIndex& rhs);
-
     /*!
      * \brief Default constructor.
      */
@@ -72,10 +64,8 @@ public:
         const int lagrangian_nidx=-1,
         const int global_petsc_nidx=-1,
         const int local_petsc_nidx=-1,
-        const double* const X_ptr=NULL,
         const SAMRAI::hier::IntVector<NDIM>& periodic_offset=SAMRAI::hier::IntVector<NDIM>(0),
-        const std::vector<double>& periodic_displacement=std::vector<double>(NDIM,0.0),
-        const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data=std::vector<SAMRAI::tbox::Pointer<Streamable> >());
+        const blitz::TinyVector<double,NDIM>& periodic_displacement=blitz::TinyVector<double,NDIM>(0.0));
 
     /*!
      * \brief Copy constructor.
@@ -104,133 +94,64 @@ public:
         const LNodeIndex& that);
 
     /*!
-     * \return The Lagrangian index referenced by this LNodeIndex.
+     * \return The Lagrangian index referenced by this LNodeIndex object.
      */
     int
     getLagrangianIndex() const;
 
     /*!
-     * \brief Reset the Lagrangian index referenced by this LNodeIndex.
+     * \brief Reset the Lagrangian index referenced by this LNodeIndex object.
      */
     void
     setLagrangianIndex(
         const int lagrangian_nidx);
 
     /*!
-     * \return The global PETSc index referenced by this LNodeIndex.
+     * \return The global PETSc index referenced by this LNodeIndex object.
      */
     int
     getGlobalPETScIndex() const;
 
     /*!
-     * \brief Reset the global PETSc index referenced by this LNodeIndex.
+     * \brief Reset the global PETSc index referenced by this LNodeIndex object.
      */
     void
     setGlobalPETScIndex(
         const int global_petsc_nidx);
 
     /*!
-     * \return The local PETSc index referenced by this LNodeIndex.
+     * \return The local PETSc index referenced by this LNodeIndex object.
      */
     int
     getLocalPETScIndex() const;
 
     /*!
-     * \brief Reset the local PETSc index referenced by this LNodeIndex.
+     * \brief Reset the local PETSc index referenced by this LNodeIndex object.
      */
     void
     setLocalPETScIndex(
         const int local_petsc_nidx);
 
     /*!
-     * \return A pointer to the physical location of the node referenced by this
-     * LNodeIndex.
+     * \brief Indicate that the LNodeIndex object has been shifted across a
+     * periodic boundary.
      */
-    const double*
-    getNodeLocation() const;
-
-    /*!
-     * \brief Reset the pointer to the physical location of the node referenced
-     * by this LNodeIndex.
-     */
-    void
-    setNodeLocation(
-        const double* const X_ptr);
-
-    /*!
-     * \brief Indicate that the LNodeIndex has been shifted across a periodic
-     * boundary.
-     */
-    void
+    virtual void
     registerPeriodicShift(
         const SAMRAI::hier::IntVector<NDIM>& offset,
-        const std::vector<double>& displacement);
+        const blitz::TinyVector<double,NDIM>& displacement);
 
     /*!
      * \brief Get the periodic offset.
      */
-    const SAMRAI::hier::IntVector<NDIM>&
+    virtual const SAMRAI::hier::IntVector<NDIM>&
     getPeriodicOffset() const;
 
     /*!
      * \brief Get the periodic displacement.
      */
-    const std::vector<double>&
+    virtual const blitz::TinyVector<double,NDIM>&
     getPeriodicDisplacement() const;
-
-    /*!
-     * \return A constant reference to any additional data items associated with
-     * the node referenced by this LNodeIndex.
-     */
-    const std::vector<SAMRAI::tbox::Pointer<Streamable> >&
-    getNodeData() const;
-
-    /*!
-     * \return A non-constant reference to any additional data items associated
-     * with the node referenced by this LNodeIndex.
-     */
-    std::vector<SAMRAI::tbox::Pointer<Streamable> >&
-    getNodeData();
-
-    /*!
-     * \brief Reset the collection of additional data items associated with the node
-     * referenced by this LNodeIndex.
-     */
-    void
-    setNodeData(
-        const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data);
-
-    /*!
-     * \return A pointer to the first data item of type T associated with the
-     * node referenced by the LNodeIndex.
-     *
-     * If no object of the specified type is encountered, this method returns a
-     * null pointer.
-     *
-     * \note It is possible for multiple objects of the same type to be
-     * associated with each node.  This method returns only the \em first such
-     * object encountered in the collection of data items associated with the
-     * node.
-     */
-    template<typename T>
-    SAMRAI::tbox::Pointer<T>
-    getNodeData() const;
-
-    /*!
-     * \return A vector of pointers to all data items of type T associated with
-     * the node referenced by the LNodeIndex.
-     *
-     * If no object of the specified type is encountered, this method returns an
-     * empty vector.
-     *
-     * \note It is possible for multiple objects of the same type to be
-     * associated with each node.  This method returns a vector of \em all such
-     * objects encountered in the collection of data items associated with the
-     * node.
-     */
-    template<typename T>
-    std::vector<SAMRAI::tbox::Pointer<T> >
-    getNodeDataVector() const;
 
     /*!
      * \brief Copy data from the source.
@@ -276,30 +197,166 @@ private:
     int d_lagrangian_nidx;   // the fixed global Lagrangian index
     int d_global_petsc_nidx; // the global PETSc index
     int d_local_petsc_nidx;  // the local PETSc index
-    const double* d_X_ptr;   // a pointer to the physical location of the node
 
     // the periodic offset and displacement
     SAMRAI::hier::IntVector<NDIM> d_offset;
-    std::vector<double> d_displacement;
-
-    // a (possibly empty) collection of data objects that are associated with
-    // the node
-    std::vector<SAMRAI::tbox::Pointer<Streamable> > d_node_data;
+    blitz::TinyVector<double,NDIM> d_displacement;
 };
 
 /*!
- * \brief Less-than comparison operator.
- *
- * \return Whether lhs < rhs.
- *
- * The ordering is determined on the \em physical \em locations of the nodes.
- * When a set of indices is sorted according to operator<(), the nodes are in
- * the "Fortan" ordering according to their physical location.
+ * \brief Comparison functor to order on the physical location of the Lagrangian
+ * node.
  */
-bool
-operator<(
-    const LNodeIndex& lhs,
-    const LNodeIndex& rhs);
+class LNodeIndexPosnComp
+    : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
+      std::binary_function<const LNodeIndex* const,const LNodeIndex* const,bool>
+{
+public:
+    LNodeIndexPosnComp(
+        const blitz::Array<double,2>& X_ghosted_local_form_array)
+        : d_X_ghosted_local_form_array(&X_ghosted_local_form_array)
+        {
+            // intentionally blank
+            return;
+        }
+
+    ~LNodeIndexPosnComp()
+        {
+            // intentionally blank
+            return;
+        }
+
+    inline bool
+    operator()(
+        const LNodeIndex& lhs,
+        const LNodeIndex& rhs)
+        {
+#ifdef DEBUG_CHECK_ASSERTIONS
+#if ((NDIM > 3) || (NDIM < 1))
+            TBOX_ERROR("operator<(const LNodeIndex&,const LNodeIndex&): not implemented for NDIM=="
+                       << NDIM << endl);
+#endif
+#endif
+            const double* const X_lhs = &(*d_X_ghosted_local_form_array)(lhs.getLocalPETScIndex(),0);
+            const double* const X_rhs = &(*d_X_ghosted_local_form_array)(rhs.getLocalPETScIndex(),0);
+            const bool ret_val = (
+                ((X_lhs[0]< X_rhs[0])) ||
+#if (NDIM > 1)
+                ((X_lhs[0]==X_rhs[0])&&(X_lhs[1]< X_rhs[1])) ||
+#if (NDIM > 2)
+                ((X_lhs[0]==X_rhs[0])&&(X_lhs[1]==X_rhs[1])&&(X_lhs[2]< X_rhs[2])) ||
+#endif
+#endif
+                ((X_lhs[0]==X_rhs[0])&&
+#if (NDIM > 1)
+                 (X_lhs[1]==X_rhs[1])&&
+#if (NDIM > 2)
+                 (X_lhs[2]==X_rhs[2])&&
+#endif
+#endif
+                 (lhs.getLagrangianIndex()<rhs.getLagrangianIndex()))
+                                  );
+            return ret_val;
+        }// operator()
+
+    inline bool
+    operator()(
+        const LNodeIndex* const lhs,
+        const LNodeIndex* const rhs)
+        {
+            return (*this)(*lhs,*rhs);
+        }// operator()
+
+private:
+    const blitz::Array<double,2>* const d_X_ghosted_local_form_array;
+};
+
+/*!
+ * \brief Comparison functor to order on the Lagrangian index of the Lagrangian
+ * node.
+ */
+struct LNodeIndexLagrangianIndexComp
+    : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
+      std::binary_function<const LNodeIndex* const,const LNodeIndex* const,bool>
+{
+    inline bool
+    operator()(
+        const LNodeIndex& lhs,
+        const LNodeIndex& rhs)
+        {
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(lhs.getLagrangianIndex() >= 0);
+            TBOX_ASSERT(rhs.getLagrangianIndex() >= 0);
+#endif
+            return lhs.getLagrangianIndex()<rhs.getLagrangianIndex();
+        }// operator()
+
+    inline bool
+    operator()(
+        const LNodeIndex* const lhs,
+        const LNodeIndex* const rhs)
+        {
+            return (*this)(*lhs,*rhs);
+        }// operator()
+};
+
+/*!
+ * \brief Comparison functor to order on the global PETSc index of the
+ * Lagrangian node.
+ */
+struct LNodeIndexGlobalPETScIndexComp
+    : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
+      std::binary_function<const LNodeIndex* const,const LNodeIndex* const,bool>
+{
+    inline bool
+    operator()(
+        const LNodeIndex& lhs,
+        const LNodeIndex& rhs)
+        {
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(lhs.getGlobalPETScIndex() >= 0);
+            TBOX_ASSERT(rhs.getGlobalPETScIndex() >= 0);
+#endif
+            return lhs.getGlobalPETScIndex()<rhs.getGlobalPETScIndex();
+        }// operator()
+
+    inline bool
+    operator()(
+        const LNodeIndex* const lhs,
+        const LNodeIndex* const rhs)
+        {
+            return (*this)(*lhs,*rhs);
+        }// operator()
+};
+
+/*!
+ * \brief Comparison functor to order on the local PETSc index of the
+ * Lagrangian node.
+ */
+struct LNodeIndexLocalPETScIndexComp
+    : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
+      std::binary_function<const LNodeIndex* const,const LNodeIndex* const,bool>
+{
+    inline bool
+    operator()(
+        const LNodeIndex& lhs,
+        const LNodeIndex& rhs)
+        {
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(lhs.getLocalPETScIndex() >= 0);
+            TBOX_ASSERT(rhs.getLocalPETScIndex() >= 0);
+#endif
+            return lhs.getLocalPETScIndex()<rhs.getLocalPETScIndex();
+        }// operator()
+
+    inline bool
+    operator()(
+        const LNodeIndex* const lhs,
+        const LNodeIndex* const rhs)
+        {
+            return (*this)(*lhs,*rhs);
+        }// operator()
+};
 
 }// namespace IBTK
 

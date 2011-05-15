@@ -51,7 +51,6 @@
 
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/LNodeIndexSetData.h>
 #include <ibtk/PETScVecOps.h>
 
 // SAMRAI INCLUDES
@@ -146,9 +145,9 @@ IBSpringForceGen::initializeLevelData(
     const int level_number,
     const double init_data_time,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+    if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
     t_initialize_level_data->start();
 
@@ -197,46 +196,41 @@ IBSpringForceGen::initializeLevelData(
     stiffnesses.clear();
     rest_lengths.clear();
 
-    // The patch data descriptor index for the LNodeIndexSetData.
-    const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
+    // The LMesh object provides the set of local Lagrangian nodes.
+    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const std::vector<LNode*>& local_nodes = mesh->getNodes();
 
     // Determine the "master" and "slave" node indices for all springs
     // associated with the present MPI process.
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+         cit != local_nodes.end(); ++cit)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
-        for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
-             it != idx_data->data_end(); ++it)
+        const LNode& node_idx = **cit;
+        Pointer<IBSpringForceSpec> force_spec = node_idx.getNodeData<IBSpringForceSpec>();
+        if (!force_spec.isNull())
         {
-            const LNodeIndex& node_idx = *it;
-            Pointer<IBSpringForceSpec> force_spec = node_idx.getNodeData<IBSpringForceSpec>();
-            if (!force_spec.isNull())
+            const int& mastr_idx = node_idx.getLagrangianIndex();
+            const unsigned num_springs = force_spec->getNumberOfSprings();
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
+#endif
+            const std::vector<int>& slv = force_spec->getSlaveNodeIndices();
+            const std::vector<int>& fcn = force_spec->getForceFunctionIndices();
+            const std::vector<double>& stf = force_spec->getStiffnesses();
+            const std::vector<double>& rst = force_spec->getRestingLengths();
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(num_springs == slv.size());
+            TBOX_ASSERT(num_springs == fcn.size());
+            TBOX_ASSERT(num_springs == stf.size());
+            TBOX_ASSERT(num_springs == rst.size());
+#endif
+            if (num_springs > 0)
             {
-                const int& mastr_idx = node_idx.getLagrangianIndex();
-                const unsigned num_springs = force_spec->getNumberOfSprings();
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
-#endif
-                const std::vector<int>& slv = force_spec->getSlaveNodeIndices();
-                const std::vector<int>& fcn = force_spec->getForceFunctionIndices();
-                const std::vector<double>& stf = force_spec->getStiffnesses();
-                const std::vector<double>& rst = force_spec->getRestingLengths();
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(num_springs == slv.size());
-                TBOX_ASSERT(num_springs == fcn.size());
-                TBOX_ASSERT(num_springs == stf.size());
-                TBOX_ASSERT(num_springs == rst.size());
-#endif
-                if (num_springs > 0)
-                {
-                    lag_mastr_node_idxs.insert(lag_mastr_node_idxs.end(), num_springs, mastr_idx);
-                    lag_slave_node_idxs.insert(lag_slave_node_idxs.end(), slv.begin(), slv.end());
-                    force_fcn_idxs.insert(force_fcn_idxs.end(), fcn.begin(), fcn.end());
-                    stiffnesses   .insert(stiffnesses   .end(), stf.begin(), stf.end());
-                    rest_lengths  .insert(rest_lengths  .end(), rst.begin(), rst.end());
-                }
+                lag_mastr_node_idxs.insert(lag_mastr_node_idxs.end(), num_springs, mastr_idx);
+                lag_slave_node_idxs.insert(lag_slave_node_idxs.end(), slv.begin(), slv.end());
+                force_fcn_idxs.insert(force_fcn_idxs.end(), fcn.begin(), fcn.end());
+                stiffnesses   .insert(stiffnesses   .end(), stf.begin(), stf.end());
+                rest_lengths  .insert(rest_lengths  .end(), rst.begin(), rst.end());
             }
         }
     }
@@ -245,12 +239,12 @@ IBSpringForceGen::initializeLevelData(
     // corresponding to the present data distribution.
     petsc_mastr_node_idxs = lag_mastr_node_idxs;
     petsc_slave_node_idxs = lag_slave_node_idxs;
-    lag_manager->mapLagrangianToPETSc(petsc_mastr_node_idxs, level_number);
-    lag_manager->mapLagrangianToPETSc(petsc_slave_node_idxs, level_number);
+    l_data_manager->mapLagrangianToPETSc(petsc_mastr_node_idxs, level_number);
+    l_data_manager->mapLagrangianToPETSc(petsc_slave_node_idxs, level_number);
 
     // Determine the global node offset and the number of local nodes.
-    const int global_node_offset = lag_manager->getGlobalNodeOffset(level_number);
-    const int num_local_nodes = lag_manager->getNumberOfLocalNodes(level_number);
+    const int global_node_offset = l_data_manager->getGlobalNodeOffset(level_number);
+    const int num_local_nodes = l_data_manager->getNumberOfLocalNodes(level_number);
 
     // Determine the non-zero structure for the matrix used to compute nodal
     // displacements.
@@ -320,9 +314,9 @@ IBSpringForceGen::computeLagrangianForce(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+    if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
     t_compute_lagrangian_force->start();
 
@@ -426,9 +420,9 @@ IBSpringForceGen::computeLagrangianForceJacobianNonzeroStructure(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+    if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
     t_compute_lagrangian_force_jacobian_nonzero_structure->start();
 
@@ -445,8 +439,8 @@ IBSpringForceGen::computeLagrangianForceJacobianNonzeroStructure(
     const int local_sz = petsc_mastr_node_idxs.size();
 
     // Determine the global node offset and the number of local nodes.
-    const int global_node_offset = lag_manager->getGlobalNodeOffset(level_number);
-    const int num_local_nodes = lag_manager->getNumberOfLocalNodes(level_number);
+    const int global_node_offset = l_data_manager->getGlobalNodeOffset(level_number);
+    const int num_local_nodes = l_data_manager->getNumberOfLocalNodes(level_number);
 
     // Determine the non-zero structure for the matrix used to store the
     // Jacobian of the force.
@@ -521,9 +515,9 @@ IBSpringForceGen::computeLagrangianForceJacobian(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+    if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
     t_compute_lagrangian_force_jacobian->start();
 
@@ -629,12 +623,12 @@ IBSpringForceGen::computeLagrangianEnergy(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
     TBOX_WARNING("IBSpringForceGen::computeLagrangianEnergy():\n"
                  << "  the implementation of this function is specialized to linear springs." << std::endl);
 
-    if (!lag_manager->levelContainsLagrangianData(level_number)) return 0.0;
+    if (!l_data_manager->levelContainsLagrangianData(level_number)) return 0.0;
 
     t_compute_lagrangian_energy->start();
 

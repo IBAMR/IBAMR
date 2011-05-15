@@ -47,9 +47,11 @@
 #include <RobinBcCoefStrategy.h>
 #include <tbox/DescribedClass.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // C++ STDLIB INCLUDES
 #include <set>
-#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -99,7 +101,7 @@ public:
      */
     CartSideRobinPhysBdryOp(
         const int patch_data_index,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
         const bool homogeneous_bc=false);
 
     /*!
@@ -113,7 +115,7 @@ public:
      */
     CartSideRobinPhysBdryOp(
         const std::set<int>& patch_data_indices,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
         const bool homogeneous_bc=false);
 
     /*!
@@ -127,7 +129,7 @@ public:
      */
     CartSideRobinPhysBdryOp(
         const SAMRAI::hier::ComponentSelector& patch_data_indices,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
         const bool homogeneous_bc=false);
 
     /*!
@@ -166,7 +168,7 @@ public:
      */
     void
     setPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
 
     /*!
      * \brief Set whether boundary filling should employ homogeneous boundary
@@ -332,7 +334,7 @@ private:
      * The boolean value indicates whether homogeneous boundary conditions
      * should be used.
      */
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs;
     bool d_homogeneous_bc;
 };
 }// namespace IBTK

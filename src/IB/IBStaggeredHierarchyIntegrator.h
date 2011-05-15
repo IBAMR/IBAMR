@@ -106,7 +106,7 @@ public:
      */
     void
     registerVelocityPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs);
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs);
 
     /*!
      * Supply an optional side centered body forcing term.
@@ -742,7 +742,7 @@ private:
      * The LDataManager is used to coordinate the distribution of Lagrangian
      * data on the patch hierarchy.
      */
-    IBTK::LDataManager* d_lag_data_manager;
+    IBTK::LDataManager* d_l_data_manager;
 
     /*
      * Instrumentation (flow meter and pressure gauge) algorithms and data
@@ -841,7 +841,7 @@ private:
      * Input file for initial marker positions, indices, and clouds.
      */
     std::string d_mark_input_file_name;
-    std::vector<double> d_mark_init_posns;
+    std::vector<blitz::TinyVector<double,NDIM> > d_mark_init_posns;
 
     /*
      * Hierarchy operations objects.

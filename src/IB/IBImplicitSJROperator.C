@@ -130,7 +130,7 @@ IBImplicitSJROperator::formJacobian(
     std::vector<Pointer<RefineSchedule<NDIM> > >& u_half_ib_rscheds = d_ib_implicit_integrator->d_rscheds["V->V::S->S::CONSERVATIVE_LINEAR_REFINE"];
     Pointer<HierarchySideDataOpsReal<NDIM,double> > hier_sc_data_ops = d_ib_implicit_integrator->d_hier_sc_data_ops;
 
-    LDataManager* lag_data_manager = d_ib_implicit_integrator->d_lag_data_manager;
+    LDataManager* l_data_manager = d_ib_implicit_integrator->d_l_data_manager;
 
     std::vector<Pointer<LData> >& X_data = d_ib_implicit_integrator->d_X_data;
     std::vector<Pointer<LData> >& X_mid_data = d_ib_implicit_integrator->d_X_mid_data;
@@ -145,13 +145,13 @@ IBImplicitSJROperator::formJacobian(
     hier_sc_data_ops->linearSum(u_half_ib_idx, 0.5, u_current_idx, 0.5, u_new_idx);
 
     // Interpolate u(n+1/2) to U(n+1/2).
-    lag_data_manager->interp(u_half_ib_idx, U_half_data, X_mid_data, std::vector<Pointer<CoarsenSchedule<NDIM> > >(), u_half_ib_rscheds, d_current_time);
+    l_data_manager->interp(u_half_ib_idx, U_half_data, X_mid_data, std::vector<Pointer<CoarsenSchedule<NDIM> > >(), u_half_ib_rscheds, d_current_time);
     d_ib_implicit_integrator->resetAnchorPointValues(U_half_data, coarsest_ln, finest_ln);
 
     // Set X(n+1/2) = X(n) + 0.5*dt*U(n+1/2).
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (lag_data_manager->levelContainsLagrangianData(ln))
+        if (l_data_manager->levelContainsLagrangianData(ln))
         {
             Vec X_vec = X_data[ln]->getVec();
             Vec X_half_vec = X_half_data[ln]->getVec();
@@ -167,10 +167,10 @@ IBImplicitSJROperator::formJacobian(
         {
             ierr = MatDestroy(d_SJR_mats[ln]);  IBTK_CHKERRQ(ierr);
         }
-        if (lag_data_manager->levelContainsLagrangianData(ln))
+        if (l_data_manager->levelContainsLagrangianData(ln))
         {
             // Compute dF/dX.
-            const int num_local_nodes = lag_data_manager->getNumberOfLocalNodes(ln);
+            const int num_local_nodes = l_data_manager->getNumberOfLocalNodes(ln);
             Mat J_mat;
             ierr = MatCreateMPIAIJ(PETSC_COMM_WORLD,
                                    NDIM*num_local_nodes, NDIM*num_local_nodes,
@@ -185,7 +185,7 @@ IBImplicitSJROperator::formJacobian(
             ierr = MatSetBlockSize(J_mat, NDIM);  IBTK_CHKERRQ(ierr);
             lag_force_strategy->computeLagrangianForceJacobian(
                 J_mat, MAT_FINAL_ASSEMBLY, -0.25*d_dt, X_half_data[ln], -0.5, U_half_data[ln],
-                hierarchy, ln, d_current_time+0.5*d_dt, lag_data_manager);
+                hierarchy, ln, d_current_time+0.5*d_dt, l_data_manager);
 
             // Compute S dF/dX R.
             ierr = MatPtAP(J_mat, R_mats[ln], MAT_INITIAL_MATRIX, 32.0, &d_SJR_mats[ln]); IBTK_CHKERRQ(ierr);
@@ -233,12 +233,12 @@ IBImplicitSJROperator::apply(
     Pointer<SideVariable<NDIM,double> > u_var = x.getComponentVariable(0);
     Pointer<SideVariable<NDIM,double> > f_var = y.getComponentVariable(0);
 
-    LDataManager* lag_data_manager = d_ib_implicit_integrator->d_lag_data_manager;
+    LDataManager* l_data_manager = d_ib_implicit_integrator->d_l_data_manager;
 
     // Compute f = S (dF/dX) R u.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (lag_data_manager->levelContainsLagrangianData(ln))
+        if (l_data_manager->levelContainsLagrangianData(ln))
         {
             Pointer<PatchLevel<NDIM> > patch_level = hierarchy->getPatchLevel(ln);
             Vec u_vec = static_cast<Vec>(NULL);
@@ -298,18 +298,18 @@ IBImplicitSJROperator::initializeOperatorState(
     d_o_nnz.resize(finest_ln+1);
 
     // Determine the non-zero structure of the force Jacobian matrix.
-    LDataManager* lag_data_manager = d_ib_implicit_integrator->d_lag_data_manager;
+    LDataManager* l_data_manager = d_ib_implicit_integrator->d_l_data_manager;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (lag_data_manager->levelContainsLagrangianData(ln))
+        if (l_data_manager->levelContainsLagrangianData(ln))
         {
             // Compute the nonzero structure for the block matrix representation
             // of dF/dX.
-            const int num_local_nodes = lag_data_manager->getNumberOfLocalNodes(ln);
+            const int num_local_nodes = l_data_manager->getNumberOfLocalNodes(ln);
             std::vector<int> d_nnz(num_local_nodes), o_nnz(num_local_nodes);
             Pointer<IBLagrangianForceStrategy> lag_force_strategy = d_ib_implicit_integrator->d_lag_force_strategy;
             lag_force_strategy->computeLagrangianForceJacobianNonzeroStructure(
-                d_nnz, o_nnz, hierarchy, ln, d_current_time+0.5*d_dt, lag_data_manager);
+                d_nnz, o_nnz, hierarchy, ln, d_current_time+0.5*d_dt, l_data_manager);
 
             // Convert the nonzero structure data into a non-blocked format.
             d_d_nnz[ln].resize(NDIM*num_local_nodes);

@@ -155,8 +155,7 @@ LMarkerCoarsen::coarsen(
                 dst_mark_data->appendItemPointer(coarse_i, new LMarkerSet());
             }
             LMarkerSet& coarse_mark_set = *(dst_mark_data->getItem(coarse_i));
-            LMarkerSet::DataSet& coarse_mark_set_data = coarse_mark_set.getDataSet();
-            coarse_mark_set_data.insert(coarse_mark_set_data.end(), fine_mark_set.begin(), fine_mark_set.end());
+            coarse_mark_set.insert(coarse_mark_set.end(), fine_mark_set.begin(), fine_mark_set.end());
         }
     }
     return;

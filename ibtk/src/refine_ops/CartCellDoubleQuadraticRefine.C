@@ -52,6 +52,9 @@
 #include <CellData.h>
 #include <CellVariable.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // C++ STDLIB INCLUDES
 #include <vector>
 
@@ -175,7 +178,7 @@ CartCellDoubleQuadraticRefine::refine(
 
         // Determine the interpolation weights.
         static const int degree = 2;
-        std::vector<std::vector<double> > wgts(NDIM,std::vector<double>(degree+1,0.0));
+        blitz::TinyVector<std::vector<double>,NDIM> wgts(std::vector<double>(degree+1,0.0));
         for (int axis = 0; axis < NDIM; ++axis)
         {
             const double X = XLower_fine[axis] + dx_fine[axis]*(double(i_fine(axis)-patch_lower_fine(axis))+0.5);

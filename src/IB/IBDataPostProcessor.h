@@ -82,7 +82,7 @@ public:
         const int level_number,
         const double init_data_time,
         const bool initial_time,
-        IBTK::LDataManager* const lag_manager);
+        IBTK::LDataManager* const l_data_manager);
 
     /*!
      * \brief Post-process data on the patch hierarchy.
@@ -99,7 +99,7 @@ public:
         const int coarsest_level_number,
         const int finest_level_number,
         const double data_time,
-        IBTK::LDataManager* const lag_manager) = 0;
+        IBTK::LDataManager* const l_data_manager) = 0;
 
 private:
     /*!

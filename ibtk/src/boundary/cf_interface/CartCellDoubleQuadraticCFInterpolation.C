@@ -52,6 +52,9 @@
 #include <CartesianPatchGeometry.h>
 #include <CellData.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // C++ STDLIB INCLUDES
 #include <vector>
 
@@ -549,12 +552,12 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(
                 }
 
                 // Determine the interpolation degrees and weights.
-                std::vector<int> interp_degree(NDIM);
+                blitz::TinyVector<int,NDIM> interp_degree;
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
                     interp_degree[axis] = stencil_box_crse.upper()(axis) - stencil_box_crse.lower()(axis);
                 }
-                std::vector<std::vector<double> > wgts(NDIM);
+                blitz::TinyVector<std::vector<double>,NDIM> wgts;
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
                     const int& degree = interp_degree[axis];

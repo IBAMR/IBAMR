@@ -37,6 +37,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/LNodeIndex.h>
+#include <ibtk/Streamable.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -60,9 +61,8 @@ public:
         const int lagrangian_nidx=-1,
         const int global_petsc_nidx=-1,
         const int local_petsc_nidx=-1,
-        const double* const X_ptr=NULL,
         const SAMRAI::hier::IntVector<NDIM>& periodic_offset=SAMRAI::hier::IntVector<NDIM>(0),
-        const std::vector<double>& periodic_displacement=std::vector<double>(NDIM,0.0),
+        const blitz::TinyVector<double,NDIM>& periodic_displacement=blitz::TinyVector<double,NDIM>(0.0),
         const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data=std::vector<SAMRAI::tbox::Pointer<Streamable> >());
 
     /*!
@@ -91,20 +91,114 @@ public:
     operator=(
         const LNode& that);
 
-private:
-};
+    /*!
+     * \return A constant reference to any additional data items associated with
+     * the node referenced by this LNode object.
+     */
+    const std::vector<SAMRAI::tbox::Pointer<Streamable> >&
+    getNodeData() const;
 
-/*!
- * \brief Less-than comparison operator.
- *
- * \return Whether lhs < rhs.
- *
- * The ordering is determined on the PETSc indexing of the nodes.
- */
-bool
-operator<(
-    const LNode& lhs,
-    const LNode& rhs);
+    /*!
+     * \return A non-constant reference to any additional data items associated
+     * with the node referenced by this LNode object.
+     */
+    std::vector<SAMRAI::tbox::Pointer<Streamable> >&
+    getNodeData();
+
+    /*!
+     * \brief Reset the collection of additional data items associated with the
+     * node referenced by this LNode object.
+     */
+    void
+    setNodeData(
+        const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data);
+
+    /*!
+     * \return A pointer to the first data item of type T associated with the
+     * node referenced by the LNode object.
+     *
+     * If no object of the specified type is encountered, this method returns a
+     * null pointer.
+     *
+     * \note It is possible for multiple objects of the same type to be
+     * associated with each node.  This method returns only the \em first such
+     * object encountered in the collection of data items associated with the
+     * node.
+     */
+    template<typename T>
+    SAMRAI::tbox::Pointer<T>
+    getNodeData() const;
+
+    /*!
+     * \return A vector of pointers to all data items of type T associated with
+     * the node referenced by the LNode object.
+     *
+     * If no object of the specified type is encountered, this method returns an
+     * empty vector.
+     *
+     * \note It is possible for multiple objects of the same type to be
+     * associated with each node.  This method returns a vector of \em all such
+     * objects encountered in the collection of data items associated with the
+     * node.
+     */
+    template<typename T>
+    std::vector<SAMRAI::tbox::Pointer<T> >
+    getNodeDataVector() const;
+
+    /*!
+     * \brief Indicate that the LNode object has been shifted across a periodic
+     * boundary.
+     */
+    virtual void
+    registerPeriodicShift(
+        const SAMRAI::hier::IntVector<NDIM>& offset,
+        const blitz::TinyVector<double,NDIM>& displacement);
+
+    /*!
+     * \brief Copy data from the source.
+     *
+     * \note The cell index of the destination object is src_index + src_offset.
+     */
+    virtual void
+    copySourceItem(
+        const SAMRAI::hier::Index<NDIM>& src_index,
+        const SAMRAI::hier::IntVector<NDIM>& src_offset,
+        const LNode& src_item);
+
+    /*!
+     * \brief Return an upper bound on the amount of space required to pack the
+     * object to a buffer.
+     */
+    virtual size_t
+    getDataStreamSize() const;
+
+    /*!
+     * \brief Pack data into the output stream.
+     */
+    virtual void
+    packStream(
+        SAMRAI::tbox::AbstractStream& stream);
+
+    /*!
+     * \brief Unpack data from the input stream.
+     */
+    virtual void
+    unpackStream(
+        SAMRAI::tbox::AbstractStream& stream,
+        const SAMRAI::hier::IntVector<NDIM>& offset);
+
+private:
+    /*!
+     * Assign that to this.
+     */
+    void
+    assignThatToThis(
+        const LNode& that);
+
+    // a (possibly empty) collection of data objects that are associated with
+    // the node
+    std::vector<SAMRAI::tbox::Pointer<Streamable> > d_node_data;
+};
 
 }// namespace IBTK
 

@@ -58,6 +58,9 @@
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // C++ STDLIB INCLUDES
 #include <ostream>
 #include <string>
@@ -149,7 +152,7 @@ public:
      */
     virtual void
     setPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
 
     /*!
      * \brief Specify whether the boundary conditions are homogeneous.
@@ -431,7 +434,7 @@ private:
     adjustBoundaryRhsEntries_constant_coefficients(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> >& rhs_data,
         const double D,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim1_boxes,
         const double* const dx);
@@ -470,7 +473,7 @@ private:
      * related data.
      */
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_bc_coef;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs;
     bool d_homogeneous_bc;
     double d_apply_time;
 

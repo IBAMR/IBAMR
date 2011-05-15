@@ -41,8 +41,8 @@
 #include <tbox/DescribedClass.h>
 #include <tbox/Pointer.h>
 
-// C++ STDLIB INCLUDES
-#include <vector>
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -61,8 +61,8 @@ public:
      */
     LMarker(
         const int idx=-1,
-        const std::vector<double>& X=std::vector<double>(NDIM,0.0),
-        const std::vector<double>& U=std::vector<double>(NDIM,0.0),
+        const blitz::TinyVector<double,NDIM>& X=blitz::TinyVector<double,NDIM>(0.0),
+        const blitz::TinyVector<double,NDIM>& U=blitz::TinyVector<double,NDIM>(0.0),
         const SAMRAI::hier::IntVector<NDIM>& periodic_offset=SAMRAI::hier::IntVector<NDIM>(0));
 
     /*!
@@ -111,13 +111,13 @@ public:
     /*!
      * \return A const reference to the marker position.
      */
-    const std::vector<double>&
+    const blitz::TinyVector<double,NDIM>&
     getPosition() const;
 
     /*!
      * \return A non-const reference to the marker position.
      */
-    std::vector<double>&
+    blitz::TinyVector<double,NDIM>&
     getPosition();
 
     /*!
@@ -125,18 +125,18 @@ public:
      */
     void
     setPosition(
-        const std::vector<double>& X);
+        const blitz::TinyVector<double,NDIM>& X);
 
     /*!
      * \return A const reference to the marker velocity.
      */
-    const std::vector<double>&
+    const blitz::TinyVector<double,NDIM>&
     getVelocity() const;
 
     /*!
      * \return A non-const reference to the marker velocity.
      */
-    std::vector<double>&
+    blitz::TinyVector<double,NDIM>&
     getVelocity();
 
     /*!
@@ -144,7 +144,7 @@ public:
      */
     void
     setVelocity(
-        const std::vector<double>& U);
+        const blitz::TinyVector<double,NDIM>& U);
 
     /*!
      * \return A const reference to the periodic offset.
@@ -207,7 +207,7 @@ private:
     /*!
      * \brief The marker position and velocity.
      */
-    std::vector<double> d_X, d_U;
+    blitz::TinyVector<double,NDIM> d_X, d_U;
 
     /*!
      * \brief The periodic offset.

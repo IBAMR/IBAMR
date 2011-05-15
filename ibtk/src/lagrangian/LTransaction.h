@@ -42,6 +42,9 @@
 // C++ STDLIB INCLUDES
 #include <vector>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
@@ -72,7 +75,7 @@ public:
         inline
         LTransactionComponent(
             const T& item=NULL,
-            std::vector<double> posn=std::vector<double>())
+            blitz::TinyVector<double,NDIM> posn=blitz::TinyVector<double,NDIM>(0.0))
             : item(item),
               posn(posn)
             {
@@ -126,7 +129,7 @@ public:
 
         // Data.
         T item;
-        std::vector<double> posn;
+        blitz::TinyVector<double,NDIM> posn;
     };
 
     /*!

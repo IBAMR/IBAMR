@@ -62,7 +62,7 @@
 #include <ibamr/IBStaggeredHierarchyIntegrator.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
-#include <ibtk/LagSiloDataWriter.h>
+#include <ibtk/LSiloDataWriter.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
@@ -104,7 +104,7 @@ public:
         const int coarsest_level_number,
         const int finest_level_number,
         const double data_time,
-        LDataManager* const lag_manager)
+        LDataManager* const l_data_manager)
     {
         // Compute the total energy in the system as 0.5*|u|^2 - X*F.
         HierarchyMathOps hier_math_ops("HierarchyMathOps", hierarchy);
@@ -118,7 +118,7 @@ public:
         double potential_energy = 0.0;
         for (int ln = coarsest_level_number; ln <= finest_level_number; ++ln)
         {
-            potential_energy += d_force_generator->computeLagrangianEnergy(X_data[ln], U_data[ln], hierarchy, ln, data_time, lag_manager);
+            potential_energy += d_force_generator->computeLagrangianEnergy(X_data[ln], U_data[ln], hierarchy, ln, data_time, l_data_manager);
         }
 
         tbox::pout << "\ntime = " << data_time << "\n"
@@ -479,7 +479,7 @@ main(
             new IBStandardInitializer(
                 "IBStandardInitializer",
                 input_db->getDatabase("IBStandardInitializer"));
-        time_integrator->registerLNodeInitStrategy(initializer);
+        time_integrator->registerLInitStrategy(initializer);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(
@@ -514,7 +514,7 @@ main(
         const hier::IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         const bool periodic_domain = periodic_shift.min() != 0;
 
-        vector<solv::RobinBcCoefStrategy<NDIM>*> u_bc_coefs;
+        blitz::TinyVector<solv::RobinBcCoefStrategy<NDIM>*,NDIM> u_bc_coefs;
         if (!periodic_domain)
         {
             for (int d = 0; d < NDIM; ++d)
@@ -527,9 +527,7 @@ main(
                 bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
                 const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
 
-                u_bc_coefs.push_back(
-                    new muParserRobinBcCoefs(
-                        bc_coefs_name, input_db->getDatabase(bc_coefs_db_name), grid_geometry));
+                u_bc_coefs[d] = new muParserRobinBcCoefs(bc_coefs_name, input_db->getDatabase(bc_coefs_db_name), grid_geometry);
             }
             time_integrator->registerVelocityPhysicalBcCoefs(u_bc_coefs);
         }
@@ -551,16 +549,16 @@ main(
             new appu::VisItDataWriter<NDIM>(
                 "VisIt Writer",
                 visit_dump_dirname, visit_number_procs_per_file);
-        tbox::Pointer<LagSiloDataWriter> silo_data_writer =
-            new LagSiloDataWriter(
-                "LagSiloDataWriter",
+        tbox::Pointer<LSiloDataWriter> silo_data_writer =
+            new LSiloDataWriter(
+                "LSiloDataWriter",
                 visit_dump_dirname);
 
         if (uses_visit)
         {
-            initializer->registerLagSiloDataWriter(silo_data_writer);
+            initializer->registerLSiloDataWriter(silo_data_writer);
             time_integrator->registerVisItDataWriter(visit_data_writer);
-            time_integrator->registerLagSiloDataWriter(silo_data_writer);
+            time_integrator->registerLSiloDataWriter(silo_data_writer);
         }
 
         /*
@@ -574,7 +572,7 @@ main(
         /*
          * Deallocate the Lagrangian initializer, as it is no longer needed.
          */
-        time_integrator->freeLNodeInitStrategy();
+        time_integrator->freeLInitStrategy();
         initializer.setNull();
 
         /*
@@ -663,12 +661,12 @@ main(
              * Write Lagrangian data.
              */
             const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
-            LDataManager* lag_manager = time_integrator->getLDataManager();
-            tbox::Pointer<LData> X_data = lag_manager->getLMeshData("X", finest_hier_level);
+            LDataManager* l_data_manager = time_integrator->getLDataManager();
+            tbox::Pointer<LData> X_data = l_data_manager->getLData("X", finest_hier_level);
             Vec X_petsc_vec = X_data->getVec();
             Vec X_lag_vec;
             VecDuplicate(X_petsc_vec, &X_lag_vec);
-            lag_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
+            l_data_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
             file_name = hier_dump_dirname + "/" + "X.";
             sprintf(temp_buf, "%05d", iteration_num);
             file_name += temp_buf;
@@ -774,12 +772,12 @@ main(
                  * Write Lagrangian data.
                  */
                 const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
-                LDataManager* lag_manager = time_integrator->getLDataManager();
-                tbox::Pointer<LData> X_data = lag_manager->getLMeshData("X", finest_hier_level);
+                LDataManager* l_data_manager = time_integrator->getLDataManager();
+                tbox::Pointer<LData> X_data = l_data_manager->getLData("X", finest_hier_level);
                 Vec X_petsc_vec = X_data->getVec();
                 Vec X_lag_vec;
                 VecDuplicate(X_petsc_vec, &X_lag_vec);
-                lag_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
+                l_data_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
                 file_name = hier_dump_dirname + "/" + "X.";
                 sprintf(temp_buf, "%05d", iteration_num);
                 file_name += temp_buf;
@@ -828,11 +826,7 @@ main(
          */
         if (!periodic_domain)
         {
-            for (vector<solv::RobinBcCoefStrategy<NDIM>*>::const_iterator cit = u_bc_coefs.begin();
-                 cit != u_bc_coefs.end(); ++cit)
-            {
-                delete (*cit);
-            }
+            for (int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
         }
     }// cleanup all smart Pointers prior to shutdown
 

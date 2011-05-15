@@ -32,8 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// C++ STDLIB INCLUDES
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK
@@ -43,7 +41,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 inline
-const std::vector<LNode>&
+const std::vector<LNode*>&
 LMesh::getNodes() const
 {
     return d_nodes;
@@ -71,7 +69,7 @@ LMesh::getLocalPETScIndices() const
 }// getLocalPETScIndices
 
 inline
-const std::vector<LNode>&
+const std::vector<LNode*>&
 LMesh::getGhostNodes() const
 {
     return d_ghost_nodes;

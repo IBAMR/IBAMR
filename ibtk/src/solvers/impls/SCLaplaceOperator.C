@@ -89,7 +89,7 @@ static Timer* t_deallocate_operator_state;
 SCLaplaceOperator::SCLaplaceOperator(
     const std::string& object_name,
     const PoissonSpecifications& poisson_spec,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
     : LinearOperator(true),
       d_object_name(object_name),
@@ -154,26 +154,17 @@ SCLaplaceOperator::setPoissonSpecifications(
 
 void
 SCLaplaceOperator::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    if (bc_coefs.size() != NDIM)
+    for (int d = 0; d < NDIM; ++d)
     {
-        TBOX_ERROR(d_object_name << "setPhysicalBcCoefs::()\n"
-                   << "  " << NDIM << " boundary condition objects required (one for each component of the side-centered vector field)" << std::endl);
-    }
-#endif
-
-    d_bc_coefs.resize(bc_coefs.size());
-    for (unsigned l = 0; l < bc_coefs.size(); ++l)
-    {
-        if (bc_coefs[l] != NULL)
+        if (bc_coefs[d] != NULL)
         {
-            d_bc_coefs[l] = bc_coefs[l];
+            d_bc_coefs[d] = bc_coefs[d];
         }
         else
         {
-            d_bc_coefs[l] = d_default_bc_coef;
+            d_bc_coefs[d] = d_default_bc_coef;
         }
     }
     return;

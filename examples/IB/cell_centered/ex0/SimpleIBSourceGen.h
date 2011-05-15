@@ -85,7 +85,7 @@ public:
         const int level_number,
         const double init_data_time,
         const bool initial_time,
-        LDataManager* const lag_manager);
+        LDataManager* const l_data_manager);
 
     /*!
      * \brief Specify the number of distributed internal sources or sinks.
@@ -99,7 +99,7 @@ public:
         const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,
-        LDataManager* const lag_manager);
+        LDataManager* const l_data_manager);
 
     /*!
      * \brief Compute the source locations for each of the distributed internal
@@ -117,7 +117,7 @@ public:
         const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,
-        LDataManager* const lag_manager);
+        LDataManager* const l_data_manager);
 
     /*!
      * \brief Set the normalized pressures at the sources.
@@ -128,7 +128,7 @@ public:
         const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,
-        LDataManager* const lag_manager);
+        LDataManager* const l_data_manager);
 
     /*!
      * \brief Compute the source strengths for each of the distributed internal
@@ -144,7 +144,7 @@ public:
         const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,
-        LDataManager* const lag_manager);
+        LDataManager* const l_data_manager);
 
 private:
     /*!

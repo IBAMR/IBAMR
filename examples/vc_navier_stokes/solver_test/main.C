@@ -370,7 +370,7 @@ main(
         helmholtz_spec.setCConstant((rho/dt)+0.5*lambda);
         helmholtz_spec.setDConstant(        -0.5*mu    );
 
-        vector<solv::RobinBcCoefStrategy<NDIM>*> U_star_bc_coefs(NDIM);
+        blitz::TinyVector<solv::RobinBcCoefStrategy<NDIM>*,NDIM> U_star_bc_coefs;
         tbox::Pointer<SCLaplaceOperator> helmholtz_op = new SCLaplaceOperator("Helmholtz Operator", helmholtz_spec, U_star_bc_coefs, true);
         helmholtz_op->setHierarchyMathOps(tbox::Pointer<HierarchyMathOps>(&hier_math_ops,false));
 

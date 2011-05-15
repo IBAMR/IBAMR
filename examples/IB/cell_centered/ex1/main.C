@@ -64,7 +64,7 @@
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSHierarchyIntegrator.h>
-#include <ibtk/LagSiloDataWriter.h>
+#include <ibtk/LSiloDataWriter.h>
 #include <ibtk/TimeDependentLocationIndexRobinBcCoefs.h>
 
 #include "VelocityBcCoefs.h"
@@ -356,10 +356,8 @@ main(
                 input_db->getDatabase("IBHierarchyIntegrator"),
                 patch_hierarchy, navier_stokes_integrator, force_generator);
 
-        VelocityBcCoefs u0_bc_coef(
-            "u0_bc_coef", grid_geometry);
-        solv::LocationIndexRobinBcCoefs<NDIM> u1_bc_coef(
-            "u1_bc_coef", tbox::Pointer<tbox::Database>(NULL));
+        VelocityBcCoefs u0_bc_coef("u0_bc_coef", grid_geometry);
+        solv::LocationIndexRobinBcCoefs<NDIM> u1_bc_coef("u1_bc_coef", tbox::Pointer<tbox::Database>(NULL));
         u1_bc_coef.setBoundaryValue(0,0.0);  // x lower boundary
         u1_bc_coef.setBoundarySlope(1,0.0);  // x upper boundary
         u1_bc_coef.setBoundaryValue(2,0.0);  // y lower boundary
@@ -369,8 +367,7 @@ main(
         u1_bc_coef.setBoundarySlope(5,0.0);  // z upper boundary
 #endif
 #if (NDIM > 2)
-        solv::LocationIndexRobinBcCoefs<NDIM> u2_bc_coef(
-            "u2_bc_coef", tbox::Pointer<tbox::Database>(NULL));
+        solv::LocationIndexRobinBcCoefs<NDIM> u2_bc_coef("u2_bc_coef", tbox::Pointer<tbox::Database>(NULL));
         u2_bc_coef.setBoundaryValue(0,0.0);  // x lower boundary
         u2_bc_coef.setBoundarySlope(1,0.0);  // x upper boundary
         u2_bc_coef.setBoundarySlope(2,0.0);  // y lower boundary
@@ -379,7 +376,7 @@ main(
         u2_bc_coef.setBoundaryValue(5,0.0);  // z upper boundary
 #endif
 
-        vector<solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(NDIM);
+        blitz::TinyVector<solv::RobinBcCoefStrategy<NDIM>*,NDIM> U_bc_coefs;
         U_bc_coefs[0] = &u0_bc_coef;
         U_bc_coefs[1] = &u1_bc_coef;
 #if (NDIM > 2)
@@ -396,7 +393,7 @@ main(
             new IBStandardInitializer(
                 "IBStandardInitializer",
                 input_db->getDatabase("IBStandardInitializer"));
-        time_integrator->registerLNodeInitStrategy(initializer);
+        time_integrator->registerLInitStrategy(initializer);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(
@@ -425,16 +422,16 @@ main(
             new appu::VisItDataWriter<NDIM>(
                 "VisIt Writer",
                 visit_dump_dirname, visit_number_procs_per_file);
-        tbox::Pointer<LagSiloDataWriter> silo_data_writer =
-            new LagSiloDataWriter(
-                "LagSiloDataWriter",
+        tbox::Pointer<LSiloDataWriter> silo_data_writer =
+            new LSiloDataWriter(
+                "LSiloDataWriter",
                 visit_dump_dirname);
 
         if (uses_visit)
         {
-            initializer->registerLagSiloDataWriter(silo_data_writer);
+            initializer->registerLSiloDataWriter(silo_data_writer);
             time_integrator->registerVisItDataWriter(visit_data_writer);
-            time_integrator->registerLagSiloDataWriter(silo_data_writer);
+            time_integrator->registerLSiloDataWriter(silo_data_writer);
         }
 
         /*
@@ -448,7 +445,7 @@ main(
         /*
          * Deallocate the Lagrangian initializer, as it is no longer needed.
          */
-        time_integrator->freeLNodeInitStrategy();
+        time_integrator->freeLInitStrategy();
         initializer.setNull();
 
         /*
@@ -555,13 +552,13 @@ main(
              * domain.
              */
             const int ln = patch_hierarchy->getFinestLevelNumber();
-            LDataManager* lag_manager = time_integrator->getLDataManager();
-            tbox::Pointer<LData> X_data = lag_manager->getLMeshData("X",ln);
-            tbox::Pointer<LData> U_data = lag_manager->getLMeshData("U",ln);
-            tbox::Pointer<LData> F_data = lag_manager->createLMeshData("F",ln,NDIM);
+            LDataManager* l_data_manager = time_integrator->getLDataManager();
+            tbox::Pointer<LData> X_data = l_data_manager->getLData("X",ln);
+            tbox::Pointer<LData> U_data = l_data_manager->getLData("U",ln);
+            tbox::Pointer<LData> F_data = l_data_manager->createLData("F",ln,NDIM);
             force_generator->computeLagrangianForce(
                 F_data, X_data, U_data,
-                patch_hierarchy, ln, loop_time, lag_manager);
+                patch_hierarchy, ln, loop_time, l_data_manager);
 
             double F_D = 0.0;
             double F_L = 0.0;

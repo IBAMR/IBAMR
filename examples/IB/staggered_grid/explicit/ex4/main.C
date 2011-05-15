@@ -64,8 +64,7 @@
 #include <ibamr/IBStaggeredHierarchyIntegrator.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibtk/LEInteractor.h>
-#include <ibtk/LNodeIndexData.h>
-#include <ibtk/LagSiloDataWriter.h>
+#include <ibtk/LSiloDataWriter.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
@@ -79,14 +78,14 @@ void
 update_triads(
     const double freq,
     tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
-    LDataManager* const lag_manager,
+    LDataManager* const l_data_manager,
     const double current_time,
     const double dt);
 
 void
 output_data(
     tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy,
-    LDataManager* lag_manager,
+    LDataManager* l_data_manager,
     const int iteration_num,
     const double loop_time,
     const string& data_dump_dirname);
@@ -417,7 +416,7 @@ main(
             new IBStandardInitializer(
                 "IBStandardInitializer",
                 input_db->getDatabase("IBStandardInitializer"));
-        time_integrator->registerLNodeInitStrategy(initializer);
+        time_integrator->registerLInitStrategy(initializer);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(
@@ -462,16 +461,16 @@ main(
             new appu::VisItDataWriter<NDIM>(
                 "VisIt Writer",
                 visit_dump_dirname, visit_number_procs_per_file);
-        tbox::Pointer<LagSiloDataWriter> silo_data_writer =
-            new LagSiloDataWriter(
-                "LagSiloDataWriter",
+        tbox::Pointer<LSiloDataWriter> silo_data_writer =
+            new LSiloDataWriter(
+                "LSiloDataWriter",
                 visit_dump_dirname);
 
         if (uses_visit)
         {
-            initializer->registerLagSiloDataWriter(silo_data_writer);
+            initializer->registerLSiloDataWriter(silo_data_writer);
             time_integrator->registerVisItDataWriter(visit_data_writer);
-            time_integrator->registerLagSiloDataWriter(silo_data_writer);
+            time_integrator->registerLSiloDataWriter(silo_data_writer);
         }
 
         /*
@@ -485,7 +484,7 @@ main(
         /*
          * Deallocate the Lagrangian initializer, as it is no longer needed.
          */
-        time_integrator->freeLNodeInitStrategy();
+        time_integrator->freeLInitStrategy();
         initializer.setNull();
 
         /*
@@ -628,60 +627,53 @@ void
 update_triads(
     const double freq,
     tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
-    LDataManager* const lag_manager,
+    LDataManager* const l_data_manager,
     const double current_time,
     const double dt)
 {
     // The angular velocity.
     static const double angw = 2.0*M_PI*freq;
 
-    // Get the patch data descriptor index for the LNodeIndexData.
-    const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
+    // The LMesh object provides the set of local Lagrangian nodes.
+    const int finest_ln = hierarchy->getFinestLevelNumber();
+    const tbox::Pointer<LMesh> mesh = l_data_manager->getLMesh(finest_ln);
+    const std::vector<LNode*>& local_nodes = mesh->getNodes();
 
     // Update the director triads for all anchored points.
-    const int finest_ln = hierarchy->getFinestLevelNumber();
-    tbox::Pointer<LData> D_data = lag_manager->getLMeshData("D", finest_ln);
+    tbox::Pointer<LData> D_data = l_data_manager->getLData("D", finest_ln);
     blitz::Array<double,2>& D_array = *D_data->getLocalFormVecArray();
-    tbox::Pointer<hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(finest_ln);
-    for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+         cit != local_nodes.end(); ++cit)
     {
-        tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-        const hier::Box<NDIM>& patch_box = patch->getBox();
-        const tbox::Pointer<LNodeIndexData> idx_data = patch->getPatchData(lag_node_index_idx);
-        for (LNodeIndexData::LNodeIndexIterator it = idx_data->lnode_index_begin(patch_box);
-             it != idx_data->lnode_index_end(); ++it)
+        const LNode& node_idx = **cit;
+
+        // If spec is NULL, then the IB point is NOT anchored.  Otherwise, the
+        // IB point IS anchored.
+        tbox::Pointer<IBAnchorPointSpec> spec = node_idx.getNodeData<IBAnchorPointSpec>();
+        if (!spec.isNull())
         {
-            const LNodeIndex& node_idx = *it;
+            // `global_idx' is the index of the vertex in the input file.
+            const int global_idx = node_idx.getLagrangianIndex();
+            (void) global_idx;  // to prevent compiler warnings...
 
-            // If spec is NULL, then the IB point is NOT anchored.  Otherwise,
-            // the IB point IS anchored.
-            tbox::Pointer<IBAnchorPointSpec> spec = node_idx.getNodeData<IBAnchorPointSpec>();
-            if (!spec.isNull())
-            {
-                // `global_idx' is the index of the vertex in the input file.
-                const int global_idx = node_idx.getLagrangianIndex();
-                (void) global_idx;  // to prevent compiler warnings...
+            // `local_petsc_idx' is the index of the vertex in the internal
+            // IBAMR data structures.  Generally, global_idx != local_petsc_idx.
+            const int local_petsc_idx = node_idx.getLocalPETScIndex();
 
-                // `local_petsc_idx' is the index of the vertex in the internal
-                // IBAMR data structures.  Generally, global_idx !=
-                // local_petsc_idx.
-                const int local_petsc_idx = node_idx.getLocalPETScIndex();
+            double* D1 = &D_array(local_petsc_idx,0);
+            D1[0] =  cos(angw*current_time);
+            D1[1] =  sin(angw*current_time);
+            D1[2] = 0.0;
 
-                double* D1 = &D_array(local_petsc_idx,0);
-                D1[0] =  cos(angw*current_time);
-                D1[1] =  sin(angw*current_time);
-                D1[2] = 0.0;
+            double* D2 = &D_array(local_petsc_idx,3);
+            D2[0] = -sin(angw*current_time);
+            D2[1] =  cos(angw*current_time);
+            D2[2] = 0.0;
 
-                double* D2 = &D_array(local_petsc_idx,3);
-                D2[0] = -sin(angw*current_time);
-                D2[1] =  cos(angw*current_time);
-                D2[2] = 0.0;
-
-                double* D3 = &D_array(local_petsc_idx,6);
-                D3[0] = 0.0;
-                D3[1] = 0.0;
-                D3[2] = 1.0;
-            }
+            double* D3 = &D_array(local_petsc_idx,6);
+            D3[0] = 0.0;
+            D3[1] = 0.0;
+            D3[2] = 1.0;
         }
     }
     D_data->restoreArrays();
@@ -691,7 +683,7 @@ update_triads(
 void
 output_data(
     tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy,
-    LDataManager* lag_manager,
+    LDataManager* l_data_manager,
     const int iteration_num,
     const double loop_time,
     const string& data_dump_dirname)
@@ -707,11 +699,11 @@ output_data(
     /*
      * Write Lagrangian data.
      */
-    tbox::Pointer<LData> X_data = lag_manager->getLMeshData("X", finest_hier_level);
+    tbox::Pointer<LData> X_data = l_data_manager->getLData("X", finest_hier_level);
     Vec X_petsc_vec = X_data->getVec();
     Vec X_lag_vec;
     VecDuplicate(X_petsc_vec, &X_lag_vec);
-    lag_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
+    l_data_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
     file_name = data_dump_dirname + "/" + "X.";
     sprintf(temp_buf, "%05d", iteration_num);
     file_name += temp_buf;
@@ -758,11 +750,11 @@ output_data(
     }
     VecDestroy(X_lag_vec);
 
-    tbox::Pointer<LData> D_data = lag_manager->getLMeshData("D", finest_hier_level);
+    tbox::Pointer<LData> D_data = l_data_manager->getLData("D", finest_hier_level);
     Vec D_petsc_vec = D_data->getVec();
     Vec D_lag_vec;
     VecDuplicate(D_petsc_vec, &D_lag_vec);
-    lag_manager->scatterPETScToLagrangian(D_petsc_vec, D_lag_vec, finest_hier_level);
+    l_data_manager->scatterPETScToLagrangian(D_petsc_vec, D_lag_vec, finest_hier_level);
     file_name = data_dump_dirname + "/" + "D.";
     sprintf(temp_buf, "%05d", iteration_num);
     file_name += temp_buf;

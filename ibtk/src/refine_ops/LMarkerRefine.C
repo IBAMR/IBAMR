@@ -144,7 +144,7 @@ LMarkerRefine::refine(
                  cit != coarse_mark_set.end(); ++cit)
             {
                 const LMarker& coarse_mark = *cit;
-                const std::vector<double>& X = coarse_mark.getPosition();
+                const blitz::TinyVector<double,NDIM>& X = coarse_mark.getPosition();
                 const IntVector<NDIM>& offset = coarse_mark.getPeriodicOffset();
                 double X_shifted[NDIM];
                 for (int d = 0; d < NDIM; ++d)
@@ -160,8 +160,7 @@ LMarkerRefine::refine(
                         dst_mark_data->appendItemPointer(fine_i, new LMarkerSet());
                     }
                     LMarkerSet& fine_mark_set = *(dst_mark_data->getItem(fine_i));
-                    LMarkerSet::DataSet& fine_mark_set_data = fine_mark_set.getDataSet();
-                    fine_mark_set_data.push_back(coarse_mark);
+                    fine_mark_set.push_back(coarse_mark);
                 }
             }
         }

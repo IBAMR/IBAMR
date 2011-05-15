@@ -156,7 +156,7 @@ public:
      */
     void
     registerVelocityPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs);
 
     /*!
      * Supply initial conditions for the (cell centered) pressure.
@@ -1199,8 +1199,8 @@ private:
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_u_init, d_p_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* d_default_u_bc_coef;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_star_bc_coefs;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_u_bc_coefs;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_u_star_bc_coefs;
     SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_u_bc_helper;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_p_bc_coef;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_phi_bc_coef;
@@ -1311,7 +1311,7 @@ private:
      * The LDataManager is used to coordinate the distribution of Lagrangian
      * data on the patch hierarchy.
      */
-    IBTK::LDataManager* d_lag_data_manager;
+    IBTK::LDataManager* d_l_data_manager;
 
     /*
      * The specification and initialization information for the Lagrangian data

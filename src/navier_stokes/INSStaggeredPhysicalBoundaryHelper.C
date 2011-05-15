@@ -182,7 +182,7 @@ void
 INSStaggeredPhysicalBoundaryHelper::cacheBcCoefData(
     const int u_idx,
     const Pointer<Variable<NDIM> >& u_var,
-    std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+    blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
     const double fill_time,
     const IntVector<NDIM>& gcw_to_fill,
     const Pointer<PatchHierarchy<NDIM> >& hierarchy)
@@ -193,7 +193,7 @@ INSStaggeredPhysicalBoundaryHelper::cacheBcCoefData(
     // Indicate whether we are employing homogeneous or inhomogeneous boundary
     // conditions for all extended Robin BC coef strategy objects employed by
     // this object.
-    for (std::vector<RobinBcCoefStrategy<NDIM>*>::iterator it = u_bc_coefs.begin();
+    for (blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>::iterator it = u_bc_coefs.begin();
          it != u_bc_coefs.end(); ++it)
     {
         ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(*it);

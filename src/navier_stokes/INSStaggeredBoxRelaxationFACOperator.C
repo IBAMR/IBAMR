@@ -485,7 +485,7 @@ INSStaggeredBoxRelaxationFACOperator::INSStaggeredBoxRelaxationFACOperator(
       d_cell_scratch_idx(-1),
       d_U_bc_op(NULL),
       d_default_U_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_U_bc_coef", Pointer<Database>(NULL))),
-      d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,d_default_U_bc_coef)),
+      d_U_bc_coefs(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(d_default_U_bc_coef)),
       d_P_bc_op(NULL),
       d_default_P_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_P_bc_coef", Pointer<Database>(NULL))),
       d_P_bc_coef(d_default_P_bc_coef),
@@ -542,7 +542,7 @@ INSStaggeredBoxRelaxationFACOperator::INSStaggeredBoxRelaxationFACOperator(
     }
 
     // Initialize the boundary conditions objects.
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,d_default_U_bc_coef),d_default_P_bc_coef);
+    setPhysicalBcCoefs(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(d_default_U_bc_coef),d_default_P_bc_coef);
 
     // Setup scratch variables.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -604,22 +604,18 @@ INSStaggeredBoxRelaxationFACOperator::setProblemCoefficients(
 
 void
 INSStaggeredBoxRelaxationFACOperator::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs,
     RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(U_bc_coefs.size() == NDIM);
-#endif
-    d_U_bc_coefs.resize(U_bc_coefs.size());
-    for (unsigned l = 0; l < U_bc_coefs.size(); ++l)
+    for (unsigned d = 0; d < NDIM; ++d)
     {
-        if (U_bc_coefs[l] != NULL)
+        if (U_bc_coefs[d] != NULL)
         {
-            d_U_bc_coefs[l] = U_bc_coefs[l];
+            d_U_bc_coefs[d] = U_bc_coefs[d];
         }
         else
         {
-            d_U_bc_coefs[l] = d_default_U_bc_coef;
+            d_U_bc_coefs[d] = d_default_U_bc_coef;
         }
     }
 
@@ -1847,12 +1843,12 @@ INSStaggeredBoxRelaxationFACOperator::sanityCheck()
                    << "  invalid coarse solver maximum iterations: " << d_coarse_solver_max_its << std::endl);
     }
 
-    for (unsigned l = 0; l < d_U_bc_coefs.size(); ++l)
+    for (unsigned d = 0; d < NDIM; ++d)
     {
-        if (d_U_bc_coefs[l] == NULL)
+        if (d_U_bc_coefs[d] == NULL)
         {
             TBOX_ERROR(d_object_name << ":\n"
-                       << "  invalid velocity physical bc object at depth = " << l << std::endl);
+                       << "  invalid velocity physical bc object at depth = " << d << std::endl);
         }
     }
 

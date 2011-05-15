@@ -376,7 +376,7 @@ main(
             u2_bc_coef.setBoundaryValue(i,0.0);
         }
 #endif
-        vector<solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs(NDIM);
+        blitz::TinyVector<solv::RobinBcCoefStrategy<NDIM>*,NDIM> U_bc_coefs;
         U_bc_coefs[0] = &u0_bc_coef;
         U_bc_coefs[1] = &u1_bc_coef;
 #if (NDIM > 2)

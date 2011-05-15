@@ -316,8 +316,12 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     {
         d_default_U_bc_coef->setBoundaryValue(2*d  ,0.0);
         d_default_U_bc_coef->setBoundaryValue(2*d+1,0.0);
+        d_U_bc_coefs[d] = NULL;
+        d_U_star_bc_coefs[d] = NULL;
     }
-    registerVelocityPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM,d_default_U_bc_coef));
+    d_P_bc_coef = NULL;
+    d_Phi_bc_coef = NULL;
+    registerVelocityPhysicalBcCoefs(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(d_default_U_bc_coef));
 
     // Initialize object with data read from the input and restart databases.
     const bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -412,16 +416,13 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
     if (d_helmholtz_spec != NULL) delete d_helmholtz_spec;
     if (d_poisson_spec != NULL) delete d_poisson_spec;
     delete d_default_U_bc_coef;
-    if (!d_U_bc_coefs.empty())
+    for (int d = 0; d < NDIM; ++d)
     {
-        for (int d = 0; d < NDIM; ++d)
-        {
-            delete d_U_bc_coefs[d];
-            delete d_U_star_bc_coefs[d];
-        }
-        delete d_P_bc_coef;
-        delete d_Phi_bc_coef;
+        if (d_U_bc_coefs[d] != NULL) delete d_U_bc_coefs[d];
+        if (d_U_star_bc_coefs[d] != NULL) delete d_U_star_bc_coefs[d];
     }
+    if (d_P_bc_coef != NULL) delete d_P_bc_coef;
+    if (d_Phi_bc_coef != NULL) delete d_Phi_bc_coef;
     delete d_problem_coefs;
     if (d_regrid_projection_spec != NULL) delete d_regrid_projection_spec;
 
@@ -453,7 +454,7 @@ INSStaggeredHierarchyIntegrator::registerVelocityInitialConditions(
 
 void
 INSStaggeredHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs)
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs)
 {
     if (d_is_initialized)
     {
@@ -461,31 +462,21 @@ INSStaggeredHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
                    << "  velocity boundary conditions must be registered prior to initialization\n"
                    << "  of the hierarchy integrator object." << std::endl);
     }
-    std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(U_bc_coefs);
+    blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> bc_coefs(U_bc_coefs);
     for (int d = 0; d < NDIM; ++d)
     {
         if (bc_coefs[d] == NULL) bc_coefs[d] = d_default_U_bc_coef;
     }
-    if (!d_U_bc_coefs.empty())
+    for (int d = 0; d < NDIM; ++d)
     {
-        for (int d = 0; d < NDIM; ++d)
-        {
-            delete d_U_bc_coefs[d];
-            delete d_U_star_bc_coefs[d];
-        }
-        delete d_P_bc_coef;
-        delete d_Phi_bc_coef;
+        if (d_U_bc_coefs[d] != NULL) delete d_U_bc_coefs[d];
+        if (d_U_star_bc_coefs[d] != NULL) delete d_U_star_bc_coefs[d];
     }
-    d_U_bc_coefs.clear();
-    d_U_bc_coefs.resize(NDIM,NULL);
+    if (d_P_bc_coef != NULL) delete d_P_bc_coef;
+    if (d_Phi_bc_coef != NULL) delete d_Phi_bc_coef;
     for (int d = 0; d < NDIM; ++d)
     {
         d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,*d_problem_coefs,bc_coefs);
-    }
-    d_U_star_bc_coefs.clear();
-    d_U_star_bc_coefs.resize(NDIM,NULL);
-    for (int d = 0; d < NDIM; ++d)
-    {
         d_U_star_bc_coefs[d] = new INSStaggeredIntermediateVelocityBcCoef(d,bc_coefs);
     }
     d_P_bc_coef = new INSStaggeredPressureBcCoef(*d_problem_coefs,bc_coefs);

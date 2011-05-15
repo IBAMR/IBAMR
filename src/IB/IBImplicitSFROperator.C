@@ -135,7 +135,7 @@ IBImplicitSFROperator::apply(
 
     Pointer<HierarchySideDataOpsReal<NDIM,double> > hier_sc_data_ops = d_ib_implicit_integrator->d_hier_sc_data_ops;
 
-    LDataManager* lag_data_manager = d_ib_implicit_integrator->d_lag_data_manager;
+    LDataManager* l_data_manager = d_ib_implicit_integrator->d_l_data_manager;
 
     std::vector<Pointer<LData> >& X_data = d_ib_implicit_integrator->d_X_data;
     std::vector<Pointer<LData> >& X_half_data = d_ib_implicit_integrator->d_X_half_data;
@@ -152,7 +152,7 @@ IBImplicitSFROperator::apply(
     // Interpolate u(n+1/2) to U(n+1/2).
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (lag_data_manager->levelContainsLagrangianData(ln))
+        if (l_data_manager->levelContainsLagrangianData(ln))
         {
             Vec U_half_vec = U_half_data[ln]->getVec();
             Vec u_half_ib_vec = static_cast<Vec>(NULL);
@@ -167,7 +167,7 @@ IBImplicitSFROperator::apply(
     // Set X(n+1/2) = X(n) + 0.5*dt*U(n+1/2).
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (lag_data_manager->levelContainsLagrangianData(ln))
+        if (l_data_manager->levelContainsLagrangianData(ln))
         {
             Vec X_vec = X_data[ln]->getVec();
             Vec X_half_vec = X_half_data[ln]->getVec();
@@ -179,11 +179,11 @@ IBImplicitSFROperator::apply(
     // Compute F(n+1/2) = F(X(n+1/2),U(n+1/2),t_{n+1/2}).
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (lag_data_manager->levelContainsLagrangianData(ln))
+        if (l_data_manager->levelContainsLagrangianData(ln))
         {
             Vec F_half_vec = F_half_data[ln]->getVec();
             ierr = VecSet(F_half_vec, 0.0);  IBTK_CHKERRQ(ierr);
-            lag_force_strategy->computeLagrangianForce(F_half_data[ln], X_half_data[ln], U_half_data[ln], hierarchy, ln, d_current_time+0.5*d_dt, lag_data_manager);
+            lag_force_strategy->computeLagrangianForce(F_half_data[ln], X_half_data[ln], U_half_data[ln], hierarchy, ln, d_current_time+0.5*d_dt, l_data_manager);
             Pointer<PatchLevel<NDIM> > patch_level = hierarchy->getPatchLevel(ln);
             Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_level->getGridGeometry();
             const double* const dx0 = grid_geom->getDx();
@@ -200,7 +200,7 @@ IBImplicitSFROperator::apply(
     // Spread F(n+1/2) to f(n+1/2).
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (lag_data_manager->levelContainsLagrangianData(ln))
+        if (l_data_manager->levelContainsLagrangianData(ln))
         {
             Pointer<PatchLevel<NDIM> > patch_level = hierarchy->getPatchLevel(ln);
             Vec F_half_vec = F_half_data[ln]->getVec();

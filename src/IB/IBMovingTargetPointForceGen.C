@@ -51,7 +51,6 @@
 
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/LNodeIndexSetData.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -121,9 +120,9 @@ IBMovingTargetPointForceGen::computeLagrangianForce(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+    if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
     t_compute_lagrangian_force->start();
 
@@ -151,52 +150,46 @@ IBMovingTargetPointForceGen::computeLagrangianForce(
                    << "  physical domain must be a single box.\n");
     }
 
-    // Get the patch data descriptor index for the LNodeIndexSetData.
-    const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
+    // The LMesh object provides the set of local Lagrangian nodes.
+    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const std::vector<LNode*>& local_nodes = mesh->getNodes();
 
     // Compute the penalty force associated with the Lagrangian target points.
     double X_target[NDIM], U_target[NDIM];
     static double max_displacement = 0.0;
     double max_config_displacement = 0.0;
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+         cit != local_nodes.end(); ++cit)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
-        for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
-             it != idx_data->data_end(); ++it)
+        const LNode& node_idx = **cit;
+        Pointer<IBMovingTargetPointForceSpec> force_spec = node_idx.getNodeData<IBMovingTargetPointForceSpec>();
+        if (!force_spec.isNull())
         {
-            const LNodeIndex& node_idx = *it;
-            Pointer<IBMovingTargetPointForceSpec> force_spec = node_idx.getNodeData<IBMovingTargetPointForceSpec>();
-            if (!force_spec.isNull())
-            {
-                const int& mastr_idx = node_idx.getLagrangianIndex();
+            const int& mastr_idx = node_idx.getLagrangianIndex();
 #ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
+            TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
 #endif
-                const double& kappa_target = force_spec->getStiffness();
-                const double& eta_target = force_spec->getDamping();
-                const int& spec_fcn_idx = force_spec->getPositionAndVelocityFunctionIndex();
-                if (!MathUtilities<double>::equalEps(kappa_target,0.0))
-                {
-                    const int& petsc_idx = node_idx.getLocalPETScIndex();
-                    const double* const X = &X_arr[NDIM*petsc_idx];
-                    const double* const U = &U_arr[NDIM*petsc_idx];
-                    d_spec_fcn_map[spec_fcn_idx](X_target, U_target, X, U, data_time, mastr_idx);
+            const double& kappa_target = force_spec->getStiffness();
+            const double& eta_target = force_spec->getDamping();
+            const int& spec_fcn_idx = force_spec->getPositionAndVelocityFunctionIndex();
+            if (!MathUtilities<double>::equalEps(kappa_target,0.0))
+            {
+                const int& petsc_idx = node_idx.getLocalPETScIndex();
+                const double* const X = &X_arr[NDIM*petsc_idx];
+                const double* const U = &U_arr[NDIM*petsc_idx];
+                d_spec_fcn_map[spec_fcn_idx](X_target, U_target, X, U, data_time, mastr_idx);
 
-                    double* const F = &F_arr[NDIM*petsc_idx];
-                    double displacement = 0.0;
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        F[d] += kappa_target*(X_target[d] - X[d]) + eta_target*(U_target[d] - U[d]);
-                        displacement += pow(X_target[d] - X[d],2.0);
-                    }
-                    displacement = sqrt(displacement);
-                    if (displacement > max_config_displacement)
-                    {
-                        max_config_displacement = displacement;
-                    }
+                double* const F = &F_arr[NDIM*petsc_idx];
+                double displacement = 0.0;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    F[d] += kappa_target*(X_target[d] - X[d]) + eta_target*(U_target[d] - U[d]);
+                    displacement += pow(X_target[d] - X[d],2.0);
+                }
+                displacement = sqrt(displacement);
+                if (displacement > max_config_displacement)
+                {
+                    max_config_displacement = displacement;
                 }
             }
         }
@@ -230,37 +223,31 @@ IBMovingTargetPointForceGen::computeLagrangianForceJacobianNonzeroStructure(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+    if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
     t_compute_lagrangian_force_jacobian_nonzero_structure->start();
 
-    // Get the patch data descriptor index for the LNodeIndexSetData.
-    const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
+    // The LMesh object provides the set of local Lagrangian nodes.
+    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const std::vector<LNode*>& local_nodes = mesh->getNodes();
 
     // Determine the PETSc indices of the target point nodes and the
     // corresponding target force spring constant.
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+         cit != local_nodes.end(); ++cit)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
-        for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
-             it != idx_data->data_end(); ++it)
+        const LNode& node_idx = **cit;
+        Pointer<IBMovingTargetPointForceSpec> force_spec = node_idx.getNodeData<IBMovingTargetPointForceSpec>();
+        if (!force_spec.isNull())
         {
-            const LNodeIndex& node_idx = *it;
-            Pointer<IBMovingTargetPointForceSpec> force_spec = node_idx.getNodeData<IBMovingTargetPointForceSpec>();
-            if (!force_spec.isNull())
-            {
 #ifdef DEBUG_CHECK_ASSERTIONS
-                const int& mastr_idx = node_idx.getLagrangianIndex();
-                TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
+            const int& mastr_idx = node_idx.getLagrangianIndex();
+            TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
 #endif
-                const int& local_petsc_idx = node_idx.getLocalPETScIndex();
-                ++d_nnz[local_petsc_idx];
-            }
+            const int& local_petsc_idx = node_idx.getLocalPETScIndex();
+            ++d_nnz[local_petsc_idx];
         }
     }
 
@@ -279,49 +266,43 @@ IBMovingTargetPointForceGen::computeLagrangianForceJacobian(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+    if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
     t_compute_lagrangian_force_jacobian->start();
 
     int ierr;
 
-    // Get the patch data descriptor index for the LNodeIndexSetData.
-    const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
+    // The LMesh object provides the set of local Lagrangian nodes.
+    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const std::vector<LNode*>& local_nodes = mesh->getNodes();
 
     // Determine the PETSc indices of the target point nodes and the
     // corresponding target force spring constants.
-    const int global_node_offset = lag_manager->getGlobalNodeOffset(level_number);
+    const int global_node_offset = l_data_manager->getGlobalNodeOffset(level_number);
     std::vector<int> global_petsc_idxs;
     std::vector<double> spring_stiffnesses, damping_coefficients;
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+         cit != local_nodes.end(); ++cit)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
-        for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
-             it != idx_data->data_end(); ++it)
+        const LNode& node_idx = **cit;
+        Pointer<IBMovingTargetPointForceSpec> force_spec = node_idx.getNodeData<IBMovingTargetPointForceSpec>();
+        if (!force_spec.isNull())
         {
-            const LNodeIndex& node_idx = *it;
-            Pointer<IBMovingTargetPointForceSpec> force_spec = node_idx.getNodeData<IBMovingTargetPointForceSpec>();
-            if (!force_spec.isNull())
-            {
 #ifdef DEBUG_CHECK_ASSERTIONS
-                const int& mastr_idx = node_idx.getLagrangianIndex();
-                TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
+            const int& mastr_idx = node_idx.getLagrangianIndex();
+            TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
 #endif
-                const int& local_petsc_idx = node_idx.getLocalPETScIndex()+global_node_offset;
-                const int global_petsc_idx = local_petsc_idx+global_node_offset;
-                global_petsc_idxs.push_back(global_petsc_idx);
+            const int& local_petsc_idx = node_idx.getLocalPETScIndex()+global_node_offset;
+            const int global_petsc_idx = local_petsc_idx+global_node_offset;
+            global_petsc_idxs.push_back(global_petsc_idx);
 
-                const double& spring_stiffness = force_spec->getStiffness();
-                spring_stiffnesses.push_back(spring_stiffness);
+            const double& spring_stiffness = force_spec->getStiffness();
+            spring_stiffnesses.push_back(spring_stiffness);
 
-                const double& damping_coefficient = force_spec->getDamping();
-                damping_coefficients.push_back(damping_coefficient);
-            }
+            const double& damping_coefficient = force_spec->getDamping();
+            damping_coefficients.push_back(damping_coefficient);
         }
     }
 
@@ -355,7 +336,7 @@ IBMovingTargetPointForceGen::computeLagrangianEnergy(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
     TBOX_WARNING("IBMovingTargetPointForceGen::computeLagrangianEnergy():\n"
                  << "  unimplemented; returning 0.0." << std::endl);

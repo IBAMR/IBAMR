@@ -63,7 +63,7 @@
 #include <ibamr/IBStaggeredHierarchyIntegrator.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibtk/LEInteractor.h>
-#include <ibtk/LagSiloDataWriter.h>
+#include <ibtk/LSiloDataWriter.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
@@ -77,7 +77,7 @@ void
 output_data(
     tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy,
     tbox::Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
-    LDataManager* lag_manager,
+    LDataManager* l_data_manager,
     const int iteration_num,
     const double loop_time,
     const string& data_dump_dirname);
@@ -408,7 +408,7 @@ main(
             new IBStandardInitializer(
                 "IBStandardInitializer",
                 input_db->getDatabase("IBStandardInitializer"));
-        time_integrator->registerLNodeInitStrategy(initializer);
+        time_integrator->registerLInitStrategy(initializer);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
             new mesh::StandardTagAndInitialize<NDIM>(
@@ -443,7 +443,7 @@ main(
         const hier::IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         const bool periodic_domain = periodic_shift.min() != 0;
 
-        vector<solv::RobinBcCoefStrategy<NDIM>*> u_bc_coefs;
+        blitz::TinyVector<solv::RobinBcCoefStrategy<NDIM>*,NDIM> u_bc_coefs;
         if (!periodic_domain)
         {
             for (int d = 0; d < NDIM; ++d)
@@ -456,9 +456,7 @@ main(
                 bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
                 const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
 
-                u_bc_coefs.push_back(
-                    new muParserRobinBcCoefs(
-                        bc_coefs_name, input_db->getDatabase(bc_coefs_db_name), grid_geometry));
+                u_bc_coefs[d] = new muParserRobinBcCoefs(bc_coefs_name, input_db->getDatabase(bc_coefs_db_name), grid_geometry);
             }
             time_integrator->registerVelocityPhysicalBcCoefs(u_bc_coefs);
         }
@@ -470,16 +468,16 @@ main(
             new appu::VisItDataWriter<NDIM>(
                 "VisIt Writer",
                 visit_dump_dirname, visit_number_procs_per_file);
-        tbox::Pointer<LagSiloDataWriter> silo_data_writer =
-            new LagSiloDataWriter(
-                "LagSiloDataWriter",
+        tbox::Pointer<LSiloDataWriter> silo_data_writer =
+            new LSiloDataWriter(
+                "LSiloDataWriter",
                 visit_dump_dirname);
 
         if (uses_visit)
         {
-            initializer->registerLagSiloDataWriter(silo_data_writer);
+            initializer->registerLSiloDataWriter(silo_data_writer);
             time_integrator->registerVisItDataWriter(visit_data_writer);
-            time_integrator->registerLagSiloDataWriter(silo_data_writer);
+            time_integrator->registerLSiloDataWriter(silo_data_writer);
         }
 
         /*
@@ -493,7 +491,7 @@ main(
         /*
          * Deallocate the Lagrangian initializer, as it is no longer needed.
          */
-        time_integrator->freeLNodeInitStrategy();
+        time_integrator->freeLInitStrategy();
         initializer.setNull();
 
         /*
@@ -630,11 +628,7 @@ main(
          */
         if (!periodic_domain)
         {
-            for (vector<solv::RobinBcCoefStrategy<NDIM>*>::const_iterator cit = u_bc_coefs.begin();
-                 cit != u_bc_coefs.end(); ++cit)
-            {
-                delete (*cit);
-            }
+            for (int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
         }
     }// cleanup all smart Pointers prior to shutdown
 
@@ -648,7 +642,7 @@ void
 output_data(
     tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy,
     tbox::Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
-    LDataManager* lag_manager,
+    LDataManager* l_data_manager,
     const int iteration_num,
     const double loop_time,
     const string& data_dump_dirname)
@@ -690,11 +684,11 @@ output_data(
     /*
      * Write Lagrangian data.
      */
-    tbox::Pointer<LData> X_data = lag_manager->getLMeshData("X", finest_hier_level);
+    tbox::Pointer<LData> X_data = l_data_manager->getLData("X", finest_hier_level);
     Vec X_petsc_vec = X_data->getVec();
     Vec X_lag_vec;
     VecDuplicate(X_petsc_vec, &X_lag_vec);
-    lag_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
+    l_data_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
     file_name = data_dump_dirname + "/" + "X.";
     sprintf(temp_buf, "%05d", iteration_num);
     file_name += temp_buf;
@@ -741,11 +735,11 @@ output_data(
     }
     VecDestroy(X_lag_vec);
 
-    tbox::Pointer<LData> D_data = lag_manager->getLMeshData("D", finest_hier_level);
+    tbox::Pointer<LData> D_data = l_data_manager->getLData("D", finest_hier_level);
     Vec D_petsc_vec = D_data->getVec();
     Vec D_lag_vec;
     VecDuplicate(D_petsc_vec, &D_lag_vec);
-    lag_manager->scatterPETScToLagrangian(D_petsc_vec, D_lag_vec, finest_hier_level);
+    l_data_manager->scatterPETScToLagrangian(D_petsc_vec, D_lag_vec, finest_hier_level);
     file_name = data_dump_dirname + "/" + "D.";
     sprintf(temp_buf, "%05d", iteration_num);
     file_name += temp_buf;

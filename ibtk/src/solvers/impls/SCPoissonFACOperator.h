@@ -145,7 +145,7 @@ public:
      */
     void
     setPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
 
     /*!
      * \brief Set the hierarchy time, for use with the refinement schedules and
@@ -537,10 +537,10 @@ private:
      */
     bool d_using_petsc_smoothers;
     SAMRAI::hier::IntVector<NDIM> d_gcw;
-    std::vector<std::vector<std::vector<Vec> > > d_patch_vec_e, d_patch_vec_f;
-    std::vector<std::vector<std::vector<Mat> > > d_patch_mat;
-    std::vector<std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > > d_patch_bc_box_overlap;
-    std::vector<std::vector<std::vector<std::map<int,SAMRAI::hier::Box<NDIM> > > > > d_patch_smoother_bc_boxes;
+    std::vector<std::vector<blitz::TinyVector<Vec,NDIM> > > d_patch_vec_e, d_patch_vec_f;
+    std::vector<std::vector<blitz::TinyVector<Mat,NDIM> > > d_patch_mat;
+    std::vector<std::vector<blitz::TinyVector<SAMRAI::hier::BoxList<NDIM>,NDIM> > > d_patch_bc_box_overlap;
+    std::vector<std::vector<blitz::TinyVector<std::map<int,SAMRAI::hier::Box<NDIM> >,NDIM> > > d_patch_smoother_bc_boxes;
 
     /*
      * Reference patch hierarchy and range of levels involved in the solve.
@@ -638,7 +638,7 @@ private:
 
     SAMRAI::tbox::Pointer<CartSideRobinPhysBdryOp> d_bc_op;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_bc_coef;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs;
     double d_apply_time;
 
     //\}

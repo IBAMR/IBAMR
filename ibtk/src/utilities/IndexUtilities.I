@@ -74,6 +74,18 @@ IndexUtilities::getCellIndex(
     return getCellIndex(&X[0],XLower,XUpper,dx,ilower,iupper);
 }// getCellIndex
 
+inline SAMRAI::hier::Index<NDIM>
+IndexUtilities::getCellIndex(
+    const blitz::TinyVector<double,NDIM>& X,
+    const double* const XLower,
+    const double* const XUpper,
+    const double* const dx,
+    const SAMRAI::hier::Index<NDIM>& ilower,
+    const SAMRAI::hier::Index<NDIM>& iupper)
+{
+    return getCellIndex(X.data(),XLower,XUpper,dx,ilower,iupper);
+}// getCellIndex
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

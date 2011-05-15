@@ -57,6 +57,9 @@
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // C++ STDLIB INCLUDES
 #include <algorithm>
 #include <map>
@@ -142,9 +145,9 @@ struct IndexComp
         const Index<NDIM>& rhs) const
         {
             return ((lhs(0) < rhs(0))
-#if (NDIM>1)
+#if (NDIM > 1)
                     || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
-#if (NDIM>2)
+#if (NDIM > 2)
                     || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
@@ -1551,7 +1554,7 @@ CCPoissonFACOperator::buildPatchLaplaceOperator_aligned(
     static const int x_axis = 0; (void) x_axis;
     static const int y_axis = 1; (void) y_axis;
     static const int z_axis = 2; (void) z_axis;
-    std::vector<int> num_cells(NDIM);
+    blitz::TinyVector<int,NDIM> num_cells;
     for (int d = 0; d < NDIM; ++d)
     {
         num_cells[d] = ghost_box.numberCells(d);
@@ -1674,7 +1677,7 @@ CCPoissonFACOperator::buildPatchLaplaceOperator_nonaligned(
     static const int x_axis = 0; (void) x_axis;
     static const int y_axis = 1; (void) y_axis;
     static const int z_axis = 2; (void) z_axis;
-    std::vector<int> num_cells(NDIM);
+    blitz::TinyVector<int,NDIM> num_cells;
     for (int d = 0; d < NDIM; ++d)
     {
         num_cells[d] = ghost_box.numberCells(d);

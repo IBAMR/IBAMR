@@ -41,8 +41,8 @@
 #include <tbox/DescribedClass.h>
 #include <tbox/Pointer.h>
 
-// C++ STDLIB INCLUDES
-#include <vector>
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -110,7 +110,7 @@ public:
     virtual void
     registerPeriodicShift(
         const SAMRAI::hier::IntVector<NDIM>& offset,
-        const std::vector<double>& displacement);
+        const blitz::TinyVector<double,NDIM>& displacement);
 
 private:
     /*!

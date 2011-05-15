@@ -45,6 +45,7 @@
 
 // C++ STDLIB INCLUDES
 #include <numeric>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -72,11 +73,10 @@ PETScVecUtilities::constructPatchVecWrapper(
 
 void
 PETScVecUtilities::constructPatchVecWrappers(
-    std::vector<Vec>& vecs,
+    blitz::TinyVector<Vec,NDIM>& vecs,
     SideData<NDIM,double>& data)
 {
     int ierr;
-    vecs.resize(NDIM);
     for (int component_axis = 0; component_axis < NDIM; ++component_axis)
     {
         if (vecs[component_axis] != static_cast<Vec>(NULL))
@@ -115,12 +115,12 @@ PETScVecUtilities::constructPatchDOFIndices(
     return counter;
 }// constructPatchDOFIndices
 
-std::vector<int>
+blitz::TinyVector<int,NDIM>
 PETScVecUtilities::constructPatchDOFIndices(
     SideData<NDIM,int>& dof_index,
     SideData<NDIM,double>& data)
 {
-    std::vector<int> axis_counter(NDIM,0);
+    blitz::TinyVector<int,NDIM> axis_counter(0);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(dof_index.getBox() == data.getBox());
     TBOX_ASSERT(dof_index.getGhostBox().contains(data.getGhostBox()));
@@ -393,7 +393,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices(
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
         Pointer<SideData<NDIM,int> > dof_index = patch->getPatchData(dof_index_idx);
         Pointer<SideData<NDIM,double> > data = patch->getPatchData(data_idx);
-        const std::vector<int> patch_dof_counts = constructPatchDOFIndices(*dof_index, *data);
+        const blitz::TinyVector<int,NDIM> patch_dof_counts = constructPatchDOFIndices(*dof_index, *data);
         for (int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             patch_ops.addScalar(dof_index->getArrayData(component_axis),

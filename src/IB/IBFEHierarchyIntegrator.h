@@ -89,7 +89,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         SAMRAI::tbox::Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
         IBTK::FEDataManager* fe_data_manager,
-        IBTK::LDataManager* lag_data_manager=NULL,
+        IBTK::LDataManager* l_data_manager=NULL,
         bool register_for_restart=true);
 
     /*!
@@ -180,7 +180,7 @@ public:
      */
     void
     registerVelocityPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs);
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs);
 
     /*!
      * Register an (optional) function to compute body forces on the Cartesian
@@ -741,7 +741,7 @@ private:
     /*
      * Support for traditional fiber-based Lagrangian data.
      */
-    IBTK::LDataManager* d_lag_data_manager;
+    IBTK::LDataManager* d_l_data_manager;
     SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> d_ib_lag_force_strategy;
     bool d_ib_lag_force_strategy_needs_init;
 
@@ -828,7 +828,7 @@ private:
      */
     std::string d_mark_input_file_name;
     int d_num_mark;
-    std::vector<double> d_mark_init_posns;
+    std::vector<blitz::TinyVector<double,NDIM> > d_mark_init_posns;
 
     /*
      * Hierarchy operations objects.

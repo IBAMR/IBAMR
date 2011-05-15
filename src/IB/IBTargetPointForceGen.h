@@ -84,7 +84,7 @@ public:
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,
-        IBTK::LDataManager* const lag_manager);
+        IBTK::LDataManager* const l_data_manager);
 
     /*!
      * \brief Compute the non-zero structure of the force Jacobian matrix.
@@ -98,7 +98,7 @@ public:
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,
-        IBTK::LDataManager* const lag_manager);
+        IBTK::LDataManager* const l_data_manager);
 
     /*!
      * \brief Compute the Jacobian of the force with respect to the present
@@ -118,7 +118,7 @@ public:
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,
-        IBTK::LDataManager* const lag_manager);
+        IBTK::LDataManager* const l_data_manager);
 
     /*!
      * \brief Compute the potential energy with respect to the present structure
@@ -134,7 +134,7 @@ public:
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double data_time,
-        IBTK::LDataManager* const lag_manager);
+        IBTK::LDataManager* const l_data_manager);
 
 private:
     /*!

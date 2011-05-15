@@ -89,7 +89,7 @@ static Timer* t_deallocate_operator_state;
 
 INSStaggeredStokesOperator::INSStaggeredStokesOperator(
     const INSCoefs& problem_coefs,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs,
     Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper,
     RobinBcCoefStrategy<NDIM>* P_bc_coef,
     Pointer<HierarchyMathOps> hier_math_ops)

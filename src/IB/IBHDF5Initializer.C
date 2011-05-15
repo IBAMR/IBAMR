@@ -53,8 +53,8 @@
 
 // IBTK INCLUDES
 #include <ibtk/IndexUtilities.h>
-#include <ibtk/LNodeIndexSet.h>
-#include <ibtk/LNodeIndexSetData.h>
+#include <ibtk/LNodeSet.h>
+#include <ibtk/LNodeSetData.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -250,7 +250,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
     if (!can_be_refined && level_number != d_max_levels-1)
     {
@@ -346,7 +346,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
             // vertex.
             std::vector<Pointer<Streamable> > vertex_specs = initializeSpecs(std::make_pair(j,k), vertex_idx, global_index_offset);
 
-            // Initialize the LNodeIndex data.
+            // Initialize the LNode data.
             const Box<NDIM>& patch_box = patch->getBox();
             if (!patch_box.contains(i))
             {
@@ -359,15 +359,15 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
                            << "  assigned patch number = " << patch_num << "\n"
                            << "  assigned patch box = " << patch_box << "\n");
             }
-            Pointer<LNodeIndexSetData> index_data = patch->getPatchData(lag_node_index_idx);
+            Pointer<LNodeSetData> index_data = patch->getPatchData(lag_node_index_idx);
             if (!index_data->isElement(i))
             {
-                index_data->appendItemPointer(i, new LNodeIndexSet());
+                index_data->appendItemPointer(i, new LNodeSet());
             }
-            LNodeIndexSet* const node_set = index_data->getItem(i);
+            LNodeSet* const node_set = index_data->getItem(i);
             const IntVector<NDIM> periodic_offset(0);
-            const std::vector<double> periodic_displacement(NDIM,0.0);
-            node_set->push_back(LNodeIndex(lagrangian_idx, global_petsc_idx, local_petsc_idx, &X_array(local_petsc_idx,0), periodic_offset, periodic_displacement, vertex_specs));
+            const blitz::TinyVector<double,NDIM> periodic_displacement(0.0);
+            node_set->push_back(LNode(lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, vertex_specs));
         }
     }
     X_data->restoreArrays();
@@ -411,7 +411,7 @@ IBHDF5Initializer::initializeMassDataOnPatchLevel(
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
     TBOX_ERROR(d_object_name << "::initializeMassDataOnPatchLevel():\n  Not implemented.\n");
     int local_node_count = 0;

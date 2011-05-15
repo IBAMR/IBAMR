@@ -148,8 +148,8 @@ LTransaction<T>::packStream(
     {
         T& item = it->item;
         item.packStream(stream);
-        const std::vector<double>& posn = it->posn;
-        stream.pack(&posn[0],NDIM);
+        const blitz::TinyVector<double,NDIM>& posn = it->posn;
+        stream.pack(posn.data(),NDIM);
     }
     return;
 }// packStream
@@ -167,9 +167,8 @@ LTransaction<T>::unpackStream(
          it != d_dst_item_set.end(); ++it)
     {
         it->item.unpackStream(stream, periodic_offset);
-        std::vector<double>& posn = it->posn;
-        posn.resize(NDIM);
-        stream.unpack(&posn[0],NDIM);
+        blitz::TinyVector<double,NDIM>& posn = it->posn;
+        stream.unpack(posn.data(),NDIM);
     }
     return;
 }// unpackStream

@@ -688,7 +688,7 @@ main(
     // Create boundary condition specification objects (when necessary).
     const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
     const bool has_physical_boundaries = periodic_shift.min() == 0;
-    vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+    blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> u_bc_coefs;
     for (int d = 0; d < NDIM; ++d)
     {
         if (periodic_shift(d) == 0)
@@ -888,6 +888,11 @@ main(
             pout << "\nWriting timer data...\n\n";
             TimerManager::getManager()->print(plog);
         }
+    }
+
+    for (int d = 0; d < NDIM; ++d)
+    {
+        if (periodic_shift(d) == 0) delete u_bc_coefs[d];
     }
 
     // Shutdown SAMRAI.

@@ -46,8 +46,8 @@ namespace IBTK
 inline
 LMarker::LMarker(
     const int idx,
-    const std::vector<double>& X,
-    const std::vector<double>& U,
+    const blitz::TinyVector<double,NDIM>& X,
+    const blitz::TinyVector<double,NDIM>& U,
     const SAMRAI::hier::IntVector<NDIM>& periodic_offset)
     : d_idx(idx),
       d_X(X),
@@ -109,13 +109,13 @@ LMarker::setIndex(
     return;
 }// setIndex
 
-inline const std::vector<double>&
+inline const blitz::TinyVector<double,NDIM>&
 LMarker::getPosition() const
 {
     return d_X;
 }// getPosition
 
-inline std::vector<double>&
+inline blitz::TinyVector<double,NDIM>&
 LMarker::getPosition()
 {
     return d_X;
@@ -123,19 +123,19 @@ LMarker::getPosition()
 
 inline void
 LMarker::setPosition(
-    const std::vector<double>& X)
+    const blitz::TinyVector<double,NDIM>& X)
 {
     d_X = X;
     return;
 }// setPosition
 
-inline const std::vector<double>&
+inline const blitz::TinyVector<double,NDIM>&
 LMarker::getVelocity() const
 {
     return d_U;
 }// getVelocity
 
-inline std::vector<double>&
+inline blitz::TinyVector<double,NDIM>&
 LMarker::getVelocity()
 {
     return d_U;
@@ -143,7 +143,7 @@ LMarker::getVelocity()
 
 inline void
 LMarker::setVelocity(
-    const std::vector<double>& U)
+    const blitz::TinyVector<double,NDIM>& U)
 {
     d_U = U;
     return;
@@ -188,8 +188,8 @@ LMarker::packStream(
     SAMRAI::tbox::AbstractStream& stream)
 {
     stream.pack(&d_idx,1);
-    stream.pack(&d_X[0],NDIM);
-    stream.pack(&d_U[0],NDIM);
+    stream.pack(d_X.data(),NDIM);
+    stream.pack(d_U.data(),NDIM);
     return;
 }// packStream
 
@@ -199,10 +199,8 @@ LMarker::unpackStream(
     const SAMRAI::hier::IntVector<NDIM>& offset)
 {
     stream.unpack(&d_idx,1);
-    d_X.resize(NDIM);
-    stream.unpack(&d_X[0],NDIM);
-    d_U.resize(NDIM);
-    stream.unpack(&d_U[0],NDIM);
+    stream.unpack(d_X.data(),NDIM);
+    stream.unpack(d_U.data(),NDIM);
     return;
 }// unpackStream
 

@@ -51,7 +51,6 @@
 
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/LNodeIndexSetData.h>
 #include <ibtk/PETScVecOps.h>
 
 // SAMRAI INCLUDES
@@ -240,9 +239,9 @@ IBKirchhoffRodForceGen::initializeLevelData(
     const int level_number,
     const double init_data_time,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+    if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
     t_initialize_level_data->start();
 
@@ -286,51 +285,46 @@ IBKirchhoffRodForceGen::initializeLevelData(
     petsc_next_node_idxs.clear();
     material_params.clear();
 
-    // The patch data descriptor index for the LNodeIndexSetData.
-    const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
+    // The LMesh object provides the set of local Lagrangian nodes.
+    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_num);
+    const std::vector<LNode*>& local_nodes = mesh->getNodes();
 
     // Determine the "next" node indices for all rods associated with the
     // present MPI process.
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+         cit != local_nodes.end(); ++cit)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
-        for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
-             it != idx_data->data_end(); ++it)
+        const LNode& node_idx = **cit;
+        const Pointer<IBRodForceSpec> force_spec = node_idx.getNodeData<IBRodForceSpec>();
+        if (!force_spec.isNull())
         {
-            const LNodeIndex& node_idx = *it;
-            const Pointer<IBRodForceSpec> force_spec = node_idx.getNodeData<IBRodForceSpec>();
-            if (!force_spec.isNull())
+            const int& curr_idx = node_idx.getLagrangianIndex();
+            const unsigned num_rods = force_spec->getNumberOfRods();
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(curr_idx == force_spec->getMasterNodeIndex());
+#endif
+            const std::vector<int>& next_idxs = force_spec->getNextNodeIndices();
+            const std::vector<std::vector<double> >& params = force_spec->getMaterialParams();
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(num_rods == next_idxs.size());
+#endif
+            for (unsigned k = 0; k < num_rods; ++k)
             {
-                const int& curr_idx = node_idx.getLagrangianIndex();
-                const unsigned num_rods = force_spec->getNumberOfRods();
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(curr_idx == force_spec->getMasterNodeIndex());
-#endif
-                const std::vector<int>& next_idxs = force_spec->getNextNodeIndices();
-                const std::vector<std::vector<double> >& params = force_spec->getMaterialParams();
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(num_rods == next_idxs.size());
-#endif
-                for (unsigned k = 0; k < num_rods; ++k)
-                {
-                    petsc_curr_node_idxs.push_back(curr_idx);
-                    petsc_next_node_idxs.push_back(next_idxs[k]);
-                    material_params.push_back(params[k]);
-                }
+                petsc_curr_node_idxs.push_back(curr_idx);
+                petsc_next_node_idxs.push_back(next_idxs[k]);
+                material_params.push_back(params[k]);
             }
         }
     }
 
     // Map the Lagrangian node indices to the PETSc indices corresponding to the
     // present data distribution.
-    lag_manager->mapLagrangianToPETSc(petsc_curr_node_idxs, level_num);
-    lag_manager->mapLagrangianToPETSc(petsc_next_node_idxs, level_num);
+    l_data_manager->mapLagrangianToPETSc(petsc_curr_node_idxs, level_num);
+    l_data_manager->mapLagrangianToPETSc(petsc_next_node_idxs, level_num);
 
     // Determine the global node offset and the number of local nodes.
-    const int global_node_offset = lag_manager->getGlobalNodeOffset(level_num);
-    const int num_local_nodes = lag_manager->getNumberOfLocalNodes(level_num);
+    const int global_node_offset = l_data_manager->getGlobalNodeOffset(level_num);
+    const int num_local_nodes = l_data_manager->getNumberOfLocalNodes(level_num);
 
     // Determine the non-zero structure for the matrices.
     const int local_sz = petsc_curr_node_idxs.size();
@@ -439,9 +433,9 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+    if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
     t_compute_lagrangian_force_and_torque->start();
 
@@ -450,7 +444,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     TBOX_ASSERT(d_is_initialized[level_number]);
 #endif
 
-    const int global_offset = lag_manager->getGlobalNodeOffset(level_number);
+    const int global_offset = l_data_manager->getGlobalNodeOffset(level_number);
 
     int ierr;
 

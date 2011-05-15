@@ -52,7 +52,6 @@
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IndexUtilities.h>
-#include <ibtk/LNodeIndexSetData.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -534,15 +533,12 @@ IBInstrumentPanel::isInstrumented() const
 void
 IBInstrumentPanel::initializeHierarchyIndependentData(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
     t_initialize_hierarchy_independent_data->start();
 
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
-
-    // The patch data descriptor index for the LNodeIndexSetData.
-    const int lag_node_index_idx = lag_manager-> getLNodeIndexPatchDescriptorIndex();
 
     // Determine how many flow meters/pressure gauges are present in the local
     // data.
@@ -550,28 +546,23 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
     std::vector<int> max_node_index;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (lag_manager->levelContainsLagrangianData(ln))
+        if (l_data_manager->levelContainsLagrangianData(ln))
         {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
+            const std::vector<LNode*>& local_nodes = mesh->getNodes();
+            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+                 cit != local_nodes.end(); ++cit)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
-                for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
-                     it != idx_data->data_end(); ++it)
+                const LNode& node_idx = **cit;
+                Pointer<IBInstrumentationSpec> spec = node_idx.getNodeData<IBInstrumentationSpec>();
+                if (!spec.isNull())
                 {
-                    const LNodeIndex& node_idx = *it;
-                    Pointer<IBInstrumentationSpec> spec = node_idx.getNodeData<IBInstrumentationSpec>();
-                    if (!spec.isNull())
-                    {
-                        const int m = spec->getMeterIndex();
-                        max_meter_index = std::max(m, max_meter_index);
+                    const int m = spec->getMeterIndex();
+                    max_meter_index = std::max(m, max_meter_index);
 
-                        const int n = spec->getNodeIndex();
-                        max_node_index.resize(max_meter_index+1,-1);
-                        max_node_index[m] = std::max(n, max_node_index[m]);
-                    }
+                    const int n = spec->getNodeIndex();
+                    max_node_index.resize(max_meter_index+1,-1);
+                    max_node_index[m] = std::max(n, max_node_index[m]);
                 }
             }
         }
@@ -668,13 +659,13 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
 void
 IBInstrumentPanel::initializeHierarchyDependentData(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
-    LDataManager* const lag_manager,
+    LDataManager* const l_data_manager,
     const int timestep_num,
     const double data_time)
 {
     if (!d_initialized)
     {
-        initializeHierarchyIndependentData(hierarchy, lag_manager);
+        initializeHierarchyIndependentData(hierarchy, l_data_manager);
     }
     if (d_num_meters == 0) return;
 
@@ -688,9 +679,6 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     d_instrument_read_timestep_num = timestep_num;
     d_instrument_read_time = data_time;
 
-    // The patch data descriptor index for the LNodeIndexSetData.
-    const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
-
     // Loop over all local nodes to determine the positions of the local
     // perimeter nodes.
     for (int m = 0; m < d_num_meters; ++m)
@@ -702,34 +690,29 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (lag_manager->levelContainsLagrangianData(ln))
+        if (l_data_manager->levelContainsLagrangianData(ln))
         {
             // Extract the local position array.
-            Pointer<LData> X_data = lag_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
+            Pointer<LData> X_data = l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
             Vec X_vec = X_data->getVec();
             double* X_arr;
             int ierr = VecGetArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
 
             // Store the local positions of the perimeter nodes.
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
+            const std::vector<LNode*>& local_nodes = mesh->getNodes();
+            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+                 cit != local_nodes.end(); ++cit)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
-                for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
-                     it != idx_data->data_end(); ++it)
+                const LNode& node_idx = **cit;
+                Pointer<IBInstrumentationSpec> spec = node_idx.getNodeData<IBInstrumentationSpec>();
+                if (!spec.isNull())
                 {
-                    const LNodeIndex& node_idx = *it;
-                    Pointer<IBInstrumentationSpec> spec = node_idx.getNodeData<IBInstrumentationSpec>();
-                    if (!spec.isNull())
-                    {
-                        const int& petsc_idx = node_idx.getLocalPETScIndex();
-                        const double* const X = &X_arr[NDIM*petsc_idx];
-                        const int m = spec->getMeterIndex();
-                        const int n = spec->getNodeIndex();
-                        std::copy(X,X+NDIM,d_X_perimeter[m](n).data());
-                    }
+                    const int& petsc_idx = node_idx.getLocalPETScIndex();
+                    const double* const X = &X_arr[NDIM*petsc_idx];
+                    const int m = spec->getMeterIndex();
+                    const int n = spec->getNodeIndex();
+                    std::copy(X,X+NDIM,d_X_perimeter[m](n).data());
                 }
             }
 
@@ -889,7 +872,7 @@ IBInstrumentPanel::readInstrumentData(
     const int U_data_idx,
     const int P_data_idx,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
-    LDataManager* const lag_manager,
+    LDataManager* const l_data_manager,
     const int timestep_num,
     const double data_time)
 {
@@ -1031,9 +1014,6 @@ IBInstrumentPanel::readInstrumentData(
         d_mean_pres_values[m] /= A[m];
     }
 
-    // The patch data descriptor index for the LNodeIndexSetData.
-    const int lag_node_index_idx = lag_manager-> getLNodeIndexPatchDescriptorIndex();
-
     // Loop over all local nodes to determine the velocities of the local
     // perimeter nodes.
     std::vector<blitz::Array<blitz::TinyVector<double,NDIM>,1> > U_perimeter(d_num_meters);
@@ -1047,34 +1027,29 @@ IBInstrumentPanel::readInstrumentData(
     }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (lag_manager->levelContainsLagrangianData(ln))
+        if (l_data_manager->levelContainsLagrangianData(ln))
         {
             // Extract the local velocity array.
-            Pointer<LData> U_data = lag_manager->getLData(LDataManager::VEL_DATA_NAME,ln);
+            Pointer<LData> U_data = l_data_manager->getLData(LDataManager::VEL_DATA_NAME,ln);
             Vec U_vec = U_data->getVec();
             double* U_arr;
             int ierr = VecGetArray(U_vec, &U_arr);  IBTK_CHKERRQ(ierr);
 
             // Store the local velocities of the perimeter nodes.
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
+            const std::vector<LNode*>& local_nodes = mesh->getNodes();
+            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+                 cit != local_nodes.end(); ++cit)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
-                for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
-                     it != idx_data->data_end(); ++it)
+                const LNode& node_idx = **cit;
+                Pointer<IBInstrumentationSpec> spec = node_idx.getNodeData<IBInstrumentationSpec>();
+                if (!spec.isNull())
                 {
-                    const LNodeIndex& node_idx = *it;
-                    Pointer<IBInstrumentationSpec> spec = node_idx.getNodeData<IBInstrumentationSpec>();
-                    if (!spec.isNull())
-                    {
-                        const int& petsc_idx = node_idx.getLocalPETScIndex();
-                        const double* const U = &U_arr[NDIM*petsc_idx];
-                        const int m = spec->getMeterIndex();
-                        const int n = spec->getNodeIndex();
-                        std::copy(U,U+NDIM,U_perimeter[m](n).data());
-                    }
+                    const int& petsc_idx = node_idx.getLocalPETScIndex();
+                    const double* const U = &U_arr[NDIM*petsc_idx];
+                    const int m = spec->getMeterIndex();
+                    const int n = spec->getNodeIndex();
+                    std::copy(U,U+NDIM,U_perimeter[m](n).data());
                 }
             }
 

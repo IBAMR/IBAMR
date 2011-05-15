@@ -58,6 +58,9 @@
 #include <tbox/Array.h>
 #include <tbox/Utilities.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // FORTRAN ROUTINES
 #if (NDIM == 2)
 #define LAPLACE_FC FC_FUNC(laplace2d, LAPLACE2D)
@@ -2964,14 +2967,14 @@ PatchMathOps::laplace(
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    std::vector<double*> F(NDIM);
+    blitz::TinyVector<double*,NDIM> F;
     for (int d = 0; d < NDIM; ++d)
     {
-        F[d]  = dst->getPointer(d,l);
+        F[d] = dst->getPointer(d,l);
     }
     const int F_ghosts = (dst->getGhostCellWidth()).max();
 
-    std::vector<const double*> U(NDIM);
+    blitz::TinyVector<const double*,NDIM> U;
     for (int d = 0; d < NDIM; ++d)
     {
         U[d] = src1->getPointer(d,m);
@@ -3030,7 +3033,7 @@ PatchMathOps::laplace(
 
     if (src2.isNull() || (gamma == 0.0))
     {
-        std::vector<int> ilower(NDIM), iupper(NDIM);
+        blitz::TinyVector<int,NDIM> ilower, iupper;
         for (int d = 0; d < NDIM; ++d)
         {
             for (int dd = 0; dd < NDIM; ++dd)
@@ -3070,7 +3073,7 @@ PatchMathOps::laplace(
     }
     else
     {
-        std::vector<const double*> V(NDIM);
+        blitz::TinyVector<const double*,NDIM> V;
         for (int d = 0; d < NDIM; ++d)
         {
             V[d] = src2->getPointer(d,n);
@@ -3090,7 +3093,7 @@ PatchMathOps::laplace(
                        << "  dst, src1, and src2 must all live on the same patch" << std::endl);
         }
 #endif
-        std::vector<int> ilower(NDIM), iupper(NDIM);
+        blitz::TinyVector<int,NDIM> ilower, iupper;
         for (int d = 0; d < NDIM; ++d)
         {
             for (int dd = 0; dd < NDIM; ++dd)

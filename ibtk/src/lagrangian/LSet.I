@@ -94,6 +94,22 @@ LSet<T>::operator=(
 }// operator=
 
 template<class T>
+inline typename LSet<T>::reference
+LSet<T>::operator[](
+    typename LSet<T>::size_type n)
+{
+    return d_set[n];
+}// operator[]
+
+template<class T>
+inline typename LSet<T>::const_reference
+LSet<T>::operator[](
+    typename LSet<T>::size_type n) const
+{
+    return d_set[n];
+}// operator[]
+
+template<class T>
 inline typename LSet<T>::const_iterator
 LSet<T>::begin() const
 {
@@ -143,6 +159,38 @@ LSet<T>::push_back(
     d_set.push_back(value);
     return;
 }// push_back
+
+template<class T>
+inline typename LSet<T>::iterator
+LSet<T>::insert(
+    typename LSet<T>::iterator pos,
+    const T& x)
+{
+    return d_set.insert(pos,x);
+}// insert
+
+template<class T>
+template<class InputIterator>
+inline void
+LSet<T>::insert(
+    typename LSet<T>::iterator pos,
+    InputIterator first,
+    InputIterator last)
+{
+    d_set.insert(pos,first,last);
+    return;
+}// insert
+
+template<class T>
+inline void
+LSet<T>::insert(
+    typename LSet<T>::iterator pos,
+    typename LSet<T>::size_type n,
+    const T& x)
+{
+    d_set.insert(pos,n,x);
+    return;
+}// insert
 
 template<class T>
 inline const typename LSet<T>::DataSet&

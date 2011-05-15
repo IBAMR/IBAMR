@@ -41,6 +41,9 @@
 #include <PatchHierarchy.h>
 #include <RefineAlgorithm.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // C++ STDLIB INCLUDES
 #include <vector>
 
@@ -228,8 +231,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_coarsen_scheds;
 
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > > d_refine_alg;
-    std::vector<std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > > d_refine_scheds;
+    blitz::TinyVector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >,NDIM> d_refine_alg;
+    blitz::TinyVector<std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >,NDIM> d_refine_scheds;
 };
 }// namespace IBTK
 

@@ -47,10 +47,6 @@
 // IBAMR INCLUDES
 #include <ibamr/namespaces.h>
 
-// IBTK INCLUDES
-#include <ibtk/LNodeIndexSetData.h>
-#include <ibtk/LData.h>
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -131,13 +127,13 @@ IBStandardForceGen::initializeLevelData(
     const int level_number,
     const double init_data_time,
     const bool initial_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+    if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
     d_X_orig_vec.resize(std::max(d_X_orig_vec.size(),size_t(level_number+1)),PETSC_NULL);
     d_shift_vec .resize(std::max( d_shift_vec.size(),size_t(level_number+1)),PETSC_NULL);
-    if (lag_manager->levelContainsLagrangianData(level_number))
+    if (l_data_manager->levelContainsLagrangianData(level_number))
     {
         int ierr;
 
@@ -152,7 +148,7 @@ IBStandardForceGen::initializeLevelData(
         }
 
         // Create a duplicate of the position vector.
-        Pointer<LData> X_data = lag_manager->getLData("X", level_number);
+        Pointer<LData> X_data = l_data_manager->getLData("X", level_number);
         ierr = VecDuplicate(X_data->getVec(), &d_X_orig_vec[level_number]);  IBTK_CHKERRQ(ierr);
         ierr = VecDuplicate(X_data->getVec(), & d_shift_vec[level_number]);  IBTK_CHKERRQ(ierr);
 
@@ -162,31 +158,25 @@ IBStandardForceGen::initializeLevelData(
         // Compute the periodic shifts (if any).
         double* shift_arr;
         ierr = VecGetArray(d_shift_vec[level_number], &shift_arr);  IBTK_CHKERRQ(ierr);
-        const int lag_node_index_idx = lag_manager->getLNodeIndexPatchDescriptorIndex();
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+        const std::vector<LNode*>& local_nodes = mesh->getNodes();
+        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+             cit != local_nodes.end(); ++cit)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<LNodeIndexSetData> idx_data = patch->getPatchData(lag_node_index_idx);
-            for (LNodeIndexSetData::DataIterator it = idx_data->data_begin(patch_box);
-                 it != idx_data->data_end(); ++it)
+            const LNode& node_idx = **cit;
+            if (node_idx.getPeriodicOffset() != IntVector<NDIM>(0))
             {
-                const LNodeIndex& node_idx = *it;
-                if (node_idx.getPeriodicOffset() != IntVector<NDIM>(0))
+                const int petsc_local_idx = node_idx.getLocalPETScIndex();
+                const blitz::TinyVector<double,NDIM>& periodic_displacement = node_idx.getPeriodicDisplacement();
+                for (int d = 0; d < NDIM; ++d)
                 {
-                    const int petsc_local_idx = node_idx.getLocalPETScIndex();
-                    const std::vector<double>& periodic_displacement = node_idx.getPeriodicDisplacement();
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        shift_arr[NDIM*petsc_local_idx+d] = -periodic_displacement[d];
-                    }
+                    shift_arr[NDIM*petsc_local_idx+d] = -periodic_displacement[d];
                 }
             }
         }
         ierr = VecRestoreArray(d_shift_vec[level_number], &shift_arr);  IBTK_CHKERRQ(ierr);
     }
-    d_force_strategy_set->initializeLevelData(hierarchy, level_number, init_data_time, initial_time, lag_manager);
+    d_force_strategy_set->initializeLevelData(hierarchy, level_number, init_data_time, initial_time, l_data_manager);
     return;
 }// initializeLevelData
 
@@ -198,15 +188,15 @@ IBStandardForceGen::computeLagrangianForce(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+    if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
     int ierr;
     ierr = VecSwap(X_data->getVec(), d_X_orig_vec[level_number]);  IBTK_CHKERRQ(ierr);
     ierr = VecWAXPY(X_data->getVec(), 1.0, d_shift_vec[level_number], d_X_orig_vec[level_number]);  IBTK_CHKERRQ(ierr);
 
-    d_force_strategy_set->computeLagrangianForce(F_data, X_data, U_data, hierarchy, level_number, data_time, lag_manager);
+    d_force_strategy_set->computeLagrangianForce(F_data, X_data, U_data, hierarchy, level_number, data_time, l_data_manager);
 
     ierr = VecSwap(X_data->getVec(), d_X_orig_vec[level_number]);  IBTK_CHKERRQ(ierr);
     return;
@@ -219,10 +209,10 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
-    d_force_strategy_set->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz, hierarchy, level_number, data_time, lag_manager);
+    if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
+    d_force_strategy_set->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz, hierarchy, level_number, data_time, l_data_manager);
     return;
 }// computeLagrangianForceJacobianNonzeroStructure
 
@@ -237,15 +227,15 @@ IBStandardForceGen::computeLagrangianForceJacobian(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    if (!lag_manager->levelContainsLagrangianData(level_number)) return;
+    if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
     int ierr;
     ierr = VecSwap(X_data->getVec(), d_X_orig_vec[level_number]);  IBTK_CHKERRQ(ierr);
     ierr = VecWAXPY(X_data->getVec(), 1.0, d_shift_vec[level_number], d_X_orig_vec[level_number]);  IBTK_CHKERRQ(ierr);
 
-    d_force_strategy_set->computeLagrangianForceJacobian(J_mat, assembly_type, X_coef, X_data, U_coef, U_data, hierarchy, level_number, data_time, lag_manager);
+    d_force_strategy_set->computeLagrangianForceJacobian(J_mat, assembly_type, X_coef, X_data, U_coef, U_data, hierarchy, level_number, data_time, l_data_manager);
 
     ierr = VecSwap(X_data->getVec(), d_X_orig_vec[level_number]);  IBTK_CHKERRQ(ierr);
     return;
@@ -258,15 +248,15 @@ IBStandardForceGen::computeLagrangianEnergy(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double data_time,
-    LDataManager* const lag_manager)
+    LDataManager* const l_data_manager)
 {
-    if (!lag_manager->levelContainsLagrangianData(level_number)) return 0.0;
+    if (!l_data_manager->levelContainsLagrangianData(level_number)) return 0.0;
 
     int ierr;
     ierr = VecSwap(X_data->getVec(), d_X_orig_vec[level_number]);  IBTK_CHKERRQ(ierr);
     ierr = VecWAXPY(X_data->getVec(), 1.0, d_shift_vec[level_number], d_X_orig_vec[level_number]);  IBTK_CHKERRQ(ierr);
 
-    double ret_val = d_force_strategy_set->computeLagrangianEnergy(X_data, U_data, hierarchy, level_number, data_time, lag_manager);
+    double ret_val = d_force_strategy_set->computeLagrangianEnergy(X_data, U_data, hierarchy, level_number, data_time, l_data_manager);
 
     ierr = VecSwap(X_data->getVec(), d_X_orig_vec[level_number]);  IBTK_CHKERRQ(ierr);
     return ret_val;

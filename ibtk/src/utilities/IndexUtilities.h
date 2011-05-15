@@ -45,6 +45,9 @@
 #include <functional>
 #include <vector>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
@@ -58,9 +61,9 @@ struct CellIndexFortranOrder
         const SAMRAI::pdat::CellIndex<NDIM>& rhs) const
         {
             return (lhs(0) < rhs(0)
-#if (NDIM>1)
+#if (NDIM > 1)
                     || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
-#if (NDIM>2)
+#if (NDIM > 2)
                     || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
@@ -102,6 +105,22 @@ public:
     static SAMRAI::hier::Index<NDIM>
     getCellIndex(
         const std::vector<double>& X,
+        const double* const XLower,
+        const double* const XUpper,
+        const double* const dx,
+        const SAMRAI::hier::Index<NDIM>& ilower,
+        const SAMRAI::hier::Index<NDIM>& iupper);
+
+    /*!
+     * \return The cell index corresponding to location \p X relative
+     * to \p XLower and \p XUpper for the specified Cartesian grid
+     * spacings \p dx and box extents \p ilower and \p iupper.
+     *
+     * \see SAMRAI::geom::CartesianPatchGeometry
+     */
+    static SAMRAI::hier::Index<NDIM>
+    getCellIndex(
+        const blitz::TinyVector<double,NDIM>& X,
         const double* const XLower,
         const double* const XUpper,
         const double* const dx,

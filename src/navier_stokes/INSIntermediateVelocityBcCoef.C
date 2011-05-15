@@ -119,12 +119,12 @@ namespace IBAMR
 INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(
     const int comp_idx,
     const int Phi_idx,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
     const bool homogeneous_bc)
     : d_comp_idx(comp_idx),
       d_target_idx(-1),
       d_Phi_idx(-1),
-      d_u_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
+      d_u_bc_coefs(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_homogeneous_bc(false),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
@@ -181,13 +181,8 @@ INSIntermediateVelocityBcCoef::setPhiPatchDataIndex(
 
 void
 INSIntermediateVelocityBcCoef::setVelocityPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs)
 {
-    if (u_bc_coefs.size() != NDIM)
-    {
-        TBOX_ERROR("INSIntermediateVelocityBcCoef::setVelocityPhysicalBcCoefs():\n"
-                   << "  precisely NDIM boundary condition objects must be provided." << std::endl);
-    }
     d_u_bc_coefs = u_bc_coefs;
     return;
 }// setVelocityPhysicalBcCoefs
@@ -219,10 +214,9 @@ INSIntermediateVelocityBcCoef::setBcCoefs(
     double fill_time) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_u_bc_coefs.size() == NDIM);
-    for (unsigned l = 0; l < d_u_bc_coefs.size(); ++l)
+    for (unsigned d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(d_u_bc_coefs[l] != NULL);
+        TBOX_ASSERT(d_u_bc_coefs[d] != NULL);
     }
 #endif
     const int location_index   = bdry_box.getLocationIndex();
@@ -330,17 +324,15 @@ IntVector<NDIM>
 INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_u_bc_coefs.size() == NDIM);
-    for (unsigned l = 0; l < d_u_bc_coefs.size(); ++l)
+    for (unsigned d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(d_u_bc_coefs[l] != NULL);
+        TBOX_ASSERT(d_u_bc_coefs[d] != NULL);
     }
 #endif
     IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
     for (int d = 0; d < NDIM; ++d)
     {
-        ret_val = IntVector<NDIM>::min(
-            ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
+        ret_val = IntVector<NDIM>::min(ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
 }// numberOfExtensionsFillable

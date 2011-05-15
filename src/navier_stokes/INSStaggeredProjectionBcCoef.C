@@ -65,9 +65,9 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredProjectionBcCoef::INSStaggeredProjectionBcCoef(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
     const bool homogeneous_bc)
-    : d_u_bc_coefs(NDIM,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
+    : d_u_bc_coefs(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_target_idx(-1),
       d_homogeneous_bc(false)
 {
@@ -84,13 +84,8 @@ INSStaggeredProjectionBcCoef::~INSStaggeredProjectionBcCoef()
 
 void
 INSStaggeredProjectionBcCoef::setVelocityPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs)
 {
-    if (u_bc_coefs.size() != NDIM)
-    {
-        TBOX_ERROR("INSStaggeredProjectionBcCoef::setVelocityPhysicalBcCoefs():\n"
-                   << "  precisely NDIM boundary condition objects must be provided." << std::endl);
-    }
     d_u_bc_coefs = u_bc_coefs;
     return;
 }// setVelocityPhysicalBcCoefs
@@ -122,10 +117,9 @@ INSStaggeredProjectionBcCoef::setBcCoefs(
     double fill_time) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_u_bc_coefs.size() == NDIM);
-    for (unsigned l = 0; l < d_u_bc_coefs.size(); ++l)
+    for (unsigned d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(d_u_bc_coefs[l] != NULL);
+        TBOX_ASSERT(d_u_bc_coefs[d] != NULL);
     }
     TBOX_ASSERT(!acoef_data.isNull());
     TBOX_ASSERT(!bcoef_data.isNull());
@@ -189,10 +183,9 @@ IntVector<NDIM>
 INSStaggeredProjectionBcCoef::numberOfExtensionsFillable() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_u_bc_coefs.size() == NDIM);
-    for (unsigned l = 0; l < d_u_bc_coefs.size(); ++l)
+    for (unsigned d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(d_u_bc_coefs[l] != NULL);
+        TBOX_ASSERT(d_u_bc_coefs[d] != NULL);
     }
 #endif
     IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
