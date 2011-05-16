@@ -191,7 +191,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
       d_post_processor(post_processor),
       d_post_processor_needs_init(true),
       d_using_pIB_method(false),
-      d_gravitational_acceleration(NDIM,0.0),
+      d_gravitational_acceleration(0.0),
       d_start_time(0.0),
       d_end_time(std::numeric_limits<double>::max()),
       d_grow_dt(2.0),
@@ -1793,16 +1793,16 @@ IBHierarchyIntegrator::initializeLevelData(
     if (!d_source_strategy.isNull()) d_source_strategy->initializeLevelData(hierarchy, level_number, init_data_time, initial_time, d_l_data_manager);
     if (initial_time)
     {
-        d_X_src.resize(std::max(int(d_X_src.size()),level_number+1));
-        d_r_src.resize(std::max(int(d_r_src.size()),level_number+1));
-        d_P_src.resize(std::max(int(d_P_src.size()),level_number+1));
-        d_Q_src.resize(std::max(int(d_Q_src.size()),level_number+1));
-        d_n_src.resize(std::max(int(d_n_src.size()),level_number+1),0);
+        d_X_src.resize(std::max(static_cast<int>(d_X_src.size()),level_number+1));
+        d_r_src.resize(std::max(static_cast<int>(d_r_src.size()),level_number+1));
+        d_P_src.resize(std::max(static_cast<int>(d_P_src.size()),level_number+1));
+        d_Q_src.resize(std::max(static_cast<int>(d_Q_src.size()),level_number+1));
+        d_n_src.resize(std::max(static_cast<int>(d_n_src.size()),level_number+1),0);
 
         if (!d_source_strategy.isNull())
         {
             d_n_src[level_number] = d_source_strategy->getNumSources(hierarchy, level_number, d_integrator_time, d_l_data_manager);
-            d_X_src[level_number].resize(d_n_src[level_number], std::vector<double>(NDIM,std::numeric_limits<double>::quiet_NaN()));
+            d_X_src[level_number].resize(d_n_src[level_number], blitz::TinyVector<double,NDIM>(std::numeric_limits<double>::quiet_NaN()));
             d_r_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
             d_P_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
             d_Q_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
@@ -2001,7 +2001,7 @@ IBHierarchyIntegrator::applyGradientDetector(
             double dx_finer[NDIM];
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                dx_finer[d] = dx[d]/double(finer_level->getRatio()(d));
+                dx_finer[d] = dx[d]/static_cast<double>(finer_level->getRatio()(d));
             }
 
             // The source radius must be an integer multiple of the grid
@@ -2100,7 +2100,7 @@ IBHierarchyIntegrator::putToDatabase(
         db->putDoubleArray("d_total_flow_volume", &d_total_flow_volume[0], d_total_flow_volume.size());
     }
     db->putBool("d_using_pIB_method", d_using_pIB_method);
-    db->putDoubleArray("d_gravitational_acceleration", &d_gravitational_acceleration[0], NDIM);
+    db->putDoubleArray("d_gravitational_acceleration", d_gravitational_acceleration.data(), NDIM);
     db->putDouble("d_start_time", d_start_time);
     db->putDouble("d_end_time", d_end_time);
     db->putDouble("d_grow_dt", d_grow_dt);
@@ -2123,7 +2123,7 @@ IBHierarchyIntegrator::putToDatabase(
             std::ostringstream id_stream;
             id_stream << ln << "_" << n;
             const std::string id_string = id_stream.str();
-            db->putDoubleArray("d_X_src_"+id_string, &d_X_src[ln][n][0], NDIM);
+            db->putDoubleArray("d_X_src_"+id_string, d_X_src[ln][n].data(), NDIM);
             db->putDouble("d_r_src_"+id_string, d_r_src[ln][n]);
             db->putDouble("d_P_src_"+id_string, d_P_src[ln][n]);
             db->putDouble("d_Q_src_"+id_string, d_Q_src[ln][n]);
@@ -2400,7 +2400,7 @@ IBHierarchyIntegrator::computeSourceStrengths(
                         double wgt = 1.0;
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            const double X_center = xLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
+                            const double X_center = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
                             wgt *= cos_delta(X_center - d_X_src[ln][n][d], r[d]);
                         }
                         (*q_data)(i) += d_Q_src[ln][n]*wgt;
@@ -2463,7 +2463,7 @@ IBHierarchyIntegrator::computeSourceStrengths(
 
         BoxList<NDIM> bdry_boxes;
         bdry_boxes.removeIntersections(domain_box,interior_box);
-        double vol = double(bdry_boxes.getTotalSizeOfBoxes());
+        double vol = static_cast<double>(bdry_boxes.getTotalSizeOfBoxes());
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             vol *= dx_coarsest[d];
@@ -2638,7 +2638,7 @@ IBHierarchyIntegrator::computeSourcePressures(
                         double wgt = 1.0;
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            const double X_center = xLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
+                            const double X_center = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
                             wgt *= cos_delta(X_center - d_X_src[ln][n][d], r[d])*dx[d];
                         }
                         d_P_src[ln][n] += (*p_data)(i)*wgt;
@@ -2720,7 +2720,7 @@ IBHierarchyIntegrator::getFromInput(
         {
             if (db->keyExists("gravitational_acceleration"))
             {
-                db->getDoubleArray("gravitational_acceleration", &d_gravitational_acceleration[0], NDIM);
+                db->getDoubleArray("gravitational_acceleration", d_gravitational_acceleration.data(), NDIM);
             }
             else
             {
@@ -2777,7 +2777,7 @@ IBHierarchyIntegrator::getFromRestart()
         db->getDoubleArray("d_total_flow_volume", &d_total_flow_volume[0], d_total_flow_volume.size());
     }
     d_using_pIB_method = db->getBool("d_using_pIB_method");
-    db->getDoubleArray("d_gravitational_acceleration", &d_gravitational_acceleration[0], NDIM);
+    db->getDoubleArray("d_gravitational_acceleration", d_gravitational_acceleration.data(), NDIM);
     d_start_time = db->getDouble("d_start_time");
     d_end_time = db->getDouble("d_end_time");
     d_grow_dt = db->getDouble("d_grow_dt");
@@ -2800,7 +2800,7 @@ IBHierarchyIntegrator::getFromRestart()
     db->getIntegerArray("d_n_src", &d_n_src[0], finest_hier_level+1);
     for (int ln = 0; ln <= finest_hier_level; ++ln)
     {
-        d_X_src[ln].resize(d_n_src[ln],std::vector<double>(NDIM,std::numeric_limits<double>::quiet_NaN()));
+        d_X_src[ln].resize(d_n_src[ln],blitz::TinyVector<double,NDIM>(std::numeric_limits<double>::quiet_NaN()));
         d_r_src[ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());
         d_P_src[ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());
         d_Q_src[ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());
@@ -2809,7 +2809,7 @@ IBHierarchyIntegrator::getFromRestart()
             std::ostringstream id_stream;
             id_stream << ln << "_" << n;
             const std::string id_string = id_stream.str();
-            db->getDoubleArray("d_X_src_"+id_string, &d_X_src[ln][n][0], NDIM);
+            db->getDoubleArray("d_X_src_"+id_string, d_X_src[ln][n].data(), NDIM);
             d_r_src[ln][n] = db->getDouble("d_r_src_"+id_string);
             d_P_src[ln][n] = db->getDouble("d_P_src_"+id_string);
             d_Q_src[ln][n] = db->getDouble("d_Q_src_"+id_string);

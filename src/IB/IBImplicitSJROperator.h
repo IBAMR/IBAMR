@@ -41,6 +41,9 @@
 // IBTK INCLUDES
 #include <ibtk/JacobianOperator.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // C++ STDLIB INCLUDES
 #include <vector>
 
@@ -273,7 +276,7 @@ private:
 
     // IB force Jacobian matrices.
     std::vector<Mat> d_SJR_mats;
-    std::vector<std::vector<int> > d_d_nnz, d_o_nnz;
+    std::vector<std::vector<blitz::TinyVector<int,NDIM> > > d_d_nnz, d_o_nnz;
 };
 }// namespace IBAMR
 

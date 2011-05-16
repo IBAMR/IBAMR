@@ -175,8 +175,8 @@ IBImplicitSJROperator::formJacobian(
             ierr = MatCreateMPIAIJ(PETSC_COMM_WORLD,
                                    NDIM*num_local_nodes, NDIM*num_local_nodes,
                                    PETSC_DETERMINE, PETSC_DETERMINE,
-                                   PETSC_DEFAULT, &d_d_nnz[ln][0],
-                                   PETSC_DEFAULT, &d_o_nnz[ln][0],
+                                   PETSC_DEFAULT, d_d_nnz[ln][0].data(),
+                                   PETSC_DEFAULT, d_o_nnz[ln][0].data(),
                                    &J_mat);  IBTK_CHKERRQ(ierr);
 #ifdef DEBUG_CHECK_ASSERTIONS
             ierr = MatSetOption(J_mat, MAT_NEW_NONZERO_LOCATION_ERR  , PETSC_TRUE); IBTK_CHKERRQ(ierr);
@@ -196,7 +196,7 @@ IBImplicitSJROperator::formJacobian(
             double cell_vol = 1.0;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                cell_vol *= dx0[d] / double(ratio(d));
+                cell_vol *= dx0[d] / static_cast<double>(ratio(d));
             }
             ierr = MatScale(d_SJR_mats[ln], 1.0/cell_vol);  IBTK_CHKERRQ(ierr);
 
@@ -312,14 +312,14 @@ IBImplicitSJROperator::initializeOperatorState(
                 d_nnz, o_nnz, hierarchy, ln, d_current_time+0.5*d_dt, l_data_manager);
 
             // Convert the nonzero structure data into a non-blocked format.
-            d_d_nnz[ln].resize(NDIM*num_local_nodes);
-            d_o_nnz[ln].resize(NDIM*num_local_nodes);
+            d_d_nnz[ln].resize(num_local_nodes);
+            d_o_nnz[ln].resize(num_local_nodes);
             for (int k = 0; k < num_local_nodes; ++k)
             {
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    d_d_nnz[ln][NDIM*k+d] = NDIM*d_nnz[k];
-                    d_o_nnz[ln][NDIM*k+d] = NDIM*o_nnz[k];
+                    d_d_nnz[ln][k][d] = NDIM*d_nnz[k];
+                    d_o_nnz[ln][k][d] = NDIM*o_nnz[k];
                 }
             }
         }

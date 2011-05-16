@@ -283,7 +283,7 @@ main(
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        X[d] = xLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
+                        X[d] = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
                     }
                     (*data)(i) = 2.0*X[NDIM-1] + shift;
                 }
@@ -315,7 +315,7 @@ main(
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        X[d] = xLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
+                        X[d] = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
                     }
                     double val = 2.0*X[NDIM-1] + shift;
 
@@ -359,7 +359,7 @@ main(
                     double X[NDIM];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        X[d] = xLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
+                        X[d] = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
                     }
                     double val = 2.0*X[NDIM-1] + shift;
 

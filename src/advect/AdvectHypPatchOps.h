@@ -645,9 +645,7 @@ private:
      * variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geometry;
-#if (NDIM>1)
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
-#endif
 
     /*
      * Boundary condition extrapolation helpers.

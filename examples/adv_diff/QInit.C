@@ -62,7 +62,7 @@ QInit::QInit(
     : CartGridFunction(object_name),
       d_object_name(object_name),
       d_grid_geom(grid_geom),
-      d_X(NDIM),
+      d_X(),
       d_init_type("GAUSSIAN"),
       d_gaussian_kappa(0.01),
       d_zalesak_r(0.15),
@@ -144,11 +144,9 @@ QInit::setDataOnPatch(
             int offset[NDIM];
             for (offset[0] = -2; offset[0] <= 2; ++(offset[0]))
             {
-#if (NDIM>1)
                 for (offset[1] = -2; offset[1] <= 2; ++(offset[1]))
                 {
-#endif
-#if (NDIM>2)
+#if (NDIM > 2)
                     for (offset[2] = -2; offset[2] <= 2; ++(offset[2]))
                     {
 #endif
@@ -156,21 +154,19 @@ QInit::setDataOnPatch(
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             X[d] = XLower[d] +
-                                dx[d]*(double(i(d)-patch_lower(d))+0.5);
+                                dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
                             r_squared += pow(
-                                X[d]-(d_X[d]+double(offset[d])),2.0);
+                                X[d]-(d_X[d]+static_cast<double>(offset[d])),2.0);
                         }
 
                         (*Q_data)(i) +=
                             exp(-r_squared/(4.0*d_gaussian_kappa*(1.0+t)))/
                             pow(4.0*M_PI*d_gaussian_kappa*(1.0+t),
-                                0.5*double(NDIM));
-#if (NDIM>2)
+                                0.5*static_cast<double>(NDIM));
+#if (NDIM > 2)
                     }
 #endif
-#if (NDIM>1)
                 }
-#endif
             }
         }
     }
@@ -183,7 +179,7 @@ QInit::setDataOnPatch(
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X[d] = XLower[d] +
-                    dx[d]*(double(i(d)-patch_lower(d))+0.5);
+                    dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
                 r_squared += pow((X[d]-d_X[d]),2.0);
             }
             if ((sqrt(r_squared) > d_zalesak_r) ||
@@ -218,24 +214,20 @@ QInit::getFromInput(
     {
         if (db->keyExists("X"))
         {
-            d_X = db->getDoubleArray("X");
+            db->getDoubleArray("X", d_X.data(), NDIM);
         }
 
         d_init_type = db->getStringWithDefault("init_type",d_init_type);
 
         if (d_init_type == "GAUSSIAN")
         {
-            d_gaussian_kappa = db->
-                getDoubleWithDefault("kappa",d_gaussian_kappa);
+            d_gaussian_kappa = db->getDoubleWithDefault("kappa",d_gaussian_kappa);
         }
         else if (d_init_type == "ZALESAK")
         {
-            d_zalesak_r = db->
-                getDoubleWithDefault("zalesak_r",d_zalesak_r);
-            d_zalesak_slot_w = db->
-                getDoubleWithDefault("zalesak_slot_w",d_zalesak_slot_w);
-            d_zalesak_slot_l = db->
-                getDoubleWithDefault("zalesak_slot_l",d_zalesak_slot_l);
+            d_zalesak_r = db->getDoubleWithDefault("zalesak_r",d_zalesak_r);
+            d_zalesak_slot_w = db->getDoubleWithDefault("zalesak_slot_w",d_zalesak_slot_w);
+            d_zalesak_slot_l = db->getDoubleWithDefault("zalesak_slot_l",d_zalesak_slot_l);
         }
         else
         {

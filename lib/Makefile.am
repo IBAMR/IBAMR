@@ -55,9 +55,6 @@ $(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategy.C \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategySet.C \
 $(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
-$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C \
-$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C \
-$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C \
 $(top_srcdir)/src/IB/IBRodForceSpec.C \
 $(top_srcdir)/src/IB/IBRodForceSpecFactory.C \
 $(top_srcdir)/src/IB/IBSourceSpec.C \
@@ -130,10 +127,6 @@ $(top_srcdir)/src/IB/IBKirchhoffRodForceGen.h \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategy.h \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategySet.h \
 $(top_srcdir)/src/IB/IBLagrangianSourceStrategy.h \
-$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.h \
-$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.I \
-$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.h \
-$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.h \
 $(top_srcdir)/src/IB/IBRodForceSpec.I \
 $(top_srcdir)/src/IB/IBRodForceSpec.h \
 $(top_srcdir)/src/IB/IBRodForceSpecFactory.h \

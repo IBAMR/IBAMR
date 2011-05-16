@@ -724,7 +724,7 @@ main(
                 {
                     const hier::Index<NDIM>& i = it();
                     const pdat::SideIndex<NDIM> s_i(i,0,0);
-                    tbox::plog << (double(i(1))+0.5)*dx[1] << "\t" << (*u_data)(s_i) << "\n";
+                    tbox::plog << (static_cast<double>(i(1))+0.5)*dx[1] << "\t" << (*u_data)(s_i) << "\n";
                 }
             }
             tbox::plog << "\n";
@@ -748,7 +748,7 @@ main(
                     i_l (0) -= 1;
                     i_u (0) += 0;
                     i_uu(0) += 1;
-                    tbox::plog << (double(i(1))+0.5)*dx[1] << "\t" << 9.0*((*p_data)(i_l) + (*p_data)(i_u))/16.0 - ((*p_data)(i_ll) + (*p_data)(i_uu))/16.0 << "\n";
+                    tbox::plog << (static_cast<double>(i(1))+0.5)*dx[1] << "\t" << 9.0*((*p_data)(i_l) + (*p_data)(i_u))/16.0 - ((*p_data)(i_ll) + (*p_data)(i_uu))/16.0 << "\n";
                 }
             }
             tbox::plog << "\n";
@@ -765,7 +765,7 @@ main(
                 {
                     const hier::Index<NDIM>& i = it();
                     const pdat::SideIndex<NDIM> s_i(i,1,0);
-                    tbox::plog << (double(i(0))+0.5)*dx[0] << "\t" << (*u_data)(s_i) << "\n";
+                    tbox::plog << (static_cast<double>(i(0))+0.5)*dx[0] << "\t" << (*u_data)(s_i) << "\n";
                 }
             }
             tbox::plog << "\n";
@@ -789,7 +789,7 @@ main(
                     i_l (1) -= 1;
                     i_u (1) += 0;
                     i_uu(1) += 1;
-                    tbox::plog << (double(i(0))+0.5)*dx[0] << "\t" << 9.0*((*p_data)(i_l) + (*p_data)(i_u))/16.0 - ((*p_data)(i_ll) + (*p_data)(i_uu))/16.0 << "\n";
+                    tbox::plog << (static_cast<double>(i(0))+0.5)*dx[0] << "\t" << 9.0*((*p_data)(i_l) + (*p_data)(i_u))/16.0 - ((*p_data)(i_ll) + (*p_data)(i_uu))/16.0 << "\n";
                 }
             }
             tbox::plog << "\n";

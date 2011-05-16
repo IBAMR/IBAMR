@@ -561,12 +561,12 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     const int& degree = interp_degree[axis];
-                    const double X = XLower_fine[axis] + dx_fine[axis]*(double(i_fine(axis)-patch_lower_fine(axis))+0.5);
+                    const double X = XLower_fine[axis] + dx_fine[axis]*(static_cast<double>(i_fine(axis)-patch_lower_fine(axis))+0.5);
                     std::vector<double> X_crse(degree+1,0.0);
                     for (int i_crse = stencil_box_crse.lower()(axis), k = 0;
                          i_crse <= stencil_box_crse.upper()(axis); ++i_crse, ++k)
                     {
-                        X_crse[k] = XLower_crse[axis] + dx_crse[axis]*(double(i_crse-patch_lower_crse(axis))+0.5);
+                        X_crse[k] = XLower_crse[axis] + dx_crse[axis]*(static_cast<double>(i_crse-patch_lower_crse(axis))+0.5);
                     }
                     wgts[axis].resize(degree+1,0.0);
                     switch (degree)
@@ -790,12 +790,12 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(
                         i_intr1(bdry_normal_axis) = patch_upper(bdry_normal_axis)-1;
                     }
 
-                    const double r = double(ratio(bdry_normal_axis));
+                    const double r = static_cast<double>(ratio(bdry_normal_axis));
                     const int i = (is_lower
                                    ? i_bdry(bdry_normal_axis) - patch_lower(bdry_normal_axis)
                                    : i_bdry(bdry_normal_axis) - patch_upper(bdry_normal_axis));
 
-                    const double X  = (is_lower ? double(i)+0.5 : double(i)-0.5);  // the position of the c-f boundary    cell
+                    const double X  = (is_lower ? static_cast<double>(i)+0.5 : static_cast<double>(i)-0.5);  // the position of the c-f boundary    cell
                     const double X0 = (is_lower ? +0.5          : -0.5         );  // the position of the first  interior cell
                     const double X1 = (is_lower ? +1.5          : -1.5         );  // the position of the second interior cell
                     const double X2 = (is_lower ? -0.5*r        : +0.5*r       );  // the position of the coarse-grid     cell

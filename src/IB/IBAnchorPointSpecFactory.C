@@ -92,15 +92,12 @@ IBAnchorPointSpecFactory::unpackStream(
     AbstractStream& stream,
     const IntVector<NDIM>& offset)
 {
-    int node_idx;
-    stream.unpack(&node_idx,1);
+    Pointer<IBAnchorPointSpec> ret_val;
+    stream.unpack(&ret_val->d_node_idx,1);
 #if ENABLE_SUBDOMAIN_INDICES
-    int subdomain_idx;
-    stream.unpack(&subdomain_idx,1);
-    return new IBAnchorPointSpec(node_idx,subdomain_idx);
-#else
-    return new IBAnchorPointSpec(node_idx);
+    stream.unpack(&ret_val->d_subdomain_idx,1);
 #endif
+    return ret_val;
 }// unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

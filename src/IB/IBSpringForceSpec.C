@@ -75,8 +75,7 @@ IBSpringForceSpec::registerWithStreamableManager()
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(s_class_id == -1);
 #endif
-        s_class_id = StreamableManager::getManager()->registerFactory(
-            new IBSpringForceSpecFactory());
+        s_class_id = StreamableManager::getManager()->registerFactory(new IBSpringForceSpecFactory());
         s_registered_factory = true;
     }
     SAMRAI_MPI::barrier();

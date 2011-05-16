@@ -259,7 +259,7 @@ PETScKrylovLinearSolver::solveSystem(
     // Determine the convergence reason.
     KSPConvergedReason reason;
     ierr = KSPGetConvergedReason(d_petsc_ksp, &reason); IBTK_CHKERRQ(ierr);
-    const bool converged = (int(reason) > 0);
+    const bool converged = (static_cast<int>(reason) > 0);
     if (d_do_log) reportKSPConvergedReason(reason, plog);
 
     // Deallocate the solver, when necessary.
@@ -465,7 +465,7 @@ PETScKrylovLinearSolver::reportKSPConvergedReason(
     const KSPConvergedReason& reason,
     std::ostream& os) const
 {
-    switch (int(reason))
+    switch (static_cast<int>(reason))
     {
         case KSP_CONVERGED_RTOL:
             os << d_object_name << ": converged: |Ax-b| <= rtol*|b| --- residual norm is less than specified relative tolerance.\n";

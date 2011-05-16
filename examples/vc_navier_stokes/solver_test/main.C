@@ -337,7 +337,7 @@ main(
         petsc_krylov_solver->setOperator(vc_stokes_op);
 #else
         INSCoefs stokes_coefs(rho, mu, lambda);
-        vector<solv::RobinBcCoefStrategy<NDIM>*> stokes_U_bc_coefs(NDIM);
+        blitz::TinyVector<solv::RobinBcCoefStrategy<NDIM>*,NDIM> stokes_U_bc_coefs(NULL);
         tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> stokes_U_bc_helper = NULL;
         solv::RobinBcCoefStrategy<NDIM>* stokes_P_bc_coef = NULL;
         tbox::Pointer<INSStaggeredStokesOperator> stokes_op = new INSStaggeredStokesOperator(stokes_coefs, stokes_U_bc_coefs, stokes_U_bc_helper, stokes_P_bc_coef, tbox::Pointer<HierarchyMathOps>(&hier_math_ops,false));

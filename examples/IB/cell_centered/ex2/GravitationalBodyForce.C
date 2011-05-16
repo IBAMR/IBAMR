@@ -56,7 +56,7 @@ GravitationalBodyForce::GravitationalBodyForce(
     tbox::Pointer<tbox::Database> input_db)
     : CartGridFunction(object_name),
       d_object_name(object_name),
-      d_gravitational_force(NDIM,0.0)
+      d_gravitational_force(0.0)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());

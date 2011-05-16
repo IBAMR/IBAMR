@@ -110,7 +110,7 @@ UInit::setDataOnPatch(
         const hier::Index<NDIM>& i = ic();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            X[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
+            X[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
         }
 
         if (X[1] < 0.5)

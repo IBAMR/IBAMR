@@ -149,7 +149,7 @@ LMarkerRefine::refine(
                 double X_shifted[NDIM];
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    X_shifted[d] = X[d] + double(offset(d))*coarse_patchDx[d];
+                    X_shifted[d] = X[d] + static_cast<double>(offset(d))*coarse_patchDx[d];
                 }
 
                 const Index<NDIM> fine_i = IndexUtilities::getCellIndex(X_shifted, fine_patchXLower, fine_patchXUpper, fine_patchDx, fine_patch_lower, fine_patch_upper);

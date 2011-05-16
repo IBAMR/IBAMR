@@ -91,7 +91,7 @@ IBSourceSpec::setNumSources(
     const int ln,
     const unsigned int num_sources)
 {
-    s_num_sources.resize(std::max(int(s_num_sources.size()),ln+1),0);
+    s_num_sources.resize(std::max(static_cast<int>(s_num_sources.size()),ln+1),0);
     s_num_sources[ln] = num_sources;
     return;
 }// getNumSources
@@ -101,7 +101,7 @@ IBSourceSpec::setSourceNames(
     const int ln,
     const std::vector<std::string>& names)
 {
-    s_source_names.resize(std::max(int(s_source_names.size()),ln+1));
+    s_source_names.resize(std::max(static_cast<int>(s_source_names.size()),ln+1));
     s_source_names[ln] = names;
     return;
 }// getSourceNames
@@ -111,7 +111,7 @@ IBSourceSpec::setSourceRadii(
     const int ln,
     const std::vector<double>& radii)
 {
-    s_source_radii.resize(std::max(int(s_source_radii.size()),ln+1));
+    s_source_radii.resize(std::max(static_cast<int>(s_source_radii.size()),ln+1));
     s_source_radii[ln] = radii;
     return;
 }// getSourceRadii

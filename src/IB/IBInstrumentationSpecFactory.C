@@ -92,13 +92,11 @@ IBInstrumentationSpecFactory::unpackStream(
     AbstractStream& stream,
     const IntVector<NDIM>& offset)
 {
-    int master_idx;
-    stream.unpack(&master_idx,1);
-    int meter_idx;
-    stream.unpack(&meter_idx,1);
-    int node_idx;
-    stream.unpack(&node_idx,1);
-    return new IBInstrumentationSpec(master_idx,meter_idx,node_idx);
+    Pointer<IBInstrumentationSpec> ret_val = new IBInstrumentationSpec();
+    stream.unpack(&ret_val->d_master_idx,1);
+    stream.unpack(&ret_val->d_meter_idx,1);
+    stream.unpack(&ret_val->d_node_idx,1);
+    return ret_val;
 }// unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

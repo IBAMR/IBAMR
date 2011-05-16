@@ -230,7 +230,7 @@ PETScNewtonKrylovSolver::solveSystem(
     // Determine the convergence reason.
     SNESConvergedReason reason;
     ierr = SNESGetConvergedReason(d_petsc_snes, &reason); IBTK_CHKERRQ(ierr);
-    const bool converged = (int(reason) > 0);
+    const bool converged = (static_cast<int>(reason) > 0);
     if (d_do_log) reportSNESConvergedReason(reason, plog);
 
     // Deallocate the solver, when necessary.
@@ -450,7 +450,7 @@ PETScNewtonKrylovSolver::reportSNESConvergedReason(
     const SNESConvergedReason& reason,
     std::ostream& os) const
 {
-    switch (int(reason))
+    switch (static_cast<int>(reason))
     {
         case SNES_CONVERGED_FNORM_ABS:
             os << d_object_name << ": converged: |F| less than specified absolute tolerance.\n";

@@ -44,6 +44,13 @@
 // C++ STDLIB INCLUDES
 #include <vector>
 
+/////////////////////////////// FORWARD DECLARATION //////////////////////////
+
+namespace IBAMR
+{
+class IBSourceSpecFactory;
+}
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -56,6 +63,8 @@ class IBSourceSpec
     : public IBTK::Streamable
 {
 public:
+    friend class IBSourceSpecFactory;
+
     /*!
      * \brief Register this class and its factory class with the singleton
      * IBTK::StreamableManager object.  This method must be called before any

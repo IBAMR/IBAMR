@@ -35,6 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
+#define included_IBAMR_config
+#endif
+
 // IBTK INCLUDES
 #include <ibtk/Streamable.h>
 
@@ -43,6 +48,13 @@
 
 // C++ STDLIB INCLUDES
 #include <vector>
+
+/////////////////////////////// FORWARD DECLARATION //////////////////////////
+
+namespace IBAMR
+{
+class IBAnchorPointSpecFactory;
+}
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -59,6 +71,8 @@ class IBAnchorPointSpec
     : public IBTK::Streamable
 {
 public:
+    friend class IBAnchorPointSpecFactory;
+
     /*!
      * \brief Register this class and its factory class with the singleton
      * IBTK::StreamableManager object.  This method must be called before any
@@ -80,14 +94,13 @@ public:
 
     /*!
      * \brief Default constructor.
-     *
-     * \note The subdomain index is ignored unless IBAMR is configured to enable
-     * support for subdomain indices.  Subdomain indices are not enabled by
-     * default.
      */
     IBAnchorPointSpec(
-        const int node_idx=-1,
-        const int subdomain_idx=-1);
+        const int node_idx=-1
+#if ENABLE_SUBDOMAIN_INDICES
+        ,const int subdomain_idx=-1
+#endif
+                      );
 
     /*!
      * \brief Virtual destructor.
@@ -107,12 +120,10 @@ public:
     int&
     getNodeIndex();
 
+#if ENABLE_SUBDOMAIN_INDICES
     /*!
      * \return A const reference to the subdomain index associated with this
      * force spec object.
-     *
-     * \note IBAMR must be specifically configured to enable support for
-     * subdomain indices.  Subdomain indices are not enabled by default.
      */
     const int&
     getSubdomainIndex() const;
@@ -120,12 +131,10 @@ public:
     /*!
      * \return A non-const reference to the subdomain index associated with this
      * force spec object.
-     *
-     * \note IBAMR must be specifically configured to enable support for
-     * subdomain indices.  Subdomain indices are not enabled by default.
      */
     int&
     getSubdomainIndex();
+#endif
 
     /*!
      * \brief Return the unique identifier used to specify the

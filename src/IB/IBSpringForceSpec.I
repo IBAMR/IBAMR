@@ -52,12 +52,38 @@ IBSpringForceSpec::getIsRegisteredWithStreamableManager()
 
 inline
 IBSpringForceSpec::IBSpringForceSpec(
+    const unsigned int num_springs)
+    : d_master_idx(-1),
+      d_slave_idxs(num_springs),
+      d_force_fcn_idxs(num_springs),
+      d_stiffnesses(num_springs),
+      d_rest_lengths(num_springs)
+#if ENABLE_SUBDOMAIN_INDICES
+    , d_subdomain_idxs(num_springs)
+#endif
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    if (!s_registered_factory)
+    {
+        TBOX_ERROR("IBSpringForceSpec::IBSpringForceSpec():\n"
+                   << "  must call IBSpringForceSpec::registerWithStreamableManager() before\n"
+                   << "  creating any IBSpringForceSpec objects.\n");
+    }
+#endif
+    return;
+}// IBSpringForceSpec
+
+inline
+IBSpringForceSpec::IBSpringForceSpec(
     const int master_idx,
     const std::vector<int>& slave_idxs,
     const std::vector<int>& force_fcn_idxs,
     const std::vector<double>& stiffnesses,
-    const std::vector<double>& rest_lengths,
-    const std::vector<int>& subdomain_idxs)
+    const std::vector<double>& rest_lengths
+#if ENABLE_SUBDOMAIN_INDICES
+    ,const std::vector<int>& subdomain_idxs
+#endif
+                                     )
     : d_master_idx(master_idx),
       d_slave_idxs(slave_idxs),
       d_force_fcn_idxs(force_fcn_idxs),
@@ -75,13 +101,13 @@ IBSpringForceSpec::IBSpringForceSpec(
 #if ENABLE_SUBDOMAIN_INDICES
     TBOX_ASSERT(num_springs == d_subdomain_idxs.size());
 #endif
-#endif
     if (!s_registered_factory)
     {
         TBOX_ERROR("IBSpringForceSpec::IBSpringForceSpec():\n"
                    << "  must call IBSpringForceSpec::registerWithStreamableManager() before\n"
                    << "  creating any IBSpringForceSpec objects.\n");
     }
+#endif
     return;
 }// IBSpringForceSpec
 
@@ -164,27 +190,19 @@ IBSpringForceSpec::getRestingLengths()
     return d_rest_lengths;
 }// getRestingLengths
 
+#if ENABLE_SUBDOMAIN_INDICES
 inline const std::vector<int>&
 IBSpringForceSpec::getSubdomainIndices() const
 {
-#if ENABLE_SUBDOMAIN_INDICES
     return d_subdomain_idxs;
-#else
-    static std::vector<int> dummy_idxs;
-    return dummy_idxs;
-#endif
 }// getSubdomainIndices
 
 inline std::vector<int>&
 IBSpringForceSpec::getSubdomainIndices()
 {
-#if ENABLE_SUBDOMAIN_INDICES
     return d_subdomain_idxs;
-#else
-    static std::vector<int> dummy_idxs;
-    return dummy_idxs;
-#endif
 }// getSubdomainIndices
+#endif
 
 inline int
 IBSpringForceSpec::getStreamableClassID() const

@@ -191,7 +191,7 @@ IBImplicitSFROperator::apply(
             double cell_vol = 1.0;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                cell_vol *= dx0[d] / double(ratio(d));
+                cell_vol *= dx0[d] / static_cast<double>(ratio(d));
             }
             ierr = VecScale(F_half_vec, -1.0/cell_vol);  IBTK_CHKERRQ(ierr);
         }

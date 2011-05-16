@@ -159,7 +159,7 @@ LDataManager::getManager(
     if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
     {
         const int stencil_size = std::max(LEInteractor::getStencilSize(interp_weighting_fcn),LEInteractor::getStencilSize(interp_weighting_fcn));
-        const IntVector<NDIM> gcw = IntVector<NDIM>::max(IntVector<NDIM>(int(floor(0.5*double(stencil_size)))+1),ghost_cell_width);
+        const IntVector<NDIM> gcw = IntVector<NDIM>::max(IntVector<NDIM>(static_cast<int>(floor(0.5*static_cast<double>(stencil_size)))+1),ghost_cell_width);
         s_data_manager_instances[name] = new LDataManager(name, interp_weighting_fcn, spread_weighting_fcn, gcw, register_for_restart);
     }
     if (!s_registered_callback)
@@ -641,7 +641,7 @@ LDataManager::computeLagrangianStructureCenterOfMass(
     node_counter = SAMRAI_MPI::sumReduction(node_counter);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        X_com[d] /= double(node_counter);
+        X_com[d] /= static_cast<double>(node_counter);
     }
     return X_com;
 }// computeLagrangianStructureCenterOfMass
@@ -1186,7 +1186,7 @@ LDataManager::beginDataRedistribution(
                         double* const X = &X_data(local_idx,0);
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            X_shifted[d] = X[d] + double(periodic_offset(d))*patchDx[d];
+                            X_shifted[d] = X[d] + static_cast<double>(periodic_offset(d))*patchDx[d];
                         }
 
                         const bool patch_owns_node_at_new_loc =
@@ -1206,7 +1206,7 @@ LDataManager::beginDataRedistribution(
                                 blitz::TinyVector<double,NDIM> displacement(0.0);
                                 for (unsigned int d = 0; d < NDIM; ++d)
                                 {
-                                    displacement[d] = double(periodic_offset(d))*patchDx[d];
+                                    displacement[d] = static_cast<double>(periodic_offset(d))*patchDx[d];
                                 }
                                 node_idx.registerPeriodicShift(periodic_offset,displacement);
                             }
@@ -1315,7 +1315,7 @@ LDataManager::endDataRedistribution(
         double dx[NDIM];
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            dx[d] = dx0[d]/double(ratio(d));
+            dx[d] = dx0[d]/static_cast<double>(ratio(d));
         }
 
         // Determine which processor owns each of the local displaced nodes.
@@ -2334,7 +2334,7 @@ LDataManager::putToDatabase(
             lstruct_names.push_back(it->second);
             lstruct_lag_idx_range_first.push_back(d_strct_id_to_lag_idx_range_map[level_number].find(id)->second.first);
             lstruct_lag_idx_range_second.push_back(d_strct_id_to_lag_idx_range_map[level_number].find(id)->second.second);
-            lstruct_activation.push_back(int(d_inactive_strcts[level_number].getSet().find(id) != d_inactive_strcts[level_number].getSet().end()));
+            lstruct_activation.push_back(static_cast<int>(d_inactive_strcts[level_number].getSet().find(id) != d_inactive_strcts[level_number].getSet().end()));
         }
         level_db->putInteger("n_lstructs", lstruct_ids.size());
         if (!lstruct_ids.empty())

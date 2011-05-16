@@ -292,8 +292,8 @@ private:
     std::vector<Mat> d_D_mats;
     std::vector<std::vector<int> > d_lag_mastr_node_idxs, d_lag_slave_node_idxs;
     std::vector<std::vector<int> > d_petsc_mastr_node_idxs, d_petsc_slave_node_idxs;
-    std::vector<std::vector<int> > d_force_fcn_idxs;
-    std::vector<std::vector<double> > d_stiffnesses, d_rest_lengths;
+    std::vector<blitz::Array<int,1> > d_force_fcn_idxs;
+    std::vector<blitz::Array<double,1> > d_stiffnesses, d_rest_lengths;
     std::vector<bool> d_is_initialized;
     //\}
 

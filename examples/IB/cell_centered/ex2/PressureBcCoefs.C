@@ -107,11 +107,11 @@ PressureBcCoefs::setBcCoefs(
         {
             if (d != bdry_normal_axis)
             {
-                X[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
+                X[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
             }
             else
             {
-                X[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d)));
+                X[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d)));
             }
         }
 

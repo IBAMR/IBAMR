@@ -696,7 +696,7 @@ PETScMatUtilities::constructPatchLevelInterpOp(
     double dx[NDIM];
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        dx[d] = dx0[d] / double(ratio(d));
+        dx[d] = dx0[d] / static_cast<double>(ratio(d));
     }
 
     const BoxArray<NDIM>& domain_boxes = patch_level->getPhysicalDomain();
@@ -718,13 +718,13 @@ PETScMatUtilities::constructPatchLevelInterpOp(
         // Determine the position of the center of the Cartesian grid cell
         // containing the IB point.
 #if (NDIM == 2)
-        const double X_cell[NDIM] = { (double(idx(0) - domain_lower(0))+0.5)*dx[0] + XLower[0] ,
-                                      (double(idx(1) - domain_lower(1))+0.5)*dx[1] + XLower[1] };
+        const double X_cell[NDIM] = { (static_cast<double>(idx(0) - domain_lower(0))+0.5)*dx[0] + XLower[0] ,
+                                      (static_cast<double>(idx(1) - domain_lower(1))+0.5)*dx[1] + XLower[1] };
 #endif
 #if (NDIM == 3)
-        const double X_cell[NDIM] = { (double(idx(0) - domain_lower(0))+0.5)*dx[0] + XLower[0] ,
-                                      (double(idx(1) - domain_lower(1))+0.5)*dx[1] + XLower[1] ,
-                                      (double(idx(2) - domain_lower(2))+0.5)*dx[2] + XLower[2] };
+        const double X_cell[NDIM] = { (static_cast<double>(idx(0) - domain_lower(0))+0.5)*dx[0] + XLower[0] ,
+                                      (static_cast<double>(idx(1) - domain_lower(1))+0.5)*dx[1] + XLower[1] ,
+                                      (static_cast<double>(idx(2) - domain_lower(2))+0.5)*dx[2] + XLower[2] };
 #endif
 
         // Find the local patch that contains the IB point.
@@ -772,7 +772,7 @@ PETScMatUtilities::constructPatchLevelInterpOp(
             {
                 for (int i = stencil_box_lower(d), j = 0; i <= stencil_box.upper()(d); ++i, ++j)
                 {
-                    const double X_grid = (double(i - domain_lower(d)) + (d == component_axis ? 0.0 : 0.5))*dx[d] + XLower[d];
+                    const double X_grid = (static_cast<double>(i - domain_lower(d)) + (d == component_axis ? 0.0 : 0.5))*dx[d] + XLower[d];
                     w[d][j] = ib4_delta_fcn((X_grid - X[d])/dx[d]);
                 }
             }

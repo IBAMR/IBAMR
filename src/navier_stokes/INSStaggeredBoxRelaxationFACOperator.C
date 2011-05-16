@@ -1471,7 +1471,7 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
         const IntVector<NDIM>& ratio = d_hierarchy->getPatchLevel(ln)->getRatio();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            dx[d] = dx_coarsest[d]/double(ratio(d));
+            dx[d] = dx_coarsest[d]/static_cast<double>(ratio(d));
         }
         buildBoxOperator(d_box_op[ln], d_problem_coefs, d_dt, box, ghost_box, dx);
         int ierr;
@@ -1500,8 +1500,6 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-
-            d_patch_side_bc_box_overlap[ln][patch_counter].resize(NDIM);
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box,axis);
@@ -1547,7 +1545,6 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
             int patch_counter1 = 0;
             for (PatchLevel<NDIM>::Iterator p1(level); p1; p1++, ++patch_counter1)
             {
-                d_patch_side_smoother_bc_boxes[ln][patch_counter1].resize(NDIM);
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     d_patch_side_smoother_bc_boxes[ln][patch_counter1][axis].clear();

@@ -125,7 +125,7 @@ ParallelMap::communicateData()
     const int rank = SAMRAI_MPI::getRank();
 
     // Add items to the map.
-    if (SAMRAI_MPI::maxReduction(int(d_pending_additions.size())) > 0)
+    if (SAMRAI_MPI::maxReduction(static_cast<int>(d_pending_additions.size())) > 0)
     {
         StreamableManager* streamable_manager = StreamableManager::getManager();
 
@@ -162,7 +162,7 @@ ParallelMap::communicateData()
                 streamable_manager->packStream(stream, data_items_to_send);
                 int data_size = stream.getCurrentSize();
 #ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(int(d_pending_additions.size()) == num_keys);
+                TBOX_ASSERT(static_cast<int>(d_pending_additions.size()) == num_keys);
                 TBOX_ASSERT(data_size == data_sz[sending_proc]);
 #endif
                 SAMRAI_MPI::bcast(static_cast<char*>(stream.getBufferStart()), data_size, sending_proc);
@@ -201,7 +201,7 @@ ParallelMap::communicateData()
     }
 
     // Remove items from the map.
-    if (SAMRAI_MPI::maxReduction(int(d_pending_removals.size())) > 0)
+    if (SAMRAI_MPI::maxReduction(static_cast<int>(d_pending_removals.size())) > 0)
     {
         // Determine how many keys have been registered for removal on each
         // process.
@@ -218,7 +218,7 @@ ParallelMap::communicateData()
             {
                 // Pack and broadcast data on process sending_proc.
 #ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(int(d_pending_removals.size()) == num_keys);
+                TBOX_ASSERT(static_cast<int>(d_pending_removals.size()) == num_keys);
 #endif
                 SAMRAI_MPI::bcast(&d_pending_removals[0], num_keys, sending_proc);
                 for (int k = 0; k < num_keys; ++k)

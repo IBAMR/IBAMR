@@ -94,22 +94,14 @@ IBRodForceSpecFactory::unpackStream(
 {
     int num_rods;
     stream.unpack(&num_rods,1);
-    int master_idx;
-    stream.unpack(&master_idx,1);
-    std::vector<int> next_idxs(num_rods);
-    stream.unpack(&next_idxs[0],num_rods);
-    std::vector<std::vector<double> > material_params(num_rods,std::vector<double>(10));
-    for (int n = 0; n < num_rods; ++n)
-    {
-        stream.unpack(&material_params[n][0],10);
-    }
+    Pointer<IBRodForceSpec> ret_val = new IBRodForceSpec(num_rods);
+    stream.unpack(&ret_val->d_master_idx,1);
+    stream.unpack(&ret_val->d_next_idxs[0],num_rods);
+    stream.unpack(ret_val->d_material_params[0].data(),IBRodForceSpec::NUM_MATERIAL_PARAMS*num_rods);
 #if ENABLE_SUBDOMAIN_INDICES
-    std::vector<int> subdomain_idxs(num_rods);
-    stream.unpack(&subdomain_idxs[0],num_rods);
-    return new IBRodForceSpec(master_idx,next_idxs,material_params,subdomain_idxs);
-#else
-    return new IBRodForceSpec(master_idx,next_idxs,material_params);
+    stream.unpack(&ret_val->d_subdomain_idxs[0],num_rods);
 #endif
+    return ret_val;
 }// unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

@@ -35,6 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
+#define included_IBAMR_config
+#endif
+
 // IBTK INCLUDES
 #include <ibtk/Streamable.h>
 
@@ -43,6 +48,13 @@
 
 // C++ STDLIB INCLUDES
 #include <vector>
+
+/////////////////////////////// FORWARD DECLARATION //////////////////////////
+
+namespace IBAMR
+{
+class IBRodForceSpecFactory;
+}
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -57,6 +69,9 @@ class IBRodForceSpec
     : public IBTK::Streamable
 {
 public:
+    friend class IBRodForceSpecFactory;
+    static const int NUM_MATERIAL_PARAMS = 10;
+
     /*!
      * \brief Register this class and its factory class with the singleton
      * IBTK::StreamableManager object.  This method must be called before any
@@ -78,16 +93,21 @@ public:
 
     /*!
      * \brief Default constructor.
-     *
-     * \note The subdomain indices are ignored unless IBAMR is configured to
-     * enable support for subdomain indices.  Subdomain indices are not enabled
-     * by default.
      */
     IBRodForceSpec(
-        const int master_idx=-1,
-        const std::vector<int>& next_idxs=std::vector<int>(),
-        const std::vector<std::vector<double> >& material_params=std::vector<std::vector<double> >(),
-        const std::vector<int>& subdomain_idxs=std::vector<int>());
+        const unsigned int num_rods=0);
+
+    /*!
+     * \brief Alternate constructor.
+     */
+    IBRodForceSpec(
+        const int master_idx,
+        const std::vector<int>& next_idxs,
+        const std::vector<blitz::TinyVector<double,NUM_MATERIAL_PARAMS> >& material_params
+#if ENABLE_SUBDOMAIN_INDICES
+        ,const std::vector<int>& subdomain_idxs
+#endif
+                   );
 
     /*!
      * \brief Virtual destructor.
@@ -131,22 +151,20 @@ public:
      * \return A const reference to the material parameters of the rods attached
      * to the master node.
      */
-    const std::vector<std::vector<double> >&
+    const std::vector<blitz::TinyVector<double,NUM_MATERIAL_PARAMS> >&
     getMaterialParams() const;
 
     /*!
      * \return A non-const reference to the material parameters of the rods
      * attached to the master node.
      */
-    std::vector<std::vector<double> >&
+    std::vector<blitz::TinyVector<double,NUM_MATERIAL_PARAMS> >&
     getMaterialParams();
 
+#if ENABLE_SUBDOMAIN_INDICES
     /*!
      * \return A const reference to the subdomain indices associated with this
      * force spec object.
-     *
-     * \note IBAMR must be specifically configured to enable support for
-     * subdomain indices.  Subdomain indices are not enabled by default.
      */
     const std::vector<int>&
     getSubdomainIndices() const;
@@ -154,12 +172,10 @@ public:
     /*!
      * \return A non-const reference to the subdomain indices associated with
      * this force spec object.
-     *
-     * \note IBAMR must be specifically configured to enable support for
-     * subdomain indices.  Subdomain indices are not enabled by default.
      */
     std::vector<int>&
     getSubdomainIndices();
+#endif
 
     /*!
      * \brief Return the unique identifier used to specify the
@@ -224,7 +240,7 @@ private:
      */
     int d_master_idx;
     std::vector<int> d_next_idxs;
-    std::vector<std::vector<double> > d_material_params;
+    std::vector<blitz::TinyVector<double,NUM_MATERIAL_PARAMS> > d_material_params;
 
 #if ENABLE_SUBDOMAIN_INDICES
     /*!

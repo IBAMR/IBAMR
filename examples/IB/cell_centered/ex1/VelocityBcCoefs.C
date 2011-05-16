@@ -124,11 +124,11 @@ VelocityBcCoefs::setBcCoefs(
                 {
                     if (d != bdry_normal_axis)
                     {
-                        X[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
+                        X[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
                     }
                     else
                     {
-                        X[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d)));
+                        X[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d)));
                     }
                 }
                 (*gcoef_data)(i,0) = T_wgt1*(1.0 + T_wgt2*0.5*sin(2.0*M_PI*X[1]/L[1]));

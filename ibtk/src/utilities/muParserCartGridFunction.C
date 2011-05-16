@@ -281,7 +281,7 @@ muParserCartGridFunction::setDataOnPatch(
                 const CellIndex<NDIM>& i = ic();
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    d_parser_posn[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
+                    d_parser_posn[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
                 }
                 (*cc_data)(i,data_depth) = d_parsers[function_depth].Eval();
             }
@@ -323,11 +323,11 @@ muParserCartGridFunction::setDataOnPatch(
                     {
                         if (d == axis)
                         {
-                            d_parser_posn[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d)));
+                            d_parser_posn[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d)));
                         }
                         else
                         {
-                            d_parser_posn[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
+                            d_parser_posn[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
                         }
                     }
                     (*fc_data)(i,data_depth) = d_parsers[function_depth].Eval();
@@ -348,7 +348,7 @@ muParserCartGridFunction::setDataOnPatch(
                 const NodeIndex<NDIM>& i = ic();
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    d_parser_posn[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d)));
+                    d_parser_posn[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d)));
                 }
                 (*nc_data)(i,data_depth) = d_parsers[function_depth].Eval();
             }
@@ -390,11 +390,11 @@ muParserCartGridFunction::setDataOnPatch(
                     {
                         if (d == axis)
                         {
-                            d_parser_posn[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d)));
+                            d_parser_posn[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d)));
                         }
                         else
                         {
-                            d_parser_posn[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
+                            d_parser_posn[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
                         }
                     }
                     (*sc_data)(i,data_depth) = d_parsers[function_depth].Eval();

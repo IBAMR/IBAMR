@@ -65,12 +65,14 @@ IBInstrumentationSpec::IBInstrumentationSpec(
       d_meter_idx(meter_idx),
       d_node_idx(node_idx)
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
     if (!s_registered_factory)
     {
         TBOX_ERROR("IBInstrumentationSpec::IBInstrumentationSpec():\n"
                    << "  must call IBInstrumentationSpec::registerWithStreamableManager() before\n"
                    << "  creating any IBInstrumentationSpec objects.\n");
     }
+#endif
     return;
 }// IBInstrumentationSpec
 

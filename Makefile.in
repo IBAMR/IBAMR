@@ -479,10 +479,6 @@ EXTRA_DIST = $(top_srcdir)/COPYRIGHT $(top_srcdir)/autogen.sh \
 	$(top_srcdir)/include/ibamr/IBLagrangianForceStrategy.h \
 	$(top_srcdir)/include/ibamr/IBLagrangianForceStrategySet.h \
 	$(top_srcdir)/include/ibamr/IBLagrangianSourceStrategy.h \
-	$(top_srcdir)/include/ibamr/IBMovingTargetPointForceGen.h \
-	$(top_srcdir)/include/ibamr/IBMovingTargetPointForceSpec.I \
-	$(top_srcdir)/include/ibamr/IBMovingTargetPointForceSpec.h \
-	$(top_srcdir)/include/ibamr/IBMovingTargetPointForceSpecFactory.h \
 	$(top_srcdir)/include/ibamr/IBRodForceSpec.I \
 	$(top_srcdir)/include/ibamr/IBRodForceSpec.h \
 	$(top_srcdir)/include/ibamr/IBRodForceSpecFactory.h \

@@ -119,7 +119,7 @@ public:
      */
     virtual void
     getSourceLocations(
-        std::vector<std::vector<double> >& X_src,
+        std::vector<blitz::TinyVector<double,NDIM> >& X_src,
         std::vector<double>& r_src,
         SAMRAI::tbox::Pointer<IBTK::LData> X_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,

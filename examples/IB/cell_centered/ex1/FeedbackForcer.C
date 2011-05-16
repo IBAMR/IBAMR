@@ -148,7 +148,7 @@ FeedbackForcer::setDataOnPatch(
         double X[NDIM];
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            X[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
+            X[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
         }
 
         // Penalize deviations from the specified normal and

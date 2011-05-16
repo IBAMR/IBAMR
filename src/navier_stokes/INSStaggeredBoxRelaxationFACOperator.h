@@ -509,9 +509,9 @@ private:
     /*
      * Mappings from patch indices to patch operators.
      */
-    std::vector<std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > > d_patch_side_bc_box_overlap;
+    std::vector<std::vector<blitz::TinyVector<SAMRAI::hier::BoxList<NDIM>,NDIM> > > d_patch_side_bc_box_overlap;
     std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
-    std::vector<std::vector<std::vector<std::map<int,SAMRAI::hier::Box<NDIM> > > > > d_patch_side_smoother_bc_boxes;
+    std::vector<std::vector<blitz::TinyVector<std::map<int,SAMRAI::hier::Box<NDIM> >,NDIM> > > d_patch_side_smoother_bc_boxes;
     std::vector<std::vector<std::map<int,SAMRAI::hier::Box<NDIM> > > > d_patch_cell_smoother_bc_boxes;
 
     /*

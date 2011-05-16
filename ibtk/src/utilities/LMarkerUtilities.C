@@ -444,7 +444,7 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(
             double X_shifted[NDIM];
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                X_shifted[d] = X[d] + double(offset(d))*patchDx[d];
+                X_shifted[d] = X[d] + static_cast<double>(offset(d))*patchDx[d];
             }
             const bool patch_owns_mark_at_new_loc =
                 ((  patchXLower[0] <= X_shifted[0])&&(X_shifted[0] < patchXUpper[0]))

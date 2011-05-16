@@ -81,7 +81,7 @@ discard_comments(
 // Mesh spacing parameters.
 static const int N[NDIM] = {64 , 64 , 96};                                                  // number of Cartesian grid points in each coordinate direction
 static const double L[NDIM] = {10.0 , 10.0 , 15.0};                                         // length of computational domain
-static const double dx[NDIM] = {L[0]/double(N[0]) , L[1]/double(N[1]) , L[2]/double(N[2])}; // Cartesian grid spacing
+static const double dx[NDIM] = {L[0]/static_cast<double>(N[0]) , L[1]/static_cast<double>(N[1]) , L[2]/double(N[2])}; // Cartesian grid spacing
 
 inline TinyVector<int,NDIM>
 get_index(
@@ -102,7 +102,7 @@ get_posn(
     TinyVector<double,NDIM> X;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        X[d] = (double(i[d])+0.5)*dx[d];
+        X[d] = (static_cast<double>(i[d])+0.5)*dx[d];
     }
     return X;
 }// get_posn

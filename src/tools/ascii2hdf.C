@@ -222,7 +222,7 @@ initializeVertexData(
     {
         if (k%10 == 0 || k == num_vertex-1)
         {
-            cout << "\r" << setw(3) << static_cast<int>(100.0*double(k)/double(num_vertex-1)) << "% complete";
+            cout << "\r" << setw(3) << static_cast<int>(100.0*static_cast<double>(k)/static_cast<double>(num_vertex-1)) << "% complete";
             cout.flush();
         }
 
@@ -382,7 +382,7 @@ initializeSpringData(
     {
         if (k%10 == 0 || k == num_spring-1)
         {
-            cout << "\r" << setw(3) << static_cast<int>(100.0*double(k)/double(num_spring-1)) << "% complete";
+            cout << "\r" << setw(3) << static_cast<int>(100.0*static_cast<double>(k)/static_cast<double>(num_spring-1)) << "% complete";
             cout.flush();
         }
 
@@ -610,7 +610,7 @@ initializeBeamData(
     {
         if (k%10 == 0 || k == num_beam-1)
         {
-            cout << "\r" << setw(3) << static_cast<int>(100.0*double(k)/double(num_beam-1)) << "% complete";
+            cout << "\r" << setw(3) << static_cast<int>(100.0*static_cast<double>(k)/static_cast<double>(num_beam-1)) << "% complete";
             cout.flush();
         }
 
@@ -850,7 +850,7 @@ initializeTargetPointData(
     {
         if (k%10 == 0 || k == num_target_point-1)
         {
-            cout << "\r" << setw(3) << static_cast<int>(100.0*double(k)/double(num_target_point-1)) << "% complete";
+            cout << "\r" << setw(3) << static_cast<int>(100.0*static_cast<double>(k)/static_cast<double>(num_target_point-1)) << "% complete";
             cout.flush();
         }
 
@@ -1041,7 +1041,7 @@ initializeMassData(
     {
         if (k%10 == 0 || k == num_mass_point-1)
         {
-            cout << "\r" << setw(3) << static_cast<int>(100.0*double(k)/double(num_mass_point-1)) << "% complete";
+            cout << "\r" << setw(3) << static_cast<int>(100.0*static_cast<double>(k)/static_cast<double>(num_mass_point-1)) << "% complete";
             cout.flush();
         }
 
@@ -1295,7 +1295,7 @@ initializeInstrumentationData(
     {
         if (k%10 == 0 || k == num_inst_point-1)
         {
-            cout << "\r" << setw(3) << static_cast<int>(100.0*double(k)/double(num_inst_point-1)) << "% complete";
+            cout << "\r" << setw(3) << static_cast<int>(100.0*static_cast<double>(k)/static_cast<double>(num_inst_point-1)) << "% complete";
             cout.flush();
         }
 
@@ -1424,7 +1424,7 @@ initializeInstrumentationData(
         }
     }
 
-    if (int(encountered_instrument_idx.size()) != num_inst)
+    if (static_cast<int>(encountered_instrument_idx.size()) != num_inst)
     {
         cerr << "error: not all anticipated instrument indices were found in input file " << inst_filename
              << "       expected to find " << num_inst << " distinct meter indices in input file\n";

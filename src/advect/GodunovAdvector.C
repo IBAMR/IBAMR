@@ -247,7 +247,7 @@ GodunovAdvector::GodunovAdvector(
     const bool register_for_restart)
     : d_object_name(object_name),
       d_registered_for_restart(register_for_restart)
-#if (NDIM==3)
+#if (NDIM == 3)
     , d_using_full_ctu(true)
 #endif
 {
@@ -602,7 +602,7 @@ GodunovAdvector::predict(
     CellData<NDIM,double> Q_R(patch.getBox(),1,Q_ghost_cells);
     CellData<NDIM,double> Q_temp1(patch.getBox(),1,Q_ghost_cells);
     FaceData<NDIM,double> q_half_temp(patch.getBox(),1,q_half_ghost_cells);
-#if (NDIM>2)
+#if (NDIM > 2)
     CellData<NDIM,double> Q_temp2(patch.getBox(),1,Q_ghost_cells);
 #endif
 
@@ -677,7 +677,7 @@ GodunovAdvector::predictWithSourceTerm(
     CellData<NDIM,double> Q_temp1(patch.getBox(),1,Q_ghost_cells);
     CellData<NDIM,double> F_temp1(patch.getBox(),1,F_ghost_cells);
     FaceData<NDIM,double> q_half_temp(patch.getBox(),1,q_half_ghost_cells);
-#if (NDIM>2)
+#if (NDIM > 2)
     CellData<NDIM,double> Q_temp2(patch.getBox(),1,Q_ghost_cells);
     CellData<NDIM,double> F_temp2(patch.getBox(),1,F_ghost_cells);
 #endif

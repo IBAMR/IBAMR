@@ -124,7 +124,7 @@ ParallelSet::communicateData()
     const int rank = SAMRAI_MPI::getRank();
 
     // Add items from the set.
-    if (SAMRAI_MPI::maxReduction(int(d_pending_additions.size())) > 0)
+    if (SAMRAI_MPI::maxReduction(static_cast<int>(d_pending_additions.size())) > 0)
     {
         // Determine how many keys have been registered for addition on each
         // process.
@@ -141,7 +141,7 @@ ParallelSet::communicateData()
             {
                 // Pack and broadcast data on process sending_proc.
 #ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(int(d_pending_additions.size()) == num_keys);
+                TBOX_ASSERT(static_cast<int>(d_pending_additions.size()) == num_keys);
 #endif
                 SAMRAI_MPI::bcast(&d_pending_additions[0], num_keys, sending_proc);
                 for (int k = 0; k < num_keys; ++k)
@@ -166,7 +166,7 @@ ParallelSet::communicateData()
     }
 
     // Remove items from the set.
-    if (SAMRAI_MPI::maxReduction(int(d_pending_removals.size())) > 0)
+    if (SAMRAI_MPI::maxReduction(static_cast<int>(d_pending_removals.size())) > 0)
     {
         // Determine how many keys have been registered for removal on each
         // process.
@@ -183,7 +183,7 @@ ParallelSet::communicateData()
             {
                 // Pack and broadcast data on process sending_proc.
 #ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(int(d_pending_removals.size()) == num_keys);
+                TBOX_ASSERT(static_cast<int>(d_pending_removals.size()) == num_keys);
 #endif
                 SAMRAI_MPI::bcast(&d_pending_removals[0], num_keys, sending_proc);
                 for (int k = 0; k < num_keys; ++k)

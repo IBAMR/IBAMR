@@ -41,6 +41,9 @@
 // PETSc INCLUDES
 #include <petscmat.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/array.h>
+
 // C++ STDLIB INCLUDES
 #include <vector>
 
@@ -196,8 +199,8 @@ private:
     //\{
     std::vector<Mat> d_D_next_mats, d_D_prev_mats;
     std::vector<std::vector<int> > d_petsc_mastr_node_idxs, d_petsc_next_node_idxs, d_petsc_prev_node_idxs;
-    std::vector<std::vector<double> > d_bend_rigidities;
-    std::vector<std::vector<std::vector<double> > > d_mesh_dependent_curvatures;
+    std::vector<blitz::Array<double,1> > d_bend_rigidities;
+    std::vector<blitz::Array<blitz::TinyVector<double,NDIM>,1> > d_mesh_dependent_curvatures;
     std::vector<bool> d_is_initialized;
     //\}
 };

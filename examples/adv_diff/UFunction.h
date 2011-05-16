@@ -44,6 +44,9 @@
 #include <tbox/Array.h>
 #include <tbox/Database.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // NAMESPACE
 using namespace IBTK;
 using namespace SAMRAI;
@@ -145,7 +148,7 @@ private:
     /*
      * The center of the initial data.
      */
-    tbox::Array<double> d_X;
+    blitz::TinyVector<double,NDIM> d_X;
 
     /*
      * The initialization type.
@@ -155,7 +158,7 @@ private:
     /*
      * Parameters for uniform constant velocity.
      */
-    tbox::Array<double> d_uniform_u;
+    blitz::TinyVector<double,NDIM> d_uniform_u;
 };
 
 /////////////////////////////// INLINE ///////////////////////////////////////

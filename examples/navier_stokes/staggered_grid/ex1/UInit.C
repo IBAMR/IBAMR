@@ -114,11 +114,11 @@ UInit::setDataOnPatch(
             {
                 if (d == axis)
                 {
-                    X[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.0);
+                    X[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.0);
                 }
                 else
                 {
-                    X[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
+                    X[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
                 }
             }
 

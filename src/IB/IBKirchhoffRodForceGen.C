@@ -141,7 +141,7 @@ compute_force_and_torque(
     blitz::Array<double,1>& D2_next,
     blitz::Array<double,1>& D3,
     blitz::Array<double,1>& D3_next,
-    const std::vector<double>& material_params)
+    const blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS>& material_params)
 {
     blitz::Array<blitz::Array<double,1>*,1> D(3);
     D = &D1 , &D2 , &D3;
@@ -271,7 +271,7 @@ IBKirchhoffRodForceGen::initializeLevelData(
     Mat& X_next_mat = d_X_next_mats[level_num];
     std::vector<int>& petsc_curr_node_idxs = d_petsc_curr_node_idxs[level_num];
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_num];
-    std::vector<std::vector<double> >& material_params = d_material_params[level_num];
+    std::vector<blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params = d_material_params[level_num];
 
     if (D_next_mat)
     {
@@ -304,7 +304,7 @@ IBKirchhoffRodForceGen::initializeLevelData(
             TBOX_ASSERT(curr_idx == force_spec->getMasterNodeIndex());
 #endif
             const std::vector<int>& next_idxs = force_spec->getNextNodeIndices();
-            const std::vector<std::vector<double> >& params = force_spec->getMaterialParams();
+            const std::vector<blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> >& params = force_spec->getMaterialParams();
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(num_rods == next_idxs.size());
 #endif
@@ -488,7 +488,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
 
     std::vector<int>& petsc_curr_node_idxs = d_petsc_curr_node_idxs[level_number];
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_number];
-    const std::vector<std::vector<double> >& material_params = d_material_params[level_number];
+    const std::vector<blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params = d_material_params[level_number];
 
     const unsigned int local_sz = petsc_curr_node_idxs.size();
     std::vector<double> F_curr_node_vals(NDIM*local_sz,0.0);

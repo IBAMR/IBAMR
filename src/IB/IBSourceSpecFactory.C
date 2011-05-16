@@ -92,11 +92,10 @@ IBSourceSpecFactory::unpackStream(
     AbstractStream& stream,
     const IntVector<NDIM>& offset)
 {
-    int master_idx;
-    stream.unpack(&master_idx,1);
-    int source_idx;
-    stream.unpack(&source_idx,1);
-    return new IBSourceSpec(master_idx,source_idx);
+    Pointer<IBSourceSpec> ret_val = new IBSourceSpec;
+    stream.unpack(&ret_val->d_master_idx,1);
+    stream.unpack(&ret_val->d_source_idx,1);
+    return ret_val;
 }// unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

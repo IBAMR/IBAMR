@@ -147,7 +147,7 @@ PoissonTester::initializeLevelData(
         for (hier::Box<NDIM>::Iterator b(patch_box); b; b++)
         {
             const hier::Index<NDIM>& i = b();
-            (*F_data)(i) = 4.0*M_PI*M_PI*double(NDIM);
+            (*F_data)(i) = 4.0*M_PI*M_PI*static_cast<double>(NDIM);
             (*V_data)(i) = 1.0;
 
             (*F_data)(i) *= sin(2.0*M_PI*(xLower[0] + (i[0] - patch_lower[0] + 0.5)*dx[0]));

@@ -41,8 +41,8 @@
 // SAMRAI INCLUDES
 #include <tbox/Database.h>
 
-// C++ STDLIB INCLUDES
-#include <vector>
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
 
 // NAMESPACE
 using namespace IBTK;
@@ -140,7 +140,7 @@ private:
     /*
      * The gravitational force vector.
      */
-    vector<double> d_gravitational_force;
+    blitz::TinyVector<double,NDIM> d_gravitational_force;
 };
 
 /////////////////////////////// INLINE ///////////////////////////////////////

@@ -199,7 +199,7 @@ surface_force_function(
         const int z_dof_index = face->get_node(n)->dof_number(X_sys_num, NDIM-1, 0);
         z_mean += X_vec(z_dof_index);
     }
-    z_mean /= double(n_nodes);
+    z_mean /= static_cast<double>(n_nodes);
     F(2) += kappa*(z_mean - X(2));
     return;
 }// surface_force_function
@@ -390,28 +390,28 @@ main(
     // Build nodes.
     for (int k = 0; k <= n_z; ++k)
     {
-        const double z = double(k)*L/double(n_z) - 0.5*L;
+        const double z = static_cast<double>(k)*L/static_cast<double>(n_z) - 0.5*L;
         for (int j = 0; j < n_theta; ++j)
         {
-            const double theta = double(j)*2.0*M_PI/double(n_theta);
+            const double theta = static_cast<double>(j)*2.0*M_PI/static_cast<double>(n_theta);
             for (int i = 0; i < n_r1; ++i)
             {
                 const int idx = i + j*(n_r+1) + k*n_theta*(n_r+1);
-                const double r = R_i + double(i)*t1/double(n_r1);
+                const double r = R_i + static_cast<double>(i)*t1/static_cast<double>(n_r1);
                 Point x(r*cos(theta),r*sin(theta),z);
                 mesh.add_point(x,idx);
             }
             for (int i = n_r1; i < n_r1+n_r2; ++i)
             {
                 const int idx = i + j*(n_r+1) + k*n_theta*(n_r+1);
-                const double r = R_i + t1 + double(i-n_r1)*t2/double(n_r2);
+                const double r = R_i + t1 + static_cast<double>(i-n_r1)*t2/static_cast<double>(n_r2);
                 Point x(r*cos(theta),r*sin(theta),z);
                 mesh.add_point(x,idx);
             }
             for (int i = n_r1+n_r2; i <= n_r1+n_r2+n_r3; ++i)
             {
                 const int idx = i + j*(n_r+1) + k*n_theta*(n_r+1);
-                const double r = R_i + t1 + t2 + double(i-(n_r1+n_r2))*t3/double(n_r3);
+                const double r = R_i + t1 + t2 + static_cast<double>(i-(n_r1+n_r2))*t3/static_cast<double>(n_r3);
                 Point x(r*cos(theta),r*sin(theta),z);
                 mesh.add_point(x,idx);
             }

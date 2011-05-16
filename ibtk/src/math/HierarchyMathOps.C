@@ -431,7 +431,7 @@ HierarchyMathOps::resetLevels(
                     const int lower_upper = cf_bdry_boxes[k].getLocationIndex()%2;
                     if (!pgeom->getTouchesRegularBoundary(axis,lower_upper))
                     {
-                        const double extra_vol = 0.5*double(ratio(axis))*cell_vol;
+                        const double extra_vol = 0.5*static_cast<double>(ratio(axis))*cell_vol;
 
                         Box<NDIM> face_bdry_box = FaceGeometry<NDIM>::toFaceBox(bdry_box, axis);
                         array_ops.addScalar(wgt_fc_data->getArrayData(axis),
@@ -533,8 +533,8 @@ HierarchyMathOps::resetLevels(
 
     // Compute the volume of the physical domain.
     const double volume_cc = d_hier_cc_data_ops->sumControlVolumes(d_wgt_cc_idx,d_wgt_cc_idx);
-    const double volume_fc = d_hier_fc_data_ops->sumControlVolumes(d_wgt_fc_idx,d_wgt_fc_idx)/double(NDIM);
-    const double volume_sc = d_hier_sc_data_ops->sumControlVolumes(d_wgt_sc_idx,d_wgt_sc_idx)/double(NDIM);
+    const double volume_fc = d_hier_fc_data_ops->sumControlVolumes(d_wgt_fc_idx,d_wgt_fc_idx)/static_cast<double>(NDIM);
+    const double volume_sc = d_hier_sc_data_ops->sumControlVolumes(d_wgt_sc_idx,d_wgt_sc_idx)/static_cast<double>(NDIM);
     if (!MathUtilities<double>::equalEps(volume_cc,volume_fc) ||
         !MathUtilities<double>::equalEps(volume_cc,volume_sc))
     {

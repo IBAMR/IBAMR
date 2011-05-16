@@ -52,11 +52,36 @@ IBBeamForceSpec::getIsRegisteredWithStreamableManager()
 
 inline
 IBBeamForceSpec::IBBeamForceSpec(
+    const unsigned int num_beams)
+    : d_master_idx(-1),
+      d_neighbor_idxs(num_beams),
+      d_bend_rigidities(num_beams),
+      d_mesh_dependent_curvatures(num_beams)
+#if ENABLE_SUBDOMAIN_INDICES
+    , d_subdomain_idxs(num_beams)
+#endif
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    if (!s_registered_factory)
+    {
+        TBOX_ERROR("IBBeamForceSpec::IBBeamForceSpec():\n"
+                   << "  must call IBBeamForceSpec::registerWithStreamableManager() before\n"
+                   << "  creating any IBBeamForceSpec objects.\n");
+    }
+#endif
+    return;
+}// IBBeamForceSpec
+
+inline
+IBBeamForceSpec::IBBeamForceSpec(
     const int master_idx,
     const std::vector<NeighborIdxs>& neighbor_idxs,
     const std::vector<double>& bend_rigidities,
-    const std::vector<std::vector<double> >& mesh_dependent_curvatures,
-    const std::vector<int>& subdomain_idxs)
+    const std::vector<blitz::TinyVector<double,NDIM> >& mesh_dependent_curvatures
+#if ENABLE_SUBDOMAIN_INDICES
+    ,const std::vector<int>& subdomain_idxs
+#endif
+                                 )
     : d_master_idx(master_idx),
       d_neighbor_idxs(neighbor_idxs),
       d_bend_rigidities(bend_rigidities),
@@ -72,13 +97,13 @@ IBBeamForceSpec::IBBeamForceSpec(
 #if ENABLE_SUBDOMAIN_INDICES
     TBOX_ASSERT(num_beams == d_subdomain_idxs.size());
 #endif
-#endif
     if (!s_registered_factory)
     {
         TBOX_ERROR("IBBeamForceSpec::IBBeamForceSpec():\n"
                    << "  must call IBBeamForceSpec::registerWithStreamableManager() before\n"
                    << "  creating any IBBeamForceSpec objects.\n");
     }
+#endif
     return;
 }// IBBeamForceSpec
 
@@ -136,39 +161,31 @@ IBBeamForceSpec::getBendingRigidities()
     return d_bend_rigidities;
 }// getBendingRigidities
 
-inline const std::vector<std::vector<double> >&
+inline const std::vector<blitz::TinyVector<double,NDIM> >&
 IBBeamForceSpec::getMeshDependentCurvatures() const
 {
     return d_mesh_dependent_curvatures;
 }// getMeshDependentCurvatures
 
-inline std::vector<std::vector<double> >&
+inline std::vector<blitz::TinyVector<double,NDIM> >&
 IBBeamForceSpec::getMeshDependentCurvatures()
 {
     return d_mesh_dependent_curvatures;
 }// getMeshDependentCurvatures
 
+#if ENABLE_SUBDOMAIN_INDICES
 inline const std::vector<int>&
 IBBeamForceSpec::getSubdomainIndices() const
 {
-#if ENABLE_SUBDOMAIN_INDICES
     return d_subdomain_idxs;
-#else
-    static std::vector<int> dummy_idxs;
-    return dummy_idxs;
-#endif
 }// getSubdomainIndices
 
 inline std::vector<int>&
 IBBeamForceSpec::getSubdomainIndices()
 {
-#if ENABLE_SUBDOMAIN_INDICES
     return d_subdomain_idxs;
-#else
-    static std::vector<int> dummy_idxs;
-    return dummy_idxs;
-#endif
 }// getSubdomainIndices
+#endif
 
 inline int
 IBBeamForceSpec::getStreamableClassID() const
@@ -207,10 +224,7 @@ IBBeamForceSpec::packStream(
     stream.pack(&d_master_idx,1);
     stream.pack(&tmp_neighbor_idxs[0],2*num_beams);
     stream.pack(&d_bend_rigidities[0],1*num_beams);
-    for (unsigned int k = 0; k < num_beams; ++k)
-    {
-        stream.pack(&d_mesh_dependent_curvatures[k][0],NDIM);
-    }
+    stream.pack(d_mesh_dependent_curvatures[0].data(),NDIM*num_beams);
 #if ENABLE_SUBDOMAIN_INDICES
     stream.pack(&d_subdomain_idxs[0],num_beams);
 #endif

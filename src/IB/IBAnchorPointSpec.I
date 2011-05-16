@@ -52,19 +52,24 @@ IBAnchorPointSpec::getIsRegisteredWithStreamableManager()
 
 inline
 IBAnchorPointSpec::IBAnchorPointSpec(
-    const int node_idx,
-    const int subdomain_idx)
+    const int node_idx
+#if ENABLE_SUBDOMAIN_INDICES
+    ,const int subdomain_idx
+#endif
+                                     )
     : d_node_idx(node_idx)
 #if ENABLE_SUBDOMAIN_INDICES
     , d_subdomain_idx(subdomain_idx)
 #endif
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
     if (!s_registered_factory)
     {
         TBOX_ERROR("IBAnchorPointSpec::IBAnchorPointSpec():\n"
                    << "  must call IBAnchorPointSpec::registerWithStreamableManager() before\n"
                    << "  creating any IBAnchorPointSpec objects.\n");
     }
+#endif
     return;
 }// IBAnchorPointSpec
 
@@ -87,27 +92,19 @@ IBAnchorPointSpec::getNodeIndex()
     return d_node_idx;
 }// getNodeIndex
 
+#if ENABLE_SUBDOMAIN_INDICES
 inline const int&
 IBAnchorPointSpec::getSubdomainIndex() const
 {
-#if ENABLE_SUBDOMAIN_INDICES
     return d_subdomain_idx;
-#else
-    static int dummy_idx = -1;
-    return dummy_idx;
-#endif
 }// getSubdomainIndex
 
 inline int&
 IBAnchorPointSpec::getSubdomainIndex()
 {
-#if ENABLE_SUBDOMAIN_INDICES
     return d_subdomain_idx;
-#else
-    static int dummy_idx = -1;
-    return dummy_idx;
-#endif
 }// getSubdomainIndex
+#endif
 
 inline int
 IBAnchorPointSpec::getStreamableClassID() const

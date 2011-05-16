@@ -118,9 +118,6 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategy.C \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategySet.C \
 	$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
-	$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C \
-	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C \
-	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C \
 	$(top_srcdir)/src/IB/IBRodForceSpec.C \
 	$(top_srcdir)/src/IB/IBRodForceSpecFactory.C \
 	$(top_srcdir)/src/IB/IBSourceSpec.C \
@@ -194,9 +191,6 @@ am__objects_2 = libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBLagrangianForceStrategy.$(OBJEXT) \
 	libIBAMR2d_a-IBLagrangianForceStrategySet.$(OBJEXT) \
 	libIBAMR2d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
-	libIBAMR2d_a-IBMovingTargetPointForceGen.$(OBJEXT) \
-	libIBAMR2d_a-IBMovingTargetPointForceSpec.$(OBJEXT) \
-	libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.$(OBJEXT) \
 	libIBAMR2d_a-IBRodForceSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBRodForceSpecFactory.$(OBJEXT) \
 	libIBAMR2d_a-IBSourceSpec.$(OBJEXT) \
@@ -272,9 +266,6 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategy.C \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategySet.C \
 	$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
-	$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C \
-	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C \
-	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C \
 	$(top_srcdir)/src/IB/IBRodForceSpec.C \
 	$(top_srcdir)/src/IB/IBRodForceSpecFactory.C \
 	$(top_srcdir)/src/IB/IBSourceSpec.C \
@@ -348,9 +339,6 @@ am__objects_4 = libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBLagrangianForceStrategy.$(OBJEXT) \
 	libIBAMR3d_a-IBLagrangianForceStrategySet.$(OBJEXT) \
 	libIBAMR3d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
-	libIBAMR3d_a-IBMovingTargetPointForceGen.$(OBJEXT) \
-	libIBAMR3d_a-IBMovingTargetPointForceSpec.$(OBJEXT) \
-	libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.$(OBJEXT) \
 	libIBAMR3d_a-IBRodForceSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBRodForceSpecFactory.$(OBJEXT) \
 	libIBAMR3d_a-IBSourceSpec.$(OBJEXT) \
@@ -448,10 +436,6 @@ am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategy.h \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategySet.h \
 	$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.h \
-	$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.h \
-	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.I \
-	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.h \
-	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.h \
 	$(top_srcdir)/src/IB/IBRodForceSpec.I \
 	$(top_srcdir)/src/IB/IBRodForceSpec.h \
 	$(top_srcdir)/src/IB/IBRodForceSpecFactory.h \
@@ -858,10 +842,6 @@ pkg_include_HEADERS = $(top_srcdir)/src/utilities/ibamr_enums.h \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategy.h \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategySet.h \
 	$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.h \
-	$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.h \
-	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.I \
-	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.h \
-	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.h \
 	$(top_srcdir)/src/IB/IBRodForceSpec.I \
 	$(top_srcdir)/src/IB/IBRodForceSpec.h \
 	$(top_srcdir)/src/IB/IBRodForceSpecFactory.h \
@@ -928,9 +908,6 @@ DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/IB/IBAnchorPointSpec.C \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategy.C \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategySet.C \
 	$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
-	$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C \
-	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C \
-	$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C \
 	$(top_srcdir)/src/IB/IBRodForceSpec.C \
 	$(top_srcdir)/src/IB/IBRodForceSpecFactory.C \
 	$(top_srcdir)/src/IB/IBSourceSpec.C \
@@ -1111,9 +1088,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategySet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBLagrangianSourceStrategy.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceGen.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceSpec.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBRodForceSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBSourceSpec.Po@am__quote@
@@ -1176,9 +1150,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategySet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBLagrangianSourceStrategy.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceGen.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceSpec.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBRodForceSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBSourceSpec.Po@am__quote@
@@ -1560,48 +1531,6 @@ libIBAMR2d_a-IBLagrangianSourceStrategy.obj: $(top_srcdir)/src/IB/IBLagrangianSo
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C' object='libIBAMR2d_a-IBLagrangianSourceStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBLagrangianSourceStrategy.obj `if test -f '$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C'; fi`
-
-libIBAMR2d_a-IBMovingTargetPointForceGen.o: $(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBMovingTargetPointForceGen.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceGen.Tpo -c -o libIBAMR2d_a-IBMovingTargetPointForceGen.o `test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceGen.Tpo $(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceGen.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C' object='libIBAMR2d_a-IBMovingTargetPointForceGen.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBMovingTargetPointForceGen.o `test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C
-
-libIBAMR2d_a-IBMovingTargetPointForceGen.obj: $(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBMovingTargetPointForceGen.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceGen.Tpo -c -o libIBAMR2d_a-IBMovingTargetPointForceGen.obj `if test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceGen.Tpo $(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceGen.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C' object='libIBAMR2d_a-IBMovingTargetPointForceGen.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBMovingTargetPointForceGen.obj `if test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C'; fi`
-
-libIBAMR2d_a-IBMovingTargetPointForceSpec.o: $(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBMovingTargetPointForceSpec.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceSpec.Tpo -c -o libIBAMR2d_a-IBMovingTargetPointForceSpec.o `test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceSpec.Tpo $(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceSpec.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C' object='libIBAMR2d_a-IBMovingTargetPointForceSpec.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBMovingTargetPointForceSpec.o `test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C
-
-libIBAMR2d_a-IBMovingTargetPointForceSpec.obj: $(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBMovingTargetPointForceSpec.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceSpec.Tpo -c -o libIBAMR2d_a-IBMovingTargetPointForceSpec.obj `if test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceSpec.Tpo $(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceSpec.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C' object='libIBAMR2d_a-IBMovingTargetPointForceSpec.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBMovingTargetPointForceSpec.obj `if test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C'; fi`
-
-libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.o: $(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.Tpo -c -o libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.o `test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.Tpo $(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C' object='libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.o `test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C
-
-libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.obj: $(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.Tpo -c -o libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.Tpo $(DEPDIR)/libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C' object='libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBMovingTargetPointForceSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C'; fi`
 
 libIBAMR2d_a-IBRodForceSpec.o: $(top_srcdir)/src/IB/IBRodForceSpec.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBRodForceSpec.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Tpo -c -o libIBAMR2d_a-IBRodForceSpec.o `test -f '$(top_srcdir)/src/IB/IBRodForceSpec.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBRodForceSpec.C
@@ -2470,48 +2399,6 @@ libIBAMR3d_a-IBLagrangianSourceStrategy.obj: $(top_srcdir)/src/IB/IBLagrangianSo
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C' object='libIBAMR3d_a-IBLagrangianSourceStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBLagrangianSourceStrategy.obj `if test -f '$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C'; fi`
-
-libIBAMR3d_a-IBMovingTargetPointForceGen.o: $(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBMovingTargetPointForceGen.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceGen.Tpo -c -o libIBAMR3d_a-IBMovingTargetPointForceGen.o `test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceGen.Tpo $(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceGen.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C' object='libIBAMR3d_a-IBMovingTargetPointForceGen.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBMovingTargetPointForceGen.o `test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C
-
-libIBAMR3d_a-IBMovingTargetPointForceGen.obj: $(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBMovingTargetPointForceGen.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceGen.Tpo -c -o libIBAMR3d_a-IBMovingTargetPointForceGen.obj `if test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceGen.Tpo $(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceGen.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C' object='libIBAMR3d_a-IBMovingTargetPointForceGen.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBMovingTargetPointForceGen.obj `if test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMovingTargetPointForceGen.C'; fi`
-
-libIBAMR3d_a-IBMovingTargetPointForceSpec.o: $(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBMovingTargetPointForceSpec.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceSpec.Tpo -c -o libIBAMR3d_a-IBMovingTargetPointForceSpec.o `test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceSpec.Tpo $(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceSpec.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C' object='libIBAMR3d_a-IBMovingTargetPointForceSpec.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBMovingTargetPointForceSpec.o `test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C
-
-libIBAMR3d_a-IBMovingTargetPointForceSpec.obj: $(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBMovingTargetPointForceSpec.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceSpec.Tpo -c -o libIBAMR3d_a-IBMovingTargetPointForceSpec.obj `if test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceSpec.Tpo $(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceSpec.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C' object='libIBAMR3d_a-IBMovingTargetPointForceSpec.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBMovingTargetPointForceSpec.obj `if test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMovingTargetPointForceSpec.C'; fi`
-
-libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.o: $(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.Tpo -c -o libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.o `test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.Tpo $(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C' object='libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.o `test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C
-
-libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.obj: $(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.Tpo -c -o libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.Tpo $(DEPDIR)/libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C' object='libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBMovingTargetPointForceSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMovingTargetPointForceSpecFactory.C'; fi`
 
 libIBAMR3d_a-IBRodForceSpec.o: $(top_srcdir)/src/IB/IBRodForceSpec.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBRodForceSpec.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Tpo -c -o libIBAMR3d_a-IBRodForceSpec.o `test -f '$(top_srcdir)/src/IB/IBRodForceSpec.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBRodForceSpec.C

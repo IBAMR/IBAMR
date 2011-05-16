@@ -53,9 +53,9 @@ IndexUtilities::getCellIndex(
     SAMRAI::hier::Index<NDIM> idx(
         static_cast<int>( floor((X[0]-XLower[0])/dx[0]))+ilower(0)
 #if (NDIM > 1)
-        ,int(floor((X[1]-XLower[1])/dx[1]))+ilower(1)
+        ,static_cast<int>(floor((X[1]-XLower[1])/dx[1]))+ilower(1)
 #if (NDIM > 2)
-        ,int(floor((X[2]-XLower[2])/dx[2]))+ilower(2)
+        ,static_cast<int>(floor((X[2]-XLower[2])/dx[2]))+ilower(2)
 #endif
 #endif
                                   );

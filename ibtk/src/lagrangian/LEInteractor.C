@@ -2311,7 +2311,7 @@ LEInteractor::buildLocalIndices(
                 {
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        periodic_offsets[periodic_offsets.size()-(num_ids-n)][d] = double(offset[d])*dx[d];
+                        periodic_offsets[periodic_offsets.size()-(num_ids-n)][d] = static_cast<double>(offset[d])*dx[d];
                     }
                 }
 
@@ -2355,7 +2355,7 @@ LEInteractor::buildLocalIndices(
                 blitz::TinyVector<double,NDIM> node_offset;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    node_offset[d] = double(offset[d])*dx[d];
+                    node_offset[d] = static_cast<double>(offset[d])*dx[d];
                 }
 
                 for (typename LSet<T>::const_iterator cit = node_set.begin(); cit != node_set.end(); ++cit)
@@ -2448,7 +2448,7 @@ LEInteractor::userDefinedInterpolate(
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             stencil_center[d] = static_cast<int>(std::floor((X[d+s*NDIM]+X_shift[d+l*NDIM]-x_lower[d])/dx[d])) + ilower[d];
-            X_cell[d] = x_lower[d]+(double(stencil_center[d]-ilower[d])+0.5)*dx[d];
+            X_cell[d] = x_lower[d]+(static_cast<double>(stencil_center[d]-ilower[d])+0.5)*dx[d];
         }
 
         // Determine the interpolation stencil corresponding to the position of
@@ -2488,19 +2488,19 @@ LEInteractor::userDefinedInterpolate(
         blitz::Array<double,1> w0(blitz::Range(stencil_lower[0],stencil_upper[0]));
         for (int ic0 = stencil_lower[0]; ic0 <= stencil_upper[0]; ++ic0)
         {
-            w0(ic0) = s_delta_fcn((X[0+s*NDIM]+X_shift[0+l*NDIM]-(X_cell[0]+double(ic0-stencil_center[0])*dx[0]))/dx[0]);
+            w0(ic0) = s_delta_fcn((X[0+s*NDIM]+X_shift[0+l*NDIM]-(X_cell[0]+static_cast<double>(ic0-stencil_center[0])*dx[0]))/dx[0]);
         }
 
         blitz::Array<double,1> w1(blitz::Range(stencil_lower[1],stencil_upper[1]));
         for (int ic1 = stencil_lower[1]; ic1 <= stencil_upper[1]; ++ic1)
         {
-            w1(ic1) = s_delta_fcn((X[1+s*NDIM]+X_shift[1+l*NDIM]-(X_cell[1]+double(ic1-stencil_center[1])*dx[1]))/dx[1]);
+            w1(ic1) = s_delta_fcn((X[1+s*NDIM]+X_shift[1+l*NDIM]-(X_cell[1]+static_cast<double>(ic1-stencil_center[1])*dx[1]))/dx[1]);
         }
 #if (NDIM == 3)
         blitz::Array<double,1> w2(blitz::Range(stencil_lower[2],stencil_upper[2]));
         for (int ic2 = stencil_lower[2]; ic2 <= stencil_upper[2]; ++ic2)
         {
-            w2(ic2) = s_delta_fcn((X[2+s*NDIM]+X_shift[2+l*NDIM]-(X_cell[2]+double(ic2-stencil_center[2])*dx[2]))/dx[2]);
+            w2(ic2) = s_delta_fcn((X[2+s*NDIM]+X_shift[2+l*NDIM]-(X_cell[2]+static_cast<double>(ic2-stencil_center[2])*dx[2]))/dx[2]);
         }
 #endif
         // Interpolate u onto V.
@@ -2572,7 +2572,7 @@ LEInteractor::userDefinedSpread(
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             stencil_center[d] = static_cast<int>(std::floor((X[d+s*NDIM]+X_shift[d+l*NDIM]-x_lower[d])/dx[d])) + ilower[d];
-            X_cell[d] = x_lower[d]+(double(stencil_center[d]-ilower[d])+0.5)*dx[d];
+            X_cell[d] = x_lower[d]+(static_cast<double>(stencil_center[d]-ilower[d])+0.5)*dx[d];
         }
 
         // Determine the interpolation stencil corresponding to the position of
@@ -2613,19 +2613,19 @@ LEInteractor::userDefinedSpread(
         blitz::Array<double,1> w0(blitz::Range(stencil_lower[0],stencil_upper[0]));
         for (int ic0 = stencil_lower[0]; ic0 <= stencil_upper[0]; ++ic0)
         {
-            w0(ic0) = s_delta_fcn((X[0+s*NDIM]+X_shift[0+l*NDIM]-(X_cell[0]+double(ic0-stencil_center[0])*dx[0]))/dx[0]);
+            w0(ic0) = s_delta_fcn((X[0+s*NDIM]+X_shift[0+l*NDIM]-(X_cell[0]+static_cast<double>(ic0-stencil_center[0])*dx[0]))/dx[0]);
         }
 
         blitz::Array<double,1> w1(blitz::Range(stencil_lower[1],stencil_upper[1]));
         for (int ic1 = stencil_lower[1]; ic1 <= stencil_upper[1]; ++ic1)
         {
-            w1(ic1) = s_delta_fcn((X[1+s*NDIM]+X_shift[1+l*NDIM]-(X_cell[1]+double(ic1-stencil_center[1])*dx[1]))/dx[1]);
+            w1(ic1) = s_delta_fcn((X[1+s*NDIM]+X_shift[1+l*NDIM]-(X_cell[1]+static_cast<double>(ic1-stencil_center[1])*dx[1]))/dx[1]);
         }
 #if (NDIM == 3)
         blitz::Array<double,1> w2(blitz::Range(stencil_lower[2],stencil_upper[2]));
         for (int ic2 = stencil_lower[2]; ic2 <= stencil_upper[2]; ++ic2)
         {
-            w2(ic2) = s_delta_fcn((X[2+s*NDIM]+X_shift[2+l*NDIM]-(X_cell[2]+double(ic2-stencil_center[2])*dx[2]))/dx[2]);
+            w2(ic2) = s_delta_fcn((X[2+s*NDIM]+X_shift[2+l*NDIM]-(X_cell[2]+static_cast<double>(ic2-stencil_center[2])*dx[2]))/dx[2]);
         }
 #endif
         // Spread V onto u.

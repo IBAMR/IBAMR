@@ -771,7 +771,7 @@ private:
     SAMRAI::tbox::Pointer<IBEulerianSourceFunction> d_eulerian_source_fcn;
     SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> d_source_strategy;
     bool d_source_strategy_needs_init;
-    std::vector<std::vector<std::vector<double> > > d_X_src;
+    std::vector<std::vector<blitz::TinyVector<double,NDIM> > > d_X_src;
     std::vector<std::vector<double > > d_r_src, d_P_src, d_Q_src;
     std::vector<int> d_n_src;
 
@@ -786,7 +786,7 @@ private:
      * boundary mass.
      */
     bool d_using_pIB_method;
-    std::vector<double> d_gravitational_acceleration;
+    blitz::TinyVector<double,NDIM> d_gravitational_acceleration;
 
     /*
      * Whether to include directors for force computations.

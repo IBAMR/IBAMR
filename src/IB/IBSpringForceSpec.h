@@ -35,6 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
+#define included_IBAMR_config
+#endif
+
 // IBTK INCLUDES
 #include <ibtk/Streamable.h>
 
@@ -43,6 +48,13 @@
 
 // C++ STDLIB INCLUDES
 #include <vector>
+
+/////////////////////////////// FORWARD DECLARATION //////////////////////////
+
+namespace IBAMR
+{
+class IBSpringForceSpecFactory;
+}
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -76,6 +88,8 @@ class IBSpringForceSpec
     : public IBTK::Streamable
 {
 public:
+    friend class IBSpringForceSpecFactory;
+
     /*!
      * \brief Register this class and its factory class with the singleton
      * IBTK::StreamableManager object.  This method must be called before any
@@ -97,25 +111,23 @@ public:
 
     /*!
      * \brief Default constructor.
-     *
-     * \note Different spring force functions may be specified for each link in
-     * the mesh.  This data is specified as \a force_fcn_idxs in the class
-     * constructor.  By default, function default_linear_spring_force() is
-     * associated with \a force_fcn_idx 0.  Users may override this default
-     * value with any function that implements the interface required by
-     * IBSpringForceGen::registerSpringForceFunction().
-     *
-     * \note The subdomain indices are ignored unless IBAMR is configured to
-     * enable support for subdomain indices.  Subdomain indices are not enabled
-     * by default.
      */
     IBSpringForceSpec(
-        const int master_idx=-1,
-        const std::vector<int>& slave_idxs=std::vector<int>(),
-        const std::vector<int>& force_fcn_idxs=std::vector<int>(),
-        const std::vector<double>& stiffnesses=std::vector<double>(),
-        const std::vector<double>& rest_lengths=std::vector<double>(),
-        const std::vector<int>& subdomain_idxs=std::vector<int>());
+        const unsigned int num_springs=0);
+
+    /*!
+     * \brief Alternative constructor.
+     */
+    IBSpringForceSpec(
+        const int master_idx,
+        const std::vector<int>& slave_idxs,
+        const std::vector<int>& force_fcn_idxs,
+        const std::vector<double>& stiffnesses,
+        const std::vector<double>& rest_lengths
+#if ENABLE_SUBDOMAIN_INDICES
+        ,const std::vector<int>& subdomain_idxs
+#endif
+                      );
 
     /*!
      * \brief Virtual destructor.
@@ -197,12 +209,10 @@ public:
     std::vector<double>&
     getRestingLengths();
 
+#if ENABLE_SUBDOMAIN_INDICES
     /*!
      * \return A const reference to the subdomain indices associated with this
      * force spec object.
-     *
-     * \note IBAMR must be specifically configured to enable support for
-     * subdomain indices.  Subdomain indices are not enabled by default.
      */
     const std::vector<int>&
     getSubdomainIndices() const;
@@ -210,12 +220,10 @@ public:
     /*!
      * \return A non-const reference to the subdomain indices associated with
      * this force spec object.
-     *
-     * \note IBAMR must be specifically configured to enable support for
-     * subdomain indices.  Subdomain indices are not enabled by default.
      */
     std::vector<int>&
     getSubdomainIndices();
+#endif
 
     /*!
      * \brief Return the unique identifier used to specify the

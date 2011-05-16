@@ -306,11 +306,11 @@ muParserRobinBcCoefs::setBcCoefs(
         {
             if (d != bdry_normal_axis)
             {
-                d_parser_posn[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
+                d_parser_posn[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
             }
             else
             {
-                d_parser_posn[d] = XLower[d] + dx[d]*(double(i(d)-patch_lower(d)));
+                d_parser_posn[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d)));
             }
         }
         if (fill_acoef_data) (*acoef_data)(i,0) = acoef_parser.Eval();

@@ -35,15 +35,30 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
+#define included_IBAMR_config
+#endif
+
 // IBTK INCLUDES
 #include <ibtk/Streamable.h>
 
 // SAMRAI INCLUDES
 #include <tbox/AbstractStream.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // C++ STDLIB INCLUDES
 #include <utility>
 #include <vector>
+
+/////////////////////////////// FORWARD DECLARATION //////////////////////////
+
+namespace IBAMR
+{
+class IBBeamForceSpecFactory;
+}
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -62,6 +77,8 @@ class IBBeamForceSpec
     : public IBTK::Streamable
 {
 public:
+    friend class IBBeamForceSpecFactory;
+
     /*!
      * \note This typedef appears to be needed to get g++ to parse the default
      * parameters in the class constructor.
@@ -89,17 +106,22 @@ public:
 
     /*!
      * \brief Default constructor.
-     *
-     * \note The subdomain indices are ignored unless IBAMR is configured to
-     * enable support for subdomain indices.  Subdomain indices are not enabled
-     * by default.
      */
     IBBeamForceSpec(
-        const int master_idx=-1,
-        const std::vector<NeighborIdxs>& neighbor_idxs=std::vector<NeighborIdxs>(),
-        const std::vector<double>& bend_rigidities=std::vector<double>(),
-        const std::vector<std::vector<double> >& mesh_dependent_curvatures=std::vector<std::vector<double> >(),
-        const std::vector<int>& subdomain_idxs=std::vector<int>());
+        const unsigned int num_beams=0);
+
+    /*!
+     * \brief Alternative constructor.
+     */
+    IBBeamForceSpec(
+        const int master_idx,
+        const std::vector<NeighborIdxs>& neighbor_idxs,
+        const std::vector<double>& bend_rigidities,
+        const std::vector<blitz::TinyVector<double,NDIM> >& mesh_dependent_curvatures
+#if ENABLE_SUBDOMAIN_INDICES
+        ,const std::vector<int>& subdomain_idxs
+#endif
+                    );
 
     /*!
      * \brief Virtual destructor.
@@ -157,22 +179,20 @@ public:
      * \return A const reference to the mesh-dependent curvatures of the beams
      * attached to the master node.
      */
-    const std::vector<std::vector<double> >&
+    const std::vector<blitz::TinyVector<double,NDIM> >&
     getMeshDependentCurvatures() const;
 
     /*!
      * \return A non-const reference to the mesh-dependent curvatures of the
      * beams attached to the master node.
      */
-    std::vector<std::vector<double> >&
+    std::vector<blitz::TinyVector<double,NDIM> >&
     getMeshDependentCurvatures();
 
+#if ENABLE_SUBDOMAIN_INDICES
     /*!
      * \return A const reference to the subdomain indices associated with this
      * force spec object.
-     *
-     * \note IBAMR must be specifically configured to enable support for
-     * subdomain indices.  Subdomain indices are not enabled by default.
      */
     const std::vector<int>&
     getSubdomainIndices() const;
@@ -180,12 +200,10 @@ public:
     /*!
      * \return A non-const reference to the subdomain indices associated with
      * this force spec object.
-     *
-     * \note IBAMR must be specifically configured to enable support for
-     * subdomain indices.  Subdomain indices are not enabled by default.
      */
     std::vector<int>&
     getSubdomainIndices();
+#endif
 
     /*!
      * \brief Return the unique identifier used to specify the
@@ -251,7 +269,7 @@ private:
     int d_master_idx;
     std::vector<NeighborIdxs> d_neighbor_idxs;
     std::vector<double> d_bend_rigidities;
-    std::vector<std::vector<double> > d_mesh_dependent_curvatures;
+    std::vector<blitz::TinyVector<double,NDIM> > d_mesh_dependent_curvatures;
 
 #if ENABLE_SUBDOMAIN_INDICES
     /*!

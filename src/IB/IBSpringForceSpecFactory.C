@@ -94,23 +94,16 @@ IBSpringForceSpecFactory::unpackStream(
 {
     int num_springs;
     stream.unpack(&num_springs,1);
-    int master_idx;
-    stream.unpack(&master_idx,1);
-    std::vector<int> slave_idxs(num_springs);
-    stream.unpack(&slave_idxs[0],num_springs);
-    std::vector<int> force_fcn_idxs(num_springs);
-    stream.unpack(&force_fcn_idxs[0],num_springs);
-    std::vector<double> stiffnesses(num_springs);
-    stream.unpack(&stiffnesses[0],num_springs);
-    std::vector<double> rest_lengths(num_springs);
-    stream.unpack(&rest_lengths[0],num_springs);
+    Pointer<IBSpringForceSpec> ret_val = new IBSpringForceSpec(num_springs);
+    stream.unpack(&ret_val->d_master_idx,1);
+    stream.unpack(&ret_val->d_slave_idxs[0],num_springs);
+    stream.unpack(&ret_val->d_force_fcn_idxs[0],num_springs);
+    stream.unpack(&ret_val->d_stiffnesses[0],num_springs);
+    stream.unpack(&ret_val->d_rest_lengths[0],num_springs);
 #if ENABLE_SUBDOMAIN_INDICES
-    std::vector<int> subdomain_idxs(num_springs);
-    stream.unpack(&subdomain_idxs[0],num_springs);
-    return new IBSpringForceSpec(master_idx,slave_idxs,force_fcn_idxs,stiffnesses,rest_lengths,subdomain_idxs);
-#else
-    return new IBSpringForceSpec(master_idx,slave_idxs,force_fcn_idxs,stiffnesses,rest_lengths);
+    stream.unpack(&ret_val->d_subdomain_idxs[0],num_springs);
 #endif
+    return ret_val;
 }// unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

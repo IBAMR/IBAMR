@@ -581,10 +581,10 @@ main(
             ilower /= NDIM;
             iupper /= NDIM;
 
-            vector<double> X(NDIM,0.0);
+            blitz::TinyVector<double,NDIM> X(0.0);
             if (ilower <= X_idx[0] && X_idx[0] < iupper)
             {
-                vector<int> idxs(NDIM);
+                blitz::TinyVector<int,NDIM> idxs;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     idxs[d] = NDIM*X_idx[0]+d;

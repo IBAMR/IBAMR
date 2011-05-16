@@ -94,30 +94,21 @@ IBBeamForceSpecFactory::unpackStream(
 {
     int num_beams;
     stream.unpack(&num_beams,1);
-    int master_idx;
-    stream.unpack(&master_idx,1);
+    Pointer<IBBeamForceSpec> ret_val = new IBBeamForceSpec(num_beams);
+    stream.unpack(&ret_val->d_master_idx,1);
     std::vector<int> tmp_neighbor_idxs(2*num_beams);
     stream.unpack(&tmp_neighbor_idxs[0],2*num_beams);
-    std::vector<std::pair<int,int> > neighbor_idxs(num_beams);
     for (int k = 0; k < num_beams; ++k)
     {
-        neighbor_idxs[k].first  = tmp_neighbor_idxs[2*k  ];
-        neighbor_idxs[k].second = tmp_neighbor_idxs[2*k+1];
+        ret_val->d_neighbor_idxs[k].first  = tmp_neighbor_idxs[2*k  ];
+        ret_val->d_neighbor_idxs[k].second = tmp_neighbor_idxs[2*k+1];
     }
-    std::vector<double> bend_rigidities(num_beams);
-    stream.unpack(&bend_rigidities[0],num_beams);
-    std::vector<std::vector<double> > mesh_dependent_curvatures(num_beams,std::vector<double>(NDIM,0.0));
-    for (int k = 0; k < num_beams; ++k)
-    {
-        stream.unpack(&mesh_dependent_curvatures[k][0],NDIM);
-    }
+    stream.unpack(&ret_val->d_bend_rigidities[0],num_beams);
+    stream.unpack(ret_val->d_mesh_dependent_curvatures[0].data(),NDIM*num_beams);
 #if ENABLE_SUBDOMAIN_INDICES
-    std::vector<int> subdomain_idxs(num_beams);
-    stream.unpack(&subdomain_idxs[0],num_beams);
-    return new IBBeamForceSpec(master_idx,neighbor_idxs,bend_rigidities,mesh_dependent_curvatures,subdomain_idxs);
-#else
-    return new IBBeamForceSpec(master_idx,neighbor_idxs,bend_rigidities,mesh_dependent_curvatures);
+    stream.unpack(&ret_val->d_subdomain_idxs[0],num_beams);
 #endif
+    return ret_val;
 }// unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

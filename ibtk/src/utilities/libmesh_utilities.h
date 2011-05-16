@@ -321,7 +321,7 @@ jacobian(
     const int dim = X_node.extent(blitz::secondDim);
     const double J = dX_ds.det();
     const double J_bar = interpolate(qp,*strain_J_bar_node,*strain_phi);
-    const double alpha = pow(J_bar/J,1.0/double(dim));
+    const double alpha = pow(J_bar/J,1.0/static_cast<double>(dim));
     dX_ds *= alpha;
     if (dim == 2) dX_ds(2,2) = 1.0;
     return;
@@ -341,7 +341,7 @@ jacobian(
     const int dim = X_node.extent(blitz::secondDim);
     const double J = dX_ds.det();
     const double J_bar = interpolate(qp,*strain_J_bar_node,*strain_phi);
-    const double alpha = pow(J_bar/J,1.0/double(dim));
+    const double alpha = pow(J_bar/J,1.0/static_cast<double>(dim));
     dX_ds *= alpha;
     if (dim == 2) dX_ds(2,2) = 1.0;
     return;

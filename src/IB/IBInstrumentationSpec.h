@@ -44,6 +44,13 @@
 // C++ STDLIB INCLUDES
 #include <vector>
 
+/////////////////////////////// FORWARD DECLARATION //////////////////////////
+
+namespace IBAMR
+{
+class IBInstrumentationSpecFactory;
+}
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -56,6 +63,8 @@ class IBInstrumentationSpec
     : public IBTK::Streamable
 {
 public:
+    friend class IBInstrumentationSpecFactory;
+
     /*!
      * \brief Register this class and its factory class with the singleton
      * IBTK::StreamableManager object.  This method must be called before any

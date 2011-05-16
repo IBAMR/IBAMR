@@ -35,14 +35,26 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
+#define included_IBAMR_config
+#endif
+
 // IBTK INCLUDES
 #include <ibtk/Streamable.h>
 
 // SAMRAI INCLUDES
 #include <tbox/AbstractStream.h>
 
-// C++ STDLIB INCLUDES
-#include <vector>
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
+/////////////////////////////// FORWARD DECLARATION //////////////////////////
+
+namespace IBAMR
+{
+class IBTargetPointForceSpecFactory;
+}
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -58,6 +70,8 @@ class IBTargetPointForceSpec
     : public IBTK::Streamable
 {
 public:
+    friend class IBTargetPointForceSpecFactory;
+
     /*!
      * \brief Register this class and its factory class with the singleton
      * IBTK::StreamableManager object.  This method must be called before any
@@ -79,17 +93,16 @@ public:
 
     /*!
      * \brief Default constructor.
-     *
-     * \note The subdomain index is ignored unless IBAMR is configured to enable
-     * support for subdomain indices.  Subdomain indices are not enabled by
-     * default.
      */
     IBTargetPointForceSpec(
         const int master_idx=-1,
         const double& kappa_target=0.0,
         const double& eta_target=0.0,
-        const std::vector<double>& X_target=std::vector<double>(NDIM,0.0),
-        const int subdomain_idx=-1);
+        const blitz::TinyVector<double,NDIM>& X_target=blitz::TinyVector<double,NDIM>(0.0)
+#if ENABLE_SUBDOMAIN_INDICES
+        ,const int subdomain_idx=-1
+#endif
+                           );
 
     /*!
      * \brief Virtual destructor.
@@ -141,22 +154,20 @@ public:
      * \return A const reference to the position of the target point attached to
      * the node.
      */
-    const std::vector<double>&
+    const blitz::TinyVector<double,NDIM>&
     getTargetPointPosition() const;
 
     /*!
      * \return A non-const reference to the position of the target point
      * attached to the node.
      */
-    std::vector<double>&
+    blitz::TinyVector<double,NDIM>&
     getTargetPointPosition();
 
+#if ENABLE_SUBDOMAIN_INDICES
     /*!
      * \return A const reference to the subdomain index associated with this
      * force spec object.
-     *
-     * \note IBAMR must be specifically configured to enable support for
-     * subdomain indices.  Subdomain indices are not enabled by default.
      */
     const int&
     getSubdomainIndex() const;
@@ -164,12 +175,10 @@ public:
     /*!
      * \return A non-const reference to the subdomain index associated with this
      * force spec object.
-     *
-     * \note IBAMR must be specifically configured to enable support for
-     * subdomain indices.  Subdomain indices are not enabled by default.
      */
     int&
     getSubdomainIndex();
+#endif
 
     /*!
      * \brief Return the unique identifier used to specify the
@@ -234,7 +243,7 @@ private:
      */
     int d_master_idx;
     double d_kappa_target, d_eta_target;
-    std::vector<double> d_X_target;
+    blitz::TinyVector<double,NDIM> d_X_target;
 
 #if ENABLE_SUBDOMAIN_INDICES
     /*!

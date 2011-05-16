@@ -65,11 +65,11 @@ UFunction::UFunction(
     : CartGridFunction(object_name),
       d_object_name(object_name),
       d_grid_geom(grid_geom),
-      d_X(NDIM),
+      d_X(),
       d_init_type("UNIFORM"),
-      d_kappa(NDIM),
-      d_omega(NDIM),
-      d_uniform_u(NDIM)
+      d_kappa(),
+      d_omega(),
+      d_uniform_u()
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
@@ -146,13 +146,13 @@ UFunction::setDataOnPatch(
                     {
                         X[d] =
                             XLower[d] +
-                            dx[d]*(double(cell_idx(d)-patch_lower(d))+0.5);
+                            dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d))+0.5);
                     }
                     else
                     {
                         X[d] =
                             XLower[d] +
-                            dx[d]*(double(cell_idx(d)-patch_lower(d)));
+                            dx[d]*(static_cast<double>(cell_idx(d)-patch_lower(d)));
                     }
                 }
 
@@ -196,17 +196,17 @@ UFunction::getFromInput(
     {
         if (db->keyExists("omega"))
         {
-            d_omega = db->getDoubleArray("omega");
+            db->getDoubleArray("omega", d_omega.data(), NDIM);
         }
 
         if (db->keyExists("kappa"))
         {
-            d_kappa = db->getDoubleArray("kappa");
+            db->getDoubleArray("kappa", d_kappa.data(), NDIM);
         }
 
         if (db->keyExists("X"))
         {
-            d_X = db->getDoubleArray("X");
+            db->getDoubleArray("X", d_X.data(), NDIM);
         }
 
         d_init_type = db->getStringWithDefault("init_type",d_init_type);
@@ -215,7 +215,7 @@ UFunction::getFromInput(
         {
             if (db->keyExists("uniform_u"))
             {
-                d_uniform_u = db->getDoubleArray("uniform_u");
+                db->getDoubleArray("uniform_u", d_uniform_u.data(), NDIM);
             }
         }
         else if (d_init_type == "VORTEX")

@@ -166,7 +166,7 @@ surface_force_function(
         const int z_dof_index = face->get_node(n)->dof_number(X_sys_num, NDIM-1, 0);
         z_mean += X_vec(z_dof_index);
     }
-    z_mean /= double(n_nodes);
+    z_mean /= static_cast<double>(n_nodes);
     F(2) += kappa*(z_mean - X(2));
     return;
 }// surface_force_function

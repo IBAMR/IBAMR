@@ -277,7 +277,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
     {
         for (unsigned int k = 0; k < d_level_num_local_vertex[j]; ++k, ++local_node_count)
         {
-            const std::vector<double>& X = d_level_posns[j][k];
+            const blitz::TinyVector<double,NDIM>& X = d_level_posns[j][k];
             const std::pair<int,int>& vertex_idx = d_level_vertex_idxs[j][k];
             const Index<NDIM>& i = d_level_cell_idxs[j][k];
             const int patch_num = d_level_patch_nums[j][k];
@@ -582,7 +582,7 @@ IBHDF5Initializer::findLocalPatchIndicesFromHDF5(
         hid_t memspace = H5Screate_simple(rankm, dimsm, NULL);
 
         // Read in the vertex data one block at a time.
-        std::vector<double> posn_buf(NDIM*BUFFER_SIZE);
+        std::vector<blitz::TinyVector<double,NDIM> > posn_buf(BUFFER_SIZE);
         const unsigned int num_blocks = num_vertex/BUFFER_SIZE + (num_vertex%BUFFER_SIZE == 0 ? 0 : 1);
         for (unsigned int block = 0; block < num_blocks; ++block)
         {
@@ -606,12 +606,12 @@ IBHDF5Initializer::findLocalPatchIndicesFromHDF5(
 
             // Read data from hyperslab in the file into the hyperslab in
             // memory.
-            H5Dread(posn_dset, H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, &posn_buf[0]);
+            H5Dread(posn_dset, H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, posn_buf[0].data());
 
             // Setup cell indices for any local vertices in the hyperslab.
             for (int k = 0; k < num_vertex_block; ++k)
             {
-                const double* const X = &posn_buf[NDIM*k];
+                blitz::TinyVector<double,NDIM>& X = posn_buf[k];
                 for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -634,8 +634,7 @@ IBHDF5Initializer::findLocalPatchIndicesFromHDF5(
                         const Box<NDIM>& patch_box = patch->getBox();
                         const Index<NDIM>& patch_lower = patch_box.lower();
                         const Index<NDIM>& patch_upper = patch_box.upper();
-                        const Index<NDIM> i = IndexUtilities::getCellIndex(
-                            X, xLower, xUpper, dx, patch_lower, patch_upper);
+                        const Index<NDIM> i = IndexUtilities::getCellIndex(X, xLower, xUpper, dx, patch_lower, patch_upper);
                         cell_idxs.push_back(i);
                         patch_nums.push_back(p());
                         break;
@@ -745,10 +744,10 @@ IBHDF5Initializer::buildLevelDataCache(
             int num_vertex       = d_level_num_vertex      [j];
             int num_local_vertex = d_level_num_local_vertex[j];
 
-            std::vector<std::vector<double> >&       posns       = d_level_posns      [j];
-            std::vector<std::pair<int,int> >&        vertex_idxs = d_level_vertex_idxs[j];
-            std::vector<Index<NDIM> >& cell_idxs   = d_level_cell_idxs  [j];
-            std::vector<int>&                        patch_nums  = d_level_patch_nums [j];
+            std::vector<blitz::TinyVector<double,NDIM> >& posns = d_level_posns      [j];
+            std::vector<std::pair<int,int> >& vertex_idxs       = d_level_vertex_idxs[j];
+            std::vector<Index<NDIM> >& cell_idxs                = d_level_cell_idxs  [j];
+            std::vector<int>& patch_nums                        = d_level_patch_nums [j];
 
             if (j == 0)
             {
@@ -862,7 +861,7 @@ void
 IBHDF5Initializer::buildLevelVertexDataCacheFromHDF5(
     int& num_vertex,
     int& num_local_vertex,
-    std::vector<std::vector<double> >& posns,
+    std::vector<blitz::TinyVector<double,NDIM> >& posns,
     std::vector<std::pair<int,int> >& vertex_idxs,
     std::vector<Index<NDIM> >& cell_idxs,
     std::vector<int>& patch_nums,
@@ -922,7 +921,7 @@ IBHDF5Initializer::buildLevelVertexDataCacheFromHDF5(
         hid_t memspace = H5Screate_simple(rankm, dimsm, NULL);
 
         // Read in the vertex data one block at a time.
-        std::vector<double> posn_buf(NDIM*BUFFER_SIZE);
+        std::vector<blitz::TinyVector<double,NDIM> > posn_buf(BUFFER_SIZE);
         const unsigned int num_blocks = num_vertex/BUFFER_SIZE + (num_vertex%BUFFER_SIZE == 0 ? 0 : 1);
         for (unsigned int block = 0; block < num_blocks; ++block)
         {
@@ -945,13 +944,13 @@ IBHDF5Initializer::buildLevelVertexDataCacheFromHDF5(
             H5Sselect_hyperslab(memspace, H5S_SELECT_SET, offsetm, NULL, countm, NULL);
 
             // Read data from hyperslab in the file into the hyperslab in memory.
-            H5Dread(posn_dset, H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, &posn_buf[0]);
+            H5Dread(posn_dset, H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, posn_buf[0].data());
 
             // Setup data for all local vertices in the hyperslab.
             const int index_offset = block*BUFFER_SIZE;
             for (int k = 0; k < num_vertex_block; ++k)
             {
-                const double* const X = &posn_buf[NDIM*k];
+                blitz::TinyVector<double,NDIM>& X = posn_buf[k];
                 for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -976,11 +975,10 @@ IBHDF5Initializer::buildLevelVertexDataCacheFromHDF5(
                         const Box<NDIM>& patch_box = patch->getBox();
                         const Index<NDIM>& patch_lower = patch_box.lower();
                         const Index<NDIM>& patch_upper = patch_box.upper();
-                        const Index<NDIM> i = IndexUtilities::getCellIndex(
-                            X, xLower, xUpper, dx, patch_lower, patch_upper);
+                        const Index<NDIM> i = IndexUtilities::getCellIndex(X, xLower, xUpper, dx, patch_lower, patch_upper);
 
                         const int index = k+index_offset;
-                        posns.push_back(std::vector<double>(X,X+NDIM));
+                        posns.push_back(X);
                         vertex_idxs.push_back(std::make_pair(file_number,index));
                         cell_idxs.push_back(i);
                         patch_nums.push_back(p());
@@ -1459,7 +1457,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
                 const int& node2_idx = node2_idx_buf[k];
                 const int& node3_idx = node3_idx_buf[k];
                 const double& bend_rigidity = bend_rigidity_buf[k];
-                std::vector<double> rest_curvature(NDIM);
+                blitz::TinyVector<double,NDIM> rest_curvature;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     rest_curvature[d] = rest_curvature_buf[d][k];
@@ -1478,9 +1476,9 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
                     TBOX_ASSERT(old_beam_data->getMasterNodeIndex() == -1 ||
                                 old_beam_data->getMasterNodeIndex() == node2_idx);
 
-                    std::vector<std::pair<int,int> >&  neighbor_idxs   = old_beam_data->getNeighborNodeIndices();
-                    std::vector<double>&               bend_rigidities = old_beam_data->getBendingRigidities();
-                    std::vector<std::vector<double> >& rest_curvatures = old_beam_data->getMeshDependentCurvatures();
+                    std::vector<std::pair<int,int> >&             neighbor_idxs   = old_beam_data->getNeighborNodeIndices();
+                    std::vector<double>&                          bend_rigidities = old_beam_data->getBendingRigidities();
+                    std::vector<blitz::TinyVector<double,NDIM> >& rest_curvatures = old_beam_data->getMeshDependentCurvatures();
 
                     neighbor_idxs  .push_back(std::make_pair(node1_idx,node3_idx));
                     bend_rigidities.push_back(bend_rigidity                      );

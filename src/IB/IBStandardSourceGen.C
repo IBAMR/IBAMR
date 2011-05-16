@@ -138,12 +138,12 @@ IBStandardSourceGen::initializeLevelData(
     const bool initial_time,
     IBTK::LDataManager* const l_data_manager)
 {
-    d_n_src              .resize(std::max(level_number+1,int(d_n_src.size())),0);
-    d_source_names       .resize(std::max(level_number+1,int(d_source_names.size())));
-    d_r_src              .resize(std::max(level_number+1,int(d_r_src.size())));
-    d_num_perimeter_nodes.resize(std::max(level_number+1,int(d_num_perimeter_nodes.size())));
-    d_Q_src              .resize(std::max(level_number+1,int(d_Q_src.size())));
-    d_P_src              .resize(std::max(level_number+1,int(d_P_src.size())));
+    d_n_src              .resize(std::max(level_number+1,static_cast<int>(d_n_src.size())),0);
+    d_source_names       .resize(std::max(level_number+1,static_cast<int>(d_source_names.size())));
+    d_r_src              .resize(std::max(level_number+1,static_cast<int>(d_r_src.size())));
+    d_num_perimeter_nodes.resize(std::max(level_number+1,static_cast<int>(d_num_perimeter_nodes.size())));
+    d_Q_src              .resize(std::max(level_number+1,static_cast<int>(d_Q_src.size())));
+    d_P_src              .resize(std::max(level_number+1,static_cast<int>(d_P_src.size())));
 
     d_n_src[level_number] = IBSourceSpec::getNumSources(level_number);
     if (d_n_src[level_number] == 0) return;
@@ -185,7 +185,7 @@ IBStandardSourceGen::getNumSources(
 
 void
 IBStandardSourceGen::getSourceLocations(
-    std::vector<std::vector<double> >& X_src,
+    std::vector<blitz::TinyVector<double,NDIM> >& X_src,
     std::vector<double>& r_src,
     Pointer<LData> X_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
@@ -204,7 +204,7 @@ IBStandardSourceGen::getSourceLocations(
     r_src = d_r_src[level_number];
 
     // Determine the positions of the sources.
-    std::fill(X_src.begin(),X_src.end(),std::vector<double>(NDIM,0.0));
+    std::fill(X_src.begin(),X_src.end(),blitz::TinyVector<double,NDIM>(0.0));
     Vec X_vec = X_data->getVec();
     double* X_arr;
     int ierr = VecGetArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
@@ -222,22 +222,13 @@ IBStandardSourceGen::getSourceLocations(
             const int source_idx = spec->getSourceIndex();
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                X_src[source_idx][d] += X[d]/double(d_num_perimeter_nodes[level_number][source_idx]);
+                X_src[source_idx][d] += X[d]/static_cast<double>(d_num_perimeter_nodes[level_number][source_idx]);
             }
         }
     }
     ierr = VecRestoreArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
 
-    std::vector<double> X_src_flattened;
-    for (unsigned int m = 0; m < d_n_src[level_number]; ++m)
-    {
-        X_src_flattened.insert(X_src_flattened.end(),X_src[m].begin(),X_src[m].end());
-    }
-    SAMRAI_MPI::sumReduction(&X_src_flattened[0],X_src_flattened.size());
-    for (unsigned int m = 0; m < d_n_src[level_number]; ++m)
-    {
-        std::copy(&X_src_flattened[NDIM*m],(&X_src_flattened[NDIM*m])+NDIM,X_src[m].begin());
-    }
+    SAMRAI_MPI::sumReduction(X_src[0].data(),NDIM*X_src.size());
     return;
 }// getSourceLocations
 

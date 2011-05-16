@@ -169,7 +169,7 @@ IBTargetPointForceGen::computeLagrangianForce(
                 const int& petsc_idx = node_idx.getLocalPETScIndex();
                 const double* const X = &X_arr[NDIM*petsc_idx];
                 const double* const U = &U_arr[NDIM*petsc_idx];
-                const std::vector<double>& X_target = force_spec->getTargetPointPosition();
+                const blitz::TinyVector<double,NDIM>& X_target = force_spec->getTargetPointPosition();
 
                 double* const F = &F_arr[NDIM*petsc_idx];
                 double displacement = 0.0;

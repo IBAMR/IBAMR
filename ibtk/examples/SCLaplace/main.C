@@ -349,7 +349,7 @@ main(
         solv::PoissonSpecifications poisson_spec("poisson_spec");
         poisson_spec.setCConstant( 0.0);
         poisson_spec.setDConstant(-1.0);
-        vector<solv::RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM);
+        blitz::TinyVector<solv::RobinBcCoefStrategy<NDIM>*,NDIM> bc_coefs(static_cast<solv::RobinBcCoefStrategy<NDIM>*>(NULL));
         SCLaplaceOperator laplace_op("laplace op", poisson_spec, bc_coefs);
         laplace_op.initializeOperatorState(u_vec,f_vec);
         laplace_op.apply(u_vec,f_vec);

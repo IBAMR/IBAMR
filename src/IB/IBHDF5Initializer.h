@@ -237,7 +237,7 @@ private:
     buildLevelVertexDataCacheFromHDF5(
         int& num_vertex,
         int& num_local_vertex,
-        std::vector<std::vector<double> >& posns,
+        std::vector<blitz::TinyVector<double,NDIM> >& posns,
         std::vector<std::pair<int,int> >& vertex_idxs,
         std::vector<SAMRAI::hier::Index<NDIM> >& cell_idxs,
         std::vector<int>& patch_nums,
@@ -399,10 +399,10 @@ private:
     int d_cache_level_number;
 
     std::vector<unsigned int> d_level_num_vertex, d_level_num_local_vertex, d_level_vertex_offset;
-    std::vector<std::vector<std::vector<double> > >       d_level_posns;
-    std::vector<std::vector<std::pair<int,int> > >        d_level_vertex_idxs;
-    std::vector<std::vector<SAMRAI::hier::Index<NDIM> > > d_level_cell_idxs;
-    std::vector<std::vector<int> >                        d_level_patch_nums;
+    std::vector<std::vector<blitz::TinyVector<double,NDIM> > > d_level_posns;
+    std::vector<std::vector<std::pair<int,int> > >             d_level_vertex_idxs;
+    std::vector<std::vector<SAMRAI::hier::Index<NDIM> > >      d_level_cell_idxs;
+    std::vector<std::vector<int> >                             d_level_patch_nums;
 
     std::vector<std::set<int> > d_level_reset_specs_set;
 

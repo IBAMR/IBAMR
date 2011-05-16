@@ -217,7 +217,7 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
       d_post_processor(post_processor),
       d_post_processor_needs_init(true),
       d_using_pIB_method(false),
-      d_gravitational_acceleration(NDIM,0.0),
+      d_gravitational_acceleration(0.0),
       d_using_orthonormal_directors(false),
       d_start_time(0.0),
       d_end_time(std::numeric_limits<double>::max()),
@@ -1792,16 +1792,16 @@ IBStaggeredHierarchyIntegrator::initializeLevelData(
     if (!d_source_strategy.isNull()) d_source_strategy->initializeLevelData(hierarchy, level_number, init_data_time, initial_time, d_l_data_manager);
     if (initial_time)
     {
-        d_X_src.resize(std::max(int(d_X_src.size()),level_number+1));
-        d_r_src.resize(std::max(int(d_r_src.size()),level_number+1));
-        d_P_src.resize(std::max(int(d_P_src.size()),level_number+1));
-        d_Q_src.resize(std::max(int(d_Q_src.size()),level_number+1));
-        d_n_src.resize(std::max(int(d_n_src.size()),level_number+1),0);
+        d_X_src.resize(std::max(static_cast<int>(d_X_src.size()),level_number+1));
+        d_r_src.resize(std::max(static_cast<int>(d_r_src.size()),level_number+1));
+        d_P_src.resize(std::max(static_cast<int>(d_P_src.size()),level_number+1));
+        d_Q_src.resize(std::max(static_cast<int>(d_Q_src.size()),level_number+1));
+        d_n_src.resize(std::max(static_cast<int>(d_n_src.size()),level_number+1),0);
 
         if (!d_source_strategy.isNull())
         {
             d_n_src[level_number] = d_source_strategy->getNumSources(hierarchy, level_number, d_integrator_time, d_l_data_manager);
-            d_X_src[level_number].resize(d_n_src[level_number], std::vector<double>(NDIM,std::numeric_limits<double>::quiet_NaN()));
+            d_X_src[level_number].resize(d_n_src[level_number], blitz::TinyVector<double,NDIM>(std::numeric_limits<double>::quiet_NaN()));
             d_r_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
             d_P_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
             d_Q_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
@@ -1974,7 +1974,7 @@ IBStaggeredHierarchyIntegrator::applyGradientDetector(
             double dx_finer[NDIM];
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                dx_finer[d] = dx[d]/double(finer_level->getRatio()(d));
+                dx_finer[d] = dx[d]/static_cast<double>(finer_level->getRatio()(d));
             }
 
             // The source radius must be an integer multiple of the grid
@@ -2364,7 +2364,7 @@ IBStaggeredHierarchyIntegrator::computeSourceStrengths(
                         double wgt = 1.0;
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            const double X_center = xLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
+                            const double X_center = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
                             wgt *= cos_delta(X_center - d_X_src[ln][n][d], r[d]);
                         }
                         (*q_data)(i) += d_Q_src[ln][n]*wgt;
@@ -2427,7 +2427,7 @@ IBStaggeredHierarchyIntegrator::computeSourceStrengths(
 
         BoxList<NDIM> bdry_boxes;
         bdry_boxes.removeIntersections(domain_box,interior_box);
-        double vol = double(bdry_boxes.getTotalSizeOfBoxes());
+        double vol = static_cast<double>(bdry_boxes.getTotalSizeOfBoxes());
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             vol *= dx_coarsest[d];
@@ -2599,7 +2599,7 @@ IBStaggeredHierarchyIntegrator::computeSourcePressures(
                         double wgt = 1.0;
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            const double X_center = xLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
+                            const double X_center = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
                             wgt *= cos_delta(X_center - d_X_src[ln][n][d], r[d])*dx[d];
                         }
                         d_P_src[ln][n] += (*p_data)(i)*wgt;
@@ -2751,7 +2751,7 @@ IBStaggeredHierarchyIntegrator::getFromRestart()
     db->getIntegerArray("d_n_src", &d_n_src[0], finest_hier_level+1);
     for (int ln = 0; ln <= finest_hier_level; ++ln)
     {
-        d_X_src[ln].resize(d_n_src[ln],std::vector<double>(NDIM,std::numeric_limits<double>::quiet_NaN()));
+        d_X_src[ln].resize(d_n_src[ln],blitz::TinyVector<double,NDIM>(std::numeric_limits<double>::quiet_NaN()));
         d_r_src[ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());
         d_P_src[ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());
         d_Q_src[ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());

@@ -35,6 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
+#define included_IBAMR_config
+#endif
+
+// IBAMR INCLUDES
+#include <ibamr/IBRodForceSpec.h>
+
 // IBTK INCLUDES
 #include <ibtk/LInitStrategy.h>
 #include <ibtk/LSiloDataWriter.h>
@@ -602,7 +610,7 @@ private:
     /*!
      * \return The initial position of the specified vertex.
      */
-    std::vector<double>
+    blitz::TinyVector<double,NDIM>
     getVertexPosn(
         const std::pair<int,int>& point_index,
         const int level_number) const;
@@ -727,7 +735,7 @@ private:
      * input files, i.e., X_final = scale*(X_initial + shift).
      */
     double d_length_scale_factor;
-    std::vector<double> d_posn_shift;
+    blitz::TinyVector<double,NDIM> d_posn_shift;
 
     /*
      * Vertex information.
@@ -762,7 +770,9 @@ private:
     {
         double stiffness, rest_length;
         int force_fcn_idx;
+#if ENABLE_SUBDOMAIN_INDICES
         int subdomain_idx;
+#endif
     };
     std::vector<std::vector<std::map<Edge,SpringSpec,EdgeComp> > > d_spring_spec_data;
 
@@ -775,8 +785,10 @@ private:
     std::vector<std::vector<bool> > d_using_uniform_spring_force_fcn_idx;
     std::vector<std::vector<int> > d_uniform_spring_force_fcn_idx;
 
+#if ENABLE_SUBDOMAIN_INDICES
     std::vector<std::vector<bool> > d_using_uniform_spring_subdomain_idx;
     std::vector<std::vector<int> > d_uniform_spring_subdomain_idx;
+#endif
 
     /*
      * Beam information.
@@ -787,8 +799,10 @@ private:
     {
         std::pair<int,int> neighbor_idxs;
         double bend_rigidity;
-        std::vector<double> curvature;
+        blitz::TinyVector<double,NDIM> curvature;
+#if ENABLE_SUBDOMAIN_INDICES
         int subdomain_idx;
+#endif
     };
     std::vector<std::vector<std::multimap<int,BeamSpec> > > d_beam_spec_data;
 
@@ -796,10 +810,12 @@ private:
     std::vector<std::vector<double> > d_uniform_beam_bend_rigidity;
 
     std::vector<std::vector<bool> > d_using_uniform_beam_curvature;
-    std::vector<std::vector<std::vector<double> > > d_uniform_beam_curvature;
+    std::vector<std::vector<blitz::TinyVector<double,NDIM> > > d_uniform_beam_curvature;
 
+#if ENABLE_SUBDOMAIN_INDICES
     std::vector<std::vector<bool> > d_using_uniform_beam_subdomain_idx;
     std::vector<std::vector<int> > d_uniform_beam_subdomain_idx;
+#endif
 
     /*
      * Rod information.
@@ -810,16 +826,20 @@ private:
 
     struct RodSpec
     {
-        std::vector<double> properties;
+        blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> properties;
+#if ENABLE_SUBDOMAIN_INDICES
         int subdomain_idx;
+#endif
     };
     std::vector<std::vector<std::map<Edge,RodSpec,EdgeComp> > > d_rod_spec_data;
 
     std::vector<std::vector<bool> > d_using_uniform_rod_properties;
-    std::vector<std::vector<std::vector<double> > > d_uniform_rod_properties;
+    std::vector<std::vector<blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> > > d_uniform_rod_properties;
 
+#if ENABLE_SUBDOMAIN_INDICES
     std::vector<std::vector<bool> > d_using_uniform_rod_subdomain_idx;
     std::vector<std::vector<int> > d_uniform_rod_subdomain_idx;
+#endif
 
     /*
      * Target point information.
@@ -829,7 +849,9 @@ private:
     struct TargetSpec
     {
         double stiffness, damping;
+#if ENABLE_SUBDOMAIN_INDICES
         int subdomain_idx;
+#endif
     };
     std::vector<std::vector<std::vector<TargetSpec> > > d_target_spec_data;
 
@@ -839,8 +861,10 @@ private:
     std::vector<std::vector<bool> > d_using_uniform_target_damping;
     std::vector<std::vector<double> > d_uniform_target_damping;
 
+#if ENABLE_SUBDOMAIN_INDICES
     std::vector<std::vector<bool> > d_using_uniform_target_subdomain_idx;
     std::vector<std::vector<int> > d_uniform_target_subdomain_idx;
+#endif
 
     /*
      * Anchor point information.
@@ -850,12 +874,16 @@ private:
     struct AnchorSpec
     {
         bool is_anchor_point;
+#if ENABLE_SUBDOMAIN_INDICES
         int subdomain_idx;
+#endif
     };
     std::vector<std::vector<std::vector<AnchorSpec> > > d_anchor_spec_data;
 
+#if ENABLE_SUBDOMAIN_INDICES
     std::vector<std::vector<bool> > d_using_uniform_anchor_subdomain_idx;
     std::vector<std::vector<int> > d_uniform_anchor_subdomain_idx;
+#endif
 
     /*
      * Mass information for the pIB method.

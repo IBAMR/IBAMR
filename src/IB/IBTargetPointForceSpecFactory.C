@@ -92,21 +92,15 @@ IBTargetPointForceSpecFactory::unpackStream(
     AbstractStream& stream,
     const IntVector<NDIM>& offset)
 {
-    int mastr_idx;
-    stream.unpack(&mastr_idx,1);
-    double kappa_target;
-    stream.unpack(&kappa_target,1);
-    double eta_target;
-    stream.unpack(&eta_target,1);
-    std::vector<double> X_target(NDIM);
-    stream.unpack(&X_target[0],NDIM);
+    Pointer<IBTargetPointForceSpec> ret_val = new IBTargetPointForceSpec();
+    stream.unpack(&ret_val->d_master_idx,1);
+    stream.unpack(&ret_val->d_kappa_target,1);
+    stream.unpack(&ret_val->d_eta_target,1);
+    stream.unpack(ret_val->d_X_target.data(),NDIM);
 #if ENABLE_SUBDOMAIN_INDICES
-    int subdomain_idx;
-    stream.unpack(&subdomain_idx,1);
-    return new IBTargetPointForceSpec(mastr_idx,kappa_target,eta_target,X_target,subdomain_idx);
-#else
-    return new IBTargetPointForceSpec(mastr_idx,kappa_target,eta_target,X_target);
+    stream.unpack(&ret_val->d_subdomain_idx,1);
 #endif
+    return ret_val;
 }// unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
