@@ -80,6 +80,10 @@ c
       INTEGER ic0,ic1,ic2
       INTEGER d,l,s
 c
+c     Prevent compiler warning about unused variable x_upper.
+c
+      x_upper(0) = x_upper(0)
+c
 c     Use the piecewise constant delta function to interpolate u onto V.
 c
       do l = 0,nindices-1
@@ -141,6 +145,10 @@ c     Local variables.
 c
       INTEGER ic0,ic1,ic2
       INTEGER d,l,s
+c
+c     Prevent compiler warning about unused variable x_upper.
+c
+      x_upper(0) = x_upper(0)
 c
 c     Use the piecewise constant delta function to spread V onto u.
 c

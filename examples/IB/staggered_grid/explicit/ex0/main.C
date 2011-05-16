@@ -31,6 +31,9 @@
 #include <IBAMR_config.h>
 #include <SAMRAI_config.h>
 
+// Headers for basic PETSc functions
+#include <petsc.h>
+
 // Headers for basic SAMRAI objects
 #include <PatchLevel.h>
 #include <VariableDatabase.h>
