@@ -152,7 +152,7 @@ IBBeamForceGen::initializeLevelData(
     // Resize the vectors corresponding to data individually maintained for
     // separate levels of the patch hierarchy.
     const int level_num = level->getLevelNumber();
-    const int new_size = std::max(level_num+1, int(d_is_initialized.size()));
+    const int new_size = std::max(level_num+1, static_cast<int>(d_is_initialized.size()));
 
     d_D_next_mats.resize(new_size);
     d_D_prev_mats.resize(new_size);
@@ -345,7 +345,7 @@ IBBeamForceGen::computeLagrangianForce(
     t_compute_lagrangian_force->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(level_number < int(d_is_initialized.size()));
+    TBOX_ASSERT(level_number < static_cast<int>(d_is_initialized.size()));
     TBOX_ASSERT(d_is_initialized[level_number]);
 #endif
 
@@ -465,7 +465,7 @@ IBBeamForceGen::computeLagrangianForceJacobianNonzeroStructure(
     t_compute_lagrangian_force_jacobian_nonzero_structure->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(level_number < int(d_is_initialized.size()));
+    TBOX_ASSERT(level_number < static_cast<int>(d_is_initialized.size()));
     TBOX_ASSERT(d_is_initialized[level_number]);
 #endif
 
@@ -563,8 +563,8 @@ IBBeamForceGen::computeLagrangianForceJacobianNonzeroStructure(
 
     for (int k = 0; k < num_local_nodes; ++k)
     {
-        d_nnz[k] += int(d_nnz_vec_arr[k]);
-        o_nnz[k] += int(o_nnz_vec_arr[k]);
+        d_nnz[k] += static_cast<int>(d_nnz_vec_arr[k]);
+        o_nnz[k] += static_cast<int>(o_nnz_vec_arr[k]);
     }
 
     ierr = VecRestoreArray(d_nnz_vec, &d_nnz_vec_arr);  IBTK_CHKERRQ(ierr);
@@ -595,7 +595,7 @@ IBBeamForceGen::computeLagrangianForceJacobian(
     t_compute_lagrangian_force_jacobian->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(level_number < int(d_is_initialized.size()));
+    TBOX_ASSERT(level_number < static_cast<int>(d_is_initialized.size()));
     TBOX_ASSERT(d_is_initialized[level_number]);
 #endif
 

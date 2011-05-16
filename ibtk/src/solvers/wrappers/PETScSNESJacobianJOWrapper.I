@@ -50,15 +50,15 @@ PETScSNESJacobianJOWrapper::PETScSNESJacobianJOWrapper(
       d_is_initialized(false),
       d_do_log(false),
       d_petsc_snes(petsc_snes),
-      d_petsc_snes_jac(static_cast<Mat>(NULL)),
+      d_petsc_snes_jac(PETSC_NULL),
       d_petsc_snes_form_jac(petsc_snes_form_jac),
       d_petsc_snes_jac_ctx(petsc_snes_jac_ctx),
       d_x(NULL),
       d_y(NULL),
       d_z(NULL),
-      d_petsc_x(static_cast<Vec>(NULL)),
-      d_petsc_y(static_cast<Vec>(NULL)),
-      d_petsc_z(static_cast<Vec>(NULL))
+      d_petsc_x(PETSC_NULL),
+      d_petsc_y(PETSC_NULL),
+      d_petsc_z(PETSC_NULL)
 {
     // intentionally blank
     return;

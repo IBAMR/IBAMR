@@ -66,7 +66,7 @@ IBTargetPointForceSpec::IBTargetPointForceSpec(
 #endif
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(NDIM == int(d_X_target.size()));
+    TBOX_ASSERT(NDIM == d_X_target.size());
 #endif
     if (!s_registered_factory)
     {
@@ -176,7 +176,7 @@ IBTargetPointForceSpec::packStream(
     SAMRAI::tbox::AbstractStream& stream)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(NDIM == int(d_X_target.size()));
+    TBOX_ASSERT(NDIM == d_X_target.size());
 #endif
     stream.pack(&d_master_idx,1);
     stream.pack(&d_kappa_target,1);

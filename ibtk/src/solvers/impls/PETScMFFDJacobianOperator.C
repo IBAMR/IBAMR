@@ -62,13 +62,13 @@ PETScMFFDJacobianOperator::PETScMFFDJacobianOperator(
     : JacobianOperator(false),
       d_F(NULL),
       d_nonlinear_solver(NULL),
-      d_petsc_jac(static_cast<Mat>(PETSC_NULL)),
+      d_petsc_jac(PETSC_NULL),
       d_op_u(NULL),
       d_op_x(NULL),
       d_op_y(NULL),
-      d_petsc_u(static_cast<Vec>(PETSC_NULL)),
-      d_petsc_x(static_cast<Vec>(PETSC_NULL)),
-      d_petsc_y(static_cast<Vec>(PETSC_NULL)),
+      d_petsc_u(PETSC_NULL),
+      d_petsc_x(PETSC_NULL),
+      d_petsc_y(PETSC_NULL),
       d_options_prefix(options_prefix),
       d_is_initialized(false)
 {
@@ -197,25 +197,25 @@ PETScMFFDJacobianOperator::deallocateOperatorState()
     if (!d_is_initialized) return;
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_u);
-    d_petsc_u = static_cast<Vec>(NULL);
+    d_petsc_u = PETSC_NULL;
     d_op_u->resetLevels(d_op_u->getCoarsestLevelNumber(), std::min(d_op_u->getFinestLevelNumber(),d_op_u->getPatchHierarchy()->getFinestLevelNumber()));
     d_op_u->freeVectorComponents();
     d_op_u.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
-    d_petsc_x = static_cast<Vec>(NULL);
+    d_petsc_x = PETSC_NULL;
     d_op_x->resetLevels(d_op_x->getCoarsestLevelNumber(), std::min(d_op_x->getFinestLevelNumber(),d_op_x->getPatchHierarchy()->getFinestLevelNumber()));
     d_op_x->freeVectorComponents();
     d_op_x.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_y);
-    d_petsc_y = static_cast<Vec>(NULL);
+    d_petsc_y = PETSC_NULL;
     d_op_y->resetLevels(d_op_y->getCoarsestLevelNumber(), std::min(d_op_y->getFinestLevelNumber(),d_op_y->getPatchHierarchy()->getFinestLevelNumber()));
     d_op_y->freeVectorComponents();
     d_op_y.setNull();
 
     int ierr = MatDestroy(d_petsc_jac); IBTK_CHKERRQ(ierr);
-    d_petsc_jac = static_cast<Mat>(NULL);
+    d_petsc_jac = PETSC_NULL;
 
     d_is_initialized = false;
     return;
@@ -250,7 +250,7 @@ PETScMFFDJacobianOperator::FormFunction_SAMRAI(
         SNES snes = jac_op->d_nonlinear_solver->getPETScSNES();
         Vec rhs;
         ierr = SNESGetRhs(snes, &rhs); IBTK_CHKERRQ(ierr);
-        if (rhs != static_cast<Vec>(NULL))
+        if (rhs != PETSC_NULL)
         {
             VecAXPY(f, -1.0, rhs); IBTK_CHKERRQ(ierr);
         }

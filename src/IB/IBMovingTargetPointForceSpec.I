@@ -68,7 +68,7 @@ IBMovingTargetPointForceSpec::IBMovingTargetPointForceSpec(
 #endif
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(NDIM == int(d_periodic_shift.size()));
+    TBOX_ASSERT(NDIM == d_periodic_shift.size());
 #endif
     if (!s_registered_factory)
     {
@@ -190,7 +190,7 @@ IBMovingTargetPointForceSpec::packStream(
     SAMRAI::tbox::AbstractStream& stream)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(NDIM == int(d_periodic_shift.size()));
+    TBOX_ASSERT(NDIM == d_periodic_shift.size());
 #endif
     stream.pack(&d_master_idx,1);
     stream.pack(&d_kappa_target,1);

@@ -95,7 +95,7 @@ IBStandardSourceGen::getSourcePressures(
     return d_P_src[ln];
 }// getSourcePressures
 
-int
+unsigned int
 IBStandardSourceGen::getNumSources(
     const int ln) const
 {
@@ -173,7 +173,7 @@ IBStandardSourceGen::initializeLevelData(
     return;
 }// initializeLevelData
 
-int
+unsigned int
 IBStandardSourceGen::getNumSources(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
@@ -196,8 +196,8 @@ IBStandardSourceGen::getSourceLocations(
     if (d_n_src[level_number] == 0) return;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(X_src.size() == static_cast<unsigned int>(d_n_src[level_number]));
-    TBOX_ASSERT(r_src.size() == static_cast<unsigned int>(d_n_src[level_number]));
+    TBOX_ASSERT(X_src.size() == d_n_src[level_number]);
+    TBOX_ASSERT(r_src.size() == d_n_src[level_number]);
 #endif
 
     // Set the radii of the sources.
@@ -229,12 +229,12 @@ IBStandardSourceGen::getSourceLocations(
     ierr = VecRestoreArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
 
     std::vector<double> X_src_flattened;
-    for (int m = 0; m < d_n_src[level_number]; ++m)
+    for (unsigned int m = 0; m < d_n_src[level_number]; ++m)
     {
         X_src_flattened.insert(X_src_flattened.end(),X_src[m].begin(),X_src[m].end());
     }
     SAMRAI_MPI::sumReduction(&X_src_flattened[0],X_src_flattened.size());
-    for (int m = 0; m < d_n_src[level_number]; ++m)
+    for (unsigned int m = 0; m < d_n_src[level_number]; ++m)
     {
         std::copy(&X_src_flattened[NDIM*m],(&X_src_flattened[NDIM*m])+NDIM,X_src[m].begin());
     }

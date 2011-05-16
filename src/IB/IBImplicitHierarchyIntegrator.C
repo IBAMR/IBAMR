@@ -1277,7 +1277,7 @@ IBImplicitHierarchyIntegrator::regridHierarchy()
 
             Pointer<LData> X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
             const blitz::Array<double,2>& X_array = *X_data->getLocalFormVecArray();
-            for (int i = 0; i < int(X_data->getLocalNodeCount()); ++i)
+            for (int i = 0; i < static_cast<int>(X_data->getLocalNodeCount()); ++i)
             {
                 for (int d = 0; d < NDIM; ++d)
                 {
@@ -1636,7 +1636,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(
             int ierr;
             Pointer<PatchLevel<NDIM> > patch_level = d_hierarchy->getPatchLevel(ln);
             Vec U_half_vec = d_U_half_data[ln]->getVec();
-            Vec u_half_ib_vec = static_cast<Vec>(NULL);
+            Vec u_half_ib_vec = PETSC_NULL;
             PETScVecUtilities::constructPatchLevelVec(u_half_ib_vec, d_u_half_ib_idx, d_u_half_ib_var, patch_level);
             PETScVecUtilities::copyToPatchLevelVec(u_half_ib_vec, d_u_half_ib_idx, d_u_half_ib_var, patch_level);
             ierr = MatMult(d_R_mats[ln], u_half_ib_vec, U_half_vec); IBTK_CHKERRQ(ierr);
@@ -3546,7 +3546,7 @@ IBImplicitHierarchyIntegrator::getFromInput(
         }
         else if (db->isDouble("min_ghost_cell_width"))
         {
-            d_ghosts = int(std::ceil(db->getDouble("min_ghost_cell_width")));
+            d_ghosts = static_cast<int>(std::ceil(db->getDouble("min_ghost_cell_width")));
         }
     }
     return;

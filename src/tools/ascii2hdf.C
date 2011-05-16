@@ -222,7 +222,7 @@ initializeVertexData(
     {
         if (k%10 == 0 || k == num_vertex-1)
         {
-            cout << "\r" << setw(3) << int(100.0*double(k)/double(num_vertex-1)) << "% complete";
+            cout << "\r" << setw(3) << static_cast<int>(100.0*double(k)/double(num_vertex-1)) << "% complete";
             cout.flush();
         }
 
@@ -382,7 +382,7 @@ initializeSpringData(
     {
         if (k%10 == 0 || k == num_spring-1)
         {
-            cout << "\r" << setw(3) << int(100.0*double(k)/double(num_spring-1)) << "% complete";
+            cout << "\r" << setw(3) << static_cast<int>(100.0*double(k)/double(num_spring-1)) << "% complete";
             cout.flush();
         }
 
@@ -610,7 +610,7 @@ initializeBeamData(
     {
         if (k%10 == 0 || k == num_beam-1)
         {
-            cout << "\r" << setw(3) << int(100.0*double(k)/double(num_beam-1)) << "% complete";
+            cout << "\r" << setw(3) << static_cast<int>(100.0*double(k)/double(num_beam-1)) << "% complete";
             cout.flush();
         }
 
@@ -850,7 +850,7 @@ initializeTargetPointData(
     {
         if (k%10 == 0 || k == num_target_point-1)
         {
-            cout << "\r" << setw(3) << int(100.0*double(k)/double(num_target_point-1)) << "% complete";
+            cout << "\r" << setw(3) << static_cast<int>(100.0*double(k)/double(num_target_point-1)) << "% complete";
             cout.flush();
         }
 
@@ -1041,7 +1041,7 @@ initializeMassData(
     {
         if (k%10 == 0 || k == num_mass_point-1)
         {
-            cout << "\r" << setw(3) << int(100.0*double(k)/double(num_mass_point-1)) << "% complete";
+            cout << "\r" << setw(3) << static_cast<int>(100.0*double(k)/double(num_mass_point-1)) << "% complete";
             cout.flush();
         }
 
@@ -1295,7 +1295,7 @@ initializeInstrumentationData(
     {
         if (k%10 == 0 || k == num_inst_point-1)
         {
-            cout << "\r" << setw(3) << int(100.0*double(k)/double(num_inst_point-1)) << "% complete";
+            cout << "\r" << setw(3) << static_cast<int>(100.0*double(k)/double(num_inst_point-1)) << "% complete";
             cout.flush();
         }
 
@@ -1333,7 +1333,7 @@ initializeInstrumentationData(
                 abort();
             }
 
-            if (meter_idx >= int(encountered_instrument_idx.size()))
+            if (meter_idx >= static_cast<int>(encountered_instrument_idx.size()))
             {
                 encountered_instrument_idx.resize(meter_idx+1,false);
             }
@@ -1351,7 +1351,7 @@ initializeInstrumentationData(
                 abort();
             }
 
-            if (meter_node_idx >= int(encountered_node_idx[meter_idx].size()))
+            if (meter_node_idx >= static_cast<int>(encountered_node_idx[meter_idx].size()))
             {
                 encountered_node_idx[meter_idx].resize(meter_node_idx+1,false);
             }

@@ -54,8 +54,8 @@ PETScSNESFunctionGOWrapper::PETScSNESFunctionGOWrapper(
       d_petsc_snes_func_ctx(petsc_snes_func_ctx),
       d_x(NULL),
       d_y(NULL),
-      d_petsc_x(static_cast<Vec>(NULL)),
-      d_petsc_y(static_cast<Vec>(NULL))
+      d_petsc_x(PETSC_NULL),
+      d_petsc_y(PETSC_NULL)
 {
     // intentionally blank
     return;

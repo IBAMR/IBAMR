@@ -134,7 +134,7 @@ FeedbackForcer::setDataOnPatch(
     const double* const dx_coarsest = d_grid_geometry->getDx();
     const double H = dx_coarsest[0];
     const double R = 4.0*H;
-    const int offset = int(R/dx[0])-1;
+    const int offset = static_cast<int>(R/dx[0])-1;
 
     const hier::IntVector<NDIM>& ratio = pgeom->getRatio();
     const hier::Box<NDIM> domain_box = hier::Box<NDIM>::refine(d_grid_geometry->getPhysicalDomain()[0],ratio);

@@ -102,7 +102,7 @@ public:
      * sources/sinks in the \em entire computational domain.  This implies that
      * the return value must be \em identical on each MPI process.
      */
-    virtual int
+    virtual unsigned int
     getNumSources(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,

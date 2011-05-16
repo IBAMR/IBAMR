@@ -203,7 +203,7 @@ IBBeamForceSpec::packStream(
         tmp_neighbor_idxs[2*k  ] = d_neighbor_idxs[k].first;
         tmp_neighbor_idxs[2*k+1] = d_neighbor_idxs[k].second;
     }
-    stream << int(num_beams);
+    stream << static_cast<int>(num_beams);
     stream.pack(&d_master_idx,1);
     stream.pack(&tmp_neighbor_idxs[0],2*num_beams);
     stream.pack(&d_bend_rigidities[0],1*num_beams);

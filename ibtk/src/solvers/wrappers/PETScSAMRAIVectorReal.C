@@ -112,8 +112,8 @@ VecDot_SAMRAI(
 {
     t_vec_dot->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
-    TBOX_ASSERT(y != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(y != PETSC_NULL);
 #endif
     *val = PSVR_CAST2(x)->dot(PSVR_CAST2(y));
     t_vec_dot->stop();
@@ -129,10 +129,10 @@ VecMDot_SAMRAI(
 {
     t_vec_m_dot->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
     for (PetscInt i = 0; i < nv; ++i)
     {
-        TBOX_ASSERT(y[i] != static_cast<Vec>(NULL));
+        TBOX_ASSERT(y[i] != PETSC_NULL);
     }
 #endif
     for (PetscInt i = 0; i < nv; ++i)
@@ -151,7 +151,7 @@ VecNorm_SAMRAI(
 {
     t_vec_norm->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
 #endif
     if (type == NORM_1)
     {
@@ -173,7 +173,7 @@ VecNorm_SAMRAI(
     else
     {
         TBOX_ERROR("PETScSAMRAIVectorReal::norm()\n" <<
-                   "  vector norm type " << int(type) << " unsupported" << std::endl);
+                   "  vector norm type " << static_cast<int>(type) << " unsupported" << std::endl);
     }
     t_vec_norm->stop();
     PetscFunctionReturn(0);
@@ -187,8 +187,8 @@ VecTDot_SAMRAI(
 {
     t_vec_t_dot->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
-    TBOX_ASSERT(y != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(y != PETSC_NULL);
 #endif
     *val = PSVR_CAST2(x)->dot(PSVR_CAST2(y));
     t_vec_t_dot->stop();
@@ -204,10 +204,10 @@ VecMTDot_SAMRAI(
 {
     t_vec_m_t_dot->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
     for (PetscInt i = 0; i < nv; ++i)
     {
-        TBOX_ASSERT(y[i] != static_cast<Vec>(NULL));
+        TBOX_ASSERT(y[i] != PETSC_NULL);
     }
 #endif
     for (PetscInt i = 0; i < nv; ++i)
@@ -225,7 +225,7 @@ VecScale_SAMRAI(
 {
     t_vec_scale->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
 #endif
     static const bool interior_only = false;
     PSVR_CAST2(x)->scale(alpha,PSVR_CAST2(x), interior_only);
@@ -241,8 +241,8 @@ VecCopy_SAMRAI(
 {
     t_vec_copy->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
-    TBOX_ASSERT(y != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(y != PETSC_NULL);
 #endif
     static const bool interior_only = false;
     PSVR_CAST2(y)->copyVector(PSVR_CAST2(x), interior_only);
@@ -258,7 +258,7 @@ VecSet_SAMRAI(
 {
     t_vec_set->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
 #endif
     static const bool interior_only = false;
     PSVR_CAST2(x)->setToScalar(alpha, interior_only);
@@ -274,8 +274,8 @@ VecSwap_SAMRAI(
 {
     t_vec_swap->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
-    TBOX_ASSERT(y != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(y != PETSC_NULL);
 #endif
     PSVR_CAST2(x)->swapVectors(PSVR_CAST2(y));
     int ierr;
@@ -293,8 +293,8 @@ VecAXPY_SAMRAI(
 {
     t_vec_axpy->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
-    TBOX_ASSERT(y != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(y != PETSC_NULL);
 #endif
     static const bool interior_only = false;
     if (MathUtilities<double>::equalEps(alpha,1.0))
@@ -323,8 +323,8 @@ VecAXPBY_SAMRAI(
 {
     t_vec_axpby->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
-    TBOX_ASSERT(y != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(y != PETSC_NULL);
 #endif
     static const bool interior_only = false;
     if (MathUtilities<double>::equalEps(alpha,1.0) && MathUtilities<double>::equalEps(beta,1.0))
@@ -357,10 +357,10 @@ VecMAXPY_SAMRAI(
 {
     t_vec_maxpy->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(y != static_cast<Vec>(NULL));
+    TBOX_ASSERT(y != PETSC_NULL);
     for (PetscInt i = 0; i < nv; ++i)
     {
-        TBOX_ASSERT(x[i] != static_cast<Vec>(NULL));
+        TBOX_ASSERT(x[i] != PETSC_NULL);
     }
 #endif
     static const bool interior_only = false;
@@ -392,8 +392,8 @@ VecAYPX_SAMRAI(
 {
     t_vec_aypx->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
-    TBOX_ASSERT(y != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(y != PETSC_NULL);
 #endif
     static const bool interior_only = false;
     if (MathUtilities<double>::equalEps(alpha,1.0))
@@ -422,9 +422,9 @@ VecWAXPY_SAMRAI(
 {
     t_vec_waxpy->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
-    TBOX_ASSERT(y != static_cast<Vec>(NULL));
-    TBOX_ASSERT(w != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(w != PETSC_NULL);
 #endif
     static const bool interior_only = false;
     if (MathUtilities<double>::equalEps(alpha,1.0))
@@ -455,9 +455,9 @@ VecAXPBYPCZ_SAMRAI(
 {
     t_vec_axpbypcz->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
-    TBOX_ASSERT(y != static_cast<Vec>(NULL));
-    TBOX_ASSERT(z != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(z != PETSC_NULL);
 #endif
     static const bool interior_only = false;
     PSVR_CAST2(z)->linearSum(alpha, PSVR_CAST2(x), gamma, PSVR_CAST2(z), interior_only);
@@ -475,9 +475,9 @@ VecPointwiseMult_SAMRAI(
 {
     t_vec_pointwise_mult->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
-    TBOX_ASSERT(y != static_cast<Vec>(NULL));
-    TBOX_ASSERT(w != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(w != PETSC_NULL);
 #endif
     static const bool interior_only = false;
     PSVR_CAST2(w)->multiply(PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
@@ -494,9 +494,9 @@ VecPointwiseDivide_SAMRAI(
 {
     t_vec_pointwise_divide->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
-    TBOX_ASSERT(y != static_cast<Vec>(NULL));
-    TBOX_ASSERT(w != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(y != PETSC_NULL);
+    TBOX_ASSERT(w != PETSC_NULL);
 #endif
     static const bool interior_only = false;
     PSVR_CAST2(w)->divide(PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
@@ -512,7 +512,7 @@ VecGetSize_SAMRAI(
 {
     t_vec_get_size->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(v != static_cast<Vec>(NULL));
+    TBOX_ASSERT(v != PETSC_NULL);
 #endif
     *n = 0;
     t_vec_get_size->stop();
@@ -526,7 +526,7 @@ VecGetLocalSize_SAMRAI(
 {
     t_vec_get_local_size->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(v != static_cast<Vec>(NULL));
+    TBOX_ASSERT(v != PETSC_NULL);
 #endif
     *n = 0;
     t_vec_get_local_size->stop();
@@ -541,7 +541,7 @@ VecMax_SAMRAI(
 {
     t_vec_max->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
 #endif
     *p = -1;
     *val = PSVR_CAST2(x)->max();
@@ -557,7 +557,7 @@ VecMin_SAMRAI(
 {
     t_vec_min->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
 #endif
     *p = -1;
     *val = PSVR_CAST2(x)->min();
@@ -572,7 +572,7 @@ VecSetRandom_SAMRAI(
 {
     t_vec_set_random->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
 #endif
     PetscScalar lo, hi;
     int ierr;
@@ -591,8 +591,8 @@ VecDot_local_SAMRAI(
 {
     t_vec_dot_local->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
-    TBOX_ASSERT(y != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(y != PETSC_NULL);
 #endif
     static const bool local_only = true;
     *val = PSVR_CAST2(x)->dot(PSVR_CAST2(y), local_only);
@@ -608,8 +608,8 @@ VecTDot_local_SAMRAI(
 {
     t_vec_t_dot_local->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
-    TBOX_ASSERT(y != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(y != PETSC_NULL);
 #endif
     static const bool local_only = true;
     *val = PSVR_CAST2(x)->dot(PSVR_CAST2(y), local_only);
@@ -625,7 +625,7 @@ VecNorm_local_SAMRAI(
 {
     t_vec_norm_local->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
 #endif
     static const bool local_only = true;
     if (type == NORM_1)
@@ -648,7 +648,7 @@ VecNorm_local_SAMRAI(
     else
     {
         TBOX_ERROR("PETScSAMRAIVectorReal::norm()\n" <<
-                   "  vector norm type " << int(type) << " unsupported" << std::endl);
+                   "  vector norm type " << static_cast<int>(type) << " unsupported" << std::endl);
     }
     t_vec_norm_local->stop();
     PetscFunctionReturn(0);
@@ -663,10 +663,10 @@ VecMDot_local_SAMRAI(
 {
     t_vec_m_dot_local->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
     for (PetscInt i = 0; i < nv; ++i)
     {
-        TBOX_ASSERT(y[i] != static_cast<Vec>(NULL));
+        TBOX_ASSERT(y[i] != PETSC_NULL);
     }
 #endif
     static const bool local_only = true;
@@ -687,10 +687,10 @@ VecMTDot_local_SAMRAI(
 {
     t_vec_m_t_dot_local->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
     for (PetscInt i = 0; i < nv; ++i)
     {
-        TBOX_ASSERT(y[i] != static_cast<Vec>(NULL));
+        TBOX_ASSERT(y[i] != PETSC_NULL);
     }
 #endif
     static const bool local_only = true;
@@ -710,8 +710,8 @@ VecMaxPointwiseDivide_SAMRAI(
 {
     t_vec_max_pointwise_divide->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(x != static_cast<Vec>(NULL));
-    TBOX_ASSERT(y != static_cast<Vec>(NULL));
+    TBOX_ASSERT(x != PETSC_NULL);
+    TBOX_ASSERT(y != PETSC_NULL);
 #endif
     *max = PSVR_CAST2(x)->maxPointwiseDivide(PSVR_CAST2(y));
     t_vec_max_pointwise_divide->stop();
@@ -727,8 +727,8 @@ VecDotNorm2_SAMRAI(
 {
     t_vec_dot_norm2->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(s != static_cast<Vec>(NULL));
-    TBOX_ASSERT(t != static_cast<Vec>(NULL));
+    TBOX_ASSERT(s != PETSC_NULL);
+    TBOX_ASSERT(t != PETSC_NULL);
 #endif
     *dp = PSVR_CAST2(s)->dot(PSVR_CAST2(t));
     *nm = PSVR_CAST2(t)->dot(PSVR_CAST2(t));
@@ -885,7 +885,7 @@ PETScSAMRAIVectorReal::VecDuplicate_SAMRAI(
     t_vec_duplicate->start();
     PetscErrorCode ierr;
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(v != static_cast<Vec>(NULL));
+    TBOX_ASSERT(v != PETSC_NULL);
 #endif
     Pointer<SAMRAIVectorReal<NDIM,PetscScalar> > samrai_vec = PSVR_CAST2(v)->cloneVector(PSVR_CAST2(v)->getName());
     samrai_vec->allocateVectorData();
@@ -905,7 +905,7 @@ PETScSAMRAIVectorReal::VecDestroy_SAMRAI(
 {
     t_vec_destroy->start();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(v != static_cast<Vec>(NULL));
+    TBOX_ASSERT(v != PETSC_NULL);
 #endif
     if (PSVR_CAST1(v)->d_vector_created_via_duplicate)
     {

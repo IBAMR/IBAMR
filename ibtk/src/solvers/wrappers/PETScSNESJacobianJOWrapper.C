@@ -72,7 +72,7 @@ PETScSNESJacobianJOWrapper::formJacobian(
 
     // Destroy the PETSc Vec wrappers.
     PETScSAMRAIVectorReal::destroyPETScVector(petsc_x);
-    petsc_x = static_cast<Vec>(NULL);
+    petsc_x = PETSC_NULL;
     return;
 }// formJacobian
 

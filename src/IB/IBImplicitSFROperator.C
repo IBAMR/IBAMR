@@ -155,7 +155,7 @@ IBImplicitSFROperator::apply(
         if (l_data_manager->levelContainsLagrangianData(ln))
         {
             Vec U_half_vec = U_half_data[ln]->getVec();
-            Vec u_half_ib_vec = static_cast<Vec>(NULL);
+            Vec u_half_ib_vec = PETSC_NULL;
             Pointer<PatchLevel<NDIM> > patch_level = hierarchy->getPatchLevel(ln);
             PETScVecUtilities::constructPatchLevelVec(u_half_ib_vec, u_half_ib_idx, u_half_ib_var, patch_level);
             PETScVecUtilities::copyToPatchLevelVec(u_half_ib_vec, u_half_ib_idx, u_half_ib_var, patch_level);
@@ -204,7 +204,7 @@ IBImplicitSFROperator::apply(
         {
             Pointer<PatchLevel<NDIM> > patch_level = hierarchy->getPatchLevel(ln);
             Vec F_half_vec = F_half_data[ln]->getVec();
-            Vec f_half_vec = static_cast<Vec>(NULL);
+            Vec f_half_vec = PETSC_NULL;
             PETScVecUtilities::constructPatchLevelVec(f_half_vec, f_half_idx, f_half_var, patch_level);
             if (zero_y_before_spread)
             {

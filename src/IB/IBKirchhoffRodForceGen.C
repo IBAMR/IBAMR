@@ -258,7 +258,7 @@ IBKirchhoffRodForceGen::initializeLevelData(
     // Resize the vectors corresponding to data individually maintained for
     // separate levels of the patch hierarchy.
     const int level_num = level->getLevelNumber();
-    const int new_size = std::max(level_num+1, int(d_is_initialized.size()));
+    const int new_size = std::max(level_num+1, static_cast<int>(d_is_initialized.size()));
 
     d_D_next_mats.resize(new_size);
     d_X_next_mats.resize(new_size);
@@ -440,7 +440,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     t_compute_lagrangian_force_and_torque->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(level_number < int(d_is_initialized.size()));
+    TBOX_ASSERT(level_number < static_cast<int>(d_is_initialized.size()));
     TBOX_ASSERT(d_is_initialized[level_number]);
 #endif
 

@@ -163,7 +163,7 @@ CCHierarchyProjector::CCHierarchyProjector(
     d_W_idx   = var_db->registerVariableAndContext(   d_W_var, d_context, cell_ghosts);
 
     d_null_space_var = d_F_var;
-    for (int k = 0; k < int(pow(2,NDIM)); ++k)
+    for (int k = 0; k < static_cast<int>(pow(2,NDIM)); ++k)
     {
         d_null_space_idxs[k] = var_db->registerClonedPatchDataIndex(d_null_space_var, d_F_idx);
     }
@@ -427,7 +427,7 @@ CCHierarchyProjector::initializeLevelData(
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
     if (allocate_data)
     {
-        for (int k = 0; k < int(pow(2,NDIM)); ++k)
+        for (int k = 0; k < static_cast<int>(pow(2,NDIM)); ++k)
         {
             level->allocatePatchData(d_null_space_idxs[k]);
         }
@@ -522,7 +522,7 @@ CCHierarchyProjector::resetHierarchyConfiguration(
     d_poisson_solver->initializeSolverState(*d_sol_vec,*d_rhs_vec);
 
     // Setup the nullspace object associated with the Poisson solver.
-    for (int k = 0; k < int(pow(2,NDIM)); ++k)
+    for (int k = 0; k < static_cast<int>(pow(2,NDIM)); ++k)
     {
         std::ostringstream stream;
         stream << k;

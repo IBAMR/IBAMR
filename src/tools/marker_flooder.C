@@ -90,7 +90,7 @@ get_index(
     TinyVector<int,NDIM> i;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        i[d] = int(floor(X[d]/dx[d]));
+        i[d] = static_cast<int>(floor(X[d]/dx[d]));
     }
     return i;
 }// get_index

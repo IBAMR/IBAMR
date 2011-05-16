@@ -292,7 +292,7 @@ LDataManager::spread(
             blitz::Array<double,2>&       F_ds_arr = *F_ds_data[ln]->getGhostedLocalFormVecArray();
             const blitz::Array<double,2>&    F_arr = *   F_data[ln]->getGhostedLocalFormVecArray();
             const blitz::Array<double,1>&   ds_arr = *  ds_data[ln]->getGhostedLocalFormArray();
-            for (int k = 0; k < int(F_data[ln]->getLocalNodeCount() + F_data[ln]->getGhostNodeCount()); ++k)
+            for (int k = 0; k < static_cast<int>(F_data[ln]->getLocalNodeCount() + F_data[ln]->getGhostNodeCount()); ++k)
             {
                 for (int d = 0; d < depth; ++d)
                 {
@@ -372,7 +372,7 @@ LDataManager::spread(
         // For each of the finer levels in the patch hierarchy, prolong the
         // Eulerian data from coarser levels in the patch hierarchy before
         // spreading.
-        if (ln > coarsest_ln && ln < int(f_prolongation_scheds.size()) && !f_prolongation_scheds[ln].isNull())
+        if (ln > coarsest_ln && ln < static_cast<int>(f_prolongation_scheds.size()) && !f_prolongation_scheds[ln].isNull())
         {
             f_prolongation_scheds[ln]->fillData(0.0);
         }
@@ -456,7 +456,7 @@ LDataManager::interp(
     // Synchronize Eulerian values.
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
     {
-        if (ln < int(f_synch_scheds.size()) && !f_synch_scheds[ln].isNull())
+        if (ln < static_cast<int>(f_synch_scheds.size()) && !f_synch_scheds[ln].isNull())
         {
             f_synch_scheds[ln]->coarsenData();
         }
@@ -470,7 +470,7 @@ LDataManager::interp(
         const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
         if (levelContainsLagrangianData(ln))
         {
-            if (ln < int(f_ghost_fill_scheds.size()) && !f_ghost_fill_scheds[ln].isNull())
+            if (ln < static_cast<int>(f_ghost_fill_scheds.size()) && !f_ghost_fill_scheds[ln].isNull())
             {
                 f_ghost_fill_scheds[ln]->fillData(fill_data_time);
             }
@@ -995,7 +995,7 @@ LDataManager::mapLagrangianToPETSc(
 
     const int ierr = AOApplicationToPetsc(
         d_ao[level_number],
-        (!inds.empty() ? int(inds.size()) : int(s_ao_dummy.size())),
+        (!inds.empty() ? static_cast<int>(inds.size()) : static_cast<int>(s_ao_dummy.size())),
         (!inds.empty() ? &inds[0]         : &s_ao_dummy[0]));
     IBTK_CHKERRQ(ierr);
 
@@ -1017,7 +1017,7 @@ LDataManager::mapPETScToLagrangian(
 
     const int ierr = AOPetscToApplication(
         d_ao[level_number],
-        (!inds.empty() ? int(inds.size()) : int(s_ao_dummy.size())),
+        (!inds.empty() ? static_cast<int>(inds.size()) : static_cast<int>(s_ao_dummy.size())),
         (!inds.empty() ? &inds[0]         : &s_ao_dummy[0]));
     IBTK_CHKERRQ(ierr);
 
@@ -1581,12 +1581,12 @@ LDataManager::endDataRedistribution(
 
                 ierr = AOPetscToApplication(
                     d_ao[level_number], // the old AO
-                    (num_local_nodes[level_number] > 0 ? num_local_nodes[level_number] : int(s_ao_dummy.size())),
+                    (num_local_nodes[level_number] > 0 ? num_local_nodes[level_number] : static_cast<int>(s_ao_dummy.size())),
                     (num_local_nodes[level_number] > 0 ? &dst_inds[0]                  : &s_ao_dummy[0]));
                 IBTK_CHKERRQ(ierr);
                 ierr = AOApplicationToPetsc(
                     new_ao[level_number],
-                    (num_local_nodes[level_number] > 0 ? num_local_nodes[level_number] : int(s_ao_dummy.size())),
+                    (num_local_nodes[level_number] > 0 ? num_local_nodes[level_number] : static_cast<int>(s_ao_dummy.size())),
                     (num_local_nodes[level_number] > 0 ? &dst_inds[0]                  : &s_ao_dummy[0]));
                 IBTK_CHKERRQ(ierr);
 
@@ -2046,7 +2046,7 @@ LDataManager::initializeLevelData(
                     LNodeSet::value_type& node_idx = *n;
                     const int lag_idx   = node_idx.getLagrangianIndex();
                     const int local_idx = node_idx.getLocalPETScIndex();
-                    if (!(0 <= local_idx && local_idx < int(num_local_nodes)))
+                    if (!(0 <= local_idx && local_idx < static_cast<int>(num_local_nodes)))
                     {
                         TBOX_ERROR("LDataManager::initializeLevelData()"     << "\n" <<
                                    "  local_idx       = " << local_idx       << "\n" <<
@@ -2634,7 +2634,7 @@ LDataManager::interp_specialized(
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(ln == finest_ln);
 #endif
-            if (ln < int(f_ghost_fill_scheds.size()) && !f_ghost_fill_scheds[ln].isNull()) f_ghost_fill_scheds[ln]->fillData(fill_data_time);
+            if (ln < static_cast<int>(f_ghost_fill_scheds.size()) && !f_ghost_fill_scheds[ln].isNull()) f_ghost_fill_scheds[ln]->fillData(fill_data_time);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -2944,7 +2944,7 @@ LDataManager::computeNodeDistribution(
 
     ierr = AOApplicationToPetsc(
         ao,
-        (num_proc_nodes > 0 ? num_proc_nodes   : int(s_ao_dummy.size())),
+        (num_proc_nodes > 0 ? num_proc_nodes   : static_cast<int>(s_ao_dummy.size())),
         (num_proc_nodes > 0 ? &node_indices[0] : &s_ao_dummy[0]));
     IBTK_CHKERRQ(ierr);
 

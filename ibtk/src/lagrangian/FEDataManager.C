@@ -128,7 +128,7 @@ FEDataManager::getManager(
     if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
     {
         const int stencil_size = std::max(LEInteractor::getStencilSize(interp_weighting_fcn),LEInteractor::getStencilSize(spread_weighting_fcn));
-        const IntVector<NDIM> ghost_width = int(floor(0.5*double(stencil_size)))+1;
+        const IntVector<NDIM> ghost_width = static_cast<int>(floor(0.5*double(stencil_size)))+1;
         s_data_manager_instances[name] = new FEDataManager(name, interp_weighting_fcn, spread_weighting_fcn, qrule, interp_uses_consistent_mass_matrix, ghost_width, register_for_restart);
     }
     if (!s_registered_callback)

@@ -87,7 +87,7 @@ public:
     /*!
      * \brief Return the number of sources/sinks.
      */
-    int
+    unsigned int
     getNumSources(
         const int ln) const;
 
@@ -144,7 +144,7 @@ public:
      * sources/sinks in the \em entire computational domain.  This implies that
      * the return value must be \em identical on each MPI process.
      */
-    virtual int
+    virtual unsigned int
     getNumSources(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -223,7 +223,7 @@ private:
     /*
      * Source/sink data.
      */
-    std::vector<int> d_n_src;
+    std::vector<unsigned int> d_n_src;
     std::vector<std::vector<std::string> >d_source_names;
     std::vector<std::vector<double> > d_r_src;
     std::vector<std::vector<int> > d_num_perimeter_nodes;

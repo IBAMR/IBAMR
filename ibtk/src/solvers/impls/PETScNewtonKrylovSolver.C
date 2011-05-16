@@ -84,13 +84,13 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
       d_solver_x(NULL),
       d_solver_b(NULL),
       d_solver_r(NULL),
-      d_petsc_x(static_cast<Vec>(NULL)),
-      d_petsc_b(static_cast<Vec>(NULL)),
-      d_petsc_r(static_cast<Vec>(NULL)),
+      d_petsc_x(PETSC_NULL),
+      d_petsc_b(PETSC_NULL),
+      d_petsc_r(PETSC_NULL),
       d_options_prefix(options_prefix),
       d_petsc_comm(petsc_comm),
-      d_petsc_snes(static_cast<SNES>(NULL)),
-      d_petsc_jac (static_cast<Mat>(NULL)),
+      d_petsc_snes(PETSC_NULL),
+      d_petsc_jac (PETSC_NULL),
       d_managing_petsc_snes(true),
       d_user_provided_function(false),
       d_user_provided_jacobian(false),
@@ -122,13 +122,13 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
       d_solver_x(NULL),
       d_solver_b(NULL),
       d_solver_r(NULL),
-      d_petsc_x(static_cast<Vec>(NULL)),
-      d_petsc_b(static_cast<Vec>(NULL)),
-      d_petsc_r(static_cast<Vec>(NULL)),
+      d_petsc_x(PETSC_NULL),
+      d_petsc_b(PETSC_NULL),
+      d_petsc_r(PETSC_NULL),
       d_options_prefix(options_prefix),
       d_petsc_comm(PETSC_COMM_WORLD),
       d_petsc_snes(petsc_snes),
-      d_petsc_jac (static_cast<Mat>(NULL)),
+      d_petsc_jac (PETSC_NULL),
       d_managing_petsc_snes(false),
       d_user_provided_function(false),
       d_user_provided_jacobian(false),
@@ -192,15 +192,15 @@ PETScNewtonKrylovSolver::~PETScNewtonKrylovSolver()
 
     // Delete allocated PETSc solver components.
     int ierr;
-    if (d_petsc_jac != static_cast<Mat>(NULL))
+    if (d_petsc_jac != PETSC_NULL)
     {
         ierr = MatDestroy(d_petsc_jac); IBTK_CHKERRQ(ierr);
-        d_petsc_jac = static_cast<Mat>(NULL);
+        d_petsc_jac = PETSC_NULL;
     }
-    if (d_managing_petsc_snes && d_petsc_snes != static_cast<SNES>(NULL))
+    if (d_managing_petsc_snes && d_petsc_snes != PETSC_NULL)
     {
         ierr = SNESDestroy(d_petsc_snes); IBTK_CHKERRQ(ierr);
-        d_petsc_snes = static_cast<SNES>(NULL);
+        d_petsc_snes = PETSC_NULL;
     }
     return;
 }// ~PETScNewtonKrylovSolver()
@@ -392,19 +392,19 @@ PETScNewtonKrylovSolver::deallocateSolverState()
 
     // Delete the solution and rhs vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
-    d_petsc_x = static_cast<Vec>(NULL);
+    d_petsc_x = PETSC_NULL;
     d_solver_x->resetLevels(d_solver_x->getCoarsestLevelNumber(), std::min(d_solver_x->getFinestLevelNumber(),d_solver_x->getPatchHierarchy()->getFinestLevelNumber()));
     d_solver_x->freeVectorComponents();
     d_solver_x.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_b);
-    d_petsc_b = static_cast<Vec>(NULL);
+    d_petsc_b = PETSC_NULL;
     d_solver_b->resetLevels(d_solver_b->getCoarsestLevelNumber(), std::min(d_solver_b->getFinestLevelNumber(),d_solver_b->getPatchHierarchy()->getFinestLevelNumber()));
     d_solver_b->freeVectorComponents();
     d_solver_b.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_r);
-    d_petsc_r = static_cast<Vec>(NULL);
+    d_petsc_r = PETSC_NULL;
     d_solver_r->resetLevels(d_solver_r->getCoarsestLevelNumber(), std::min(d_solver_r->getFinestLevelNumber(),d_solver_r->getPatchHierarchy()->getFinestLevelNumber()));
     d_solver_r->freeVectorComponents();
     d_solver_r.setNull();
@@ -413,7 +413,7 @@ PETScNewtonKrylovSolver::deallocateSolverState()
     if (d_managing_petsc_snes)
     {
         ierr = SNESDestroy(d_petsc_snes);  IBTK_CHKERRQ(ierr);
-        d_petsc_snes = static_cast<SNES>(NULL);
+        d_petsc_snes = PETSC_NULL;
     }
 
     // Indicate that the solver is NOT initialized.
@@ -483,7 +483,7 @@ PETScNewtonKrylovSolver::reportSNESConvergedReason(
             os << d_object_name << ": iterating.\n";
             break;
         default:
-            os << d_object_name << ": unknown completion code " << int(reason) << " reported.\n";
+            os << d_object_name << ": unknown completion code " << static_cast<int>(reason) << " reported.\n";
             break;
     }
     return;
@@ -492,7 +492,7 @@ PETScNewtonKrylovSolver::reportSNESConvergedReason(
 void
 PETScNewtonKrylovSolver::resetSNESOptions()
 {
-    if (d_petsc_snes != static_cast<SNES>(NULL))
+    if (d_petsc_snes != PETSC_NULL)
     {
         int ierr = SNESSetTolerances(d_petsc_snes,
                                      d_abs_residual_tol, // absolute residual tol
@@ -508,7 +508,7 @@ PETScNewtonKrylovSolver::resetSNESOptions()
 void
 PETScNewtonKrylovSolver::resetSNESFunction()
 {
-    if (d_petsc_snes != static_cast<SNES>(NULL))
+    if (d_petsc_snes != PETSC_NULL)
     {
         int ierr;
         ierr = SNESSetFunction(d_petsc_snes, d_petsc_r, PETScNewtonKrylovSolver::FormFunction_SAMRAI, static_cast<void*>(this)); IBTK_CHKERRQ(ierr);
@@ -519,14 +519,14 @@ PETScNewtonKrylovSolver::resetSNESFunction()
 void
 PETScNewtonKrylovSolver::resetSNESJacobian()
 {
-    if (d_petsc_snes != static_cast<SNES>(NULL))
+    if (d_petsc_snes != PETSC_NULL)
     {
         // Create and configure the Jacobian matrix.
         int ierr;
-        if (d_petsc_jac != static_cast<Mat>(NULL))
+        if (d_petsc_jac != PETSC_NULL)
         {
             ierr = MatDestroy(d_petsc_jac); IBTK_CHKERRQ(ierr);
-            d_petsc_jac = static_cast<Mat>(NULL);
+            d_petsc_jac = PETSC_NULL;
         }
         if (d_J.isNull() || !d_user_provided_jacobian)
         {

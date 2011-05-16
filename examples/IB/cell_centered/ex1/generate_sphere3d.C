@@ -415,9 +415,9 @@ main(
         const int& k1 = vertex_map[tri[l][1]];
         const int& k2 = vertex_map[tri[l][2]];
 
-        assert(k0 >= 0 && k0 < int(vertex.size()));
-        assert(k1 >= 0 && k1 < int(vertex.size()));
-        assert(k2 >= 0 && k2 < int(vertex.size()));
+        assert(k0 >= 0 && k0 < static_cast<int>(vertex.size()));
+        assert(k1 >= 0 && k1 < static_cast<int>(vertex.size()));
+        assert(k2 >= 0 && k2 < static_cast<int>(vertex.size()));
 
         // the edge connecting vertices 0 and 1
         pair<int,int> e01 = make_pair(min(k0,k1),max(k0,k1));

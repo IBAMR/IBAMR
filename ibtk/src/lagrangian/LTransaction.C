@@ -142,7 +142,7 @@ void
 LTransaction<T>::packStream(
     AbstractStream& stream)
 {
-    stream << int(d_src_item_set.size());
+    stream << static_cast<int>(d_src_item_set.size());
     for (typename std::vector<LTransactionComponent>::iterator it = d_src_item_set.begin();
          it != d_src_item_set.end(); ++it)
     {

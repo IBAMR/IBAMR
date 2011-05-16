@@ -1289,8 +1289,8 @@ AdvectHypPatchOps::putToDatabase(
 
     db->putInteger("ADVECT_HYP_PATCH_OPS_VERSION", ADVECT_HYP_PATCH_OPS_VERSION);
 
-    db->putIntegerArray("d_ghosts", static_cast<int*>(d_ghosts), NDIM);
-    db->putIntegerArray("d_flux_ghosts", static_cast<int*>(d_flux_ghosts), NDIM);
+    db->putIntegerArray("d_ghosts", &d_ghosts[0], NDIM);
+    db->putIntegerArray("d_flux_ghosts", &d_flux_ghosts[0], NDIM);
 
     if (d_refinement_criteria.getSize() > 0)
     {
@@ -1684,14 +1684,14 @@ AdvectHypPatchOps::getFromRestart()
                    << "  Restart file version different than class version.");
     }
 
-    db->getIntegerArray("d_ghosts", static_cast<int*>(d_ghosts), NDIM);
+    db->getIntegerArray("d_ghosts", &d_ghosts[0], NDIM);
     if (d_ghosts != IntVector<NDIM>(CELLG))
     {
         TBOX_ERROR(d_object_name << ":\n"
                    << "  Key data `d_ghosts' in restart file != CELLG.\n");
     }
 
-    db->getIntegerArray("d_flux_ghosts", static_cast<int*>(d_flux_ghosts), NDIM);
+    db->getIntegerArray("d_flux_ghosts", &d_flux_ghosts[0], NDIM);
     if (d_flux_ghosts != IntVector<NDIM>(FLUXG))
     {
         TBOX_ERROR(d_object_name << ":\n"

@@ -61,7 +61,7 @@ PETScVecUtilities::constructPatchVecWrapper(
     CellData<NDIM,double>& data)
 {
     int ierr;
-    if (vec != static_cast<Vec>(NULL))
+    if (vec != PETSC_NULL)
     {
         ierr = VecDestroy(vec); IBTK_CHKERRQ(ierr);
     }
@@ -79,7 +79,7 @@ PETScVecUtilities::constructPatchVecWrappers(
     int ierr;
     for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
     {
-        if (vecs[component_axis] != static_cast<Vec>(NULL))
+        if (vecs[component_axis] != PETSC_NULL)
         {
             ierr = VecDestroy(vecs[component_axis]); IBTK_CHKERRQ(ierr);
         }
@@ -151,7 +151,7 @@ PETScVecUtilities::constructPatchLevelVec(
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
-    if (vec != static_cast<Vec>(NULL))
+    if (vec != PETSC_NULL)
     {
         ierr = VecDestroy(vec); IBTK_CHKERRQ(ierr);
     }
@@ -178,7 +178,7 @@ PETScVecUtilities::constructPatchLevelVec(
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
-    if (vec != static_cast<Vec>(NULL))
+    if (vec != PETSC_NULL)
     {
         ierr = VecDestroy(vec); IBTK_CHKERRQ(ierr);
     }

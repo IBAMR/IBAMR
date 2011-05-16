@@ -58,7 +58,7 @@ inline void
 PETScSAMRAIVectorReal::destroyPETScVector(
     Vec petsc_vec)
 {
-    if (petsc_vec != static_cast<Vec>(NULL))
+    if (petsc_vec != PETSC_NULL)
     {
         PETScSAMRAIVectorReal* psv = static_cast<PETScSAMRAIVectorReal*>(petsc_vec->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -74,7 +74,7 @@ PETScSAMRAIVectorReal::getSAMRAIVector(
     Vec petsc_vec)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(petsc_vec != static_cast<Vec>(NULL));
+    TBOX_ASSERT(petsc_vec != PETSC_NULL);
 #endif
     PETScSAMRAIVectorReal* psv = static_cast<PETScSAMRAIVectorReal*>(petsc_vec->data);
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -89,7 +89,7 @@ PETScSAMRAIVectorReal::replaceSAMRAIVector(
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,PetscScalar> > samrai_vec)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(petsc_vec != static_cast<Vec>(NULL));
+    TBOX_ASSERT(petsc_vec != PETSC_NULL);
     TBOX_ASSERT(!samrai_vec.isNull());
 #endif
     PETScSAMRAIVectorReal* psv = static_cast<PETScSAMRAIVectorReal*>(petsc_vec->data);

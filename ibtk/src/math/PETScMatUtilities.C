@@ -130,7 +130,7 @@ PETScMatUtilities::constructPatchLaplaceOp(
 #endif
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    if (mat != static_cast<Mat>(NULL))
+    if (mat != PETSC_NULL)
     {
         int ierr = MatDestroy(mat); IBTK_CHKERRQ(ierr);
     }
@@ -162,7 +162,7 @@ PETScMatUtilities::constructPatchLaplaceOps(
     const double* const dx = pgeom->getDx();
     for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
     {
-        if (mats[component_axis] != static_cast<Mat>(NULL))
+        if (mats[component_axis] != PETSC_NULL)
         {
             int ierr = MatDestroy(mats[component_axis]); IBTK_CHKERRQ(ierr);
         }
@@ -191,7 +191,7 @@ PETScMatUtilities::constructPatchLevelLaplaceOp(
     Pointer<RefineSchedule<NDIM> > dof_index_fill)
 {
     int ierr;
-    if (mat != static_cast<Mat>(NULL))
+    if (mat != PETSC_NULL)
     {
         ierr = MatDestroy(mat); IBTK_CHKERRQ(ierr);
     }
@@ -393,7 +393,7 @@ PETScMatUtilities::constructPatchLevelLaplaceOp(
     Pointer<RefineSchedule<NDIM> > dof_index_fill)
 {
     int ierr;
-    if (mat != static_cast<Mat>(NULL))
+    if (mat != PETSC_NULL)
     {
         ierr = MatDestroy(mat); IBTK_CHKERRQ(ierr);
     }
@@ -629,7 +629,7 @@ PETScMatUtilities::constructPatchLevelInterpOp(
     Pointer<RefineSchedule<NDIM> > dof_index_fill)
 {
     int ierr;
-    if (mat != static_cast<Mat>(NULL))
+    if (mat != PETSC_NULL)
     {
         ierr = MatDestroy(mat); IBTK_CHKERRQ(ierr);
     }
@@ -669,8 +669,8 @@ PETScMatUtilities::constructPatchLevelInterpOp(
     getIndexRange(n_local, j_lower, j_upper, data_idx, data_var, patch_level);
 
     // Crudely approximate the non-zero structure of the matrix.
-    std::vector<int> d_nnz(m_local,static_cast<int>(pow(stencil_sz,NDIM)));
-    std::vector<int> o_nnz(m_local,static_cast<int>(pow(stencil_sz,NDIM)));
+    std::vector<int> d_nnz(m_local,pow(stencil_sz,NDIM));
+    std::vector<int> o_nnz(m_local,pow(stencil_sz,NDIM));
 
     // Create an empty matrix.
     ierr = MatCreateMPIAIJ(PETSC_COMM_WORLD,

@@ -321,7 +321,7 @@ IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
 {
     (void) l_data_manager;
     int offset = 0;
-    for (int j = 0; j < int(d_base_filename[level_number].size()); ++j)
+    for (int j = 0; j < static_cast<int>(d_base_filename[level_number].size()); ++j)
     {
         strct_id_to_strct_name_map   [j] = d_base_filename[level_number][j];
         strct_id_to_lag_idx_range_map[j] = std::make_pair(offset,offset+d_num_vertex[level_number][j]);
@@ -2115,7 +2115,7 @@ IBStandardInitializer::readInstrumentationFiles()
                                        << "  meter index " << idx.first << " is out of range" << std::endl);
                         }
 
-                        if (idx.first >= int(encountered_instrument_idx.size()))
+                        if (idx.first >= static_cast<int>(encountered_instrument_idx.size()))
                         {
                             encountered_instrument_idx.resize(idx.first+1,false);
                         }
@@ -2131,7 +2131,7 @@ IBStandardInitializer::readInstrumentationFiles()
                                        << "  meter node index is negative" << std::endl);
                         }
 
-                        if (idx.second >= int(encountered_node_idx[idx.first].size()))
+                        if (idx.second >= static_cast<int>(encountered_node_idx[idx.first].size()))
                         {
                             encountered_node_idx[idx.first].resize(idx.second+1,false);
                         }

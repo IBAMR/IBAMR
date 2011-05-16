@@ -2447,7 +2447,7 @@ LEInteractor::userDefinedInterpolate(
         // Determine the Cartesian cell in which X(s) is located.
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            stencil_center[d] = int(std::floor((X[d+s*NDIM]+X_shift[d+l*NDIM]-x_lower[d])/dx[d])) + ilower[d];
+            stencil_center[d] = static_cast<int>(std::floor((X[d+s*NDIM]+X_shift[d+l*NDIM]-x_lower[d])/dx[d])) + ilower[d];
             X_cell[d] = x_lower[d]+(double(stencil_center[d]-ilower[d])+0.5)*dx[d];
         }
 
@@ -2571,7 +2571,7 @@ LEInteractor::userDefinedSpread(
         // Determine the Cartesian cell in which X(s) is located.
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            stencil_center[d] = int(std::floor((X[d+s*NDIM]+X_shift[d+l*NDIM]-x_lower[d])/dx[d])) + ilower[d];
+            stencil_center[d] = static_cast<int>(std::floor((X[d+s*NDIM]+X_shift[d+l*NDIM]-x_lower[d])/dx[d])) + ilower[d];
             X_cell[d] = x_lower[d]+(double(stencil_center[d]-ilower[d])+0.5)*dx[d];
         }
 

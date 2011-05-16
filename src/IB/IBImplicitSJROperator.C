@@ -163,7 +163,7 @@ IBImplicitSJROperator::formJacobian(
     // Compute S dF/dX[X(n+1/2),U(n+1/2)] R.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (d_SJR_mats[ln] != static_cast<Mat>(NULL))
+        if (d_SJR_mats[ln] != PETSC_NULL)
         {
             ierr = MatDestroy(d_SJR_mats[ln]);  IBTK_CHKERRQ(ierr);
         }
@@ -241,10 +241,10 @@ IBImplicitSJROperator::apply(
         if (l_data_manager->levelContainsLagrangianData(ln))
         {
             Pointer<PatchLevel<NDIM> > patch_level = hierarchy->getPatchLevel(ln);
-            Vec u_vec = static_cast<Vec>(NULL);
+            Vec u_vec = PETSC_NULL;
             PETScVecUtilities::constructPatchLevelVec(u_vec, u_idx, u_var, patch_level);
             PETScVecUtilities::copyToPatchLevelVec(u_vec, u_idx, u_var, patch_level);
-            Vec f_vec = static_cast<Vec>(NULL);
+            Vec f_vec = PETSC_NULL;
             PETScVecUtilities::constructPatchLevelVec(f_vec, f_idx, f_var, patch_level);
             if (zero_y_before_spread)
             {
@@ -293,7 +293,7 @@ IBImplicitSJROperator::initializeOperatorState(
     const int coarsest_ln = in.getCoarsestLevelNumber();
     const int finest_ln = in.getFinestLevelNumber();
 
-    d_SJR_mats.resize(finest_ln+1, static_cast<Mat>(NULL));
+    d_SJR_mats.resize(finest_ln+1, PETSC_NULL);
     d_d_nnz.resize(finest_ln+1);
     d_o_nnz.resize(finest_ln+1);
 
@@ -342,7 +342,7 @@ IBImplicitSJROperator::deallocateOperatorState()
 
     for (unsigned int k = 0; k < d_SJR_mats.size(); ++k)
     {
-        if (d_SJR_mats[k] != static_cast<Mat>(NULL))
+        if (d_SJR_mats[k] != PETSC_NULL)
         {
             ierr = MatDestroy(d_SJR_mats[k]);  IBTK_CHKERRQ(ierr);
         }

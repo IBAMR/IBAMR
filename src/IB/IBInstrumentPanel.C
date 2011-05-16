@@ -618,7 +618,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
     d_max_instrument_name_len = 0;
     for (unsigned int m = 0; m < d_num_meters; ++m)
     {
-        d_max_instrument_name_len = std::max(d_max_instrument_name_len, int(d_instrument_names[m].length()));
+        d_max_instrument_name_len = std::max(d_max_instrument_name_len, static_cast<int>(d_instrument_names[m].length()));
     }
 
     if (d_output_log_file && SAMRAI_MPI::getRank() == 0 && !d_log_file_stream.is_open())

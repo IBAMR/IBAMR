@@ -88,10 +88,10 @@ CCPoissonPETScLevelSolver::CCPoissonPETScLevelSolver(
       d_homogeneous_bc(true),
       d_apply_time(0.0),
       d_options_prefix(""),
-      d_petsc_ksp(static_cast<KSP>(NULL)),
-      d_petsc_mat(static_cast<Mat>(NULL)),
-      d_petsc_x(static_cast<Vec>(NULL)),
-      d_petsc_b(static_cast<Vec>(NULL)),
+      d_petsc_ksp(PETSC_NULL),
+      d_petsc_mat(PETSC_NULL),
+      d_petsc_x(PETSC_NULL),
+      d_petsc_b(PETSC_NULL),
       d_max_iterations(10),
       d_abs_residual_tol(0.0),
       d_rel_residual_tol(1.0e-6),
@@ -385,10 +385,10 @@ CCPoissonPETScLevelSolver::deallocateSolverState()
     ierr = VecDestroy(d_petsc_b); IBTK_CHKERRQ(ierr);
     d_dof_index_fill.setNull();
 
-    d_petsc_ksp = static_cast<KSP>(NULL);
-    d_petsc_mat = static_cast<Mat>(NULL);
-    d_petsc_x = static_cast<Vec>(NULL);
-    d_petsc_b = static_cast<Vec>(NULL);
+    d_petsc_ksp = PETSC_NULL;
+    d_petsc_mat = PETSC_NULL;
+    d_petsc_x = PETSC_NULL;
+    d_petsc_b = PETSC_NULL;
 
     // Deallocate DOF index data.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);

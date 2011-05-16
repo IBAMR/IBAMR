@@ -219,7 +219,7 @@ IBSpringForceSpec::packStream(
     TBOX_ASSERT(num_springs == d_stiffnesses.size());
     TBOX_ASSERT(num_springs == d_rest_lengths.size());
 #endif
-    stream << int(num_springs);
+    stream << static_cast<int>(num_springs);
     stream.pack(&d_master_idx,1);
     stream.pack(&d_slave_idxs[0],num_springs);
     stream.pack(&d_force_fcn_idxs[0],num_springs);

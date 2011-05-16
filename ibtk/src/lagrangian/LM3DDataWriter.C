@@ -205,7 +205,7 @@ LM3DDataWriter::resetLevels(
              it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = it->second;
-            if (v != static_cast<Vec>(NULL))
+            if (v != PETSC_NULL)
             {
                 ierr = VecDestroy(v);  IBTK_CHKERRQ(ierr);
             }
@@ -214,7 +214,7 @@ LM3DDataWriter::resetLevels(
              it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = it->second;
-            if (vs != static_cast<VecScatter>(NULL))
+            if (vs != PETSC_NULL)
             {
                 ierr = VecScatterDestroy(vs);  IBTK_CHKERRQ(ierr);
             }
@@ -227,7 +227,7 @@ LM3DDataWriter::resetLevels(
              it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = it->second;
-            if (v != static_cast<Vec>(NULL))
+            if (v != PETSC_NULL)
             {
                 ierr = VecDestroy(v);  IBTK_CHKERRQ(ierr);
             }
@@ -236,7 +236,7 @@ LM3DDataWriter::resetLevels(
              it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = it->second;
-            if (vs != static_cast<VecScatter>(NULL))
+            if (vs != PETSC_NULL)
             {
                 ierr = VecScatterDestroy(vs);  IBTK_CHKERRQ(ierr);
             }
@@ -559,10 +559,10 @@ LM3DDataWriter::writePlotData(
             if (rank == 0)
             {
                 marker_header_stream << "V3   = FORMAT VERSION\n"
-                                     << std::setw(4) << int(L) << " = NG\n"
+                                     << std::setw(4) << static_cast<int>(L) << " = NG\n"
                                      << std::setw(4) << num_marker_clouds << " = NUMBER OF CLOUDS\n";
 
-                fiber_header_stream << " " << std::setw(4) << int(L) << "           = NG\n"
+                fiber_header_stream << " " << std::setw(4) << static_cast<int>(L) << "           = NG\n"
                                     << "C" << std::setw(4) << num_layers << std::setw(4) << 1 << "       = MAXIMUM-LAYER-NUMBER, STARTING WITH 1\n";
             }
 
@@ -1138,7 +1138,7 @@ LM3DDataWriter::buildVecScatters(
     std::vector<int> ao_dummy(1,-1);
     ierr = AOApplicationToPetsc(
         ao,
-        (!ref_is_idxs.empty() ? int(ref_is_idxs.size()) : int(ao_dummy.size())),
+        (!ref_is_idxs.empty() ? static_cast<int>(ref_is_idxs.size()) : static_cast<int>(ao_dummy.size())),
         (!ref_is_idxs.empty() ? &ref_is_idxs[0]         : &ao_dummy[0]));
     IBTK_CHKERRQ(ierr);
 

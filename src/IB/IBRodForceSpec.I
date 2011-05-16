@@ -183,7 +183,7 @@ IBRodForceSpec::packStream(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(num_rods == d_material_params.size());
 #endif
-    stream << int(num_rods);
+    stream << static_cast<int>(num_rods);
     stream.pack(&d_master_idx,1);
     stream.pack(&d_next_idxs[0],num_rods);
     for (unsigned int n = 0; n < num_rods; ++n)

@@ -51,8 +51,8 @@ PETScPCLSWrapper::PETScPCLSWrapper(
       d_petsc_pc(petsc_pc),
       d_x(NULL),
       d_b(NULL),
-      d_petsc_x(static_cast<Vec>(NULL)),
-      d_petsc_b(static_cast<Vec>(NULL))
+      d_petsc_x(PETSC_NULL),
+      d_petsc_b(PETSC_NULL)
 {
     // intentionally blank
     return;

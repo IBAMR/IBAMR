@@ -1614,7 +1614,7 @@ IBHierarchyIntegrator::regridHierarchy()
             }
 
             const blitz::Array<double,2>& X_array = *X_data[ln]->getLocalFormVecArray();
-            for (int i = 0; i < int(X_data[ln]->getLocalNodeCount()); ++i)
+            for (int i = 0; i < static_cast<int>(X_data[ln]->getLocalNodeCount()); ++i)
             {
                 for (int d = 0; d < NDIM; ++d)
                 {
@@ -2019,7 +2019,7 @@ IBHierarchyIntegrator::applyGradientDetector(
             Box<NDIM> stencil_box(i_center,i_center);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                stencil_box.grow(d, int(ceil(r[d]/dx_finer[d])));
+                stencil_box.grow(d, static_cast<int>(ceil(r[d]/dx_finer[d])));
             }
 
             const Box<NDIM> coarsened_stencil_box = Box<NDIM>::coarsen(
@@ -2389,7 +2389,7 @@ IBHierarchyIntegrator::computeSourceStrengths(
                     Box<NDIM> stencil_box(i_center,i_center);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        stencil_box.grow(d, int(ceil(r[d]/dx[d])));
+                        stencil_box.grow(d, static_cast<int>(ceil(r[d]/dx[d])));
                     }
 
                     // Spread the source strength onto the Cartesian grid.
@@ -2627,7 +2627,7 @@ IBHierarchyIntegrator::computeSourcePressures(
                     Box<NDIM> stencil_box(i_center,i_center);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        stencil_box.grow(d, int(ceil(r[d]/dx[d])));
+                        stencil_box.grow(d, static_cast<int>(ceil(r[d]/dx[d])));
                     }
 
                     // Interpolate the pressure from the Cartesian grid.
@@ -2705,7 +2705,7 @@ IBHierarchyIntegrator::getFromInput(
         }
         else if (db->isDouble("min_ghost_cell_width"))
         {
-            d_ghosts = int(std::ceil(db->getDouble("min_ghost_cell_width")));
+            d_ghosts = static_cast<int>(std::ceil(db->getDouble("min_ghost_cell_width")));
         }
 
         d_start_time = db->getDoubleWithDefault("start_time", d_start_time);

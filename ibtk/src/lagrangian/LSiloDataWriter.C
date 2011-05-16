@@ -721,7 +721,7 @@ LSiloDataWriter::resetLevels(
              it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = it->second;
-            if (v != static_cast<Vec>(NULL))
+            if (v != PETSC_NULL)
             {
                 ierr = VecDestroy(v);  IBTK_CHKERRQ(ierr);
             }
@@ -730,7 +730,7 @@ LSiloDataWriter::resetLevels(
              it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = it->second;
-            if (vs != static_cast<VecScatter>(NULL))
+            if (vs != PETSC_NULL)
             {
                 ierr = VecScatterDestroy(vs);  IBTK_CHKERRQ(ierr);
             }
@@ -743,7 +743,7 @@ LSiloDataWriter::resetLevels(
              it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = it->second;
-            if (v != static_cast<Vec>(NULL))
+            if (v != PETSC_NULL)
             {
                 ierr = VecDestroy(v);  IBTK_CHKERRQ(ierr);
             }
@@ -752,7 +752,7 @@ LSiloDataWriter::resetLevels(
              it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = it->second;
-            if (vs != static_cast<VecScatter>(NULL))
+            if (vs != PETSC_NULL)
             {
                 ierr = VecScatterDestroy(vs);  IBTK_CHKERRQ(ierr);
             }
@@ -2198,7 +2198,7 @@ LSiloDataWriter::buildVecScatters(
     std::vector<int> ao_dummy(1,-1);
     ierr = AOApplicationToPetsc(
         ao,
-        (!ref_is_idxs.empty() ? int(ref_is_idxs.size()) : int(ao_dummy.size())),
+        (!ref_is_idxs.empty() ? static_cast<int>(ref_is_idxs.size()) : static_cast<int>(ao_dummy.size())),
         (!ref_is_idxs.empty() ? &ref_is_idxs[0]         : &ao_dummy[0]));
     IBTK_CHKERRQ(ierr);
 

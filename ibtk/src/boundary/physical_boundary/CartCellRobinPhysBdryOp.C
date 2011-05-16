@@ -393,7 +393,7 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(
 
         Pointer<CellData<NDIM,double> > patch_data = patch.getPatchData(patch_data_idx);
         const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
-        if (patch_data->getDepth() != int(d_bc_coefs.size()))
+        if (patch_data->getDepth() != static_cast<int>(d_bc_coefs.size()))
         {
             TBOX_ERROR("CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
                        << "  data depth for patch data index " << patch_data_idx << " is " << patch_data->getDepth() << "\n"

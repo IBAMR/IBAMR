@@ -92,10 +92,10 @@ Interpolator::operator()(
     if (UNLIKELY(x_it == d_x.end())) return d_x.back();
 
     const double x_up = *x_it;
-    const double y_up = *(d_y.begin() + int(x_it-d_x.begin()));
+    const double y_up = *(d_y.begin() + static_cast<int>(x_it-d_x.begin()));
     --x_it;
     const double x_lo = *x_it;
-    const double y_lo = *(d_y.begin() + int(x_it-d_x.begin()));
+    const double y_lo = *(d_y.begin() + static_cast<int>(x_it-d_x.begin()));
 
     return y_lo + (y_up-y_lo)*(x-x_lo)/(x_up-x_lo);
 }// operator()

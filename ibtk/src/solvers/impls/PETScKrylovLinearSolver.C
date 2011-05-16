@@ -90,13 +90,13 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
       d_do_log(false),
       d_solver_x(NULL),
       d_solver_b(NULL),
-      d_petsc_x(static_cast<Vec>(NULL)),
-      d_petsc_b(static_cast<Vec>(NULL)),
+      d_petsc_x(PETSC_NULL),
+      d_petsc_b(PETSC_NULL),
       d_options_prefix(options_prefix),
       d_petsc_comm  (petsc_comm),
-      d_petsc_ksp   (static_cast<KSP>(NULL)),
-      d_petsc_mat   (static_cast<Mat>(NULL)),
-      d_petsc_nullsp(static_cast<MatNullSpace>(NULL)),
+      d_petsc_ksp   (PETSC_NULL),
+      d_petsc_mat   (PETSC_NULL),
+      d_petsc_nullsp(PETSC_NULL),
       d_managing_petsc_ksp(true),
       d_user_provided_mat(false),
       d_user_provided_pc (false),
@@ -105,7 +105,7 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
       d_nullsp_contains_constant_vector(false),
       d_solver_nullsp_constant(NULL),
       d_solver_nullsp_basis(),
-      d_petsc_nullsp_constant(static_cast<Vec>(NULL)),
+      d_petsc_nullsp_constant(PETSC_NULL),
       d_petsc_nullsp_basis(),
       d_solver_has_attached_nullsp(false),
       d_initial_guess_nonzero(false),
@@ -132,13 +132,13 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
       d_do_log(false),
       d_solver_x(NULL),
       d_solver_b(NULL),
-      d_petsc_x(static_cast<Vec>(NULL)),
-      d_petsc_b(static_cast<Vec>(NULL)),
+      d_petsc_x(PETSC_NULL),
+      d_petsc_b(PETSC_NULL),
       d_options_prefix(options_prefix),
       d_petsc_comm  (PETSC_COMM_WORLD),
       d_petsc_ksp   (petsc_ksp),
-      d_petsc_mat   (static_cast<Mat>(NULL)),
-      d_petsc_nullsp(static_cast<MatNullSpace>(NULL)),
+      d_petsc_mat   (PETSC_NULL),
+      d_petsc_nullsp(PETSC_NULL),
       d_managing_petsc_ksp(false),
       d_user_provided_mat(false),
       d_user_provided_pc (false),
@@ -147,7 +147,7 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
       d_nullsp_contains_constant_vector(false),
       d_solver_nullsp_constant(NULL),
       d_solver_nullsp_basis(),
-      d_petsc_nullsp_constant(static_cast<Vec>(NULL)),
+      d_petsc_nullsp_constant(PETSC_NULL),
       d_petsc_nullsp_basis(),
       d_solver_has_attached_nullsp(false),
       d_initial_guess_nonzero(false),
@@ -203,15 +203,15 @@ PETScKrylovLinearSolver::~PETScKrylovLinearSolver()
 
     // Delete allocated PETSc solver components.
     int ierr;
-    if (d_petsc_mat != static_cast<Mat>(NULL))
+    if (d_petsc_mat != PETSC_NULL)
     {
         ierr = MatDestroy(d_petsc_mat); IBTK_CHKERRQ(ierr);
-        d_petsc_mat = static_cast<Mat>(NULL);
+        d_petsc_mat = PETSC_NULL;
     }
-    if (d_managing_petsc_ksp && d_petsc_ksp != static_cast<KSP>(NULL))
+    if (d_managing_petsc_ksp && d_petsc_ksp != PETSC_NULL)
     {
         ierr = KSPDestroy(d_petsc_ksp); IBTK_CHKERRQ(ierr);
-        d_petsc_ksp = static_cast<KSP>(NULL);
+        d_petsc_ksp = PETSC_NULL;
     }
     return;
 }// ~PETScKrylovLinearSolver()
@@ -409,13 +409,13 @@ PETScKrylovLinearSolver::deallocateSolverState()
 
     // Delete the solution and rhs vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
-    d_petsc_x = static_cast<Vec>(NULL);
+    d_petsc_x = PETSC_NULL;
     d_solver_x->resetLevels(d_solver_x->getCoarsestLevelNumber(), std::min(d_solver_x->getFinestLevelNumber(),d_solver_x->getPatchHierarchy()->getFinestLevelNumber()));
     d_solver_x->freeVectorComponents();
     d_solver_x.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_b);
-    d_petsc_b = static_cast<Vec>(NULL);
+    d_petsc_b = PETSC_NULL;
     d_solver_b->resetLevels(d_solver_b->getCoarsestLevelNumber(), std::min(d_solver_b->getFinestLevelNumber(),d_solver_b->getPatchHierarchy()->getFinestLevelNumber()));
     d_solver_b->freeVectorComponents();
     d_solver_b.setNull();
@@ -427,7 +427,7 @@ PETScKrylovLinearSolver::deallocateSolverState()
     if (d_managing_petsc_ksp)
     {
         ierr = KSPDestroy(d_petsc_ksp);  IBTK_CHKERRQ(ierr);
-        d_petsc_ksp = static_cast<KSP>(NULL);
+        d_petsc_ksp = PETSC_NULL;
         d_solver_has_attached_nullsp = false;
     }
 
@@ -504,7 +504,7 @@ PETScKrylovLinearSolver::reportKSPConvergedReason(
             os << d_object_name << ": iterating: KSPSolve() is still running.\n";
             break;
         default:
-            os << d_object_name << ": unknown completion code " << int(reason) << " reported.\n";
+            os << d_object_name << ": unknown completion code " << static_cast<int>(reason) << " reported.\n";
             break;
     }
     return;
@@ -513,7 +513,7 @@ PETScKrylovLinearSolver::reportKSPConvergedReason(
 void
 PETScKrylovLinearSolver::resetKSPOptions()
 {
-    if (d_petsc_ksp != static_cast<KSP>(NULL))
+    if (d_petsc_ksp != PETSC_NULL)
     {
         int ierr;
         const KSPType ksp_type = d_ksp_type.c_str();
@@ -535,17 +535,17 @@ PETScKrylovLinearSolver::resetKSPOperators()
 {
     // Create and configure the MatShell object.
     int ierr;
-    if (d_petsc_mat != static_cast<Mat>(NULL))
+    if (d_petsc_mat != PETSC_NULL)
     {
         const MatType mat_type;
         ierr = MatGetType(d_petsc_mat, &mat_type); IBTK_CHKERRQ(ierr);
         if (strcmp(mat_type,MATSHELL))
         {
             ierr = MatDestroy(d_petsc_mat); IBTK_CHKERRQ(ierr);
-            d_petsc_mat = static_cast<Mat>(NULL);
+            d_petsc_mat = PETSC_NULL;
         }
     }
-    if (d_petsc_mat == static_cast<Mat>(NULL))
+    if (d_petsc_mat == PETSC_NULL)
     {
         ierr = MatCreateShell(d_petsc_comm,
                               0, 0,
@@ -567,7 +567,7 @@ PETScKrylovLinearSolver::resetKSPOperators()
         d_petsc_mat, MATOP_GET_VECS          , reinterpret_cast<void(*)(void)>(PETScKrylovLinearSolver::MatGetVecs_SAMRAI            )); IBTK_CHKERRQ(ierr);
 
     // Reset the configuration of the PETSc KSP object.
-    if (d_petsc_ksp != static_cast<KSP>(NULL))
+    if (d_petsc_ksp != PETSC_NULL)
     {
         ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat, SAME_PRECONDITIONER); IBTK_CHKERRQ(ierr);
     }
@@ -577,7 +577,7 @@ PETScKrylovLinearSolver::resetKSPOperators()
 void
 PETScKrylovLinearSolver::resetKSPPC()
 {
-    if (d_petsc_ksp != static_cast<KSP>(NULL))
+    if (d_petsc_ksp != PETSC_NULL)
     {
         int ierr;
 
@@ -623,7 +623,7 @@ PETScKrylovLinearSolver::resetKSPPC()
 void
 PETScKrylovLinearSolver::resetKSPNullspace()
 {
-    if (d_petsc_ksp != static_cast<KSP>(NULL))
+    if (d_petsc_ksp != PETSC_NULL)
     {
         int ierr;
 
@@ -677,16 +677,16 @@ PETScKrylovLinearSolver::deallocateNullspaceData()
 {
     int ierr;
 
-    if (d_petsc_nullsp != static_cast<MatNullSpace>(NULL))
+    if (d_petsc_nullsp != PETSC_NULL)
     {
         ierr = MatNullSpaceDestroy(d_petsc_nullsp); IBTK_CHKERRQ(ierr);
-        d_petsc_nullsp = static_cast<MatNullSpace>(NULL);
+        d_petsc_nullsp = PETSC_NULL;
     }
 
-    if (d_petsc_nullsp_constant != static_cast<Vec>(NULL))
+    if (d_petsc_nullsp_constant != PETSC_NULL)
     {
         PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_nullsp_constant);
-        d_petsc_nullsp_constant = static_cast<Vec>(NULL);
+        d_petsc_nullsp_constant = PETSC_NULL;
         d_solver_nullsp_constant->resetLevels(d_solver_nullsp_constant->getCoarsestLevelNumber(), std::min(d_solver_nullsp_constant->getFinestLevelNumber(),d_solver_nullsp_constant->getPatchHierarchy()->getFinestLevelNumber()));
         d_solver_nullsp_constant->freeVectorComponents();
         d_solver_nullsp_constant.setNull();

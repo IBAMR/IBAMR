@@ -51,7 +51,7 @@ IndexUtilities::getCellIndex(
     const SAMRAI::hier::Index<NDIM>& iupper)
 {
     SAMRAI::hier::Index<NDIM> idx(
-        int( floor((X[0]-XLower[0])/dx[0]))+ilower(0)
+        static_cast<int>( floor((X[0]-XLower[0])/dx[0]))+ilower(0)
 #if (NDIM > 1)
         ,int(floor((X[1]-XLower[1])/dx[1]))+ilower(1)
 #if (NDIM > 2)
