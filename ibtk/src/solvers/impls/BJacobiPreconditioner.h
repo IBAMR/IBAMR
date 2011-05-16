@@ -98,7 +98,7 @@ public:
     void
     setComponentPreconditioner(
         SAMRAI::tbox::Pointer<LinearSolver> preconditioner,
-        const int component);
+        const unsigned int component);
 
     /*!
      * \name Linear solver functionality.
@@ -328,7 +328,7 @@ private:
     /*!
      * The component preconditioners.
      */
-    std::map<int,SAMRAI::tbox::Pointer<LinearSolver> > d_pc_map;
+    std::map<unsigned int,SAMRAI::tbox::Pointer<LinearSolver> > d_pc_map;
 
     /*!
      * Solver configuration parameters.

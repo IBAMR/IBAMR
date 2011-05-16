@@ -196,8 +196,8 @@ IBStandardSourceGen::getSourceLocations(
     if (d_n_src[level_number] == 0) return;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(X_src.size() == unsigned(d_n_src[level_number]));
-    TBOX_ASSERT(r_src.size() == unsigned(d_n_src[level_number]));
+    TBOX_ASSERT(X_src.size() == static_cast<unsigned int>(d_n_src[level_number]));
+    TBOX_ASSERT(r_src.size() == static_cast<unsigned int>(d_n_src[level_number]));
 #endif
 
     // Set the radii of the sources.
@@ -220,7 +220,7 @@ IBStandardSourceGen::getSourceLocations(
             const int& petsc_idx = node_idx.getLocalPETScIndex();
             const double* const X = &X_arr[NDIM*petsc_idx];
             const int source_idx = spec->getSourceIndex();
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_src[source_idx][d] += X[d]/double(d_num_perimeter_nodes[level_number][source_idx]);
             }

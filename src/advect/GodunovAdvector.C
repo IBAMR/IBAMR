@@ -467,7 +467,7 @@ GodunovAdvector::predictNormalVelocity(
 
     predict(v_half_tmp, u_ADV, V, patch, dt);
 
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         ArrayData<NDIM,double>& v_half_arr = v_half.getArrayData(axis);
         const ArrayData<NDIM,double>& v_half_tmp_arr =
@@ -491,7 +491,7 @@ GodunovAdvector::predictNormalVelocityWithSourceTerm(
 
     predictWithSourceTerm(v_half_tmp, u_ADV, V, F, patch, dt);
 
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         ArrayData<NDIM,double>& v_half_arr = v_half.getArrayData(axis);
         const ArrayData<NDIM,double>& v_half_tmp_arr =
@@ -527,7 +527,7 @@ GodunovAdvector::enforceIncompressibility(
     const IntVector<NDIM>& grad_phi_ghost_cells = grad_phi.getGhostCellWidth();
     const IntVector<NDIM>&   v_half_ghost_cells = v_half  .getGhostCellWidth();
 
-    for (int depth = 0; depth < NDIM; ++depth)
+    for (unsigned int depth = 0; depth < NDIM; ++depth)
     {
 #if (NDIM == 2)
         GODUNOV_INCOMPRESSIBILITY_FIX_FC(

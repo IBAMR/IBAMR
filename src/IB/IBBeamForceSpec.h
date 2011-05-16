@@ -110,7 +110,7 @@ public:
     /*!
      * \return The number of beams attached to the master node.
      */
-    unsigned
+    unsigned int
     getNumberOfBeams() const;
 
     /*!

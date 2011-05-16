@@ -126,7 +126,7 @@ public:
     /*!
      * \return The number of springs attached to the master node.
      */
-    unsigned
+    unsigned int
     getNumberOfSprings() const;
 
     /*!

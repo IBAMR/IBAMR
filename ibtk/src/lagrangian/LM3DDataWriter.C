@@ -314,7 +314,7 @@ LM3DDataWriter::registerLogicallyCartesianBlock(
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(nelem[d] > 0);
         TBOX_ASSERT(periodic(d) == 0 || periodic(d) == 1);
@@ -592,12 +592,12 @@ LM3DDataWriter::writePlotData(
                         // Output a 2D sheet of fibers.
                         fiber_header_stream << "C" << std::setw(4) << d_block_ngroups[ln][block] << std::setw(4) << layer_number << "       = NUMBER-OF-GROUPS LAYER-NUMBER\n";
 
-                        for (int d0 = 0; d0 < NDIM; ++d0)
+                        for (unsigned int d0 = 0; d0 < NDIM; ++d0)
                         {
                             if (nelem[d0] > 1)
                             {
                                 // Find the other nontrivial dimension.
-                                for (int d1 = 0; d1 < NDIM; ++d1)
+                                for (unsigned int d1 = 0; d1 < NDIM; ++d1)
                                 {
                                     if (d1 != d0 && nelem[d1] > 1)
                                     {
@@ -612,7 +612,7 @@ LM3DDataWriter::writePlotData(
                     {
                         // Output a 3D volume of fibers.
                         int ngroups = 0;
-                        for (int d0 = 0; d0 < NDIM; ++d0)
+                        for (unsigned int d0 = 0; d0 < NDIM; ++d0)
                         {
                             const int d1 = (d0+1)%NDIM;
                             const int nfibers_per_group = nelem[d0]*nelem[d1];
@@ -625,7 +625,7 @@ LM3DDataWriter::writePlotData(
                         }
 
                         fiber_header_stream << "C" << std::setw(4) << ngroups << std::setw(4) << layer_number << "       = NUMBER-OF-GROUPS LAYER-NUMBER\n";
-                        for (int d0 = 0; d0 < NDIM; ++d0)
+                        for (unsigned int d0 = 0; d0 < NDIM; ++d0)
                         {
                             const int d1 = (d0+1)%NDIM;
                             const int d2 = (d1+1)%NDIM;
@@ -905,7 +905,7 @@ LM3DDataWriter::writePlotData(
                         {
                             const blitz::TinyVector<double,NDIM>& X = cit->getPosition();
                             const int idx = cit->getIndex();
-                            for (int d = 0; d < NDIM; ++d)
+                            for (unsigned int d = 0; d < NDIM; ++d)
                             {
                                 /*!
                                  * \todo Add index error checking!

@@ -312,7 +312,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     // Setup default boundary condition objects that specify homogeneous
     // Dirichlet boundary conditions for the velocity.
     d_default_U_bc_coef = new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_U_bc_coef", Pointer<Database>(NULL));
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_default_U_bc_coef->setBoundaryValue(2*d  ,0.0);
         d_default_U_bc_coef->setBoundaryValue(2*d+1,0.0);
@@ -416,7 +416,7 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
     if (d_helmholtz_spec != NULL) delete d_helmholtz_spec;
     if (d_poisson_spec != NULL) delete d_poisson_spec;
     delete d_default_U_bc_coef;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (d_U_bc_coefs[d] != NULL) delete d_U_bc_coefs[d];
         if (d_U_star_bc_coefs[d] != NULL) delete d_U_star_bc_coefs[d];
@@ -463,18 +463,18 @@ INSStaggeredHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
                    << "  of the hierarchy integrator object." << std::endl);
     }
     blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> bc_coefs(U_bc_coefs);
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (bc_coefs[d] == NULL) bc_coefs[d] = d_default_U_bc_coef;
     }
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (d_U_bc_coefs[d] != NULL) delete d_U_bc_coefs[d];
         if (d_U_star_bc_coefs[d] != NULL) delete d_U_star_bc_coefs[d];
     }
     if (d_P_bc_coef != NULL) delete d_P_bc_coef;
     if (d_Phi_bc_coef != NULL) delete d_Phi_bc_coef;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,*d_problem_coefs,bc_coefs);
         d_U_star_bc_coefs[d] = new INSStaggeredIntermediateVelocityBcCoef(d,bc_coefs);
@@ -769,7 +769,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         if (d_output_U)
         {
             d_visit_writer->registerPlotQuantity(d_U_var->getName(), "VECTOR", d_U_cc_current_idx, 0, d_U_scale);
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream stream;
                 stream << d;
@@ -785,7 +785,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         if (!d_F_fcn.isNull() && d_output_F)
         {
             d_visit_writer->registerPlotQuantity(d_F_var->getName(), "VECTOR", d_F_cc_current_idx, 0, d_F_scale);
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream stream;
                 stream << d;
@@ -802,7 +802,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         {
             d_visit_writer->registerPlotQuantity(d_Omega_var->getName(), (NDIM == 2) ? "SCALAR" : "VECTOR", d_Omega_current_idx);
 #if (NDIM == 3)
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream stream;
                 stream << d;
@@ -1079,7 +1079,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         const std::string regrid_projection_prefix = "regrid_projection_";
 
         // Setup the various solver components.
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             d_regrid_projection_bc_coef.setBoundarySlope(2*d  ,0.0);
             d_regrid_projection_bc_coef.setBoundarySlope(2*d+1,0.0);
@@ -2363,7 +2363,7 @@ INSStaggeredHierarchyIntegrator::applyGradientDetector(
 #endif
 #if (NDIM == 3)
                     double norm_Omega_sq = 0.0;
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         norm_Omega_sq += (*Omega_current_data)(i,d)*(*Omega_current_data)(i,d);
                     }
@@ -2881,7 +2881,7 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
         d_vectors_need_init = false;
     }
 
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         INSStaggeredVelocityBcCoef* U_bc_coef = dynamic_cast<INSStaggeredVelocityBcCoef*>(d_U_bc_coefs[d]);
         U_bc_coef->setTimeInterval(current_time,new_time);

@@ -758,7 +758,7 @@ LEInteractor::interpolate(
     TBOX_ASSERT(!X_data.isNull());
     TBOX_ASSERT(!idx_data.isNull());
     TBOX_ASSERT(!patch.isNull());
-    TBOX_ASSERT(Q_data->getDepth() == q_data->getDepth());
+    TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
 #endif
     interpolate(Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
@@ -839,7 +839,7 @@ LEInteractor::interpolate(
     blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
     blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
     blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
         patch_touches_lower_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis,lower);
@@ -903,7 +903,7 @@ LEInteractor::interpolate(
     const double* const dx = pgeom->getDx();
     blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
     blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
         patch_touches_lower_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis,lower);
@@ -921,7 +921,7 @@ LEInteractor::interpolate(
     // Interpolate.
     double x_lower_axis[NDIM], x_upper_axis[NDIM];
     std::vector<double> Q_data_axis(local_sz);
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
         //use_alt_one_sided_delta[axis] = 1;
@@ -929,7 +929,7 @@ LEInteractor::interpolate(
         // delta function is used for the normal component at physical
         // boundaries, avoiding interpolating data from the exact physical
         // boundary.
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             x_lower_axis[d] = x_lower[d];
             x_upper_axis[d] = x_upper[d];
@@ -943,7 +943,7 @@ LEInteractor::interpolate(
                     use_alt_one_sided_delta,
                     local_indices, periodic_offsets,
                     interp_fcn);
-        for (unsigned k = 0; k < local_indices.size(); ++k)
+        for (unsigned int k = 0; k < local_indices.size(); ++k)
         {
             Q_data[NDIM*local_indices[k]+axis] = Q_data_axis[local_indices[k]];
         }
@@ -1000,7 +1000,7 @@ LEInteractor::interpolate(
     blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
     blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
     blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
         patch_touches_lower_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis,lower);
@@ -1081,7 +1081,7 @@ LEInteractor::interpolate(
     const double* const dx = pgeom->getDx();
     blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
     blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
         patch_touches_lower_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis,lower);
@@ -1100,7 +1100,7 @@ LEInteractor::interpolate(
     // Interpolate.
     double x_lower_axis[NDIM], x_upper_axis[NDIM];
     std::vector<double> Q_data_axis(local_sz);
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
         //use_alt_one_sided_delta[axis] = 1;
@@ -1108,7 +1108,7 @@ LEInteractor::interpolate(
         // delta function is used for the normal component at physical
         // boundaries, avoiding interpolating data from the exact physical
         // boundary.
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             x_lower_axis[d] = x_lower[d];
             x_upper_axis[d] = x_upper[d];
@@ -1122,7 +1122,7 @@ LEInteractor::interpolate(
                     use_alt_one_sided_delta,
                     local_indices, periodic_offsets,
                     interp_fcn);
-        for (unsigned k = 0; k < local_indices.size(); ++k)
+        for (unsigned int k = 0; k < local_indices.size(); ++k)
         {
             Q_data[NDIM*local_indices[k]+axis] = Q_data_axis[local_indices[k]];
         }
@@ -1150,7 +1150,7 @@ LEInteractor::spread(
     TBOX_ASSERT(!X_data.isNull());
     TBOX_ASSERT(!idx_data.isNull());
     TBOX_ASSERT(!patch.isNull());
-    TBOX_ASSERT(Q_data->getDepth() == q_data->getDepth());
+    TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
     TBOX_ASSERT(X_data->getDepth() == NDIM);
 #endif
     spread(q_data,
@@ -1231,7 +1231,7 @@ LEInteractor::spread(
     blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
     blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
     blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
         patch_touches_lower_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis,lower);
@@ -1294,7 +1294,7 @@ LEInteractor::spread(
     const double* const dx = pgeom->getDx();
     blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
     blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
         patch_touches_lower_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis,lower);
@@ -1312,21 +1312,21 @@ LEInteractor::spread(
     // Spread.
     double x_lower_axis[NDIM], x_upper_axis[NDIM];
     std::vector<double> Q_data_axis(local_sz);
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
         //use_alt_one_sided_delta[axis] = 1;
         // NOTE: When the previous line is not commented, a shifted one-sided
         // delta function is used for the normal component at physical
         // boundaries, avoiding spreading data to the exact physical boundary.
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             x_lower_axis[d] = x_lower[d];
             x_upper_axis[d] = x_upper[d];
         }
         x_lower_axis[axis] -= 0.5*dx[axis];
         x_upper_axis[axis] += 0.5*dx[axis];
-        for (unsigned k = 0; k < local_indices.size(); ++k)
+        for (unsigned int k = 0; k < local_indices.size(); ++k)
         {
             Q_data_axis[local_indices[k]] = Q_data[NDIM*local_indices[k]+axis];
         }
@@ -1409,7 +1409,7 @@ LEInteractor::spread(
     blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
     blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
     blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
         patch_touches_lower_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis,lower);
@@ -1470,7 +1470,7 @@ LEInteractor::spread(
     const double* const dx = pgeom->getDx();
     blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
     blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
         patch_touches_lower_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis,lower);
@@ -1489,21 +1489,21 @@ LEInteractor::spread(
     // Spread.
     double x_lower_axis[NDIM], x_upper_axis[NDIM];
     std::vector<double> Q_data_axis(local_sz);
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
         //use_alt_one_sided_delta[axis] = 1;
         // NOTE: When the previous line is not commented, a shifted one-sided
         // delta function is used for the normal component at physical
         // boundaries, avoiding spreading data to the exact physical boundary.
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             x_lower_axis[d] = x_lower[d];
             x_upper_axis[d] = x_upper[d];
         }
         x_lower_axis[axis] -= 0.5*dx[axis];
         x_upper_axis[axis] += 0.5*dx[axis];
-        for (unsigned k = 0; k < local_indices.size(); ++k)
+        for (unsigned int k = 0; k < local_indices.size(); ++k)
         {
             Q_data_axis[local_indices[k]] = Q_data[NDIM*local_indices[k]+axis];
         }
@@ -1546,6 +1546,9 @@ LEInteractor::interpolate(
 {
     if (local_indices.empty()) return;
     t_interpolate_f77->start();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(sizeof(blitz::TinyVector<double,NDIM>) == NDIM*sizeof(double));
+#endif
     const int local_indices_size = local_indices.size();
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
@@ -1829,6 +1832,9 @@ LEInteractor::spread(
 {
     if (local_indices.empty()) return;
     t_spread_f77->start();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(sizeof(blitz::TinyVector<double,NDIM>) == NDIM*sizeof(double));
+#endif
     const int local_indices_size = local_indices.size();
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
@@ -2264,7 +2270,7 @@ LEInteractor::buildLocalIndices(
 {
     local_indices.clear();
     periodic_offsets.clear();
-    const int upper_bound = idx_data->getInteriorLocalPETScIndices().size() + idx_data->getGhostLocalPETScIndices().size();
+    const unsigned int upper_bound = idx_data->getInteriorLocalPETScIndices().size() + idx_data->getGhostLocalPETScIndices().size();
     if (upper_bound == 0) return;
 
     const Box<NDIM>& patch_box = patch->getBox();
@@ -2289,7 +2295,7 @@ LEInteractor::buildLocalIndices(
                 blitz::TinyVector<int,NDIM> offset(0);
                 static const int lower = 0;
                 static const int upper = 1;
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     if      (pgeom->getTouchesPeriodicBoundary(d,lower) && i(d) < ilower(d))
                     {
@@ -2303,7 +2309,7 @@ LEInteractor::buildLocalIndices(
                 periodic_offsets.resize(periodic_offsets.size()+num_ids);
                 for (typename LSet<T>::size_type n = 0; n < num_ids; ++n)
                 {
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         periodic_offsets[periodic_offsets.size()-(num_ids-n)][d] = double(offset[d])*dx[d];
                     }
@@ -2335,7 +2341,7 @@ LEInteractor::buildLocalIndices(
                 blitz::TinyVector<int,NDIM> offset(0);
                 static const int lower = 0;
                 static const int upper = 1;
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     if      (pgeom->getTouchesPeriodicBoundary(d,lower) && i(d) < ilower(d))
                     {
@@ -2347,7 +2353,7 @@ LEInteractor::buildLocalIndices(
                     }
                 }
                 blitz::TinyVector<double,NDIM> node_offset;
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     node_offset[d] = double(offset[d])*dx[d];
                 }
@@ -2360,7 +2366,7 @@ LEInteractor::buildLocalIndices(
         }
 
         std::sort(box_idxs_and_offsets.begin(),box_idxs_and_offsets.end(),SortModeComp());
-        for (unsigned n = 0; n < box_idxs_and_offsets.size(); ++n)
+        for (unsigned int n = 0; n < box_idxs_and_offsets.size(); ++n)
         {
             local_indices.push_back(box_idxs_and_offsets[n].first->getLocalPETScIndex());
             periodic_offsets.push_back(box_idxs_and_offsets[n].second);
@@ -2426,7 +2432,7 @@ LEInteractor::userDefinedInterpolate(
 #endif
                                               q_depth);
     blitz::GeneralArrayStorage<NDIM+1> storage_order = blitz::ColumnMajorArray<NDIM+1>();
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         storage_order.base()[d] = ilower[d]-q_gcw[d];
     }
@@ -2439,7 +2445,7 @@ LEInteractor::userDefinedInterpolate(
         const int s = local_indices[l];
 
         // Determine the Cartesian cell in which X(s) is located.
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             stencil_center[d] = int(std::floor((X[d+s*NDIM]+X_shift[d+l*NDIM]-x_lower[d])/dx[d])) + ilower[d];
             X_cell[d] = x_lower[d]+(double(stencil_center[d]-ilower[d])+0.5)*dx[d];
@@ -2449,7 +2455,7 @@ LEInteractor::userDefinedInterpolate(
         // X(s) within the cell.
         if (s_delta_fcn_stencil_size%2 == 0)
         {
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 if (X[d+s*NDIM] < X_cell[d])
                 {
@@ -2465,14 +2471,14 @@ LEInteractor::userDefinedInterpolate(
         }
         else
         {
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 stencil_lower[d] = stencil_center[d]-s_delta_fcn_stencil_size/2;
                 stencil_upper[d] = stencil_center[d]+s_delta_fcn_stencil_size/2;
             }
         }
 
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             stencil_lower[d] = std::min(std::max(stencil_lower[d],ilower[d]-q_gcw[d]),iupper[d]+q_gcw[d]);
             stencil_upper[d] = std::min(std::max(stencil_upper[d],ilower[d]-q_gcw[d]),iupper[d]+q_gcw[d]);
@@ -2550,7 +2556,7 @@ LEInteractor::userDefinedSpread(
 #endif
                                               q_depth);
     blitz::GeneralArrayStorage<NDIM+1> storage_order = blitz::ColumnMajorArray<NDIM+1>();
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         storage_order.base()[d] = ilower[d]-q_gcw[d];
     }
@@ -2563,7 +2569,7 @@ LEInteractor::userDefinedSpread(
         const int s = local_indices[l];
 
         // Determine the Cartesian cell in which X(s) is located.
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             stencil_center[d] = int(std::floor((X[d+s*NDIM]+X_shift[d+l*NDIM]-x_lower[d])/dx[d])) + ilower[d];
             X_cell[d] = x_lower[d]+(double(stencil_center[d]-ilower[d])+0.5)*dx[d];
@@ -2573,7 +2579,7 @@ LEInteractor::userDefinedSpread(
         // X(s) within the cell.
         if (s_delta_fcn_stencil_size%2 == 0)
         {
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 if (X[d+s*NDIM] < X_cell[d])
                 {
@@ -2589,14 +2595,14 @@ LEInteractor::userDefinedSpread(
         }
         else
         {
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 stencil_lower[d] = stencil_center[d]-s_delta_fcn_stencil_size/2;
                 stencil_upper[d] = stencil_center[d]+s_delta_fcn_stencil_size/2;
             }
         }
 
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             stencil_lower[d] = std::min(std::max(stencil_lower[d],ilower[d]-q_gcw[d]),iupper[d]+q_gcw[d]);
             stencil_upper[d] = std::min(std::max(stencil_upper[d],ilower[d]-q_gcw[d]),iupper[d]+q_gcw[d]);

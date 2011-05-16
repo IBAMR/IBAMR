@@ -116,7 +116,7 @@ INSStaggeredIntermediateVelocityBcCoef::setBcCoefs(
     double fill_time) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(d_u_bc_coefs[d] != NULL);
     }
@@ -133,13 +133,13 @@ IntVector<NDIM>
 INSStaggeredIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(d_u_bc_coefs[d] != NULL);
     }
 #endif
     IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         ret_val = IntVector<NDIM>::min(ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
     }

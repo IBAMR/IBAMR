@@ -171,7 +171,7 @@ main(
     // input file.
     for (int k = 0; k < num_vertex; ++k)
     {
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             file_stream.setf(ios_base::scientific);
             file_stream.precision(16);

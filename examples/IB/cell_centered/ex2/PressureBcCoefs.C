@@ -97,13 +97,13 @@ PressureBcCoefs::setBcCoefs(
     const hier::Box<NDIM> bc_coef_box =
         PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-    const int location_index = bdry_box.getLocationIndex();
-    const int bdry_normal_axis =  location_index / 2;
+    const unsigned int location_index = bdry_box.getLocationIndex();
+    const unsigned int bdry_normal_axis =  location_index / 2;
 
     for (hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
     {
         const hier::Index<NDIM>& i = b();
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             if (d != bdry_normal_axis)
             {

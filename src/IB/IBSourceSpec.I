@@ -48,7 +48,7 @@ IBSourceSpec::getIsRegisteredWithStreamableManager()
     return s_registered_factory;
 }// getIsRegisteredWithStreamableManager
 
-inline int
+inline unsigned int
 IBSourceSpec::getNumSources(
     const int ln)
 {

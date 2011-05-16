@@ -55,7 +55,7 @@ static const std::string PATTERN_NAME = "NODE_SYNCH_COPY_FILL_PATTERN";
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 NodeSynchCopyFillPattern::NodeSynchCopyFillPattern(
-    const int axis)
+    const unsigned int axis)
     : d_stencil_width(1),
       d_axis(axis)
 {
@@ -91,7 +91,7 @@ NodeSynchCopyFillPattern::calculateOverlap(
 #endif
     BoxList<NDIM> dst_boxes;
     bool skip = false;
-    for (int d = 0; d < NDIM && !skip; ++d)
+    for (unsigned int d = 0; d < NDIM && !skip; ++d)
     {
         if (d != d_axis)
         {

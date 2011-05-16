@@ -94,7 +94,7 @@ linear_spring_force(
      * Compute the distance between the "master" and "slave" nodes.
      */
     double r_sq = 0.0;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         r_sq += D[d]*D[d];
     }
@@ -108,7 +108,7 @@ linear_spring_force(
     {
         const double ratio = r/rst - 1.0;
         const double T = stf*ratio;
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             F[d] = T*D[d]/r;
         }
@@ -585,7 +585,7 @@ main(
             if (ilower <= X_idx[0] && X_idx[0] < iupper)
             {
                 vector<int> idxs(NDIM);
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     idxs[d] = NDIM*X_idx[0]+d;
                 }
@@ -599,7 +599,7 @@ main(
             if (tbox::SAMRAI_MPI::getRank() == 0)
             {
                 X_stream << loop_time;
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     X_stream << "  " << X[d];
                 }

@@ -85,7 +85,7 @@ coarsen(
     const IntVector<NDIM>& ratio)
 {
     Index<NDIM> coarse_index;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         coarse_index(d) = coarsen(index(d),ratio(d));
     }
@@ -179,7 +179,7 @@ CartCellDoubleQuadraticRefine::refine(
         // Determine the interpolation weights.
         static const int degree = 2;
         blitz::TinyVector<std::vector<double>,NDIM> wgts(std::vector<double>(degree+1,0.0));
-        for (int axis = 0; axis < NDIM; ++axis)
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             const double X = XLower_fine[axis] + dx_fine[axis]*(double(i_fine(axis)-patch_lower_fine(axis))+0.5);
             std::vector<double> X_crse(degree+1,0.0);

@@ -64,7 +64,7 @@ build_local_marker_cloud(
 {
     for (int k = 0; k < nmarks; ++k)
     {
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             os << std::setw(7) << std::fixed << std::setprecision(3) << X[NDIM*k+d] << " ";
         }

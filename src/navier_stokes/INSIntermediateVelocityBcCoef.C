@@ -117,7 +117,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(
-    const int comp_idx,
+    const unsigned int comp_idx,
     const int Phi_idx,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
     const bool homogeneous_bc)
@@ -214,14 +214,15 @@ INSIntermediateVelocityBcCoef::setBcCoefs(
     double fill_time) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(d_u_bc_coefs[d] != NULL);
     }
 #endif
-    const int location_index   = bdry_box.getLocationIndex();
-    const int bdry_normal_axis = location_index/2;
+    const unsigned int location_index   = bdry_box.getLocationIndex();
+    const unsigned int bdry_normal_axis = location_index/2;
 //  const bool is_lower        = location_index%2 == 0;
+    const int comp_idx = d_comp_idx;
     const Box<NDIM>& patch_box = patch.getBox();
     const Box<NDIM>& bc_coef_box = acoef_data->getBox();
 
@@ -274,7 +275,7 @@ INSIntermediateVelocityBcCoef::setBcCoefs(
 #if (NDIM == 3)
         bc_coef_box.lower(2), bc_coef_box.upper(2),
 #endif
-        location_index, d_comp_idx,
+        location_index, comp_idx,
         dx);
 
     // Do not further modify the boundary condition coefficients unless we are
@@ -315,7 +316,7 @@ INSIntermediateVelocityBcCoef::setBcCoefs(
 #if (NDIM == 3)
         bc_coef_box.lower(2), bc_coef_box.upper(2),
 #endif
-        location_index, d_comp_idx,
+        location_index, comp_idx,
         d_rho, dx, dt);
     return;
 }// setBcCoefs
@@ -324,13 +325,13 @@ IntVector<NDIM>
 INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(d_u_bc_coefs[d] != NULL);
     }
 #endif
     IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         ret_val = IntVector<NDIM>::min(ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
     }

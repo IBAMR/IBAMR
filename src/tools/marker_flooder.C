@@ -88,7 +88,7 @@ get_index(
     const TinyVector<double,NDIM>& X)
 {
     TinyVector<int,NDIM> i;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         i[d] = int(floor(X[d]/dx[d]));
     }
@@ -100,7 +100,7 @@ get_posn(
     const TinyVector<int,NDIM>& i)
 {
     TinyVector<double,NDIM> X;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         X[d] = (double(i[d])+0.5)*dx[d];
     }
@@ -111,7 +111,7 @@ inline bool
 valid_index(
     const TinyVector<int,NDIM>& i)
 {
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (i[d] < 0 || i[d] >= N[d]) return false;
     }
@@ -154,7 +154,7 @@ main(
     // Construct an array of bools to keep track of which cells are occupied in
     // the grid.
     TinyVector<int,NDIM> extents;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         extents[d] = N[d];
     }
@@ -231,7 +231,7 @@ main(
         line_string = discard_comments(line_string);
         istringstream line_stream(line_string);
         TinyVector<double,NDIM> X;
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             line_stream >> X[d];
         }
@@ -263,7 +263,7 @@ main(
              cit != active_set.end(); ++cit)
         {
             const TinyVector<int,NDIM>& i = (*cit);
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 TinyVector<int,NDIM> i_lo = i;
                 i_lo(d) -= 1;
@@ -296,7 +296,7 @@ main(
     {
         const TinyVector<int,NDIM>& i = (*cit);
         const TinyVector<double,NDIM> X = get_posn(i);
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             output_file_stream << setw(7) << fixed << setprecision(3) << X[d] << (d == NDIM-1 ? "" : " ");
         }

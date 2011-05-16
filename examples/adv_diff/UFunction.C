@@ -76,7 +76,7 @@ UFunction::UFunction(
     // Default initial values.
     const double* const XUpper = d_grid_geom->getXUpper();
     const double* const XLower = d_grid_geom->getXLower();
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_X[d] = XLower[d] + 0.5*(XUpper[d] - XLower[d]);
         d_uniform_u[d] = 1.0;
@@ -110,7 +110,7 @@ UFunction::setDataOnPatch(
 
     if (d_init_type == "UNIFORM")
     {
-        for (int axis = 0; axis < NDIM; ++axis)
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             u_data->getArrayData(axis).
                 fillAll(d_uniform_u[axis]);
@@ -127,14 +127,14 @@ UFunction::setDataOnPatch(
 
         double X[NDIM];
 
-        for (int axis = 0; axis < NDIM; ++axis)
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             for (pdat::FaceIterator<NDIM> it(patch_box,axis); it; it++)
             {
                 const pdat::FaceIndex<NDIM>& i = it();
                 const hier::Index<NDIM>& cell_idx = i.toCell(1);
 
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     if (d != axis)
                     {

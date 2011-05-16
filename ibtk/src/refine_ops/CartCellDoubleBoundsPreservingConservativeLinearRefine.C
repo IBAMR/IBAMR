@@ -120,7 +120,7 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(
     // correction, and construct a list of boxes that will not be corrected.
     bool empty_correction_box = false;
     Box<NDIM> correction_box = Box<NDIM>::refine(Box<NDIM>::coarsen(fine_box,ratio),ratio);
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         int& lower = correction_box.lower()(axis);
         while (lower < fine_box.lower()(axis))
@@ -183,7 +183,7 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(
 
             // Determine the lower/upper bounds.
             Box<NDIM> stencil_box_crse(i_crse,i_crse);
-            for (int axis = 0; axis < NDIM; ++axis)
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 if (i_crse(axis) > patch_lower_crse(axis) || !pgeom_crse->getTouchesRegularBoundary(axis,0))
                 {

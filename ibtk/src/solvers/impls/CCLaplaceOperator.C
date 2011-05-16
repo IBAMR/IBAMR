@@ -122,7 +122,7 @@ CCLaplaceOperator::CCLaplaceOperator(
 
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions.
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_default_bc_coef->setBoundaryValue(2*d  ,0.0);
         d_default_bc_coef->setBoundaryValue(2*d+1,0.0);
@@ -173,7 +173,7 @@ CCLaplaceOperator::CCLaplaceOperator(
 
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions.
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_default_bc_coef->setBoundaryValue(2*d  ,0.0);
         d_default_bc_coef->setBoundaryValue(2*d+1,0.0);
@@ -220,7 +220,7 @@ CCLaplaceOperator::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
     d_bc_coefs.resize(bc_coefs.size());
-    for (unsigned l = 0; l < bc_coefs.size(); ++l)
+    for (unsigned int l = 0; l < bc_coefs.size(); ++l)
     {
         if (bc_coefs[l] != NULL)
         {
@@ -311,8 +311,8 @@ CCLaplaceOperator::apply(
         TBOX_ASSERT(!y_factory.isNull());
 #endif
 
-        const unsigned x_depth = x_factory->getDefaultDepth();
-        const unsigned y_depth = y_factory->getDefaultDepth();
+        const unsigned int x_depth = x_factory->getDefaultDepth();
+        const unsigned int y_depth = y_factory->getDefaultDepth();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(x_depth == y_depth);
@@ -346,7 +346,7 @@ CCLaplaceOperator::apply(
         const int scratch_idx = d_scratch_idxs[comp];
         const int y_idx = y.getComponentDescriptorIndex(comp);
 
-        for (unsigned l = 0; l < d_bc_coefs.size(); ++l)
+        for (unsigned int l = 0; l < d_bc_coefs.size(); ++l)
         {
             d_hier_math_ops->laplace(
                 y_idx, y_cc_var,

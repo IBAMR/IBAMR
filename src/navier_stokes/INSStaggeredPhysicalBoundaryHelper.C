@@ -109,8 +109,8 @@ INSStaggeredPhysicalBoundaryHelper::zeroValuesAtDirichletBoundaries(
             for (int n = 0; n < n_physical_codim1_boxes; ++n)
             {
                 const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-                const int location_index   = bdry_box.getLocationIndex();
-                const int bdry_normal_axis = location_index / 2;
+                const unsigned int location_index   = bdry_box.getLocationIndex();
+                const unsigned int bdry_normal_axis = location_index / 2;
                 const Box<NDIM>& bc_coef_box = dirichlet_bdry_locs[n]->getBox();
                 ArrayData<NDIM,bool>& bdry_locs_data = *dirichlet_bdry_locs[n];
                 for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
@@ -158,8 +158,8 @@ INSStaggeredPhysicalBoundaryHelper::resetValuesAtDirichletBoundaries(
             for (int n = 0; n < n_physical_codim1_boxes; ++n)
             {
                 const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-                const int location_index   = bdry_box.getLocationIndex();
-                const int bdry_normal_axis = location_index / 2;
+                const unsigned int location_index   = bdry_box.getLocationIndex();
+                const unsigned int bdry_normal_axis = location_index / 2;
                 const Box<NDIM>& bc_coef_box = dirichlet_bdry_locs[n]->getBox();
                 ArrayData<NDIM,bool>& bdry_locs_data = *dirichlet_bdry_locs[n];
                 ArrayData<NDIM,double>& bdry_vals_data = *dirichlet_bdry_vals[n];
@@ -233,8 +233,8 @@ INSStaggeredPhysicalBoundaryHelper::cacheBcCoefData(
                 const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
                 const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
                 const BoundaryBox<NDIM> trimmed_bdry_box(bdry_box.getBox()*bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
-                const int location_index   = bdry_box.getLocationIndex();
-                const int bdry_normal_axis = location_index / 2;
+                const unsigned int location_index   = bdry_box.getLocationIndex();
+                const unsigned int bdry_normal_axis = location_index / 2;
 
                 const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
                 ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);

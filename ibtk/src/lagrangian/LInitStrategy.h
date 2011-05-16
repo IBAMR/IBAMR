@@ -89,7 +89,7 @@ public:
     /*!
      * \return The number of local nodes on the patch level.
      */
-    virtual int
+    virtual unsigned int
     computeLocalNodeCountOnPatchLevel(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -118,11 +118,11 @@ public:
      *
      * \return The number of local nodes initialized on the patch level.
      */
-    virtual int
+    virtual unsigned int
     initializeDataOnPatchLevel(
         const int lag_node_index_idx,
-        const int global_index_offset,
-        const int local_index_offset,
+        const unsigned int global_index_offset,
+        const unsigned int local_index_offset,
         SAMRAI::tbox::Pointer<LData>& X_data,
         SAMRAI::tbox::Pointer<LData>& U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -141,10 +141,10 @@ public:
      * \note A default empty implementation is provided when support for massive
      * boundaries is not required.
      */
-    virtual int
+    virtual unsigned int
     initializeMassDataOnPatchLevel(
-        const int global_index_offset,
-        const int local_index_offset,
+        const unsigned int global_index_offset,
+        const unsigned int local_index_offset,
         SAMRAI::tbox::Pointer<LData>& M_data,
         SAMRAI::tbox::Pointer<LData>& K_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -163,10 +163,10 @@ public:
      * \note A default empty implementation is provided when support for
      * directors is not required.
      */
-    virtual int
+    virtual unsigned int
     initializeDirectorDataOnPatchLevel(
-        const int global_index_offset,
-        const int local_index_offset,
+        const unsigned int global_index_offset,
+        const unsigned int local_index_offset,
         SAMRAI::tbox::Pointer<LData>& D_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,

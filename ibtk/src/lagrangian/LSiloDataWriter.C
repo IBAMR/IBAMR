@@ -122,7 +122,7 @@ build_local_marker_cloud(
     for (int i = 0; i < nmarks; ++i)
     {
         // Get the coordinate data.
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             block_X[d*nmarks+i] = float(X[NDIM*i + d]);
         }
@@ -160,7 +160,7 @@ build_local_marker_cloud(
 
     const char* meshname = "mesh";
     std::vector<float*> coords(NDIM);
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         coords[d] = nmarks > 0 ? &block_X[d*nmarks] : NULL;
     }
@@ -226,7 +226,7 @@ build_local_curv_block(
 {
     // Check for co-dimension 1 or 2 data.
     IntVector<NDIM> nelem, degenerate;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (nelem_in(d) == 1)
         {
@@ -281,7 +281,7 @@ build_local_curv_block(
                     ;
 
                 // Get the coordinate data.
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     block_X[d*ntot+offset] = float(X[NDIM*idx + d]);
                 }
@@ -329,14 +329,14 @@ build_local_curv_block(
     const char* meshname = "mesh";
     const char* coordnames[3]  = { "xcoords" , "ycoords" , "zcoords" };
     std::vector<float*> coords(NDIM);
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         coords[d] = ntot > 0 ? &block_X[d*ntot] : 0;
     }
 
     int ndims = NDIM;
     std::vector<int> dims(NDIM);
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         dims[d] = nelem(d) + (periodic(d) ? 1 : 0);
     }
@@ -431,7 +431,7 @@ build_local_ucd_mesh(
         local_vertex_map[idx] = offset;
 
         // Get the coordinate data.
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             block_X[d*ntot+offset] = float(X[NDIM*offset + d]);
         }
@@ -502,7 +502,7 @@ build_local_ucd_mesh(
     const char* meshname = "mesh";
     const char* coordnames[3]  = { "xcoords" , "ycoords" , "zcoords" };
     std::vector<float*> coords(NDIM);
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         coords[d] = ntot > 0 ? &block_X[d*ntot] : NULL;
     }
@@ -879,7 +879,7 @@ LSiloDataWriter::registerLogicallyCartesianBlock(
     }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(nelem(d) > 0);
         TBOX_ASSERT(periodic(d) == 0 || periodic(d) == 1);
@@ -953,7 +953,7 @@ LSiloDataWriter::registerLogicallyCartesianMultiblock(
     int sz = nelem.size();
     for (int i = 0; i < sz; ++i)
     {
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             TBOX_ASSERT(nelem[i](d) > 0);
             TBOX_ASSERT(periodic[i](d) == 0 || periodic[i](d) == 1);
@@ -2324,9 +2324,9 @@ LSiloDataWriter::getFromRestart()
             std::vector<int> flattened_block_nelems;
             flattened_block_nelems.resize(NDIM*d_block_nelems[ln].size());
             db->getIntegerArray("flattened_block_nelems"+ln_string, &flattened_block_nelems[0], flattened_block_nelems.size());
-            for (unsigned l = 0; l < d_block_nelems[ln].size(); ++l)
+            for (unsigned int l = 0; l < d_block_nelems[ln].size(); ++l)
             {
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     d_block_nelems[ln][l](d) = flattened_block_nelems[NDIM*l+d];
                 }
@@ -2336,9 +2336,9 @@ LSiloDataWriter::getFromRestart()
             std::vector<int> flattened_block_periodic;
             flattened_block_periodic.resize(NDIM*d_block_periodic[ln].size());
             db->getIntegerArray("flattened_block_periodic"+ln_string, &flattened_block_periodic[0], flattened_block_periodic.size());
-            for (unsigned l = 0; l < d_block_periodic[ln].size(); ++l)
+            for (unsigned int l = 0; l < d_block_periodic[ln].size(); ++l)
             {
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     d_block_periodic[ln][l](d) = flattened_block_periodic[NDIM*l+d];
                 }
@@ -2371,9 +2371,9 @@ LSiloDataWriter::getFromRestart()
                     std::vector<int> flattened_mb_nelems;
                     flattened_mb_nelems.resize(NDIM*d_mb_nelems[ln][mb].size());
                     db->getIntegerArray("flattened_mb_nelems"+ln_string+mb_string, &flattened_mb_nelems[0], flattened_mb_nelems.size());
-                    for (unsigned l = 0; l < d_mb_nelems[ln][mb].size(); ++l)
+                    for (unsigned int l = 0; l < d_mb_nelems[ln][mb].size(); ++l)
                     {
-                        for (int d = 0; d < NDIM; ++d)
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             d_mb_nelems[ln][mb][l](d) = flattened_mb_nelems[NDIM*l+d];
                         }
@@ -2383,9 +2383,9 @@ LSiloDataWriter::getFromRestart()
                     std::vector<int> flattened_mb_periodic;
                     flattened_mb_periodic.resize(NDIM*d_mb_periodic[ln][mb].size());
                     db->getIntegerArray("flattened_mb_periodic"+ln_string+mb_string, &flattened_mb_periodic[0], flattened_mb_periodic.size());
-                    for (unsigned l = 0; l < d_mb_periodic[ln][mb].size(); ++l)
+                    for (unsigned int l = 0; l < d_mb_periodic[ln][mb].size(); ++l)
                     {
-                        for (int d = 0; d < NDIM; ++d)
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             d_mb_periodic[ln][mb][l](d) = flattened_mb_periodic[NDIM*l+d];
                         }

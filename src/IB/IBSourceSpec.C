@@ -63,7 +63,7 @@ namespace IBAMR
 bool IBSourceSpec::s_registered_factory = false;
 int  IBSourceSpec::s_class_id = -1;
 
-std::vector<int> IBSourceSpec::s_num_sources;
+std::vector<unsigned int> IBSourceSpec::s_num_sources;
 std::vector<std::vector<std::string> > IBSourceSpec::s_source_names;
 std::vector<std::vector<double> > IBSourceSpec::s_source_radii;
 
@@ -89,7 +89,7 @@ IBSourceSpec::registerWithStreamableManager()
 void
 IBSourceSpec::setNumSources(
     const int ln,
-    const int num_sources)
+    const unsigned int num_sources)
 {
     s_num_sources.resize(std::max(int(s_num_sources.size()),ln+1),0);
     s_num_sources[ln] = num_sources;

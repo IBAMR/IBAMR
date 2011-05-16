@@ -81,7 +81,7 @@ coarsen_index(
     const IntVector<NDIM>& ratio)
 {
     Index<NDIM> coarse_i;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         coarse_i(d) = coarsen(i(d), ratio(d));
     }

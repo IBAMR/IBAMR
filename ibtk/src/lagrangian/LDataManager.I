@@ -82,7 +82,7 @@ LDataManager::levelContainsLagrangianData(
     }
 }// levelContainsLagrangianData
 
-inline int
+inline unsigned int
 LDataManager::getNumberOfNodes(
     const int level_number) const
 {
@@ -94,7 +94,7 @@ LDataManager::getNumberOfNodes(
     return d_num_nodes[level_number];
 }// getNumberOfNodes
 
-inline int
+inline unsigned int
 LDataManager::getNumberOfLocalNodes(
     const int level_number) const
 {
@@ -106,7 +106,7 @@ LDataManager::getNumberOfLocalNodes(
     return d_local_lag_indices[level_number].size();
 }// getNumberOfLocalNodes
 
-inline int
+inline unsigned int
 LDataManager::getGlobalNodeOffset(
     const int level_number) const
 {

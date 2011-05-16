@@ -138,7 +138,7 @@ coarsen(
     const IntVector<NDIM>& ratio)
 {
     Index<NDIM> coarse_index;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         coarse_index(d) = coarsen(index(d),ratio(d));
     }
@@ -162,7 +162,7 @@ bdry_boxes_contain_index(
 inline bool
 is_corner_point(
     const Index<NDIM>& i,
-    const int bdry_normal_axis,
+    const unsigned int bdry_normal_axis,
     const bool is_lower,
     const Box<NDIM>& patch_box,
     const std::vector<const BoundaryBox<NDIM>*>& patch_cf_bdry_boxes,
@@ -183,7 +183,7 @@ is_corner_point(
     // Check to see if the adjacent points in the tangential directions are
     // contained in the coarse-fine interface.  If not, the point is a corner
     // point.
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         if (axis != bdry_normal_axis)
         {
@@ -531,8 +531,8 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(
 
             // NOTE: The following values are only used for co-dimension 1
             // boundary boxes.
-            const int location_index   = bdry_box.getLocationIndex();
-            const int bdry_normal_axis = location_index/2;
+            const unsigned int location_index   = bdry_box.getLocationIndex();
+            const unsigned int bdry_normal_axis = location_index/2;
             const bool is_lower        = location_index%2 == 0;
 
             for (Box<NDIM>::Iterator b(bc_fill_box); b; b++)
@@ -553,12 +553,12 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(
 
                 // Determine the interpolation degrees and weights.
                 blitz::TinyVector<int,NDIM> interp_degree;
-                for (int axis = 0; axis < NDIM; ++axis)
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     interp_degree[axis] = stencil_box_crse.upper()(axis) - stencil_box_crse.lower()(axis);
                 }
                 blitz::TinyVector<std::vector<double>,NDIM> wgts;
-                for (int axis = 0; axis < NDIM; ++axis)
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     const int& degree = interp_degree[axis];
                     const double X = XLower_fine[axis] + dx_fine[axis]*(double(i_fine(axis)-patch_lower_fine(axis))+0.5);
@@ -675,7 +675,7 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_optimized(
         {
             const BoundaryBox<NDIM>& bdry_box = cf_bdry_codim1_boxes[k];
             const Box<NDIM> bc_fill_box = pgeom_fine->getBoundaryFillBox(bdry_box, patch_box_fine, ghost_width_to_fill);
-            const int location_index = bdry_box.getLocationIndex();
+            const unsigned int location_index = bdry_box.getLocationIndex();
             for (int depth = 0; depth < data_depth; ++depth)
             {
                 double* const U_fine = fdata->getPointer(depth);
@@ -770,8 +770,8 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(
         {
             const BoundaryBox<NDIM>& bdry_box = cf_bdry_codim1_boxes[k];
             const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
-            const int location_index   = bdry_box.getLocationIndex();
-            const int bdry_normal_axis = location_index/2;
+            const unsigned int location_index   = bdry_box.getLocationIndex();
+            const unsigned int bdry_normal_axis = location_index/2;
             const bool is_lower        = location_index%2 == 0;
             for (Box<NDIM>::Iterator b(bc_fill_box); b; b++)
             {
@@ -856,7 +856,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_optimized(
         {
             const BoundaryBox<NDIM>& bdry_box = cf_bdry_codim1_boxes[k];
             const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
-            const int location_index = bdry_box.getLocationIndex();
+            const unsigned int location_index = bdry_box.getLocationIndex();
             for (int depth = 0; depth < data_depth; ++depth)
             {
                 double* const U = data->getPointer(depth);

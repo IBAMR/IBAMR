@@ -83,7 +83,7 @@ QInit::QInit(
     const double* const XUpper = d_grid_geom->getXUpper();
     const double* const XLower = d_grid_geom->getXLower();
 
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_X[d] = XLower[d] + 0.5*(XUpper[d] - XLower[d]);
     }
@@ -153,7 +153,7 @@ QInit::setDataOnPatch(
                     {
 #endif
                         r_squared = 0.0;
-                        for (int d = 0; d < NDIM; ++d)
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             X[d] = XLower[d] +
                                 dx[d]*(double(i(d)-patch_lower(d))+0.5);
@@ -180,7 +180,7 @@ QInit::setDataOnPatch(
         {
             const hier::Index<NDIM>& i = ic();
             r_squared = 0.0;
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X[d] = XLower[d] +
                     dx[d]*(double(i(d)-patch_lower(d))+0.5);

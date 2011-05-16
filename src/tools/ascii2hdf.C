@@ -236,7 +236,7 @@ initializeVertexData(
         {
             line_string = discard_comments(line_string);
             istringstream line_stream(line_string);
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 if (!(line_stream >> posn_buf[(NDIM*(k%BUFFER_SIZE)+d)]))
                 {
@@ -592,7 +592,7 @@ initializeBeamData(
     hid_t bend_rigidity_dataset = H5Dcreate1(file_id, beam_bend_rigidity_dset_name.c_str(), H5T_NATIVE_DOUBLE, filespace, plist);
 
     hid_t rest_curvature_dataset[NDIM];
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         ostringstream os;
         os << "_" << d;
@@ -674,7 +674,7 @@ initializeBeamData(
                 abort();
             }
 
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 if (!(line_stream >> rest_curvature[d]))
                 {
@@ -685,7 +685,7 @@ initializeBeamData(
                     }
                     else
                     {
-                        for (int d = 0; d < NDIM; ++d)
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             rest_curvature[d] = 0.0;
                         }
@@ -699,7 +699,7 @@ initializeBeamData(
             node2_idx_buf    [k%BUFFER_SIZE] = node2_idx;
             node3_idx_buf    [k%BUFFER_SIZE] = node3_idx;
             bend_rigidity_buf[k%BUFFER_SIZE] = bend_rigidity;
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 rest_curvature_buf[d][k%BUFFER_SIZE] = rest_curvature[d];
             }
@@ -735,7 +735,7 @@ initializeBeamData(
                 H5Dwrite(node2_idx_dataset    , H5T_NATIVE_INT   , memspace, filespace, H5P_DEFAULT, &node2_idx_buf    [0]);
                 H5Dwrite(node3_idx_dataset    , H5T_NATIVE_INT   , memspace, filespace, H5P_DEFAULT, &node3_idx_buf    [0]);
                 H5Dwrite(bend_rigidity_dataset, H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, &bend_rigidity_buf[0]);
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     H5Dwrite(rest_curvature_dataset[d], H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, &rest_curvature_buf[d][0]);
                 }
@@ -757,7 +757,7 @@ initializeBeamData(
     H5Dclose(node2_idx_dataset);
     H5Dclose(node3_idx_dataset);
     H5Dclose(bend_rigidity_dataset);
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         H5Dclose(rest_curvature_dataset[d]);
     }

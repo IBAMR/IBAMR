@@ -126,7 +126,7 @@ PETScKrylovLinearSolver::setNullspace(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(contains_constant_vector || !nullspace_basis_vecs.empty());
-    for (unsigned k = 0; k < nullspace_basis_vecs.size(); ++k)
+    for (unsigned int k = 0; k < nullspace_basis_vecs.size(); ++k)
     {
         TBOX_ASSERT(!nullspace_basis_vecs[k].isNull());
     }

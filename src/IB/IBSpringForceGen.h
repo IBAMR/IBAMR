@@ -94,7 +94,7 @@ default_linear_spring_force(
      * Compute the distance between the "master" and "slave" nodes.
      */
     double R_sq = 0.0;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         R_sq += D[d]*D[d];
     }
@@ -107,14 +107,14 @@ default_linear_spring_force(
     const double& R0 = rst;
     if (R > std::numeric_limits<double>::epsilon())
     {
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             F[d] = kappa*(1.0-(R0/R))*D[d];
         }
     }
     else
     {
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             F[d] = kappa*D[d];
         }

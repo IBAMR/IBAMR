@@ -391,7 +391,7 @@ HierarchyMathOps::resetLevels(
             wgt_sc_data->fillAll(cell_vol);
 
             // Rescale values along the edges of the patches.
-            for (int axis = 0; axis < NDIM; ++axis)
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 Box<NDIM> face_lower_box = FaceGeometry<NDIM>::toFaceBox(patch_box, axis);
                 face_lower_box.upper()(0) = face_lower_box.lower()(0);
@@ -404,7 +404,7 @@ HierarchyMathOps::resetLevels(
                                 0.5, wgt_sc_data->getArrayData(axis),
                                 side_lower_box);
             }
-            for (int axis = 0; axis < NDIM; ++axis)
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 Box<NDIM> face_upper_box = FaceGeometry<NDIM>::toFaceBox(patch_box, axis);
                 face_upper_box.lower()(0) = face_upper_box.upper()(0);
@@ -427,7 +427,7 @@ HierarchyMathOps::resetLevels(
                 for (int k = 0; k < cf_bdry_boxes.getSize(); ++k)
                 {
                     const Box<NDIM>& bdry_box = cf_bdry_boxes[k].getBox();
-                    const int axis        = cf_bdry_boxes[k].getLocationIndex()/2;
+                    const unsigned int axis        = cf_bdry_boxes[k].getLocationIndex()/2;
                     const int lower_upper = cf_bdry_boxes[k].getLocationIndex()%2;
                     if (!pgeom->getTouchesRegularBoundary(axis,lower_upper))
                     {
@@ -452,7 +452,7 @@ HierarchyMathOps::resetLevels(
                 const IntVector<NDIM>& periodic_shift = d_grid_geom->getPeriodicShift(level->getRatio());
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                 {
-                    for (int axis = 0; axis < NDIM; ++axis)
+                    for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
                         if (periodic_shift(axis) != 0)
                         {
@@ -643,7 +643,7 @@ HierarchyMathOps::curl(
         }
 
         d_hier_cc_data_ops->setToScalar(dst_idx, 0.0, false);
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             grad(d_sc_idx, d_sc_var,
                  true,  // synch coarse-fine boundary
@@ -1551,12 +1551,12 @@ HierarchyMathOps::grad(
             {
                 const Box<NDIM>& patch_box = patch->getBox();
                 Pointer<PatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-                for (int axis = 0; axis < NDIM; ++axis)
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     static const int gcw = 1;
                     Box<NDIM> boundary_box = Box<NDIM>::grow(patch_box, gcw);
-                    const int axis_lower = patch_box.lower()[axis];
-                    const int axis_upper = patch_box.upper()[axis];
+                    const unsigned int axis_lower = patch_box.lower()[axis];
+                    const unsigned int axis_upper = patch_box.upper()[axis];
                     for (int upperlower = 0; upperlower <= 1; ++upperlower)
                     {
                         if (pgeom->getTouchesRegularBoundary(axis,upperlower))
@@ -1656,12 +1656,12 @@ HierarchyMathOps::grad(
             {
                 const Box<NDIM>& patch_box = patch->getBox();
                 Pointer<PatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-                for (int axis = 0; axis < NDIM; ++axis)
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     static const int gcw = 1;
                     Box<NDIM> boundary_box = Box<NDIM>::grow(patch_box, gcw);
-                    const int axis_lower = patch_box.lower()[axis];
-                    const int axis_upper = patch_box.upper()[axis];
+                    const unsigned int axis_lower = patch_box.lower()[axis];
+                    const unsigned int axis_upper = patch_box.upper()[axis];
                     for (int upperlower = 0; upperlower <= 1; ++upperlower)
                     {
                         if (pgeom->getTouchesRegularBoundary(axis,upperlower))

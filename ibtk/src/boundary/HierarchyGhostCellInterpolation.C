@@ -90,7 +90,7 @@ HierarchyGhostCellInterpolation::setHomogeneousBc(
     const bool homogeneous_bc)
 {
     d_homogeneous_bc = homogeneous_bc;
-    for (unsigned comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         if (!d_cc_robin_bc_ops[comp_idx].isNull()) d_cc_robin_bc_ops[comp_idx]->setHomogeneousBc(d_homogeneous_bc);
         for (std::vector<RobinBcCoefStrategy<NDIM>*>::iterator it =
@@ -158,7 +158,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     bool registered_coarsen_op = false;
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    for (unsigned comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const std::string& coarsen_op_name = d_transaction_comps[comp_idx].d_coarsen_op_name;
         if (coarsen_op_name != "NONE")
@@ -201,7 +201,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     d_sc_robin_bc_ops.resize(d_transaction_comps.size());
     d_refine_alg = new RefineAlgorithm<NDIM>();
     std::vector<RefinePatchStrategy<NDIM>*> refine_patch_strategies;
-    for (unsigned comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
         Pointer<Variable<NDIM> > var;
@@ -270,7 +270,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
             TBOX_ASSERT(robin_bc_coefs.size() == NDIM);
 #endif
             blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> robin_bc_coefs_vec;
-            for (int d = 0; d < NDIM; ++d) robin_bc_coefs_vec[d] = robin_bc_coefs[d];
+            for (unsigned int d = 0; d < NDIM; ++d) robin_bc_coefs_vec[d] = robin_bc_coefs[d];
             d_sc_robin_bc_ops[comp_idx] = new CartSideRobinPhysBdryOp(data_idx, robin_bc_coefs_vec, d_homogeneous_bc);
         }
     }
@@ -328,7 +328,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     bool registered_coarsen_op = false;
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    for (unsigned comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const std::string& coarsen_op_name = d_transaction_comps[comp_idx].d_coarsen_op_name;
         if (coarsen_op_name != "NONE")
@@ -361,7 +361,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
 
     // Reset cached refine algorithms and schedules.
     d_refine_alg = new RefineAlgorithm<NDIM>();
-    for (unsigned comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
         Pointer<Variable<NDIM> > var;
@@ -436,7 +436,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
             TBOX_ASSERT(robin_bc_coefs.size() == NDIM);
 #endif
             blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> robin_bc_coefs_vec;
-            for (int d = 0; d < NDIM; ++d) robin_bc_coefs_vec[d] = robin_bc_coefs[d];
+            for (unsigned int d = 0; d < NDIM; ++d) robin_bc_coefs_vec[d] = robin_bc_coefs[d];
             d_sc_robin_bc_ops[comp_idx]->setPhysicalBcCoefs(robin_bc_coefs_vec);
             d_sc_robin_bc_ops[comp_idx]->setPatchDataIndex(data_idx);
         }
@@ -493,7 +493,7 @@ HierarchyGhostCellInterpolation::fillData(
     TBOX_ASSERT(d_is_initialized);
 #endif
     // Ensure the boundary condition objects are in the correct state.
-    for (unsigned comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         if (!d_cc_robin_bc_ops[comp_idx].isNull()) d_cc_robin_bc_ops[comp_idx]->setHomogeneousBc(d_homogeneous_bc);
         for (std::vector<RobinBcCoefStrategy<NDIM>*>::iterator it =
@@ -539,7 +539,7 @@ HierarchyGhostCellInterpolation::fillData(
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            for (unsigned comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+            for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
             {
                 if (!d_cf_bdry_ops[comp_idx].isNull())
                 {
@@ -560,7 +560,7 @@ HierarchyGhostCellInterpolation::fillData(
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
-                for (unsigned comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+                for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
                 {
                     if (!d_cc_robin_bc_ops[comp_idx].isNull())
                     {

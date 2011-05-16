@@ -68,12 +68,12 @@ IBSpringForceSpec::IBSpringForceSpec(
 #endif
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    const int num_springs = d_slave_idxs.size();
-    TBOX_ASSERT(num_springs == int(d_force_fcn_idxs.size()));
-    TBOX_ASSERT(num_springs == int(d_stiffnesses.size()));
-    TBOX_ASSERT(num_springs == int(d_rest_lengths.size()));
+    const unsigned int num_springs = d_slave_idxs.size();
+    TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
+    TBOX_ASSERT(num_springs == d_stiffnesses.size());
+    TBOX_ASSERT(num_springs == d_rest_lengths.size());
 #if ENABLE_SUBDOMAIN_INDICES
-    TBOX_ASSERT(num_springs == int(d_subdomain_idxs.size()));
+    TBOX_ASSERT(num_springs == d_subdomain_idxs.size());
 #endif
 #endif
     if (!s_registered_factory)
@@ -92,14 +92,14 @@ IBSpringForceSpec::~IBSpringForceSpec()
     return;
 }// ~IBSpringForceSpec
 
-inline unsigned
+inline unsigned int
 IBSpringForceSpec::getNumberOfSprings() const
 {
-    const int num_springs = d_slave_idxs.size();
+    const unsigned int num_springs = d_slave_idxs.size();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(num_springs == int(d_force_fcn_idxs.size()));
-    TBOX_ASSERT(num_springs == int(d_stiffnesses.size()));
-    TBOX_ASSERT(num_springs == int(d_rest_lengths.size()));
+    TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
+    TBOX_ASSERT(num_springs == d_stiffnesses.size());
+    TBOX_ASSERT(num_springs == d_rest_lengths.size());
 #endif
     return num_springs;
 }// getNumberOfSprings
@@ -195,11 +195,11 @@ IBSpringForceSpec::getStreamableClassID() const
 inline size_t
 IBSpringForceSpec::getDataStreamSize() const
 {
-    const int num_springs = d_slave_idxs.size();
+    const unsigned int num_springs = d_slave_idxs.size();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(num_springs == int(d_force_fcn_idxs.size()));
-    TBOX_ASSERT(num_springs == int(d_stiffnesses.size()));
-    TBOX_ASSERT(num_springs == int(d_rest_lengths.size()));
+    TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
+    TBOX_ASSERT(num_springs == d_stiffnesses.size());
+    TBOX_ASSERT(num_springs == d_rest_lengths.size());
 #endif
     return ((2+2*num_springs)*SAMRAI::tbox::AbstractStream::sizeofInt() +
             (  2*num_springs)*SAMRAI::tbox::AbstractStream::sizeofDouble())
@@ -213,13 +213,13 @@ inline void
 IBSpringForceSpec::packStream(
     SAMRAI::tbox::AbstractStream& stream)
 {
-    const int num_springs = d_slave_idxs.size();
+    const unsigned int num_springs = d_slave_idxs.size();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(num_springs == int(d_force_fcn_idxs.size()));
-    TBOX_ASSERT(num_springs == int(d_stiffnesses.size()));
-    TBOX_ASSERT(num_springs == int(d_rest_lengths.size()));
+    TBOX_ASSERT(num_springs == d_force_fcn_idxs.size());
+    TBOX_ASSERT(num_springs == d_stiffnesses.size());
+    TBOX_ASSERT(num_springs == d_rest_lengths.size());
 #endif
-    stream.pack(&num_springs,1);
+    stream << int(num_springs);
     stream.pack(&d_master_idx,1);
     stream.pack(&d_slave_idxs[0],num_springs);
     stream.pack(&d_force_fcn_idxs[0],num_springs);

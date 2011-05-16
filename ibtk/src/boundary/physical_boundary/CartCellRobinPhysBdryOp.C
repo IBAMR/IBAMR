@@ -317,7 +317,7 @@ CartCellRobinPhysBdryOp::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned l = 0; l < bc_coefs.size(); ++l)
+    for (unsigned int l = 0; l < bc_coefs.size(); ++l)
     {
         TBOX_ASSERT(bc_coefs[l] != NULL);
     }
@@ -470,7 +470,7 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(
                                "  patch data for patch data index " << patch_data_idx << " does not have uniform ghost cell widths." << std::endl);
                 }
 #endif
-                const int location_index = bdry_box.getLocationIndex();
+                const unsigned int location_index = bdry_box.getLocationIndex();
                 switch (location_index)
                 {
                     case 0:  // lower x
@@ -542,7 +542,7 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(
                                "  patch data for patch data index " << patch_data_idx << " does not have uniform ghost cell widths." << std::endl);
                 }
 #endif
-                const int location_index = bdry_box.getLocationIndex();
+                const unsigned int location_index = bdry_box.getLocationIndex();
                 CC_ROBIN_PHYS_BDRY_OP_2_FC(
                     U, U_gcw,
                     location_index,
@@ -575,7 +575,7 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(
                                "  patch data for patch data index " << patch_data_idx << " does not have uniform ghost cell widths." << std::endl);
                 }
 #endif
-                const int location_index = bdry_box.getLocationIndex();
+                const unsigned int location_index = bdry_box.getLocationIndex();
                 CC_ROBIN_PHYS_BDRY_OP_3_FC(
                     U, U_gcw,
                     location_index,

@@ -386,7 +386,7 @@ main(
     const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
     const bool has_physical_boundaries = periodic_shift.min() == 0;
     blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> u_bc_coefs;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (periodic_shift(d) == 0)
         {
@@ -524,7 +524,7 @@ main(
         }
     }
 
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (periodic_shift(d) == 0) delete u_bc_coefs[d];
     }

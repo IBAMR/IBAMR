@@ -248,10 +248,10 @@ PhysicalBoundaryUtilities::trimBoundaryCodim1Box(
     // Trim a boundary box so it does not stick out past the corners of a patch.
     const Box<NDIM>&     b_box = bdry_box.getBox();
     const Box<NDIM>& patch_box = patch.getBox();
-    const int bdry_normal_axis = bdry_box.getLocationIndex()/2;
+    const unsigned int bdry_normal_axis = bdry_box.getLocationIndex()/2;
 
     Box<NDIM> trimmed_b_box = b_box;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (d != bdry_normal_axis)
         {
@@ -274,8 +274,8 @@ PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(
 #endif
     // Make surface box on boundary.
     Box<NDIM> side_bdry_box = bdry_box.getBox();
-    const int location_index = bdry_box.getLocationIndex();
-    const int bdry_normal_axis =  location_index / 2;
+    const unsigned int location_index = bdry_box.getLocationIndex();
+    const unsigned int bdry_normal_axis =  location_index / 2;
     const bool bdry_lower_side = (location_index % 2) == 0;
     if (bdry_lower_side)
     {

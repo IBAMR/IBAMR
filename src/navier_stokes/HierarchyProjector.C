@@ -220,7 +220,7 @@ HierarchyProjector::HierarchyProjector(
 
     // Setup default velocity boundary condition objects to specify homogeneous
     // Dirichlet boundary conditions for all components of the velocity.
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         std::ostringstream stream;
         stream << d;
@@ -228,7 +228,7 @@ HierarchyProjector::HierarchyProjector(
             d_object_name + "::default_u_bc_coef_" + stream.str(),
             Pointer<Database>(NULL));
 
-        for (int location_index = 0; location_index < 2*NDIM; ++location_index)
+        for (unsigned int location_index = 0; location_index < 2*NDIM; ++location_index)
         {
             u_bc_coef->setBoundaryValue(location_index,0.0);
         }
@@ -241,7 +241,7 @@ HierarchyProjector::HierarchyProjector(
     LocationIndexRobinBcCoefs<NDIM>* P_bc_coef = new LocationIndexRobinBcCoefs<NDIM>(
         d_object_name + "::default_P_bc_coef", Pointer<Database>(NULL));
 
-    for (int location_index = 0; location_index < 2*NDIM; ++location_index)
+    for (unsigned int location_index = 0; location_index < 2*NDIM; ++location_index)
     {
         P_bc_coef->setBoundarySlope(location_index,0.0);
     }
@@ -309,7 +309,7 @@ HierarchyProjector::~HierarchyProjector()
     // Deallocate other components.
     delete d_Phi_bc_coef;
     delete d_default_P_bc_coef;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         delete d_default_u_bc_coefs[d];
     }
@@ -379,7 +379,7 @@ HierarchyProjector::setVelocityPhysicalBcCoefs(
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(u_bc_coefs[d] != NULL);
     }

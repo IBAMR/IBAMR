@@ -110,7 +110,7 @@ public:
     /*!
      * \brief Cached data items.
      */
-    inline int num_elems() const { return d_elems.size(); }
+    inline unsigned int num_elems() const { return d_elems.size(); }
 
     inline const blitz::Array<libMesh::Elem*,1>& elems() const { return d_elems; }
     inline const blitz::Array<blitz::Array<std::vector<unsigned int>,1>,1>& dof_indices() const { return d_dof_indices; }

@@ -278,7 +278,7 @@ CartSideDoubleQuadraticCFInterpolation::postprocessRefine(
         {
             const BoundaryBox<NDIM>& bdry_box = cf_bdry_codim1_boxes[k];
             const Box<NDIM> bc_fill_box = pgeom_fine->getBoundaryFillBox(bdry_box, patch_box_fine, ghost_width_to_fill);
-            const int location_index = bdry_box.getLocationIndex();
+            const unsigned int location_index = bdry_box.getLocationIndex();
             for (int depth = 0; depth < data_depth; ++depth)
             {
                 double* const U_fine0 = fdata->getPointer(0,depth);
@@ -508,7 +508,7 @@ CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(
         {
             const BoundaryBox<NDIM>& bdry_box = cf_bdry_codim1_boxes[k];
             const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
-            const int location_index = bdry_box.getLocationIndex();
+            const unsigned int location_index = bdry_box.getLocationIndex();
             for (int depth = 0; depth < data_depth; ++depth)
             {
                 double* const U0 = data->getPointer(0,depth);

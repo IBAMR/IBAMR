@@ -246,7 +246,7 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
     // Setup default boundary condition objects that specify homogeneous
     // Dirichlet boundary conditions for the velocity.
     d_default_u_bc_coef = new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_u_bc_coef", Pointer<Database>(NULL));
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_default_u_bc_coef->setBoundaryValue(2*d  ,0.0);
         d_default_u_bc_coef->setBoundaryValue(2*d+1,0.0);
@@ -357,7 +357,7 @@ IBImplicitHierarchyIntegrator::~IBImplicitHierarchyIntegrator()
     if (d_helmholtz_spec != NULL) delete d_helmholtz_spec;
     if (d_poisson_spec != NULL) delete d_poisson_spec;
     delete d_default_u_bc_coef;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (d_u_bc_coefs[d] != NULL) delete d_u_bc_coefs[d];
         if (d_u_star_bc_coefs[d] != NULL) delete d_u_star_bc_coefs[d];
@@ -394,19 +394,19 @@ IBImplicitHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
                    << "  of the hierarchy integrator object." << std::endl);
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(u_bc_coefs[d] != NULL);
     }
 #endif
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (d_u_bc_coefs[d] != NULL) delete d_u_bc_coefs[d];
         if (d_u_star_bc_coefs[d] != NULL) delete d_u_star_bc_coefs[d];
     }
     if (d_p_bc_coef != NULL) delete d_p_bc_coef;
     if (d_phi_bc_coef != NULL) delete d_phi_bc_coef;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_u_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,*d_problem_coefs,u_bc_coefs);
         d_u_star_bc_coefs[d] = new INSStaggeredIntermediateVelocityBcCoef(d,u_bc_coefs);
@@ -751,7 +751,7 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
         if (d_output_u)
         {
             d_visit_writer->registerPlotQuantity(d_u_var->getName(), "VECTOR", d_u_cc_current_idx, 0, d_u_scale);
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream stream;
                 stream << d;
@@ -767,7 +767,7 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
         if (!d_f_fcn.isNull() && d_output_f)
         {
             d_visit_writer->registerPlotQuantity(d_f_var->getName(), "VECTOR", d_f_cc_current_idx, 0, d_f_scale);
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream stream;
                 stream << d;
@@ -784,7 +784,7 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
         {
             d_visit_writer->registerPlotQuantity(d_omega_var->getName(), (NDIM == 2) ? "SCALAR" : "VECTOR", d_omega_current_idx);
 #if (NDIM == 3)
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream stream;
                 stream << d;
@@ -860,7 +860,7 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
         const std::string regrid_projection_prefix = "regrid_projection_";
 
         // Setup the various solver components.
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             d_regrid_projection_bc_coef.setBoundarySlope(2*d  ,0.0);
             d_regrid_projection_bc_coef.setBoundarySlope(2*d+1,0.0);
@@ -1277,7 +1277,7 @@ IBImplicitHierarchyIntegrator::regridHierarchy()
 
             Pointer<LData> X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
             const blitz::Array<double,2>& X_array = *X_data->getLocalFormVecArray();
-            for (int i = 0; i < X_data->getLocalNodeCount(); ++i)
+            for (int i = 0; i < int(X_data->getLocalNodeCount()); ++i)
             {
                 for (int d = 0; d < NDIM; ++d)
                 {
@@ -1520,7 +1520,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(
                  cit != d_anchor_point_local_idxs[ln].end(); ++cit)
             {
                 const int local_node_idx = *cit;
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     anchored_rows.push_back(NDIM*(local_node_idx+global_node_offset)+d);
                 }
@@ -2444,7 +2444,7 @@ IBImplicitHierarchyIntegrator::applyGradientDetector(
 #endif
 #if (NDIM == 3)
                     double norm_omega_sq = 0.0;
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         norm_omega_sq += (*omega_current_data)(i,d)*(*omega_current_data)(i,d);
                     }
@@ -2936,7 +2936,7 @@ IBImplicitHierarchyIntegrator::initializeOperatorsAndSolvers(
     rhs_vec->addComponent(d_u_var,u_rhs_idx,d_wgt_sc_idx,d_hier_sc_data_ops);
     rhs_vec->addComponent(d_p_var,p_rhs_idx,d_wgt_cc_idx,d_hier_cc_data_ops);
 
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         INSStaggeredVelocityBcCoef* u_bc_coef = dynamic_cast<INSStaggeredVelocityBcCoef*>(d_u_bc_coefs[d]);
         u_bc_coef->setTimeInterval(current_time,new_time);

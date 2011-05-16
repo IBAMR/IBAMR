@@ -181,7 +181,7 @@ IBMovingTargetPointForceGen::computeLagrangianForce(
 
                 double* const F = &F_arr[NDIM*petsc_idx];
                 double displacement = 0.0;
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     F[d] += kappa_target*(X_target[d] - X[d]) + eta_target*(U_target[d] - U[d]);
                     displacement += pow(X_target[d] - X[d],2.0);
@@ -308,13 +308,13 @@ IBMovingTargetPointForceGen::computeLagrangianForceJacobian(
 
     // Compute the elements of the Jacobian matrix.
     std::vector<double> dF_dX(NDIM*NDIM,0.0);
-    const int num_local_idxs = global_petsc_idxs.size();
-    for (int k = 0; k < num_local_idxs; ++k)
+    const unsigned int num_local_idxs = global_petsc_idxs.size();
+    for (unsigned int k = 0; k < num_local_idxs; ++k)
     {
         const int& global_petsc_idx = global_petsc_idxs[k];
         const double& spring_stiffness = spring_stiffnesses[k];
         const double& damping_coefficient = damping_coefficients[k];
-        for (int alpha = 0; alpha < NDIM; ++alpha)
+        for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
         {
             dF_dX[alpha+alpha*NDIM] = -X_coef*spring_stiffness-U_coef*damping_coefficient;
         }

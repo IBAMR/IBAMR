@@ -197,7 +197,7 @@ CCPoissonHypreLevelSolver::CCPoissonHypreLevelSolver(
 
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions.
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_default_bc_coef->setBoundaryValue(2*d  ,0.0);
         d_default_bc_coef->setBoundaryValue(2*d+1,0.0);
@@ -464,7 +464,7 @@ CCPoissonHypreLevelSolver::allocateHypreData()
     }
 
     int hypre_periodic_shift[3];
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         hypre_periodic_shift[d] = periodic_shift(d);
     }
@@ -595,7 +595,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
 
         SideData<NDIM,double> off_diagonal(patch_box, 1, no_ghosts);
         off_diagonal.fill(0.0);
-        for (int axis = 0; axis < NDIM; ++axis)
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
             array_ops.scale(off_diagonal.getArrayData(axis),
@@ -629,7 +629,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
         for (Box<NDIM>::Iterator b(patch_box); b; b++)
         {
             Index<NDIM> i = b();
-            for (int axis = 0; axis < NDIM; ++axis)
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 const SideIndex<NDIM> ilower(i, axis, SideIndex<NDIM>::Lower);
                 diagonal(i) -= off_diagonal(ilower);
@@ -677,8 +677,8 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
                 acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL,
                 *patch, trimmed_bdry_box, d_apply_time);
 
-            const int location_index = bdry_box.getLocationIndex();
-            const int bdry_normal_axis =  location_index / 2;
+            const unsigned int location_index = bdry_box.getLocationIndex();
+            const unsigned int bdry_normal_axis =  location_index / 2;
             const bool bdry_lower_side = (location_index % 2) == 0;
             const bool bdry_upper_side = (location_index % 2) != 0;
 
@@ -857,7 +857,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
             mat_vals[stencil_center] = (*C_data)(i);
 
             // The grid aligned part of the stencil (normal derivatives).
-            for (int axis = 0; axis < NDIM; ++axis)
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 const double& h = dx[axis];
                 {
@@ -883,10 +883,10 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
             }
 
             // The non-grid aligned part of the stencil (transverse derivatives).
-            for (int norm_axis = 0; norm_axis < NDIM; ++norm_axis)
+            for (unsigned int norm_axis = 0; norm_axis < NDIM; ++norm_axis)
             {
                 const double& norm_h = dx[norm_axis];
-                for (int trans_axis = 0; trans_axis < NDIM; ++trans_axis)
+                for (unsigned int trans_axis = 0; trans_axis < NDIM; ++trans_axis)
                 {
                     if (norm_axis == trans_axis) break;
                     const double& trans_h = dx[trans_axis];
@@ -1596,8 +1596,8 @@ CCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_aligned(
             acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL,
             *patch, trimmed_bdry_box, d_apply_time);
 
-        const int location_index = bdry_box.getLocationIndex();
-        const int bdry_normal_axis =  location_index / 2;
+        const unsigned int location_index = bdry_box.getLocationIndex();
+        const unsigned int bdry_normal_axis =  location_index / 2;
         const bool bdry_upper_side = (location_index % 2) != 0;
         const int bdry_side = (bdry_upper_side ? 1 : 0);
 
@@ -1676,8 +1676,8 @@ CCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_nonaligned(
             acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL,
             *patch, trimmed_bdry_box, d_apply_time);
 
-        const int location_index = bdry_box.getLocationIndex();
-        const int bdry_normal_axis =  location_index / 2;
+        const unsigned int location_index = bdry_box.getLocationIndex();
+        const unsigned int bdry_normal_axis =  location_index / 2;
         const bool bdry_upper_side = (location_index % 2) != 0;
         const int bdry_side = (bdry_upper_side ? 1 : 0);
 

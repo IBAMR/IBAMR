@@ -171,7 +171,7 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(
         (*cit)->DefineConst("PI", pi);
 
         // The extents of the domain.
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             std::ostringstream stream;
             stream << d;
@@ -239,7 +239,7 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(
         // Variables.
         (*cit)->DefineVar("T", d_parser_time);
         (*cit)->DefineVar("t", d_parser_time);
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             std::ostringstream stream;
             stream << d;
@@ -282,8 +282,8 @@ muParserRobinBcCoefs::setBcCoefs(
     const bool fill_bcoef_data = !bcoef_data.isNull();
     const bool fill_gcoef_data = !gcoef_data.isNull();
 
-    const int location_index = bdry_box.getLocationIndex();
-    const int bdry_normal_axis =  location_index / 2;
+    const unsigned int location_index = bdry_box.getLocationIndex();
+    const unsigned int bdry_normal_axis =  location_index / 2;
     const Box<NDIM>& bc_coef_box =
         (fill_acoef_data ? acoef_data->getBox() :
          fill_bcoef_data ? bcoef_data->getBox() :
@@ -302,7 +302,7 @@ muParserRobinBcCoefs::setBcCoefs(
     for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
     {
         const Index<NDIM>& i = b();
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             if (d != bdry_normal_axis)
             {

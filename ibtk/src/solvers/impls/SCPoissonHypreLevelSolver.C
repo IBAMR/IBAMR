@@ -196,7 +196,7 @@ SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(
 
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions.
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_default_bc_coef->setBoundaryValue(2*d  ,0.0);
         d_default_bc_coef->setBoundaryValue(2*d+1,0.0);
@@ -243,7 +243,7 @@ void
 SCPoissonHypreLevelSolver::setPhysicalBcCoefs(
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
 {
-    for (unsigned d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (bc_coefs[d] != NULL)
         {
@@ -451,7 +451,7 @@ SCPoissonHypreLevelSolver::allocateHypreData()
     }
 
     int hypre_periodic_shift[3];
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         hypre_periodic_shift[d] = periodic_shift(d);
     }
@@ -550,7 +550,7 @@ SCPoissonHypreLevelSolver::setMatrixCoefficients_constant_coefficients()
         const double* const patch_x_upper = pgeom->getXUpper();
         const IntVector<NDIM>& ratio_to_level_zero = pgeom->getRatio();
         Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
-        for (int axis = 0; axis < NDIM; ++axis)
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             touches_regular_bdry [axis].resizeArray(2);
             touches_periodic_bdry[axis].resizeArray(2);
@@ -562,7 +562,7 @@ SCPoissonHypreLevelSolver::setMatrixCoefficients_constant_coefficients()
         }
         for (int var = 0; var < NVARS; ++var)
         {
-            const int axis = var;
+            const unsigned int axis = var;
             Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
 
             // Compute all matrix coefficients, including those that touch the
@@ -573,7 +573,7 @@ SCPoissonHypreLevelSolver::setMatrixCoefficients_constant_coefficients()
             SideData<NDIM,double> mat_vals_data(patch_box, stencil_sz, no_ghosts, directions);
 
             std::vector<double> mat_vals(stencil_sz,0.0);
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 const double dx_sq = dx[d]*dx[d];
                 mat_vals[     d] += D/dx_sq;          // lower off-diagonal
@@ -599,8 +599,8 @@ SCPoissonHypreLevelSolver::setMatrixCoefficients_constant_coefficients()
             for (int n = 0; n < n_physical_codim1_boxes; ++n)
             {
                 const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-                const int location_index   = bdry_box.getLocationIndex();
-                const int bdry_normal_axis = location_index/2;
+                const unsigned int location_index   = bdry_box.getLocationIndex();
+                const unsigned int bdry_normal_axis = location_index/2;
                 const bool is_lower        = location_index%2 == 0;
                 if (bdry_normal_axis != axis)
                 {
@@ -618,7 +618,7 @@ SCPoissonHypreLevelSolver::setMatrixCoefficients_constant_coefficients()
                     // with the patch so that boundary conditions are set at the
                     // correct spatial locations.
                     double shifted_patch_x_lower[NDIM], shifted_patch_x_upper[NDIM];
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         shifted_patch_x_lower[d] = patch_x_lower[d];
                         shifted_patch_x_upper[d] = patch_x_upper[d];
@@ -699,8 +699,8 @@ SCPoissonHypreLevelSolver::setMatrixCoefficients_constant_coefficients()
             for (int n = 0; n < n_physical_codim1_boxes; ++n)
             {
                 const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-                const int location_index   = bdry_box.getLocationIndex();
-                const int bdry_normal_axis = location_index/2;
+                const unsigned int location_index   = bdry_box.getLocationIndex();
+                const unsigned int bdry_normal_axis = location_index/2;
                 const bool is_lower        = location_index%2 == 0;
                 if (bdry_normal_axis == axis)
                 {
@@ -1212,7 +1212,7 @@ SCPoissonHypreLevelSolver::copyToHypre(
 
     for (int var = 0; var < NVARS; ++var)
     {
-        const int axis = var;
+        const unsigned int axis = var;
         Index<NDIM> lower = box.lower();
         lower(axis) -= 1;
         Index<NDIM> upper = box.upper();
@@ -1233,7 +1233,7 @@ SCPoissonHypreLevelSolver::copyFromHypre(
 
     for (int var = 0; var < NVARS; ++var)
     {
-        const int axis = var;
+        const unsigned int axis = var;
         Index<NDIM> lower = box.lower();
         lower(axis) -= 1;
         Index<NDIM> upper = box.upper();
@@ -1340,12 +1340,12 @@ SCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_constant_coefficients(
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {
         const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-        const int location_index   = bdry_box.getLocationIndex();
-        const int bdry_normal_axis = location_index/2;
+        const unsigned int location_index   = bdry_box.getLocationIndex();
+        const unsigned int bdry_normal_axis = location_index/2;
 //      const bool is_lower        = location_index%2 == 0;
         for (int var = 0; var < NVARS; ++var)
         {
-            const int axis = var;
+            const unsigned int axis = var;
             if (bdry_normal_axis == axis)
             {
                 const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);

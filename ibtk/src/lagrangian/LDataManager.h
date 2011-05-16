@@ -320,7 +320,7 @@ public:
      * \return The number of total nodes of the Lagrangian data for the
      * specified level of the patch hierarchy.
      */
-    int
+    unsigned int
     getNumberOfNodes(
         const int level_number) const;
 
@@ -331,7 +331,7 @@ public:
      * \note This count does not include nodes that only lie in ghost cells for
      * the current process.
      */
-    int
+    unsigned int
     getNumberOfLocalNodes(
         const int level_number) const;
 
@@ -342,7 +342,7 @@ public:
      * \note This count does not include nodes that only lie in ghost cells for
      * the current process.
      */
-    int
+    unsigned int
     getGlobalNodeOffset(
         const int level_number) const;
 
@@ -375,7 +375,7 @@ public:
     createLData(
         const std::string& quantity_name,
         const int level_number,
-        const int depth=1,
+        const unsigned int depth=1,
         const bool maintain_data=false);
 
     /*!
@@ -937,8 +937,8 @@ private:
         AO& ao,
         std::vector<int>& local_petsc_indices,
         std::vector<int>& nonlocal_petsc_indices,
-        int& num_nodes,
-        int& node_offset,
+        unsigned int& num_nodes,
+        unsigned int& node_offset,
         const int level_number);
 
     /*!
@@ -947,9 +947,9 @@ private:
      */
     static void
     computeNodeOffsets(
-        int& num_nodes,
-        int& node_offset,
-        const int& num_local_nodes);
+        unsigned int& num_nodes,
+        unsigned int& node_offset,
+        const unsigned int& num_local_nodes);
 
     /*!
      * Read object state from the restart file and initialize class data
@@ -1114,13 +1114,13 @@ private:
     /*!
      * The total number of nodes for all processors.
      */
-    std::vector<int> d_num_nodes;
+    std::vector<unsigned int> d_num_nodes;
 
     /*!
      * The total number of local nodes for all processors with rank less than
      * the rank of the current processor.
      */
-    std::vector<int> d_node_offset;
+    std::vector<unsigned int> d_node_offset;
 
     /*!
      * The Lagrangian node indices of all local and nonlocal nodes on each level
@@ -1162,7 +1162,7 @@ private:
      * Since the ordering is different for different depths of LData,
      * we compute one set of indices for each depth that is being reordered.
      */
-    std::vector<std::map<int,std::vector<int> > > d_nonlocal_petsc_indices;
+    std::vector<std::map<unsigned int,std::vector<int> > > d_nonlocal_petsc_indices;
 
     //\}
 };

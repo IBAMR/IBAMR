@@ -88,10 +88,10 @@ FaceSynchCopyFillPattern::calculateOverlap(
     TBOX_ASSERT(t_dst_geometry != NULL);
 #endif
     BoxList<NDIM> dst_boxes[NDIM];
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         bool skip = false;
-        for (int d = 0; d < NDIM && !skip; ++d)
+        for (unsigned int d = 0; d < NDIM && !skip; ++d)
         {
             if (d != axis)
             {

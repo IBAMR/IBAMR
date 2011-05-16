@@ -407,7 +407,7 @@ private:
     void
     __pack(
         const T* const m_data,
-        unsigned m_bytes);
+        unsigned int m_bytes);
 
     /*!
      * \brief Unpack the specified data from the buffer.
@@ -416,7 +416,7 @@ private:
     void
     __unpack(
         T* const m_data,
-        unsigned m_bytes);
+        unsigned int m_bytes);
 
     /*
      * The size of the buffer.

@@ -208,7 +208,7 @@ IBMovingTargetPointForceSpec::registerPeriodicShift(
     const SAMRAI::hier::IntVector<NDIM>& offset,
     const std::vector<double>& displacement)
 {
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_periodic_shift[d] += displacement[d];
     }

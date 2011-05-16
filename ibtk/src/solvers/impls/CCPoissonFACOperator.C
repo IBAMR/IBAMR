@@ -244,7 +244,7 @@ CCPoissonFACOperator::CCPoissonFACOperator(
 
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions.
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_default_bc_coef->setBoundaryValue(2*d  ,0.0);
         d_default_bc_coef->setBoundaryValue(2*d+1,0.0);
@@ -311,7 +311,7 @@ CCPoissonFACOperator::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
     d_bc_coefs.resize(bc_coefs.size());
-    for (unsigned l = 0; l < bc_coefs.size(); ++l)
+    for (unsigned int l = 0; l < bc_coefs.size(); ++l)
     {
         if (bc_coefs[l] != NULL)
         {
@@ -1555,7 +1555,7 @@ CCPoissonFACOperator::buildPatchLaplaceOperator_aligned(
     static const int y_axis = 1; (void) y_axis;
     static const int z_axis = 2; (void) z_axis;
     blitz::TinyVector<int,NDIM> num_cells;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         num_cells[d] = ghost_box.numberCells(d);
     }
@@ -1593,7 +1593,7 @@ CCPoissonFACOperator::buildPatchLaplaceOperator_aligned(
 
         std::vector<double> mat_vals(stencil_sz,0.0);
         mat_vals[NDIM] = (*C_data)(i);
-        for (int axis = 0; axis < NDIM; ++axis)
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             const double& h = dx[axis];
             {
@@ -1678,7 +1678,7 @@ CCPoissonFACOperator::buildPatchLaplaceOperator_nonaligned(
     static const int y_axis = 1; (void) y_axis;
     static const int z_axis = 2; (void) z_axis;
     blitz::TinyVector<int,NDIM> num_cells;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         num_cells[d] = ghost_box.numberCells(d);
     }
@@ -1732,7 +1732,7 @@ CCPoissonFACOperator::buildPatchLaplaceOperator_nonaligned(
         mat_vals[stencil_center] = (*C_data)(i);
 
         // The grid aligned part of the stencil (normal derivatives).
-        for (int axis = 0; axis < NDIM; ++axis)
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             const double& h = dx[axis];
 
@@ -1762,10 +1762,10 @@ CCPoissonFACOperator::buildPatchLaplaceOperator_nonaligned(
         }
 
         // The non-grid aligned part of the stencil (transverse derivatives).
-        for (int norm_axis = 0; norm_axis < NDIM; ++norm_axis)
+        for (unsigned int norm_axis = 0; norm_axis < NDIM; ++norm_axis)
         {
             const double& norm_h = dx[norm_axis];
-            for (int trans_axis = 0; trans_axis < NDIM; ++trans_axis)
+            for (unsigned int trans_axis = 0; trans_axis < NDIM; ++trans_axis)
             {
                 if (norm_axis == trans_axis) break;
                 const double& trans_h = dx[trans_axis];
@@ -1884,7 +1884,7 @@ CCPoissonFACOperator::sanityCheck()
                    << "  invalid coarse solver maximum iterations: " << d_coarse_solver_max_its << std::endl);
     }
 
-    for (unsigned l = 0; l < d_bc_coefs.size(); ++l)
+    for (unsigned int l = 0; l < d_bc_coefs.size(); ++l)
     {
         if (d_bc_coefs[l] == NULL)
         {

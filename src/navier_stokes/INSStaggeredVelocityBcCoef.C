@@ -68,7 +68,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredVelocityBcCoef::INSStaggeredVelocityBcCoef(
-    const int comp_idx,
+    const unsigned int comp_idx,
     const INSCoefs& problem_coefs,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
     const bool homogeneous_bc)
@@ -136,7 +136,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
     double fill_time) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(d_u_bc_coefs[d] != NULL);
     }
@@ -158,8 +158,8 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
     TBOX_ASSERT(!bcoef_data.isNull());
     TBOX_ASSERT(!gcoef_data.isNull());
 #endif
-    const int location_index   = bdry_box.getLocationIndex();
-    const int bdry_normal_axis = location_index/2;
+    const unsigned int location_index   = bdry_box.getLocationIndex();
+    const unsigned int bdry_normal_axis = location_index/2;
     const bool is_lower        = location_index%2 == 0;
     const Box<NDIM>& bc_coef_box = acoef_data->getBox();
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -213,7 +213,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
                     i_intr1(bdry_normal_axis) -= 2;
                 }
 
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     if (d != bdry_normal_axis)
                     {
@@ -230,7 +230,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
                 // condition at the boundary of the domain using extrapolated
                 // values of the tangential velocities.
                 double du_norm_dx_norm = 0.0;
-                for (int axis = 0; axis < NDIM; ++axis)
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     if (axis != bdry_normal_axis)
                     {
@@ -274,13 +274,13 @@ IntVector<NDIM>
 INSStaggeredVelocityBcCoef::numberOfExtensionsFillable() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(d_u_bc_coefs[d] != NULL);
     }
 #endif
     IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         ret_val = IntVector<NDIM>::min(ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
     }

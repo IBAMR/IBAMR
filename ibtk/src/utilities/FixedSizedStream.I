@@ -395,7 +395,7 @@ template<typename T>
 inline void
 FixedSizedStream::__pack(
     const T* const m_data,
-    unsigned m_bytes)
+    unsigned int m_bytes)
 {
     void* const ptr = getPointerAndAdvanceCursor(m_bytes);
     memcpy(ptr, static_cast<const void*>(m_data), m_bytes);
@@ -406,7 +406,7 @@ template<typename T>
 inline void
 FixedSizedStream::__unpack(
     T* const m_data,
-    unsigned m_bytes)
+    unsigned int m_bytes)
 {
     const void* const ptr = getPointerAndAdvanceCursor(m_bytes);
     memcpy(static_cast<void*>(m_data), ptr, m_bytes);

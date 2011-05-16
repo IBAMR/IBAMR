@@ -64,10 +64,10 @@ IBRodForceSpec::IBRodForceSpec(
 #endif
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    const int num_rods = d_next_idxs.size();
-    TBOX_ASSERT(num_rods == int(d_material_params.size()));
+    const unsigned int num_rods = d_next_idxs.size();
+    TBOX_ASSERT(num_rods == d_material_params.size());
 #if ENABLE_SUBDOMAIN_INDICES
-    TBOX_ASSERT(num_rods == int(d_subdomain_idxs.size()));
+    TBOX_ASSERT(num_rods == d_subdomain_idxs.size());
 #endif
 #endif
     if (!s_registered_factory)
@@ -86,12 +86,12 @@ IBRodForceSpec::~IBRodForceSpec()
     return;
 }// ~IBRodForceSpec
 
-inline unsigned
+inline unsigned int
 IBRodForceSpec::getNumberOfRods() const
 {
-    const int num_rods = d_next_idxs.size();
+    const unsigned int num_rods = d_next_idxs.size();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(num_rods == int(d_material_params.size()));
+    TBOX_ASSERT(num_rods == d_material_params.size());
 #endif
     return num_rods;
 }// getNumberOfRods
@@ -163,9 +163,9 @@ IBRodForceSpec::getStreamableClassID() const
 inline size_t
 IBRodForceSpec::getDataStreamSize() const
 {
-    const int num_rods = d_next_idxs.size();
+    const unsigned int num_rods = d_next_idxs.size();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(num_rods == int(d_material_params.size()));
+    TBOX_ASSERT(num_rods == d_material_params.size());
 #endif
     return (( 2+num_rods)*SAMRAI::tbox::AbstractStream::sizeofInt() +
             (10*num_rods)*SAMRAI::tbox::AbstractStream::sizeofDouble())
@@ -179,14 +179,14 @@ inline void
 IBRodForceSpec::packStream(
     SAMRAI::tbox::AbstractStream& stream)
 {
-    const int num_rods = d_next_idxs.size();
+    const unsigned int num_rods = d_next_idxs.size();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(num_rods == int(d_material_params.size()));
+    TBOX_ASSERT(num_rods == d_material_params.size());
 #endif
-    stream.pack(&num_rods,1);
+    stream << int(num_rods);
     stream.pack(&d_master_idx,1);
     stream.pack(&d_next_idxs[0],num_rods);
-    for (int n = 0; n < num_rods; ++n)
+    for (unsigned int n = 0; n < num_rods; ++n)
     {
         stream.pack(&d_material_params[n][0],10);
     }

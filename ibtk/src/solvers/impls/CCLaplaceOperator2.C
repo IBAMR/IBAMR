@@ -123,7 +123,7 @@ CCLaplaceOperator2::CCLaplaceOperator2(
 
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions.
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_default_bc_coef->setBoundaryValue(2*d  ,0.0);
         d_default_bc_coef->setBoundaryValue(2*d+1,0.0);
@@ -172,7 +172,7 @@ CCLaplaceOperator2::CCLaplaceOperator2(
 
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions.
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_default_bc_coef->setBoundaryValue(2*d  ,0.0);
         d_default_bc_coef->setBoundaryValue(2*d+1,0.0);
@@ -219,7 +219,7 @@ CCLaplaceOperator2::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
     d_bc_coefs.resize(bc_coefs.size());
-    for (unsigned l = 0; l < bc_coefs.size(); ++l)
+    for (unsigned int l = 0; l < bc_coefs.size(); ++l)
     {
         if (bc_coefs[l] != NULL)
         {
@@ -299,8 +299,8 @@ CCLaplaceOperator2::apply(
         Pointer<CellDataFactory<NDIM,double> > y_factory = y_cc_var->getPatchDataFactory();
         TBOX_ASSERT(!y_factory.isNull());
 
-        const unsigned x_depth = x_factory->getDefaultDepth();
-        const unsigned y_depth = y_factory->getDefaultDepth();
+        const unsigned int x_depth = x_factory->getDefaultDepth();
+        const unsigned int y_depth = y_factory->getDefaultDepth();
         TBOX_ASSERT(x_depth == y_depth);
 
         if (x_depth != d_bc_coefs.size() || y_depth != d_bc_coefs.size())

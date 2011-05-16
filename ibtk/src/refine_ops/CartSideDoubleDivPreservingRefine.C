@@ -165,7 +165,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
     const Box<NDIM> fine_box = unrestricted_fine_box * Box<NDIM>::grow(fine.getBox(),2);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (ratio(d)%2 != 0)
         {
@@ -205,7 +205,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
         {
             Pointer<SideData<NDIM,double> >     u_src_data = fine.getPatchData(    d_u_src_idx);
             Pointer<SideData<NDIM,double> > indicator_data = fine.getPatchData(d_indicator_idx);
-            for (int axis = 0; axis < NDIM; ++axis)
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_box,axis)); b; b++)
                 {
@@ -265,7 +265,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
         Pointer<CartesianPatchGeometry<NDIM> > pgeom_coarse = coarse.getPatchGeometry();
         const IntVector<NDIM>& ratio_to_level_zero_coarse = pgeom_coarse->getRatio();
         Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
-        for (int axis = 0; axis < NDIM; ++axis)
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             touches_regular_bdry [axis].resizeArray(2);
             touches_periodic_bdry[axis].resizeArray(2);
@@ -279,7 +279,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
 
         const IntVector<NDIM> ratio_to_level_zero_intermediate = ratio_to_level_zero_coarse*2;
         double dx_intermediate[NDIM], x_lower_intermediate[NDIM], x_upper_intermediate[NDIM];
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             dx_intermediate[d] = 0.5*dx_coarse[d];
             x_lower_intermediate[d] = pgeom_coarse->getXLower()[d];

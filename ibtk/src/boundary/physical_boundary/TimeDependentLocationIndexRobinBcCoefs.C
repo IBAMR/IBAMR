@@ -138,11 +138,11 @@ TimeDependentLocationIndexRobinBcCoefs::~TimeDependentLocationIndexRobinBcCoefs(
 
 void
 TimeDependentLocationIndexRobinBcCoefs::setBoundaryTimeConstant(
-    int location_index,
-    double tau)
+    const unsigned int location_index,
+    const double tau)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT((location_index >= 0) && (location_index < 2*NDIM));
+    TBOX_ASSERT(location_index < 2*NDIM);
     TBOX_ASSERT(tau > 0.0);
 #endif
     d_tau[location_index] = tau;
@@ -151,11 +151,11 @@ TimeDependentLocationIndexRobinBcCoefs::setBoundaryTimeConstant(
 
 void
 TimeDependentLocationIndexRobinBcCoefs::setBoundaryInitialValue(
-    int location_index,
-    double value)
+    const unsigned int location_index,
+    const double value)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT((location_index >= 0) && (location_index < 2*NDIM));
+    TBOX_ASSERT(location_index < 2*NDIM);
 #endif
     d_a_coef[location_index] = 1.0;
     d_b_coef[location_index] = 0.0;
@@ -165,11 +165,11 @@ TimeDependentLocationIndexRobinBcCoefs::setBoundaryInitialValue(
 
 void
 TimeDependentLocationIndexRobinBcCoefs::setBoundaryFinalValue(
-    int location_index,
-    double value)
+    const unsigned int location_index,
+    const double value)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT((location_index >= 0) && (location_index < 2*NDIM));
+    TBOX_ASSERT(location_index < 2*NDIM);
 #endif
     d_a_coef[location_index] = 1.0;
     d_b_coef[location_index] = 0.0;
@@ -179,11 +179,11 @@ TimeDependentLocationIndexRobinBcCoefs::setBoundaryFinalValue(
 
 void
 TimeDependentLocationIndexRobinBcCoefs::setBoundaryInitialSlope(
-    int location_index,
-    double slope)
+    const unsigned int location_index,
+    const double slope)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT((location_index >= 0) && (location_index < 2*NDIM));
+    TBOX_ASSERT(location_index < 2*NDIM);
 #endif
     d_a_coef[location_index] = 0.0;
     d_b_coef[location_index] = 1.0;
@@ -193,11 +193,11 @@ TimeDependentLocationIndexRobinBcCoefs::setBoundaryInitialSlope(
 
 void
 TimeDependentLocationIndexRobinBcCoefs::setBoundaryFinalSlope(
-    int location_index,
-    double slope)
+    const unsigned int location_index,
+    const double slope)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT((location_index >= 0) && (location_index < 2*NDIM));
+    TBOX_ASSERT(location_index < 2*NDIM);
 #endif
     d_a_coef[location_index] = 0.0;
     d_b_coef[location_index] = 1.0;
@@ -215,7 +215,7 @@ TimeDependentLocationIndexRobinBcCoefs::setBcCoefs(
     const BoundaryBox<NDIM>& bdry_box,
     double fill_time) const
 {
-    for (int location_index = 0; location_index < 2*NDIM; ++location_index)
+    for (unsigned int location_index = 0; location_index < 2*NDIM; ++location_index)
     {
         const double tau = d_tau[location_index];
         const double a = d_a_coef[location_index];

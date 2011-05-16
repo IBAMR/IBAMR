@@ -153,7 +153,7 @@ PoissonTester::initializeLevelData(
             (*F_data)(i) *= sin(2.0*M_PI*(xLower[0] + (i[0] - patch_lower[0] + 0.5)*dx[0]));
             (*V_data)(i) *= sin(2.0*M_PI*(xLower[0] + (i[0] - patch_lower[0] + 0.5)*dx[0]));
 
-            for (int d = 1; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 (*F_data)(i) *= cos(2.0*M_PI*(xLower[d] + (i[d] - patch_lower[d] + 0.5)*dx[d]));
                 (*V_data)(i) *= cos(2.0*M_PI*(xLower[d] + (i[d] - patch_lower[d] + 0.5)*dx[d]));

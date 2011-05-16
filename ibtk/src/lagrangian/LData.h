@@ -70,8 +70,8 @@ public:
      */
     LData(
         const std::string& name,
-        const int num_local_nodes,
-        const int depth,
+        const unsigned int num_local_nodes,
+        const unsigned int depth,
         const std::vector<int>& nonlocal_petsc_indices=std::vector<int>(0));
 
     /*!
@@ -127,7 +127,7 @@ public:
     /*!
      * \brief Returns the total number of Lagrangian nodes.
      */
-    int
+    unsigned int
     getGlobalNodeCount() const;
 
     /*!
@@ -135,21 +135,21 @@ public:
      *
      * \note This count does not include ghost nodes (if any).
      */
-    int
+    unsigned int
     getLocalNodeCount() const;
 
     /*!
      * \brief Returns the number of local ghost nodes associated with the LData
      * object.
      */
-    int
+    unsigned int
     getGhostNodeCount() const;
 
     /*!
      * \brief Returns the depth (i.e., the number of components per node) of the
      * Lagrangian data.
      */
-    int
+    unsigned int
     getDepth() const;
 
     /*!
@@ -341,22 +341,22 @@ private:
     /*
      * The total number of nodes in the mesh.
      */
-    int d_global_node_count;
+    unsigned int d_global_node_count;
 
     /*
      * The number of local nodes in the mesh.
      */
-    int d_local_node_count;
+    unsigned int d_local_node_count;
 
     /*
      * The number of local ghost nodes.
      */
-    int d_ghost_node_count;
+    unsigned int d_ghost_node_count;
 
     /*
      * The depth (i.e., number of components per node) of the LData.
      */
-    int d_depth;
+    unsigned int d_depth;
 
     /*
      * The nonlocal PETSc indices available in the ghosted local form.

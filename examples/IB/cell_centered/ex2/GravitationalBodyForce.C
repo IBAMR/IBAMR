@@ -87,7 +87,7 @@ GravitationalBodyForce::setDataOnPatch(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!f_data.isNull());
 #endif
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         f_data->fill(d_gravitational_force[d],d);
     }

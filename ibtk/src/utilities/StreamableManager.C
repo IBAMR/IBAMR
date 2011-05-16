@@ -210,10 +210,9 @@ StreamableManager::packStream(
     AbstractStream& stream,
     std::vector<Pointer<Streamable> >& data_items)
 {
-    const int num_data = data_items.size();
+    const int num_data = data_items.size();;
     stream.pack(&num_data,1);
-    for_each(data_items.begin(),data_items.end(),
-             StreamablePackStream(&stream));
+    for_each(data_items.begin(),data_items.end(),StreamablePackStream(&stream));
     return;
 }// packStream
 
@@ -226,8 +225,7 @@ StreamableManager::unpackStream(
     int num_data;
     stream.unpack(&num_data,1);
     data_items.resize(num_data);
-    generate(data_items.begin(),data_items.end(),
-             StreamableUnpackStream(&stream,offset));
+    generate(data_items.begin(),data_items.end(),StreamableUnpackStream(&stream,offset));
     std::vector<Pointer<Streamable> >(data_items).swap(data_items); // trim-to-fit
     return;
 }// unpackStream

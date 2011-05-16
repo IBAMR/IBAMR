@@ -92,11 +92,10 @@ BJacobiPreconditioner::~BJacobiPreconditioner()
 void
 BJacobiPreconditioner::setComponentPreconditioner(
     Pointer<LinearSolver> preconditioner,
-    const int component)
+    const unsigned int component)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!preconditioner.isNull());
-    TBOX_ASSERT(component >= 0);
 #endif
     d_pc_map[component] = preconditioner;
     return;
@@ -185,7 +184,7 @@ BJacobiPreconditioner::initializeSolverState(
     // Initialize the component preconditioners.
     const std::string& x_name = x.getName();
     const std::string& b_name = b.getName();
-    for (std::map<int,Pointer<LinearSolver> >::iterator it = d_pc_map.begin();
+    for (std::map<unsigned int,Pointer<LinearSolver> >::iterator it = d_pc_map.begin();
          it != d_pc_map.end(); ++it)
     {
         const int comp = it->first;
@@ -214,7 +213,7 @@ BJacobiPreconditioner::deallocateSolverState()
     if (!d_is_initialized) return;
 
     // Deallocate the component preconditioners.
-    for (std::map<int,Pointer<LinearSolver> >::iterator it = d_pc_map.begin();
+    for (std::map<unsigned int,Pointer<LinearSolver> >::iterator it = d_pc_map.begin();
          it != d_pc_map.end(); ++it)
     {
         const int comp = it->first;

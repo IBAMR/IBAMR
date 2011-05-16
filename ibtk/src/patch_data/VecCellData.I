@@ -44,7 +44,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template<class TYPE>
-inline int
+inline unsigned int
 VecCellData<TYPE>::getDepth() const
 {
     return d_depth;
@@ -87,16 +87,16 @@ template<class TYPE>
 inline TYPE&
 VecCellData<TYPE>::operator()(
     const SAMRAI::pdat::CellIndex<NDIM>& i,
-    const int depth)
+    const unsigned int depth)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT((depth >= 0) && (depth < d_depth));
+    TBOX_ASSERT(depth < d_depth);
     TBOX_ASSERT(getGhostBox().contains(i));
 #endif
 #if   (NDIM == 2)
-    return d_data(depth,i(0),i(1));
+    return d_data(static_cast<int>(depth),i(0),i(1));
 #elif (NDIM == 3)
-    return d_data(depth,i(0),i(1),i(2));
+    return d_data(static_cast<int>(depth),i(0),i(1),i(2));
 #else
     TBOX_ERROR("VecCellData implemented only for NDIM=2,3\n");
     static TYPE dummy;
@@ -108,16 +108,16 @@ template<class TYPE>
 inline const TYPE&
 VecCellData<TYPE>::operator()(
     const SAMRAI::pdat::CellIndex<NDIM>& i,
-    const int depth) const
+    const unsigned int depth) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT((depth >= 0) && (depth < d_depth));
+    TBOX_ASSERT(depth < d_depth);
     TBOX_ASSERT(getGhostBox().contains(i));
 #endif
 #if   (NDIM == 2)
-    return d_data(depth,i(0),i(1));
+    return d_data(static_cast<int>(depth),i(0),i(1));
 #elif (NDIM == 3)
-    return d_data(depth,i(0),i(1),i(2));
+    return d_data(static_cast<int>(depth),i(0),i(1),i(2));
 #else
     TBOX_ERROR("VecCellData implemented only for NDIM=2,3\n");
     static TYPE dummy;
@@ -191,13 +191,14 @@ VecCellData<TYPE>::copyOnBox(
     const SAMRAI::hier::Box<NDIM>& box)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_depth == src.getDepth());
+    TBOX_ASSERT(src.getDepth() >= 0);
+    TBOX_ASSERT(d_depth == static_cast<unsigned int>(src.getDepth()));
 #endif
     const SAMRAI::hier::Box<NDIM> copy_box = box * getGhostBox() * src.getGhostBox();
     for (Iterator i(copy_box); i; i++)
     {
         const SAMRAI::hier::Index<NDIM>& idx = i();
-        for (int d = 0; d < d_depth; ++d)
+        for (unsigned int d = 0; d < d_depth; ++d)
         {
             (*this)(idx,d) = src(idx,d);
         }
@@ -212,13 +213,14 @@ VecCellData<TYPE>::copy2OnBox(
     const SAMRAI::hier::Box<NDIM>& box) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_depth == dst.getDepth());
+    TBOX_ASSERT(dst.getDepth() >= 0);
+    TBOX_ASSERT(d_depth == static_cast<unsigned int>(dst.getDepth()));
 #endif
     const SAMRAI::hier::Box<NDIM> copy_box = box * getGhostBox() * dst.getGhostBox();
     for (Iterator i(copy_box); i; i++)
     {
         const SAMRAI::hier::Index<NDIM>& idx = i();
-        for (int d = 0; d < d_depth; ++d)
+        for (unsigned int d = 0; d < d_depth; ++d)
         {
             dst(idx,d) = (*this)(idx,d);
         }
@@ -230,10 +232,10 @@ template<class TYPE>
 inline void
 VecCellData<TYPE>::fill(
     const TYPE& t,
-    const int d)
+    const unsigned int d)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT((d >= 0) && (d < d_depth));
+    TBOX_ASSERT(d < d_depth);
 #endif
 #if   (NDIM == 2)
     d_data(d,blitz::Range::all(),blitz::Range::all()) = t;
@@ -250,10 +252,10 @@ inline void
 VecCellData<TYPE>::fill(
     const TYPE& t,
     const SAMRAI::hier::Box<NDIM>& box,
-    const int d)
+    const unsigned int d)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT((d >= 0) && (d < d_depth));
+    TBOX_ASSERT(d < d_depth);
 #endif
     const SAMRAI::hier::Index<NDIM>& lower = box.lower();
     const SAMRAI::hier::Index<NDIM>& upper = box.upper();

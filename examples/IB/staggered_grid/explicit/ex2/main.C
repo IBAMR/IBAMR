@@ -149,7 +149,7 @@ linear_spring_force(
      * Compute the distance between the "master" and "slave" nodes.
      */
     double r_sq = 0.0;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         r_sq += D[d]*D[d];
     }
@@ -163,7 +163,7 @@ linear_spring_force(
     {
         const double ratio = r/rst - 1.0;
         const double T = stf*ratio;
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             F[d] = T*D[d]/r;
         }
@@ -517,7 +517,7 @@ main(
         blitz::TinyVector<solv::RobinBcCoefStrategy<NDIM>*,NDIM> u_bc_coefs;
         if (!periodic_domain)
         {
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 ostringstream bc_coefs_name_stream;
                 bc_coefs_name_stream << "u_bc_coefs_" << d;
@@ -826,7 +826,7 @@ main(
          */
         if (!periodic_domain)
         {
-            for (int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
+            for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
         }
     }// cleanup all smart Pointers prior to shutdown
 

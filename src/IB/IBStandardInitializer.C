@@ -84,7 +84,7 @@ namespace IBAMR
 
 namespace
 {
-static const int NUM_ROD_PARAMS = 10;
+static const unsigned int NUM_ROD_PARAMS = 10;
 
 inline std::string
 discard_comments(
@@ -284,7 +284,7 @@ IBStandardInitializer::getLevelHasLagrangianData(
     return !d_num_vertex[level_number].empty();
 }// getLevelHasLagrangianData
 
-int
+unsigned int
 IBStandardInitializer::computeLocalNodeCountOnPatchLevel(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
@@ -330,11 +330,11 @@ IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
     return;
 }// initializeStructureIndexingOnPatchLevel
 
-int
+unsigned int
 IBStandardInitializer::initializeDataOnPatchLevel(
     const int lag_node_index_idx,
-    const int global_index_offset,
-    const int local_index_offset,
+    const unsigned int global_index_offset,
+    const unsigned int local_index_offset,
     Pointer<LData>& X_data,
     Pointer<LData>& U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
@@ -449,10 +449,10 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     return local_node_count;
 }// initializeDataOnPatchLevel
 
-int
+unsigned int
 IBStandardInitializer::initializeMassDataOnPatchLevel(
-    const int global_index_offset,
-    const int local_index_offset,
+    const unsigned int global_index_offset,
+    const unsigned int local_index_offset,
     Pointer<LData>& M_data,
     Pointer<LData>& K_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
@@ -510,10 +510,10 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
     return local_node_count;
 }// initializeMassOnPatchLevel
 
-int
+unsigned int
 IBStandardInitializer::initializeDirectorDataOnPatchLevel(
-    const int global_index_offset,
-    const int local_index_offset,
+    const unsigned int global_index_offset,
+    const unsigned int local_index_offset,
     Pointer<LData>& D_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
@@ -637,7 +637,7 @@ IBStandardInitializer::initializeLSiloDataWriter(
     // memory available to a single MPI process.
     if (SAMRAI_MPI::getRank() == 0)
     {
-        for (unsigned j = 0; j < d_num_vertex[level_number].size(); ++j)
+        for (unsigned int j = 0; j < d_num_vertex[level_number].size(); ++j)
         {
             const std::string postfix = "_vertices";
             d_silo_writer->registerMarkerCloud(
@@ -646,7 +646,7 @@ IBStandardInitializer::initializeLSiloDataWriter(
         }
 
         bool registered_spring_edge_map = false;
-        for (unsigned j = 0; j < d_num_vertex[level_number].size(); ++j)
+        for (unsigned int j = 0; j < d_num_vertex[level_number].size(); ++j)
         {
             if (d_spring_edge_map[level_number][j].size() > 0)
             {
@@ -658,7 +658,7 @@ IBStandardInitializer::initializeLSiloDataWriter(
             }
         }
 
-        for (unsigned j = 0; j < d_num_vertex[level_number].size(); ++j)
+        for (unsigned int j = 0; j < d_num_vertex[level_number].size(); ++j)
         {
             if (d_rod_edge_map[level_number][j].size() > 0)
             {
@@ -683,11 +683,11 @@ IBStandardInitializer::readVertexFiles()
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filename = d_base_filename[ln].size();
+        const unsigned int num_base_filename = d_base_filename[ln].size();
         d_num_vertex[ln].resize(num_base_filename,std::numeric_limits<int>::max());
         d_vertex_offset[ln].resize(num_base_filename,std::numeric_limits<int>::max());
         d_vertex_posn[ln].resize(num_base_filename);
-        for (int j = 0; j < num_base_filename; ++j)
+        for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
@@ -744,7 +744,7 @@ IBStandardInitializer::readVertexFiles()
                 {
                     line_string = discard_comments(line_string);
                     std::istringstream line_stream(line_string);
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (!(line_stream >> d_vertex_posn[ln][j][k*NDIM+d]))
                         {
@@ -783,10 +783,10 @@ IBStandardInitializer::readSpringFiles()
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filename = d_base_filename[ln].size();
+        const unsigned int num_base_filename = d_base_filename[ln].size();
         d_spring_edge_map[ln].resize(num_base_filename);
         d_spring_spec_data[ln].resize(num_base_filename);
-        for (int j = 0; j < num_base_filename; ++j)
+        for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             bool warned = false;
 
@@ -1006,9 +1006,9 @@ IBStandardInitializer::readBeamFiles()
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filename = d_base_filename[ln].size();
+        const unsigned int num_base_filename = d_base_filename[ln].size();
         d_beam_spec_data[ln].resize(num_base_filename);
-        for (int j = 0; j < num_base_filename; ++j)
+        for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             bool warned = false;
 
@@ -1103,7 +1103,7 @@ IBStandardInitializer::readBeamFiles()
                         }
 
                         bool curv_found_in_input = false;
-                        for (int d = 0; d < NDIM; ++d)
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             double c;
                             if (!(line_stream >> c))
@@ -1200,10 +1200,10 @@ IBStandardInitializer::readRodFiles()
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filename = d_base_filename[ln].size();
+        const unsigned int num_base_filename = d_base_filename[ln].size();
         d_rod_edge_map[ln].resize(num_base_filename);
         d_rod_spec_data[ln].resize(num_base_filename);
-        for (int j = 0; j < num_base_filename; ++j)
+        for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
@@ -1463,9 +1463,9 @@ IBStandardInitializer::readTargetPointFiles()
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filename = d_base_filename[ln].size();
+        const unsigned int num_base_filename = d_base_filename[ln].size();
         d_target_spec_data[ln].resize(num_base_filename);
-        for (int j = 0; j < num_base_filename; ++j)
+        for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             bool warned = false;
 
@@ -1634,9 +1634,9 @@ IBStandardInitializer::readAnchorPointFiles()
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filename = d_base_filename[ln].size();
+        const unsigned int num_base_filename = d_base_filename[ln].size();
         d_anchor_spec_data[ln].resize(num_base_filename);
-        for (int j = 0; j < num_base_filename; ++j)
+        for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
@@ -1745,9 +1745,9 @@ IBStandardInitializer::readBoundaryMassFiles()
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filename = d_base_filename[ln].size();
+        const unsigned int num_base_filename = d_base_filename[ln].size();
         d_bdry_mass_spec_data[ln].resize(num_base_filename);
-        for (int j = 0; j < num_base_filename; ++j)
+        for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
@@ -1889,9 +1889,9 @@ IBStandardInitializer::readDirectorFiles()
 
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filename = d_base_filename[ln].size();
+        const unsigned int num_base_filename = d_base_filename[ln].size();
         d_directors[ln].resize(num_base_filename);
-        for (int j = 0; j < num_base_filename; ++j)
+        for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
@@ -1993,9 +1993,9 @@ IBStandardInitializer::readInstrumentationFiles()
     std::vector<std::string> instrument_names;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filename = d_base_filename[ln].size();
+        const unsigned int num_base_filename = d_base_filename[ln].size();
         d_instrument_idx[ln].resize(num_base_filename);
-        for (int j = 0; j < num_base_filename; ++j)
+        for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
@@ -2208,9 +2208,9 @@ IBStandardInitializer::readSourceFiles()
         int source_offset = 0;
         std::vector<std::string> source_names;
         std::vector<double> source_radii;
-        const int num_base_filename = d_base_filename[ln].size();
+        const unsigned int num_base_filename = d_base_filename[ln].size();
         d_source_idx[ln].resize(num_base_filename);
-        for (int j = 0; j < num_base_filename; ++j)
+        for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
@@ -2387,7 +2387,7 @@ IBStandardInitializer::getPatchVertices(
     const double* const xLower = patch_geom->getXLower();
     const double* const xUpper = patch_geom->getXUpper();
 
-    for (unsigned j = 0; j < d_num_vertex[level_number].size(); ++j)
+    for (unsigned int j = 0; j < d_num_vertex[level_number].size(); ++j)
     {
         for (int k = 0; k < d_num_vertex[level_number][j]; ++k)
         {
@@ -2491,7 +2491,7 @@ IBStandardInitializer::getVertexSourceIndices(
 std::vector<Pointer<Streamable> >
 IBStandardInitializer::initializeSpecs(
     const std::pair<int,int>& point_index,
-    const int global_index_offset,
+    const unsigned int global_index_offset,
     const int level_number) const
 {
     std::vector<Pointer<Streamable> > vertex_specs;
@@ -2818,7 +2818,7 @@ IBStandardInitializer::getFromInput(
     // Read in any sub-databases associated with the input file names.
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filename = d_base_filename[ln].size();
+        const unsigned int num_base_filename = d_base_filename[ln].size();
 
         d_enable_springs[ln].resize(num_base_filename,true);
         d_using_uniform_spring_stiffness[ln].resize(num_base_filename,false);
@@ -2866,7 +2866,7 @@ IBStandardInitializer::getFromInput(
 
         d_enable_sources[ln].resize(num_base_filename,true);
 
-        for (int j = 0; j < num_base_filename; ++j)
+        for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             const std::string& base_filename = d_base_filename[ln][j];
             if (db->isDatabase(base_filename))
@@ -3037,8 +3037,8 @@ IBStandardInitializer::getFromInput(
     pout << d_object_name << ":  Reading from input files: " << std::endl;
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_base_filename = d_base_filename[ln].size();
-        for (int j = 0; j < num_base_filename; ++j)
+        const unsigned int num_base_filename = d_base_filename[ln].size();
+        for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             const std::string& base_filename = d_base_filename[ln][j];
             pout << "  base filename: " << base_filename << std::endl

@@ -644,13 +644,13 @@ PETScKrylovLinearSolver::resetKSPNullspace()
             }
 
             d_petsc_nullsp_basis.resize(d_solver_nullsp_basis.size());
-            for (unsigned k = 0; k < d_solver_nullsp_basis.size(); ++k)
+            for (unsigned int k = 0; k < d_solver_nullsp_basis.size(); ++k)
             {
                 d_petsc_nullsp_basis[k] = PETScSAMRAIVectorReal::createPETScVector(d_solver_nullsp_basis[k], d_petsc_comm);
                 nullspace_vecs.push_back(d_petsc_nullsp_basis[k]);
             }
 
-            for (unsigned k = 0; k < nullspace_vecs.size(); ++k)
+            for (unsigned int k = 0; k < nullspace_vecs.size(); ++k)
             {
                 Vec petsc_nvec = nullspace_vecs[k];
                 double one_dot_one;
@@ -692,7 +692,7 @@ PETScKrylovLinearSolver::deallocateNullspaceData()
         d_solver_nullsp_constant.setNull();
     }
 
-    for (unsigned k = 0; k < d_petsc_nullsp_basis.size(); ++k)
+    for (unsigned int k = 0; k < d_petsc_nullsp_basis.size(); ++k)
     {
         PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_nullsp_basis[k]);
     }
@@ -711,7 +711,7 @@ PETScKrylovLinearSolver::PCShellSetFromOptions_SAMRAI(
     if (!krylov_solver->d_pc_shell_types.empty())
     {
         std::vector<const char*> pc_shell_types(krylov_solver->d_pc_shell_types.size());
-        for (unsigned k = 0; k < krylov_solver->d_pc_shell_types.size(); ++k)
+        for (unsigned int k = 0; k < krylov_solver->d_pc_shell_types.size(); ++k)
         {
             pc_shell_types[k] = krylov_solver->d_pc_shell_types[k].c_str();
         }

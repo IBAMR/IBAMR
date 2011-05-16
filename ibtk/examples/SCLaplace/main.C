@@ -269,7 +269,7 @@ main(
                                                                 visit_number_procs_per_file);
 
             visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "VECTOR", u_cc_idx);
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream stream;
                 stream << d;
@@ -277,7 +277,7 @@ main(
             }
 
             visit_data_writer->registerPlotQuantity(f_cc_var->getName(), "VECTOR", f_cc_idx);
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream stream;
                 stream << d;
@@ -285,7 +285,7 @@ main(
             }
 
             visit_data_writer->registerPlotQuantity(e_cc_var->getName(), "VECTOR", e_cc_idx);
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream stream;
                 stream << d;

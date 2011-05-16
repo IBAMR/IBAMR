@@ -109,12 +109,12 @@ inline int
 compute_side_index(
     const Index<NDIM>& i,
     const Box<NDIM>& box,
-    const int axis)
+    const unsigned int axis)
 {
     const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(box,axis);
     if (!side_box.contains(i)) return -1;
     int offset = 0;
-    for (int d = 0; d < axis; ++d)
+    for (unsigned int d = 0; d < axis; ++d)
     {
         offset += SideGeometry<NDIM>::toSideBox(box,d).size();
     }
@@ -128,7 +128,7 @@ compute_cell_index(
 {
     if (!box.contains(i)) return -1;
     int offset = 0;
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         offset += SideGeometry<NDIM>::toSideBox(box,axis).size();
     }
@@ -153,7 +153,7 @@ buildBoxOperator(
     // Allocate a PETSc matrix for the box operator.
     Box<NDIM> side_boxes[NDIM];
     BoxList<NDIM> side_ghost_boxes[NDIM];
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         side_boxes[axis] = SideGeometry<NDIM>::toSideBox(box, axis);
         side_ghost_boxes[axis] = SideGeometry<NDIM>::toSideBox(ghost_box, axis);
@@ -163,7 +163,7 @@ buildBoxOperator(
     cell_ghost_boxes.removeIntersections(box);
 
     int size = 0;
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         size += SideGeometry<NDIM>::toSideBox(ghost_box, axis).size();
     }
@@ -173,7 +173,7 @@ buildBoxOperator(
     static const int P_stencil_sz = 2*NDIM+1;
     std::vector<int> nnz(size, 0);
 
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         for (Box<NDIM>::Iterator b(side_boxes[axis]); b; b++)
         {
@@ -216,7 +216,7 @@ buildBoxOperator(
     // coarse-fine interfaces are implicitly treated by setting ghost cell
     // values appropriately.  Thus the matrix coefficients are independent of
     // any boundary conditions.
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         for (Box<NDIM>::Iterator b(side_boxes[axis]); b; b++)
         {
@@ -229,7 +229,7 @@ buildBoxOperator(
             mat_cols[0] = mat_row;
             mat_vals[0] = (rho/dt) + 0.5*lambda;
 
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 Index<NDIM> shift = 0;
                 shift(d) = 1;
@@ -270,7 +270,7 @@ buildBoxOperator(
         mat_cols[0] = mat_row;
         mat_vals[0] = 0.0;
 
-        for (int axis = 0; axis < NDIM; ++axis)
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             Index<NDIM> shift = 0;
             shift(axis) = 1;
@@ -290,7 +290,7 @@ buildBoxOperator(
 
     // Set the entries in the ghost cell region so that ghost cell values are
     // not modified by the smoother.
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         for (BoxList<NDIM>::Iterator bl(side_ghost_boxes[axis]); bl; bl++)
         {
@@ -331,7 +331,7 @@ modifyRhsForBcs(
     int ierr;
 
     const double mu = problem_coefs.getMu();
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(box, axis);
         for (Box<NDIM>::Iterator b(side_box); b; b++)
@@ -339,7 +339,7 @@ modifyRhsForBcs(
             Index<NDIM> i = b();
             const int idx = compute_side_index(i, ghost_box, axis);
 
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 Index<NDIM> shift = 0;
                 shift(d) = 1;
@@ -385,7 +385,7 @@ copyToVec(
 {
     int ierr;
 
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(box, axis);
         for (Box<NDIM>::Iterator b(side_box); b; b++)
@@ -422,7 +422,7 @@ copyFromVec(
     const double omega = 0.65;
 
     double U;
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(box, axis);
         for (Box<NDIM>::Iterator b(side_box); b; b++)
@@ -533,7 +533,7 @@ INSStaggeredBoxRelaxationFACOperator::INSStaggeredBoxRelaxationFACOperator(
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions for the velocity and homogeneous Neumann
     // boundary conditions for the pressure.
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_default_U_bc_coef->setBoundaryValue(2*d  ,0.0);
         d_default_U_bc_coef->setBoundaryValue(2*d+1,0.0);
@@ -607,7 +607,7 @@ INSStaggeredBoxRelaxationFACOperator::setPhysicalBcCoefs(
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs,
     RobinBcCoefStrategy<NDIM>* P_bc_coef)
 {
-    for (unsigned d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (U_bc_coefs[d] != NULL)
         {
@@ -947,7 +947,7 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
             TBOX_ASSERT(  U_error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(U_scratch_data->getGhostCellWidth() == d_gcw);
 #endif
-            for (int axis = 0; axis < NDIM; ++axis)
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 U_scratch_data->getArrayData(axis).copy(
                     U_error_data->getArrayData(axis),
@@ -993,7 +993,7 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
                     TBOX_ASSERT(  U_error_data->getGhostCellWidth() == d_gcw);
                     TBOX_ASSERT(U_scratch_data->getGhostCellWidth() == d_gcw);
 #endif
-                    for (int axis = 0; axis < NDIM; ++axis)
+                    for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
                         U_error_data->getArrayData(axis).copy(
                             U_scratch_data->getArrayData(axis),
@@ -1066,7 +1066,7 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
             // Copy updated values from other local patches.
             if (d_smoother_choice == "multiplicative")
             {
-                for (int axis = 0; axis < NDIM; ++axis)
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     const std::map<int,Box<NDIM> > side_smoother_bc_boxes = d_patch_side_smoother_bc_boxes[level_num][patch_counter][axis];
                     for (std::map<int,Box<NDIM> >::const_iterator cit = side_smoother_bc_boxes.begin();
@@ -1469,7 +1469,7 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
         const IntVector<NDIM>& ratio = d_hierarchy->getPatchLevel(ln)->getRatio();
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             dx[d] = dx_coarsest[d]/double(ratio(d));
         }
@@ -1502,7 +1502,7 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
             const Box<NDIM>& patch_box = patch->getBox();
 
             d_patch_side_bc_box_overlap[ln][patch_counter].resize(NDIM);
-            for (int axis = 0; axis < NDIM; ++axis)
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box,axis);
                 const Box<NDIM> side_ghost_box = Box<NDIM>::grow(side_box, 1);
@@ -1548,7 +1548,7 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
             for (PatchLevel<NDIM>::Iterator p1(level); p1; p1++, ++patch_counter1)
             {
                 d_patch_side_smoother_bc_boxes[ln][patch_counter1].resize(NDIM);
-                for (int axis = 0; axis < NDIM; ++axis)
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     d_patch_side_smoother_bc_boxes[ln][patch_counter1][axis].clear();
                 }
@@ -1563,7 +1563,7 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
                     Pointer<Patch<NDIM> > src_patch = level->getPatch(p2());
                     const Box<NDIM>& src_patch_box = src_patch->getBox();
 
-                    for (int axis = 0; axis < NDIM; ++axis)
+                    for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
                         const Box<NDIM> overlap =
                             SideGeometry<NDIM>::toSideBox(dst_ghost_box,axis) *
@@ -1843,7 +1843,7 @@ INSStaggeredBoxRelaxationFACOperator::sanityCheck()
                    << "  invalid coarse solver maximum iterations: " << d_coarse_solver_max_its << std::endl);
     }
 
-    for (unsigned d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (d_U_bc_coefs[d] == NULL)
         {

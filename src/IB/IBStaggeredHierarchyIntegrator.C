@@ -375,7 +375,7 @@ IBStaggeredHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
                    << "  of the hierarchy integrator object.\n");
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(U_bc_coefs[d] != NULL);
     }
@@ -1013,7 +1013,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
                         double* const F_K_half = &F_K_half_arr[NDIM*i];
 
                         double displacement = 0.0;
-                        for (int d = 0; d < NDIM; ++d)
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             double Y_minus_X = 0.5*(Y_new[d] + Y[d]) - X_half[d];
                             displacement += Y_minus_X*Y_minus_X;
@@ -1224,7 +1224,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     {
         const std::vector<std::string>& instrument_name = d_instrument_panel->getInstrumentNames();
         const std::vector<double>& flow_data = d_instrument_panel->getFlowValues();
-        for (unsigned m = 0; m < flow_data.size(); ++m)
+        for (unsigned int m = 0; m < flow_data.size(); ++m)
         {
             // NOTE: Flow volume is calculated in default units.
             d_total_flow_volume[m] += flow_data[m]*dt;
@@ -1572,7 +1572,7 @@ IBStaggeredHierarchyIntegrator::regridHierarchy()
             }
 
             const blitz::Array<double,2>& X_array = *X_data[ln]->getLocalFormVecArray();
-            for (int i = 0; i < X_data[ln]->getLocalNodeCount(); ++i)
+            for (int i = 0; i < int(X_data[ln]->getLocalNodeCount()); ++i)
             {
                 for (int d = 0; d < NDIM; ++d)
                 {
@@ -1972,7 +1972,7 @@ IBStaggeredHierarchyIntegrator::applyGradientDetector(
         for (int n = 0; n < d_n_src[finer_level_number]; ++n)
         {
             double dx_finer[NDIM];
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 dx_finer[d] = dx[d]/double(finer_level->getRatio()(d));
             }
@@ -1980,7 +1980,7 @@ IBStaggeredHierarchyIntegrator::applyGradientDetector(
             // The source radius must be an integer multiple of the grid
             // spacing.
             double r[NDIM];
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 r[d] = floor(d_r_src[finer_level_number][n]/dx_finer[d])*dx_finer[d];
                 r[d] = std::max(r[d],2.0*dx_finer[d]);
@@ -1990,7 +1990,7 @@ IBStaggeredHierarchyIntegrator::applyGradientDetector(
             const Index<NDIM> i_center = IndexUtilities::getCellIndex(
                 d_X_src[finer_level_number][n], xLower, xUpper, dx_finer, lower, upper);
             Box<NDIM> stencil_box(i_center,i_center);
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 stencil_box.grow(d, int(ceil(r[d]/dx_finer[d])));
             }
@@ -2341,7 +2341,7 @@ IBStaggeredHierarchyIntegrator::computeSourceStrengths(
                     // The source radius must be an integer multiple of the grid
                     // spacing.
                     double r[NDIM];
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         r[d] = floor(d_r_src[ln][n]/dx[d])*dx[d];
                         r[d] = std::max(r[d],2.0*dx[d]);
@@ -2351,7 +2351,7 @@ IBStaggeredHierarchyIntegrator::computeSourceStrengths(
                     const Index<NDIM> i_center = IndexUtilities::getCellIndex(
                         d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
                     Box<NDIM> stencil_box(i_center,i_center);
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         stencil_box.grow(d, int(ceil(r[d]/dx[d])));
                     }
@@ -2362,7 +2362,7 @@ IBStaggeredHierarchyIntegrator::computeSourceStrengths(
                         const Index<NDIM>& i = b();
 
                         double wgt = 1.0;
-                        for (int d = 0; d < NDIM; ++d)
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             const double X_center = xLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
                             wgt *= cos_delta(X_center - d_X_src[ln][n][d], r[d]);
@@ -2382,7 +2382,7 @@ IBStaggeredHierarchyIntegrator::computeSourceStrengths(
     for (int ln = coarsest_level; ln <= finest_level; ++ln)
     {
         Q_sum = std::accumulate(d_Q_src[ln].begin(), d_Q_src[ln].end(), Q_sum);
-        for (unsigned k = 0; k < d_Q_src[ln].size(); ++k)
+        for (unsigned int k = 0; k < d_Q_src[ln].size(); ++k)
         {
             Q_max = std::max(Q_max,std::abs(d_Q_src[ln][k]));
         }
@@ -2420,7 +2420,7 @@ IBStaggeredHierarchyIntegrator::computeSourceStrengths(
         const double* const dx_coarsest = grid_geom->getDx();
 
         Box<NDIM> interior_box = domain_box;
-        for (int d = 0; d < NDIM-1; ++d)
+        for (unsigned int d = 0; d < NDIM-1; ++d)
         {
             interior_box.grow(d,-1);
         }
@@ -2428,7 +2428,7 @@ IBStaggeredHierarchyIntegrator::computeSourceStrengths(
         BoxList<NDIM> bdry_boxes;
         bdry_boxes.removeIntersections(domain_box,interior_box);
         double vol = double(bdry_boxes.getTotalSizeOfBoxes());
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             vol *= dx_coarsest[d];
         }
@@ -2488,7 +2488,7 @@ IBStaggeredHierarchyIntegrator::computeSourcePressures(
         const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
 
         Box<NDIM> interior_box = domain_box;
-        for (int d = 0; d < NDIM-1; ++d)
+        for (unsigned int d = 0; d < NDIM-1; ++d)
         {
             interior_box.grow(d,-1);
         }
@@ -2576,7 +2576,7 @@ IBStaggeredHierarchyIntegrator::computeSourcePressures(
                     // The source radius must be an integer multiple of the grid
                     // spacing.
                     double r[NDIM];
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         r[d] = floor(d_r_src[ln][n]/dx[d])*dx[d];
                         r[d] = std::max(r[d],2.0*dx[d]);
@@ -2586,7 +2586,7 @@ IBStaggeredHierarchyIntegrator::computeSourcePressures(
                     const Index<NDIM> i_center = IndexUtilities::getCellIndex(
                         d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
                     Box<NDIM> stencil_box(i_center,i_center);
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         stencil_box.grow(d, int(ceil(r[d]/dx[d])));
                     }
@@ -2597,7 +2597,7 @@ IBStaggeredHierarchyIntegrator::computeSourcePressures(
                         const Index<NDIM>& i = b();
 
                         double wgt = 1.0;
-                        for (int d = 0; d < NDIM; ++d)
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             const double X_center = xLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
                             wgt *= cos_delta(X_center - d_X_src[ln][n][d], r[d])*dx[d];

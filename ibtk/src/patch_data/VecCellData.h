@@ -109,7 +109,7 @@ public:
     static size_t
     getSizeOfData(
         const SAMRAI::hier::Box<NDIM>& box,
-        const int depth,
+        const unsigned int depth,
         const SAMRAI::hier::IntVector<NDIM>& ghosts);
 
     /*!
@@ -126,7 +126,7 @@ public:
      */
     VecCellData(
         const SAMRAI::hier::Box<NDIM>& box,
-        const int depth,
+        const unsigned int depth,
         const SAMRAI::hier::IntVector<NDIM>& ghosts);
 
     /*!
@@ -139,7 +139,7 @@ public:
      * \brief Return the depth (e.g., the number of components in each spatial
      * location) of the array.
      */
-    int
+    unsigned int
     getDepth() const;
 
     /*!
@@ -169,7 +169,7 @@ public:
     TYPE&
     operator()(
         const SAMRAI::pdat::CellIndex<NDIM>& i,
-        const int depth);
+        const unsigned int depth);
 
     /*!
      * \brief Return a const reference to cell data entry corresponding to a
@@ -178,7 +178,7 @@ public:
     const TYPE&
     operator()(
         const SAMRAI::pdat::CellIndex<NDIM>& i,
-        const int depth) const;
+        const unsigned int depth) const;
 
     /*!
      * \brief Return a reference to the Blitz++ array object for the cell
@@ -328,7 +328,7 @@ public:
     void
     fill(
         const TYPE& t,
-        const int d=0);
+        const unsigned int d=0);
 
     /*!
      * \brief Fill all values at depth d within the box with the value t.
@@ -337,7 +337,7 @@ public:
     fill(
         const TYPE& t,
         const SAMRAI::hier::Box<NDIM>& box,
-        const int d=0);
+        const unsigned int d=0);
 
     /*!
      * \brief Fill all depth components with value t.
@@ -394,7 +394,7 @@ public:
     void
     print(
         const SAMRAI::hier::Box<NDIM>& box,
-        const int depth,
+        const unsigned int depth,
         std::ostream& os=SAMRAI::tbox::plog,
         const int prec=12) const;
 
@@ -466,7 +466,7 @@ private:
     putArrayToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database);
 
-    int d_depth;
+    unsigned int d_depth;
     blitz::Array<TYPE,NDIM+1> d_data;
 
 };

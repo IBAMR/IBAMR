@@ -214,7 +214,7 @@ main(
                 {
                     const hier::Index<NDIM>& i = b();
                     (*data)(i) = 0;
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         (*data)(i) += 4*(d+1)*(d+1)*i(d);
                     }
@@ -247,7 +247,7 @@ main(
                 {
                     const hier::Index<NDIM>& i = b();
                     double val = 0;
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         val += 4*(d+1)*(d+1)*i(d);
                     }
@@ -281,7 +281,7 @@ main(
                 {
                     const hier::Index<NDIM>& i = b();
                     double X[NDIM];
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         X[d] = xLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
                     }
@@ -293,7 +293,7 @@ main(
                 tbox::plog << "\n";
 
                 solv::LocationIndexRobinBcCoefs<NDIM> dirichlet_bc_coef("dirichlet_bc_coef", NULL);
-                for (int d = 0; d < NDIM-1; ++d)
+                for (unsigned int d = 0; d < NDIM-1; ++d)
                 {
                     dirichlet_bc_coef.setBoundarySlope(2*d  ,0.0);
                     dirichlet_bc_coef.setBoundarySlope(2*d+1,0.0);
@@ -313,7 +313,7 @@ main(
                 {
                     const hier::Index<NDIM>& i = b();
                     double X[NDIM];
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         X[d] = xLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
                     }
@@ -337,7 +337,7 @@ main(
                 }
 
                 solv::LocationIndexRobinBcCoefs<NDIM> neumann_bc_coef("neumann_bc_coef", NULL);
-                for (int d = 0; d < NDIM-1; ++d)
+                for (unsigned int d = 0; d < NDIM-1; ++d)
                 {
                     neumann_bc_coef.setBoundarySlope(2*d  ,0.0);
                     neumann_bc_coef.setBoundarySlope(2*d+1,0.0);
@@ -357,7 +357,7 @@ main(
                 {
                     const hier::Index<NDIM>& i = b();
                     double X[NDIM];
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         X[d] = xLower[d] + dx[d]*(double(i(d)-patch_lower(d))+0.5);
                     }

@@ -349,7 +349,7 @@ CartSideRobinPhysBdryOp::setPhysicalBcCoefs(
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(bc_coefs[d] != NULL);
     }
@@ -393,7 +393,7 @@ CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(
     // Indicate whether we are employing homogeneous or inhomogeneous boundary
     // conditions for all extended Robin BC coef strategy objects employed by
     // this object.
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[d]);
         if (extended_bc_coef != NULL)
@@ -537,7 +537,7 @@ CartSideRobinPhysBdryOp::setCodimension1BdryValues(
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
     blitz::TinyVector<double*,NDIM> U;
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         U[axis] = patch_data->getPointer(axis);
     }
@@ -552,7 +552,7 @@ CartSideRobinPhysBdryOp::setCodimension1BdryValues(
 
     Box<NDIM> side_box[NDIM];
     Index<NDIM> side_box_lower[NDIM], side_box_upper[NDIM];
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         side_box[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
         side_box_lower[axis] = side_box[axis].lower();
@@ -564,9 +564,9 @@ CartSideRobinPhysBdryOp::setCodimension1BdryValues(
     {
         const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
         const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
-        const int location_index   = bdry_box.getLocationIndex();
-        const int bdry_normal_axis = location_index / 2;
-        const int axis = bdry_normal_axis;
+        const unsigned int location_index   = bdry_box.getLocationIndex();
+        const unsigned int bdry_normal_axis = location_index / 2;
+        const unsigned int axis = bdry_normal_axis;
         const BoundaryBox<NDIM> trimmed_bdry_box(bdry_box.getBox()*bc_fill_box, bdry_box.getBoundaryType(), location_index);
         const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
         Pointer<ArrayData<NDIM,double> > acoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
@@ -639,7 +639,7 @@ CartSideRobinPhysBdryOp::setCodimension1BdryValues(
     // Set the transverse components.
     const IntVector<NDIM>& ratio_to_level_zero = pgeom->getRatio();
     Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         touches_regular_bdry [axis].resizeArray(2);
         touches_periodic_bdry[axis].resizeArray(2);
@@ -653,10 +653,10 @@ CartSideRobinPhysBdryOp::setCodimension1BdryValues(
     {
         const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
         const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
-        const int location_index   = bdry_box.getLocationIndex();
-        const int bdry_normal_axis = location_index / 2;
+        const unsigned int location_index   = bdry_box.getLocationIndex();
+        const unsigned int bdry_normal_axis = location_index / 2;
         const BoundaryBox<NDIM> trimmed_bdry_box(bdry_box.getBox()*bc_fill_box, bdry_box.getBoundaryType(), location_index);
-        for (int axis = 0; axis < NDIM; ++axis)
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             if (axis != bdry_normal_axis)
             {
@@ -669,7 +669,7 @@ CartSideRobinPhysBdryOp::setCodimension1BdryValues(
                 // the patch so that boundary conditions are set at the correct
                 // spatial locations.
                 double shifted_patch_x_lower[NDIM], shifted_patch_x_upper[NDIM];
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     shifted_patch_x_lower[d] = patch_x_lower[d];
                     shifted_patch_x_upper[d] = patch_x_upper[d];
@@ -772,7 +772,7 @@ CartSideRobinPhysBdryOp::setCodimension2BdryValues(
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
     blitz::TinyVector<double*,NDIM> U;
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         U[axis] = patch_data->getPointer(axis);
     }
@@ -785,7 +785,7 @@ CartSideRobinPhysBdryOp::setCodimension2BdryValues(
 #if (NDIM == 3)
     Box<NDIM> side_box[NDIM];
     Index<NDIM> side_box_lower[NDIM], side_box_upper[NDIM];
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         side_box[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
         side_box_lower[axis] = side_box[axis].lower();
@@ -797,7 +797,7 @@ CartSideRobinPhysBdryOp::setCodimension2BdryValues(
     {
         const BoundaryBox<NDIM>& bdry_box = physical_codim2_boxes[n];
         const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
-        const int location_index = bdry_box.getLocationIndex();
+        const unsigned int location_index = bdry_box.getLocationIndex();
         SC_ROBIN_PHYS_BDRY_OP_2_FC(
             U[0], U[1],
 #if (NDIM == 3)
@@ -819,7 +819,7 @@ CartSideRobinPhysBdryOp::setCodimension2BdryValues(
 #if (NDIM == 3)
         if (location_index >= 0 && location_index < 4)
         {
-            static const int axis = 0;
+            static const unsigned int axis = 0;
             CC_ROBIN_PHYS_BDRY_OP_2_FC(
                 U[axis], U_gcw,
                 location_index,
@@ -832,7 +832,7 @@ CartSideRobinPhysBdryOp::setCodimension2BdryValues(
         }
         else if (location_index >= 4 && location_index < 8)
         {
-            static const int axis = 1;
+            static const unsigned int axis = 1;
             CC_ROBIN_PHYS_BDRY_OP_2_FC(
                 U[axis], U_gcw,
                 location_index,
@@ -845,7 +845,7 @@ CartSideRobinPhysBdryOp::setCodimension2BdryValues(
         }
         else if (location_index >= 8 && location_index < 12)
         {
-            static const int axis = 2;
+            static const unsigned int axis = 2;
             CC_ROBIN_PHYS_BDRY_OP_2_FC(
                 U[axis], U_gcw,
                 location_index,
@@ -884,7 +884,7 @@ CartSideRobinPhysBdryOp::setCodimension3BdryValues(
 #endif
     const IntVector<NDIM> gcw_to_fill = IntVector<NDIM>::min(patch_data->getGhostCellWidth(), ghost_width_to_fill);
     blitz::TinyVector<double*,NDIM> U;
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         U[axis] = patch_data->getPointer(axis);
     }
@@ -898,7 +898,7 @@ CartSideRobinPhysBdryOp::setCodimension3BdryValues(
     {
         const BoundaryBox<NDIM>& bdry_box = physical_codim3_boxes[n];
         const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
-        const int location_index = bdry_box.getLocationIndex();
+        const unsigned int location_index = bdry_box.getLocationIndex();
         SC_ROBIN_PHYS_BDRY_OP_3_FC(
             U[0], U[1], U[2], U_gcw,
             location_index,

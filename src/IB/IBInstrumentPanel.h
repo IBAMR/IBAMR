@@ -238,7 +238,7 @@ private:
      * \brief Instrumentation data.
      */
     bool d_initialized;
-    int d_num_meters;
+    unsigned int d_num_meters;
     std::vector<int> d_num_perimeter_nodes;
     std::vector<blitz::TinyVector<double,NDIM> > d_X_centroid;
     std::vector<blitz::Array<blitz::TinyVector<double,NDIM>,1> > d_X_perimeter;

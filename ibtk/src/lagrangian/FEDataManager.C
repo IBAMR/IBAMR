@@ -96,7 +96,7 @@ flatten(
     const std::vector<std::vector<Elem*> >& elem_patch_map)
 {
     std::set<Elem*> elem_set;
-    for (unsigned k = 0; k < elem_patch_map.size(); ++k)
+    for (unsigned int k = 0; k < elem_patch_map.size(); ++k)
     {
         elem_set.insert(elem_patch_map[k].begin(),elem_patch_map[k].end());
     }
@@ -353,14 +353,14 @@ FEDataManager::spread(
     {
         // The relevant collection of elements.
         const blitz::Array<unsigned int,1>& patch_elems = d_patch_active_elem_map(local_patch_num);
-        const int num_active_patch_elems = patch_elems.size();
+        const unsigned int num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
         // Loop over the elements and compute the values to be spread and the
         // positions of the quadrature points.
         int qp_offset = 0;
         std::vector<double> F_JxW_qp, X_qp;
-        for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             const unsigned int e = patch_elems(e_idx);
             const blitz::Array<std::vector<unsigned int>,1>& dof_indices = cached_dof_indices(e);
@@ -450,13 +450,13 @@ FEDataManager::interp(
     {
         // The relevant collection of elements.
         const blitz::Array<unsigned int,1>& patch_elems = d_patch_active_elem_map(local_patch_num);
-        const int num_active_patch_elems = patch_elems.size();
+        const unsigned int num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
         // Loop over the elements and compute the positions of the quadrature points.
         int qp_offset = 0;
         std::vector<double> F_qp, X_qp;
-        for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             const unsigned int e = patch_elems(e_idx);
             const blitz::Array<std::vector<unsigned int>,1>& X_dof_indices = cached_X_dof_indices(e);
@@ -493,7 +493,7 @@ FEDataManager::interp(
         // Loop over the elements and accumulate the right-hand-side values.
         qp_offset = 0;
         std::vector<DenseVector<double> > rhs_e(n_vars);
-        for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             const unsigned int e = patch_elems(e_idx);
             blitz::Array<std::vector<unsigned int>,1> dof_indices = cached_dof_indices(e).copy();
@@ -936,9 +936,9 @@ FEDataManager::applyGradientDetector(
             Pointer<CellData<NDIM,int> > tag_data = patch->getPatchData(tag_index);
 
             const blitz::Array<unsigned int,1>& patch_elems = active_level_elem_map(local_patch_num);
-            const int num_active_patch_elems = patch_elems.size();
+            const unsigned int num_active_patch_elems = patch_elems.size();
             if (num_active_patch_elems == 0) continue;
-            for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+            for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 const unsigned int e = patch_elems(e_idx);
                 const Elem* const elem = active_level_elems(e);
@@ -1163,9 +1163,9 @@ FEDataManager::updateQuadPointCountData(
 
                 // Keep track of the number of quadrature points in each Cartesian grid cell.
                 const blitz::Array<unsigned int,1>& patch_elems = d_patch_active_elem_map(local_patch_num);
-                const int num_active_patch_elems = patch_elems.size();
+                const unsigned int num_active_patch_elems = patch_elems.size();
                 if (num_active_patch_elems == 0) continue;
-                for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+                for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
                 {
                     const unsigned int e = patch_elems(e_idx);
                     const Elem* const elem = d_active_elems(e);
@@ -1285,9 +1285,9 @@ FEDataManager::collectActivePatchElements(
     Elem** const el_end   = el_begin + active_elems.size();
     for (int local_patch_num = 0; local_patch_num < num_local_patches; ++local_patch_num)
     {
-        const int num_elems = active_patch_elem_vec[local_patch_num].size();
+        const unsigned int num_elems = active_patch_elem_vec[local_patch_num].size();
         patch_active_elem_map(local_patch_num).resize(num_elems);
-        for (int k = 0; k < num_elems; ++k)
+        for (unsigned int k = 0; k < num_elems; ++k)
         {
             const Elem* const elem = active_patch_elem_vec[local_patch_num][k];
             patch_active_elem_map(local_patch_num)(k) = std::distance(el_begin,std::lower_bound(el_begin,el_end,elem));
@@ -1326,7 +1326,7 @@ FEDataManager::collectActivePatchElements_helper(
         std::vector<double> xLower(pgeom->getXLower(),pgeom->getXLower()+NDIM);
         std::vector<double> xUpper(pgeom->getXUpper(),pgeom->getXUpper()+NDIM);
         const double* const dx = pgeom->getDx();
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             xLower[d] -= dx[d]*ghost_width[d];
             xUpper[d] += dx[d]*ghost_width[d];
@@ -1342,7 +1342,7 @@ FEDataManager::collectActivePatchElements_helper(
             const double* const elem_lower_bound = &elem_bounds[2*NDIM*elem_id     ];
             const double* const elem_upper_bound = &elem_bounds[2*NDIM*elem_id+NDIM];
             bool in_patch = true;
-            for (int d = 0; d < NDIM && in_patch; ++d)
+            for (unsigned int d = 0; d < NDIM && in_patch; ++d)
             {
                 in_patch = in_patch && ((elem_upper_bound[d] >= xLower[d] && elem_upper_bound[d] <= xUpper[d]) ||
                                         (elem_lower_bound[d] >= xLower[d] && elem_lower_bound[d] <= xUpper[d]));
@@ -1371,7 +1371,7 @@ FEDataManager::collectActivePatchElements_helper(
             for (std::vector<Elem*>::const_iterator cit = patch_elems.begin(); cit != patch_elems.end(); ++cit)
             {
                 const Elem* const elem = *cit;
-                for (unsigned n = 0; n < elem->n_neighbors(); ++n)
+                for (unsigned int n = 0; n < elem->n_neighbors(); ++n)
                 {
                     Elem* const nghbr_elem = elem->neighbor(n);
                     if (nghbr_elem != NULL && nghbr_elem->active() &&
@@ -1470,7 +1470,7 @@ FEDataManager::collectActivePatchElements_helper(
     // Sort the element pointers so that they are in ascending order, in an
     // attempt to improve cache performance.  This probably doesn't make any
     // real difference in practice.
-    for (unsigned k = 0; k < active_patch_elems.size(); ++k)
+    for (unsigned int k = 0; k < active_patch_elems.size(); ++k)
     {
         std::sort(active_patch_elems[k].begin(), active_patch_elems[k].end());
     }

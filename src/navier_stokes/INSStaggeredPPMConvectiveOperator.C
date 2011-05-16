@@ -346,7 +346,7 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
             Box<NDIM> side_boxes[NDIM];
             Pointer<FaceData<NDIM,double> >  U_adv_data[NDIM];
             Pointer<FaceData<NDIM,double> > U_half_data[NDIM];
-            for (int axis = 0; axis < NDIM; ++axis)
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 side_boxes [axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
                 U_adv_data [axis] = new FaceData<NDIM,double>(side_boxes[axis],1,ghosts);
@@ -390,7 +390,7 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
                 U_adv_data[2]->getGhostCellWidth()(0),  U_adv_data[2]->getGhostCellWidth()(1),  U_adv_data[2]->getGhostCellWidth()(2),
                 U_adv_data[2]->getPointer(0),           U_adv_data[2]->getPointer(1),           U_adv_data[2]->getPointer(2));
 #endif
-            for (int axis = 0; axis < NDIM; ++axis)
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 Pointer<SideData<NDIM,double> > dU_data =
                     new SideData<NDIM,double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
@@ -477,7 +477,7 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
                 U_half_data[2]->getGhostCellWidth()(0), U_half_data[2]->getGhostCellWidth()(1), U_half_data[2]->getGhostCellWidth()(2),
                 U_half_data[2]->getPointer(0),          U_half_data[2]->getPointer(1),          U_half_data[2]->getPointer(2));
 #endif
-            for (int axis = 0; axis < NDIM; ++axis)
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 switch (d_difference_form)
                 {

@@ -82,13 +82,13 @@ public:
     static void
     setNumSources(
         const int ln,
-        const int num_sources);
+        const unsigned int num_sources);
 
     /*!
      * \brief Get the number of internal sources and sinks on the specified
      * level of the patch hierarchy.
      */
-    static int
+    static unsigned int
     getNumSources(
         const int ln);
 
@@ -226,7 +226,7 @@ private:
     /*!
      * The numbers of sources/sinks on each level of the patch hierarchy.
      */
-    static std::vector<int> s_num_sources;
+    static std::vector<unsigned int> s_num_sources;
 
     /*!
      * The names of the sources and sinks.

@@ -96,13 +96,13 @@ VelocityBcCoefs::setBcCoefs(
     const double* const grid_XUpper = d_grid_geometry->getXUpper();
     const double* const grid_XLower = d_grid_geometry->getXLower();
     double L[NDIM];
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         L[d] = grid_XUpper[d] - grid_XLower[d];
     }
 
-    const int location_index = bdry_box.getLocationIndex();
-    const int bdry_normal_axis =  location_index / 2;
+    const unsigned int location_index = bdry_box.getLocationIndex();
+    const unsigned int bdry_normal_axis =  location_index / 2;
     const hier::Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(bdry_box);
 
     if (location_index == 0) // x lower
@@ -120,7 +120,7 @@ VelocityBcCoefs::setBcCoefs(
             for (hier::Box<NDIM>::Iterator b(bc_coef_box); b; b++)
             {
                 const hier::Index<NDIM>& i = b();
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     if (d != bdry_normal_axis)
                     {

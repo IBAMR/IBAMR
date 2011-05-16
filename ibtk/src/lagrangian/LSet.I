@@ -257,7 +257,7 @@ inline void
 LSet<T>::packStream(
     SAMRAI::tbox::AbstractStream& stream)
 {
-    const int num_idx = d_set.size();
+    int num_idx = d_set.size();
     stream.pack(&num_idx,1);
     for_each(d_set.begin(),d_set.end(),LSetPackStream(&stream));
     return;

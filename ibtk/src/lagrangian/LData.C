@@ -57,8 +57,8 @@ namespace IBTK
 
 LData::LData(
     const std::string& name,
-    const int num_local_nodes,
-    const int depth,
+    const unsigned int num_local_nodes,
+    const unsigned int depth,
     const std::vector<int>& nonlocal_petsc_indices)
     : d_name(name),
       d_global_node_count(0),
@@ -77,10 +77,6 @@ LData::LData(
       d_blitz_ghosted_local_array(),
       d_blitz_vec_ghosted_local_array()
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(num_local_nodes >= 0);
-    TBOX_ASSERT(depth > 0);
-#endif
     // Create the PETSc Vec that provides storage for the Lagrangian data.
     int ierr;
     if (d_depth == 1)
@@ -102,7 +98,12 @@ LData::LData(
             &d_global_vec);  IBTK_CHKERRQ(ierr);
     }
     ierr = VecSetBlockSize(d_global_vec, d_depth);  IBTK_CHKERRQ(ierr);
-    ierr = VecGetSize(d_global_vec, &d_global_node_count);  IBTK_CHKERRQ(ierr);
+    int global_node_count;
+    ierr = VecGetSize(d_global_vec, &global_node_count);  IBTK_CHKERRQ(ierr);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(global_node_count >= 0);
+#endif
+    d_global_node_count = global_node_count;
     d_global_node_count /= d_depth;
     d_local_node_count = num_local_nodes;
     d_ghost_node_count = d_nonlocal_petsc_indices.size();
@@ -131,10 +132,25 @@ LData::LData(
       d_blitz_vec_ghosted_local_array()
 {
     int ierr;
-    ierr = VecGetBlockSize(d_global_vec, &d_depth);  IBTK_CHKERRQ(ierr);
-    ierr = VecGetSize(d_global_vec, &d_global_node_count);  IBTK_CHKERRQ(ierr);
+    int depth;
+    ierr = VecGetBlockSize(d_global_vec, &depth);  IBTK_CHKERRQ(ierr);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(depth >= 0);
+#endif
+    d_depth = depth;
+    int global_node_count;
+    ierr = VecGetSize(d_global_vec, &global_node_count);  IBTK_CHKERRQ(ierr);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(global_node_count >= 0);
+#endif
+    d_global_node_count = global_node_count;
     d_global_node_count /= d_depth;
-    ierr = VecGetLocalSize(d_global_vec, &d_local_node_count);  IBTK_CHKERRQ(ierr);
+    int local_node_count;
+    ierr = VecGetLocalSize(d_global_vec, &local_node_count);  IBTK_CHKERRQ(ierr);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(local_node_count >= 0);
+#endif
+    d_local_node_count = local_node_count;
     d_local_node_count /= d_depth;
     d_ghost_node_count = d_nonlocal_petsc_indices.size();
     return;
@@ -191,7 +207,12 @@ LData::LData(
         IBTK_CHKERRQ(ierr);
     }
     ierr = VecSetBlockSize(d_global_vec, d_depth);  IBTK_CHKERRQ(ierr);
-    ierr = VecGetSize(d_global_vec, &d_global_node_count);  IBTK_CHKERRQ(ierr);
+    int global_node_count;
+    ierr = VecGetSize(d_global_vec, &global_node_count);  IBTK_CHKERRQ(ierr);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(global_node_count >= 0);
+#endif
+    d_global_node_count = global_node_count;
     d_global_node_count /= d_depth;
     d_local_node_count = num_local_nodes;
     d_ghost_node_count = d_nonlocal_petsc_indices.size();
@@ -222,10 +243,25 @@ LData::resetData(
     int ierr;
     ierr = VecDestroy(d_global_vec);  IBTK_CHKERRQ(ierr);
     d_global_vec = vec;
-    ierr = VecGetBlockSize(d_global_vec, &d_depth);  IBTK_CHKERRQ(ierr);
-    ierr = VecGetSize(d_global_vec, &d_global_node_count);  IBTK_CHKERRQ(ierr);
+    int depth;
+    ierr = VecGetBlockSize(d_global_vec, &depth);  IBTK_CHKERRQ(ierr);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(depth >= 0);
+#endif
+    d_depth = depth;
+    int global_node_count;
+    ierr = VecGetSize(d_global_vec, &global_node_count);  IBTK_CHKERRQ(ierr);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(global_node_count >= 0);
+#endif
+    d_global_node_count = global_node_count;
     d_global_node_count /= d_depth;
-    ierr = VecGetLocalSize(d_global_vec, &d_local_node_count);  IBTK_CHKERRQ(ierr);
+    int local_node_count;
+    ierr = VecGetLocalSize(d_global_vec, &local_node_count);  IBTK_CHKERRQ(ierr);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(local_node_count >= 0);
+#endif
+    d_local_node_count = local_node_count;
     d_local_node_count /= d_depth;
     d_nonlocal_petsc_indices = nonlocal_petsc_indices;
     d_ghost_node_count = d_nonlocal_petsc_indices.size();

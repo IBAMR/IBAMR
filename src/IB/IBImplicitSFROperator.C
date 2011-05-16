@@ -189,7 +189,7 @@ IBImplicitSFROperator::apply(
             const double* const dx0 = grid_geom->getDx();
             const IntVector<NDIM>& ratio = patch_level->getRatio();
             double cell_vol = 1.0;
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 cell_vol *= dx0[d] / double(ratio(d));
             }

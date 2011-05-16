@@ -95,7 +95,7 @@ static Timer* t_read_instrument_data;
 static Timer* t_write_plot_data;
 
 // The rank of the root MPI process and the MPI tag number.
-static const int SILO_MPI_ROOT = 0;
+static const unsigned int SILO_MPI_ROOT = 0;
 static const int SILO_MPI_TAG  = 0;
 
 // The name of the Silo dumps and database filenames.
@@ -246,7 +246,7 @@ build_meter_web(
         for (int n = 0; n < X_web.extent(1); ++n, ++i)
         {
             // Get the coordinate and normal vector data.
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 block_X [d*npoints+i] = float( X_web(m,n)(d));
                 block_dA[d*npoints+i] = float(dA_web(m,n)(d));
@@ -274,7 +274,7 @@ build_meter_web(
 
     const char* meshname = "mesh";
     std::vector<float*> coords(NDIM);
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         coords[d] = &block_X[d*npoints];
     }
@@ -285,7 +285,7 @@ build_meter_web(
 
     const char* varname = "scaled_normal";
     std::vector<float*> vars(NDIM);
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         vars[d] = &block_dA[d*npoints];
     }
@@ -380,7 +380,7 @@ linear_interp(
     TBOX_ASSERT(v.getDepth() == 1);
 #endif
     blitz::TinyVector<double,NDIM> U(0.0);
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         blitz::TinyVector<bool,NDIM> is_lower(X < X_cell);
         is_lower(axis) = false;
@@ -571,19 +571,16 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
     // Communicate local data to all processes.
     d_num_meters = SAMRAI_MPI::maxReduction(max_meter_index)+1;
     max_node_index.resize(d_num_meters,-1);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_num_meters >= 0);
-#endif
     d_num_perimeter_nodes.clear();
     d_num_perimeter_nodes.resize(d_num_meters,-1);
-    for (int m = 0; m < d_num_meters; ++m)
+    for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         d_num_perimeter_nodes[m] = max_node_index[m]+1;
     }
     SAMRAI_MPI::maxReduction(d_num_meters > 0 ? &d_num_perimeter_nodes[0] : NULL,
                              d_num_meters);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (int m = 0; m < d_num_meters; ++m)
+    for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         TBOX_ASSERT(d_num_perimeter_nodes[m] > 0);
     }
@@ -592,20 +589,20 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
     // Resize arrays.
     d_X_centroid.resize(d_num_meters);
     d_X_perimeter.resize(d_num_meters);
-    for (int m = 0; m < d_num_meters; ++m)
+    for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         d_X_perimeter[m].resize(d_num_perimeter_nodes[m]);
     }
     d_X_web.resize(d_num_meters);
     d_dA_web.resize(d_num_meters);
     d_instrument_names = IBInstrumentationSpec::getInstrumentNames();
-    if (int(d_instrument_names.size()) != d_num_meters)
+    if (d_instrument_names.size() != d_num_meters)
     {
         TBOX_WARNING(d_object_name << "::initializeHierarchyIndependentData():\n"
                      << "  instrument names are not initialized\n"
                      << "  using default names" << std::endl);
         d_instrument_names.resize(d_num_meters);
-        for (int m = 0; m < d_num_meters; ++m)
+        for (unsigned int m = 0; m < d_num_meters; ++m)
         {
             std::ostringstream meter_stream;
             meter_stream << "meter_" << m;
@@ -619,7 +616,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
 
     // Open the log file stream.
     d_max_instrument_name_len = 0;
-    for (int m = 0; m < d_num_meters; ++m)
+    for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         d_max_instrument_name_len = std::max(d_max_instrument_name_len, int(d_instrument_names[m].length()));
     }
@@ -681,7 +678,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
 
     // Loop over all local nodes to determine the positions of the local
     // perimeter nodes.
-    for (int m = 0; m < d_num_meters; ++m)
+    for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
         {
@@ -723,7 +720,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
 
     // Set the positions of all perimeter nodes on all processes.
     std::vector<double> X_perimeter_flattened;
-    for (int m = 0; m < d_num_meters; ++m)
+    for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
         {
@@ -731,7 +728,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
         }
     }
     SAMRAI_MPI::sumReduction(&X_perimeter_flattened[0],X_perimeter_flattened.size());
-    for (int m = 0, k = 0; m < d_num_meters; ++m)
+    for (unsigned int m = 0, k = 0; m < d_num_meters; ++m)
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n, ++k)
         {
@@ -741,7 +738,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
 
     // Determine the centroid of each perimeter.
     std::fill(d_X_centroid.begin(),d_X_centroid.end(),blitz::TinyVector<double,NDIM>(0.0));
-    for (int m = 0; m < d_num_meters; ++m)
+    for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
         {
@@ -752,7 +749,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
 
     // Determine the maximum distance from perimeter nodes to centroids.
     std::vector<double> r_max(d_num_meters,0.0);
-    for (int m = 0; m < d_num_meters; ++m)
+    for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
         {
@@ -771,7 +768,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
 
     const IntVector<NDIM>& ratio_to_level_zero = hierarchy->getPatchLevel(finest_ln)->getRatio();
     std::vector<double> dx_finest(NDIM,0.0);
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         dx_finest[d] = dx_coarsest[d]/double(ratio_to_level_zero(d));
     }
@@ -782,7 +779,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     // Note that we set the number of web nodes in each meter to that the
     // spacing is approximately half a meshwidth on the finest level of the
     // Cartesian grid hierarchy.
-    for (int m = 0; m < d_num_meters; ++m)
+    for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         const int num_web_nodes = 2*int(ceil(r_max[m]/h_finest));
         d_X_web [m].resize(d_num_perimeter_nodes[m],num_web_nodes);
@@ -812,7 +809,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
         const Index<NDIM>& domain_box_level_lower = domain_box_level.lower();
         const Index<NDIM>& domain_box_level_upper = domain_box_level.upper();
         double dx[NDIM];
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             dx[d] = dx_coarsest[d]/double(ratio(d));
         }
@@ -823,19 +820,19 @@ IBInstrumentPanel::initializeHierarchyDependentData(
         const Index<NDIM>& finer_domain_box_level_lower = finer_domain_box_level.lower();
         const Index<NDIM>& finer_domain_box_level_upper = finer_domain_box_level.upper();
         double finer_dx[NDIM];
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             finer_dx[d] = dx_coarsest[d]/double(finer_ratio(d));
         }
 
-        for (int l = 0; l < d_num_meters; ++l)
+        for (unsigned int l = 0; l < d_num_meters; ++l)
         {
             // Setup the web patch mapping.
             for (int m = 0; m < d_X_web[l].extent(0); ++m)
             {
                 for (int n = 0; n < d_X_web[l].extent(1); ++n)
                 {
-                    const double* const X = d_X_web[l](m,n).data();
+                    const blitz::TinyVector<double,NDIM>& X = d_X_web[l](m,n);
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, dx, domain_box_level_lower, domain_box_level_upper);
                     const Index<NDIM> finer_i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, finer_dx, finer_domain_box_level_lower, finer_domain_box_level_upper);
                     if (level->getBoxes().contains(i) && (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
@@ -850,7 +847,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
             }
 
             // Setup the web centroid mapping.
-            const double* const X = d_X_centroid[l].data();
+            const blitz::TinyVector<double,NDIM>& X = d_X_centroid[l];
             const Index<NDIM> i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, dx, domain_box_level_lower, domain_box_level_upper);
             const Index<NDIM> finer_i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, finer_dx, finer_domain_box_level_lower, finer_domain_box_level_upper);
             if (level->getBoxes().contains(i) && (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
@@ -1009,7 +1006,7 @@ IBInstrumentPanel::readInstrumentData(
     SAMRAI_MPI::sumReduction(&A                  [0],d_num_meters);
 
     // Normalize the mean pressure.
-    for (int m = 0; m < d_num_meters; ++m)
+    for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         d_mean_pres_values[m] /= A[m];
     }
@@ -1017,7 +1014,7 @@ IBInstrumentPanel::readInstrumentData(
     // Loop over all local nodes to determine the velocities of the local
     // perimeter nodes.
     std::vector<blitz::Array<blitz::TinyVector<double,NDIM>,1> > U_perimeter(d_num_meters);
-    for (int m = 0; m < d_num_meters; ++m)
+    for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         U_perimeter[m].resize(d_num_perimeter_nodes[m]);
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
@@ -1060,7 +1057,7 @@ IBInstrumentPanel::readInstrumentData(
 
     // Set the velocities of all perimeter nodes on all processes.
     std::vector<double> U_perimeter_flattened;
-    for (int m = 0; m < d_num_meters; ++m)
+    for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
         {
@@ -1068,7 +1065,7 @@ IBInstrumentPanel::readInstrumentData(
         }
     }
     SAMRAI_MPI::sumReduction(&U_perimeter_flattened[0],U_perimeter_flattened.size());
-    for (int m = 0, k = 0; m < d_num_meters; ++m)
+    for (unsigned int m = 0, k = 0; m < d_num_meters; ++m)
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n, ++k)
         {
@@ -1078,7 +1075,7 @@ IBInstrumentPanel::readInstrumentData(
 
     // Determine the velocity of the centroid of each perimeter.
     std::vector<blitz::TinyVector<double,NDIM> > U_centroid(d_num_meters,blitz::TinyVector<double,NDIM>(0.0));
-    for (int m = 0; m < d_num_meters; ++m)
+    for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)
         {
@@ -1088,7 +1085,7 @@ IBInstrumentPanel::readInstrumentData(
     }
 
     // Correct for the relative motion of the flow meters.
-    for (int m = 0; m < d_num_meters; ++m)
+    for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         d_flow_values[m] -= compute_flow_correction(U_perimeter[m],U_centroid[m],d_X_perimeter[m],d_X_centroid[m]);
     }
@@ -1153,8 +1150,8 @@ IBInstrumentPanel::writePlotData(
     char temp_buf[SILO_NAME_BUFSIZE];
     std::string current_file_name;
     DBfile* dbfile;
-    const int mpi_rank  = SAMRAI_MPI::getRank();
-    const int mpi_nodes = SAMRAI_MPI::getNodes();
+    const unsigned int mpi_rank  = SAMRAI_MPI::getRank();
+    const unsigned int mpi_nodes = SAMRAI_MPI::getNodes();
 
     // Create the working directory.
     sprintf(temp_buf, "%06d", d_instrument_read_timestep_num);
@@ -1176,7 +1173,7 @@ IBInstrumentPanel::writePlotData(
     }
 
     // Output the web data on the available MPI processes.
-    for (int meter = 0; meter < d_num_meters; ++meter)
+    for (unsigned int meter = 0; meter < d_num_meters; ++meter)
     {
         if (meter%mpi_nodes == mpi_rank)
         {
@@ -1215,7 +1212,7 @@ IBInstrumentPanel::writePlotData(
         DBAddOption(optlist, DBOPT_TIME , &time );
         DBAddOption(optlist, DBOPT_DTIME, &dtime);
 
-        for (int meter = 0; meter < d_num_meters; ++meter)
+        for (unsigned int meter = 0; meter < d_num_meters; ++meter)
         {
             const int proc = meter%mpi_nodes;
             sprintf(temp_buf, "%04d", proc);
@@ -1305,7 +1302,7 @@ void
 IBInstrumentPanel::outputLogData(
     std::ostream& os)
 {
-    for (int m = 0; m < d_num_meters; ++m)
+    for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         std::string meter_name(d_instrument_names[m]);
         meter_name.resize(d_max_instrument_name_len,' ');

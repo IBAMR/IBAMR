@@ -77,7 +77,7 @@ PETScVecUtilities::constructPatchVecWrappers(
     SideData<NDIM,double>& data)
 {
     int ierr;
-    for (int component_axis = 0; component_axis < NDIM; ++component_axis)
+    for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
     {
         if (vecs[component_axis] != static_cast<Vec>(NULL))
         {
@@ -127,7 +127,7 @@ PETScVecUtilities::constructPatchDOFIndices(
     TBOX_ASSERT(dof_index.getDepth() == data.getDepth());
 #endif
     dof_index.fillAll(-1);
-    for (int component_axis = 0; component_axis < NDIM; ++component_axis)
+    for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
     {
         const Box<NDIM>& data_box = SideGeometry<NDIM>::toSideBox(data.getGhostBox(), component_axis);
         const int depth = data.getDepth();
@@ -191,7 +191,7 @@ PETScVecUtilities::constructPatchLevelVec(
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(!data.isNull());
 #endif
-        for (int component_axis = 0; component_axis < NDIM; ++component_axis)
+        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             nvals_local += data->getDepth()*SideGeometry<NDIM>::toSideBox(data->getGhostBox(),component_axis).size();
         }
@@ -280,7 +280,7 @@ PETScVecUtilities::copyToPatchLevelVec(
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(!data.isNull());
 #endif
-        for (int component_axis = 0; component_axis < NDIM; ++component_axis)
+        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             const int nvals_patch = data->getDepth()*SideGeometry<NDIM>::toSideBox(data->getGhostBox(),component_axis).size();
             std::vector<int> idxs(nvals_patch);
@@ -315,7 +315,7 @@ PETScVecUtilities::copyFromPatchLevelVec(
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(!data.isNull());
 #endif
-        for (int component_axis = 0; component_axis < NDIM; ++component_axis)
+        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             const int nvals_patch = data->getDepth()*SideGeometry<NDIM>::toSideBox(data->getGhostBox(),component_axis).size();
             std::vector<int> idxs(nvals_patch);
@@ -394,7 +394,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices(
         Pointer<SideData<NDIM,int> > dof_index = patch->getPatchData(dof_index_idx);
         Pointer<SideData<NDIM,double> > data = patch->getPatchData(data_idx);
         const blitz::TinyVector<int,NDIM> patch_dof_counts = constructPatchDOFIndices(*dof_index, *data);
-        for (int component_axis = 0; component_axis < NDIM; ++component_axis)
+        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             patch_ops.addScalar(dof_index->getArrayData(component_axis),
                                 dof_index->getArrayData(component_axis),
@@ -417,7 +417,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices(
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
         Pointer<SideData<NDIM,int> > dof_index = patch->getPatchData(dof_index_idx);
         Pointer<SideData<NDIM,double> > data = patch->getPatchData(data_idx);
-        for (int component_axis = 0; component_axis < NDIM; ++component_axis)
+        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             patch_ops.addScalar(dof_index->getArrayData(component_axis),
                                 dof_index->getArrayData(component_axis),
@@ -544,7 +544,7 @@ PETScVecUtilities::constrainPatchLevelVec(
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
         Pointer<SideData<NDIM,int> > dof_index = patch->getPatchData(dof_index_idx);
         Pointer<SideData<NDIM,int> > dof_master_index = patch->getPatchData(dof_master_index_idx);
-        for (int component_axis = 0; component_axis < NDIM; ++component_axis)
+        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             const Box<NDIM>& patch_box = SideGeometry<NDIM>::toSideBox(patch->getBox(),component_axis);
             const Box<NDIM>& ghost_box = SideGeometry<NDIM>::toSideBox(dof_index->getGhostBox(),component_axis);

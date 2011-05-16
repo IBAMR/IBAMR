@@ -128,7 +128,7 @@ get_canonical_cell_index(
     if (domain_box.contains(cell_idx)) return cell_idx;
 
     CellIndex<NDIM> shifted_idx = cell_idx;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         if      (shifted_idx(d) < domain_box.lower()(d)) shifted_idx(d) += periodic_shift(d);
         else if (shifted_idx(d) > domain_box.upper()(d)) shifted_idx(d) -= periodic_shift(d);
@@ -292,7 +292,7 @@ LDataManager::spread(
             blitz::Array<double,2>&       F_ds_arr = *F_ds_data[ln]->getGhostedLocalFormVecArray();
             const blitz::Array<double,2>&    F_arr = *   F_data[ln]->getGhostedLocalFormVecArray();
             const blitz::Array<double,1>&   ds_arr = *  ds_data[ln]->getGhostedLocalFormArray();
-            for (int k = 0; k < F_data[ln]->getLocalNodeCount() + F_data[ln]->getGhostNodeCount(); ++k)
+            for (int k = 0; k < int(F_data[ln]->getLocalNodeCount() + F_data[ln]->getGhostNodeCount()); ++k)
             {
                 for (int d = 0; d < depth; ++d)
                 {
@@ -574,7 +574,7 @@ Pointer<LData>
 LDataManager::createLData(
     const std::string& quantity_name,
     const int level_number,
-    const int depth,
+    const unsigned int depth,
     const bool maintain_data)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -629,7 +629,7 @@ LDataManager::computeLagrangianStructureCenterOfMass(
             ++node_counter;
             const int local_idx = node_idx.getLocalPETScIndex();
             const double* const X = &X_data(local_idx,0);
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_com[d] += X[d];
             }
@@ -639,7 +639,7 @@ LDataManager::computeLagrangianStructureCenterOfMass(
 
     SAMRAI_MPI::sumReduction(&X_com[0],NDIM);
     node_counter = SAMRAI_MPI::sumReduction(node_counter);
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         X_com[d] /= double(node_counter);
     }
@@ -670,7 +670,7 @@ LDataManager::computeLagrangianStructureBoundingBox(
         {
             const int local_idx = node_idx.getLocalPETScIndex();
             const double* const X = &X_data(local_idx,0);
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_lower[d] = std::min(X_lower[d],X[d]);
                 X_upper[d] = std::max(X_upper[d],X[d]);
@@ -712,7 +712,7 @@ LDataManager::reinitLagrangianStructure(
         {
             const int local_idx = node_idx.getLocalPETScIndex();
             const double* const X0 = &X0_data(local_idx,0);
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_lower[d] = std::min(X_lower[d],X0[d]);
                 X_upper[d] = std::max(X_upper[d],X0[d]);
@@ -725,14 +725,14 @@ LDataManager::reinitLagrangianStructure(
 
     // Compute the displacement.
     blitz::TinyVector<double,NDIM> dX(0.0);
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         dX[d] = X_center[d] - 0.5*(X_upper[d]+X_lower[d]);
     }
 
     // Compute the shifted bounding box.
     std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> > shifted_bounding_box = bounding_box;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         shifted_bounding_box.first [d] += dX[d];
         shifted_bounding_box.second[d] += dX[d];
@@ -740,7 +740,7 @@ LDataManager::reinitLagrangianStructure(
 #ifdef DEBUG_CHECK_ASSERTIONS
     const double* const gridXLower = d_grid_geom->getXLower();
     const double* const gridXUpper = d_grid_geom->getXUpper();
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(gridXLower[d] <= shifted_bounding_box.first [d]);
         TBOX_ASSERT(gridXUpper[d] >= shifted_bounding_box.second[d]);
@@ -775,13 +775,13 @@ LDataManager::reinitLagrangianStructure(
                         const int local_idx = node_idx.getLocalPETScIndex();
                         double* const X = &X_data(local_idx,0);
                         const double* const X0 = &X0_data(local_idx,0);
-                        for (int d = 0; d < NDIM; ++d)
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             X[d] = X0[d] + dX[d];
                         }
                         d_displaced_strct_lnode_idxs [level_number].push_back(node_idx);
                         blitz::TinyVector<double,NDIM> X_displaced;
-                        for (int d = 0; d < NDIM; ++d) X_displaced[d] = X[d];
+                        for (unsigned int d = 0; d < NDIM; ++d) X_displaced[d] = X[d];
                         d_displaced_strct_lnode_posns[level_number].push_back(X_displaced);
                     }
                     else
@@ -814,7 +814,7 @@ LDataManager::displaceLagrangianStructure(
     // Compute the shifted bounding box.
     std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> > bounding_box = computeLagrangianStructureBoundingBox(structure_id, level_number);
     std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> > shifted_bounding_box = bounding_box;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         shifted_bounding_box.first [d] += dX[d];
         shifted_bounding_box.second[d] += dX[d];
@@ -822,7 +822,7 @@ LDataManager::displaceLagrangianStructure(
 #ifdef DEBUG_CHECK_ASSERTIONS
     const double* const gridXLower = d_grid_geom->getXLower();
     const double* const gridXUpper = d_grid_geom->getXUpper();
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(gridXLower[d] <= shifted_bounding_box.first [d]);
         TBOX_ASSERT(gridXUpper[d] >= shifted_bounding_box.second[d]);
@@ -857,13 +857,13 @@ LDataManager::displaceLagrangianStructure(
                     {
                         const int local_idx = node_idx.getLocalPETScIndex();
                         double* const X = &X_data(local_idx,0);
-                        for (int d = 0; d < NDIM; ++d)
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             X[d] += dX[d];
                         }
                         d_displaced_strct_lnode_idxs [level_number].push_back(node_idx);
                         blitz::TinyVector<double,NDIM> X_displaced;
-                        for (int d = 0; d < NDIM; ++d) X_displaced[d] = X[d];
+                        for (unsigned int d = 0; d < NDIM; ++d) X_displaced[d] = X[d];
                         d_displaced_strct_lnode_posns[level_number].push_back(X_displaced);
                     }
                     else
@@ -1095,7 +1095,7 @@ LDataManager::beginDataRedistribution(
     const double* const gridXLower = d_grid_geom->getXLower();
     const double* const gridXUpper = d_grid_geom->getXUpper();
     double gridXLength[NDIM];
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         gridXLength[d] = gridXUpper[d] - gridXLower[d];
     }
@@ -1122,7 +1122,7 @@ LDataManager::beginDataRedistribution(
             const LNode& node_idx = **cit;
             const int local_idx = node_idx.getLocalPETScIndex();
             double* const X = &X_data(local_idx,0);
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 if (periodic_shift[d] == 0)
                 {
@@ -1184,7 +1184,7 @@ LDataManager::beginDataRedistribution(
                         LNodeSet::value_type& node_idx = *n;
                         const int local_idx = node_idx.getLocalPETScIndex();
                         double* const X = &X_data(local_idx,0);
-                        for (int d = 0; d < NDIM; ++d)
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             X_shifted[d] = X[d] + double(periodic_offset(d))*patchDx[d];
                         }
@@ -1204,7 +1204,7 @@ LDataManager::beginDataRedistribution(
                             if (periodic_offset != IntVector<NDIM>(0))
                             {
                                 blitz::TinyVector<double,NDIM> displacement(0.0);
-                                for (int d = 0; d < NDIM; ++d)
+                                for (unsigned int d = 0; d < NDIM; ++d)
                                 {
                                     displacement[d] = double(periodic_offset(d))*patchDx[d];
                                 }
@@ -1235,7 +1235,7 @@ LDataManager::beginDataRedistribution(
                         {
                             static const int lower = 0;
                             static const int upper = 1;
-                            for (int d = 0; d < NDIM; ++d)
+                            for (unsigned int d = 0; d < NDIM; ++d)
                             {
                                 if      (patch_geom->getTouchesPeriodicBoundary(d,lower) && X[d] < gridXLower[d])
                                 {
@@ -1313,7 +1313,7 @@ LDataManager::endDataRedistribution(
         const CellIndex<NDIM>& domain_upper = domain_box.upper();
         const IntVector<NDIM>& ratio = level->getRatio();
         double dx[NDIM];
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             dx[d] = dx0[d]/double(ratio(d));
         }
@@ -1952,7 +1952,7 @@ LDataManager::initializeLevelData(
         // 1. Determine the number of local (on processor) nodes to be allocated
         //    on the patch level and allocate space for the local and non-local
         //    index data.
-        const int num_local_nodes = d_lag_init->computeLocalNodeCountOnPatchLevel(
+        const unsigned int num_local_nodes = d_lag_init->computeLocalNodeCountOnPatchLevel(
             hierarchy, level_number, init_data_time, can_be_refined, initial_time);
 
         d_local_lag_indices  [level_number].resize(num_local_nodes,-1);
@@ -1994,9 +1994,9 @@ LDataManager::initializeLevelData(
         // that it may be necessary to modify IBHierarchyIntegrator, in
         // particular the code where the data related to the implementation of
         // the penalty IB method are initialized.
-        static const int global_index_offset = 0;
-        static const int local_index_offset = 0;
-        const int num_initialized_local_nodes = d_lag_init->initializeDataOnPatchLevel(
+        static const unsigned int global_index_offset = 0;
+        static const unsigned int local_index_offset = 0;
+        const unsigned int num_initialized_local_nodes = d_lag_init->initializeDataOnPatchLevel(
             d_lag_node_index_current_idx,
             global_index_offset, local_index_offset,
             d_lag_mesh_data[level_number][POSN_DATA_NAME],
@@ -2046,7 +2046,7 @@ LDataManager::initializeLevelData(
                     LNodeSet::value_type& node_idx = *n;
                     const int lag_idx   = node_idx.getLagrangianIndex();
                     const int local_idx = node_idx.getLocalPETScIndex();
-                    if (!(0 <= local_idx && local_idx < num_local_nodes))
+                    if (!(0 <= local_idx && local_idx < int(num_local_nodes)))
                     {
                         TBOX_ERROR("LDataManager::initializeLevelData()"     << "\n" <<
                                    "  local_idx       = " << local_idx       << "\n" <<
@@ -2795,8 +2795,8 @@ LDataManager::computeNodeDistribution(
     AO& ao,
     std::vector<int>& local_petsc_indices,
     std::vector<int>& nonlocal_petsc_indices,
-    int& num_nodes,
-    int& node_offset,
+    unsigned int& num_nodes,
+    unsigned int& node_offset,
     const int level_number)
 {
     t_compute_node_distribution->start();
@@ -2828,7 +2828,7 @@ LDataManager::computeNodeDistribution(
 
     // Keep track of the number of local indices we've encountered so far, and
     // construct a map from Lagrangian indices to (local) PETSc indices.
-    int local_offset = 0;
+    unsigned int local_offset = 0;
     std::map<int,int> lag_idx_to_petsc_idx;
 
     // Sweep over interior nodes.  These are the nodes that are owned by this
@@ -2893,8 +2893,8 @@ LDataManager::computeNodeDistribution(
 
     // Determine how many nodes are on each processor to calculate the PETSc
     // indexing scheme.
-    const int    num_local_nodes =    local_lag_indices.size();
-    const int num_nonlocal_nodes = nonlocal_lag_indices.size();
+    const unsigned int    num_local_nodes =    local_lag_indices.size();
+    const unsigned int num_nonlocal_nodes = nonlocal_lag_indices.size();
 
     if (local_offset != (num_local_nodes+num_nonlocal_nodes))
     {
@@ -2916,7 +2916,7 @@ LDataManager::computeNodeDistribution(
                         local_lag_indices.end());
 
     local_petsc_indices.resize(num_local_nodes);
-    for (int k = 0; k < num_local_nodes; ++k)
+    for (unsigned int k = 0; k < num_local_nodes; ++k)
     {
         local_petsc_indices[k] = node_offset+k;
     }
@@ -2976,9 +2976,9 @@ LDataManager::computeNodeDistribution(
 
 void
 LDataManager::computeNodeOffsets(
-    int& num_nodes,
-    int& node_offset,
-    const int& num_local_nodes)
+    unsigned int& num_nodes,
+    unsigned int& node_offset,
+    const unsigned int& num_local_nodes)
 {
     t_compute_node_offsets->start();
 

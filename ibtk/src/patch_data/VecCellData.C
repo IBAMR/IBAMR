@@ -67,7 +67,7 @@ template<class TYPE>
 size_t
 VecCellData<TYPE>::getSizeOfData(
     const Box<NDIM>& box,
-    const int depth,
+    const unsigned int depth,
     const IntVector<NDIM>& ghosts)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -80,7 +80,7 @@ VecCellData<TYPE>::getSizeOfData(
 template<class TYPE>
 VecCellData<TYPE>::VecCellData(
     const Box<NDIM>& box,
-    const int depth,
+    const unsigned int depth,
     const IntVector<NDIM>& ghosts)
     : PatchData<NDIM>(box, ghosts),
       d_depth(depth),
@@ -367,7 +367,7 @@ VecCellData<TYPE>::packStream(
         for (Iterator i(box); i; i++)
         {
             const Index<NDIM>& idx = i();
-            for (int d = 0; d < d_depth; ++d)
+            for (unsigned int d = 0; d < d_depth; ++d)
             {
                 buffer.push_back((*this)(idx,d));
             }
@@ -398,7 +398,7 @@ VecCellData<TYPE>::unpackStream(
         for (Iterator i(box); i; i++)
         {
             const Index<NDIM>& idx = i();
-            for (int d = 0; d < d_depth; ++d, ++k)
+            for (unsigned int d = 0; d < d_depth; ++d, ++k)
             {
                 (*this)(idx,d) = buffer[k];
             }
@@ -414,7 +414,7 @@ VecCellData<TYPE>::print(
     std::ostream& os,
     const int prec) const
 {
-    for (int d = 0; d < d_depth; ++d)
+    for (unsigned int d = 0; d < d_depth; ++d)
     {
         os << "Array depth = " << d << std::endl;
         print(box, d, os, prec);
@@ -426,12 +426,12 @@ template<class TYPE>
 void
 VecCellData<TYPE>::print(
     const Box<NDIM>& box,
-    const int depth,
+    const unsigned int depth,
     std::ostream& os,
     const int prec) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT((depth >= 0) && (depth < d_depth));
+    TBOX_ASSERT(depth < d_depth);
 #endif
     os.precision(prec);
     for (Iterator i(box); i; i++)

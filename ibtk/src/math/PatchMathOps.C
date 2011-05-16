@@ -2968,14 +2968,14 @@ PatchMathOps::laplace(
     const double* const dx = pgeom->getDx();
 
     blitz::TinyVector<double*,NDIM> F;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         F[d] = dst->getPointer(d,l);
     }
     const int F_ghosts = (dst->getGhostCellWidth()).max();
 
     blitz::TinyVector<const double*,NDIM> U;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         U[d] = src1->getPointer(d,m);
     }
@@ -3034,9 +3034,9 @@ PatchMathOps::laplace(
     if (src2.isNull() || (gamma == 0.0))
     {
         blitz::TinyVector<int,NDIM> ilower, iupper;
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
-            for (int dd = 0; dd < NDIM; ++dd)
+            for (unsigned int dd = 0; dd < NDIM; ++dd)
             {
                 ilower[dd] = patch_box.lower(dd);
                 iupper[dd] = patch_box.upper(dd);
@@ -3074,7 +3074,7 @@ PatchMathOps::laplace(
     else
     {
         blitz::TinyVector<const double*,NDIM> V;
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             V[d] = src2->getPointer(d,n);
         }
@@ -3094,9 +3094,9 @@ PatchMathOps::laplace(
         }
 #endif
         blitz::TinyVector<int,NDIM> ilower, iupper;
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
-            for (int dd = 0; dd < NDIM; ++dd)
+            for (unsigned int dd = 0; dd < NDIM; ++dd)
             {
                 ilower[dd] = patch_box.lower(dd);
                 iupper[dd] = patch_box.upper(dd);
@@ -4020,7 +4020,7 @@ PatchMathOps::pointwiseMultiply(
     const int j,
     const int k) const
 {
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         double* const D       = dst->getPointer(axis,i);
         const int D_ghosts    = (dst->getGhostCellWidth()).max();
@@ -4118,7 +4118,7 @@ PatchMathOps::pointwiseMultiply(
     const int k,
     const int l) const
 {
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         double* const D       = dst->getPointer(axis,i);
         const int D_ghosts    = (dst->getGhostCellWidth()).max();
@@ -4239,7 +4239,7 @@ PatchMathOps::pointwiseMultiply(
         return;
     }
 
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         double* const D       = dst->getPointer(axis,i);
         const int D_ghosts    = (dst->getGhostCellWidth()).max();
@@ -4669,7 +4669,7 @@ PatchMathOps::pointwiseMultiply(
     const int j,
     const int k) const
 {
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         double* const D       = dst->getPointer(axis,i);
         const int D_ghosts    = (dst->getGhostCellWidth()).max();
@@ -4767,7 +4767,7 @@ PatchMathOps::pointwiseMultiply(
     const int k,
     const int l) const
 {
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         double* const D       = dst->getPointer(axis,i);
         const int D_ghosts    = (dst->getGhostCellWidth()).max();
@@ -4888,7 +4888,7 @@ PatchMathOps::pointwiseMultiply(
         return;
     }
 
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         double* const D       = dst->getPointer(axis,i);
         const int D_ghosts    = (dst->getGhostCellWidth()).max();

@@ -380,7 +380,7 @@ CCDivGradHypreLevelSolver::allocateHypreData()
     }
 
     int hypre_periodic_shift[3];
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         hypre_periodic_shift[d] = periodic_shift(d)/2;
     }

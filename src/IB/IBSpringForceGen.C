@@ -210,7 +210,7 @@ IBSpringForceGen::initializeLevelData(
         if (!force_spec.isNull())
         {
             const int& mastr_idx = node_idx.getLagrangianIndex();
-            const unsigned num_springs = force_spec->getNumberOfSprings();
+            const unsigned int num_springs = force_spec->getNumberOfSprings();
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
 #endif
@@ -248,9 +248,9 @@ IBSpringForceGen::initializeLevelData(
 
     // Determine the non-zero structure for the matrix used to compute nodal
     // displacements.
-    const int local_sz = petsc_mastr_node_idxs.size();
+    const unsigned int local_sz = petsc_mastr_node_idxs.size();
     std::vector<int> d_nnz(local_sz,1), o_nnz(local_sz,0);
-    for (int k = 0; k < local_sz; ++k)
+    for (unsigned int k = 0; k < local_sz; ++k)
     {
         const int& slave_idx = petsc_slave_node_idxs[k];
         if (slave_idx >= global_node_offset &&
@@ -273,9 +273,9 @@ IBSpringForceGen::initializeLevelData(
                             PETSC_DEFAULT, local_sz > 0 ? &o_nnz[0] : PETSC_NULL,
                             &D_mat);  IBTK_CHKERRQ(ierr);
 
-    blitz::Array<double,2> mastr_vals(NDIM,NDIM);  mastr_vals = 0.0;
-    blitz::Array<double,2> slave_vals(NDIM,NDIM);  slave_vals = 0.0;
-    for (int d = 0; d < NDIM; ++d)
+    blitz::TinyMatrix<double,NDIM,NDIM> mastr_vals;  mastr_vals = 0.0;
+    blitz::TinyMatrix<double,NDIM,NDIM> slave_vals;  slave_vals = 0.0;
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         mastr_vals(d,d) = -1.0;
         slave_vals(d,d) = +1.0;
@@ -286,7 +286,7 @@ IBSpringForceGen::initializeLevelData(
     IBTK_CHKERRQ(ierr);
     i_offset /= NDIM;
 
-    for (int k = 0; k < local_sz; ++k)
+    for (unsigned int k = 0; k < local_sz; ++k)
     {
         int i = i_offset + k;
         int j_mastr = petsc_mastr_node_idxs[k];
@@ -353,11 +353,11 @@ IBSpringForceGen::computeLagrangianForce(
     std::vector<double>& stiffnesses = d_stiffnesses[level_number];
     std::vector<double>& rest_lengths = d_rest_lengths[level_number];
 
-    const int local_sz = petsc_mastr_node_idxs.size();
+    const unsigned int local_sz = petsc_mastr_node_idxs.size();
     std::vector<double> F_mastr_node_vals(NDIM*local_sz,0.0);
     std::vector<double> F_slave_node_vals(NDIM*local_sz,0.0);
 
-    for (int k = 0; k < local_sz; ++k)
+    for (unsigned int k = 0; k < local_sz; ++k)
     {
         // Compute the force applied by the spring to the "master" node.
         double* const F_mastr_node = &F_mastr_node_vals[k*NDIM];
@@ -372,7 +372,7 @@ IBSpringForceGen::computeLagrangianForce(
         // Compute the force applied by the spring to the corresponding "slave"
         // node.
         double* const F_slave_node = &F_slave_node_vals[k*NDIM];
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             F_slave_node[d] = -F_mastr_node[d];
         }
@@ -436,7 +436,7 @@ IBSpringForceGen::computeLagrangianForceJacobianNonzeroStructure(
     // Look up the cached connectivity information.
     std::vector<int>& petsc_mastr_node_idxs = d_petsc_mastr_node_idxs[level_number];
     std::vector<int>& petsc_slave_node_idxs = d_petsc_slave_node_idxs[level_number];
-    const int local_sz = petsc_mastr_node_idxs.size();
+    const unsigned int local_sz = petsc_mastr_node_idxs.size();
 
     // Determine the global node offset and the number of local nodes.
     const int global_node_offset = l_data_manager->getGlobalNodeOffset(level_number);
@@ -455,7 +455,7 @@ IBSpringForceGen::computeLagrangianForceJacobianNonzeroStructure(
     ierr = VecSet(d_nnz_vec, 1.0);  IBTK_CHKERRQ(ierr);
     ierr = VecSet(o_nnz_vec, 0.0);  IBTK_CHKERRQ(ierr);
 
-    for (int k = 0; k < local_sz; ++k)
+    for (unsigned int k = 0; k < local_sz; ++k)
     {
         const int& mastr_idx = petsc_mastr_node_idxs[k];
         const int& slave_idx = petsc_slave_node_idxs[k];
@@ -554,12 +554,12 @@ IBSpringForceGen::computeLagrangianForceJacobian(
     std::vector<double>& stiffnesses = d_stiffnesses[level_number];
     std::vector<double>& rest_lengths = d_rest_lengths[level_number];
 
-    const int local_sz = petsc_mastr_node_idxs.size();
-    for (int k = 0; k < local_sz; ++k)
+    const unsigned int local_sz = petsc_mastr_node_idxs.size();
+    for (unsigned int k = 0; k < local_sz; ++k)
     {
         // Compute the Jacobian of the force applied by the spring to the
         // "master" node with respect to the position of the "slave" node.
-        blitz::Array<double,2> dF_dX(NDIM,NDIM);
+        blitz::TinyMatrix<double,NDIM,NDIM> dF_dX;
         const double* const D = &D_vals[k*NDIM];
         const double& stf = stiffnesses[k];
         const double& rst = rest_lengths[k];
@@ -568,7 +568,7 @@ IBSpringForceGen::computeLagrangianForceJacobian(
         const int& force_fcn_id = force_fcn_idxs[k];
 
         static const double eps = sqrt(std::numeric_limits<double>::epsilon());
-        for (int j = 0; j < NDIM; ++j)
+        for (unsigned int j = 0; j < NDIM; ++j)
         {
             blitz::TinyVector<double,NDIM> D_eps(D);
             D_eps[j] += 1.0*eps;
@@ -577,14 +577,20 @@ IBSpringForceGen::computeLagrangianForceJacobian(
             D_eps[j] -= 2.0*eps;
             blitz::TinyVector<double,NDIM> F0;
             d_force_fcn_map[force_fcn_id](&F0[0],&D_eps[0],stf,rst,lag_mastr_idx,lag_slave_idx);
-            for (int i = 0; i < NDIM; ++i)
+            for (unsigned int i = 0; i < NDIM; ++i)
             {
                 dF_dX(i,j) = (F1[i]-F0[i])/(2.0*eps);
             }
         }
 
         // Scale the Jacobian entries appropriately.
-        dF_dX *= X_coef;
+        for (unsigned int i = 0; i < NDIM; ++i)
+        {
+            for (unsigned int j = 0; j < NDIM; ++j)
+            {
+                dF_dX(i,j) *= X_coef;
+            }
+        }
 
         // Get the PETSc indices corresponding to the "master" and "slave"
         // nodes.
@@ -598,7 +604,13 @@ IBSpringForceGen::computeLagrangianForceJacobian(
         // Negate dF_dX to obtain the Jacobian of the force applied by the
         // spring to the "master" node with respect to the position of the
         // "master" node.
-        dF_dX *= -1.0;
+        for (unsigned int i = 0; i < NDIM; ++i)
+        {
+            for (unsigned int j = 0; j < NDIM; ++j)
+            {
+                dF_dX(i,j) *= -1.0;
+            }
+        }
 
         // Accumulate the diagonal parts of the matrix.
         ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_mastr_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
@@ -663,14 +675,14 @@ IBSpringForceGen::computeLagrangianEnergy(
 
     std::vector<double>& stiffnesses = d_stiffnesses[level_number];
     std::vector<double>& rest_lengths = d_rest_lengths[level_number];
-    const int local_sz = stiffnesses.size();
+    const unsigned int local_sz = stiffnesses.size();
 
     double energy = 0.0;
-    for (int k = 0; k < local_sz; ++k)
+    for (unsigned int k = 0; k < local_sz; ++k)
     {
         const double* const D = &D_vals[k*NDIM];
         double R_sq = 0.0;
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             R_sq += D[d]*D[d];
         }

@@ -220,7 +220,7 @@ IBHDF5Initializer::getLevelHasLagrangianData(
     return !d_filenames[level_number].empty();
 }// getLevelHasLagrangianData
 
-int
+unsigned int
 IBHDF5Initializer::computeLocalNodeCountOnPatchLevel(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
@@ -238,11 +238,11 @@ IBHDF5Initializer::computeLocalNodeCountOnPatchLevel(
     return std::accumulate(d_level_num_local_vertex.begin(),d_level_num_local_vertex.end(),0);
 }// computeLocalNodeCountOnPatchLevel
 
-int
+unsigned int
 IBHDF5Initializer::initializeDataOnPatchLevel(
     const int lag_node_index_idx,
-    const int global_index_offset,
-    const int local_index_offset,
+    const unsigned int global_index_offset,
+    const unsigned int local_index_offset,
     Pointer<LData>& X_data,
     Pointer<LData>& U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
@@ -270,12 +270,12 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
     blitz::Array<double,2>& X_array = *X_data->getGhostedLocalFormVecArray();
     blitz::Array<double,2>& U_array = *U_data->getGhostedLocalFormVecArray();
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    const int num_filenames = d_filenames[level_number].size();
+    const unsigned int num_filenames = d_filenames[level_number].size();
     int local_idx = -1;
     int local_node_count = 0;
-    for (int j = 0; j < num_filenames; ++j)
+    for (unsigned int j = 0; j < num_filenames; ++j)
     {
-        for (int k = 0; k < d_level_num_local_vertex[j]; ++k, ++local_node_count)
+        for (unsigned int k = 0; k < d_level_num_local_vertex[j]; ++k, ++local_node_count)
         {
             const std::vector<double>& X = d_level_posns[j][k];
             const std::pair<int,int>& vertex_idx = d_level_vertex_idxs[j][k];
@@ -288,7 +288,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
             const int global_petsc_idx = local_petsc_idx+global_index_offset;
 
             // Ensure the point lies within the physical domain.
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 if (X[d] <= gridXLower[d])
                 {
@@ -316,7 +316,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
             const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
             const double* const patchXLower = patch_geom->getXLower();
             const double* const patchXUpper = patch_geom->getXUpper();
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 if (X[d] < patchXLower[d])
                 {
@@ -400,10 +400,10 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
     return local_node_count;
 }// initializeDataOnPatchLevel
 
-int
+unsigned int
 IBHDF5Initializer::initializeMassDataOnPatchLevel(
-    const int global_index_offset,
-    const int local_index_offset,
+    const unsigned int global_index_offset,
+    const unsigned int local_index_offset,
     Pointer<LData>& M_data,
     Pointer<LData>& K_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
@@ -441,8 +441,8 @@ IBHDF5Initializer::tagCellsForInitialRefinement(
         patch_nums.insert(patch_nums.end(),level_patch_nums.begin(),level_patch_nums.end());
     }
 
-    const int num_vertex = cell_idxs.size();
-    for (int k = 0; k < num_vertex; ++k)
+    const unsigned int num_vertex = cell_idxs.size();
+    for (unsigned int k = 0; k < num_vertex; ++k)
     {
         const Index<NDIM>& i = cell_idxs[k];
         const int patch_num = patch_nums[k];
@@ -481,8 +481,8 @@ IBHDF5Initializer::findLocalPatchIndices(
     int flag = 1;
     int sz = 1;
 
-    const int num_filenames = d_filenames[level_number].size();
-    for (int j = 0; j < num_filenames; ++j)
+    const unsigned int num_filenames = d_filenames[level_number].size();
+    for (unsigned int j = 0; j < num_filenames; ++j)
     {
         // Wait for the previous MPI process to finish reading the current file.
         if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
@@ -569,7 +569,7 @@ IBHDF5Initializer::findLocalPatchIndicesFromHDF5(
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid vertex dataset dimension in input file " << filename << "\n");
         }
-        const int num_vertex = int(dims[0]);
+        const unsigned int num_vertex = dims[0];
 
         // Define the file dataspace.
         static const int rankf = 2;
@@ -583,8 +583,8 @@ IBHDF5Initializer::findLocalPatchIndicesFromHDF5(
 
         // Read in the vertex data one block at a time.
         std::vector<double> posn_buf(NDIM*BUFFER_SIZE);
-        const int num_blocks = num_vertex/BUFFER_SIZE + (num_vertex%BUFFER_SIZE == 0 ? 0 : 1);
-        for (int block = 0; block < num_blocks; ++block)
+        const unsigned int num_blocks = num_vertex/BUFFER_SIZE + (num_vertex%BUFFER_SIZE == 0 ? 0 : 1);
+        for (unsigned int block = 0; block < num_blocks; ++block)
         {
             // Determine whether we are reading in the last block in the file.
             const bool last_block = (block == num_blocks-1);
@@ -680,7 +680,7 @@ IBHDF5Initializer::buildLevelDataCache(
     int flag = 1;
     int sz = 1;
 
-    const int num_filenames = d_filenames[level_number].size();
+    const unsigned int num_filenames = d_filenames[level_number].size();
 
     d_instrument_names[level_number].resize(num_filenames);
 
@@ -707,7 +707,7 @@ IBHDF5Initializer::buildLevelDataCache(
     d_level_inst_point_data_map   .resize(num_filenames);
 
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    for (int j = 0; j < num_filenames; ++j)
+    for (unsigned int j = 0; j < num_filenames; ++j)
     {
         // Wait for the previous MPI process to finish reading the current file.
         if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
@@ -742,8 +742,8 @@ IBHDF5Initializer::buildLevelDataCache(
 
         if (has_group[VERTEX_GROUP])
         {
-            int& num_vertex       = d_level_num_vertex      [j];
-            int& num_local_vertex = d_level_num_local_vertex[j];
+            int num_vertex       = d_level_num_vertex      [j];
+            int num_local_vertex = d_level_num_local_vertex[j];
 
             std::vector<std::vector<double> >&       posns       = d_level_posns      [j];
             std::vector<std::pair<int,int> >&        vertex_idxs = d_level_vertex_idxs[j];
@@ -871,8 +871,8 @@ IBHDF5Initializer::buildLevelVertexDataCacheFromHDF5(
     const std::string& base_group_name,
     const Pointer<PatchLevel<NDIM> > level,
     const std::string& filename,
-    const int file_number,
-    const int num_files) const
+    const unsigned int file_number,
+    const unsigned int num_files) const
 {
     num_vertex       = 0;
     num_local_vertex = 0;
@@ -923,8 +923,8 @@ IBHDF5Initializer::buildLevelVertexDataCacheFromHDF5(
 
         // Read in the vertex data one block at a time.
         std::vector<double> posn_buf(NDIM*BUFFER_SIZE);
-        const int num_blocks = num_vertex/BUFFER_SIZE + (num_vertex%BUFFER_SIZE == 0 ? 0 : 1);
-        for (int block = 0; block < num_blocks; ++block)
+        const unsigned int num_blocks = num_vertex/BUFFER_SIZE + (num_vertex%BUFFER_SIZE == 0 ? 0 : 1);
+        for (unsigned int block = 0; block < num_blocks; ++block)
         {
             // Determine whether we are reading in the last block in the file.
             const bool last_block = (block == num_blocks-1);
@@ -1017,8 +1017,8 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
     const std::string& base_group_name,
     const Pointer<PatchLevel<NDIM> > level,
     const std::string& filename,
-    const int file_number,
-    const int num_files) const
+    const unsigned int file_number,
+    const unsigned int num_files) const
 {
     num_spring       = 0;
     num_local_spring = 0;
@@ -1154,8 +1154,8 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
         // Read in the spring data one block at a time.
         std::vector<int> node1_idx_buf(BUFFER_SIZE), node2_idx_buf(BUFFER_SIZE), force_fcn_idx_buf(BUFFER_SIZE);
         std::vector<double> stiffness_buf(BUFFER_SIZE), rest_length_buf(BUFFER_SIZE);
-        const int num_blocks = num_spring/BUFFER_SIZE + (num_spring%BUFFER_SIZE == 0 ? 0 : 1);
-        for (int block = 0; block < num_blocks; ++block)
+        const unsigned int num_blocks = num_spring/BUFFER_SIZE + (num_spring%BUFFER_SIZE == 0 ? 0 : 1);
+        for (unsigned int block = 0; block < num_blocks; ++block)
         {
             // Determine whether we are reading in the last block in the file.
             const bool last_block = (block == num_blocks-1);
@@ -1257,8 +1257,8 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
     const std::string& base_group_name,
     const Pointer<PatchLevel<NDIM> > level,
     const std::string& filename,
-    const int file_number,
-    const int num_files) const
+    const unsigned int file_number,
+    const unsigned int num_files) const
 {
     num_beam       = 0;
     num_local_beam = 0;
@@ -1274,7 +1274,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         const std::string node3_idx_dset_name     = beam_group_name + "/node3_idx"    ;
         const std::string bend_rigidity_dset_name = beam_group_name + "/bend_rigidity";
         std::string rest_curvature_dset_name[NDIM];
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             std::ostringstream os;
             os << "_" << d;
@@ -1306,7 +1306,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         }
 
         hid_t rest_curvature_dset[NDIM];
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             rest_curvature_dset[d] = H5Dopen1(file_id, rest_curvature_dset_name[d].c_str());
             if (rest_curvature_dset < 0)
@@ -1370,7 +1370,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         const int bend_rigidity_size = int(dims[0]);
 
         int rest_curvature_size[NDIM];
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             H5LTget_dataset_ndims(file_id, rest_curvature_dset_name[d].c_str(), &rank);
             if (rank != 1)
@@ -1391,7 +1391,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset dimension in input file " << filename << "\n");
         }
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             if (node1_idx_size != rest_curvature_size[d])
             {
@@ -1415,8 +1415,8 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         std::vector<int> node1_idx_buf(BUFFER_SIZE), node2_idx_buf(BUFFER_SIZE), node3_idx_buf(BUFFER_SIZE);
         std::vector<double> bend_rigidity_buf(BUFFER_SIZE);
         std::vector<std::vector<double> > rest_curvature_buf(NDIM,std::vector<double>(BUFFER_SIZE));
-        const int num_blocks = num_beam/BUFFER_SIZE + (num_beam%BUFFER_SIZE == 0 ? 0 : 1);
-        for (int block = 0; block < num_blocks; ++block)
+        const unsigned int num_blocks = num_beam/BUFFER_SIZE + (num_beam%BUFFER_SIZE == 0 ? 0 : 1);
+        for (unsigned int block = 0; block < num_blocks; ++block)
         {
             // Determine whether we are reading in the last block in the file.
             const bool last_block = (block == num_blocks-1);
@@ -1441,7 +1441,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
             H5Dread(node2_idx_dset    , H5T_NATIVE_INT   , memspace, filespace, H5P_DEFAULT, &node2_idx_buf    [0]);
             H5Dread(node3_idx_dset    , H5T_NATIVE_INT   , memspace, filespace, H5P_DEFAULT, &node3_idx_buf    [0]);
             H5Dread(bend_rigidity_dset, H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, &bend_rigidity_buf[0]);
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 H5Dread(rest_curvature_dset[d], H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, &rest_curvature_buf[d][0]);
             }
@@ -1460,7 +1460,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
                 const int& node3_idx = node3_idx_buf[k];
                 const double& bend_rigidity = bend_rigidity_buf[k];
                 std::vector<double> rest_curvature(NDIM);
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     rest_curvature[d] = rest_curvature_buf[d][k];
                 }
@@ -1501,7 +1501,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         H5Dclose(node2_idx_dset);
         H5Dclose(node3_idx_dset);
         H5Dclose(bend_rigidity_dset);
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             H5Dclose(rest_curvature_dset[d]);
         }
@@ -1525,8 +1525,8 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
     const std::string& base_group_name,
     const Pointer<PatchLevel<NDIM> > level,
     const std::string& filename,
-    const int file_number,
-    const int num_files) const
+    const unsigned int file_number,
+    const unsigned int num_files) const
 {
     num_target_point       = 0;
     num_local_target_point = 0;
@@ -1622,8 +1622,8 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
         // Read in the target point data one block at a time.
         std::vector<int> node_idx_buf(BUFFER_SIZE);
         std::vector<double> stiffness_buf(BUFFER_SIZE), damping_buf(BUFFER_SIZE);
-        const int num_blocks = num_target_point/BUFFER_SIZE + (num_target_point%BUFFER_SIZE == 0 ? 0 : 1);
-        for (int block = 0; block < num_blocks; ++block)
+        const unsigned int num_blocks = num_target_point/BUFFER_SIZE + (num_target_point%BUFFER_SIZE == 0 ? 0 : 1);
+        for (unsigned int block = 0; block < num_blocks; ++block)
         {
             // Determine whether we are reading in the last block in the file.
             const bool last_block = (block == num_blocks-1);
@@ -1704,8 +1704,8 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
     const std::string& base_group_name,
     const Pointer<PatchLevel<NDIM> > level,
     const std::string& filename,
-    const int file_number,
-    const int num_files) const
+    const unsigned int file_number,
+    const unsigned int num_files) const
 {
     num_inst_point       = 0;
     num_local_inst_point = 0;
@@ -1824,8 +1824,8 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
 
         // Read in the instrumentation data one block at a time.
         std::vector<int> node_idx_buf(BUFFER_SIZE), meter_idx_buf(BUFFER_SIZE), meter_node_idx_buf(BUFFER_SIZE);
-        const int num_blocks = num_inst_point/BUFFER_SIZE + (num_inst_point%BUFFER_SIZE == 0 ? 0 : 1);
-        for (int block = 0; block < num_blocks; ++block)
+        const unsigned int num_blocks = num_inst_point/BUFFER_SIZE + (num_inst_point%BUFFER_SIZE == 0 ? 0 : 1);
+        for (unsigned int block = 0; block < num_blocks; ++block)
         {
             // Determine whether we are reading in the last block in the file.
             const bool last_block = (block == num_blocks-1);
@@ -1898,7 +1898,7 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
 int
 IBHDF5Initializer::getCanonicalLagrangianIndex(
     const std::pair<int,int>& global_vertex_idx,
-    const int global_index_offset) const
+    const unsigned int global_index_offset) const
 {
     return d_level_vertex_offset[global_vertex_idx.first]+global_vertex_idx.second+global_index_offset;
 }// getCanonicalLagrangianIndex
@@ -1934,7 +1934,7 @@ std::vector<Pointer<Streamable> >
 IBHDF5Initializer::initializeSpecs(
     const std::pair<int,int>& local_vertex_idx,
     const std::pair<int,int>& global_vertex_idx,
-    const int global_index_offset)
+    const unsigned int global_index_offset)
 {
     std::vector<Pointer<Streamable> > vertex_specs;
 
@@ -2160,7 +2160,7 @@ IBHDF5Initializer::getFromInput(
     // Read in any sub-databases associated with the input file names.
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_filenames = d_filenames[ln].size();
+        const unsigned int num_filenames = d_filenames[ln].size();
 
         d_enable_springs[ln].resize(num_filenames,true);
 
@@ -2188,7 +2188,7 @@ IBHDF5Initializer::getFromInput(
 
         d_enable_instrumentation[ln].resize(num_filenames,true);
 
-        for (int j = 0; j < num_filenames; ++j)
+        for (unsigned int j = 0; j < num_filenames; ++j)
         {
             const std::string& filename = d_filenames[ln][j];
             if (db->isDatabase(filename))
@@ -2288,8 +2288,8 @@ IBHDF5Initializer::getFromInput(
     pout << d_object_name << ":  Reading from input files: \n";
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
-        const int num_filenames = d_filenames[ln].size();
-        for (int j = 0; j < num_filenames; ++j)
+        const unsigned int num_filenames = d_filenames[ln].size();
+        for (unsigned int j = 0; j < num_filenames; ++j)
         {
             const std::string& filename = d_filenames[ln][j];
             pout << "  filename: " << filename << "\n"

@@ -98,7 +98,7 @@ public:
     /*!
      * \return The number of rods attached to the master node.
      */
-    unsigned
+    unsigned int
     getNumberOfRods() const;
 
     /*!

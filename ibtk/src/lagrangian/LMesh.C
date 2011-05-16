@@ -88,8 +88,8 @@ LMesh::setNodes(
     d_nodes = nodes;
     if (!sorted) std::sort(d_nodes.begin(), d_nodes.end(), LNodeIndexLocalPETScIndexComp());
 
-    int node_counter = 0;
-    const int num_nodes = d_nodes.size();
+    unsigned int node_counter = 0;
+    const unsigned int num_nodes = d_nodes.size();
     d_lag_idxs.resize(num_nodes);
     d_global_petsc_idxs.resize(num_nodes);
     d_local_petsc_idxs.resize(num_nodes);
@@ -99,7 +99,7 @@ LMesh::setNodes(
              ++it, ++node_counter)
         {
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(node_counter == (*it)->getLocalPETScIndex());
+            TBOX_ASSERT(int(node_counter) == (*it)->getLocalPETScIndex());
 #endif
             d_lag_idxs         [node_counter] = (*it)->getLagrangianIndex();
             d_global_petsc_idxs[node_counter] = (*it)->getGlobalPETScIndex();
@@ -107,15 +107,15 @@ LMesh::setNodes(
         }
     }
 
-    int ghost_node_counter = 0;
-    const int num_ghost_nodes = d_ghost_nodes.size();
+    unsigned int ghost_node_counter = 0;
+    const unsigned int num_ghost_nodes = d_ghost_nodes.size();
     if (num_ghost_nodes > 0)
     {
         for (std::vector<LNode*>::iterator it = d_ghost_nodes.begin(); it != d_ghost_nodes.end();
              ++it, ++node_counter, ++ghost_node_counter)
         {
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(node_counter == (*it)->getLocalPETScIndex());
+            TBOX_ASSERT(int(node_counter) == (*it)->getLocalPETScIndex());
 #endif
             d_ghost_lag_idxs         [ghost_node_counter] = (*it)->getLagrangianIndex();
             d_ghost_global_petsc_idxs[ghost_node_counter] = (*it)->getGlobalPETScIndex();
@@ -133,9 +133,9 @@ LMesh::setGhostNodes(
     d_ghost_nodes = ghost_nodes;
     if (!sorted) std::sort(d_ghost_nodes.begin(), d_ghost_nodes.end(), LNodeIndexLocalPETScIndexComp());
 
-    int node_counter = d_nodes.size();
-    int ghost_node_counter = 0;
-    const int num_ghost_nodes = d_ghost_nodes.size();
+    unsigned int node_counter = d_nodes.size();
+    unsigned int ghost_node_counter = 0;
+    const unsigned int num_ghost_nodes = d_ghost_nodes.size();
     d_ghost_lag_idxs.resize(num_ghost_nodes);
     d_ghost_global_petsc_idxs.resize(num_ghost_nodes);
     d_ghost_local_petsc_idxs.resize(num_ghost_nodes);
@@ -145,7 +145,7 @@ LMesh::setGhostNodes(
              ++it, ++node_counter, ++ghost_node_counter)
         {
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(node_counter == (*it)->getLocalPETScIndex());
+            TBOX_ASSERT(int(node_counter) == (*it)->getLocalPETScIndex());
 #endif
             d_ghost_lag_idxs         [ghost_node_counter] = (*it)->getLagrangianIndex();
             d_ghost_global_petsc_idxs[ghost_node_counter] = (*it)->getGlobalPETScIndex();

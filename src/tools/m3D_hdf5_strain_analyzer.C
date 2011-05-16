@@ -68,7 +68,7 @@ using namespace std;
 
 void
 compute_strain(
-    const int direction,
+    const unsigned int direction,
     const vector<int>& nelem,
     const vector<int>& periodic,
     const Array<float,4> X,
@@ -77,7 +77,7 @@ compute_strain(
     Array<float,4>& lambda)
 {
     vector<int> nelem_strain(NDIM);
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         nelem_strain[d] = nelem[d] - (d == direction ? 1 : 0) + (periodic[d] ? 1 : 0);
     }
@@ -148,7 +148,7 @@ buildCurvBlock(
     TinyVector<bool,NDIM> degenerate;
     TinyVector<int ,NDIM> nelem;
 
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         degenerate(d) = X.extent(d+1) == 1;
         nelem(d) = (degenerate(d)) ? 2 : X.extent(d+1);
@@ -161,9 +161,9 @@ buildCurvBlock(
     vector<float> X_flat(NDIM*ntot);
 
     assert(varnames.size() == varvals.size());
-    const int nvars = varnames.size();
+    const unsigned int nvars = varnames.size();
     vector<vector<float> > varvals_flat(NDIM*ntot);
-    for (int l = 0; l < nvars; ++l)
+    for (unsigned int l = 0; l < nvars; ++l)
     {
         const int vardepth = varvals[l].extent(0);
         varvals_flat[l].resize(vardepth*ntot);
@@ -182,7 +182,7 @@ buildCurvBlock(
                 {
                     X_flat[d*ntot+offset] = X(d,i_X,j_X,k_X);
                 }
-                for (int l = 0; l < nvars; ++l)
+                for (unsigned int l = 0; l < nvars; ++l)
                 {
                     const int vardepth = varvals[l].extent(0);
                     for (int d = 0; d < vardepth; ++d)
@@ -209,20 +209,20 @@ buildCurvBlock(
 #endif
     const char* coordnames[MAX_NDIM] = { "xcoords", "ycoords", "zcoords" };
     vector<float*> coords(NDIM);
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         coords[d] = &X_flat[0]+d*ntot;
     }
 
     int ndims = NDIM;
     vector<int> dims(NDIM);
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         dims[d] = nelem[d];
     }
 
     DBPutQuadmesh(dbfile, meshname.c_str(), const_cast<char**>(coordnames), &coords[0], &dims[0], ndims, DB_FLOAT, DB_NONCOLLINEAR, NULL);
-    for (int l = 0; l < nvars; ++l)
+    for (unsigned int l = 0; l < nvars; ++l)
     {
         const char* varname = varnames[l].c_str();
         const int vardepth = varvals[l].extent(0);
@@ -423,7 +423,7 @@ main(
             status = H5LTread_dataset_float(fiber_file_id, dset_name.c_str(), X.data());
 
             // Compute the strains.
-            for (int direction = 0; direction < NDIM; ++direction)
+            for (unsigned int direction = 0; direction < NDIM; ++direction)
             {
                 if (nelem[direction] > 1)
                 {
@@ -455,10 +455,10 @@ main(
     }
 
     // Output the results.
-    for (unsigned l = 0; l < X0.size(); ++l)
+    for (unsigned int l = 0; l < X0.size(); ++l)
     {
         cout << "structure: " << layer_names[l] << "\n";
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             if (nelems[l][d] > 1)
             {

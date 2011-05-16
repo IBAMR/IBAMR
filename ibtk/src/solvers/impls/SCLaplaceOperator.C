@@ -118,7 +118,7 @@ SCLaplaceOperator::SCLaplaceOperator(
 
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions.
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_default_bc_coef->setBoundaryValue(2*d  ,0.0);
         d_default_bc_coef->setBoundaryValue(2*d+1,0.0);
@@ -156,7 +156,7 @@ void
 SCLaplaceOperator::setPhysicalBcCoefs(
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
 {
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (bc_coefs[d] != NULL)
         {
@@ -247,8 +247,8 @@ SCLaplaceOperator::apply(
         TBOX_ASSERT(!y_factory.isNull());
 #endif
 
-        const unsigned x_depth = x_factory->getDefaultDepth();
-        const unsigned y_depth = y_factory->getDefaultDepth();
+        const unsigned int x_depth = x_factory->getDefaultDepth();
+        const unsigned int y_depth = y_factory->getDefaultDepth();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(x_depth == y_depth);

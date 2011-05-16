@@ -83,10 +83,10 @@ LInitStrategy::initializeStructureIndexingOnPatchLevel(
     return;
 }// initializeStructureIndexingOnPatchLevel
 
-int
+unsigned int
 LInitStrategy::initializeMassDataOnPatchLevel(
-    const int global_index_offset,
-    const int local_index_offset,
+    const unsigned int global_index_offset,
+    const unsigned int local_index_offset,
     Pointer<LData>& M_data,
     Pointer<LData>& K_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
@@ -101,10 +101,10 @@ LInitStrategy::initializeMassDataOnPatchLevel(
     return 0;
 }// initializeMassDataOnPatchLevel
 
-int
+unsigned int
 LInitStrategy::initializeDirectorDataOnPatchLevel(
-    const int global_index_offset,
-    const int local_index_offset,
+    const unsigned int global_index_offset,
+    const unsigned int local_index_offset,
     Pointer<LData>& D_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,

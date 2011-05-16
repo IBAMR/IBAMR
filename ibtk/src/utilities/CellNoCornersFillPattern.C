@@ -101,7 +101,7 @@ CellNoCornersFillPattern::calculateOverlap(
         BoxList<NDIM> stencil_boxes;
         if (NDIM == 2 || (!d_include_edges_on_src_level && !d_include_edges_on_dst_level))
         {
-            for (int i = 0; i < NDIM; ++i)
+            for (unsigned int i = 0; i < NDIM; ++i)
             {
                 Box<NDIM> box = dst_box;
                 box.lower()(i) -= d_stencil_width(i);
@@ -111,9 +111,9 @@ CellNoCornersFillPattern::calculateOverlap(
         }
         else
         {
-            for (int j = 0; j < NDIM; ++j)
+            for (unsigned int j = 0; j < NDIM; ++j)
             {
-                for (int i = 0; i < NDIM; ++i)
+                for (unsigned int i = 0; i < NDIM; ++i)
                 {
                     if (i == j) continue;
                     Box<NDIM> box = dst_box;
@@ -173,7 +173,7 @@ CellNoCornersFillPattern::calculateOverlap(
             (!d_include_edges_on_dst_level && dst_level_num == d_target_level_num) ||
             (!d_include_edges_on_src_level && dst_level_num != d_target_level_num))
         {
-            for (int i = 0; i < NDIM; ++i)
+            for (unsigned int i = 0; i < NDIM; ++i)
             {
                 Box<NDIM> box = dst_box;
                 box.lower()(i) -= d_stencil_width(i);
@@ -183,9 +183,9 @@ CellNoCornersFillPattern::calculateOverlap(
         }
         else
         {
-            for (int j = 0; j < NDIM; ++j)
+            for (unsigned int j = 0; j < NDIM; ++j)
             {
-                for (int i = 0; i < NDIM; ++i)
+                for (unsigned int i = 0; i < NDIM; ++i)
                 {
                     if (i == j) continue;
                     Box<NDIM> box = dst_box;

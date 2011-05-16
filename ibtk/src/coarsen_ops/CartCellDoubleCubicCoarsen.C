@@ -172,7 +172,7 @@ CartCellDoubleCubicCoarsen::coarsen(
         TBOX_ERROR("CartCellDoubleCubicCoarsen::coarsen():\n"
                    << "   coarse patch data does not have uniform ghost cell widths" << std::endl);
     }
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (ratio(d)%2 == 1)
         {

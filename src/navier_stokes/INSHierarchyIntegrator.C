@@ -308,18 +308,18 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
     // Dirichlet boundary conditions for the velocity and homogeneous Neumann
     // boundary conditions for the pressure.
     d_default_U_bc_coef = new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_U_bc_coef", Pointer<Database>(NULL));
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_default_U_bc_coef->setBoundaryValue(2*d  ,0.0);
         d_default_U_bc_coef->setBoundaryValue(2*d+1,0.0);
     }
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_intermediate_U_bc_coefs[d] = new INSIntermediateVelocityBcCoef(d,-1,blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(d_default_U_bc_coef),false);
     }
 
     d_default_P_bc_coef = new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_P_bc_coef", Pointer<Database>(NULL));
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_default_P_bc_coef->setBoundarySlope(2*d  ,0.0);
         d_default_P_bc_coef->setBoundarySlope(2*d+1,0.0);
@@ -485,7 +485,7 @@ INSHierarchyIntegrator::~INSHierarchyIntegrator()
     delete d_default_P_bc_coef;
     delete d_default_U_bc_coef;
 
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         delete d_intermediate_U_bc_coefs[d];
     }
@@ -517,14 +517,14 @@ INSHierarchyIntegrator::registerVelocityPhysicalBcCoefs(
                    << "  of the hierarchy integrator object." << std::endl);
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(U_bc_coefs[d] != NULL);
     }
 #endif
     d_U_bc_coefs = U_bc_coefs;
     d_hier_projector->setVelocityPhysicalBcCoefs(d_U_bc_coefs);
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_intermediate_U_bc_coefs[d]->setVelocityPhysicalBcCoefs(d_U_bc_coefs);
     }
@@ -928,7 +928,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
             d_visit_writer->registerPlotQuantity(
                 d_F_var->getName(), "VECTOR", d_F_current_idx, 0, d_F_scale);
 
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream stream;
                 stream << d;
@@ -950,7 +950,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
                 d_Omega_var->getName(), (NDIM == 2) ? "SCALAR" : "VECTOR",
                 d_Omega_current_idx);
 #if (NDIM == 3)
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 std::ostringstream stream;
                 stream << d;
@@ -1130,7 +1130,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     }
 
     // Setup the intermediate velocity bc coef data.
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_intermediate_U_bc_coefs[d]->setPhiPatchDataIndex(d_Phi_scratch_idx);
         d_intermediate_U_bc_coefs[d]->useTrueVelocityBcCoefs();
@@ -1488,7 +1488,7 @@ INSHierarchyIntegrator::regridHierarchy()
     {
         // Reset the intermediate velocity bc coefs to set the "true" boundary
         // values.
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             d_intermediate_U_bc_coefs[d]->useTrueVelocityBcCoefs();
         }
@@ -1541,7 +1541,7 @@ INSHierarchyIntegrator::regridHierarchy()
         // Setup the intermediate velocity bc coefs.
         d_hier_cc_data_ops->copyData(d_Phi_scratch_idx, d_Phi_current_idx);
         d_Phi_hier_bdry_fill_op->fillData(d_integrator_time);
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             static const bool velocity_correction = false;
             d_intermediate_U_bc_coefs[d]->useIntermediateVelocityBcCoefs(
@@ -1558,7 +1558,7 @@ INSHierarchyIntegrator::regridHierarchy()
 
         // Reset the intermediate velocity bc coefs to set the "true" boundary
         // values.
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             d_intermediate_U_bc_coefs[d]->useTrueVelocityBcCoefs();
         }
@@ -1708,14 +1708,14 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     spec.setCConstant(-d_lambda);
     spec.setDConstant( d_nu    );
 
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_intermediate_U_bc_coefs[d]->useTrueVelocityBcCoefs();
     }
     d_hier_cc_data_ops->copyData(d_V_idx, d_U_current_idx);
     d_V_bdry_fill_op->fillData(current_time);
 
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_hier_math_ops->laplace(
             d_F_U_current_idx, d_F_U_var, // dst
@@ -1853,7 +1853,7 @@ INSHierarchyIntegrator::integrateAdvDiff(
     // Setup the intermediate velocity bc coefs.
     d_hier_cc_data_ops->copyData(d_Phi_scratch_idx, d_Phi_current_idx);
     d_Phi_hier_bdry_fill_op->fillData(current_time);
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         static const bool velocity_correction = false;
         d_intermediate_U_bc_coefs[d]->useIntermediateVelocityBcCoefs(
@@ -1866,7 +1866,7 @@ INSHierarchyIntegrator::integrateAdvDiff(
 
     // Reset the intermediate velocity bc coefs to set the "true" boundary
     // values.
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_intermediate_U_bc_coefs[d]->useTrueVelocityBcCoefs();
     }
@@ -1907,7 +1907,7 @@ INSHierarchyIntegrator::projectVelocity(
     // Setup the intermediate velocity bc coefs.
     d_hier_cc_data_ops->copyData(d_Phi_scratch_idx, d_Phi_current_idx);
     d_Phi_hier_bdry_fill_op->fillData(current_time);
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         static const bool velocity_correction = false;
         d_intermediate_U_bc_coefs[d]->useIntermediateVelocityBcCoefs(
@@ -1924,7 +1924,7 @@ INSHierarchyIntegrator::projectVelocity(
 
     // Reset the intermediate velocity bc coefs to set the "true" boundary
     // values.
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_intermediate_U_bc_coefs[d]->useTrueVelocityBcCoefs();
     }
@@ -2120,7 +2120,7 @@ INSHierarchyIntegrator::updatePressure(
         d_hier_cc_data_ops->add(d_Phi_scratch_idx, d_Phi_tilde_current_idx, d_Phi_new_idx);
         d_hier_cc_data_ops->subtract(d_Phi_scratch_idx, d_Phi_scratch_idx, d_Phi_current_idx);
         d_Phi_hier_bdry_fill_op->fillData(current_time);
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             static const bool velocity_correction = true;
             d_intermediate_U_bc_coefs[d]->useIntermediateVelocityBcCoefs(
@@ -2184,7 +2184,7 @@ INSHierarchyIntegrator::updatePressure(
         // Setup the intermediate velocity bc coefs.
         d_hier_cc_data_ops->add(d_Phi_scratch_idx, d_Phi_tilde_current_idx, d_Phi_new_idx);
         d_Phi_hier_bdry_fill_op->fillData(current_time);
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             static const bool velocity_correction = false;
             d_intermediate_U_bc_coefs[d]->useIntermediateVelocityBcCoefs(
@@ -2200,7 +2200,7 @@ INSHierarchyIntegrator::updatePressure(
 
         // Reset the intermediate velocity bc coefs to set the "true" boundary
         // values.
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             d_intermediate_U_bc_coefs[d]->useTrueVelocityBcCoefs();
         }
@@ -3041,7 +3041,7 @@ INSHierarchyIntegrator::applyGradientDetector(
 #endif
 #if (NDIM == 3)
                     double norm_Omega_sq = 0.0;
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         norm_Omega_sq += (*Omega_current_data)(i,d)*(*Omega_current_data)(i,d);
                     }

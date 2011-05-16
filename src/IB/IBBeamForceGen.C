@@ -199,7 +199,7 @@ IBBeamForceGen::initializeLevelData(
         if (!force_spec.isNull())
         {
             const int& mastr_idx = node_idx.getLagrangianIndex();
-            const unsigned num_beams = force_spec->getNumberOfBeams();
+            const unsigned int num_beams = force_spec->getNumberOfBeams();
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
 #endif
@@ -211,7 +211,7 @@ IBBeamForceGen::initializeLevelData(
             TBOX_ASSERT(num_beams == bend.size());
             TBOX_ASSERT(num_beams == curv.size());
 #endif
-            for (unsigned k = 0; k < num_beams; ++k)
+            for (unsigned int k = 0; k < num_beams; ++k)
             {
                 petsc_mastr_node_idxs.push_back(mastr_idx);
                 petsc_next_node_idxs.push_back(nghbrs[k].first );
@@ -233,10 +233,10 @@ IBBeamForceGen::initializeLevelData(
     const int num_local_nodes = l_data_manager->getNumberOfLocalNodes(level_num);
 
     // Determine the non-zero structure for the matrices.
-    const int local_sz = petsc_mastr_node_idxs.size();
+    const unsigned int local_sz = petsc_mastr_node_idxs.size();
 
     std::vector<int> next_d_nz(local_sz,1), next_o_nz(local_sz,0);
-    for (int k = 0; k < local_sz; ++k)
+    for (unsigned int k = 0; k < local_sz; ++k)
     {
         const int& next_idx = petsc_next_node_idxs[k];
         if (next_idx >= global_node_offset &&
@@ -251,7 +251,7 @@ IBBeamForceGen::initializeLevelData(
     }
 
     std::vector<int> prev_d_nz(local_sz,1), prev_o_nz(local_sz,0);
-    for (int k = 0; k < local_sz; ++k)
+    for (unsigned int k = 0; k < local_sz; ++k)
     {
         const int& prev_idx = petsc_prev_node_idxs[k];
         if (prev_idx >= global_node_offset &&
@@ -281,9 +281,9 @@ IBBeamForceGen::initializeLevelData(
                             PETSC_DEFAULT, local_sz > 0 ? &prev_o_nz[0] : PETSC_NULL,
                             &D_prev_mat);  IBTK_CHKERRQ(ierr);
 
-    blitz::Array<double,2> mastr_vals(NDIM,NDIM);  mastr_vals = 0.0;
-    blitz::Array<double,2> slave_vals(NDIM,NDIM);  slave_vals = 0.0;
-    for (int d = 0; d < NDIM; ++d)
+    blitz::TinyMatrix<double,NDIM,NDIM> mastr_vals;  mastr_vals = 0.0;
+    blitz::TinyMatrix<double,NDIM,NDIM> slave_vals;  slave_vals = 0.0;
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         mastr_vals(d,d) = -1.0;
         slave_vals(d,d) = +1.0;
@@ -295,7 +295,7 @@ IBBeamForceGen::initializeLevelData(
     IBTK_CHKERRQ(ierr);
     i_offset /= NDIM;
 
-    for (int k = 0; k < local_sz; ++k)
+    for (unsigned int k = 0; k < local_sz; ++k)
     {
         int i = i_offset + k;
         int j_mastr = petsc_mastr_node_idxs[k];
@@ -308,7 +308,7 @@ IBBeamForceGen::initializeLevelData(
     IBTK_CHKERRQ(ierr);
     i_offset /= NDIM;
 
-    for (int k = 0; k < local_sz; ++k)
+    for (unsigned int k = 0; k < local_sz; ++k)
     {
         int i = i_offset + k;
         int j_mastr = petsc_mastr_node_idxs[k];
@@ -382,11 +382,11 @@ IBBeamForceGen::computeLagrangianForce(
     std::vector<double>& bend_rigidities = d_bend_rigidities[level_number];
     std::vector<std::vector<double> >& mesh_dependent_curvatures = d_mesh_dependent_curvatures[level_number];
 
-    const int local_sz = petsc_mastr_node_idxs.size();
+    const unsigned int local_sz = petsc_mastr_node_idxs.size();
     std::vector<double> F_mastr_node_vals(NDIM*local_sz,0.0);
     std::vector<double> F_nghbr_node_vals(NDIM*local_sz,0.0);
 
-    for (int k = 0; k < local_sz; ++k)
+    for (unsigned int k = 0; k < local_sz; ++k)
     {
         // Compute the forces applied by the beam to the "master" and "slave"
         // nodes.
@@ -396,7 +396,7 @@ IBBeamForceGen::computeLagrangianForce(
         const double* const D_prev = &D_prev_vals[k*NDIM];
         const double& bend = bend_rigidities[k];
         const std::vector<double>& curv = mesh_dependent_curvatures[k];
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             F_mastr_node[d] = +2.0*bend*(D_next[d]+D_prev[d]-curv[d]);
             F_nghbr_node[d] = -1.0*bend*(D_next[d]+D_prev[d]-curv[d]);
@@ -475,7 +475,7 @@ IBBeamForceGen::computeLagrangianForceJacobianNonzeroStructure(
     std::vector<int>& petsc_mastr_node_idxs = d_petsc_mastr_node_idxs[level_number];
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_number];
     std::vector<int>& petsc_prev_node_idxs = d_petsc_prev_node_idxs[level_number];
-    const int local_sz = petsc_mastr_node_idxs.size();
+    const unsigned int local_sz = petsc_mastr_node_idxs.size();
 
     // Determine the global node offset and the number of local nodes.
     const int global_node_offset = l_data_manager->getGlobalNodeOffset(level_number);
@@ -490,7 +490,7 @@ IBBeamForceGen::computeLagrangianForceJacobianNonzeroStructure(
     ierr = VecSet(d_nnz_vec, 1.0);  IBTK_CHKERRQ(ierr);
     ierr = VecSet(o_nnz_vec, 0.0);  IBTK_CHKERRQ(ierr);
 
-    for (int k = 0; k < local_sz; ++k)
+    for (unsigned int k = 0; k < local_sz; ++k)
     {
         const int& mastr_idx = petsc_mastr_node_idxs[k];
         const int& next_idx = petsc_next_node_idxs[k];
@@ -605,19 +605,19 @@ IBBeamForceGen::computeLagrangianForceJacobian(
     std::vector<int>& petsc_mastr_node_idxs = d_petsc_mastr_node_idxs[level_number];
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_number];
     std::vector<int>& petsc_prev_node_idxs = d_petsc_prev_node_idxs[level_number];
-    const int local_sz = petsc_mastr_node_idxs.size();
+    const unsigned int local_sz = petsc_mastr_node_idxs.size();
 
     // Compute the matrix elements and add them to the Jacobian matrix.
     std::vector<double>& bend_rigidities = d_bend_rigidities[level_number];
-    blitz::Array<double,2> dF_dX(NDIM,NDIM);  dF_dX = 0.0;
-    for (int k = 0; k < local_sz; ++k)
+    blitz::TinyMatrix<double,NDIM,NDIM> dF_dX;  dF_dX = 0.0;
+    for (unsigned int k = 0; k < local_sz; ++k)
     {
         const int& petsc_mastr_idx = petsc_mastr_node_idxs[k];
         const int& petsc_next_idx = petsc_next_node_idxs[k];
         const int& petsc_prev_idx = petsc_prev_node_idxs[k];
         const double& bend = bend_rigidities[k];
 
-        for (int alpha = 0; alpha < NDIM; ++alpha)
+        for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
         {
             dF_dX(alpha,alpha) = -1.0*bend*X_coef;
         }
@@ -626,7 +626,7 @@ IBBeamForceGen::computeLagrangianForceJacobian(
         ierr = MatSetValuesBlocked(J_mat,1,&petsc_next_idx,1,&petsc_prev_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
         ierr = MatSetValuesBlocked(J_mat,1,&petsc_next_idx,1,&petsc_next_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
 
-        for (int alpha = 0; alpha < NDIM; ++alpha)
+        for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
         {
             dF_dX(alpha,alpha) = +2.0*bend*X_coef;
         }
@@ -635,7 +635,7 @@ IBBeamForceGen::computeLagrangianForceJacobian(
         ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_prev_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
         ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_next_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
 
-        for (int alpha = 0; alpha < NDIM; ++alpha)
+        for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
         {
             dF_dX(alpha,alpha) = -4.0*bend*X_coef;
         }

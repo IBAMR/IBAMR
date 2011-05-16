@@ -66,11 +66,11 @@ IBBeamForceSpec::IBBeamForceSpec(
 #endif
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    const int num_beams = d_neighbor_idxs.size();
-    TBOX_ASSERT(num_beams == int(d_bend_rigidities.size()));
-    TBOX_ASSERT(num_beams == int(d_mesh_dependent_curvatures.size()));
+    const unsigned int num_beams = d_neighbor_idxs.size();
+    TBOX_ASSERT(num_beams == d_bend_rigidities.size());
+    TBOX_ASSERT(num_beams == d_mesh_dependent_curvatures.size());
 #if ENABLE_SUBDOMAIN_INDICES
-    TBOX_ASSERT(num_beams == int(d_subdomain_idxs.size()));
+    TBOX_ASSERT(num_beams == d_subdomain_idxs.size());
 #endif
 #endif
     if (!s_registered_factory)
@@ -89,13 +89,13 @@ IBBeamForceSpec::~IBBeamForceSpec()
     return;
 }// ~IBBeamForceSpec
 
-inline unsigned
+inline unsigned int
 IBBeamForceSpec::getNumberOfBeams() const
 {
-    const int num_beams = d_neighbor_idxs.size();
+    const unsigned int num_beams = d_neighbor_idxs.size();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(num_beams == int(d_bend_rigidities.size()));
-    TBOX_ASSERT(num_beams == int(d_mesh_dependent_curvatures.size()));
+    TBOX_ASSERT(num_beams == d_bend_rigidities.size());
+    TBOX_ASSERT(num_beams == d_mesh_dependent_curvatures.size());
 #endif
     return num_beams;
 }// getNumberOfBeams
@@ -179,7 +179,7 @@ IBBeamForceSpec::getStreamableClassID() const
 inline size_t
 IBBeamForceSpec::getDataStreamSize() const
 {
-    const int num_beams = d_neighbor_idxs.size();
+    const unsigned int num_beams = d_neighbor_idxs.size();
     return ((2+2*num_beams     )*SAMRAI::tbox::AbstractStream::sizeofInt() +
             ((1+NDIM)*num_beams)*SAMRAI::tbox::AbstractStream::sizeofDouble())
 #if ENABLE_SUBDOMAIN_INDICES
@@ -192,22 +192,22 @@ inline void
 IBBeamForceSpec::packStream(
     SAMRAI::tbox::AbstractStream& stream)
 {
-    const int num_beams = d_neighbor_idxs.size();
+    const unsigned int num_beams = d_neighbor_idxs.size();
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(num_beams == int(d_bend_rigidities.size()));
-    TBOX_ASSERT(num_beams == int(d_mesh_dependent_curvatures.size()));
+    TBOX_ASSERT(num_beams == d_bend_rigidities.size());
+    TBOX_ASSERT(num_beams == d_mesh_dependent_curvatures.size());
 #endif
     std::vector<int> tmp_neighbor_idxs(2*num_beams);
-    for (int k = 0; k < num_beams; ++k)
+    for (unsigned int k = 0; k < num_beams; ++k)
     {
         tmp_neighbor_idxs[2*k  ] = d_neighbor_idxs[k].first;
         tmp_neighbor_idxs[2*k+1] = d_neighbor_idxs[k].second;
     }
-    stream.pack(&num_beams,1);
+    stream << int(num_beams);
     stream.pack(&d_master_idx,1);
     stream.pack(&tmp_neighbor_idxs[0],2*num_beams);
     stream.pack(&d_bend_rigidities[0],1*num_beams);
-    for (int k = 0; k < num_beams; ++k)
+    for (unsigned int k = 0; k < num_beams; ++k)
     {
         stream.pack(&d_mesh_dependent_curvatures[k][0],NDIM);
     }

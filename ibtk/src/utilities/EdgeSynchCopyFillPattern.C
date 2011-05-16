@@ -55,7 +55,7 @@ static const std::string PATTERN_NAME = "EDGE_SYNCH_COPY_FILL_PATTERN";
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 EdgeSynchCopyFillPattern::EdgeSynchCopyFillPattern(
-    const int axis)
+    const unsigned int axis)
     : d_stencil_width(1),
       d_axis(axis)
 {
@@ -90,11 +90,11 @@ EdgeSynchCopyFillPattern::calculateOverlap(
     TBOX_ASSERT(t_dst_geometry != NULL);
 #endif
     BoxList<NDIM> dst_boxes[NDIM];
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         if (axis == d_axis) continue;
         bool skip = false;
-        for (int d = 0; d < NDIM && !skip; ++d)
+        for (unsigned int d = 0; d < NDIM && !skip; ++d)
         {
             if (d != d_axis)
             {

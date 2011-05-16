@@ -74,7 +74,7 @@ public:
      * class constructor.
      */
     INSStaggeredVelocityBcCoef(
-        const int comp_idx,
+        const unsigned int comp_idx,
         const INSCoefs& problem_coefs,
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
         const bool homogeneous_bc=false);
@@ -226,7 +226,7 @@ private:
      * Component of the velocity which this boundary condition specification is
      * to operate on.
      */
-    const int d_comp_idx;
+    const unsigned int d_comp_idx;
 
     /*
      * Problem coefficients.

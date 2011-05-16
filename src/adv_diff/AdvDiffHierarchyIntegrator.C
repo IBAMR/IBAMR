@@ -542,7 +542,7 @@ AdvDiffHierarchyIntegrator::setPhysicalBcCoefs(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
     Pointer<CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
-    const unsigned Q_depth = Q_factory->getDefaultDepth();
+    const unsigned int Q_depth = Q_factory->getDefaultDepth();
     TBOX_ASSERT(Q_depth == 1);
 #endif
     d_Q_bc_coef[Q_var] = std::vector<RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef);
@@ -557,7 +557,7 @@ AdvDiffHierarchyIntegrator::setPhysicalBcCoefs(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
     Pointer<CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
-    const unsigned Q_depth = Q_factory->getDefaultDepth();
+    const unsigned int Q_depth = Q_factory->getDefaultDepth();
     TBOX_ASSERT(Q_depth == Q_bc_coef.size());
 #endif
     d_Q_bc_coef[Q_var] = Q_bc_coef;
@@ -750,7 +750,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     d_helmholtz_fac_pcs.resize(d_Q_var.size());
     d_helmholtz_solvers.resize(d_Q_var.size());
     d_helmholtz_solvers_need_init.resize(d_Q_var.size());
-    unsigned l = 0;
+    unsigned int l = 0;
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
          cit != d_Q_var.end(); ++cit, ++l)
     {
@@ -1039,7 +1039,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
     // patch hierarchy.
     ////////////////////////////////////////////////////////////////////////////
 
-    unsigned l = 0;
+    unsigned int l = 0;
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
          cit != d_Q_var.end(); ++cit, ++l)
     {
@@ -1528,7 +1528,7 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
     // Reset the interpolation operators.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_hier_bdry_fill_ops.resize(d_Q_var.size());
-    unsigned l = 0;
+    unsigned int l = 0;
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
          cit != d_Q_var.end(); ++cit, ++l)
     {

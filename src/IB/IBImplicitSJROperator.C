@@ -194,7 +194,7 @@ IBImplicitSJROperator::formJacobian(
             const double* const dx0 = grid_geom->getDx();
             const IntVector<NDIM>& ratio = patch_level->getRatio();
             double cell_vol = 1.0;
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 cell_vol *= dx0[d] / double(ratio(d));
             }
@@ -316,7 +316,7 @@ IBImplicitSJROperator::initializeOperatorState(
             d_o_nnz[ln].resize(NDIM*num_local_nodes);
             for (int k = 0; k < num_local_nodes; ++k)
             {
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     d_d_nnz[ln][NDIM*k+d] = NDIM*d_nnz[k];
                     d_o_nnz[ln][NDIM*k+d] = NDIM*o_nnz[k];
@@ -340,7 +340,7 @@ IBImplicitSJROperator::deallocateOperatorState()
 
     int ierr;
 
-    for (unsigned k = 0; k < d_SJR_mats.size(); ++k)
+    for (unsigned int k = 0; k < d_SJR_mats.size(); ++k)
     {
         if (d_SJR_mats[k] != static_cast<Mat>(NULL))
         {

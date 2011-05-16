@@ -442,7 +442,7 @@ AdvectHypPatchOps::setPhysicalBcCoefs(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
     Pointer<CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
-    const unsigned Q_depth = Q_factory->getDefaultDepth();
+    const unsigned int Q_depth = Q_factory->getDefaultDepth();
     TBOX_ASSERT(Q_depth == 1);
 #endif
     d_Q_bc_coef[Q_var] = std::vector<RobinBcCoefStrategy<NDIM>*>(1,Q_bc_coef);
@@ -457,7 +457,7 @@ AdvectHypPatchOps::setPhysicalBcCoefs(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
     Pointer<CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
-    const unsigned Q_depth = Q_factory->getDefaultDepth();
+    const unsigned int Q_depth = Q_factory->getDefaultDepth();
     TBOX_ASSERT(Q_depth == Q_bc_coef.size());
 #endif
     d_Q_bc_coef[Q_var] = Q_bc_coef;
@@ -1428,8 +1428,8 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
         for (int n = 0; n < physical_codim1_boxes.size(); ++n)
         {
             const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-            const int location_index   = bdry_box.getLocationIndex();
-            const int bdry_normal_axis = location_index/2;
+            const unsigned int location_index   = bdry_box.getLocationIndex();
+            const unsigned int bdry_normal_axis = location_index/2;
             const bool is_lower        = location_index%2 == 0;
 
             static const IntVector<NDIM> gcw_to_fill = 1;

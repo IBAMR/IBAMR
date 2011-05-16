@@ -1821,7 +1821,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
 
         // Apply constraints (e.g., enforce periodic boundary conditions) and
         // add the elemental contributions to the global vector.
-        for (int i = 0; i < NDIM; ++i)
+        for (unsigned int i = 0; i < NDIM; ++i)
         {
             F_dof_map.constrain_element_vector(F_e[i], dof_indices(i));
             F_vec->add_vector(F_e[i], dof_indices(i));

@@ -168,7 +168,7 @@ IBStandardForceGen::initializeLevelData(
             {
                 const int petsc_local_idx = node_idx.getLocalPETScIndex();
                 const blitz::TinyVector<double,NDIM>& periodic_displacement = node_idx.getPeriodicDisplacement();
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     shift_arr[NDIM*petsc_local_idx+d] = -periodic_displacement[d];
                 }

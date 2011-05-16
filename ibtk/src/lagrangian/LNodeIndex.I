@@ -147,7 +147,7 @@ LNodeIndex::registerPeriodicShift(
     const blitz::TinyVector<double,NDIM>& displacement)
 {
     d_offset += offset;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         d_displacement[d] += displacement[d];
     }

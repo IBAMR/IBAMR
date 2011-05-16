@@ -97,7 +97,7 @@ public:
      *
      * \return The number of local nodes on the specified level.
      */
-    virtual int
+    virtual unsigned int
     computeLocalNodeCountOnPatchLevel(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -111,11 +111,11 @@ public:
      *
      * \return The number of local nodes initialized on the patch level.
      */
-    virtual int
+    virtual unsigned int
     initializeDataOnPatchLevel(
         const int lag_node_index_idx,
-        const int global_index_offset,
-        const int local_index_offset,
+        const unsigned int global_index_offset,
+        const unsigned int local_index_offset,
         SAMRAI::tbox::Pointer<IBTK::LData>& X_data,
         SAMRAI::tbox::Pointer<IBTK::LData>& U_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -131,10 +131,10 @@ public:
      *
      * \return The number of local nodes initialized on the patch level.
      */
-    virtual int
+    virtual unsigned int
     initializeMassDataOnPatchLevel(
-        const int global_index_offset,
-        const int local_index_offset,
+        const unsigned int global_index_offset,
+        const unsigned int local_index_offset,
         SAMRAI::tbox::Pointer<IBTK::LData>& M_data,
         SAMRAI::tbox::Pointer<IBTK::LData>& K_data,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -246,8 +246,8 @@ private:
         const std::string& base_group_name,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
         const std::string& filename,
-        const int file_number,
-        const int num_files) const;
+        const unsigned int file_number,
+        const unsigned int num_files) const;
 
     void
     buildLevelSpringDataCacheFromHDF5(
@@ -259,8 +259,8 @@ private:
         const std::string& base_group_name,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
         const std::string& filename,
-        const int file_number,
-        const int num_files) const;
+        const unsigned int file_number,
+        const unsigned int num_files) const;
 
     void
     buildLevelBeamDataCacheFromHDF5(
@@ -272,8 +272,8 @@ private:
         const std::string& base_group_name,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
         const std::string& filename,
-        const int file_number,
-        const int num_files) const;
+        const unsigned int file_number,
+        const unsigned int num_files) const;
 
     void
     buildLevelTargetPointDataCacheFromHDF5(
@@ -285,8 +285,8 @@ private:
         const std::string& base_group_name,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
         const std::string& filename,
-        const int file_number,
-        const int num_files) const;
+        const unsigned int file_number,
+        const unsigned int num_files) const;
 
     void
     buildLevelInstrumentationDataCacheFromHDF5(
@@ -299,8 +299,8 @@ private:
         const std::string& base_group_name,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
         const std::string& filename,
-        const int file_number,
-        const int num_files) const;
+        const unsigned int file_number,
+        const unsigned int num_files) const;
 
     /*!
      * \brief Clear all cached level data.
@@ -314,7 +314,7 @@ private:
     int
     getCanonicalLagrangianIndex(
         const std::pair<int,int>& global_vertex_idx,
-        const int global_index_offset) const;
+        const unsigned int global_index_offset) const;
 
     /*!
      * \return The specification objects associated with the specified vertex.
@@ -323,7 +323,7 @@ private:
     initializeSpecs(
         const std::pair<int,int>& local_vertex_idx,
         const std::pair<int,int>& global_vertex_idx,
-        const int global_index_offset);
+        const unsigned int global_index_offset);
 
     /*!
      * Read input values, indicated above, from given database.
@@ -398,7 +398,7 @@ private:
      */
     int d_cache_level_number;
 
-    std::vector<int> d_level_num_vertex, d_level_num_local_vertex, d_level_vertex_offset;
+    std::vector<unsigned int> d_level_num_vertex, d_level_num_local_vertex, d_level_vertex_offset;
     std::vector<std::vector<std::vector<double> > >       d_level_posns;
     std::vector<std::vector<std::pair<int,int> > >        d_level_vertex_idxs;
     std::vector<std::vector<SAMRAI::hier::Index<NDIM> > > d_level_cell_idxs;

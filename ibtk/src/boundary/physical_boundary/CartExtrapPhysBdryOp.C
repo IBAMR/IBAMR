@@ -94,7 +94,7 @@ compute_linear_extrap(
     const int depth)
 {
     double ret_val = patch_data(i_intr,depth);
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (i_shft(d) != 0)
         {
@@ -126,7 +126,7 @@ compute_quadratic_extrap(
 {
     if (codim == 1)
     {
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             if (i_shft(d) != 0)
             {
@@ -311,7 +311,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(
         const BoundaryBox<NDIM>& bdry_box = physical_codim3_boxes[n];
         const Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(
             bdry_box, patch_box, ghost_width_to_fill);
-        const int location_index = bdry_box.getLocationIndex();
+        const unsigned int location_index = bdry_box.getLocationIndex();
         const int codim = 3;
 
         bdry_fill_boxes.push_back(
@@ -327,7 +327,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(
         const BoundaryBox<NDIM>& bdry_box = physical_codim2_boxes[n];
         const Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(
             bdry_box, patch_box, ghost_width_to_fill);
-        const int location_index = bdry_box.getLocationIndex();
+        const unsigned int location_index = bdry_box.getLocationIndex();
         const int codim = 2;
 
         bdry_fill_boxes.push_back(
@@ -343,7 +343,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(
         const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
         const Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(
             bdry_box, patch_box, ghost_width_to_fill);
-        const int location_index = bdry_box.getLocationIndex();
+        const unsigned int location_index = bdry_box.getLocationIndex();
         const int codim = 1;
 
         bdry_fill_boxes.push_back(
@@ -430,7 +430,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
                  it != bdry_fill_boxes.end(); ++it)
             {
                 const Box<NDIM>& bdry_fill_box = it->first;
-                const int location_index = it->second.first;
+                const unsigned int location_index = it->second.first;
                 const int codim = it->second.second;
 #if (NDIM == 2)
                 const bool is_lower[NDIM] = { PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
@@ -456,7 +456,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
                         CellIndex<NDIM> i_intr = i;
                         IntVector<NDIM> i_shft = 0;
 
-                        for (int d = 0; d < NDIM; ++d)
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             if      (is_lower[d])
                             {
@@ -532,7 +532,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_vec_cell(
                  it != bdry_fill_boxes.end(); ++it)
             {
                 const Box<NDIM>& bdry_fill_box = it->first;
-                const int location_index = it->second.first;
+                const unsigned int location_index = it->second.first;
                 const int codim = it->second.second;
 #if (NDIM == 2)
                 const bool is_lower[NDIM] = { PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
@@ -557,7 +557,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_vec_cell(
                     CellIndex<NDIM> i_intr = i;
                     IntVector<NDIM> i_shft = 0;
 
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if      (is_lower[d])
                         {
@@ -641,7 +641,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
                  it != bdry_fill_boxes.end(); ++it)
             {
                 const Box<NDIM>& bdry_fill_box = it->first;
-                const int location_index = it->second.first;
+                const unsigned int location_index = it->second.first;
                 const int codim = it->second.second;
 #if (NDIM == 2)
                 const bool is_lower[NDIM] = { PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
@@ -659,14 +659,14 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
 #endif
                 for (int depth = 0; depth < patch_data->getDepth(); ++depth)
                 {
-                    for (int axis = 0; axis < NDIM; ++axis)
+                    for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
                         for (FaceIterator<NDIM> b(bdry_fill_box*ghost_box,axis); b; b++)
                         {
                             const FaceIndex<NDIM> i = b();
                             FaceIndex<NDIM> i_bdry = i;
                             IntVector<NDIM> i_shft = 0;
-                            for (int d = 0; d < NDIM; ++d)
+                            for (unsigned int d = 0; d < NDIM; ++d)
                             {
                                 if (is_lower[d])
                                 {
@@ -750,7 +750,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
                  it != bdry_fill_boxes.end(); ++it)
             {
                 const Box<NDIM>& bdry_fill_box = it->first;
-                const int location_index = it->second.first;
+                const unsigned int location_index = it->second.first;
                 const int codim = it->second.second;
 #if (NDIM == 2)
                 const bool is_lower[NDIM] = { PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
@@ -776,7 +776,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
                         NodeIndex<NDIM> i_bdry = i;
                         IntVector<NDIM> i_shft = 0;
 
-                        for (int d = 0; d < NDIM; ++d)
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             if (is_lower[d])
                             {
@@ -852,7 +852,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
                  it != bdry_fill_boxes.end(); ++it)
             {
                 const Box<NDIM>& bdry_fill_box = it->first;
-                const int location_index = it->second.first;
+                const unsigned int location_index = it->second.first;
                 const int codim = it->second.second;
 #if (NDIM == 2)
                 const bool is_lower[NDIM] = { PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
@@ -870,14 +870,14 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
 #endif
                 for (int depth = 0; depth < patch_data->getDepth(); ++depth)
                 {
-                    for (int axis = 0; axis < NDIM; ++axis)
+                    for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
                         for (SideIterator<NDIM> b(bdry_fill_box*ghost_box,axis); b; b++)
                         {
                             const SideIndex<NDIM> i = b();
                             SideIndex<NDIM> i_bdry = i;
                             IntVector<NDIM> i_shft = 0;
-                            for (int d = 0; d < NDIM; ++d)
+                            for (unsigned int d = 0; d < NDIM; ++d)
                             {
                                 if (is_lower[d])
                                 {

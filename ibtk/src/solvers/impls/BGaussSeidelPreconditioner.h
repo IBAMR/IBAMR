@@ -113,7 +113,7 @@ public:
     void
     setComponentPreconditioner(
         SAMRAI::tbox::Pointer<LinearSolver> preconditioner,
-        const int component);
+        const unsigned int component);
 
     /*!
      * \brief Set the linear operators to be employed on the specified vector
@@ -122,7 +122,7 @@ public:
     void
     setComponentOperators(
         std::vector<SAMRAI::tbox::Pointer<LinearOperator> > linear_ops,
-        const int component);
+        const unsigned int component);
 
     /*!
      * \brief Indicate whether to apply the component preconditioners
@@ -379,12 +379,12 @@ private:
     /*!
      * The component preconditioners.
      */
-    std::map<int,SAMRAI::tbox::Pointer<LinearSolver> > d_pc_map;
+    std::map<unsigned int,SAMRAI::tbox::Pointer<LinearSolver> > d_pc_map;
 
     /*!
      * The component operators.
      */
-    std::map<int,std::vector<SAMRAI::tbox::Pointer<LinearOperator> > > d_linear_ops_map;
+    std::map<unsigned int,std::vector<SAMRAI::tbox::Pointer<LinearOperator> > > d_linear_ops_map;
 
     /*!
      * Parameters to specify the ordering of the application of the component

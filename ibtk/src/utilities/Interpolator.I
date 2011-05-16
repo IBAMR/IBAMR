@@ -69,7 +69,7 @@ Interpolator::Interpolator(
 {
     d_x.reserve(d_y.size());
     d_x.push_back(x_first);
-    for (unsigned k = 1; k < d_y.size(); ++k)
+    for (unsigned int k = 1; k < d_y.size(); ++k)
     {
         d_x.push_back(d_x.back()+x_step);
     }

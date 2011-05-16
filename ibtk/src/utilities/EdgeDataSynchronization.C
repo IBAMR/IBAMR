@@ -97,7 +97,7 @@ EdgeDataSynchronization::initializeOperatorState(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     bool registered_coarsen_op = false;
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    for (unsigned comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const std::string& coarsen_op_name = d_transaction_comps[comp_idx].d_coarsen_op_name;
         if (coarsen_op_name != "NONE")
@@ -133,10 +133,10 @@ EdgeDataSynchronization::initializeOperatorState(
     }
 
     // Setup cached refine algorithms and schedules.
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         d_refine_alg[axis] = new RefineAlgorithm<NDIM>();
-        for (unsigned comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+        for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
         {
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
             Pointer<Variable<NDIM> > var;
@@ -205,7 +205,7 @@ EdgeDataSynchronization::resetTransactionComponents(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     bool registered_coarsen_op = false;
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    for (unsigned comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         const std::string& coarsen_op_name = d_transaction_comps[comp_idx].d_coarsen_op_name;
         if (coarsen_op_name != "NONE")
@@ -237,10 +237,10 @@ EdgeDataSynchronization::resetTransactionComponents(
     }
 
     // Reset cached refine algorithms and schedules.
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         d_refine_alg[axis] = new RefineAlgorithm<NDIM>();
-        for (unsigned comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+        for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
         {
             const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
             Pointer<Variable<NDIM> > var;
@@ -277,7 +277,7 @@ EdgeDataSynchronization::deallocateOperatorState()
     d_coarsen_alg.setNull();
     d_coarsen_scheds.clear();
 
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         d_refine_alg[axis].setNull();
         d_refine_scheds[axis].clear();
@@ -300,7 +300,7 @@ EdgeDataSynchronization::synchronizeData(
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
 
         // Synchronize data on the current level.
-        for (int axis = 0; axis < NDIM; ++axis)
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             d_refine_scheds[axis][ln]->fillData(fill_time);
         }

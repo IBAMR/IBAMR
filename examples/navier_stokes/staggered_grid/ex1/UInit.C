@@ -104,13 +104,13 @@ UInit::setDataOnPatch(
     const double* const dx = pgeom->getDx();
 
     double X[NDIM];
-    for (int axis = 0; axis < NDIM; ++axis)
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         for (pdat::SideIterator<NDIM> ic(patch_box,axis); ic; ic++)
         {
             const pdat::SideIndex<NDIM>& i = ic();
 
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 if (d == axis)
                 {

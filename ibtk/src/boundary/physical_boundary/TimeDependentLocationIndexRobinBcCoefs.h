@@ -76,8 +76,8 @@ public:
      */
     void
     setBoundaryTimeConstant(
-        int location_index,
-        double tau);
+        const unsigned int location_index,
+        const double tau);
 
     /*!
      * \brief Set the initial boundary value at a given location index.
@@ -87,8 +87,8 @@ public:
      */
     void
     setBoundaryInitialValue(
-        int location_index,
-        double value);
+        const unsigned int location_index,
+        const double value);
 
     /*!
      * \brief Set the final boundary value at a given location index.
@@ -98,8 +98,8 @@ public:
      */
     void
     setBoundaryFinalValue(
-        int location_index,
-        double value);
+        const unsigned int location_index,
+        const double value);
 
     /*!
      * \brief Set the initial boundary slope at a given location index.
@@ -109,8 +109,8 @@ public:
      */
     void
     setBoundaryInitialSlope(
-        int location_index,
-        double slope);
+        const unsigned int location_index,
+        const double slope);
 
     /*!
      * \brief Set the final boundary slope at a given location index.
@@ -120,8 +120,8 @@ public:
      */
     void
     setBoundaryFinalSlope(
-        int location_index,
-        double slope);
+        const unsigned int location_index,
+        const double slope);
 
     /*!
      * \name Implementation of SAMRAI::solv::RobinBcCoefStrategy interface.

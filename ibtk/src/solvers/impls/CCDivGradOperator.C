@@ -171,8 +171,8 @@ CCDivGradOperator::apply(
     TBOX_ASSERT(!x_factory.isNull());
     TBOX_ASSERT(!y_factory.isNull());
 
-    const unsigned x_depth = x_factory->getDefaultDepth();
-    const unsigned y_depth = y_factory->getDefaultDepth();
+    const unsigned int x_depth = x_factory->getDefaultDepth();
+    const unsigned int y_depth = y_factory->getDefaultDepth();
 
     TBOX_ASSERT(x_depth == 1);
     TBOX_ASSERT(y_depth == 1);

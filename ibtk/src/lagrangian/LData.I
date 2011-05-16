@@ -55,25 +55,25 @@ LData::getName() const
     return d_name;
 }// getName
 
-inline int
+inline unsigned int
 LData::getGlobalNodeCount() const
 {
     return d_global_node_count;
 }// getGlobalNodeCount
 
-inline int
+inline unsigned int
 LData::getLocalNodeCount() const
 {
     return d_local_node_count;
 }// getLocalNodeCount
 
-inline int
+inline unsigned int
 LData::getGhostNodeCount() const
 {
     return d_ghost_node_count;
 }// getGhostNodeCount
 
-inline int
+inline unsigned int
 LData::getDepth() const
 {
     return d_depth;

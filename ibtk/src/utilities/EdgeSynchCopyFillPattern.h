@@ -63,7 +63,7 @@ public:
      * \brief Constructor
      */
     EdgeSynchCopyFillPattern(
-        const int axis);
+        const unsigned int axis);
 
     /*!
      * \brief Destructor
@@ -140,7 +140,7 @@ private:
         const EdgeSynchCopyFillPattern& that);
 
     SAMRAI::hier::IntVector<NDIM> d_stencil_width;
-    const int d_axis;
+    const unsigned int d_axis;
 };
 }// namespace IBTK
 

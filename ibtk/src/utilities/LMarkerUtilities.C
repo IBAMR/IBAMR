@@ -159,7 +159,7 @@ LMarkerUtilities::readMarkerPositions(
                 {
                     line_string = discard_comments(line_string);
                     std::istringstream line_stream(line_string);
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (!(line_stream >> mark_init_posns[k][d]))
                         {
@@ -170,7 +170,7 @@ LMarkerUtilities::readMarkerPositions(
                     // Ensure the initial marker position lies within the
                     // physical domain.
                     const double* const X = mark_init_posns[k].data();
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (MathUtilities<double>::equalEps(X[d],grid_xLower[d]))
                         {
@@ -273,13 +273,13 @@ LMarkerUtilities::advectMarkers(
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(X_mark.size() == X_mark_new.size());
             TBOX_ASSERT(idx_mark.size() == idx_mark_new.size());
-            for (unsigned k = 0; k < idx_mark.size(); ++k)
+            for (unsigned int k = 0; k < idx_mark.size(); ++k)
             {
                 TBOX_ASSERT(idx_mark[k] == idx_mark_new[k]);
             }
 #endif
             std::vector<double> X_mark_half(X_mark.size());
-            for (unsigned k = 0; k < X_mark.size(); ++k)
+            for (unsigned int k = 0; k < X_mark.size(); ++k)
             {
                 X_mark_half[k] = 0.5*(X_mark_new[k]+X_mark[k]);
             }
@@ -290,7 +290,7 @@ LMarkerUtilities::advectMarkers(
             if (is_sc_data) LEInteractor::interpolate(U_mark_half, NDIM, X_mark_half, NDIM, v_sc_data, patch, patch_box, weighting_fcn);
 
             // Compute X_mark(n+1) = X_mark(n) + dt*U_mark(n+1/2).
-            for (unsigned k = 0; k < X_mark.size(); ++k)
+            for (unsigned int k = 0; k < X_mark.size(); ++k)
             {
                 X_mark_new[k] = X_mark[k] + dt*U_mark_half[k];
             }
@@ -304,10 +304,10 @@ LMarkerUtilities::advectMarkers(
             {
                 const double* const xLower = grid_geom->getXLower();
                 const double* const xUpper = grid_geom->getXUpper();
-                for (unsigned k = 0; k < X_mark_new.size()/NDIM; ++k)
+                for (unsigned int k = 0; k < X_mark_new.size()/NDIM; ++k)
                 {
                     double* const X = &X_mark_new[NDIM*k];
-                    for (int d = 0; d < NDIM; ++d)
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (periodic_shift[d] == 0)
                         {
@@ -325,7 +325,7 @@ LMarkerUtilities::advectMarkers(
             {
                 LMarker& mark = *it;
                 blitz::TinyVector<double,NDIM>& X = mark.getPosition();
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     X[d] = X_mark_new[NDIM*marker_offset+d];
                 }
@@ -442,7 +442,7 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(
             const blitz::TinyVector<double,NDIM>& X = mark.getPosition();
             const IntVector<NDIM>& offset = mark.getPeriodicOffset();
             double X_shifted[NDIM];
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_shifted[d] = X[d] + double(offset(d))*patchDx[d];
             }
@@ -513,7 +513,7 @@ LMarkerUtilities::initializeMarkersOnLevel(
             const double* const patchDx = patch_geom->getDx();
 
             Pointer<LMarkerSetData> mark_data = patch->getPatchData(mark_idx);
-            for (unsigned k = 0; k < mark_init_posns.size(); ++k)
+            for (unsigned int k = 0; k < mark_init_posns.size(); ++k)
             {
                 const blitz::TinyVector<double,NDIM>& X = mark_init_posns[k];
                 static const blitz::TinyVector<double,NDIM> U(0.0);

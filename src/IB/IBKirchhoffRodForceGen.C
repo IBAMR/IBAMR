@@ -299,7 +299,7 @@ IBKirchhoffRodForceGen::initializeLevelData(
         if (!force_spec.isNull())
         {
             const int& curr_idx = node_idx.getLagrangianIndex();
-            const unsigned num_rods = force_spec->getNumberOfRods();
+            const unsigned int num_rods = force_spec->getNumberOfRods();
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(curr_idx == force_spec->getMasterNodeIndex());
 #endif
@@ -308,7 +308,7 @@ IBKirchhoffRodForceGen::initializeLevelData(
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(num_rods == next_idxs.size());
 #endif
-            for (unsigned k = 0; k < num_rods; ++k)
+            for (unsigned int k = 0; k < num_rods; ++k)
             {
                 petsc_curr_node_idxs.push_back(curr_idx);
                 petsc_next_node_idxs.push_back(next_idxs[k]);
@@ -327,10 +327,10 @@ IBKirchhoffRodForceGen::initializeLevelData(
     const int num_local_nodes = l_data_manager->getNumberOfLocalNodes(level_num);
 
     // Determine the non-zero structure for the matrices.
-    const int local_sz = petsc_curr_node_idxs.size();
+    const unsigned int local_sz = petsc_curr_node_idxs.size();
 
     std::vector<int> next_d_nz(local_sz,1), next_o_nz(local_sz,0);
-    for (int k = 0; k < local_sz; ++k)
+    for (unsigned int k = 0; k < local_sz; ++k)
     {
         const int& next_idx = petsc_next_node_idxs[k];
         if (next_idx >= global_node_offset &&
@@ -354,9 +354,9 @@ IBKirchhoffRodForceGen::initializeLevelData(
                                 PETSC_DEFAULT, local_sz > 0 ? &next_o_nz[0] : PETSC_NULL,
                                 &D_next_mat);  IBTK_CHKERRQ(ierr);
 
-        blitz::Array<double,2> curr_vals(3*3,3*3);  curr_vals = 0.0;
-        blitz::Array<double,2> next_vals(3*3,3*3);  next_vals = 0.0;
-        for (int d = 0; d < 3*3; ++d)
+        blitz::TinyMatrix<double,3*3,3*3> curr_vals; curr_vals = 0.0;
+        blitz::TinyMatrix<double,3*3,3*3> next_vals; next_vals = 0.0;
+        for (unsigned int d = 0; d < 3*3; ++d)
         {
             curr_vals(d,d) =  0.0;
             next_vals(d,d) = +1.0;
@@ -368,7 +368,7 @@ IBKirchhoffRodForceGen::initializeLevelData(
         IBTK_CHKERRQ(ierr);
         i_offset /= 3*3;
 
-        for (int k = 0; k < local_sz; ++k)
+        for (unsigned int k = 0; k < local_sz; ++k)
         {
             int i = i_offset + k;
             int j_curr = petsc_curr_node_idxs[k];
@@ -386,9 +386,9 @@ IBKirchhoffRodForceGen::initializeLevelData(
                                 PETSC_DEFAULT, local_sz > 0 ? &next_o_nz[0] : PETSC_NULL,
                                 &X_next_mat);  IBTK_CHKERRQ(ierr);
 
-        blitz::Array<double,2> curr_vals(NDIM,NDIM);  curr_vals = 0.0;
-        blitz::Array<double,2> next_vals(NDIM,NDIM);  next_vals = 0.0;
-        for (int d = 0; d < NDIM; ++d)
+        blitz::TinyMatrix<double,NDIM,NDIM> curr_vals;  curr_vals = 0.0;
+        blitz::TinyMatrix<double,NDIM,NDIM> next_vals;  next_vals = 0.0;
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             curr_vals(d,d) =  0.0;
             next_vals(d,d) = +1.0;
@@ -400,7 +400,7 @@ IBKirchhoffRodForceGen::initializeLevelData(
         IBTK_CHKERRQ(ierr);
         i_offset /= NDIM;
 
-        for (int k = 0; k < local_sz; ++k)
+        for (unsigned int k = 0; k < local_sz; ++k)
         {
             int i = i_offset + k;
             int j_curr = petsc_curr_node_idxs[k];
@@ -490,13 +490,13 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_number];
     const std::vector<std::vector<double> >& material_params = d_material_params[level_number];
 
-    const int local_sz = petsc_curr_node_idxs.size();
+    const unsigned int local_sz = petsc_curr_node_idxs.size();
     std::vector<double> F_curr_node_vals(NDIM*local_sz,0.0);
     std::vector<double> N_curr_node_vals(NDIM*local_sz,0.0);
     std::vector<double> F_next_node_vals(NDIM*local_sz,0.0);
     std::vector<double> N_next_node_vals(NDIM*local_sz,0.0);
 
-    for (int k = 0; k < local_sz; ++k)
+    for (unsigned int k = 0; k < local_sz; ++k)
     {
         // Compute the forces applied by the rod to the "current" and "next"
         // nodes.

@@ -199,7 +199,7 @@ compute_displacement(
             X_dof_map.dof_indices(elem, X_dof_indices(d), d);
         }
 
-        for (unsigned k = 0; k < X_dof_indices(2).size(); ++k)
+        for (unsigned int k = 0; k < X_dof_indices(2).size(); ++k)
         {
             X_max = max(X_max,X_vec(X_dof_indices(2)[k]));
             X_min = min(X_min,X_vec(X_dof_indices(2)[k]));
@@ -525,7 +525,7 @@ main(
     const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
     const bool has_physical_boundaries = periodic_shift.min() == 0;
     blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> u_bc_coefs;
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (periodic_shift(d) == 0)
         {
@@ -716,7 +716,7 @@ main(
         pout.precision(precision);
     }
 
-    for (int d = 0; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (periodic_shift(d) == 0) delete u_bc_coefs[d];
     }
