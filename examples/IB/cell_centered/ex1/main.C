@@ -563,7 +563,7 @@ main(
             double F_D = 0.0;
             double F_L = 0.0;
             blitz::Array<double,2>& F_array = *F_data->getLocalFormVecArray();
-            for (unsigned int i = 0; i < F_data->getLocalNodeCount(); ++i)
+            for (int i = 0; i < int(F_data->getLocalNodeCount()); ++i)
             {
                 F_D -= F_array(i,0);
                 F_L -= F_array(i,1);
