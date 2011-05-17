@@ -51,6 +51,9 @@
 #include <CartesianPatchGeometry.h>
 #include <tbox/Utilities.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/array.h>
+
 // NAMESPACE
 using namespace IBTK;
 

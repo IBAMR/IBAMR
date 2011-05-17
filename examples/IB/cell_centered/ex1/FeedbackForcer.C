@@ -49,6 +49,9 @@
 #include <CellData.h>
 #include <tbox/Utilities.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/array.h>
+
 // C++ STDLIB INCLUDES
 #include <numeric>
 
