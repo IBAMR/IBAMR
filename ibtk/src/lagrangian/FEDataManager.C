@@ -1281,16 +1281,19 @@ FEDataManager::collectActivePatchElements(
 
     // Find the unique element indexes corresponding to each of the patches.
     patch_active_elem_map.resize(num_local_patches);
-    Elem** const el_begin = &active_elems(0);
-    Elem** const el_end   = el_begin + active_elems.size();
-    for (int local_patch_num = 0; local_patch_num < num_local_patches; ++local_patch_num)
+    if (active_elems.size() > 0)
     {
-        const unsigned int num_elems = active_patch_elem_vec[local_patch_num].size();
-        patch_active_elem_map(local_patch_num).resize(num_elems);
-        for (unsigned int k = 0; k < num_elems; ++k)
+        Elem** const el_begin = &active_elems(0);
+        Elem** const el_end   = el_begin + active_elems.size();
+        for (int local_patch_num = 0; local_patch_num < num_local_patches; ++local_patch_num)
         {
-            const Elem* const elem = active_patch_elem_vec[local_patch_num][k];
-            patch_active_elem_map(local_patch_num)(k) = std::distance(el_begin,std::lower_bound(el_begin,el_end,elem));
+            const unsigned int num_elems = active_patch_elem_vec[local_patch_num].size();
+            patch_active_elem_map(local_patch_num).resize(num_elems);
+            for (unsigned int k = 0; k < num_elems; ++k)
+            {
+                const Elem* const elem = active_patch_elem_vec[local_patch_num][k];
+                patch_active_elem_map(local_patch_num)(k) = std::distance(el_begin,std::lower_bound(el_begin,el_end,elem));
+            }
         }
     }
     return;
