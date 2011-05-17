@@ -66,7 +66,6 @@ $(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.C \
 $(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.C \
 $(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.C \
 $(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.C \
-$(top_srcdir)/src/lagrangian/FEDataManager.C \
 $(top_srcdir)/src/lagrangian/LData.C \
 $(top_srcdir)/src/lagrangian/LDataManager.C \
 $(top_srcdir)/src/lagrangian/LEInteractor.C \
@@ -167,8 +166,7 @@ $(top_srcdir)/src/utilities/muParserCartGridFunction.C
 
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
-$(top_srcdir)/src/lagrangian/FEDataManager.C \
-$(top_srcdir)/src/utilities/FESystemDataCache.C
+$(top_srcdir)/src/lagrangian/FEDataManager.C
 endif
 
 pkg_include_HEADERS += \
@@ -187,7 +185,6 @@ $(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.h \
 $(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.h \
 $(top_srcdir)/src/coarsen_ops/LMarkerCoarsen.h \
 $(top_srcdir)/src/coarsen_ops/VecCellCoarsenAdapter.h \
-$(top_srcdir)/src/lagrangian/FEDataManager.h \
 $(top_srcdir)/src/lagrangian/LData.I \
 $(top_srcdir)/src/lagrangian/LData.h \
 $(top_srcdir)/src/lagrangian/LDataManager.I \
@@ -340,7 +337,6 @@ $(top_srcdir)/src/utilities/muParserCartGridFunction.h
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
 $(top_srcdir)/src/lagrangian/FEDataManager.h \
-$(top_srcdir)/src/utilities/FESystemDataCache.h \
 $(top_srcdir)/src/utilities/libmesh_utilities.h \
 $(top_srcdir)/src/utilities/ibtk_utilities.h
 endif

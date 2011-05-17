@@ -38,9 +38,6 @@
 // BLITZ INCLUDES
 #include <blitz/array.h>
 
-// IBTK INCLUDES
-#include <ibtk/FESystemDataCache.h>
-
 // LIBMESH INCLUDES
 #define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
 #include <../base/variable.h>
@@ -55,6 +52,7 @@
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
+#include <LoadBalancer.h>
 #include <RefineSchedule.h>
 #include <StandardTagAndInitStrategy.h>
 
@@ -119,6 +117,13 @@ public:
      */
     static void
     freeAllManagers();
+
+    /*!
+     * \brief Register a load balancer for non-uniform load balancing.
+     */
+    void
+    registerLoadBalancer(
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer);
 
     /*!
      * \name Methods to set the hierarchy and range of levels.
@@ -311,6 +316,15 @@ public:
         const double tol=1.0e-6,
         const unsigned int max_its=100);
 
+    /*!
+     * \brief Update the cell workload estimate.
+     */
+    void
+    updateWorkloadData(
+        const double data_time,
+        const int coarsest_ln=-1,
+        const int finest_ln=-1);
+
     ///
     ///  The following routines:
     ///
@@ -479,8 +493,9 @@ private:
      */
     void
     updateQuadPointCountData(
-        const int coarsest_ln=-1,
-        const int finest_ln=-1);
+        const double data_time,
+        const int coarsest_ln,
+        const int finest_ln);
 
     /*!
      * Compute the bounding boxes of all active elements.
@@ -522,16 +537,6 @@ private:
         const std::string& system_name);
 
     /*!
-     * Routines to manage cached FE data.
-     */
-    void
-    clearCachedLEInteractionFEData();
-
-    void
-    computeCachedLEInteractionFEData(
-        const std::string& system_name);
-
-    /*!
      * Read object state from the restart file and initialize class data
      * members.  The database from which the restart data is read is determined
      * by the object_name specified in the constructor.
@@ -564,6 +569,11 @@ private:
     bool d_registered_for_restart;
 
     /*
+     * We cache a pointer to the load balancer.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
+
+    /*
      * Grid hierarchy information.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
@@ -581,6 +591,15 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_qp_count_var;
     int d_qp_count_idx;
+    std::vector<double> d_qp_count_data_time;
+
+    /*
+     * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
+     * cell variable used to determine the workload for nonuniform load
+     * balancing.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_workload_var;
+    int d_workload_idx;
 
     /*
      * The weighting functions and quadrature rule used to mediate
@@ -625,11 +644,6 @@ private:
     std::map<std::string,bool> d_L2_proj_consistent_mass_matrix;
     std::map<std::string,libMeshEnums::QuadratureType> d_L2_proj_quad_type;
     std::map<std::string,libMeshEnums::Order> d_L2_proj_quad_order;
-
-    /*
-     * Cached FE data.
-     */
-    std::map<std::string,FESystemDataCache*> d_cached_fe_system_data;
 };
 }// namespace IBTK
 

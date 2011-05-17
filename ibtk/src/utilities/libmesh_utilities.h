@@ -58,7 +58,7 @@ get_values_for_interpolation(
     const std::vector<unsigned int>& dof_indices)
 {
     const int n_nodes = dof_indices.size();
-    U_node.resize(n_nodes);
+    if (U_node.extent(0) != n_nodes) U_node.resize(n_nodes);
     libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
     Vec U_global_vec = U_petsc_vec->vec();
     Vec U_local_vec;
@@ -83,7 +83,7 @@ get_values_for_interpolation(
 {
     const int n_vars = dof_indices.size();
     const int n_nodes = dof_indices(0).size();
-    U_node.resize(n_nodes,n_vars);
+    if (U_node.extent(0) != n_nodes || U_node.extent(1) != n_vars) U_node.resize(n_nodes,n_vars);
     libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
     Vec U_global_vec = U_petsc_vec->vec();
     Vec U_local_vec;

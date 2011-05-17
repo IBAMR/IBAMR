@@ -39,6 +39,7 @@
 #include <exodusII_io.h>
 #include <mesh.h>
 #include <mesh_generation.h>
+#include <quadrature.h>
 #include <string_to_enum.h>
 
 // Headers for application-specific algorithm/data structure objects
@@ -83,7 +84,6 @@ PK1_stress_function(
     const Point& X,
     const Point& s,
     Elem* const elem,
-    const int& e,
     NumericVector<double>& X_vec,
     const std::vector<NumericVector<double>*>& system_data,
     const double& time,

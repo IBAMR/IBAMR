@@ -42,6 +42,7 @@
 #include <explicit_system.h>
 #include <fe_base.h>
 #include <mesh.h>
+#include <quadrature.h>
 #include <string_to_enum.h>
 
 // Headers for application-specific algorithm/data structure objects
@@ -71,7 +72,6 @@ PK1_stress_function(
     const Point& X,
     const Point& s,
     Elem* const elem,
-    const int& e,
     NumericVector<double>& X_vec,
     const vector<NumericVector<double>*>& system_data,
     const double& time,
@@ -138,7 +138,6 @@ pressure_function(
     const Point& X,
     const Point& s,
     Elem* const elem,
-    const int& e,
     const unsigned short int side,
     NumericVector<double>& X_vec,
     const vector<NumericVector<double>*>& system_data,
@@ -167,7 +166,6 @@ surface_force_function(
     const Point& X,
     const Point& s,
     Elem* const elem,
-    const int& e,
     const unsigned short int side,
     NumericVector<double>& X_vec,
     const vector<NumericVector<double>*>& system_data,

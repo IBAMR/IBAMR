@@ -71,6 +71,7 @@ using namespace libMesh;
 #include <CartesianCellDoubleWeightedAverage.h>
 #include <CartesianPatchGeometry.h>
 #include <CoarsenAlgorithm.h>
+#include <PatchCellDataBasicOps.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -81,6 +82,14 @@ namespace IBTK
 namespace
 {
 // Timers.
+static Timer* t_reinit_element_mappings;
+static Timer* t_build_ghosted_solution_vector;
+static Timer* t_spread;
+static Timer* t_interp;
+static Timer* t_build_l2_projection_solver;
+static Timer* t_build_diagonal_l2_mass_matrix;
+static Timer* t_compute_l2_projection;
+static Timer* t_update_workload_data;
 static Timer* t_initialize_level_data;
 static Timer* t_reset_hierarchy_configuration;
 static Timer* t_apply_gradient_detector;
@@ -155,6 +164,17 @@ FEDataManager::freeAllManagers()
 }// freeManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
+
+void
+FEDataManager::registerLoadBalancer(
+    Pointer<LoadBalancer<NDIM> > load_balancer)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!load_balancer.isNull());
+#endif
+    d_load_balancer = load_balancer;
+    return;
+}// return
 
 void
 FEDataManager::setPatchHierarchy(
@@ -252,6 +272,9 @@ FEDataManager::getActiveElements() const
 void
 FEDataManager::reinitElementMappings()
 {
+    SAMRAI_MPI::barrier();
+    t_reinit_element_mappings->start();
+
     // Delete cached vectors.
     for (std::map<std::string,NumericVector<double>*>::iterator it = d_system_ghost_vec.begin();
          it != d_system_ghost_vec.end(); ++it)
@@ -266,12 +289,7 @@ FEDataManager::reinitElementMappings()
     d_active_patch_ghost_dofs.clear();
     collectActivePatchElements(d_patch_active_elem_map, d_active_elems, d_level_number, d_ghost_width);
 
-    // Clear cached FE data and reinit cached data for the coordinates system.
-    clearCachedLEInteractionFEData();
-    System& X_system = d_es->get_system<System>(COORDINATES_SYSTEM_NAME);
-    d_cached_fe_system_data[COORDINATES_SYSTEM_NAME] = new FESystemDataCache(X_system, d_es->get_mesh());
-    d_cached_fe_system_data[COORDINATES_SYSTEM_NAME]->compute_phi() = true;
-    d_cached_fe_system_data[COORDINATES_SYSTEM_NAME]->computeCachedData(d_active_elems.begin(), d_active_elems.end(), d_qrule);
+    t_reinit_element_mappings->stop();
     return;
 }// reinitElementMappings
 
@@ -287,6 +305,9 @@ NumericVector<double>*
 FEDataManager::buildGhostedSolutionVector(
     const std::string& system_name)
 {
+    SAMRAI_MPI::barrier();
+    t_build_ghosted_solution_vector->start();
+
     NumericVector<double>* sol_vec = getSolutionVector(system_name);
     if (d_system_ghost_vec.count(system_name) == 0)
     {
@@ -302,6 +323,8 @@ FEDataManager::buildGhostedSolutionVector(
     NumericVector<double>* sol_ghost_vec = d_system_ghost_vec[system_name];
     sol_vec->localize(*sol_ghost_vec);
     system.get_dof_map().enforce_constraints_exactly(system, sol_ghost_vec);
+
+    t_build_ghosted_solution_vector->stop();
     return sol_ghost_vec;
 }// buildGhostedSolutionVector
 
@@ -326,27 +349,49 @@ FEDataManager::spread(
     const bool close_F,
     const bool close_X)
 {
-    computeCachedLEInteractionFEData(system_name);
-    System& system = d_es->get_system<System>(system_name);
-    const int n_vars = system.n_vars();
-    const DofMap& dof_map = system.get_dof_map();
-    if (close_F) F_vec.close();
-    dof_map.enforce_constraints_exactly(system, &F_vec);
-    const blitz::Array<blitz::Array<std::vector<unsigned int>,1>,1>& cached_dof_indices = d_cached_fe_system_data[system_name]->dof_indices();
-    const blitz::Array<blitz::Array<double,2>,1>& cached_phi_JxW = d_cached_fe_system_data[system_name]->phi_JxW();
-    blitz::Array<double,2> F_node;
+    SAMRAI_MPI::barrier();
+    t_spread->start();
+
+    // Extract the mesh.
+    const MeshBase& mesh = d_es->get_mesh();
+    const int dim = mesh.mesh_dimension();
+
+    // Extract the FE systems and DOF maps, and setup the FE objects.
+    System& F_system = d_es->get_system<System>(system_name);
+    const unsigned int n_vars = F_system.n_vars();
+    const DofMap& F_dof_map = F_system.get_dof_map();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_dof_map.variable_type(0));
+#endif
+    blitz::Array<std::vector<unsigned int>,1> F_dof_indices(n_vars);
+    for (unsigned int i = 0; i < n_vars; ++i) F_dof_indices(i).reserve(27);
+    AutoPtr<FEBase> F_fe(FEBase::build(dim, F_dof_map.variable_type(0)));
+    F_fe->attach_quadrature_rule(d_qrule);
+    const std::vector<double>& JxW_F = F_fe->get_JxW();
+    const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
 
     System& X_system = d_es->get_system<System>(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
+#endif
+    blitz::Array<std::vector<unsigned int>,1> X_dof_indices(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) X_dof_indices(d).reserve(27);
+    AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
+    X_fe->attach_quadrature_rule(d_qrule);
+    const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
+
+    // Communicate any unsynchronized ghost data and enforce any constraints.
+    if (close_F) F_vec.close();
+    F_dof_map.enforce_constraints_exactly(F_system, &F_vec);
+
     if (close_X) X_vec.close();
     X_dof_map.enforce_constraints_exactly(X_system, &X_vec);
-    const blitz::Array<blitz::Array<std::vector<unsigned int>,1>,1>& cached_X_dof_indices = d_cached_fe_system_data[COORDINATES_SYSTEM_NAME]->dof_indices();
-    const blitz::Array<blitz::Array<double,2>,1>& cached_X_phi = d_cached_fe_system_data[COORDINATES_SYSTEM_NAME]->phi();
-    blitz::Array<double,2> X_node;
 
     // Loop over the patches to interpolate nodal values on the FE mesh to the
     // element quadrature points, then spread values from the element quadrature
     // points onto the grid to obtain the values on the Eulerian grid.
+    blitz::Array<double,2> F_node, X_node;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -356,35 +401,65 @@ FEDataManager::spread(
         const unsigned int num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
+        // Setup vectors to store the values of F_JxW and X at the quadrature
+        // points.  We compute a conservative upper bound on the number of
+        // quadrature points to try to avoid unnecessary reallocations.
+        static const unsigned int safety_factor = 2;
+        if (dim == 2)
+        {
+            d_qrule->init(QUAD9);
+        }
+        if (dim == 3)
+        {
+            d_qrule->init(HEX27);
+        }
+        const unsigned int n_qp_estimate = d_qrule->n_points();
+        std::vector<double> F_JxW_qp;
+        F_JxW_qp.reserve(safety_factor*n_vars*n_qp_estimate*num_active_patch_elems);
+        std::vector<double> X_qp;
+        X_qp.reserve(safety_factor*NDIM*n_qp_estimate*num_active_patch_elems);
+
         // Loop over the elements and compute the values to be spread and the
         // positions of the quadrature points.
         int qp_offset = 0;
-        std::vector<double> F_JxW_qp, X_qp;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             const unsigned int e = patch_elems(e_idx);
-            const blitz::Array<std::vector<unsigned int>,1>& dof_indices = cached_dof_indices(e);
-            const blitz::Array<double,2>& phi_JxW = cached_phi_JxW(e);
-            const int n_qp = phi_JxW.extent(blitz::firstDim);
-            get_values_for_interpolation(F_node, F_vec, dof_indices);
-            F_JxW_qp.resize(F_JxW_qp.size()+n_vars*n_qp,0.0);
-            for (int qp = 0; qp < n_qp; ++qp)
+            const libMesh::Elem* const elem = d_active_elems(e);
+
+            F_fe->reinit(elem);
+            for (unsigned int i = 0; i < n_vars; ++i)
             {
-                const int idx = n_vars*(qp+qp_offset);
-                interpolate(&F_JxW_qp[idx],qp,F_node,phi_JxW);
+                F_dof_map.dof_indices(elem, F_dof_indices(i), i);
             }
 
-            const blitz::Array<std::vector<unsigned int>,1>& X_dof_indices = cached_X_dof_indices(e);
-            const blitz::Array<double,2>& X_phi = cached_X_phi(e);
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(X_phi.extent(blitz::firstDim) == n_qp);
-#endif
+            X_fe->reinit(elem);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                X_dof_map.dof_indices(elem, X_dof_indices(d), d);
+            }
+
+            const unsigned int n_qp = d_qrule->n_points();
+
+            F_JxW_qp.resize(F_JxW_qp.size()+n_vars*n_qp);
+            X_qp    .resize(X_qp    .size()+NDIM  *n_qp);
+
+            get_values_for_interpolation(F_node, F_vec, F_dof_indices);
+            for (unsigned int qp = 0; qp < n_qp; ++qp)
+            {
+                const int idx = n_vars*(qp+qp_offset);
+                interpolate(&F_JxW_qp[idx],qp,F_node,phi_F);
+                for (unsigned int i = 0; i < n_vars; ++i)
+                {
+                    F_JxW_qp[idx+i] *= JxW_F[qp];
+                }
+            }
+
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
-            X_qp.resize(X_qp.size()+NDIM*n_qp,0.0);
-            for (int qp = 0; qp < n_qp; ++qp)
+            for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = NDIM*(qp+qp_offset);
-                interpolate(&X_qp[idx],qp,X_node,X_phi);
+                interpolate(&X_qp[idx],qp,X_node,phi_X);
             }
 
             qp_offset += n_qp;
@@ -392,9 +467,10 @@ FEDataManager::spread(
 
         if (qp_offset == 0) continue;
 
-        // Spread the values to the Cartesian grid patch.
+        // Prolong values from the quadrature points to the Cartesian grid
+        // patch.
         //
-        // NOTE: Values are spread only from those quadrature points that are
+        // NOTE: Values are prolonged only from those quadrature points that are
         // within the ghost cell width of the patch interior.
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), d_ghost_width);
@@ -406,6 +482,8 @@ FEDataManager::spread(
         if (is_cc_data) LEInteractor::spread(f_cc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, d_spread_weighting_fcn);
         if (is_sc_data) LEInteractor::spread(f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, d_spread_weighting_fcn);
     }
+
+    t_spread->stop();
     return;
 }// spread
 
@@ -419,31 +497,53 @@ FEDataManager::interp(
     const double fill_data_time,
     const bool close_X)
 {
-    computeCachedLEInteractionFEData(system_name);
-    ExplicitSystem& system = d_es->get_system<ExplicitSystem>(system_name);
-    const int n_vars = system.n_vars();
-    const DofMap& dof_map = system.get_dof_map();
-    AutoPtr<NumericVector<double> > rhs_vec = F_vec.zero_clone();
-    const blitz::Array<blitz::Array<std::vector<unsigned int>,1>,1>& cached_dof_indices = d_cached_fe_system_data[system_name]->dof_indices();
-    const blitz::Array<blitz::Array<double,2>,1>& cached_phi_JxW = d_cached_fe_system_data[system_name]->phi_JxW();
-    blitz::Array<double,2> F_node;
+    SAMRAI_MPI::barrier();
+    t_interp->start();
+
+    // Extract the mesh.
+    const MeshBase& mesh = d_es->get_mesh();
+    const int dim = mesh.mesh_dimension();
+
+    // Extract the FE systems and DOF maps, and setup the FE objects.
+    System& F_system = d_es->get_system<System>(system_name);
+    const unsigned int n_vars = F_system.n_vars();
+    const DofMap& F_dof_map = F_system.get_dof_map();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_dof_map.variable_type(0));
+#endif
+    blitz::Array<std::vector<unsigned int>,1> F_dof_indices(n_vars);
+    for (unsigned int i = 0; i < n_vars; ++i) F_dof_indices(i).reserve(27);
+    AutoPtr<FEBase> F_fe(FEBase::build(dim, F_dof_map.variable_type(0)));
+    F_fe->attach_quadrature_rule(d_qrule);
+    const std::vector<double>& JxW_F = F_fe->get_JxW();
+    const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
 
     System& X_system = d_es->get_system<System>(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
-    if (close_X) X_vec.close();
-    X_dof_map.enforce_constraints_exactly(X_system, &X_vec);
-    const blitz::Array<blitz::Array<std::vector<unsigned int>,1>,1>& cached_X_dof_indices = d_cached_fe_system_data[COORDINATES_SYSTEM_NAME]->dof_indices();
-    const blitz::Array<blitz::Array<double,2>,1>& cached_X_phi = d_cached_fe_system_data[COORDINATES_SYSTEM_NAME]->phi();
-    blitz::Array<double,2> X_node;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
+#endif
+    blitz::Array<std::vector<unsigned int>,1> X_dof_indices(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) X_dof_indices(d).reserve(27);
+    AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
+    X_fe->attach_quadrature_rule(d_qrule);
+    const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
 
+    // Communicate any unsynchronized ghost data and enforce any constraints.
     for (unsigned int k = 0; k < f_refine_scheds.size(); ++k)
     {
         if (!f_refine_scheds[k].isNull()) f_refine_scheds[k]->fillData(fill_data_time);
     }
 
-    // Loop over the patches to interpolate values to the element quadrature
-    // points from the grid, then integrate the values at the element quadrature
-    // points to obtain the nodal values on the Lagrangian mesh.
+    if (close_X) X_vec.close();
+    X_dof_map.enforce_constraints_exactly(X_system, &X_vec);
+
+    // Loop over the patches to restrict values to the element quadrature points
+    // from the grid, then integrate the values at the element quadrature points
+    // to obtain the nodal values on the Lagrangian mesh.
+    AutoPtr<NumericVector<double> > F_rhs_vec = F_vec.zero_clone();
+    std::vector<DenseVector<double> > F_rhs_e(n_vars);
+    blitz::Array<double,2> X_node;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -453,33 +553,59 @@ FEDataManager::interp(
         const unsigned int num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
+        // Setup vectors to store the values of F and X at the quadrature
+        // points.  We compute a conservative upper bound on the number of
+        // quadrature points to try to avoid unnecessary reallocations.
+        static const unsigned int safety_factor = 2;
+        if (dim == 2)
+        {
+            d_qrule->init(QUAD9);
+        }
+        if (dim == 3)
+        {
+            d_qrule->init(HEX27);
+        }
+        const unsigned int n_qp_estimate = d_qrule->n_points();
+        std::vector<double> F_qp;
+        F_qp.reserve(safety_factor*n_vars*n_qp_estimate*num_active_patch_elems);
+        std::vector<double> X_qp;
+        X_qp.reserve(safety_factor*NDIM  *n_qp_estimate*num_active_patch_elems);
+
         // Loop over the elements and compute the positions of the quadrature points.
         int qp_offset = 0;
-        std::vector<double> F_qp, X_qp;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             const unsigned int e = patch_elems(e_idx);
-            const blitz::Array<std::vector<unsigned int>,1>& X_dof_indices = cached_X_dof_indices(e);
-            const blitz::Array<double,2>& X_phi = cached_X_phi(e);
-            const int n_qp = X_phi.extent(blitz::firstDim);
+            const libMesh::Elem* const elem = d_active_elems(e);
+
+            X_fe->reinit(elem);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                X_dof_map.dof_indices(elem, X_dof_indices(d), d);
+            }
+
+            const unsigned int n_qp = d_qrule->n_points();
+
+            F_qp.resize(F_qp.size()+n_vars*n_qp);
+            X_qp.resize(X_qp.size()+NDIM  *n_qp);
+
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
-            F_qp.resize(F_qp.size()+n_vars*n_qp,0.0);
-            X_qp.resize(X_qp.size()+NDIM  *n_qp,0.0);
-            for (int qp = 0; qp < n_qp; ++qp)
+            for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = NDIM*(qp+qp_offset);
-                interpolate(&X_qp[idx],qp,X_node,X_phi);
+                interpolate(&X_qp[idx],qp,X_node,phi_X);
             }
+
             qp_offset += n_qp;
         }
 
         if (qp_offset == 0) continue;
 
-        // Interpolate the values from the Cartesian grid patch to the
-        // quadrature points.
+        // Restrict values from the Cartesian grid patch to the quadrature
+        // points.
         //
-        // NOTE: Values are interpolated only to those quadrature points that
-        // are within the patch interior.
+        // NOTE: Values are restricted only to those quadrature points that are
+        // within the patch interior.
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM>& interp_box = patch->getBox();
         Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
@@ -492,41 +618,55 @@ FEDataManager::interp(
 
         // Loop over the elements and accumulate the right-hand-side values.
         qp_offset = 0;
-        std::vector<DenseVector<double> > rhs_e(n_vars);
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             const unsigned int e = patch_elems(e_idx);
-            blitz::Array<std::vector<unsigned int>,1> dof_indices = cached_dof_indices(e).copy();
-            for (int i = 0; i < n_vars; ++i)
+            const libMesh::Elem* const elem = d_active_elems(e);
+
+            F_fe->reinit(elem);
+            for (unsigned int i = 0; i < n_vars; ++i)
             {
-                rhs_e[i].resize(dof_indices(i).size());
+                F_dof_map.dof_indices(elem, F_dof_indices(i), i);
+                if (F_rhs_e[i].size() != F_dof_indices(i).size())
+                {
+                    F_rhs_e[i].resize(F_dof_indices(i).size());  // NOTE: DenseVector::resize() automatically zeroes the vector contents.
+                }
+                else
+                {
+                    F_rhs_e[i].zero();
+                }
             }
-            const blitz::Array<double,2>& phi_JxW = cached_phi_JxW(e);
-            const int n_qp = phi_JxW.extent(blitz::firstDim);
-            const int n_basis = phi_JxW.extent(blitz::secondDim);
-            for (int qp = 0; qp < n_qp; ++qp)
+
+            const unsigned int n_qp = d_qrule->n_points();
+            const unsigned int n_basis = F_dof_indices(0).size();
+
+            for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = n_vars*(qp+qp_offset);
-                for (int k = 0; k < n_basis; ++k)
+                for (unsigned int k = 0; k < n_basis; ++k)
                 {
-                    const double& p_JxW = phi_JxW(qp,k);
-                    for (int i = 0; i < n_vars; ++i)
+                    const double phi_JxW_F = phi_F[k][qp]*JxW_F[qp];
+                    for (unsigned int i = 0; i < n_vars; ++i)
                     {
-                        rhs_e[i](k) += F_qp[idx+i]*p_JxW;
+                        F_rhs_e[i](k) += F_qp[idx+i]*phi_JxW_F;
                     }
                 }
             }
-            for (int i = 0; i < n_vars; ++i)
+
+            for (unsigned int i = 0; i < n_vars; ++i)
             {
-                dof_map.constrain_element_vector(rhs_e[i], dof_indices(i));
-                rhs_vec->add_vector(rhs_e[i], dof_indices(i));
+                F_dof_map.constrain_element_vector(F_rhs_e[i], F_dof_indices(i));
+                F_rhs_vec->add_vector(F_rhs_e[i], F_dof_indices(i));
             }
+
             qp_offset += n_qp;
         }
     }
 
     // Solve for the nodal values.
-    computeL2Projection(F_vec, *rhs_vec, system_name, d_interp_uses_consistent_mass_matrix);
+    computeL2Projection(F_vec, *F_rhs_vec, system_name, d_interp_uses_consistent_mass_matrix);
+
+    t_interp->stop();
     return;
 }// interp
 
@@ -537,6 +677,9 @@ FEDataManager::buildL2ProjectionSolver(
     const QuadratureType quad_type,
     const Order quad_order)
 {
+    SAMRAI_MPI::barrier();
+    t_build_l2_projection_solver->start();
+
     if ((d_L2_proj_solver.count(system_name) == 0 || d_L2_proj_matrix.count(system_name) == 0) ||
         (d_L2_proj_consistent_mass_matrix[system_name] != consistent_mass_matrix) ||
         (d_L2_proj_quad_type[system_name] != quad_type) || (d_L2_proj_quad_order[system_name] != quad_order))
@@ -658,6 +801,8 @@ FEDataManager::buildL2ProjectionSolver(
         d_L2_proj_quad_type[system_name] = quad_type;
         d_L2_proj_quad_order[system_name] = quad_order;
     }
+
+    t_build_l2_projection_solver->stop();
     return std::make_pair(d_L2_proj_solver[system_name], d_L2_proj_matrix[system_name]);
 }// buildL2ProjectionSolver
 
@@ -667,6 +812,9 @@ FEDataManager::buildDiagonalL2MassMatrix(
     const QuadratureType quad_type,
     const Order quad_order)
 {
+    SAMRAI_MPI::barrier();
+    t_build_diagonal_l2_mass_matrix->start();
+
     if (d_L2_proj_matrix_diag.count(system_name) == 0)
     {
         const MeshBase& mesh = d_es->get_mesh();
@@ -756,6 +904,8 @@ FEDataManager::buildDiagonalL2MassMatrix(
         // Store the diagonal mass matrix.
         d_L2_proj_matrix_diag[system_name] = M_vec;
     }
+
+    t_build_diagonal_l2_mass_matrix->stop();
     return d_L2_proj_matrix_diag[system_name];
 }// buildDiagonalL2MassMatrix
 
@@ -770,6 +920,9 @@ FEDataManager::computeL2Projection(
     const double tol,
     const unsigned int max_its)
 {
+    SAMRAI_MPI::barrier();
+    t_compute_l2_projection->start();
+
     int ierr;
     bool converged = false;
 
@@ -798,8 +951,47 @@ FEDataManager::computeL2Projection(
         converged = true;
     }
     dof_map.enforce_constraints_exactly(system, &U_vec);
+
+    t_compute_l2_projection->stop();
     return converged;
 }// computeL2Projection
+
+void
+FEDataManager::updateWorkloadData(
+    const double data_time,
+    const int coarsest_ln_in,
+    const int finest_ln_in)
+{
+    SAMRAI_MPI::barrier();
+    t_update_workload_data->start();
+
+    const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
+    const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
+    TBOX_ASSERT(finest_ln   >= d_coarsest_ln && finest_ln   <= d_finest_ln);
+#endif
+
+    updateQuadPointCountData(data_time,coarsest_ln,finest_ln);
+    for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM,double> > workload_data = patch->getPatchData(d_workload_idx);
+            Pointer<CellData<NDIM,double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
+            workload_data->fillAll(1.0);
+            PatchCellDataBasicOps<NDIM,double> patch_ops;
+            patch_ops.add(workload_data, qp_count_data, workload_data, patch_box);
+        }
+    }
+
+    t_update_workload_data->stop();
+    return;
+}// updateWorkloadData
 
 ///
 ///  The following routines:
@@ -822,6 +1014,7 @@ FEDataManager::initializeLevelData(
     const Pointer<BasePatchLevel<NDIM> > old_level,
     const bool allocate_data)
 {
+    SAMRAI_MPI::barrier();
     t_initialize_level_data->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -835,6 +1028,35 @@ FEDataManager::initializeLevelData(
     TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
 
+    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+
+    // Allocate storage needed to initialize the level.
+    //
+    // Since time gets set when we allocate data, re-stamp it to current time if
+    // we don't need to allocate.
+    if (allocate_data)
+    {
+        level->allocatePatchData(d_workload_idx, init_data_time);
+    }
+    else
+    {
+        level->setTime(d_workload_idx, init_data_time);
+    }
+
+    // Setup the load balancer.
+    if (!d_load_balancer.isNull())
+    {
+        if (level_number == d_level_number)
+        {
+            updateWorkloadData(level_number, level_number);
+            d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx, level_number);
+        }
+        else
+        {
+            d_load_balancer->setUniformWorkload(level_number);
+        }
+    }
+
     t_initialize_level_data->stop();
     return;
 }// initializeLevelData
@@ -845,6 +1067,7 @@ FEDataManager::resetHierarchyConfiguration(
     const int coarsest_ln,
     const int finest_ln)
 {
+    SAMRAI_MPI::barrier();
     t_reset_hierarchy_configuration->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -879,6 +1102,7 @@ FEDataManager::applyGradientDetector(
 {
     if (level_number >= d_level_number) return;
 
+    SAMRAI_MPI::barrier();
     t_apply_gradient_detector->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -907,7 +1131,7 @@ FEDataManager::applyGradientDetector(
         blitz::Array<std::vector<unsigned int>,1> X_dof_indices(dim);
         AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
         X_fe->attach_quadrature_rule(d_qrule);
-        const std::vector<std::vector<double> >& X_phi = X_fe->get_phi();
+        const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
         NumericVector<double>* X_vec = getCoordsVector();
         AutoPtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build();
         X_ghost_vec->init(X_vec->size(), X_vec->local_size(), X_ghost_dofs, true, GHOSTED);
@@ -950,7 +1174,7 @@ FEDataManager::applyGradientDetector(
                 get_values_for_interpolation(X_node, *X_ghost_vec.get(), X_dof_indices);
                 for (unsigned int qp = 0; qp < d_qrule->n_points(); ++qp)
                 {
-                    interpolate(&X_qp[0], qp, X_node, X_phi);
+                    interpolate(&X_qp[0], qp, X_node, phi_X);
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
                     tag_data->fill(1,Box<NDIM>::Box(i-Index<NDIM>(1),i+Index<NDIM>(1)));
                 }
@@ -963,9 +1187,7 @@ FEDataManager::applyGradientDetector(
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
 
         // Update the node count data and coarsen it from the finer level.
-        if (!      level->checkAllocated(d_qp_count_idx))       level->allocatePatchData(d_qp_count_idx);
-        if (!finer_level->checkAllocated(d_qp_count_idx)) finer_level->allocatePatchData(d_qp_count_idx);
-        updateQuadPointCountData(level_number,level_number+1);
+        updateQuadPointCountData(error_data_time,level_number,level_number+1);
         Pointer<CoarsenOperator<NDIM> > coarsen_op = new CartesianCellDoubleWeightedAverage<NDIM>();
         Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
         coarsen_alg->registerCoarsen(d_qp_count_idx, d_qp_count_idx, coarsen_op);
@@ -988,10 +1210,6 @@ FEDataManager::applyGradientDetector(
                 }
             }
         }
-
-        // Deallocate the node count data.
-        level->deallocatePatchData(d_qp_count_idx);
-        finer_level->deallocatePatchData(d_qp_count_idx);
     }
     t_apply_gradient_detector->stop();
     return;
@@ -1001,6 +1219,7 @@ void
 FEDataManager::putToDatabase(
     Pointer<Database> db)
 {
+    SAMRAI_MPI::barrier();
     t_put_to_database->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1028,6 +1247,7 @@ FEDataManager::FEDataManager(
     : COORDINATES_SYSTEM_NAME("coordinates system"),
       d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
+      d_load_balancer(NULL),
       d_hierarchy(NULL),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
@@ -1066,12 +1286,23 @@ FEDataManager::FEDataManager(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_context = var_db->getContext(d_object_name+"::CONTEXT");
 
-    // Register the node count variable with the VariableDatabase.
+    // Register the node count and workload variables with the VariableDatabase.
     d_qp_count_var = new CellVariable<NDIM,double>(d_object_name+"::qp_count");
     d_qp_count_idx = var_db->registerVariableAndContext(d_qp_count_var, d_context, 0);
 
+    d_workload_var = new CellVariable<NDIM,double>(d_object_name+"::workload");
+    d_workload_idx = var_db->registerVariableAndContext(d_workload_var, d_context, 0);
+
     // Setup Timers.
     IBTK_DO_ONCE(
+        t_reinit_element_mappings = TimerManager::getManager()->getTimer("IBTK::FEDataManager::reinitElementMappings()");
+        t_build_ghosted_solution_vector = TimerManager::getManager()->getTimer("IBTK::FEDataManager::buildGhostedSolutionVector()");
+        t_spread = TimerManager::getManager()->getTimer("IBTK::FEDataManager::spread()");
+        t_interp = TimerManager::getManager()->getTimer("IBTK::FEDataManager::interp()");
+        t_build_l2_projection_solver = TimerManager::getManager()->getTimer("IBTK::FEDataManager::buildL2ProjectionSolver()");
+        t_build_diagonal_l2_mass_matrix = TimerManager::getManager()->getTimer("IBTK::FEDataManager::buildDiagonalL2MassMatrix()");
+        t_compute_l2_projection = TimerManager::getManager()->getTimer("IBTK::FEDataManager::computeL2Projection()");
+        t_update_workload_data = TimerManager::getManager()->getTimer("IBTK::FEDataManager::updateWorkloadData()");
         t_initialize_level_data = TimerManager::getManager()->getTimer("IBTK::FEDataManager::initializeLevelData()");
         t_reset_hierarchy_configuration = TimerManager::getManager()->getTimer("IBTK::FEDataManager::resetHierarchyConfiguration()");
         t_apply_gradient_detector = TimerManager::getManager()->getTimer("IBTK::FEDataManager::applyGradientDetector()");
@@ -1103,7 +1334,6 @@ FEDataManager::~FEDataManager()
     {
         delete it->second;
     }
-    clearCachedLEInteractionFEData();
     return;
 }// ~FEDataManager
 
@@ -1111,47 +1341,54 @@ FEDataManager::~FEDataManager()
 
 void
 FEDataManager::updateQuadPointCountData(
-    const int coarsest_ln_in,
-    const int finest_ln_in)
+    const double data_time,
+    const int coarsest_ln,
+    const int finest_ln)
 {
-    const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
-    const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
-    TBOX_ASSERT(finest_ln   >= d_coarsest_ln && finest_ln   <= d_finest_ln);
-#endif
-
-    const MeshBase& mesh = d_es->get_mesh();
-    const unsigned int dim = mesh.mesh_dimension();
-
-    System& X_system = d_es->get_system<System>(COORDINATES_SYSTEM_NAME);
-    const DofMap& X_dof_map = X_system.get_dof_map();
-    blitz::Array<std::vector<unsigned int>,1> X_dof_indices(dim);
-    AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
-    X_fe->attach_quadrature_rule(d_qrule);
-    const std::vector<std::vector<double> >& X_phi = X_fe->get_phi();
-    NumericVector<double>* X_vec = getCoordsVector();
-    NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
-    X_vec->localize(*X_ghost_vec);
-    X_dof_map.enforce_constraints_exactly(X_system, X_ghost_vec);
-    blitz::Array<double,2> X_node;
-    blitz::TinyVector<double,NDIM> X_qp;
-
     // Set the node count data on the specified range of levels of the
     // hierarchy.
+    d_qp_count_data_time.resize(std::max(finest_ln+1,static_cast<int>(d_qp_count_data_time.size())),0.0);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
+        bool reinit_data = data_time > d_qp_count_data_time[ln];
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(d_qp_count_idx)) level->allocatePatchData(d_qp_count_idx);
-        int local_patch_num = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+        if (!level->checkAllocated(d_qp_count_idx))
+        {
+            level->allocatePatchData(d_qp_count_idx);
+            reinit_data = true;
+        }
+        if (!reinit_data) continue;
+
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             const Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<CellData<NDIM,double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
             qp_count_data->fillAll(0.0);
-            if (ln == d_level_number)
+        }
+
+        if (ln == d_level_number)
+        {
+            const MeshBase& mesh = d_es->get_mesh();
+            const unsigned int dim = mesh.mesh_dimension();
+
+            System& X_system = d_es->get_system<System>(COORDINATES_SYSTEM_NAME);
+            const DofMap& X_dof_map = X_system.get_dof_map();
+            blitz::Array<std::vector<unsigned int>,1> X_dof_indices(dim);
+            AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
+            X_fe->attach_quadrature_rule(d_qrule);
+            const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
+            NumericVector<double>* X_vec = getCoordsVector();
+            NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
+            X_vec->localize(*X_ghost_vec);
+            X_dof_map.enforce_constraints_exactly(X_system, X_ghost_vec);
+            blitz::Array<double,2> X_node;
+            blitz::TinyVector<double,NDIM> X_qp;
+
+            int local_patch_num = 0;
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
             {
+                const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<CellData<NDIM,double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
                 const Box<NDIM>& patch_box = patch->getBox();
                 const CellIndex<NDIM>& patch_lower = patch_box.lower();
                 const CellIndex<NDIM>& patch_upper = patch_box.upper();
@@ -1177,13 +1414,15 @@ FEDataManager::updateQuadPointCountData(
                     get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
                     for (unsigned int qp = 0; qp < d_qrule->n_points(); ++qp)
                     {
-                        interpolate(&X_qp[0], qp, X_node, X_phi);
+                        interpolate(&X_qp[0], qp, X_node, phi_X);
                         const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
                         if (patch_box.contains(i)) (*qp_count_data)(i) += 1.0;
                     }
                 }
             }
         }
+
+        d_qp_count_data_time[ln] = data_time;
     }
     return;
 }// updateQuadPointCountData
@@ -1401,7 +1640,7 @@ FEDataManager::collectActivePatchElements_helper(
         blitz::Array<std::vector<unsigned int>,1> X_dof_indices(dim);
         AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
         X_fe->attach_quadrature_rule(d_qrule);
-        const std::vector<std::vector<double> >& X_phi = X_fe->get_phi();
+        const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
         NumericVector<double>* X_vec = getCoordsVector();
         AutoPtr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build();
         std::vector<unsigned int> X_ghost_dofs;
@@ -1452,7 +1691,7 @@ FEDataManager::collectActivePatchElements_helper(
                 get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
                 for (unsigned int qp = 0; qp < d_qrule->n_points() && !found_qp; ++qp)
                 {
-                    interpolate(&X_qp[0], qp, X_node, X_phi);
+                    interpolate(&X_qp[0], qp, X_node, phi_X);
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
                     if (ghost_box.contains(i))
                     {
@@ -1470,9 +1709,7 @@ FEDataManager::collectActivePatchElements_helper(
         done = SAMRAI_MPI::sumReduction(inserted_ngbhr_elem ? 1 : 0) == 0;
     }
 
-    // Sort the element pointers so that they are in ascending order, in an
-    // attempt to improve cache performance.  This probably doesn't make any
-    // real difference in practice.
+    // Sort the element pointers so that they are in ascending order.
     for (unsigned int k = 0; k < active_patch_elems.size(); ++k)
     {
         std::sort(active_patch_elems[k].begin(), active_patch_elems[k].end());
@@ -1555,30 +1792,6 @@ FEDataManager::collectGhostDOFIndices(
     ghost_dofs.insert(ghost_dofs.end(), ghost_dof_set.begin(), ghost_dof_set.end());
     return;
 }// collectGhostDOFIndices
-
-void
-FEDataManager::clearCachedLEInteractionFEData()
-{
-    for (std::map<std::string,FESystemDataCache*>::const_iterator cit = d_cached_fe_system_data.begin();
-         cit != d_cached_fe_system_data.end(); ++cit)
-    {
-        delete cit->second;
-    }
-    d_cached_fe_system_data.clear();
-    return;
-}// clearCachedLEInteractionFEData
-
-void
-FEDataManager::computeCachedLEInteractionFEData(
-    const std::string& system_name)
-{
-    if (d_cached_fe_system_data[system_name] != NULL) return;
-    System& system = d_es->get_system<System>(system_name);
-    d_cached_fe_system_data[system_name] = new FESystemDataCache(system, d_es->get_mesh());
-    d_cached_fe_system_data[system_name]->compute_phi_JxW() = true;
-    d_cached_fe_system_data[system_name]->computeCachedData(d_active_elems.begin(), d_active_elems.end(), d_qrule);
-    return;
-}// computeCachedLEInteractionFEData
 
 void
 FEDataManager::getFromRestart()
