@@ -80,8 +80,8 @@ namespace IBAMR
  */
 inline void
 default_linear_spring_force(
-    double F[NDIM],
-    const double D[NDIM],
+    double* restrict F,
+    const double* restrict D,
     const double& stf,
     const double& rst,
     const int& lag_mastr_idx,
@@ -168,7 +168,7 @@ public:
     void
     registerSpringForceFunction(
         const int force_fcn_index,
-        void (*force_fcn)(double F[NDIM], const double D[NDIM], const double& stf, const double& rst, const int& lag_mastr_idx, const int& lag_slave_idx));
+        void (*force_fcn)(double* restrict F, const double* restrict D, const double& stf, const double& rst, const int& lag_mastr_idx, const int& lag_slave_idx));
 
     /*!
      * \brief Setup the data needed to compute the spring forces on the

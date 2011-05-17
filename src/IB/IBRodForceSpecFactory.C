@@ -97,7 +97,10 @@ IBRodForceSpecFactory::unpackStream(
     Pointer<IBRodForceSpec> ret_val = new IBRodForceSpec(num_rods);
     stream.unpack(&ret_val->d_master_idx,1);
     stream.unpack(&ret_val->d_next_idxs[0],num_rods);
-    stream.unpack(ret_val->d_material_params[0].data(),IBRodForceSpec::NUM_MATERIAL_PARAMS*num_rods);
+    for (int k = 0; k < num_rods; ++k)
+    {
+        stream.unpack(ret_val->d_material_params[k].data(),IBRodForceSpec::NUM_MATERIAL_PARAMS);
+    }
 #if ENABLE_SUBDOMAIN_INDICES
     stream.unpack(&ret_val->d_subdomain_idxs[0],num_rods);
 #endif

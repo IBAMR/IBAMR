@@ -133,7 +133,7 @@ IBSpringForceGen::~IBSpringForceGen()
 void
 IBSpringForceGen::registerSpringForceFunction(
     const int force_fcn_index,
-    void (*force_fcn)(double F[NDIM], const double D[NDIM], const double& stf, const double& rst, const int& lag_mastr_idx, const int& lag_slave_idx))
+    void (*force_fcn)(double* restrict F, const double* restrict D, const double& stf, const double& rst, const int& lag_mastr_idx, const int& lag_slave_idx))
 {
     d_force_fcn_map[force_fcn_index] = force_fcn;
     return;
@@ -365,15 +365,15 @@ IBSpringForceGen::computeLagrangianForce(
     blitz::Array<double,1>& stiffnesses = d_stiffnesses[level_number];
     blitz::Array<double,1>& rest_lengths = d_rest_lengths[level_number];
 
-    const unsigned int local_sz = petsc_mastr_node_idxs.size();
-    blitz::Array<blitz::TinyVector<double,NDIM>,1> F_mastr_node_vals(local_sz);
-    blitz::Array<blitz::TinyVector<double,NDIM>,1> F_slave_node_vals(local_sz);
+    const int local_sz = petsc_mastr_node_idxs.size();
+    blitz::Array<double,2> F_mastr_node_vals(local_sz,NDIM);
+    blitz::Array<double,2> F_slave_node_vals(local_sz,NDIM);
 
-    for (unsigned int k = 0; k < local_sz; ++k)
+    for (int k = 0; k < local_sz; ++k)
     {
         // Compute the force applied by the spring to the "master" node.
-        double* const F_mastr_node = F_mastr_node_vals(k).data();
-        const double* const D = &D_vals[k*NDIM];
+        double* restrict const F_mastr_node = &F_mastr_node_vals(k,0);
+        const double* restrict const D = &D_vals[k*NDIM];
         const double& stf = stiffnesses(k);
         const double& rst = rest_lengths(k);
         const int& lag_mastr_idx = lag_mastr_node_idxs[k];
@@ -383,11 +383,7 @@ IBSpringForceGen::computeLagrangianForce(
 
         // Compute the force applied by the spring to the corresponding "slave"
         // node.
-        double* const F_slave_node = F_slave_node_vals[k].data();
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            F_slave_node[d] = -F_mastr_node[d];
-        }
+        F_slave_node_vals(k,blitz::Range(0,NDIM-1)) = -F_mastr_node_vals(k,blitz::Range(0,NDIM-1));
     }
 
     ierr = VecRestoreArray(D_vec, &D_vals);  IBTK_CHKERRQ(ierr);
@@ -397,26 +393,26 @@ IBSpringForceGen::computeLagrangianForce(
 #if 0
     ierr = VecSetValuesBlocked(F_vec,
                                petsc_mastr_node_idxs.size(),
-                               !petsc_mastr_node_idxs.empty() ? &petsc_mastr_node_idxs[0]   : PETSC_NULL,
-                               !petsc_mastr_node_idxs.empty() ? F_mastr_node_vals(0).data() : PETSC_NULL,
+                               !petsc_mastr_node_idxs.empty() ? &petsc_mastr_node_idxs[0] : PETSC_NULL,
+                               !petsc_mastr_node_idxs.empty() ? F_mastr_node_vals.data()  : PETSC_NULL,
                                ADD_VALUES);  IBTK_CHKERRQ(ierr);
     ierr = VecSetValuesBlocked(F_vec,
                                petsc_slave_node_idxs.size(),
-                               !petsc_slave_node_idxs.empty() ? &petsc_slave_node_idxs[0]   : PETSC_NULL,
-                               !petsc_slave_node_idxs.empty() ? F_slave_node_vals(0).data() : PETSC_NULL,
+                               !petsc_slave_node_idxs.empty() ? &petsc_slave_node_idxs[0] : PETSC_NULL,
+                               !petsc_slave_node_idxs.empty() ? F_slave_node_vals.data()  : PETSC_NULL,
                                ADD_VALUES);  IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
 #else
     ierr = PETScVecOps::VecSetValuesBlocked(F_vec,
                                             petsc_mastr_node_idxs.size(),
-                                            !petsc_mastr_node_idxs.empty() ? &petsc_mastr_node_idxs[0]   : PETSC_NULL,
-                                            !petsc_mastr_node_idxs.empty() ? F_mastr_node_vals(0).data() : PETSC_NULL,
+                                            !petsc_mastr_node_idxs.empty() ? &petsc_mastr_node_idxs[0] : PETSC_NULL,
+                                            !petsc_mastr_node_idxs.empty() ? F_mastr_node_vals.data()  : PETSC_NULL,
                                             ADD_VALUES);  IBTK_CHKERRQ(ierr);
     ierr = PETScVecOps::VecSetValuesBlocked(F_vec,
                                             petsc_slave_node_idxs.size(),
-                                            !petsc_slave_node_idxs.empty() ? &petsc_slave_node_idxs[0]   : PETSC_NULL,
-                                            !petsc_slave_node_idxs.empty() ? F_slave_node_vals(0).data() : PETSC_NULL,
+                                            !petsc_slave_node_idxs.empty() ? &petsc_slave_node_idxs[0] : PETSC_NULL,
+                                            !petsc_slave_node_idxs.empty() ? F_slave_node_vals.data()  : PETSC_NULL,
                                             ADD_VALUES);  IBTK_CHKERRQ(ierr);
     ierr = PETScVecOps::VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
     ierr = PETScVecOps::VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
@@ -572,7 +568,7 @@ IBSpringForceGen::computeLagrangianForceJacobian(
         // Compute the Jacobian of the force applied by the spring to the
         // "master" node with respect to the position of the "slave" node.
         blitz::TinyMatrix<double,NDIM,NDIM> dF_dX;
-        const double* const D = &D_vals[k*NDIM];
+        const double* restrict const D = &D_vals[k*NDIM];
         const double& stf = stiffnesses(k);
         const double& rst = rest_lengths(k);
         const int& lag_mastr_idx = lag_mastr_node_idxs[k];

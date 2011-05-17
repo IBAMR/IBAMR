@@ -228,7 +228,22 @@ IBStandardSourceGen::getSourceLocations(
     }
     ierr = VecRestoreArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
 
-    SAMRAI_MPI::sumReduction(X_src[0].data(),NDIM*X_src.size());
+    std::vector<double> X_src_flattened(NDIM*X_src.size());
+    for (unsigned int k = 0; k < X_src.size(); ++k)
+    {
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            X_src_flattened[NDIM*k+d] = X_src[k][d];
+        }
+    }
+    SAMRAI_MPI::sumReduction(&X_src_flattened[0],X_src_flattened.size());
+    for (unsigned int k = 0; k < X_src.size(); ++k)
+    {
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            X_src[k][d] = X_src_flattened[NDIM*k+d];
+        }
+    }
     return;
 }// getSourceLocations
 

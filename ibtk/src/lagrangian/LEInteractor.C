@@ -849,18 +849,20 @@ LEInteractor::interpolate(
 
     // Generate a list of local indices which lie in the specified box.
     std::vector<int> local_indices;
-    std::vector<blitz::TinyVector<double,NDIM> > periodic_offsets;
+    std::vector<double> periodic_offsets;
     buildLocalIndices(local_indices, periodic_offsets, interp_box, patch, periodic_shift, idx_data);
-    if (local_indices.empty()) return;
 
     // Interpolate.
-    interpolate(Q_data, Q_depth, X_data, X_depth,
-                q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(),
-                x_lower, x_upper, dx,
-                patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-                use_alt_one_sided_delta,
-                local_indices, periodic_offsets,
-                interp_fcn);
+    if (!local_indices.empty())
+    {
+        interpolate(Q_data, Q_depth, X_data, X_depth,
+                    q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(),
+                    x_lower, x_upper, dx,
+                    patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
+                    use_alt_one_sided_delta,
+                    local_indices, periodic_offsets,
+                    interp_fcn);
+    }
 
     t_interpolate->stop();
     return;
@@ -913,39 +915,41 @@ LEInteractor::interpolate(
 
     // Generate a list of local indices which lie in the specified box.
     std::vector<int> local_indices;
-    std::vector<blitz::TinyVector<double,NDIM> > periodic_offsets;
+    std::vector<double> periodic_offsets;
     buildLocalIndices(local_indices, periodic_offsets, interp_box, patch, periodic_shift, idx_data);
-    if (local_indices.empty()) return;
-    const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
 
     // Interpolate.
-    blitz::TinyVector<double,NDIM> x_lower_axis, x_upper_axis;
-    std::vector<double> Q_data_axis(local_sz);
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    if (!local_indices.empty())
     {
-        blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
-        //use_alt_one_sided_delta[axis] = 1;
-        // NOTE: When the previous line is not commented, a shifted one-sided
-        // delta function is used for the normal component at physical
-        // boundaries, avoiding interpolating data from the exact physical
-        // boundary.
-        for (unsigned int d = 0; d < NDIM; ++d)
+        blitz::TinyVector<double,NDIM> x_lower_axis, x_upper_axis;
+        const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
+        std::vector<double> Q_data_axis(local_sz);
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            x_lower_axis[d] = x_lower[d];
-            x_upper_axis[d] = x_upper[d];
-        }
-        x_lower_axis[axis] -= 0.5*dx[axis];
-        x_upper_axis[axis] += 0.5*dx[axis];
-        interpolate(&Q_data_axis[0], 1, X_data, X_depth,
-                    q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(), 1,
-                    x_lower_axis.data(), x_upper_axis.data(), dx,
-                    patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-                    use_alt_one_sided_delta,
-                    local_indices, periodic_offsets,
-                    interp_fcn);
-        for (unsigned int k = 0; k < local_indices.size(); ++k)
-        {
-            Q_data[NDIM*local_indices[k]+axis] = Q_data_axis[local_indices[k]];
+            blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
+            //use_alt_one_sided_delta[axis] = 1;
+            // NOTE: When the previous line is not commented, a shifted
+            // one-sided delta function is used for the normal component at
+            // physical boundaries, avoiding interpolating data from the exact
+            // physical boundary.
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                x_lower_axis[d] = x_lower[d];
+                x_upper_axis[d] = x_upper[d];
+            }
+            x_lower_axis[axis] -= 0.5*dx[axis];
+            x_upper_axis[axis] += 0.5*dx[axis];
+            interpolate(&Q_data_axis[0], 1, X_data, X_depth,
+                        q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(), 1,
+                        x_lower_axis.data(), x_upper_axis.data(), dx,
+                        patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
+                        use_alt_one_sided_delta,
+                        local_indices, periodic_offsets,
+                        interp_fcn);
+            for (unsigned int k = 0; k < local_indices.size(); ++k)
+            {
+                Q_data[NDIM*local_indices[k]+axis] = Q_data_axis[local_indices[k]];
+            }
         }
     }
 
@@ -1012,17 +1016,19 @@ LEInteractor::interpolate(
     // all periodic offsets to zero.
     std::vector<int> local_indices;
     buildLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
-    std::vector<blitz::TinyVector<double,NDIM> > periodic_offsets(local_indices.size(),blitz::TinyVector<double,NDIM>(0.0));
-    if (local_indices.empty()) return;
+    std::vector<double> periodic_offsets(NDIM*local_indices.size());
 
     // Interpolate.
-    interpolate(Q_data, Q_depth, X_data, X_depth,
-                q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(),
-                x_lower, x_upper, dx,
-                patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-                use_alt_one_sided_delta,
-                local_indices, periodic_offsets,
-                interp_fcn);
+    if (!local_indices.empty())
+    {
+        interpolate(Q_data, Q_depth, X_data, X_depth,
+                    q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(),
+                    x_lower, x_upper, dx,
+                    patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
+                    use_alt_one_sided_delta,
+                    local_indices, periodic_offsets,
+                    interp_fcn);
+    }
 
     t_interpolate->stop();
     return;
@@ -1093,38 +1099,40 @@ LEInteractor::interpolate(
     // all periodic offsets to zero.
     std::vector<int> local_indices;
     buildLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
-    std::vector<blitz::TinyVector<double,NDIM> > periodic_offsets(local_indices.size(),blitz::TinyVector<double,NDIM>(0.0));
-    if (local_indices.empty()) return;
-    const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
+    std::vector<double> periodic_offsets(NDIM*local_indices.size());
 
     // Interpolate.
-    blitz::TinyVector<double,NDIM> x_lower_axis, x_upper_axis;
-    std::vector<double> Q_data_axis(local_sz);
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    if (!local_indices.empty())
     {
-        blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
-        //use_alt_one_sided_delta[axis] = 1;
-        // NOTE: When the previous line is not commented, a shifted one-sided
-        // delta function is used for the normal component at physical
-        // boundaries, avoiding interpolating data from the exact physical
-        // boundary.
-        for (unsigned int d = 0; d < NDIM; ++d)
+        blitz::TinyVector<double,NDIM> x_lower_axis, x_upper_axis;
+        const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
+        std::vector<double> Q_data_axis(local_sz);
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            x_lower_axis[d] = x_lower[d];
-            x_upper_axis[d] = x_upper[d];
-        }
-        x_lower_axis[axis] -= 0.5*dx[axis];
-        x_upper_axis[axis] += 0.5*dx[axis];
-        interpolate(&Q_data_axis[0], 1, X_data, X_depth,
-                    q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(), 1,
-                    x_lower_axis.data(), x_upper_axis.data(), dx,
-                    patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-                    use_alt_one_sided_delta,
-                    local_indices, periodic_offsets,
-                    interp_fcn);
-        for (unsigned int k = 0; k < local_indices.size(); ++k)
-        {
-            Q_data[NDIM*local_indices[k]+axis] = Q_data_axis[local_indices[k]];
+            blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
+            //use_alt_one_sided_delta[axis] = 1;
+            // NOTE: When the previous line is not commented, a shifted
+            // one-sided delta function is used for the normal component at
+            // physical boundaries, avoiding interpolating data from the exact
+            // physical boundary.
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                x_lower_axis[d] = x_lower[d];
+                x_upper_axis[d] = x_upper[d];
+            }
+            x_lower_axis[axis] -= 0.5*dx[axis];
+            x_upper_axis[axis] += 0.5*dx[axis];
+            interpolate(&Q_data_axis[0], 1, X_data, X_depth,
+                        q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(), 1,
+                        x_lower_axis.data(), x_upper_axis.data(), dx,
+                        patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
+                        use_alt_one_sided_delta,
+                        local_indices, periodic_offsets,
+                        interp_fcn);
+            for (unsigned int k = 0; k < local_indices.size(); ++k)
+            {
+                Q_data[NDIM*local_indices[k]+axis] = Q_data_axis[local_indices[k]];
+            }
         }
     }
 
@@ -1241,18 +1249,20 @@ LEInteractor::spread(
 
     // Generate a list of local indices which lie in the specified box.
     std::vector<int> local_indices;
-    std::vector<blitz::TinyVector<double,NDIM> > periodic_offsets;
+    std::vector<double> periodic_offsets;
     buildLocalIndices(local_indices, periodic_offsets, spread_box, patch, periodic_shift, idx_data);
-    if (local_indices.empty()) return;
 
     // Spread.
-    spread(q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(),
-           Q_data, Q_depth, X_data, X_depth,
-           x_lower, x_upper, dx,
-           patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-           use_alt_one_sided_delta,
-           local_indices, periodic_offsets,
-           spread_fcn);
+    if (!local_indices.empty())
+    {
+        spread(q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(),
+               Q_data, Q_depth, X_data, X_depth,
+               x_lower, x_upper, dx,
+               patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
+               use_alt_one_sided_delta,
+               local_indices, periodic_offsets,
+               spread_fcn);
+    }
 
     t_spread->stop();
     return;
@@ -1304,39 +1314,42 @@ LEInteractor::spread(
 
     // Generate a list of local indices which lie in the specified box.
     std::vector<int> local_indices;
-    std::vector<blitz::TinyVector<double,NDIM> > periodic_offsets;
+    std::vector<double> periodic_offsets;
     buildLocalIndices(local_indices, periodic_offsets, spread_box, patch, periodic_shift, idx_data);
-    if (local_indices.empty()) return;
-    const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
 
     // Spread.
-    blitz::TinyVector<double,NDIM> x_lower_axis, x_upper_axis;
-    std::vector<double> Q_data_axis(local_sz);
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    if (!local_indices.empty())
     {
-        blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
-        //use_alt_one_sided_delta[axis] = 1;
-        // NOTE: When the previous line is not commented, a shifted one-sided
-        // delta function is used for the normal component at physical
-        // boundaries, avoiding spreading data to the exact physical boundary.
-        for (unsigned int d = 0; d < NDIM; ++d)
+        blitz::TinyVector<double,NDIM> x_lower_axis, x_upper_axis;
+        const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
+        std::vector<double> Q_data_axis(local_sz);
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            x_lower_axis[d] = x_lower[d];
-            x_upper_axis[d] = x_upper[d];
+            blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
+            //use_alt_one_sided_delta[axis] = 1;
+            // NOTE: When the previous line is not commented, a shifted
+            // one-sided delta function is used for the normal component at
+            // physical boundaries, avoiding spreading data to the exact
+            // physical boundary.
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                x_lower_axis[d] = x_lower[d];
+                x_upper_axis[d] = x_upper[d];
+            }
+            x_lower_axis[axis] -= 0.5*dx[axis];
+            x_upper_axis[axis] += 0.5*dx[axis];
+            for (unsigned int k = 0; k < local_indices.size(); ++k)
+            {
+                Q_data_axis[local_indices[k]] = Q_data[NDIM*local_indices[k]+axis];
+            }
+            spread(q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(),axis), q_data->getGhostCellWidth(), 1,
+                   &Q_data_axis[0], 1, X_data, X_depth,
+                   x_lower_axis.data(), x_upper_axis.data(), dx,
+                   patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
+                   use_alt_one_sided_delta,
+                   local_indices, periodic_offsets,
+                   spread_fcn);
         }
-        x_lower_axis[axis] -= 0.5*dx[axis];
-        x_upper_axis[axis] += 0.5*dx[axis];
-        for (unsigned int k = 0; k < local_indices.size(); ++k)
-        {
-            Q_data_axis[local_indices[k]] = Q_data[NDIM*local_indices[k]+axis];
-        }
-        spread(q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(),axis), q_data->getGhostCellWidth(), 1,
-               &Q_data_axis[0], 1, X_data, X_depth,
-               x_lower_axis.data(), x_upper_axis.data(), dx,
-               patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-               use_alt_one_sided_delta,
-               local_indices, periodic_offsets,
-               spread_fcn);
     }
 
     t_spread->stop();
@@ -1421,17 +1434,19 @@ LEInteractor::spread(
     // all periodic offsets to zero.
     std::vector<int> local_indices;
     buildLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
-    std::vector<blitz::TinyVector<double,NDIM> > periodic_offsets(local_indices.size(),blitz::TinyVector<double,NDIM>(0.0));
-    if (local_indices.empty()) return;
+    std::vector<double> periodic_offsets(NDIM*local_indices.size());
 
     // Spread.
-    spread(q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(),
-           Q_data, Q_depth, X_data, X_depth,
-           x_lower, x_upper, dx,
-           patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-           use_alt_one_sided_delta,
-           local_indices, periodic_offsets,
-           spread_fcn);
+    if (!local_indices.empty())
+    {
+        spread(q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(),
+               Q_data, Q_depth, X_data, X_depth,
+               x_lower, x_upper, dx,
+               patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
+               use_alt_one_sided_delta,
+               local_indices, periodic_offsets,
+               spread_fcn);
+    }
 
     t_spread->stop();
     return;
@@ -1482,38 +1497,40 @@ LEInteractor::spread(
     // all periodic offsets to zero.
     std::vector<int> local_indices;
     buildLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
-    std::vector<blitz::TinyVector<double,NDIM> > periodic_offsets(local_indices.size(),blitz::TinyVector<double,NDIM>(0.0));
-    if (local_indices.empty()) return;
-    const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
+    std::vector<double> periodic_offsets(NDIM*local_indices.size());
 
     // Spread.
-    blitz::TinyVector<double,NDIM> x_lower_axis, x_upper_axis;
-    std::vector<double> Q_data_axis(local_sz);
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    if (!local_indices.empty())
     {
-        blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
-        //use_alt_one_sided_delta[axis] = 1;
-        // NOTE: When the previous line is not commented, a shifted one-sided
-        // delta function is used for the normal component at physical
-        // boundaries, avoiding spreading data to the exact physical boundary.
-        for (unsigned int d = 0; d < NDIM; ++d)
+        blitz::TinyVector<double,NDIM> x_lower_axis, x_upper_axis;
+        const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
+        std::vector<double> Q_data_axis(local_sz);
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            x_lower_axis[d] = x_lower[d];
-            x_upper_axis[d] = x_upper[d];
+            blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
+            //use_alt_one_sided_delta[axis] = 1;
+            // NOTE: When the previous line is not commented, a shifted one-sided
+            // delta function is used for the normal component at physical
+            // boundaries, avoiding spreading data to the exact physical boundary.
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                x_lower_axis[d] = x_lower[d];
+                x_upper_axis[d] = x_upper[d];
+            }
+            x_lower_axis[axis] -= 0.5*dx[axis];
+            x_upper_axis[axis] += 0.5*dx[axis];
+            for (unsigned int k = 0; k < local_indices.size(); ++k)
+            {
+                Q_data_axis[local_indices[k]] = Q_data[NDIM*local_indices[k]+axis];
+            }
+            spread(q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(),axis), q_data->getGhostCellWidth(), 1,
+                   &Q_data_axis[0], 1, X_data, X_depth,
+                   x_lower_axis.data(), x_upper_axis.data(), dx,
+                   patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
+                   use_alt_one_sided_delta,
+                   local_indices, periodic_offsets,
+                   spread_fcn);
         }
-        x_lower_axis[axis] -= 0.5*dx[axis];
-        x_upper_axis[axis] += 0.5*dx[axis];
-        for (unsigned int k = 0; k < local_indices.size(); ++k)
-        {
-            Q_data_axis[local_indices[k]] = Q_data[NDIM*local_indices[k]+axis];
-        }
-        spread(q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(),axis), q_data->getGhostCellWidth(), 1,
-               &Q_data_axis[0], 1, X_data, X_depth,
-               x_lower_axis.data(), x_upper_axis.data(), dx,
-               patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-               use_alt_one_sided_delta,
-               local_indices, periodic_offsets,
-               spread_fcn);
     }
 
     t_spread->stop();
@@ -1541,14 +1558,11 @@ LEInteractor::interpolate(
     const blitz::TinyVector<int,NDIM>& patch_touches_upper_physical_bdry,
     const blitz::TinyVector<int,NDIM>& use_alt_one_sided_delta,
     const std::vector<int>& local_indices,
-    const std::vector<blitz::TinyVector<double,NDIM> >& periodic_offsets,
+    const std::vector<double>& periodic_offsets,
     const std::string& interp_fcn)
 {
     if (local_indices.empty()) return;
     t_interpolate_f77->start();
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(sizeof(blitz::TinyVector<double,NDIM>) == NDIM*sizeof(double));
-#endif
     const int local_indices_size = local_indices.size();
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
@@ -1565,7 +1579,7 @@ LEInteractor::interpolate(
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
-            &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+            &local_indices[0], &periodic_offsets[0], local_indices_size,
             X_data, Q_data);
     }
     else if (interp_fcn == "PIECEWISE_LINEAR")
@@ -1586,7 +1600,7 @@ LEInteractor::interpolate(
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
-            &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+            &local_indices[0], &periodic_offsets[0], local_indices_size,
             X_data,Q_data);
 #else
         TBOX_ERROR("LEInteractor::interpolate()\n" <<
@@ -1613,7 +1627,7 @@ LEInteractor::interpolate(
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
-            &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+            &local_indices[0], &periodic_offsets[0], local_indices_size,
             X_data,Q_data);
 #else
         TBOX_ERROR("LEInteractor::interpolate()\n" <<
@@ -1640,7 +1654,7 @@ LEInteractor::interpolate(
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
-            &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+            &local_indices[0], &periodic_offsets[0], local_indices_size,
             X_data,Q_data);
 #else
         TBOX_ERROR("LEInteractor::interpolate()\n" <<
@@ -1667,7 +1681,7 @@ LEInteractor::interpolate(
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
-            &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+            &local_indices[0], &periodic_offsets[0], local_indices_size,
             X_data,Q_data);
 #else
         TBOX_ERROR("LEInteractor::interpolate()\n" <<
@@ -1693,7 +1707,7 @@ LEInteractor::interpolate(
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
-            &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+            &local_indices[0], &periodic_offsets[0], local_indices_size,
             X_data,Q_data);
     }
     else if (interp_fcn == "WIDE_IB_3")
@@ -1716,7 +1730,7 @@ LEInteractor::interpolate(
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
-            &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+            &local_indices[0], &periodic_offsets[0], local_indices_size,
             X_data,Q_data);
 #else
         TBOX_ERROR("LEInteractor::interpolate()\n" <<
@@ -1742,7 +1756,7 @@ LEInteractor::interpolate(
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
-            &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+            &local_indices[0], &periodic_offsets[0], local_indices_size,
             X_data,Q_data);
     }
     else if (interp_fcn == "WIDE_IB_4")
@@ -1765,7 +1779,7 @@ LEInteractor::interpolate(
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
-            &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+            &local_indices[0], &periodic_offsets[0], local_indices_size,
             X_data,Q_data);
 #else
         TBOX_ERROR("LEInteractor::interpolate()\n" <<
@@ -1789,7 +1803,7 @@ LEInteractor::interpolate(
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
-            &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+            &local_indices[0], &periodic_offsets[0], local_indices_size,
             X_data,Q_data);
     }
     else if (interp_fcn == "USER_DEFINED")
@@ -1798,7 +1812,7 @@ LEInteractor::interpolate(
             Q_data, Q_depth, X_data,
             q_data, q_data_box, q_gcw, q_depth,
             x_lower, x_upper, dx,
-            &local_indices[0], periodic_offsets[0].data(), local_indices_size);
+            &local_indices[0], &periodic_offsets[0], local_indices_size);
     }
     else
     {
@@ -1827,14 +1841,11 @@ LEInteractor::spread(
     const blitz::TinyVector<int,NDIM>& patch_touches_upper_physical_bdry,
     const blitz::TinyVector<int,NDIM>& use_alt_one_sided_delta,
     const std::vector<int>& local_indices,
-    const std::vector<blitz::TinyVector<double,NDIM> >& periodic_offsets,
+    const std::vector<double>& periodic_offsets,
     const std::string& spread_fcn)
 {
     if (local_indices.empty()) return;
     t_spread_f77->start();
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(sizeof(blitz::TinyVector<double,NDIM>) == NDIM*sizeof(double));
-#endif
     const int local_indices_size = local_indices.size();
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
@@ -1844,7 +1855,7 @@ LEInteractor::spread(
         {
             LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC(
                 dx,x_lower,x_upper,q_depth,
-                &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+                &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data, Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -1874,7 +1885,7 @@ LEInteractor::spread(
         {
             LAGRANGIAN_PIECEWISE_LINEAR_SPREAD_FC(
                 dx,x_lower,x_upper,q_depth,
-                &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+                &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data, Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -1912,7 +1923,7 @@ LEInteractor::spread(
         {
             LAGRANGIAN_WIDE_PIECEWISE_LINEAR_SPREAD_FC(
                 dx,x_lower,x_upper,q_depth,
-                &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+                &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data, Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -1952,7 +1963,7 @@ LEInteractor::spread(
         {
             LAGRANGIAN_PIECEWISE_CUBIC_SPREAD_FC(
                 dx,x_lower,x_upper,q_depth,
-                &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+                &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data, Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -1992,7 +2003,7 @@ LEInteractor::spread(
         {
             LAGRANGIAN_WIDE_PIECEWISE_CUBIC_SPREAD_FC(
                 dx,x_lower,x_upper,q_depth,
-                &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+                &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data, Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -2031,7 +2042,7 @@ LEInteractor::spread(
         {
             LAGRANGIAN_IB_3_SPREAD_FC(
                 dx,x_lower,x_upper,q_depth,
-                &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+                &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data, Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -2067,7 +2078,7 @@ LEInteractor::spread(
         {
             LAGRANGIAN_WIDE_IB_3_SPREAD_FC(
                 dx,x_lower,x_upper,q_depth,
-                &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+                &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data, Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -2106,7 +2117,7 @@ LEInteractor::spread(
         {
             LAGRANGIAN_IB_4_SPREAD_FC(
                 dx,x_lower,x_upper,q_depth,
-                &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+                &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data, Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -2128,7 +2139,7 @@ LEInteractor::spread(
         {
             LAGRANGIAN_IB_4_SPREAD_XP_FC(
                 dx,x_lower,x_upper,q_depth,
-                &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+                &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data, Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -2159,7 +2170,7 @@ LEInteractor::spread(
         {
             LAGRANGIAN_WIDE_IB_4_SPREAD_FC(
                 dx,x_lower,x_upper,q_depth,
-                &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+                &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data, Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -2198,7 +2209,7 @@ LEInteractor::spread(
         {
             LAGRANGIAN_IB_6_SPREAD_FC(
                 dx,x_lower,x_upper,q_depth,
-                &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+                &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data,Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -2218,7 +2229,7 @@ LEInteractor::spread(
         {
             LAGRANGIAN_IB_6_SPREAD_XP_FC(
                 dx,x_lower,x_upper,q_depth,
-                &local_indices[0], periodic_offsets[0].data(), local_indices_size,
+                &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data,Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
@@ -2246,7 +2257,7 @@ LEInteractor::spread(
             q_data, q_data_box, q_gcw, q_depth,
             x_lower, x_upper, dx,
             Q_data, Q_depth, X_data,
-            &local_indices[0], periodic_offsets[0].data(), local_indices_size);
+            &local_indices[0], &periodic_offsets[0], local_indices_size);
     }
     else
     {
@@ -2262,7 +2273,7 @@ template<class T>
 void
 LEInteractor::buildLocalIndices(
     std::vector<int>& local_indices,
-    std::vector<blitz::TinyVector<double,NDIM> >& periodic_offsets,
+    std::vector<double>& periodic_offsets,
     const Box<NDIM>& box,
     const Pointer<Patch<NDIM> >& patch,
     const IntVector<NDIM>& periodic_shift,
@@ -2281,7 +2292,7 @@ LEInteractor::buildLocalIndices(
     const double* const dx = pgeom->getDx();
 
     local_indices.reserve(upper_bound);
-    periodic_offsets.reserve(upper_bound);
+    periodic_offsets.reserve(NDIM*upper_bound);
     if (s_sort_mode == NO_SORT)
     {
         for (typename LIndexSetData<T> ::SetIterator it(*idx_data); it; it++)
@@ -2306,12 +2317,12 @@ LEInteractor::buildLocalIndices(
                         offset[d] = +periodic_shift(d);  // X is BELOW the bottom of the patch --- need to shift UP
                     }
                 }
-                periodic_offsets.resize(periodic_offsets.size()+num_ids);
+                periodic_offsets.resize(periodic_offsets.size()+NDIM*num_ids);
                 for (typename LSet<T>::size_type n = 0; n < num_ids; ++n)
                 {
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        periodic_offsets[periodic_offsets.size()-(num_ids-n)][d] = static_cast<double>(offset[d])*dx[d];
+                        periodic_offsets[periodic_offsets.size()-NDIM*(num_ids-n)+d] = static_cast<double>(offset[d])*dx[d];
                     }
                 }
 
@@ -2369,7 +2380,7 @@ LEInteractor::buildLocalIndices(
         for (unsigned int n = 0; n < box_idxs_and_offsets.size(); ++n)
         {
             local_indices.push_back(box_idxs_and_offsets[n].first->getLocalPETScIndex());
-            periodic_offsets.push_back(box_idxs_and_offsets[n].second);
+            periodic_offsets.insert(periodic_offsets.end(),box_idxs_and_offsets[n].second.data(),box_idxs_and_offsets[n].second.data()+NDIM);
         }
     }
     return;
@@ -2753,7 +2764,7 @@ template void IBTK::LEInteractor::spread(
 
 template void IBTK::LEInteractor::buildLocalIndices(
     std::vector<int>& local_indices,
-    std::vector<blitz::TinyVector<double,NDIM> >& periodic_offsets,
+    std::vector<double>& periodic_offsets,
     const SAMRAI::hier::Box<NDIM>& box,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
     const SAMRAI::hier::IntVector<NDIM>& periodic_shift,

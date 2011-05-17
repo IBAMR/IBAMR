@@ -204,7 +204,7 @@ IBRodForceSpec::packStream(
     stream.pack(&d_next_idxs[0],num_rods);
     for (unsigned int n = 0; n < num_rods; ++n)
     {
-        stream.pack(&d_material_params[n][0],10);
+        stream.pack(d_material_params[n].data(),NUM_MATERIAL_PARAMS);
     }
 #if ENABLE_SUBDOMAIN_INDICES
     stream.pack(&d_subdomain_idxs[0],num_rods);

@@ -582,7 +582,7 @@ IBHDF5Initializer::findLocalPatchIndicesFromHDF5(
         hid_t memspace = H5Screate_simple(rankm, dimsm, NULL);
 
         // Read in the vertex data one block at a time.
-        std::vector<blitz::TinyVector<double,NDIM> > posn_buf(BUFFER_SIZE);
+        std::vector<double> posn_buf(NDIM*BUFFER_SIZE);
         const unsigned int num_blocks = num_vertex/BUFFER_SIZE + (num_vertex%BUFFER_SIZE == 0 ? 0 : 1);
         for (unsigned int block = 0; block < num_blocks; ++block)
         {
@@ -606,17 +606,17 @@ IBHDF5Initializer::findLocalPatchIndicesFromHDF5(
 
             // Read data from hyperslab in the file into the hyperslab in
             // memory.
-            H5Dread(posn_dset, H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, posn_buf[0].data());
+            H5Dread(posn_dset, H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, &posn_buf[0]);
 
             // Setup cell indices for any local vertices in the hyperslab.
             for (int k = 0; k < num_vertex_block; ++k)
             {
-                blitz::TinyVector<double,NDIM>& X = posn_buf[k];
+                blitz::TinyVector<double,NDIM> X;
+                for (unsigned int d = 0; d < NDIM; ++d) X[d] = posn_buf[NDIM*k+d];
                 for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom =
-                        patch->getPatchGeometry();
+                    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
                     const double* const xLower = patch_geom->getXLower();
                     const double* const xUpper = patch_geom->getXUpper();
                     const bool patch_owns_node =
@@ -921,7 +921,7 @@ IBHDF5Initializer::buildLevelVertexDataCacheFromHDF5(
         hid_t memspace = H5Screate_simple(rankm, dimsm, NULL);
 
         // Read in the vertex data one block at a time.
-        std::vector<blitz::TinyVector<double,NDIM> > posn_buf(BUFFER_SIZE);
+        std::vector<double> posn_buf(NDIM*BUFFER_SIZE);
         const unsigned int num_blocks = num_vertex/BUFFER_SIZE + (num_vertex%BUFFER_SIZE == 0 ? 0 : 1);
         for (unsigned int block = 0; block < num_blocks; ++block)
         {
@@ -944,18 +944,18 @@ IBHDF5Initializer::buildLevelVertexDataCacheFromHDF5(
             H5Sselect_hyperslab(memspace, H5S_SELECT_SET, offsetm, NULL, countm, NULL);
 
             // Read data from hyperslab in the file into the hyperslab in memory.
-            H5Dread(posn_dset, H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, posn_buf[0].data());
+            H5Dread(posn_dset, H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, &posn_buf[0]);
 
             // Setup data for all local vertices in the hyperslab.
             const int index_offset = block*BUFFER_SIZE;
             for (int k = 0; k < num_vertex_block; ++k)
             {
-                blitz::TinyVector<double,NDIM>& X = posn_buf[k];
+                blitz::TinyVector<double,NDIM> X;
+                for (unsigned int d = 0; d < NDIM; ++d) X[d] = posn_buf[NDIM*k+d];
                 for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom =
-                        patch->getPatchGeometry();
+                    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
                     const double* const xLower = patch_geom->getXLower();
                     const double* const xUpper = patch_geom->getXUpper();
                     const bool patch_owns_node =

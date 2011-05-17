@@ -650,7 +650,7 @@ private:
         const blitz::TinyVector<int,NDIM>& patch_touches_upper_physical_bdry,
         const blitz::TinyVector<int,NDIM>& use_alt_one_sided_delta,
         const std::vector<int>& local_indices,
-        const std::vector<blitz::TinyVector<double,NDIM> >& periodic_offsets,
+        const std::vector<double>& periodic_offsets,
         const std::string& interp_fcn);
 
     /*!
@@ -673,7 +673,7 @@ private:
         const blitz::TinyVector<int,NDIM>& patch_touches_upper_physical_bdry,
         const blitz::TinyVector<int,NDIM>& use_alt_one_sided_delta,
         const std::vector<int>& local_indices,
-        const std::vector<blitz::TinyVector<double,NDIM> >& periodic_offsets,
+        const std::vector<double>& periodic_offsets,
         const std::string& spread_fcn);
 
     /*!
@@ -684,7 +684,7 @@ private:
     static void
     buildLocalIndices(
         std::vector<int>& local_indices,
-        std::vector<blitz::TinyVector<double,NDIM> >& periodic_offsets,
+        std::vector<double>& periodic_offsets,
         const SAMRAI::hier::Box<NDIM>& box,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,

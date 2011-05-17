@@ -104,7 +104,10 @@ IBBeamForceSpecFactory::unpackStream(
         ret_val->d_neighbor_idxs[k].second = tmp_neighbor_idxs[2*k+1];
     }
     stream.unpack(&ret_val->d_bend_rigidities[0],num_beams);
-    stream.unpack(ret_val->d_mesh_dependent_curvatures[0].data(),NDIM*num_beams);
+    for (unsigned k = 0; k < num_beams; ++k)
+    {
+        stream.unpack(ret_val->d_mesh_dependent_curvatures[k].data(),NDIM);
+    }
 #if ENABLE_SUBDOMAIN_INDICES
     stream.unpack(&ret_val->d_subdomain_idxs[0],num_beams);
 #endif

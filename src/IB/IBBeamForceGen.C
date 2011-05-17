@@ -396,18 +396,18 @@ IBBeamForceGen::computeLagrangianForce(
     blitz::Array<double,1>& bend_rigidities = d_bend_rigidities[level_number];
     blitz::Array<blitz::TinyVector<double,NDIM>,1>& mesh_dependent_curvatures = d_mesh_dependent_curvatures[level_number];
 
-    const unsigned int local_sz = petsc_mastr_node_idxs.size();
-    blitz::Array<blitz::TinyVector<double,NDIM>,1> F_mastr_node_vals(local_sz);
-    blitz::Array<blitz::TinyVector<double,NDIM>,1> F_nghbr_node_vals(local_sz);
+    const int local_sz = petsc_mastr_node_idxs.size();
+    blitz::Array<double,2> F_mastr_node_vals(local_sz,NDIM);
+    blitz::Array<double,2> F_nghbr_node_vals(local_sz,NDIM);
 
-    for (unsigned int k = 0; k < local_sz; ++k)
+    for (int k = 0; k < local_sz; ++k)
     {
         // Compute the forces applied by the beam to the "master" and "slave"
         // nodes.
-        blitz::TinyVector<double,NDIM>& F_mastr_node = F_mastr_node_vals(k);
-        blitz::TinyVector<double,NDIM>& F_nghbr_node = F_nghbr_node_vals(k);
-        const double* const D_next = &D_next_vals[k*NDIM];
-        const double* const D_prev = &D_prev_vals[k*NDIM];
+        double* const restrict F_mastr_node = &F_mastr_node_vals(k,0);
+        double* const restrict F_nghbr_node = &F_nghbr_node_vals(k,0);
+        const double* const restrict D_next = &D_next_vals[k*NDIM];
+        const double* const restrict D_prev = &D_prev_vals[k*NDIM];
         const double& bend = bend_rigidities(k);
         const blitz::TinyVector<double,NDIM>& curv = mesh_dependent_curvatures(k);
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -427,36 +427,36 @@ IBBeamForceGen::computeLagrangianForce(
 #if 0
     ierr = VecSetValuesBlocked(F_vec,
                                petsc_mastr_node_idxs.size(),
-                               !petsc_mastr_node_idxs.empty() ? &petsc_mastr_node_idxs[0]   : PETSC_NULL,
-                               !petsc_mastr_node_idxs.empty() ? F_mastr_node_vals(0).data() : PETSC_NULL,
+                               !petsc_mastr_node_idxs.empty() ? &petsc_mastr_node_idxs[0] : PETSC_NULL,
+                               !petsc_mastr_node_idxs.empty() ? F_mastr_node_vals.data()  : PETSC_NULL,
                                ADD_VALUES);  IBTK_CHKERRQ(ierr);
     ierr = VecSetValuesBlocked(F_vec,
                                petsc_next_node_idxs.size(),
-                               !petsc_next_node_idxs.empty() ? &petsc_next_node_idxs[0]    : PETSC_NULL,
-                               !petsc_next_node_idxs.empty() ? F_nghbr_node_vals(0).data() : PETSC_NULL,
+                               !petsc_next_node_idxs.empty() ? &petsc_next_node_idxs[0] : PETSC_NULL,
+                               !petsc_next_node_idxs.empty() ? F_nghbr_node_vals.data() : PETSC_NULL,
                                ADD_VALUES);  IBTK_CHKERRQ(ierr);
     ierr = VecSetValuesBlocked(F_vec,
                                petsc_prev_node_idxs.size(),
-                               !petsc_prev_node_idxs.empty() ? &petsc_prev_node_idxs[0]    : PETSC_NULL,
-                               !petsc_prev_node_idxs.empty() ? F_nghbr_node_vals(0).data() : PETSC_NULL,
+                               !petsc_prev_node_idxs.empty() ? &petsc_prev_node_idxs[0] : PETSC_NULL,
+                               !petsc_prev_node_idxs.empty() ? F_nghbr_node_vals.data() : PETSC_NULL,
                                ADD_VALUES);  IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
 #else
     ierr = PETScVecOps::VecSetValuesBlocked(F_vec,
                                             petsc_mastr_node_idxs.size(),
-                                            !petsc_mastr_node_idxs.empty() ? &petsc_mastr_node_idxs[0]   : PETSC_NULL,
-                                            !petsc_mastr_node_idxs.empty() ? F_mastr_node_vals(0).data() : PETSC_NULL,
+                                            !petsc_mastr_node_idxs.empty() ? &petsc_mastr_node_idxs[0] : PETSC_NULL,
+                                            !petsc_mastr_node_idxs.empty() ? F_mastr_node_vals.data()  : PETSC_NULL,
                                             ADD_VALUES);  IBTK_CHKERRQ(ierr);
     ierr = PETScVecOps::VecSetValuesBlocked(F_vec,
                                             petsc_next_node_idxs.size(),
-                                            !petsc_next_node_idxs.empty() ? &petsc_next_node_idxs[0]    : PETSC_NULL,
-                                            !petsc_next_node_idxs.empty() ? F_nghbr_node_vals(0).data() : PETSC_NULL,
+                                            !petsc_next_node_idxs.empty() ? &petsc_next_node_idxs[0] : PETSC_NULL,
+                                            !petsc_next_node_idxs.empty() ? F_nghbr_node_vals.data() : PETSC_NULL,
                                             ADD_VALUES);  IBTK_CHKERRQ(ierr);
     ierr = PETScVecOps::VecSetValuesBlocked(F_vec,
                                             petsc_prev_node_idxs.size(),
-                                            !petsc_prev_node_idxs.empty() ? &petsc_prev_node_idxs[0]    : PETSC_NULL,
-                                            !petsc_prev_node_idxs.empty() ? F_nghbr_node_vals(0).data() : PETSC_NULL,
+                                            !petsc_prev_node_idxs.empty() ? &petsc_prev_node_idxs[0] : PETSC_NULL,
+                                            !petsc_prev_node_idxs.empty() ? F_nghbr_node_vals.data() : PETSC_NULL,
                                             ADD_VALUES);  IBTK_CHKERRQ(ierr);
     ierr = PETScVecOps::VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
     ierr = PETScVecOps::VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
