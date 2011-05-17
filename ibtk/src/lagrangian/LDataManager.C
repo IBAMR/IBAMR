@@ -1094,7 +1094,7 @@ LDataManager::beginDataRedistribution(
 
     const double* const gridXLower = d_grid_geom->getXLower();
     const double* const gridXUpper = d_grid_geom->getXUpper();
-    double gridXLength[NDIM];
+    blitz::TinyVector<double,NDIM> gridXLength;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         gridXLength[d] = gridXUpper[d] - gridXLower[d];
@@ -1178,7 +1178,7 @@ LDataManager::beginDataRedistribution(
                 {
                     const bool patch_owns_node_at_old_loc = patch_box.contains(old_cell_idx);
                     const IntVector<NDIM>& periodic_offset = old_node_set->getPeriodicOffset();
-                    double X_shifted[NDIM];
+                    blitz::TinyVector<double,NDIM> X_shifted;
                     for (LNodeSet::iterator n = old_node_set->begin(); n != old_node_set->end(); ++n)
                     {
                         LNodeSet::value_type& node_idx = *n;
@@ -1312,7 +1312,7 @@ LDataManager::endDataRedistribution(
         const CellIndex<NDIM>& domain_lower = domain_box.lower();
         const CellIndex<NDIM>& domain_upper = domain_box.upper();
         const IntVector<NDIM>& ratio = level->getRatio();
-        double dx[NDIM];
+        blitz::TinyVector<double,NDIM> dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             dx[d] = dx0[d]/static_cast<double>(ratio(d));
@@ -1330,7 +1330,7 @@ LDataManager::endDataRedistribution(
             LNode& lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
             const blitz::TinyVector<double,NDIM>& posn = d_displaced_strct_lnode_posns[level_number][k];
             const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(
-                posn, gridXLower, gridXUpper, dx, domain_lower, domain_upper);
+                posn, gridXLower, gridXUpper, dx.data(), domain_lower, domain_upper);
 
             Array<int> indices;
             box_tree->findOverlapIndices(indices, Box<NDIM>(cell_idx,cell_idx));
@@ -1401,7 +1401,7 @@ LDataManager::endDataRedistribution(
             const LNode& lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
             const blitz::TinyVector<double,NDIM>& posn = d_displaced_strct_lnode_posns[level_number][k];
             const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(
-                posn, gridXLower, gridXUpper, dx, domain_lower, domain_upper);
+                posn, gridXLower, gridXUpper, dx.data(), domain_lower, domain_upper);
 
             Array<int> indices;
             box_tree->findOverlapIndices(indices, Box<NDIM>(cell_idx,cell_idx));

@@ -51,6 +51,8 @@
 #include <hdf5_hl.h>
 #endif
 
+#include <blitz/array.h>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 using namespace std;
@@ -616,7 +618,7 @@ initializeBeamData(
 
         int node1_idx, node2_idx, node3_idx;
         double bend_rigidity;
-        double rest_curvature[NDIM];
+        blitz::TinyVector<double,NDIM> rest_curvature;
         if (!getline(file_stream, line_string))
         {
             cerr << "error: premature end to input file encountered before line " << k+2 << " of file " << beam_filename << "\n";

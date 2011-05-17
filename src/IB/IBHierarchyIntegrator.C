@@ -1998,7 +1998,7 @@ IBHierarchyIntegrator::applyGradientDetector(
         Pointer<PatchLevel<NDIM> > finer_level = hierarchy->getPatchLevel(finer_level_number);
         for (int n = 0; n < d_n_src[finer_level_number]; ++n)
         {
-            double dx_finer[NDIM];
+            blitz::TinyVector<double,NDIM> dx_finer;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 dx_finer[d] = dx[d]/static_cast<double>(finer_level->getRatio()(d));
@@ -2006,7 +2006,7 @@ IBHierarchyIntegrator::applyGradientDetector(
 
             // The source radius must be an integer multiple of the grid
             // spacing.
-            double r[NDIM];
+            blitz::TinyVector<double,NDIM> r;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 r[d] = floor(d_r_src[finer_level_number][n]/dx_finer[d])*dx_finer[d];
@@ -2014,16 +2014,14 @@ IBHierarchyIntegrator::applyGradientDetector(
             }
 
             // Determine the approximate source stencil box.
-            const Index<NDIM> i_center = IndexUtilities::getCellIndex(
-                d_X_src[finer_level_number][n], xLower, xUpper, dx_finer, lower, upper);
+            const Index<NDIM> i_center = IndexUtilities::getCellIndex(d_X_src[finer_level_number][n], xLower, xUpper, dx_finer.data(), lower, upper);
             Box<NDIM> stencil_box(i_center,i_center);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 stencil_box.grow(d, static_cast<int>(ceil(r[d]/dx_finer[d])));
             }
 
-            const Box<NDIM> coarsened_stencil_box = Box<NDIM>::coarsen(
-                stencil_box, finer_level->getRatioToCoarserLevel());
+            const Box<NDIM> coarsened_stencil_box = Box<NDIM>::coarsen(stencil_box, finer_level->getRatioToCoarserLevel());
 
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
@@ -2376,7 +2374,7 @@ IBHierarchyIntegrator::computeSourceStrengths(
                 {
                     // The source radius must be an integer multiple of the grid
                     // spacing.
-                    double r[NDIM];
+                    blitz::TinyVector<double,NDIM> r;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         r[d] = floor(d_r_src[ln][n]/dx[d])*dx[d];
@@ -2614,7 +2612,7 @@ IBHierarchyIntegrator::computeSourcePressures(
                 {
                     // The source radius must be an integer multiple of the grid
                     // spacing.
-                    double r[NDIM];
+                    blitz::TinyVector<double,NDIM> r;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         r[d] = floor(d_r_src[ln][n]/dx[d])*dx[d];

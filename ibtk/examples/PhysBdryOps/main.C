@@ -280,7 +280,7 @@ main(
                 for (hier::Box<NDIM>::Iterator b(patch_box); b; b++)
                 {
                     const hier::Index<NDIM>& i = b();
-                    double X[NDIM];
+                    blitz::TinyVector<double,NDIM> X;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         X[d] = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
@@ -312,7 +312,7 @@ main(
                 for (hier::Box<NDIM>::Iterator b(data->getGhostBox()); b; b++)
                 {
                     const hier::Index<NDIM>& i = b();
-                    double X[NDIM];
+                    blitz::TinyVector<double,NDIM> X;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         X[d] = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);
@@ -356,7 +356,7 @@ main(
                 for (hier::Box<NDIM>::Iterator b(data->getGhostBox()); b; b++)
                 {
                     const hier::Index<NDIM>& i = b();
-                    double X[NDIM];
+                    blitz::TinyVector<double,NDIM> X;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         X[d] = xLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);

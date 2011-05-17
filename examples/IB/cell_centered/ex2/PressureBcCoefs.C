@@ -90,7 +90,7 @@ PressureBcCoefs::setBcCoefs(
     const double* const XLower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
 
-    double X[NDIM];
+    blitz::TinyVector<double,NDIM> X;
 
     const hier::BoundaryBox<NDIM> trimmed_bdry_box =
         PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, patch);

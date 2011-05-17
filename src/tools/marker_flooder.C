@@ -78,10 +78,14 @@ discard_comments(
     return output_string;
 }// discard_comments
 
-// Mesh spacing parameters.
-static const int N[NDIM] = {64 , 64 , 96};                                                  // number of Cartesian grid points in each coordinate direction
-static const double L[NDIM] = {10.0 , 10.0 , 15.0};                                         // length of computational domain
-static const double dx[NDIM] = {L[0]/static_cast<double>(N[0]) , L[1]/static_cast<double>(N[1]) , L[2]/double(N[2])}; // Cartesian grid spacing
+// number of Cartesian grid points in each coordinate direction
+static const blitz::TinyVector<int,NDIM> N(64 , 64 , 96);
+
+// length of computational domain
+static const blitz::TinyVector<double,NDIM> L(10.0 , 10.0 , 15.0);
+
+// Cartesian grid spacing
+static const blitz::TinyVector<double,NDIM> dx(L[0]/static_cast<double>(N[0]) , L[1]/static_cast<double>(N[1]) , L[2]/double(N[2]));
 
 inline TinyVector<int,NDIM>
 get_index(

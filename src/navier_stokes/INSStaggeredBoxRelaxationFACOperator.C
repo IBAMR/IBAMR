@@ -142,7 +142,7 @@ buildBoxOperator(
     const double dt,
     const Box<NDIM>& box,
     const Box<NDIM>& ghost_box,
-    const double* const dx)
+    const blitz::TinyVector<double,NDIM>& dx)
 {
     int ierr;
 
@@ -151,8 +151,8 @@ buildBoxOperator(
     const double lambda = problem_coefs.getLambda();
 
     // Allocate a PETSc matrix for the box operator.
-    Box<NDIM> side_boxes[NDIM];
-    BoxList<NDIM> side_ghost_boxes[NDIM];
+    blitz::TinyVector<Box<NDIM>,NDIM> side_boxes;
+    blitz::TinyVector<BoxList<NDIM>,NDIM> side_ghost_boxes;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         side_boxes[axis] = SideGeometry<NDIM>::toSideBox(box, axis);
@@ -1464,7 +1464,7 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
     const Box<NDIM> ghost_box = hier::Box<NDIM>::grow(box,BOX_GHOSTS);
 
     const double* const dx_coarsest = geometry->getDx();
-    double dx[NDIM];
+    blitz::TinyVector<double,NDIM> dx;
 
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {

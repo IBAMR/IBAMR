@@ -59,6 +59,9 @@
 #include <SideData.h>
 #include <SideGeometry.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // FORTRAN ROUTINES
 #if (NDIM == 2)
 #define ADVECT_DERIVATIVE_FC FC_FUNC_(advect_derivative2d, ADVECT_DERIVATIVE2D)
@@ -343,9 +346,9 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
             Pointer<SideData<NDIM,double> > U_data = patch->getPatchData(d_U_scratch_idx);
 
             const IntVector<NDIM> ghosts = IntVector<NDIM>(GADVECTG);
-            Box<NDIM> side_boxes[NDIM];
-            Pointer<FaceData<NDIM,double> >  U_adv_data[NDIM];
-            Pointer<FaceData<NDIM,double> > U_half_data[NDIM];
+            blitz::TinyVector<Box<NDIM>,NDIM> side_boxes;
+            blitz::TinyVector<Pointer<FaceData<NDIM,double> >,NDIM>  U_adv_data;
+            blitz::TinyVector<Pointer<FaceData<NDIM,double> >,NDIM> U_half_data;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 side_boxes [axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);

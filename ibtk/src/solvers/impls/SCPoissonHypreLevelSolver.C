@@ -617,7 +617,7 @@ SCPoissonHypreLevelSolver::setMatrixCoefficients_constant_coefficients()
                     // Temporarily reset the patch geometry object associated
                     // with the patch so that boundary conditions are set at the
                     // correct spatial locations.
-                    double shifted_patch_x_lower[NDIM], shifted_patch_x_upper[NDIM];
+                    blitz::TinyVector<double,NDIM> shifted_patch_x_lower, shifted_patch_x_upper;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         shifted_patch_x_lower[d] = patch_x_lower[d];
@@ -628,7 +628,7 @@ SCPoissonHypreLevelSolver::setMatrixCoefficients_constant_coefficients()
                     patch->setPatchGeometry(
                         new CartesianPatchGeometry<NDIM>(
                             ratio_to_level_zero, touches_regular_bdry, touches_periodic_bdry,
-                            dx, shifted_patch_x_lower, shifted_patch_x_upper));
+                            dx, shifted_patch_x_lower.data(), shifted_patch_x_upper.data()));
 
                     // Set the boundary condition coefficients.
                     d_bc_coefs[axis]->setBcCoefs(

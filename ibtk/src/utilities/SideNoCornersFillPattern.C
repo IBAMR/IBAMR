@@ -41,6 +41,9 @@
 #include <SideGeometry.h>
 #include <SideOverlap.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK
@@ -91,7 +94,7 @@ SideNoCornersFillPattern::calculateOverlap(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(t_dst_geometry != NULL);
 #endif
-    BoxList<NDIM> dst_boxes[NDIM];
+    blitz::TinyVector<BoxList<NDIM>,NDIM> dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())
     {
         const Box<NDIM>& dst_box = t_dst_geometry->getBox();
@@ -141,7 +144,7 @@ SideNoCornersFillPattern::calculateOverlap(
             }
         }
     }
-    return new SideOverlap<NDIM>(dst_boxes, src_offset);
+    return new SideOverlap<NDIM>(dst_boxes.data(), src_offset);
 }// calculateOverlap
 
 Pointer<BoxOverlap<NDIM> >
@@ -164,7 +167,7 @@ SideNoCornersFillPattern::calculateOverlap(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(t_dst_geometry != NULL);
 #endif
-    BoxList<NDIM> dst_boxes[NDIM];
+    blitz::TinyVector<BoxList<NDIM>,NDIM> dst_boxes;
     if (!box_geom_overlap->isOverlapEmpty())
     {
         const Box<NDIM>& dst_box = t_dst_geometry->getBox();
@@ -216,7 +219,7 @@ SideNoCornersFillPattern::calculateOverlap(
             }
         }
     }
-    return new SideOverlap<NDIM>(dst_boxes, src_offset);
+    return new SideOverlap<NDIM>(dst_boxes.data(), src_offset);
 }// calculateOverlap
 
 void

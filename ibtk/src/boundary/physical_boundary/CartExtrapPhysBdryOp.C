@@ -433,18 +433,18 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
                 const unsigned int location_index = it->second.first;
                 const int codim = it->second.second;
 #if (NDIM == 2)
-                const bool is_lower[NDIM] = { PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
-                                              PhysicalBoundaryUtilities::isLower(location_index, codim, 1) };
-                const bool is_upper[NDIM] = { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
-                                              PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) };
+                const blitz::TinyVector<bool,NDIM> is_lower( PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
+                                                             PhysicalBoundaryUtilities::isLower(location_index, codim, 1) );
+                const blitz::TinyVector<bool,NDIM> is_upper( PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
+                                                             PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) );
 #endif
 #if (NDIM == 3)
-                const bool is_lower[NDIM] = { PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
-                                              PhysicalBoundaryUtilities::isLower(location_index, codim, 1) ,
-                                              PhysicalBoundaryUtilities::isLower(location_index, codim, 2) };
-                const bool is_upper[NDIM] = { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
-                                              PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) ,
-                                              PhysicalBoundaryUtilities::isUpper(location_index, codim, 2) };
+                const blitz::TinyVector<bool,NDIM> is_lower( PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
+                                                             PhysicalBoundaryUtilities::isLower(location_index, codim, 1) ,
+                                                             PhysicalBoundaryUtilities::isLower(location_index, codim, 2) );
+                const blitz::TinyVector<bool,NDIM> is_upper( PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
+                                                             PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) ,
+                                                             PhysicalBoundaryUtilities::isUpper(location_index, codim, 2) );
 #endif
                 // Loop over the boundary box indices and compute the nearest
                 // interior index.
@@ -535,18 +535,18 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_vec_cell(
                 const unsigned int location_index = it->second.first;
                 const int codim = it->second.second;
 #if (NDIM == 2)
-                const bool is_lower[NDIM] = { PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
-                                              PhysicalBoundaryUtilities::isLower(location_index, codim, 1) };
-                const bool is_upper[NDIM] = { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
-                                              PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) };
+                const blitz::TinyVector<bool,NDIM> is_lower( PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
+                                                             PhysicalBoundaryUtilities::isLower(location_index, codim, 1) );
+                const blitz::TinyVector<bool,NDIM> is_upper( PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
+                                                             PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) );
 #endif
 #if (NDIM == 3)
-                const bool is_lower[NDIM] = { PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
-                                              PhysicalBoundaryUtilities::isLower(location_index, codim, 1) ,
-                                              PhysicalBoundaryUtilities::isLower(location_index, codim, 2) };
-                const bool is_upper[NDIM] = { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
-                                              PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) ,
-                                              PhysicalBoundaryUtilities::isUpper(location_index, codim, 2) };
+                const blitz::TinyVector<bool,NDIM> is_lower( PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
+                                                             PhysicalBoundaryUtilities::isLower(location_index, codim, 1) ,
+                                                             PhysicalBoundaryUtilities::isLower(location_index, codim, 2) );
+                const blitz::TinyVector<bool,NDIM> is_upper( PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
+                                                             PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) ,
+                                                             PhysicalBoundaryUtilities::isUpper(location_index, codim, 2) );
 #endif
                 // Loop over the boundary box indices and compute the nearest
                 // interior index.
@@ -644,18 +644,18 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
                 const unsigned int location_index = it->second.first;
                 const int codim = it->second.second;
 #if (NDIM == 2)
-                const bool is_lower[NDIM] = { PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
-                                              PhysicalBoundaryUtilities::isLower(location_index, codim, 1) };
-                const bool is_upper[NDIM] = { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
-                                              PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) };
+                const blitz::TinyVector<bool,NDIM> is_lower( PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
+                                                             PhysicalBoundaryUtilities::isLower(location_index, codim, 1) );
+                const blitz::TinyVector<bool,NDIM> is_upper( PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
+                                                             PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) );
 #endif
 #if (NDIM == 3)
-                const bool is_lower[NDIM] = { PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
-                                              PhysicalBoundaryUtilities::isLower(location_index, codim, 1) ,
-                                              PhysicalBoundaryUtilities::isLower(location_index, codim, 2) };
-                const bool is_upper[NDIM] = { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
-                                              PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) ,
-                                              PhysicalBoundaryUtilities::isUpper(location_index, codim, 2) };
+                const blitz::TinyVector<bool,NDIM> is_lower( PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
+                                                             PhysicalBoundaryUtilities::isLower(location_index, codim, 1) ,
+                                                             PhysicalBoundaryUtilities::isLower(location_index, codim, 2) );
+                const blitz::TinyVector<bool,NDIM> is_upper( PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
+                                                             PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) ,
+                                                             PhysicalBoundaryUtilities::isUpper(location_index, codim, 2) );
 #endif
                 for (int depth = 0; depth < patch_data->getDepth(); ++depth)
                 {
@@ -753,18 +753,18 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
                 const unsigned int location_index = it->second.first;
                 const int codim = it->second.second;
 #if (NDIM == 2)
-                const bool is_lower[NDIM] = { PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
-                                              PhysicalBoundaryUtilities::isLower(location_index, codim, 1) };
-                const bool is_upper[NDIM] = { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
-                                              PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) };
+                const blitz::TinyVector<bool,NDIM> is_lower( PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
+                                                             PhysicalBoundaryUtilities::isLower(location_index, codim, 1) );
+                const blitz::TinyVector<bool,NDIM> is_upper( PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
+                                                             PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) );
 #endif
 #if (NDIM == 3)
-                const bool is_lower[NDIM] = { PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
-                                              PhysicalBoundaryUtilities::isLower(location_index, codim, 1) ,
-                                              PhysicalBoundaryUtilities::isLower(location_index, codim, 2) };
-                const bool is_upper[NDIM] = { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
-                                              PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) ,
-                                              PhysicalBoundaryUtilities::isUpper(location_index, codim, 2) };
+                const blitz::TinyVector<bool,NDIM> is_lower( PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
+                                                             PhysicalBoundaryUtilities::isLower(location_index, codim, 1) ,
+                                                             PhysicalBoundaryUtilities::isLower(location_index, codim, 2) );
+                const blitz::TinyVector<bool,NDIM> is_upper( PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
+                                                             PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) ,
+                                                             PhysicalBoundaryUtilities::isUpper(location_index, codim, 2) );
 #endif
                 // Loop over the boundary box indices and compute the
                 // nearest interior index.
@@ -855,18 +855,18 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
                 const unsigned int location_index = it->second.first;
                 const int codim = it->second.second;
 #if (NDIM == 2)
-                const bool is_lower[NDIM] = { PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
-                                              PhysicalBoundaryUtilities::isLower(location_index, codim, 1) };
-                const bool is_upper[NDIM] = { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
-                                              PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) };
+                const blitz::TinyVector<bool,NDIM> is_lower( PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
+                                                             PhysicalBoundaryUtilities::isLower(location_index, codim, 1) );
+                const blitz::TinyVector<bool,NDIM> is_upper( PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
+                                                             PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) );
 #endif
 #if (NDIM == 3)
-                const bool is_lower[NDIM] = { PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
-                                              PhysicalBoundaryUtilities::isLower(location_index, codim, 1) ,
-                                              PhysicalBoundaryUtilities::isLower(location_index, codim, 2) };
-                const bool is_upper[NDIM] = { PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
-                                              PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) ,
-                                              PhysicalBoundaryUtilities::isUpper(location_index, codim, 2) };
+                const blitz::TinyVector<bool,NDIM> is_lower( PhysicalBoundaryUtilities::isLower(location_index, codim, 0) ,
+                                                             PhysicalBoundaryUtilities::isLower(location_index, codim, 1) ,
+                                                             PhysicalBoundaryUtilities::isLower(location_index, codim, 2) );
+                const blitz::TinyVector<bool,NDIM> is_upper( PhysicalBoundaryUtilities::isUpper(location_index, codim, 0) ,
+                                                             PhysicalBoundaryUtilities::isUpper(location_index, codim, 1) ,
+                                                             PhysicalBoundaryUtilities::isUpper(location_index, codim, 2) );
 #endif
                 for (int depth = 0; depth < patch_data->getDepth(); ++depth)
                 {

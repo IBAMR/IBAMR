@@ -693,7 +693,7 @@ PETScMatUtilities::constructPatchLevelInterpOp(
     const double* const XUpper = grid_geom->getXUpper();
     const double* const dx0 = grid_geom->getDx();
     const IntVector<NDIM>& ratio = patch_level->getRatio();
-    double dx[NDIM];
+    blitz::TinyVector<double,NDIM> dx;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         dx[d] = dx0[d] / static_cast<double>(ratio(d));
@@ -713,18 +713,18 @@ PETScMatUtilities::constructPatchLevelInterpOp(
         // Determine the index of the Cartesian grid cell containing the IB
         // point.
         const double* const X = &X_arr[NDIM*k];
-        const Index<NDIM> idx = IndexUtilities::getCellIndex(X, XLower, XUpper, dx, domain_lower, domain_upper);
+        const Index<NDIM> idx = IndexUtilities::getCellIndex(X, XLower, XUpper, dx.data(), domain_lower, domain_upper);
 
         // Determine the position of the center of the Cartesian grid cell
         // containing the IB point.
 #if (NDIM == 2)
-        const double X_cell[NDIM] = { (static_cast<double>(idx(0) - domain_lower(0))+0.5)*dx[0] + XLower[0] ,
-                                      (static_cast<double>(idx(1) - domain_lower(1))+0.5)*dx[1] + XLower[1] };
+        const blitz::TinyVector<double,NDIM> X_cell( (static_cast<double>(idx(0) - domain_lower(0))+0.5)*dx[0] + XLower[0] ,
+                                                     (static_cast<double>(idx(1) - domain_lower(1))+0.5)*dx[1] + XLower[1] );
 #endif
 #if (NDIM == 3)
-        const double X_cell[NDIM] = { (static_cast<double>(idx(0) - domain_lower(0))+0.5)*dx[0] + XLower[0] ,
-                                      (static_cast<double>(idx(1) - domain_lower(1))+0.5)*dx[1] + XLower[1] ,
-                                      (static_cast<double>(idx(2) - domain_lower(2))+0.5)*dx[2] + XLower[2] };
+        const blitz::TinyVector<double,NDIM> X_cell( (static_cast<double>(idx(0) - domain_lower(0))+0.5)*dx[0] + XLower[0] ,
+                                                     (static_cast<double>(idx(1) - domain_lower(1))+0.5)*dx[1] + XLower[1] ,
+                                                     (static_cast<double>(idx(2) - domain_lower(2))+0.5)*dx[2] + XLower[2] );
 #endif
 
         // Find the local patch that contains the IB point.

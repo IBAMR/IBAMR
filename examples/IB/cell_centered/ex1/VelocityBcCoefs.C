@@ -91,11 +91,11 @@ VelocityBcCoefs::setBcCoefs(
     tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
     const double* const XLower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
-    double X[NDIM];
+    blitz::TinyVector<double,NDIM> X;
 
     const double* const grid_XUpper = d_grid_geometry->getXUpper();
     const double* const grid_XLower = d_grid_geometry->getXLower();
-    double L[NDIM];
+    blitz::TinyVector<double,NDIM> L;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         L[d] = grid_XUpper[d] - grid_XLower[d];

@@ -441,7 +441,7 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(
             const LMarker& mark = *it;
             const blitz::TinyVector<double,NDIM>& X = mark.getPosition();
             const IntVector<NDIM>& offset = mark.getPeriodicOffset();
-            double X_shifted[NDIM];
+            blitz::TinyVector<double,NDIM> X_shifted;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_shifted[d] = X[d] + static_cast<double>(offset(d))*patchDx[d];

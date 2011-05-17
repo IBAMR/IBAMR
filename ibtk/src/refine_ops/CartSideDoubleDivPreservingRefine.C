@@ -53,6 +53,9 @@
 #include <SideVariable.h>
 #include <tbox/MathUtilities.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // C++ STDLIB INCLUDES
 #include <limits>
 #include <vector>
@@ -278,7 +281,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
         const double* const dx_coarse = pgeom_coarse->getDx();
 
         const IntVector<NDIM> ratio_to_level_zero_intermediate = ratio_to_level_zero_coarse*2;
-        double dx_intermediate[NDIM], x_lower_intermediate[NDIM], x_upper_intermediate[NDIM];
+        blitz::TinyVector<double,NDIM> dx_intermediate, x_lower_intermediate, x_upper_intermediate;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             dx_intermediate[d] = 0.5*dx_coarse[d];
@@ -287,7 +290,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
         }
         intermediate.setPatchGeometry(new CartesianPatchGeometry<NDIM>(
                                           ratio_to_level_zero_intermediate, touches_regular_bdry, touches_periodic_bdry,
-                                          dx_intermediate, x_lower_intermediate, x_upper_intermediate));
+                                          dx_intermediate.data(), x_lower_intermediate.data(), x_upper_intermediate.data()));
 
         // The intermediate box where we need to fill data must be large enough
         // to provide ghost cell values for the fine fill box.

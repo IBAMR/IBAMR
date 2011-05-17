@@ -741,7 +741,7 @@ private:
      * Vertex information.
      */
     std::vector<std::vector<int> > d_num_vertex, d_vertex_offset;
-    std::vector<std::vector<std::vector<double> > > d_vertex_posn;
+    std::vector<std::vector<std::vector<blitz::TinyVector<double,NDIM> > > > d_vertex_posn;
 
     /*
      * Edge data structures.

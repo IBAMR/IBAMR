@@ -808,7 +808,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
         const Box<NDIM> domain_box_level = Box<NDIM>::refine(domain_box, ratio);
         const Index<NDIM>& domain_box_level_lower = domain_box_level.lower();
         const Index<NDIM>& domain_box_level_upper = domain_box_level.upper();
-        double dx[NDIM];
+        blitz::TinyVector<double,NDIM> dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             dx[d] = dx_coarsest[d]/static_cast<double>(ratio(d));
@@ -819,7 +819,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
         const Box<NDIM> finer_domain_box_level = Box<NDIM>::refine(domain_box, finer_ratio);
         const Index<NDIM>& finer_domain_box_level_lower = finer_domain_box_level.lower();
         const Index<NDIM>& finer_domain_box_level_upper = finer_domain_box_level.upper();
-        double finer_dx[NDIM];
+        blitz::TinyVector<double,NDIM> finer_dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             finer_dx[d] = dx_coarsest[d]/static_cast<double>(finer_ratio(d));
@@ -833,8 +833,8 @@ IBInstrumentPanel::initializeHierarchyDependentData(
                 for (int n = 0; n < d_X_web[l].extent(1); ++n)
                 {
                     const blitz::TinyVector<double,NDIM>& X = d_X_web[l](m,n);
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, dx, domain_box_level_lower, domain_box_level_upper);
-                    const Index<NDIM> finer_i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, finer_dx, finer_domain_box_level_lower, finer_domain_box_level_upper);
+                    const Index<NDIM> i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, dx.data(), domain_box_level_lower, domain_box_level_upper);
+                    const Index<NDIM> finer_i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, finer_dx.data(), finer_domain_box_level_lower, finer_domain_box_level_upper);
                     if (level->getBoxes().contains(i) && (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
                     {
                         WebPatch p;
@@ -848,8 +848,8 @@ IBInstrumentPanel::initializeHierarchyDependentData(
 
             // Setup the web centroid mapping.
             const blitz::TinyVector<double,NDIM>& X = d_X_centroid[l];
-            const Index<NDIM> i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, dx, domain_box_level_lower, domain_box_level_upper);
-            const Index<NDIM> finer_i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, finer_dx, finer_domain_box_level_lower, finer_domain_box_level_upper);
+            const Index<NDIM> i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, dx.data(), domain_box_level_lower, domain_box_level_upper);
+            const Index<NDIM> finer_i = IndexUtilities::getCellIndex(X, domainXLower, domainXUpper, finer_dx.data(), finer_domain_box_level_lower, finer_domain_box_level_upper);
             if (level->getBoxes().contains(i) && (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
             {
                 WebCentroid c;

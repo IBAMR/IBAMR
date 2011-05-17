@@ -125,7 +125,7 @@ FeedbackForcer::setDataOnPatch(
 
     const double* const grid_XUpper = d_grid_geometry->getXUpper();
     const double* const grid_XLower = d_grid_geometry->getXLower();
-    double L[NDIM];
+    blitz::TinyVector<double,NDIM> L;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         L[d] = grid_XUpper[d] - grid_XLower[d];
@@ -145,7 +145,7 @@ FeedbackForcer::setDataOnPatch(
     for (hier::Box<NDIM>::Iterator b(bdry_box*patch_box); b; b++)
     {
         const hier::Index<NDIM>& i = b();
-        double X[NDIM];
+        blitz::TinyVector<double,NDIM> X;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             X[d] = XLower[d] + dx[d]*(static_cast<double>(i(d)-patch_lower(d))+0.5);

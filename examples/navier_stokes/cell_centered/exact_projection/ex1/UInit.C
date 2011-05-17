@@ -104,7 +104,7 @@ UInit::setDataOnPatch(
     const double* const XLower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
 
-    double X[NDIM];
+    blitz::TinyVector<double,NDIM> X;
     for (pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
     {
         const hier::Index<NDIM>& i = ic();

@@ -48,6 +48,8 @@
 #include <hdf5_hl.h>
 #endif
 
+#include <blitz/array.h>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 using namespace std;
@@ -112,7 +114,7 @@ build_local_cart_block(
                                     end_of_fiber = true;
                                 }
 
-                                int idx[NDIM] = {0 , 0 , 0};
+                                blitz::TinyVector<int,NDIM> idx(0 , 0 , 0);
                                 idx[d0] = j;
                                 idx[d1] = k;
                                 const int offset = idx[0] + idx[1]*nelem[0] + idx[2]*nelem[0]*nelem[1];
@@ -167,7 +169,7 @@ build_local_cart_block(
                             end_of_fiber = true;
                         }
 
-                        int idx[NDIM] = {0 , 0 , 0};
+                        blitz::TinyVector<int,NDIM> idx(0 , 0 , 0);
                         idx[d0] = i;
                         idx[d1] = j;
                         idx[d2] = k;

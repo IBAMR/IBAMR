@@ -129,7 +129,7 @@ QInit::setDataOnPatch(
     const double* const dx = pgeom->getDx();
 
     double r_squared;
-    double X[NDIM];
+    blitz::TinyVector<double,NDIM> X;
     const double t = data_time;
 
     Q_data->fillAll(0.0);
@@ -141,7 +141,7 @@ QInit::setDataOnPatch(
             const hier::Index<NDIM>& i = ic();
             // NOTE: This assumes the lattice of Gaussians are being advected
             // and diffused in the unit square.
-            int offset[NDIM];
+            blitz::TinyVector<int,NDIM> offset;
             for (offset[0] = -2; offset[0] <= 2; ++(offset[0]))
             {
                 for (offset[1] = -2; offset[1] <= 2; ++(offset[1]))

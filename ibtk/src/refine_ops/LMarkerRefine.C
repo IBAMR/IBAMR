@@ -146,7 +146,7 @@ LMarkerRefine::refine(
                 const LMarker& coarse_mark = *cit;
                 const blitz::TinyVector<double,NDIM>& X = coarse_mark.getPosition();
                 const IntVector<NDIM>& offset = coarse_mark.getPeriodicOffset();
-                double X_shifted[NDIM];
+                blitz::TinyVector<double,NDIM> X_shifted;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     X_shifted[d] = X[d] + static_cast<double>(offset(d))*coarse_patchDx[d];

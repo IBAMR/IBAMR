@@ -45,6 +45,9 @@
 #include <CartesianGridGeometry.h>
 #include <tbox/Database.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // C++ STDLIB INCLUDES
 #include <map>
 #include <vector>
@@ -161,7 +164,7 @@ private:
      * Time and position variables.
      */
     double d_parser_time;
-    double d_parser_posn[NDIM];
+    blitz::TinyVector<double,NDIM> d_parser_posn;
 };
 }// namespace IBTK
 

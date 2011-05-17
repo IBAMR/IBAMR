@@ -740,7 +740,7 @@ IBStandardInitializer::readVertexFiles()
 
             // Each successive line provides the initial position of each vertex
             // in the input file.
-            d_vertex_posn[ln][j].resize(d_num_vertex[ln][j]*NDIM);
+            d_vertex_posn[ln][j].resize(d_num_vertex[ln][j]);
             for (int k = 0; k < d_num_vertex[ln][j]; ++k)
             {
                 if (!std::getline(file_stream, line_string))
@@ -753,11 +753,11 @@ IBStandardInitializer::readVertexFiles()
                     std::istringstream line_stream(line_string);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        if (!(line_stream >> d_vertex_posn[ln][j][k*NDIM+d]))
+                        if (!(line_stream >> d_vertex_posn[ln][j][k][d]))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << vertex_filename << std::endl);
                         }
-                        d_vertex_posn[ln][j][k*NDIM+d] = d_length_scale_factor*(d_vertex_posn[ln][j][k*NDIM+d] + d_posn_shift[d]);
+                        d_vertex_posn[ln][j][k][d] = d_length_scale_factor*(d_vertex_posn[ln][j][k][d] + d_posn_shift[d]);
                     }
                 }
             }
@@ -2436,7 +2436,7 @@ IBStandardInitializer::getPatchVertices(
     {
         for (int k = 0; k < d_num_vertex[level_number][j]; ++k)
         {
-            const double* const X = &d_vertex_posn[level_number][j][k*NDIM];
+            const blitz::TinyVector<double,NDIM>& X = d_vertex_posn[level_number][j][k];
             const bool patch_owns_node =
                 ((  xLower[0] <= X[0])&&(X[0] < xUpper[0]))
 #if (NDIM > 1)
@@ -2465,12 +2465,7 @@ IBStandardInitializer::getVertexPosn(
     const std::pair<int,int>& point_index,
     const int level_number) const
 {
-    const double* posn_ptr = &d_vertex_posn[level_number][point_index.first][point_index.second*NDIM];
-    return blitz::TinyVector<double,NDIM>(posn_ptr[0],posn_ptr[1]
-#if (NDIM == 3)
-                                          ,posn_ptr[2]
-#endif
-                                          );
+    return d_vertex_posn[level_number][point_index.first][point_index.second];
 }// getVertexPosn
 
 const IBStandardInitializer::TargetSpec&

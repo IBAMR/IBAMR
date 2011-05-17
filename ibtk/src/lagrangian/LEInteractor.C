@@ -919,7 +919,7 @@ LEInteractor::interpolate(
     const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
 
     // Interpolate.
-    double x_lower_axis[NDIM], x_upper_axis[NDIM];
+    blitz::TinyVector<double,NDIM> x_lower_axis, x_upper_axis;
     std::vector<double> Q_data_axis(local_sz);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
@@ -938,7 +938,7 @@ LEInteractor::interpolate(
         x_upper_axis[axis] += 0.5*dx[axis];
         interpolate(&Q_data_axis[0], 1, X_data, X_depth,
                     q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(), 1,
-                    x_lower_axis, x_upper_axis, dx,
+                    x_lower_axis.data(), x_upper_axis.data(), dx,
                     patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
                     use_alt_one_sided_delta,
                     local_indices, periodic_offsets,
@@ -1098,7 +1098,7 @@ LEInteractor::interpolate(
     const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
 
     // Interpolate.
-    double x_lower_axis[NDIM], x_upper_axis[NDIM];
+    blitz::TinyVector<double,NDIM> x_lower_axis, x_upper_axis;
     std::vector<double> Q_data_axis(local_sz);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
@@ -1117,7 +1117,7 @@ LEInteractor::interpolate(
         x_upper_axis[axis] += 0.5*dx[axis];
         interpolate(&Q_data_axis[0], 1, X_data, X_depth,
                     q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(), 1,
-                    x_lower_axis, x_upper_axis, dx,
+                    x_lower_axis.data(), x_upper_axis.data(), dx,
                     patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
                     use_alt_one_sided_delta,
                     local_indices, periodic_offsets,
@@ -1310,7 +1310,7 @@ LEInteractor::spread(
     const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
 
     // Spread.
-    double x_lower_axis[NDIM], x_upper_axis[NDIM];
+    blitz::TinyVector<double,NDIM> x_lower_axis, x_upper_axis;
     std::vector<double> Q_data_axis(local_sz);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
@@ -1332,7 +1332,7 @@ LEInteractor::spread(
         }
         spread(q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(),axis), q_data->getGhostCellWidth(), 1,
                &Q_data_axis[0], 1, X_data, X_depth,
-               x_lower_axis, x_upper_axis, dx,
+               x_lower_axis.data(), x_upper_axis.data(), dx,
                patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
                use_alt_one_sided_delta,
                local_indices, periodic_offsets,
@@ -1487,7 +1487,7 @@ LEInteractor::spread(
     const int local_sz = (*std::max_element(local_indices.begin(),local_indices.end()))+1;
 
     // Spread.
-    double x_lower_axis[NDIM], x_upper_axis[NDIM];
+    blitz::TinyVector<double,NDIM> x_lower_axis, x_upper_axis;
     std::vector<double> Q_data_axis(local_sz);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
@@ -1509,7 +1509,7 @@ LEInteractor::spread(
         }
         spread(q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(),axis), q_data->getGhostCellWidth(), 1,
                &Q_data_axis[0], 1, X_data, X_depth,
-               x_lower_axis, x_upper_axis, dx,
+               x_lower_axis.data(), x_upper_axis.data(), dx,
                patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
                use_alt_one_sided_delta,
                local_indices, periodic_offsets,
@@ -2438,8 +2438,8 @@ LEInteractor::userDefinedInterpolate(
     }
     const blitz::Array<double,NDIM+1> q_data(const_cast<double*>(q), shape, blitz::neverDeleteData, storage_order);
 
-    double X_cell[NDIM];
-    int stencil_center[NDIM], stencil_lower[NDIM], stencil_upper[NDIM];
+    blitz::TinyVector<double,NDIM> X_cell;
+    blitz::TinyVector<int,NDIM> stencil_center, stencil_lower, stencil_upper;
     for (int l = 0; l < num_local_indices; ++l)
     {
         const int s = local_indices[l];
@@ -2562,8 +2562,8 @@ LEInteractor::userDefinedSpread(
     }
     blitz::Array<double,NDIM+1> q_data(q, shape, blitz::neverDeleteData, storage_order);
 
-    double X_cell[NDIM];
-    int stencil_center[NDIM], stencil_lower[NDIM], stencil_upper[NDIM];
+    blitz::TinyVector<double,NDIM> X_cell;
+    blitz::TinyVector<int,NDIM> stencil_center, stencil_lower, stencil_upper;
     for (int l = 0; l < num_local_indices; ++l)
     {
         const int s = local_indices[l];

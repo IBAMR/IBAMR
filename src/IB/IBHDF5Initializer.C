@@ -1271,7 +1271,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         const std::string node2_idx_dset_name     = beam_group_name + "/node2_idx"    ;
         const std::string node3_idx_dset_name     = beam_group_name + "/node3_idx"    ;
         const std::string bend_rigidity_dset_name = beam_group_name + "/bend_rigidity";
-        std::string rest_curvature_dset_name[NDIM];
+        blitz::TinyVector<std::string,NDIM> rest_curvature_dset_name;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             std::ostringstream os;
