@@ -60,7 +60,7 @@
 // C++ STDLIB INCLUDES
 #include <algorithm>
 
-#define PREFETCH(a,t) do { _mm_prefetch((a),(t)); } while (0)
+#define PREFETCH(a,t) do { _mm_prefetch((const char*)(a),(t)); } while (0)
 
 #define PREFETCH_INT_BLOCK(a,n,t)                                       \
     do {                                                                \
