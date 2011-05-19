@@ -956,12 +956,18 @@ FEDataManager::updateWorkloadData(
 
     // Workload estimates are computed only on the level to which the FE mesh
     // has been assigned.
-    if (!d_load_balancer.isNull() && finest_ln == d_level_number)
+    if (!d_load_balancer.isNull())
     {
-        updateQuadPointCountData(data_time,finest_ln,finest_ln);
-        HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(d_hierarchy,finest_ln,finest_ln);
-        hier_cc_data_ops.setToScalar(d_workload_idx, 1.0);
-        hier_cc_data_ops.add(d_workload_idx, d_qp_count_idx, d_workload_idx);
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            if (ln == d_level_number)
+            {
+                updateQuadPointCountData(data_time,ln,ln);
+                HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(d_hierarchy,ln,ln);
+                hier_cc_data_ops.setToScalar(d_workload_idx, 1.0);
+                hier_cc_data_ops.add(d_workload_idx, d_qp_count_idx, d_workload_idx);
+            }
+        }
     }
 
     t_update_workload_data->stop();
