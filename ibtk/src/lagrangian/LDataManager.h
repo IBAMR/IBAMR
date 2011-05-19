@@ -577,12 +577,30 @@ public:
         const int level_number) const;
 
     /*!
+     * \brief Map the collection of Lagrangian indices to the corresponding
+     * global PETSc indices.
+     */
+    void
+    mapLagrangianToPETSc(
+        blitz::Array<int,1>& inds,
+        const int level_number) const;
+
+    /*!
      * \brief Map the collection of global PETSc indices to the corresponding
      * Lagrangian indices.
      */
     void
     mapPETScToLagrangian(
         std::vector<int>& inds,
+        const int level_number) const;
+
+    /*!
+     * \brief Map the collection of global PETSc indices to the corresponding
+     * Lagrangian indices.
+     */
+    void
+    mapPETScToLagrangian(
+        blitz::Array<int,1>& inds,
         const int level_number) const;
 
     /*!

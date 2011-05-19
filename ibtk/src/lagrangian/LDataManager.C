@@ -996,7 +996,29 @@ LDataManager::mapLagrangianToPETSc(
     const int ierr = AOApplicationToPetsc(
         d_ao[level_number],
         (!inds.empty() ? static_cast<int>(inds.size()) : static_cast<int>(s_ao_dummy.size())),
-        (!inds.empty() ? &inds[0]         : &s_ao_dummy[0]));
+        (!inds.empty() ? &inds[0]                      : &s_ao_dummy[0]));
+    IBTK_CHKERRQ(ierr);
+
+    t_map_lagrangian_to_petsc->stop();
+    return;
+}// mapLagrangianToPETSc
+
+void
+LDataManager::mapLagrangianToPETSc(
+    blitz::Array<int,1>& inds,
+    const int level_number) const
+{
+    t_map_lagrangian_to_petsc->start();
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
+                d_finest_ln   >= level_number);
+#endif
+
+    const int ierr = AOApplicationToPetsc(
+        d_ao[level_number],
+        (inds.size() > 0 ? static_cast<int>(inds.size()) : static_cast<int>(s_ao_dummy.size())),
+        (inds.size() > 0 ? inds.data()                   : &s_ao_dummy[0]));
     IBTK_CHKERRQ(ierr);
 
     t_map_lagrangian_to_petsc->stop();
@@ -1018,7 +1040,29 @@ LDataManager::mapPETScToLagrangian(
     const int ierr = AOPetscToApplication(
         d_ao[level_number],
         (!inds.empty() ? static_cast<int>(inds.size()) : static_cast<int>(s_ao_dummy.size())),
-        (!inds.empty() ? &inds[0]         : &s_ao_dummy[0]));
+        (!inds.empty() ? &inds[0]                      : &s_ao_dummy[0]));
+    IBTK_CHKERRQ(ierr);
+
+    t_map_petsc_to_lagrangian->stop();
+    return;
+}// mapPETScToLagrangian
+
+void
+LDataManager::mapPETScToLagrangian(
+    blitz::Array<int,1>& inds,
+    const int level_number) const
+{
+    t_map_petsc_to_lagrangian->start();
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_coarsest_ln <= level_number &&
+                d_finest_ln   >= level_number);
+#endif
+
+    const int ierr = AOPetscToApplication(
+        d_ao[level_number],
+        (inds.size() > 0 ? static_cast<int>(inds.size()) : static_cast<int>(s_ao_dummy.size())),
+        (inds.size() > 0 ? inds.data()                   : &s_ao_dummy[0]));
     IBTK_CHKERRQ(ierr);
 
     t_map_petsc_to_lagrangian->stop();

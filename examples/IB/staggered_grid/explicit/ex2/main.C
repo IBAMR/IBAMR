@@ -455,12 +455,8 @@ main(
                 input_db->getDatabase("INSStaggeredHierarchyIntegrator"),
                 patch_hierarchy);
 
-        tbox::Pointer<IBSpringForceGen> spring_force_generator = new IBSpringForceGen();
-        spring_force_generator->registerSpringForceFunction(0,&linear_spring_force);
-        tbox::Pointer<IBBeamForceGen> beam_force_generator = new IBBeamForceGen();
-        tbox::Pointer<IBTargetPointForceGen> target_point_force_generator = new IBTargetPointForceGen();
-        tbox::Pointer<IBStandardForceGen> force_generator = new IBStandardForceGen(
-            spring_force_generator, beam_force_generator, target_point_force_generator);
+        tbox::Pointer<IBStandardForceGen> force_generator = new IBStandardForceGen();
+        force_generator->registerSpringForceFunction(0,&linear_spring_force);
 
         tbox::Pointer<IBLagrangianSourceStrategy> source_generator = NULL;
 

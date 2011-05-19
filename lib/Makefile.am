@@ -33,7 +33,6 @@ $(top_srcdir)/src/utilities/namespaces.h
 DIM_INDEPENDENT_SOURCES = \
 $(top_srcdir)/src/IB/IBAnchorPointSpec.C \
 $(top_srcdir)/src/IB/IBAnchorPointSpecFactory.C \
-$(top_srcdir)/src/IB/IBBeamForceGen.C \
 $(top_srcdir)/src/IB/IBBeamForceSpec.C \
 $(top_srcdir)/src/IB/IBBeamForceSpecFactory.C \
 $(top_srcdir)/src/IB/IBDataPostProcessor.C \
@@ -59,14 +58,12 @@ $(top_srcdir)/src/IB/IBRodForceSpec.C \
 $(top_srcdir)/src/IB/IBRodForceSpecFactory.C \
 $(top_srcdir)/src/IB/IBSourceSpec.C \
 $(top_srcdir)/src/IB/IBSourceSpecFactory.C \
-$(top_srcdir)/src/IB/IBSpringForceGen.C \
 $(top_srcdir)/src/IB/IBSpringForceSpec.C \
 $(top_srcdir)/src/IB/IBSpringForceSpecFactory.C \
 $(top_srcdir)/src/IB/IBStaggeredHierarchyIntegrator.C \
 $(top_srcdir)/src/IB/IBStandardForceGen.C \
 $(top_srcdir)/src/IB/IBStandardSourceGen.C \
 $(top_srcdir)/src/IB/IBStandardInitializer.C \
-$(top_srcdir)/src/IB/IBTargetPointForceGen.C \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.C \
 $(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C \
 $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
@@ -102,7 +99,6 @@ pkg_include_HEADERS += \
 $(top_srcdir)/src/IB/IBAnchorPointSpec.I \
 $(top_srcdir)/src/IB/IBAnchorPointSpec.h \
 $(top_srcdir)/src/IB/IBAnchorPointSpecFactory.h \
-$(top_srcdir)/src/IB/IBBeamForceGen.h \
 $(top_srcdir)/src/IB/IBBeamForceSpec.I \
 $(top_srcdir)/src/IB/IBBeamForceSpec.h \
 $(top_srcdir)/src/IB/IBBeamForceSpecFactory.h \
@@ -133,7 +129,7 @@ $(top_srcdir)/src/IB/IBRodForceSpecFactory.h \
 $(top_srcdir)/src/IB/IBSourceSpec.I \
 $(top_srcdir)/src/IB/IBSourceSpec.h \
 $(top_srcdir)/src/IB/IBSourceSpecFactory.h \
-$(top_srcdir)/src/IB/IBSpringForceGen.h \
+$(top_srcdir)/src/IB/IBSpringForceFunctions.h \
 $(top_srcdir)/src/IB/IBSpringForceSpec.I \
 $(top_srcdir)/src/IB/IBSpringForceSpec.h \
 $(top_srcdir)/src/IB/IBSpringForceSpecFactory.h \
@@ -141,7 +137,6 @@ $(top_srcdir)/src/IB/IBStaggeredHierarchyIntegrator.h \
 $(top_srcdir)/src/IB/IBStandardForceGen.h \
 $(top_srcdir)/src/IB/IBStandardSourceGen.h \
 $(top_srcdir)/src/IB/IBStandardInitializer.h \
-$(top_srcdir)/src/IB/IBTargetPointForceGen.h \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.I \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.h \
 $(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.h \

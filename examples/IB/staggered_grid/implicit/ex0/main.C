@@ -325,11 +325,7 @@ main(
                 input_db->getDatabase("IBStandardInitializer"));
         time_integrator->registerLInitStrategy(initializer);
 
-        tbox::Pointer<IBSpringForceGen> spring_force_generator = new IBSpringForceGen();
-        tbox::Pointer<IBBeamForceGen> beam_force_generator = new IBBeamForceGen();
-        tbox::Pointer<IBTargetPointForceGen> target_point_force_generator = new IBTargetPointForceGen();
-        tbox::Pointer<IBStandardForceGen> force_generator = new IBStandardForceGen(
-            spring_force_generator, beam_force_generator, target_point_force_generator);
+        tbox::Pointer<IBStandardForceGen> force_generator = new IBStandardForceGen();
         time_integrator->registerIBLagrangianForceStrategy(force_generator);
 
         tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
