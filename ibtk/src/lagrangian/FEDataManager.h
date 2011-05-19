@@ -211,22 +211,17 @@ public:
 
     /*!
      * \return A const reference to the map from local patch number to local
-     * active element number.
+     * active elements.
      */
-    const blitz::Array<blitz::Array<unsigned int,1>,1>&
-    getPatchActiveElementMap() const;
-
-    /*!
-     * \return A const reference to the collection of local elements.
-     */
-    const blitz::Array<libMesh::Elem*,1>&
-    getActiveElements() const;
+    const blitz::Array<blitz::Array<libMesh::Elem*,1>,1>&
+    getActivePatchElementMap() const;
 
     /*!
      * \brief Reinitialize the mappings from elements to Cartesian grid patches.
      */
     void
-    reinitElementMappings();
+    reinitElementMappings(
+        const double data_time);
 
     /*!
      * \return A pointer to the unghosted solution vector associated with the
@@ -503,9 +498,9 @@ private:
      * \note For inactive elements, the lower and upper bound values will be
      * identically zero.
      */
-    void
+    blitz::Array<std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> >,1>*
     computeActiveElementBoundingBoxes(
-        std::vector<double>& elem_bounds);
+        const double data_time);
 
     /*!
      * Collect all of the active elements which are located within a local
@@ -516,16 +511,10 @@ private:
      */
     void
     collectActivePatchElements(
-        blitz::Array<blitz::Array<unsigned int,1>,1>& patch_active_elem_map,
-        blitz::Array<libMesh::Elem*,1>& active_elems,
+        blitz::Array<blitz::Array<libMesh::Elem*,1>,1>& active_patch_elems,
         const int level_number,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width);
-
-    void
-    collectActivePatchElements_helper(
-        std::vector<std::vector<libMesh::Elem*> >& active_patch_elems,
-        const int level_number,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width);
+        const SAMRAI::hier::IntVector<NDIM>& ghost_width,
+        const double data_time);
 
     /*!
      * Collect all ghost DOF indices for the specified collection of elements.
@@ -591,7 +580,7 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_qp_count_var;
     int d_qp_count_idx;
-    std::vector<double> d_qp_count_data_time;
+    std::vector<double> d_qp_count_data_timestamp;
 
     /*
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
@@ -625,9 +614,10 @@ private:
     /*
      * Data to manage mappings between mesh elements and grid patches.
      */
-    blitz::Array<blitz::Array<unsigned int,1>,1> d_patch_active_elem_map;
-    blitz::Array<libMesh::Elem*,1> d_active_elems;
+    blitz::Array<blitz::Array<libMesh::Elem*,1>,1> d_active_patch_elem_map;
     std::map<std::string,std::vector<unsigned int> > d_active_patch_ghost_dofs;
+    blitz::Array<std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> >,1> d_active_elem_bboxes;
+    double d_active_elem_bboxes_timestamp;
 
     /*
      * Ghost vectors for the various equation systems.

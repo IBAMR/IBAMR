@@ -654,7 +654,7 @@ IBFEHierarchyIntegrator::initializeHierarchy()
     }
 
     // Initialize the FE data manager.
-    d_fe_data_manager->reinitElementMappings();
+    d_fe_data_manager->reinitElementMappings(d_integrator_time);
 
     // Prune duplicate markers following initialization.
     LMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
@@ -1122,7 +1122,7 @@ IBFEHierarchyIntegrator::regridHierarchy()
     d_ib_lag_force_strategy_needs_init = true;
 
     // Reinitialize the FE data manager.
-    d_fe_data_manager->reinitElementMappings();
+    d_fe_data_manager->reinitElementMappings(d_integrator_time);
 
     // Prune duplicate markers following regridding.
     LMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
@@ -1943,8 +1943,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
 
     // Loop over the patches to spread the transmission elastic force density
     // onto the grid.
-    const blitz::Array<blitz::Array<unsigned int,1>,1>& active_patch_element_map = d_fe_data_manager->getPatchActiveElementMap();
-    const blitz::Array<Elem*,1>& active_elems = d_fe_data_manager->getActiveElements();
+    const blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_element_map = d_fe_data_manager->getActivePatchElementMap();
     const int level_num = d_fe_data_manager->getLevelNumber();
     TensorValue<double> PP, dX_ds, dX_ds_inv_trans;
     VectorValue<double> F, F_s;
@@ -1957,7 +1956,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
-        const blitz::Array<unsigned int,1>& patch_elems = active_patch_element_map(local_patch_num);
+        const blitz::Array<Elem*,1>& patch_elems = active_patch_element_map(local_patch_num);
         const int num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
@@ -1984,8 +1983,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
         int qp_offset = 0;
         for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            const unsigned int e = patch_elems(e_idx);
-            Elem* const elem = active_elems(e);
+            Elem* const elem = patch_elems(e_idx);
 
             bool has_physical_boundaries = false;
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
