@@ -245,8 +245,8 @@ private:
         const std::string& base_group_name,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
         const std::string& filename,
-        const unsigned int file_number,
-        const unsigned int num_files) const;
+        const int file_number,
+        const int num_files) const;
 
     void
     buildLevelSpringDataCacheFromHDF5(
@@ -258,8 +258,8 @@ private:
         const std::string& base_group_name,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
         const std::string& filename,
-        const unsigned int file_number,
-        const unsigned int num_files) const;
+        const int file_number,
+        const int num_files) const;
 
     void
     buildLevelBeamDataCacheFromHDF5(
@@ -271,8 +271,8 @@ private:
         const std::string& base_group_name,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
         const std::string& filename,
-        const unsigned int file_number,
-        const unsigned int num_files) const;
+        const int file_number,
+        const int num_files) const;
 
     void
     buildLevelTargetPointDataCacheFromHDF5(
@@ -284,8 +284,8 @@ private:
         const std::string& base_group_name,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
         const std::string& filename,
-        const unsigned int file_number,
-        const unsigned int num_files) const;
+        const int file_number,
+        const int num_files) const;
 
     void
     buildLevelInstrumentationDataCacheFromHDF5(
@@ -298,8 +298,8 @@ private:
         const std::string& base_group_name,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
         const std::string& filename,
-        const unsigned int file_number,
-        const unsigned int num_files) const;
+        const int file_number,
+        const int num_files) const;
 
     /*!
      * \brief Clear all cached level data.
@@ -313,7 +313,7 @@ private:
     int
     getCanonicalLagrangianIndex(
         const std::pair<int,int>& global_vertex_idx,
-        const unsigned int global_index_offset) const;
+        const int global_index_offset) const;
 
     /*!
      * \return The specification objects associated with the specified vertex.
@@ -322,7 +322,7 @@ private:
     initializeSpecs(
         const std::pair<int,int>& local_vertex_idx,
         const std::pair<int,int>& global_vertex_idx,
-        const unsigned int global_index_offset);
+        const int global_index_offset);
 
     /*!
      * Read input values, indicated above, from given database.
@@ -397,7 +397,7 @@ private:
      */
     int d_cache_level_number;
 
-    std::vector<unsigned int> d_level_num_vertex, d_level_num_local_vertex, d_level_vertex_offset;
+    std::vector<int> d_level_num_vertex, d_level_num_local_vertex, d_level_vertex_offset;
     std::vector<std::vector<blitz::TinyVector<double,NDIM> > > d_level_posns;
     std::vector<std::vector<std::pair<int,int> > >             d_level_vertex_idxs;
     std::vector<std::vector<SAMRAI::hier::Index<NDIM> > >      d_level_cell_idxs;
