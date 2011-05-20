@@ -75,7 +75,6 @@ public:
      * \note The patch strategy objects provided to the constructor are deleted
      * by this class destructor.
      */
-    virtual
     ~RefinePatchStrategySet();
 
     /*!
@@ -90,7 +89,7 @@ public:
      * \param fill_time            Double simulation time for boundary filling.
      * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over all registered scratch components.
      */
-    virtual void
+    void
     setPhysicalBoundaryConditions(
         SAMRAI::hier::Patch<NDIM>& patch,
         const double fill_time,
@@ -101,7 +100,7 @@ public:
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      */
-    virtual SAMRAI::hier::IntVector<NDIM>
+    SAMRAI::hier::IntVector<NDIM>
     getRefineOpStencilWidth() const;
 
     /*!
@@ -119,7 +118,7 @@ public:
      * \param fine_box  Box region on fine patch into which data is refined.
      * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
      */
-    virtual void
+    void
     preprocessRefine(
         SAMRAI::hier::Patch<NDIM>& fine,
         const SAMRAI::hier::Patch<NDIM>& coarse,
@@ -141,7 +140,7 @@ public:
      * \param fine_box  Box region on fine patch into which data is refined.
      * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
      */
-    virtual void
+    void
     postprocessRefine(
         SAMRAI::hier::Patch<NDIM>& fine,
         const SAMRAI::hier::Patch<NDIM>& coarse,
@@ -161,7 +160,7 @@ public:
      * \param fine_boxes  List of box regions on fine patch into which data is refined.
      * \param ratio       Integer vector containing ratio relating index space between coarse and fine patches.
      */
-    virtual void
+    void
     preprocessRefineBoxes(
         SAMRAI::hier::Patch<NDIM>& fine,
         const SAMRAI::hier::Patch<NDIM>& coarse,
@@ -181,7 +180,7 @@ public:
      * \param fine_boxes  List of box regions on fine patch into which data is refined.
      * \param ratio       Integer vector containing ratio relating index space between coarse and fine patches.
      */
-    virtual void
+    void
     postprocessRefineBoxes(
         SAMRAI::hier::Patch<NDIM>& fine,
         const SAMRAI::hier::Patch<NDIM>& coarse,

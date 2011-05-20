@@ -420,8 +420,8 @@ IBStandardForceGen::initializeSpringLevelData(
     int num_springs = 0;
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode& node_idx = **cit;
-        Pointer<IBSpringForceSpec> force_spec = node_idx.getNodeData<IBSpringForceSpec>();
+        const LNode* const node_idx = *cit;
+        Pointer<IBSpringForceSpec> force_spec = node_idx->getNodeData<IBSpringForceSpec>();
         if (!force_spec.isNull()) num_springs += force_spec->getNumberOfSprings();
     }
     lag_mastr_node_idxs     .resize(num_springs);
@@ -444,11 +444,11 @@ IBStandardForceGen::initializeSpringLevelData(
     int current_spring = 0;
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode& node_idx = **cit;
-        Pointer<IBSpringForceSpec> force_spec = node_idx.getNodeData<IBSpringForceSpec>();
+        const LNode* const node_idx = *cit;
+        Pointer<IBSpringForceSpec> force_spec = node_idx->getNodeData<IBSpringForceSpec>();
         if (force_spec.isNull()) continue;
 
-        const int& mastr_idx = node_idx.getLagrangianIndex();
+        const int& mastr_idx = node_idx->getLagrangianIndex();
         const unsigned int num_springs = force_spec->getNumberOfSprings();
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
@@ -700,8 +700,8 @@ IBStandardForceGen::initializeBeamLevelData(
     int num_beams = 0;
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode& node_idx = **cit;
-        Pointer<IBBeamForceSpec> force_spec = node_idx.getNodeData<IBBeamForceSpec>();
+        const LNode* const node_idx = *cit;
+        Pointer<IBBeamForceSpec> force_spec = node_idx->getNodeData<IBBeamForceSpec>();
         if (!force_spec.isNull()) num_beams += force_spec->getNumberOfBeams();
     }
     petsc_mastr_node_idxs. resize(num_beams);
@@ -722,11 +722,11 @@ IBStandardForceGen::initializeBeamLevelData(
     int current_beam = 0;
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode& node_idx = **cit;
-        Pointer<IBBeamForceSpec> force_spec = node_idx.getNodeData<IBBeamForceSpec>();
+        const LNode* const node_idx = *cit;
+        Pointer<IBBeamForceSpec> force_spec = node_idx->getNodeData<IBBeamForceSpec>();
         if (force_spec.isNull()) continue;
 
-        const int& mastr_idx = node_idx.getLagrangianIndex();
+        const int& mastr_idx = node_idx->getLagrangianIndex();
         const unsigned int num_beams = force_spec->getNumberOfBeams();
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
@@ -1016,8 +1016,8 @@ IBStandardForceGen::initializeTargetPointLevelData(
     int num_target_points = 0;
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode& node_idx = **cit;
-        Pointer<IBTargetPointForceSpec> force_spec = node_idx.getNodeData<IBTargetPointForceSpec>();
+        const LNode* const node_idx = *cit;
+        Pointer<IBTargetPointForceSpec> force_spec = node_idx->getNodeData<IBTargetPointForceSpec>();
         if (!force_spec.isNull()) num_target_points += 1;
     }
     petsc_node_idxs  .resize(num_target_points);
@@ -1038,11 +1038,11 @@ IBStandardForceGen::initializeTargetPointLevelData(
     int current_target_point = 0;
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode& node_idx = **cit;
-        Pointer<IBTargetPointForceSpec> force_spec = node_idx.getNodeData<IBTargetPointForceSpec>();
+        const LNode* const node_idx = *cit;
+        Pointer<IBTargetPointForceSpec> force_spec = node_idx->getNodeData<IBTargetPointForceSpec>();
         if (force_spec.isNull()) continue;
 
-        petsc_node_idxs  (current_target_point) = node_idx.getLagrangianIndex();
+        petsc_node_idxs  (current_target_point) = node_idx->getLagrangianIndex();
         if (d_constant_material_properties)
         {
             kappa        (current_target_point) = force_spec->getStiffness();

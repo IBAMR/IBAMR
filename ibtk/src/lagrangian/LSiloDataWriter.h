@@ -82,12 +82,8 @@ public:
         bool register_for_restart=true);
 
     /*!
-     * \brief Virtual destructor.
-     *
-     * The destructor for IBHierarchyIntegrator unregisters the integrator
-     * object with the restart manager when so registered.
+     * \brief Destructor.
      */
-    virtual
     ~LSiloDataWriter();
 
     /*!
@@ -249,7 +245,7 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    virtual void
+    void
     putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 

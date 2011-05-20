@@ -39,12 +39,12 @@
 #include <petsc.h>
 
 // IBAMR INCLUDES
-#include <ibamr/IBDataPostProcessor.h>
 #include <ibamr/IBEulerianForceFunction.h>
 #include <ibamr/IBEulerianSourceFunction.h>
 #include <ibamr/IBInstrumentPanel.h>
 #include <ibamr/IBLagrangianForceStrategy.h>
 #include <ibamr/IBLagrangianSourceStrategy.h>
+#include <ibamr/IBPostProcessStrategy.h>
 #include <ibamr/INSHierarchyIntegrator.h>
 
 // IBTK INCLUDES
@@ -104,16 +104,15 @@ public:
         SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,
         SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> force_strategy,
         SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> source_strategy=NULL,
-        SAMRAI::tbox::Pointer<IBDataPostProcessor> post_processor=NULL,
+        SAMRAI::tbox::Pointer<IBPostProcessStrategy> post_processor=NULL,
         bool register_for_restart=true);
 
     /*!
-     * Virtual destructor.
+     * Destructor.
      *
      * The destructor for IBHierarchyIntegrator unregisters the integrator
      * object with the restart manager when so registered.
      */
-    virtual
     ~IBHierarchyIntegrator();
 
     /*!
@@ -243,7 +242,7 @@ public:
      * advanceHierarchy().  Otherwise, when assertion checking is active an
      * unrecoverable exception will occur.
      */
-    virtual void
+    void
     initializeHierarchyIntegrator(
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
@@ -265,7 +264,7 @@ public:
      * the advanceHierarchy() function to be called.  In particular, on each
      * level constructed only the data needed for initialization exists.
      */
-    virtual double
+    double
     initializeHierarchy();
 
     /*!
@@ -275,7 +274,7 @@ public:
      * When assertion checking is active, an unrecoverable exception will result
      * if the new time is not greater than the given time.
      */
-    virtual double
+    double
     advanceHierarchy(
         const double dt);
 
@@ -370,13 +369,13 @@ public:
     /*!
      * Regrid the hierarchy.
      */
-    virtual void
+    void
     regridHierarchy();
 
     /*!
      * Synchronize the hierarchy.
      */
-    virtual void
+    void
     synchronizeHierarchy();
 
     /*!
@@ -400,7 +399,7 @@ public:
      * existing levels in the hierarchy (either coarsest_level > finest_level or
      * some level is null).
      */
-    virtual void
+    void
     synchronizeNewLevels(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
@@ -411,14 +410,14 @@ public:
     /*!
      * Reset time dependent data.
      */
-    virtual void
+    void
     resetTimeDependentHierData(
         const double new_time);
 
     /*!
      * Deallocate all new simulation data.
      */
-    virtual void
+    void
     resetHierDataToPreadvanceState();
 
     ///
@@ -466,7 +465,7 @@ public:
      * level in the hierarchy, or the old level number does not match the level
      * number (if the old level pointer is non-null).
      */
-    virtual void
+    void
     initializeLevelData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -491,7 +490,7 @@ public:
      * that is coarser than the finest level is null, or the given level numbers
      * not specified properly; e.g., coarsest_level > finest_level.
      */
-    virtual void
+    void
     resetHierarchyConfiguration(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
@@ -517,7 +516,7 @@ public:
      * if the hierarchy pointer is null or the level number does not match any
      * existing level in the hierarchy.
      */
-    virtual void
+    void
     applyGradientDetector(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -576,7 +575,7 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    virtual void
+    void
     putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
@@ -638,7 +637,7 @@ private:
         const bool initial_time);
 
     /*!
-     * Initialize the IBDataPostProcessor object for the current configuration
+     * Initialize the IBPostProcessStrategy object for the current configuration
      * of the curvilinear mesh.
      */
     void
@@ -816,7 +815,7 @@ private:
     /*
      * Post-processors.
      */
-    SAMRAI::tbox::Pointer<IBDataPostProcessor> d_post_processor;
+    SAMRAI::tbox::Pointer<IBPostProcessStrategy> d_post_processor;
     bool d_post_processor_needs_init;
 
     /*

@@ -61,7 +61,7 @@ namespace IBTK
  * \see FACPreconditioner
  */
 class FACPreconditionerStrategy
-    : public virtual SAMRAI::tbox::DescribedClass
+    : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

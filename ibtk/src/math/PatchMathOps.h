@@ -68,9 +68,8 @@ public:
     PatchMathOps();
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~PatchMathOps();
 
     /*!

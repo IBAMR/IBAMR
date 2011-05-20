@@ -141,12 +141,11 @@ protected:
         MPI_Comm comm);
 
     /*
-     * Virtual destructor for PETScSAMRAIVectorReal is protected so that an
-     * object of this class cannot be destroyed without calling the static
-     * member function destroyPETScVector, which is used to destroy the PETSc
-     * vector and associated "wrapper."
+     * Destructor for PETScSAMRAIVectorReal is protected so that an object of
+     * this class cannot be destroyed without calling the static member function
+     * destroyPETScVector, which is used to destroy the PETSc vector and
+     * associated "wrapper."
      */
-    virtual
     ~PETScSAMRAIVectorReal();
 
 private:

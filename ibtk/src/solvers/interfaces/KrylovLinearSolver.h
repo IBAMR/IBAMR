@@ -56,7 +56,7 @@ namespace IBTK
  * \f$Ax=b\f$.
  */
 class KrylovLinearSolver
-    : public virtual LinearSolver
+    : public LinearSolver
 {
 public:
     /*!

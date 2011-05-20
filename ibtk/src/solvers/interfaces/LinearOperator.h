@@ -51,7 +51,7 @@ namespace IBTK
  * and, optionally, \f$ y=A^{T} x \f$ and \f$ z=A^{T}x+y \f$.
  */
 class LinearOperator
-    : public virtual GeneralOperator
+    : public GeneralOperator
 {
 public:
     /*!
@@ -63,7 +63,7 @@ public:
         bool is_symmetric=false);
 
     /*!
-     * \brief Virtual empty destructor.
+     * \brief Empty virtual destructor.
      */
     virtual
     ~LinearOperator();

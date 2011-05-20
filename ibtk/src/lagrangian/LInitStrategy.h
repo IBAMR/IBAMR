@@ -63,7 +63,7 @@ namespace IBTK
  * initial configuration of the curvilinear mesh.
  */
 class LInitStrategy
-    : public virtual SAMRAI::tbox::DescribedClass
+    : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

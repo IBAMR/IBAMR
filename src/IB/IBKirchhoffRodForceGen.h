@@ -68,16 +68,15 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~IBKirchhoffRodForceGen();
 
     /*!
      * \brief Setup the data needed to compute the beam forces on the specified
      * level of the patch hierarchy.
      */
-    virtual void
+    void
     initializeLevelData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -92,7 +91,7 @@ public:
      * \note Nodal forces and moments computed by this method are \em added to
      * the force and moment vectors.
      */
-    virtual void
+    void
     computeLagrangianForceAndTorque(
         SAMRAI::tbox::Pointer<IBTK::LData> F_data,
         SAMRAI::tbox::Pointer<IBTK::LData> N_data,

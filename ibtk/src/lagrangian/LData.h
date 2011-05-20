@@ -100,7 +100,8 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual ~LData();
+    virtual
+    ~LData();
 
     /*!
      * \brief Reset data items.

@@ -85,7 +85,6 @@ public:
      * The destructor for AdvDiffHypPatchOps unregisters the patch strategy
      * object with the restart manager when so registered.
      */
-    virtual
     ~AdvDiffHypPatchOps();
 
     /*!
@@ -108,7 +107,7 @@ public:
      * Update solution variables by performing a conservative difference using
      * the fluxes calculated in computeFluxesOnPatch().
      */
-    virtual void
+    void
     conservativeDifferenceOnPatch(
         SAMRAI::hier::Patch<NDIM>& patch,
         const double time,
@@ -127,7 +126,7 @@ public:
      * level data on all patch interiors.  That is, both scratch and current
      * data correspond to current_time.
      */
-    virtual void
+    void
     preprocessAdvanceLevelState(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
         double current_time,
@@ -148,7 +147,7 @@ public:
      * correspond to current_time + dt on patch interiors.  The current data and
      * ghost values correspond to the current_time.
      */
-    virtual void
+    void
     postprocessAdvanceLevelState(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >& level,
         double current_time,

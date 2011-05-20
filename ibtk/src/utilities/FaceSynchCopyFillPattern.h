@@ -50,7 +50,7 @@ namespace IBTK
  * "synchronizing" face-centered values at patch boundaries.
  */
 class FaceSynchCopyFillPattern
-    : public virtual SAMRAI::xfer::VariableFillPattern<NDIM>
+    : public SAMRAI::xfer::VariableFillPattern<NDIM>
 {
 public:
     /*!
@@ -61,7 +61,6 @@ public:
     /*!
      * \brief Destructor
      */
-    virtual
     ~FaceSynchCopyFillPattern();
 
     /*!

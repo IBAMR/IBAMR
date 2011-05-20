@@ -622,12 +622,12 @@ LDataManager::computeLagrangianStructureCenterOfMass(
     const std::vector<LNode*>& local_nodes = mesh->getNodes();
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode& node_idx = **cit;
-        const int lag_idx = node_idx.getLagrangianIndex();
+        const LNode* const node_idx = *cit;
+        const int lag_idx = node_idx->getLagrangianIndex();
         if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
         {
             ++node_counter;
-            const int local_idx = node_idx.getLocalPETScIndex();
+            const int local_idx = node_idx->getLocalPETScIndex();
             const double* const X = &X_data(local_idx,0);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -664,11 +664,11 @@ LDataManager::computeLagrangianStructureBoundingBox(
     const std::vector<LNode*>& local_nodes = mesh->getNodes();
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode& node_idx = **cit;
-        const int lag_idx = node_idx.getLagrangianIndex();
+        const LNode* const node_idx = *cit;
+        const int lag_idx = node_idx->getLagrangianIndex();
         if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
         {
-            const int local_idx = node_idx.getLocalPETScIndex();
+            const int local_idx = node_idx->getLocalPETScIndex();
             const double* const X = &X_data(local_idx,0);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -706,11 +706,11 @@ LDataManager::reinitLagrangianStructure(
     const std::vector<LNode*>& local_nodes = mesh->getNodes();
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode& node_idx = **cit;
-        const int lag_idx = node_idx.getLagrangianIndex();
+        const LNode* const node_idx = *cit;
+        const int lag_idx = node_idx->getLagrangianIndex();
         if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
         {
-            const int local_idx = node_idx.getLocalPETScIndex();
+            const int local_idx = node_idx->getLocalPETScIndex();
             const double* const X0 = &X0_data(local_idx,0);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -1163,8 +1163,8 @@ LDataManager::beginDataRedistribution(
         const std::vector<LNode*>& local_nodes = mesh->getNodes();
         for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
-            const LNode& node_idx = **cit;
-            const int local_idx = node_idx.getLocalPETScIndex();
+            const LNode* const node_idx = *cit;
+            const int local_idx = node_idx->getLocalPETScIndex();
             double* const X = &X_data(local_idx,0);
             for (unsigned int d = 0; d < NDIM; ++d)
             {

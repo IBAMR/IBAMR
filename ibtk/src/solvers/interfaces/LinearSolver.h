@@ -52,7 +52,7 @@ namespace IBTK
  * implementation of solvers for linear problems of the form \f$Ax=b\f$.
  */
 class LinearSolver
-    : public virtual SAMRAI::tbox::DescribedClass
+    : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

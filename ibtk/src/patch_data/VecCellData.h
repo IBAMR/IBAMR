@@ -203,7 +203,7 @@ public:
      * source and destination).  Currently, source data must be CellData or
      * VecCellData of the TYPE.  If not, then an unrecoverable error results.
      */
-    virtual void
+    void
     copy(
         const SAMRAI::hier::PatchData<NDIM>& src);
 
@@ -217,7 +217,7 @@ public:
      * VecCellData of the same TYPE.  If not, then an unrecoverable error
      * results.
      */
-    virtual void
+    void
     copy2(
         SAMRAI::hier::PatchData<NDIM>& dst) const;
 
@@ -228,7 +228,7 @@ public:
      * Source data must be VecCellData of the same TYPE and the overlap must be
      * a CellOverlap.  If not, then an unrecoverable error results.
      */
-    virtual void
+    void
     copy(
         const SAMRAI::hier::PatchData<NDIM>& src,
         const SAMRAI::hier::BoxOverlap<NDIM>& overlap);
@@ -240,7 +240,7 @@ public:
      * Destination data must be VecCellData of the same TYPE and the overlap
      * must be a CellOverlap.  If not, then an unrecoverable error results.
      */
-    virtual void
+    void
     copy2(
         SAMRAI::hier::PatchData<NDIM>& dst,
         const SAMRAI::hier::BoxOverlap<NDIM>& overlap) const;
@@ -290,7 +290,7 @@ public:
      * This routine is defined for the standard types (bool, char, double,
      * float, int, and dcomplex).
      */
-    virtual bool
+    bool
     canEstimateStreamSizeFromBox() const;
 
     /*!
@@ -300,7 +300,7 @@ public:
      * This routine is defined for the standard types (bool, char, double,
      * float, int, and dcomplex).
      */
-    virtual int
+    int
     getDataStreamSize(
         const SAMRAI::hier::BoxOverlap<NDIM>& overlap) const;
 
@@ -308,7 +308,7 @@ public:
      * \brief Pack data to stream from this patch data object over the specified
      * box overlap region.  The overlap must be a CellOverlap.
      */
-    virtual void
+    void
     packStream(
         SAMRAI::tbox::AbstractStream& stream,
         const SAMRAI::hier::BoxOverlap<NDIM>& overlap) const;
@@ -317,7 +317,7 @@ public:
      * \brief Unpack data from stream into this patch data object over the
      * specified box overlap region.  The overlap must be a CellOverlap.
      */
-    virtual void
+    void
     unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
         const SAMRAI::hier::BoxOverlap<NDIM>& overlap);
@@ -402,7 +402,7 @@ public:
      * Check that class version and restart file version are equal.  If so, read
      * data members from the database.
      */
-    virtual void
+    void
     getSpecializedFromDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database);
 
@@ -410,7 +410,7 @@ public:
      * Write out the class version number and other data members to the
      * database.
      */
-    virtual void
+    void
     putSpecializedToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database);
 

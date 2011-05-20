@@ -67,9 +67,8 @@ public:
         IBImplicitHierarchyIntegrator* ib_implicit_integrator);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~IBImplicitSJROperator();
 
     /*!
@@ -98,7 +97,7 @@ public:
      * \brief Implementation of the apply method which permits the operator to
      * accumulate values in y.
      */
-    virtual void
+    void
     apply(
         const bool zero_y_before_spread,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
@@ -114,7 +113,7 @@ public:
      *
      * \param x value where the Jacobian is to be evaluated
      */
-    virtual void
+    void
     formJacobian(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x);
 
@@ -124,7 +123,7 @@ public:
      * \note This member function returns a NULL pointer if the operator is not
      * initialized, or if formJacobian() has not been called.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >
     getBaseVector() const;
 
     //\}
@@ -156,7 +155,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    virtual void
+    void
     apply(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
@@ -193,7 +192,7 @@ public:
      *
      * \note The default implementation is empty.
      */
-    virtual void
+    void
     initializeOperatorState(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
@@ -210,7 +209,7 @@ public:
      *
      * \note The default implementation is empty.
      */
-    virtual void
+    void
     deallocateOperatorState();
 
     //\}
@@ -225,7 +224,7 @@ public:
      *
      * \param enabled logging state: true=on, false=off
      */
-    virtual void
+    void
     enableLogging(
         bool enabled=true);
 

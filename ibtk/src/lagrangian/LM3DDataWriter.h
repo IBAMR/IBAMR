@@ -63,7 +63,7 @@ namespace IBTK
  * class documentation).
  */
 class LM3DDataWriter
-    : public virtual SAMRAI::tbox::DescribedClass
+    : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

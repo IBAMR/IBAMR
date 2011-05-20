@@ -80,6 +80,7 @@ public:
     /*!
      * \brief Class destructor.
      */
+    virtual
     ~LSetDataIterator();
 
     /*!

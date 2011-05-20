@@ -68,7 +68,7 @@ public:
      * cell-centered index space for AMR patches.  Thus, LIndexSet data does not
      * live on patch borders.
      */
-    virtual bool
+    bool
     dataLivesOnPatchBorder() const;
 
     /*!
@@ -79,7 +79,7 @@ public:
      * data does not live on patch borders and so there is no ambiguity
      * regarding coarse-fine interface values.
      */
-    virtual bool
+    bool
     fineBoundaryRepresentsVariable() const;
 
 private:

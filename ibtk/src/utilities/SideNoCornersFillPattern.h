@@ -51,7 +51,7 @@ namespace IBTK
  * all edges.
  */
 class SideNoCornersFillPattern
-    : public virtual SAMRAI::xfer::VariableFillPattern<NDIM>
+    : public SAMRAI::xfer::VariableFillPattern<NDIM>
 {
 public:
     /*!
@@ -68,7 +68,6 @@ public:
     /*!
      * \brief Destructor
      */
-    virtual
     ~SideNoCornersFillPattern();
 
     /*!
@@ -87,7 +86,7 @@ public:
      *
      * \return                    pointer to the calculated overlap object
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlap<NDIM> >
+    SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlap<NDIM> >
     calculateOverlap(
         const SAMRAI::hier::BoxGeometry<NDIM>& dst_geometry,
         const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
@@ -114,7 +113,7 @@ public:
      *
      * \return                    pointer to the calculated overlap object
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlap<NDIM> >
+    SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlap<NDIM> >
     calculateOverlap(
         const SAMRAI::hier::BoxGeometry<NDIM>& dst_geometry,
         const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
@@ -128,20 +127,20 @@ public:
     /*!
      * Set the target patch level number for the variable fill pattern.
      */
-    virtual void
+    void
     setTargetPatchLevelNumber(
         const int level_num);
 
     /*!
      * Returns the stencil width.
      */
-    virtual SAMRAI::hier::IntVector<NDIM>&
+    SAMRAI::hier::IntVector<NDIM>&
     getStencilWidth();
 
     /*!
      * Returns a string name identifier "SIDE_NO_CORNERS_FILL_PATTERN".
      */
-    virtual const std::string&
+    const std::string&
     getPatternName() const;
 
 private:

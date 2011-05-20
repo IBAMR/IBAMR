@@ -56,7 +56,7 @@ namespace IBTK
  * "synchronize" node-centered values defined at patch boundaries.
  */
 class NodeDataSynchronization
-    : public virtual SAMRAI::tbox::DescribedClass
+    : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
@@ -141,7 +141,6 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual
     ~NodeDataSynchronization();
 
     /*!

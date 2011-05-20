@@ -65,15 +65,14 @@ public:
         }// IBLagrangianForceStrategySet
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~IBLagrangianForceStrategySet();
 
     /*!
      * \brief Set the current and new times for the present timestep.
      */
-    virtual void
+    void
     setTimeInterval(
         const double current_time,
         const double new_time);
@@ -82,7 +81,7 @@ public:
      * \brief Setup the data needed to compute the forces on the specified level
      * of the patch hierarchy.
      */
-    virtual void
+    void
     initializeLevelData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -97,7 +96,7 @@ public:
      * \note Nodal forces computed by this method are \em added to the force
      * vector.
      */
-    virtual void
+    void
     computeLagrangianForce(
         SAMRAI::tbox::Pointer<IBTK::LData> F_data,
         SAMRAI::tbox::Pointer<IBTK::LData> X_data,
@@ -112,7 +111,7 @@ public:
      *
      * \note Elements indices must be global PETSc indices.
      */
-    virtual void
+    void
     computeLagrangianForceJacobianNonzeroStructure(
         std::vector<int>& d_nnz,
         std::vector<int>& o_nnz,
@@ -128,7 +127,7 @@ public:
      * \note The elements of the Jacobian should be "accumulated" in the
      * provided matrix J.
      */
-    virtual void
+    void
     computeLagrangianForceJacobian(
         Mat& J_mat,
         MatAssemblyType assembly_type,
@@ -145,7 +144,7 @@ public:
      * \brief Compute the potential energy with respect to the present structure
      * configuration and velocity.
      */
-    virtual double
+    double
     computeLagrangianEnergy(
         SAMRAI::tbox::Pointer<IBTK::LData> X_data,
         SAMRAI::tbox::Pointer<IBTK::LData> U_data,

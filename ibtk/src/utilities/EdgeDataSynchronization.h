@@ -56,7 +56,7 @@ namespace IBTK
  * "synchronize" edge-centered values defined at patch boundaries.
  */
 class EdgeDataSynchronization
-    : public virtual SAMRAI::tbox::DescribedClass
+    : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
@@ -141,7 +141,6 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual
     ~EdgeDataSynchronization();
 
     /*!

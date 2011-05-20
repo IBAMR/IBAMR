@@ -114,7 +114,7 @@ namespace IBAMR
  */
 class AdvectHypPatchOps
     : public SAMRAI::algs::HyperbolicPatchStrategy<NDIM>,
-      public virtual SAMRAI::tbox::Serializable
+      public SAMRAI::tbox::Serializable
 {
 public:
     /*!

@@ -66,9 +66,8 @@ public:
         const int Q_half_idx);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~IBEulerianSourceFunction();
 
     /*!
@@ -87,13 +86,13 @@ public:
     /*!
      * \note This concrete IBTK::CartGridFunction is time-dependent.
      */
-    virtual bool
+    bool
     isTimeDependent() const;
 
     /*!
      * Set the data on the patch interior.
      */
-    virtual void
+    void
     setDataOnPatch(
         const int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,

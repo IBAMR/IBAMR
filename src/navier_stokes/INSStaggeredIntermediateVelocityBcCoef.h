@@ -60,7 +60,7 @@ namespace IBAMR
  * are prescribed.
  */
 class INSStaggeredIntermediateVelocityBcCoef
-    : public virtual IBTK::ExtendedRobinBcCoefStrategy
+    : public IBTK::ExtendedRobinBcCoefStrategy
 {
 public:
     /*!
@@ -81,7 +81,6 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual
     ~INSStaggeredIntermediateVelocityBcCoef();
 
     /*!
@@ -102,7 +101,7 @@ public:
     /*!
      * \brief Set the target data index.
      */
-    virtual void
+    void
     setTargetPatchDataIndex(
         const int target_idx);
 
@@ -110,7 +109,7 @@ public:
      * \brief Set whether the class is filling homogeneous or inhomogeneous
      * boundary conditions.
      */
-    virtual void
+    void
     setHomogeneousBc(
         const bool homogeneous_bc);
 
@@ -150,7 +149,7 @@ public:
      * \param bdry_box    Boundary box showing where on the boundary the coefficient data is needed.
      * \param fill_time   Solution time corresponding to filling, for use when coefficients are time-dependent.
      */
-    virtual void
+    void
     setBcCoefs(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
@@ -175,7 +174,7 @@ public:
      * The boundary box that setBcCoefs() is required to fill should not extend
      * past the limits returned by this function.
      */
-    virtual SAMRAI::hier::IntVector<NDIM>
+    SAMRAI::hier::IntVector<NDIM>
     numberOfExtensionsFillable() const;
 
     //\}

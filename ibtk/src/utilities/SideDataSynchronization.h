@@ -53,7 +53,7 @@ namespace IBTK
  * "synchronize" side-centered values defined at patch boundaries.
  */
 class SideDataSynchronization
-    : public virtual SAMRAI::tbox::DescribedClass
+    : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
@@ -138,7 +138,6 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual
     ~SideDataSynchronization();
 
     /*!

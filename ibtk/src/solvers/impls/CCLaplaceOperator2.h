@@ -100,9 +100,8 @@ public:
         const bool homogeneous_bc=true);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~CCLaplaceOperator2();
 
     /*!
@@ -122,7 +121,7 @@ public:
      *
      * \param bc_coef  Pointer to an object that can set the Robin boundary condition coefficients
      */
-    virtual void
+    void
     setPhysicalBcCoef(
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef);
 
@@ -136,14 +135,14 @@ public:
      *
      * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
      */
-    virtual void
+    void
     setPhysicalBcCoefs(
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \brief Specify whether the boundary conditions are homogeneous.
      */
-    virtual void
+    void
     setHomogeneousBc(
         const bool homogeneous_bc);
 
@@ -175,7 +174,7 @@ public:
      *
      * \param y output: y=Ax
      */
-    virtual void
+    void
     modifyRhsForInhomogeneousBc(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
 
@@ -205,7 +204,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    virtual void
+    void
     apply(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
@@ -219,7 +218,7 @@ public:
      *
      * \see KrylovLinearSolver::initializeSolverState
      */
-    virtual void
+    void
     initializeOperatorState(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
@@ -235,7 +234,7 @@ public:
      * \see initializeOperatorState
      * \see KrylovLinearSolver::deallocateSolverState
      */
-    virtual void
+    void
     deallocateOperatorState();
 
     //\}
@@ -250,7 +249,7 @@ public:
      *
      * \param enabled logging state: true=on, false=off
      */
-    virtual void
+    void
     enableLogging(
         bool enabled=true);
 

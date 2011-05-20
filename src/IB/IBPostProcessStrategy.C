@@ -1,4 +1,4 @@
-// Filename: IBDataPostProcessor.C
+// Filename: IBPostProcessStrategy.C
 // Created on 24 Sep 2008 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "IBDataPostProcessor.h"
+#include "IBPostProcessStrategy.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -55,20 +55,20 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBDataPostProcessor::IBDataPostProcessor()
+IBPostProcessStrategy::IBPostProcessStrategy()
 {
     // intentionally blank
     return;
-}// IBDataPostProcessor
+}// IBPostProcessStrategy
 
-IBDataPostProcessor::~IBDataPostProcessor()
+IBPostProcessStrategy::~IBPostProcessStrategy()
 {
     // intentionally blank
     return;
-}// ~IBDataPostProcessor
+}// ~IBPostProcessStrategy
 
 void
-IBDataPostProcessor::initializeLevelData(
+IBPostProcessStrategy::initializeLevelData(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
@@ -90,6 +90,6 @@ IBDataPostProcessor::initializeLevelData(
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class Pointer<IBAMR::IBDataPostProcessor>;
+template class Pointer<IBAMR::IBPostProcessStrategy>;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -190,7 +190,7 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
     Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
     Pointer<IBLagrangianForceStrategy> force_strategy,
     Pointer<IBLagrangianSourceStrategy> source_strategy,
-    Pointer<IBDataPostProcessor> post_processor,
+    Pointer<IBPostProcessStrategy> post_processor,
     bool register_for_restart)
     : d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
@@ -1563,11 +1563,11 @@ IBStaggeredHierarchyIntegrator::regridHierarchy()
             for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
                  cit != local_nodes.end(); ++cit)
             {
-                const LNode& node_idx = **cit;
-                Pointer<IBAnchorPointSpec> anchor_point_spec = node_idx.getNodeData<IBAnchorPointSpec>();
+                const LNode* const node_idx = *cit;
+                Pointer<IBAnchorPointSpec> anchor_point_spec = node_idx->getNodeData<IBAnchorPointSpec>();
                 if (!anchor_point_spec.isNull())
                 {
-                    d_anchor_point_local_idxs[ln].insert(node_idx.getLocalPETScIndex());
+                    d_anchor_point_local_idxs[ln].insert(node_idx->getLocalPETScIndex());
                 }
             }
 

@@ -55,7 +55,7 @@ namespace IBAMR
  * finite-difference approach.
  */
 class IBImplicitJacobian
-    : public virtual IBTK::JacobianOperator
+    : public IBTK::JacobianOperator
 {
 public:
     /*!
@@ -67,9 +67,8 @@ public:
         SAMRAI::tbox::Pointer<IBImplicitModHelmholtzPETScLevelSolver> mod_helmholtz_solver);
 
     /*!
-     * \brief Virtual empty destructor.
+     * \brief Empty destructor.
      */
-    virtual
     ~IBImplicitJacobian();
 
     /*!
@@ -82,7 +81,7 @@ public:
      *
      * \param x value where the Jacobian is to be evaluated
      */
-    virtual void
+    void
     formJacobian(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x);
 
@@ -92,7 +91,7 @@ public:
      * \note This member function returns a NULL pointer if the operator is not
      * initialized, or if formJacobian() has not been called.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >
     getBaseVector() const;
 
     //\}
@@ -124,7 +123,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    virtual void
+    void
     apply(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
@@ -161,7 +160,7 @@ public:
      *
      * \note The default implementation is empty.
      */
-    virtual void
+    void
     initializeOperatorState(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
@@ -178,7 +177,7 @@ public:
      *
      * \note The default implementation is empty.
      */
-    virtual void
+    void
     deallocateOperatorState();
 
     //\}
@@ -193,7 +192,7 @@ public:
      *
      * \param enabled logging state: true=on, false=off
      */
-    virtual void
+    void
     enableLogging(
         bool enabled=true);
 

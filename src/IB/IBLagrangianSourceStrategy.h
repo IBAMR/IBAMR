@@ -57,7 +57,7 @@ namespace IBAMR
  * source-sinks.
  */
 class IBLagrangianSourceStrategy
-    : public virtual SAMRAI::tbox::DescribedClass
+    : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

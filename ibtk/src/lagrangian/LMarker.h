@@ -74,9 +74,9 @@ public:
         const LMarker& from);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual ~LMarker();
+    ~LMarker();
 
     /*!
      * \brief Assignment operator.
@@ -170,7 +170,7 @@ public:
      *
      * \note The index of the destination object is src_index + src_offset.
      */
-    virtual void
+    void
     copySourceItem(
         const SAMRAI::hier::Index<NDIM>& src_index,
         const SAMRAI::hier::IntVector<NDIM>& src_offset,
@@ -180,20 +180,20 @@ public:
      * \brief Return an upper bound on the amount of space required to pack the
      * object to a buffer.
      */
-    virtual size_t
+    size_t
     getDataStreamSize() const;
 
     /*!
      * \brief Pack data into the output stream.
      */
-    virtual void
+    void
     packStream(
         SAMRAI::tbox::AbstractStream& stream);
 
     /*!
      * \brief Unpack data from the input stream.
      */
-    virtual void
+    void
     unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
         const SAMRAI::hier::IntVector<NDIM>& offset);

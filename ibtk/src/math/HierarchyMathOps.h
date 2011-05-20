@@ -93,11 +93,8 @@ public:
         const std::string& coarsen_op_name="CONSERVATIVE_COARSEN");
 
     /*!
-     * \brief Virtual destructor.
-     *
-     * Does nothing interesting.
+     * \brief Destructor.
      */
-    virtual
     ~HierarchyMathOps();
 
     /*!

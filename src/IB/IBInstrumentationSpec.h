@@ -106,9 +106,8 @@ public:
         const int node_idx=-1);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~IBInstrumentationSpec();
 
     /*!
@@ -156,20 +155,20 @@ public:
      * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
      * extract Streamable objects from data streams.
      */
-    virtual int
+    int
     getStreamableClassID() const;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack the
      * object to a buffer.
      */
-    virtual size_t
+    size_t
     getDataStreamSize() const;
 
     /*!
      * \brief Pack data into the output stream.
      */
-    virtual void
+    void
     packStream(
         SAMRAI::tbox::AbstractStream& stream);
 

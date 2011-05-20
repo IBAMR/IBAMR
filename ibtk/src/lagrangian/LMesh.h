@@ -49,7 +49,7 @@ namespace IBTK
  * \brief Class LMesh is a collection of LNode objects.
  */
 class LMesh
-    : public virtual SAMRAI::tbox::DescribedClass
+    : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
@@ -60,8 +60,6 @@ public:
 
     /*!
      * \brief Destructor.
-     *
-     * The LMesh destructor does nothing interesting.
      */
     ~LMesh();
 

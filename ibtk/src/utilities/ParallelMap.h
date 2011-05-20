@@ -51,7 +51,7 @@ namespace IBTK
  * arbitrary data items in parallel.
  */
 class ParallelMap
-    : public virtual SAMRAI::tbox::DescribedClass
+    : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

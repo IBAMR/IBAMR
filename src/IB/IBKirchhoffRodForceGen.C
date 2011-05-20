@@ -294,11 +294,11 @@ IBKirchhoffRodForceGen::initializeLevelData(
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
          cit != local_nodes.end(); ++cit)
     {
-        const LNode& node_idx = **cit;
-        const Pointer<IBRodForceSpec> force_spec = node_idx.getNodeData<IBRodForceSpec>();
+        const LNode* const node_idx = *cit;
+        const Pointer<IBRodForceSpec> force_spec = node_idx->getNodeData<IBRodForceSpec>();
         if (!force_spec.isNull())
         {
-            const int& curr_idx = node_idx.getLagrangianIndex();
+            const int& curr_idx = node_idx->getLagrangianIndex();
             const unsigned int num_rods = force_spec->getNumberOfRods();
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(curr_idx == force_spec->getMasterNodeIndex());

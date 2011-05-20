@@ -1,4 +1,4 @@
-// Filename: IBDataPostProcessor.h
+// Filename: IBPostProcessStrategy.h
 // Created on 24 Sep 2008 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBDataPostProcessor
-#define included_IBDataPostProcessor
+#ifndef included_IBPostProcessStrategy
+#define included_IBPostProcessStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -52,23 +52,23 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBDataPostProcessor provides a generic interface for specifying
+ * \brief Class IBPostProcessStrategy provides a generic interface for specifying
  * post-processing code for use in an IB computation.
  */
-class IBDataPostProcessor
-    : public virtual SAMRAI::tbox::DescribedClass
+class IBPostProcessStrategy
+    : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
      * \brief Default constructor.
      */
-    IBDataPostProcessor();
+    IBPostProcessStrategy();
 
     /*!
      * \brief Virtual destructor.
      */
     virtual
-    ~IBDataPostProcessor();
+    ~IBPostProcessStrategy();
 
     /*!
      * \brief Setup the data needed to post-process the data on the specified
@@ -109,8 +109,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBDataPostProcessor(
-        const IBDataPostProcessor& from);
+    IBPostProcessStrategy(
+        const IBPostProcessStrategy& from);
 
     /*!
      * \brief Assignment operator.
@@ -121,16 +121,16 @@ private:
      *
      * \return A reference to this object.
      */
-    IBDataPostProcessor&
+    IBPostProcessStrategy&
     operator=(
-        const IBDataPostProcessor& that);
+        const IBPostProcessStrategy& that);
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/IBDataPostProcessor.I>
+//#include <ibamr/IBPostProcessStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBDataPostProcessor
+#endif //#ifndef included_IBPostProcessStrategy

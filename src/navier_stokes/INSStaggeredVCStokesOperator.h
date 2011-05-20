@@ -69,9 +69,8 @@ public:
         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~INSStaggeredVCStokesOperator();
 
     /*!
@@ -142,7 +141,7 @@ public:
      *
      * \param y output: y=Ax
      */
-    virtual void
+    void
     modifyRhsForInhomogeneousBc(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
 
@@ -172,7 +171,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    virtual void
+    void
     apply(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
@@ -207,7 +206,7 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    virtual void
+    void
     initializeOperatorState(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
@@ -222,7 +221,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    virtual void
+    void
     deallocateOperatorState();
 
     //\}
@@ -237,7 +236,7 @@ public:
      *
      * \param enabled logging state: true=on, false=off
      */
-    virtual void
+    void
     enableLogging(
         bool enabled=true);
 

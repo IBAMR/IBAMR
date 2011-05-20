@@ -86,7 +86,7 @@ namespace IBAMR
  \endverbatim
 */
 class INSStaggeredBoxRelaxationFACOperator
-    : public virtual IBTK::FACPreconditionerStrategy
+    : public IBTK::FACPreconditionerStrategy
 {
 public:
     /*!
@@ -97,9 +97,8 @@ public:
         const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db=NULL);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~INSStaggeredBoxRelaxationFACOperator();
 
     /*!
@@ -272,7 +271,7 @@ public:
      *
      * \param preconditioner  Pointer to the FAC preconditioner that is using this concrete FAC strategy
      */
-    virtual void
+    void
     setFACPreconditioner(
         SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> preconditioner);
 
@@ -284,7 +283,7 @@ public:
      * \param dst destination residual
      * \param dst_ln destination level number
      */
-    virtual void
+    void
     restrictResidual(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& src,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& dst,
@@ -298,7 +297,7 @@ public:
      * \param dst destination error vector
      * \param dst_ln destination level number of data transfer
      */
-    virtual void
+    void
     prolongError(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& src,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& dst,
@@ -312,7 +311,7 @@ public:
      * \param dst destination error vector
      * \param dst_ln destination level number of data transfer
      */
-    virtual void
+    void
     prolongErrorAndCorrect(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& src,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& dst,
@@ -328,7 +327,7 @@ public:
      * \param performing_pre_sweeps boolean value that is true when pre-smoothing sweeps are being performed
      * \param performing_post_sweeps boolean value that is true when post-smoothing sweeps are being performed
      */
-    virtual void
+    void
     smoothError(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& error,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
@@ -345,7 +344,7 @@ public:
      * \param residual residual vector
      * \param coarsest_ln coarsest level number
      */
-    virtual bool
+    bool
     solveCoarsestLevel(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& error,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
@@ -360,7 +359,7 @@ public:
      * \param level_num level number
      * \param error_equation_indicator flag stating whether u is an error vector or a solution vector
      */
-    virtual void
+    void
     computeResidual(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
@@ -381,7 +380,7 @@ public:
      * \param solution solution vector u
      * \param rhs right hand side vector f
      */
-    virtual void
+    void
     initializeOperatorState(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs);
@@ -393,7 +392,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    virtual void
+    void
     deallocateOperatorState();
 
     //\}

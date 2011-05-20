@@ -77,7 +77,6 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual
     ~IBHDF5Initializer();
 
     /*!
@@ -87,7 +86,7 @@ public:
      * \return A boolean value indicating whether Lagrangian data is associated
      * with the given level in the patch hierarchy.
      */
-    virtual bool
+    bool
     getLevelHasLagrangianData(
         const int level_number,
         const bool can_be_refined) const;
@@ -97,7 +96,7 @@ public:
      *
      * \return The number of local nodes on the specified level.
      */
-    virtual unsigned int
+    unsigned int
     computeLocalNodeCountOnPatchLevel(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -111,7 +110,7 @@ public:
      *
      * \return The number of local nodes initialized on the patch level.
      */
-    virtual unsigned int
+    unsigned int
     initializeDataOnPatchLevel(
         const int lag_node_index_idx,
         const unsigned int global_index_offset,
@@ -131,7 +130,7 @@ public:
      *
      * \return The number of local nodes initialized on the patch level.
      */
-    virtual unsigned int
+    unsigned int
     initializeMassDataOnPatchLevel(
         const unsigned int global_index_offset,
         const unsigned int local_index_offset,
@@ -153,7 +152,7 @@ public:
      * that will reside in any yet-to-be-constructed level(s) of the patch
      * hierarchy.
      */
-    virtual void
+    void
     tagCellsForInitialRefinement(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,

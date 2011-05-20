@@ -553,8 +553,8 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
             for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
                  cit != local_nodes.end(); ++cit)
             {
-                const LNode& node_idx = **cit;
-                Pointer<IBInstrumentationSpec> spec = node_idx.getNodeData<IBInstrumentationSpec>();
+                const LNode* const node_idx = *cit;
+                Pointer<IBInstrumentationSpec> spec = node_idx->getNodeData<IBInstrumentationSpec>();
                 if (!spec.isNull())
                 {
                     const int m = spec->getMeterIndex();
@@ -701,11 +701,11 @@ IBInstrumentPanel::initializeHierarchyDependentData(
             for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
                  cit != local_nodes.end(); ++cit)
             {
-                const LNode& node_idx = **cit;
-                Pointer<IBInstrumentationSpec> spec = node_idx.getNodeData<IBInstrumentationSpec>();
+                const LNode* const node_idx = *cit;
+                Pointer<IBInstrumentationSpec> spec = node_idx->getNodeData<IBInstrumentationSpec>();
                 if (!spec.isNull())
                 {
-                    const int& petsc_idx = node_idx.getLocalPETScIndex();
+                    const int& petsc_idx = node_idx->getLocalPETScIndex();
                     const double* const X = &X_arr[NDIM*petsc_idx];
                     const int m = spec->getMeterIndex();
                     const int n = spec->getNodeIndex();
@@ -1038,11 +1038,11 @@ IBInstrumentPanel::readInstrumentData(
             for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
                  cit != local_nodes.end(); ++cit)
             {
-                const LNode& node_idx = **cit;
-                Pointer<IBInstrumentationSpec> spec = node_idx.getNodeData<IBInstrumentationSpec>();
+                const LNode* const node_idx = *cit;
+                Pointer<IBInstrumentationSpec> spec = node_idx->getNodeData<IBInstrumentationSpec>();
                 if (!spec.isNull())
                 {
-                    const int& petsc_idx = node_idx.getLocalPETScIndex();
+                    const int& petsc_idx = node_idx->getLocalPETScIndex();
                     const double* const U = &U_arr[NDIM*petsc_idx];
                     const int m = spec->getMeterIndex();
                     const int n = spec->getNodeIndex();

@@ -77,10 +77,9 @@ public:
 
     /*!
      * \brief Virtual destructor.
-     *
-     * The LNodeIndex destructor does nothing interesting.
      */
-    virtual ~LNodeIndex();
+    virtual
+    ~LNodeIndex();
 
     /*!
      * \brief Assignment operator.

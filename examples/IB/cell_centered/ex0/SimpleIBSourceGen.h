@@ -51,7 +51,7 @@ using namespace std;
  * simple fluid source.
  */
 class SimpleIBSourceGen
-    : public virtual IBLagrangianSourceStrategy
+    : public IBLagrangianSourceStrategy
 {
 public:
     /*!

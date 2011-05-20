@@ -51,7 +51,7 @@ namespace IBTK
  * \note This class is designed to be used with uniform grid data only.
  */
 class CopyToRootTransaction
-    : public virtual SAMRAI::tbox::Transaction
+    : public SAMRAI::tbox::Transaction
 {
 public:
     /*!
@@ -67,7 +67,6 @@ public:
     /*!
      * \brief Destructor
      */
-    virtual
     ~CopyToRootTransaction();
 
     /*!
@@ -80,7 +79,7 @@ public:
      * Return a boolean indicating whether this transaction can estimate the
      * size of an incoming message.
      */
-    virtual bool
+    bool
     canEstimateIncomingMessageSize();
 
     /*!
@@ -88,51 +87,51 @@ public:
      * This routine is only called if the transaction can estimate the
      * size of the incoming message.
      */
-    virtual int
+    int
     computeIncomingMessageSize();
 
     /*!
      * Return the buffer space needed for the outgoing message.
      */
-    virtual int
+    int
     computeOutgoingMessageSize();
 
     /*!
      * Return the sending processor for the communications transaction.
      */
-    virtual int
+    int
     getSourceProcessor();
 
     /*!
      * Return the receiving processor for the communications transaction.
      */
-    virtual int
+    int
     getDestinationProcessor();
 
     /*!
      * Pack the transaction data into the message stream.
      */
-    virtual void
+    void
     packStream(
         SAMRAI::tbox::AbstractStream& stream);
 
     /*!
      * Unpack the transaction data from the message stream.
      */
-    virtual void
+    void
     unpackStream(
         SAMRAI::tbox::AbstractStream& stream);
 
     /*!
      * Perform the local data copy for the transaction.
      */
-    virtual void
+    void
     copyLocalData();
 
     /*!
      * Print out transaction information.
      */
-    virtual void
+    void
     printClassData(
         std::ostream& stream) const;
 

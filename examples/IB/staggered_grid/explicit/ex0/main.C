@@ -75,7 +75,7 @@ using namespace std;
  * A simple post-processor to compute the total energy in the system.
  */
 class myPostProcessor
-    : public IBDataPostProcessor
+    : public IBPostProcessStrategy
 {
 public:
     tbox::Pointer<IBLagrangianForceStrategy> d_force_generator;
@@ -418,7 +418,7 @@ main(
 
         myPostProcessor* t_post_processor = new myPostProcessor();
         t_post_processor->d_force_generator = force_generator;
-        tbox::Pointer<IBDataPostProcessor> post_processor = t_post_processor;
+        tbox::Pointer<IBPostProcessStrategy> post_processor = t_post_processor;
 
         tbox::Pointer<IBStaggeredHierarchyIntegrator> time_integrator =
             new IBStaggeredHierarchyIntegrator(

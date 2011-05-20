@@ -71,9 +71,8 @@ public:
         const ConvectiveDifferencingType& difference_form);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~INSStaggeredCenteredConvectiveOperator();
 
     /*!
@@ -110,7 +109,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    virtual void
+    void
     apply(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
@@ -145,7 +144,7 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    virtual void
+    void
     initializeOperatorState(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
@@ -159,7 +158,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    virtual void
+    void
     deallocateOperatorState();
 
     //\}
@@ -174,7 +173,7 @@ public:
      *
      * \param enabled logging state: true=on, false=off
      */
-    virtual void
+    void
     enableLogging(
         bool enabled=true);
 

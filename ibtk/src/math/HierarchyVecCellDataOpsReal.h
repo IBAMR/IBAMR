@@ -99,13 +99,12 @@ public:
     /*!
      * Virtual destructor for the HierarchyVecCellDataOpsReal class.
      */
-    virtual
     ~HierarchyVecCellDataOpsReal<TYPE>();
 
     /*!
      * Reset patch hierarchy over which operations occur.
      */
-    virtual void
+    void
     setPatchHierarchy(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
@@ -113,7 +112,7 @@ public:
      * Reset range of patch levels over which operations occur.  The levels must
      * exist in the hierarchy or an assertion will result.
      */
-    virtual void
+    void
     resetLevels(
         const int coarsest_level,
         const int finest_level);

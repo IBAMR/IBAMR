@@ -161,8 +161,8 @@ IBStandardSourceGen::initializeLevelData(
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
          cit != local_nodes.end(); ++cit)
     {
-        const LNode& node_idx = **cit;
-        Pointer<IBSourceSpec> spec = node_idx.getNodeData<IBSourceSpec>();
+        const LNode* const node_idx = *cit;
+        Pointer<IBSourceSpec> spec = node_idx->getNodeData<IBSourceSpec>();
         if (!spec.isNull())
         {
             const int source_idx = spec->getSourceIndex();
@@ -213,11 +213,11 @@ IBStandardSourceGen::getSourceLocations(
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
          cit != local_nodes.end(); ++cit)
     {
-        const LNode& node_idx = **cit;
-        Pointer<IBSourceSpec> spec = node_idx.getNodeData<IBSourceSpec>();
+        const LNode* const node_idx = *cit;
+        Pointer<IBSourceSpec> spec = node_idx->getNodeData<IBSourceSpec>();
         if (!spec.isNull())
         {
-            const int& petsc_idx = node_idx.getLocalPETScIndex();
+            const int& petsc_idx = node_idx->getLocalPETScIndex();
             const double* const X = &X_arr[NDIM*petsc_idx];
             const int source_idx = spec->getSourceIndex();
             for (unsigned int d = 0; d < NDIM; ++d)

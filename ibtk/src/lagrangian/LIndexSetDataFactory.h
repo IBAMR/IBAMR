@@ -72,7 +72,7 @@ public:
      * factory.  If no memory pool is provided, the allocation routine assumes
      * some default memory pool.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
     allocate(
         const SAMRAI::hier::Box<NDIM>& box,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool=NULL) const;
@@ -83,7 +83,7 @@ public:
      * factory.  If no memory pool is provided, the allocation routine assumes
      * some default memory pool.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
     allocate(
         const SAMRAI::hier::Patch<NDIM>& patch,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool=NULL) const;
@@ -92,7 +92,7 @@ public:
      * Calculate the amount of memory needed to store the data object, including
      * object data but not dynamically allocated data.
      */
-    virtual size_t
+    size_t
     getSizeOfMemory(
         const SAMRAI::hier::Box<NDIM>& box) const;
 
@@ -102,7 +102,7 @@ public:
      * The properties of the cloned factory can then be changed without
      * modifying the original.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> >
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> >
     cloneFactory(
         const SAMRAI::hier::IntVector<NDIM>& ghosts);
 
@@ -111,7 +111,7 @@ public:
      * supplied destination patch data factory. It will return true if dst_pdf
      * is a LIndexSetDataFactory, false otherwise.
      */
-    virtual bool
+    bool
     validCopyTo(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> >& dst_pdf) const;
 

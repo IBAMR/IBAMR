@@ -52,7 +52,7 @@ namespace IBTK
  * \note This class is deprecated and has been superseded by class ParallelMap.
  */
 class ParallelEdgeMap
-    : public virtual SAMRAI::tbox::DescribedClass
+    : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

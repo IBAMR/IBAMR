@@ -131,9 +131,8 @@ public:
         const std::string& options_prefix="");
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~PETScKrylovLinearSolver();
 
     /*!
@@ -183,14 +182,14 @@ public:
     /*!
      * \brief Set the linear operator used when solving \f$Ax=b\f$.
      */
-    virtual void
+    void
     setOperator(
         SAMRAI::tbox::Pointer<LinearOperator> A);
 
     /*!
      * \brief Retrieve the linear operator used when solving \f$Ax=b\f$.
      */
-    virtual SAMRAI::tbox::Pointer<LinearOperator>
+    SAMRAI::tbox::Pointer<LinearOperator>
     getOperator() const;
 
     /*!
@@ -199,7 +198,7 @@ public:
      *
      * \note If the preconditioner is NULL, no preconditioning is performed.
      */
-    virtual void
+    void
     setPreconditioner(
         SAMRAI::tbox::Pointer<LinearSolver> pc_solver=NULL);
 
@@ -207,7 +206,7 @@ public:
      * \brief Retrieve the preconditioner used by the Krylov subspace method
      * when solving \f$Ax=b\f$.
      */
-    virtual SAMRAI::tbox::Pointer<LinearSolver>
+    SAMRAI::tbox::Pointer<LinearSolver>
     getPreconditioner() const;
 
     /*!
@@ -215,7 +214,7 @@ public:
      *
      * The basis vector, if any, will be normalized by the solver.
      */
-    virtual void
+    void
     setNullspace(
         const bool contains_constant_vector,
         SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > nullspace_basis_vec);
@@ -226,7 +225,7 @@ public:
      * Basis vectors must be orthogonal but are not required to be orthonormal.
      * Basis vectors will be normalized automatically.
      */
-    virtual void
+    void
     setNullspace(
         const bool contains_constant_vector,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs);
@@ -268,7 +267,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    virtual bool
+    bool
     solveSystem(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
@@ -314,7 +313,7 @@ public:
      *
      * \see deallocateSolverState
      */
-    virtual void
+    void
     initializeSolverState(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
@@ -332,7 +331,7 @@ public:
      *
      * \see initializeSolverState
      */
-    virtual void
+    void
     deallocateSolverState();
 
     //\}
@@ -345,53 +344,53 @@ public:
     /*!
      * \brief Set whether the initial guess is non-zero.
      */
-    virtual void
+    void
     setInitialGuessNonzero(
         bool initial_guess_nonzero=true);
 
     /*!
      * \brief Get whether the initial guess is non-zero.
      */
-    virtual bool
+    bool
     getInitialGuessNonzero() const;
 
     /*!
      * \brief Set the maximum number of iterations to use per solve.
      */
-    virtual void
+    void
     setMaxIterations(
         int max_iterations);
 
     /*!
      * \brief Get the maximum number of iterations to use per solve.
      */
-    virtual int
+    int
     getMaxIterations() const;
 
     /*!
      * \brief Set the absolute residual tolerance for convergence.
      */
-    virtual void
+    void
     setAbsoluteTolerance(
         double abs_residual_tol);
 
     /*!
      * \brief Get the absolute residual tolerance for convergence.
      */
-    virtual double
+    double
     getAbsoluteTolerance() const;
 
     /*!
      * \brief Set the relative residual tolerance for convergence.
      */
-    virtual void
+    void
     setRelativeTolerance(
         double rel_residual_tol);
 
     /*!
      * \brief Get the relative residual tolerance for convergence.
      */
-    virtual double
+    double
     getRelativeTolerance() const;
 
     //\}
@@ -404,13 +403,13 @@ public:
     /*!
      * \brief Return the iteration count from the most recent linear solve.
      */
-    virtual int
+    int
     getNumIterations() const;
 
     /*!
      * \brief Return the residual norm from the most recent iteration.
      */
-    virtual double
+    double
     getResidualNorm() const;
 
     //\}
@@ -423,7 +422,7 @@ public:
     /*!
      * \brief Enable or disable logging.
      */
-    virtual void
+    void
     enableLogging(
         bool enabled=true);
 

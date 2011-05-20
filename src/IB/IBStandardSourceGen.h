@@ -47,7 +47,7 @@ namespace IBAMR
  * fluid sources/sinks.
  */
 class IBStandardSourceGen
-    : public virtual IBLagrangianSourceStrategy
+    : public IBLagrangianSourceStrategy
 {
 public:
     /*!
@@ -56,9 +56,8 @@ public:
     IBStandardSourceGen();
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~IBStandardSourceGen();
 
     /*!
@@ -129,7 +128,7 @@ public:
      *
      * \note A default empty implementation is provided.
      */
-    virtual void
+    void
     initializeLevelData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -144,7 +143,7 @@ public:
      * sources/sinks in the \em entire computational domain.  This implies that
      * the return value must be \em identical on each MPI process.
      */
-    virtual unsigned int
+    unsigned int
     getNumSources(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -159,7 +158,7 @@ public:
      * \a X_src on \em each MPI process.  That is to say, \a X_src must provide
      * the location of all of the distributed sources/sinks.
      */
-    virtual void
+    void
     getSourceLocations(
         std::vector<blitz::TinyVector<double,NDIM> >& X_src,
         std::vector<double>& r_src,
@@ -172,7 +171,7 @@ public:
     /*!
      * \brief Set the normalized pressures at the sources.
      */
-    virtual void
+    void
     setSourcePressures(
         const std::vector<double>& P_src,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -188,7 +187,7 @@ public:
      * \a Q_src on \em each MPI process.  That is to say, \a Q_src must provide
      * the strengths of all of the distributed sources/sinks.
      */
-    virtual void
+    void
     computeSourceStrengths(
         std::vector<double>& Q_src,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,

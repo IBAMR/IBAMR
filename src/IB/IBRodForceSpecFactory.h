@@ -62,9 +62,8 @@ public:
     IBRodForceSpecFactory();
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~IBRodForceSpecFactory();
 
     /*!
@@ -72,7 +71,7 @@ public:
      * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
      * extract IBRodForceSpec objects from data streams.
      */
-    virtual int
+    int
     getStreamableClassID() const;
 
     /*!
@@ -80,7 +79,7 @@ public:
      * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
      * extract IBRodForceSpec objects from data streams.
      */
-    virtual void
+    void
     setStreamableClassID(
         const int class_id);
 
@@ -88,7 +87,7 @@ public:
      * \brief Build an IBRodForceSpec object by unpacking data from the data
      * stream.
      */
-    virtual SAMRAI::tbox::Pointer<IBTK::Streamable>
+    SAMRAI::tbox::Pointer<IBTK::Streamable>
     unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
         const SAMRAI::hier::IntVector<NDIM>& offset);

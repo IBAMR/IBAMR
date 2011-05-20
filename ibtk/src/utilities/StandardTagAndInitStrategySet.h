@@ -86,13 +86,12 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual
     ~StandardTagAndInitStrategySet();
 
     /*!
      * Determine time increment to advance data on level.
      */
-    virtual double
+    double
     getLevelDt(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > level,
         const double dt_time,
@@ -153,7 +152,7 @@ public:
 
 
      */
-    virtual double
+    double
     advanceLevel(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > level,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
@@ -166,7 +165,7 @@ public:
     /*!
      * Reset time-dependent data storage for the specified patch level.
      */
-    virtual void
+    void
     resetTimeDependentData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > level,
         const double new_time,
@@ -178,7 +177,7 @@ public:
      * words, this is the data needed to begin a time integration step on the
      * level.
      */
-    virtual void
+    void
     resetDataToPreadvanceState(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > level);
 
@@ -204,7 +203,7 @@ public:
      * can_be_refined boolean argument indicates whether the level is the finest
      * allowable level in the hierarchy.
      */
-    virtual void
+    void
     initializeLevelData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -231,7 +230,7 @@ public:
      * current hierarchy configuration that have changed.  It should be assumed
      * that all intermediate levels have changed as well.
      */
-    virtual void
+    void
     resetHierarchyConfiguration(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
@@ -255,7 +254,7 @@ public:
      * detector, and false otherwise.  This argument helps the user to manage
      * multiple regridding criteria.
      */
-    virtual void
+    void
     applyGradientDetector(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -289,7 +288,7 @@ public:
      * otherwise.  This argument helps the user to manage multiple regridding
      * criteria.
      */
-    virtual void
+    void
     applyRichardsonExtrapolation(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
         const double error_data_time,
@@ -309,7 +308,7 @@ public:
      * coarsening the "new" solution on the fine level (i.e., after it has been
      * advanced).
      */
-    virtual void
+    void
     coarsenDataForRichardsonExtrapolation(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,

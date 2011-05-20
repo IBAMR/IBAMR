@@ -788,7 +788,7 @@ public:
      * if the hierarchy pointer is null or the level number does not match any
      * existing level in the hierarchy.
      */
-    virtual void
+    void
     applyGradientDetector(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,

@@ -67,7 +67,7 @@ namespace IBTK
  * and refining.
  */
 class HierarchyGhostCellInterpolation
-    : public virtual SAMRAI::tbox::DescribedClass
+    : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
@@ -216,7 +216,6 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual
     ~HierarchyGhostCellInterpolation();
 
     /*!

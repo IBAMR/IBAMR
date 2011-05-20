@@ -74,7 +74,6 @@ public:
     /*!
      * \brief Destructor
      */
-    virtual
     ~CopyToRootSchedule();
 
     /*!

@@ -70,7 +70,6 @@ public:
      */
     PatchVecCellDataBasicOps();
 
-    virtual
     ~PatchVecCellDataBasicOps<TYPE>();
 
     /*!

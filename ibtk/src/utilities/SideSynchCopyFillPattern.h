@@ -50,7 +50,7 @@ namespace IBTK
  * "synchronizing" side-centered values at patch boundaries.
  */
 class SideSynchCopyFillPattern
-    : public virtual SAMRAI::xfer::VariableFillPattern<NDIM>
+    : public SAMRAI::xfer::VariableFillPattern<NDIM>
 {
 public:
     /*!
@@ -61,7 +61,6 @@ public:
     /*!
      * \brief Destructor
      */
-    virtual
     ~SideSynchCopyFillPattern();
 
     /*!

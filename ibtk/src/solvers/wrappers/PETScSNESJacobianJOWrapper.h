@@ -73,9 +73,8 @@ public:
         void* const petsc_snes_jac_ctx);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~PETScSNESJacobianJOWrapper();
 
     /*!
@@ -115,14 +114,14 @@ public:
      *
      * \param x value where the Jacobian is to be evaluated
      */
-    virtual void
+    void
     formJacobian(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x);
 
     /*!
      * \brief Return the vector where the Jacobian is evaluated.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> >
     getBaseVector() const;
 
     //\}
@@ -154,7 +153,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    virtual void
+    void
     apply(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
@@ -182,7 +181,7 @@ public:
      * \param y input
      * \param z output: z=Ax+y
      */
-    virtual void
+    void
     applyAdd(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y,
@@ -210,7 +209,7 @@ public:
      * \param x input
      * \param y output: y=A'x
      */
-    virtual void
+    void
     applyAdjoint(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
@@ -238,7 +237,7 @@ public:
      * \param y input
      * \param z output: z=A'x+y
      */
-    virtual void
+    void
     applyAdjointAdd(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y,
@@ -274,7 +273,7 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    virtual void
+    void
     initializeOperatorState(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
@@ -289,7 +288,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    virtual void
+    void
     deallocateOperatorState();
 
     //\}
@@ -304,7 +303,7 @@ public:
      *
      * \param enabled logging state: true=on, false=off
      */
-    virtual void
+    void
     enableLogging(
         bool enabled=true);
 

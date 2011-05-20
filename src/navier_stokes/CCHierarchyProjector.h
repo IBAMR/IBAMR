@@ -63,7 +63,7 @@ namespace IBAMR
  */
 class CCHierarchyProjector
     : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>,
-      public virtual SAMRAI::tbox::Serializable
+      public SAMRAI::tbox::Serializable
 {
 public:
     /*!
@@ -84,7 +84,6 @@ public:
      * The destructor for CCHierarchyProjector unregisters the integrator object
      * with the restart manager when so registered.
      */
-    virtual
     ~CCHierarchyProjector();
 
     /*!
@@ -170,7 +169,7 @@ public:
      * Computes U = W - Grad_Phi, where div U = Q.  If Q is not supplied, it is
      * assumed that div U = 0.
      */
-    virtual void
+    void
     projectHierarchy(
         const double rho,
         const double dt,
@@ -221,7 +220,7 @@ public:
      * level in the hierarchy, or the old level number does not match the level
      * number (if the old level pointer is non-null).
      */
-    virtual void
+    void
     initializeLevelData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -248,7 +247,7 @@ public:
      * that is coarser than the finest level is null, or the given level numbers
      * not specified properly; e.g., coarsest_level > finest_level.
      */
-    virtual void
+    void
     resetHierarchyConfiguration(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
@@ -268,7 +267,7 @@ public:
      *
      * When assertion checking is active, the database pointer must be non-null.
      */
-    virtual void
+    void
     putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 

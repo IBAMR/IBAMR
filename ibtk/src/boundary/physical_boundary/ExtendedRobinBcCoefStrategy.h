@@ -50,7 +50,7 @@ namespace IBTK
  * inhomogeneous boundary data.
  */
 class ExtendedRobinBcCoefStrategy
-    : public virtual SAMRAI::solv::RobinBcCoefStrategy<NDIM>
+    : public SAMRAI::solv::RobinBcCoefStrategy<NDIM>
 {
 public:
     /*!

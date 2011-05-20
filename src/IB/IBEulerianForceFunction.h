@@ -66,9 +66,8 @@ public:
         const int F_half_idx);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~IBEulerianForceFunction();
 
     /*!
@@ -95,13 +94,13 @@ public:
     /*!
      * \note This concrete IBTK::CartGridFunction is time-dependent.
      */
-    virtual bool
+    bool
     isTimeDependent() const;
 
     /*!
      * Set the data on the patch interior.
      */
-    virtual void
+    void
     setDataOnPatch(
         const int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,

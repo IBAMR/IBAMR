@@ -56,7 +56,7 @@ namespace IBTK
  * then in the y direction, and finally in the z direction.
  */
 class EdgeSynchCopyFillPattern
-    : public virtual SAMRAI::xfer::VariableFillPattern<NDIM>
+    : public SAMRAI::xfer::VariableFillPattern<NDIM>
 {
 public:
     /*!
@@ -68,7 +68,6 @@ public:
     /*!
      * \brief Destructor
      */
-    virtual
     ~EdgeSynchCopyFillPattern();
 
     /*!

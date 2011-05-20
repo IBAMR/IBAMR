@@ -123,9 +123,8 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~SCPoissonHypreLevelSolver();
 
     /*!
@@ -150,14 +149,14 @@ public:
      *
      * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
      */
-    virtual void
+    void
     setPhysicalBcCoefs(
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
 
     /*!
      * \brief Specify whether the boundary conditions are homogeneous.
      */
-    virtual void
+    void
     setHomogeneousBc(
         const bool homogeneous_bc);
 
@@ -213,7 +212,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    virtual bool
+    bool
     solveSystem(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
@@ -255,7 +254,7 @@ public:
      *
      * \see deallocateSolverState
      */
-    virtual void
+    void
     initializeSolverState(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
@@ -269,7 +268,7 @@ public:
      *
      * \see initializeSolverState
      */
-    virtual void
+    void
     deallocateSolverState();
 
     //\}
@@ -282,53 +281,53 @@ public:
     /*!
      * \brief Set whether the initial guess is non-zero.
      */
-    virtual void
+    void
     setInitialGuessNonzero(
         bool initial_guess_nonzero=true);
 
     /*!
      * \brief Get whether the initial guess is non-zero.
      */
-    virtual bool
+    bool
     getInitialGuessNonzero() const;
 
     /*!
      * \brief Set the maximum number of iterations to use per solve.
      */
-    virtual void
+    void
     setMaxIterations(
         int max_iterations);
 
     /*!
      * \brief Get the maximum number of iterations to use per solve.
      */
-    virtual int
+    int
     getMaxIterations() const;
 
     /*!
      * \brief Set the absolute residual tolerance for convergence.
      */
-    virtual void
+    void
     setAbsoluteTolerance(
         double abs_residual_tol);
 
     /*!
      * \brief Get the absolute residual tolerance for convergence.
      */
-    virtual double
+    double
     getAbsoluteTolerance() const;
 
     /*!
      * \brief Set the relative residual tolerance for convergence.
      */
-    virtual void
+    void
     setRelativeTolerance(
         double rel_residual_tol);
 
     /*!
      * \brief Get the relative residual tolerance for convergence.
      */
-    virtual double
+    double
     getRelativeTolerance() const;
 
     //\}
@@ -341,13 +340,13 @@ public:
     /*!
      * \brief Return the iteration count from the most recent linear solve.
      */
-    virtual int
+    int
     getNumIterations() const;
 
     /*!
      * \brief Return the residual norm from the most recent iteration.
      */
-    virtual double
+    double
     getResidualNorm() const;
 
     //\}
@@ -360,7 +359,7 @@ public:
     /*!
      * \brief Enable or disable logging.
      */
-    virtual void
+    void
     enableLogging(
         bool enabled=true);
 

@@ -65,7 +65,6 @@ public:
      */
     PatchVecCellDataOpsReal();
 
-    virtual
     ~PatchVecCellDataOpsReal<TYPE>();
 
     /*!

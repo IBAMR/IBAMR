@@ -60,7 +60,7 @@ namespace IBAMR
  * \note Use of class IBInstrumentPanel requires the Blitz++ array library.
  */
 class IBInstrumentPanel
-    : public virtual SAMRAI::tbox::DescribedClass
+    : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
@@ -71,9 +71,8 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~IBInstrumentPanel();
 
     /*!

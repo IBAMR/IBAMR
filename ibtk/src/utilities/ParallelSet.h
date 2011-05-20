@@ -51,7 +51,7 @@ namespace IBTK
  * integer keys in parallel.
  */
 class ParallelSet
-    : public virtual SAMRAI::tbox::DescribedClass
+    : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

@@ -67,9 +67,8 @@ public:
         SAMRAI::xfer::RefinePatchStrategy<NDIM>* const phys_bdry_op=NULL);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~CartSideDoubleDivPreservingRefine();
 
     /*!
@@ -97,7 +96,7 @@ public:
      * \param fill_time            Double simulation time for boundary filling.
      * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over all registered scratch components.
      */
-    virtual void
+    void
     setPhysicalBoundaryConditions(
         SAMRAI::hier::Patch<NDIM>& patch,
         const double fill_time,
@@ -108,7 +107,7 @@ public:
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      */
-    virtual SAMRAI::hier::IntVector<NDIM>
+    SAMRAI::hier::IntVector<NDIM>
     getRefineOpStencilWidth() const;
 
     /*!
@@ -126,7 +125,7 @@ public:
      * \param fine_box  Box region on fine patch into which data is refined.
      * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
      */
-    virtual void
+    void
     preprocessRefine(
         SAMRAI::hier::Patch<NDIM>& fine,
         const SAMRAI::hier::Patch<NDIM>& coarse,
@@ -148,7 +147,7 @@ public:
      * \param fine_box  Box region on fine patch into which data is refined.
      * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
      */
-    virtual void
+    void
     postprocessRefine(
         SAMRAI::hier::Patch<NDIM>& fine,
         const SAMRAI::hier::Patch<NDIM>& coarse,

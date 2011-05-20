@@ -35,7 +35,6 @@ $(top_srcdir)/src/IB/IBAnchorPointSpec.C \
 $(top_srcdir)/src/IB/IBAnchorPointSpecFactory.C \
 $(top_srcdir)/src/IB/IBBeamForceSpec.C \
 $(top_srcdir)/src/IB/IBBeamForceSpecFactory.C \
-$(top_srcdir)/src/IB/IBDataPostProcessor.C \
 $(top_srcdir)/src/IB/IBEulerianForceFunction.C \
 $(top_srcdir)/src/IB/IBEulerianSourceFunction.C \
 $(top_srcdir)/src/IB/IBHDF5Initializer.C \
@@ -54,6 +53,7 @@ $(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategy.C \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategySet.C \
 $(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
+$(top_srcdir)/src/IB/IBPostProcessStrategy.C \
 $(top_srcdir)/src/IB/IBRodForceSpec.C \
 $(top_srcdir)/src/IB/IBRodForceSpecFactory.C \
 $(top_srcdir)/src/IB/IBSourceSpec.C \
@@ -102,7 +102,6 @@ $(top_srcdir)/src/IB/IBAnchorPointSpecFactory.h \
 $(top_srcdir)/src/IB/IBBeamForceSpec.I \
 $(top_srcdir)/src/IB/IBBeamForceSpec.h \
 $(top_srcdir)/src/IB/IBBeamForceSpecFactory.h \
-$(top_srcdir)/src/IB/IBDataPostProcessor.h \
 $(top_srcdir)/src/IB/IBEulerianForceFunction.h \
 $(top_srcdir)/src/IB/IBEulerianSourceFunction.h \
 $(top_srcdir)/src/IB/IBHDF5Initializer.h \
@@ -123,6 +122,7 @@ $(top_srcdir)/src/IB/IBKirchhoffRodForceGen.h \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategy.h \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategySet.h \
 $(top_srcdir)/src/IB/IBLagrangianSourceStrategy.h \
+$(top_srcdir)/src/IB/IBPostProcessStrategy.h \
 $(top_srcdir)/src/IB/IBRodForceSpec.I \
 $(top_srcdir)/src/IB/IBRodForceSpec.h \
 $(top_srcdir)/src/IB/IBRodForceSpecFactory.h \

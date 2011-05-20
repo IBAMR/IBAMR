@@ -166,9 +166,8 @@ public:
         const bool homogeneous_bc=false);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~CartCellRobinPhysBdryOp();
 
     /*!
@@ -238,7 +237,7 @@ public:
      * \param fill_time            Double simulation time for boundary filling.
      * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over all registered scratch components.
      */
-    virtual void
+    void
     setPhysicalBoundaryConditions(
         SAMRAI::hier::Patch<NDIM>& patch,
         const double fill_time,
@@ -251,7 +250,7 @@ public:
      *
      * Presently, the refine operator stencil width is zero.
      */
-    virtual SAMRAI::hier::IntVector<NDIM>
+    SAMRAI::hier::IntVector<NDIM>
     getRefineOpStencilWidth() const;
 
     /*!
@@ -271,7 +270,7 @@ public:
      * \param fine_box  Box region on fine patch into which data is refined.
      * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
      */
-    virtual void
+    void
     preprocessRefine(
         SAMRAI::hier::Patch<NDIM>& fine,
         const SAMRAI::hier::Patch<NDIM>& coarse,
@@ -295,7 +294,7 @@ public:
      * \param fine_box  Box region on fine patch into which data is refined.
      * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
      */
-    virtual void
+    void
     postprocessRefine(
         SAMRAI::hier::Patch<NDIM>& fine,
         const SAMRAI::hier::Patch<NDIM>& coarse,

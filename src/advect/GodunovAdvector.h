@@ -86,7 +86,7 @@ namespace IBAMR
  * \see IBAMR::GodunovHypPatchOps
  */
 class GodunovAdvector
-    : public virtual SAMRAI::tbox::Serializable
+    : public SAMRAI::tbox::Serializable
 {
 public:
     /*!
@@ -329,7 +329,7 @@ public:
      * This routine is a concrete implementation of the function declared in the
      * SAMRAI::tbox::Serializable abstract base class.
      */
-    virtual void
+    void
     putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 

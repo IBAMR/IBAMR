@@ -1267,11 +1267,11 @@ IBImplicitHierarchyIntegrator::regridHierarchy()
             for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
                  cit != local_nodes.end(); ++cit)
             {
-                const LNode& node_idx = **cit;
-                Pointer<IBAnchorPointSpec> anchor_point_spec = node_idx.getNodeData<IBAnchorPointSpec>();
+                const LNode* const node_idx = *cit;
+                Pointer<IBAnchorPointSpec> anchor_point_spec = node_idx->getNodeData<IBAnchorPointSpec>();
                 if (!anchor_point_spec.isNull())
                 {
-                    d_anchor_point_local_idxs[ln].insert(node_idx.getLocalPETScIndex());
+                    d_anchor_point_local_idxs[ln].insert(node_idx->getLocalPETScIndex());
                 }
             }
 

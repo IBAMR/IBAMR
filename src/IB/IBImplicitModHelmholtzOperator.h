@@ -66,9 +66,8 @@ public:
         SAMRAI::tbox::Pointer<IBTK::LinearOperator> ib_SJSstar_op);
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~IBImplicitModHelmholtzOperator();
 
     /*!
@@ -98,7 +97,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    virtual void
+    void
     apply(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
@@ -135,7 +134,7 @@ public:
      *
      * \note The default implementation is empty.
      */
-    virtual void
+    void
     initializeOperatorState(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
@@ -152,7 +151,7 @@ public:
      *
      * \note The default implementation is empty.
      */
-    virtual void
+    void
     deallocateOperatorState();
 
     //\}
@@ -167,7 +166,7 @@ public:
      *
      * \param enabled logging state: true=on, false=off
      */
-    virtual void
+    void
     enableLogging(
         bool enabled=true);
 

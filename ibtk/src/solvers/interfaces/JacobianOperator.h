@@ -51,7 +51,7 @@ namespace IBTK
  * \f$ F'[x]v \f$.
  */
 class JacobianOperator
-    : public virtual LinearOperator
+    : public LinearOperator
 {
 public:
     /*!
@@ -61,7 +61,7 @@ public:
         bool is_symmetric=false);
 
     /*!
-     * \brief Virtual empty destructor.
+     * \brief Empty virtual destructor.
      */
     virtual
     ~JacobianOperator();

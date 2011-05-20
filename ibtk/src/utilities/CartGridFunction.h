@@ -56,7 +56,7 @@ namespace IBTK
  * evaluating functions to set values in SAMRAI::hier::PatchData objects.
  */
 class CartGridFunction
-    : public virtual SAMRAI::tbox::DescribedClass
+    : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

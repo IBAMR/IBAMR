@@ -59,9 +59,8 @@ public:
     CartCellDoubleBoundsPreservingConservativeLinearRefine();
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~CartCellDoubleBoundsPreservingConservativeLinearRefine();
 
     /*!
@@ -73,7 +72,7 @@ public:
      * Return true if the refining operation matches the variable and name
      * string identifier request; false, otherwise.
      */
-    virtual bool
+    bool
     findRefineOperator(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& var,
         const std::string& op_name) const;
@@ -81,7 +80,7 @@ public:
     /*!
      * Return name string identifier of the refining operation.
      */
-    virtual const std::string&
+    const std::string&
     getOperatorName() const;
 
     /*!
@@ -90,7 +89,7 @@ public:
      * operators with lower priority will be performed before those with higher
      * priority.
      */
-    virtual int
+    int
     getOperatorPriority() const;
 
     /*!
@@ -99,7 +98,7 @@ public:
      * sufficient ghost cell data surrounding the interior to satisfy the
      * stencil width requirements for each refining operator.
      */
-    virtual SAMRAI::hier::IntVector<NDIM>
+    SAMRAI::hier::IntVector<NDIM>
     getStencilWidth() const;
 
     /*!
@@ -109,7 +108,7 @@ public:
      * is guaranteed to contain sufficient data for the stencil width of the
      * refining operator.
      */
-    virtual void
+    void
     refine(
         SAMRAI::hier::Patch<NDIM>& fine,
         const SAMRAI::hier::Patch<NDIM>& coarse,

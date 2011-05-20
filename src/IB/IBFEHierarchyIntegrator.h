@@ -92,12 +92,11 @@ public:
         bool register_for_restart=true);
 
     /*!
-     * Virtual destructor.
+     * Destructor.
      *
      * The destructor for IBFEHierarchyIntegrator unregisters the integrator
      * object with the restart manager when so registered.
      */
-    virtual
     ~IBFEHierarchyIntegrator();
 
     /*!
@@ -233,7 +232,7 @@ public:
      * advanceHierarchy().  Otherwise, when assertion checking is active an
      * unrecoverable exception will occur.
      */
-    virtual void
+    void
     initializeHierarchyIntegrator(
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
@@ -255,7 +254,7 @@ public:
      * the advanceHierarchy() function to be called.  In particular, on each
      * level constructed only the data needed for initialization exists.
      */
-    virtual double
+    double
     initializeHierarchy();
 
     /*!
@@ -265,7 +264,7 @@ public:
      * When assertion checking is active, an unrecoverable exception will result
      * if the new time is not greater than the given time.
      */
-    virtual double
+    double
     advanceHierarchy(
         const double dt);
 
@@ -342,13 +341,13 @@ public:
     /*!
      * Regrid the hierarchy.
      */
-    virtual void
+    void
     regridHierarchy();
 
     /*!
      * Synchronize the hierarchy.
      */
-    virtual void
+    void
     synchronizeHierarchy();
 
     /*!
@@ -372,7 +371,7 @@ public:
      * existing levels in the hierarchy (either coarsest_level > finest_level or
      * some level is null).
      */
-    virtual void
+    void
     synchronizeNewLevels(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
@@ -383,14 +382,14 @@ public:
     /*!
      * Reset time dependent data.
      */
-    virtual void
+    void
     resetTimeDependentHierData(
         const double new_time);
 
     /*!
      * Deallocate all new simulation data.
      */
-    virtual void
+    void
     resetHierDataToPreadvanceState();
 
     ///
@@ -453,7 +452,7 @@ public:
      * level in the hierarchy, or the old level number does not match the level
      * number (if the old level pointer is non-null).
      */
-    virtual void
+    void
     initializeLevelData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -478,7 +477,7 @@ public:
      * that is coarser than the finest level is null, or the given level numbers
      * not specified properly; e.g., coarsest_level > finest_level.
      */
-    virtual void
+    void
     resetHierarchyConfiguration(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
@@ -504,7 +503,7 @@ public:
      * if the hierarchy pointer is null or the level number does not match any
      * existing level in the hierarchy.
      */
-    virtual void
+    void
     applyGradientDetector(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -563,7 +562,7 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    virtual void
+    void
     putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
