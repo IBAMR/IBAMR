@@ -1139,7 +1139,7 @@ LM3DDataWriter::buildVecScatters(
     ierr = AOApplicationToPetsc(
         ao,
         (!ref_is_idxs.empty() ? static_cast<int>(ref_is_idxs.size()) : static_cast<int>(ao_dummy.size())),
-        (!ref_is_idxs.empty() ? &ref_is_idxs[0]         : &ao_dummy[0]));
+        (!ref_is_idxs.empty() ? &ref_is_idxs[0]                      : &ao_dummy[0]));
     IBTK_CHKERRQ(ierr);
 
     // Setup IS indices for all necessary data depths.
@@ -1161,8 +1161,7 @@ LM3DDataWriter::buildVecScatters(
         const std::vector<int>& idxs = it->second;
 
         IS src_is;
-        ierr = ISCreateBlock(PETSC_COMM_WORLD, depth, idxs.size(),
-                             &idxs[0], &src_is);
+        ierr = ISCreateBlock(PETSC_COMM_WORLD, depth, idxs.size(), (!idxs.empty() ? &idxs[0] : PETSC_NULL), &src_is);
         IBTK_CHKERRQ(ierr);
 
         Vec& src_vec = d_src_vec[level_number][depth];
@@ -1172,8 +1171,7 @@ LM3DDataWriter::buildVecScatters(
             ierr = VecDestroy(dst_vec);
             IBTK_CHKERRQ(ierr);
         }
-        ierr = VecCreateMPI(PETSC_COMM_WORLD, depth*idxs.size(),
-                            PETSC_DETERMINE, &dst_vec);
+        ierr = VecCreateMPI(PETSC_COMM_WORLD, depth*idxs.size(), PETSC_DETERMINE, &dst_vec);
         IBTK_CHKERRQ(ierr);
 
         ierr = VecSetBlockSize(dst_vec, depth);
@@ -1185,8 +1183,7 @@ LM3DDataWriter::buildVecScatters(
             ierr = VecScatterDestroy(vec_scatter);
             IBTK_CHKERRQ(ierr);
         }
-        ierr = VecScatterCreate(src_vec, src_is, dst_vec, PETSC_NULL,
-                                &vec_scatter);
+        ierr = VecScatterCreate(src_vec, src_is, dst_vec, PETSC_NULL, &vec_scatter);
         IBTK_CHKERRQ(ierr);
 
         ierr = ISDestroy(src_is);  IBTK_CHKERRQ(ierr);
