@@ -1396,7 +1396,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
-            const double dx_min = *std::min_element(dx,dx+NDIM);
+            const double dx_min = *(std::min_element(dx,dx+NDIM));
             Pointer<SideData<NDIM,double> > U_current_data = patch->getPatchData(U_current_idx);
             const double U_max = std::max(+patch_ops.max(U_current_data, patch_box),
                                           -patch_ops.min(U_current_data, patch_box));
@@ -1498,8 +1498,7 @@ IBStaggeredHierarchyIntegrator::postProcessData()
 bool
 IBStaggeredHierarchyIntegrator::atRegridPoint() const
 {
-    return ((d_regrid_cfl_interval > 0.0 && d_regrid_cfl_estimate > d_regrid_cfl_interval) ||
-            (d_regrid_interval == 0 ? false : (d_integrator_step % d_regrid_interval == 0)));
+    return d_regrid_cfl_interval > 0.0 ? (d_regrid_cfl_estimate >= d_regrid_cfl_interval) : (d_regrid_interval == 0 ? false : (d_integrator_step % d_regrid_interval == 0));
 }// atRegridPoint
 
 double
