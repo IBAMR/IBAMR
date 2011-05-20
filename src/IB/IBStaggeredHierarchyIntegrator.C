@@ -1405,6 +1405,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     }
     cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
     d_regrid_cfl_estimate += cfl_max;
+    if (d_do_log) plog << d_object_name << "::advanceHierarchy(): current CFL number = " << cfl_max << "\n";
+    if (d_do_log) plog << d_object_name << "::advanceHierarchy(): estimated upper bound on IB point displacement since last regrid = " << d_regrid_cfl_estimate << "\n";
 
     // Determine the next stable timestep.
     double dt_next = d_ins_hier_integrator->getStableTimestep(getCurrentContext());
