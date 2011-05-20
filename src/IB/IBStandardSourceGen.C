@@ -224,7 +224,7 @@ IBStandardSourceGen::getSourceLocations(
             }
         }
     }
-    ierr = VecRestoreArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
+    X_data->restoreArrays();
 
     std::vector<double> X_src_flattened(NDIM*X_src.size());
     for (unsigned int k = 0; k < X_src.size(); ++k)
