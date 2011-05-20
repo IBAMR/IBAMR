@@ -185,6 +185,8 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
       d_max_integrator_steps(std::numeric_limits<int>::max()),
       d_num_cycles(1),
       d_regrid_interval(1),
+      d_regrid_cfl_interval(0.0),
+      d_regrid_cfl_estimate(0.0),
       d_old_dt(-1.0),
       d_integrator_time(std::numeric_limits<double>::quiet_NaN()),
       d_integrator_step(std::numeric_limits<int>::max()),
@@ -685,10 +687,9 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     const double new_time     = d_integrator_time+dt;
     const bool initial_time   = MathUtilities<double>::equalEps(current_time,d_start_time);
 
-    // Regrid the patch hierarchy.
-    const bool do_regrid = (d_regrid_interval == 0 ? false : (d_integrator_step % d_regrid_interval == 0));
-    if (do_regrid)
+    if (atRegridPoint())
     {
+        // Regrid the patch hierarchy.
         if (d_do_log) plog << d_object_name << "::advanceHierarchy(): regridding prior to timestep " << d_integrator_step << "\n";
         regridHierarchy();
     }
@@ -992,6 +993,30 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     if (d_do_log) plog << d_object_name << "::advanceHierarchy(): resetting time dependent data\n";
     resetTimeDependentHierData(new_time);
 
+    // Determine the current flow CFL number.
+    double cfl_max = 0.0;
+    PatchSideDataOpsReal<NDIM,double> patch_ops;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const double* const dx = pgeom->getDx();
+            const double dx_min = *(std::min_element(dx,dx+NDIM));
+            Pointer<SideData<NDIM,double> > U_current_data = patch->getPatchData(U_current_idx);
+            const double U_max = std::max(+patch_ops.max(U_current_data, patch_box),
+                                          -patch_ops.min(U_current_data, patch_box));
+            cfl_max = std::max(cfl_max, U_max*dt/dx_min);
+        }
+    }
+    cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
+    d_regrid_cfl_estimate += cfl_max;
+    if (d_do_log) plog << d_object_name << "::advanceHierarchy(): current CFL number = " << cfl_max << "\n";
+    if (d_do_log) plog << d_object_name << "::advanceHierarchy(): estimated upper bound on IB point displacement since last regrid = " << d_regrid_cfl_estimate << "\n";
+
     // Determine the next stable timestep.
     double dt_next = d_ins_hier_integrator->getStableTimestep(getCurrentContext());
 
@@ -1018,12 +1043,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
 bool
 IBFEHierarchyIntegrator::atRegridPoint() const
 {
-    static const int level_number = 0;
-    return ((d_integrator_step>0)
-            && d_gridding_alg->levelCanBeRefined(level_number)
-            && (d_regrid_interval == 0
-                ? false
-                : (d_integrator_step % d_regrid_interval == 0)));
+    return d_regrid_cfl_interval > 0.0 ? (d_regrid_cfl_estimate >= d_regrid_cfl_interval) : (d_regrid_interval == 0 ? false : (d_integrator_step % d_regrid_interval == 0));
 }// atRegridPoint
 
 double
@@ -1126,6 +1146,9 @@ IBFEHierarchyIntegrator::regridHierarchy()
 
     // Prune duplicate markers following regridding.
     LMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
+
+    // Reset the regrid CFL estimate.
+    d_regrid_cfl_estimate = 0.0;
 
     t_regrid_hierarchy->stop();
     return;
@@ -1472,6 +1495,8 @@ IBFEHierarchyIntegrator::putToDatabase(
     db->putDouble("d_grow_dt", d_grow_dt);
     db->putInteger("d_max_integrator_steps", d_max_integrator_steps);
     db->putInteger("d_regrid_interval", d_regrid_interval);
+    db->putDouble("d_regrid_cfl_interval", d_regrid_cfl_interval);
+    db->putDouble("d_regrid_cfl_estimate", d_regrid_cfl_estimate);
     db->putDouble("d_old_dt", d_old_dt);
     db->putDouble("d_integrator_time", d_integrator_time);
     db->putInteger("d_integrator_step", d_integrator_step);
@@ -2183,6 +2208,7 @@ IBFEHierarchyIntegrator::getFromInput(
     d_num_cycles = db->getIntegerWithDefault("num_cycles", d_num_cycles);
 
     d_regrid_interval = db->getIntegerWithDefault("regrid_interval", d_regrid_interval);
+    d_regrid_cfl_interval = db->getDoubleWithDefault("regrid_cfl_interval", d_regrid_cfl_interval);
 
     d_dt_max = db->getDoubleWithDefault("dt_max",d_dt_max);
     d_dt_max_time_max = db->getDoubleWithDefault("dt_max_time_max", d_dt_max_time_max);
@@ -2245,6 +2271,8 @@ IBFEHierarchyIntegrator::getFromRestart()
     d_grow_dt = db->getDouble("d_grow_dt");
     d_max_integrator_steps = db->getInteger("d_max_integrator_steps");
     d_regrid_interval = db->getInteger("d_regrid_interval");
+    d_regrid_cfl_interval = db->getDouble("d_regrid_cfl_interval");
+    d_regrid_cfl_estimate = db->getDouble("d_regrid_cfl_estimate");
     d_old_dt = db->getDouble("d_old_dt");
     d_integrator_time = db->getDouble("d_integrator_time");
     d_integrator_step = db->getInteger("d_integrator_step");

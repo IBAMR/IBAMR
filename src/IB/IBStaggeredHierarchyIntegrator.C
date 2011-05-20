@@ -758,9 +758,9 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
 
     Pointer<HierarchyMathOps> hier_math_ops = d_ins_hier_integrator->getHierarchyMathOps();
 
-    // Regrid the patch hierarchy.
     if (atRegridPoint())
     {
+        // Regrid the patch hierarchy.
         if (d_do_log) plog << d_object_name << "::advanceHierarchy(): regridding prior to timestep " << d_integrator_step << "\n";
         regridHierarchy();
     }
