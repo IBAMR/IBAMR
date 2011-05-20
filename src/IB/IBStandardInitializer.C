@@ -3144,161 +3144,159 @@ IBStandardInitializer::getFromInput(
 
     // Output the names of the input files to be read along with additional
     // debugging information.
-    pout << d_object_name << ":  Reading from input files: " << std::endl;
+    pout << d_object_name << ":  Reading from input files.\n"
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const unsigned int num_base_filename = d_base_filename[ln].size();
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
             const std::string& base_filename = d_base_filename[ln][j];
-            pout << "  base filename: " << base_filename << std::endl
-                 << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy" << std::endl
-                 << "     required files: " << base_filename << ".vertex" << std::endl
-                 << "     optional files: " << base_filename << ".spring, " << base_filename << ".beam, " << base_filename << ".rod, " << base_filename << ".target, " << base_filename << ".anchor, " << base_filename << ".mass, " << base_filename << ".director, " << base_filename << ".inst" << ".source" << std::endl;
+            pout << "  base filename: " << base_filename << "\n"
+                 << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy\n"
             if (!d_enable_springs[ln][j])
             {
-                pout << "  NOTE: spring forces are DISABLED for " << base_filename << std::endl;
+                pout << "  NOTE: spring forces are DISABLED for " << base_filename << "\n";
             }
             else
             {
                 if (d_using_uniform_spring_stiffness[ln][j])
                 {
-                    pout << "  NOTE: uniform spring stiffnesses are being employed for the structure named " << base_filename << std::endl
-                         << "        any stiffness information in optional file " << base_filename << ".spring will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform spring stiffnesses are being employed for the structure named " << base_filename << "\n"
+                         << "        any stiffness information in optional file " << base_filename << ".spring will be IGNORED\n"
                 }
                 if (d_using_uniform_spring_rest_length[ln][j])
                 {
-                    pout << "  NOTE: uniform spring resting lengths are being employed for the structure named " << base_filename << std::endl
-                         << "        any resting length information in optional file " << base_filename << ".spring will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform spring resting lengths are being employed for the structure named " << base_filename << "\n"
+                         << "        any resting length information in optional file " << base_filename << ".spring will be IGNORED\n"
                 }
                 if (d_using_uniform_spring_force_fcn_idx[ln][j])
                 {
-                    pout << "  NOTE: uniform spring force functions are being employed for the structure named " << base_filename << std::endl
-                         << "        any force function index information in optional file " << base_filename << ".spring will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform spring force functions are being employed for the structure named " << base_filename << "\n"
+                         << "        any force function index information in optional file " << base_filename << ".spring will be IGNORED\n"
                 }
 #if ENABLE_SUBDOMAIN_INDICES
                 if (d_using_uniform_spring_subdomain_idx[ln][j])
                 {
-                    pout << "  NOTE: uniform spring subdomain indicies are being employed for the structure named " << base_filename << std::endl
-                         << "        any subdomain index information in optional file " << base_filename << ".spring will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform spring subdomain indicies are being employed for the structure named " << base_filename << "\n"
+                         << "        any subdomain index information in optional file " << base_filename << ".spring will be IGNORED\n"
                 }
 #endif
             }
 
             if (!d_enable_beams[ln][j])
             {
-                pout << "  NOTE: beam forces are DISABLED for " << base_filename << std::endl;
+                pout << "  NOTE: beam forces are DISABLED for " << base_filename << "\n";
             }
             else
             {
                 if (d_using_uniform_beam_bend_rigidity[ln][j])
                 {
-                    pout << "  NOTE: uniform beam bending rigidities are being employed for the structure named " << base_filename << std::endl
-                         << "        any stiffness information in optional file " << base_filename << ".beam will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform beam bending rigidities are being employed for the structure named " << base_filename << "\n"
+                         << "        any stiffness information in optional file " << base_filename << ".beam will be IGNORED\n"
                 }
                 if (d_using_uniform_beam_curvature[ln][j])
                 {
-                    pout << "  NOTE: uniform beam curvatures are being employed for the structure named " << base_filename << std::endl
-                         << "        any curvature information in optional file " << base_filename << ".beam will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform beam curvatures are being employed for the structure named " << base_filename << "\n"
+                         << "        any curvature information in optional file " << base_filename << ".beam will be IGNORED\n"
                 }
 #if ENABLE_SUBDOMAIN_INDICES
                 if (d_using_uniform_beam_subdomain_idx[ln][j])
                 {
-                    pout << "  NOTE: uniform beam subdomain indicies are being employed for the structure named " << base_filename << std::endl
-                         << "        any subdomain index information in optional file " << base_filename << ".beam will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform beam subdomain indicies are being employed for the structure named " << base_filename << "\n"
+                         << "        any subdomain index information in optional file " << base_filename << ".beam will be IGNORED\n"
                 }
 #endif
             }
 
             if (!d_enable_rods[ln][j])
             {
-                pout << "  NOTE: rod forces are DISABLED for " << base_filename << std::endl;
+                pout << "  NOTE: rod forces are DISABLED for " << base_filename << "\n";
             }
             else
             {
                 if (d_using_uniform_rod_properties[ln][j])
                 {
-                    pout << "  NOTE: uniform rod material properties are being employed for the structure named " << base_filename << std::endl
-                         << "        any material property information in optional file " << base_filename << ".rod will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform rod material properties are being employed for the structure named " << base_filename << "\n"
+                         << "        any material property information in optional file " << base_filename << ".rod will be IGNORED\n"
                 }
 #if ENABLE_SUBDOMAIN_INDICES
                 if (d_using_uniform_rod_subdomain_idx[ln][j])
                 {
-                    pout << "  NOTE: uniform rod subdomain indicies are being employed for the structure named " << base_filename << std::endl
-                         << "        any subdomain index information in optional file " << base_filename << ".rod will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform rod subdomain indicies are being employed for the structure named " << base_filename << "\n"
+                         << "        any subdomain index information in optional file " << base_filename << ".rod will be IGNORED\n"
                 }
 #endif
             }
 
             if (!d_enable_target_points[ln][j])
             {
-                pout << "  NOTE: target point penalty forces are DISABLED for " << base_filename << std::endl;
+                pout << "  NOTE: target point penalty forces are DISABLED for " << base_filename << "\n";
             }
             else
             {
                 if (d_using_uniform_target_stiffness[ln][j])
                 {
-                    pout << "  NOTE: uniform target point stiffnesses are being employed for the structure named " << base_filename << std::endl
-                         << "        any target point stiffness information in optional file " << base_filename << ".target will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform target point stiffnesses are being employed for the structure named " << base_filename << "\n"
+                         << "        any target point stiffness information in optional file " << base_filename << ".target will be IGNORED\n"
                 }
                 if (d_using_uniform_target_damping[ln][j])
                 {
-                    pout << "  NOTE: uniform target point damping factors are being employed for the structure named " << base_filename << std::endl
-                         << "        any target point damping factor information in optional file " << base_filename << ".target will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform target point damping factors are being employed for the structure named " << base_filename << "\n"
+                         << "        any target point damping factor information in optional file " << base_filename << ".target will be IGNORED\n"
                 }
 #if ENABLE_SUBDOMAIN_INDICES
                 if (d_using_uniform_target_subdomain_idx[ln][j])
                 {
-                    pout << "  NOTE: uniform target point subdomain indicies are being employed for the structure named " << base_filename << std::endl
-                         << "        any subdomain index information in optional file " << base_filename << ".target will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform target point subdomain indicies are being employed for the structure named " << base_filename << "\n"
+                         << "        any subdomain index information in optional file " << base_filename << ".target will be IGNORED\n"
                 }
 #endif
             }
 
             if (!d_enable_anchor_points[ln][j])
             {
-                pout << "  NOTE: anchor points are DISABLED for " << base_filename << std::endl;
+                pout << "  NOTE: anchor points are DISABLED for " << base_filename << "\n";
             }
             else
             {
 #if ENABLE_SUBDOMAIN_INDICES
                 if (d_using_uniform_anchor_subdomain_idx[ln][j])
                 {
-                    pout << "  NOTE: uniform anchor point subdomain indicies are being employed for the structure named " << base_filename << std::endl
-                         << "        any subdomain index information in optional file " << base_filename << ".anchor will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform anchor point subdomain indicies are being employed for the structure named " << base_filename << "\n"
+                         << "        any subdomain index information in optional file " << base_filename << ".anchor will be IGNORED\n"
                 }
 #endif
             }
 
             if (!d_enable_bdry_mass[ln][j])
             {
-                pout << "  NOTE: massive boundary points are DISABLED for " << base_filename << std::endl;
+                pout << "  NOTE: massive boundary points are DISABLED for " << base_filename << "\n";
             }
             else
             {
                 if (d_using_uniform_bdry_mass[ln][j])
                 {
-                    pout << "  NOTE: uniform boundary point masses are being employed for the structure named " << base_filename << std::endl
-                         << "        any boundary point mass information in optional file " << base_filename << ".mass will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform boundary point masses are being employed for the structure named " << base_filename << "\n"
+                         << "        any boundary point mass information in optional file " << base_filename << ".mass will be IGNORED\n"
                 }
                 if (d_using_uniform_bdry_mass_stiffness[ln][j])
                 {
-                    pout << "  NOTE: uniform massive boundary point stiffnesses are being employed for the structure named " << base_filename << std::endl
-                         << "        any massive boundary point stiffness information in optional file " << base_filename << ".mass will be IGNORED" << std::endl;
+                    pout << "  NOTE: uniform massive boundary point stiffnesses are being employed for the structure named " << base_filename << "\n"
+                         << "        any massive boundary point stiffness information in optional file " << base_filename << ".mass will be IGNORED\n"
                 }
             }
 
             if (!d_enable_instrumentation[ln][j])
             {
-                pout << "  NOTE: instrumentation is DISABLED for " << base_filename << std::endl;
+                pout << "  NOTE: instrumentation is DISABLED for " << base_filename << "\n";
             }
 
             if (!d_enable_sources[ln][j])
             {
-                pout << "  NOTE: sources/sinks are DISABLED for " << base_filename << std::endl;
+                pout << "  NOTE: sources/sinks are DISABLED for " << base_filename << "\n";
             }
 
-            pout << std::endl;
+            pout << "\n";
         }
     }
     return;
