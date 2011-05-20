@@ -188,19 +188,29 @@ LData::getArrayCommon()
         int ierr = VecGetArray(d_global_vec, &d_array);  IBTK_CHKERRQ(ierr);
         int ilower, iupper;
         ierr = VecGetOwnershipRange(d_global_vec, &ilower, &iupper);  IBTK_CHKERRQ(ierr);
-        blitz::TinyVector<int,1> shape(iupper-ilower);
-        blitz::TinyVector<int,2> vec_shape((iupper-ilower)/d_depth,d_depth);
-        blitz::GeneralArrayStorage<1> global_storage;
-        global_storage.base() = ilower;
-        blitz::GeneralArrayStorage<2> vec_global_storage;
-        vec_global_storage.base() = ilower/d_depth , 0;
-        if (d_depth == 1)
+        if (iupper-ilower == 0)
         {
-            d_blitz_array.reference(blitz::Array<double,1>(d_array, shape, blitz::neverDeleteData, global_storage));
-            d_blitz_local_array.reference(blitz::Array<double,1>(d_array, shape, blitz::neverDeleteData));
+            d_blitz_array.free();
+            d_blitz_local_array.free();
+            d_blitz_vec_array.free();
+            d_blitz_local_vec_array.free();
         }
-        d_blitz_vec_array.reference(blitz::Array<double,2>(d_array, vec_shape, blitz::neverDeleteData, vec_global_storage));
-        d_blitz_local_vec_array.reference(blitz::Array<double,2>(d_array, vec_shape, blitz::neverDeleteData));
+        else
+        {
+            blitz::TinyVector<int,1> shape(iupper-ilower);
+            blitz::TinyVector<int,2> vec_shape((iupper-ilower)/d_depth,d_depth);
+            blitz::GeneralArrayStorage<1> global_storage;
+            global_storage.base() = ilower;
+            blitz::GeneralArrayStorage<2> vec_global_storage;
+            vec_global_storage.base() = ilower/d_depth , 0;
+            if (d_depth == 1)
+            {
+                d_blitz_array.reference(blitz::Array<double,1>(d_array, shape, blitz::neverDeleteData, global_storage));
+                d_blitz_local_array.reference(blitz::Array<double,1>(d_array, shape, blitz::neverDeleteData));
+            }
+            d_blitz_vec_array.reference(blitz::Array<double,2>(d_array, vec_shape, blitz::neverDeleteData, vec_global_storage));
+            d_blitz_local_vec_array.reference(blitz::Array<double,2>(d_array, vec_shape, blitz::neverDeleteData));
+        }
     }
     return;
 }// getArrayCommon
@@ -217,13 +227,21 @@ LData::getGhostedLocalFormArrayCommon()
         int ierr = VecGetArray(d_ghosted_local_vec, &d_ghosted_local_array);  IBTK_CHKERRQ(ierr);
         int ilower, iupper;
         ierr = VecGetOwnershipRange(d_ghosted_local_vec, &ilower, &iupper);  IBTK_CHKERRQ(ierr);
-        blitz::TinyVector<int,1> shape(iupper-ilower);
-        blitz::TinyVector<int,2> vec_shape((iupper-ilower)/d_depth,d_depth);
-        if (d_depth == 1)
+        if (iupper-ilower == 0)
         {
-            d_blitz_ghosted_local_array.reference(blitz::Array<double,1>(d_ghosted_local_array, shape, blitz::neverDeleteData));
+            d_blitz_ghosted_local_array.free();
+            d_blitz_vec_ghosted_local_array.free();
         }
-        d_blitz_vec_ghosted_local_array.reference(blitz::Array<double,2>(d_ghosted_local_array, vec_shape, blitz::neverDeleteData));
+        else
+        {
+            blitz::TinyVector<int,1> shape(iupper-ilower);
+            blitz::TinyVector<int,2> vec_shape((iupper-ilower)/d_depth,d_depth);
+            if (d_depth == 1)
+            {
+                d_blitz_ghosted_local_array.reference(blitz::Array<double,1>(d_ghosted_local_array, shape, blitz::neverDeleteData));
+            }
+            d_blitz_vec_ghosted_local_array.reference(blitz::Array<double,2>(d_ghosted_local_array, vec_shape, blitz::neverDeleteData));
+        }
     }
     return;
 }// getGhostedLocalFormArrayCommon
