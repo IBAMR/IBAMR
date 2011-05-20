@@ -3144,7 +3144,7 @@ IBStandardInitializer::getFromInput(
 
     // Output the names of the input files to be read along with additional
     // debugging information.
-    pout << d_object_name << ":  Reading from input files.\n"
+    pout << d_object_name << ":  Reading from input files.\n";
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const unsigned int num_base_filename = d_base_filename[ln].size();
@@ -3152,7 +3152,7 @@ IBStandardInitializer::getFromInput(
         {
             const std::string& base_filename = d_base_filename[ln][j];
             pout << "  base filename: " << base_filename << "\n"
-                 << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy\n"
+                 << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy\n";
             if (!d_enable_springs[ln][j])
             {
                 pout << "  NOTE: spring forces are DISABLED for " << base_filename << "\n";
@@ -3162,23 +3162,23 @@ IBStandardInitializer::getFromInput(
                 if (d_using_uniform_spring_stiffness[ln][j])
                 {
                     pout << "  NOTE: uniform spring stiffnesses are being employed for the structure named " << base_filename << "\n"
-                         << "        any stiffness information in optional file " << base_filename << ".spring will be IGNORED\n"
+                         << "        any stiffness information in optional file " << base_filename << ".spring will be IGNORED\n";
                 }
                 if (d_using_uniform_spring_rest_length[ln][j])
                 {
                     pout << "  NOTE: uniform spring resting lengths are being employed for the structure named " << base_filename << "\n"
-                         << "        any resting length information in optional file " << base_filename << ".spring will be IGNORED\n"
+                         << "        any resting length information in optional file " << base_filename << ".spring will be IGNORED\n";
                 }
                 if (d_using_uniform_spring_force_fcn_idx[ln][j])
                 {
                     pout << "  NOTE: uniform spring force functions are being employed for the structure named " << base_filename << "\n"
-                         << "        any force function index information in optional file " << base_filename << ".spring will be IGNORED\n"
+                         << "        any force function index information in optional file " << base_filename << ".spring will be IGNORED\n";
                 }
 #if ENABLE_SUBDOMAIN_INDICES
                 if (d_using_uniform_spring_subdomain_idx[ln][j])
                 {
                     pout << "  NOTE: uniform spring subdomain indicies are being employed for the structure named " << base_filename << "\n"
-                         << "        any subdomain index information in optional file " << base_filename << ".spring will be IGNORED\n"
+                         << "        any subdomain index information in optional file " << base_filename << ".spring will be IGNORED\n";
                 }
 #endif
             }
@@ -3192,18 +3192,18 @@ IBStandardInitializer::getFromInput(
                 if (d_using_uniform_beam_bend_rigidity[ln][j])
                 {
                     pout << "  NOTE: uniform beam bending rigidities are being employed for the structure named " << base_filename << "\n"
-                         << "        any stiffness information in optional file " << base_filename << ".beam will be IGNORED\n"
+                         << "        any stiffness information in optional file " << base_filename << ".beam will be IGNORED\n";
                 }
                 if (d_using_uniform_beam_curvature[ln][j])
                 {
                     pout << "  NOTE: uniform beam curvatures are being employed for the structure named " << base_filename << "\n"
-                         << "        any curvature information in optional file " << base_filename << ".beam will be IGNORED\n"
+                         << "        any curvature information in optional file " << base_filename << ".beam will be IGNORED\n";
                 }
 #if ENABLE_SUBDOMAIN_INDICES
                 if (d_using_uniform_beam_subdomain_idx[ln][j])
                 {
                     pout << "  NOTE: uniform beam subdomain indicies are being employed for the structure named " << base_filename << "\n"
-                         << "        any subdomain index information in optional file " << base_filename << ".beam will be IGNORED\n"
+                         << "        any subdomain index information in optional file " << base_filename << ".beam will be IGNORED\n";
                 }
 #endif
             }
@@ -3217,13 +3217,13 @@ IBStandardInitializer::getFromInput(
                 if (d_using_uniform_rod_properties[ln][j])
                 {
                     pout << "  NOTE: uniform rod material properties are being employed for the structure named " << base_filename << "\n"
-                         << "        any material property information in optional file " << base_filename << ".rod will be IGNORED\n"
+                         << "        any material property information in optional file " << base_filename << ".rod will be IGNORED\n";
                 }
 #if ENABLE_SUBDOMAIN_INDICES
                 if (d_using_uniform_rod_subdomain_idx[ln][j])
                 {
                     pout << "  NOTE: uniform rod subdomain indicies are being employed for the structure named " << base_filename << "\n"
-                         << "        any subdomain index information in optional file " << base_filename << ".rod will be IGNORED\n"
+                         << "        any subdomain index information in optional file " << base_filename << ".rod will be IGNORED\n";
                 }
 #endif
             }
@@ -3237,18 +3237,18 @@ IBStandardInitializer::getFromInput(
                 if (d_using_uniform_target_stiffness[ln][j])
                 {
                     pout << "  NOTE: uniform target point stiffnesses are being employed for the structure named " << base_filename << "\n"
-                         << "        any target point stiffness information in optional file " << base_filename << ".target will be IGNORED\n"
+                         << "        any target point stiffness information in optional file " << base_filename << ".target will be IGNORED\n";
                 }
                 if (d_using_uniform_target_damping[ln][j])
                 {
                     pout << "  NOTE: uniform target point damping factors are being employed for the structure named " << base_filename << "\n"
-                         << "        any target point damping factor information in optional file " << base_filename << ".target will be IGNORED\n"
+                         << "        any target point damping factor information in optional file " << base_filename << ".target will be IGNORED\n";
                 }
 #if ENABLE_SUBDOMAIN_INDICES
                 if (d_using_uniform_target_subdomain_idx[ln][j])
                 {
                     pout << "  NOTE: uniform target point subdomain indicies are being employed for the structure named " << base_filename << "\n"
-                         << "        any subdomain index information in optional file " << base_filename << ".target will be IGNORED\n"
+                         << "        any subdomain index information in optional file " << base_filename << ".target will be IGNORED\n";
                 }
 #endif
             }
@@ -3263,7 +3263,7 @@ IBStandardInitializer::getFromInput(
                 if (d_using_uniform_anchor_subdomain_idx[ln][j])
                 {
                     pout << "  NOTE: uniform anchor point subdomain indicies are being employed for the structure named " << base_filename << "\n"
-                         << "        any subdomain index information in optional file " << base_filename << ".anchor will be IGNORED\n"
+                         << "        any subdomain index information in optional file " << base_filename << ".anchor will be IGNORED\n";
                 }
 #endif
             }
@@ -3277,12 +3277,12 @@ IBStandardInitializer::getFromInput(
                 if (d_using_uniform_bdry_mass[ln][j])
                 {
                     pout << "  NOTE: uniform boundary point masses are being employed for the structure named " << base_filename << "\n"
-                         << "        any boundary point mass information in optional file " << base_filename << ".mass will be IGNORED\n"
+                         << "        any boundary point mass information in optional file " << base_filename << ".mass will be IGNORED\n";
                 }
                 if (d_using_uniform_bdry_mass_stiffness[ln][j])
                 {
                     pout << "  NOTE: uniform massive boundary point stiffnesses are being employed for the structure named " << base_filename << "\n"
-                         << "        any massive boundary point stiffness information in optional file " << base_filename << ".mass will be IGNORED\n"
+                         << "        any massive boundary point stiffness information in optional file " << base_filename << ".mass will be IGNORED\n";
                 }
             }
 
