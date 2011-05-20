@@ -205,9 +205,7 @@ IBStandardSourceGen::getSourceLocations(
 
     // Determine the positions of the sources.
     for (unsigned int k = 0; k < X_src.size(); ++k) X_src[k] = 0.0;
-    Vec X_vec = X_data->getVec();
-    double* X_arr;
-    int ierr = VecGetArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
+    const double* const restrict X_node = X_data->getGhostedLocalFormVecArray()->data();
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getNodes();
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
@@ -218,7 +216,7 @@ IBStandardSourceGen::getSourceLocations(
         if (spec != NULL)
         {
             const int& petsc_idx = node_idx->getLocalPETScIndex();
-            const double* const X = &X_arr[NDIM*petsc_idx];
+            const double* const X = &X_node[NDIM*petsc_idx];
             const int source_idx = spec->getSourceIndex();
             for (unsigned int d = 0; d < NDIM; ++d)
             {
