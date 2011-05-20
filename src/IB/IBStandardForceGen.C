@@ -421,8 +421,8 @@ IBStandardForceGen::initializeSpringLevelData(
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
-        Pointer<IBSpringForceSpec> force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
-        if (!force_spec.isNull()) num_springs += force_spec->getNumberOfSprings();
+        const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
+        if (force_spec != NULL) num_springs += force_spec->getNumberOfSprings();
     }
     lag_mastr_node_idxs     .resize(num_springs);
     lag_slave_node_idxs     .resize(num_springs);
@@ -445,8 +445,8 @@ IBStandardForceGen::initializeSpringLevelData(
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
-        Pointer<IBSpringForceSpec> force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
-        if (force_spec.isNull()) continue;
+        const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
+        if (force_spec == NULL) continue;
 
         const int& mastr_idx = node_idx->getLagrangianIndex();
         const unsigned int num_springs = force_spec->getNumberOfSprings();
@@ -701,8 +701,8 @@ IBStandardForceGen::initializeBeamLevelData(
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
-        Pointer<IBBeamForceSpec> force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
-        if (!force_spec.isNull()) num_beams += force_spec->getNumberOfBeams();
+        const IBBeamForceSpec* const force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
+        if (force_spec != NULL) num_beams += force_spec->getNumberOfBeams();
     }
     petsc_mastr_node_idxs. resize(num_beams);
     petsc_next_node_idxs  .resize(num_beams);
@@ -723,8 +723,8 @@ IBStandardForceGen::initializeBeamLevelData(
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
-        Pointer<IBBeamForceSpec> force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
-        if (force_spec.isNull()) continue;
+        const IBBeamForceSpec* const force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
+        if (force_spec == NULL) continue;
 
         const int& mastr_idx = node_idx->getLagrangianIndex();
         const unsigned int num_beams = force_spec->getNumberOfBeams();
@@ -1017,8 +1017,8 @@ IBStandardForceGen::initializeTargetPointLevelData(
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
-        Pointer<IBTargetPointForceSpec> force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
-        if (!force_spec.isNull()) num_target_points += 1;
+        const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
+        if (force_spec != NULL) num_target_points += 1;
     }
     petsc_node_idxs  .resize(num_target_points);
     if (d_constant_material_properties)
@@ -1039,8 +1039,8 @@ IBStandardForceGen::initializeTargetPointLevelData(
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
-        Pointer<IBTargetPointForceSpec> force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
-        if (force_spec.isNull()) continue;
+        const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
+        if (force_spec == NULL) continue;
 
         petsc_node_idxs  (current_target_point) = node_idx->getLagrangianIndex();
         if (d_constant_material_properties)

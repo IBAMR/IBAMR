@@ -554,8 +554,8 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
                  cit != local_nodes.end(); ++cit)
             {
                 const LNode* const node_idx = *cit;
-                Pointer<IBInstrumentationSpec> spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
-                if (!spec.isNull())
+                const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
+                if (spec != NULL)
                 {
                     const int m = spec->getMeterIndex();
                     max_meter_index = std::max(m, max_meter_index);
@@ -702,8 +702,8 @@ IBInstrumentPanel::initializeHierarchyDependentData(
                  cit != local_nodes.end(); ++cit)
             {
                 const LNode* const node_idx = *cit;
-                Pointer<IBInstrumentationSpec> spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
-                if (!spec.isNull())
+                const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
+                if (spec != NULL)
                 {
                     const int& petsc_idx = node_idx->getLocalPETScIndex();
                     const double* const X = &X_arr[NDIM*petsc_idx];
@@ -1039,8 +1039,8 @@ IBInstrumentPanel::readInstrumentData(
                  cit != local_nodes.end(); ++cit)
             {
                 const LNode* const node_idx = *cit;
-                Pointer<IBInstrumentationSpec> spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
-                if (!spec.isNull())
+                const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
+                if (spec != NULL)
                 {
                     const int& petsc_idx = node_idx->getLocalPETScIndex();
                     const double* const U = &U_arr[NDIM*petsc_idx];

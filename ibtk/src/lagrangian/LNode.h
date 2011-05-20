@@ -124,7 +124,7 @@ public:
      * node.
      */
     template<typename T>
-    SAMRAI::tbox::Pointer<T>
+    T*
     getNodeDataItem() const;
 
     /*!
@@ -140,7 +140,7 @@ public:
      * node.
      */
     template<typename T>
-    std::vector<SAMRAI::tbox::Pointer<T> >
+    std::vector<T*>
     getNodeDataVector() const;
 
     /*!

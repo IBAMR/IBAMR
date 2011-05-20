@@ -1268,8 +1268,8 @@ IBImplicitHierarchyIntegrator::regridHierarchy()
                  cit != local_nodes.end(); ++cit)
             {
                 const LNode* const node_idx = *cit;
-                Pointer<IBAnchorPointSpec> anchor_point_spec = node_idx->getNodeDataItem<IBAnchorPointSpec>();
-                if (!anchor_point_spec.isNull())
+                const IBAnchorPointSpec* const anchor_point_spec = node_idx->getNodeDataItem<IBAnchorPointSpec>();
+                if (anchor_point_spec != NULL)
                 {
                     d_anchor_point_local_idxs[ln].insert(node_idx->getLocalPETScIndex());
                 }

@@ -132,29 +132,29 @@ LNode::setNodeData(
 }// setNodeData
 
 template<typename T>
-inline SAMRAI::tbox::Pointer<T>
+inline T*
 LNode::getNodeDataItem() const
 {
-    SAMRAI::tbox::Pointer<T> ret_val = NULL;
+    T* ret_val = NULL;
     for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::const_iterator cit = d_node_data.begin();
          cit != d_node_data.end(); ++cit)
     {
-        ret_val = (*cit);
-        if (!ret_val.isNull()) break;
+        ret_val = dynamic_cast<T*>(cit->getPointer());
+        if (ret_val != NULL) break;
     }
     return ret_val;
 }// getNodeDataItem
 
 template<typename T>
-inline std::vector<SAMRAI::tbox::Pointer<T> >
+inline std::vector<T*>
 LNode::getNodeDataVector() const
 {
-    std::vector<SAMRAI::tbox::Pointer<T> > ret_val;
+    std::vector<T*> ret_val;
     for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::const_iterator cit = d_node_data.begin();
          cit != d_node_data.end(); ++cit)
     {
-        SAMRAI::tbox::Pointer<T> it_val = (*cit);
-        if (!it_val.isNull()) ret_val.push_back(it_val);
+        T* it_val = dynamic_cast<T*>(cit->getPointer());
+        if (it_val != NULL) ret_val.push_back(it_val);
     }
     return ret_val;
 }// getNodeDataVector
