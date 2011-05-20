@@ -62,13 +62,12 @@ public:
     /*!
      * \brief Virtual destructor.
      */
-    virtual
     ~SimpleIBSourceGen();
 
     /*!
      * \brief Set the current and new times for the present timestep.
      */
-    virtual void
+    void
     setTimeInterval(
         const double current_time,
         const double new_time);
@@ -79,7 +78,7 @@ public:
      *
      * \note A default empty implementation is provided.
      */
-    virtual void
+    void
     initializeLevelData(
         const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -94,7 +93,7 @@ public:
      * sources/sinks in the \em entire computational domain.  This implies that
      * the return value must be \em identical on each MPI process.
      */
-    virtual int
+    int
     getNumSources(
         const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -109,7 +108,7 @@ public:
      * \a X_src on \em each MPI process.  That is to say, \a X_src must provide
      * the location of all of the distributed sources/sinks.
      */
-    virtual void
+    void
     getSourceLocations(
         std::vector<std::vector<double> >& X_src,
         std::vector<double>& r_src,
@@ -122,7 +121,7 @@ public:
     /*!
      * \brief Set the normalized pressures at the sources.
      */
-    virtual void
+    void
     setSourcePressures(
         const std::vector<double>& P_src,
         const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
@@ -138,7 +137,7 @@ public:
      * \a Q_src on \em each MPI process.  That is to say, \a Q_src must provide
      * the strengths of all of the distributed sources/sinks.
      */
-    virtual void
+    void
     computeSourceStrengths(
         std::vector<double>& Q_src,
         const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,

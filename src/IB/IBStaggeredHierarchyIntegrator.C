@@ -1564,7 +1564,7 @@ IBStaggeredHierarchyIntegrator::regridHierarchy()
                  cit != local_nodes.end(); ++cit)
             {
                 const LNode* const node_idx = *cit;
-                Pointer<IBAnchorPointSpec> anchor_point_spec = node_idx->getNodeData<IBAnchorPointSpec>();
+                Pointer<IBAnchorPointSpec> anchor_point_spec = node_idx->getNodeDataItem<IBAnchorPointSpec>();
                 if (!anchor_point_spec.isNull())
                 {
                     d_anchor_point_local_idxs[ln].insert(node_idx->getLocalPETScIndex());

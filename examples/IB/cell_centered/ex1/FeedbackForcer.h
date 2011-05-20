@@ -68,7 +68,6 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual
     ~FeedbackForcer();
 
     /*!
@@ -90,13 +89,13 @@ public:
      * \brief Indicates whether the concrete CartGridFunction object is
      * time-dependent.
      */
-    virtual bool
+    bool
     isTimeDependent() const { return true; }
 
     /*!
      * \brief Evaluate the function on the patch interior.
      */
-    virtual void
+    void
     setDataOnPatch(
         const int data_idx,
         tbox::Pointer<hier::Variable<NDIM> > var,

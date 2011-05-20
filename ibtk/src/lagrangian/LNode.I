@@ -111,7 +111,6 @@ LNode::registerPeriodicShift(
     return;
 }// registerPeriodicShift
 
-
 inline const std::vector<SAMRAI::tbox::Pointer<Streamable> >&
 LNode::getNodeData() const
 {
@@ -134,7 +133,7 @@ LNode::setNodeData(
 
 template<typename T>
 inline SAMRAI::tbox::Pointer<T>
-LNode::getNodeData() const
+LNode::getNodeDataItem() const
 {
     SAMRAI::tbox::Pointer<T> ret_val = NULL;
     for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::const_iterator cit = d_node_data.begin();
@@ -144,7 +143,7 @@ LNode::getNodeData() const
         if (!ret_val.isNull()) break;
     }
     return ret_val;
-}// getNodeData
+}// getNodeDataItem
 
 template<typename T>
 inline std::vector<SAMRAI::tbox::Pointer<T> >

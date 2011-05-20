@@ -72,21 +72,20 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual
     ~QInit();
 
     /*!
      * Indicates whether the concrete CartGridFunction object is time
      * dependent.
      */
-    virtual bool
+    bool
     isTimeDependent() const
         { return false; }
 
     /*!
      * Set the data on the patch interior to the exact answer.
      */
-    virtual void
+    void
     setDataOnPatch(
         const int data_idx,
         tbox::Pointer<hier::Variable<NDIM> > var,

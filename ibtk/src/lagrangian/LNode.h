@@ -125,7 +125,7 @@ public:
      */
     template<typename T>
     SAMRAI::tbox::Pointer<T>
-    getNodeData() const;
+    getNodeDataItem() const;
 
     /*!
      * \return A vector of pointers to all data items of type T associated with

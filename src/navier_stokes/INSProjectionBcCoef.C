@@ -251,7 +251,7 @@ INSProjectionBcCoef::setBcCoefs(
     double fill_time) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned int d; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(d_u_bc_coefs[d] != NULL);
     }
@@ -380,7 +380,7 @@ IntVector<NDIM>
 INSProjectionBcCoef::numberOfExtensionsFillable() const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned int d; d < NDIM; ++d)
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(d_u_bc_coefs[d] != NULL);
     }

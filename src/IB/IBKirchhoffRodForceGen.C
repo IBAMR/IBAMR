@@ -295,7 +295,7 @@ IBKirchhoffRodForceGen::initializeLevelData(
          cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
-        const Pointer<IBRodForceSpec> force_spec = node_idx->getNodeData<IBRodForceSpec>();
+        const Pointer<IBRodForceSpec> force_spec = node_idx->getNodeDataItem<IBRodForceSpec>();
         if (!force_spec.isNull())
         {
             const int& curr_idx = node_idx->getLagrangianIndex();

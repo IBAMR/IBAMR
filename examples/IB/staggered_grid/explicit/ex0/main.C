@@ -92,7 +92,7 @@ public:
         return;
     }// ~myPostProcessor()
 
-    virtual void
+    void
     postProcessData(
         const int u_idx,
         const int p_idx,

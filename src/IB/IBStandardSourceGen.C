@@ -162,7 +162,7 @@ IBStandardSourceGen::initializeLevelData(
          cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
-        Pointer<IBSourceSpec> spec = node_idx->getNodeData<IBSourceSpec>();
+        Pointer<IBSourceSpec> spec = node_idx->getNodeDataItem<IBSourceSpec>();
         if (!spec.isNull())
         {
             const int source_idx = spec->getSourceIndex();
@@ -214,7 +214,7 @@ IBStandardSourceGen::getSourceLocations(
          cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
-        Pointer<IBSourceSpec> spec = node_idx->getNodeData<IBSourceSpec>();
+        Pointer<IBSourceSpec> spec = node_idx->getNodeDataItem<IBSourceSpec>();
         if (!spec.isNull())
         {
             const int& petsc_idx = node_idx->getLocalPETScIndex();
