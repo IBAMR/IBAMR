@@ -673,7 +673,7 @@ IBStaggeredHierarchyIntegrator::initializeHierarchy()
             d_P_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
             d_Q_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
             Pointer<LData> X_data = NULL;
-            if (!d_l_data_manager->levelContainsLagrangianData(level_number)) X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,level_number);
+            if (d_l_data_manager->levelContainsLagrangianData(level_number)) X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,level_number);
             d_source_strategy->getSourceLocations(d_X_src[level_number], d_r_src[level_number], X_data, d_hierarchy, level_number, init_data_time, d_l_data_manager);
         }
 
