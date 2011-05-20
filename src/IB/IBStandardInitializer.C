@@ -250,7 +250,7 @@ IBStandardInitializer::IBStandardInitializer(
 
 IBStandardInitializer::~IBStandardInitializer()
 {
-    // intentionally blank
+    pout << d_object_name << ":  Deallocating initialization data.\n";
     return;
 }// ~IBStandardInitializer
 
