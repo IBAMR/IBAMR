@@ -62,47 +62,23 @@
 
 #define PREFETCH(a,t) do { _mm_prefetch((const char*)(a),(t)); } while (0)
 
-#define PREFETCH_INT_BLOCK(a,n,t)                                       \
+#define PREFETCH_BLOCK(a,n,t)                                           \
     do {                                                                \
-        for (const int* p = (a); p < (a)+(n); ++p)                      \
+        for (int k = 0; k < (n); ++k)                                   \
         {                                                               \
-            PREFETCH(p,(t));                                            \
-        }                                                               \
-    } while (0)
-
-#define PREFETCH_DOUBLE_BLOCK(a,n,t)                                    \
-    do {                                                                \
-        for (const double* p = (a); p < (a)+(n); ++p)                   \
-        {                                                               \
-            PREFETCH(p,(t));                                            \
-        }                                                               \
-    } while (0)
-
-#define PREFETCH_INT_PTR_BLOCK(a,n,t)                                   \
-    do {                                                                \
-        for (const int** p = (a); p < (a)+(n); ++p)                     \
-        {                                                               \
-            PREFETCH(p,(t));                                            \
-        }                                                               \
-    } while (0)
-
-#define PREFETCH_DOUBLE_PTR_BLOCK(a,n,t)                                \
-    do {                                                                \
-        for (const double** p = (a); p < (a)+(n); ++p)                  \
-        {                                                               \
-            PREFETCH(p,(t));                                            \
+            PREFETCH((a)+k,(t));                                        \
         }                                                               \
     } while (0)
 
 #if (NDIM == 2)
-#define PREFETCH_DOUBLE_NDIM_BLOCK(a,t)                                 \
+#define PREFETCH_NDIM_BLOCK(a,t)                                        \
     do {                                                                \
         PREFETCH((a)  ,(t));                                            \
         PREFETCH((a)+1,(t));                                            \
     } while (0)
 #endif
 #if (NDIM == 3)
-#define PREFETCH_DOUBLE_NDIM_BLOCK(a,t)                                 \
+#define PREFETCH_NDIM_BLOCK(a,t)                                        \
     do {                                                                \
         PREFETCH((a)  ,(t));                                            \
         PREFETCH((a)+1,(t));                                            \
@@ -189,7 +165,7 @@ IBStandardForceGen::IBStandardForceGen(
     else
     {
         pout << "IBStandardForceGen:  Using nonconstant material properites.\n"
-             << "  Material properties may only be updated at any point.\n"
+             << "  Material properties may be updated at any time.\n"
              << "  Models with constant material properties may see increased performance by setting\n"
              << "  constant_material_properties = true.\n";
     }
@@ -561,45 +537,42 @@ IBStandardForceGen::computeLagrangianSpringForce(
     kblock = 0;
     if (d_constant_material_properties)
     {
-        if (LIKELY(num_springs > BLOCKSIZE))
+        for ( ; kblock < (num_springs-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
         {
-            for ( ; kblock < num_springs/BLOCKSIZE; ++kblock)
+            PREFETCH_BLOCK(  lag_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_BLOCK(  lag_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_BLOCK(petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_BLOCK(petsc_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_BLOCK(          stiffnesses+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_BLOCK(         rest_lengths+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
             {
-                PREFETCH_INT_BLOCK(  lag_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                PREFETCH_INT_BLOCK(  lag_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                PREFETCH_INT_BLOCK(petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                PREFETCH_INT_BLOCK(petsc_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                PREFETCH_DOUBLE_BLOCK(       stiffnesses+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                PREFETCH_DOUBLE_BLOCK(      rest_lengths+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
-                {
-                    k = kblock*BLOCKSIZE+kunroll;
-                    mastr_idx = petsc_mastr_node_idxs[k];
-                    slave_idx = petsc_slave_node_idxs[k];
+                k = kblock*BLOCKSIZE+kunroll;
+                mastr_idx = petsc_mastr_node_idxs[k];
+                slave_idx = petsc_slave_node_idxs[k];
 #ifdef DEBUG_CHECK_ASSERTIONS
-                    TBOX_ASSERT(mastr_idx != slave_idx);
+                TBOX_ASSERT(mastr_idx != slave_idx);
 #endif
-                    PREFETCH_DOUBLE_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH_DOUBLE_NDIM_BLOCK(F_node+petsc_slave_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH_DOUBLE_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH_DOUBLE_NDIM_BLOCK(X_node+petsc_slave_node_idxs[k+1], _MM_HINT_NTA);
-                    D[0] = X_node[slave_idx+0]- X_node[mastr_idx+0];
-                    D[1] = X_node[slave_idx+1]- X_node[mastr_idx+1];
+                PREFETCH_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_NDIM_BLOCK(F_node+petsc_slave_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_NDIM_BLOCK(X_node+petsc_slave_node_idxs[k+1], _MM_HINT_NTA);
+                D[0] = X_node[slave_idx+0]- X_node[mastr_idx+0];
+                D[1] = X_node[slave_idx+1]- X_node[mastr_idx+1];
 #if (NDIM == 3)
-                    D[2] = X_node[slave_idx+2]- X_node[mastr_idx+2];
+                D[2] = X_node[slave_idx+2]- X_node[mastr_idx+2];
 #endif
-                    (force_fcns[k])(F,D,stiffnesses[k],rest_lengths[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k]);
-                    F_node[mastr_idx+0] += F[0];
-                    F_node[mastr_idx+1] += F[1];
+                (force_fcns[k])(F,D,stiffnesses[k],rest_lengths[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k]);
+                F_node[mastr_idx+0] += F[0];
+                F_node[mastr_idx+1] += F[1];
 #if (NDIM == 3)
-                    F_node[mastr_idx+2] += F[2];
+                F_node[mastr_idx+2] += F[2];
 #endif
-                    F_node[slave_idx+0] -= F[0];
-                    F_node[slave_idx+1] -= F[1];
+                F_node[slave_idx+0] -= F[0];
+                F_node[slave_idx+1] -= F[1];
 #if (NDIM == 3)
-                    F_node[slave_idx+2] -= F[2];
+                F_node[slave_idx+2] -= F[2];
 #endif
-                }
             }
         }
         for (k = kblock*BLOCKSIZE; k < num_springs; ++k)
@@ -629,47 +602,44 @@ IBStandardForceGen::computeLagrangianSpringForce(
     }
     else
     {
-        if (LIKELY(num_springs > BLOCKSIZE))
+        for ( ; kblock < (num_springs-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
         {
-            for ( ; kblock < num_springs/BLOCKSIZE; ++kblock)
+            PREFETCH_BLOCK(  lag_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_BLOCK(  lag_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_BLOCK(petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_BLOCK(petsc_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_BLOCK(  dynamic_stiffnesses+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_BLOCK( dynamic_rest_lengths+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
             {
-                PREFETCH_INT_BLOCK(        lag_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                PREFETCH_INT_BLOCK(        lag_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                PREFETCH_INT_BLOCK(      petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                PREFETCH_INT_BLOCK(      petsc_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                PREFETCH_DOUBLE_PTR_BLOCK( dynamic_stiffnesses+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                PREFETCH_DOUBLE_PTR_BLOCK(dynamic_rest_lengths+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
-                {
-                    k = kblock*BLOCKSIZE+kunroll;
-                    mastr_idx = petsc_mastr_node_idxs[k];
-                    slave_idx = petsc_slave_node_idxs[k];
+                k = kblock*BLOCKSIZE+kunroll;
+                mastr_idx = petsc_mastr_node_idxs[k];
+                slave_idx = petsc_slave_node_idxs[k];
 #ifdef DEBUG_CHECK_ASSERTIONS
-                    TBOX_ASSERT(mastr_idx != slave_idx);
+                TBOX_ASSERT(mastr_idx != slave_idx);
 #endif
-                    PREFETCH_DOUBLE_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH_DOUBLE_NDIM_BLOCK(F_node+petsc_slave_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH_DOUBLE_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH_DOUBLE_NDIM_BLOCK(X_node+petsc_slave_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH(                           dynamic_stiffnesses[k+1], _MM_HINT_NTA);
-                    PREFETCH(                          dynamic_rest_lengths[k+1], _MM_HINT_NTA);
-                    D[0] = X_node[slave_idx+0]- X_node[mastr_idx+0];
-                    D[1] = X_node[slave_idx+1]- X_node[mastr_idx+1];
+                PREFETCH_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_NDIM_BLOCK(F_node+petsc_slave_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_NDIM_BLOCK(X_node+petsc_slave_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH(                    dynamic_stiffnesses[k+1], _MM_HINT_NTA);
+                PREFETCH(                   dynamic_rest_lengths[k+1], _MM_HINT_NTA);
+                D[0] = X_node[slave_idx+0]- X_node[mastr_idx+0];
+                D[1] = X_node[slave_idx+1]- X_node[mastr_idx+1];
 #if (NDIM == 3)
-                    D[2] = X_node[slave_idx+2]- X_node[mastr_idx+2];
+                D[2] = X_node[slave_idx+2]- X_node[mastr_idx+2];
 #endif
-                    (force_fcns[k])(F,D,*dynamic_stiffnesses[k],*dynamic_rest_lengths[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k]);
-                    F_node[mastr_idx+0] += F[0];
-                    F_node[mastr_idx+1] += F[1];
+                (force_fcns[k])(F,D,*dynamic_stiffnesses[k],*dynamic_rest_lengths[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k]);
+                F_node[mastr_idx+0] += F[0];
+                F_node[mastr_idx+1] += F[1];
 #if (NDIM == 3)
-                    F_node[mastr_idx+2] += F[2];
+                F_node[mastr_idx+2] += F[2];
 #endif
-                    F_node[slave_idx+0] -= F[0];
-                    F_node[slave_idx+1] -= F[1];
+                F_node[slave_idx+0] -= F[0];
+                F_node[slave_idx+1] -= F[1];
 #if (NDIM == 3)
-                    F_node[slave_idx+2] -= F[2];
+                F_node[slave_idx+2] -= F[2];
 #endif
-                }
             }
         }
         for (k = kblock*BLOCKSIZE; k < num_springs; ++k)
@@ -849,53 +819,50 @@ IBStandardForceGen::computeLagrangianBeamForce(
     kblock = 0;
     if (d_constant_material_properties)
     {
-        if (LIKELY(num_beams > BLOCKSIZE))
+        for ( ; kblock < (num_beams-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
         {
-            for ( ; kblock < num_beams/BLOCKSIZE; ++kblock)
+            PREFETCH_BLOCK(petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_BLOCK( petsc_next_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_BLOCK( petsc_prev_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_BLOCK(           rigidities+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
             {
-                PREFETCH_INT_BLOCK(petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                PREFETCH_INT_BLOCK( petsc_next_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                PREFETCH_INT_BLOCK( petsc_prev_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                PREFETCH_DOUBLE_BLOCK(        rigidities+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
-                {
-                    k = kblock*BLOCKSIZE+kunroll;
-                    mastr_idx = petsc_mastr_node_idxs[k];
-                    next_idx  = petsc_next_node_idxs [k];
-                    prev_idx  = petsc_prev_node_idxs [k];
+                k = kblock*BLOCKSIZE+kunroll;
+                mastr_idx = petsc_mastr_node_idxs[k];
+                next_idx  = petsc_next_node_idxs [k];
+                prev_idx  = petsc_prev_node_idxs [k];
 #ifdef DEBUG_CHECK_ASSERTIONS
-                    TBOX_ASSERT(mastr_idx != next_idx);
-                    TBOX_ASSERT(mastr_idx != prev_idx);
+                TBOX_ASSERT(mastr_idx != next_idx);
+                TBOX_ASSERT(mastr_idx != prev_idx);
 #endif
-                    PREFETCH_DOUBLE_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH_DOUBLE_NDIM_BLOCK(F_node+ petsc_next_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH_DOUBLE_NDIM_BLOCK(F_node+ petsc_prev_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH_DOUBLE_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH_DOUBLE_NDIM_BLOCK(X_node+ petsc_next_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH_DOUBLE_NDIM_BLOCK(X_node+ petsc_prev_node_idxs[k+1], _MM_HINT_NTA);
-                    K = rigidities[k];
-                    D2X0 = curvatures[k].data();
-                    F[0] = K*(X_node[next_idx+0]+X_node[prev_idx+0]-2.0*X_node[mastr_idx+0]-D2X0[0]);
-                    F[1] = K*(X_node[next_idx+1]+X_node[prev_idx+1]-2.0*X_node[mastr_idx+1]-D2X0[1]);
+                PREFETCH_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_NDIM_BLOCK(F_node+ petsc_next_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_NDIM_BLOCK(F_node+ petsc_prev_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_NDIM_BLOCK(X_node+ petsc_next_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_NDIM_BLOCK(X_node+ petsc_prev_node_idxs[k+1], _MM_HINT_NTA);
+                K = rigidities[k];
+                D2X0 = curvatures[k].data();
+                F[0] = K*(X_node[next_idx+0]+X_node[prev_idx+0]-2.0*X_node[mastr_idx+0]-D2X0[0]);
+                F[1] = K*(X_node[next_idx+1]+X_node[prev_idx+1]-2.0*X_node[mastr_idx+1]-D2X0[1]);
 #if (NDIM == 3)
-                    F[2] = K*(X_node[next_idx+2]+X_node[prev_idx+2]-2.0*X_node[mastr_idx+2]-D2X0[2]);
+                F[2] = K*(X_node[next_idx+2]+X_node[prev_idx+2]-2.0*X_node[mastr_idx+2]-D2X0[2]);
 #endif
-                    F_node[mastr_idx+0] += 2.0*F[0];
-                    F_node[mastr_idx+1] += 2.0*F[1];
+                F_node[mastr_idx+0] += 2.0*F[0];
+                F_node[mastr_idx+1] += 2.0*F[1];
 #if (NDIM == 3)
-                    F_node[mastr_idx+2] += 2.0*F[2];
+                F_node[mastr_idx+2] += 2.0*F[2];
 #endif
-                    F_node[next_idx +0] -=     F[0];
-                    F_node[next_idx +1] -=     F[1];
+                F_node[next_idx +0] -=     F[0];
+                F_node[next_idx +1] -=     F[1];
 #if (NDIM == 3)
-                    F_node[next_idx +2] -=     F[2];
+                F_node[next_idx +2] -=     F[2];
 #endif
-                    F_node[prev_idx +0] -=     F[0];
-                    F_node[prev_idx +1] -=     F[1];
+                F_node[prev_idx +0] -=     F[0];
+                F_node[prev_idx +1] -=     F[1];
 #if (NDIM == 3)
-                    F_node[prev_idx +2] -=     F[2];
+                F_node[prev_idx +2] -=     F[2];
 #endif
-                }
             }
         }
         for (k = kblock*BLOCKSIZE; k < num_beams; ++k)
@@ -933,54 +900,51 @@ IBStandardForceGen::computeLagrangianBeamForce(
     }
     else
     {
-        if (LIKELY(num_beams > BLOCKSIZE))
+        for ( ; kblock < (num_beams-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
         {
-            for ( ; kblock < num_beams/BLOCKSIZE; ++kblock)
+            PREFETCH_BLOCK(petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_BLOCK( petsc_next_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_BLOCK( petsc_prev_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_BLOCK(   dynamic_rigidities+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
             {
-                PREFETCH_INT_BLOCK(    petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                PREFETCH_INT_BLOCK(     petsc_next_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                PREFETCH_INT_BLOCK(     petsc_prev_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                PREFETCH_DOUBLE_PTR_BLOCK(dynamic_rigidities+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
-                {
-                    k = kblock*BLOCKSIZE+kunroll;
-                    mastr_idx = petsc_mastr_node_idxs[k];
-                    next_idx  = petsc_next_node_idxs [k];
-                    prev_idx  = petsc_prev_node_idxs [k];
+                k = kblock*BLOCKSIZE+kunroll;
+                mastr_idx = petsc_mastr_node_idxs[k];
+                next_idx  = petsc_next_node_idxs [k];
+                prev_idx  = petsc_prev_node_idxs [k];
 #ifdef DEBUG_CHECK_ASSERTIONS
-                    TBOX_ASSERT(mastr_idx != next_idx);
-                    TBOX_ASSERT(mastr_idx != prev_idx);
+                TBOX_ASSERT(mastr_idx != next_idx);
+                TBOX_ASSERT(mastr_idx != prev_idx);
 #endif
-                    PREFETCH_DOUBLE_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH_DOUBLE_NDIM_BLOCK(F_node+ petsc_next_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH_DOUBLE_NDIM_BLOCK(F_node+ petsc_prev_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH_DOUBLE_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH_DOUBLE_NDIM_BLOCK(X_node+ petsc_next_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH_DOUBLE_NDIM_BLOCK(X_node+ petsc_prev_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH(                            dynamic_rigidities[k+1], _MM_HINT_NTA);
-                    K = *dynamic_rigidities[k];
-                    D2X0 = dynamic_curvatures[k]->data();
-                    F[0] = K*(X_node[next_idx+0]+X_node[prev_idx+0]-2.0*X_node[mastr_idx+0]-D2X0[0]);
-                    F[1] = K*(X_node[next_idx+1]+X_node[prev_idx+1]-2.0*X_node[mastr_idx+1]-D2X0[1]);
+                PREFETCH_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_NDIM_BLOCK(F_node+ petsc_next_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_NDIM_BLOCK(F_node+ petsc_prev_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_NDIM_BLOCK(X_node+ petsc_next_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_NDIM_BLOCK(X_node+ petsc_prev_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH(                     dynamic_rigidities[k+1], _MM_HINT_NTA);
+                K = *dynamic_rigidities[k];
+                D2X0 = dynamic_curvatures[k]->data();
+                F[0] = K*(X_node[next_idx+0]+X_node[prev_idx+0]-2.0*X_node[mastr_idx+0]-D2X0[0]);
+                F[1] = K*(X_node[next_idx+1]+X_node[prev_idx+1]-2.0*X_node[mastr_idx+1]-D2X0[1]);
 #if (NDIM == 3)
-                    F[2] = K*(X_node[next_idx+2]+X_node[prev_idx+2]-2.0*X_node[mastr_idx+2]-D2X0[2]);
+                F[2] = K*(X_node[next_idx+2]+X_node[prev_idx+2]-2.0*X_node[mastr_idx+2]-D2X0[2]);
 #endif
-                    F_node[mastr_idx+0] += 2.0*F[0];
-                    F_node[mastr_idx+1] += 2.0*F[1];
+                F_node[mastr_idx+0] += 2.0*F[0];
+                F_node[mastr_idx+1] += 2.0*F[1];
 #if (NDIM == 3)
-                    F_node[mastr_idx+2] += 2.0*F[2];
+                F_node[mastr_idx+2] += 2.0*F[2];
 #endif
-                    F_node[next_idx +0] -=     F[0];
-                    F_node[next_idx +1] -=     F[1];
+                F_node[next_idx +0] -=     F[0];
+                F_node[next_idx +1] -=     F[1];
 #if (NDIM == 3)
-                    F_node[next_idx +2] -=     F[2];
+                F_node[next_idx +2] -=     F[2];
 #endif
-                    F_node[prev_idx +0] -=     F[0];
-                    F_node[prev_idx +1] -=     F[1];
+                F_node[prev_idx +0] -=     F[0];
+                F_node[prev_idx +1] -=     F[1];
 #if (NDIM == 3)
-                    F_node[prev_idx +2] -=     F[2];
+                F_node[prev_idx +2] -=     F[2];
 #endif
-                }
             }
         }
         for (k = kblock*BLOCKSIZE; k < num_beams; ++k)
@@ -1124,28 +1088,25 @@ IBStandardForceGen::computeLagrangianTargetPointForce(
     kblock = 0;
     if (d_constant_material_properties)
     {
-        if (LIKELY(num_target_points > BLOCKSIZE))
+        for ( ; kblock < (num_target_points-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
         {
-            for (kblock = 0; kblock < num_target_points/BLOCKSIZE; ++kblock)
+            PREFETCH_BLOCK(petsc_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_BLOCK(          kappa+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_BLOCK(            eta+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
             {
-                PREFETCH_INT_BLOCK(petsc_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                PREFETCH_DOUBLE_BLOCK(       kappa+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                PREFETCH_DOUBLE_BLOCK(         eta+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
-                {
-                    k = kblock*BLOCKSIZE+kunroll;
-                    idx = petsc_node_idxs[k];
-                    PREFETCH_DOUBLE_NDIM_BLOCK(F_node+petsc_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH_DOUBLE_NDIM_BLOCK(X_node+petsc_node_idxs[k+1], _MM_HINT_NTA);
-                    K = kappa[k];
-                    E = eta[k];
-                    X_target = X0[k].data();
-                    F_node[idx+0] += K*(X_target[0] - X_node[idx+0]) - E*U_node[idx+0];
-                    F_node[idx+1] += K*(X_target[1] - X_node[idx+1]) - E*U_node[idx+1];
+                k = kblock*BLOCKSIZE+kunroll;
+                idx = petsc_node_idxs[k];
+                PREFETCH_NDIM_BLOCK(F_node+petsc_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_NDIM_BLOCK(X_node+petsc_node_idxs[k+1], _MM_HINT_NTA);
+                K = kappa[k];
+                E = eta[k];
+                X_target = X0[k].data();
+                F_node[idx+0] += K*(X_target[0] - X_node[idx+0]) - E*U_node[idx+0];
+                F_node[idx+1] += K*(X_target[1] - X_node[idx+1]) - E*U_node[idx+1];
 #if (NDIM == 3)
-                    F_node[idx+2] += K*(X_target[2] - X_node[idx+2]) - E*U_node[idx+2];
+                F_node[idx+2] += K*(X_target[2] - X_node[idx+2]) - E*U_node[idx+2];
 #endif
-                }
             }
         }
         for (k = kblock*BLOCKSIZE; k < num_target_points; ++k)
@@ -1163,30 +1124,27 @@ IBStandardForceGen::computeLagrangianTargetPointForce(
     }
     else
     {
-        if (LIKELY(num_target_points > BLOCKSIZE))
+        for ( ; kblock < (num_target_points-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
         {
-            for (kblock = 0; kblock < num_target_points/BLOCKSIZE; ++kblock)
+            PREFETCH_BLOCK(petsc_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_BLOCK(  dynamic_kappa+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_BLOCK(    dynamic_eta+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
             {
-                PREFETCH_INT_BLOCK(     petsc_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                PREFETCH_DOUBLE_PTR_BLOCK(dynamic_kappa+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                PREFETCH_DOUBLE_PTR_BLOCK(  dynamic_eta+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-                for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
-                {
-                    k = kblock*BLOCKSIZE+kunroll;
-                    idx = petsc_node_idxs[k];
-                    PREFETCH_DOUBLE_NDIM_BLOCK(F_node+petsc_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH_DOUBLE_NDIM_BLOCK(X_node+petsc_node_idxs[k+1], _MM_HINT_NTA);
-                    PREFETCH(                           dynamic_kappa[k+1], _MM_HINT_NTA);
-                    PREFETCH(                             dynamic_eta[k+1], _MM_HINT_NTA);
-                    K = *dynamic_kappa[k];
-                    E = *dynamic_eta[k];
-                    X_target = dynamic_X0[k]->data();
-                    F_node[idx+0] += K*(X_target[0] - X_node[idx+0]) - E*U_node[idx+0];
-                    F_node[idx+1] += K*(X_target[1] - X_node[idx+1]) - E*U_node[idx+1];
+                k = kblock*BLOCKSIZE+kunroll;
+                idx = petsc_node_idxs[k];
+                PREFETCH_NDIM_BLOCK(F_node+petsc_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_NDIM_BLOCK(X_node+petsc_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH(                    dynamic_kappa[k+1], _MM_HINT_NTA);
+                PREFETCH(                      dynamic_eta[k+1], _MM_HINT_NTA);
+                K = *dynamic_kappa[k];
+                E = *dynamic_eta[k];
+                X_target = dynamic_X0[k]->data();
+                F_node[idx+0] += K*(X_target[0] - X_node[idx+0]) - E*U_node[idx+0];
+                F_node[idx+1] += K*(X_target[1] - X_node[idx+1]) - E*U_node[idx+1];
 #if (NDIM == 3)
-                    F_node[idx+2] += K*(X_target[2] - X_node[idx+2]) - E*U_node[idx+2];
+                F_node[idx+2] += K*(X_target[2] - X_node[idx+2]) - E*U_node[idx+2];
 #endif
-                }
             }
         }
         for (k = kblock*BLOCKSIZE; k < num_target_points; ++k)
