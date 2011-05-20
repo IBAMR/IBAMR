@@ -386,7 +386,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
     std::vector<std::string> all_instrument_names;
     for (int ln = 0; ln <= level_number; ++ln)
     {
-        for (int j = 0; j < int(d_instrument_names[ln].size()); ++j)
+        for (int j = 0; j < static_cast<int>(d_instrument_names[ln].size()); ++j)
         {
             all_instrument_names.insert(all_instrument_names.end(), d_instrument_names[ln][j].begin(), d_instrument_names[ln][j].end());
         }
@@ -565,7 +565,7 @@ IBHDF5Initializer::findLocalPatchIndicesFromHDF5(
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid vertex dataset dimension in input file " << filename << "\n");
         }
-        const int num_vertex = int(dims[0]);
+        const int num_vertex = static_cast<int>(dims[0]);
 
         // Define the file dataspace.
         static const int rankf = 2;
@@ -903,7 +903,7 @@ IBHDF5Initializer::buildLevelVertexDataCacheFromHDF5(
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid vertex dataset dimension in input file " << filename << "\n");
         }
-        num_vertex = int(dims[0]);
+        num_vertex = static_cast<int>(dims[0]);
 
         // Define the file dataspace.
         static const int rankf = 2;
@@ -1078,7 +1078,7 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset dimension in input file " << filename << "\n");
         }
-        const int node1_idx_size = int(dims[0]);
+        const int node1_idx_size = static_cast<int>(dims[0]);
 
         H5LTget_dataset_ndims(file_id, node2_idx_dset_name.c_str(), &rank);
         if (rank != 1)
@@ -1090,7 +1090,7 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset dimension in input file " << filename << "\n");
         }
-        const int node2_idx_size = int(dims[0]);
+        const int node2_idx_size = static_cast<int>(dims[0]);
 
         H5LTget_dataset_ndims(file_id, force_fcn_idx_dset_name.c_str(), &rank);
         if (rank != 1)
@@ -1102,7 +1102,7 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset dimension in input file " << filename << "\n");
         }
-        const int force_fcn_idx_size = int(dims[0]);
+        const int force_fcn_idx_size = static_cast<int>(dims[0]);
 
         H5LTget_dataset_ndims(file_id, stiffness_dset_name.c_str(), &rank);
         if (rank != 1)
@@ -1114,7 +1114,7 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset dimension in input file " << filename << "\n");
         }
-        const int stiffness_size = int(dims[0]);
+        const int stiffness_size = static_cast<int>(dims[0]);
 
         H5LTget_dataset_ndims(file_id, rest_length_dset_name.c_str(), &rank);
         if (rank != 1)
@@ -1126,7 +1126,7 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid spring dataset dimension in input file " << filename << "\n");
         }
-        const int rest_length_size = int(dims[0]);
+        const int rest_length_size = static_cast<int>(dims[0]);
 
         if ((node1_idx_size != node2_idx_size    ) ||
             (node1_idx_size != force_fcn_idx_size) ||
@@ -1204,7 +1204,7 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
                         it = spring_data_map.insert(spring_data_map.end(), std::make_pair(node1_idx,new IBSpringForceSpec()));
                     }
 
-                    Pointer<IBSpringForceSpec> old_spring_data = (*it).second;
+                    Pointer<IBSpringForceSpec> old_spring_data = it->second;
                     TBOX_ASSERT(old_spring_data->getMasterNodeIndex() == -1 ||
                                 old_spring_data->getMasterNodeIndex() == node1_idx);
 
@@ -1220,7 +1220,7 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
 
                     Pointer<IBSpringForceSpec> new_spring_data = new IBSpringForceSpec(node1_idx, slave_idxs, force_fcn_idxs, stiffnesses, rest_lengths);
 
-                    (*it).second = new_spring_data;
+                    it->second = new_spring_data;
                 }
             }
         }
@@ -1270,7 +1270,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         const std::string node3_idx_dset_name     = beam_group_name + "/node3_idx"    ;
         const std::string bend_rigidity_dset_name = beam_group_name + "/bend_rigidity";
         std::string rest_curvature_dset_name[NDIM];
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             std::ostringstream os;
             os << "_" << d;
@@ -1302,7 +1302,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         }
 
         hid_t rest_curvature_dset[NDIM];
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             rest_curvature_dset[d] = H5Dopen1(file_id, rest_curvature_dset_name[d].c_str());
             if (rest_curvature_dset < 0)
@@ -1327,7 +1327,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset dimension in input file " << filename << "\n");
         }
-        const int node1_idx_size = int(dims[0]);
+        const int node1_idx_size = static_cast<int>(dims[0]);
 
         H5LTget_dataset_ndims(file_id, node2_idx_dset_name.c_str(), &rank);
         if (rank != 1)
@@ -1339,7 +1339,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset dimension in input file " << filename << "\n");
         }
-        const int node2_idx_size = int(dims[0]);
+        const int node2_idx_size = static_cast<int>(dims[0]);
 
         H5LTget_dataset_ndims(file_id, node3_idx_dset_name.c_str(), &rank);
         if (rank != 1)
@@ -1351,7 +1351,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset dimension in input file " << filename << "\n");
         }
-        const int node3_idx_size = int(dims[0]);
+        const int node3_idx_size = static_cast<int>(dims[0]);
 
         H5LTget_dataset_ndims(file_id, bend_rigidity_dset_name.c_str(), &rank);
         if (rank != 1)
@@ -1363,10 +1363,10 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset dimension in input file " << filename << "\n");
         }
-        const int bend_rigidity_size = int(dims[0]);
+        const int bend_rigidity_size = static_cast<int>(dims[0]);
 
         int rest_curvature_size[NDIM];
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             H5LTget_dataset_ndims(file_id, rest_curvature_dset_name[d].c_str(), &rank);
             if (rank != 1)
@@ -1378,7 +1378,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
             {
                 TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset dimension in input file " << filename << "\n");
             }
-            rest_curvature_size[d] = int(dims[0]);
+            rest_curvature_size[d] = static_cast<int>(dims[0]);
         }
 
         if ((node1_idx_size != node2_idx_size    ) ||
@@ -1387,7 +1387,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid beam dataset dimension in input file " << filename << "\n");
         }
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             if (node1_idx_size != rest_curvature_size[d])
             {
@@ -1437,7 +1437,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
             H5Dread(node2_idx_dset    , H5T_NATIVE_INT   , memspace, filespace, H5P_DEFAULT, &node2_idx_buf    [0]);
             H5Dread(node3_idx_dset    , H5T_NATIVE_INT   , memspace, filespace, H5P_DEFAULT, &node3_idx_buf    [0]);
             H5Dread(bend_rigidity_dset, H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, &bend_rigidity_buf[0]);
-            for (int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 H5Dread(rest_curvature_dset[d], H5T_NATIVE_DOUBLE, memspace, filespace, H5P_DEFAULT, &rest_curvature_buf[d][0]);
             }
@@ -1456,7 +1456,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
                 const int& node3_idx = node3_idx_buf[k];
                 const double& bend_rigidity = bend_rigidity_buf[k];
                 blitz::TinyVector<double,NDIM> rest_curvature;
-                for (int d = 0; d < NDIM; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     rest_curvature[d] = rest_curvature_buf[d][k];
                 }
@@ -1470,7 +1470,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
                         it = beam_data_map.insert(beam_data_map.end(), std::make_pair(node2_idx,new IBBeamForceSpec()));
                     }
 
-                    Pointer<IBBeamForceSpec> old_beam_data = (*it).second;
+                    Pointer<IBBeamForceSpec> old_beam_data = it->second;
                     TBOX_ASSERT(old_beam_data->getMasterNodeIndex() == -1 ||
                                 old_beam_data->getMasterNodeIndex() == node2_idx);
 
@@ -1484,7 +1484,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
 
                     Pointer<IBBeamForceSpec> new_beam_data = new IBBeamForceSpec(node2_idx, neighbor_idxs, bend_rigidities, rest_curvatures);
 
-                    (*it).second = new_beam_data;
+                    it->second = new_beam_data;
                 }
             }
         }
@@ -1496,7 +1496,7 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
         H5Dclose(node2_idx_dset);
         H5Dclose(node3_idx_dset);
         H5Dclose(bend_rigidity_dset);
-        for (int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
             H5Dclose(rest_curvature_dset[d]);
         }
@@ -1570,7 +1570,7 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid target point dataset dimension in input file " << filename << "\n");
         }
-        const int node_idx_size = int(dims[0]);
+        const int node_idx_size = static_cast<int>(dims[0]);
 
         H5LTget_dataset_ndims(file_id, stiffness_dset_name.c_str(), &rank);
         if (rank != 1)
@@ -1582,7 +1582,7 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid target point dataset dimension in input file " << filename << "\n");
         }
-        const int stiffness_size = int(dims[0]);
+        const int stiffness_size = static_cast<int>(dims[0]);
 
         H5LTget_dataset_ndims(file_id, damping_dset_name.c_str(), &rank);
         if (rank != 1)
@@ -1594,7 +1594,7 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid target point dataset dimension in input file " << filename << "\n");
         }
-        const int damping_size = int(dims[0]);
+        const int damping_size = static_cast<int>(dims[0]);
 
         if ((node_idx_size != stiffness_size) ||
             (node_idx_size != damping_size  ) )
@@ -1662,7 +1662,7 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
                     }
                     else
                     {
-                        target_point_data = (*it).second;
+                        target_point_data = it->second;
                         TBOX_ASSERT(target_point_data->getMasterNodeIndex() == node_idx);
                     }
                     target_point_data->getMasterNodeIndex() = node_idx;
@@ -1774,7 +1774,7 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid instrumentation dataset dimension in input file " << filename << "\n");
         }
-        const int node_idx_size = int(dims[0]);
+        const int node_idx_size = static_cast<int>(dims[0]);
 
         H5LTget_dataset_ndims(file_id, meter_idx_dset_name.c_str(), &rank);
         if (rank != 1)
@@ -1786,7 +1786,7 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid instrumentation dataset dimension in input file " << filename << "\n");
         }
-        const int meter_idx_size = int(dims[0]);
+        const int meter_idx_size = static_cast<int>(dims[0]);
 
         H5LTget_dataset_ndims(file_id, meter_node_idx_dset_name.c_str(), &rank);
         if (rank != 1)
@@ -1798,7 +1798,7 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
         {
             TBOX_ERROR(d_object_name << ":\n  Invalid instrumentation dataset dimension in input file " << filename << "\n");
         }
-        const int meter_node_idx_size = int(dims[0]);
+        const int meter_node_idx_size = static_cast<int>(dims[0]);
 
         if ((node_idx_size != meter_idx_size) || (node_idx_size != meter_node_idx_size))
         {
@@ -1864,7 +1864,7 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
                     }
                     else
                     {
-                        inst_point_data = (*it).second;
+                        inst_point_data = it->second;
                         TBOX_ASSERT(inst_point_data->getMasterNodeIndex() == node_idx);
                     }
                     inst_point_data->getMasterNodeIndex() = node_idx;
@@ -1946,11 +1946,10 @@ IBHDF5Initializer::initializeSpecs(
     // Initialize any spring specifications associated with the present vertex.
     if (d_enable_springs[ln][j])
     {
-        std::map<int,Pointer<IBSpringForceSpec> >::const_iterator cit =
-            d_level_spring_data_map[j].find(k);
+        std::map<int,Pointer<IBSpringForceSpec> >::const_iterator cit = d_level_spring_data_map[j].find(k);
         if (cit != d_level_spring_data_map[j].end())
         {
-            Pointer<IBSpringForceSpec> spring_data = (*cit).second;
+            Pointer<IBSpringForceSpec> spring_data = cit->second;
             if (specs_need_reset)
             {
                 if (d_using_uniform_spring_force_fcn_idx[ln][j])
@@ -1983,11 +1982,10 @@ IBHDF5Initializer::initializeSpecs(
     // Initialize any beam specifications associated with the present vertex.
     if (d_enable_beams[ln][j])
     {
-        std::map<int,Pointer<IBBeamForceSpec> >::const_iterator cit =
-            d_level_beam_data_map[j].find(k);
+        std::map<int,Pointer<IBBeamForceSpec> >::const_iterator cit = d_level_beam_data_map[j].find(k);
         if (cit != d_level_beam_data_map[j].end())
         {
-            Pointer<IBBeamForceSpec> beam_data = (*cit).second;
+            Pointer<IBBeamForceSpec> beam_data = cit->second;
             if (specs_need_reset)
             {
                 if (d_using_uniform_beam_bend_rigidity[ln][j])
@@ -2000,8 +1998,8 @@ IBHDF5Initializer::initializeSpecs(
                 for (std::vector<std::pair<int,int> >::iterator it = neighbor_idxs.begin();
                      it != neighbor_idxs.end(); ++it)
                 {
-                    (*it).first  += vertex_offset;
-                    (*it).second += vertex_offset;
+                    it->first  += vertex_offset;
+                    it->second += vertex_offset;
                 }
             }
             vertex_specs.push_back(beam_data);
@@ -2024,11 +2022,10 @@ IBHDF5Initializer::initializeSpecs(
         }
         else
         {
-            std::map<int,Pointer<IBTargetPointForceSpec> >::const_iterator cit =
-                d_level_target_point_data_map[j].find(k);
+            std::map<int,Pointer<IBTargetPointForceSpec> >::const_iterator cit = d_level_target_point_data_map[j].find(k);
             if (cit != d_level_target_point_data_map[j].end())
             {
-                Pointer<IBTargetPointForceSpec> target_point_data = (*cit).second;
+                Pointer<IBTargetPointForceSpec> target_point_data = cit->second;
                 if (specs_need_reset)
                 {
                     target_point_data->getMasterNodeIndex() += vertex_offset;
@@ -2044,7 +2041,7 @@ IBHDF5Initializer::initializeSpecs(
     int instrument_index_offset = 0;
     for (int coarser_ln = 0; coarser_ln < ln; ++coarser_ln)
     {
-        for (int file_number = 0; file_number < int(d_instrument_names[coarser_ln].size());
+        for (int file_number = 0; file_number < static_cast<int>(d_instrument_names[coarser_ln].size());
              ++file_number)
         {
             instrument_index_offset += d_instrument_names[coarser_ln][file_number].size();
@@ -2057,11 +2054,10 @@ IBHDF5Initializer::initializeSpecs(
 
     if (d_enable_instrumentation[ln][j])
     {
-        std::map<int,Pointer<IBInstrumentationSpec> >::const_iterator cit =
-            d_level_inst_point_data_map[j].find(k);
+        std::map<int,Pointer<IBInstrumentationSpec> >::const_iterator cit = d_level_inst_point_data_map[j].find(k);
         if (cit != d_level_inst_point_data_map[j].end())
         {
-            Pointer<IBInstrumentationSpec> inst_point_data = (*cit).second;
+            Pointer<IBInstrumentationSpec> inst_point_data = cit->second;
             if (specs_need_reset)
             {
                 inst_point_data->getMasterNodeIndex() += vertex_offset;
