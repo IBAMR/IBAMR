@@ -47,6 +47,7 @@
 // IBTK INCLUDES
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/LEInteractor.h>
+#include <ibtk/compiler_hints.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/namespaces.h>
@@ -370,9 +371,11 @@ FEDataManager::spread(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
 #endif
+    const bool reuse_fe_object   = F_dof_map.variable_type(0) == X_dof_map.variable_type(0);
+    const bool reuse_dof_indices = reuse_fe_object && (n_vars == NDIM);
     blitz::Array<std::vector<unsigned int>,1> X_dof_indices(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) X_dof_indices(d).reserve(27);
-    AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
+    AutoPtr<FEBase> X_fe(reuse_fe_object ? F_fe : FEBase::build(dim, X_dof_map.variable_type(0)));
     X_fe->attach_quadrature_rule(d_qrule);
     const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
 
@@ -409,33 +412,37 @@ FEDataManager::spread(
             d_qrule->init(HEX27);
         }
         const unsigned int n_qp_estimate = d_qrule->n_points();
-        std::vector<double> F_JxW_qp;
-        F_JxW_qp.reserve(safety_factor*n_vars*n_qp_estimate*num_active_patch_elems);
-        std::vector<double> X_qp;
-        X_qp.reserve(safety_factor*NDIM*n_qp_estimate*num_active_patch_elems);
+        std::vector<double> F_JxW_qp(safety_factor*n_vars*n_qp_estimate*num_active_patch_elems);
+        std::vector<double>     X_qp(safety_factor*NDIM  *n_qp_estimate*num_active_patch_elems);
 
         // Loop over the elements and compute the values to be spread and the
         // positions of the quadrature points.
         int qp_offset = 0;
+        ElemType previous_elem_type = INVALID_ELEM;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             const libMesh::Elem* const elem = patch_elems(e_idx);
-            F_fe->reinit(elem);
+            const bool skip_reinit = elem->type() == previous_elem_type;
+            previous_elem_type = elem->type();
+
+            if (!skip_reinit) F_fe->reinit(elem);
             for (unsigned int i = 0; i < n_vars; ++i)
             {
                 F_dof_map.dof_indices(elem, F_dof_indices(i), i);
             }
 
-            X_fe->reinit(elem);
-            for (unsigned int d = 0; d < NDIM; ++d)
+            if (!skip_reinit && !reuse_fe_object) X_fe->reinit(elem);
+            if (!reuse_dof_indices)
             {
-                X_dof_map.dof_indices(elem, X_dof_indices(d), d);
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    X_dof_map.dof_indices(elem, X_dof_indices(d), d);
+                }
             }
 
             const unsigned int n_qp = d_qrule->n_points();
-
-            F_JxW_qp.resize(F_JxW_qp.size()+n_vars*n_qp);
-            X_qp    .resize(X_qp    .size()+NDIM  *n_qp);
+            if (UNLIKELY(F_JxW_qp.size() < n_vars*(qp_offset+n_qp))) F_JxW_qp.resize(n_vars*(qp_offset+n_qp));
+            if (UNLIKELY(    X_qp.size() < NDIM  *(qp_offset+n_qp)))     X_qp.resize(NDIM  *(qp_offset+n_qp));
 
             get_values_for_interpolation(F_node, F_vec, F_dof_indices);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
@@ -448,7 +455,7 @@ FEDataManager::spread(
                 }
             }
 
-            get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+            get_values_for_interpolation(X_node, X_vec, reuse_dof_indices ? F_dof_indices : X_dof_indices);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = NDIM*(qp+qp_offset);
@@ -459,6 +466,9 @@ FEDataManager::spread(
         }
 
         if (qp_offset == 0) continue;
+
+        F_JxW_qp.resize(n_vars*qp_offset);
+        X_qp    .resize(NDIM  *qp_offset);
 
         // Spread values from the quadrature points to the Cartesian grid patch.
         //
@@ -515,9 +525,10 @@ FEDataManager::interp(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
 #endif
+    const bool reuse_fe_object = F_dof_map.variable_type(0) == X_dof_map.variable_type(0);
     blitz::Array<std::vector<unsigned int>,1> X_dof_indices(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) X_dof_indices(d).reserve(27);
-    AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
+    AutoPtr<FEBase> X_fe(reuse_fe_object ? F_fe : FEBase::build(dim, X_dof_map.variable_type(0)));
     X_fe->attach_quadrature_rule(d_qrule);
     const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
 
@@ -558,26 +569,27 @@ FEDataManager::interp(
             d_qrule->init(HEX27);
         }
         const unsigned int n_qp_estimate = d_qrule->n_points();
-        std::vector<double> F_qp;
-        F_qp.reserve(safety_factor*n_vars*n_qp_estimate*num_active_patch_elems);
-        std::vector<double> X_qp;
-        X_qp.reserve(safety_factor*NDIM  *n_qp_estimate*num_active_patch_elems);
+        std::vector<double> F_qp(safety_factor*n_vars*n_qp_estimate*num_active_patch_elems);
+        std::vector<double> X_qp(safety_factor*NDIM  *n_qp_estimate*num_active_patch_elems);
 
         // Loop over the elements and compute the positions of the quadrature points.
         int qp_offset = 0;
+        ElemType previous_elem_type = INVALID_ELEM;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             const libMesh::Elem* const elem = patch_elems(e_idx);
-            X_fe->reinit(elem);
+            const bool skip_reinit = elem->type() == previous_elem_type;
+            previous_elem_type = elem->type();
+
+            if (!skip_reinit) X_fe->reinit(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_dof_map.dof_indices(elem, X_dof_indices(d), d);
             }
 
             const unsigned int n_qp = d_qrule->n_points();
-
-            F_qp.resize(F_qp.size()+n_vars*n_qp);
-            X_qp.resize(X_qp.size()+NDIM  *n_qp);
+            if (UNLIKELY(F_qp.size() < n_vars*(qp_offset+n_qp))) F_qp.resize(n_vars*(qp_offset+n_qp));
+            if (UNLIKELY(X_qp.size() < NDIM  *(qp_offset+n_qp))) X_qp.resize(NDIM  *(qp_offset+n_qp));
 
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
@@ -590,6 +602,9 @@ FEDataManager::interp(
         }
 
         if (qp_offset == 0) continue;
+
+        F_qp.resize(n_vars*qp_offset);
+        X_qp.resize(NDIM  *qp_offset);
 
         // Interpolate values from the Cartesian grid patch to the quadrature
         // points.
@@ -611,7 +626,10 @@ FEDataManager::interp(
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             const libMesh::Elem* const elem = patch_elems(e_idx);
-            F_fe->reinit(elem);
+            const bool skip_reinit = elem->type() == previous_elem_type;
+            previous_elem_type = elem->type();
+
+            if (!skip_reinit) F_fe->reinit(elem);
             for (unsigned int i = 0; i < n_vars; ++i)
             {
                 F_dof_map.dof_indices(elem, F_dof_indices(i), i);
