@@ -792,9 +792,15 @@ private:
 
     /*
      * The regrid interval indicates the number of integration steps taken
-     * between invocations of the regridding process.
+     * between invocations of the regridding process.  The regrid CFL interval
+     * indicates the number of meshwidths a particle may move in any coordinate
+     * direction between invocations of the regridding process.
+     *
+     * NOTE: Currently, when the CFL-based regrid interval is specified, it is
+     * used instead of the fixed regrid interval.
      */
     int d_regrid_interval;
+    double d_regrid_cfl_interval, d_regrid_cfl_estimate;
 
     /*
      * Integrator data that evolves during time integration and maintains the
