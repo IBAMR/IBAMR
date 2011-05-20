@@ -737,7 +737,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     }
 
     // Determine the centroid of each perimeter.
-    for (unsigned int k = 0; k < d_X_centroid.size(); ++k) d_X_centroid[k] = 0.0;
+    std::fill(d_X_centroid.begin(), d_X_centroid.end(), blitz::TinyVector<double,NDIM>(0.0));
     for (unsigned int m = 0; m < d_num_meters; ++m)
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n)

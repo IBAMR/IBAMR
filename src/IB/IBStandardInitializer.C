@@ -194,12 +194,12 @@ IBStandardInitializer::IBStandardInitializer(
 #endif
 
     // Register the specification objects with the StreamableManager class.
-    IBAnchorPointSpec::registerWithStreamableManager();
-    IBBeamForceSpec::registerWithStreamableManager();
-    IBInstrumentationSpec::registerWithStreamableManager();
-    IBRodForceSpec::registerWithStreamableManager();
-    IBSourceSpec::registerWithStreamableManager();
-    IBSpringForceSpec::registerWithStreamableManager();
+    IBAnchorPointSpec     ::registerWithStreamableManager();
+    IBBeamForceSpec       ::registerWithStreamableManager();
+    IBInstrumentationSpec ::registerWithStreamableManager();
+    IBRodForceSpec        ::registerWithStreamableManager();
+    IBSourceSpec          ::registerWithStreamableManager();
+    IBSpringForceSpec     ::registerWithStreamableManager();
     IBTargetPointForceSpec::registerWithStreamableManager();
 
     // Initialize object with data read from the input database.

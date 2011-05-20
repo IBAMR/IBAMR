@@ -653,6 +653,76 @@ IBStaggeredHierarchyIntegrator::initializeHierarchy()
     // Update the workload.
     d_l_data_manager->updateWorkloadData(coarsest_ln, finest_ln);
 
+    // Initialize various IB data objects.
+    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
+    if (initial_time)
+    {
+        const double init_data_time = d_integrator_time;
+        for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
+        {
+            if (!d_l_data_manager->levelContainsLagrangianData(level_number)) continue;
+
+            const bool can_be_refined = level_number < finest_ln || d_gridding_alg->levelCanBeRefined(level_number);
+
+            // Setup data needed for pIB method.
+            static const bool manage_data = true;
+            if (d_using_pIB_method)
+            {
+                Pointer<LData> M_data = d_l_data_manager->createLData("M",level_number,1,manage_data);
+                Pointer<LData> K_data = d_l_data_manager->createLData("K",level_number,1,manage_data);
+                Pointer<LData> Y_data = d_l_data_manager->createLData("Y",level_number,NDIM,manage_data);
+                Pointer<LData> dY_dt_data = d_l_data_manager->createLData("dY_dt",level_number,NDIM,manage_data);
+                static const int global_index_offset = 0;
+                static const int local_index_offset = 0;
+                d_lag_init->initializeMassDataOnPatchLevel(
+                    global_index_offset, local_index_offset,
+                    M_data, K_data,
+                    d_hierarchy, level_number,
+                    init_data_time, can_be_refined, initial_time, d_l_data_manager);
+                if (!d_silo_writer.isNull())
+                {
+                    d_silo_writer->registerVariableData("M", M_data, level_number);
+                    d_silo_writer->registerVariableData("Y", Y_data, level_number);
+                }
+            }
+
+            // Setup data needed for gIB method.
+            if (d_using_orthonormal_directors)
+            {
+                Pointer<LData> D_data = d_l_data_manager->createLData("D",level_number,3*3,manage_data);
+                static const int global_index_offset = 0;
+                static const int local_index_offset = 0;
+                d_lag_init->initializeDirectorDataOnPatchLevel(
+                    global_index_offset, local_index_offset,
+                    D_data,
+                    d_hierarchy, level_number,
+                    init_data_time, can_be_refined, initial_time, d_l_data_manager);
+                if (!d_silo_writer.isNull())
+                {
+                    d_silo_writer->registerVariableData("D1", D_data, 0, 3, level_number);
+                    d_silo_writer->registerVariableData("D2", D_data, 3, 3, level_number);
+                    d_silo_writer->registerVariableData("D3", D_data, 6, 3, level_number);
+                }
+            }
+
+            // Initialize marker data.
+            LMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, d_mark_init_posns, d_hierarchy, level_number, initial_time, Pointer<PatchLevel<NDIM> >(NULL));
+
+            // Initialize source/sink data.
+            if (!d_source_strategy.isNull())
+            {
+                d_source_strategy->initializeLevelData(d_hierarchy, level_number, init_data_time, initial_time, d_l_data_manager);
+                d_n_src[level_number] = d_source_strategy->getNumSources(d_hierarchy, level_number, d_integrator_time, d_l_data_manager);
+                d_X_src[level_number].resize(d_n_src[level_number], blitz::TinyVector<double,NDIM>(std::numeric_limits<double>::quiet_NaN()));
+                d_r_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
+                d_P_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
+                d_Q_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
+                Pointer<LData> X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,level_number);
+                d_source_strategy->getSourceLocations(d_X_src[level_number], d_r_src[level_number], X_data, d_hierarchy, level_number, init_data_time, d_l_data_manager);
+            }
+        }
+    }
+
     // Prune duplicate markers following initialization.
     LMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
 
@@ -1737,86 +1807,6 @@ IBStaggeredHierarchyIntegrator::initializeLevelData(
         level->setTime(init_data_time, d_mark_current_idx);
     }
 
-    // Setup the pIB data at the initial time only.
-    if (initial_time && d_lag_init->getLevelHasLagrangianData(level_number, can_be_refined))
-    {
-        static const bool manage_data = true;
-
-        if (d_using_pIB_method)
-        {
-            Pointer<LData> M_data = d_l_data_manager->createLData("M",level_number,1,manage_data);
-            Pointer<LData> K_data = d_l_data_manager->createLData("K",level_number,1,manage_data);
-            Pointer<LData> Y_data = d_l_data_manager->createLData("Y",level_number,NDIM,manage_data);
-            Pointer<LData> dY_dt_data = d_l_data_manager->createLData("dY_dt",level_number,NDIM,manage_data);
-
-            static const int global_index_offset = 0;
-            static const int local_index_offset = 0;
-            d_lag_init->initializeMassDataOnPatchLevel(
-                global_index_offset, local_index_offset,
-                M_data, K_data,
-                hierarchy, level_number,
-                init_data_time, can_be_refined, initial_time, d_l_data_manager);
-
-            if (!d_silo_writer.isNull())
-            {
-                d_silo_writer->registerVariableData("M", M_data, level_number);
-                d_silo_writer->registerVariableData("Y", Y_data, level_number);
-            }
-        }
-
-        if (d_using_orthonormal_directors)
-        {
-            Pointer<LData> D_data = d_l_data_manager->createLData("D",level_number,3*3,manage_data);
-
-            static const int global_index_offset = 0;
-            static const int local_index_offset = 0;
-            d_lag_init->initializeDirectorDataOnPatchLevel(
-                global_index_offset, local_index_offset,
-                D_data,
-                hierarchy, level_number,
-                init_data_time, can_be_refined, initial_time, d_l_data_manager);
-
-            if (!d_silo_writer.isNull())
-            {
-                d_silo_writer->registerVariableData("D1", D_data, 0, 3, level_number);
-                d_silo_writer->registerVariableData("D2", D_data, 3, 3, level_number);
-                d_silo_writer->registerVariableData("D3", D_data, 6, 3, level_number);
-            }
-        }
-    }
-
-    // Initialize marker data.
-    LMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, d_mark_init_posns, hierarchy, level_number, initial_time, old_level);
-
-    // Determine the initial source/sink locations.
-    if (!d_source_strategy.isNull()) d_source_strategy->initializeLevelData(hierarchy, level_number, init_data_time, initial_time, d_l_data_manager);
-    if (initial_time)
-    {
-        d_X_src.resize(std::max(static_cast<int>(d_X_src.size()),level_number+1));
-        d_r_src.resize(std::max(static_cast<int>(d_r_src.size()),level_number+1));
-        d_P_src.resize(std::max(static_cast<int>(d_P_src.size()),level_number+1));
-        d_Q_src.resize(std::max(static_cast<int>(d_Q_src.size()),level_number+1));
-        d_n_src.resize(std::max(static_cast<int>(d_n_src.size()),level_number+1),0);
-
-        if (!d_source_strategy.isNull())
-        {
-            d_n_src[level_number] = d_source_strategy->getNumSources(hierarchy, level_number, d_integrator_time, d_l_data_manager);
-            d_X_src[level_number].resize(d_n_src[level_number], blitz::TinyVector<double,NDIM>(std::numeric_limits<double>::quiet_NaN()));
-            d_r_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
-            d_P_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
-            d_Q_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
-            if (d_n_src[level_number] > 0)
-            {
-                d_source_strategy->getSourceLocations(
-                    d_X_src[level_number], d_r_src[level_number],
-                    (d_l_data_manager->levelContainsLagrangianData(level_number)
-                     ? d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,level_number)
-                     : Pointer<LData>(NULL)),
-                    hierarchy, level_number, d_integrator_time, d_l_data_manager);
-            }
-        }
-    }
-
     t_initialize_level_data->stop();
     return;
 }// initializeLevelData
@@ -1858,6 +1848,13 @@ IBStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     // If we have added or removed a level, resize the anchor point vectors.
     d_anchor_point_local_idxs.clear();
     d_anchor_point_local_idxs.resize(finest_hier_level+1);
+
+    // If we have added or removed a level, resize the source/sink data vectors.
+    d_X_src.resize(finest_hier_level+1);
+    d_r_src.resize(finest_hier_level+1);
+    d_P_src.resize(finest_hier_level+1);
+    d_Q_src.resize(finest_hier_level+1);
+    d_n_src.resize(finest_hier_level+1,0);
 
     // If we have added or removed a level, resize the schedule vectors.
     for (RefineAlgMap::const_iterator it = d_ralgs.begin(); it != d_ralgs.end(); ++it)

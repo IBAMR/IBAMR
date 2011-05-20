@@ -147,7 +147,9 @@ IBStandardSourceGen::initializeLevelData(
 
     d_n_src[level_number] = IBSourceSpec::getNumSources(level_number);
     if (d_n_src[level_number] == 0) return;
-
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(l_data_manager->levelContainsLagrangianData(level_number));
+#endif
     d_source_names[level_number] = IBSourceSpec::getSourceNames(level_number);
     d_r_src[level_number] = IBSourceSpec::getSourceRadii(level_number);
 
@@ -204,7 +206,7 @@ IBStandardSourceGen::getSourceLocations(
     r_src = d_r_src[level_number];
 
     // Determine the positions of the sources.
-    for (unsigned int k = 0; k < X_src.size(); ++k) X_src[k] = 0.0;
+    std::fill(X_src.begin(), X_src.end(), blitz::TinyVector<double,NDIM>(0.0));
     const double* const restrict X_node = X_data->getGhostedLocalFormVecArray()->data();
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getNodes();
