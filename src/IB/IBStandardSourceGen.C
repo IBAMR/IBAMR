@@ -204,7 +204,7 @@ IBStandardSourceGen::getSourceLocations(
     r_src = d_r_src[level_number];
 
     // Determine the positions of the sources.
-    std::fill(X_src.begin(),X_src.end(),blitz::TinyVector<double,NDIM>(0.0));
+    for (unsigned int k = 0; k < X_src.size(); ++k) X_src[k] = 0.0;
     Vec X_vec = X_data->getVec();
     double* X_arr;
     int ierr = VecGetArray(X_vec, &X_arr);  IBTK_CHKERRQ(ierr);
