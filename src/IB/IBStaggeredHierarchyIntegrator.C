@@ -653,76 +653,65 @@ IBStaggeredHierarchyIntegrator::initializeHierarchy()
     // Update the workload.
     d_l_data_manager->updateWorkloadData(coarsest_ln, finest_ln);
 
-    // Initialize various IB data objects.
+    // Initialize various Lagrangian data objects.
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
-    if (initial_time)
+    const double init_data_time = d_integrator_time;
+    for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
-        const double init_data_time = d_integrator_time;
-        for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
+        const bool can_be_refined = level_number < finest_ln || d_gridding_alg->levelCanBeRefined(level_number);
+
+        // Initialize marker data.
+        LMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, d_mark_init_posns, d_hierarchy, level_number, initial_time, Pointer<PatchLevel<NDIM> >(NULL));
+
+        // Initialize source/sink data.
+        if (!d_source_strategy.isNull())
         {
-            if (!d_l_data_manager->levelContainsLagrangianData(level_number)) continue;
+            d_source_strategy->initializeLevelData(d_hierarchy, level_number, init_data_time, initial_time, d_l_data_manager);
+            d_n_src[level_number] = d_source_strategy->getNumSources(d_hierarchy, level_number, d_integrator_time, d_l_data_manager);
+            d_X_src[level_number].resize(d_n_src[level_number], blitz::TinyVector<double,NDIM>(std::numeric_limits<double>::quiet_NaN()));
+            d_r_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
+            d_P_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
+            d_Q_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
+            Pointer<LData> X_data = NULL;
+            if (!d_l_data_manager->levelContainsLagrangianData(level_number)) X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,level_number);
+            d_source_strategy->getSourceLocations(d_X_src[level_number], d_r_src[level_number], X_data, d_hierarchy, level_number, init_data_time, d_l_data_manager);
+        }
 
-            const bool can_be_refined = level_number < finest_ln || d_gridding_alg->levelCanBeRefined(level_number);
+        // Remaining initialization is required only for levels that contain
+        // Lagrangian data.
+        if (!d_l_data_manager->levelContainsLagrangianData(level_number)) continue;
 
-            // Setup data needed for pIB method.
+        // Setup data needed for pIB method.
+        if (initial_time && d_using_pIB_method)
+        {
             static const bool manage_data = true;
-            if (d_using_pIB_method)
+            Pointer<LData> M_data = d_l_data_manager->createLData("M",level_number,1,manage_data);
+            Pointer<LData> K_data = d_l_data_manager->createLData("K",level_number,1,manage_data);
+            Pointer<LData> Y_data = d_l_data_manager->createLData("Y",level_number,NDIM,manage_data);
+            Pointer<LData> dY_dt_data = d_l_data_manager->createLData("dY_dt",level_number,NDIM,manage_data);
+            static const int global_index_offset = 0;
+            static const int local_index_offset = 0;
+            d_lag_init->initializeMassDataOnPatchLevel(global_index_offset, local_index_offset, M_data, K_data, d_hierarchy, level_number, init_data_time, can_be_refined, initial_time, d_l_data_manager);
+            if (!d_silo_writer.isNull())
             {
-                Pointer<LData> M_data = d_l_data_manager->createLData("M",level_number,1,manage_data);
-                Pointer<LData> K_data = d_l_data_manager->createLData("K",level_number,1,manage_data);
-                Pointer<LData> Y_data = d_l_data_manager->createLData("Y",level_number,NDIM,manage_data);
-                Pointer<LData> dY_dt_data = d_l_data_manager->createLData("dY_dt",level_number,NDIM,manage_data);
-                static const int global_index_offset = 0;
-                static const int local_index_offset = 0;
-                d_lag_init->initializeMassDataOnPatchLevel(
-                    global_index_offset, local_index_offset,
-                    M_data, K_data,
-                    d_hierarchy, level_number,
-                    init_data_time, can_be_refined, initial_time, d_l_data_manager);
-                if (!d_silo_writer.isNull())
-                {
-                    d_silo_writer->registerVariableData("M", M_data, level_number);
-                    d_silo_writer->registerVariableData("Y", Y_data, level_number);
-                }
-            }
-
-            // Setup data needed for gIB method.
-            if (d_using_orthonormal_directors)
-            {
-                Pointer<LData> D_data = d_l_data_manager->createLData("D",level_number,3*3,manage_data);
-                static const int global_index_offset = 0;
-                static const int local_index_offset = 0;
-                d_lag_init->initializeDirectorDataOnPatchLevel(
-                    global_index_offset, local_index_offset,
-                    D_data,
-                    d_hierarchy, level_number,
-                    init_data_time, can_be_refined, initial_time, d_l_data_manager);
-                if (!d_silo_writer.isNull())
-                {
-                    d_silo_writer->registerVariableData("D1", D_data, 0, 3, level_number);
-                    d_silo_writer->registerVariableData("D2", D_data, 3, 3, level_number);
-                    d_silo_writer->registerVariableData("D3", D_data, 6, 3, level_number);
-                }
+                d_silo_writer->registerVariableData("M", M_data, level_number);
+                d_silo_writer->registerVariableData("Y", Y_data, level_number);
             }
         }
 
-        for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
+        // Setup data needed for gIB method.
+        if (initial_time && d_using_orthonormal_directors)
         {
-            // Initialize marker data.
-            LMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, d_mark_init_posns, d_hierarchy, level_number, initial_time, Pointer<PatchLevel<NDIM> >(NULL));
-
-            // Initialize source/sink data.
-            if (!d_source_strategy.isNull())
+            static const bool manage_data = true;
+            Pointer<LData> D_data = d_l_data_manager->createLData("D",level_number,3*3,manage_data);
+            static const int global_index_offset = 0;
+            static const int local_index_offset = 0;
+            d_lag_init->initializeDirectorDataOnPatchLevel(global_index_offset, local_index_offset, D_data, d_hierarchy, level_number, init_data_time, can_be_refined, initial_time, d_l_data_manager);
+            if (!d_silo_writer.isNull())
             {
-                d_source_strategy->initializeLevelData(d_hierarchy, level_number, init_data_time, initial_time, d_l_data_manager);
-                d_n_src[level_number] = d_source_strategy->getNumSources(d_hierarchy, level_number, d_integrator_time, d_l_data_manager);
-                d_X_src[level_number].resize(d_n_src[level_number], blitz::TinyVector<double,NDIM>(std::numeric_limits<double>::quiet_NaN()));
-                d_r_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
-                d_P_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
-                d_Q_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
-                Pointer<LData> X_data = NULL;
-                if (!d_l_data_manager->levelContainsLagrangianData(level_number)) X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,level_number);
-                d_source_strategy->getSourceLocations(d_X_src[level_number], d_r_src[level_number], X_data, d_hierarchy, level_number, init_data_time, d_l_data_manager);
+                d_silo_writer->registerVariableData("D1", D_data, 0, 3, level_number);
+                d_silo_writer->registerVariableData("D2", D_data, 3, 3, level_number);
+                d_silo_writer->registerVariableData("D3", D_data, 6, 3, level_number);
             }
         }
     }

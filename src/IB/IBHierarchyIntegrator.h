@@ -40,10 +40,8 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBEulerianForceFunction.h>
-#include <ibamr/IBEulerianSourceFunction.h>
 #include <ibamr/IBInstrumentPanel.h>
 #include <ibamr/IBLagrangianForceStrategy.h>
-#include <ibamr/IBLagrangianSourceStrategy.h>
 #include <ibamr/IBPostProcessStrategy.h>
 #include <ibamr/INSHierarchyIntegrator.h>
 
@@ -103,7 +101,6 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,
         SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> force_strategy,
-        SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> source_strategy=NULL,
         SAMRAI::tbox::Pointer<IBPostProcessStrategy> post_processor=NULL,
         bool register_for_restart=true);
 
@@ -628,15 +625,6 @@ private:
         const bool initial_time);
 
     /*!
-     * Initialize the IBLagrangianSourceStrategy object for the current
-     * configuration of the curvilinear mesh.
-     */
-    void
-    resetLagrangianSourceStrategy(
-        const double init_data_time,
-        const bool initial_time);
-
-    /*!
      * Initialize the IBPostProcessStrategy object for the current configuration
      * of the curvilinear mesh.
      */
@@ -663,35 +651,6 @@ private:
         std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > V_data,
         const int coarsest_ln,
         const int finest_ln);
-
-    /*!
-     * Set the values of the distributed internal sources/sinks on the Cartesian
-     * grid hierarchy.
-     *
-     * \note This method computes the point source/sink strengths, spreads those
-     * values to the Cartesian grid using the cosine delta function, and
-     * synchronizes the data on the hierarchy.
-     */
-    void
-    computeSourceStrengths(
-        const int coarsest_level,
-        const int finest_level,
-        const double data_time,
-        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data);
-
-    /*!
-     * Get the values of the pressures at the positions of the distributed
-     * internal sources/sinks.
-     *
-     * \note This method interpolates the \em new Cartesian grid pressure at the
-     * given locations of the internal sources/sinks.
-     */
-    void
-    computeSourcePressures(
-        const int coarsest_level,
-        const int finest_level,
-        const double data_time,
-        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data);
 
     /*!
      * Read input values, indicated above, from given database.  The boolean
@@ -803,27 +762,10 @@ private:
     bool d_force_strategy_needs_init;
 
     /*
-     * The source/sink generators.
-     */
-    SAMRAI::tbox::Pointer<IBEulerianSourceFunction> d_eulerian_source_fcn;
-    SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> d_source_strategy;
-    bool d_source_strategy_needs_init;
-    std::vector<std::vector<blitz::TinyVector<double,NDIM> > > d_X_src;
-    std::vector<std::vector<double > > d_r_src, d_P_src, d_Q_src;
-    std::vector<int> d_n_src;
-
-    /*
      * Post-processors.
      */
     SAMRAI::tbox::Pointer<IBPostProcessStrategy> d_post_processor;
     bool d_post_processor_needs_init;
-
-    /*
-     * Parameters for the penalty IB method for boundaries with additional
-     * boundary mass.
-     */
-    bool d_using_pIB_method;
-    blitz::TinyVector<double,NDIM> d_gravitational_acceleration;
 
     /*
      * Integrator data read from input or set at initialization.
@@ -896,18 +838,17 @@ private:
     CoarsenPatchStrategyMap d_cstrategies;
     CoarsenSchedMap         d_cscheds;
 
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_force_current_ralg, d_force_new_ralg, d_source_ralg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_force_current_rstrategy, d_force_new_rstrategy, d_source_rstrategy;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_force_current_rscheds, d_force_new_rscheds, d_source_rscheds;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_force_current_ralg, d_force_new_ralg;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_force_current_rstrategy, d_force_new_rstrategy;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_force_current_rscheds, d_force_new_rscheds;
 
     /*
      * Variables and variable contexts.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_V_var, d_W_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Q_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current, d_scratch;
-    int d_V_idx, d_W_idx, d_F_idx, d_F_scratch1_idx, d_F_scratch2_idx, d_Q_idx, d_Q_scratch_idx;
+    int d_V_idx, d_W_idx, d_F_idx, d_F_scratch1_idx, d_F_scratch2_idx;
 
     /*
      * List of local indices of local anchor points.
