@@ -704,7 +704,10 @@ IBStaggeredHierarchyIntegrator::initializeHierarchy()
                     d_silo_writer->registerVariableData("D3", D_data, 6, 3, level_number);
                 }
             }
+        }
 
+        for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
+        {
             // Initialize marker data.
             LMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, d_mark_init_posns, d_hierarchy, level_number, initial_time, Pointer<PatchLevel<NDIM> >(NULL));
 
@@ -717,7 +720,8 @@ IBStaggeredHierarchyIntegrator::initializeHierarchy()
                 d_r_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
                 d_P_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
                 d_Q_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
-                Pointer<LData> X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,level_number);
+                Pointer<LData> X_data = NULL;
+                if (!d_l_data_manager->levelContainsLagrangianData(level_number)) X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,level_number);
                 d_source_strategy->getSourceLocations(d_X_src[level_number], d_r_src[level_number], X_data, d_hierarchy, level_number, init_data_time, d_l_data_manager);
             }
         }
@@ -1697,9 +1701,7 @@ IBStaggeredHierarchyIntegrator::synchronizeNewLevels(
 #endif
     // We use the INSStaggeredHierarchyIntegrator to handle as much structured
     // data management as possible.
-    d_ins_hier_integrator->synchronizeNewLevels(
-        hierarchy, coarsest_level, finest_level,
-        sync_time, initial_time);
+    d_ins_hier_integrator->synchronizeNewLevels(hierarchy, coarsest_level, finest_level, sync_time, initial_time);
 
     t_synchronize_new_levels->stop();
     return;
@@ -1940,16 +1942,10 @@ IBStaggeredHierarchyIntegrator::applyGradientDetector(
 
     // Tag cells for refinement according to the criteria specified by the
     // INSStaggeredHierarchyIntegrator.
-    d_ins_hier_integrator->applyGradientDetector(
-        hierarchy, level_number, error_data_time,
-        tag_index, initial_time,
-        uses_richardson_extrapolation_too);
+    d_ins_hier_integrator->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
 
     // Tag cells which contain Lagrangian nodes.
-    d_l_data_manager->applyGradientDetector(
-        hierarchy, level_number, error_data_time,
-        tag_index, initial_time,
-        uses_richardson_extrapolation_too);
+    d_l_data_manager->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
 
     // Tag cells for refinement where the Cartesian source/sink strength is
     // nonzero.
@@ -1990,10 +1986,7 @@ IBStaggeredHierarchyIntegrator::applyGradientDetector(
             {
                 stencil_box.grow(d, static_cast<int>(ceil(r[d]/dx_finer[d])));
             }
-
-            const Box<NDIM> coarsened_stencil_box = Box<NDIM>::coarsen(
-                stencil_box, finer_level->getRatioToCoarserLevel());
-
+            const Box<NDIM> coarsened_stencil_box = Box<NDIM>::coarsen(stencil_box, finer_level->getRatioToCoarserLevel());
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -2289,9 +2282,7 @@ IBStaggeredHierarchyIntegrator::computeSourceStrengths(
         if (d_n_src[ln] > 0)
         {
             if (d_do_log) plog << d_object_name << "::advanceHierarchy(): computing source locations on level number " << ln << "\n";
-            d_source_strategy->getSourceLocations(
-                d_X_src[ln], d_r_src[ln], X_data[ln],
-                d_hierarchy, ln, data_time, d_l_data_manager);
+            d_source_strategy->getSourceLocations(d_X_src[ln], d_r_src[ln], X_data[ln], d_hierarchy, ln, data_time, d_l_data_manager);
         }
     }
 
@@ -2304,8 +2295,7 @@ IBStaggeredHierarchyIntegrator::computeSourceStrengths(
         if (d_n_src[ln] > 0)
         {
             if (d_do_log) plog << d_object_name << "::advanceHierarchy(): computing fluid source strengths on level number " << ln << "\n";
-            d_source_strategy->computeSourceStrengths(
-                d_Q_src[ln], d_hierarchy, ln, data_time, d_l_data_manager);
+            d_source_strategy->computeSourceStrengths(d_Q_src[ln], d_hierarchy, ln, data_time, d_l_data_manager);
         }
     }
 
@@ -2344,8 +2334,7 @@ IBStaggeredHierarchyIntegrator::computeSourceStrengths(
                     }
 
                     // Determine the approximate source stencil box.
-                    const Index<NDIM> i_center = IndexUtilities::getCellIndex(
-                        d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
+                    const Index<NDIM> i_center = IndexUtilities::getCellIndex(d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
                     Box<NDIM> stencil_box(i_center,i_center);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -2470,9 +2459,7 @@ IBStaggeredHierarchyIntegrator::computeSourcePressures(
     if (d_source_strategy.isNull()) return;
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int P_new_idx = var_db->mapVariableAndContextToIndex(
-        d_ins_hier_integrator->getPressureVar(),
-        d_ins_hier_integrator->getNewContext());
+    const int P_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVar(), d_ins_hier_integrator->getNewContext());
     const int wgt_idx = d_ins_hier_integrator->getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
 
     // Compute the normalization pressure.
@@ -2538,9 +2525,7 @@ IBStaggeredHierarchyIntegrator::computeSourcePressures(
         {
             if (d_do_log) plog << d_object_name << "::advanceHierarchy(): computing source locations on level number " << ln << "\n";
 
-            d_source_strategy->getSourceLocations(
-                d_X_src[ln], d_r_src[ln], X_data[ln],
-                d_hierarchy, ln, data_time, d_l_data_manager);
+            d_source_strategy->getSourceLocations(d_X_src[ln], d_r_src[ln], X_data[ln], d_hierarchy, ln, data_time, d_l_data_manager);
         }
     }
 
@@ -2579,8 +2564,7 @@ IBStaggeredHierarchyIntegrator::computeSourcePressures(
                     }
 
                     // Determine the approximate source stencil box.
-                    const Index<NDIM> i_center = IndexUtilities::getCellIndex(
-                        d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
+                    const Index<NDIM> i_center = IndexUtilities::getCellIndex(d_X_src[ln][n], xLower, xUpper, dx, patch_lower, patch_upper);
                     Box<NDIM> stencil_box(i_center,i_center);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -2608,8 +2592,7 @@ IBStaggeredHierarchyIntegrator::computeSourcePressures(
                            std::bind2nd(std::plus<double>(),-p_norm));
 
             // Set the pressures for the Lagrangian source strategy.
-            d_source_strategy->setSourcePressures(
-                d_P_src[ln], d_hierarchy, ln, data_time, d_l_data_manager);
+            d_source_strategy->setSourcePressures(d_P_src[ln], d_hierarchy, ln, data_time, d_l_data_manager);
         }
     }
     return;
