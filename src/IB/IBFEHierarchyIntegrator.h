@@ -124,7 +124,7 @@ public:
      */
     void
     registerPK1StressTensorFunction(
-        void (*PK1_stress_fcn)(libMesh::TensorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx),
+        void (*PK1_stress_fcn)(libMesh::TensorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::TensorValue<double>& dU_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx),
         std::vector<unsigned int> PK1_stress_fcn_systems=std::vector<unsigned int>(),
         void* PK1_stress_fcn_ctx=NULL);
 
@@ -606,15 +606,6 @@ private:
         const IBFEHierarchyIntegrator& that);
 
     /*
-     * \brief Compute the projected dilatational strain, for use in the Fbar
-     * projection method.
-     */
-    void
-    computeProjectedDilatationalStrain(
-        libMesh::NumericVector<double>& J_bar_vec,
-        libMesh::NumericVector<double>& X_vec);
-
-    /*
      * \brief Compute the interior elastic density, possibly splitting off the
      * normal component of the transmission force along the physical boundary of
      * the Lagrangian structure.
@@ -623,7 +614,7 @@ private:
     computeInteriorForceDensity(
         libMesh::NumericVector<double>& G_vec,
         libMesh::NumericVector<double>& X_vec,
-        libMesh::NumericVector<double>* J_bar_vec,
+        libMesh::NumericVector<double>& U_vec,
         const double& time);
 
     /*!
@@ -634,7 +625,7 @@ private:
     spreadTransmissionForceDensity(
         const int f_data_idx,
         libMesh::NumericVector<double>& X_ghost_vec,
-        libMesh::NumericVector<double>* J_bar_ghost_vec,
+        libMesh::NumericVector<double>& U_ghost_vec,
         const double& time);
 
     /*!
@@ -699,15 +690,6 @@ private:
     libMeshEnums::Order d_quad_order;
 
     /*
-     * Fbar projection method parameters.
-     */
-    bool d_use_fbar_projection;
-    libMeshEnums::Order d_J_bar_fe_order;
-    libMeshEnums::FEFamily d_J_bar_fe_family;
-    libMeshEnums::QuadratureType d_J_bar_quad_type;
-    libMeshEnums::Order d_J_bar_quad_order;
-
-    /*
      * Function used to compute the initial coordinates of the Lagrangian mesh.
      */
     void (*d_coordinate_mapping_fcn)(libMesh::Point&, const libMesh::Point& s, void* ctx);
@@ -716,7 +698,7 @@ private:
     /*
      * Function used to compute the first Piola-Kirchhoff stress tensor.
      */
-    void (*d_PK1_stress_fcn)(libMesh::TensorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx);
+    void (*d_PK1_stress_fcn)(libMesh::TensorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::TensorValue<double>& dU_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx);
     std::vector<unsigned int> d_PK1_stress_fcn_systems;
     void* d_PK1_stress_fcn_ctx;
 

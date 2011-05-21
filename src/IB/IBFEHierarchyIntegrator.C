@@ -152,11 +152,6 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
       d_use_consistent_mass_matrix(true),
       d_quad_type(QGAUSS),
       d_quad_order(static_cast<Order>(2*static_cast<int>(d_fe_order) + 1)),
-      d_use_fbar_projection(false),
-      d_J_bar_fe_order(CONSTANT),
-      d_J_bar_fe_family(MONOMIAL),
-      d_J_bar_quad_type(QGAUSS),
-      d_J_bar_quad_order(static_cast<Order>(NDIM*static_cast<int>(d_fe_order) + static_cast<int>(d_J_bar_fe_order) + 1)),
       d_coordinate_mapping_fcn(NULL),
       d_coordinate_mapping_fcn_ctx(NULL),
       d_PK1_stress_fcn(NULL),
@@ -313,7 +308,7 @@ IBFEHierarchyIntegrator::registerInitialCoordinateMappingFunction(
 
 void
 IBFEHierarchyIntegrator::registerPK1StressTensorFunction(
-    void (*PK1_stress_fcn)(TensorValue<double>& PP, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, NumericVector<double>& X_vec, const std::vector<NumericVector<double>*>& system_data, const double& time, void* ctx),
+    void (*PK1_stress_fcn)(TensorValue<double>& PP, const TensorValue<double>& dX_ds, const TensorValue<double>& dU_ds, const Point& X, const Point& s, Elem* const, NumericVector<double>& X_vec, const std::vector<NumericVector<double>*>& system_data, const double& time, void* ctx),
     std::vector<unsigned int> PK1_stress_fcn_systems,
     void* PK1_stress_fcn_ctx)
 {
@@ -486,12 +481,6 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
         std::ostringstream os;
         os << "U_" << d;
         U_system.add_variable(os.str(), d_fe_order, d_fe_family);
-    }
-
-    if (d_use_fbar_projection)
-    {
-        ExplicitSystem& J_bar_system = equation_systems->add_system<ExplicitSystem>(PROJ_STRAIN_SYSTEM_NAME);
-        J_bar_system.add_variable("J_bar", d_J_bar_fe_order, d_J_bar_fe_family);
     }
 
     // Initialize all variables.
@@ -738,15 +727,10 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     NumericVector<double>* F_half_IB_ghost_ptr = d_fe_data_manager->buildGhostedSolutionVector(FORCE_SYSTEM_NAME);
     NumericVector<double>& F_half_IB_ghost = *F_half_IB_ghost_ptr;
 
-    NumericVector<double>* J_bar_current = NULL;
-    NumericVector<double>* J_bar_half = NULL;
-    NumericVector<double>* J_bar_half_IB_ghost = NULL;
-    if (d_use_fbar_projection)
+    NumericVector<double>* U_half_IB_ghost_ptr = NULL;
+    if (d_split_interior_and_bdry_forces)
     {
-        System& J_bar_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
-        J_bar_current       = J_bar_system.solution.get();
-        J_bar_half          = J_bar_system.current_local_solution.get();
-        J_bar_half_IB_ghost = d_fe_data_manager->buildGhostedSolutionVector(PROJ_STRAIN_SYSTEM_NAME);
+        U_half_IB_ghost_ptr = d_fe_data_manager->buildGhostedSolutionVector(VELOCITY_SYSTEM_NAME);
     }
 
     // Initialize the various LData objects on each level of the patch hierarchy.
@@ -804,6 +788,24 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         }
     }
 
+    // Initialize U(n+1/2) to equal U(n).
+    d_hier_sc_data_ops->copyData(d_V_idx, U_current_idx);
+    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&X_current)->vec(), dynamic_cast<PetscVector<double>*>(&X_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
+    d_fe_data_manager->interp(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::GHOST_FILL"], current_time, true);
+    if (d_l_data_manager != NULL)
+    {
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            if (d_l_data_manager->levelContainsLagrangianData(ln))
+            {
+                Vec X_current_vec = X_current_data[ln]->getVec();
+                Vec X_half_vec = X_half_data[ln]->getVec();
+                ierr = VecCopy(X_current_vec, X_half_vec); IBTK_CHKERRQ(ierr);
+            }
+        }
+        d_l_data_manager->interp(d_V_idx, U_half_data, X_half_data, std::vector<Pointer<CoarsenSchedule<NDIM> > >(), std::vector<Pointer<RefineSchedule<NDIM> > >(), current_time, false);
+    }
+
     // Initialize X_mark(n+1) to equal X_mark(n).
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -845,20 +847,10 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         }
         t_advance_hierarchy_phase1->stop();
 
-        // Project the deformation, if necessary.
-        SAMRAI_MPI::barrier();
-        t_advance_hierarchy_phase2->start();
-        if (d_use_fbar_projection)
-        {
-            computeProjectedDilatationalStrain(*J_bar_half, X_half);
-            J_bar_half->close();
-        }
-        t_advance_hierarchy_phase2->stop();
-
         // Compute F(n+1/2) = F(X(n+1/2),t(n+1/2)).
         SAMRAI_MPI::barrier();
         t_advance_hierarchy_phase3->start();
-        computeInteriorForceDensity(F_half, X_half, J_bar_half, current_time+0.5*dt);
+        computeInteriorForceDensity(F_half, X_half, U_half, current_time+0.5*dt);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (d_l_data_manager != NULL && d_l_data_manager->levelContainsLagrangianData(ln))
@@ -877,11 +869,6 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&F_half)->vec(), dynamic_cast<PetscVector<double>*>(&F_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
         X_half_IB_ghost.close();
         F_half_IB_ghost.close();
-        if (d_use_fbar_projection)
-        {
-            ierr = VecCopy(dynamic_cast<PetscVector<double>*>(J_bar_half)->vec(), dynamic_cast<PetscVector<double>*>(J_bar_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
-            J_bar_half_IB_ghost->close();
-        }
         t_advance_hierarchy_phase4->stop();
 
         // Spread F(n+1/2) to f(n+1/2).
@@ -891,7 +878,10 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         d_fe_data_manager->spread(d_F_idx, F_half_IB_ghost, X_half_IB_ghost, FORCE_SYSTEM_NAME, false, false);
         if (d_split_interior_and_bdry_forces)
         {
-            spreadTransmissionForceDensity(d_F_idx, X_half_IB_ghost, J_bar_half_IB_ghost, current_time+0.5*dt);
+            NumericVector<double>& U_half_IB_ghost = *U_half_IB_ghost_ptr;
+            ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&U_half)->vec(), dynamic_cast<PetscVector<double>*>(&U_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
+            U_half_IB_ghost.close();
+            spreadTransmissionForceDensity(d_F_idx, X_half_IB_ghost, U_half_IB_ghost, current_time+0.5*dt);
         }
         if (d_l_data_manager != NULL)
         {
@@ -953,11 +943,6 @@ IBFEHierarchyIntegrator::advanceHierarchy(
             Vec X_new_vec = X_new_data[ln]->getVec();
             ierr = VecCopy(X_new_vec, X_current_vec); IBTK_CHKERRQ(ierr);
         }
-    }
-    if (d_use_fbar_projection)
-    {
-        ierr = VecCopy(dynamic_cast<PetscVector<double>*>(J_bar_half)->vec(),
-                       dynamic_cast<PetscVector<double>*>(J_bar_current)->vec()); IBTK_CHKERRQ(ierr);
     }
 
     // Update the coordinate mapping dX = X - s.
@@ -1518,103 +1503,10 @@ IBFEHierarchyIntegrator::putToDatabase(
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IBFEHierarchyIntegrator::computeProjectedDilatationalStrain(
-    NumericVector<double>& J_bar_vec,
-    NumericVector<double>& X_vec)
-{
-    if (!d_use_fbar_projection) return;
-
-    // Extract the mesh.
-    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-    const MeshBase& mesh = equation_systems->get_mesh();
-    const int dim = mesh.mesh_dimension();
-    AutoPtr<QBase> qrule = QBase::build(d_quad_type, dim, d_quad_order);
-
-    // Extract the FE systems and DOF maps, and setup the FE objects.
-    System& J_bar_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
-    const DofMap& J_bar_dof_map = J_bar_system.get_dof_map();
-    std::vector<unsigned int> J_bar_dof_indices;
-    J_bar_dof_indices.reserve(27);
-    AutoPtr<FEBase> J_bar_fe(FEBase::build(dim, J_bar_dof_map.variable_type(0)));
-    J_bar_fe->attach_quadrature_rule(qrule.get());
-    const std::vector<double>& JxW_J_bar = J_bar_fe->get_JxW();
-    const std::vector<std::vector<double> >& phi_J_bar = J_bar_fe->get_phi();
-
-    System& X_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
-    const DofMap& X_dof_map = X_system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
-#endif
-    blitz::Array<std::vector<unsigned int>,1> X_dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) X_dof_indices(d).reserve(27);
-    AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
-    X_fe->attach_quadrature_rule(qrule.get());
-    const std::vector<std::vector<VectorValue<double> > >& dphi_X = X_fe->get_dphi();
-
-    // Setup global and elemental right-hand-side vectors.
-    AutoPtr<NumericVector<double> > J_bar_rhs_vec = J_bar_vec.zero_clone();
-    DenseVector<double> J_bar_rhs_e;
-
-    // Loop over the elements to compute the right-hand side vector.  This is
-    // computed via
-    //
-    //    rhs_k = int{|dX/ds| phi_k(s)}ds
-    //
-    // This right-hand side vector is used to project dX/ds onto an alternative
-    // FE basis.
-    blitz::Array<double,2> X_node;
-    TensorValue<double> dX_ds;
-    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-    const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
-    {
-        const Elem* const elem = *el_it;
-
-        J_bar_fe->reinit(elem);
-        J_bar_dof_map.dof_indices(elem, J_bar_dof_indices);
-        if (J_bar_rhs_e.size() != J_bar_dof_indices.size())
-        {
-            J_bar_rhs_e.resize(J_bar_dof_indices.size());  // NOTE: DenseVector::resize() automatically zeroes the vector contents.
-        }
-        else
-        {
-            J_bar_rhs_e.zero();
-        }
-
-        X_fe->reinit(elem);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            X_dof_map.dof_indices(elem, X_dof_indices(d), d);
-        }
-
-        const unsigned int n_qp = qrule->n_points();
-
-        get_values_for_interpolation(X_node, X_vec, X_dof_indices);
-        for (unsigned int qp = 0; qp < n_qp; ++qp)
-        {
-            jacobian(dX_ds,qp,X_node,dphi_X);
-            const double J = dX_ds.det();
-            for (unsigned int k = 0; k < J_bar_dof_indices.size(); ++k)
-            {
-                J_bar_rhs_e(k) += J*phi_J_bar[k][qp]*JxW_J_bar[qp];
-            }
-        }
-
-        J_bar_dof_map.constrain_element_vector(J_bar_rhs_e, J_bar_dof_indices);
-        J_bar_rhs_vec->add_vector(J_bar_rhs_e, J_bar_dof_indices);
-    }
-
-    // Solve for J_bar.
-    const bool use_consistent_mass_matrix = ((d_J_bar_fe_order != CONSTANT && d_J_bar_fe_family == MONOMIAL) ? true : d_use_consistent_mass_matrix);
-    d_fe_data_manager->computeL2Projection(J_bar_vec, *J_bar_rhs_vec, PROJ_STRAIN_SYSTEM_NAME, use_consistent_mass_matrix);
-    return;
-}// computeProjectedDilatationalStrain
-
-void
 IBFEHierarchyIntegrator::computeInteriorForceDensity(
     NumericVector<double>& G_vec,
     NumericVector<double>& X_vec,
-    NumericVector<double>* J_bar_vec,
+    NumericVector<double>& U_vec,
     const double& time)
 {
     // Extract the mesh.
@@ -1647,29 +1539,14 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    System& X_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system<System>(  COORDS_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
-#endif
 
-    const DofMap* J_bar_dof_map = NULL;
-    std::vector<unsigned int> J_bar_dof_indices;
-    AutoPtr<FEBase> J_bar_fe;
-    const std::vector<std::vector<double> >* phi_J_bar = NULL;
-    AutoPtr<FEBase> J_bar_fe_face;
-    const std::vector<std::vector<double> >* phi_J_bar_face = NULL;
-    if (d_use_fbar_projection)
-    {
-        System& J_bar_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
-        J_bar_dof_map = &J_bar_system.get_dof_map();
-        J_bar_dof_indices.reserve(27);
-        J_bar_fe = FEBase::build(dim, J_bar_dof_map->variable_type(0));
-        J_bar_fe->attach_quadrature_rule(qrule.get());
-        phi_J_bar = &J_bar_fe->get_phi();
-        J_bar_fe_face = FEBase::build(dim, J_bar_dof_map->variable_type(0));
-        J_bar_fe_face->attach_quadrature_rule(qrule_face.get());
-        phi_J_bar_face = &J_bar_fe_face->get_phi();
-    }
+    System& U_system = equation_systems->get_system<System>(VELOCITY_SYSTEM_NAME);
+    const DofMap& U_dof_map = U_system.get_dof_map();
+    for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == U_dof_map.variable_type(d));
+#endif
 
     // Setup extra data needed to compute stresses/forces.
     std::vector<NumericVector<double>*> PK1_stress_fcn_data;
@@ -1719,12 +1596,11 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     //
     // This right-hand side vector is used to solve for the nodal values of the
     // interior elastic force density.
-    TensorValue<double> PP, dX_ds, dX_ds_inv_trans;
-    VectorValue<double> F, F_b, F_s, F_qp;
+    TensorValue<double> PP, dX_ds, dX_ds_inv_trans, dU_ds;
+    VectorValue<double> F, F_b, F_s, F_qp, U_qp;
     Point X_qp;
     double P;
-    blitz::Array<double,2> X_node;
-    blitz::Array<double,1> J_bar_node;
+    blitz::Array<double,2> X_node, U_node;
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -1745,27 +1621,24 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
             }
         }
 
-        if (d_use_fbar_projection)
-        {
-            J_bar_fe->reinit(elem);
-            J_bar_dof_map->dof_indices(elem, J_bar_dof_indices);
-        }
-
         const unsigned int n_qp = qrule->n_points();
         const unsigned int n_basis = dof_indices(0).size();
 
         get_values_for_interpolation(X_node, X_vec, dof_indices);
-        if (d_use_fbar_projection) get_values_for_interpolation(J_bar_node, *J_bar_vec, J_bar_dof_indices);
+        get_values_for_interpolation(U_node, U_vec, dof_indices);
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
             const Point& s_qp = q_point[qp];
             interpolate(X_qp,qp,X_node,phi);
-            jacobian(dX_ds,qp,X_node,dphi,&J_bar_node,phi_J_bar);
+            jacobian(dX_ds,qp,X_node,dphi);
+
+            interpolate(U_qp,qp,U_node,phi);
+            jacobian(dU_ds,qp,U_node,dphi);
 
             // Compute the value of the first Piola-Kirchhoff stress tensor at
             // the quadrature point and add the corresponding forces to the
             // right-hand-side vector.
-            d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctx);
+            d_PK1_stress_fcn(PP,dX_ds,dU_ds,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctx);
             for (unsigned int k = 0; k < n_basis; ++k)
             {
                 F_qp = -PP*dphi[k][qp]*JxW[qp];
@@ -1819,25 +1692,26 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
             if (!(compute_transmission_force || compute_pressure || compute_surface_force)) continue;
 
             fe_face->reinit(elem, side);
-            if (d_use_fbar_projection) J_bar_fe_face->reinit(elem, side);
 
             const unsigned int n_qp = qrule_face->n_points();
             const unsigned int n_basis = dof_indices(0).size();
 
             get_values_for_interpolation(X_node, X_vec, dof_indices);
-            if (d_use_fbar_projection) get_values_for_interpolation(J_bar_node, *J_bar_vec, J_bar_dof_indices);
+            get_values_for_interpolation(U_node, U_vec, dof_indices);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const Point& s_qp = q_point_face[qp];
                 interpolate(X_qp,qp,X_node,phi_face);
-                jacobian(dX_ds,qp,X_node,dphi_face,&J_bar_node,phi_J_bar_face);
+                jacobian(dX_ds,qp,X_node,dphi_face);
+                interpolate(U_qp,qp,U_node,phi_face);
+                jacobian(dU_ds,qp,U_node,dphi_face);
                 F.zero();
                 if (compute_transmission_force)
                 {
                     // Compute the value of the first Piola-Kirchhoff stress
                     // tensor at the quadrature point and add the corresponding
                     // force to the right-hand-side vector.
-                    d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctx);
+                    d_PK1_stress_fcn(PP,dX_ds,dU_ds,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctx);
                     F += PP*normal_face[qp];
                 }
                 if (compute_pressure)
@@ -1886,7 +1760,7 @@ void
 IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     const int f_data_idx,
     NumericVector<double>& X_ghost_vec,
-    NumericVector<double>* J_bar_ghost_vec,
+    NumericVector<double>& U_ghost_vec,
     const double& time)
 {
     if (!d_split_interior_and_bdry_forces) return;
@@ -1918,28 +1792,13 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    System& X_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system<System>(  COORDS_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
+    System& U_system = equation_systems->get_system<System>(VELOCITY_SYSTEM_NAME);
+    const DofMap& U_dof_map = U_system.get_dof_map();
+    for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == U_dof_map.variable_type(d));
 #endif
-
-    const DofMap* J_bar_dof_map = NULL;
-    std::vector<unsigned int> J_bar_dof_indices;
-    AutoPtr<FEBase> J_bar_fe;
-    AutoPtr<FEBase> J_bar_fe_face;
-    const std::vector<std::vector<double> >* phi_J_bar_face = NULL;
-    if (d_use_fbar_projection)
-    {
-        System& J_bar_system = equation_systems->get_system<System>(PROJ_STRAIN_SYSTEM_NAME);
-        J_bar_dof_map = &J_bar_system.get_dof_map();
-        J_bar_dof_indices.reserve(27);
-        J_bar_fe = FEBase::build(dim, J_bar_dof_map->variable_type(0));
-        J_bar_fe->attach_quadrature_rule(ib_qrule);
-        J_bar_fe->get_xyz();  // prevents FE::reinit() from rebuilding all FE data items...
-        J_bar_fe_face = FEBase::build(dim, J_bar_dof_map->variable_type(0));
-        J_bar_fe_face->attach_quadrature_rule(ib_qrule_face.get());
-        phi_J_bar_face = &J_bar_fe_face->get_phi();
-    }
 
     // Setup extra data needed to compute stresses/forces.
     std::vector<NumericVector<double>*> PK1_stress_fcn_data;
@@ -1970,12 +1829,11 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     // onto the grid.
     const blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_element_map = d_fe_data_manager->getActivePatchElementMap();
     const int level_num = d_fe_data_manager->getLevelNumber();
-    TensorValue<double> PP, dX_ds, dX_ds_inv_trans;
-    VectorValue<double> F, F_s;
+    TensorValue<double> PP, dX_ds, dX_ds_inv_trans, dU_ds;
+    VectorValue<double> F, F_s, U_qp;
     Point X_qp;
     double P;
-    blitz::Array<double,2> X_node;
-    blitz::Array<double,1> J_bar_node;
+    blitz::Array<double,2> X_node, U_node;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -2030,12 +1888,6 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
                 dof_map.dof_indices(elem, dof_indices(d), d);
             }
 
-            if (d_use_fbar_projection)
-            {
-                J_bar_fe->reinit(elem);
-                J_bar_dof_map->dof_indices(elem, J_bar_dof_indices);
-            }
-
             // Loop over the element boundaries.
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
             {
@@ -2063,7 +1915,6 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
                 if (!(compute_transmission_force || compute_pressure || compute_surface_force)) continue;
 
                 fe_face->reinit(elem, side);
-                if (d_use_fbar_projection) J_bar_fe_face->reinit(elem, side);
 
                 const unsigned int n_qp = ib_qrule_face->n_points();
 
@@ -2071,19 +1922,21 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
                 X_bdry.resize(X_bdry.size()+NDIM*n_qp);
 
                 get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
-                if (d_use_fbar_projection) get_values_for_interpolation(J_bar_node, *J_bar_ghost_vec, J_bar_dof_indices);
+                get_values_for_interpolation(U_node, U_ghost_vec, dof_indices);
                 for (unsigned int qp = 0; qp < n_qp; ++qp, ++qp_offset)
                 {
                     const Point& s_qp = q_point_face[qp];
                     interpolate(X_qp,qp,X_node,phi_face);
-                    jacobian(dX_ds,qp,X_node,dphi_face,&J_bar_node,phi_J_bar_face);
+                    jacobian(dX_ds,qp,X_node,dphi_face);
+                    interpolate(U_qp,qp,U_node,phi_face);
+                    jacobian(dU_ds,qp,U_node,dphi_face);
                     F.zero();
                     if (compute_transmission_force)
                     {
                         // Compute the value of the first Piola-Kirchhoff stress
                         // tensor at the quadrature point and compute the
                         // corresponding force.
-                        d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctx);
+                        d_PK1_stress_fcn(PP,dX_ds,dU_ds,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctx);
                         F -= PP*normal_face[qp]*JxW_face[qp];
                     }
                     if (compute_pressure)
@@ -2221,16 +2074,6 @@ IBFEHierarchyIntegrator::getFromInput(
     d_quad_type = Utility::string_to_enum<QuadratureType>(db->getStringWithDefault("quad_type", Utility::enum_to_string<QuadratureType>(d_quad_type)));
     d_quad_order = static_cast<Order>(2*static_cast<int>(d_fe_order) + 1);
     d_quad_order = Utility::string_to_enum<Order>(db->getStringWithDefault("quad_order", Utility::enum_to_string<Order>(d_quad_order)));
-
-    d_use_fbar_projection = db->getBoolWithDefault("use_fbar_projection", d_use_fbar_projection);
-    if (d_use_fbar_projection)
-    {
-        d_J_bar_fe_order = Utility::string_to_enum<Order>(db->getStringWithDefault("J_bar_fe_order", Utility::enum_to_string<Order>(d_J_bar_fe_order)));
-        d_J_bar_fe_family = Utility::string_to_enum<FEFamily>(db->getStringWithDefault("J_bar_fe_family", Utility::enum_to_string<FEFamily>(d_J_bar_fe_family)));
-        d_J_bar_quad_type = Utility::string_to_enum<QuadratureType>(db->getStringWithDefault("J_bar_quad_type", Utility::enum_to_string<QuadratureType>(d_J_bar_quad_type)));
-        d_J_bar_quad_order = static_cast<Order>(NDIM*static_cast<int>(d_fe_order) + static_cast<int>(d_J_bar_fe_order) + 1);
-        d_J_bar_quad_order = Utility::string_to_enum<Order>(db->getStringWithDefault("J_bar_quad_order", Utility::enum_to_string<Order>(d_J_bar_quad_order)));
-    }
 
     d_do_log = db->getBoolWithDefault("enable_logging", d_do_log);
 
