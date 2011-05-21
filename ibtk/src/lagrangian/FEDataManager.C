@@ -1339,79 +1339,63 @@ FEDataManager::updateQuadPointCountData(
 {
     // Set the node count data on the specified range of levels of the
     // hierarchy.
-    d_qp_count_data_timestamp.resize(std::max(finest_ln+1,static_cast<int>(d_qp_count_data_timestamp.size())),-0.5*std::numeric_limits<double>::max());
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        bool reinit_data = data_time > d_qp_count_data_timestamp[ln];
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(d_qp_count_idx))
-        {
-            level->allocatePatchData(d_qp_count_idx);
-            reinit_data = true;
-        }
-        if (!reinit_data) continue;
-        d_qp_count_data_timestamp[ln] = data_time;
+        if (!level->checkAllocated(d_qp_count_idx)) level->allocatePatchData(d_qp_count_idx);
+        HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(d_hierarchy,ln,ln);
+        hier_cc_data_ops.setToScalar(d_qp_count_idx, 0.0);
+        if (ln != d_level_number) continue;
 
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CellData<NDIM,double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
-            qp_count_data->fillAll(0.0);
-        }
+        const MeshBase& mesh = d_es->get_mesh();
+        const unsigned int dim = mesh.mesh_dimension();
 
-        if (ln == d_level_number)
-        {
-            const MeshBase& mesh = d_es->get_mesh();
-            const unsigned int dim = mesh.mesh_dimension();
-
-            System& X_system = d_es->get_system<System>(COORDINATES_SYSTEM_NAME);
-            const DofMap& X_dof_map = X_system.get_dof_map();
+        System& X_system = d_es->get_system<System>(COORDINATES_SYSTEM_NAME);
+        const DofMap& X_dof_map = X_system.get_dof_map();
 #ifdef DEBUG_CHECK_ASSERTIONS
-            for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
+        for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
 #endif
-            blitz::Array<std::vector<unsigned int>,1> X_dof_indices(dim);
-            AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
-            X_fe->attach_quadrature_rule(d_qrule);
-            const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
-            NumericVector<double>* X_vec = getCoordsVector();
-            NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
-            X_vec->localize(*X_ghost_vec);
-            X_dof_map.enforce_constraints_exactly(X_system, X_ghost_vec);
-            blitz::Array<double,2> X_node;
-            blitz::TinyVector<double,NDIM> X_qp;
-            int local_patch_num = 0;
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+        blitz::Array<std::vector<unsigned int>,1> X_dof_indices(dim);
+        AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
+        X_fe->attach_quadrature_rule(d_qrule);
+        const std::vector<std::vector<double> >& phi_X = X_fe->get_phi();
+        NumericVector<double>* X_vec = getCoordsVector();
+        NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
+        X_vec->localize(*X_ghost_vec);
+        X_dof_map.enforce_constraints_exactly(X_system, X_ghost_vec);
+        blitz::Array<double,2> X_node;
+        blitz::TinyVector<double,NDIM> X_qp;
+        int local_patch_num = 0;
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+        {
+            const blitz::Array<Elem*,1>& patch_elems = d_active_patch_elem_map(local_patch_num);
+            const unsigned int num_active_patch_elems = patch_elems.size();
+            if (num_active_patch_elems == 0) continue;
+
+            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const CellIndex<NDIM>& patch_lower = patch_box.lower();
+            const CellIndex<NDIM>& patch_upper = patch_box.upper();
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_x_lower = patch_geom->getXLower();
+            const double* const patch_x_upper = patch_geom->getXUpper();
+            const double* const patch_dx = patch_geom->getDx();
+
+            Pointer<CellData<NDIM,double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
+            for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
-                const blitz::Array<Elem*,1>& patch_elems = d_active_patch_elem_map(local_patch_num);
-                const unsigned int num_active_patch_elems = patch_elems.size();
-                if (num_active_patch_elems == 0) continue;
-
-                const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& patch_box = patch->getBox();
-                const CellIndex<NDIM>& patch_lower = patch_box.lower();
-                const CellIndex<NDIM>& patch_upper = patch_box.upper();
-                const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-                const double* const patch_x_lower = patch_geom->getXLower();
-                const double* const patch_x_upper = patch_geom->getXUpper();
-                const double* const patch_dx = patch_geom->getDx();
-
-                Pointer<CellData<NDIM,double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
-
-                for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+                const Elem* const elem = patch_elems(e_idx);
+                X_fe->reinit(elem);
+                for (unsigned int d = 0; d < dim; ++d)
                 {
-                    const Elem* const elem = patch_elems(e_idx);
-                    X_fe->reinit(elem);
-                    for (unsigned int d = 0; d < dim; ++d)
-                    {
-                        X_dof_map.dof_indices(elem, X_dof_indices(d), d);
-                    }
-                    get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
-                    for (unsigned int qp = 0; qp < d_qrule->n_points(); ++qp)
-                    {
-                        interpolate(&X_qp[0], qp, X_node, phi_X);
-                        const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
-                        if (patch_box.contains(i)) (*qp_count_data)(i) += 1.0;
-                    }
+                    X_dof_map.dof_indices(elem, X_dof_indices(d), d);
+                }
+                get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
+                for (unsigned int qp = 0; qp < d_qrule->n_points(); ++qp)
+                {
+                    interpolate(&X_qp[0], qp, X_node, phi_X);
+                    const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
+                    if (patch_box.contains(i)) (*qp_count_data)(i) += 1.0;
                 }
             }
         }

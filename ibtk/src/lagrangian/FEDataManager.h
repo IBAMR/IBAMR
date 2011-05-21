@@ -580,7 +580,6 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_qp_count_var;
     int d_qp_count_idx;
-    std::vector<double> d_qp_count_data_timestamp;
 
     /*
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
