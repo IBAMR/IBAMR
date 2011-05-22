@@ -713,12 +713,13 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     System& U_system = equation_systems->get_system<System>(VELOCITY_SYSTEM_NAME);
 
     NumericVector<double>& X_current = *(X_system.solution);
+    NumericVector<double>& U_current = *(U_system.solution);
 
     AutoPtr<NumericVector<double> > X_new_ptr = X_current.clone();
     NumericVector<double>& X_new = *X_new_ptr;
 
     NumericVector<double>& X_half = *(X_system.current_local_solution);
-    NumericVector<double>& U_half = *(U_system.              solution);
+    NumericVector<double>& U_half = *(U_system.current_local_solution);
     NumericVector<double>& F_half = *(F_system.              solution);
 
     NumericVector<double>* X_half_IB_ghost_ptr = d_fe_data_manager->buildGhostedCoordsVector();
@@ -944,6 +945,10 @@ IBFEHierarchyIntegrator::advanceHierarchy(
             ierr = VecCopy(X_new_vec, X_current_vec); IBTK_CHKERRQ(ierr);
         }
     }
+
+    // Reset U_current to equal U_half.
+    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&U_half)->vec(),
+                   dynamic_cast<PetscVector<double>*>(&U_current)->vec()); IBTK_CHKERRQ(ierr);
 
     // Update the coordinate mapping dX = X - s.
     updateCoordinateMapping();

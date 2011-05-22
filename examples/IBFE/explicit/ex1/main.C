@@ -83,6 +83,7 @@ void
 PK1_stress_function(
     TensorValue<double>& PP,
     const TensorValue<double>& dX_ds,
+    const TensorValue<double>& dU_ds,
     const Point& X,
     const Point& s,
     Elem* const elem,
