@@ -616,7 +616,6 @@ private:
     blitz::Array<blitz::Array<libMesh::Elem*,1>,1> d_active_patch_elem_map;
     std::map<std::string,std::vector<unsigned int> > d_active_patch_ghost_dofs;
     blitz::Array<std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> >,1> d_active_elem_bboxes;
-    double d_active_elem_bboxes_timestamp;
 
     /*
      * Ghost vectors for the various equation systems.
@@ -633,6 +632,32 @@ private:
     std::map<std::string,bool> d_L2_proj_consistent_mass_matrix;
     std::map<std::string,libMeshEnums::QuadratureType> d_L2_proj_quad_type;
     std::map<std::string,libMeshEnums::Order> d_L2_proj_quad_order;
+
+    /*
+     * Partitioner support.
+     */
+    void
+    do_partition(
+        libMesh::MeshBase& mesh,
+        const unsigned int n);
+
+    class IBFEPartitioner : public libMesh::Partitioner
+    {
+    public:
+        IBFEPartitioner(FEDataManager* fe_data_manager) : d_fe_data_manager(fe_data_manager) { return; }
+        ~IBFEPartitioner() { return; }
+        virtual libMesh::AutoPtr<libMesh::Partitioner> clone () const {
+            return libMesh::AutoPtr<libMesh::Partitioner>(new IBFEPartitioner(d_fe_data_manager));
+        }
+    protected:
+        virtual void _do_partition(libMesh::MeshBase& mesh, const unsigned int n)
+            {
+                d_fe_data_manager->do_partition(mesh, n);
+            }
+    private:
+        FEDataManager* const d_fe_data_manager;
+    };
+
 };
 }// namespace IBTK
 

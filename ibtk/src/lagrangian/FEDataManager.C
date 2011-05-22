@@ -70,6 +70,7 @@ using namespace libMesh;
 
 // SAMRAI INCLUDES
 #include <CartesianCellDoubleWeightedAverage.h>
+#include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
 #include <CoarsenAlgorithm.h>
 #include <HierarchyCellDataOpsReal.h>
@@ -1282,9 +1283,6 @@ FEDataManager::FEDataManager(
     d_workload_var = new CellVariable<NDIM,double>(d_object_name+"::workload");
     d_workload_idx = var_db->registerVariableAndContext(d_workload_var, d_context, 0);
 
-    // Indicate that the bounding box data needs to be recomputed.
-    d_active_elem_bboxes_timestamp = -0.5*std::numeric_limits<double>::max();
-
     // Setup Timers.
     IBTK_DO_ONCE(
         t_reinit_element_mappings = TimerManager::getManager()->getTimer("IBTK::FEDataManager::reinitElementMappings()");
@@ -1407,13 +1405,6 @@ blitz::Array<std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,N
 FEDataManager::computeActiveElementBoundingBoxes(
     const double data_time)
 {
-    bool reinit_data = data_time > d_active_elem_bboxes_timestamp;
-    if (!reinit_data)
-    {
-        return &d_active_elem_bboxes;
-    }
-    d_active_elem_bboxes_timestamp = data_time;
-
     const MeshBase& mesh = d_es->get_mesh();
     const unsigned int n_elem = mesh.max_elem_id()+1;
     System& X_system = d_es->get_system<System>(COORDINATES_SYSTEM_NAME);
@@ -1790,6 +1781,114 @@ FEDataManager::getFromRestart()
     d_finest_ln   = db->getInteger("d_finest_ln"  );
     return;
 }// getFromRestart
+
+void
+FEDataManager::do_partition(
+    MeshBase& mesh,
+    const unsigned int n)
+{
+    // Compute the centroids of the elements.
+    const unsigned int n_elem = mesh.max_elem_id()+1;
+    System& X_system = d_es->get_system<System>(COORDINATES_SYSTEM_NAME);
+    const unsigned int X_sys_num = X_system.number();
+    const DofMap& X_dof_map = X_system.get_dof_map();
+    NumericVector<double>& X_vec = *X_system.solution;
+    NumericVector<double>& X_ghost_vec = *X_system.current_local_solution;
+    X_vec.localize(X_ghost_vec);
+    X_dof_map.enforce_constraints_exactly(X_system, &X_ghost_vec);
+
+    // Compute the lower and upper bounds of all local elements in the mesh.
+    //
+    // NOTE: Assuming nodal basis functions.
+    std::vector<blitz::TinyVector<double,NDIM> > elem_centroids(n_elem, blitz::TinyVector<double,NDIM>(0.0));
+    MeshBase::element_iterator       el_it  = mesh.local_elements_begin();
+    const MeshBase::element_iterator el_end = mesh.local_elements_end();
+    for ( ; el_it != el_end; ++el_it)
+    {
+        const Elem* const elem = *el_it;
+        const unsigned int elem_id = elem->id();
+        const unsigned int n_nodes = elem->n_nodes();
+        std::vector<unsigned int> dof_indices;
+        dof_indices.reserve(NDIM*n_nodes);
+        for (unsigned int k = 0; k < n_nodes; ++k)
+        {
+            Node* node = elem->get_node(k);
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(node->n_dofs(X_sys_num,0) > 0);
+#endif
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                dof_indices.push_back(node->dof_number(X_sys_num,d,0));
+            }
+        }
+        std::vector<double> X_node;
+        X_ghost_vec.get(dof_indices, X_node);
+        for (unsigned int k = 0; k < n_nodes; ++k)
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                const double& X = X_node[k*NDIM+d];
+                elem_centroids[elem_id][d] += X;
+            }
+        }
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            elem_centroids[elem_id][d] /= static_cast<double>(n_nodes);
+        }
+    }
+
+    // Parallel sum elem_centroids so that each process has access to the
+    // centroid data for each active element in the mesh.
+    std::vector<double> elem_centroids_flattened(NDIM*n_elem);
+    for (unsigned int e = 0; e < n_elem; ++e)
+    {
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            elem_centroids_flattened[e*NDIM+d] = elem_centroids[e][d];
+        }
+    }
+    SAMRAI_MPI::sumReduction(&elem_centroids_flattened[0], elem_centroids_flattened.size());
+    for (unsigned int e = 0; e < n_elem; ++e)
+    {
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            elem_centroids[e][d] = elem_centroids_flattened[e*NDIM+d];
+        }
+    }
+
+    // Find which patch contains each element centroid.
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
+    const IntVector<NDIM>& ratio = level->getRatio();
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
+#endif
+    const Box<NDIM>& domain_box0 = grid_geom->getPhysicalDomain()[0];
+    const Box<NDIM>  domain_box  = Box<NDIM>::refine(domain_box0, ratio);
+    const Index<NDIM>& lower = domain_box.lower();
+    const Index<NDIM>& upper = domain_box.upper();
+    const double* const x_lower = grid_geom->getXLower();
+    const double* const x_upper = grid_geom->getXUpper();
+    const double* const dx0 = grid_geom->getDx();
+    double dx[NDIM];
+    for (unsigned int d = 0; d < NDIM; ++d) dx[d] = dx0[d]/static_cast<double>(ratio(d));
+    Pointer<BoxTree<NDIM> > box_tree = level->getBoxTree();
+    const ProcessorMapping& proc_map = level->getProcessorMapping();
+    for (el_it = mesh.elements_begin(); el_it != mesh.elements_end(); ++el_it)
+    {
+        Elem* const elem = *el_it;
+        const unsigned int elem_id = elem->id();
+        const double* const X = elem_centroids[elem_id].data();
+        const Index<NDIM> i = IndexUtilities::getCellIndex(X, x_lower, x_upper, dx, lower, upper);
+        Array<int> indices;
+        box_tree->findOverlapIndices(indices, Box<NDIM>(i,i));
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(indices.size() == 1);
+#endif
+        elem->processor_id() = proc_map.getProcessorAssignment(indices[0]);
+    }
+    return;
+}// do_partition
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
