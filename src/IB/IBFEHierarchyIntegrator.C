@@ -308,7 +308,7 @@ IBFEHierarchyIntegrator::registerInitialCoordinateMappingFunction(
 
 void
 IBFEHierarchyIntegrator::registerPK1StressTensorFunction(
-    void (*PK1_stress_fcn)(TensorValue<double>& PP, const TensorValue<double>& dX_ds, const TensorValue<double>& dU_ds, const Point& X, const Point& s, Elem* const, NumericVector<double>& X_vec, const std::vector<NumericVector<double>*>& system_data, const double& time, void* ctx),
+    void (*PK1_stress_fcn)(TensorValue<double>& PP, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, NumericVector<double>& X_vec, const std::vector<NumericVector<double>*>& system_data, const double& time, void* ctx),
     std::vector<unsigned int> PK1_stress_fcn_systems,
     void* PK1_stress_fcn_ctx)
 {
@@ -713,13 +713,12 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     System& U_system = equation_systems->get_system<System>(VELOCITY_SYSTEM_NAME);
 
     NumericVector<double>& X_current = *(X_system.solution);
-    NumericVector<double>& U_current = *(U_system.solution);
 
     AutoPtr<NumericVector<double> > X_new_ptr = X_current.clone();
     NumericVector<double>& X_new = *X_new_ptr;
 
     NumericVector<double>& X_half = *(X_system.current_local_solution);
-    NumericVector<double>& U_half = *(U_system.current_local_solution);
+    NumericVector<double>& U_half = *(U_system.              solution);
     NumericVector<double>& F_half = *(F_system.              solution);
 
     NumericVector<double>* X_half_IB_ghost_ptr = d_fe_data_manager->buildGhostedCoordsVector();
@@ -727,12 +726,6 @@ IBFEHierarchyIntegrator::advanceHierarchy(
 
     NumericVector<double>* F_half_IB_ghost_ptr = d_fe_data_manager->buildGhostedSolutionVector(FORCE_SYSTEM_NAME);
     NumericVector<double>& F_half_IB_ghost = *F_half_IB_ghost_ptr;
-
-    NumericVector<double>* U_half_IB_ghost_ptr = NULL;
-    if (d_split_interior_and_bdry_forces)
-    {
-        U_half_IB_ghost_ptr = d_fe_data_manager->buildGhostedSolutionVector(VELOCITY_SYSTEM_NAME);
-    }
 
     // Initialize the various LData objects on each level of the patch hierarchy.
     std::vector<Pointer<LData> > X_current_data(finest_ln+1);
@@ -789,24 +782,6 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         }
     }
 
-    // Initialize U(n+1/2) to equal U(n).
-    d_hier_sc_data_ops->copyData(d_V_idx, U_current_idx);
-    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&X_current)->vec(), dynamic_cast<PetscVector<double>*>(&X_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
-    d_fe_data_manager->interp(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::GHOST_FILL"], current_time, true);
-    if (d_l_data_manager != NULL)
-    {
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (d_l_data_manager->levelContainsLagrangianData(ln))
-            {
-                Vec X_current_vec = X_current_data[ln]->getVec();
-                Vec X_half_vec = X_half_data[ln]->getVec();
-                ierr = VecCopy(X_current_vec, X_half_vec); IBTK_CHKERRQ(ierr);
-            }
-        }
-        d_l_data_manager->interp(d_V_idx, U_half_data, X_half_data, std::vector<Pointer<CoarsenSchedule<NDIM> > >(), std::vector<Pointer<RefineSchedule<NDIM> > >(), current_time, false);
-    }
-
     // Initialize X_mark(n+1) to equal X_mark(n).
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -851,7 +826,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         // Compute F(n+1/2) = F(X(n+1/2),t(n+1/2)).
         SAMRAI_MPI::barrier();
         t_advance_hierarchy_phase3->start();
-        computeInteriorForceDensity(F_half, X_half, U_half, current_time+0.5*dt);
+        computeInteriorForceDensity(F_half, X_half, current_time+0.5*dt);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (d_l_data_manager != NULL && d_l_data_manager->levelContainsLagrangianData(ln))
@@ -879,10 +854,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         d_fe_data_manager->spread(d_F_idx, F_half_IB_ghost, X_half_IB_ghost, FORCE_SYSTEM_NAME, false, false);
         if (d_split_interior_and_bdry_forces)
         {
-            NumericVector<double>& U_half_IB_ghost = *U_half_IB_ghost_ptr;
-            ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&U_half)->vec(), dynamic_cast<PetscVector<double>*>(&U_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
-            U_half_IB_ghost.close();
-            spreadTransmissionForceDensity(d_F_idx, X_half_IB_ghost, U_half_IB_ghost, current_time+0.5*dt);
+            spreadTransmissionForceDensity(d_F_idx, X_half_IB_ghost, current_time+0.5*dt);
         }
         if (d_l_data_manager != NULL)
         {
@@ -946,9 +918,11 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         }
     }
 
-    // Reset U_current to equal U_half.
-    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&U_half)->vec(),
-                   dynamic_cast<PetscVector<double>*>(&U_current)->vec()); IBTK_CHKERRQ(ierr);
+    // Update the interpolated velocity.
+    d_hier_sc_data_ops->copyData(d_V_idx, U_new_idx);
+    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&X_new)->vec(),
+                   dynamic_cast<PetscVector<double>*>(&X_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
+    d_fe_data_manager->interp(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::GHOST_FILL"], current_time, true);
 
     // Update the coordinate mapping dX = X - s.
     updateCoordinateMapping();
@@ -1511,7 +1485,6 @@ void
 IBFEHierarchyIntegrator::computeInteriorForceDensity(
     NumericVector<double>& G_vec,
     NumericVector<double>& X_vec,
-    NumericVector<double>& U_vec,
     const double& time)
 {
     // Extract the mesh.
@@ -1547,10 +1520,6 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     System& X_system = equation_systems->get_system<System>(  COORDS_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
-
-    System& U_system = equation_systems->get_system<System>(VELOCITY_SYSTEM_NAME);
-    const DofMap& U_dof_map = U_system.get_dof_map();
-    for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == U_dof_map.variable_type(d));
 #endif
 
     // Setup extra data needed to compute stresses/forces.
@@ -1601,11 +1570,11 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     //
     // This right-hand side vector is used to solve for the nodal values of the
     // interior elastic force density.
-    TensorValue<double> PP, dX_ds, dX_ds_inv_trans, dU_ds;
-    VectorValue<double> F, F_b, F_s, F_qp, U_qp;
+    TensorValue<double> PP, dX_ds, dX_ds_inv_trans;
+    VectorValue<double> F, F_b, F_s, F_qp;
     Point X_qp;
     double P;
-    blitz::Array<double,2> X_node, U_node;
+    blitz::Array<double,2> X_node;
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
     for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -1630,20 +1599,16 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
         const unsigned int n_basis = dof_indices(0).size();
 
         get_values_for_interpolation(X_node, X_vec, dof_indices);
-        get_values_for_interpolation(U_node, U_vec, dof_indices);
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
             const Point& s_qp = q_point[qp];
             interpolate(X_qp,qp,X_node,phi);
             jacobian(dX_ds,qp,X_node,dphi);
 
-            interpolate(U_qp,qp,U_node,phi);
-            jacobian(dU_ds,qp,U_node,dphi);
-
             // Compute the value of the first Piola-Kirchhoff stress tensor at
             // the quadrature point and add the corresponding forces to the
             // right-hand-side vector.
-            d_PK1_stress_fcn(PP,dX_ds,dU_ds,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctx);
+            d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctx);
             for (unsigned int k = 0; k < n_basis; ++k)
             {
                 F_qp = -PP*dphi[k][qp]*JxW[qp];
@@ -1702,21 +1667,18 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
             const unsigned int n_basis = dof_indices(0).size();
 
             get_values_for_interpolation(X_node, X_vec, dof_indices);
-            get_values_for_interpolation(U_node, U_vec, dof_indices);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const Point& s_qp = q_point_face[qp];
                 interpolate(X_qp,qp,X_node,phi_face);
                 jacobian(dX_ds,qp,X_node,dphi_face);
-                interpolate(U_qp,qp,U_node,phi_face);
-                jacobian(dU_ds,qp,U_node,dphi_face);
                 F.zero();
                 if (compute_transmission_force)
                 {
                     // Compute the value of the first Piola-Kirchhoff stress
                     // tensor at the quadrature point and add the corresponding
                     // force to the right-hand-side vector.
-                    d_PK1_stress_fcn(PP,dX_ds,dU_ds,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctx);
+                    d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctx);
                     F += PP*normal_face[qp];
                 }
                 if (compute_pressure)
@@ -1765,7 +1727,6 @@ void
 IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     const int f_data_idx,
     NumericVector<double>& X_ghost_vec,
-    NumericVector<double>& U_ghost_vec,
     const double& time)
 {
     if (!d_split_interior_and_bdry_forces) return;
@@ -1800,9 +1761,6 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     System& X_system = equation_systems->get_system<System>(  COORDS_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
-    System& U_system = equation_systems->get_system<System>(VELOCITY_SYSTEM_NAME);
-    const DofMap& U_dof_map = U_system.get_dof_map();
-    for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == U_dof_map.variable_type(d));
 #endif
 
     // Setup extra data needed to compute stresses/forces.
@@ -1834,11 +1792,11 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     // onto the grid.
     const blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_element_map = d_fe_data_manager->getActivePatchElementMap();
     const int level_num = d_fe_data_manager->getLevelNumber();
-    TensorValue<double> PP, dX_ds, dX_ds_inv_trans, dU_ds;
-    VectorValue<double> F, F_s, U_qp;
+    TensorValue<double> PP, dX_ds, dX_ds_inv_trans;
+    VectorValue<double> F, F_s;
     Point X_qp;
     double P;
-    blitz::Array<double,2> X_node, U_node;
+    blitz::Array<double,2> X_node;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -1927,21 +1885,18 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
                 X_bdry.resize(X_bdry.size()+NDIM*n_qp);
 
                 get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
-                get_values_for_interpolation(U_node, U_ghost_vec, dof_indices);
                 for (unsigned int qp = 0; qp < n_qp; ++qp, ++qp_offset)
                 {
                     const Point& s_qp = q_point_face[qp];
                     interpolate(X_qp,qp,X_node,phi_face);
                     jacobian(dX_ds,qp,X_node,dphi_face);
-                    interpolate(U_qp,qp,U_node,phi_face);
-                    jacobian(dU_ds,qp,U_node,dphi_face);
                     F.zero();
                     if (compute_transmission_force)
                     {
                         // Compute the value of the first Piola-Kirchhoff stress
                         // tensor at the quadrature point and compute the
                         // corresponding force.
-                        d_PK1_stress_fcn(PP,dX_ds,dU_ds,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctx);
+                        d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctx);
                         F -= PP*normal_face[qp]*JxW_face[qp];
                     }
                     if (compute_pressure)

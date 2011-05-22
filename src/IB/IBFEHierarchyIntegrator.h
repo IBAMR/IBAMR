@@ -124,7 +124,7 @@ public:
      */
     void
     registerPK1StressTensorFunction(
-        void (*PK1_stress_fcn)(libMesh::TensorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::TensorValue<double>& dU_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx),
+        void (*PK1_stress_fcn)(libMesh::TensorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx),
         std::vector<unsigned int> PK1_stress_fcn_systems=std::vector<unsigned int>(),
         void* PK1_stress_fcn_ctx=NULL);
 
@@ -614,7 +614,6 @@ private:
     computeInteriorForceDensity(
         libMesh::NumericVector<double>& G_vec,
         libMesh::NumericVector<double>& X_vec,
-        libMesh::NumericVector<double>& U_vec,
         const double& time);
 
     /*!
@@ -625,7 +624,6 @@ private:
     spreadTransmissionForceDensity(
         const int f_data_idx,
         libMesh::NumericVector<double>& X_ghost_vec,
-        libMesh::NumericVector<double>& U_ghost_vec,
         const double& time);
 
     /*!
@@ -698,7 +696,7 @@ private:
     /*
      * Function used to compute the first Piola-Kirchhoff stress tensor.
      */
-    void (*d_PK1_stress_fcn)(libMesh::TensorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::TensorValue<double>& dU_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx);
+    void (*d_PK1_stress_fcn)(libMesh::TensorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx);
     std::vector<unsigned int> d_PK1_stress_fcn_systems;
     void* d_PK1_stress_fcn_ctx;
 
