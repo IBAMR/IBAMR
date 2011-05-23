@@ -1022,21 +1022,29 @@ FEDataManager::initializeLevelData(
     //
     // Since time gets set when we allocate data, re-stamp it to current time if
     // we don't need to allocate.
-    if (allocate_data && !d_load_balancer.isNull() && level_number == d_level_number)
+    if (allocate_data)
     {
         level->allocatePatchData(d_workload_idx, init_data_time);
     }
-    else if (!d_load_balancer.isNull() && level_number == d_level_number)
+    else
     {
         level->setTime(d_workload_idx, init_data_time);
     }
 
-    // Setup the load balancer.
+    // Initialize workload data and setup the load balancer.
     if (!d_load_balancer.isNull())
     {
+        HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(hierarchy,level_number,level_number);
+        hier_cc_data_ops.setToScalar(d_workload_idx, 1.0);
+        if (!old_level.isNull() && level_number == d_level_number)
+        {
+            Pointer<RefineOperator<NDIM> > regrid_fill_op = Pointer<RefineOperator<NDIM> >(NULL);
+            Pointer<RefineAlgorithm<NDIM> > regrid_fill_alg = new RefineAlgorithm<NDIM>();
+            regrid_fill_alg->registerRefine(d_workload_idx, d_workload_idx, d_workload_idx, regrid_fill_op);
+            regrid_fill_alg->createSchedule(level, old_level)->fillData(init_data_time);
+        }
         if (level_number == d_level_number)
         {
-            updateWorkloadData(level_number, level_number);
             d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx, level_number);
         }
         else

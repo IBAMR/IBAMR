@@ -2125,9 +2125,19 @@ LDataManager::initializeLevelData(
         IBTK_CHKERRQ(ierr);
     }
 
-    // Setup the load balancer.
+
+    // Initialize workload data and setup the load balancer.
     if (!d_load_balancer.isNull())
     {
+        HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(hierarchy,level_number,level_number);
+        hier_cc_data_ops.setToScalar(d_workload_idx, d_alpha_work);
+        if (!old_level.isNull() && d_level_contains_lag_data[level_number])
+        {
+            Pointer<RefineOperator<NDIM> > regrid_fill_op = Pointer<RefineOperator<NDIM> >(NULL);
+            Pointer<RefineAlgorithm<NDIM> > regrid_fill_alg = new RefineAlgorithm<NDIM>();
+            regrid_fill_alg->registerRefine(d_workload_idx, d_workload_idx, d_workload_idx, regrid_fill_op);
+            regrid_fill_alg->createSchedule(level, old_level)->fillData(init_data_time);
+        }
         if (d_level_contains_lag_data[level_number])
         {
             d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx, level_number);

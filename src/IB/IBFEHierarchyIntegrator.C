@@ -224,10 +224,7 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
 
     // Initialize object with data read from the input and restart databases.
     const bool from_restart = RestartManager::getManager()->isFromRestart();
-    if (from_restart)
-    {
-        getFromRestart();
-    }
+    if (from_restart) getFromRestart();
     getFromInput(input_db, from_restart);
 
     // Read in the marker initial positions.
@@ -242,6 +239,24 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_current = var_db->getContext(d_object_name+"::CURRENT");
     d_scratch = var_db->getContext(d_object_name+"::SCRATCH");
+
+    // Initialize all variables.
+    const IntVector<NDIM> ghosts = d_fe_data_manager->getGhostCellWidth();
+    const IntVector<NDIM> no_ghosts = 0;
+
+    d_V_var = new SideVariable<NDIM,double>(d_object_name+"::V");
+    d_V_idx = var_db->registerVariableAndContext(d_V_var, d_scratch, ghosts);
+
+    d_F_var = new SideVariable<NDIM,double>(d_object_name+"::F");
+    d_F_idx = var_db->registerVariableAndContext(d_F_var, d_scratch, no_ghosts);
+
+    d_mark_var = new LMarkerSetVariable(d_object_name+"::mark");
+    d_mark_current_idx = var_db->registerVariableAndContext(d_mark_var, getCurrentContext(), ghosts);
+    d_mark_scratch_idx = var_db->registerVariableAndContext(d_mark_var, getScratchContext(), ghosts);
+    if (d_registered_for_restart)
+    {
+        var_db->registerPatchDataForRestart(d_mark_current_idx);
+    }
 
     // Setup Timers.
     IBAMR_DO_ONCE(
@@ -413,6 +428,8 @@ IBFEHierarchyIntegrator::registerLoadBalancer(
     TBOX_ASSERT(!load_balancer.isNull());
 #endif
     d_load_balancer = load_balancer;
+    d_fe_data_manager->registerLoadBalancer(d_load_balancer);
+    if (d_l_data_manager != NULL) d_l_data_manager->registerLoadBalancer(d_load_balancer);
     return;
 }// registerLoadBalancer
 
@@ -483,26 +500,6 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
         U_system.add_variable(os.str(), d_fe_order, d_fe_family);
     }
 
-    // Initialize all variables.
-    const IntVector<NDIM> ghosts = d_fe_data_manager->getGhostCellWidth();
-    const IntVector<NDIM> no_ghosts = 0;
-
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-
-    d_V_var = new SideVariable<NDIM,double>(d_object_name+"::V");
-    d_V_idx = var_db->registerVariableAndContext(d_V_var, d_scratch, ghosts);
-
-    d_F_var = new SideVariable<NDIM,double>(d_object_name+"::F");
-    d_F_idx = var_db->registerVariableAndContext(d_F_var, d_scratch, no_ghosts);
-
-    d_mark_var = new LMarkerSetVariable(d_object_name+"::mark");
-    d_mark_current_idx = var_db->registerVariableAndContext(d_mark_var, getCurrentContext(), ghosts);
-    d_mark_scratch_idx = var_db->registerVariableAndContext(d_mark_var, getScratchContext(), ghosts);
-    if (d_registered_for_restart)
-    {
-        var_db->registerPatchDataForRestart(d_mark_current_idx);
-    }
-
     // Initialize the objects used to manage Lagragian-Eulerian interaction.
     d_eulerian_force_fcn = new IBEulerianForceFunction(d_object_name+"::IBEulerianForceFunction", -1, -1, d_F_idx);
     d_ins_hier_integrator->registerBodyForceSpecification(d_eulerian_force_fcn);
@@ -519,6 +516,7 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<RefineOperator<NDIM> > refine_operator;
     Pointer<CoarsenOperator<NDIM> > coarsen_operator;
 
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int U_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVar(), d_ins_hier_integrator->getCurrentContext());
 
     d_ralgs["U->V::C->S::GHOST_FILL"] = new RefineAlgorithm<NDIM>();
