@@ -81,7 +81,7 @@ get_values_for_interpolation(
     libMesh::NumericVector<double>& U_vec,
     const blitz::Array<std::vector<unsigned int>,1>& dof_indices)
 {
-    const int n_vars = dof_indices.size();
+    const int n_vars = dof_indices.extent(0);
     const int n_nodes = dof_indices(0).size();
     if (U_node.extent(0) != n_nodes || U_node.extent(1) != n_vars) U_node.resize(n_nodes,n_vars);
     libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);

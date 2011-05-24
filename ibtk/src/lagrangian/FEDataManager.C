@@ -294,7 +294,7 @@ NumericVector<double>*
 FEDataManager::getSolutionVector(
     const std::string& system_name) const
 {
-    System& system = d_es->get_system<System>(system_name);
+    System& system = d_es->get_system(system_name);
     return system.solution.get();
 }// getSolutionVector
 
@@ -318,7 +318,7 @@ FEDataManager::buildGhostedSolutionVector(
         sol_ghost_vec->init(sol_vec->size(), sol_vec->local_size(), d_active_patch_ghost_dofs[system_name], true, GHOSTED);
         d_system_ghost_vec[system_name] = sol_ghost_vec.release();
     }
-    System& system = d_es->get_system<System>(system_name);
+    System& system = d_es->get_system(system_name);
     NumericVector<double>* sol_ghost_vec = d_system_ghost_vec[system_name];
     sol_vec->localize(*sol_ghost_vec);
     system.get_dof_map().enforce_constraints_exactly(system, sol_ghost_vec);
@@ -356,7 +356,7 @@ FEDataManager::spread(
     const int dim = mesh.mesh_dimension();
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
-    System& F_system = d_es->get_system<System>(system_name);
+    System& F_system = d_es->get_system(system_name);
     const unsigned int n_vars = F_system.n_vars();
     const DofMap& F_dof_map = F_system.get_dof_map();
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -369,7 +369,7 @@ FEDataManager::spread(
     const std::vector<double>& JxW_F = F_fe->get_JxW();
     const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
 
-    System& X_system = d_es->get_system<System>(COORDINATES_SYSTEM_NAME);
+    System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
@@ -502,7 +502,7 @@ FEDataManager::interp(
     const int dim = mesh.mesh_dimension();
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
-    System& F_system = d_es->get_system<System>(system_name);
+    System& F_system = d_es->get_system(system_name);
     const unsigned int n_vars = F_system.n_vars();
     const DofMap& F_dof_map = F_system.get_dof_map();
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -515,7 +515,7 @@ FEDataManager::interp(
     const std::vector<double>& JxW_F = F_fe->get_JxW();
     const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
 
-    System& X_system = d_es->get_system<System>(COORDINATES_SYSTEM_NAME);
+    System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
@@ -683,7 +683,7 @@ FEDataManager::buildL2ProjectionSolver(
         const unsigned int dim = mesh.mesh_dimension();
         AutoPtr<QBase> qrule = QBase::build(quad_type, dim, quad_order);
 
-        System& system = d_es->get_system<System>(system_name);
+        System& system = d_es->get_system(system_name);
         const int sys_num = system.number();
         DofMap& dof_map = system.get_dof_map();
         // Sparsity patterns are not automatically computed for all system
@@ -816,7 +816,7 @@ FEDataManager::buildDiagonalL2MassMatrix(
         const unsigned int dim = mesh.mesh_dimension();
         AutoPtr<QBase> qrule = QBase::build(quad_type, dim, quad_order);
 
-        System& system = d_es->get_system<System>(system_name);
+        System& system = d_es->get_system(system_name);
         const int sys_num = system.number();
         DofMap& dof_map = system.get_dof_map();
         std::vector<unsigned int> dof_indices;
@@ -915,7 +915,7 @@ FEDataManager::computeL2Projection(
     bool converged = false;
 
     F_vec.close();
-    const System& system = d_es->get_system<System>(system_name);
+    const System& system = d_es->get_system(system_name);
     const DofMap& dof_map = system.get_dof_map();
     dof_map.enforce_constraints_exactly(system, &F_vec);
     if (consistent_mass_matrix)
@@ -1123,7 +1123,7 @@ FEDataManager::applyGradientDetector(
         const MeshBase& mesh = d_es->get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
 
-        System& X_system = d_es->get_system<System>(COORDINATES_SYSTEM_NAME);
+        System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
 #ifdef DEBUG_CHECK_ASSERTIONS
         for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
@@ -1356,7 +1356,7 @@ FEDataManager::updateQuadPointCountData(
         const MeshBase& mesh = d_es->get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
 
-        System& X_system = d_es->get_system<System>(COORDINATES_SYSTEM_NAME);
+        System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
 #ifdef DEBUG_CHECK_ASSERTIONS
         for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
@@ -1415,7 +1415,7 @@ FEDataManager::computeActiveElementBoundingBoxes(
 {
     const MeshBase& mesh = d_es->get_mesh();
     const unsigned int n_elem = mesh.max_elem_id()+1;
-    System& X_system = d_es->get_system<System>(COORDINATES_SYSTEM_NAME);
+    System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
     const DofMap& X_dof_map = X_system.get_dof_map();
     NumericVector<double>& X_vec = *X_system.solution;
@@ -1506,7 +1506,7 @@ FEDataManager::collectActivePatchElements(
     // Get the necessary FE data.
     const MeshBase& mesh = d_es->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
-    System& X_system = d_es->get_system<System>(COORDINATES_SYSTEM_NAME);
+    System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
@@ -1693,7 +1693,7 @@ FEDataManager::collectGhostDOFIndices(
     const blitz::Array<Elem*,1>& active_elems,
     const std::string& system_name)
 {
-    System& system = d_es->get_system<System>(system_name);
+    System& system = d_es->get_system(system_name);
     const unsigned int sys_num = system.number();
     const DofMap& dof_map = system.get_dof_map();
     const unsigned int first_local_dof = dof_map.first_dof();
@@ -1797,7 +1797,7 @@ FEDataManager::do_partition(
 {
     // Compute the centroids of the elements.
     const unsigned int n_elem = mesh.max_elem_id()+1;
-    System& X_system = d_es->get_system<System>(COORDINATES_SYSTEM_NAME);
+    System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
     const DofMap& X_dof_map = X_system.get_dof_map();
     NumericVector<double>& X_vec = *X_system.solution;

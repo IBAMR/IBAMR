@@ -561,11 +561,11 @@ IBFEHierarchyIntegrator::initializeHierarchy()
     // Set up boundary conditions.  Specifically, add appropriate boundary IDs
     // to the BoundaryInfo object associated with the mesh, and add DOF
     // constraints for the nodal forces and velocities.
-    System& X_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     X_system.assemble_before_solve = false;
     X_system.assemble();
 
-    System& X_mapping_system = equation_systems->get_system<System>(COORD_MAPPING_SYSTEM_NAME);
+    System& X_mapping_system = equation_systems->get_system(COORD_MAPPING_SYSTEM_NAME);
     X_mapping_system.assemble_before_solve = false;
     X_mapping_system.assemble();
 
@@ -706,9 +706,9 @@ IBFEHierarchyIntegrator::advanceHierarchy(
 
     // Extract the FE vectors.
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-    System& X_system = equation_systems->get_system<System>(  COORDS_SYSTEM_NAME);
-    System& F_system = equation_systems->get_system<System>(   FORCE_SYSTEM_NAME);
-    System& U_system = equation_systems->get_system<System>(VELOCITY_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system(  COORDS_SYSTEM_NAME);
+    System& F_system = equation_systems->get_system(   FORCE_SYSTEM_NAME);
+    System& U_system = equation_systems->get_system(VELOCITY_SYSTEM_NAME);
 
     NumericVector<double>& X_current = *(X_system.solution);
 
@@ -1493,7 +1493,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     AutoPtr<QBase> qrule_face = QBase::build(d_quad_type, dim-1, d_quad_order);
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
-    System& system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
+    System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
     const DofMap& dof_map = system.get_dof_map();
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
@@ -1515,7 +1515,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    System& X_system = equation_systems->get_system<System>(  COORDS_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system(  COORDS_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
 #endif
@@ -1525,7 +1525,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems.begin();
          cit != d_PK1_stress_fcn_systems.end(); ++cit)
     {
-        System& system = equation_systems->get_system<System>(*cit);
+        System& system = equation_systems->get_system(*cit);
         system.update();
         PK1_stress_fcn_data.push_back(system.current_local_solution.get());
     }
@@ -1534,7 +1534,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     for (std::vector<unsigned int>::const_iterator cit = d_lag_body_force_fcn_systems.begin();
          cit != d_lag_body_force_fcn_systems.end(); ++cit)
     {
-        System& system = equation_systems->get_system<System>(*cit);
+        System& system = equation_systems->get_system(*cit);
         system.update();
         lag_body_force_fcn_data.push_back(system.current_local_solution.get());
     }
@@ -1543,7 +1543,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems.begin();
          cit != d_lag_pressure_fcn_systems.end(); ++cit)
     {
-        System& system = equation_systems->get_system<System>(*cit);
+        System& system = equation_systems->get_system(*cit);
         system.update();
         lag_pressure_fcn_data.push_back(system.current_local_solution.get());
     }
@@ -1552,7 +1552,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems.begin();
          cit != d_lag_surface_force_fcn_systems.end(); ++cit)
     {
-        System& system = equation_systems->get_system<System>(*cit);
+        System& system = equation_systems->get_system(*cit);
         system.update();
         lag_surface_force_fcn_data.push_back(system.current_local_solution.get());
     }
@@ -1737,7 +1737,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     AutoPtr<QBase> ib_qrule_face = QBase::build(ib_qrule->type(), dim-1, ib_qrule->get_order());
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
-    System& system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
+    System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
     const DofMap& dof_map = system.get_dof_map();
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
@@ -1756,7 +1756,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    System& X_system = equation_systems->get_system<System>(  COORDS_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system(  COORDS_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
 #endif
@@ -1766,7 +1766,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems.begin();
          cit != d_PK1_stress_fcn_systems.end(); ++cit)
     {
-        System& system = equation_systems->get_system<System>(*cit);
+        System& system = equation_systems->get_system(*cit);
         PK1_stress_fcn_data.push_back(d_fe_data_manager->buildGhostedSolutionVector(system.name()));
     }
 
@@ -1774,7 +1774,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems.begin();
          cit != d_lag_pressure_fcn_systems.end(); ++cit)
     {
-        System& system = equation_systems->get_system<System>(*cit);
+        System& system = equation_systems->get_system(*cit);
         lag_pressure_fcn_data.push_back(d_fe_data_manager->buildGhostedSolutionVector(system.name()));
     }
 
@@ -1782,7 +1782,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems.begin();
          cit != d_lag_surface_force_fcn_systems.end(); ++cit)
     {
-        System& system = equation_systems->get_system<System>(*cit);
+        System& system = equation_systems->get_system(*cit);
         lag_surface_force_fcn_data.push_back(d_fe_data_manager->buildGhostedSolutionVector(system.name()));
     }
 
@@ -1943,7 +1943,7 @@ IBFEHierarchyIntegrator::initializeCoordinates()
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     MeshBase& mesh = equation_systems->get_mesh();
-    System& X_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
     NumericVector<double>& X_coords = *X_system.solution;
     const bool identity_mapping = d_coordinate_mapping_fcn == NULL;
@@ -1976,10 +1976,10 @@ IBFEHierarchyIntegrator::updateCoordinateMapping()
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     MeshBase& mesh = equation_systems->get_mesh();
-    System& X_system = equation_systems->get_system<System>(COORDS_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
     NumericVector<double>& X_coords = *X_system.solution;
-    System& X_mapping_system = equation_systems->get_system<System>(COORD_MAPPING_SYSTEM_NAME);
+    System& X_mapping_system = equation_systems->get_system(COORD_MAPPING_SYSTEM_NAME);
     const unsigned int X_mapping_sys_num = X_mapping_system.number();
     NumericVector<double>& dX_coords = *X_mapping_system.solution;
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
