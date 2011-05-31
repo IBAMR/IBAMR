@@ -2865,7 +2865,7 @@ LDataManager::computeNodeDistribution(
     local_petsc_indices.clear();
     nonlocal_petsc_indices.clear();
 
-    // Collect the Lagrangian IDs of all of the Lagrangian nodes on the
+    // Determine the Lagrangian IDs of all of the Lagrangian nodes on the
     // specified level of the patch hierarchy.
     //
     // We differentiate between nodes that are local to the processor
@@ -2880,13 +2880,8 @@ LDataManager::computeNodeDistribution(
     // Non-local nodes ONLY appear in ghost cells for on processor patches.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
 
-    // Keep track of the number of local indices we've encountered so far, and
-    // construct a map from Lagrangian indices to (local) PETSc indices.
-    unsigned int local_offset = 0;
-    std::map<int,int> lag_idx_to_petsc_idx;
-
-    // Sweep over interior nodes.  These are the nodes that are owned by this
-    // processor.
+    // Collect the local nodes.
+    std::set<LNode*,LNodeIndexLagrangianIndexComp> local_node_idxs;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -2896,19 +2891,29 @@ LDataManager::computeNodeDistribution(
              it != lag_node_index_data->data_end(); ++it)
         {
             LNode& node_idx = *it;
-            const int lag_idx = node_idx.getLagrangianIndex();
-            const int petsc_idx = local_offset++;
-            node_idx.setLocalPETScIndex(petsc_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(lag_idx_to_petsc_idx.find(lag_idx) == lag_idx_to_petsc_idx.end());
-#endif
-            lag_idx_to_petsc_idx[lag_idx] = petsc_idx;
-            local_lag_indices.push_back(lag_idx);
+            local_node_idxs.insert(&node_idx);
         }
     }
 
-    // Sweep over ghost nodes.  These nodes may be owned by this processor, or
-    // they may be owned by some other processor.
+    // Assign local indices to the local nodes.
+    unsigned int local_offset = 0;
+    std::map<int,int> lag_idx_to_petsc_idx;
+    for (std::set<LNode*,LNodeIndexLagrangianIndexComp>::const_iterator cit = local_node_idxs.begin();
+         cit != local_node_idxs.end(); ++cit)
+    {
+        LNode* const node_idx = *cit;
+        const int lag_idx = node_idx->getLagrangianIndex();
+        const int petsc_idx = local_offset++;
+        node_idx->setLocalPETScIndex(petsc_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(lag_idx_to_petsc_idx.find(lag_idx) == lag_idx_to_petsc_idx.end());
+#endif
+        lag_idx_to_petsc_idx[lag_idx] = petsc_idx;
+        local_lag_indices.push_back(lag_idx);
+    }
+
+    // Determine the Lagrangian indices of the nonlocal nodes.
+    std::set<int> nonlocal_lag_idx_set;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -2922,23 +2927,37 @@ LDataManager::computeNodeDistribution(
 
             LNode& node_idx = *it;
             const int lag_idx = node_idx.getLagrangianIndex();
-            int petsc_idx;
             if (lag_idx_to_petsc_idx.find(lag_idx) == lag_idx_to_petsc_idx.end())
             {
-                // If we have not already encountered this Lagrangian index,
-                // then it is a nonlocal index.
-                petsc_idx = local_offset++;
-                lag_idx_to_petsc_idx[lag_idx] = petsc_idx;
-                nonlocal_lag_indices.push_back(lag_idx);
+                // If we have not already assigned a local index to this
+                // Lagrangian index, then it must be a nonlocal index.
+                nonlocal_lag_idx_set.insert(lag_idx);
             }
-            else
-            {
-                // If we have already encountered this Lagrangian index, we no
-                // longer care whether it is local or nonlocal.  We simply look
-                // up its local PETSc index.
-                petsc_idx = lag_idx_to_petsc_idx[lag_idx];
-            }
-            node_idx.setLocalPETScIndex(petsc_idx);
+        }
+    }
+
+    // Assign local indices to the nonlocal nodes.
+    for (std::set<int>::const_iterator cit = nonlocal_lag_idx_set.begin();
+         cit != nonlocal_lag_idx_set.end(); ++cit)
+    {
+        const int lag_idx = *cit;
+        lag_idx_to_petsc_idx[lag_idx] = local_offset++;
+        nonlocal_lag_indices.push_back(lag_idx);
+    }
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        const Pointer<LNodeSetData> lag_node_index_data = patch->getPatchData(d_lag_node_index_current_idx);
+        const Box<NDIM>& ghost_box = lag_node_index_data->getGhostBox();
+        for (LNodeSetData::DataIterator it = lag_node_index_data->data_begin(ghost_box);
+             it != lag_node_index_data->data_end(); ++it)
+        {
+            if (patch_box.contains(it.getCellIndex())) continue;
+
+            LNode& node_idx = *it;
+            const int lag_idx = node_idx.getLagrangianIndex();
+            node_idx.setLocalPETScIndex(lag_idx_to_petsc_idx[lag_idx]);
         }
     }
 
