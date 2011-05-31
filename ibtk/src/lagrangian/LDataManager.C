@@ -1295,11 +1295,11 @@ LDataManager::beginDataRedistribution(
                 }
             }
 
-            // Sort the LNode objects according to their positions.
+            // Sort the LNode objects according to their Lagrangian indices.
             for (LNodeSetData::SetIterator it(*new_idx_data); it; it++)
             {
                 LNodeSet& node_set = *it;
-                std::sort(node_set.begin(), node_set.end(), LNodeIndexPosnComp(X_data));
+                std::sort(node_set.begin(), node_set.end(), LNodeIndexLagrangianIndexComp());
             }
 
             // Swap the old and new patch data pointers.
