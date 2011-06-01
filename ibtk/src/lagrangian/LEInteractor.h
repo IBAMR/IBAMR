@@ -100,15 +100,6 @@ public:
         std::ostream& os);
 
     /*!
-     * \brief Initialize the Timer objects employed by the LEInteractor class.
-     *
-     * \note It is necessary to initialize the Timer objects prior to using any
-     * of the functionality provided by this class.
-     */
-    static void
-    initializeTimers();
-
-    /*!
      * \brief Returns the interpolation/spreading stencil corresponding to the
      * specified weighting function.
      *

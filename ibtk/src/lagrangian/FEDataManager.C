@@ -1305,7 +1305,6 @@ FEDataManager::FEDataManager(
         t_reset_hierarchy_configuration = TimerManager::getManager()->getTimer("IBTK::FEDataManager::resetHierarchyConfiguration()");
         t_apply_gradient_detector = TimerManager::getManager()->getTimer("IBTK::FEDataManager::applyGradientDetector()");
         t_put_to_database = TimerManager::getManager()->getTimer("IBTK::FEDataManager::putToDatabase()");
-        LEInteractor::initializeTimers();
                  );
     return;
 }// FEDataManager

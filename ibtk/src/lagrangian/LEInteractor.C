@@ -58,8 +58,6 @@
 #include <CartesianPatchGeometry.h>
 #include <Index.h>
 #include <IntVector.h>
-#include <tbox/Timer.h>
-#include <tbox/TimerManager.h>
 #include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
@@ -521,12 +519,6 @@ namespace IBTK
 
 namespace
 {
-// Timers.
-static Timer* t_interpolate;
-static Timer* t_interpolate_f77;
-static Timer* t_spread;
-static Timer* t_spread_f77;
-
 inline double
 ib4_delta_fcn(
     double r)
@@ -667,19 +659,6 @@ LEInteractor::printClassData(
 }// printClassData
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
-
-void
-LEInteractor::initializeTimers()
-{
-    // Setup Timers.
-    IBTK_DO_ONCE(
-        t_interpolate     = TimerManager::getManager()->getTimer("IBTK::LEInteractor::interpolate()");
-        t_interpolate_f77 = TimerManager::getManager()->getTimer("IBTK::LEInteractor::interpolate()[fortran]");
-        t_spread          = TimerManager::getManager()->getTimer("IBTK::LEInteractor::spread()");
-        t_spread_f77      = TimerManager::getManager()->getTimer("IBTK::LEInteractor::spread()[fortran]");
-                 );
-    return;
-}// initializeTimers
 
 int
 LEInteractor::getStencilSize(
@@ -822,8 +801,6 @@ LEInteractor::interpolate(
     const IntVector<NDIM>& periodic_shift,
     const std::string& interp_fcn)
 {
-    t_interpolate->start();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!q_data.isNull());
     TBOX_ASSERT(!idx_data.isNull());
@@ -863,8 +840,6 @@ LEInteractor::interpolate(
                     local_indices, periodic_offsets,
                     interp_fcn);
     }
-
-    t_interpolate->stop();
     return;
 }// interpolate
 
@@ -882,8 +857,6 @@ LEInteractor::interpolate(
     const IntVector<NDIM>& periodic_shift,
     const std::string& interp_fcn)
 {
-    t_interpolate->start();
-
     if (Q_depth != NDIM || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::interpolate():\n"
@@ -952,8 +925,6 @@ LEInteractor::interpolate(
             }
         }
     }
-
-    t_interpolate->stop();
     return;
 }// interpolate
 
@@ -987,8 +958,6 @@ LEInteractor::interpolate(
     const Box<NDIM>& interp_box,
     const std::string& interp_fcn)
 {
-    t_interpolate->start();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!q_data.isNull());
     TBOX_ASSERT(!patch.isNull());
@@ -1029,8 +998,6 @@ LEInteractor::interpolate(
                     local_indices, periodic_offsets,
                     interp_fcn);
     }
-
-    t_interpolate->stop();
     return;
 }// interpolate
 
@@ -1064,8 +1031,6 @@ LEInteractor::interpolate(
     const Box<NDIM>& interp_box,
     const std::string& interp_fcn)
 {
-    t_interpolate->start();
-
     if (Q_depth != NDIM || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::interpolate():\n"
@@ -1135,8 +1100,6 @@ LEInteractor::interpolate(
             }
         }
     }
-
-    t_interpolate->stop();
     return;
 }// interpolate
 
@@ -1222,8 +1185,6 @@ LEInteractor::spread(
     const IntVector<NDIM>& periodic_shift,
     const std::string& spread_fcn)
 {
-    t_spread->start();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!q_data.isNull());
     TBOX_ASSERT(!idx_data.isNull());
@@ -1263,8 +1224,6 @@ LEInteractor::spread(
                local_indices, periodic_offsets,
                spread_fcn);
     }
-
-    t_spread->stop();
     return;
 }// spread
 
@@ -1282,8 +1241,6 @@ LEInteractor::spread(
     const IntVector<NDIM>& periodic_shift,
     const std::string& spread_fcn)
 {
-    t_spread->start();
-
     if (Q_depth != NDIM || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::spread():\n"
@@ -1351,8 +1308,6 @@ LEInteractor::spread(
                    spread_fcn);
         }
     }
-
-    t_spread->stop();
     return;
 }// spread
 
@@ -1405,8 +1360,6 @@ LEInteractor::spread(
     const Box<NDIM>& spread_box,
     const std::string& spread_fcn)
 {
-    t_spread->start();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!q_data.isNull());
     TBOX_ASSERT(!patch.isNull());
@@ -1447,8 +1400,6 @@ LEInteractor::spread(
                local_indices, periodic_offsets,
                spread_fcn);
     }
-
-    t_spread->stop();
     return;
 }// spread
 
@@ -1465,8 +1416,6 @@ LEInteractor::spread(
     const Box<NDIM>& spread_box,
     const std::string& spread_fcn)
 {
-    t_spread->start();
-
     if (Q_depth != NDIM || q_data->getDepth() != 1)
     {
         TBOX_ERROR("LEInteractor::spread():\n"
@@ -1532,8 +1481,6 @@ LEInteractor::spread(
                    spread_fcn);
         }
     }
-
-    t_spread->stop();
     return;
 }// spread
 
@@ -1562,7 +1509,6 @@ LEInteractor::interpolate(
     const std::string& interp_fcn)
 {
     if (local_indices.empty()) return;
-    t_interpolate_f77->start();
     const int local_indices_size = local_indices.size();
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
@@ -1820,7 +1766,6 @@ LEInteractor::interpolate(
                    "  Unknown interpolation weighting function "
                    << interp_fcn << std::endl);
     }
-    t_interpolate_f77->stop();
     return;
 }// interpolate
 
@@ -1845,7 +1790,6 @@ LEInteractor::spread(
     const std::string& spread_fcn)
 {
     if (local_indices.empty()) return;
-    t_spread_f77->start();
     const int local_indices_size = local_indices.size();
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
@@ -2265,7 +2209,6 @@ LEInteractor::spread(
                    "  Unknown spreading weighting function "
                    << spread_fcn << std::endl);
     }
-    t_spread_f77->stop();
     return;
 }// spread
 

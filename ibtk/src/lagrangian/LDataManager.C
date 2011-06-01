@@ -97,6 +97,8 @@ namespace IBTK
 namespace
 {
 // Timers.
+static Timer* t_spread;
+static Timer* t_interp;
 static Timer* t_map_lagrangian_to_petsc;
 static Timer* t_map_petsc_to_lagrangian;
 static Timer* t_begin_data_redistribution;
@@ -272,6 +274,9 @@ LDataManager::spread(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
+    SAMRAI_MPI::barrier();
+    t_spread->start();
+
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
 
@@ -305,6 +310,8 @@ LDataManager::spread(
         }
     }
 
+    t_spread->stop();
+
     // Spread data from the Lagrangian mesh to the Eulerian grid.
     spread(f_data_idx, F_ds_data, X_data, f_prolongation_scheds, F_data_ghost_node_update || ds_data_ghost_node_update, X_data_ghost_node_update, coarsest_ln, finest_ln);
     return;
@@ -321,6 +328,9 @@ LDataManager::spread(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
+    SAMRAI_MPI::barrier();
+    t_spread->start();
+
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -334,93 +344,96 @@ LDataManager::spread(
     if (use_spread_specialized)
     {
         spread_specialized(f_data_idx, F_data, X_data, F_data_ghost_node_update, X_data_ghost_node_update, coarsest_ln, finest_ln);
-        return;
     }
-
-    // Make a copy of the Eulerian data.
-    Pointer<Variable<NDIM> > f_var;
-    var_db->mapIndexToVariable(f_data_idx, f_var);
-    const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    else
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(f_copy_data_idx);
-    }
-    Pointer<HierarchyDataOpsReal<NDIM,double> > f_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
-    f_data_ops->resetLevels(coarsest_ln, finest_ln);
-    f_data_ops->copyData(f_copy_data_idx, f_data_idx);
-
-    // Start filling Lagrangian ghost node values.
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        if (levelContainsLagrangianData(ln))
+        // Make a copy of the Eulerian data.
+        Pointer<Variable<NDIM> > f_var;
+        var_db->mapIndexToVariable(f_data_idx, f_var);
+        const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            if (F_data_ghost_node_update) F_data[ln]->beginGhostUpdate();
-            if (X_data_ghost_node_update) X_data[ln]->beginGhostUpdate();
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(f_copy_data_idx);
         }
-    }
+        Pointer<HierarchyDataOpsReal<NDIM,double> > f_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
+        f_data_ops->resetLevels(coarsest_ln, finest_ln);
+        f_data_ops->copyData(f_copy_data_idx, f_data_idx);
 
-    // Spread data from the Lagrangian mesh to the Eulerian grid.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-
-        // On the coarsest level of the patch hierarchy, initialize the Eulerian
-        // data to equal zero before spreading.
-        //
-        // For each of the finer levels in the patch hierarchy, prolong the
-        // Eulerian data from coarser levels in the patch hierarchy before
-        // spreading.
-        if (ln > coarsest_ln && ln < static_cast<int>(f_prolongation_scheds.size()) && !f_prolongation_scheds[ln].isNull())
+        // Start filling Lagrangian ghost node values.
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            f_prolongation_scheds[ln]->fillData(0.0);
-        }
-        else
-        {
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            if (levelContainsLagrangianData(ln))
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
-                Pointer<CellData<NDIM,double> > f_cc_data = f_data;
-                Pointer<SideData<NDIM,double> > f_sc_data = f_data;
-                const bool is_cc_data = !f_cc_data.isNull();
-                const bool is_sc_data = !f_sc_data.isNull();
-                if (is_cc_data) f_cc_data->fillAll(0.0);
-                if (is_sc_data) f_sc_data->fillAll(0.0);
+                if (F_data_ghost_node_update) F_data[ln]->beginGhostUpdate();
+                if (X_data_ghost_node_update) X_data[ln]->beginGhostUpdate();
             }
         }
 
-        // Spread data onto the grid.
-        if (levelContainsLagrangianData(ln))
+        // Spread data from the Lagrangian mesh to the Eulerian grid.
+        Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            if (F_data_ghost_node_update) F_data[ln]->endGhostUpdate();
-            if (X_data_ghost_node_update) X_data[ln]->endGhostUpdate();
-            const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+            // On the coarsest level of the patch hierarchy, initialize the
+            // Eulerian data to equal zero before spreading.
+            //
+            // For each of the finer levels in the patch hierarchy, prolong the
+            // Eulerian data from coarser levels in the patch hierarchy before
+            // spreading.
+            if (ln > coarsest_ln && ln < static_cast<int>(f_prolongation_scheds.size()) && !f_prolongation_scheds[ln].isNull())
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
-                Pointer<CellData<NDIM,double> > f_cc_data = f_data;
-                Pointer<SideData<NDIM,double> > f_sc_data = f_data;
-                const bool is_cc_data = !f_cc_data.isNull();
-                const bool is_sc_data = !f_sc_data.isNull();
-                const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-                const Box<NDIM>& box = idx_data->getGhostBox();
-                if (is_cc_data) LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
-                if (is_sc_data) LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
+                f_prolongation_scheds[ln]->fillData(0.0);
+            }
+            else
+            {
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
+                    Pointer<CellData<NDIM,double> > f_cc_data = f_data;
+                    Pointer<SideData<NDIM,double> > f_sc_data = f_data;
+                    const bool is_cc_data = !f_cc_data.isNull();
+                    const bool is_sc_data = !f_sc_data.isNull();
+                    if (is_cc_data) f_cc_data->fillAll(0.0);
+                    if (is_sc_data) f_sc_data->fillAll(0.0);
+                }
+            }
+
+            // Spread data onto the grid.
+            if (levelContainsLagrangianData(ln))
+            {
+                if (F_data_ghost_node_update) F_data[ln]->endGhostUpdate();
+                if (X_data_ghost_node_update) X_data[ln]->endGhostUpdate();
+                const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
+                    Pointer<CellData<NDIM,double> > f_cc_data = f_data;
+                    Pointer<SideData<NDIM,double> > f_sc_data = f_data;
+                    const bool is_cc_data = !f_cc_data.isNull();
+                    const bool is_sc_data = !f_sc_data.isNull();
+                    const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+                    const Box<NDIM>& box = idx_data->getGhostBox();
+                    if (is_cc_data) LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
+                    if (is_sc_data) LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
+                }
             }
         }
+
+        // Accumulate data.
+        f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->deallocatePatchData(f_copy_data_idx);
+        }
+        var_db->removePatchDataIndex(f_copy_data_idx);
     }
 
-    // Accumulate data.
-    f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->deallocatePatchData(f_copy_data_idx);
-    }
-    var_db->removePatchDataIndex(f_copy_data_idx);
+    t_spread->stop();
     return;
 }// spread
 
@@ -435,6 +448,9 @@ LDataManager::interp(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
+    SAMRAI_MPI::barrier();
+    t_interp->start();
+
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
 
@@ -450,51 +466,54 @@ LDataManager::interp(
     if (use_interp_specialized)
     {
         interp_specialized(f_data_idx, F_data, X_data, f_ghost_fill_scheds, fill_data_time, coarsest_ln, finest_ln);
-        return;
     }
-
-    // Synchronize Eulerian values.
-    for (int ln = finest_ln; ln > coarsest_ln; --ln)
+    else
     {
-        if (ln < static_cast<int>(f_synch_scheds.size()) && !f_synch_scheds[ln].isNull())
+        // Synchronize Eulerian values.
+        for (int ln = finest_ln; ln > coarsest_ln; --ln)
         {
-            f_synch_scheds[ln]->coarsenData();
+            if (ln < static_cast<int>(f_synch_scheds.size()) && !f_synch_scheds[ln].isNull())
+            {
+                f_synch_scheds[ln]->coarsenData();
+            }
+        }
+
+        // Interpolate data from the Eulerian grid to the Lagrangian mesh.
+        Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+            if (levelContainsLagrangianData(ln))
+            {
+                if (ln < static_cast<int>(f_ghost_fill_scheds.size()) && !f_ghost_fill_scheds[ln].isNull())
+                {
+                    f_ghost_fill_scheds[ln]->fillData(fill_data_time);
+                }
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
+                    Pointer<CellData<NDIM,double> > f_cc_data = f_data;
+                    Pointer<SideData<NDIM,double> > f_sc_data = f_data;
+                    const bool is_cc_data = !f_cc_data.isNull();
+                    const bool is_sc_data = !f_sc_data.isNull();
+                    const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+                    const Box<NDIM>& box = idx_data->getBox();
+                    if (is_cc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
+                    if (is_sc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
+                }
+            }
+        }
+
+        // Zero inactivated components.
+        for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+        {
+            zeroInactivatedComponents(F_data[ln], ln);
         }
     }
 
-    // Interpolate data from the Eulerian grid to the Lagrangian mesh.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
-        if (levelContainsLagrangianData(ln))
-        {
-            if (ln < static_cast<int>(f_ghost_fill_scheds.size()) && !f_ghost_fill_scheds[ln].isNull())
-            {
-                f_ghost_fill_scheds[ln]->fillData(fill_data_time);
-            }
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
-                Pointer<CellData<NDIM,double> > f_cc_data = f_data;
-                Pointer<SideData<NDIM,double> > f_sc_data = f_data;
-                const bool is_cc_data = !f_cc_data.isNull();
-                const bool is_sc_data = !f_sc_data.isNull();
-                const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-                const Box<NDIM>& box = idx_data->getBox();
-                if (is_cc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
-                if (is_sc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
-            }
-        }
-    }
-
-    // Zero inactivated components.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        zeroInactivatedComponents(F_data[ln], ln);
-    }
+    t_interp->stop();
     return;
 }// interp
 
@@ -986,6 +1005,7 @@ LDataManager::mapLagrangianToPETSc(
     std::vector<int>& inds,
     const int level_number) const
 {
+    SAMRAI_MPI::barrier();
     t_map_lagrangian_to_petsc->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1008,6 +1028,7 @@ LDataManager::mapLagrangianToPETSc(
     blitz::Array<int,1>& inds,
     const int level_number) const
 {
+    SAMRAI_MPI::barrier();
     t_map_lagrangian_to_petsc->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1030,6 +1051,7 @@ LDataManager::mapPETScToLagrangian(
     std::vector<int>& inds,
     const int level_number) const
 {
+    SAMRAI_MPI::barrier();
     t_map_petsc_to_lagrangian->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1052,6 +1074,7 @@ LDataManager::mapPETScToLagrangian(
     blitz::Array<int,1>& inds,
     const int level_number) const
 {
+    SAMRAI_MPI::barrier();
     t_map_petsc_to_lagrangian->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1124,6 +1147,7 @@ LDataManager::beginDataRedistribution(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
+    SAMRAI_MPI::barrier();
     t_begin_data_redistribution->start();
 
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
@@ -1318,6 +1342,7 @@ LDataManager::endDataRedistribution(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
+    SAMRAI_MPI::barrier();
     t_end_data_redistribution->start();
 
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
@@ -1818,6 +1843,7 @@ LDataManager::updateWorkloadData(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
+    SAMRAI_MPI::barrier();
     t_update_workload_data->start();
 
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
@@ -1878,6 +1904,7 @@ LDataManager::initializeLevelData(
     const Pointer<BasePatchLevel<NDIM> > old_level,
     const bool allocate_data)
 {
+    SAMRAI_MPI::barrier();
     t_initialize_level_data->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -2174,6 +2201,7 @@ LDataManager::resetHierarchyConfiguration(
     const int coarsest_ln,
     const int finest_ln)
 {
+    SAMRAI_MPI::barrier();
     t_reset_hierarchy_configuration->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -2252,6 +2280,7 @@ LDataManager::applyGradientDetector(
     const bool initial_time,
     const bool uses_richardson_extrapolation_too)
 {
+    SAMRAI_MPI::barrier();
     t_apply_gradient_detector->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -2354,6 +2383,7 @@ void
 LDataManager::putToDatabase(
     Pointer<Database> db)
 {
+    SAMRAI_MPI::barrier();
     t_put_to_database->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -2583,6 +2613,8 @@ LDataManager::LDataManager(
 
     // Setup Timers.
     IBTK_DO_ONCE(
+        t_spread = TimerManager::getManager()->getTimer("IBTK::LDataManager::spread()");
+        t_interp = TimerManager::getManager()->getTimer("IBTK::LDataManager::interp()");
         t_map_lagrangian_to_petsc = TimerManager::getManager()->getTimer("IBTK::LDataManager::mapLagrangianToPETSc()");
         t_map_petsc_to_lagrangian = TimerManager::getManager()->getTimer("IBTK::LDataManager::mapPETScToLagrangian()");
         t_begin_data_redistribution = TimerManager::getManager()->getTimer("IBTK::LDataManager::beginDataRedistribution()");
@@ -2596,7 +2628,6 @@ LDataManager::LDataManager(
         t_end_nonlocal_data_fill = TimerManager::getManager()->getTimer("IBTK::LDataManager::endNonlocalDataFill()");
         t_compute_node_distribution = TimerManager::getManager()->getTimer("IBTK::LDataManager::computeNodeDistribution()");
         t_compute_node_offsets = TimerManager::getManager()->getTimer("IBTK::LDataManager::computeNodeOffsets()");
-        LEInteractor::initializeTimers();
                  );
     return;
 }// LDataManager
@@ -2787,6 +2818,7 @@ LDataManager::beginNonlocalDataFill(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
+    SAMRAI_MPI::barrier();
     t_begin_nonlocal_data_fill->start();
 
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
@@ -2818,6 +2850,7 @@ LDataManager::endNonlocalDataFill(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
+    SAMRAI_MPI::barrier();
     t_end_nonlocal_data_fill->start();
 
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
@@ -2853,6 +2886,7 @@ LDataManager::computeNodeDistribution(
     unsigned int& node_offset,
     const int level_number)
 {
+    SAMRAI_MPI::barrier();
     t_compute_node_distribution->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -3053,6 +3087,7 @@ LDataManager::computeNodeOffsets(
     unsigned int& node_offset,
     const unsigned int& num_local_nodes)
 {
+    SAMRAI_MPI::barrier();
     t_compute_node_offsets->start();
 
     const int mpi_size = SAMRAI_MPI::getNodes();

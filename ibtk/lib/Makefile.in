@@ -152,7 +152,6 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C \
 	$(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C \
-	$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonFACOperator.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.C \
@@ -282,7 +281,6 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-CCDivGradHypreLevelSolver.$(OBJEXT) \
 	libIBTK2d_a-CCDivGradOperator.$(OBJEXT) \
 	libIBTK2d_a-CCLaplaceOperator.$(OBJEXT) \
-	libIBTK2d_a-CCLaplaceOperator2.$(OBJEXT) \
 	libIBTK2d_a-CCPoissonFACOperator.$(OBJEXT) \
 	libIBTK2d_a-CCPoissonHypreLevelSolver.$(OBJEXT) \
 	libIBTK2d_a-CCPoissonPETScLevelSolver.$(OBJEXT) \
@@ -407,7 +405,6 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C \
 	$(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C \
-	$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonFACOperator.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.C \
@@ -536,7 +533,6 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-CCDivGradHypreLevelSolver.$(OBJEXT) \
 	libIBTK3d_a-CCDivGradOperator.$(OBJEXT) \
 	libIBTK3d_a-CCLaplaceOperator.$(OBJEXT) \
-	libIBTK3d_a-CCLaplaceOperator2.$(OBJEXT) \
 	libIBTK3d_a-CCPoissonFACOperator.$(OBJEXT) \
 	libIBTK3d_a-CCPoissonHypreLevelSolver.$(OBJEXT) \
 	libIBTK3d_a-CCPoissonPETScLevelSolver.$(OBJEXT) \
@@ -1066,7 +1062,6 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.h \
 	$(top_srcdir)/src/solvers/impls/CCDivGradOperator.h \
 	$(top_srcdir)/src/solvers/impls/CCLaplaceOperator.h \
-	$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.h \
 	$(top_srcdir)/src/solvers/impls/CCPoissonFACOperator.h \
 	$(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.I \
 	$(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.h \
@@ -1200,7 +1195,6 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/CCDivGradOperator.C \
 	$(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C \
-	$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonFACOperator.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.C \
@@ -1386,7 +1380,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CCDivGradHypreLevelSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CCDivGradOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CCLaplaceOperator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CCLaplaceOperator2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CCPoissonFACOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CCPoissonHypreLevelSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CCPoissonPETScLevelSolver.Po@am__quote@
@@ -1499,7 +1492,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CCDivGradHypreLevelSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CCDivGradOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CCLaplaceOperator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CCLaplaceOperator2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CCPoissonFACOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CCPoissonHypreLevelSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CCPoissonPETScLevelSolver.Po@am__quote@
@@ -2495,20 +2487,6 @@ libIBTK2d_a-CCLaplaceOperator.obj: $(top_srcdir)/src/solvers/impls/CCLaplaceOper
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C' object='libIBTK2d_a-CCLaplaceOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CCLaplaceOperator.obj `if test -f '$(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C'; fi`
-
-libIBTK2d_a-CCLaplaceOperator2.o: $(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CCLaplaceOperator2.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CCLaplaceOperator2.Tpo -c -o libIBTK2d_a-CCLaplaceOperator2.o `test -f '$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-CCLaplaceOperator2.Tpo $(DEPDIR)/libIBTK2d_a-CCLaplaceOperator2.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C' object='libIBTK2d_a-CCLaplaceOperator2.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CCLaplaceOperator2.o `test -f '$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C
-
-libIBTK2d_a-CCLaplaceOperator2.obj: $(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CCLaplaceOperator2.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CCLaplaceOperator2.Tpo -c -o libIBTK2d_a-CCLaplaceOperator2.obj `if test -f '$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-CCLaplaceOperator2.Tpo $(DEPDIR)/libIBTK2d_a-CCLaplaceOperator2.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C' object='libIBTK2d_a-CCLaplaceOperator2.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CCLaplaceOperator2.obj `if test -f '$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C'; fi`
 
 libIBTK2d_a-CCPoissonFACOperator.o: $(top_srcdir)/src/solvers/impls/CCPoissonFACOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CCPoissonFACOperator.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CCPoissonFACOperator.Tpo -c -o libIBTK2d_a-CCPoissonFACOperator.o `test -f '$(top_srcdir)/src/solvers/impls/CCPoissonFACOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/CCPoissonFACOperator.C
@@ -4077,20 +4055,6 @@ libIBTK3d_a-CCLaplaceOperator.obj: $(top_srcdir)/src/solvers/impls/CCLaplaceOper
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C' object='libIBTK3d_a-CCLaplaceOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CCLaplaceOperator.obj `if test -f '$(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C'; fi`
-
-libIBTK3d_a-CCLaplaceOperator2.o: $(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CCLaplaceOperator2.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CCLaplaceOperator2.Tpo -c -o libIBTK3d_a-CCLaplaceOperator2.o `test -f '$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-CCLaplaceOperator2.Tpo $(DEPDIR)/libIBTK3d_a-CCLaplaceOperator2.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C' object='libIBTK3d_a-CCLaplaceOperator2.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CCLaplaceOperator2.o `test -f '$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C
-
-libIBTK3d_a-CCLaplaceOperator2.obj: $(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CCLaplaceOperator2.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CCLaplaceOperator2.Tpo -c -o libIBTK3d_a-CCLaplaceOperator2.obj `if test -f '$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-CCLaplaceOperator2.Tpo $(DEPDIR)/libIBTK3d_a-CCLaplaceOperator2.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C' object='libIBTK3d_a-CCLaplaceOperator2.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CCLaplaceOperator2.obj `if test -f '$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C'; fi`
 
 libIBTK3d_a-CCPoissonFACOperator.o: $(top_srcdir)/src/solvers/impls/CCPoissonFACOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CCPoissonFACOperator.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CCPoissonFACOperator.Tpo -c -o libIBTK3d_a-CCPoissonFACOperator.o `test -f '$(top_srcdir)/src/solvers/impls/CCPoissonFACOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/CCPoissonFACOperator.C

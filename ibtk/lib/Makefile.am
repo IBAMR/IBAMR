@@ -106,7 +106,6 @@ $(top_srcdir)/src/solvers/impls/BJacobiPreconditioner.C \
 $(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.C \
 $(top_srcdir)/src/solvers/impls/CCDivGradOperator.C \
 $(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C \
-$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.C \
 $(top_srcdir)/src/solvers/impls/CCPoissonFACOperator.C \
 $(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.C \
 $(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.C \
@@ -255,7 +254,6 @@ $(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.I \
 $(top_srcdir)/src/solvers/impls/CCDivGradHypreLevelSolver.h \
 $(top_srcdir)/src/solvers/impls/CCDivGradOperator.h \
 $(top_srcdir)/src/solvers/impls/CCLaplaceOperator.h \
-$(top_srcdir)/src/solvers/impls/CCLaplaceOperator2.h \
 $(top_srcdir)/src/solvers/impls/CCPoissonFACOperator.h \
 $(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.I \
 $(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.h \
