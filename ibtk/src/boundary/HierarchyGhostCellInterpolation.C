@@ -65,6 +65,9 @@ static Timer* t_reset_transaction_components;
 static Timer* t_reinitialize_operator_state;
 static Timer* t_deallocate_operator_state;
 static Timer* t_fill_data;
+static Timer* t_fill_data_coarsen;
+static Timer* t_fill_data_refine;
+static Timer* t_fill_data_set_physical_bcs;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -96,6 +99,9 @@ HierarchyGhostCellInterpolation::HierarchyGhostCellInterpolation()
         t_reinitialize_operator_state = TimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::reinitializeOperatorState()");
         t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::deallocateOperatorState()");
         t_fill_data = TimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::fillData()");
+        t_fill_data_coarsen = TimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::fillData()[coarsen]");
+        t_fill_data_refine = TimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::fillData()[refine]");
+        t_fill_data_set_set_physical_bcs = TimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::fillData()[set_set_physical_bcs]");
                  );
     return;
 }// HierarchyGhostCellInterpolation
@@ -576,13 +582,18 @@ HierarchyGhostCellInterpolation::fillData(
 
     // Synchronize data on the patch hierarchy prior to filling ghost cell
     // values.
+    SAMRAI_MPI::barrier();
+    t_fill_data_coarsen->start();
     for (int src_ln = d_finest_ln; src_ln >= std::max(1,d_coarsest_ln); --src_ln)
     {
         if (!d_coarsen_scheds[src_ln].isNull()) d_coarsen_scheds[src_ln]->coarsenData();
     }
+    t_fill_data_coarsen->stop();
 
     // Perform the initial data fill, using extrapolation to determine ghost
     // cell values at physical boundaries.
+    SAMRAI_MPI::barrier();
+    t_fill_data_refine->start();
     for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)
     {
         if (!d_refine_scheds[dst_ln].isNull())
@@ -605,8 +616,11 @@ HierarchyGhostCellInterpolation::fillData(
             }
         }
     }
+    t_fill_data_refine->stop();
 
     // Set Robin boundary conditions at physical boundaries.
+    SAMRAI_MPI::barrier();
+    t_fill_data_set_physical_bcs->start();
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -633,6 +647,7 @@ HierarchyGhostCellInterpolation::fillData(
             }
         }
     }
+    t_fill_data_set_physical_bcs->stop();
 
     t_fill_data->stop();
     return;
