@@ -530,7 +530,7 @@ HierarchyProjector::projectHierarchy(
     }
 
     // Setup the interpolation transaction information.
-    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(CELLG, false, true);
+    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent Phi_transaction_comp(Phi_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef, cc_fill_pattern);
     d_Phi_hier_bdry_fill_op->resetTransactionComponent(Phi_transaction_comp);
@@ -670,7 +670,7 @@ HierarchyProjector::projectHierarchy(
     }
 
     // Setup the interpolation transaction information.
-    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(CELLG, false, true);
+    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent Phi_transaction_comp(Phi_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef, cc_fill_pattern);
     d_Phi_hier_bdry_fill_op->resetTransactionComponent(Phi_transaction_comp);
@@ -813,7 +813,7 @@ HierarchyProjector::resetHierarchyConfiguration(
     d_poisson_solver->initializeSolverState(*d_sol_vec,*d_rhs_vec);
 
     // Initialize the interpolation operators.
-    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(CELLG, false, true);
+    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
 
     InterpolationTransactionComponent P_transaction_comp(d_P_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, NULL, cc_fill_pattern);

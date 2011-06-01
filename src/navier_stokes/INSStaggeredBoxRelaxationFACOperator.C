@@ -1200,8 +1200,8 @@ INSStaggeredBoxRelaxationFACOperator::computeResidual(
 
         // Fill ghost-cell values.
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        Pointer<VariableFillPattern<NDIM> > sc_fill_pattern = new SideNoCornersFillPattern(GHOSTS, false, true);
-        Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(GHOSTS, false, true);
+        Pointer<VariableFillPattern<NDIM> > sc_fill_pattern = new SideNoCornersFillPattern(GHOSTS, false, false, true);
+        Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(GHOSTS, false, false, true);
         InterpolationTransactionComponent U_scratch_component(U_sol_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, sc_fill_pattern);
         InterpolationTransactionComponent P_scratch_component(P_sol_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , cc_fill_pattern);
         std::vector<InterpolationTransactionComponent> U_P_components(2);
@@ -1360,8 +1360,8 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
     d_U_bc_op = new CartSideRobinPhysBdryOp(d_side_scratch_idx, d_U_bc_coefs, false);
     d_P_bc_op = new CartCellRobinPhysBdryOp(d_cell_scratch_idx, d_P_bc_coef , false);
 
-    d_U_op_stencil_fill_pattern = new SideNoCornersFillPattern(GHOSTS, false, false);
-    d_P_op_stencil_fill_pattern = new CellNoCornersFillPattern(GHOSTS, false, false);
+    d_U_op_stencil_fill_pattern = new SideNoCornersFillPattern(GHOSTS, false, false, false);
+    d_P_op_stencil_fill_pattern = new CellNoCornersFillPattern(GHOSTS, false, false, false);
     d_U_synch_fill_pattern = new SideSynchCopyFillPattern();
 
     std::vector<RefinePatchStrategy<NDIM>*> prolongation_refine_patch_strategies;

@@ -318,7 +318,7 @@ INSStaggeredProjectionPreconditioner::initializeSolverState(
     d_wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
     d_volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
 
-    Pointer<VariableFillPattern<NDIM> > fill_pattern = new CellNoCornersFillPattern(CELLG, false, true);
+    Pointer<VariableFillPattern<NDIM> > fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent Phi_scratch_component(d_Phi_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Phi_bc_coef, fill_pattern);
     d_Phi_bdry_fill_op = new HierarchyGhostCellInterpolation();

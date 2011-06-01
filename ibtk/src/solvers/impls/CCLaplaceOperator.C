@@ -448,7 +448,7 @@ CCLaplaceOperator::initializeOperatorState(
     Pointer<VariableFillPattern<NDIM> > fill_pattern = NULL;
     if (d_poisson_spec.dIsConstant())
     {
-        fill_pattern = new CellNoCornersFillPattern(CELLG, false, true);
+        fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     }
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;

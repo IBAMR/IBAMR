@@ -62,6 +62,7 @@ public:
      */
     SideNoCornersFillPattern(
         const int stencil_width,
+        const bool include_dst_patch_box,
         const bool include_edges_on_dst_level,
         const bool include_edges_on_src_level);
 
@@ -175,6 +176,7 @@ private:
         const SideNoCornersFillPattern& that);
 
     SAMRAI::hier::IntVector<NDIM> d_stencil_width;
+    const bool d_include_dst_patch_box;
     const bool d_include_edges_on_dst_level;
     const bool d_include_edges_on_src_level;
     int d_target_level_num;

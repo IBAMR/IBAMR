@@ -59,9 +59,11 @@ static const std::string PATTERN_NAME = "SIDE_NO_CORNERS_FILL_PATTERN";
 
 SideNoCornersFillPattern::SideNoCornersFillPattern(
     const int stencil_width,
+    const bool include_dst_patch_box,
     const bool include_edges_on_dst_level,
     const bool include_edges_on_src_level)
     : d_stencil_width(stencil_width),
+      d_include_dst_patch_box(include_dst_patch_box),
       d_include_edges_on_dst_level(include_edges_on_dst_level),
       d_include_edges_on_src_level(include_edges_on_src_level),
       d_target_level_num(-1)
@@ -211,6 +213,10 @@ SideNoCornersFillPattern::calculateOverlap(
             {
                 BoxList<NDIM> overlap_boxes(stencil_boxes);
                 overlap_boxes.intersectBoxes(it1());
+                if (dst_level_num == d_target_level_num && !d_include_dst_patch_box)
+                {
+                    overlap_boxes.removeIntersections(SideGeometry<NDIM>::toSideBox(dst_patch_box,axis));
+                }
                 for (BoxList<NDIM>::Iterator it2(overlap_boxes); it2; it2++)
                 {
                     const Box<NDIM>& overlap_box = it2();

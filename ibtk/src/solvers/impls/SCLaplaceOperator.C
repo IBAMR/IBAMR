@@ -378,7 +378,7 @@ SCLaplaceOperator::initializeOperatorState(
     Pointer<VariableFillPattern<NDIM> > fill_pattern = NULL;
     if (d_poisson_spec.dIsConstant())
     {
-        fill_pattern = new SideNoCornersFillPattern(SIDEG, false, true);
+        fill_pattern = new SideNoCornersFillPattern(SIDEG, false, false, true);
     }
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;

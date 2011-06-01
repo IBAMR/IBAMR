@@ -863,7 +863,7 @@ SCPoissonFACOperator::computeResidual(
 
         // Fill ghost-cell values.
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        Pointer<SideNoCornersFillPattern> fill_pattern = new SideNoCornersFillPattern(SIDEG, false, true);
+        Pointer<SideNoCornersFillPattern> fill_pattern = new SideNoCornersFillPattern(SIDEG, false, false, true);
         InterpolationTransactionComponent transaction_comp(sol_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, fill_pattern);
         if (d_hier_bdry_fill_ops[level_num].isNull())
         {
@@ -1025,7 +1025,7 @@ SCPoissonFACOperator::initializeOperatorState(
 
     if (d_poisson_spec.dIsConstant())
     {
-        d_op_stencil_fill_pattern = new SideNoCornersFillPattern(SIDEG, false, false);
+        d_op_stencil_fill_pattern = new SideNoCornersFillPattern(SIDEG, true, false, false);
     }
     else
     {
