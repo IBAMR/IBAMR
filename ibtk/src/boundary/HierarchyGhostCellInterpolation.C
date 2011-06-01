@@ -277,7 +277,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
                        << "  only double-precision cell-, node-, or side-centered data is presently supported." << std::endl);
         }
 
-        d_refine_alg->registerRefine(data_idx, data_idx, scratch_idx, refine_op, fill_pattern);
+        d_refine_alg->registerRefine(scratch_idx, data_idx, scratch_idx, refine_op, fill_pattern);
 
         const std::string& phys_bdry_extrap_type = d_transaction_comps[comp_idx].d_phys_bdry_extrap_type;
         if (phys_bdry_extrap_type != "NONE")
@@ -432,7 +432,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
                        << "  only double-precision cell-, node-, or side-centered data is presently supported." << std::endl);
         }
 
-        d_refine_alg->registerRefine(data_idx, data_idx, scratch_idx, refine_op, fill_pattern);
+        d_refine_alg->registerRefine(scratch_idx, data_idx, scratch_idx, refine_op, fill_pattern);
 
         const std::string& phys_bdry_extrap_type = d_transaction_comps[comp_idx].d_phys_bdry_extrap_type;
         if (!d_extrap_bc_ops[comp_idx].isNull())
@@ -624,6 +624,51 @@ HierarchyGhostCellInterpolation::fillData(
             }
         }
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(dst_ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
+            {
+                const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
+                const int scratch_idx = d_scratch_idxs[comp_idx];
+
+                Pointer<CellData<NDIM,double> > dst_cc_data = patch->getPatchData(data_idx);
+                Pointer<CellData<NDIM,double> > src_cc_data = patch->getPatchData(scratch_idx);
+                if (!dst_cc_data.isNull() && !src_cc_data.isNull())
+                {
+                    BoxList<NDIM> cell_ghost_boxes(CellGeometry<NDIM>::toCellBox(dst_cc_data->getGhostBox()*src_cc_data->getGhostBox()));
+                    cell_ghost_boxes.removeIntersections(CellGeometry<NDIM>::toCellBox(dst_cc_data->getBox()));
+                    dst_cc_data->getArrayData().copy(src_cc_data->getArrayData(), cell_ghost_boxes, IntVector<NDIM>(0));
+                    continue;
+                }
+
+                Pointer<NodeData<NDIM,double> > dst_nc_data = patch->getPatchData(data_idx);
+                Pointer<NodeData<NDIM,double> > src_nc_data = patch->getPatchData(scratch_idx);
+                if (!dst_nc_data.isNull() && !src_nc_data.isNull())
+                {
+                    BoxList<NDIM> node_ghost_boxes(NodeGeometry<NDIM>::toNodeBox(dst_nc_data->getGhostBox()*src_nc_data->getGhostBox()));
+                    node_ghost_boxes.removeIntersections(NodeGeometry<NDIM>::toNodeBox(dst_nc_data->getBox()));
+                    dst_nc_data->getArrayData().copy(src_nc_data->getArrayData(), node_ghost_boxes, IntVector<NDIM>(0));
+                    continue;
+                }
+
+                Pointer<SideData<NDIM,double> > dst_sc_data = patch->getPatchData(data_idx);
+                Pointer<SideData<NDIM,double> > src_sc_data = patch->getPatchData(scratch_idx);
+                if (!dst_sc_data.isNull() && !src_sc_data.isNull())
+                {
+                    for (unsigned int axis = 0; axis < NDIM; ++axis)
+                    {
+                        BoxList<NDIM> side_ghost_boxes(SideGeometry<NDIM>::toSideBox(dst_sc_data->getGhostBox()*src_sc_data->getGhostBox(),axis));
+                        side_ghost_boxes.removeIntersections(SideGeometry<NDIM>::toSideBox(dst_sc_data->getBox(),axis));
+                        dst_sc_data->getArrayData(axis).copy(src_sc_data->getArrayData(axis), side_ghost_boxes, IntVector<NDIM>(0));
+                    }
+                    continue;
+                }
+
+                TBOX_ERROR("HierarchyGhostCellInterpolation::fillData():\n"
+                           << "  only double-precision cell-, node-, or side-centered data is presently supported." << std::endl);
+            }
+        }
         const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
