@@ -491,6 +491,7 @@ void
 IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
+    SAMRAI_MPI::barrier();
     t_initialize_hierarchy_integrator->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -632,6 +633,7 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 double
 IBStaggeredHierarchyIntegrator::initializeHierarchy()
 {
+    SAMRAI_MPI::barrier();
     t_initialize_hierarchy->start();
 
     // Use the INSStaggeredHierarchyIntegrator to initialize the patch
@@ -746,6 +748,7 @@ double
 IBStaggeredHierarchyIntegrator::advanceHierarchy(
     const double dt)
 {
+    SAMRAI_MPI::barrier();
     t_advance_hierarchy->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1581,6 +1584,7 @@ IBStaggeredHierarchyIntegrator::getIBInstrumentPanel() const
 void
 IBStaggeredHierarchyIntegrator::regridHierarchy()
 {
+    SAMRAI_MPI::barrier();
     t_regrid_hierarchy->start();
 
     // Determine the current range of hierarchy levels.
@@ -1682,6 +1686,7 @@ IBStaggeredHierarchyIntegrator::regridHierarchy()
 void
 IBStaggeredHierarchyIntegrator::synchronizeHierarchy()
 {
+    SAMRAI_MPI::barrier();
     t_synchronize_hierarchy->start();
 
     // We use the INSStaggeredHierarchyIntegrator to handle as much structured
@@ -1700,6 +1705,7 @@ IBStaggeredHierarchyIntegrator::synchronizeNewLevels(
     const double sync_time,
     const bool initial_time)
 {
+    SAMRAI_MPI::barrier();
     t_synchronize_new_levels->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1724,6 +1730,7 @@ void
 IBStaggeredHierarchyIntegrator::resetTimeDependentHierData(
     const double new_time)
 {
+    SAMRAI_MPI::barrier();
     t_reset_time_dependent_data->start();
 
     const int coarsest_ln = 0;
@@ -1752,6 +1759,7 @@ IBStaggeredHierarchyIntegrator::resetTimeDependentHierData(
 void
 IBStaggeredHierarchyIntegrator::resetHierDataToPreadvanceState()
 {
+    SAMRAI_MPI::barrier();
     t_reset_data_to_preadvance_state->start();
 
     // We use the INSStaggeredHierarchyIntegrator to handle as much structured
@@ -1783,6 +1791,7 @@ IBStaggeredHierarchyIntegrator::initializeLevelData(
     const Pointer<BasePatchLevel<NDIM> > old_level,
     const bool allocate_data)
 {
+    SAMRAI_MPI::barrier();
     t_initialize_level_data->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1832,6 +1841,7 @@ IBStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     const int coarsest_level,
     const int finest_level)
 {
+    SAMRAI_MPI::barrier();
     t_reset_hierarchy_configuration->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1934,6 +1944,7 @@ IBStaggeredHierarchyIntegrator::applyGradientDetector(
     const bool initial_time,
     const bool uses_richardson_extrapolation_too)
 {
+    SAMRAI_MPI::barrier();
     t_apply_gradient_detector->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -2073,6 +2084,7 @@ void
 IBStaggeredHierarchyIntegrator::putToDatabase(
     Pointer<Database> db)
 {
+    SAMRAI_MPI::barrier();
     t_put_to_database->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS

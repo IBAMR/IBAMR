@@ -633,6 +633,7 @@ void
 INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
+    SAMRAI_MPI::barrier();
     t_initialize_hierarchy_integrator->start();
 
     int ierr;
@@ -1132,6 +1133,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 double
 INSStaggeredHierarchyIntegrator::initializeHierarchy()
 {
+    SAMRAI_MPI::barrier();
     t_initialize_hierarchy->start();
 
     if (!d_is_initialized)
@@ -1191,6 +1193,7 @@ double
 INSStaggeredHierarchyIntegrator::advanceHierarchy(
     const double dt)
 {
+    SAMRAI_MPI::barrier();
     t_advance_hierarchy->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1245,6 +1248,7 @@ double
 INSStaggeredHierarchyIntegrator::getStableTimestep(
     Pointer<VariableContext> ctx) const
 {
+    SAMRAI_MPI::barrier();
     t_get_stable_timestep->start();
 
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
@@ -1350,6 +1354,7 @@ INSStaggeredHierarchyIntegrator::getGriddingAlgorithm() const
 void
 INSStaggeredHierarchyIntegrator::regridHierarchy()
 {
+    SAMRAI_MPI::barrier();
     t_regrid_hierarchy->start();
 
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
@@ -1416,6 +1421,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_initialize(
     const double current_time,
     const double new_time)
 {
+    SAMRAI_MPI::barrier();
     t_integrate_hierarchy_initialize->start();
 
     const int coarsest_ln = 0;
@@ -1487,6 +1493,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     const double new_time,
     const int cycle_num)
 {
+    SAMRAI_MPI::barrier();
     t_integrate_hierarchy->start();
 
     const double dt = new_time-current_time;
@@ -1647,6 +1654,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_finalize(
     const double current_time,
     const double new_time)
 {
+    SAMRAI_MPI::barrier();
     t_integrate_hierarchy_finalize->start();
 
     const int coarsest_ln = 0;
@@ -1720,6 +1728,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy_finalize(
 void
 INSStaggeredHierarchyIntegrator::synchronizeHierarchy()
 {
+    SAMRAI_MPI::barrier();
     t_synchronize_hierarchy->start();
 
     const int coarsest_ln = 0;
@@ -1746,6 +1755,7 @@ INSStaggeredHierarchyIntegrator::synchronizeNewLevels(
     const double sync_time,
     const bool initial_time)
 {
+    SAMRAI_MPI::barrier();
     t_synchronize_new_levels->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1781,6 +1791,7 @@ void
 INSStaggeredHierarchyIntegrator::resetTimeDependentHierData(
     const double new_time)
 {
+    SAMRAI_MPI::barrier();
     t_reset_time_dependent_data->start();
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -1838,6 +1849,7 @@ INSStaggeredHierarchyIntegrator::resetTimeDependentHierData(
 void
 INSStaggeredHierarchyIntegrator::resetHierDataToPreadvanceState()
 {
+    SAMRAI_MPI::barrier();
     t_reset_data_to_preadvance_state->start();
 
     // Deallocate the scratch and new data and reset the time of the current
@@ -1882,6 +1894,7 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
     const Pointer<BasePatchLevel<NDIM> > base_old_level,
     const bool allocate_data)
 {
+    SAMRAI_MPI::barrier();
     t_initialize_level_data->start();
 
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
@@ -2170,6 +2183,7 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     const int coarsest_level,
     const int finest_level)
 {
+    SAMRAI_MPI::barrier();
     t_reset_hierarchy_configuration->start();
 
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
@@ -2297,6 +2311,7 @@ INSStaggeredHierarchyIntegrator::applyGradientDetector(
     const bool initial_time,
     const bool uses_richardson_extrapolation_too)
 {
+    SAMRAI_MPI::barrier();
     t_apply_gradient_detector->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -2515,6 +2530,7 @@ void
 INSStaggeredHierarchyIntegrator::putToDatabase(
     Pointer<Database> db)
 {
+    SAMRAI_MPI::barrier();
     t_put_to_database->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -3095,6 +3111,7 @@ INSStaggeredHierarchyIntegrator::computeDivSourceTerm(
     const int Q_idx,
     const int U_idx)
 {
+    SAMRAI_MPI::barrier();
     t_compute_div_source_term->start();
 
     const int coarsest_ln = 0;

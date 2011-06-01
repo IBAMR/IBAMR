@@ -215,6 +215,7 @@ CCPoissonPETScLevelSolver::solveSystem(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& b)
 {
+    SAMRAI_MPI::barrier();
     t_solve_system->start();
 
     int ierr;
@@ -264,6 +265,7 @@ CCPoissonPETScLevelSolver::initializeSolverState(
     const SAMRAIVectorReal<NDIM,double>& x,
     const SAMRAIVectorReal<NDIM,double>& b)
 {
+    SAMRAI_MPI::barrier();
     t_initialize_solver_state->start();
 
     // Rudimentary error checking.
@@ -375,6 +377,7 @@ CCPoissonPETScLevelSolver::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
+    SAMRAI_MPI::barrier();
     t_deallocate_solver_state->start();
 
     // Deallocate PETSc objects.

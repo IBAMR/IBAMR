@@ -224,6 +224,7 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
     const int U_idx,
     const int N_idx)
 {
+    SAMRAI_MPI::barrier();
     t_apply_convective_operator->start();
 
     if (!d_is_initialized)
@@ -349,6 +350,7 @@ INSStaggeredCenteredConvectiveOperator::apply(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& y)
 {
+    SAMRAI_MPI::barrier();
     t_apply->start();
 
     // Get the vector components.
@@ -367,6 +369,7 @@ INSStaggeredCenteredConvectiveOperator::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& in,
     const SAMRAIVectorReal<NDIM,double>& out)
 {
+    SAMRAI_MPI::barrier();
     t_initialize_operator_state->start();
 
     if (d_is_initialized) deallocateOperatorState();
@@ -416,6 +419,7 @@ INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
+    SAMRAI_MPI::barrier();
     t_deallocate_operator_state->start();
 
     // Deallocate scratch data.

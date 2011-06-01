@@ -191,6 +191,7 @@ INSStaggeredBlockFactorizationPreconditioner::solveSystem(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& b)
 {
+    SAMRAI_MPI::barrier();
     t_solve_system->start();
 
     // Initialize the solver (if necessary).
@@ -296,6 +297,7 @@ INSStaggeredBlockFactorizationPreconditioner::initializeSolverState(
     const SAMRAIVectorReal<NDIM,double>& x,
     const SAMRAIVectorReal<NDIM,double>& b)
 {
+    SAMRAI_MPI::barrier();
     t_initialize_solver_state->start();
 
     if (d_is_initialized) deallocateSolverState();
@@ -345,6 +347,7 @@ INSStaggeredBlockFactorizationPreconditioner::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
+    SAMRAI_MPI::barrier();
     t_deallocate_solver_state->start();
 
     // Deallocate scratch data.

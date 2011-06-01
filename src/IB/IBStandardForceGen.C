@@ -208,6 +208,7 @@ IBStandardForceGen::initializeLevelData(
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
+    SAMRAI_MPI::barrier();
     t_initialize_level_data->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -301,6 +302,8 @@ IBStandardForceGen::computeLagrangianForce(
     LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
+
+    SAMRAI_MPI::barrier();
     t_compute_lagrangian_force->start();
 
     int ierr;

@@ -817,6 +817,7 @@ INSStaggeredBoxRelaxationFACOperator::restrictResidual(
     SAMRAIVectorReal<NDIM,double>& dst,
     int dst_ln)
 {
+    SAMRAI_MPI::barrier();
     t_restrict_residual->start();
 
     const int U_src_idx = src.getComponentDescriptorIndex(0);
@@ -853,6 +854,7 @@ INSStaggeredBoxRelaxationFACOperator::prolongError(
     SAMRAIVectorReal<NDIM,double>& dst,
     int dst_ln)
 {
+    SAMRAI_MPI::barrier();
     t_prolong_error->start();
 
     const int U_src_idx = src.getComponentDescriptorIndex(0);
@@ -877,6 +879,7 @@ INSStaggeredBoxRelaxationFACOperator::prolongErrorAndCorrect(
     SAMRAIVectorReal<NDIM,double>& dst,
     int dst_ln)
 {
+    SAMRAI_MPI::barrier();
     t_prolong_error_and_correct->start();
 
     const int U_src_idx = src.getComponentDescriptorIndex(0);
@@ -923,6 +926,7 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
 {
     if (num_sweeps == 0) return;
 
+    SAMRAI_MPI::barrier();
     t_smooth_error->start();
 
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
@@ -1143,6 +1147,7 @@ INSStaggeredBoxRelaxationFACOperator::solveCoarsestLevel(
     const SAMRAIVectorReal<NDIM,double>& residual,
     int coarsest_ln)
 {
+    SAMRAI_MPI::barrier();
     t_solve_coarsest_level->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1162,6 +1167,7 @@ INSStaggeredBoxRelaxationFACOperator::computeResidual(
     const SAMRAIVectorReal<NDIM,double>& rhs,
     int level_num)
 {
+    SAMRAI_MPI::barrier();
     t_compute_residual->start();
 
     if (!d_preconditioner.isNull() && d_preconditioner->getNumPreSmoothingSweeps() == 0)
@@ -1264,7 +1270,9 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& solution,
     const SAMRAIVectorReal<NDIM,double>& rhs)
 {
+    SAMRAI_MPI::barrier();
     t_initialize_operator_state->start();
+
     d_in_initialize_operator_state = true;
 
     // Cache the level range to be reset.
@@ -1628,6 +1636,7 @@ INSStaggeredBoxRelaxationFACOperator::deallocateOperatorState()
         return;
     }
 
+    SAMRAI_MPI::barrier();
     t_deallocate_operator_state->start();
 
     if (d_is_initialized)

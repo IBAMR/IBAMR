@@ -194,6 +194,7 @@ INSStaggeredVCStokesOperator::apply(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& y)
 {
+    SAMRAI_MPI::barrier();
     t_apply->start();
 
     // Get the vector components.
@@ -282,6 +283,7 @@ INSStaggeredVCStokesOperator::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& in,
     const SAMRAIVectorReal<NDIM,double>& out)
 {
+    SAMRAI_MPI::barrier();
     t_initialize_operator_state->start();
 
     if (d_is_initialized) deallocateOperatorState();
@@ -313,6 +315,7 @@ INSStaggeredVCStokesOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
+    SAMRAI_MPI::barrier();
     t_deallocate_operator_state->start();
 
     d_x_scratch->freeVectorComponents();

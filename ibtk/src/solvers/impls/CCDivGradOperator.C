@@ -144,6 +144,7 @@ CCDivGradOperator::apply(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& y)
 {
+    SAMRAI_MPI::barrier();
     t_apply->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -205,6 +206,7 @@ CCDivGradOperator::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& in,
     const SAMRAIVectorReal<NDIM,double>& out)
 {
+    SAMRAI_MPI::barrier();
     t_initialize_operator_state->start();
 
     static const int comp = 0;
@@ -310,6 +312,7 @@ CCDivGradOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
+    SAMRAI_MPI::barrier();
     t_deallocate_operator_state->start();
 
     // Deallocate the interpolation operators.

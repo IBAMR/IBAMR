@@ -196,6 +196,7 @@ CCDivGradHypreLevelSolver::solveSystem(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& b)
 {
+    SAMRAI_MPI::barrier();
     t_solve_system->start();
 
     if (d_enable_logging) plog << d_object_name << "::solveSystem():" << std::endl;
@@ -246,6 +247,7 @@ CCDivGradHypreLevelSolver::initializeSolverState(
     const SAMRAIVectorReal<NDIM,double>& x,
     const SAMRAIVectorReal<NDIM,double>& b)
 {
+    SAMRAI_MPI::barrier();
     t_initialize_solver_state->start();
 
     // Rudimentary error checking.
@@ -326,6 +328,7 @@ CCDivGradHypreLevelSolver::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
+    SAMRAI_MPI::barrier();
     t_deallocate_solver_state->start();
 
     // Deallocate the hypre data structures.
@@ -847,6 +850,7 @@ CCDivGradHypreLevelSolver::solveSystem(
     HYPRE_StructVectorAssemble(d_rhs_vec);
 
     // Solve the system.
+    SAMRAI_MPI::barrier();
     t_solve_system_hypre->start();
 
     if (d_solver_type == "PFMG")

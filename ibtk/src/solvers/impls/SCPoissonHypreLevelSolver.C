@@ -278,6 +278,7 @@ SCPoissonHypreLevelSolver::solveSystem(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& b)
 {
+    SAMRAI_MPI::barrier();
     t_solve_system->start();
 
     if (d_enable_logging) plog << d_object_name << "::solveSystem():" << std::endl;
@@ -312,6 +313,7 @@ SCPoissonHypreLevelSolver::initializeSolverState(
     const SAMRAIVectorReal<NDIM,double>& x,
     const SAMRAIVectorReal<NDIM,double>& b)
 {
+    SAMRAI_MPI::barrier();
     t_initialize_solver_state->start();
 
     // Rudimentary error checking.
@@ -400,6 +402,7 @@ SCPoissonHypreLevelSolver::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
+    SAMRAI_MPI::barrier();
     t_deallocate_solver_state->start();
 
     // Deallocate the hypre data structures.
@@ -1120,6 +1123,7 @@ SCPoissonHypreLevelSolver::solveSystem(
     HYPRE_SStructVectorAssemble(d_rhs_vec);
 
     // Solve the system.
+    SAMRAI_MPI::barrier();
     t_solve_system_hypre->start();
 
     if (d_solver_type == "SysPFMG")
