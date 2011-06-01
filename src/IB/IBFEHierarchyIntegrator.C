@@ -1005,6 +1005,8 @@ IBFEHierarchyIntegrator::advanceHierarchy(
 bool
 IBFEHierarchyIntegrator::atRegridPoint() const
 {
+    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
+    if (initial_time) return true;
     return d_regrid_cfl_interval > 0.0 ? (d_regrid_cfl_estimate >= d_regrid_cfl_interval) : (d_regrid_interval == 0 ? false : (d_integrator_step % d_regrid_interval == 0));
 }// atRegridPoint
 
