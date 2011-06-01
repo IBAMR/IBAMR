@@ -242,11 +242,11 @@ LMarkerUtilities::advectMarkers(
             for (LMarkerSetData::DataIterator it = mark_current_data->data_begin(patch_box);
                  it != mark_current_data->data_end(); ++it)
             {
-                const LMarker& mark = *it;
-                const blitz::TinyVector<double,NDIM>& X = mark.getPosition();
+                const LMarkerSet::value_type& mark = *it;
+                const blitz::TinyVector<double,NDIM>& X = mark->getPosition();
                 X_mark.insert(X_mark.end(), X.begin(), X.end());
 #ifdef DEBUG_CHECK_ASSERTIONS
-                const int& idx = mark.getIndex();
+                const int& idx = mark->getIndex();
                 idx_mark.push_back(idx);
 #endif
             }
@@ -260,11 +260,11 @@ LMarkerUtilities::advectMarkers(
             for (LMarkerSetData::DataIterator it = mark_new_data->data_begin(patch_box);
                  it != mark_new_data->data_end(); ++it)
             {
-                const LMarker& mark = *it;
-                const blitz::TinyVector<double,NDIM>& X = mark.getPosition();
+                const LMarkerSet::value_type& mark = *it;
+                const blitz::TinyVector<double,NDIM>& X = mark->getPosition();
                 X_mark_new.insert(X_mark_new.end(), X.begin(), X.end());
 #ifdef DEBUG_CHECK_ASSERTIONS
-                const int& idx = mark.getIndex();
+                const int& idx = mark->getIndex();
                 idx_mark_new.push_back(idx);
 #endif
             }
@@ -323,8 +323,8 @@ LMarkerUtilities::advectMarkers(
             for (LMarkerSetData::DataIterator it = mark_new_data->data_begin(patch_box);
                  it != mark_new_data->data_end(); ++it, ++marker_offset)
             {
-                LMarker& mark = *it;
-                blitz::TinyVector<double,NDIM>& X = mark.getPosition();
+                LMarkerSet::value_type& mark = *it;
+                blitz::TinyVector<double,NDIM>& X = mark->getPosition();
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     X[d] = X_mark_new[NDIM*marker_offset+d];
@@ -438,9 +438,9 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(
         for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getGhostBox());
              it != mark_data->data_end(); ++it)
         {
-            const LMarker& mark = *it;
-            const blitz::TinyVector<double,NDIM>& X = mark.getPosition();
-            const IntVector<NDIM>& offset = mark.getPeriodicOffset();
+            const LMarkerSet::value_type& mark = *it;
+            const blitz::TinyVector<double,NDIM>& X = mark->getPosition();
+            const IntVector<NDIM>& offset = mark->getPeriodicOffset();
             blitz::TinyVector<double,NDIM> X_shifted;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -534,7 +534,7 @@ LMarkerUtilities::initializeMarkersOnLevel(
                         mark_data->appendItemPointer(i, new LMarkerSet());
                     }
                     LMarkerSet& new_mark_set = *(mark_data->getItem(i));
-                    new_mark_set.push_back(LMarker(k, X, U));
+                    new_mark_set.push_back(new LMarker(k, X, U));
                 }
             }
         }

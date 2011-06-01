@@ -90,7 +90,7 @@ LTransaction<T>::LTransaction(
     for (typename std::vector<LTransactionComponent>::const_iterator cit = d_src_item_set.begin();
          cit != d_src_item_set.end(); ++cit)
     {
-        d_outgoing_bytes += cit->item.getDataStreamSize() + NDIM*AbstractStream::sizeofDouble();
+        d_outgoing_bytes += cit->item->getDataStreamSize() + NDIM*AbstractStream::sizeofDouble();
     }
     return;
 }// LTransaction
@@ -146,8 +146,8 @@ LTransaction<T>::packStream(
     for (typename std::vector<LTransactionComponent>::iterator it = d_src_item_set.begin();
          it != d_src_item_set.end(); ++it)
     {
-        T& item = it->item;
-        item.packStream(stream);
+        typename LSet<T>::value_type& item = it->item;
+        item->packStream(stream);
         const blitz::TinyVector<double,NDIM>& posn = it->posn;
         stream.pack(posn.data(),NDIM);
     }
@@ -166,7 +166,7 @@ LTransaction<T>::unpackStream(
     for (typename std::vector<LTransactionComponent>::iterator it = d_dst_item_set.begin();
          it != d_dst_item_set.end(); ++it)
     {
-        it->item.unpackStream(stream, periodic_offset);
+        it->item->unpackStream(stream, periodic_offset);
         blitz::TinyVector<double,NDIM>& posn = it->posn;
         stream.unpack(posn.data(),NDIM);
     }

@@ -82,6 +82,20 @@ LNodeIndex::LNodeIndex(
 }// LNodeIndex
 
 inline
+LNodeIndex::LNodeIndex(
+    SAMRAI::tbox::AbstractStream& stream,
+    const SAMRAI::hier::IntVector<NDIM>& offset)
+    : d_lagrangian_nidx(-1),
+      d_global_petsc_nidx(-1),
+      d_local_petsc_nidx(-1),
+      d_offset(0),
+      d_displacement(0.0)
+{
+    unpackStream(stream,offset);
+    return;
+}// LNodeIndex
+
+inline
 LNodeIndex::~LNodeIndex()
 {
     // intentionally blank

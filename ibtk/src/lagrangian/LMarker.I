@@ -71,6 +71,19 @@ LMarker::LMarker(
 }// LMarker
 
 inline
+LMarker::LMarker(
+    SAMRAI::tbox::AbstractStream& stream,
+    const SAMRAI::hier::IntVector<NDIM>& offset)
+    : d_idx(-1),
+      d_X(0.0),
+      d_U(0.0),
+      d_offset(offset)
+{
+    unpackStream(stream,offset);
+    return;
+}// LMarker
+
+inline
 LMarker::~LMarker()
 {
     // intentionally blank

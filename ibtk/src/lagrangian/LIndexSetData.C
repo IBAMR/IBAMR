@@ -97,9 +97,9 @@ LIndexSetData<T>::cacheLocalIndices()
         for (typename LSet<T>::const_iterator n = idx_set.begin(); n != idx_set.end(); ++n)
         {
             const typename LSet<T>::value_type& idx = *n;
-            const int          lag_idx = idx.getLagrangianIndex();
-            const int global_petsc_idx = idx.getGlobalPETScIndex();
-            const int  local_petsc_idx = idx.getLocalPETScIndex();
+            const int          lag_idx = idx->getLagrangianIndex();
+            const int global_petsc_idx = idx->getGlobalPETScIndex();
+            const int  local_petsc_idx = idx->getLocalPETScIndex();
             if (patch_owns_idx_set)
             {
                 d_interior_lag_indices         .push_back(         lag_idx);

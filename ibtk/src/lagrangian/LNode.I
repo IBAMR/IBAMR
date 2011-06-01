@@ -79,6 +79,17 @@ LNode::LNode(
 }// LNode
 
 inline
+LNode::LNode(
+    SAMRAI::tbox::AbstractStream& stream,
+    const SAMRAI::hier::IntVector<NDIM>& offset)
+    : LNodeIndex(),
+      d_node_data()
+{
+    unpackStream(stream,offset);
+    return;
+}// LNode
+
+inline
 LNode::~LNode()
 {
     // intentionally blank

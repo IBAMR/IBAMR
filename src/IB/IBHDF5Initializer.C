@@ -367,7 +367,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
             LNodeSet* const node_set = index_data->getItem(i);
             const IntVector<NDIM> periodic_offset(0);
             const blitz::TinyVector<double,NDIM> periodic_displacement(0.0);
-            node_set->push_back(LNode(lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, vertex_specs));
+            node_set->push_back(new LNode(lagrangian_idx, global_petsc_idx, local_petsc_idx, periodic_offset, periodic_displacement, vertex_specs));
         }
     }
     X_data->restoreArrays();

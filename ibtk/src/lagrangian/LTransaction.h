@@ -35,6 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// IBTK INCLUDES
+#include <ibtk/LSet.h>
+
 // SAMRAI INCLUDES
 #include <tbox/Pointer.h>
 #include <tbox/Transaction.h>
@@ -74,7 +77,7 @@ public:
          */
         inline
         LTransactionComponent(
-            const T& item=NULL,
+            const typename LSet<T>::value_type& item=NULL,
             blitz::TinyVector<double,NDIM> posn=blitz::TinyVector<double,NDIM>(0.0))
             : item(item),
               posn(posn)
@@ -128,7 +131,7 @@ public:
             }// ~LTransactionComponent
 
         // Data.
-        T item;
+        typename LSet<T>::value_type item;
         blitz::TinyVector<double,NDIM> posn;
     };
 

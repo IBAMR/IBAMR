@@ -61,7 +61,7 @@ public:
     /*!
      * \brief The continer class.
      */
-    typedef std::vector<T> DataSet;
+    typedef std::vector<SAMRAI::tbox::Pointer<T> > DataSet;
 
     /*!
      * \brief The type of object, T, stored in the collection.
@@ -195,7 +195,7 @@ public:
     iterator
     insert(
         iterator pos,
-        const T& x);
+        const typename LSet<T>::value_type& x);
 
     /*!
      * \brief Inserts the range [first,last) before pos.
@@ -214,7 +214,7 @@ public:
     insert(
         iterator pos,
         size_type n,
-        const T& x);
+        const typename LSet<T>::value_type& x);
 
     /*!
      * \brief Return a const reference to the set of data items.
@@ -316,19 +316,19 @@ private:
      * \brief Misc. nested structs and classes.
      */
     struct LSetGetDataStreamSizeSum
-        : std::binary_function<size_t,const T&,size_t>
+        : std::binary_function<size_t,const typename LSet<T>::value_type&,size_t>
     {
         inline size_t
         operator()(
             size_t size_so_far,
-            const T& item) const
+            const typename LSet<T>::value_type& item) const
             {
-                return size_so_far+item.getDataStreamSize();
+                return size_so_far+item->getDataStreamSize();
             }
     };
 
     class LSetPackStream
-        : public std::unary_function<T&,void>
+        : public std::unary_function<typename LSet<T>::value_type&,void>
     {
     public:
         inline
@@ -341,9 +341,9 @@ private:
 
         inline void
         operator()(
-            T& item) const
+            typename LSet<T>::value_type& item) const
             {
-                item.packStream(*d_stream);
+                item->packStream(*d_stream);
                 return;
             }
     private:
@@ -351,7 +351,7 @@ private:
     };
 
     class LSetUnpackStream
-        : public std::unary_function<T&,void>
+        : public std::unary_function<void,typename LSet<T>::value_type>
     {
     public:
         inline
@@ -364,12 +364,10 @@ private:
                 return;
             }
 
-        inline void
-        operator()(
-            T& item) const
+        inline typename LSet<T>::value_type
+        operator()() const
             {
-                item.unpackStream(*d_stream,d_offset);
-                return;
+                return new T(*d_stream,d_offset);
             }
     private:
         SAMRAI::tbox::AbstractStream* const d_stream;

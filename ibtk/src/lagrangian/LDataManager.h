@@ -42,6 +42,7 @@
 // IBTK INCLUDES
 #include <ibtk/LInitStrategy.h>
 #include <ibtk/LMesh.h>
+#include <ibtk/LNodeSet.h>
 #include <ibtk/LNodeSetVariable.h>
 #include <ibtk/ParallelSet.h>
 
@@ -1104,7 +1105,7 @@ private:
     std::vector<ParallelSet> d_inactive_strcts;
     std::vector<std::vector<int> > d_displaced_strct_ids;
     std::vector<std::vector<std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> > > > d_displaced_strct_bounding_boxes;
-    std::vector<std::vector<LNode> > d_displaced_strct_lnode_idxs;
+    std::vector<std::vector<LNodeSet::value_type> > d_displaced_strct_lnode_idxs;
     std::vector<std::vector<blitz::TinyVector<double,NDIM> > > d_displaced_strct_lnode_posns;
 
     /*!

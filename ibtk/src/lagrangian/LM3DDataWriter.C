@@ -903,8 +903,8 @@ LM3DDataWriter::writePlotData(
                         for (LMarkerSet::const_iterator cit = mark_set.begin();
                              cit != mark_set.end(); ++cit)
                         {
-                            const blitz::TinyVector<double,NDIM>& X = cit->getPosition();
-                            const int idx = cit->getIndex();
+                            const blitz::TinyVector<double,NDIM>& X = (*cit)->getPosition();
+                            const int idx = (*cit)->getIndex();
                             for (unsigned int d = 0; d < NDIM; ++d)
                             {
                                 /*!

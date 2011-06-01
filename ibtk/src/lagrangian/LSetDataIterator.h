@@ -121,14 +121,14 @@ public:
      * \brief Return a reference to the Lagrangian data item referred to by the
      * iterator.
      */
-    T&
+    typename LSet<T>::value_type&
     operator*() const;
 
     /*!
      * \brief Return a reference to the Lagrangian data item referred to by the
      * iterator.
      */
-    T&
+    typename LSet<T>::value_type&
     getDataItem() const;
 
     /*!

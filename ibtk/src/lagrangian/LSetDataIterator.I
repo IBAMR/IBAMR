@@ -157,14 +157,14 @@ LSetDataIterator<T>::operator++(
 }// operator++
 
 template<class T>
-inline T&
+inline typename LSet<T>::value_type&
 LSetDataIterator<T>::operator*() const
 {
     return getDataItem();
 }// operator*
 
 template<class T>
-inline T&
+inline typename LSet<T>::value_type&
 LSetDataIterator<T>::getDataItem() const
 {
     return *d_node_it;

@@ -164,7 +164,7 @@ template<class T>
 inline typename LSet<T>::iterator
 LSet<T>::insert(
     typename LSet<T>::iterator pos,
-    const T& x)
+    const typename LSet<T>::value_type& x)
 {
     return d_set.insert(pos,x);
 }// insert
@@ -186,7 +186,7 @@ inline void
 LSet<T>::insert(
     typename LSet<T>::iterator pos,
     typename LSet<T>::size_type n,
-    const T& x)
+    const typename LSet<T>::value_type& x)
 {
     d_set.insert(pos,n,x);
     return;
@@ -273,7 +273,7 @@ LSet<T>::unpackStream(
     int num_idx;
     stream.unpack(&num_idx,1);
     d_set.resize(num_idx);
-    for_each(d_set.begin(),d_set.end(),LSetUnpackStream(&stream,offset));
+    generate(d_set.begin(),d_set.end(),LSetUnpackStream(&stream,offset));
     return;
 }// unpackStream
 

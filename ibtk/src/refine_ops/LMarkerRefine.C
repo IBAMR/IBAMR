@@ -143,9 +143,9 @@ LMarkerRefine::refine(
             for (LMarkerSet::const_iterator cit = coarse_mark_set.begin();
                  cit != coarse_mark_set.end(); ++cit)
             {
-                const LMarker& coarse_mark = *cit;
-                const blitz::TinyVector<double,NDIM>& X = coarse_mark.getPosition();
-                const IntVector<NDIM>& offset = coarse_mark.getPeriodicOffset();
+                const LMarkerSet::value_type& coarse_mark = *cit;
+                const blitz::TinyVector<double,NDIM>& X = coarse_mark->getPosition();
+                const IntVector<NDIM>& offset = coarse_mark->getPeriodicOffset();
                 blitz::TinyVector<double,NDIM> X_shifted;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {

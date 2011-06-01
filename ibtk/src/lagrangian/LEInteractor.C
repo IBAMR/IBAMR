@@ -543,13 +543,21 @@ ib4_delta_fcn(
 }// ib4_delta_fcn
 
 struct GetLocalPETScIndex
-    : std::unary_function<const LNodeIndex&,int>
+    : std::unary_function<const LNodeIndex&,int>,
+      std::unary_function<const SAMRAI::tbox::Pointer<LNodeIndex>&,int>
 {
     inline int
     operator()(
         const LNodeIndex& index) const
         {
             return index.getLocalPETScIndex();
+        }
+
+    inline int
+    operator()(
+        const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
+        {
+            return index->getLocalPETScIndex();
         }
 };
 
@@ -2314,7 +2322,7 @@ LEInteractor::buildLocalIndices(
 
                 for (typename LSet<T>::const_iterator cit = node_set.begin(); cit != node_set.end(); ++cit)
                 {
-                    box_idxs_and_offsets.push_back(std::make_pair(&*cit,node_offset));
+                    box_idxs_and_offsets.push_back(std::make_pair(cit->getPointer(),node_offset));
                 }
             }
         }

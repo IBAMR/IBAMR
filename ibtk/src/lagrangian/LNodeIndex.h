@@ -76,6 +76,13 @@ public:
         const LNodeIndex& from);
 
     /*!
+     * \brief Constructor that unpacks data from an input stream.
+     */
+    LNodeIndex(
+        SAMRAI::tbox::AbstractStream& stream,
+        const SAMRAI::hier::IntVector<NDIM>& offset);
+
+    /*!
      * \brief Virtual destructor.
      */
     virtual

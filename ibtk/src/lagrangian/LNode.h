@@ -74,6 +74,13 @@ public:
         const LNode& from);
 
     /*!
+     * \brief Constructor that unpacks data from an input stream.
+     */
+    LNode(
+        SAMRAI::tbox::AbstractStream& stream,
+        const SAMRAI::hier::IntVector<NDIM>& offset);
+
+    /*!
      * \brief Destructor.
      */
     ~LNode();
@@ -180,7 +187,7 @@ public:
     /*!
      * \brief Unpack data from the input stream.
      */
-    void
+    virtual void
     unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
         const SAMRAI::hier::IntVector<NDIM>& offset);

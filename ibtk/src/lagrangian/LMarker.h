@@ -74,6 +74,14 @@ public:
         const LMarker& from);
 
     /*!
+     * \brief Constructor that unpacks data from an input stream.
+     */
+    LMarker(
+        SAMRAI::tbox::AbstractStream& stream,
+        const SAMRAI::hier::IntVector<NDIM>& offset);
+
+
+    /*!
      * \brief Destructor.
      */
     ~LMarker();
@@ -193,7 +201,7 @@ public:
     /*!
      * \brief Unpack data from the input stream.
      */
-    void
+    virtual void
     unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
         const SAMRAI::hier::IntVector<NDIM>& offset);
