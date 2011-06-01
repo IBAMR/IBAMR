@@ -334,6 +334,9 @@ private:
     SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_refine_strategy;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_refine_scheds;
 
+    // Scratch data for refine algorithms/schedules.
+    std::vector<int> d_scratch_idxs;
+
     // Cached coarse-fine boundary and physical boundary condition handlers.
     std::vector<SAMRAI::tbox::Pointer<CoarseFineBoundaryRefinePatchStrategy> > d_cf_bdry_ops;
     std::vector<SAMRAI::tbox::Pointer<CartExtrapPhysBdryOp> > d_extrap_bc_ops;
