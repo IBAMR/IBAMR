@@ -796,6 +796,12 @@ private:
     bool d_using_orthonormal_directors;
 
     /*
+     * This boolean value determines whether the source/sink strength is
+     * normalized to have zero mean (i.e., discrete integral).
+     */
+    bool d_normalize_source_strength;
+
+    /*
      * Integrator data read from input or set at initialization.
      */
     double d_start_time;

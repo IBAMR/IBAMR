@@ -219,6 +219,7 @@ IBStaggeredHierarchyIntegrator::IBStaggeredHierarchyIntegrator(
       d_using_pIB_method(false),
       d_gravitational_acceleration(0.0),
       d_using_orthonormal_directors(false),
+      d_normalize_source_strength(false),
       d_start_time(0.0),
       d_end_time(std::numeric_limits<double>::max()),
       d_grow_dt(2.0),
@@ -2134,6 +2135,8 @@ IBStaggeredHierarchyIntegrator::putToDatabase(
 
     db->putBool("d_using_orthonormal_directors", d_using_orthonormal_directors);
 
+    db->putBool("d_normalize_source_strength", d_normalize_source_strength);
+
     db->putDouble("d_start_time", d_start_time);
     db->putDouble("d_end_time", d_end_time);
     db->putDouble("d_grow_dt", d_grow_dt);
@@ -2421,11 +2424,14 @@ IBStaggeredHierarchyIntegrator::computeSourceStrengths(
                    << "Lagrangian and Eulerian source/sink strengths are inconsistent.");
     }
 
-    // When necessary, balance the net inflow/outflow with outflow/inflow along
-    // the upper/lower boundaries of the computational domain.
-    if (std::abs(q_total) > 1.0e-12)
+    // Balance the net inflow/outflow with outflow/inflow along the upper/lower
+    // boundaries of the computational domain (if needed).
+    if (d_normalize_source_strength)
     {
-        plog << "    adding ``external'' source/sink to offset net inflow/outflow into domain.\n";
+        if (d_do_log)
+        {
+            plog << "    adding ``external'' source/sink to offset net inflow/outflow into domain.\n";
+        }
         Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
         TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
         const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
@@ -2489,9 +2495,9 @@ IBStaggeredHierarchyIntegrator::computeSourcePressures(
     const int P_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVar(), d_ins_hier_integrator->getNewContext());
     const int wgt_idx = d_ins_hier_integrator->getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
 
-    // Compute the normalization pressure.
+    // Compute the normalization pressure (if needed).
     double p_norm = 0.0;
-    if (true)
+    if (d_normalize_source_strength)
     {
         Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
         TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
@@ -2689,6 +2695,7 @@ IBStaggeredHierarchyIntegrator::getFromInput(
             TBOX_ERROR(d_object_name << ":  "
                        << "Directors are currently only supported for three-dimensional problems." << std::endl);
         }
+        d_normalize_source_strength = db->getBoolWithDefault("normalize_source_strength", d_normalize_source_strength);
         d_start_time = db->getDoubleWithDefault("start_time", d_start_time);
         d_mark_input_file_name = db->getStringWithDefault("marker_input_file_name", d_mark_input_file_name);
     }
@@ -2781,6 +2788,8 @@ IBStaggeredHierarchyIntegrator::getFromRestart()
     }
 
     d_using_orthonormal_directors = db->getBoolWithDefault("d_using_orthonormal_directors",false);
+
+    d_normalize_source_strength = db->getBool("d_normalize_source_strength");
 
     d_start_time = db->getDouble("d_start_time");
     d_end_time = db->getDouble("d_end_time");
