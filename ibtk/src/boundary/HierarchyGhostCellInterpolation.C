@@ -101,7 +101,7 @@ HierarchyGhostCellInterpolation::HierarchyGhostCellInterpolation()
         t_fill_data = TimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::fillData()");
         t_fill_data_coarsen = TimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::fillData()[coarsen]");
         t_fill_data_refine = TimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::fillData()[refine]");
-        t_fill_data_set_set_physical_bcs = TimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::fillData()[set_set_physical_bcs]");
+        t_fill_data_set_physical_bcs = TimerManager::getManager()->getTimer("IBTK::HierarchyGhostCellInterpolation::fillData()[set_physical_bcs]");
                  );
     return;
 }// HierarchyGhostCellInterpolation
