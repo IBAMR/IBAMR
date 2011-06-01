@@ -135,10 +135,12 @@ VecMDot_SAMRAI(
         TBOX_ASSERT(y[i] != PETSC_NULL);
     }
 #endif
+    static const bool local_only = true;
     for (PetscInt i = 0; i < nv; ++i)
     {
-        val[i] = PSVR_CAST2(x)->dot(PSVR_CAST2(y[i]));
+        val[i] = PSVR_CAST2(x)->dot(PSVR_CAST2(y[i]), local_only);
     }
+    SAMRAI_MPI::sumReduction(val, nv);
     t_vec_m_dot->stop();
     PetscFunctionReturn(0);
 }// VecMDot
@@ -167,8 +169,12 @@ VecNorm_SAMRAI(
     }
     else if (type == NORM_1_AND_2)
     {
-        val[0] = NormOps::L1Norm(PSVR_CAST2(x));
-        val[1] = NormOps::L2Norm(PSVR_CAST2(x));
+        static const bool local_only = true;
+        val[0] = NormOps::L1Norm(PSVR_CAST2(x), local_only);
+        val[1] = NormOps::L2Norm(PSVR_CAST2(x), local_only);
+        val[1] = val[1]*val[1];
+        SAMRAI_MPI::sumReduction(val, 2);
+        val[1] = std::sqrt(val[1]);
     }
     else
     {
@@ -210,10 +216,12 @@ VecMTDot_SAMRAI(
         TBOX_ASSERT(y[i] != PETSC_NULL);
     }
 #endif
+    static const bool local_only = true;
     for (PetscInt i = 0; i < nv; ++i)
     {
-        val[i] = PSVR_CAST2(x)->dot(PSVR_CAST2(y[i]));
+        val[i] = PSVR_CAST2(x)->dot(PSVR_CAST2(y[i]), local_only);
     }
+    SAMRAI_MPI::sumReduction(val, nv);
     t_vec_m_t_dot->stop();
     PetscFunctionReturn(0);
 }// VecMTDot
