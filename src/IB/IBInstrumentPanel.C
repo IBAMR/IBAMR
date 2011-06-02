@@ -535,7 +535,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     LDataManager* const l_data_manager)
 {
-    t_initialize_hierarchy_independent_data->start();
+    IBAMR_TIMER_START(t_initialize_hierarchy_independent_data);
 
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
@@ -649,7 +649,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
     // Indicate that the hierarchy-independent data has been initialized.
     d_initialized = true;
 
-    t_initialize_hierarchy_independent_data->stop();
+    IBAMR_TIMER_STOP(t_initialize_hierarchy_independent_data);
     return;
 }// initializeHierarchyIndependentData
 
@@ -666,7 +666,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
     }
     if (d_num_meters == 0) return;
 
-    t_initialize_hierarchy_dependent_data->start();
+    IBAMR_TIMER_START(t_initialize_hierarchy_dependent_data);
 
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
@@ -860,7 +860,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
         }
     }
 
-    t_initialize_hierarchy_dependent_data->stop();
+    IBAMR_TIMER_STOP(t_initialize_hierarchy_dependent_data);
     return;
 }// initializeHierarchyDependentData
 
@@ -875,7 +875,7 @@ IBInstrumentPanel::readInstrumentData(
 {
     if (d_num_meters == 0) return;
 
-    t_read_instrument_data->start();
+    IBAMR_TIMER_START(t_read_instrument_data);
 
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
@@ -1115,7 +1115,7 @@ IBInstrumentPanel::readInstrumentData(
         d_log_file_stream.flush();
     }
 
-    t_read_instrument_data->stop();
+    IBAMR_TIMER_STOP(t_read_instrument_data);
     return;
 }// readInstrumentData
 
@@ -1126,7 +1126,7 @@ IBInstrumentPanel::writePlotData(
 {
     if (d_num_meters == 0) return;
 
-    t_write_plot_data->start();
+    IBAMR_TIMER_START(t_write_plot_data);
 #if HAVE_LIBSILO
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(timestep_num >= 0);
@@ -1265,12 +1265,10 @@ IBInstrumentPanel::writePlotData(
             sfile.close();
         }
     }
-
-    SAMRAI_MPI::barrier();
 #else
     TBOX_WARNING("IBInstrumentPanel::writePlotData(): SILO is not installed; cannot write data." << std::endl);
 #endif //if HAVE_LIBSILO
-    t_write_plot_data->stop();
+    IBAMR_TIMER_STOP(t_write_plot_data);
     return;
 }// writePlotData
 

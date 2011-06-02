@@ -628,7 +628,7 @@ void
 AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
-    t_initialize_hierarchy_integrator->start();
+    IBAMR_TIMER_START(t_initialize_hierarchy_integrator);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!gridding_alg.isNull());
@@ -795,14 +795,14 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     // Indicate that the integrator has been initialized.
     d_is_initialized = true;
 
-    t_initialize_hierarchy_integrator->stop();
+    IBAMR_TIMER_STOP(t_initialize_hierarchy_integrator);
     return;
 }// initializeHierarchyIntegrator
 
 double
 AdvDiffHierarchyIntegrator::initializeHierarchy()
 {
-    t_initialize_hierarchy->start();
+    IBAMR_TIMER_START(t_initialize_hierarchy);
 
     if (!d_is_initialized)
     {
@@ -856,7 +856,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchy()
         dt_next = d_end_time - d_integrator_time;
     }
 
-    t_initialize_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_initialize_hierarchy);
     return dt_next;
 }// initializeHierarchy
 
@@ -864,7 +864,7 @@ double
 AdvDiffHierarchyIntegrator::advanceHierarchy(
     const double dt)
 {
-    t_advance_hierarchy->start();
+    IBAMR_TIMER_START(t_advance_hierarchy);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_end_time >= d_integrator_time+dt);
@@ -883,7 +883,7 @@ AdvDiffHierarchyIntegrator::advanceHierarchy(
     // Third: reset all time dependent data.
     resetTimeDependentHierData(d_integrator_time+dt);
 
-    t_advance_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_advance_hierarchy);
     return dt_next;
 }// advanceHierarchy
 
@@ -975,7 +975,7 @@ AdvDiffHierarchyIntegrator::getHyperbolicPatchStrategy() const
 void
 AdvDiffHierarchyIntegrator::regridHierarchy()
 {
-    t_regrid_hierarchy->start();
+    IBAMR_TIMER_START(t_regrid_hierarchy);
 
     const int coarsest_ln = 0;
     switch (d_regrid_mode)
@@ -994,7 +994,7 @@ AdvDiffHierarchyIntegrator::regridHierarchy()
                        << "  unrecognized regrid mode: " << enum_to_string<RegridMode>(d_regrid_mode) << "." << std::endl);
     }
 
-    t_regrid_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_regrid_hierarchy);
     return;
 }// regridHierarchy
 
@@ -1003,7 +1003,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
     const double current_time,
     const double new_time)
 {
-    t_integrate_hierarchy->start();
+    IBAMR_TIMER_START(t_integrate_hierarchy);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(current_time <= new_time);
@@ -1329,14 +1329,14 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         }
     }
 
-    t_integrate_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_integrate_hierarchy);
     return dt_next;
 }// integrateHierarchy
 
 void
 AdvDiffHierarchyIntegrator::synchronizeHierarchy()
 {
-    t_synchronize_hierarchy->start();
+    IBAMR_TIMER_START(t_synchronize_hierarchy);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1346,7 +1346,7 @@ AdvDiffHierarchyIntegrator::synchronizeHierarchy()
         d_cscheds["SYNCH_NEW_STATE_DATA"][ln]->coarsenData();
     }
 
-    t_synchronize_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_synchronize_hierarchy);
     return;
 }// synchronizeHierarchy
 
@@ -1358,7 +1358,7 @@ AdvDiffHierarchyIntegrator::synchronizeNewLevels(
     const double sync_time,
     const bool initial_time)
 {
-    t_synchronize_new_levels->start();
+    IBAMR_TIMER_START(t_synchronize_new_levels);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -1374,7 +1374,7 @@ AdvDiffHierarchyIntegrator::synchronizeNewLevels(
     // possible.
     d_hyp_level_integrator->synchronizeNewLevels(hierarchy, coarsest_level, finest_level, sync_time, initial_time);
 
-    t_synchronize_new_levels->stop();
+    IBAMR_TIMER_STOP(t_synchronize_new_levels);
     return;
 }// synchronizeNewLevels
 
@@ -1382,7 +1382,7 @@ void
 AdvDiffHierarchyIntegrator::resetTimeDependentHierData(
     const double new_time)
 {
-    t_reset_time_dependent_hier_data->start();
+    IBAMR_TIMER_START(t_reset_time_dependent_hier_data);
 
     // Advance the simulation time.
     d_old_dt = new_time - d_integrator_time;
@@ -1397,14 +1397,14 @@ AdvDiffHierarchyIntegrator::resetTimeDependentHierData(
         d_hyp_level_integrator->resetTimeDependentData(d_hierarchy->getPatchLevel(ln), d_integrator_time, d_gridding_alg->levelCanBeRefined(ln));
     }
 
-    t_reset_time_dependent_hier_data->stop();
+    IBAMR_TIMER_STOP(t_reset_time_dependent_hier_data);
     return;
 }// resetTimeDependentHierData
 
 void
 AdvDiffHierarchyIntegrator::resetHierDataToPreadvanceState()
 {
-    t_reset_hier_data_to_preadvance_state->start();
+    IBAMR_TIMER_START(t_reset_hier_data_to_preadvance_state);
 
     // We use the HyperbolicLevelIntegrator to handle as much data management as
     // possible.
@@ -1415,7 +1415,7 @@ AdvDiffHierarchyIntegrator::resetHierDataToPreadvanceState()
         d_hyp_level_integrator->resetDataToPreadvanceState(d_hierarchy->getPatchLevel(ln));
     }
 
-    t_reset_hier_data_to_preadvance_state->stop();
+    IBAMR_TIMER_STOP(t_reset_hier_data_to_preadvance_state);
     return;
 }// resetHierDataToPreadvanceState
 
@@ -1440,7 +1440,7 @@ AdvDiffHierarchyIntegrator::initializeLevelData(
     const Pointer<BasePatchLevel<NDIM> > base_old_level,
     const bool allocate_data)
 {
-    t_initialize_level_data->start();
+    IBAMR_TIMER_START(t_initialize_level_data);
 
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
@@ -1492,7 +1492,7 @@ AdvDiffHierarchyIntegrator::initializeLevelData(
         }
     }
 
-    t_initialize_level_data->stop();
+    IBAMR_TIMER_STOP(t_initialize_level_data);
     return;
 }// initializeLevelData
 
@@ -1502,7 +1502,7 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
     const int coarsest_level,
     const int finest_level)
 {
-    t_reset_hierarchy_configuration->start();
+    IBAMR_TIMER_START(t_reset_hierarchy_configuration);
 
     const Pointer<BasePatchHierarchy<NDIM> > hierarchy = base_hierarchy;
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1598,7 +1598,7 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
         }
     }
 
-    t_reset_hierarchy_configuration->stop();
+    IBAMR_TIMER_STOP(t_reset_hierarchy_configuration);
     return;
 }// resetHierarchyConfiguration
 
@@ -1611,7 +1611,7 @@ AdvDiffHierarchyIntegrator::applyGradientDetector(
     const bool initial_time,
     const bool uses_richardson_extrapolation_too)
 {
-    t_apply_gradient_detector->start();
+    IBAMR_TIMER_START(t_apply_gradient_detector);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -1633,7 +1633,7 @@ AdvDiffHierarchyIntegrator::applyGradientDetector(
     // criteria specified by the HyperbolicLevelIntegrator<NDIM>.
     d_hyp_level_integrator->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
 
-    t_apply_gradient_detector->stop();
+    IBAMR_TIMER_STOP(t_apply_gradient_detector);
     return;
 }// applyGradientDetector
 
@@ -1697,7 +1697,7 @@ void
 AdvDiffHierarchyIntegrator::putToDatabase(
     Pointer<Database> db)
 {
-    t_put_to_database->start();
+    IBAMR_TIMER_START(t_put_to_database);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
@@ -1715,7 +1715,7 @@ AdvDiffHierarchyIntegrator::putToDatabase(
     db->putDouble("d_integrator_time", d_integrator_time);
     db->putInteger("d_integrator_step", d_integrator_step);
 
-    t_put_to_database->stop();
+    IBAMR_TIMER_STOP(t_put_to_database);
     return;
 }// putToDatabase
 

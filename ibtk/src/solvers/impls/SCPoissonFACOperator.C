@@ -489,8 +489,7 @@ SCPoissonFACOperator::restrictResidual(
     SAMRAIVectorReal<NDIM,double>& dst,
     int dst_ln)
 {
-    SAMRAI_MPI::barrier();
-    t_restrict_residual->start();
+    IBTK_TIMER_START(t_restrict_residual);
 
     const int src_idx = src.getComponentDescriptorIndex(0);
     const int dst_idx = dst.getComponentDescriptorIndex(0);
@@ -503,7 +502,7 @@ SCPoissonFACOperator::restrictResidual(
     }
     xeqScheduleRestriction(dst_idx, src_idx, dst_ln);
 
-    t_restrict_residual->stop();
+    IBTK_TIMER_STOP(t_restrict_residual);
     return;
 }// restrictResidual
 
@@ -513,8 +512,7 @@ SCPoissonFACOperator::prolongError(
     SAMRAIVectorReal<NDIM,double>& dst,
     int dst_ln)
 {
-    SAMRAI_MPI::barrier();
-    t_prolong_error->start();
+    IBTK_TIMER_START(t_prolong_error);
 
     const int dst_idx = dst.getComponentDescriptorIndex(0);
     const int src_idx = src.getComponentDescriptorIndex(0);
@@ -523,7 +521,7 @@ SCPoissonFACOperator::prolongError(
     // level error.
     xeqScheduleProlongation(dst_idx, src_idx, dst_ln);
 
-    t_prolong_error->stop();
+    IBTK_TIMER_STOP(t_prolong_error);
     return;
 }// prolongError
 
@@ -533,8 +531,7 @@ SCPoissonFACOperator::prolongErrorAndCorrect(
     SAMRAIVectorReal<NDIM,double>& dst,
     int dst_ln)
 {
-    SAMRAI_MPI::barrier();
-    t_prolong_error_and_correct->start();
+    IBTK_TIMER_START(t_prolong_error_and_correct);
 
     const int dst_idx = dst.getComponentDescriptorIndex(0);
     const int src_idx = src.getComponentDescriptorIndex(0);
@@ -551,7 +548,7 @@ SCPoissonFACOperator::prolongErrorAndCorrect(
     HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops_fine(d_hierarchy, dst_ln, dst_ln);
     hier_sc_data_ops_fine.add(dst_idx, dst_idx, d_side_scratch_idx, interior_only);
 
-    t_prolong_error_and_correct->stop();
+    IBTK_TIMER_STOP(t_prolong_error_and_correct);
     return;
 }// prolongErrorAndCorrect
 
@@ -566,8 +563,7 @@ SCPoissonFACOperator::smoothError(
 {
     if (num_sweeps == 0) return;
 
-    SAMRAI_MPI::barrier();
-    t_smooth_error->start();
+    IBTK_TIMER_START(t_smooth_error);
 
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     const int error_idx = error.getComponentDescriptorIndex(0);
@@ -770,7 +766,7 @@ SCPoissonFACOperator::smoothError(
     // Synchronize data along patch boundaries.
     xeqScheduleSideDataSynch(error_idx, level_num);
 
-    t_smooth_error->stop();
+    IBTK_TIMER_STOP(t_smooth_error);
     return;
 }// smoothError
 
@@ -780,8 +776,7 @@ SCPoissonFACOperator::solveCoarsestLevel(
     const SAMRAIVectorReal<NDIM,double>& residual,
     int coarsest_ln)
 {
-    SAMRAI_MPI::barrier();
-    t_solve_coarsest_level->start();
+    IBTK_TIMER_START(t_solve_coarsest_level);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(coarsest_ln == d_coarsest_ln);
@@ -827,7 +822,7 @@ SCPoissonFACOperator::solveCoarsestLevel(
         xeqScheduleSideDataSynch(error_idx, coarsest_ln);
     }
 
-    t_solve_coarsest_level->stop();
+    IBTK_TIMER_STOP(t_solve_coarsest_level);
     return true;
 }// solveCoarsestLevel
 
@@ -838,8 +833,7 @@ SCPoissonFACOperator::computeResidual(
     const SAMRAIVectorReal<NDIM,double>& rhs,
     int level_num)
 {
-    SAMRAI_MPI::barrier();
-    t_compute_residual->start();
+    IBTK_TIMER_START(t_compute_residual);
 
     if (!d_preconditioner.isNull() && d_preconditioner->getNumPreSmoothingSweeps() == 0)
     {
@@ -895,7 +889,7 @@ SCPoissonFACOperator::computeResidual(
         hier_sc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
     }
 
-    t_compute_residual->stop();
+    IBTK_TIMER_STOP(t_compute_residual);
     return;
 }// computeResidual
 
@@ -904,8 +898,7 @@ SCPoissonFACOperator::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& solution,
     const SAMRAIVectorReal<NDIM,double>& rhs)
 {
-    SAMRAI_MPI::barrier();
-    t_initialize_operator_state->start();
+    IBTK_TIMER_START(t_initialize_operator_state);
 
     d_in_initialize_operator_state = true;
 
@@ -1223,9 +1216,9 @@ SCPoissonFACOperator::initializeOperatorState(
 
     // Indicate that the operator is initialized.
     d_is_initialized = true;
-
     d_in_initialize_operator_state = false;
-    t_initialize_operator_state->stop();
+
+    IBTK_TIMER_STOP(t_initialize_operator_state);
     return;
 }// initializeOperatorState
 
@@ -1238,8 +1231,7 @@ SCPoissonFACOperator::deallocateOperatorState()
         return;
     }
 
-    SAMRAI_MPI::barrier();
-    t_deallocate_operator_state->start();
+    IBTK_TIMER_START(t_deallocate_operator_state);
 
     if (d_is_initialized)
     {
@@ -1360,7 +1352,7 @@ SCPoissonFACOperator::deallocateOperatorState()
     // Indicate that the operator is not initialized.
     d_is_initialized = false;
 
-    t_deallocate_operator_state->stop();
+    IBTK_TIMER_STOP(t_deallocate_operator_state);
     return;
 }// deallocateOperatorState
 

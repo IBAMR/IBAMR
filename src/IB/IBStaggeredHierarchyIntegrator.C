@@ -492,8 +492,7 @@ void
 IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
-    SAMRAI_MPI::barrier();
-    t_initialize_hierarchy_integrator->start();
+    IBAMR_TIMER_START(t_initialize_hierarchy_integrator);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!gridding_alg.isNull());
@@ -627,15 +626,14 @@ IBStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     // Indicate that the integrator has been initialized.
     d_is_initialized = true;
 
-    t_initialize_hierarchy_integrator->stop();
+    IBAMR_TIMER_STOP(t_initialize_hierarchy_integrator);
     return;
 }// initializeHierarchyIntegrator
 
 double
 IBStaggeredHierarchyIntegrator::initializeHierarchy()
 {
-    SAMRAI_MPI::barrier();
-    t_initialize_hierarchy->start();
+    IBAMR_TIMER_START(t_initialize_hierarchy);
 
     // Use the INSStaggeredHierarchyIntegrator to initialize the patch
     // hierarchy.
@@ -741,7 +739,7 @@ IBStaggeredHierarchyIntegrator::initializeHierarchy()
     d_source_strategy_needs_init = true;
     d_post_processor_needs_init = true;
 
-    t_initialize_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_initialize_hierarchy);
     return dt_next;
 }// initializeHierarchy
 
@@ -749,8 +747,7 @@ double
 IBStaggeredHierarchyIntegrator::advanceHierarchy(
     const double dt)
 {
-    SAMRAI_MPI::barrier();
-    t_advance_hierarchy->start();
+    IBAMR_TIMER_START(t_advance_hierarchy);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_end_time >= d_integrator_time+dt);
@@ -1430,7 +1427,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         dt_next = std::min(dt_next,d_grow_dt*d_old_dt);
     }
 
-    t_advance_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_advance_hierarchy);
     return dt_next;
 }// advanceHierarchy
 
@@ -1585,8 +1582,7 @@ IBStaggeredHierarchyIntegrator::getIBInstrumentPanel() const
 void
 IBStaggeredHierarchyIntegrator::regridHierarchy()
 {
-    SAMRAI_MPI::barrier();
-    t_regrid_hierarchy->start();
+    IBAMR_TIMER_START(t_regrid_hierarchy);
 
     // Determine the current range of hierarchy levels.
     const int coarsest_ln_before_regrid = 0;
@@ -1680,21 +1676,20 @@ IBStaggeredHierarchyIntegrator::regridHierarchy()
     // Reset the regrid CFL estimate.
     d_regrid_cfl_estimate = 0.0;
 
-    t_regrid_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_regrid_hierarchy);
     return;
 }// regridHierarchy
 
 void
 IBStaggeredHierarchyIntegrator::synchronizeHierarchy()
 {
-    SAMRAI_MPI::barrier();
-    t_synchronize_hierarchy->start();
+    IBAMR_TIMER_START(t_synchronize_hierarchy);
 
     // We use the INSStaggeredHierarchyIntegrator to handle as much structured
     // data management as possible.
     d_ins_hier_integrator->synchronizeHierarchy();
 
-    t_synchronize_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_synchronize_hierarchy);
     return;
 }// synchronizeHierarchy
 
@@ -1706,8 +1701,7 @@ IBStaggeredHierarchyIntegrator::synchronizeNewLevels(
     const double sync_time,
     const bool initial_time)
 {
-    SAMRAI_MPI::barrier();
-    t_synchronize_new_levels->start();
+    IBAMR_TIMER_START(t_synchronize_new_levels);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -1723,7 +1717,7 @@ IBStaggeredHierarchyIntegrator::synchronizeNewLevels(
     // data management as possible.
     d_ins_hier_integrator->synchronizeNewLevels(hierarchy, coarsest_level, finest_level, sync_time, initial_time);
 
-    t_synchronize_new_levels->stop();
+    IBAMR_TIMER_STOP(t_synchronize_new_levels);
     return;
 }// synchronizeNewLevels
 
@@ -1731,8 +1725,7 @@ void
 IBStaggeredHierarchyIntegrator::resetTimeDependentHierData(
     const double new_time)
 {
-    SAMRAI_MPI::barrier();
-    t_reset_time_dependent_data->start();
+    IBAMR_TIMER_START(t_reset_time_dependent_data);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1753,21 +1746,20 @@ IBStaggeredHierarchyIntegrator::resetTimeDependentHierData(
         level->setTime(new_time, d_mark_current_idx);
     }
 
-    t_reset_time_dependent_data->stop();
+    IBAMR_TIMER_STOP(t_reset_time_dependent_data);
     return;
 }// resetTimeDependentHierData
 
 void
 IBStaggeredHierarchyIntegrator::resetHierDataToPreadvanceState()
 {
-    SAMRAI_MPI::barrier();
-    t_reset_data_to_preadvance_state->start();
+    IBAMR_TIMER_START(t_reset_data_to_preadvance_state);
 
     // We use the INSStaggeredHierarchyIntegrator to handle as much structured
     // data management as possible.
     d_ins_hier_integrator->resetHierDataToPreadvanceState();
 
-    t_reset_data_to_preadvance_state->stop();
+    IBAMR_TIMER_STOP(t_reset_data_to_preadvance_state);
     return;
 }// resetHierDataToPreadvanceState
 
@@ -1792,8 +1784,7 @@ IBStaggeredHierarchyIntegrator::initializeLevelData(
     const Pointer<BasePatchLevel<NDIM> > old_level,
     const bool allocate_data)
 {
-    SAMRAI_MPI::barrier();
-    t_initialize_level_data->start();
+    IBAMR_TIMER_START(t_initialize_level_data);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -1832,7 +1823,7 @@ IBStaggeredHierarchyIntegrator::initializeLevelData(
         level->setTime(init_data_time, d_mark_current_idx);
     }
 
-    t_initialize_level_data->stop();
+    IBAMR_TIMER_STOP(t_initialize_level_data);
     return;
 }// initializeLevelData
 
@@ -1842,8 +1833,7 @@ IBStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
     const int coarsest_level,
     const int finest_level)
 {
-    SAMRAI_MPI::barrier();
-    t_reset_hierarchy_configuration->start();
+    IBAMR_TIMER_START(t_reset_hierarchy_configuration);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -1932,7 +1922,7 @@ IBStaggeredHierarchyIntegrator::resetHierarchyConfiguration(
         }
     }
 
-    t_reset_hierarchy_configuration->stop();
+    IBAMR_TIMER_STOP(t_reset_hierarchy_configuration);
     return;
 }// resetHierarchyConfiguration
 
@@ -1945,8 +1935,7 @@ IBStaggeredHierarchyIntegrator::applyGradientDetector(
     const bool initial_time,
     const bool uses_richardson_extrapolation_too)
 {
-    SAMRAI_MPI::barrier();
-    t_apply_gradient_detector->start();
+    IBAMR_TIMER_START(t_apply_gradient_detector);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -2021,7 +2010,7 @@ IBStaggeredHierarchyIntegrator::applyGradientDetector(
         }
     }
 
-    t_apply_gradient_detector->stop();
+    IBAMR_TIMER_STOP(t_apply_gradient_detector);
     return;
 }// applyGradientDetector
 
@@ -2085,8 +2074,7 @@ void
 IBStaggeredHierarchyIntegrator::putToDatabase(
     Pointer<Database> db)
 {
-    SAMRAI_MPI::barrier();
-    t_put_to_database->start();
+    IBAMR_TIMER_START(t_put_to_database);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
@@ -2156,7 +2144,7 @@ IBStaggeredHierarchyIntegrator::putToDatabase(
     db->putDouble("d_dt_max_time_max", d_dt_max_time_max);
     db->putDouble("d_dt_max_time_min", d_dt_max_time_min);
 
-    t_put_to_database->stop();
+    IBAMR_TIMER_STOP(t_put_to_database);
     return;
 }// putToDatabase
 

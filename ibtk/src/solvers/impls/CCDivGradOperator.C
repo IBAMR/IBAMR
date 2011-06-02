@@ -144,8 +144,7 @@ CCDivGradOperator::apply(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& y)
 {
-    SAMRAI_MPI::barrier();
-    t_apply->start();
+    IBTK_TIMER_START(t_apply);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_is_initialized);
@@ -197,7 +196,7 @@ CCDivGradOperator::apply(
         0.0, -1, Pointer<CellVariable<NDIM,double> >(NULL),
         0, 0);
 
-    t_apply->stop();
+    IBTK_TIMER_STOP(t_apply);
     return;
 }// apply
 
@@ -206,8 +205,7 @@ CCDivGradOperator::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& in,
     const SAMRAIVectorReal<NDIM,double>& out)
 {
-    SAMRAI_MPI::barrier();
-    t_initialize_operator_state->start();
+    IBTK_TIMER_START(t_initialize_operator_state);
 
     static const int comp = 0;
 
@@ -303,7 +301,7 @@ CCDivGradOperator::initializeOperatorState(
     // Indicate the operator is initialized.
     d_is_initialized = true;
 
-    t_initialize_operator_state->stop();
+    IBTK_TIMER_STOP(t_initialize_operator_state);
     return;
 }// initializeOperatorState
 
@@ -312,8 +310,7 @@ CCDivGradOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
-    SAMRAI_MPI::barrier();
-    t_deallocate_operator_state->start();
+    IBTK_TIMER_START(t_deallocate_operator_state);
 
     // Deallocate the interpolation operators.
     d_scalar_hier_bdry_fill->deallocateOperatorState();
@@ -341,7 +338,7 @@ CCDivGradOperator::deallocateOperatorState()
     // Indicate that the operator is NOT initialized.
     d_is_initialized = false;
 
-    t_deallocate_operator_state->stop();
+    IBTK_TIMER_STOP(t_deallocate_operator_state);
     return;
 }// deallocateOperatorState
 

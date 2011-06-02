@@ -208,8 +208,7 @@ IBStandardForceGen::initializeLevelData(
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
-    SAMRAI_MPI::barrier();
-    t_initialize_level_data->start();
+    IBAMR_TIMER_START(t_initialize_level_data);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -287,7 +286,7 @@ IBStandardForceGen::initializeLevelData(
     // Indicate that the level data has been initialized.
     d_is_initialized[level_number] = true;
 
-    t_initialize_level_data->stop();
+    IBAMR_TIMER_STOP(t_initialize_level_data);
     return;
 }// initializeLevelData
 
@@ -303,8 +302,7 @@ IBStandardForceGen::computeLagrangianForce(
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
-    SAMRAI_MPI::barrier();
-    t_compute_lagrangian_force->start();
+    IBAMR_TIMER_START(t_compute_lagrangian_force);
 
     int ierr;
 
@@ -334,7 +332,7 @@ IBStandardForceGen::computeLagrangianForce(
     ierr = VecGhostUpdateEnd(  F_ghost_data->getVec(), ADD_VALUES, SCATTER_REVERSE);  IBTK_CHKERRQ(ierr);
     ierr = VecAXPY(F_data->getVec(), 1.0, F_ghost_data->getVec());
 
-    t_compute_lagrangian_force->stop();
+    IBAMR_TIMER_STOP(t_compute_lagrangian_force);
     return;
 }// computeLagrangianForce
 

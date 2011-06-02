@@ -620,7 +620,7 @@ void
 IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
-    t_initialize_hierarchy_integrator->start();
+    IBAMR_TIMER_START(t_initialize_hierarchy_integrator);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!gridding_alg.isNull());
@@ -908,14 +908,14 @@ IBImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
     // Indicate that the integrator has been initialized.
     d_is_initialized = true;
 
-    t_initialize_hierarchy_integrator->stop();
+    IBAMR_TIMER_STOP(t_initialize_hierarchy_integrator);
     return;
 }// initializeHierarchyIntegrator
 
 double
 IBImplicitHierarchyIntegrator::initializeHierarchy()
 {
-    t_initialize_hierarchy->start();
+    IBAMR_TIMER_START(t_initialize_hierarchy);
 
     if (!d_is_initialized)
     {
@@ -981,7 +981,7 @@ IBImplicitHierarchyIntegrator::initializeHierarchy()
     const double new_time = current_time + dt_next;
     initializeOperatorsAndSolvers(current_time, new_time);
 
-    t_initialize_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_initialize_hierarchy);
     return dt_next;
 }// initializeHierarchy
 
@@ -989,7 +989,7 @@ double
 IBImplicitHierarchyIntegrator::advanceHierarchy(
     const double dt)
 {
-    t_advance_hierarchy->start();
+    IBAMR_TIMER_START(t_advance_hierarchy);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_end_time >= d_integrator_time+dt);
@@ -1035,7 +1035,7 @@ IBImplicitHierarchyIntegrator::advanceHierarchy(
     // Determine the next stable timestep from u(n+1).
     const double dt_next = getStableTimestep(getCurrentContext());
 
-    t_advance_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_advance_hierarchy);
     return dt_next;
 }// advanceHierarchy
 
@@ -1043,7 +1043,7 @@ double
 IBImplicitHierarchyIntegrator::getStableTimestep(
     Pointer<VariableContext> ctx) const
 {
-    t_get_stable_timestep->start();
+    IBAMR_TIMER_START(t_get_stable_timestep);
 
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     double dt_next = std::numeric_limits<double>::max();
@@ -1073,7 +1073,7 @@ IBImplicitHierarchyIntegrator::getStableTimestep(
         dt_next = std::min(dt_next,d_grow_dt*d_old_dt);
     }
 
-    t_get_stable_timestep->stop();
+    IBAMR_TIMER_STOP(t_get_stable_timestep);
     return dt_next;
 }// getStableTimestep()
 
@@ -1158,7 +1158,7 @@ IBImplicitHierarchyIntegrator::getLDataManager() const
 void
 IBImplicitHierarchyIntegrator::regridHierarchy()
 {
-    t_regrid_hierarchy->start();
+    IBAMR_TIMER_START(t_regrid_hierarchy);
 
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
 
@@ -1299,7 +1299,7 @@ IBImplicitHierarchyIntegrator::regridHierarchy()
         (*d_regrid_hierarchy_callbacks[i])(d_hierarchy, d_integrator_time, initial_time, d_regrid_hierarchy_callback_ctxs[i]);
     }
 
-    t_regrid_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_regrid_hierarchy);
     return;
 }// regridHierarchy
 
@@ -1308,7 +1308,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy_initialize(
     const double current_time,
     const double new_time)
 {
-    t_integrate_hierarchy_initialize->start();
+    IBAMR_TIMER_START(t_integrate_hierarchy_initialize);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1438,7 +1438,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy_initialize(
     d_u_bc_helper->clearBcCoefData();
     d_u_bc_helper->cacheBcCoefData(d_u_scratch_idx, d_u_var, d_u_bc_coefs, new_time, IntVector<NDIM>(SIDEG), d_hierarchy);
 
-    t_integrate_hierarchy_initialize->stop();
+    IBAMR_TIMER_STOP(t_integrate_hierarchy_initialize);
     return;
 }// integrateHierarchy_initialize
 
@@ -1447,7 +1447,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(
     const double current_time,
     const double new_time)
 {
-    t_integrate_hierarchy->start();
+    IBAMR_TIMER_START(t_integrate_hierarchy);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1658,7 +1658,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(
     }
     d_R_mats.clear();
 
-    t_integrate_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_integrate_hierarchy);
     return;
 }// integrateHierarchy
 
@@ -1667,7 +1667,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy_finalize(
     const double current_time,
     const double new_time)
 {
-    t_integrate_hierarchy_finalize->start();
+    IBAMR_TIMER_START(t_integrate_hierarchy_finalize);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1759,14 +1759,14 @@ IBImplicitHierarchyIntegrator::integrateHierarchy_finalize(
     d_rhs_vec.setNull();
     d_nul_vec.setNull();
 
-    t_integrate_hierarchy_finalize->stop();
+    IBAMR_TIMER_STOP(t_integrate_hierarchy_finalize);
     return;
 }// integrateHierarchy_finalize
 
 void
 IBImplicitHierarchyIntegrator::synchronizeHierarchy()
 {
-    t_synchronize_hierarchy->start();
+    IBAMR_TIMER_START(t_synchronize_hierarchy);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1780,7 +1780,7 @@ IBImplicitHierarchyIntegrator::synchronizeHierarchy()
         d_adv_diff_hier_integrator->synchronizeHierarchy();
     }
 
-    t_synchronize_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_synchronize_hierarchy);
     return;
 }// synchronizeHierarchy
 
@@ -1792,7 +1792,7 @@ IBImplicitHierarchyIntegrator::synchronizeNewLevels(
     const double sync_time,
     const bool initial_time)
 {
-    t_synchronize_new_levels->start();
+    IBAMR_TIMER_START(t_synchronize_new_levels);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -1819,7 +1819,7 @@ IBImplicitHierarchyIntegrator::synchronizeNewLevels(
                                                          sync_time, initial_time);
     }
 
-    t_synchronize_new_levels->stop();
+    IBAMR_TIMER_STOP(t_synchronize_new_levels);
     return;
 }// synchronizeNewLevels
 
@@ -1827,7 +1827,7 @@ void
 IBImplicitHierarchyIntegrator::resetTimeDependentHierData(
     const double new_time)
 {
-    t_reset_time_dependent_data->start();
+    IBAMR_TIMER_START(t_reset_time_dependent_data);
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int coarsest_ln = 0;
@@ -1890,14 +1890,14 @@ IBImplicitHierarchyIntegrator::resetTimeDependentHierData(
         d_adv_diff_hier_integrator->resetTimeDependentHierData(new_time);
     }
 
-    t_reset_time_dependent_data->stop();
+    IBAMR_TIMER_STOP(t_reset_time_dependent_data);
     return;
 }// resetTimeDependentHierData
 
 void
 IBImplicitHierarchyIntegrator::resetHierDataToPreadvanceState()
 {
-    t_reset_data_to_preadvance_state->start();
+    IBAMR_TIMER_START(t_reset_data_to_preadvance_state);
 
     // Deallocate the scratch and new data and reset the time of the current
     // data.
@@ -1916,7 +1916,7 @@ IBImplicitHierarchyIntegrator::resetHierDataToPreadvanceState()
         d_adv_diff_hier_integrator->resetHierDataToPreadvanceState();
     }
 
-    t_reset_data_to_preadvance_state->stop();
+    IBAMR_TIMER_STOP(t_reset_data_to_preadvance_state);
     return;
 }// resetHierDataToPreadvanceState
 
@@ -1941,7 +1941,7 @@ IBImplicitHierarchyIntegrator::initializeLevelData(
     const Pointer<BasePatchLevel<NDIM> > base_old_level,
     const bool allocate_data)
 {
-    t_initialize_level_data->start();
+    IBAMR_TIMER_START(t_initialize_level_data);
 
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
@@ -2234,7 +2234,7 @@ IBImplicitHierarchyIntegrator::initializeLevelData(
         can_be_refined, initial_time, old_level,
         allocate_data);
 
-    t_initialize_level_data->stop();
+    IBAMR_TIMER_STOP(t_initialize_level_data);
     return;
 }// initializeLevelData
 
@@ -2244,7 +2244,7 @@ IBImplicitHierarchyIntegrator::resetHierarchyConfiguration(
     const int coarsest_level,
     const int finest_level)
 {
-    t_reset_hierarchy_configuration->start();
+    IBAMR_TIMER_START(t_reset_hierarchy_configuration);
 
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -2361,7 +2361,7 @@ IBImplicitHierarchyIntegrator::resetHierarchyConfiguration(
         d_adv_diff_hier_integrator->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
     }
 
-    t_reset_hierarchy_configuration->stop();
+    IBAMR_TIMER_STOP(t_reset_hierarchy_configuration);
     return;
 }// resetHierarchyConfiguration
 
@@ -2374,7 +2374,7 @@ IBImplicitHierarchyIntegrator::applyGradientDetector(
     const bool initial_time,
     const bool uses_richardson_extrapolation_too)
 {
-    t_apply_gradient_detector->start();
+    IBAMR_TIMER_START(t_apply_gradient_detector);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -2468,7 +2468,7 @@ IBImplicitHierarchyIntegrator::applyGradientDetector(
             uses_richardson_extrapolation_too, d_apply_gradient_detector_callback_ctxs[i]);
     }
 
-    t_apply_gradient_detector->stop();
+    IBAMR_TIMER_STOP(t_apply_gradient_detector);
     return;
 }// applyGradientDetector
 
@@ -2601,7 +2601,7 @@ void
 IBImplicitHierarchyIntegrator::putToDatabase(
     Pointer<Database> db)
 {
-    t_put_to_database->start();
+    IBAMR_TIMER_START(t_put_to_database);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
@@ -2662,7 +2662,7 @@ IBImplicitHierarchyIntegrator::putToDatabase(
 
     db->putDouble("d_regrid_max_div_growth_factor", d_regrid_max_div_growth_factor);
 
-    t_put_to_database->stop();
+    IBAMR_TIMER_STOP(t_put_to_database);
     return;
 }// putToDatabase
 

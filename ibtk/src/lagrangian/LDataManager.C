@@ -274,8 +274,7 @@ LDataManager::spread(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
-    SAMRAI_MPI::barrier();
-    t_spread->start();
+    IBTK_TIMER_START(t_spread);
 
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
@@ -310,7 +309,7 @@ LDataManager::spread(
         }
     }
 
-    t_spread->stop();
+    IBTK_TIMER_STOP(t_spread);
 
     // Spread data from the Lagrangian mesh to the Eulerian grid.
     spread(f_data_idx, F_ds_data, X_data, f_prolongation_scheds, F_data_ghost_node_update || ds_data_ghost_node_update, X_data_ghost_node_update, coarsest_ln, finest_ln);
@@ -328,8 +327,7 @@ LDataManager::spread(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
-    SAMRAI_MPI::barrier();
-    t_spread->start();
+    IBTK_TIMER_START(t_spread);
 
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
@@ -433,7 +431,7 @@ LDataManager::spread(
         var_db->removePatchDataIndex(f_copy_data_idx);
     }
 
-    t_spread->stop();
+    IBTK_TIMER_STOP(t_spread);
     return;
 }// spread
 
@@ -448,8 +446,7 @@ LDataManager::interp(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
-    SAMRAI_MPI::barrier();
-    t_interp->start();
+    IBTK_TIMER_START(t_interp);
 
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
@@ -513,7 +510,7 @@ LDataManager::interp(
         }
     }
 
-    t_interp->stop();
+    IBTK_TIMER_STOP(t_interp);
     return;
 }// interp
 
@@ -1005,8 +1002,7 @@ LDataManager::mapLagrangianToPETSc(
     std::vector<int>& inds,
     const int level_number) const
 {
-    SAMRAI_MPI::barrier();
-    t_map_lagrangian_to_petsc->start();
+    IBTK_TIMER_START(t_map_lagrangian_to_petsc);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
@@ -1019,7 +1015,7 @@ LDataManager::mapLagrangianToPETSc(
         (!inds.empty() ? &inds[0]                      : &s_ao_dummy[0]));
     IBTK_CHKERRQ(ierr);
 
-    t_map_lagrangian_to_petsc->stop();
+    IBTK_TIMER_STOP(t_map_lagrangian_to_petsc);
     return;
 }// mapLagrangianToPETSc
 
@@ -1028,8 +1024,7 @@ LDataManager::mapLagrangianToPETSc(
     blitz::Array<int,1>& inds,
     const int level_number) const
 {
-    SAMRAI_MPI::barrier();
-    t_map_lagrangian_to_petsc->start();
+    IBTK_TIMER_START(t_map_lagrangian_to_petsc);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
@@ -1042,7 +1037,7 @@ LDataManager::mapLagrangianToPETSc(
         (inds.size() > 0 ? inds.data()                   : &s_ao_dummy[0]));
     IBTK_CHKERRQ(ierr);
 
-    t_map_lagrangian_to_petsc->stop();
+    IBTK_TIMER_STOP(t_map_lagrangian_to_petsc);
     return;
 }// mapLagrangianToPETSc
 
@@ -1051,8 +1046,7 @@ LDataManager::mapPETScToLagrangian(
     std::vector<int>& inds,
     const int level_number) const
 {
-    SAMRAI_MPI::barrier();
-    t_map_petsc_to_lagrangian->start();
+    IBTK_TIMER_START(t_map_petsc_to_lagrangian);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
@@ -1065,7 +1059,7 @@ LDataManager::mapPETScToLagrangian(
         (!inds.empty() ? &inds[0]                      : &s_ao_dummy[0]));
     IBTK_CHKERRQ(ierr);
 
-    t_map_petsc_to_lagrangian->stop();
+    IBTK_TIMER_STOP(t_map_petsc_to_lagrangian);
     return;
 }// mapPETScToLagrangian
 
@@ -1074,8 +1068,7 @@ LDataManager::mapPETScToLagrangian(
     blitz::Array<int,1>& inds,
     const int level_number) const
 {
-    SAMRAI_MPI::barrier();
-    t_map_petsc_to_lagrangian->start();
+    IBTK_TIMER_START(t_map_petsc_to_lagrangian);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
@@ -1088,7 +1081,7 @@ LDataManager::mapPETScToLagrangian(
         (inds.size() > 0 ? inds.data()                   : &s_ao_dummy[0]));
     IBTK_CHKERRQ(ierr);
 
-    t_map_petsc_to_lagrangian->stop();
+    IBTK_TIMER_STOP(t_map_petsc_to_lagrangian);
     return;
 }// mapPETScToLagrangian
 
@@ -1147,8 +1140,7 @@ LDataManager::beginDataRedistribution(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
-    SAMRAI_MPI::barrier();
-    t_begin_data_redistribution->start();
+    IBTK_TIMER_START(t_begin_data_redistribution);
 
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
@@ -1333,7 +1325,7 @@ LDataManager::beginDataRedistribution(
         d_needs_synch[level_number] = true;
     }
 
-    t_begin_data_redistribution->stop();
+    IBTK_TIMER_STOP(t_begin_data_redistribution);
     return;
 }// beginDataRedistribution
 
@@ -1342,8 +1334,7 @@ LDataManager::endDataRedistribution(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
-    SAMRAI_MPI::barrier();
-    t_end_data_redistribution->start();
+    IBTK_TIMER_START(t_end_data_redistribution);
 
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
@@ -1834,7 +1825,7 @@ LDataManager::endDataRedistribution(
         d_m3D_writer->registerLagrangianAO(d_ao, coarsest_ln, finest_ln);
     }
 #endif
-    t_end_data_redistribution->stop();
+    IBTK_TIMER_STOP(t_end_data_redistribution);
     return;
 }// endDataRedistribution
 
@@ -1843,8 +1834,7 @@ LDataManager::updateWorkloadData(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
-    SAMRAI_MPI::barrier();
-    t_update_workload_data->start();
+    IBTK_TIMER_START(t_update_workload_data);
 
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
@@ -1879,7 +1869,7 @@ LDataManager::updateWorkloadData(
         }
     }
 
-    t_update_workload_data->stop();
+    IBTK_TIMER_STOP(t_update_workload_data);
     return;
 }// updateWorkloadData
 
@@ -1904,8 +1894,7 @@ LDataManager::initializeLevelData(
     const Pointer<BasePatchLevel<NDIM> > old_level,
     const bool allocate_data)
 {
-    SAMRAI_MPI::barrier();
-    t_initialize_level_data->start();
+    IBTK_TIMER_START(t_initialize_level_data);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -2191,7 +2180,7 @@ LDataManager::initializeLevelData(
         d_m3D_writer->registerLagrangianAO(d_ao[level_number], level_number);
     }
 #endif
-    t_initialize_level_data->stop();
+    IBTK_TIMER_STOP(t_initialize_level_data);
     return;
 }// initializeLevelData
 
@@ -2201,8 +2190,7 @@ LDataManager::resetHierarchyConfiguration(
     const int coarsest_ln,
     const int finest_ln)
 {
-    SAMRAI_MPI::barrier();
-    t_reset_hierarchy_configuration->start();
+    IBTK_TIMER_START(t_reset_hierarchy_configuration);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -2267,7 +2255,7 @@ LDataManager::resetHierarchyConfiguration(
         d_node_count_coarsen_scheds[level_number] = d_node_count_coarsen_alg->createSchedule(coarser_level, level);
     }
 
-    t_reset_hierarchy_configuration->stop();
+    IBTK_TIMER_STOP(t_reset_hierarchy_configuration);
     return;
 }// resetHierarchyConfiguration
 
@@ -2280,8 +2268,7 @@ LDataManager::applyGradientDetector(
     const bool initial_time,
     const bool uses_richardson_extrapolation_too)
 {
-    SAMRAI_MPI::barrier();
-    t_apply_gradient_detector->start();
+    IBTK_TIMER_START(t_apply_gradient_detector);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -2375,7 +2362,7 @@ LDataManager::applyGradientDetector(
         updateWorkloadData(level_number);
     }
 
-    t_apply_gradient_detector->stop();
+    IBTK_TIMER_STOP(t_apply_gradient_detector);
     return;
 }// applyGradientDetector
 
@@ -2383,8 +2370,7 @@ void
 LDataManager::putToDatabase(
     Pointer<Database> db)
 {
-    SAMRAI_MPI::barrier();
-    t_put_to_database->start();
+    IBTK_TIMER_START(t_put_to_database);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
@@ -2485,7 +2471,7 @@ LDataManager::putToDatabase(
         }
     }
 
-    t_put_to_database->stop();
+    IBTK_TIMER_STOP(t_put_to_database);
     return;
 }// putToDatabase
 
@@ -2818,8 +2804,7 @@ LDataManager::beginNonlocalDataFill(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
-    SAMRAI_MPI::barrier();
-    t_begin_nonlocal_data_fill->start();
+    IBTK_TIMER_START(t_begin_nonlocal_data_fill);
 
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
@@ -2841,7 +2826,7 @@ LDataManager::beginNonlocalDataFill(
         }
     }
 
-    t_begin_nonlocal_data_fill->stop();
+    IBTK_TIMER_STOP(t_begin_nonlocal_data_fill);
     return;
 }// beginNonlocalDataFill
 
@@ -2850,8 +2835,7 @@ LDataManager::endNonlocalDataFill(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
-    SAMRAI_MPI::barrier();
-    t_end_nonlocal_data_fill->start();
+    IBTK_TIMER_START(t_end_nonlocal_data_fill);
 
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
@@ -2871,7 +2855,7 @@ LDataManager::endNonlocalDataFill(
         }
     }
 
-    t_end_nonlocal_data_fill->stop();
+    IBTK_TIMER_STOP(t_end_nonlocal_data_fill);
     return;
 }// endNonlocalDataFill
 
@@ -2886,8 +2870,7 @@ LDataManager::computeNodeDistribution(
     unsigned int& node_offset,
     const int level_number)
 {
-    SAMRAI_MPI::barrier();
-    t_compute_node_distribution->start();
+    IBTK_TIMER_START(t_compute_node_distribution);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(level_number >= d_coarsest_ln &&
@@ -3077,7 +3060,7 @@ LDataManager::computeNodeDistribution(
         }
     }
 
-    t_compute_node_distribution->stop();
+    IBTK_TIMER_STOP(t_compute_node_distribution);
     return 0;
 }// computeNodeDistribution
 
@@ -3087,8 +3070,7 @@ LDataManager::computeNodeOffsets(
     unsigned int& node_offset,
     const unsigned int& num_local_nodes)
 {
-    SAMRAI_MPI::barrier();
-    t_compute_node_offsets->start();
+    IBTK_TIMER_START(t_compute_node_offsets);
 
     const int mpi_size = SAMRAI_MPI::getNodes();
     const int mpi_rank = SAMRAI_MPI::getRank();
@@ -3103,7 +3085,7 @@ LDataManager::computeNodeOffsets(
     num_nodes = std::accumulate(num_nodes_proc.begin()+mpi_rank,
                                 num_nodes_proc.end(), node_offset);
 
-    t_compute_node_offsets->stop();
+    IBTK_TIMER_STOP(t_compute_node_offsets);
     return;
 }// computeNodeOffsets
 

@@ -224,8 +224,7 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
     const int U_idx,
     const int N_idx)
 {
-    SAMRAI_MPI::barrier();
-    t_apply_convective_operator->start();
+    IBAMR_TIMER_START(t_apply_convective_operator);
 
     if (!d_is_initialized)
     {
@@ -341,7 +340,7 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
         }
     }
 
-    t_apply_convective_operator->stop();
+    IBAMR_TIMER_STOP(t_apply_convective_operator);
     return;
 }// applyConvectiveOperator
 
@@ -350,8 +349,7 @@ INSStaggeredCenteredConvectiveOperator::apply(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& y)
 {
-    SAMRAI_MPI::barrier();
-    t_apply->start();
+    IBAMR_TIMER_START(t_apply);
 
     // Get the vector components.
     const int U_idx = x.getComponentDescriptorIndex(0);
@@ -360,7 +358,7 @@ INSStaggeredCenteredConvectiveOperator::apply(
     // Compute the action of the operator.
     applyConvectiveOperator(U_idx, N_idx);
 
-    t_apply->stop();
+    IBAMR_TIMER_STOP(t_apply);
     return;
 }// apply
 
@@ -369,8 +367,7 @@ INSStaggeredCenteredConvectiveOperator::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& in,
     const SAMRAIVectorReal<NDIM,double>& out)
 {
-    SAMRAI_MPI::barrier();
-    t_initialize_operator_state->start();
+    IBAMR_TIMER_START(t_initialize_operator_state);
 
     if (d_is_initialized) deallocateOperatorState();
 
@@ -410,7 +407,7 @@ INSStaggeredCenteredConvectiveOperator::initializeOperatorState(
     }
     d_is_initialized = true;
 
-    t_initialize_operator_state->stop();
+    IBAMR_TIMER_STOP(t_initialize_operator_state);
     return;
 }// initializeOperatorState
 
@@ -419,8 +416,7 @@ INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
-    SAMRAI_MPI::barrier();
-    t_deallocate_operator_state->start();
+    IBAMR_TIMER_START(t_deallocate_operator_state);
 
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -444,7 +440,7 @@ INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()
 
     d_is_initialized = false;
 
-    t_deallocate_operator_state->stop();
+    IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
 }// deallocateOperatorState
 

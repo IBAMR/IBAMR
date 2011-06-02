@@ -264,10 +264,52 @@ public:
         const bool close_X=true);
 
     /*!
+     * \brief Prolong a value from the FE mesh to the Cartesian grid.
+     *
+     * \note This method sets f(x) = F(X(s,t)) pointwise on the Eulerian grid.
+     */
+    void
+    prolongValue(
+        const int f_data_idx,
+        libMesh::NumericVector<double>& F,
+        libMesh::NumericVector<double>& X,
+        const std::string& system_name,
+        const bool close_F=true,
+        const bool close_X=true);
+
+    /*!
+     * \brief Prolong a density from the FE mesh to the Cartesian grid.
+     *
+     * \note This method sets f(x) = F(X(s,t))/det(dX/ds) pointwise on the
+     * Eulerian grid.
+     */
+    void
+    prolongDensity(
+        const int f_data_idx,
+        libMesh::NumericVector<double>& F,
+        libMesh::NumericVector<double>& X,
+        const std::string& system_name,
+        const bool close_F=true,
+        const bool close_X=true);
+
+    /*!
      * \brief Interpolate a value from the Cartesian grid to the FE mesh.
      */
     void
     interp(
+        const int f_data_idx,
+        libMesh::NumericVector<double>& F,
+        libMesh::NumericVector<double>& X,
+        const std::string& system_name,
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_refine_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        const double fill_data_time=0.0,
+        const bool close_X=true);
+
+    /*!
+     * \brief Restrict a value from the Cartesian grid to the FE mesh.
+     */
+    void
+    restrictValue(
         const int f_data_idx,
         libMesh::NumericVector<double>& F,
         libMesh::NumericVector<double>& X,

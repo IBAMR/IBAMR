@@ -474,7 +474,7 @@ void
 IBHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
-    t_initialize_hierarchy_integrator->start();
+    IBAMR_TIMER_START(t_initialize_hierarchy_integrator);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!gridding_alg.isNull());
@@ -648,14 +648,14 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     // Indicate that the integrator has been initialized.
     d_is_initialized = true;
 
-    t_initialize_hierarchy_integrator->stop();
+    IBAMR_TIMER_STOP(t_initialize_hierarchy_integrator);
     return;
 }// initializeHierarchyIntegrator
 
 double
 IBHierarchyIntegrator::initializeHierarchy()
 {
-    t_initialize_hierarchy->start();
+    IBAMR_TIMER_START(t_initialize_hierarchy);
 
     // Use the INSHierarchyIntegrator to initialize the patch hierarchy.
     double dt_next = d_ins_hier_integrator->initializeHierarchy();
@@ -693,7 +693,7 @@ IBHierarchyIntegrator::initializeHierarchy()
     d_force_strategy_needs_init  = true;
     d_post_processor_needs_init  = true;
 
-    t_initialize_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_initialize_hierarchy);
     return dt_next;
 }// initializeHierarchy
 
@@ -701,7 +701,7 @@ double
 IBHierarchyIntegrator::advanceHierarchy(
     const double dt)
 {
-    t_advance_hierarchy->start();
+    IBAMR_TIMER_START(t_advance_hierarchy);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_end_time >= d_integrator_time+dt);
@@ -1091,7 +1091,7 @@ IBHierarchyIntegrator::advanceHierarchy(
         dt_next = std::min(dt_next,d_grow_dt*d_old_dt);
     }
 
-    t_advance_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_advance_hierarchy);
     return dt_next;
 }// advanceHierarchy
 
@@ -1250,7 +1250,7 @@ IBHierarchyIntegrator::getIBInstrumentPanel() const
 void
 IBHierarchyIntegrator::regridHierarchy()
 {
-    t_regrid_hierarchy->start();
+    IBAMR_TIMER_START(t_regrid_hierarchy);
 
     // Determine the current range of hierarchy levels.
     const int coarsest_ln_before_regrid = 0;
@@ -1333,20 +1333,20 @@ IBHierarchyIntegrator::regridHierarchy()
         }
     }
 
-    t_regrid_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_regrid_hierarchy);
     return;
 }// regridHierarchy
 
 void
 IBHierarchyIntegrator::synchronizeHierarchy()
 {
-    t_synchronize_hierarchy->start();
+    IBAMR_TIMER_START(t_synchronize_hierarchy);
 
     // We use the INSHierarchyIntegrator to handle as much structured data
     // management as possible.
     d_ins_hier_integrator->synchronizeHierarchy();
 
-    t_synchronize_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_synchronize_hierarchy);
     return;
 }// synchronizeHierarchy
 
@@ -1358,7 +1358,7 @@ IBHierarchyIntegrator::synchronizeNewLevels(
     const double sync_time,
     const bool initial_time)
 {
-    t_synchronize_new_levels->start();
+    IBAMR_TIMER_START(t_synchronize_new_levels);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -1376,7 +1376,7 @@ IBHierarchyIntegrator::synchronizeNewLevels(
         hierarchy, coarsest_level, finest_level,
         sync_time, initial_time);
 
-    t_synchronize_new_levels->stop();
+    IBAMR_TIMER_STOP(t_synchronize_new_levels);
     return;
 }// synchronizeNewLevels
 
@@ -1384,7 +1384,7 @@ void
 IBHierarchyIntegrator::resetTimeDependentHierData(
     const double new_time)
 {
-    t_reset_time_dependent_data->start();
+    IBAMR_TIMER_START(t_reset_time_dependent_data);
 
     // Advance the simulation time.
     d_old_dt = new_time - d_integrator_time;
@@ -1395,20 +1395,20 @@ IBHierarchyIntegrator::resetTimeDependentHierData(
     // management as possible.
     d_ins_hier_integrator->resetTimeDependentHierData(new_time);
 
-    t_reset_time_dependent_data->stop();
+    IBAMR_TIMER_STOP(t_reset_time_dependent_data);
     return;
 }// resetTimeDependentHierData
 
 void
 IBHierarchyIntegrator::resetHierDataToPreadvanceState()
 {
-    t_reset_data_to_preadvance_state->start();
+    IBAMR_TIMER_START(t_reset_data_to_preadvance_state);
 
     // We use the INSHierarchyIntegrator to handle as much structured data
     // management as possible.
     d_ins_hier_integrator->resetHierDataToPreadvanceState();
 
-    t_reset_data_to_preadvance_state->stop();
+    IBAMR_TIMER_STOP(t_reset_data_to_preadvance_state);
     return;
 }// resetHierDataToPreadvanceState
 
@@ -1433,7 +1433,7 @@ IBHierarchyIntegrator::initializeLevelData(
     const Pointer<BasePatchLevel<NDIM> > old_level,
     const bool allocate_data)
 {
-    t_initialize_level_data->start();
+    IBAMR_TIMER_START(t_initialize_level_data);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -1465,7 +1465,7 @@ IBHierarchyIntegrator::initializeLevelData(
         can_be_refined, initial_time, old_level,
         allocate_data);
 
-    t_initialize_level_data->stop();
+    IBAMR_TIMER_STOP(t_initialize_level_data);
     return;
 }// initializeLevelData
 
@@ -1475,7 +1475,7 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
     const int coarsest_level,
     const int finest_level)
 {
-    t_reset_hierarchy_configuration->start();
+    IBAMR_TIMER_START(t_reset_hierarchy_configuration);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -1564,7 +1564,7 @@ IBHierarchyIntegrator::resetHierarchyConfiguration(
         }
     }
 
-    t_reset_hierarchy_configuration->stop();
+    IBAMR_TIMER_STOP(t_reset_hierarchy_configuration);
     return;
 }// resetHierarchyConfiguration
 
@@ -1577,7 +1577,7 @@ IBHierarchyIntegrator::applyGradientDetector(
     const bool initial_time,
     const bool uses_richardson_extrapolation_too)
 {
-    t_apply_gradient_detector->start();
+    IBAMR_TIMER_START(t_apply_gradient_detector);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -1609,7 +1609,7 @@ IBHierarchyIntegrator::applyGradientDetector(
         tag_index, initial_time,
         uses_richardson_extrapolation_too);
 
-    t_apply_gradient_detector->stop();
+    IBAMR_TIMER_STOP(t_apply_gradient_detector);
     return;
 }// applyGradientDetector
 
@@ -1659,7 +1659,7 @@ void
 IBHierarchyIntegrator::putToDatabase(
     Pointer<Database> db)
 {
-    t_put_to_database->start();
+    IBAMR_TIMER_START(t_put_to_database);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
@@ -1693,7 +1693,7 @@ IBHierarchyIntegrator::putToDatabase(
         db->putStringArray("instrument_names", &instrument_names[0], instrument_names.size());
     }
 
-    t_put_to_database->stop();
+    IBAMR_TIMER_STOP(t_put_to_database);
     return;
 }// putToDatabase
 

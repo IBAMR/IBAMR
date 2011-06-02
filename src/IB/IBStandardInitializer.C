@@ -241,9 +241,6 @@ IBStandardInitializer::IBStandardInitializer(
 
         // Process the (optional) source information.
         readSourceFiles();
-
-        // Wait for all processes to finish.
-        SAMRAI_MPI::barrier();
     }
     return;
 }// IBStandardInitializer

@@ -673,7 +673,7 @@ void
 INSHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
-    t_initialize_hierarchy_integrator->start();
+    IBAMR_TIMER_START(t_initialize_hierarchy_integrator);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!gridding_alg.isNull());
@@ -1139,14 +1139,14 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
     // Indicate that the integrator has been initialized.
     d_is_initialized = true;
 
-    t_initialize_hierarchy_integrator->stop();
+    IBAMR_TIMER_STOP(t_initialize_hierarchy_integrator);
     return;
 }// initializeHierarchyIntegrator
 
 double
 INSHierarchyIntegrator::initializeHierarchy()
 {
-    t_initialize_hierarchy->start();
+    IBAMR_TIMER_START(t_initialize_hierarchy);
 
     if (!d_is_initialized)
     {
@@ -1199,7 +1199,7 @@ INSHierarchyIntegrator::initializeHierarchy()
     // levels in the patch hierarchy.
     double dt_next = getStableTimestep();
 
-    t_initialize_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_initialize_hierarchy);
     return dt_next;
 }// initializeHierarchy
 
@@ -1207,7 +1207,7 @@ double
 INSHierarchyIntegrator::advanceHierarchy(
     const double dt)
 {
-    t_advance_hierarchy->start();
+    IBAMR_TIMER_START(t_advance_hierarchy);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_end_time >= d_integrator_time+dt);
@@ -1304,14 +1304,14 @@ INSHierarchyIntegrator::advanceHierarchy(
     // Determine the next stable timestep from u(n+1).
     const double dt_next = getStableTimestep();
 
-    t_advance_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_advance_hierarchy);
     return dt_next;
 }// advanceHierarchy
 
 double
 INSHierarchyIntegrator::getStableTimestep() const
 {
-    t_get_stable_timestep->start();
+    IBAMR_TIMER_START(t_get_stable_timestep);
 
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     double dt_next = std::numeric_limits<double>::max();
@@ -1338,7 +1338,7 @@ INSHierarchyIntegrator::getStableTimestep() const
         dt_next = std::min(dt_next,d_grow_dt*d_old_dt);
     }
 
-    t_get_stable_timestep->stop();
+    IBAMR_TIMER_STOP(t_get_stable_timestep);
     return dt_next;
 }// getStableTimestep()
 
@@ -1445,7 +1445,7 @@ INSHierarchyIntegrator::getCCHierarchyProjector() const
 void
 INSHierarchyIntegrator::regridHierarchy()
 {
-    t_regrid_hierarchy->start();
+    IBAMR_TIMER_START(t_regrid_hierarchy);
 
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
 
@@ -1640,7 +1640,7 @@ INSHierarchyIntegrator::regridHierarchy()
     // Indicate that we do not need to reproject.
     d_reproject_after_regrid = false;
 
-    t_regrid_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_regrid_hierarchy);
     return;
 }// regridHierarchy
 
@@ -1649,7 +1649,7 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
     const double current_time,
     const double new_time)
 {
-    t_predict_advection_velocity->start();
+    IBAMR_TIMER_START(t_predict_advection_velocity);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(current_time <= new_time);
@@ -1790,7 +1790,7 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
                            << std::endl;
     }
 
-    t_predict_advection_velocity->stop();
+    IBAMR_TIMER_STOP(t_predict_advection_velocity);
     return;
 }// predictAdvectionVelocity
 
@@ -1799,7 +1799,7 @@ INSHierarchyIntegrator::integrateAdvDiff(
     const double current_time,
     const double new_time)
 {
-    t_integrate_adv_diff->start();
+    IBAMR_TIMER_START(t_integrate_adv_diff);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(current_time <= new_time);
@@ -1875,7 +1875,7 @@ INSHierarchyIntegrator::integrateAdvDiff(
     // the same units as the pressure gradient.
     d_hier_fc_data_ops->scale(d_grad_Phi_idx, d_rho/dt, d_grad_Phi_idx);
 
-    t_integrate_adv_diff->stop();
+    IBAMR_TIMER_STOP(t_integrate_adv_diff);
     return;
 }// integrateAdvDiff
 
@@ -1884,7 +1884,7 @@ INSHierarchyIntegrator::projectVelocity(
     const double current_time,
     const double new_time)
 {
-    t_project_velocity->start();
+    IBAMR_TIMER_START(t_project_velocity);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(current_time <= new_time);
@@ -2024,7 +2024,7 @@ INSHierarchyIntegrator::projectVelocity(
                            << std::endl;
     }
 
-    t_project_velocity->stop();
+    IBAMR_TIMER_STOP(t_project_velocity);
     return;
 }// projectVelocity
 
@@ -2034,7 +2034,7 @@ INSHierarchyIntegrator::updatePressure(
     const double new_time,
     const bool override_current_pressure)
 {
-    t_update_pressure->start();
+    IBAMR_TIMER_START(t_update_pressure);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(current_time <= new_time);
@@ -2334,14 +2334,14 @@ INSHierarchyIntegrator::updatePressure(
         }
     }
 
-    t_update_pressure->stop();
+    IBAMR_TIMER_STOP(t_update_pressure);
     return;
 }// updatePressure
 
 void
 INSHierarchyIntegrator::synchronizeHierarchy()
 {
-    t_synchronize_hierarchy->start();
+    IBAMR_TIMER_START(t_synchronize_hierarchy);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -2351,7 +2351,7 @@ INSHierarchyIntegrator::synchronizeHierarchy()
         d_cscheds["SYNCH_NEW_STATE_DATA"][ln]->coarsenData();
     }
 
-    t_synchronize_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_synchronize_hierarchy);
     return;
 }// synchronizeHierarchy
 
@@ -2363,7 +2363,7 @@ INSHierarchyIntegrator::synchronizeNewLevels(
     const double sync_time,
     const bool initial_time)
 {
-    t_synchronize_new_levels->start();
+    IBAMR_TIMER_START(t_synchronize_new_levels);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -2390,7 +2390,7 @@ INSHierarchyIntegrator::synchronizeNewLevels(
         }
     }
 
-    t_synchronize_new_levels->stop();
+    IBAMR_TIMER_STOP(t_synchronize_new_levels);
     return;
 }// synchronizeNewLevels
 
@@ -2398,7 +2398,7 @@ void
 INSHierarchyIntegrator::resetTimeDependentHierData(
     const double new_time)
 {
-    t_reset_time_dependent_data->start();
+    IBAMR_TIMER_START(t_reset_time_dependent_data);
 
     // Advance the simulation time.
     d_old_dt = new_time - d_integrator_time;
@@ -2462,14 +2462,14 @@ INSHierarchyIntegrator::resetTimeDependentHierData(
         level->deallocatePatchData(d_new_data);
     }
 
-    t_reset_time_dependent_data->stop();
+    IBAMR_TIMER_STOP(t_reset_time_dependent_data);
     return;
 }// resetTimeDependentHierData
 
 void
 INSHierarchyIntegrator::resetHierDataToPreadvanceState()
 {
-    t_reset_data_to_preadvance_state->start();
+    IBAMR_TIMER_START(t_reset_data_to_preadvance_state);
 
     // We use the AdvDiffHierarchyIntegrator to handle as much data management
     // as possible.
@@ -2487,7 +2487,7 @@ INSHierarchyIntegrator::resetHierDataToPreadvanceState()
         level->deallocatePatchData(d_new_data);
     }
 
-    t_reset_data_to_preadvance_state->stop();
+    IBAMR_TIMER_STOP(t_reset_data_to_preadvance_state);
     return;
 }// resetHierDataToPreadvanceState
 
@@ -2512,7 +2512,7 @@ INSHierarchyIntegrator::initializeLevelData(
     const Pointer<BasePatchLevel<NDIM> > base_old_level,
     const bool allocate_data)
 {
-    t_initialize_level_data->start();
+    IBAMR_TIMER_START(t_initialize_level_data);
 
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
@@ -2834,7 +2834,7 @@ INSHierarchyIntegrator::initializeLevelData(
         }
     }
 
-    t_initialize_level_data->stop();
+    IBAMR_TIMER_STOP(t_initialize_level_data);
     return;
 }// initializeLevelData
 
@@ -2844,7 +2844,7 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
     const int coarsest_level,
     const int finest_level)
 {
-    t_reset_hierarchy_configuration->start();
+    IBAMR_TIMER_START(t_reset_hierarchy_configuration);
 
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -2959,7 +2959,7 @@ INSHierarchyIntegrator::resetHierarchyConfiguration(
     d_regrid_Phi_hier_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_regrid_Phi_hier_bdry_fill_op->initializeOperatorState(regrid_Phi_transaction_comp, d_hierarchy);
 
-    t_reset_hierarchy_configuration->stop();
+    IBAMR_TIMER_STOP(t_reset_hierarchy_configuration);
     return;
 }// resetHierarchyConfiguration
 
@@ -2972,7 +2972,7 @@ INSHierarchyIntegrator::applyGradientDetector(
     const bool initial_time,
     const bool uses_richardson_extrapolation_too)
 {
-    t_apply_gradient_detector->start();
+    IBAMR_TIMER_START(t_apply_gradient_detector);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -3065,7 +3065,7 @@ INSHierarchyIntegrator::applyGradientDetector(
             uses_richardson_extrapolation_too, d_apply_gradient_detector_callback_ctxs[i]);
     }
 
-    t_apply_gradient_detector->stop();
+    IBAMR_TIMER_STOP(t_apply_gradient_detector);
     return;
 }// applyGradientDetector
 
@@ -3164,7 +3164,7 @@ void
 INSHierarchyIntegrator::putToDatabase(
     Pointer<Database> db)
 {
-    t_put_to_database->start();
+    IBAMR_TIMER_START(t_put_to_database);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
@@ -3199,7 +3199,7 @@ INSHierarchyIntegrator::putToDatabase(
     db->putDouble("d_nu", d_nu);
     db->putDouble("d_lambda", d_lambda);
 
-    t_put_to_database->stop();
+    IBAMR_TIMER_STOP(t_put_to_database);
     return;
 }// putToDatabase
 
@@ -3333,7 +3333,7 @@ INSHierarchyIntegrator::computeDivSourceTerm(
     const int coarsest_ln,
     const int finest_ln)
 {
-    t_compute_div_source_term->start();
+    IBAMR_TIMER_START(t_compute_div_source_term);
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -3420,7 +3420,7 @@ INSHierarchyIntegrator::computeDivSourceTerm(
         }
     }
 
-    t_compute_div_source_term->stop();
+    IBAMR_TIMER_STOP(t_compute_div_source_term);
     return;
 }// computeDivSourceTerm
 

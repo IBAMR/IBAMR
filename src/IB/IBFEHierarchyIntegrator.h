@@ -74,7 +74,6 @@ public:
     static const std::string COORD_MAPPING_SYSTEM_NAME;
     static const std::string         FORCE_SYSTEM_NAME;
     static const std::string      VELOCITY_SYSTEM_NAME;
-    static const std::string   PROJ_STRAIN_SYSTEM_NAME;
 
     /*!
      * Constructor.
@@ -627,6 +626,18 @@ private:
         const double& time);
 
     /*!
+     * \brief Impose jump conditions determined from the interior and
+     * transmission force densities along the physical boundary of the
+     * Lagrangian structure.
+     */
+    void
+    imposeJumpConditions(
+        const int f_data_idx,
+        libMesh::NumericVector<double>& F_ghost_vec,
+        libMesh::NumericVector<double>& X_ghost_vec,
+        const double& time);
+
+    /*!
      * \brief Initialize the physical coordinates using the supplied coordinate
      * mapping function.  If no function is provided, the initial coordinates
      * are taken to be the Lagrangian coordinates.
@@ -682,7 +693,10 @@ private:
     IBTK::FEDataManager* d_fe_data_manager;
     libMeshEnums::Order d_fe_order;
     libMeshEnums::FEFamily d_fe_family;
+    bool d_use_IB_spreading_operator;
+    bool d_use_IB_interpolation_operator;
     bool d_split_interior_and_bdry_forces;
+    bool d_use_jump_conditions;
     bool d_use_consistent_mass_matrix;
     libMeshEnums::QuadratureType d_quad_type;
     libMeshEnums::Order d_quad_order;

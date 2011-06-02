@@ -194,8 +194,7 @@ INSStaggeredVCStokesOperator::apply(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& y)
 {
-    SAMRAI_MPI::barrier();
-    t_apply->start();
+    IBAMR_TIMER_START(t_apply);
 
     // Get the vector components.
 //  const int U_in_idx       =            x.getComponentDescriptorIndex(0);
@@ -265,7 +264,7 @@ INSStaggeredVCStokesOperator::apply(
         -1.0, U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
         cf_bdry_synch);
 
-    t_apply->stop();
+    IBAMR_TIMER_STOP(t_apply);
     return;
 }// apply
 
@@ -283,8 +282,7 @@ INSStaggeredVCStokesOperator::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& in,
     const SAMRAIVectorReal<NDIM,double>& out)
 {
-    SAMRAI_MPI::barrier();
-    t_initialize_operator_state->start();
+    IBAMR_TIMER_START(t_initialize_operator_state);
 
     if (d_is_initialized) deallocateOperatorState();
 
@@ -306,7 +304,7 @@ INSStaggeredVCStokesOperator::initializeOperatorState(
 
     d_is_initialized = true;
 
-    t_initialize_operator_state->stop();
+    IBAMR_TIMER_STOP(t_initialize_operator_state);
     return;
 }// initializeOperatorState
 
@@ -315,15 +313,14 @@ INSStaggeredVCStokesOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
-    SAMRAI_MPI::barrier();
-    t_deallocate_operator_state->start();
+    IBAMR_TIMER_START(t_deallocate_operator_state);
 
     d_x_scratch->freeVectorComponents();
     d_x_scratch.setNull();
 
     d_is_initialized = false;
 
-    t_deallocate_operator_state->stop();
+    IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
 }// deallocateOperatorState
 

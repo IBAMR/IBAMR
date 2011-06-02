@@ -117,7 +117,7 @@ IBImplicitOperator::apply(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& y)
 {
-    t_apply->start();
+    IBAMR_TIMER_START(t_apply);
 
     // Apply the linear part of the operator with inhomogeneous boundary
     // conditions.
@@ -135,7 +135,7 @@ IBImplicitOperator::apply(
     side_synch_op->initializeOperatorState(y_synch_transaction, y.getPatchHierarchy());
     side_synch_op->synchronizeData(0.0);
 
-    t_apply->stop();
+    IBAMR_TIMER_STOP(t_apply);
     return;
 }// apply
 
@@ -144,7 +144,7 @@ IBImplicitOperator::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& in,
     const SAMRAIVectorReal<NDIM,double>& out)
 {
-    t_initialize_operator_state->start();
+    IBAMR_TIMER_START(t_initialize_operator_state);
 
     if (d_is_initialized) deallocateOperatorState();
 
@@ -153,7 +153,7 @@ IBImplicitOperator::initializeOperatorState(
 
     d_is_initialized = true;
 
-    t_initialize_operator_state->stop();
+    IBAMR_TIMER_STOP(t_initialize_operator_state);
     return;
 }// initializeOperatorState
 
@@ -162,14 +162,14 @@ IBImplicitOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
-    t_deallocate_operator_state->start();
+    IBAMR_TIMER_START(t_deallocate_operator_state);
 
     d_stokes_op->deallocateOperatorState();
     d_ib_SFR_op->deallocateOperatorState();
 
     d_is_initialized = false;
 
-    t_deallocate_operator_state->stop();
+    IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
 }// deallocateOperatorState
 

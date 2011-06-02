@@ -219,7 +219,7 @@ IBImplicitSJROperator::apply(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& y)
 {
-    t_apply->start();
+    IBAMR_TIMER_START(t_apply);
 
     int ierr;
 
@@ -267,7 +267,7 @@ IBImplicitSJROperator::apply(
     side_synch_op->initializeOperatorState(f_synch_transaction, y.getPatchHierarchy());
     side_synch_op->synchronizeData(0.0);
 
-    t_apply->stop();
+    IBAMR_TIMER_STOP(t_apply);
     return;
 }// apply
 
@@ -285,7 +285,7 @@ IBImplicitSJROperator::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& in,
     const SAMRAIVectorReal<NDIM,double>& out)
 {
-    t_initialize_operator_state->start();
+    IBAMR_TIMER_START(t_initialize_operator_state);
 
     if (d_is_initialized) deallocateOperatorState();
 
@@ -327,7 +327,7 @@ IBImplicitSJROperator::initializeOperatorState(
 
     d_is_initialized = true;
 
-    t_initialize_operator_state->stop();
+    IBAMR_TIMER_STOP(t_initialize_operator_state);
     return;
 }// initializeOperatorState
 
@@ -336,7 +336,7 @@ IBImplicitSJROperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
-    t_deallocate_operator_state->start();
+    IBAMR_TIMER_START(t_deallocate_operator_state);
 
     int ierr;
 
@@ -354,7 +354,7 @@ IBImplicitSJROperator::deallocateOperatorState()
 
     d_is_initialized = false;
 
-    t_deallocate_operator_state->stop();
+    IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
 }// deallocateOperatorState
 

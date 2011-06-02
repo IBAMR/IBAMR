@@ -278,8 +278,7 @@ SCPoissonHypreLevelSolver::solveSystem(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& b)
 {
-    SAMRAI_MPI::barrier();
-    t_solve_system->start();
+    IBTK_TIMER_START(t_solve_system);
 
     if (d_enable_logging) plog << d_object_name << "::solveSystem():" << std::endl;
 
@@ -304,7 +303,7 @@ SCPoissonHypreLevelSolver::solveSystem(
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
 
-    t_solve_system->stop();
+    IBTK_TIMER_STOP(t_solve_system);
     return converged;
 }// solveSystem
 
@@ -313,8 +312,7 @@ SCPoissonHypreLevelSolver::initializeSolverState(
     const SAMRAIVectorReal<NDIM,double>& x,
     const SAMRAIVectorReal<NDIM,double>& b)
 {
-    SAMRAI_MPI::barrier();
-    t_initialize_solver_state->start();
+    IBTK_TIMER_START(t_initialize_solver_state);
 
     // Rudimentary error checking.
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -393,7 +391,7 @@ SCPoissonHypreLevelSolver::initializeSolverState(
     // Indicate that the solver is initialized.
     d_is_initialized = true;
 
-    t_initialize_solver_state->stop();
+    IBTK_TIMER_STOP(t_initialize_solver_state);
     return;
 }// initializeSolverState
 
@@ -402,8 +400,7 @@ SCPoissonHypreLevelSolver::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
-    SAMRAI_MPI::barrier();
-    t_deallocate_solver_state->start();
+    IBTK_TIMER_START(t_deallocate_solver_state);
 
     // Deallocate the hypre data structures.
     destroyHypreSolver();
@@ -412,7 +409,7 @@ SCPoissonHypreLevelSolver::deallocateSolverState()
     // Indicate that the solver is NOT initialized.
     d_is_initialized = false;
 
-    t_deallocate_solver_state->stop();
+    IBTK_TIMER_STOP(t_deallocate_solver_state);
     return;
 }// deallocateSolverState
 
@@ -1123,8 +1120,7 @@ SCPoissonHypreLevelSolver::solveSystem(
     HYPRE_SStructVectorAssemble(d_rhs_vec);
 
     // Solve the system.
-    SAMRAI_MPI::barrier();
-    t_solve_system_hypre->start();
+    IBTK_TIMER_START(t_solve_system_hypre);
 
     if (d_solver_type == "SysPFMG")
     {
@@ -1188,7 +1184,7 @@ SCPoissonHypreLevelSolver::solveSystem(
         HYPRE_SStructBiCGSTABGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
 
-    t_solve_system_hypre->stop();
+    IBTK_TIMER_STOP(t_solve_system_hypre);
 
     // Pull the solution vector out of the hypre structures.
     HYPRE_SStructVectorGather(d_sol_vec);

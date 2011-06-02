@@ -301,7 +301,7 @@ CCHierarchyProjector::projectHierarchy(
     const int Q_idx,
     const Pointer<CellVariable<NDIM,double> >& Q_var)
 {
-    t_project_hierarchy->start();
+    IBAMR_TIMER_START(t_project_hierarchy);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -385,7 +385,7 @@ CCHierarchyProjector::projectHierarchy(
     InterpolationTransactionComponent d_W_transaction_comp(d_W_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY);
     d_W_hier_bdry_fill_op->resetTransactionComponent(d_W_transaction_comp);
 
-    t_project_hierarchy->stop();
+    IBAMR_TIMER_STOP(t_project_hierarchy);
     return;
 }// projectHierarchy
 
@@ -409,7 +409,7 @@ CCHierarchyProjector::initializeLevelData(
     const Pointer<BasePatchLevel<NDIM> > old_level,
     const bool allocate_data)
 {
-    t_initialize_level_data->start();
+    IBAMR_TIMER_START(t_initialize_level_data);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -461,7 +461,7 @@ CCHierarchyProjector::initializeLevelData(
 #endif
     }
 
-    t_initialize_level_data->stop();
+    IBAMR_TIMER_STOP(t_initialize_level_data);
     return;
 }// initializeLevelData
 
@@ -471,7 +471,7 @@ CCHierarchyProjector::resetHierarchyConfiguration(
     const int coarsest_level,
     const int finest_level)
 {
-    t_reset_hierarchy_configuration->start();
+    IBAMR_TIMER_START(t_reset_hierarchy_configuration);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -543,7 +543,7 @@ CCHierarchyProjector::resetHierarchyConfiguration(
     d_W_hier_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_W_hier_bdry_fill_op->initializeOperatorState(W_transaction_comp, d_hierarchy);
 
-    t_reset_hierarchy_configuration->stop();
+    IBAMR_TIMER_STOP(t_reset_hierarchy_configuration);
     return;
 }// resetHierarchyConfiguration
 
@@ -560,14 +560,14 @@ void
 CCHierarchyProjector::putToDatabase(
     Pointer<Database> db)
 {
-    t_put_to_database->start();
+    IBAMR_TIMER_START(t_put_to_database);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
 #endif
     db->putInteger("CC_HIERARCHY_PROJECTOR_VERSION", CC_HIERARCHY_PROJECTOR_VERSION);
 
-    t_put_to_database->stop();
+    IBAMR_TIMER_STOP(t_put_to_database);
     return;
 }// putToDatabase
 

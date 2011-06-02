@@ -95,7 +95,7 @@ IBImplicitModHelmholtzOperator::apply(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& y)
 {
-    t_apply->start();
+    IBAMR_TIMER_START(t_apply);
 
     SAMRAIVectorReal<NDIM,double> x_u(x.getName(), x.getPatchHierarchy(), x.getCoarsestLevelNumber(), x.getFinestLevelNumber());
     x_u.addComponent(x.getComponentVariable(0), x.getComponentDescriptorIndex(0), x.getControlVolumeIndex(0));
@@ -109,7 +109,7 @@ IBImplicitModHelmholtzOperator::apply(
     // Apply the nonlinear part of the operator.
     d_ib_SJSstar_op->applyAdd(x_u, y_u, y_u);
 
-    t_apply->stop();
+    IBAMR_TIMER_STOP(t_apply);
     return;
 }// apply
 
@@ -118,7 +118,7 @@ IBImplicitModHelmholtzOperator::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& in,
     const SAMRAIVectorReal<NDIM,double>& out)
 {
-    t_initialize_operator_state->start();
+    IBAMR_TIMER_START(t_initialize_operator_state);
 
     if (d_is_initialized) deallocateOperatorState();
 
@@ -132,7 +132,7 @@ IBImplicitModHelmholtzOperator::initializeOperatorState(
 
     d_is_initialized = true;
 
-    t_initialize_operator_state->stop();
+    IBAMR_TIMER_STOP(t_initialize_operator_state);
     return;
 }// initializeOperatorState
 
@@ -141,14 +141,14 @@ IBImplicitModHelmholtzOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
-    t_deallocate_operator_state->start();
+    IBAMR_TIMER_START(t_deallocate_operator_state);
 
     d_helmholtz_op->deallocateOperatorState();
 //  d_ib_SJSstar_op->deallocateOperatorState();
 
     d_is_initialized = false;
 
-    t_deallocate_operator_state->stop();
+    IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
 }// deallocateOperatorState
 

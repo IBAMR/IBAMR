@@ -243,7 +243,7 @@ IBKirchhoffRodForceGen::initializeLevelData(
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
-    t_initialize_level_data->start();
+    IBAMR_TIMER_START(t_initialize_level_data);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -419,7 +419,7 @@ IBKirchhoffRodForceGen::initializeLevelData(
     // Indicate that the level data has been initialized.
     d_is_initialized[level_num] = true;
 
-    t_initialize_level_data->stop();
+    IBAMR_TIMER_STOP(t_initialize_level_data);
     return;
 }// initializeLevelData
 
@@ -437,7 +437,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
 
-    t_compute_lagrangian_force_and_torque->start();
+    IBAMR_TIMER_START(t_compute_lagrangian_force_and_torque);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(level_number < static_cast<int>(d_is_initialized.size()));
@@ -570,7 +570,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     ierr = PETScVecOps::VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
     ierr = PETScVecOps::VecAssemblyEnd(N_vec);    IBTK_CHKERRQ(ierr);
 
-    t_compute_lagrangian_force_and_torque->stop();
+    IBAMR_TIMER_STOP(t_compute_lagrangian_force_and_torque);
     return;
 }// computeLagrangianForceAndTorque
 

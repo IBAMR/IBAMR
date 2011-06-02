@@ -548,6 +548,15 @@ main(
 
         HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_sc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
+        for (int ln = patch_hierarchy->getFinestLevelNumber(); ln > 0; --ln)
+        {
+            Pointer<CoarsenOperator<NDIM> > coarsen_operator = grid_geometry->lookupCoarsenOperator(u_var, "CONSERVATIVE_COARSEN");
+            CoarsenAlgorithm<NDIM> calg;
+            calg.registerCoarsen(u_cloned_idx, u_cloned_idx, coarsen_operator);
+            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM> > coarser_level = patch_hierarchy->getPatchLevel(ln-1);
+            calg.createSchedule(coarser_level, level)->coarsenData();
+        }
         pout << "Error in u at time " << loop_time << ":\n"
              << "  L1-norm:  " << hier_sc_data_ops.L1Norm(u_cloned_idx,wgt_sc_idx)  << "\n"
              << "  L2-norm:  " << hier_sc_data_ops.L2Norm(u_cloned_idx,wgt_sc_idx)  << "\n"
@@ -559,6 +568,15 @@ main(
         const double p_cloned_mean = (1.0/volume)*hier_cc_data_ops.integral(p_cloned_idx, wgt_cc_idx);
         hier_cc_data_ops.addScalar(p_cloned_idx, p_cloned_idx, -p_cloned_mean);
         hier_cc_data_ops.subtract(p_cloned_idx, p_idx, p_cloned_idx);
+        for (int ln = patch_hierarchy->getFinestLevelNumber(); ln > 0; --ln)
+        {
+            Pointer<CoarsenOperator<NDIM> > coarsen_operator = grid_geometry->lookupCoarsenOperator(p_var, "CONSERVATIVE_COARSEN");
+            CoarsenAlgorithm<NDIM> calg;
+            calg.registerCoarsen(p_cloned_idx, p_cloned_idx, coarsen_operator);
+            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM> > coarser_level = patch_hierarchy->getPatchLevel(ln-1);
+            calg.createSchedule(coarser_level, level)->coarsenData();
+        }
         pout << "Error in p at time " << loop_time-0.5*dt_now << ":\n"
              << "  L1-norm:  " << hier_cc_data_ops.L1Norm(p_cloned_idx,wgt_cc_idx)  << "\n"
              << "  L2-norm:  " << hier_cc_data_ops.L2Norm(p_cloned_idx,wgt_cc_idx)  << "\n"

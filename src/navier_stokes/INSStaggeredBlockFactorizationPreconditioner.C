@@ -191,8 +191,7 @@ INSStaggeredBlockFactorizationPreconditioner::solveSystem(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& b)
 {
-    SAMRAI_MPI::barrier();
-    t_solve_system->start();
+    IBAMR_TIMER_START(t_solve_system);
 
     // Initialize the solver (if necessary).
     const bool deallocate_at_completion = !d_is_initialized;
@@ -288,7 +287,7 @@ INSStaggeredBlockFactorizationPreconditioner::solveSystem(
     // Deallocate the solver (if necessary).
     if (deallocate_at_completion) deallocateSolverState();
 
-    t_solve_system->stop();
+    IBAMR_TIMER_STOP(t_solve_system);
     return true;
 }// solveSystem
 
@@ -297,8 +296,7 @@ INSStaggeredBlockFactorizationPreconditioner::initializeSolverState(
     const SAMRAIVectorReal<NDIM,double>& x,
     const SAMRAIVectorReal<NDIM,double>& b)
 {
-    SAMRAI_MPI::barrier();
-    t_initialize_solver_state->start();
+    IBAMR_TIMER_START(t_initialize_solver_state);
 
     if (d_is_initialized) deallocateSolverState();
 
@@ -338,7 +336,7 @@ INSStaggeredBlockFactorizationPreconditioner::initializeSolverState(
     }
     d_is_initialized = true;
 
-    t_initialize_solver_state->stop();
+    IBAMR_TIMER_STOP(t_initialize_solver_state);
     return;
 }// initializeSolverState
 
@@ -347,8 +345,7 @@ INSStaggeredBlockFactorizationPreconditioner::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
-    SAMRAI_MPI::barrier();
-    t_deallocate_solver_state->start();
+    IBAMR_TIMER_START(t_deallocate_solver_state);
 
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -365,7 +362,7 @@ INSStaggeredBlockFactorizationPreconditioner::deallocateSolverState()
     }
     d_is_initialized = false;
 
-    t_deallocate_solver_state->stop();
+    IBAMR_TIMER_STOP(t_deallocate_solver_state);
     return;
 }// deallocateSolverState
 

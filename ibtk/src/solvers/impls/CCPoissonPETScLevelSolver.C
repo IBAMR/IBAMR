@@ -215,8 +215,7 @@ CCPoissonPETScLevelSolver::solveSystem(
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& b)
 {
-    SAMRAI_MPI::barrier();
-    t_solve_system->start();
+    IBTK_TIMER_START(t_solve_system);
 
     int ierr;
 
@@ -256,7 +255,7 @@ CCPoissonPETScLevelSolver::solveSystem(
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
 
-    t_solve_system->stop();
+    IBTK_TIMER_STOP(t_solve_system);
     return converged;
 }// solveSystem
 
@@ -265,8 +264,7 @@ CCPoissonPETScLevelSolver::initializeSolverState(
     const SAMRAIVectorReal<NDIM,double>& x,
     const SAMRAIVectorReal<NDIM,double>& b)
 {
-    SAMRAI_MPI::barrier();
-    t_initialize_solver_state->start();
+    IBTK_TIMER_START(t_initialize_solver_state);
 
     // Rudimentary error checking.
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -368,7 +366,7 @@ CCPoissonPETScLevelSolver::initializeSolverState(
     // Indicate that the solver is initialized.
     d_is_initialized = true;
 
-    t_initialize_solver_state->stop();
+    IBTK_TIMER_STOP(t_initialize_solver_state);
     return;
 }// initializeSolverState
 
@@ -377,8 +375,7 @@ CCPoissonPETScLevelSolver::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
-    SAMRAI_MPI::barrier();
-    t_deallocate_solver_state->start();
+    IBTK_TIMER_START(t_deallocate_solver_state);
 
     // Deallocate PETSc objects.
     int ierr;
@@ -400,7 +397,7 @@ CCPoissonPETScLevelSolver::deallocateSolverState()
     // Indicate that the solver is NOT initialized.
     d_is_initialized = false;
 
-    t_deallocate_solver_state->stop();
+    IBTK_TIMER_STOP(t_deallocate_solver_state);
     return;
 }// deallocateSolverState
 

@@ -55,6 +55,7 @@
 // LIBMESH INCLUDES
 #include <boundary_info.h>
 #include <fe.h>
+#include <fe_interface.h>
 #include <dense_matrix.h>
 #include <dense_vector.h>
 #include <dof_map.h>
@@ -87,7 +88,10 @@ namespace
 static Timer* t_reinit_element_mappings;
 static Timer* t_build_ghosted_solution_vector;
 static Timer* t_spread;
+static Timer* t_prolong_value;
+static Timer* t_prolong_density;
 static Timer* t_interp;
+static Timer* t_restrict_value;
 static Timer* t_build_l2_projection_solver;
 static Timer* t_build_diagonal_l2_mass_matrix;
 static Timer* t_compute_l2_projection;
@@ -270,8 +274,7 @@ void
 FEDataManager::reinitElementMappings(
     const double data_time)
 {
-    SAMRAI_MPI::barrier();
-    t_reinit_element_mappings->start();
+    IBTK_TIMER_START(t_reinit_element_mappings);
 
     // Delete cached hierarchy-dependent data.
     d_active_patch_elem_map  .free();
@@ -286,7 +289,7 @@ FEDataManager::reinitElementMappings(
     // Reset the mappings between grid patches and active mesh elements.
     collectActivePatchElements(d_active_patch_elem_map, d_level_number, d_ghost_width, data_time);
 
-    t_reinit_element_mappings->stop();
+    IBTK_TIMER_STOP(t_reinit_element_mappings);
     return;
 }// reinitElementMappings
 
@@ -302,8 +305,7 @@ NumericVector<double>*
 FEDataManager::buildGhostedSolutionVector(
     const std::string& system_name)
 {
-    SAMRAI_MPI::barrier();
-    t_build_ghosted_solution_vector->start();
+    IBTK_TIMER_START(t_build_ghosted_solution_vector);
 
     NumericVector<double>* sol_vec = getSolutionVector(system_name);
     if (d_system_ghost_vec.count(system_name) == 0)
@@ -323,7 +325,7 @@ FEDataManager::buildGhostedSolutionVector(
     sol_vec->localize(*sol_ghost_vec);
     system.get_dof_map().enforce_constraints_exactly(system, sol_ghost_vec);
 
-    t_build_ghosted_solution_vector->stop();
+    IBTK_TIMER_STOP(t_build_ghosted_solution_vector);
     return sol_ghost_vec;
 }// buildGhostedSolutionVector
 
@@ -348,8 +350,7 @@ FEDataManager::spread(
     const bool close_F,
     const bool close_X)
 {
-    SAMRAI_MPI::barrier();
-    t_spread->start();
+    IBTK_TIMER_START(t_spread);
 
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
@@ -421,7 +422,7 @@ FEDataManager::spread(
         int qp_offset = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            const libMesh::Elem* const elem = patch_elems(e_idx);
+            const Elem* const elem = patch_elems(e_idx);
 
             F_fe->reinit(elem);
             for (unsigned int i = 0; i < n_vars; ++i)
@@ -480,9 +481,432 @@ FEDataManager::spread(
         if (is_sc_data) LEInteractor::spread(f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, d_spread_weighting_fcn);
     }
 
-    t_spread->stop();
+    IBTK_TIMER_STOP(t_spread);
     return;
 }// spread
+
+void
+FEDataManager::prolongValue(
+    const int f_data_idx,
+    NumericVector<double>& F_vec,
+    NumericVector<double>& X_vec,
+    const std::string& system_name,
+    const bool close_F,
+    const bool close_X)
+{
+    IBTK_TIMER_START(t_prolong_value);
+
+    // NOTE #1: This routine is sepcialized for a staggered-grid Eulerian
+    // discretization.  It should be straightforward to generalize it to work
+    // with other data centerings.
+    //
+    // NOTE #2: This code is specialized for isoparametric elements.  It is less
+    // clear how to relax this assumption.
+
+    // Extract the mesh.
+    const MeshBase& mesh = d_es->get_mesh();
+    const int dim = mesh.mesh_dimension();
+
+    // Extract the FE systems and DOF maps, and setup the FE objects.
+    System& F_system = d_es->get_system(system_name);
+    const unsigned int n_vars = F_system.n_vars();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(n_vars == NDIM);  // specialized to side-centered data
+#endif
+    const DofMap& F_dof_map = F_system.get_dof_map();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_dof_map.variable_type(0));
+#endif
+    blitz::Array<std::vector<unsigned int>,1> F_dof_indices(n_vars);
+    for (unsigned int i = 0; i < n_vars; ++i) F_dof_indices(i).reserve(NDIM == 2 ? 9 : 27);
+    AutoPtr<FEBase> F_fe(FEBase::build(dim, F_dof_map.variable_type(0)));
+    const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
+
+    System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
+    const DofMap& X_dof_map = X_system.get_dof_map();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
+#endif
+    FEType X_fe_type = X_dof_map.variable_type(0);
+    blitz::Array<std::vector<unsigned int>,1> X_dof_indices(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) X_dof_indices(d).reserve(NDIM == 2 ? 9 : 27);
+
+    // Communicate any unsynchronized ghost data and enforce any constraints.
+    if (close_F) F_vec.close();
+    F_dof_map.enforce_constraints_exactly(F_system, &F_vec);
+
+    if (close_X) X_vec.close();
+    X_dof_map.enforce_constraints_exactly(X_system, &X_vec);
+
+    // Loop over the patches to interpolate nodal values on the FE mesh to the
+    // the points of the Eulerian grid.
+    blitz::Array<double,2> F_node;
+    static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
+    Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
+    blitz::TinyVector<double,NDIM> X_min, X_max;
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
+    int local_patch_num = 0;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    {
+        // The relevant collection of elements.
+        const blitz::Array<Elem*,1>& patch_elems = d_active_patch_elem_map(local_patch_num);
+        const unsigned int num_active_patch_elems = patch_elems.size();
+        if (num_active_patch_elems == 0) continue;
+
+        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
+        const Box<NDIM>& patch_box = patch->getBox();
+        const CellIndex<NDIM>& patch_lower = patch_box.lower();
+//      const CellIndex<NDIM>& patch_upper = patch_box.upper();
+        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* const patch_x_lower = patch_geom->getXLower();
+//      const double* const patch_x_upper = patch_geom->getXUpper();
+        const double* const patch_dx = patch_geom->getDx();
+
+        blitz::TinyVector<Box<NDIM>,NDIM> side_boxes;
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
+        }
+
+        // Loop over the elements and compute the values to be prolonged.
+        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+        {
+            Elem* const elem = patch_elems(e_idx);
+            const unsigned int n_node = elem->n_nodes();
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                X_dof_map.dof_indices(elem, X_dof_indices(d), d);
+            }
+
+            // Cache the nodal and physical coordinates of the element,
+            // determine the bounding box of the current configuration of the
+            // element, and set the nodal coordinates of the element to
+            // correspond to the physical coordinates.
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(n_node <= MAX_NODES);
+#endif
+            X_min =  0.5*std::numeric_limits<double>::max();
+            X_max = -0.5*std::numeric_limits<double>::max();
+            for (unsigned int k = 0; k < n_node; ++k)
+            {
+                s_node_cache[k] = elem->point(k);
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    X_node_cache[k](d) = X_vec(X_dof_indices(d)[k]);
+                    X_min[d] = std::min(X_min[d],X_node_cache[k](d));
+                    X_max[d] = std::max(X_max[d],X_node_cache[k](d));
+                }
+                elem->point(k) = X_node_cache[k];
+            }
+
+            // Loop over coordinate directions and look for Eulerian grid points
+            // that are covered by the element.
+            std::vector<Point>            intersection_master_coords;
+            std::vector<SideIndex<NDIM> > intersection_indices;
+            static const int estimated_max_size = std::pow(8,NDIM);
+            intersection_master_coords.reserve(estimated_max_size);
+            intersection_indices      .reserve(estimated_max_size);
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                // Loop over the relevant range of indices.
+                blitz::TinyVector<int,NDIM> i_begin, i_end, ic;
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    if (d == axis)
+                    {
+                        i_begin[d] = std::ceil((X_min[d]-patch_x_lower[d])/patch_dx[d]) + patch_lower[d];
+                        i_end  [d] = std::ceil((X_max[d]-patch_x_lower[d])/patch_dx[d]) + patch_lower[d];
+                    }
+                    else
+                    {
+                        i_begin[d] = std::ceil((X_min[d]-patch_x_lower[d])/patch_dx[d] - 0.5) + patch_lower[d];
+                        i_end  [d] = std::ceil((X_max[d]-patch_x_lower[d])/patch_dx[d] - 0.5) + patch_lower[d];
+                    }
+                }
+#if (NDIM == 3)
+                for (ic[2] = i_begin[2]; ic[2] < i_end[2]; ++ic[2])
+                {
+#endif
+                    for (ic[1] = i_begin[1]; ic[1] < i_end[1]; ++ic[1])
+                    {
+                        for (ic[0] = i_begin[0]; ic[0] < i_end[0]; ++ic[0])
+                        {
+                            Point p;
+                            for (unsigned int d = 0; d < NDIM; ++d)
+                            {
+                                p(d) = patch_x_lower[d] + patch_dx[d]*(static_cast<double>(ic[d]-patch_lower[d])+(d == axis ? 0.0 : 0.5));
+                            }
+                            const Point master_coords = FEInterface::inverse_map(dim, X_fe_type, elem, p, TOLERANCE, false);
+                            if (FEInterface::on_reference_element(master_coords,elem->type()))
+                            {
+                                intersection_master_coords.push_back(master_coords);
+#if (NDIM == 2)
+                                SideIndex<NDIM> s_i(Index<NDIM>(ic[0],ic[1]),axis,0);
+#endif
+#if (NDIM == 3)
+                                SideIndex<NDIM> s_i(Index<NDIM>(ic[0],ic[1],ic[2]),axis,0);
+#endif
+                                intersection_indices.push_back(s_i);
+                            }
+                        }
+                    }
+#if (NDIM == 3)
+                }
+#endif
+            }
+
+            // Restore the nodal coordinates.
+            for (unsigned int k = 0; k < n_node; ++k)
+            {
+                elem->point(k) = s_node_cache[k];
+            }
+
+            // If there are no intersection points, then continue on to the next
+            // element.
+            if (intersection_master_coords.empty()) continue;
+
+            // Evaluate the Lagrangian value at the Eulerian grid point, and
+            // set the value on the Eulerian grid to be F/det(dX/ds).
+            F_fe->reinit(elem, &intersection_master_coords);
+            for (unsigned int i = 0; i < n_vars; ++i)
+            {
+                F_dof_map.dof_indices(elem, F_dof_indices(i), i);
+            }
+
+            get_values_for_interpolation(F_node, F_vec, F_dof_indices);
+            for (unsigned int qp = 0; qp < intersection_master_coords.size(); ++qp)
+            {
+                const SideIndex<NDIM>& s_i = intersection_indices[qp];
+                const int axis = s_i.getAxis();
+                if (!side_boxes[axis].contains(s_i)) continue;
+                const double F_qp = interpolate(qp,F_node(blitz::Range::all(),axis),phi_F);
+                (*f_data)(s_i) = F_qp;
+            }
+        }
+    }
+
+    IBTK_TIMER_STOP(t_prolong_value);
+    return;
+}// prolongValue
+
+void
+FEDataManager::prolongDensity(
+    const int f_data_idx,
+    NumericVector<double>& F_vec,
+    NumericVector<double>& X_vec,
+    const std::string& system_name,
+    const bool close_F,
+    const bool close_X)
+{
+    IBTK_TIMER_START(t_prolong_density);
+
+    // NOTE #1: This routine is sepcialized for a staggered-grid Eulerian
+    // discretization.  It should be straightforward to generalize it to work
+    // with other data centerings.
+    //
+    // NOTE #2: This code is specialized for isoparametric elements.  It is less
+    // clear how to relax this assumption.
+    //
+    // NOTE #3: This implementation uses the pointwise value of J = det(dX/ds)
+    // to convert a Lagrangian density into an Eulerian density.  We should
+    // investigate whether there is any advantage to using a projection of J
+    // onto a (discontinuous) FE basis instead of evaluating J directly from the
+    // discrete deformation.
+
+    // Extract the mesh.
+    const MeshBase& mesh = d_es->get_mesh();
+    const int dim = mesh.mesh_dimension();
+
+    // Extract the FE systems and DOF maps, and setup the FE objects.
+    System& F_system = d_es->get_system(system_name);
+    const unsigned int n_vars = F_system.n_vars();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(n_vars == NDIM);  // specialized to side-centered data
+#endif
+    const DofMap& F_dof_map = F_system.get_dof_map();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_dof_map.variable_type(0));
+#endif
+    blitz::Array<std::vector<unsigned int>,1> F_dof_indices(n_vars);
+    for (unsigned int i = 0; i < n_vars; ++i) F_dof_indices(i).reserve(NDIM == 2 ? 9 : 27);
+    AutoPtr<FEBase> F_fe(FEBase::build(dim, F_dof_map.variable_type(0)));
+    const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
+
+    System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
+    const DofMap& X_dof_map = X_system.get_dof_map();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
+#endif
+    FEType X_fe_type = X_dof_map.variable_type(0);
+    blitz::Array<std::vector<unsigned int>,1> X_dof_indices(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) X_dof_indices(d).reserve(NDIM == 2 ? 9 : 27);
+    AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
+    const std::vector<std::vector<VectorValue<double> > >& dphi_X = X_fe->get_dphi();
+
+    // Communicate any unsynchronized ghost data and enforce any constraints.
+    if (close_F) F_vec.close();
+    F_dof_map.enforce_constraints_exactly(F_system, &F_vec);
+
+    if (close_X) X_vec.close();
+    X_dof_map.enforce_constraints_exactly(X_system, &X_vec);
+
+    // Loop over the patches to interpolate nodal values on the FE mesh to the
+    // the points of the Eulerian grid.
+    TensorValue<double> dX_ds;
+    blitz::Array<double,2> F_node, X_node;
+    static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
+    Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
+    blitz::TinyVector<double,NDIM> X_min, X_max;
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
+    int local_patch_num = 0;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    {
+        // The relevant collection of elements.
+        const blitz::Array<Elem*,1>& patch_elems = d_active_patch_elem_map(local_patch_num);
+        const unsigned int num_active_patch_elems = patch_elems.size();
+        if (num_active_patch_elems == 0) continue;
+
+        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
+        const Box<NDIM>& patch_box = patch->getBox();
+        const CellIndex<NDIM>& patch_lower = patch_box.lower();
+//      const CellIndex<NDIM>& patch_upper = patch_box.upper();
+        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* const patch_x_lower = patch_geom->getXLower();
+//      const double* const patch_x_upper = patch_geom->getXUpper();
+        const double* const patch_dx = patch_geom->getDx();
+
+        blitz::TinyVector<Box<NDIM>,NDIM> side_boxes;
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
+        }
+
+        // Loop over the elements and compute the values to be prolonged.
+        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+        {
+            Elem* const elem = patch_elems(e_idx);
+            const unsigned int n_node = elem->n_nodes();
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                X_dof_map.dof_indices(elem, X_dof_indices(d), d);
+            }
+
+            // Cache the nodal and physical coordinates of the element,
+            // determine the bounding box of the current configuration of the
+            // element, and set the nodal coordinates of the element to
+            // correspond to the physical coordinates.
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(n_node <= MAX_NODES);
+#endif
+            X_min =  0.5*std::numeric_limits<double>::max();
+            X_max = -0.5*std::numeric_limits<double>::max();
+            for (unsigned int k = 0; k < n_node; ++k)
+            {
+                s_node_cache[k] = elem->point(k);
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    X_node_cache[k](d) = X_vec(X_dof_indices(d)[k]);
+                    X_min[d] = std::min(X_min[d],X_node_cache[k](d));
+                    X_max[d] = std::max(X_max[d],X_node_cache[k](d));
+                }
+                elem->point(k) = X_node_cache[k];
+            }
+
+            // Loop over coordinate directions and look for Eulerian grid points
+            // that are covered by the element.
+            std::vector<Point>            intersection_master_coords;
+            std::vector<SideIndex<NDIM> > intersection_indices;
+            static const int estimated_max_size = std::pow(8,NDIM);
+            intersection_master_coords.reserve(estimated_max_size);
+            intersection_indices      .reserve(estimated_max_size);
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                // Loop over the relevant range of indices.
+                blitz::TinyVector<int,NDIM> i_begin, i_end, ic;
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    if (d == axis)
+                    {
+                        i_begin[d] = std::ceil((X_min[d]-patch_x_lower[d])/patch_dx[d]) + patch_lower[d];
+                        i_end  [d] = std::ceil((X_max[d]-patch_x_lower[d])/patch_dx[d]) + patch_lower[d];
+                    }
+                    else
+                    {
+                        i_begin[d] = std::ceil((X_min[d]-patch_x_lower[d])/patch_dx[d] - 0.5) + patch_lower[d];
+                        i_end  [d] = std::ceil((X_max[d]-patch_x_lower[d])/patch_dx[d] - 0.5) + patch_lower[d];
+                    }
+                }
+#if (NDIM == 3)
+                for (ic[2] = i_begin[2]; ic[2] < i_end[2]; ++ic[2])
+                {
+#endif
+                    for (ic[1] = i_begin[1]; ic[1] < i_end[1]; ++ic[1])
+                    {
+                        for (ic[0] = i_begin[0]; ic[0] < i_end[0]; ++ic[0])
+                        {
+                            Point p;
+                            for (unsigned int d = 0; d < NDIM; ++d)
+                            {
+                                p(d) = patch_x_lower[d] + patch_dx[d]*(static_cast<double>(ic[d]-patch_lower[d])+(d == axis ? 0.0 : 0.5));
+                            }
+                            const Point master_coords = FEInterface::inverse_map(dim, X_fe_type, elem, p, TOLERANCE, false);
+                            if (FEInterface::on_reference_element(master_coords,elem->type()))
+                            {
+                                intersection_master_coords.push_back(master_coords);
+#if (NDIM == 2)
+                                SideIndex<NDIM> s_i(Index<NDIM>(ic[0],ic[1]),axis,0);
+#endif
+#if (NDIM == 3)
+                                SideIndex<NDIM> s_i(Index<NDIM>(ic[0],ic[1],ic[2]),axis,0);
+#endif
+                                intersection_indices.push_back(s_i);
+                            }
+                        }
+                    }
+#if (NDIM == 3)
+                }
+#endif
+            }
+
+            // Restore the nodal coordinates.
+            for (unsigned int k = 0; k < n_node; ++k)
+            {
+                elem->point(k) = s_node_cache[k];
+            }
+
+            // If there are no intersection points, then continue on to the next
+            // element.
+            if (intersection_master_coords.empty()) continue;
+
+            // Evaluate the Lagrangian density at the Eulerian grid point, and
+            // set the value on the Eulerian grid to be F/det(dX/ds).
+            F_fe->reinit(elem, &intersection_master_coords);
+            X_fe->reinit(elem, &intersection_master_coords);
+            for (unsigned int i = 0; i < n_vars; ++i)
+            {
+                F_dof_map.dof_indices(elem, F_dof_indices(i), i);
+            }
+
+            get_values_for_interpolation(F_node, F_vec, F_dof_indices);
+            get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+            for (unsigned int qp = 0; qp < intersection_master_coords.size(); ++qp)
+            {
+                const SideIndex<NDIM>& s_i = intersection_indices[qp];
+                const int axis = s_i.getAxis();
+                if (!side_boxes[axis].contains(s_i)) continue;
+                jacobian(dX_ds,qp,X_node,dphi_X);
+                const double J = std::abs(dX_ds.det());
+                const double F_qp = interpolate(qp,F_node(blitz::Range::all(),axis),phi_F)/J;
+                (*f_data)(s_i) = F_qp;
+            }
+        }
+    }
+
+    IBTK_TIMER_STOP(t_prolong_density);
+    return;
+}// prolongDensity
 
 void
 FEDataManager::interp(
@@ -494,8 +918,7 @@ FEDataManager::interp(
     const double fill_data_time,
     const bool close_X)
 {
-    SAMRAI_MPI::barrier();
-    t_interp->start();
+    IBTK_TIMER_START(t_interp);
 
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
@@ -570,7 +993,7 @@ FEDataManager::interp(
         int qp_offset = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            const libMesh::Elem* const elem = patch_elems(e_idx);
+            const Elem* const elem = patch_elems(e_idx);
 
             X_fe->reinit(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -616,7 +1039,7 @@ FEDataManager::interp(
         qp_offset = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
-            const libMesh::Elem* const elem = patch_elems(e_idx);
+            const Elem* const elem = patch_elems(e_idx);
 
             F_fe->reinit(elem);
             for (unsigned int i = 0; i < n_vars; ++i)
@@ -661,9 +1084,260 @@ FEDataManager::interp(
     // Solve for the nodal values.
     computeL2Projection(F_vec, *F_rhs_vec, system_name, d_interp_uses_consistent_mass_matrix);
 
-    t_interp->stop();
+    IBTK_TIMER_STOP(t_interp);
     return;
 }// interp
+
+void
+FEDataManager::restrictValue(
+    const int f_data_idx,
+    NumericVector<double>& F_vec,
+    NumericVector<double>& X_vec,
+    const std::string& system_name,
+    std::vector<Pointer<RefineSchedule<NDIM> > > f_refine_scheds,
+    const double fill_data_time,
+    const bool close_X)
+{
+    IBTK_TIMER_START(t_restrict_value);
+
+    // NOTE #1: This routine is sepcialized for a staggered-grid Eulerian
+    // discretization.  It should be straightforward to generalize it to work
+    // with other data centerings.
+    //
+    // NOTE #2: This code is specialized for isoparametric elements.  It is less
+    // clear how to relax this assumption.
+    //
+    // NOTE #3: This implementation uses the pointwise value of J = det(dX/ds)
+    // to convert a Lagrangian density into an Eulerian density.  We should
+    // investigate whether there is any advantage to using a projection of J
+    // onto a (discontinuous) FE basis instead of evaluating J directly from the
+    // discrete deformation.
+
+    // Extract the mesh.
+    const MeshBase& mesh = d_es->get_mesh();
+    const int dim = mesh.mesh_dimension();
+
+    // Extract the FE systems and DOF maps, and setup the FE objects.
+    System& F_system = d_es->get_system(system_name);
+    const unsigned int n_vars = F_system.n_vars();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(n_vars == NDIM);  // specialized to side-centered data
+#endif
+    const DofMap& F_dof_map = F_system.get_dof_map();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_dof_map.variable_type(0));
+#endif
+    blitz::Array<std::vector<unsigned int>,1> F_dof_indices(n_vars);
+    for (unsigned int i = 0; i < n_vars; ++i) F_dof_indices(i).reserve(NDIM == 2 ? 9 : 27);
+    AutoPtr<FEBase> F_fe(FEBase::build(dim, F_dof_map.variable_type(0)));
+    const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
+
+    System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
+    const DofMap& X_dof_map = X_system.get_dof_map();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
+#endif
+    FEType X_fe_type = X_dof_map.variable_type(0);
+    blitz::Array<std::vector<unsigned int>,1> X_dof_indices(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) X_dof_indices(d).reserve(NDIM == 2 ? 9 : 27);
+    AutoPtr<FEBase> X_fe(FEBase::build(dim, X_dof_map.variable_type(0)));
+    const std::vector<std::vector<VectorValue<double> > >& dphi_X = X_fe->get_dphi();
+
+    // Communicate any unsynchronized ghost data and enforce any constraints.
+    for (unsigned int k = 0; k < f_refine_scheds.size(); ++k)
+    {
+        if (!f_refine_scheds[k].isNull()) f_refine_scheds[k]->fillData(fill_data_time);
+    }
+
+    if (close_X) X_vec.close();
+    X_dof_map.enforce_constraints_exactly(X_system, &X_vec);
+
+    // Loop over the patches to assemble the right-hand-side vector used to
+    // solve for F.
+    AutoPtr<NumericVector<double> > F_rhs_vec = F_vec.zero_clone();
+    std::vector<DenseVector<double> > F_rhs_e(n_vars);
+    TensorValue<double> dX_ds;
+    blitz::Array<double,2> X_node;
+    static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
+    Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
+    blitz::TinyVector<double,NDIM> X_min, X_max;
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
+    int local_patch_num = 0;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    {
+        // The relevant collection of elements.
+        const blitz::Array<Elem*,1>& patch_elems = d_active_patch_elem_map(local_patch_num);
+        const unsigned int num_active_patch_elems = patch_elems.size();
+        if (num_active_patch_elems == 0) continue;
+
+        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
+        const Box<NDIM>& patch_box = patch->getBox();
+        const CellIndex<NDIM>& patch_lower = patch_box.lower();
+//      const CellIndex<NDIM>& patch_upper = patch_box.upper();
+        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* const patch_x_lower = patch_geom->getXLower();
+//      const double* const patch_x_upper = patch_geom->getXUpper();
+        const double* const patch_dx = patch_geom->getDx();
+        double vol = 1.0;
+        for (unsigned int d = 0; d < NDIM; ++d) vol += patch_dx[d];
+
+        blitz::TinyVector<Box<NDIM>,NDIM> side_boxes;
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
+            if (!patch_geom->getTouchesRegularBoundary(axis,1)) side_boxes[axis].growUpper(axis,-1);
+        }
+
+        SideData<NDIM,int> interpolated_value(patch_box, 1, IntVector<NDIM>(0));
+        interpolated_value.fillAll(0);
+
+        // Loop over the elements.
+        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+        {
+            Elem* const elem = patch_elems(e_idx);
+            const unsigned int n_node = elem->n_nodes();
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                X_dof_map.dof_indices(elem, X_dof_indices(d), d);
+            }
+
+            // Cache the nodal and physical coordinates of the element,
+            // determine the bounding box of the current configuration of the
+            // element, and set the nodal coordinates of the element to
+            // correspond to the physical coordinates.
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(n_node <= MAX_NODES);
+#endif
+            X_min =  0.5*std::numeric_limits<double>::max();
+            X_max = -0.5*std::numeric_limits<double>::max();
+            for (unsigned int k = 0; k < n_node; ++k)
+            {
+                s_node_cache[k] = elem->point(k);
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    X_node_cache[k](d) = X_vec(X_dof_indices(d)[k]);
+                    X_min[d] = std::min(X_min[d],X_node_cache[k](d));
+                    X_max[d] = std::max(X_max[d],X_node_cache[k](d));
+                }
+                elem->point(k) = X_node_cache[k];
+            }
+
+            // Loop over coordinate directions and look for Eulerian grid points
+            // that are covered by the element.
+            std::vector<Point>            intersection_master_coords;
+            std::vector<SideIndex<NDIM> > intersection_indices;
+            static const int estimated_max_size = std::pow(8,NDIM);
+            intersection_master_coords.reserve(estimated_max_size);
+            intersection_indices      .reserve(estimated_max_size);
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                // Loop over the relevant range of indices.
+                blitz::TinyVector<int,NDIM> i_begin, i_end, ic;
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    if (d == axis)
+                    {
+                        i_begin[d] = std::ceil((X_min[d]-patch_x_lower[d])/patch_dx[d]) + patch_lower[d];
+                        i_end  [d] = std::ceil((X_max[d]-patch_x_lower[d])/patch_dx[d]) + patch_lower[d];
+                    }
+                    else
+                    {
+                        i_begin[d] = std::ceil((X_min[d]-patch_x_lower[d])/patch_dx[d] - 0.5) + patch_lower[d];
+                        i_end  [d] = std::ceil((X_max[d]-patch_x_lower[d])/patch_dx[d] - 0.5) + patch_lower[d];
+                    }
+                }
+#if (NDIM == 3)
+                for (ic[2] = i_begin[2]; ic[2] < i_end[2]; ++ic[2])
+                {
+#endif
+                    for (ic[1] = i_begin[1]; ic[1] < i_end[1]; ++ic[1])
+                    {
+                        for (ic[0] = i_begin[0]; ic[0] < i_end[0]; ++ic[0])
+                        {
+                            Point p;
+                            for (unsigned int d = 0; d < NDIM; ++d)
+                            {
+                                p(d) = patch_x_lower[d] + patch_dx[d]*(static_cast<double>(ic[d]-patch_lower[d])+(d == axis ? 0.0 : 0.5));
+                            }
+                            const Point master_coords = FEInterface::inverse_map(dim, X_fe_type, elem, p, TOLERANCE, false);
+                            if (FEInterface::on_reference_element(master_coords,elem->type()))
+                            {
+                                intersection_master_coords.push_back(master_coords);
+#if (NDIM == 2)
+                                SideIndex<NDIM> s_i(Index<NDIM>(ic[0],ic[1]),axis,0);
+#endif
+#if (NDIM == 3)
+                                SideIndex<NDIM> s_i(Index<NDIM>(ic[0],ic[1],ic[2]),axis,0);
+#endif
+                                intersection_indices.push_back(s_i);
+                            }
+                        }
+                    }
+#if (NDIM == 3)
+                }
+#endif
+            }
+
+            // Restore the nodal coordinates.
+            for (unsigned int k = 0; k < n_node; ++k)
+            {
+                elem->point(k) = s_node_cache[k];
+            }
+
+            // If there are no intersection points, then continue on to the next
+            // element.
+            if (intersection_master_coords.empty()) continue;
+
+            // Evaluate the Eulerian value and rescale it by 1.0/det(dX/ds).
+            F_fe->reinit(elem, &intersection_master_coords);
+            X_fe->reinit(elem, &intersection_master_coords);
+            for (unsigned int i = 0; i < n_vars; ++i)
+            {
+                F_dof_map.dof_indices(elem, F_dof_indices(i), i);
+                if (F_rhs_e[i].size() != F_dof_indices(i).size())
+                {
+                    F_rhs_e[i].resize(F_dof_indices(i).size());  // NOTE: DenseVector::resize() automatically zeroes the vector contents.
+                }
+                else
+                {
+                    F_rhs_e[i].zero();
+                }
+            }
+
+            const unsigned int n_basis = F_dof_indices(0).size();
+
+            get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+            for (unsigned int qp = 0; qp < intersection_master_coords.size(); ++qp)
+            {
+                const SideIndex<NDIM>& s_i = intersection_indices[qp];
+                const int axis = s_i.getAxis();
+                if (!side_boxes[axis].contains(s_i)) continue;
+                if (interpolated_value(s_i) != 0) continue;  // each value must be interpolated at most once
+                interpolated_value(s_i) = 1;
+                jacobian(dX_ds,qp,X_node,dphi_X);
+                const double J = std::abs(dX_ds.det());
+                const double F_qp = (*f_data)(s_i)*vol/J;
+                for (unsigned int k = 0; k < n_basis; ++k)
+                {
+                    F_rhs_e[axis](k) += F_qp*phi_F[k][qp];
+                }
+            }
+
+            for (unsigned int i = 0; i < n_vars; ++i)
+            {
+                F_dof_map.constrain_element_vector(F_rhs_e[i], F_dof_indices(i));
+                F_rhs_vec->add_vector(F_rhs_e[i], F_dof_indices(i));
+            }
+        }
+    }
+
+    // Solve for the nodal values.
+    computeL2Projection(F_vec, *F_rhs_vec, system_name, d_interp_uses_consistent_mass_matrix);
+
+    IBTK_TIMER_STOP(t_restrict_value);
+    return;
+}// restrictValue
 
 std::pair<LinearSolver<double>*,SparseMatrix<double>*>
 FEDataManager::buildL2ProjectionSolver(
@@ -672,8 +1346,7 @@ FEDataManager::buildL2ProjectionSolver(
     const QuadratureType quad_type,
     const Order quad_order)
 {
-    SAMRAI_MPI::barrier();
-    t_build_l2_projection_solver->start();
+    IBTK_TIMER_START(t_build_l2_projection_solver);
 
     if ((d_L2_proj_solver.count(system_name) == 0 || d_L2_proj_matrix.count(system_name) == 0) ||
         (d_L2_proj_consistent_mass_matrix[system_name] != consistent_mass_matrix) ||
@@ -797,7 +1470,7 @@ FEDataManager::buildL2ProjectionSolver(
         d_L2_proj_quad_order[system_name] = quad_order;
     }
 
-    t_build_l2_projection_solver->stop();
+    IBTK_TIMER_STOP(t_build_l2_projection_solver);
     return std::make_pair(d_L2_proj_solver[system_name], d_L2_proj_matrix[system_name]);
 }// buildL2ProjectionSolver
 
@@ -807,8 +1480,7 @@ FEDataManager::buildDiagonalL2MassMatrix(
     const QuadratureType quad_type,
     const Order quad_order)
 {
-    SAMRAI_MPI::barrier();
-    t_build_diagonal_l2_mass_matrix->start();
+    IBTK_TIMER_START(t_build_diagonal_l2_mass_matrix);
 
     if (d_L2_proj_matrix_diag.count(system_name) == 0)
     {
@@ -893,7 +1565,7 @@ FEDataManager::buildDiagonalL2MassMatrix(
         d_L2_proj_matrix_diag[system_name] = M_vec;
     }
 
-    t_build_diagonal_l2_mass_matrix->stop();
+    IBTK_TIMER_STOP(t_build_diagonal_l2_mass_matrix);
     return d_L2_proj_matrix_diag[system_name];
 }// buildDiagonalL2MassMatrix
 
@@ -908,8 +1580,7 @@ FEDataManager::computeL2Projection(
     const double tol,
     const unsigned int max_its)
 {
-    SAMRAI_MPI::barrier();
-    t_compute_l2_projection->start();
+    IBTK_TIMER_START(t_compute_l2_projection);
 
     int ierr;
     bool converged = false;
@@ -940,7 +1611,7 @@ FEDataManager::computeL2Projection(
     }
     dof_map.enforce_constraints_exactly(system, &U_vec);
 
-    t_compute_l2_projection->stop();
+    IBTK_TIMER_STOP(t_compute_l2_projection);
     return converged;
 }// computeL2Projection
 
@@ -950,8 +1621,7 @@ FEDataManager::updateWorkloadData(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
-    SAMRAI_MPI::barrier();
-    t_update_workload_data->start();
+    IBTK_TIMER_START(t_update_workload_data);
 
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
@@ -977,7 +1647,7 @@ FEDataManager::updateWorkloadData(
         }
     }
 
-    t_update_workload_data->stop();
+    IBTK_TIMER_STOP(t_update_workload_data);
     return;
 }// updateWorkloadData
 
@@ -1002,8 +1672,7 @@ FEDataManager::initializeLevelData(
     const Pointer<BasePatchLevel<NDIM> > old_level,
     const bool allocate_data)
 {
-    SAMRAI_MPI::barrier();
-    t_initialize_level_data->start();
+    IBTK_TIMER_START(t_initialize_level_data);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -1053,7 +1722,7 @@ FEDataManager::initializeLevelData(
         }
     }
 
-    t_initialize_level_data->stop();
+    IBTK_TIMER_STOP(t_initialize_level_data);
     return;
 }// initializeLevelData
 
@@ -1063,8 +1732,7 @@ FEDataManager::resetHierarchyConfiguration(
     const int coarsest_ln,
     const int finest_ln)
 {
-    SAMRAI_MPI::barrier();
-    t_reset_hierarchy_configuration->start();
+    IBTK_TIMER_START(t_reset_hierarchy_configuration);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -1083,7 +1751,7 @@ FEDataManager::resetHierarchyConfiguration(
     setPatchHierarchy(hierarchy);
     resetLevels(0,finest_hier_level);
 
-    t_reset_hierarchy_configuration->stop();
+    IBTK_TIMER_STOP(t_reset_hierarchy_configuration);
     return;
 }// resetHierarchyConfiguration
 
@@ -1098,8 +1766,7 @@ FEDataManager::applyGradientDetector(
 {
     if (level_number >= d_level_number) return;
 
-    SAMRAI_MPI::barrier();
-    t_apply_gradient_detector->start();
+    IBTK_TIMER_START(t_apply_gradient_detector);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -1210,7 +1877,8 @@ FEDataManager::applyGradientDetector(
             }
         }
     }
-    t_apply_gradient_detector->stop();
+
+    IBTK_TIMER_STOP(t_apply_gradient_detector);
     return;
 }// applyGradientDetector
 
@@ -1218,8 +1886,7 @@ void
 FEDataManager::putToDatabase(
     Pointer<Database> db)
 {
-    SAMRAI_MPI::barrier();
-    t_put_to_database->start();
+    IBTK_TIMER_START(t_put_to_database);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
@@ -1229,7 +1896,7 @@ FEDataManager::putToDatabase(
     db->putInteger("d_coarsest_ln", d_coarsest_ln);
     db->putInteger("d_finest_ln"  , d_finest_ln  );
 
-    t_put_to_database->stop();
+    IBTK_TIMER_STOP(t_put_to_database);
     return;
 }// putToDatabase
 
@@ -1296,7 +1963,10 @@ FEDataManager::FEDataManager(
         t_reinit_element_mappings = TimerManager::getManager()->getTimer("IBTK::FEDataManager::reinitElementMappings()");
         t_build_ghosted_solution_vector = TimerManager::getManager()->getTimer("IBTK::FEDataManager::buildGhostedSolutionVector()");
         t_spread = TimerManager::getManager()->getTimer("IBTK::FEDataManager::spread()");
+        t_prolong_value = TimerManager::getManager()->getTimer("IBTK::FEDataManager::prolongValue()");
+        t_prolong_density = TimerManager::getManager()->getTimer("IBTK::FEDataManager::prolongDensity()");
         t_interp = TimerManager::getManager()->getTimer("IBTK::FEDataManager::interp()");
+        t_restrict_value = TimerManager::getManager()->getTimer("IBTK::FEDataManager::restrictValue()");
         t_build_l2_projection_solver = TimerManager::getManager()->getTimer("IBTK::FEDataManager::buildL2ProjectionSolver()");
         t_build_diagonal_l2_mass_matrix = TimerManager::getManager()->getTimer("IBTK::FEDataManager::buildDiagonalL2MassMatrix()");
         t_compute_l2_projection = TimerManager::getManager()->getTimer("IBTK::FEDataManager::computeL2Projection()");

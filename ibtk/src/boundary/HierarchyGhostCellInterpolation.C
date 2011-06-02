@@ -152,12 +152,11 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     const int coarsest_ln,
     const int finest_ln)
 {
-    SAMRAI_MPI::barrier();
-    t_initialize_operator_state->start();
+    IBTK_TIMER_START(t_initialize_operator_state);
 
     initializeOperatorState(std::vector<InterpolationTransactionComponent>(1,transaction_comp), hierarchy, coarsest_ln, finest_ln);
 
-    t_initialize_operator_state->stop();
+    IBTK_TIMER_STOP(t_initialize_operator_state);
     return;
 }// initializeOperatorState
 
@@ -168,8 +167,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     const int coarsest_ln,
     const int finest_ln)
 {
-    SAMRAI_MPI::barrier();
-    t_initialize_operator_state->start();
+    IBTK_TIMER_START(t_initialize_operator_state);
 
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
@@ -325,7 +323,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     // Indicate the operator is initialized.
     d_is_initialized = true;
 
-    t_initialize_operator_state->stop();
+    IBTK_TIMER_STOP(t_initialize_operator_state);
     return;
 }// initializeOperatorState
 
@@ -333,8 +331,7 @@ void
 HierarchyGhostCellInterpolation::resetTransactionComponent(
     const InterpolationTransactionComponent& transaction_comp)
 {
-    SAMRAI_MPI::barrier();
-    t_reset_transaction_component->start();
+    IBTK_TIMER_START(t_reset_transaction_component);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_is_initialized);
@@ -346,7 +343,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponent(
     }
     resetTransactionComponents(std::vector<InterpolationTransactionComponent>(1,transaction_comp));
 
-    t_reset_transaction_component->stop();
+    IBTK_TIMER_STOP(t_reset_transaction_component);
     return;
 }// resetTransactionComponent
 
@@ -354,8 +351,7 @@ void
 HierarchyGhostCellInterpolation::resetTransactionComponents(
     const std::vector<InterpolationTransactionComponent>& transaction_comps)
 {
-    SAMRAI_MPI::barrier();
-    t_reset_transaction_components->start();
+    IBTK_TIMER_START(t_reset_transaction_components);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_is_initialized);
@@ -492,7 +488,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
         d_refine_alg->resetSchedule(d_refine_scheds[dst_ln]);
     }
 
-    t_reset_transaction_components->stop();
+    IBTK_TIMER_STOP(t_reset_transaction_components);
     return;
 }// resetTransactionComponents
 
@@ -502,12 +498,11 @@ HierarchyGhostCellInterpolation::reinitializeOperatorState(
 {
     if (!d_is_initialized) return;
 
-    SAMRAI_MPI::barrier();
-    t_reinitialize_operator_state->start();
+    IBTK_TIMER_START(t_reinitialize_operator_state);
 
     initializeOperatorState(d_transaction_comps, hierarchy);
 
-    t_reinitialize_operator_state->stop();
+    IBTK_TIMER_STOP(t_reinitialize_operator_state);
     return;
 }// reinitializeOperatorState
 
@@ -516,8 +511,7 @@ HierarchyGhostCellInterpolation::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
-    SAMRAI_MPI::barrier();
-    t_deallocate_operator_state->start();
+    IBTK_TIMER_START(t_deallocate_operator_state);
 
     // Clear cached refinement operators.
     d_cf_bdry_ops.clear();
@@ -539,7 +533,7 @@ HierarchyGhostCellInterpolation::deallocateOperatorState()
     // Indicate that the operator is NOT initialized.
     d_is_initialized = false;
 
-    t_deallocate_operator_state->stop();
+    IBTK_TIMER_STOP(t_deallocate_operator_state);
     return;
 }// deallocateOperatorState
 
@@ -547,8 +541,7 @@ void
 HierarchyGhostCellInterpolation::fillData(
     const double& fill_time)
 {
-    SAMRAI_MPI::barrier();
-    t_fill_data->start();
+    IBTK_TIMER_START(t_fill_data);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_is_initialized);
@@ -582,18 +575,16 @@ HierarchyGhostCellInterpolation::fillData(
 
     // Synchronize data on the patch hierarchy prior to filling ghost cell
     // values.
-    SAMRAI_MPI::barrier();
-    t_fill_data_coarsen->start();
+    IBTK_TIMER_START(t_fill_data_coarsen);
     for (int src_ln = d_finest_ln; src_ln >= std::max(1,d_coarsest_ln); --src_ln)
     {
         if (!d_coarsen_scheds[src_ln].isNull()) d_coarsen_scheds[src_ln]->coarsenData();
     }
-    t_fill_data_coarsen->stop();
+    IBTK_TIMER_STOP(t_fill_data_coarsen);
 
     // Perform the initial data fill, using extrapolation to determine ghost
     // cell values at physical boundaries.
-    SAMRAI_MPI::barrier();
-    t_fill_data_refine->start();
+    IBTK_TIMER_START(t_fill_data_refine);
     for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)
     {
         if (!d_refine_scheds[dst_ln].isNull())
@@ -616,11 +607,10 @@ HierarchyGhostCellInterpolation::fillData(
             }
         }
     }
-    t_fill_data_refine->stop();
+    IBTK_TIMER_STOP(t_fill_data_refine);
 
     // Set Robin boundary conditions at physical boundaries.
-    SAMRAI_MPI::barrier();
-    t_fill_data_set_physical_bcs->start();
+    IBTK_TIMER_START(t_fill_data_set_physical_bcs);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -647,9 +637,9 @@ HierarchyGhostCellInterpolation::fillData(
             }
         }
     }
-    t_fill_data_set_physical_bcs->stop();
+    IBTK_TIMER_STOP(t_fill_data_set_physical_bcs);
 
-    t_fill_data->stop();
+    IBTK_TIMER_STOP(t_fill_data);
     return;
 }// fillData
 

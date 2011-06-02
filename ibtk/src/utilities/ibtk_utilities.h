@@ -46,7 +46,7 @@
             task;                                               \
             done = true;                                        \
         }                                                       \
-    } while (0)
+    } while (0);
 
 #define IBTK_DEPRECATED_CLASS1(deprecated_class_name)                   \
     IBTK_DO_ONCE({                                                      \
@@ -108,6 +108,23 @@
                                << "."                                   \
                                << std::endl;                            \
         });
+
+namespace IBTK
+{
+static const bool ENABLE_TIMERS = false;
+}
+
+#define IBTK_TIMER_START(timer)                                 \
+    do                                                          \
+    {                                                           \
+        if (IBTK::ENABLE_TIMERS) timer->start();                \
+    } while (0);
+
+#define IBTK_TIMER_STOP(timer)                                  \
+    do                                                          \
+    {                                                           \
+        if (IBTK::ENABLE_TIMERS) timer->stop();                 \
+    } while (0);
 
 //////////////////////////////////////////////////////////////////////////////
 
