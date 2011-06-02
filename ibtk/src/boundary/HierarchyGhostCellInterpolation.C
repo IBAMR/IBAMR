@@ -86,7 +86,6 @@ HierarchyGhostCellInterpolation::HierarchyGhostCellInterpolation()
       d_refine_alg(NULL),
       d_refine_strategy(NULL),
       d_refine_scheds(),
-      d_scratch_idxs(),
       d_cf_bdry_ops(),
       d_extrap_bc_ops(),
       d_cc_robin_bc_ops(),
@@ -210,7 +209,9 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(!coarsen_op.isNull());
 #endif
-            d_coarsen_alg->registerCoarsen(data_idx, data_idx, coarsen_op);
+            d_coarsen_alg->registerCoarsen(data_idx,  // destination
+                                           data_idx,  // source
+                                           coarsen_op);
             registered_coarsen_op = true;
         }
     }
@@ -228,8 +229,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         }
     }
 
-    // Setup scratch data and cached refine algorithms and schedules.
-    d_scratch_idxs.resize(d_transaction_comps.size());
+    // Setup cached refine algorithms and schedules.
     d_cf_bdry_ops.resize(d_transaction_comps.size());
     d_extrap_bc_ops.resize(d_transaction_comps.size());
     d_cc_robin_bc_ops.resize(d_transaction_comps.size());
@@ -241,8 +241,6 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(data_idx, var);
-        d_scratch_idxs[comp_idx] = var_db->registerClonedPatchDataIndex(var, data_idx);
-        const int scratch_idx = d_scratch_idxs[comp_idx];
         Pointer<CellVariable<NDIM,double> > cc_var = var;
         Pointer<NodeVariable<NDIM,double> > nc_var = var;
         Pointer<SideVariable<NDIM,double> > sc_var = var;
@@ -253,7 +251,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
             refine_op = NULL;
             d_cf_bdry_ops[comp_idx] = new CartCellDoubleQuadraticCFInterpolation();
             d_cf_bdry_ops[comp_idx]->setConsistentInterpolationScheme(d_transaction_comps[comp_idx].d_consistent_type_2_bdry);
-            d_cf_bdry_ops[comp_idx]->setPatchDataIndex(-1);
+            d_cf_bdry_ops[comp_idx]->setPatchDataIndex(data_idx);
             d_cf_bdry_ops[comp_idx]->setPatchHierarchy(d_hierarchy);
             refine_patch_strategies.push_back(d_cf_bdry_ops[comp_idx]);
         }
@@ -267,7 +265,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
             refine_op = NULL;
             d_cf_bdry_ops[comp_idx] = new CartSideDoubleQuadraticCFInterpolation();
             d_cf_bdry_ops[comp_idx]->setConsistentInterpolationScheme(d_transaction_comps[comp_idx].d_consistent_type_2_bdry);
-            d_cf_bdry_ops[comp_idx]->setPatchDataIndex(-1);
+            d_cf_bdry_ops[comp_idx]->setPatchDataIndex(data_idx);
             d_cf_bdry_ops[comp_idx]->setPatchHierarchy(d_hierarchy);
             refine_patch_strategies.push_back(d_cf_bdry_ops[comp_idx]);
         }
@@ -277,12 +275,16 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
                        << "  only double-precision cell-, node-, or side-centered data is presently supported." << std::endl);
         }
 
-        d_refine_alg->registerRefine(scratch_idx, data_idx, scratch_idx, refine_op, fill_pattern);
+        d_refine_alg->registerRefine(data_idx,  // destination
+                                     data_idx,  // source
+                                     data_idx,  // temporary work space
+                                     refine_op,
+                                     fill_pattern);
 
         const std::string& phys_bdry_extrap_type = d_transaction_comps[comp_idx].d_phys_bdry_extrap_type;
         if (phys_bdry_extrap_type != "NONE")
         {
-            d_extrap_bc_ops[comp_idx] = new CartExtrapPhysBdryOp(scratch_idx, phys_bdry_extrap_type);
+            d_extrap_bc_ops[comp_idx] = new CartExtrapPhysBdryOp(data_idx, phys_bdry_extrap_type);
             refine_patch_strategies.push_back(d_extrap_bc_ops[comp_idx]);
         }
 
@@ -387,7 +389,9 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(!coarsen_op.isNull());
 #endif
-            d_coarsen_alg->registerCoarsen(data_idx, data_idx, coarsen_op);
+            d_coarsen_alg->registerCoarsen(data_idx,  // destination
+                                           data_idx,  // source
+                                           coarsen_op);
             registered_coarsen_op = true;
         }
     }
@@ -407,13 +411,12 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
         const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(data_idx, var);
-        const int scratch_idx = d_scratch_idxs[comp_idx];
         Pointer<CellVariable<NDIM,double> > cc_var = var;
         Pointer<NodeVariable<NDIM,double> > nc_var = var;
         Pointer<SideVariable<NDIM,double> > sc_var = var;
         Pointer<RefineOperator<NDIM> > refine_op = NULL;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
-        if (!d_cf_bdry_ops[comp_idx].isNull()) d_cf_bdry_ops[comp_idx]->setPatchDataIndex(-1);
+        if (!d_cf_bdry_ops[comp_idx].isNull()) d_cf_bdry_ops[comp_idx]->setPatchDataIndex(data_idx);
         if (!cc_var.isNull())
         {
             refine_op = NULL;
@@ -432,7 +435,11 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
                        << "  only double-precision cell-, node-, or side-centered data is presently supported." << std::endl);
         }
 
-        d_refine_alg->registerRefine(scratch_idx, data_idx, scratch_idx, refine_op, fill_pattern);
+        d_refine_alg->registerRefine(data_idx,  // destination
+                                     data_idx,  // source
+                                     data_idx,  // temporary work space
+                                     refine_op,
+                                     fill_pattern);
 
         const std::string& phys_bdry_extrap_type = d_transaction_comps[comp_idx].d_phys_bdry_extrap_type;
         if (!d_extrap_bc_ops[comp_idx].isNull())
@@ -440,7 +447,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(phys_bdry_extrap_type != "NONE");
 #endif
-            d_extrap_bc_ops[comp_idx]->setPatchDataIndex(scratch_idx);
+            d_extrap_bc_ops[comp_idx]->setPatchDataIndex(data_idx);
             d_extrap_bc_ops[comp_idx]->setExtrapolationType(phys_bdry_extrap_type);
         }
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -511,15 +518,6 @@ HierarchyGhostCellInterpolation::deallocateOperatorState()
 
     SAMRAI_MPI::barrier();
     t_deallocate_operator_state->start();
-
-    // Clear scratch data indices.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
-    {
-        const int scratch_idx = d_scratch_idxs[comp_idx];
-        var_db->removePatchDataIndex(scratch_idx);
-    }
-    d_scratch_idxs.clear();
 
     // Clear cached refinement operators.
     d_cf_bdry_ops.clear();
@@ -596,79 +594,13 @@ HierarchyGhostCellInterpolation::fillData(
     // cell values at physical boundaries.
     SAMRAI_MPI::barrier();
     t_fill_data_refine->start();
-    ComponentSelector data_comps, scratch_comps;
-    for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
-    {
-        data_comps.setFlag(d_transaction_comps[comp_idx].d_data_idx);
-        scratch_comps.setFlag(d_scratch_idxs[comp_idx]);
-    }
-    for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(dst_ln);
-        level->setTime(fill_time, data_comps);
-        level->allocatePatchData(scratch_comps, fill_time);
-    }
     for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)
     {
         if (!d_refine_scheds[dst_ln].isNull())
         {
-            for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
-            {
-                const int scratch_idx = d_scratch_idxs[comp_idx];
-                if (!d_cf_bdry_ops[comp_idx].isNull()) d_cf_bdry_ops[comp_idx]->setPatchDataIndex(scratch_idx);
-            }
             d_refine_scheds[dst_ln]->fillData(fill_time);
-            for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
-            {
-                if (!d_cf_bdry_ops[comp_idx].isNull()) d_cf_bdry_ops[comp_idx]->setPatchDataIndex(-1);
-            }
         }
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(dst_ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
-            {
-                const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
-                const int scratch_idx = d_scratch_idxs[comp_idx];
-
-                Pointer<CellData<NDIM,double> > dst_cc_data = patch->getPatchData(data_idx);
-                Pointer<CellData<NDIM,double> > src_cc_data = patch->getPatchData(scratch_idx);
-                if (!dst_cc_data.isNull() && !src_cc_data.isNull())
-                {
-                    BoxList<NDIM> cell_ghost_boxes(CellGeometry<NDIM>::toCellBox(dst_cc_data->getGhostBox()*src_cc_data->getGhostBox()));
-                    cell_ghost_boxes.removeIntersections(CellGeometry<NDIM>::toCellBox(dst_cc_data->getBox()));
-                    dst_cc_data->getArrayData().copy(src_cc_data->getArrayData(), cell_ghost_boxes, IntVector<NDIM>(0));
-                    continue;
-                }
-
-                Pointer<NodeData<NDIM,double> > dst_nc_data = patch->getPatchData(data_idx);
-                Pointer<NodeData<NDIM,double> > src_nc_data = patch->getPatchData(scratch_idx);
-                if (!dst_nc_data.isNull() && !src_nc_data.isNull())
-                {
-                    BoxList<NDIM> node_ghost_boxes(NodeGeometry<NDIM>::toNodeBox(dst_nc_data->getGhostBox()*src_nc_data->getGhostBox()));
-                    node_ghost_boxes.removeIntersections(NodeGeometry<NDIM>::toNodeBox(dst_nc_data->getBox()));
-                    dst_nc_data->getArrayData().copy(src_nc_data->getArrayData(), node_ghost_boxes, IntVector<NDIM>(0));
-                    continue;
-                }
-
-                Pointer<SideData<NDIM,double> > dst_sc_data = patch->getPatchData(data_idx);
-                Pointer<SideData<NDIM,double> > src_sc_data = patch->getPatchData(scratch_idx);
-                if (!dst_sc_data.isNull() && !src_sc_data.isNull())
-                {
-                    for (unsigned int axis = 0; axis < NDIM; ++axis)
-                    {
-                        BoxList<NDIM> side_ghost_boxes(SideGeometry<NDIM>::toSideBox(dst_sc_data->getGhostBox()*src_sc_data->getGhostBox(),axis));
-                        side_ghost_boxes.removeIntersections(SideGeometry<NDIM>::toSideBox(dst_sc_data->getBox(),axis));
-                        dst_sc_data->getArrayData(axis).copy(src_sc_data->getArrayData(axis), side_ghost_boxes, IntVector<NDIM>(0));
-                    }
-                    continue;
-                }
-
-                TBOX_ERROR("HierarchyGhostCellInterpolation::fillData():\n"
-                           << "  only double-precision cell-, node-, or side-centered data is presently supported." << std::endl);
-            }
-        }
         const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -679,17 +611,10 @@ HierarchyGhostCellInterpolation::fillData(
                 {
                     const int data_idx = d_transaction_comps[comp_idx].d_data_idx;
                     const IntVector<NDIM>& ghost_width_to_fill = patch->getPatchData(data_idx)->getGhostCellWidth();
-                    d_cf_bdry_ops[comp_idx]->setPatchDataIndex(data_idx);
                     d_cf_bdry_ops[comp_idx]->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
-                    d_cf_bdry_ops[comp_idx]->setPatchDataIndex(-1);
                 }
             }
         }
-    }
-    for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(dst_ln);
-        level->deallocatePatchData(scratch_comps);
     }
     t_fill_data_refine->stop();
 
