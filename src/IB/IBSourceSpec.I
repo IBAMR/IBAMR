@@ -48,27 +48,6 @@ IBSourceSpec::getIsRegisteredWithStreamableManager()
     return s_registered_factory;
 }// getIsRegisteredWithStreamableManager
 
-inline unsigned int
-IBSourceSpec::getNumSources(
-    const int ln)
-{
-    return s_num_sources[ln];
-}// getNumSources
-
-inline const std::vector<std::string>&
-IBSourceSpec::getSourceNames(
-    const int ln)
-{
-    return s_source_names[ln];
-}// getSourceNames
-
-inline const std::vector<double>&
-IBSourceSpec::getSourceRadii(
-    const int ln)
-{
-    return s_source_radii[ln];
-}// getSourceRadii
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 inline

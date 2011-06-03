@@ -51,6 +51,7 @@
 #include <ibamr/IBRodForceSpec.h>
 #include <ibamr/IBSourceSpec.h>
 #include <ibamr/IBSpringForceSpec.h>
+#include <ibamr/IBStandardSourceGen.h>
 #include <ibamr/IBTargetPointForceSpec.h>
 #include <ibamr/namespaces.h>
 
@@ -2405,9 +2406,9 @@ IBStandardInitializer::readSourceFiles()
             // Free the next MPI process to start reading the current file.
             if (d_use_file_batons && rank != nodes-1) SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
         }
-        IBSourceSpec::setNumSources(ln,source_offset);
-        IBSourceSpec::setSourceNames(ln,source_names);
-        IBSourceSpec::setSourceRadii(ln,source_radii);
+        IBStandardSourceGen::setNumSources(ln,source_offset);
+        IBStandardSourceGen::setSourceNames(ln,source_names);
+        IBStandardSourceGen::setSourceRadii(ln,source_radii);
     }
     return;
 }// readSourceFiles

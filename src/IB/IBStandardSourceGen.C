@@ -57,6 +57,10 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
+std::vector<int> IBStandardSourceGen::s_num_sources;
+std::vector<std::vector<std::string> > IBStandardSourceGen::s_source_names;
+std::vector<std::vector<double> > IBStandardSourceGen::s_source_radii;
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBStandardSourceGen::IBStandardSourceGen()
@@ -79,6 +83,57 @@ IBStandardSourceGen::~IBStandardSourceGen()
     return;
 }// ~IBStandardSourceGen
 
+void
+IBStandardSourceGen::setNumSources(
+    const int ln,
+    const unsigned int num_sources)
+{
+    s_num_sources.resize(std::max(static_cast<int>(s_num_sources.size()),ln+1),0);
+    s_num_sources[ln] = num_sources;
+    return;
+}// getNumSources
+
+unsigned int
+IBStandardSourceGen::getNumSources(
+    const int ln)
+{
+    return s_num_sources[ln];
+}// getNumSources
+
+const std::vector<std::string>&
+IBStandardSourceGen::getSourceNames(
+    const int ln)
+{
+    return s_source_names[ln];
+}// getSourceNames
+
+void
+IBStandardSourceGen::setSourceNames(
+    const int ln,
+    const std::vector<std::string>& names)
+{
+    s_source_names.resize(std::max(static_cast<int>(s_source_names.size()),ln+1));
+    s_source_names[ln] = names;
+    return;
+}// getSourceNames
+
+void
+IBStandardSourceGen::setSourceRadii(
+    const int ln,
+    const std::vector<double>& radii)
+{
+    s_source_radii.resize(std::max(static_cast<int>(s_source_radii.size()),ln+1));
+    s_source_radii[ln] = radii;
+    return;
+}// getSourceRadii
+
+const std::vector<double>&
+IBStandardSourceGen::getSourceRadii(
+    const int ln)
+{
+    return s_source_radii[ln];
+}// getSourceRadii
+
 std::vector<double>&
 IBStandardSourceGen::getSourceStrengths(
     const int ln)
@@ -100,41 +155,6 @@ IBStandardSourceGen::getSourcePressures(
     return d_P_src[ln];
 }// getSourcePressures
 
-int
-IBStandardSourceGen::getNumSources(
-    const int ln) const
-{
-    return d_n_src[ln];
-}// getNumSources
-
-std::vector<std::string>&
-IBStandardSourceGen::getSourceNames(
-    const int ln)
-{
-    return d_source_names[ln];
-}// getSourceNames
-
-const std::vector<std::string>&
-IBStandardSourceGen::getSourceNames(
-    const int ln) const
-{
-    return d_source_names[ln];
-}// getSourceNames
-
-std::vector<double>&
-IBStandardSourceGen::getSourceRadii(
-    const int ln)
-{
-    return d_r_src[ln];
-}// getSourceRadii
-
-const std::vector<double>&
-IBStandardSourceGen::getSourceRadii(
-    const int ln) const
-{
-    return d_r_src[ln];
-}// getSourceRadii
-
 void
 IBStandardSourceGen::initializeLevelData(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
@@ -150,13 +170,13 @@ IBStandardSourceGen::initializeLevelData(
     d_Q_src              .resize(std::max(level_number+1,static_cast<int>(d_Q_src.size())));
     d_P_src              .resize(std::max(level_number+1,static_cast<int>(d_P_src.size())));
 
-    d_n_src[level_number] = IBSourceSpec::getNumSources(level_number);
+    d_n_src[level_number] = getNumSources(level_number);
     if (d_n_src[level_number] == 0) return;
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(l_data_manager->levelContainsLagrangianData(level_number));
 #endif
-    d_source_names[level_number] = IBSourceSpec::getSourceNames(level_number);
-    d_r_src[level_number] = IBSourceSpec::getSourceRadii(level_number);
+    d_source_names[level_number] = getSourceNames(level_number);
+    d_r_src[level_number] = getSourceRadii(level_number);
 
     d_num_perimeter_nodes[level_number].resize(d_n_src[level_number],0);
     d_Q_src[level_number].resize(d_n_src[level_number],0.0);
@@ -286,6 +306,20 @@ IBStandardSourceGen::putToDatabase(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
 #endif
+    db->putInteger("s_num_sources.size()",s_num_sources.size());
+    db->putIntegerArray("s_num_sources", &s_num_sources[0], s_num_sources.size());
+    for (unsigned int ln = 0; ln < s_num_sources.size(); ++ln)
+    {
+        for (int n = 0; n < s_num_sources[ln]; ++n)
+        {
+            std::ostringstream id_stream;
+            id_stream << ln << "_" << n;
+            const std::string id_string = id_stream.str();
+            db->putString("s_source_names_"+id_string, s_source_names[ln][n]);
+            db->putDouble("s_source_radii_"+id_string, s_source_radii[ln][n]);
+        }
+    }
+
     db->putInteger("finest_hier_level", d_n_src.size()-1);
     db->putIntegerArray("d_n_src", &d_n_src[0], d_n_src.size());
     for (unsigned int ln = 0; ln < d_n_src.size(); ++ln)
@@ -322,6 +356,25 @@ IBStandardSourceGen::getFromRestart()
     {
         TBOX_ERROR("Restart database corresponding to "
                    << "IBStandardSourceGen" << " not found in restart file.");
+    }
+
+    const int s_num_sources_size = db->getInteger("s_num_sources.size()");
+    s_num_sources .resize(s_num_sources_size);
+    s_source_names.resize(s_num_sources_size);
+    s_source_radii.resize(s_num_sources_size);
+    db->getIntegerArray("s_num_sources", &s_num_sources[0], s_num_sources.size());
+    for (unsigned int ln = 0; ln < s_num_sources.size(); ++ln)
+    {
+        s_source_names[ln].resize(s_num_sources[ln]);
+        s_source_radii[ln].resize(s_num_sources[ln]);
+        for (int n = 0; n < s_num_sources[ln]; ++n)
+        {
+            std::ostringstream id_stream;
+            id_stream << ln << "_" << n;
+            const std::string id_string = id_stream.str();
+            s_source_names[ln][n] = db->getString("s_source_names_"+id_string);
+            s_source_radii[ln][n] = db->getDouble("s_source_radii_"+id_string);
+        }
     }
 
     const int finest_hier_level = db->getInteger("finest_hier_level");

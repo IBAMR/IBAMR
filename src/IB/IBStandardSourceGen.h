@@ -62,6 +62,64 @@ public:
     ~IBStandardSourceGen();
 
     /*!
+     * \brief Returns a boolean indicating whether the class has been registered
+     * with the singleton IBTK::StreamableManager object.
+     */
+    static bool
+    getIsRegisteredWithStreamableManager();
+
+    /*!
+     * \brief Set the number of internal sources and sinks on the specified
+     * level of the patch hierarchy.
+     */
+    static void
+    setNumSources(
+        const int ln,
+        const unsigned int num_sources);
+
+    /*!
+     * \brief Get the number of internal sources and sinks on the specified
+     * level of the patch hierarchy.
+     */
+    static unsigned int
+    getNumSources(
+        const int ln);
+
+    /*!
+     * \brief Set the names of the internal sources and sinks on the specified
+     * level of the patch hierarchy.
+     */
+    static void
+    setSourceNames(
+        const int ln,
+        const std::vector<std::string>& names);
+
+    /*!
+     * \brief Get the names of the internal sources and sinks on the specified
+     * level of the patch hierarchy.
+     */
+    static const std::vector<std::string>&
+    getSourceNames(
+        const int ln);
+
+    /*!
+     * \brief Set the sizes of the internal sources and sinks on the specified
+     * level of the patch hierarchy.
+     */
+    static void
+    setSourceRadii(
+        const int ln,
+        const std::vector<double>& radii);
+
+    /*!
+     * \brief Get the sizes of the internal sources and sinks on the specified
+     * level of the patch hierarchy.
+     */
+    static const std::vector<double>&
+    getSourceRadii(
+        const int ln);
+
+    /*!
      * \brief Return a reference to the vector of source strengths.
      *
      * \note Users \em must \em not change the size of this vector.
@@ -82,45 +140,6 @@ public:
      */
     const std::vector<double>&
     getSourcePressures(
-        const int ln) const;
-
-    /*!
-     * \brief Return the number of sources/sinks.
-     */
-    int
-    getNumSources(
-        const int ln) const;
-
-    /*!
-     * \brief Return a reference to the vector of source names.
-     *
-     * \note Users \em must \em not change the size of this vector.
-     */
-    std::vector<std::string>&
-    getSourceNames(
-        const int ln);
-
-    /*!
-     * \brief Return a const reference to the vector of source names.
-     */
-    const std::vector<std::string>&
-    getSourceNames(
-        const int ln) const;
-
-    /*!
-     * \brief Return a reference to the vector of source radii.
-     *
-     * \note Users \em must \em not change the size of this vector.
-     */
-    std::vector<double>&
-    getSourceRadii(
-        const int ln);
-
-    /*!
-     * \brief Return a const reference to the vector of source radii.
-     */
-    const std::vector<double>&
-    getSourceRadii(
         const int ln) const;
 
     /*!
@@ -235,6 +254,21 @@ private:
      */
     void
     getFromRestart();
+
+    /*!
+     * The numbers of sources/sinks on each level of the patch hierarchy.
+     */
+    static std::vector<int> s_num_sources;
+
+    /*!
+     * The names of the sources and sinks.
+     */
+    static std::vector<std::vector<std::string> > s_source_names;
+
+    /*!
+     * The sizes of the sources and sinks.
+     */
+    static std::vector<std::vector<double> > s_source_radii;
 
     /*
      * Source/sink data.
