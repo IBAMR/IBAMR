@@ -67,7 +67,7 @@ namespace IBAMR
  * \see IBTargetPointForceGen
  */
 class IBLagrangianForceStrategy
-    : public SAMRAI::tbox::DescribedClass
+    : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!

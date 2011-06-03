@@ -47,7 +47,8 @@ namespace IBAMR
  * fluid sources/sinks.
  */
 class IBStandardSourceGen
-    : public IBLagrangianSourceStrategy
+    : public IBLagrangianSourceStrategy,
+      public SAMRAI::tbox::Serializable
 {
 public:
     /*!
@@ -86,7 +87,7 @@ public:
     /*!
      * \brief Return the number of sources/sinks.
      */
-    unsigned int
+    int
     getNumSources(
         const int ln) const;
 
@@ -195,6 +196,15 @@ public:
         const double data_time,
         IBTK::LDataManager* const l_data_manager);
 
+    /*!
+     * Write out object state to the given database.
+     *
+     * When assertion checking is active, database pointer must be non-null.
+     */
+    void
+    putToDatabase(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
 private:
     /*!
      * \brief Copy constructor.
@@ -219,10 +229,17 @@ private:
     operator=(
         const IBStandardSourceGen& that);
 
+    /*!
+     * Read object state from the restart file and initialize class data
+     * members.
+     */
+    void
+    getFromRestart();
+
     /*
      * Source/sink data.
      */
-    std::vector<unsigned int> d_n_src;
+    std::vector<int> d_n_src;
     std::vector<std::vector<std::string> >d_source_names;
     std::vector<std::vector<double> > d_r_src;
     std::vector<std::vector<int> > d_num_perimeter_nodes;

@@ -1173,21 +1173,30 @@ LDataManager::beginDataRedistribution(
         }
 
         // Ensure that no IB points manage to escape the computational domain.
+        //
+        // NOTE: We cannot use the LMesh data structure here because it has not
+        // been initialized.
         blitz::Array<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
         static const double edge_tol = sqrt(std::numeric_limits<double>::epsilon());
-        const Pointer<LMesh> mesh = getLMesh(level_number);
-        const std::vector<LNode*>& local_nodes = mesh->getNodes();
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            const LNode* const node_idx = *cit;
-            const int local_idx = node_idx->getLocalPETScIndex();
-            double* const X = &X_data(local_idx,0);
-            for (unsigned int d = 0; d < NDIM; ++d)
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM> patch_box = patch->getBox();
+            Pointer<LNodeSetData> lag_node_idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+            for (LNodeSetData::DataIterator it = lag_node_idx_data->data_begin(patch_box);
+                 it != lag_node_idx_data->data_end(); ++it)
             {
-                if (periodic_shift[d] == 0)
+                LNodeSet::value_type& node_idx = *it;
+                const int local_idx = node_idx->getLocalPETScIndex();
+                double* const X = &X_data(local_idx,0);
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    X[d] = std::max(X[d],gridXLower[d]+edge_tol);
-                    X[d] = std::min(X[d],gridXUpper[d]-edge_tol);
+                    if (periodic_shift[d] == 0)
+                    {
+                        X[d] = std::max(X[d],gridXLower[d]+edge_tol);
+                        X[d] = std::min(X[d],gridXUpper[d]-edge_tol);
+                    }
                 }
             }
         }

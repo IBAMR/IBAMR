@@ -314,8 +314,6 @@ public:
         libMesh::NumericVector<double>& F,
         libMesh::NumericVector<double>& X,
         const std::string& system_name,
-        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_refine_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-        const double fill_data_time=0.0,
         const bool close_X=true);
 
     /*!

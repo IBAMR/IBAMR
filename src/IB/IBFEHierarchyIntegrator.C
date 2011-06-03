@@ -884,7 +884,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         }
         else
         {
-            d_fe_data_manager->restrictValue(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::GHOST_FILL"], current_time, false);
+            d_fe_data_manager->restrictValue(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, false);
         }
         if (d_l_data_manager != NULL)
         {
@@ -932,7 +932,14 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     d_hier_sc_data_ops->copyData(d_V_idx, U_new_idx);
     ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&X_new)->vec(),
                    dynamic_cast<PetscVector<double>*>(&X_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
-    d_fe_data_manager->interp(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::GHOST_FILL"], current_time, true);
+    if (d_use_IB_interpolation_operator)
+    {
+        d_fe_data_manager->interp(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::GHOST_FILL"], current_time, true);
+    }
+    else
+    {
+        d_fe_data_manager->restrictValue(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, true);
+    }
 
     // Update the coordinate mapping dX = X - s.
     updateCoordinateMapping();
@@ -2243,7 +2250,6 @@ IBFEHierarchyIntegrator::imposeJumpConditions(
                     const int d = axis;
                     const SideIndex<NDIM> s_i(i,d,0);
                     if (!side_boxes[d].contains(s_i)) continue;
-
                     const Point& s_qp = q_point_face[qp];
                     interpolate(X_qp,qp,X_node,phi_face);
                     jacobian(dX_ds,qp,X_node,dphi_face);

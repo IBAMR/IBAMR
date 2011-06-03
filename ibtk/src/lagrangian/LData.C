@@ -218,10 +218,10 @@ LData::LData(
     d_ghost_node_count = d_nonlocal_petsc_indices.size();
 
     // Extract the values from the database.
-    double* ghosted_local_array = getGhostedLocalFormArray()->data();
+    double* ghosted_local_vec_array = getGhostedLocalFormVecArray()->data();
     if (num_local_nodes + num_ghost_nodes > 0)
     {
-        db->getDoubleArray("vals", ghosted_local_array, d_depth*(num_local_nodes+num_ghost_nodes));
+        db->getDoubleArray("vals", ghosted_local_vec_array, d_depth*(num_local_nodes+num_ghost_nodes));
     }
     restoreArrays();
     return;
@@ -285,10 +285,10 @@ LData::putToDatabase(
     {
         db->putIntegerArray("d_nonlocal_petsc_indices", &d_nonlocal_petsc_indices[0], num_ghost_nodes);
     }
-    const double* const ghosted_local_array = getGhostedLocalFormArray()->data();
+    const double* const ghosted_local_vec_array = getGhostedLocalFormVecArray()->data();
     if (num_local_nodes + num_ghost_nodes > 0)
     {
-        db->putDoubleArray("vals", ghosted_local_array, d_depth*(num_local_nodes+num_ghost_nodes));
+        db->putDoubleArray("vals", ghosted_local_vec_array, d_depth*(num_local_nodes+num_ghost_nodes));
     }
     restoreArrays();
     return;

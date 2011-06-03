@@ -569,6 +569,9 @@ FEDataManager::prolongValue(
             side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
         }
 
+        SideData<NDIM,int> spread_value_at_loc(patch_box, 1, IntVector<NDIM>(0));
+        spread_value_at_loc.fillAll(0);
+
         // Loop over the elements and compute the values to be prolonged.
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
@@ -680,8 +683,10 @@ FEDataManager::prolongValue(
                 const SideIndex<NDIM>& s_i = intersection_indices[qp];
                 const int axis = s_i.getAxis();
                 if (!side_boxes[axis].contains(s_i)) continue;
+                if (spread_value_at_loc(s_i) != 0) continue;  // each value may be spread to only once
+                spread_value_at_loc(s_i) = 1;
                 const double F_qp = interpolate(qp,F_node(blitz::Range::all(),axis),phi_F);
-                (*f_data)(s_i) = F_qp;
+                (*f_data)(s_i) += F_qp;
             }
         }
     }
@@ -782,6 +787,9 @@ FEDataManager::prolongDensity(
         {
             side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
         }
+
+        SideData<NDIM,int> spread_value_at_loc(patch_box, 1, IntVector<NDIM>(0));
+        spread_value_at_loc.fillAll(0);
 
         // Loop over the elements and compute the values to be prolonged.
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -896,10 +904,12 @@ FEDataManager::prolongDensity(
                 const SideIndex<NDIM>& s_i = intersection_indices[qp];
                 const int axis = s_i.getAxis();
                 if (!side_boxes[axis].contains(s_i)) continue;
+                if (spread_value_at_loc(s_i) != 0) continue;  // each value may be spread to only once
+                spread_value_at_loc(s_i) = 1;
                 jacobian(dX_ds,qp,X_node,dphi_X);
                 const double J = std::abs(dX_ds.det());
                 const double F_qp = interpolate(qp,F_node(blitz::Range::all(),axis),phi_F)/J;
-                (*f_data)(s_i) = F_qp;
+                (*f_data)(s_i) += F_qp;
             }
         }
     }
@@ -1094,8 +1104,6 @@ FEDataManager::restrictValue(
     NumericVector<double>& F_vec,
     NumericVector<double>& X_vec,
     const std::string& system_name,
-    std::vector<Pointer<RefineSchedule<NDIM> > > f_refine_scheds,
-    const double fill_data_time,
     const bool close_X)
 {
     IBTK_TIMER_START(t_restrict_value);
@@ -1144,11 +1152,6 @@ FEDataManager::restrictValue(
     const std::vector<std::vector<VectorValue<double> > >& dphi_X = X_fe->get_dphi();
 
     // Communicate any unsynchronized ghost data and enforce any constraints.
-    for (unsigned int k = 0; k < f_refine_scheds.size(); ++k)
-    {
-        if (!f_refine_scheds[k].isNull()) f_refine_scheds[k]->fillData(fill_data_time);
-    }
-
     if (close_X) X_vec.close();
     X_dof_map.enforce_constraints_exactly(X_system, &X_vec);
 
@@ -1189,8 +1192,8 @@ FEDataManager::restrictValue(
             if (!patch_geom->getTouchesRegularBoundary(axis,1)) side_boxes[axis].growUpper(axis,-1);
         }
 
-        SideData<NDIM,int> interpolated_value(patch_box, 1, IntVector<NDIM>(0));
-        interpolated_value.fillAll(0);
+        SideData<NDIM,int> interpolated_value_at_loc(patch_box, 1, IntVector<NDIM>(0));
+        interpolated_value_at_loc.fillAll(0);
 
         // Loop over the elements.
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -1313,8 +1316,9 @@ FEDataManager::restrictValue(
                 const SideIndex<NDIM>& s_i = intersection_indices[qp];
                 const int axis = s_i.getAxis();
                 if (!side_boxes[axis].contains(s_i)) continue;
-                if (interpolated_value(s_i) != 0) continue;  // each value must be interpolated at most once
-                interpolated_value(s_i) = 1;
+                if (interpolated_value_at_loc(s_i) != 0) continue;  // each value may be interpolated only once
+                interpolated_value_at_loc(s_i) = 1;
+
                 jacobian(dX_ds,qp,X_node,dphi_X);
                 const double J = std::abs(dX_ds.det());
                 const double F_qp = (*f_data)(s_i)*vol/J;

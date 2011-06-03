@@ -48,6 +48,9 @@
 #include <ibamr/IBSourceSpec.h>
 #include <ibamr/namespaces.h>
 
+// SAMRAI INCLUDES
+#include <tbox/RestartManager.h>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -64,7 +67,9 @@ IBStandardSourceGen::IBStandardSourceGen()
       d_Q_src(),
       d_P_src()
 {
-    // intentionally blank
+    RestartManager::getManager()->registerRestartItem("IBStandardSourceGen", this);
+    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    if (from_restart) getFromRestart();
     return;
 }// IBStandardSourceGen
 
@@ -95,7 +100,7 @@ IBStandardSourceGen::getSourcePressures(
     return d_P_src[ln];
 }// getSourcePressures
 
-unsigned int
+int
 IBStandardSourceGen::getNumSources(
     const int ln) const
 {
@@ -182,6 +187,9 @@ IBStandardSourceGen::getNumSources(
     const double data_time,
     LDataManager* const l_data_manager)
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_n_src[level_number] >= 0);
+#endif
     return d_n_src[level_number];
 }// getNumSources
 
@@ -198,8 +206,8 @@ IBStandardSourceGen::getSourceLocations(
     if (d_n_src[level_number] == 0) return;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(X_src.size() == d_n_src[level_number]);
-    TBOX_ASSERT(r_src.size() == d_n_src[level_number]);
+    TBOX_ASSERT(X_src.size() == static_cast<unsigned int>(d_n_src[level_number]));
+    TBOX_ASSERT(r_src.size() == static_cast<unsigned int>(d_n_src[level_number]));
 #endif
 
     // Set the radii of the sources.
@@ -271,9 +279,80 @@ IBStandardSourceGen::computeSourceStrengths(
     return;
 }// computeSourceStrengths
 
+void
+IBStandardSourceGen::putToDatabase(
+    Pointer<Database> db)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!db.isNull());
+#endif
+    db->putInteger("finest_hier_level", d_n_src.size()-1);
+    db->putIntegerArray("d_n_src", &d_n_src[0], d_n_src.size());
+    for (unsigned int ln = 0; ln < d_n_src.size(); ++ln)
+    {
+        for (int n = 0; n < d_n_src[ln]; ++n)
+        {
+            std::ostringstream id_stream;
+            id_stream << ln << "_" << n;
+            const std::string id_string = id_stream.str();
+            db->putString( "d_source_names_"       +id_string, d_source_names       [ln][n]);
+            db->putDouble( "d_r_src_"              +id_string, d_r_src              [ln][n]);
+            db->putInteger("d_num_perimeter_nodes_"+id_string, d_num_perimeter_nodes[ln][n]);
+            db->putDouble( "d_Q_src_"              +id_string, d_Q_src              [ln][n]);
+            db->putDouble( "d_P_src_"              +id_string, d_P_src              [ln][n]);
+        }
+    }
+    return;
+}// putToDatabase
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+IBStandardSourceGen::getFromRestart()
+{
+    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    Pointer<Database> db;
+    if (restart_db->isDatabase("IBStandardSourceGen"))  // TODO: Make this ID string a variable.
+    {
+        db = restart_db->getDatabase("IBStandardSourceGen");
+    }
+    else
+    {
+        TBOX_ERROR("Restart database corresponding to "
+                   << "IBStandardSourceGen" << " not found in restart file.");
+    }
+
+    const int finest_hier_level = db->getInteger("finest_hier_level");
+    d_n_src              .resize(finest_hier_level+1,0);
+    d_source_names       .resize(finest_hier_level+1);
+    d_r_src              .resize(finest_hier_level+1);
+    d_num_perimeter_nodes.resize(finest_hier_level+1);
+    d_Q_src              .resize(finest_hier_level+1);
+    d_P_src              .resize(finest_hier_level+1);
+    db->getIntegerArray("d_n_src", &d_n_src[0], finest_hier_level+1);
+    for (int ln = 0; ln <= finest_hier_level; ++ln)
+    {
+        d_source_names       [ln].resize(d_n_src[ln]);
+        d_r_src              [ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());
+        d_num_perimeter_nodes[ln].resize(d_n_src[ln],-1);
+        d_Q_src              [ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());
+        d_P_src              [ln].resize(d_n_src[ln],std::numeric_limits<double>::quiet_NaN());
+        for (int n = 0; n < d_n_src[ln]; ++n)
+        {
+            std::ostringstream id_stream;
+            id_stream << ln << "_" << n;
+            const std::string id_string = id_stream.str();
+            d_source_names       [ln][n] = db->getString( "d_source_names_"       +id_string);
+            d_r_src              [ln][n] = db->getDouble( "d_r_src_"              +id_string);
+            d_num_perimeter_nodes[ln][n] = db->getInteger("d_num_perimeter_nodes_"+id_string);
+            d_Q_src              [ln][n] = db->getDouble( "d_Q_src_"              +id_string);
+            d_P_src              [ln][n] = db->getDouble( "d_P_src_"              +id_string);
+        }
+    }
+    return;
+}// getFromRestart
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
