@@ -2149,7 +2149,7 @@ IBFEHierarchyIntegrator::imposeJumpConditions(
                 // with the background fluid grid.
                 std::vector<Point> intersection_master_coords;
                 std::vector<int>   intersection_axes;
-                static const int estimated_max_size = std::pow(8,NDIM);
+                static const int estimated_max_size = (NDIM == 2 ? 64 : 512);
                 intersection_master_coords.reserve(estimated_max_size);
                 intersection_axes         .reserve(estimated_max_size);
                 for (unsigned int axis = 0; axis < NDIM; ++axis)

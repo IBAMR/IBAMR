@@ -607,7 +607,7 @@ FEDataManager::prolongValue(
             // that are covered by the element.
             std::vector<Point>            intersection_master_coords;
             std::vector<SideIndex<NDIM> > intersection_indices;
-            static const int estimated_max_size = std::pow(8,NDIM);
+            static const int estimated_max_size = (NDIM == 2 ? 64 : 512);
             intersection_master_coords.reserve(estimated_max_size);
             intersection_indices      .reserve(estimated_max_size);
             for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -826,7 +826,7 @@ FEDataManager::prolongDensity(
             // that are covered by the element.
             std::vector<Point>            intersection_master_coords;
             std::vector<SideIndex<NDIM> > intersection_indices;
-            static const int estimated_max_size = std::pow(8,NDIM);
+            static const int estimated_max_size = (NDIM == 2 ? 64 : 512);
             intersection_master_coords.reserve(estimated_max_size);
             intersection_indices      .reserve(estimated_max_size);
             for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -1230,7 +1230,7 @@ FEDataManager::restrictValue(
             // that are covered by the element.
             std::vector<Point>            intersection_master_coords;
             std::vector<SideIndex<NDIM> > intersection_indices;
-            static const int estimated_max_size = std::pow(8,NDIM);
+            static const int estimated_max_size = (NDIM == 2 ? 64 : 512);
             intersection_master_coords.reserve(estimated_max_size);
             intersection_indices      .reserve(estimated_max_size);
             for (unsigned int axis = 0; axis < NDIM; ++axis)
