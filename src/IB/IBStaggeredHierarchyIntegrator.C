@@ -658,63 +658,91 @@ IBStaggeredHierarchyIntegrator::initializeHierarchy()
 
     // Initialize various Lagrangian data objects.
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
-    const double init_data_time = d_integrator_time;
-    for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
+    if (initial_time)
     {
-        const bool can_be_refined = level_number < finest_ln || d_gridding_alg->levelCanBeRefined(level_number);
+        const double init_data_time = d_integrator_time;
 
-        // Initialize marker data.
-        LMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, d_mark_init_posns, d_hierarchy, level_number, initial_time, Pointer<PatchLevel<NDIM> >(NULL));
-
-        // Initialize source/sink data.
-        if (!d_source_strategy.isNull())
+        // Initialize the interpolated velocity field.
+        std::vector<Pointer<LData> > X_data(finest_ln+1);
+        std::vector<Pointer<LData> > U_data(finest_ln+1);
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            d_source_strategy->initializeLevelData(d_hierarchy, level_number, init_data_time, initial_time, d_l_data_manager);
-            d_n_src[level_number] = d_source_strategy->getNumSources(d_hierarchy, level_number, d_integrator_time, d_l_data_manager);
-            d_X_src[level_number].resize(d_n_src[level_number], blitz::TinyVector<double,NDIM>(std::numeric_limits<double>::quiet_NaN()));
-            d_r_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
-            d_P_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
-            d_Q_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
-            Pointer<LData> X_data = NULL;
-            if (d_l_data_manager->levelContainsLagrangianData(level_number)) X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,level_number);
-            d_source_strategy->getSourceLocations(d_X_src[level_number], d_r_src[level_number], X_data, d_hierarchy, level_number, init_data_time, d_l_data_manager);
-        }
-
-        // Remaining initialization is done only for levels that contain
-        // Lagrangian data.
-        if (!d_l_data_manager->levelContainsLagrangianData(level_number)) continue;
-
-        // Setup data needed for pIB method.
-        if (initial_time && d_using_pIB_method)
-        {
-            static const bool manage_data = true;
-            Pointer<LData> M_data = d_l_data_manager->createLData("M",level_number,1,manage_data);
-            Pointer<LData> K_data = d_l_data_manager->createLData("K",level_number,1,manage_data);
-            Pointer<LData> Y_data = d_l_data_manager->createLData("Y",level_number,NDIM,manage_data);
-            Pointer<LData> dY_dt_data = d_l_data_manager->createLData("dY_dt",level_number,NDIM,manage_data);
-            static const int global_index_offset = 0;
-            static const int local_index_offset = 0;
-            d_lag_init->initializeMassDataOnPatchLevel(global_index_offset, local_index_offset, M_data, K_data, d_hierarchy, level_number, init_data_time, can_be_refined, initial_time, d_l_data_manager);
-            if (!d_silo_writer.isNull())
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(d_V_idx, init_data_time);
+            if (d_l_data_manager->levelContainsLagrangianData(ln))
             {
-                d_silo_writer->registerVariableData("M", M_data, level_number);
-                d_silo_writer->registerVariableData("Y", Y_data, level_number);
+                X_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
+                U_data[ln] = d_l_data_manager->getLData(LDataManager:: VEL_DATA_NAME,ln);
             }
         }
-
-        // Setup data needed for gIB method.
-        if (initial_time && d_using_orthonormal_directors)
+        d_l_data_manager->interp(d_V_idx, U_data, X_data, d_cscheds["V->V::S->S::CONSERVATIVE_COARSEN"], d_rscheds["V->V::S->S::GHOST_FILL"], init_data_time);
+        resetAnchorPointValues(U_data, coarsest_ln, finest_ln);
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            static const bool manage_data = true;
-            Pointer<LData> D_data = d_l_data_manager->createLData("D",level_number,3*3,manage_data);
-            static const int global_index_offset = 0;
-            static const int local_index_offset = 0;
-            d_lag_init->initializeDirectorDataOnPatchLevel(global_index_offset, local_index_offset, D_data, d_hierarchy, level_number, init_data_time, can_be_refined, initial_time, d_l_data_manager);
-            if (!d_silo_writer.isNull())
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->deallocatePatchData(d_V_idx);
+        }
+
+        for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
+        {
+            const bool can_be_refined = level_number < finest_ln || d_gridding_alg->levelCanBeRefined(level_number);
+
+            // Initialize marker data.
+            LMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, d_mark_init_posns, d_hierarchy, level_number, initial_time, Pointer<PatchLevel<NDIM> >(NULL));
+
+            // Initialize source/sink data.
+            if (!d_source_strategy.isNull())
             {
-                d_silo_writer->registerVariableData("D1", D_data, 0, 3, level_number);
-                d_silo_writer->registerVariableData("D2", D_data, 3, 3, level_number);
-                d_silo_writer->registerVariableData("D3", D_data, 6, 3, level_number);
+                d_source_strategy->initializeLevelData(d_hierarchy, level_number, init_data_time, initial_time, d_l_data_manager);
+                d_n_src[level_number] = d_source_strategy->getNumSources(d_hierarchy, level_number, d_integrator_time, d_l_data_manager);
+                d_X_src[level_number].resize(d_n_src[level_number], blitz::TinyVector<double,NDIM>(std::numeric_limits<double>::quiet_NaN()));
+                d_r_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
+                d_P_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
+                d_Q_src[level_number].resize(d_n_src[level_number], std::numeric_limits<double>::quiet_NaN());
+                d_source_strategy->getSourceLocations(d_X_src[level_number], d_r_src[level_number], X_data[level_number], d_hierarchy, level_number, init_data_time, d_l_data_manager);
+            }
+
+            // Setup data needed for pIB method.
+            if (d_l_data_manager->levelContainsLagrangianData(level_number) && d_using_pIB_method)
+            {
+                static const bool manage_data = true;
+                Pointer<LData> M_data = d_l_data_manager->createLData("M",level_number,1,manage_data);
+                Pointer<LData> K_data = d_l_data_manager->createLData("K",level_number,1,manage_data);
+                Pointer<LData> Y_data = d_l_data_manager->createLData("Y",level_number,NDIM,manage_data);
+                Pointer<LData> dY_dt_data = d_l_data_manager->createLData("dY_dt",level_number,NDIM,manage_data);
+                static const int global_index_offset = 0;
+                static const int local_index_offset = 0;
+                d_lag_init->initializeMassDataOnPatchLevel(global_index_offset, local_index_offset, M_data, K_data, d_hierarchy, level_number, init_data_time, can_be_refined, initial_time, d_l_data_manager);
+                if (!d_silo_writer.isNull())
+                {
+                    d_silo_writer->registerVariableData("M", M_data, level_number);
+                    d_silo_writer->registerVariableData("Y", Y_data, level_number);
+                }
+
+                // Set initial conditions.
+                Vec X_vec = X_data[level_number]->getVec();
+                Vec U_vec = U_data[level_number]->getVec();
+                Vec Y_vec = Y_data->getVec();
+                Vec dY_dt_vec = dY_dt_data->getVec();
+                PetscErrorCode ierr;
+                ierr = VecCopy(X_vec, Y_vec);  IBTK_CHKERRQ(ierr);
+                ierr = VecCopy(U_vec, dY_dt_vec);  IBTK_CHKERRQ(ierr);
+            }
+
+            // Setup data needed for gIB method.
+            if (d_l_data_manager->levelContainsLagrangianData(level_number) && d_using_orthonormal_directors)
+            {
+                static const bool manage_data = true;
+                Pointer<LData> D_data = d_l_data_manager->createLData("D",level_number,3*3,manage_data);
+                static const int global_index_offset = 0;
+                static const int local_index_offset = 0;
+                d_lag_init->initializeDirectorDataOnPatchLevel(global_index_offset, local_index_offset, D_data, d_hierarchy, level_number, init_data_time, can_be_refined, initial_time, d_l_data_manager);
+                if (!d_silo_writer.isNull())
+                {
+                    d_silo_writer->registerVariableData("D1", D_data, 0, 3, level_number);
+                    d_silo_writer->registerVariableData("D2", D_data, 3, 3, level_number);
+                    d_silo_writer->registerVariableData("D3", D_data, 6, 3, level_number);
+                }
             }
         }
     }
@@ -752,6 +780,8 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_end_time >= d_integrator_time+dt);
 #endif
+
+    PetscErrorCode ierr;
 
     const double current_time = d_integrator_time;
     const double new_time     = d_integrator_time+dt;
@@ -818,57 +848,60 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     }
 
     // Initialize the various LData objects on each level of the patch hierarchy.
-    std::vector<Pointer<LData> > X_data(finest_ln+1);
-    std::vector<Pointer<LData> > U_data(finest_ln+1);
-    std::vector<Pointer<LData> > X_new_data(finest_ln+1);
-    std::vector<Pointer<LData> > X_half_data(finest_ln+1);
-    std::vector<Pointer<LData> > U_half_data(finest_ln+1);
-    std::vector<Pointer<LData> > F_half_data(finest_ln+1);
-
-    std::vector<Pointer<LData> > K_data(finest_ln+1);
-    std::vector<Pointer<LData> > M_data(finest_ln+1);
-    std::vector<Pointer<LData> > Y_data(finest_ln+1);
-    std::vector<Pointer<LData> > dY_dt_data(finest_ln+1);
-    std::vector<Pointer<LData> > Y_new_data(finest_ln+1);
-    std::vector<Pointer<LData> > dY_dt_new_data(finest_ln+1);
-    std::vector<Pointer<LData> > F_K_half_data(finest_ln+1);
-
-    std::vector<Pointer<LData> > D_data(finest_ln+1);
-    std::vector<Pointer<LData> > D_new_data(finest_ln+1);
-    std::vector<Pointer<LData> > D_half_data(finest_ln+1);
-    std::vector<Pointer<LData> > N_half_data(finest_ln+1);
-    std::vector<Pointer<LData> > W_half_data(finest_ln+1);
-
+    std::vector<Pointer<LData> > X_current_data(finest_ln+1);
+    std::vector<Pointer<LData> > U_current_data(finest_ln+1);
+    std::vector<Pointer<LData> > X_new_data    (finest_ln+1);
+    std::vector<Pointer<LData> > X_half_data   (finest_ln+1);
+    std::vector<Pointer<LData> > U_half_data   (finest_ln+1);
+    std::vector<Pointer<LData> > F_half_data   (finest_ln+1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_l_data_manager->levelContainsLagrangianData(ln))
         {
-            X_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
-            U_data[ln] = d_l_data_manager->getLData(LDataManager::VEL_DATA_NAME,ln);
-            X_new_data[ln] = d_l_data_manager->createLData("X_new",ln,NDIM);
-            X_half_data[ln] = d_l_data_manager->createLData("X_half",ln,NDIM);
-            U_half_data[ln] = d_l_data_manager->createLData("U_half",ln,NDIM);
-            F_half_data[ln] = d_l_data_manager->createLData("F_half",ln,NDIM);
+            X_current_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
+            U_current_data[ln] = d_l_data_manager->getLData(LDataManager:: VEL_DATA_NAME,ln);
+            X_new_data    [ln] = d_l_data_manager->createLData("X_new" ,ln,NDIM);
+            X_half_data   [ln] = d_l_data_manager->createLData("X_half",ln,NDIM);
+            U_half_data   [ln] = d_l_data_manager->createLData("U_half",ln,NDIM);
+            F_half_data   [ln] = d_l_data_manager->createLData("F_half",ln,NDIM);
+        }
+    }
 
-            if (d_using_pIB_method)
-            {
-                K_data[ln]         = d_l_data_manager->getLData("K",ln);
-                M_data[ln]         = d_l_data_manager->getLData("M",ln);
-                Y_data[ln]         = d_l_data_manager->getLData("Y",ln);
-                dY_dt_data[ln]     = d_l_data_manager->getLData("dY_dt",ln);
-                Y_new_data[ln]     = d_l_data_manager->createLData("Y_new",ln,NDIM);
-                dY_dt_new_data[ln] = d_l_data_manager->createLData("dY_dt_new",ln,NDIM);
-                F_K_half_data[ln]  = d_l_data_manager->createLData("F_K_half",ln,NDIM);
-            }
+    std::vector<Pointer<LData> > K_data            (finest_ln+1);
+    std::vector<Pointer<LData> > M_data            (finest_ln+1);
+    std::vector<Pointer<LData> > Y_current_data    (finest_ln+1);
+    std::vector<Pointer<LData> > dY_dt_current_data(finest_ln+1);
+    std::vector<Pointer<LData> > Y_new_data        (finest_ln+1);
+    std::vector<Pointer<LData> > dY_dt_new_data    (finest_ln+1);
+    std::vector<Pointer<LData> > F_K_half_data     (finest_ln+1);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_l_data_manager->levelContainsLagrangianData(ln) && d_using_pIB_method)
+        {
+            K_data            [ln] = d_l_data_manager->getLData("K"    ,ln);
+            M_data            [ln] = d_l_data_manager->getLData("M"    ,ln);
+            Y_current_data    [ln] = d_l_data_manager->getLData("Y"    ,ln);
+            dY_dt_current_data[ln] = d_l_data_manager->getLData("dY_dt",ln);
+            Y_new_data        [ln] = d_l_data_manager->createLData("Y_new"    ,ln,NDIM);
+            dY_dt_new_data    [ln] = d_l_data_manager->createLData("dY_dt_new",ln,NDIM);
+            F_K_half_data     [ln] = d_l_data_manager->createLData("F_K_half" ,ln,NDIM);
+        }
+    }
 
-            if (d_using_orthonormal_directors)
-            {
-                D_data[ln]      = d_l_data_manager->getLData("D",ln);
-                D_new_data[ln]  = d_l_data_manager->createLData("D_new",ln,3*3);
-                D_half_data[ln] = d_l_data_manager->createLData("D_half",ln,3*3);
-                N_half_data[ln] = d_l_data_manager->createLData("N_half",ln,3);
-                W_half_data[ln] = d_l_data_manager->createLData("W_half",ln,3);
-            }
+    std::vector<Pointer<LData> > D_current_data(finest_ln+1);
+    std::vector<Pointer<LData> > D_new_data    (finest_ln+1);
+    std::vector<Pointer<LData> > D_half_data   (finest_ln+1);
+    std::vector<Pointer<LData> > N_half_data   (finest_ln+1);
+    std::vector<Pointer<LData> > W_half_data   (finest_ln+1);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_l_data_manager->levelContainsLagrangianData(ln) && d_using_orthonormal_directors)
+        {
+            D_current_data[ln] = d_l_data_manager->getLData("D",ln);
+            D_new_data    [ln] = d_l_data_manager->createLData("D_new" ,ln,3*3);
+            D_half_data   [ln] = d_l_data_manager->createLData("D_half",ln,3*3);
+            N_half_data   [ln] = d_l_data_manager->createLData("N_half",ln,3);
+            W_half_data   [ln] = d_l_data_manager->createLData("W_half",ln,3);
         }
     }
 
@@ -877,8 +910,7 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     const int U_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVar(), d_ins_hier_integrator->getCurrentContext());
     const int U_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVar(), d_ins_hier_integrator->getNewContext());
 
-    // Synchronize the Cartesian grid velocity u(n) on the patch hierarchy, then
-    // interpolate the velocity field.
+    // Synchronize the Cartesian grid velocity u(n) on the patch hierarchy.
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
     {
         d_cscheds["U->U::C->C::CONSERVATIVE_COARSEN"][ln]->coarsenData();
@@ -888,28 +920,26 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         d_rscheds["U->V::C->S::GHOST_FILL"][ln]->fillData(current_time);
     }
-    d_l_data_manager->interp(d_V_idx, U_data, X_data);
-    resetAnchorPointValues(U_data, coarsest_ln, finest_ln);
-
-    // Initialize X(n+1/2) to equal X(n).
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        if (d_l_data_manager->levelContainsLagrangianData(ln))
-        {
-            Vec X_vec = X_data[ln]->getVec();
-            Vec X_half_vec = X_half_data[ln]->getVec();
-            int ierr = VecCopy(X_vec, X_half_vec);  IBTK_CHKERRQ(ierr);
-        }
-    }
 
     // Initialize X(n+1) to equal X(n).
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_l_data_manager->levelContainsLagrangianData(ln))
         {
-            Vec X_vec = X_data[ln]->getVec();
+            Vec X_current_vec = X_current_data[ln]->getVec();
             Vec X_new_vec = X_new_data[ln]->getVec();
-            int ierr = VecCopy(X_vec, X_new_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecCopy(X_current_vec, X_new_vec);  IBTK_CHKERRQ(ierr);
+        }
+    }
+
+    // Initialize U(n+1/2) to equal U(n).
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (d_l_data_manager->levelContainsLagrangianData(ln))
+        {
+            Vec U_current_vec = U_current_data[ln]->getVec();
+            Vec U_half_vec = U_half_data[ln]->getVec();
+            ierr = VecCopy(U_current_vec, U_half_vec);  IBTK_CHKERRQ(ierr);
         }
     }
 
@@ -927,82 +957,30 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         }
     }
 
-    // Initialize U(n+1/2) to equal U(n).
+    // Initialize Y(n+1) to equal Y(n), and initialize dY/dt(n+1) to equal
+    // dY/dt(n).
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (d_l_data_manager->levelContainsLagrangianData(ln))
+        if (d_l_data_manager->levelContainsLagrangianData(ln) && d_using_pIB_method)
         {
-            Vec U_vec = U_data[ln]->getVec();
-            Vec U_half_vec = U_half_data[ln]->getVec();
-            int ierr = VecCopy(U_vec, U_half_vec);  IBTK_CHKERRQ(ierr);
+            Vec Y_current_vec = Y_current_data[ln]->getVec();
+            Vec Y_new_vec = Y_new_data[ln]->getVec();
+            ierr = VecCopy(Y_current_vec, Y_new_vec);  IBTK_CHKERRQ(ierr);
+
+            Vec dY_dt_current_vec = dY_dt_current_data[ln]->getVec();
+            Vec dY_dt_new_vec = dY_dt_new_data[ln]->getVec();
+            ierr = VecCopy(dY_dt_current_vec, dY_dt_new_vec);  IBTK_CHKERRQ(ierr);
         }
     }
 
-    if (d_using_pIB_method)
+    // Initialize D(n+1) to equal D(n).
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        // Set the initial values of Y and dY/dt.
-        if (initial_time)
+        if (d_l_data_manager->levelContainsLagrangianData(ln) && d_using_orthonormal_directors)
         {
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                if (d_l_data_manager->levelContainsLagrangianData(ln))
-                {
-                    int ierr;
-                    Vec X_vec = X_data[ln]->getVec();
-                    Vec U_vec = U_data[ln]->getVec();
-                    Vec Y_vec = Y_data[ln]->getVec();
-                    Vec dY_dt_vec = dY_dt_data[ln]->getVec();
-                    ierr = VecCopy(X_vec, Y_vec);  IBTK_CHKERRQ(ierr);
-                    ierr = VecCopy(U_vec, dY_dt_vec);  IBTK_CHKERRQ(ierr);
-                }
-            }
-        }
-
-        // Initialize Y(n+1) to equal Y(n).
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (d_l_data_manager->levelContainsLagrangianData(ln))
-            {
-                Vec Y_vec = Y_data[ln]->getVec();
-                Vec Y_new_vec = Y_new_data[ln]->getVec();
-                int ierr = VecCopy(Y_vec, Y_new_vec);  IBTK_CHKERRQ(ierr);
-            }
-        }
-
-        // Initialize dY/dt(n+1) to equal dY/dt(n).
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (d_l_data_manager->levelContainsLagrangianData(ln))
-            {
-                Vec dY_dt_vec = dY_dt_data[ln]->getVec();
-                Vec dY_dt_new_vec = dY_dt_new_data[ln]->getVec();
-                int ierr = VecCopy(dY_dt_vec, dY_dt_new_vec);  IBTK_CHKERRQ(ierr);
-            }
-        }
-    }
-
-    if (d_using_orthonormal_directors)
-    {
-        // Initialize D(n+1/2) to equal D(n).
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (d_l_data_manager->levelContainsLagrangianData(ln))
-            {
-                Vec D_vec = D_data[ln]->getVec();
-                Vec D_half_vec = D_half_data[ln]->getVec();
-                int ierr = VecCopy(D_vec, D_half_vec);  IBTK_CHKERRQ(ierr);
-            }
-        }
-
-        // Initialize D(n+1) to equal D(n).
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (d_l_data_manager->levelContainsLagrangianData(ln))
-            {
-                Vec D_vec = D_data[ln]->getVec();
-                Vec D_new_vec = D_new_data[ln]->getVec();
-                int ierr = VecCopy(D_vec, D_new_vec);  IBTK_CHKERRQ(ierr);
-            }
+            Vec D_current_vec = D_current_data[ln]->getVec();
+            Vec D_new_vec = D_new_data[ln]->getVec();
+            ierr = VecCopy(D_current_vec, D_new_vec);  IBTK_CHKERRQ(ierr);
         }
     }
 
@@ -1011,105 +989,114 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
     d_ins_hier_integrator->integrateHierarchy_initialize(current_time, new_time);
     for (int cycle = 0; cycle < d_num_cycles; ++cycle)
     {
+        // Set X(n+1/2) = 0.5*(X(n) + X(n+1)).
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            if (d_l_data_manager->levelContainsLagrangianData(ln))
+            {
+                Vec X_current_vec = X_current_data[ln]->getVec();
+                Vec X_new_vec = X_new_data[ln]->getVec();
+                Vec X_half_vec = X_half_data[ln]->getVec();
+                ierr = VecCopy(X_current_vec, X_half_vec);  IBTK_CHKERRQ(ierr);
+                ierr = VecAXPBY(X_half_vec, 0.5, 0.5, X_new_vec);  IBTK_CHKERRQ(ierr);
+            }
+        }
+
         // Compute F(n+1/2) = F(X(n+1/2),U(n+1/2),t_{n+1/2}).
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (d_l_data_manager->levelContainsLagrangianData(ln))
             {
                 Vec F_half_vec = F_half_data[ln]->getVec();
-                int ierr = VecSet(F_half_vec, 0.0);  IBTK_CHKERRQ(ierr);
+                ierr = VecSet(F_half_vec, 0.0);  IBTK_CHKERRQ(ierr);
                 if (!d_using_orthonormal_directors)
                 {
                     d_force_strategy->computeLagrangianForce(F_half_data[ln], X_half_data[ln], U_half_data[ln], d_hierarchy, ln, current_time+0.5*dt, d_l_data_manager);
                 }
                 else
                 {
+                    TBOX_ERROR("D_half is not being computed correctly.\n");
                     Vec N_half_vec = N_half_data[ln]->getVec();
-                    int ierr = VecSet(N_half_vec, 0.0);  IBTK_CHKERRQ(ierr);
+                    ierr = VecSet(N_half_vec, 0.0);  IBTK_CHKERRQ(ierr);
                     d_force_strategy->computeLagrangianForceAndTorque(F_half_data[ln], N_half_data[ln], X_half_data[ln], D_half_data[ln], U_half_data[ln], d_hierarchy, ln, current_time+0.5*dt, d_l_data_manager);
                 }
             }
         }
 
-        if (d_using_pIB_method)
+        // Compute pIB penalty forces, F_K = K*(Y-X), and update the pIB state
+        // variables, Y and dY/dt.
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            // Compute pIB-related penalty forces, F_K = K*(Y-X), and update the
-            // pIB-related state variables, Y and dY/dt.
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            if (d_l_data_manager->levelContainsLagrangianData(ln) && d_using_pIB_method)
             {
-                if (d_l_data_manager->levelContainsLagrangianData(ln))
+                Vec K_vec = K_data[ln]->getVec();
+                Vec M_vec = M_data[ln]->getVec();
+                Vec X_half_vec = X_half_data[ln]->getVec();
+                Vec Y_current_vec = Y_current_data[ln]->getVec();
+                Vec Y_new_vec = Y_new_data[ln]->getVec();
+                Vec dY_dt_current_vec = dY_dt_current_data[ln]->getVec();
+                Vec dY_dt_new_vec = dY_dt_new_data[ln]->getVec();
+                Vec F_K_half_vec = F_K_half_data[ln]->getVec();
+
+                int n_local = 0;
+                ierr = VecGetLocalSize(M_vec, &n_local);  IBTK_CHKERRQ(ierr);
+
+                double* K_arr, * M_arr, * X_half_arr, * Y_arr, * Y_new_arr, * dY_dt_arr, * dY_dt_new_arr, * F_K_half_arr;
+                ierr = VecGetArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(M_vec, &M_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(X_half_vec, &X_half_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(Y_current_vec, &Y_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(Y_new_vec, &Y_new_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(dY_dt_current_vec, &dY_dt_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(dY_dt_new_vec, &dY_dt_new_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecGetArray(F_K_half_vec, &F_K_half_arr);  IBTK_CHKERRQ(ierr);
+
+                static double max_displacement = 0.0;
+                double max_config_displacement = 0.0;
+                for (int i = 0; i < n_local; ++i)
                 {
-                    int ierr;
+                    const double& K = K_arr[i];
+                    const double& M = M_arr[i];
+                    const double* const X_half = &X_half_arr[NDIM*i];
+                    const double* const Y = &Y_arr[NDIM*i];
+                    const double* const dY_dt = &dY_dt_arr[NDIM*i];
+                    double* const Y_new = &Y_new_arr[NDIM*i];
+                    double* const dY_dt_new = &dY_dt_new_arr[NDIM*i];
+                    double* const F_K_half = &F_K_half_arr[NDIM*i];
 
-                    Vec K_vec = K_data[ln]->getVec();
-                    Vec M_vec = M_data[ln]->getVec();
-                    Vec X_half_vec = X_half_data[ln]->getVec();
-                    Vec Y_vec = Y_data[ln]->getVec();
-                    Vec Y_new_vec = Y_new_data[ln]->getVec();
-                    Vec dY_dt_vec = dY_dt_data[ln]->getVec();
-                    Vec dY_dt_new_vec = dY_dt_new_data[ln]->getVec();
-                    Vec F_K_half_vec = F_K_half_data[ln]->getVec();
-
-                    int n_local = 0;
-                    ierr = VecGetLocalSize(M_vec, &n_local);  IBTK_CHKERRQ(ierr);
-
-                    double* K_arr, * M_arr, * X_half_arr, * Y_arr, * Y_new_arr, * dY_dt_arr, * dY_dt_new_arr, * F_K_half_arr;
-                    ierr = VecGetArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);
-                    ierr = VecGetArray(M_vec, &M_arr);  IBTK_CHKERRQ(ierr);
-                    ierr = VecGetArray(X_half_vec, &X_half_arr);  IBTK_CHKERRQ(ierr);
-                    ierr = VecGetArray(Y_vec, &Y_arr);  IBTK_CHKERRQ(ierr);
-                    ierr = VecGetArray(Y_new_vec, &Y_new_arr);  IBTK_CHKERRQ(ierr);
-                    ierr = VecGetArray(dY_dt_vec, &dY_dt_arr);  IBTK_CHKERRQ(ierr);
-                    ierr = VecGetArray(dY_dt_new_vec, &dY_dt_new_arr);  IBTK_CHKERRQ(ierr);
-                    ierr = VecGetArray(F_K_half_vec, &F_K_half_arr);  IBTK_CHKERRQ(ierr);
-
-                    static double max_displacement = 0.0;
-                    double max_config_displacement = 0.0;
-                    for (int i = 0; i < n_local; ++i)
+                    double displacement = 0.0;
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        const double& K = K_arr[i];
-                        const double& M = M_arr[i];
-                        const double* const X_half = &X_half_arr[NDIM*i];
-                        const double* const Y = &Y_arr[NDIM*i];
-                        const double* const dY_dt = &dY_dt_arr[NDIM*i];
-                        double* const Y_new = &Y_new_arr[NDIM*i];
-                        double* const dY_dt_new = &dY_dt_new_arr[NDIM*i];
-                        double* const F_K_half = &F_K_half_arr[NDIM*i];
-
-                        double displacement = 0.0;
-                        for (unsigned int d = 0; d < NDIM; ++d)
-                        {
-                            double Y_minus_X = 0.5*(Y_new[d] + Y[d]) - X_half[d];
-                            displacement += Y_minus_X*Y_minus_X;
-                            F_K_half[d] = K*Y_minus_X;
-                            Y_new[d] = Y[d] + 0.5*dt*(dY_dt_new[d]+dY_dt[d]);
-                            dY_dt_new[d] = dY_dt[d] - (dt/M)*F_K_half[d] + dt*d_gravitational_acceleration[d];
-                        }
-                        displacement = sqrt(displacement);
-                        max_config_displacement = std::max(displacement,max_config_displacement);
+                        double Y_minus_X = 0.5*(Y_new[d] + Y[d]) - X_half[d];
+                        displacement += Y_minus_X*Y_minus_X;
+                        F_K_half[d] = K*Y_minus_X;
+                        Y_new[d] = Y[d] + 0.5*dt*(dY_dt_new[d]+dY_dt[d]);
+                        dY_dt_new[d] = dY_dt[d] - (dt/M)*F_K_half[d] + dt*d_gravitational_acceleration[d];
                     }
-                    max_config_displacement = SAMRAI_MPI::maxReduction(max_config_displacement);
-
-                    max_displacement = std::max(max_config_displacement,max_displacement);
-                    if (d_do_log)
-                    {
-                        plog << d_object_name << "::advanceHierarchy():\n";
-                        plog << "  maximum massive boundary point displacement [present configuration] = " << max_config_displacement << "\n";
-                        plog << "  maximum massive boundary point displacement [entire simulation]     = " << max_displacement << "\n";
-                    }
-
-                    ierr = VecRestoreArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);
-                    ierr = VecRestoreArray(M_vec, &M_arr);  IBTK_CHKERRQ(ierr);
-                    ierr = VecRestoreArray(X_half_vec, &X_half_arr);  IBTK_CHKERRQ(ierr);
-                    ierr = VecRestoreArray(Y_vec, &Y_arr);  IBTK_CHKERRQ(ierr);
-                    ierr = VecRestoreArray(Y_new_vec, &Y_new_arr);  IBTK_CHKERRQ(ierr);
-                    ierr = VecRestoreArray(dY_dt_vec, &dY_dt_arr);  IBTK_CHKERRQ(ierr);
-                    ierr = VecRestoreArray(dY_dt_new_vec, &dY_dt_new_arr);  IBTK_CHKERRQ(ierr);
-                    ierr = VecRestoreArray(F_K_half_vec, &F_K_half_arr);  IBTK_CHKERRQ(ierr);
-
-                    Vec F_half_vec = F_half_data[ln]->getVec();
-                    ierr = VecAXPY(F_half_vec,1.0,F_K_half_vec);  IBTK_CHKERRQ(ierr);
+                    displacement = sqrt(displacement);
+                    max_config_displacement = std::max(displacement,max_config_displacement);
                 }
+                max_config_displacement = SAMRAI_MPI::maxReduction(max_config_displacement);
+
+                max_displacement = std::max(max_config_displacement,max_displacement);
+                if (d_do_log)
+                {
+                    plog << d_object_name << "::advanceHierarchy():\n";
+                    plog << "  maximum massive boundary point displacement [present configuration] = " << max_config_displacement << "\n";
+                    plog << "  maximum massive boundary point displacement [entire simulation]     = " << max_displacement << "\n";
+                }
+
+                ierr = VecRestoreArray(K_vec, &K_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(M_vec, &M_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(X_half_vec, &X_half_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(Y_current_vec, &Y_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(Y_new_vec, &Y_new_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(dY_dt_current_vec, &dY_dt_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(dY_dt_new_vec, &dY_dt_new_arr);  IBTK_CHKERRQ(ierr);
+                ierr = VecRestoreArray(F_K_half_vec, &F_K_half_arr);  IBTK_CHKERRQ(ierr);
+
+                Vec F_half_vec = F_half_data[ln]->getVec();
+                ierr = VecAXPY(F_half_vec,1.0,F_K_half_vec);  IBTK_CHKERRQ(ierr);
             }
         }
 
@@ -1141,10 +1128,9 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         // Solve the incompressible Navier-Stokes equations.
         d_ins_hier_integrator->integrateHierarchy(current_time, new_time, cycle);
 
-        // Set u(n+1/2) = 0.5*(u(n) + u(n+1)).
+        // Set u(n+1/2) = 0.5*(u(n) + u(n+1)) and interpolate u(n+1/2) to
+        // U(n+1/2).
         d_hier_sc_data_ops->linearSum(d_V_idx, 0.5, U_current_idx, 0.5, U_new_idx);
-
-        // Interpolate u(n+1/2) to U(n+1/2).
         d_l_data_manager->interp(d_V_idx, U_half_data, X_half_data, d_cscheds["V->V::S->S::CONSERVATIVE_COARSEN"], d_rscheds["V->V::S->S::GHOST_FILL"], current_time);
         resetAnchorPointValues(U_half_data, coarsest_ln, finest_ln);
 
@@ -1153,30 +1139,13 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         {
             if (d_l_data_manager->levelContainsLagrangianData(ln))
             {
-                int ierr;
-                Vec X_vec = X_data[ln]->getVec();
+                Vec X_current_vec = X_current_data[ln]->getVec();
                 Vec X_new_vec = X_new_data[ln]->getVec();
                 Vec U_half_vec = U_half_data[ln]->getVec();
-                ierr = VecWAXPY(X_new_vec, dt, U_half_vec, X_vec);  IBTK_CHKERRQ(ierr);
+                ierr = VecWAXPY(X_new_vec, dt, U_half_vec, X_current_vec);  IBTK_CHKERRQ(ierr);
             }
         }
-
-        // Set X_mark(n+1) = X_mark(n) + dt*U(n+1/2).
         LMarkerUtilities::advectMarkers(d_mark_current_idx, d_mark_scratch_idx, d_V_idx, dt, d_interp_delta_fcn, d_hierarchy);
-
-        // Set X(n+1/2) = 0.5*(X(n) + X(n+1)).
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (d_l_data_manager->levelContainsLagrangianData(ln))
-            {
-                int ierr;
-                Vec X_vec = X_data[ln]->getVec();
-                Vec X_new_vec = X_new_data[ln]->getVec();
-                Vec X_half_vec = X_half_data[ln]->getVec();
-                ierr = VecCopy(X_vec, X_half_vec);  IBTK_CHKERRQ(ierr);
-                ierr = VecAXPBY(X_half_vec, 0.5, 0.5, X_new_vec);  IBTK_CHKERRQ(ierr);
-            }
-        }
 
         if (d_using_orthonormal_directors)
         {
@@ -1193,10 +1162,10 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
             {
                 if (d_l_data_manager->levelContainsLagrangianData(ln))
                 {
-                    blitz::Array<double,2>&      D_array = *     D_data[ln]->getLocalFormVecArray();
-                    blitz::Array<double,2>& D_half_array = *D_half_data[ln]->getLocalFormVecArray();
-                    blitz::Array<double,2>&  D_new_array = * D_new_data[ln]->getLocalFormVecArray();
-                    blitz::Array<double,2>& W_half_array = *W_half_data[ln]->getLocalFormVecArray();
+                    blitz::Array<double,2>&      D_array = *D_current_data[ln]->getLocalFormVecArray();
+                    blitz::Array<double,2>& D_half_array = *D_half_data   [ln]->getLocalFormVecArray();
+                    blitz::Array<double,2>&  D_new_array = *D_new_data    [ln]->getLocalFormVecArray();
+                    blitz::Array<double,2>& W_half_array = *W_half_data   [ln]->getLocalFormVecArray();
                     const int n_local = d_l_data_manager->getNumberOfLocalNodes(ln);
                     for (int l = 0; l < n_local; ++l)
                     {
@@ -1265,10 +1234,10 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
 
                         interpolate_directors(D_half, D, D_new);
                     }
-                    D_data     [ln]->restoreArrays();
-                    D_half_data[ln]->restoreArrays();
-                    D_new_data [ln]->restoreArrays();
-                    W_half_data[ln]->restoreArrays();
+                    D_current_data[ln]->restoreArrays();
+                    D_half_data   [ln]->restoreArrays();
+                    D_new_data    [ln]->restoreArrays();
+                    W_half_data   [ln]->restoreArrays();
                 }
             }
         }
@@ -1296,16 +1265,21 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         }
     }
 
-    // Reset X to equal X_new.
+    // Reset X_current to equal X_new.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_l_data_manager->levelContainsLagrangianData(ln))
         {
-            Vec X_vec = X_data[ln]->getVec();
+            Vec X_current_vec = X_current_data[ln]->getVec();
             Vec X_new_vec = X_new_data[ln]->getVec();
-            int ierr = VecCopy(X_new_vec, X_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecCopy(X_new_vec, X_current_vec);  IBTK_CHKERRQ(ierr);
         }
     }
+
+    // Interpolate u(n+1) to U(n+1).
+    d_hier_sc_data_ops->copyData(d_V_idx, U_new_idx);
+    d_l_data_manager->interp(d_V_idx, U_current_data, X_current_data, d_cscheds["V->V::S->S::CONSERVATIVE_COARSEN"], d_rscheds["V->V::S->S::GHOST_FILL"], d_integrator_time);
+    resetAnchorPointValues(U_current_data, coarsest_ln, finest_ln);
 
     // Reset X_mark to equal X_mark_new.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1321,42 +1295,29 @@ IBStaggeredHierarchyIntegrator::advanceHierarchy(
         level->deallocatePatchData(d_mark_scratch_idx);
     }
 
-    if (d_using_pIB_method)
+    // Reset Y to equal Y_new, and reset dY_dt to equal dY_dt_new.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        // Reset Y to equal Y_new.
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        if (d_l_data_manager->levelContainsLagrangianData(ln) && d_using_pIB_method)
         {
-            if (d_l_data_manager->levelContainsLagrangianData(ln))
-            {
-                Vec Y_vec = Y_data[ln]->getVec();
-                Vec Y_new_vec = Y_new_data[ln]->getVec();
-                int ierr = VecCopy(Y_new_vec, Y_vec);  IBTK_CHKERRQ(ierr);
-            }
-        }
+            Vec Y_current_vec = Y_current_data[ln]->getVec();
+            Vec Y_new_vec = Y_new_data[ln]->getVec();
+            ierr = VecCopy(Y_new_vec, Y_current_vec);  IBTK_CHKERRQ(ierr);
 
-        // Reset dY_dt to equal dY_dt_new.
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (d_l_data_manager->levelContainsLagrangianData(ln))
-            {
-                Vec dY_dt_vec = dY_dt_data[ln]->getVec();
-                Vec dY_dt_new_vec = dY_dt_new_data[ln]->getVec();
-                int ierr = VecCopy(dY_dt_new_vec, dY_dt_vec);  IBTK_CHKERRQ(ierr);
-            }
+            Vec dY_dt_current_vec = dY_dt_current_data[ln]->getVec();
+            Vec dY_dt_new_vec = dY_dt_new_data[ln]->getVec();
+            ierr = VecCopy(dY_dt_new_vec, dY_dt_current_vec);  IBTK_CHKERRQ(ierr);
         }
     }
 
-    if (d_using_orthonormal_directors)
+    // Reset D to equal D_new.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        // Reset D to equal D_new.
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        if (d_l_data_manager->levelContainsLagrangianData(ln) && d_using_orthonormal_directors)
         {
-            if (d_l_data_manager->levelContainsLagrangianData(ln))
-            {
-                Vec D_vec = D_data[ln]->getVec();
-                Vec D_new_vec = D_new_data[ln]->getVec();
-                int ierr = VecCopy(D_new_vec, D_vec);  IBTK_CHKERRQ(ierr);
-            }
+            Vec D_current_vec = D_current_data[ln]->getVec();
+            Vec D_new_vec = D_new_data[ln]->getVec();
+            ierr = VecCopy(D_new_vec, D_current_vec);  IBTK_CHKERRQ(ierr);
         }
     }
 
@@ -1441,6 +1402,8 @@ IBStaggeredHierarchyIntegrator::postProcessData()
     const int P_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVar(), d_ins_hier_integrator->getCurrentContext());
     const int F_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getForceVar(), d_ins_hier_integrator->getCurrentContext());
 
+    PetscErrorCode ierr;
+
     const double current_time = d_integrator_time;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1480,7 +1443,7 @@ IBStaggeredHierarchyIntegrator::postProcessData()
         if (d_l_data_manager->levelContainsLagrangianData(ln))
         {
             Vec F_vec = F_data[ln]->getVec();
-            int ierr = VecSet(F_vec, 0.0);  IBTK_CHKERRQ(ierr);
+            ierr = VecSet(F_vec, 0.0);  IBTK_CHKERRQ(ierr);
             d_force_strategy->computeLagrangianForce(F_data[ln], X_data[ln], U_data[ln], d_hierarchy, ln, current_time, d_l_data_manager);
         }
     }
@@ -2251,6 +2214,7 @@ IBStaggeredHierarchyIntegrator::resetAnchorPointValues(
     const int coarsest_ln,
     const int finest_ln)
 {
+    PetscErrorCode ierr;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_l_data_manager->levelContainsLagrangianData(ln))
@@ -2261,7 +2225,7 @@ IBStaggeredHierarchyIntegrator::resetAnchorPointValues(
 #endif
             Vec V_vec = V_data[ln]->getVec();
             double* V_arr;
-            int ierr = VecGetArray(V_vec, &V_arr);  IBTK_CHKERRQ(ierr);
+            ierr = VecGetArray(V_vec, &V_arr);  IBTK_CHKERRQ(ierr);
             for (std::set<int>::const_iterator cit = d_anchor_point_local_idxs[ln].begin(); cit != d_anchor_point_local_idxs[ln].end(); ++cit)
             {
                 const int& i = *cit;

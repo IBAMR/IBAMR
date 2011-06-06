@@ -703,6 +703,14 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         d_ib_lag_force_strategy_needs_init = false;
     }
 
+    // Allocate scratch data.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(d_V_idx, current_time);
+        level->allocatePatchData(d_F_idx, current_time);
+    }
+
     // Extract the FE vectors.
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
     System& X_system = equation_systems->get_system(  COORDS_SYSTEM_NAME);
@@ -726,15 +734,17 @@ IBFEHierarchyIntegrator::advanceHierarchy(
 
     // Initialize the various LData objects on each level of the patch hierarchy.
     std::vector<Pointer<LData> > X_current_data(finest_ln+1);
-    std::vector<Pointer<LData> > X_new_data(finest_ln+1);
-    std::vector<Pointer<LData> > X_half_data(finest_ln+1);
-    std::vector<Pointer<LData> > U_half_data(finest_ln+1);
-    std::vector<Pointer<LData> > F_half_data(finest_ln+1);
+    std::vector<Pointer<LData> > U_current_data(finest_ln+1);
+    std::vector<Pointer<LData> > X_new_data    (finest_ln+1);
+    std::vector<Pointer<LData> > X_half_data   (finest_ln+1);
+    std::vector<Pointer<LData> > U_half_data   (finest_ln+1);
+    std::vector<Pointer<LData> > F_half_data   (finest_ln+1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_l_data_manager != NULL && d_l_data_manager->levelContainsLagrangianData(ln))
         {
             X_current_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
+            U_current_data[ln] = d_l_data_manager->getLData(LDataManager:: VEL_DATA_NAME,ln);
             X_new_data    [ln] = d_l_data_manager->createLData("X_new" ,ln,NDIM);
             X_half_data   [ln] = d_l_data_manager->createLData("X_half",ln,NDIM);
             U_half_data   [ln] = d_l_data_manager->createLData("U_half",ln,NDIM);
@@ -746,14 +756,6 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int U_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVar(), d_ins_hier_integrator->getCurrentContext());
     const int U_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVar(), d_ins_hier_integrator->getNewContext());
-
-    // Allocate scratch data.
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(d_V_idx, current_time);
-        level->allocatePatchData(d_F_idx, current_time);
-    }
 
     // Synchronize the Cartesian grid velocity u(n) on the patch hierarchy.
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
@@ -928,19 +930,6 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         }
     }
 
-    // Update the interpolated velocity.
-    d_hier_sc_data_ops->copyData(d_V_idx, U_new_idx);
-    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&X_new)->vec(),
-                   dynamic_cast<PetscVector<double>*>(&X_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
-    if (d_use_IB_interpolation_operator)
-    {
-        d_fe_data_manager->interp(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::GHOST_FILL"], current_time, true);
-    }
-    else
-    {
-        d_fe_data_manager->restrictValue(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, true);
-    }
-
     // Update the coordinate mapping dX = X - s.
     updateCoordinateMapping();
 
@@ -956,6 +945,20 @@ IBFEHierarchyIntegrator::advanceHierarchy(
             mark_data->copy(*mark_scratch_data);
         }
         level->deallocatePatchData(d_mark_scratch_idx);
+    }
+
+    // Update the interpolated velocity to corresond to the updated Eulerian
+    // velocity field
+    d_hier_sc_data_ops->copyData(d_V_idx, U_new_idx);
+    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&X_new)->vec(),
+                   dynamic_cast<PetscVector<double>*>(&X_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
+    if (d_use_IB_interpolation_operator)
+    {
+        d_fe_data_manager->interp(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::GHOST_FILL"], current_time, true);
+    }
+    else
+    {
+        d_fe_data_manager->restrictValue(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, true);
     }
 
     // Deallocate scratch data.
