@@ -1952,8 +1952,7 @@ IBStaggeredHierarchyIntegrator::applyGradientDetector(
             blitz::TinyVector<double,NDIM> r;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                r[d] = floor(d_r_src[finer_level_number][n]/dx_finer[d])*dx_finer[d];
-                r[d] = std::max(r[d],2.0*dx_finer[d]);
+                r[d] = std::max(std::floor(d_r_src[finer_level_number][n]/dx_finer[d]+0.5),2.0)*dx_finer[d];
             }
 
             // Determine the approximate source stencil box.
@@ -1961,7 +1960,7 @@ IBStaggeredHierarchyIntegrator::applyGradientDetector(
             Box<NDIM> stencil_box(i_center,i_center);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                stencil_box.grow(d, static_cast<int>(ceil(r[d]/dx_finer[d])));
+                stencil_box.grow(d, static_cast<int>(r[d]/dx_finer[d])+1);
             }
             const Box<NDIM> coarsened_stencil_box = Box<NDIM>::coarsen(stencil_box, finer_level->getRatioToCoarserLevel());
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -2311,8 +2310,7 @@ IBStaggeredHierarchyIntegrator::computeSourceStrengths(
                     blitz::TinyVector<double,NDIM> r;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        r[d] = floor(d_r_src[ln][n]/dx[d])*dx[d];
-                        r[d] = std::max(r[d],2.0*dx[d]);
+                        r[d] = std::max(std::floor(d_r_src[ln][n]/dx[d]+0.5),2.0)*dx[d];
                     }
 
                     // Determine the approximate source stencil box.
@@ -2320,7 +2318,7 @@ IBStaggeredHierarchyIntegrator::computeSourceStrengths(
                     Box<NDIM> stencil_box(i_center,i_center);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        stencil_box.grow(d, static_cast<int>(ceil(r[d]/dx[d])));
+                        stencil_box.grow(d, static_cast<int>(r[d]/dx[d])+1);
                     }
 
                     // Spread the source strength onto the Cartesian grid.
@@ -2544,8 +2542,7 @@ IBStaggeredHierarchyIntegrator::computeSourcePressures(
                     blitz::TinyVector<double,NDIM> r;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        r[d] = floor(d_r_src[ln][n]/dx[d])*dx[d];
-                        r[d] = std::max(r[d],2.0*dx[d]);
+                        r[d] = std::max(std::floor(d_r_src[ln][n]/dx[d]+0.5),2.0)*dx[d];
                     }
 
                     // Determine the approximate source stencil box.
@@ -2553,7 +2550,7 @@ IBStaggeredHierarchyIntegrator::computeSourcePressures(
                     Box<NDIM> stencil_box(i_center,i_center);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        stencil_box.grow(d, static_cast<int>(ceil(r[d]/dx[d])));
+                        stencil_box.grow(d, static_cast<int>(r[d]/dx[d])+1);
                     }
 
                     // Interpolate the pressure from the Cartesian grid.
