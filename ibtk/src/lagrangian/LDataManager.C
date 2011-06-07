@@ -2173,7 +2173,7 @@ LDataManager::initializeLevelData(
 
         // Ensure that workload and related data are allocated on coarser levels
         // of the patch hierarchy.
-        for (int ln = 0; ln < level_number; ++ln)
+        for (int ln = 0; ln <= level_number; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
             if (!level->checkAllocated(d_workload_idx)) level->allocatePatchData(d_workload_idx, init_data_time);
