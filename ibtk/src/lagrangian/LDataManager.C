@@ -2150,7 +2150,6 @@ LDataManager::initializeLevelData(
         IBTK_CHKERRQ(ierr);
     }
 
-
     // Initialize workload data and setup the load balancer.
     if (!d_load_balancer.isNull())
     {
@@ -2170,6 +2169,15 @@ LDataManager::initializeLevelData(
         else
         {
             d_load_balancer->setUniformWorkload(level_number);
+        }
+
+        // Ensure that workload and related data are allocated on coarser levels
+        // of the patch hierarchy.
+        for (int ln = 0; ln < level_number; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+            if (!level->checkAllocated(d_workload_idx)) level->allocatePatchData(d_workload_idx, init_data_time);
+            if (!level->checkAllocated(d_node_count_idx)) level->allocatePatchData(d_node_count_idx, init_data_time);
         }
     }
 
