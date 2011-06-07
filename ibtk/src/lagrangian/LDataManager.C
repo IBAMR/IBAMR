@@ -2171,8 +2171,7 @@ LDataManager::initializeLevelData(
             d_load_balancer->setUniformWorkload(level_number);
         }
 
-        // Ensure that workload and related data are allocated on coarser levels
-        // of the patch hierarchy.
+        // Ensure that workload and related data are allocated.
         for (int ln = 0; ln <= level_number; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
