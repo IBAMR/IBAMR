@@ -577,8 +577,7 @@ IBStandardInitializer::tagCellsForInitialRefinement(
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom =
-            patch->getPatchGeometry();
+        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const Box<NDIM>& patch_box = patch->getBox();
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
         const CellIndex<NDIM>& patch_upper = patch_box.upper();
@@ -936,8 +935,7 @@ IBStandardInitializer::readSpringFiles()
 
                     // Check to see if the edge has already been inserted in the edge map.
                     bool duplicate_edge = false;
-                    for (std::multimap<int,Edge>::const_iterator it =
-                             d_spring_edge_map[ln][j].lower_bound(e.first);
+                    for (std::multimap<int,Edge>::const_iterator it = d_spring_edge_map[ln][j].lower_bound(e.first);
                          it != d_spring_edge_map[ln][j].upper_bound(e.first); ++it)
                     {
                         const Edge& other_e = it->second;
@@ -2425,8 +2423,7 @@ IBStandardInitializer::getPatchVertices(
     //
     // NOTE: This is clearly not the best way to do this, but it will work for
     // now.
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom =
-        patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
     const double* const xLower = patch_geom->getXLower();
     const double* const xUpper = patch_geom->getXUpper();
 
@@ -2969,8 +2966,7 @@ IBStandardInitializer::getFromInput(
             const std::string& base_filename = d_base_filename[ln][j];
             if (db->isDatabase(base_filename))
             {
-                Pointer<Database> sub_db =
-                    db->getDatabase(base_filename);
+                Pointer<Database> sub_db = db->getDatabase(base_filename);
 
                 // Determine whether to enable or disable any particular
                 // features.
