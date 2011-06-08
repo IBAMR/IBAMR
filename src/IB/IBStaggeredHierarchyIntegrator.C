@@ -675,6 +675,8 @@ IBStaggeredHierarchyIntegrator::initializeHierarchy()
                 U_data[ln] = d_l_data_manager->getLData(LDataManager:: VEL_DATA_NAME,ln);
             }
         }
+        const int U_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVar(), d_ins_hier_integrator->getCurrentContext());
+        d_hier_sc_data_ops->copyData(d_V_idx, U_new_idx);
         d_l_data_manager->interp(d_V_idx, U_data, X_data, d_cscheds["V->V::S->S::CONSERVATIVE_COARSEN"], d_rscheds["V->V::S->S::GHOST_FILL"], init_data_time);
         resetAnchorPointValues(U_data, coarsest_ln, finest_ln);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
