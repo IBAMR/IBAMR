@@ -44,6 +44,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/ax_blas.m4 \
 	$(top_srcdir)/m4/ax_cxx_have_stl.m4 \
 	$(top_srcdir)/m4/ax_cxx_namespaces.m4 \
 	$(top_srcdir)/m4/ax_lapack.m4 $(top_srcdir)/m4/ax_mpi.m4 \
+	$(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/blitz.m4 $(top_srcdir)/m4/hdf5.m4 \
 	$(top_srcdir)/m4/hypre.m4 $(top_srcdir)/m4/lib-ld.m4 \
 	$(top_srcdir)/m4/lib-link.m4 $(top_srcdir)/m4/lib-prefix.m4 \

@@ -2760,6 +2760,9 @@ ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
 
 ac_config_headers="$ac_config_headers config/IBAMR_config.h"
 
+
+ac_config_commands="$ac_config_commands config/IBAMR_prefix_config.h"
+
 am__api_version='1.11'
 
 # Find a good install program.  We prefer a C program (faster),
@@ -37474,6 +37477,7 @@ cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
 #
 # INIT-COMMANDS
 #
+PACKAGE="$PACKAGE"
 AMDEP_TRUE="$AMDEP_TRUE" ac_aux_dir="$ac_aux_dir"
 
 _ACEOF
@@ -37485,6 +37489,7 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "config/IBAMR_config.h") CONFIG_HEADERS="$CONFIG_HEADERS config/IBAMR_config.h" ;;
+    "config/IBAMR_prefix_config.h") CONFIG_COMMANDS="$CONFIG_COMMANDS config/IBAMR_prefix_config.h" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "bin/Makefile") CONFIG_FILES="$CONFIG_FILES bin/Makefile" ;;
@@ -38144,6 +38149,96 @@ $as_echo "$as_me: executing $ac_file commands" >&6;}
 
 
   case $ac_file$ac_mode in
+    "config/IBAMR_prefix_config.h":C) ac_prefix_conf_OUT=`echo config/IBAMR_prefix_config.h`
+ac_prefix_conf_DEF=`echo _$ac_prefix_conf_OUT | sed -e "y:abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:" -e "s/[^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ]/_/g"`
+ac_prefix_conf_PKG=`echo $PACKAGE`
+ac_prefix_conf_LOW=`echo _$ac_prefix_conf_PKG | sed -e "y:ABCDEFGHIJKLMNOPQRSTUVWXYZ-:abcdefghijklmnopqrstuvwxyz_:"`
+ac_prefix_conf_UPP=`echo $ac_prefix_conf_PKG | sed -e "y:abcdefghijklmnopqrstuvwxyz-:ABCDEFGHIJKLMNOPQRSTUVWXYZ_:"  -e "/^[0123456789]/s/^/_/"`
+ac_prefix_conf_INP=`echo "" | sed -e 's/ *//'`
+if test ".$ac_prefix_conf_INP" = "."; then
+   for ac_file in : $CONFIG_HEADERS; do test "_$ac_file" = _: && continue
+     case "$ac_file" in
+        *.h) ac_prefix_conf_INP=$ac_file ;;
+        *)
+     esac
+     test ".$ac_prefix_conf_INP" != "." && break
+   done
+fi
+if test ".$ac_prefix_conf_INP" = "."; then
+   case "$ac_prefix_conf_OUT" in
+      */*) ac_prefix_conf_INP=`basename "$ac_prefix_conf_OUT"`
+      ;;
+      *-*) ac_prefix_conf_INP=`echo "$ac_prefix_conf_OUT" | sed -e "s/[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_]*-//"`
+      ;;
+      *) ac_prefix_conf_INP=config.h
+      ;;
+   esac
+fi
+if test -z "$ac_prefix_conf_PKG" ; then
+   as_fn_error $? "no prefix for _PREFIX_PKG_CONFIG_H" "$LINENO" 5
+else
+  if test ! -f "$ac_prefix_conf_INP" ; then if test -f "$srcdir/$ac_prefix_conf_INP" ; then
+     ac_prefix_conf_INP="$srcdir/$ac_prefix_conf_INP"
+  fi fi
+  { $as_echo "$as_me:${as_lineno-$LINENO}: creating $ac_prefix_conf_OUT - prefix $ac_prefix_conf_UPP for $ac_prefix_conf_INP defines" >&5
+$as_echo "$as_me: creating $ac_prefix_conf_OUT - prefix $ac_prefix_conf_UPP for $ac_prefix_conf_INP defines" >&6;}
+  if test -f $ac_prefix_conf_INP ; then
+    $as_echo "s/^#undef  *\\([ABCDEFGHIJKLMNOPQRSTUVWXYZ_]\\)/#undef $ac_prefix_conf_UPP""_\\1/" > conftest.prefix
+    $as_echo "s/^#undef  *\\([abcdefghijklmnopqrstuvwxyz]\\)/#undef $ac_prefix_conf_LOW""_\\1/" >> conftest.prefix
+    $as_echo "s/^#define  *\\([ABCDEFGHIJKLMNOPQRSTUVWXYZ_][abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_]*\\)\\(.*\\)/#ifndef $ac_prefix_conf_UPP""_\\1\\" >> conftest.prefix
+    $as_echo "#define $ac_prefix_conf_UPP""_\\1\\2\\" >> conftest.prefix
+    $as_echo "#endif/" >> conftest.prefix
+    $as_echo "s/^#define  *\\([abcdefghijklmnopqrstuvwxyz][abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_]*\\)\\(.*\\)/#ifndef $ac_prefix_conf_LOW""_\\1\\" >> conftest.prefix
+    $as_echo "#define $ac_prefix_conf_LOW""_\\1\\2\\" >> conftest.prefix
+    $as_echo "#endif/" >> conftest.prefix
+    # now executing _script on _DEF input to create _OUT output file
+    echo "#ifndef $ac_prefix_conf_DEF"      >$tmp/pconfig.h
+    echo "#define $ac_prefix_conf_DEF 1" >>$tmp/pconfig.h
+    echo ' ' >>$tmp/pconfig.h
+    echo /'*' $ac_prefix_conf_OUT. Generated automatically at end of configure. '*'/ >>$tmp/pconfig.h
+
+    sed -f conftest.prefix $ac_prefix_conf_INP >>$tmp/pconfig.h
+    echo ' ' >>$tmp/pconfig.h
+    echo '/* once:' $ac_prefix_conf_DEF '*/' >>$tmp/pconfig.h
+    echo "#endif" >>$tmp/pconfig.h
+    if cmp -s $ac_prefix_conf_OUT $tmp/pconfig.h 2>/dev/null; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: $ac_prefix_conf_OUT is unchanged" >&5
+$as_echo "$as_me: $ac_prefix_conf_OUT is unchanged" >&6;}
+    else
+      ac_dir=`$as_dirname -- "$ac_prefix_conf_OUT" ||
+$as_expr X"$ac_prefix_conf_OUT" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
+	 X"$ac_prefix_conf_OUT" : 'X\(//\)[^/]' \| \
+	 X"$ac_prefix_conf_OUT" : 'X\(//\)$' \| \
+	 X"$ac_prefix_conf_OUT" : 'X\(/\)' \| . 2>/dev/null ||
+$as_echo X"$ac_prefix_conf_OUT" |
+    sed '/^X\(.*[^/]\)\/\/*[^/][^/]*\/*$/{
+	    s//\1/
+	    q
+	  }
+	  /^X\(\/\/\)[^/].*/{
+	    s//\1/
+	    q
+	  }
+	  /^X\(\/\/\)$/{
+	    s//\1/
+	    q
+	  }
+	  /^X\(\/\).*/{
+	    s//\1/
+	    q
+	  }
+	  s/.*/./; q'`
+      as_dir="$ac_dir"; as_fn_mkdir_p
+      rm -f "$ac_prefix_conf_OUT"
+      mv $tmp/pconfig.h "$ac_prefix_conf_OUT"
+    fi
+    cp conftest.prefix _configs.sed
+  else
+    as_fn_error $? "input file $ac_prefix_conf_INP does not exist - skip generating $ac_prefix_conf_OUT" "$LINENO" 5
+  fi
+  rm -f conftest.*
+fi
+ ;;
     "depfiles":C) test x"$AMDEP_TRUE" != x"" || {
   # Autoconf 2.62 quotes --file arguments for eval, but not when files
   # are listed without --file.  Let's play safe and only enable the eval
