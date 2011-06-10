@@ -851,8 +851,8 @@ LSiloDataWriter::registerMarkerCloud(
     {
         if (d_cloud_names[level_number][k] == name)
         {
-            d_cloud_nmarks       [level_number].push_back(nmarks);
-            d_cloud_first_lag_idx[level_number].push_back(first_lag_idx);
+            d_cloud_nmarks       [level_number][k] = nmarks;
+            d_cloud_first_lag_idx[level_number][k] = first_lag_idx;
             return;
         }
     }
