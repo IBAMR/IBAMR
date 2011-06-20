@@ -122,9 +122,9 @@ public:
         }
 
         tbox::pout << "\ntime = " << data_time << "\n"
-                           << "kinetic energy = " << kinetic_energy << "\n"
-                           << "potential energy = " << potential_energy << "\n"
-                           << "total energy = " << kinetic_energy + potential_energy << "\n\n";
+                   << "kinetic energy = " << kinetic_energy << "\n"
+                   << "potential energy = " << potential_energy << "\n"
+                   << "total energy = " << kinetic_energy + potential_energy << "\n\n";
         return;
     }// postProcessData
 };

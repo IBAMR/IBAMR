@@ -649,7 +649,7 @@ update_triads(
 
         // If spec is NULL, then the IB point is NOT anchored.  Otherwise, the
         // IB point IS anchored.
-        tbox::Pointer<IBAnchorPointSpec> spec = node_idx.getNodeData<IBAnchorPointSpec>();
+        tbox::Pointer<IBAnchorPointSpec> spec = node_idx.getNodeDataItem<IBAnchorPointSpec>();
         if (!spec.isNull())
         {
             // `global_idx' is the index of the vertex in the input file.
