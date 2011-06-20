@@ -669,8 +669,8 @@ PETScMatUtilities::constructPatchLevelInterpOp(
     getIndexRange(n_local, j_lower, j_upper, data_idx, data_var, patch_level);
 
     // Crudely approximate the non-zero structure of the matrix.
-    std::vector<int> d_nnz(m_local,pow(stencil_sz,NDIM));
-    std::vector<int> o_nnz(m_local,pow(stencil_sz,NDIM));
+    std::vector<int> d_nnz(m_local,static_cast<int>(pow(stencil_sz,NDIM)));
+    std::vector<int> o_nnz(m_local,static_cast<int>(pow(stencil_sz,NDIM)));
 
     // Create an empty matrix.
     ierr = MatCreateMPIAIJ(PETSC_COMM_WORLD,

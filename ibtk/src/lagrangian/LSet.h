@@ -305,7 +305,7 @@ private:
     /*!
      * \brief The collection of data items.
      */
-    LSet<T>::DataSet d_set;
+    typename LSet<T>::DataSet d_set;
 
     /*!
      * \brief The periodic offset.

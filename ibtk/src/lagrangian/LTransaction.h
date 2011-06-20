@@ -78,7 +78,7 @@ public:
         inline
         LTransactionComponent(
             const typename LSet<T>::value_type& item=NULL,
-            blitz::TinyVector<double,NDIM> posn=blitz::TinyVector<double,NDIM>(0.0))
+            blitz::TinyVector<double,NDIM> posn=0.0)
             : item(item),
               posn(posn)
             {

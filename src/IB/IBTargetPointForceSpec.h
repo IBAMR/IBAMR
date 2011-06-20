@@ -98,7 +98,7 @@ public:
         const int master_idx=-1,
         const double& kappa_target=0.0,
         const double& eta_target=0.0,
-        const blitz::TinyVector<double,NDIM>& X_target=blitz::TinyVector<double,NDIM>(0.0)
+        const blitz::TinyVector<double,NDIM>& X_target=0.0
 #if ENABLE_SUBDOMAIN_INDICES
         ,const int subdomain_idx=-1
 #endif

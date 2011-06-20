@@ -46,7 +46,7 @@ inline typename LSetData<T>::DataIterator
 LSetData<T>::data_begin(
     const SAMRAI::hier::Box<NDIM>& box)
 {
-    LSetData<T>::DataIterator it;
+    typename LSetData<T>::DataIterator it;
     it.d_box = box*this->getGhostBox();
     it.d_index_it = SAMRAI::pdat::IndexIterator<NDIM,LSet<T>,SAMRAI::pdat::CellGeometry<NDIM> >(*this);
     if (it.d_index_it)
@@ -81,7 +81,7 @@ template<class T>
 inline typename LSetData<T>::DataIterator
 LSetData<T>::data_end()
 {
-    LSetData<T>::DataIterator it;
+    typename LSetData<T>::DataIterator it;
     it.d_node_set = NULL;
     return it;
 }// data_end

@@ -65,7 +65,7 @@ public:
         const int global_petsc_nidx=-1,
         const int local_petsc_nidx=-1,
         const SAMRAI::hier::IntVector<NDIM>& periodic_offset=SAMRAI::hier::IntVector<NDIM>(0),
-        const blitz::TinyVector<double,NDIM>& periodic_displacement=blitz::TinyVector<double,NDIM>(0.0));
+        const blitz::TinyVector<double,NDIM>& periodic_displacement=0.0);
 
     /*!
      * \brief Copy constructor.
