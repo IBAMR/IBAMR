@@ -2270,6 +2270,7 @@ INSHierarchyIntegrator::updatePressure(
                         TBOX_ERROR(d_object_name << "::updatePressure():\n"
                                    << "  unrecognized pressure projection type\n");
                 }
+                break;
             }
             default:
             {
