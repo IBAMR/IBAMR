@@ -394,9 +394,9 @@ main(
         /*
          * Setup parallel summation options.
          */
-        LEInteractor::setFromDatabase(input_db->getDatabase("LEInteractor"));
+        if (input_db->isDatabase("LEInteractor")) LEInteractor::setFromDatabase(input_db->getDatabase("LEInteractor"));
         LEInteractor::printClassData(tbox::pout);
-        PETScVecOps::setFromDatabase(input_db->getDatabase("PETScVecOps"));
+        if (input_db->isDatabase("PETScVecOps")) PETScVecOps::setFromDatabase(input_db->getDatabase("PETScVecOps"));
         PETScVecOps::printClassData(tbox::pout);
 
         /*

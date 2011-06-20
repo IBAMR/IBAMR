@@ -952,7 +952,7 @@ FEDataManager::applyGradientDetector(
                 {
                     interpolate(&X_qp[0], qp, X_node, X_phi);
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
-                    tag_data->fill(1,Box<NDIM>::Box(i-Index<NDIM>(1),i+Index<NDIM>(1)));
+                    tag_data->fill(1,Box<NDIM>(i-Index<NDIM>(1),i+Index<NDIM>(1)));
                 }
             }
         }
