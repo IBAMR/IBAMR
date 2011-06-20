@@ -1,5 +1,5 @@
 !  qdmod.f
-!  
+!
 !  This work was supported by the Director, Office of Science, Division
 !  of Mathematical, Information, and Computational Sciences of the
 !  U.S. Department of Energy under contract number DE-AC03-76SF00098.
@@ -15,7 +15,7 @@ module qdmodule
   use ddmodule
   use qdext
   implicit none
-  
+
   type qd_real
     sequence
     real*8 :: re(4)
@@ -530,7 +530,7 @@ contains
     to_d_qd = qd%re(1)
   end function to_d_qd
 
-  elemental integer function to_int_qd(a) 
+  elemental integer function to_int_qd(a)
     type (qd_real), intent(in) :: a
     to_int_qd = a%re(1)
   end function to_int_qd
@@ -927,7 +927,8 @@ contains
   elemental type (qd_complex) function pwr_qdc_i(a, n)
     type (qd_complex), intent(in) :: a
     integer, intent(in) :: n
-    integer i2, j, n1
+!   integer i2, j, n1
+    integer i2, n1
     type (qd_real) t1, t2, t3
     type (qd_complex) c1, c2
 
@@ -2000,60 +2001,82 @@ subroutine qdoutc (a, b)
   call f_qd_swrite(a, 62, b(3), 70)
 end subroutine
 
-elemental type (qd_real) function qdhuge(a) 
+elemental type (qd_real) function qdhuge(a)
   type (qd_real), intent(in) :: a
+  type (qd_real) dummy_a
+  dummy_a = a
   qdhuge = qd_huge
 end function qdhuge
 
 elemental type (qd_real) function qd_safe_huge(a)
   type (qd_real), intent(in) :: a
+  type (qd_real) dummy_a
+  dummy_a = a
   qd_safe_huge = qd_real((/ &
     1.7976931080746007281d+308,  9.97920154767359795037d+291, &
     5.53956966280111259858d+275, 3.07507889307840487279d+259/))
 end function qd_safe_huge
 
-elemental type (qd_real) function qdtiny(a) 
+elemental type (qd_real) function qdtiny(a)
   type (qd_real), intent(in) :: a
+  type (qd_real) dummy_a
+  dummy_a = a
   qdtiny = qd_tiny
 end function qdtiny
 
-elemental type (qd_real) function qdepsilon(a) 
+elemental type (qd_real) function qdepsilon(a)
   type (qd_real), intent(in) :: a
+  type (qd_real) dummy_a
+  dummy_a = a
   qdepsilon = qd_eps
 end function qdepsilon
 
 elemental integer function qd_radix(a)
   type (qd_real), intent(in) :: a
+  type (qd_real) dummy_a
+  dummy_a = a
   qd_radix = 2
 end function qd_radix
 
 elemental integer function qd_digits(a)
   type (qd_real), intent(in) :: a
+  type (qd_real) dummy_a
+  dummy_a = a
   qd_digits = 209
 end function qd_digits
 
 elemental integer function qd_max_expn(a)
   type (qd_real), intent(in) :: a
+  type (qd_real) dummy_a
+  dummy_a = a
   qd_max_expn = 1023
 end function qd_max_expn
 
 elemental integer function qd_min_expn(a)
   type (qd_real), intent(in) :: a
+  type (qd_real) dummy_a
+  dummy_a = a
   qd_min_expn = -863
 end function qd_min_expn
 
 elemental integer function qd_precision(a)
   type (qd_real), intent(in) :: a
+  type (qd_real) dummy_a
+  dummy_a = a
   qd_precision = 62
 end function qd_precision
 
 elemental integer function qd_range(a)
   type (qd_real), intent(in) :: a
+  type (qd_real) dummy_a
+  dummy_a = a
   qd_range = 259
 end function qd_range
 
 elemental type (qd_real) function qd_nan(a)
   type (qd_real), intent(in) :: a
+  type (qd_real) dummy_a
+  dummy_a = a
   call f_qd_nan(qd_nan%re)
 end function qd_nan
 
@@ -2063,5 +2086,3 @@ elemental type (qd_real) function qd_aimag(a)
 end function
 
 end module qdmodule
-
-

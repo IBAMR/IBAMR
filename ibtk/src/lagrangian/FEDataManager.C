@@ -271,8 +271,7 @@ FEDataManager::getActivePatchElementMap() const
 }// getActivePatchElementMap
 
 void
-FEDataManager::reinitElementMappings(
-    const double data_time)
+FEDataManager::reinitElementMappings()
 {
     IBTK_TIMER_START(t_reinit_element_mappings);
 
@@ -287,7 +286,7 @@ FEDataManager::reinitElementMappings(
     d_system_ghost_vec.clear();
 
     // Reset the mappings between grid patches and active mesh elements.
-    collectActivePatchElements(d_active_patch_elem_map, d_level_number, d_ghost_width, data_time);
+    collectActivePatchElements(d_active_patch_elem_map, d_level_number, d_ghost_width);
 
     IBTK_TIMER_STOP(t_reinit_element_mappings);
     return;
@@ -1621,7 +1620,6 @@ FEDataManager::computeL2Projection(
 
 void
 FEDataManager::updateWorkloadData(
-    const double data_time,
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
@@ -1643,7 +1641,7 @@ FEDataManager::updateWorkloadData(
         {
             if (ln == d_level_number)
             {
-                updateQuadPointCountData(data_time,ln,ln);
+                updateQuadPointCountData(ln,ln);
                 HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(d_hierarchy,ln,ln);
                 hier_cc_data_ops.setToScalar(d_workload_idx, 1.0);
                 hier_cc_data_ops.add(d_workload_idx, d_qp_count_idx, d_workload_idx);
@@ -1671,8 +1669,8 @@ FEDataManager::initializeLevelData(
     const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
-    const bool can_be_refined,
-    const bool initial_time,
+    const bool /*can_be_refined*/,
+    const bool /*initial_time*/,
     const Pointer<BasePatchLevel<NDIM> > old_level,
     const bool allocate_data)
 {
@@ -1763,10 +1761,10 @@ void
 FEDataManager::applyGradientDetector(
     const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     const int level_number,
-    const double error_data_time,
+    const double /*error_data_time*/,
     const int tag_index,
     const bool initial_time,
-    const bool uses_richardson_extrapolation_too)
+    const bool /*uses_richardson_extrapolation_too*/)
 {
     if (level_number >= d_level_number) return;
 
@@ -1785,7 +1783,7 @@ FEDataManager::applyGradientDetector(
         // level.
         blitz::Array<blitz::Array<Elem*,1>,1> active_level_elem_map;
         const IntVector<NDIM> ghost_width = 1;
-        collectActivePatchElements(active_level_elem_map, level_number, ghost_width, error_data_time);
+        collectActivePatchElements(active_level_elem_map, level_number, ghost_width);
         std::vector<unsigned int> X_ghost_dofs;
         blitz::Array<Elem*,1> active_level_elems;
         flatten(active_level_elems, active_level_elem_map);
@@ -1846,7 +1844,7 @@ FEDataManager::applyGradientDetector(
                 {
                     interpolate(&X_qp[0], qp, X_node, phi_X);
                     const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
-                    tag_data->fill(1,Box<NDIM>::Box(i-Index<NDIM>(1),i+Index<NDIM>(1)));
+                    tag_data->fill(1,Box<NDIM>(i-Index<NDIM>(1),i+Index<NDIM>(1)));
                 }
             }
         }
@@ -1857,7 +1855,7 @@ FEDataManager::applyGradientDetector(
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
 
         // Update the node count data and coarsen it from the finer level.
-        updateQuadPointCountData(error_data_time,level_number,level_number+1);
+        updateQuadPointCountData(level_number,level_number+1);
         Pointer<CoarsenOperator<NDIM> > coarsen_op = new CartesianCellDoubleWeightedAverage<NDIM>();
         Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
         coarsen_alg->registerCoarsen(d_qp_count_idx, d_qp_count_idx, coarsen_op);
@@ -2012,7 +2010,6 @@ FEDataManager::~FEDataManager()
 
 void
 FEDataManager::updateQuadPointCountData(
-    const double data_time,
     const int coarsest_ln,
     const int finest_ln)
 {
@@ -2083,8 +2080,7 @@ FEDataManager::updateQuadPointCountData(
 }// updateQuadPointCountData
 
 blitz::Array<std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> >,1>*
-FEDataManager::computeActiveElementBoundingBoxes(
-    const double data_time)
+FEDataManager::computeActiveElementBoundingBoxes()
 {
     const MeshBase& mesh = d_es->get_mesh();
     const unsigned int n_elem = mesh.max_elem_id()+1;
@@ -2168,8 +2164,7 @@ void
 FEDataManager::collectActivePatchElements(
     blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_elems,
     const int level_number,
-    const IntVector<NDIM>& ghost_width,
-    const double data_time)
+    const IntVector<NDIM>& ghost_width)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_coarsest_ln <= level_number &&
@@ -2206,7 +2201,7 @@ FEDataManager::collectActivePatchElements(
     // processor will have access to all of the element bounding boxes.  This is
     // not a scalable approach, but we won't worry about this until it becomes
     // an actual issue.
-    computeActiveElementBoundingBoxes(data_time);
+    computeActiveElementBoundingBoxes();
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -2466,7 +2461,7 @@ FEDataManager::getFromRestart()
 void
 FEDataManager::do_partition(
     MeshBase& mesh,
-    const unsigned int n)
+    const unsigned int /*n*/)
 {
     // Compute the centroids of the elements.
     const unsigned int n_elem = mesh.max_elem_id()+1;

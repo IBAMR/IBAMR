@@ -716,7 +716,7 @@ namespace mu
 
     a_Tok.SetString(m_pParser->m_vStringVarBuf[item->second], m_pParser->m_vStringVarBuf.size() );
 
-    m_iSynFlags = m_iSynFlags = noANY ^ ( noBC | noOPT | noEND | noARG_SEP);
+    /*m_iSynFlags =*/ m_iSynFlags = noANY ^ ( noBC | noOPT | noEND | noARG_SEP);
     return true;
   }
 
@@ -808,7 +808,7 @@ namespace mu
     a_Tok.SetString(strTok, m_pParser->m_vStringBuf.size());
 
     m_iPos += (int)strTok.length() + 2 + (int)iSkip;  // +2 wg Anführungszeichen; +iSkip für entfernte escape zeichen
-    m_iSynFlags = m_iSynFlags = noANY ^ ( noARG_SEP | noBC | noOPT | noEND );
+    /*m_iSynFlags =*/ m_iSynFlags = noANY ^ ( noARG_SEP | noBC | noOPT | noEND );
 
     return true;
   }

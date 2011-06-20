@@ -644,7 +644,7 @@ IBFEHierarchyIntegrator::initializeHierarchy()
     }
 
     // Initialize the FE data manager.
-    d_fe_data_manager->reinitElementMappings(d_integrator_time);
+    d_fe_data_manager->reinitElementMappings();
 
     // Prune duplicate markers following initialization.
     LMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
@@ -1099,11 +1099,11 @@ IBFEHierarchyIntegrator::regridHierarchy()
     IBAMR_TIMER_START(t_regrid_hierarchy);
 
     // Update the marker data.
-    if (d_do_log) plog << d_object_name << "::regridHierarchy(): resetting markers particles.\n";
+    if (d_do_log) plog << d_object_name << "::regridHierarchy(): resetting marker particles.\n";
     LMarkerUtilities::collectMarkersOnPatchHierarchy(d_mark_current_idx, d_hierarchy);
 
     // Update the workload data.
-    d_fe_data_manager->updateWorkloadData(d_integrator_time,0,d_hierarchy->getFinestLevelNumber());
+    d_fe_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
     if (d_l_data_manager != NULL)
     {
         d_l_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
@@ -1127,7 +1127,7 @@ IBFEHierarchyIntegrator::regridHierarchy()
     d_ib_lag_force_strategy_needs_init = true;
 
     // Reinitialize the FE data manager.
-    d_fe_data_manager->reinitElementMappings(d_integrator_time);
+    d_fe_data_manager->reinitElementMappings();
 
     // Prune duplicate markers following regridding.
     LMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);

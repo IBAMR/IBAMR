@@ -45,10 +45,10 @@ inline SAMRAI::hier::Index<NDIM>
 IndexUtilities::getCellIndex(
     const double* const X,
     const double* const XLower,
-    const double* const XUpper,
+    const double* const /*XUpper*/,
     const double* const dx,
     const SAMRAI::hier::Index<NDIM>& ilower,
-    const SAMRAI::hier::Index<NDIM>& iupper)
+    const SAMRAI::hier::Index<NDIM>& /*iupper*/)
 {
     SAMRAI::hier::Index<NDIM> idx(
         static_cast<int>( floor((X[0]-XLower[0])/dx[0]))+ilower(0)

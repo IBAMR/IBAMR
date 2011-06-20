@@ -935,6 +935,7 @@ IBStandardInitializer::readSpringFiles()
 
                     // Check to see if the edge has already been inserted in the edge map.
                     bool duplicate_edge = false;
+#ifdef DEBUG_CHECK_ASSERTIONS
                     for (std::multimap<int,Edge>::const_iterator it = d_spring_edge_map[ln][j].lower_bound(e.first);
                          it != d_spring_edge_map[ln][j].upper_bound(e.first); ++it)
                     {
@@ -967,7 +968,7 @@ IBStandardInitializer::readSpringFiles()
                             }
                         }
                     }
-
+#endif
                     // Initialize the map data corresponding to the present edge.
                     //
                     // Note that in the edge map, each edge is associated with only the

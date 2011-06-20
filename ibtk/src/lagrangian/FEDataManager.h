@@ -220,8 +220,7 @@ public:
      * \brief Reinitialize the mappings from elements to Cartesian grid patches.
      */
     void
-    reinitElementMappings(
-        const double data_time);
+    reinitElementMappings();
 
     /*!
      * \return A pointer to the unghosted solution vector associated with the
@@ -356,7 +355,6 @@ public:
      */
     void
     updateWorkloadData(
-        const double data_time,
         const int coarsest_ln=-1,
         const int finest_ln=-1);
 
@@ -528,7 +526,6 @@ private:
      */
     void
     updateQuadPointCountData(
-        const double data_time,
         const int coarsest_ln,
         const int finest_ln);
 
@@ -539,8 +536,7 @@ private:
      * identically zero.
      */
     blitz::Array<std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> >,1>*
-    computeActiveElementBoundingBoxes(
-        const double data_time);
+    computeActiveElementBoundingBoxes();
 
     /*!
      * Collect all of the active elements which are located within a local
@@ -553,8 +549,7 @@ private:
     collectActivePatchElements(
         blitz::Array<blitz::Array<libMesh::Elem*,1>,1>& active_patch_elems,
         const int level_number,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width,
-        const double data_time);
+        const SAMRAI::hier::IntVector<NDIM>& ghost_width);
 
     /*!
      * Collect all ghost DOF indices for the specified collection of elements.
