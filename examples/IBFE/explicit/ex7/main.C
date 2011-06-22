@@ -70,13 +70,13 @@ void
 PK1_stress_function(
     TensorValue<double>& PP,
     const TensorValue<double>& FF,
-    const Point& X,
-    const Point& s,
+    const Point& /*X*/,
+    const Point& /*s*/,
     Elem* const elem,
-    NumericVector<double>& X_vec,
+    NumericVector<double>& /*X_vec*/,
     const std::vector<NumericVector<double>*>& system_data,
-    const double& time,
-    void* ctx)
+    const double& /*time*/,
+    void* /*ctx*/)
 {
     // Compute the matrix-type contribution to the stress tensor.
     static const double c = 7.64 * 10000.0;
@@ -132,15 +132,15 @@ int X_sys_num = -1;
 void
 surface_force_function(
     VectorValue<double>& F,
-    const TensorValue<double>& dX_ds,
+    const TensorValue<double>& /*dX_ds*/,
     const Point& X,
     const Point& s,
     Elem* const elem,
     const unsigned short int side,
     NumericVector<double>& X_vec,
-    const std::vector<NumericVector<double>*>& system_data,
-    const double& time,
-    void* ctx)
+    const std::vector<NumericVector<double>*>& /*system_data*/,
+    const double& /*time*/,
+    void* /*ctx*/)
 {
     F.zero();
 

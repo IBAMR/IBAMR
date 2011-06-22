@@ -70,7 +70,7 @@ void
 coordinate_mapping_function(
     Point& X,
     const Point& s,
-    void* ctx)
+    void* /*ctx*/)
 {
     X(0) = (R+      s(1))*cos(s(0)/R)+0.5;
     X(1) = (R+gamma+s(1))*sin(s(0)/R)+0.5;
@@ -83,13 +83,13 @@ void
 PK1_stress_function(
     TensorValue<double>& PP,
     const TensorValue<double>& dX_ds,
-    const Point& X,
-    const Point& s,
-    Elem* const elem,
-    NumericVector<double>& X_vec,
-    const std::vector<NumericVector<double>*>& system_data,
-    const double& time,
-    void* ctx)
+    const Point& /*X*/,
+    const Point& /*s*/,
+    Elem* const /*elem*/,
+    NumericVector<double>& /*X_vec*/,
+    const std::vector<NumericVector<double>*>& /*system_data*/,
+    const double& /*time*/,
+    void* /*ctx*/)
 {
     PP = (mu/w)*dX_ds;
     if (smooth_case)

@@ -69,13 +69,13 @@ void
 PK1_stress_function(
     TensorValue<double>& PP,
     const TensorValue<double>& FF,
-    const Point& X,
-    const Point& s,
+    const Point& /*X*/,
+    const Point& /*s*/,
     Elem* const elem,
-    NumericVector<double>& X_vec,
+    NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& system_data,
-    const double& time,
-    void* ctx)
+    const double& /*time*/,
+    void* /*ctx*/)
 {
     // Compute the matrix-type contribution to the stress tensor.
     const double c1 = (elem->subdomain_id() == 2 ? 0.86  : 4.0) * 1.0e4;
@@ -134,15 +134,15 @@ int X_sys_num = -1;
 void
 pressure_function(
     double& P,
-    const TensorValue<double>& dX_ds,
-    const Point& X,
-    const Point& s,
-    Elem* const elem,
+    const TensorValue<double>& /*dX_ds*/,
+    const Point& /*X*/,
+    const Point& /*s*/,
+    Elem* const /*elem*/,
     const unsigned short int side,
-    NumericVector<double>& X_vec,
-    const vector<NumericVector<double>*>& system_data,
+    NumericVector<double>& /*X_vec*/,
+    const vector<NumericVector<double>*>& /*system_data*/,
     const double& time,
-    void* ctx)
+    void* /*ctx*/)
 {
     // The pressure applied along the inner radial boundary:
     const double P_inner = 10.0 * min(1.0,time/t_ramp) * 1.0e6;
@@ -162,15 +162,15 @@ pressure_function(
 void
 surface_force_function(
     VectorValue<double>& F,
-    const TensorValue<double>& dX_ds,
+    const TensorValue<double>& /*dX_ds*/,
     const Point& X,
-    const Point& s,
+    const Point& /*s*/,
     Elem* const elem,
     const unsigned short int side,
     NumericVector<double>& X_vec,
-    const vector<NumericVector<double>*>& system_data,
+    const vector<NumericVector<double>*>& /*system_data*/,
     const double& time,
-    void* ctx)
+    void* /*ctx*/)
 {
     F.zero();
 

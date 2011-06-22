@@ -122,7 +122,7 @@ struct less<SAMRAI::tbox::Pointer<T> >
             return k1.getPointer() < k2.getPointer();
         }
 };
-};
+}
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -68,13 +68,13 @@ void
 PK1_stress_function(
     TensorValue<double>& PP,
     const TensorValue<double>& dX_ds,
-    const Point& X,
-    const Point& s,
-    Elem* const elem,
-    NumericVector<double>& X_vec,
-    const std::vector<NumericVector<double>*>& system_data,
-    const double& time,
-    void* ctx)
+    const Point& /*X*/,
+    const Point& /*s*/,
+    Elem* const /*elem*/,
+    NumericVector<double>& /*X_vec*/,
+    const std::vector<NumericVector<double>*>& /*system_data*/,
+    const double& /*time*/,
+    void* /*ctx*/)
 {
     static const TensorValue<double> I(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);
     PP = mu*(dX_ds-I);

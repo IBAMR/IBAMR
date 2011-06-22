@@ -42,7 +42,7 @@ namespace IBTK
 
 inline void
 FACPreconditioner::setInitialGuessNonzero(
-    bool initial_guess_nonzero)
+    bool /*initial_guess_nonzero*/)
 {
     // intentionally blank
     return;
@@ -76,7 +76,7 @@ FACPreconditioner::getMaxIterations() const
 
 inline void
 FACPreconditioner::setAbsoluteTolerance(
-    double abs_residual_tol)
+    double /*abs_residual_tol*/)
 {
     // intentionally blank
     return;
@@ -91,7 +91,7 @@ FACPreconditioner::getAbsoluteTolerance() const
 
 inline void
 FACPreconditioner::setRelativeTolerance(
-    double rel_residual_tol)
+    double /*rel_residual_tol*/)
 {
     // intentionally blank
     return;

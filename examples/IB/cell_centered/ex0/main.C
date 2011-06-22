@@ -449,8 +449,6 @@ main(
                 patch_hierarchy, predictor, adv_diff_integrator, hier_projector);
 
         tbox::Pointer<IBStandardForceGen> force_generator = new IBStandardForceGen();
-        tbox::Pointer<IBLagrangianSourceStrategy> source_generator = NULL;
-
         myPostProcessor* t_post_processor = new myPostProcessor();
         t_post_processor->d_force_generator = force_generator;
         tbox::Pointer<IBPostProcessStrategy> post_processor = t_post_processor;
@@ -460,7 +458,7 @@ main(
                 "IBHierarchyIntegrator",
                 input_db->getDatabase("IBHierarchyIntegrator"),
                 patch_hierarchy, navier_stokes_integrator,
-                force_generator, source_generator, post_processor);
+                force_generator, post_processor);
         time_integrator->registerVelocityPhysicalBcCoefs(U_bc_coefs);
 
         tbox::Pointer<IBStandardInitializer> initializer =
