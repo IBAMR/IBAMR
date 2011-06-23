@@ -146,15 +146,13 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
     : d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
       d_fe_data_manager(fe_data_manager),
-      d_fe_order(FIRST),
-      d_fe_family(LAGRANGE),
       d_use_IB_spreading_operator(true),
       d_use_IB_interpolation_operator(true),
       d_split_interior_and_bdry_forces(false),
       d_use_jump_conditions(false),
       d_use_consistent_mass_matrix(true),
       d_quad_type(QGAUSS),
-      d_quad_order(static_cast<Order>(2*static_cast<int>(d_fe_order) + 1)),
+      d_quad_order(FIFTH),
       d_coordinate_mapping_fcn(NULL),
       d_coordinate_mapping_fcn_ctx(NULL),
       d_PK1_stress_fcn(NULL),
@@ -466,16 +464,41 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
 #endif
     d_gridding_alg = gridding_alg;
 
-    // Initialize FE system data.
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
+    const MeshBase& mesh = equation_systems->get_mesh();
 
+    // Determine whether we should use first-order or second-order shape
+    // functions.
+    bool mesh_has_first_order_elems  = false;
+    bool mesh_has_second_order_elems = false;
+    MeshBase::const_element_iterator       el_it  = mesh.elements_begin();
+    const MeshBase::const_element_iterator el_end = mesh.elements_end();
+    for ( ; el_it != el_end; ++el_it)
+    {
+        const Elem* const elem = *el_it;
+        mesh_has_first_order_elems  = mesh_has_first_order_elems  || elem->default_order() == FIRST ;
+        mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
+    }
+    mesh_has_first_order_elems  = SAMRAI_MPI::maxReduction(mesh_has_first_order_elems );
+    mesh_has_second_order_elems = SAMRAI_MPI::maxReduction(mesh_has_second_order_elems);
+    TBOX_ASSERT(( mesh_has_first_order_elems ||  mesh_has_second_order_elems) &&
+                (!mesh_has_first_order_elems || !mesh_has_second_order_elems));
+
+    FEFamily fe_family = LAGRANGE;
+    Order fe_order = INVALID_ORDER;
+    if (mesh_has_first_order_elems ) fe_order = FIRST;
+    if (mesh_has_second_order_elems) fe_order = SECOND;
+    pout << d_object_name << "::initializeHierarchyIntegrator():\n"
+         << "  using " << Utility::enum_to_string<Order>(fe_order) << " order " << Utility::enum_to_string<FEFamily>(fe_family) << " finite elements\n";
+
+    // Initialize FE system data.
     d_fe_data_manager->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
     ExplicitSystem& X_system = equation_systems->add_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         std::ostringstream os;
         os << "X_" << d;
-        X_system.add_variable(os.str(), d_fe_order, d_fe_family);
+        X_system.add_variable(os.str(), fe_order, fe_family);
     }
 
     ExplicitSystem& X_mapping_system = equation_systems->add_system<ExplicitSystem>(COORD_MAPPING_SYSTEM_NAME);
@@ -483,7 +506,7 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         std::ostringstream os;
         os << "dX_" << d;
-        X_mapping_system.add_variable(os.str(), d_fe_order, d_fe_family);
+        X_mapping_system.add_variable(os.str(), fe_order, fe_family);
     }
 
     ExplicitSystem& F_system = equation_systems->add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
@@ -491,7 +514,7 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         std::ostringstream os;
         os << "F_" << d;
-        F_system.add_variable(os.str(), d_fe_order, d_fe_family);
+        F_system.add_variable(os.str(), fe_order, fe_family);
     }
 
     ExplicitSystem& U_system = equation_systems->add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
@@ -499,7 +522,7 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         std::ostringstream os;
         os << "U_" << d;
-        U_system.add_variable(os.str(), d_fe_order, d_fe_family);
+        U_system.add_variable(os.str(), fe_order, fe_family);
     }
 
     // Initialize the objects used to manage Lagragian-Eulerian interaction.
@@ -1747,6 +1770,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     }
 
     // Solve for G.
+    G_rhs_vec->close();
     d_fe_data_manager->computeL2Projection(G_vec, *G_rhs_vec, FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
     return;
 }// computeInteriorForceDensity
@@ -2407,19 +2431,16 @@ IBFEHierarchyIntegrator::getFromInput(
     d_regrid_interval = db->getIntegerWithDefault("regrid_interval", d_regrid_interval);
     d_regrid_cfl_interval = db->getDoubleWithDefault("regrid_cfl_interval", d_regrid_cfl_interval);
 
-    d_dt_max = db->getDoubleWithDefault("dt_max",d_dt_max);
+    d_dt_max = db->getDoubleWithDefault("dt_max", d_dt_max);
     d_dt_max_time_max = db->getDoubleWithDefault("dt_max_time_max", d_dt_max_time_max);
     d_dt_max_time_min = db->getDoubleWithDefault("dt_max_time_min", d_dt_max_time_min);
 
-    d_fe_order = Utility::string_to_enum<Order>(db->getStringWithDefault("fe_order", Utility::enum_to_string<Order>(d_fe_order)));
-    d_fe_family = Utility::string_to_enum<FEFamily>(db->getStringWithDefault("fe_family", Utility::enum_to_string<FEFamily>(d_fe_family)));
     d_use_IB_spreading_operator = db->getBoolWithDefault("use_IB_spreading_operator", d_use_IB_spreading_operator);
     d_use_IB_interpolation_operator = db->getBoolWithDefault("use_IB_interpolation_operator", d_use_IB_interpolation_operator);
     d_split_interior_and_bdry_forces = db->getBoolWithDefault("split_interior_and_bdry_forces", d_split_interior_and_bdry_forces);
     d_use_jump_conditions = db->getBoolWithDefault("use_jump_conditions", d_use_jump_conditions);
     d_use_consistent_mass_matrix = db->getBoolWithDefault("use_consistent_mass_matrix", d_use_consistent_mass_matrix);
     d_quad_type = Utility::string_to_enum<QuadratureType>(db->getStringWithDefault("quad_type", Utility::enum_to_string<QuadratureType>(d_quad_type)));
-    d_quad_order = static_cast<Order>(2*static_cast<int>(d_fe_order) + 1);
     d_quad_order = Utility::string_to_enum<Order>(db->getStringWithDefault("quad_order", Utility::enum_to_string<Order>(d_quad_order)));
 
     d_do_log = db->getBoolWithDefault("enable_logging", d_do_log);

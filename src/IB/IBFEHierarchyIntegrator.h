@@ -691,8 +691,6 @@ private:
      * Pointer to the FE data associated with this time integration object.
      */
     IBTK::FEDataManager* d_fe_data_manager;
-    libMeshEnums::Order d_fe_order;
-    libMeshEnums::FEFamily d_fe_family;
     bool d_use_IB_spreading_operator;
     bool d_use_IB_interpolation_operator;
     bool d_split_interior_and_bdry_forces;
