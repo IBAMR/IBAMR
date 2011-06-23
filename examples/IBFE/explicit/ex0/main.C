@@ -72,8 +72,11 @@ coordinate_mapping_function(
     const Point& s,
     void* /*ctx*/)
 {
-    X(0) = (R+      s(1))*cos(s(0)/R)+0.5;
-    X(1) = (R+gamma+s(1))*sin(s(0)/R)+0.5;
+    const double X0 = (R+      s(1))*cos(s(0)/R);
+    const double X1 = (R+gamma+s(1))*sin(s(0)/R);
+
+    X(0) = cos(22.5*M_PI/180.0)*X0 - sin(22.5*M_PI/180.0)*X1 + 0.5;
+    X(1) = sin(22.5*M_PI/180.0)*X0 + cos(22.5*M_PI/180.0)*X1 + 0.5;
     return;
 }// coordinate_mapping_function
 

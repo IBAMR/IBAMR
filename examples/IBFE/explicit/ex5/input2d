@@ -1,25 +1,21 @@
-// constants
-PI = 3.14159265358979
-
 // physical parameters
 MU = 0.01
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 2   // maximum number of levels in locally refined grid
+MAX_LEVELS = 1   // maximum number of levels in locally refined grid
 REF_RATIO  = 4   // refinement ratio between levels
 
-N = 16                                    // coarsest grid spacing
+N = 128                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 L = 1.0                                   // width of computational domain
 M = 4                                     // Lagrangian mesh spacing
 
-elem_type = "QUAD9"
-elem_order = "SECOND"
+elem_type = "QUAD4"
 quad_type = "QGAUSS"
 quad_order = "TWELFTH"
 weighting_fcn = "IB_4"
-use_consistent_mass_matrix = TRUE
+use_consistent_mass_matrix = FALSE
 
 dx = L/NFINEST
 
@@ -73,10 +69,10 @@ IBFEHierarchyIntegrator {
    max_integrator_steps  = 10000000 // max number of simulation timesteps
    regrid_interval       = 2
    dt_max = 0.25*dx
-   num_cycles = 3
+   num_cycles = 2
    enable_logging = TRUE
    split_interior_and_bdry_forces = TRUE
-   fe_order = elem_order
+   use_consistent_mass_matrix = use_consistent_mass_matrix
 }
 
 INSStaggeredHierarchyIntegrator {
@@ -101,77 +97,50 @@ INSStaggeredHierarchyIntegrator {
    normalize_pressure = TRUE
 
    HelmholtzHypreSolver {
-      solver_type           = "PCG"
-      precond_type          = "Split"
-      split_solver_type     = "Jacobi"
-      relative_residual_tol = 1.0e-2
-      max_iterations        = 100
+      solver_type           = "Split"
+      split_solver_type     = "PFMG"
+      relative_residual_tol = 1.0e-12
+      max_iterations        = 1
       enable_logging        = FALSE
    }
 
    HelmholtzFACSolver {
-      max_cycles = 1
-      residual_tol = 1.0e-12
-      num_pre_sweeps  = 0  // this should always be 0
+      num_pre_sweeps  = 2
       num_post_sweeps = 2
-
-      fac_max_cycles = 1
-      fac_uses_presmoothing = FALSE
-      fac_initial_guess_nonzero = FALSE
-
-      skip_restrict_sol = TRUE
-      skip_restrict_residual = FALSE
-
-      ssor_iterations = 1
-
       coarse_solver_choice = "block_jacobi"
-      coarse_solver_tolerance = 1.0e-30
+      coarse_solver_tolerance = 1.0e-12
       coarse_solver_max_iterations = 2
       prolongation_method = "CONSTANT_REFINE"
-      cf_discretization   = "CONSTANT_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
    }
 
    PoissonHypreSolver {
-      solver_type           = "PCG"
-      precond_type          = "PFMG"
+      solver_type           = "PFMG"
       rap_type              = 0
       relax_type            = 2
-      skip_relax            = 1
-      num_pre_relax_steps   = 1
-      num_post_relax_steps  = 1
-      relative_residual_tol = 1.0e-2
-      max_iterations        = 100
+      skip_relax            = 0
+      num_pre_relax_steps   = 2
+      num_post_relax_steps  = 2
+      relative_residual_tol = 1.0e-12
+      max_iterations        = 1
       enable_logging        = FALSE
    }
 
    PoissonFACSolver {
-      max_cycles = 1
-      residual_tol = 1.0e-12
-      num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 3
-
-      fac_max_cycles = 1
-      fac_uses_presmoothing = FALSE
-      fac_initial_guess_nonzero = FALSE
-
-      skip_restrict_sol = TRUE
-      skip_restrict_residual = FALSE
-
-      ssor_iterations = 1
-
+      num_pre_sweeps  = 0
+      num_post_sweeps = 2
       coarse_solver_choice = "hypre"
       coarse_solver_tolerance = 1.0e-12
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization   = "LINEAR_REFINE"
-
+      restriction_method  = "CONSERVATIVE_COARSEN"
       hypre_solver {
          solver_type           = "PFMG"
          rap_type              = 0
          relax_type            = 2
-         skip_relax            = 1
-         num_pre_relax_steps   = 0
-         num_post_relax_steps  = 3
+         skip_relax            = 0
+         num_pre_relax_steps   = 2
+         num_post_relax_steps  = 2
          relative_residual_tol = 1.0e-12
          max_iterations        = 1
          enable_logging        = FALSE
@@ -186,7 +155,7 @@ Main {
 
 // visualization dump parameters
    viz_writer            = "VisIt" , "ExodusII"
-   viz_dump_interval     = 1 // NFINEST     // zero to turn off
+   viz_dump_interval     = NFINEST     // zero to turn off
    viz_dump_dirname      = "viz_IB2d"
    visit_number_procs_per_file = 1
 
@@ -216,27 +185,25 @@ GriddingAlgorithm {
    }
 
    largest_patch_size {
-      level_0 =512,512 // largest patch allowed in hierarchy
-                       // all finer levels will use same values as level_0...
+      level_0 = 512,512 // largest patch allowed in hierarchy
+                        // all finer levels will use same values as level_0...
    }
 
    smallest_patch_size {
-      level_0 = 8, 8 // smallest patch allowed in hierarchy
-                       // all finer levels will use same values as level_0...
+      level_0 =   8,  8 // smallest patch allowed in hierarchy
+                        // all finer levels will use same values as level_0...
    }
 
    proper_nesting_buffer = 1
-
-   allow_patches_smaller_than_ghostwidth = TRUE
    allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
    coalesce_boxes = TRUE
    extend_tags_to_bdry = FALSE
 
    check_nonrefined_tags = 'e'
-   check_overplapping_patches = 'e'
+   check_overlapping_patches = 'e'
 
-   efficiency_tolerance   = 0.9e0    // min % of tag cells in new patch level
-   combine_efficiency     = 0.9e0    // chop box if sum of volumes of smaller
+   efficiency_tolerance   = 0.85e0    // min % of tag cells in new patch level
+   combine_efficiency     = 0.85e0    // chop box if sum of volumes of smaller
                                       // boxes < efficiency * vol of large box
 }
 
