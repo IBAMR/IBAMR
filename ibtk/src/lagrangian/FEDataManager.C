@@ -556,10 +556,8 @@ FEDataManager::prolongValue(
         Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
         const Box<NDIM>& patch_box = patch->getBox();
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
-//      const CellIndex<NDIM>& patch_upper = patch_box.upper();
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* const patch_x_lower = patch_geom->getXLower();
-//      const double* const patch_x_upper = patch_geom->getXUpper();
         const double* const patch_dx = patch_geom->getDx();
 
         blitz::TinyVector<Box<NDIM>,NDIM> side_boxes;
@@ -715,8 +713,8 @@ FEDataManager::prolongDensity(
     // NOTE #3: This implementation uses the pointwise value of J = det(dX/ds)
     // to convert a Lagrangian density into an Eulerian density.  We should
     // investigate whether there is any advantage to using a projection of J
-    // onto a (discontinuous) FE basis instead of evaluating J directly from the
-    // discrete deformation.
+    // onto a (possibly discontinuous) FE basis instead of evaluating J directly
+    // from the discrete deformation.
 
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
@@ -775,10 +773,8 @@ FEDataManager::prolongDensity(
         Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
         const Box<NDIM>& patch_box = patch->getBox();
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
-//      const CellIndex<NDIM>& patch_upper = patch_box.upper();
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* const patch_x_lower = patch_geom->getXLower();
-//      const double* const patch_x_upper = patch_geom->getXUpper();
         const double* const patch_dx = patch_geom->getDx();
 
         blitz::TinyVector<Box<NDIM>,NDIM> side_boxes;
@@ -1176,13 +1172,11 @@ FEDataManager::restrictValue(
         Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
         const Box<NDIM>& patch_box = patch->getBox();
         const CellIndex<NDIM>& patch_lower = patch_box.lower();
-//      const CellIndex<NDIM>& patch_upper = patch_box.upper();
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* const patch_x_lower = patch_geom->getXLower();
-//      const double* const patch_x_upper = patch_geom->getXUpper();
         const double* const patch_dx = patch_geom->getDx();
-        double vol = 1.0;
-        for (unsigned int d = 0; d < NDIM; ++d) vol += patch_dx[d];
+        double dx = 1.0;
+        for (unsigned int d = 0; d < NDIM; ++d) dx *= patch_dx[d];
 
         blitz::TinyVector<Box<NDIM>,NDIM> side_boxes;
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -1317,10 +1311,9 @@ FEDataManager::restrictValue(
                 if (!side_boxes[axis].contains(s_i)) continue;
                 if (interpolated_value_at_loc(s_i) != 0) continue;  // each value may be interpolated only once
                 interpolated_value_at_loc(s_i) = 1;
-
                 jacobian(dX_ds,qp,X_node,dphi_X);
                 const double J = std::abs(dX_ds.det());
-                const double F_qp = (*f_data)(s_i)*vol/J;
+                const double F_qp = (*f_data)(s_i)*dx/J;
                 for (unsigned int k = 0; k < n_basis; ++k)
                 {
                     F_rhs_e[axis](k) += F_qp*phi_F[k][qp];
@@ -1345,14 +1338,12 @@ FEDataManager::restrictValue(
 std::pair<LinearSolver<double>*,SparseMatrix<double>*>
 FEDataManager::buildL2ProjectionSolver(
     const std::string& system_name,
-    const bool consistent_mass_matrix,
     const QuadratureType quad_type,
     const Order quad_order)
 {
     IBTK_TIMER_START(t_build_l2_projection_solver);
 
     if ((d_L2_proj_solver.count(system_name) == 0 || d_L2_proj_matrix.count(system_name) == 0) ||
-        (d_L2_proj_consistent_mass_matrix[system_name] != consistent_mass_matrix) ||
         (d_L2_proj_quad_type[system_name] != quad_type) || (d_L2_proj_quad_order[system_name] != quad_order))
     {
         const MeshBase& mesh = d_es->get_mesh();
@@ -1395,20 +1386,15 @@ FEDataManager::buildL2ProjectionSolver(
             {
                 dof_map.dof_indices(elem, dof_indices, var_num);
                 M_e.resize(dof_indices.size(), dof_indices.size());
-                for (unsigned int i = 0; i < phi.size(); ++i)
+                const unsigned int n_basis = dof_indices.size();
+                const unsigned int n_qp = qrule->n_points();
+                for (unsigned int i = 0; i < n_basis; ++i)
                 {
-                    for (unsigned int j = 0; j < phi.size(); ++j)
+                    for (unsigned int j = 0; j < n_basis; ++j)
                     {
-                        for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
+                        for (unsigned int qp = 0; qp < n_qp; ++qp)
                         {
-                            if (consistent_mass_matrix)
-                            {
-                                M_e(i,j) += (phi[i][qp]*phi[j][qp])*JxW[qp];
-                            }
-                            else
-                            {
-                                M_e(j,j) += (phi[i][qp]*phi[j][qp])*JxW[qp];
-                            }
+                            M_e(i,j) += (phi[i][qp]*phi[j][qp])*JxW[qp];
                         }
                     }
                 }
@@ -1468,7 +1454,6 @@ FEDataManager::buildL2ProjectionSolver(
         // Store the solver, mass matrix, and configuration options.
         d_L2_proj_solver[system_name] = solver;
         d_L2_proj_matrix[system_name] = M_mat;
-        d_L2_proj_consistent_mass_matrix[system_name] = consistent_mass_matrix;
         d_L2_proj_quad_type[system_name] = quad_type;
         d_L2_proj_quad_order[system_name] = quad_order;
     }
@@ -1500,32 +1485,54 @@ FEDataManager::buildDiagonalL2MassMatrix(
         const std::vector<double>& JxW = fe->get_JxW();
         const std::vector<std::vector<double> >& phi = fe->get_phi();
 
-        NumericVector<double>* M_vec = system.solution->clone().release();
-        DenseVector<double> M_e;
+        NumericVector<double>* M_vec = system.solution->zero_clone().release();
+        DenseVector<double> M_diag_e;
 
-        // Loop over the mesh to construct the system matrix.
+        // Loop over the mesh to construct the (diagonal) system matrix.
+        //
+        // We construct diagonal elemental mass matrices by taking the diagonal
+        // part of the consistent elemental mass matrix and rescaling it so that
+        // it has the correct total elemental mass.
+        //
+        // Ref: E. Hinton, T. Rock and O.C. Zienkiewicz.  A note on mass lumping
+        // and related processes in the finite element method.  Earthquake Eng
+        // Struct Dyn.  4:245--249 (1976).
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             const Elem* const elem = *el_it;
+            if (elem->default_order() != FIRST)
+            {
+                IBTK_DO_ONCE(
+                        pout << "WARNING: use of diagonal mass matrices is not recommended for higher-order elements.\n"
+                             << "         suggest using consistent mass matrix instead.\n"
+                             );
+            }
             fe->reinit(elem);
+            const unsigned int n_qp = qrule->n_points();
+            double elem_mass = 0.0;
+            for (unsigned int qp = 0; qp < n_qp; ++qp)
+            {
+                elem_mass += JxW[qp];
+            }
             for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
             {
                 dof_map.dof_indices(elem, dof_indices, var_num);
-                M_e.resize(dof_indices.size());
-                for (unsigned int i = 0; i < phi.size(); ++i)
+                M_diag_e.resize(dof_indices.size());
+                const unsigned int n_basis = dof_indices.size();
+                double diagonal_mass = 0.0;
+                for (unsigned int i = 0; i < n_basis; ++i)
                 {
-                    for (unsigned int j = 0; j < phi.size(); ++j)
+                    for (unsigned int qp = 0; qp < n_qp; ++qp)
                     {
-                        for (unsigned int qp = 0; qp < qrule->n_points(); ++qp)
-                        {
-                            M_e(j) += (phi[i][qp]*phi[j][qp])*JxW[qp];
-                        }
+                        M_diag_e(i) += (phi[i][qp]*phi[i][qp])*JxW[qp];
                     }
+                    diagonal_mass += M_diag_e(i);
                 }
-                dof_map.constrain_element_vector(M_e, dof_indices);
-                M_vec->add_vector(M_e, dof_indices);
+                M_diag_e *= elem_mass/diagonal_mass;
+                dof_map.constrain_element_vector(M_diag_e, dof_indices);
+                M_vec->add_vector(M_diag_e, dof_indices);
             }
         }
 
@@ -1594,8 +1601,7 @@ FEDataManager::computeL2Projection(
     dof_map.enforce_constraints_exactly(system, &F_vec);
     if (consistent_mass_matrix)
     {
-        std::pair<libMesh::LinearSolver<double>*,SparseMatrix<double>*> proj_solver_components =
-            buildL2ProjectionSolver(system_name, consistent_mass_matrix, quad_type, quad_order);
+        std::pair<libMesh::LinearSolver<double>*,SparseMatrix<double>*> proj_solver_components = buildL2ProjectionSolver(system_name, quad_type, quad_order);
         PetscLinearSolver<double>* solver = dynamic_cast<PetscLinearSolver<double>*>(proj_solver_components.first);
         PetscMatrix<double>* M_mat = dynamic_cast<PetscMatrix<double>*>(proj_solver_components.second);
         solver->solve(*M_mat, *M_mat, U_vec, F_vec, tol, max_its);
@@ -1930,7 +1936,6 @@ FEDataManager::FEDataManager(
       d_L2_proj_solver(),
       d_L2_proj_matrix(),
       d_L2_proj_matrix_diag(),
-      d_L2_proj_consistent_mass_matrix(),
       d_L2_proj_quad_type(),
       d_L2_proj_quad_order()
 {

@@ -322,7 +322,6 @@ public:
     std::pair<libMesh::LinearSolver<double>*,libMesh::SparseMatrix<double>*>
     buildL2ProjectionSolver(
         const std::string& system_name,
-        const bool consistent_mass_matrix=true,
         const libMeshEnums::QuadratureType quad_type=QGAUSS,
         const libMeshEnums::Order quad_order=FIFTH);
 
@@ -664,7 +663,6 @@ private:
     std::map<std::string,libMesh::LinearSolver<double>*> d_L2_proj_solver;
     std::map<std::string,libMesh::SparseMatrix<double>*> d_L2_proj_matrix;
     std::map<std::string,libMesh::NumericVector<double>*> d_L2_proj_matrix_diag;
-    std::map<std::string,bool> d_L2_proj_consistent_mass_matrix;
     std::map<std::string,libMeshEnums::QuadratureType> d_L2_proj_quad_type;
     std::map<std::string,libMeshEnums::Order> d_L2_proj_quad_order;
 
