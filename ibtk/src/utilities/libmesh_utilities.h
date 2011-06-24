@@ -348,6 +348,74 @@ jacobian(
 }// jacobian
 
 inline void
+tensor_inverse(
+    libMesh::TensorValue<double>& A_inv,
+    const libMesh::TensorValue<double>& A,
+    const int dim)
+{
+    const double det_A = A.det();
+    if (dim == 2)
+    {
+        A_inv(0,0) =  A(1,1)/det_A;
+        A_inv(0,1) = -A(0,1)/det_A;
+        A_inv(0,2) = 0.0;
+        A_inv(1,0) = -A(1,0)/det_A;
+        A_inv(1,1) =  A(0,0)/det_A;
+        A_inv(1,2) = 0.0;
+        A_inv(2,0) = 0.0;
+        A_inv(2,1) = 0.0;
+        A_inv(2,2) = 1.0;
+    }
+    else
+    {
+        A_inv(0,0) =  (A(2,2)*A(1,1)-A(2,1)*A(1,2))/det_A;
+        A_inv(0,1) = -(A(2,2)*A(0,1)-A(2,1)*A(0,2))/det_A;
+        A_inv(0,2) =  (A(1,2)*A(0,1)-A(1,1)*A(0,2))/det_A;
+        A_inv(1,0) = -(A(2,2)*A(1,0)-A(2,0)*A(1,2))/det_A;
+        A_inv(1,1) =  (A(2,2)*A(0,0)-A(2,0)*A(0,2))/det_A;
+        A_inv(1,2) = -(A(1,2)*A(0,0)-A(1,0)*A(0,2))/det_A;
+        A_inv(2,0) =  (A(2,1)*A(1,0)-A(2,0)*A(1,1))/det_A;
+        A_inv(2,1) = -(A(2,1)*A(0,0)-A(2,0)*A(0,1))/det_A;
+        A_inv(2,2) =  (A(1,1)*A(0,0)-A(1,0)*A(0,1))/det_A;
+    }
+    return;
+}// tensor_inverse
+
+inline libMesh::TensorValue<double>
+tensor_inverse(
+    const libMesh::TensorValue<double>& A,
+    const int dim)
+{
+    libMesh::TensorValue<double> A_inv;
+    const double det_A = A.det();
+    if (dim == 2)
+    {
+        A_inv(0,0) =  A(1,1)/det_A;
+        A_inv(0,1) = -A(0,1)/det_A;
+        A_inv(0,2) = 0.0;
+        A_inv(1,0) = -A(1,0)/det_A;
+        A_inv(1,1) =  A(0,0)/det_A;
+        A_inv(1,2) = 0.0;
+        A_inv(2,0) = 0.0;
+        A_inv(2,1) = 0.0;
+        A_inv(2,2) = 1.0;
+    }
+    else
+    {
+        A_inv(0,0) =  (A(2,2)*A(1,1)-A(2,1)*A(1,2))/det_A;
+        A_inv(0,1) = -(A(2,2)*A(0,1)-A(2,1)*A(0,2))/det_A;
+        A_inv(0,2) =  (A(1,2)*A(0,1)-A(1,1)*A(0,2))/det_A;
+        A_inv(1,0) = -(A(2,2)*A(1,0)-A(2,0)*A(1,2))/det_A;
+        A_inv(1,1) =  (A(2,2)*A(0,0)-A(2,0)*A(0,2))/det_A;
+        A_inv(1,2) = -(A(1,2)*A(0,0)-A(1,0)*A(0,2))/det_A;
+        A_inv(2,0) =  (A(2,1)*A(1,0)-A(2,0)*A(1,1))/det_A;
+        A_inv(2,1) = -(A(2,1)*A(0,0)-A(2,0)*A(0,1))/det_A;
+        A_inv(2,2) =  (A(1,1)*A(0,0)-A(1,0)*A(0,1))/det_A;
+    }
+    return A_inv;
+}// tensor_inverse
+
+inline void
 tensor_inverse_transpose(
     libMesh::TensorValue<double>& A_inv_trans,
     const libMesh::TensorValue<double>& A,

@@ -151,6 +151,8 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
       d_split_interior_and_bdry_forces(false),
       d_use_jump_conditions(false),
       d_use_consistent_mass_matrix(true),
+      d_fe_family(LAGRANGE),
+      d_fe_order(INVALID_ORDER),
       d_quad_type(QGAUSS),
       d_quad_order(FIFTH),
       d_coordinate_mapping_fcn(NULL),
@@ -222,6 +224,40 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
     {
         RestartManager::getManager()->registerRestartItem(d_object_name, this);
     }
+
+    // Determine whether we should use first-order or second-order shape
+    // functions.
+    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
+    const MeshBase& mesh = equation_systems->get_mesh();
+    bool mesh_has_first_order_elems  = false;
+    bool mesh_has_second_order_elems = false;
+    MeshBase::const_element_iterator       el_it  = mesh.elements_begin();
+    const MeshBase::const_element_iterator el_end = mesh.elements_end();
+    for ( ; el_it != el_end; ++el_it)
+    {
+        const Elem* const elem = *el_it;
+        mesh_has_first_order_elems  = mesh_has_first_order_elems  || elem->default_order() == FIRST ;
+        mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
+    }
+    mesh_has_first_order_elems  = SAMRAI_MPI::maxReduction(mesh_has_first_order_elems );
+    mesh_has_second_order_elems = SAMRAI_MPI::maxReduction(mesh_has_second_order_elems);
+    if (( mesh_has_first_order_elems &&  mesh_has_second_order_elems) ||
+        (!mesh_has_first_order_elems && !mesh_has_second_order_elems))
+    {
+        TBOX_ERROR(d_object_name << "::IBFEHierarchyIntegrator():\n"
+                   << "  FE mesh must contain only FIRST order elements or only SECOND order elements" << std::endl);
+    }
+    if (mesh_has_first_order_elems )
+    {
+        d_fe_order = FIRST;
+        d_quad_order = THIRD;
+    }
+    if (mesh_has_second_order_elems)
+    {
+        d_fe_order = SECOND;
+        d_quad_order = FIFTH;
+    }
+    pout << d_object_name << ": using " << Utility::enum_to_string<Order>(d_fe_order) << " order " << Utility::enum_to_string<FEFamily>(d_fe_family) << " finite elements.\n\n";
 
     // Initialize object with data read from the input and restart databases.
     const bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -464,41 +500,16 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
 #endif
     d_gridding_alg = gridding_alg;
 
-    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-    const MeshBase& mesh = equation_systems->get_mesh();
-
-    // Determine whether we should use first-order or second-order shape
-    // functions.
-    bool mesh_has_first_order_elems  = false;
-    bool mesh_has_second_order_elems = false;
-    MeshBase::const_element_iterator       el_it  = mesh.elements_begin();
-    const MeshBase::const_element_iterator el_end = mesh.elements_end();
-    for ( ; el_it != el_end; ++el_it)
-    {
-        const Elem* const elem = *el_it;
-        mesh_has_first_order_elems  = mesh_has_first_order_elems  || elem->default_order() == FIRST ;
-        mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
-    }
-    mesh_has_first_order_elems  = SAMRAI_MPI::maxReduction(mesh_has_first_order_elems );
-    mesh_has_second_order_elems = SAMRAI_MPI::maxReduction(mesh_has_second_order_elems);
-    TBOX_ASSERT(( mesh_has_first_order_elems ||  mesh_has_second_order_elems) &&
-                (!mesh_has_first_order_elems || !mesh_has_second_order_elems));
-
-    FEFamily fe_family = LAGRANGE;
-    Order fe_order = INVALID_ORDER;
-    if (mesh_has_first_order_elems ) fe_order = FIRST;
-    if (mesh_has_second_order_elems) fe_order = SECOND;
-    pout << d_object_name << "::initializeHierarchyIntegrator():\n"
-         << "  using " << Utility::enum_to_string<Order>(fe_order) << " order " << Utility::enum_to_string<FEFamily>(fe_family) << " finite elements\n";
-
     // Initialize FE system data.
+    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
+
     d_fe_data_manager->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
     ExplicitSystem& X_system = equation_systems->add_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         std::ostringstream os;
         os << "X_" << d;
-        X_system.add_variable(os.str(), fe_order, fe_family);
+        X_system.add_variable(os.str(), d_fe_order, d_fe_family);
     }
 
     ExplicitSystem& X_mapping_system = equation_systems->add_system<ExplicitSystem>(COORD_MAPPING_SYSTEM_NAME);
@@ -506,7 +517,7 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         std::ostringstream os;
         os << "dX_" << d;
-        X_mapping_system.add_variable(os.str(), fe_order, fe_family);
+        X_mapping_system.add_variable(os.str(), d_fe_order, d_fe_family);
     }
 
     ExplicitSystem& F_system = equation_systems->add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
@@ -514,7 +525,7 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         std::ostringstream os;
         os << "F_" << d;
-        F_system.add_variable(os.str(), fe_order, fe_family);
+        F_system.add_variable(os.str(), d_fe_order, d_fe_family);
     }
 
     ExplicitSystem& U_system = equation_systems->add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
@@ -522,7 +533,7 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         std::ostringstream os;
         os << "U_" << d;
-        U_system.add_variable(os.str(), fe_order, fe_family);
+        U_system.add_variable(os.str(), d_fe_order, d_fe_family);
     }
 
     // Initialize the objects used to manage Lagragian-Eulerian interaction.

@@ -160,13 +160,13 @@ IBStandardForceGen::IBStandardForceGen(
     if (d_constant_material_properties)
     {
         pout << "IBStandardForceGen:  Using constant material properites.\n"
-             << "  Material properties may only be updated at the regrid interval.\n\n";
+             << "NOTICE:  Material properties may only be updated at the regrid interval.\n\n";
     }
     else
     {
         pout << "IBStandardForceGen:  Using nonconstant material properites.\n"
-             << "  Material properties may be updated at any time.\n"
-             << "  Models with constant material properties may see increased performance by setting constant_material_properties = true.\n\n";
+             << "NOTICE:  Material properties may be updated at any time.\n"
+             << "         Models with constant material properties may see increased performance by setting constant_material_properties = true.\n\n";
     }
 
     // Setup the default force generation functions.
