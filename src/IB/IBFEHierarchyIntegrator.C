@@ -145,7 +145,8 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
     bool register_for_restart)
     : d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
-      d_fe_data_manager(fe_data_manager),
+      d_num_parts(1),
+      d_fe_data_managers(1,fe_data_manager),
       d_use_IB_spreading_operator(true),
       d_use_IB_interpolation_operator(true),
       d_split_interior_and_bdry_forces(false),
@@ -155,20 +156,20 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
       d_fe_order(INVALID_ORDER),
       d_quad_type(QGAUSS),
       d_quad_order(FIFTH),
-      d_coordinate_mapping_fcn(NULL),
-      d_coordinate_mapping_fcn_ctx(NULL),
-      d_PK1_stress_fcn(NULL),
-      d_PK1_stress_fcn_systems(),
-      d_PK1_stress_fcn_ctx(NULL),
-      d_lag_body_force_fcn(NULL),
-      d_lag_body_force_fcn_systems(),
-      d_lag_body_force_fcn_ctx(NULL),
-      d_lag_pressure_fcn(NULL),
-      d_lag_pressure_fcn_systems(),
-      d_lag_pressure_fcn_ctx(NULL),
-      d_lag_surface_force_fcn(NULL),
-      d_lag_surface_force_fcn_systems(),
-      d_lag_surface_force_fcn_ctx(NULL),
+      d_coordinate_mapping_fcns(d_num_parts,NULL),
+      d_coordinate_mapping_fcn_ctxs(d_num_parts,NULL),
+      d_PK1_stress_fcns(d_num_parts,NULL),
+      d_PK1_stress_fcn_systems(d_num_parts),
+      d_PK1_stress_fcn_ctxs(d_num_parts,NULL),
+      d_lag_body_force_fcns(d_num_parts,NULL),
+      d_lag_body_force_fcn_systems(d_num_parts),
+      d_lag_body_force_fcn_ctxs(d_num_parts,NULL),
+      d_lag_pressure_fcns(d_num_parts,NULL),
+      d_lag_pressure_fcn_systems(d_num_parts),
+      d_lag_pressure_fcn_ctxs(d_num_parts,NULL),
+      d_lag_surface_force_fcns(d_num_parts,NULL),
+      d_lag_surface_force_fcn_systems(d_num_parts),
+      d_lag_surface_force_fcn_ctxs(d_num_parts,NULL),
       d_l_data_manager(l_data_manager),
       d_hierarchy(hierarchy),
       d_gridding_alg(NULL),
@@ -219,107 +220,96 @@ IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
     TBOX_ASSERT(!hierarchy.isNull());
     TBOX_ASSERT(!ins_hier_integrator.isNull());
 #endif
+    commonConstructor(input_db);
+    return;
+}// IBFEHierarchyIntegrator
 
-    if (d_registered_for_restart)
-    {
-        RestartManager::getManager()->registerRestartItem(d_object_name, this);
-    }
-
-    // Determine whether we should use first-order or second-order shape
-    // functions.
-    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-    const MeshBase& mesh = equation_systems->get_mesh();
-    bool mesh_has_first_order_elems  = false;
-    bool mesh_has_second_order_elems = false;
-    MeshBase::const_element_iterator       el_it  = mesh.elements_begin();
-    const MeshBase::const_element_iterator el_end = mesh.elements_end();
-    for ( ; el_it != el_end; ++el_it)
-    {
-        const Elem* const elem = *el_it;
-        mesh_has_first_order_elems  = mesh_has_first_order_elems  || elem->default_order() == FIRST ;
-        mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
-    }
-    mesh_has_first_order_elems  = SAMRAI_MPI::maxReduction(mesh_has_first_order_elems );
-    mesh_has_second_order_elems = SAMRAI_MPI::maxReduction(mesh_has_second_order_elems);
-    if (( mesh_has_first_order_elems &&  mesh_has_second_order_elems) ||
-        (!mesh_has_first_order_elems && !mesh_has_second_order_elems))
-    {
-        TBOX_ERROR(d_object_name << "::IBFEHierarchyIntegrator():\n"
-                   << "  FE mesh must contain only FIRST order elements or only SECOND order elements" << std::endl);
-    }
-    if (mesh_has_first_order_elems )
-    {
-        d_fe_order = FIRST;
-        d_quad_order = THIRD;
-    }
-    if (mesh_has_second_order_elems)
-    {
-        d_fe_order = SECOND;
-        d_quad_order = FIFTH;
-    }
-    pout << d_object_name << ": using " << Utility::enum_to_string<Order>(d_fe_order) << " order " << Utility::enum_to_string<FEFamily>(d_fe_family) << " finite elements.\n\n";
-
-    // Initialize object with data read from the input and restart databases.
-    const bool from_restart = RestartManager::getManager()->isFromRestart();
-    if (from_restart) getFromRestart();
-    getFromInput(input_db, from_restart);
-
-    // Read in the marker initial positions.
-    if (!from_restart) d_num_mark = LMarkerUtilities::readMarkerPositions(d_mark_init_posns, d_mark_input_file_name, d_hierarchy);
-
-    // Obtain the Hierarchy data operations objects.
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<SideVariable<NDIM,double> > sc_var = new SideVariable<NDIM,double>("sc_var");
-    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, hierarchy, true);
-
-    // Initialize all variable contexts.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    d_current = var_db->getContext(d_object_name+"::CURRENT");
-    d_scratch = var_db->getContext(d_object_name+"::SCRATCH");
-
-    // Initialize all variables.
-    const IntVector<NDIM> ghosts = d_fe_data_manager->getGhostCellWidth();
-    const IntVector<NDIM> no_ghosts = 0;
-
-    d_V_var = new SideVariable<NDIM,double>(d_object_name+"::V");
-    d_V_idx = var_db->registerVariableAndContext(d_V_var, d_scratch, ghosts);
-
-    d_F_var = new SideVariable<NDIM,double>(d_object_name+"::F");
-    d_F_idx = var_db->registerVariableAndContext(d_F_var, d_scratch, no_ghosts);
-
-    d_mark_var = new LMarkerSetVariable(d_object_name+"::mark");
-    d_mark_current_idx = var_db->registerVariableAndContext(d_mark_var, getCurrentContext(), ghosts);
-    d_mark_scratch_idx = var_db->registerVariableAndContext(d_mark_var, getScratchContext(), ghosts);
-    if (d_registered_for_restart)
-    {
-        var_db->registerPatchDataForRestart(d_mark_current_idx);
-    }
-
-    // Setup Timers.
-    IBAMR_DO_ONCE(
-        t_initialize_hierarchy_integrator = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::initializeHierarchyIntegrator()");
-        t_initialize_hierarchy            = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::initializeHierarchy()");
-        t_advance_hierarchy               = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()");
-        t_advance_hierarchy_init          = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_init");
-        t_advance_hierarchy_phase1        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase1");
-        t_advance_hierarchy_phase2        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase2");
-        t_advance_hierarchy_phase3        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase3");
-        t_advance_hierarchy_phase4        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase4");
-        t_advance_hierarchy_phase5        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase5");
-        t_advance_hierarchy_phase6        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase6");
-        t_advance_hierarchy_phase7        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase7");
-        t_advance_hierarchy_phase8        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase8");
-        t_advance_hierarchy_finalize      = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_finalize");
-        t_regrid_hierarchy                = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::regridHierarchy()");
-        t_synchronize_hierarchy           = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::synchronizeHierarchy()");
-        t_synchronize_new_levels          = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::synchronizeNewLevels()");
-        t_reset_time_dependent_data       = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::resetTimeDependentHierData()");
-        t_reset_data_to_preadvance_state  = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::resetHierDataToPreadvanceState()");
-        t_initialize_level_data           = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::initializeLevelData()");
-        t_reset_hierarchy_configuration   = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::resetHierarchyConfiguration()");
-        t_apply_gradient_detector         = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::applyGradientDetector()");
-        t_put_to_database                 = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::putToDatabase()");
-                  );
+IBFEHierarchyIntegrator::IBFEHierarchyIntegrator(
+    const std::string& object_name,
+    Pointer<Database> input_db,
+    Pointer<PatchHierarchy<NDIM> > hierarchy,
+    Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
+    std::vector<FEDataManager*> fe_data_managers,
+    LDataManager* l_data_manager,
+    bool register_for_restart)
+    : d_object_name(object_name),
+      d_registered_for_restart(register_for_restart),
+      d_num_parts(fe_data_managers.size()),
+      d_fe_data_managers(fe_data_managers),
+      d_use_IB_spreading_operator(true),
+      d_use_IB_interpolation_operator(true),
+      d_split_interior_and_bdry_forces(false),
+      d_use_jump_conditions(false),
+      d_use_consistent_mass_matrix(true),
+      d_fe_family(LAGRANGE),
+      d_fe_order(INVALID_ORDER),
+      d_quad_type(QGAUSS),
+      d_quad_order(FIFTH),
+      d_coordinate_mapping_fcns(d_num_parts,NULL),
+      d_coordinate_mapping_fcn_ctxs(d_num_parts,NULL),
+      d_PK1_stress_fcns(d_num_parts,NULL),
+      d_PK1_stress_fcn_systems(d_num_parts),
+      d_PK1_stress_fcn_ctxs(d_num_parts,NULL),
+      d_lag_body_force_fcns(d_num_parts,NULL),
+      d_lag_body_force_fcn_systems(d_num_parts),
+      d_lag_body_force_fcn_ctxs(d_num_parts,NULL),
+      d_lag_pressure_fcns(d_num_parts,NULL),
+      d_lag_pressure_fcn_systems(d_num_parts),
+      d_lag_pressure_fcn_ctxs(d_num_parts,NULL),
+      d_lag_surface_force_fcns(d_num_parts,NULL),
+      d_lag_surface_force_fcn_systems(d_num_parts),
+      d_lag_surface_force_fcn_ctxs(d_num_parts,NULL),
+      d_l_data_manager(l_data_manager),
+      d_hierarchy(hierarchy),
+      d_gridding_alg(NULL),
+      d_visit_writer(NULL),
+      d_load_balancer(NULL),
+      d_ins_hier_integrator(ins_hier_integrator),
+      d_eul_body_force_fcn(NULL),
+      d_eulerian_force_fcn(NULL),
+      d_start_time(0.0),
+      d_end_time(std::numeric_limits<double>::max()),
+      d_grow_dt(2.0),
+      d_max_integrator_steps(std::numeric_limits<int>::max()),
+      d_num_cycles(1),
+      d_regrid_interval(1),
+      d_regrid_cfl_interval(0.0),
+      d_regrid_cfl_estimate(0.0),
+      d_old_dt(-1.0),
+      d_integrator_time(std::numeric_limits<double>::quiet_NaN()),
+      d_integrator_step(std::numeric_limits<int>::max()),
+      d_dt_max(std::numeric_limits<double>::max()),
+      d_dt_max_time_max(std::numeric_limits<double>::max()),
+      d_dt_max_time_min(-(d_dt_max_time_max-std::numeric_limits<double>::epsilon())),
+      d_is_initialized(false),
+      d_do_log(false),
+      d_mark_input_file_name(""),
+      d_num_mark(0),
+      d_mark_init_posns(),
+      d_hier_sc_data_ops(),
+      d_ralgs(),
+      d_rstrategies(),
+      d_rscheds(),
+      d_calgs(),
+      d_cstrategies(),
+      d_cscheds(),
+      d_V_var(NULL),
+      d_F_var(NULL),
+      d_mark_var(NULL),
+      d_current(NULL),
+      d_scratch(NULL),
+      d_V_idx(-1),
+      d_F_idx(-1),
+      d_mark_current_idx(-1),
+      d_mark_scratch_idx(-1)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(!input_db.isNull());
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT(!ins_hier_integrator.isNull());
+#endif
+    commonConstructor(input_db);
     return;
 }// IBFEHierarchyIntegrator
 
@@ -350,59 +340,64 @@ IBFEHierarchyIntegrator::getName() const
 
 void
 IBFEHierarchyIntegrator::registerInitialCoordinateMappingFunction(
-    void (*coordinate_mapping_fcn)(Point& X, const Point& s, void* ctx),
-    void* coordinate_mapping_fcn_ctx)
+    CoordinateMappingFcnPtr coordinate_mapping_fcn,
+    void* coordinate_mapping_fcn_ctx,
+    const unsigned int mesh_number)
 {
-    d_coordinate_mapping_fcn = coordinate_mapping_fcn;
-    d_coordinate_mapping_fcn_ctx = coordinate_mapping_fcn_ctx;
+    d_coordinate_mapping_fcns    [mesh_number] = coordinate_mapping_fcn;
+    d_coordinate_mapping_fcn_ctxs[mesh_number] = coordinate_mapping_fcn_ctx;
     return;
 }// registerInitialCoordinateMappingFunction
 
 void
 IBFEHierarchyIntegrator::registerPK1StressTensorFunction(
-    void (*PK1_stress_fcn)(TensorValue<double>& PP, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, NumericVector<double>& X_vec, const std::vector<NumericVector<double>*>& system_data, const double& time, void* ctx),
+    PK1StressFcnPtr PK1_stress_fcn,
     std::vector<unsigned int> PK1_stress_fcn_systems,
-    void* PK1_stress_fcn_ctx)
+    void* PK1_stress_fcn_ctx,
+    const unsigned int mesh_number)
 {
-    d_PK1_stress_fcn = PK1_stress_fcn;
-    d_PK1_stress_fcn_systems = PK1_stress_fcn_systems;
-    d_PK1_stress_fcn_ctx = PK1_stress_fcn_ctx;
+    d_PK1_stress_fcns       [mesh_number] = PK1_stress_fcn;
+    d_PK1_stress_fcn_systems[mesh_number] = PK1_stress_fcn_systems;
+    d_PK1_stress_fcn_ctxs   [mesh_number] = PK1_stress_fcn_ctx;
     return;
 }// registerPK1StressTensorFunction
 
 void
 IBFEHierarchyIntegrator::registerLagBodyForceFunction(
-    void (*lag_body_force_fcn)(VectorValue<double>& F, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, NumericVector<double>& X_vec, const std::vector<NumericVector<double>*>& system_data, const double& time, void* ctx),
+    LagBodyForceFcnPtr lag_body_force_fcn,
     std::vector<unsigned int> lag_body_force_fcn_systems,
-    void* lag_body_force_fcn_ctx)
+    void* lag_body_force_fcn_ctx,
+    const unsigned int mesh_number)
 {
-    d_lag_body_force_fcn = lag_body_force_fcn;
-    d_lag_body_force_fcn_systems = lag_body_force_fcn_systems;
-    d_lag_body_force_fcn_ctx = lag_body_force_fcn_ctx;
+    d_lag_body_force_fcns       [mesh_number] = lag_body_force_fcn;
+    d_lag_body_force_fcn_systems[mesh_number] = lag_body_force_fcn_systems;
+    d_lag_body_force_fcn_ctxs   [mesh_number] = lag_body_force_fcn_ctx;
     return;
 }// registerLagBodyForceFunction
 
 void
 IBFEHierarchyIntegrator::registerLagPressureFunction(
-    void (*lag_pressure_fcn)(double& P, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, const unsigned short int side, NumericVector<double>& X_vec, const std::vector<NumericVector<double>*>& system_data, const double& time, void* ctx),
+    LagPressureFcnPtr lag_pressure_fcn,
     std::vector<unsigned int> lag_pressure_fcn_systems,
-    void* lag_pressure_fcn_ctx)
+    void* lag_pressure_fcn_ctx,
+    const unsigned int mesh_number)
 {
-    d_lag_pressure_fcn = lag_pressure_fcn;
-    d_lag_pressure_fcn_systems = lag_pressure_fcn_systems;
-    d_lag_pressure_fcn_ctx = lag_pressure_fcn_ctx;
+    d_lag_pressure_fcns       [mesh_number] = lag_pressure_fcn;
+    d_lag_pressure_fcn_systems[mesh_number] = lag_pressure_fcn_systems;
+    d_lag_pressure_fcn_ctxs   [mesh_number] = lag_pressure_fcn_ctx;
     return;
 }// registerLagPressureFunction
 
 void
 IBFEHierarchyIntegrator::registerLagSurfaceForceFunction(
-    void (*lag_surface_force_fcn)(VectorValue<double>& F, const TensorValue<double>& dX_ds, const Point& X, const Point& s, Elem* const, const unsigned short int side, NumericVector<double>& X_vec, const std::vector<NumericVector<double>*>& system_data, const double& time, void* ctx),
+    LagSurfaceForceFcnPtr lag_surface_force_fcn,
     std::vector<unsigned int> lag_surface_force_fcn_systems,
-    void* lag_surface_force_fcn_ctx)
+    void* lag_surface_force_fcn_ctx,
+    const unsigned int mesh_number)
 {
-    d_lag_surface_force_fcn = lag_surface_force_fcn;
-    d_lag_surface_force_fcn_systems = lag_surface_force_fcn_systems;
-    d_lag_surface_force_fcn_ctx = lag_surface_force_fcn_ctx;
+    d_lag_surface_force_fcns       [mesh_number] = lag_surface_force_fcn;
+    d_lag_surface_force_fcn_systems[mesh_number] = lag_surface_force_fcn_systems;
+    d_lag_surface_force_fcn_ctxs   [mesh_number] = lag_surface_force_fcn_ctx;
     return;
 }// registerLagSurfaceForceFunction
 
@@ -465,7 +460,10 @@ IBFEHierarchyIntegrator::registerLoadBalancer(
     TBOX_ASSERT(!load_balancer.isNull());
 #endif
     d_load_balancer = load_balancer;
-    d_fe_data_manager->registerLoadBalancer(d_load_balancer);
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        d_fe_data_managers[part]->registerLoadBalancer(d_load_balancer);
+    }
     if (d_l_data_manager != NULL) d_l_data_manager->registerLoadBalancer(d_load_balancer);
     return;
 }// registerLoadBalancer
@@ -501,39 +499,42 @@ IBFEHierarchyIntegrator::initializeHierarchyIntegrator(
     d_gridding_alg = gridding_alg;
 
     // Initialize FE system data.
-    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-
-    d_fe_data_manager->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
-    ExplicitSystem& X_system = equation_systems->add_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
-    for (unsigned int d = 0; d < NDIM; ++d)
+    for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        std::ostringstream os;
-        os << "X_" << d;
-        X_system.add_variable(os.str(), d_fe_order, d_fe_family);
-    }
+        EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
 
-    ExplicitSystem& X_mapping_system = equation_systems->add_system<ExplicitSystem>(COORD_MAPPING_SYSTEM_NAME);
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        std::ostringstream os;
-        os << "dX_" << d;
-        X_mapping_system.add_variable(os.str(), d_fe_order, d_fe_family);
-    }
+        d_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
+        ExplicitSystem& X_system = equation_systems->add_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            std::ostringstream os;
+            os << "X_" << d;
+            X_system.add_variable(os.str(), d_fe_order, d_fe_family);
+        }
 
-    ExplicitSystem& F_system = equation_systems->add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        std::ostringstream os;
-        os << "F_" << d;
-        F_system.add_variable(os.str(), d_fe_order, d_fe_family);
-    }
+        ExplicitSystem& X_mapping_system = equation_systems->add_system<ExplicitSystem>(COORD_MAPPING_SYSTEM_NAME);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            std::ostringstream os;
+            os << "dX_" << d;
+            X_mapping_system.add_variable(os.str(), d_fe_order, d_fe_family);
+        }
 
-    ExplicitSystem& U_system = equation_systems->add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        std::ostringstream os;
-        os << "U_" << d;
-        U_system.add_variable(os.str(), d_fe_order, d_fe_family);
+        ExplicitSystem& F_system = equation_systems->add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            std::ostringstream os;
+            os << "F_" << d;
+            F_system.add_variable(os.str(), d_fe_order, d_fe_family);
+        }
+
+        ExplicitSystem& U_system = equation_systems->add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            std::ostringstream os;
+            os << "U_" << d;
+            U_system.add_variable(os.str(), d_fe_order, d_fe_family);
+        }
     }
 
     // Initialize the objects used to manage Lagragian-Eulerian interaction.
@@ -588,71 +589,74 @@ IBFEHierarchyIntegrator::initializeHierarchy()
 
     // Initialize the data structures and state variables for the FE equation
     // systems.
-    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-    equation_systems->init();
-    initializeCoordinates();
-    updateCoordinateMapping();
-
-    // Set up boundary conditions.  Specifically, add appropriate boundary IDs
-    // to the BoundaryInfo object associated with the mesh, and add DOF
-    // constraints for the nodal forces and velocities.
-    System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
-    X_system.assemble_before_solve = false;
-    X_system.assemble();
-
-    System& X_mapping_system = equation_systems->get_system(COORD_MAPPING_SYSTEM_NAME);
-    X_mapping_system.assemble_before_solve = false;
-    X_mapping_system.assemble();
-
-    ExplicitSystem& F_system = equation_systems->get_system<ExplicitSystem>(   FORCE_SYSTEM_NAME);
-    ExplicitSystem& U_system = equation_systems->get_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
-
-    const MeshBase& mesh = equation_systems->get_mesh();
-    DofMap& F_dof_map = F_system.get_dof_map();
-    DofMap& U_dof_map = U_system.get_dof_map();
-    const unsigned int F_sys_num = F_system.number();
-    const unsigned int U_sys_num = U_system.number();
-
-    MeshBase::const_element_iterator       el_it  = mesh.elements_begin();
-    const MeshBase::const_element_iterator el_end = mesh.elements_end();
-    for ( ; el_it != el_end; ++el_it)
+    for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        Elem* const elem = *el_it;
-        for (unsigned int side = 0; side < elem->n_sides(); ++side)
+        EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
+        equation_systems->init();
+        initializeCoordinates(part);
+        updateCoordinateMapping(part);
+
+        // Set up boundary conditions.  Specifically, add appropriate boundary
+        // IDs to the BoundaryInfo object associated with the mesh, and add DOF
+        // constraints for the nodal forces and velocities.
+        System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
+        X_system.assemble_before_solve = false;
+        X_system.assemble();
+
+        System& X_mapping_system = equation_systems->get_system(COORD_MAPPING_SYSTEM_NAME);
+        X_mapping_system.assemble_before_solve = false;
+        X_mapping_system.assemble();
+
+        ExplicitSystem& F_system = equation_systems->get_system<ExplicitSystem>(   FORCE_SYSTEM_NAME);
+        ExplicitSystem& U_system = equation_systems->get_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
+
+        const MeshBase& mesh = equation_systems->get_mesh();
+        DofMap& F_dof_map = F_system.get_dof_map();
+        DofMap& U_dof_map = U_system.get_dof_map();
+        const unsigned int F_sys_num = F_system.number();
+        const unsigned int U_sys_num = U_system.number();
+
+        MeshBase::const_element_iterator       el_it  = mesh.elements_begin();
+        const MeshBase::const_element_iterator el_end = mesh.elements_end();
+        for ( ; el_it != el_end; ++el_it)
         {
-            const bool at_mesh_bdry = elem->neighbor(side) == NULL;
-            if (at_mesh_bdry)
+            Elem* const elem = *el_it;
+            for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
-                const bool at_dirichlet_bdry = std::find(bdry_ids.begin(), bdry_ids.end(), FEDataManager::DIRICHLET_BDRY_ID) != bdry_ids.end();
-                if (at_dirichlet_bdry)
+                const bool at_mesh_bdry = elem->neighbor(side) == NULL;
+                if (at_mesh_bdry)
                 {
-                    for (unsigned int n = 0; n < elem->n_nodes(); ++n)
+                    const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
+                    const bool at_dirichlet_bdry = std::find(bdry_ids.begin(), bdry_ids.end(), FEDataManager::DIRICHLET_BDRY_ID) != bdry_ids.end();
+                    if (at_dirichlet_bdry)
                     {
-                        if (elem->is_node_on_side(n, side))
+                        for (unsigned int n = 0; n < elem->n_nodes(); ++n)
                         {
-                            Node* node = elem->get_node(n);
-                            mesh.boundary_info->add_node(node, FEDataManager::DIRICHLET_BDRY_ID);
-
-                            if (node->n_dofs(F_sys_num) > 0)
+                            if (elem->is_node_on_side(n, side))
                             {
-                                for (unsigned int d = 0; d < NDIM; ++d)
+                                Node* node = elem->get_node(n);
+                                mesh.boundary_info->add_node(node, FEDataManager::DIRICHLET_BDRY_ID);
+
+                                if (node->n_dofs(F_sys_num) > 0)
                                 {
-                                    const int F_dof_index = node->dof_number(F_sys_num,d,0);
-                                    DofConstraintRow F_constraint_row;
-                                    F_constraint_row[F_dof_index] = 1.0;
-                                    F_dof_map.add_constraint_row(F_dof_index, F_constraint_row, false);
+                                    for (unsigned int d = 0; d < NDIM; ++d)
+                                    {
+                                        const int F_dof_index = node->dof_number(F_sys_num,d,0);
+                                        DofConstraintRow F_constraint_row;
+                                        F_constraint_row[F_dof_index] = 1.0;
+                                        F_dof_map.add_constraint_row(F_dof_index, F_constraint_row, false);
+                                    }
                                 }
-                            }
 
-                            if (node->n_dofs(U_sys_num) > 0)
-                            {
-                                for (unsigned int d = 0; d < NDIM; ++d)
+                                if (node->n_dofs(U_sys_num) > 0)
                                 {
-                                    const int U_dof_index = node->dof_number(U_sys_num,d,0);
-                                    DofConstraintRow U_constraint_row;
-                                    U_constraint_row[U_dof_index] = 1.0;
-                                    U_dof_map.add_constraint_row(U_dof_index, U_constraint_row, false);
+                                    for (unsigned int d = 0; d < NDIM; ++d)
+                                    {
+                                        const int U_dof_index = node->dof_number(U_sys_num,d,0);
+                                        DofConstraintRow U_constraint_row;
+                                        U_constraint_row[U_dof_index] = 1.0;
+                                        U_dof_map.add_constraint_row(U_dof_index, U_constraint_row, false);
+                                    }
                                 }
                             }
                         }
@@ -678,7 +682,10 @@ IBFEHierarchyIntegrator::initializeHierarchy()
     }
 
     // Initialize the FE data manager.
-    d_fe_data_manager->reinitElementMappings();
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        d_fe_data_managers[part]->reinitElementMappings();
+    }
 
     // Prune duplicate markers following initialization.
     LMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
@@ -746,25 +753,27 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     }
 
     // Extract the FE vectors.
-    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-    System& X_system = equation_systems->get_system(  COORDS_SYSTEM_NAME);
-    System& F_system = equation_systems->get_system(   FORCE_SYSTEM_NAME);
-    System& U_system = equation_systems->get_system(VELOCITY_SYSTEM_NAME);
+    std::vector<EquationSystems*> equation_systems(d_num_parts);
+    std::vector<System*> X_systems(d_num_parts), F_systems(d_num_parts), U_systems(d_num_parts);
+    std::vector<NumericVector<double>*> X_current_vecs(d_num_parts), X_half_vecs(d_num_parts), X_new_vecs(d_num_parts), U_half_vecs(d_num_parts), F_half_vecs(d_num_parts);
+    std::vector<NumericVector<double>*> X_half_IB_ghost_vecs(d_num_parts), F_half_IB_ghost_vecs(d_num_parts);
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        equation_systems[part] = d_fe_data_managers[part]->getEquationSystems();
 
-    NumericVector<double>& X_current = *(X_system.solution);
+        X_systems[part] = &equation_systems[part]->get_system(  COORDS_SYSTEM_NAME);
+        F_systems[part] = &equation_systems[part]->get_system(   FORCE_SYSTEM_NAME);
+        U_systems[part] = &equation_systems[part]->get_system(VELOCITY_SYSTEM_NAME);
 
-    AutoPtr<NumericVector<double> > X_new_ptr = X_current.clone();
-    NumericVector<double>& X_new = *X_new_ptr;
+        X_current_vecs[part] = X_systems[part]->solution.get();
+        X_half_vecs   [part] = X_systems[part]->current_local_solution.get();
+        X_new_vecs    [part] = X_current_vecs[part]->clone().release();  // NOTE: must be manually deleted
+        U_half_vecs   [part] = U_systems[part]->solution.get();
+        F_half_vecs   [part] = F_systems[part]->solution.get();
 
-    NumericVector<double>& X_half = *(X_system.current_local_solution);
-    NumericVector<double>& U_half = *(U_system.              solution);
-    NumericVector<double>& F_half = *(F_system.              solution);
-
-    NumericVector<double>* X_half_IB_ghost_ptr = d_fe_data_manager->buildGhostedCoordsVector();
-    NumericVector<double>& X_half_IB_ghost = *X_half_IB_ghost_ptr;
-
-    NumericVector<double>* F_half_IB_ghost_ptr = d_fe_data_manager->buildGhostedSolutionVector(FORCE_SYSTEM_NAME);
-    NumericVector<double>& F_half_IB_ghost = *F_half_IB_ghost_ptr;
+        X_half_IB_ghost_vecs[part] = d_fe_data_managers[part]->buildGhostedCoordsVector();
+        F_half_IB_ghost_vecs[part] = d_fe_data_managers[part]->buildGhostedSolutionVector(FORCE_SYSTEM_NAME);
+    }
 
     // Initialize the various LData objects on each level of the patch hierarchy.
     std::vector<Pointer<LData> > X_current_data(finest_ln+1);
@@ -803,8 +812,10 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     }
 
     // Initialize X(n+1) to equal X(n).
-    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&X_current)->vec(),
-                   dynamic_cast<PetscVector<double>*>(&X_new)->vec()); IBTK_CHKERRQ(ierr);
+    for (unsigned part = 0; part < d_num_parts; ++part)
+    {
+        ierr = VecCopy(dynamic_cast<PetscVector<double>*>(X_current_vecs[part])->vec(), dynamic_cast<PetscVector<double>*>(X_new_vecs[part])->vec()); IBTK_CHKERRQ(ierr);
+    }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_l_data_manager != NULL && d_l_data_manager->levelContainsLagrangianData(ln))
@@ -838,11 +849,14 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     {
         // Set X(n+1/2) = 0.5*(X(n) + X(n+1)).
         IBAMR_TIMER_START(t_advance_hierarchy_phase1);
-        ierr = VecAXPBYPCZ(dynamic_cast<PetscVector<double>*>(&X_half)->vec(),
-                           0.5, 0.5, 0.0,
-                           dynamic_cast<PetscVector<double>*>(&X_current)->vec(),
-                           dynamic_cast<PetscVector<double>*>(&X_new)->vec()); IBTK_CHKERRQ(ierr);
-        X_half.close();
+        for (unsigned part = 0; part < d_num_parts; ++part)
+        {
+            ierr = VecAXPBYPCZ(dynamic_cast<PetscVector<double>*>(X_half_vecs   [part])->vec(),
+                               0.5, 0.5, 0.0,
+                               dynamic_cast<PetscVector<double>*>(X_current_vecs[part])->vec(),
+                               dynamic_cast<PetscVector<double>*>(X_new_vecs    [part])->vec()); IBTK_CHKERRQ(ierr);
+            X_half_vecs[part]->close();
+        }
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (d_l_data_manager != NULL && d_l_data_manager->levelContainsLagrangianData(ln))
@@ -857,7 +871,10 @@ IBFEHierarchyIntegrator::advanceHierarchy(
 
         // Compute F(n+1/2) = F(X(n+1/2),t(n+1/2)).
         IBAMR_TIMER_START(t_advance_hierarchy_phase3);
-        computeInteriorForceDensity(F_half, X_half, current_time+0.5*dt);
+        for (unsigned part = 0; part < d_num_parts; ++part)
+        {
+            computeInteriorForceDensity(*F_half_vecs[part], *X_half_vecs[part], current_time+0.5*dt, part);
+        }
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (d_l_data_manager != NULL && d_l_data_manager->levelContainsLagrangianData(ln))
@@ -871,32 +888,40 @@ IBFEHierarchyIntegrator::advanceHierarchy(
 
         // Copy data into the "IB ghosted" vectors.
         IBAMR_TIMER_START(t_advance_hierarchy_phase4);
-        ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&X_half)->vec(), dynamic_cast<PetscVector<double>*>(&X_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
-        ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&F_half)->vec(), dynamic_cast<PetscVector<double>*>(&F_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
-        X_half_IB_ghost.close();
-        F_half_IB_ghost.close();
+        for (unsigned int part = 0; part < d_num_parts; ++part)
+        {
+            ierr = VecCopy(dynamic_cast<PetscVector<double>*>(X_half_vecs[part])->vec(), dynamic_cast<PetscVector<double>*>(X_half_IB_ghost_vecs[part])->vec()); IBTK_CHKERRQ(ierr);
+            ierr = VecCopy(dynamic_cast<PetscVector<double>*>(F_half_vecs[part])->vec(), dynamic_cast<PetscVector<double>*>(F_half_IB_ghost_vecs[part])->vec()); IBTK_CHKERRQ(ierr);
+            X_half_IB_ghost_vecs[part]->close();
+            F_half_IB_ghost_vecs[part]->close();
+        }
         IBAMR_TIMER_STOP(t_advance_hierarchy_phase4);
 
         // Spread F(n+1/2) to f(n+1/2).
         IBAMR_TIMER_START(t_advance_hierarchy_phase5);
         d_hier_sc_data_ops->setToScalar(d_F_idx, 0.0);
-        if (d_use_IB_spreading_operator)
+        for (unsigned int part = 0; part < d_num_parts; ++part)
         {
-            d_fe_data_manager->spread(d_F_idx, F_half_IB_ghost, X_half_IB_ghost, FORCE_SYSTEM_NAME, false, false);
-        }
-        else
-        {
-            d_fe_data_manager->prolongDensity(d_F_idx, F_half_IB_ghost, X_half_IB_ghost, FORCE_SYSTEM_NAME, false, false);
-        }
-        if (d_split_interior_and_bdry_forces)
-        {
-            if (d_use_jump_conditions)
+            NumericVector<double>& X_half_IB_ghost = *X_half_IB_ghost_vecs[part];
+            NumericVector<double>& F_half_IB_ghost = *F_half_IB_ghost_vecs[part];
+            if (d_use_IB_spreading_operator)
             {
-                imposeJumpConditions(d_F_idx, F_half_IB_ghost, X_half_IB_ghost, current_time+0.5*dt);
+                d_fe_data_managers[part]->spread(d_F_idx, F_half_IB_ghost, X_half_IB_ghost, FORCE_SYSTEM_NAME, false, false);
             }
             else
             {
-                spreadTransmissionForceDensity(d_F_idx, X_half_IB_ghost, current_time+0.5*dt);
+                d_fe_data_managers[part]->prolongDensity(d_F_idx, F_half_IB_ghost, X_half_IB_ghost, FORCE_SYSTEM_NAME, false, false);
+            }
+            if (d_split_interior_and_bdry_forces)
+            {
+                if (d_use_jump_conditions)
+                {
+                    imposeJumpConditions(d_F_idx, F_half_IB_ghost, X_half_IB_ghost, current_time+0.5*dt, part);
+                }
+                else
+                {
+                    spreadTransmissionForceDensity(d_F_idx, X_half_IB_ghost, current_time+0.5*dt, part);
+                }
             }
         }
         if (d_l_data_manager != NULL)
@@ -914,13 +939,18 @@ IBFEHierarchyIntegrator::advanceHierarchy(
         // U(n+1/2).
         IBAMR_TIMER_START(t_advance_hierarchy_phase7);
         d_hier_sc_data_ops->linearSum(d_V_idx, 0.5, U_current_idx, 0.5, U_new_idx);
-        if (d_use_IB_interpolation_operator)
+        for (unsigned int part = 0; part < d_num_parts; ++part)
         {
-            d_fe_data_manager->interp(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::GHOST_FILL"], current_time, false);
-        }
-        else
-        {
-            d_fe_data_manager->restrictValue(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, false);
+            NumericVector<double>& X_half_IB_ghost = *X_half_IB_ghost_vecs[part];
+            NumericVector<double>& U_half = *U_half_vecs[part];
+            if (d_use_IB_interpolation_operator)
+            {
+                d_fe_data_managers[part]->interp(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::GHOST_FILL"], current_time, false);
+            }
+            else
+            {
+                d_fe_data_managers[part]->restrictValue(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, false);
+            }
         }
         if (d_l_data_manager != NULL)
         {
@@ -930,10 +960,13 @@ IBFEHierarchyIntegrator::advanceHierarchy(
 
         // Set X(n+1) = X(n) + dt*U(n+1/2).
         IBAMR_TIMER_START(t_advance_hierarchy_phase8);
-        ierr = VecWAXPY(dynamic_cast<PetscVector<double>*>(&X_new)->vec(),
-                        dt,
-                        dynamic_cast<PetscVector<double>*>(&U_half)->vec(),
-                        dynamic_cast<PetscVector<double>*>(&X_current)->vec()); IBTK_CHKERRQ(ierr);
+        for (unsigned int part = 0; part < d_num_parts; ++part)
+        {
+            ierr = VecWAXPY(dynamic_cast<PetscVector<double>*>(X_new_vecs    [part])->vec(),
+                            dt,
+                            dynamic_cast<PetscVector<double>*>(U_half_vecs   [part])->vec(),
+                            dynamic_cast<PetscVector<double>*>(X_current_vecs[part])->vec()); IBTK_CHKERRQ(ierr);
+        }
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (d_l_data_manager != NULL && d_l_data_manager->levelContainsLagrangianData(ln))
@@ -944,7 +977,7 @@ IBFEHierarchyIntegrator::advanceHierarchy(
                 ierr = VecWAXPY(X_new_vec, dt, U_half_vec, X_current_vec); IBTK_CHKERRQ(ierr);
             }
         }
-        LMarkerUtilities::advectMarkers(d_mark_current_idx, d_mark_scratch_idx, d_V_idx, dt, d_fe_data_manager->getInterpWeightingFunction(), d_hierarchy);
+        LMarkerUtilities::advectMarkers(d_mark_current_idx, d_mark_scratch_idx, d_V_idx, dt, d_fe_data_managers[0]->getInterpWeightingFunction(), d_hierarchy);
         IBAMR_TIMER_STOP(t_advance_hierarchy_phase8);
     }
     d_ins_hier_integrator->integrateHierarchy_finalize(current_time, new_time);
@@ -952,8 +985,10 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     IBAMR_TIMER_START(t_advance_hierarchy_finalize);
 
     // Reset X_current to equal X_new.
-    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&X_new)->vec(),
-                   dynamic_cast<PetscVector<double>*>(&X_current)->vec()); IBTK_CHKERRQ(ierr);
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        ierr = VecCopy(dynamic_cast<PetscVector<double>*>(X_new_vecs[part])->vec(), dynamic_cast<PetscVector<double>*>(X_current_vecs[part])->vec()); IBTK_CHKERRQ(ierr);
+    }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_l_data_manager != NULL && d_l_data_manager->levelContainsLagrangianData(ln))
@@ -965,7 +1000,10 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     }
 
     // Update the coordinate mapping dX = X - s.
-    updateCoordinateMapping();
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        updateCoordinateMapping(part);
+    }
 
     // Reset X_mark to equal X_mark_new.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -984,18 +1022,26 @@ IBFEHierarchyIntegrator::advanceHierarchy(
     // Update the interpolated velocity to corresond to the updated Eulerian
     // velocity field
     d_hier_sc_data_ops->copyData(d_V_idx, U_new_idx);
-    ierr = VecCopy(dynamic_cast<PetscVector<double>*>(&X_new)->vec(),
-                   dynamic_cast<PetscVector<double>*>(&X_half_IB_ghost)->vec()); IBTK_CHKERRQ(ierr);
-    if (d_use_IB_interpolation_operator)
+    for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        d_fe_data_manager->interp(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::GHOST_FILL"], current_time, true);
-    }
-    else
-    {
-        d_fe_data_manager->restrictValue(d_V_idx, U_half, X_half_IB_ghost, VELOCITY_SYSTEM_NAME, true);
+        ierr = VecCopy(dynamic_cast<PetscVector<double>*>(X_new_vecs[part])->vec(), dynamic_cast<PetscVector<double>*>(X_half_IB_ghost_vecs[part])->vec()); IBTK_CHKERRQ(ierr);
+        NumericVector<double>& X_new_IB_ghost = *X_half_IB_ghost_vecs[part];
+        NumericVector<double>& U_new = *U_half_vecs[part];
+        if (d_use_IB_interpolation_operator)
+        {
+            d_fe_data_managers[part]->interp(d_V_idx, U_new, X_new_IB_ghost, VELOCITY_SYSTEM_NAME, d_rscheds["V->V::S->S::GHOST_FILL"], current_time, true);
+        }
+        else
+        {
+            d_fe_data_managers[part]->restrictValue(d_V_idx, U_new, X_new_IB_ghost, VELOCITY_SYSTEM_NAME, true);
+        }
     }
 
     // Deallocate scratch data.
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        delete X_new_vecs[part];
+    }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1137,7 +1183,10 @@ IBFEHierarchyIntegrator::regridHierarchy()
     LMarkerUtilities::collectMarkersOnPatchHierarchy(d_mark_current_idx, d_hierarchy);
 
     // Update the workload data.
-    d_fe_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        d_fe_data_managers[part]->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
+    }
     if (d_l_data_manager != NULL)
     {
         d_l_data_manager->updateWorkloadData(0,d_hierarchy->getFinestLevelNumber());
@@ -1161,7 +1210,10 @@ IBFEHierarchyIntegrator::regridHierarchy()
     d_ib_lag_force_strategy_needs_init = true;
 
     // Reinitialize the FE data manager.
-    d_fe_data_manager->reinitElementMappings();
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        d_fe_data_managers[part]->reinitElementMappings();
+    }
 
     // Prune duplicate markers following regridding.
     LMarkerUtilities::pruneDuplicateMarkers(d_mark_current_idx, d_hierarchy);
@@ -1280,9 +1332,12 @@ IBFEHierarchyIntegrator::initializeLevelData(
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
     // Initialize the FE data manager.
-    d_fe_data_manager->setPatchHierarchy(hierarchy);
-    d_fe_data_manager->resetLevels(0,hierarchy->getFinestLevelNumber());
-    d_fe_data_manager->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        d_fe_data_managers[part]->setPatchHierarchy(hierarchy);
+        d_fe_data_managers[part]->resetLevels(0,hierarchy->getFinestLevelNumber());
+        d_fe_data_managers[part]->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
+    }
 
     // Initialize the Lagrangian data manager.
     if (d_l_data_manager != NULL)
@@ -1336,7 +1391,10 @@ IBFEHierarchyIntegrator::resetHierarchyConfiguration(
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
 
     // Reset the FE data manager.
-    d_fe_data_manager->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_hier_level);
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        d_fe_data_managers[part]->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_hier_level);
+    }
 
     // Reset the Lagrangian data manager.
     if (d_l_data_manager != NULL)
@@ -1422,7 +1480,10 @@ IBFEHierarchyIntegrator::applyGradientDetector(
     d_ins_hier_integrator->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
 
     // Tag cells which contain Lagragian nodes.
-    d_fe_data_manager->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        d_fe_data_managers[part]->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
+    }
     if (d_l_data_manager != NULL)
     {
         d_l_data_manager->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
@@ -1532,13 +1593,129 @@ IBFEHierarchyIntegrator::putToDatabase(
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
+IBFEHierarchyIntegrator::commonConstructor(
+    Pointer<Database> input_db)
+{
+
+    if (d_registered_for_restart)
+    {
+        RestartManager::getManager()->registerRestartItem(d_object_name, this);
+    }
+
+    // Determine whether we should use first-order or second-order shape
+    // functions for each part of the structure.
+    bool mesh_has_first_order_elems  = false;
+    bool mesh_has_second_order_elems = false;
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
+        const MeshBase& mesh = equation_systems->get_mesh();
+        MeshBase::const_element_iterator       el_it  = mesh.elements_begin();
+        const MeshBase::const_element_iterator el_end = mesh.elements_end();
+        for ( ; el_it != el_end; ++el_it)
+        {
+            const Elem* const elem = *el_it;
+            mesh_has_first_order_elems  = mesh_has_first_order_elems  || elem->default_order() == FIRST ;
+            mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
+        }
+    }
+    mesh_has_first_order_elems  = SAMRAI_MPI::maxReduction(mesh_has_first_order_elems );
+    mesh_has_second_order_elems = SAMRAI_MPI::maxReduction(mesh_has_second_order_elems);
+    if (( mesh_has_first_order_elems &&  mesh_has_second_order_elems) ||
+        (!mesh_has_first_order_elems && !mesh_has_second_order_elems))
+    {
+        TBOX_ERROR(d_object_name << "::IBFEHierarchyIntegrator():\n"
+                   << "  a parts of FE mesh must contain only FIRST order elements or only SECOND order elements" << std::endl);
+    }
+    if (mesh_has_first_order_elems )
+    {
+        d_fe_order = FIRST;
+        d_quad_order = THIRD;
+    }
+    if (mesh_has_second_order_elems)
+    {
+        d_fe_order = SECOND;
+        d_quad_order = FIFTH;
+    }
+    pout << d_object_name << ": using " << Utility::enum_to_string<Order>(d_fe_order) << " order " << Utility::enum_to_string<FEFamily>(d_fe_family) << " finite elements.\n\n";
+
+    // Initialize object with data read from the input and restart databases.
+    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    if (from_restart) getFromRestart();
+    getFromInput(input_db, from_restart);
+
+    // Read in the marker initial positions.
+    if (!from_restart) d_num_mark = LMarkerUtilities::readMarkerPositions(d_mark_init_posns, d_mark_input_file_name, d_hierarchy);
+
+    // Obtain the Hierarchy data operations objects.
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    Pointer<SideVariable<NDIM,double> > sc_var = new SideVariable<NDIM,double>("sc_var");
+    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true);
+
+    // Initialize all variable contexts.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    d_current = var_db->getContext(d_object_name+"::CURRENT");
+    d_scratch = var_db->getContext(d_object_name+"::SCRATCH");
+
+    // Initialize all variables.
+    IntVector<NDIM> ghosts = 0;
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        ghosts = IntVector<NDIM>::max(ghosts,d_fe_data_managers[part]->getGhostCellWidth());
+    }
+    const IntVector<NDIM> no_ghosts = 0;
+
+    d_V_var = new SideVariable<NDIM,double>(d_object_name+"::V");
+    d_V_idx = var_db->registerVariableAndContext(d_V_var, d_scratch, ghosts);
+
+    d_F_var = new SideVariable<NDIM,double>(d_object_name+"::F");
+    d_F_idx = var_db->registerVariableAndContext(d_F_var, d_scratch, no_ghosts);
+
+    d_mark_var = new LMarkerSetVariable(d_object_name+"::mark");
+    d_mark_current_idx = var_db->registerVariableAndContext(d_mark_var, getCurrentContext(), ghosts);
+    d_mark_scratch_idx = var_db->registerVariableAndContext(d_mark_var, getScratchContext(), ghosts);
+    if (d_registered_for_restart)
+    {
+        var_db->registerPatchDataForRestart(d_mark_current_idx);
+    }
+
+    // Setup Timers.
+    IBAMR_DO_ONCE(
+        t_initialize_hierarchy_integrator = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::initializeHierarchyIntegrator()");
+        t_initialize_hierarchy            = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::initializeHierarchy()");
+        t_advance_hierarchy               = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()");
+        t_advance_hierarchy_init          = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_init");
+        t_advance_hierarchy_phase1        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase1");
+        t_advance_hierarchy_phase2        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase2");
+        t_advance_hierarchy_phase3        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase3");
+        t_advance_hierarchy_phase4        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase4");
+        t_advance_hierarchy_phase5        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase5");
+        t_advance_hierarchy_phase6        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase6");
+        t_advance_hierarchy_phase7        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase7");
+        t_advance_hierarchy_phase8        = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_phase8");
+        t_advance_hierarchy_finalize      = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::advanceHierarchy()_finalize");
+        t_regrid_hierarchy                = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::regridHierarchy()");
+        t_synchronize_hierarchy           = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::synchronizeHierarchy()");
+        t_synchronize_new_levels          = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::synchronizeNewLevels()");
+        t_reset_time_dependent_data       = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::resetTimeDependentHierData()");
+        t_reset_data_to_preadvance_state  = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::resetHierDataToPreadvanceState()");
+        t_initialize_level_data           = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::initializeLevelData()");
+        t_reset_hierarchy_configuration   = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::resetHierarchyConfiguration()");
+        t_apply_gradient_detector         = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::applyGradientDetector()");
+        t_put_to_database                 = TimerManager::getManager()->getTimer("IBAMR::IBFEHierarchyIntegrator::putToDatabase()");
+                  );
+    return;
+}// commonConstructor
+
+void
 IBFEHierarchyIntegrator::computeInteriorForceDensity(
     NumericVector<double>& G_vec,
     NumericVector<double>& X_vec,
-    const double& time)
+    const double& time,
+    const unsigned int part)
 {
     // Extract the mesh.
-    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
+    EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
     const int dim = mesh.mesh_dimension();
     AutoPtr<QBase> qrule = QBase::build(d_quad_type, dim, d_quad_order);
@@ -1574,8 +1751,8 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
 
     // Setup extra data needed to compute stresses/forces.
     std::vector<NumericVector<double>*> PK1_stress_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems.begin();
-         cit != d_PK1_stress_fcn_systems.end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems[part].begin();
+         cit != d_PK1_stress_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         system.update();
@@ -1583,8 +1760,8 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     }
 
     std::vector<NumericVector<double>*> lag_body_force_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_body_force_fcn_systems.begin();
-         cit != d_lag_body_force_fcn_systems.end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_body_force_fcn_systems[part].begin();
+         cit != d_lag_body_force_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         system.update();
@@ -1592,8 +1769,8 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     }
 
     std::vector<NumericVector<double>*> lag_pressure_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems.begin();
-         cit != d_lag_pressure_fcn_systems.end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems[part].begin();
+         cit != d_lag_pressure_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         system.update();
@@ -1601,8 +1778,8 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     }
 
     std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems.begin();
-         cit != d_lag_surface_force_fcn_systems.end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems[part].begin();
+         cit != d_lag_surface_force_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         system.update();
@@ -1658,7 +1835,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
             // Compute the value of the first Piola-Kirchhoff stress tensor at
             // the quadrature point and add the corresponding forces to the
             // right-hand-side vector.
-            d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctx);
+            d_PK1_stress_fcns[part](PP,dX_ds,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
             for (unsigned int k = 0; k < n_basis; ++k)
             {
                 F_qp = -PP*dphi[k][qp]*JxW[qp];
@@ -1668,12 +1845,12 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                 }
             }
 
-            if (d_lag_body_force_fcn != NULL)
+            if (d_lag_body_force_fcns[part] != NULL)
             {
                 // Compute the value of the body force at the quadrature point
                 // and add the corresponding forces to the right-hand-side
                 // vector.
-                d_lag_body_force_fcn(F_b,dX_ds,X_qp,s_qp,elem,X_vec,lag_body_force_fcn_data,time,d_lag_body_force_fcn_ctx);
+                d_lag_body_force_fcns[part](F_b,dX_ds,X_qp,s_qp,elem,X_vec,lag_body_force_fcn_data,time,d_lag_body_force_fcn_ctxs[part]);
                 for (unsigned int k = 0; k < n_basis; ++k)
                 {
                     F_qp = phi[k][qp]*JxW[k]*F_b;
@@ -1707,8 +1884,8 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
             // part of the physical boundary; if not, skip the present side.
             const bool compute_transmission_force = (( d_split_interior_and_bdry_forces && !at_dirichlet_bdry) ||
                                                      (!d_split_interior_and_bdry_forces &&  at_dirichlet_bdry));
-            const bool compute_pressure = (!d_split_interior_and_bdry_forces && d_lag_pressure_fcn != NULL && !at_dirichlet_bdry);
-            const bool compute_surface_force = (!d_split_interior_and_bdry_forces && d_lag_surface_force_fcn != NULL && !at_dirichlet_bdry);
+            const bool compute_pressure = (!d_split_interior_and_bdry_forces && d_lag_pressure_fcns[part] != NULL && !at_dirichlet_bdry);
+            const bool compute_surface_force = (!d_split_interior_and_bdry_forces && d_lag_surface_force_fcns[part] != NULL && !at_dirichlet_bdry);
             if (!(compute_transmission_force || compute_pressure || compute_surface_force)) continue;
 
             fe_face->reinit(elem, side);
@@ -1730,7 +1907,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                     // Compute the value of the first Piola-Kirchhoff stress
                     // tensor at the quadrature point and add the corresponding
                     // force to the right-hand-side vector.
-                    d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctx);
+                    d_PK1_stress_fcns[part](PP,dX_ds,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
                     F += PP*normal_face[qp];
                 }
                 if (compute_pressure)
@@ -1738,7 +1915,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                     // Compute the value of the pressure at the quadrature point
                     // and add the corresponding force to the right-hand-side
                     // vector.
-                    d_lag_pressure_fcn(P,dX_ds,X_qp,s_qp,elem,side,X_vec,lag_pressure_fcn_data,time,d_lag_pressure_fcn_ctx);
+                    d_lag_pressure_fcns[part](P,dX_ds,X_qp,s_qp,elem,side,X_vec,lag_pressure_fcn_data,time,d_lag_pressure_fcn_ctxs[part]);
                     F -= P*J*dX_ds_inv_trans*normal_face[qp];
                 }
                 if (compute_surface_force)
@@ -1746,7 +1923,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
                     // Compute the value of the surface force at the quadrature
                     // point and add the corresponding force to the
                     // right-hand-side vector.
-                    d_lag_surface_force_fcn(F_s,dX_ds,X_qp,s_qp,elem,side,X_vec,lag_surface_force_fcn_data,time,d_lag_surface_force_fcn_ctx);
+                    d_lag_surface_force_fcns[part](F_s,dX_ds,X_qp,s_qp,elem,side,X_vec,lag_surface_force_fcn_data,time,d_lag_surface_force_fcn_ctxs[part]);
                     F += F_s;
                 }
 
@@ -1782,7 +1959,7 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
 
     // Solve for G.
     G_rhs_vec->close();
-    d_fe_data_manager->computeL2Projection(G_vec, *G_rhs_vec, FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
+    d_fe_data_managers[part]->computeL2Projection(G_vec, *G_rhs_vec, FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
     return;
 }// computeInteriorForceDensity
 
@@ -1790,15 +1967,16 @@ void
 IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     const int f_data_idx,
     NumericVector<double>& X_ghost_vec,
-    const double& time)
+    const double& time,
+    const unsigned int part)
 {
     if (!d_split_interior_and_bdry_forces) return;
 
     // Extract the mesh.
-    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
+    EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
     const int dim = mesh.mesh_dimension();
-    QBase* ib_qrule = d_fe_data_manager->getQuadratureRule();
+    QBase* ib_qrule = d_fe_data_managers[part]->getQuadratureRule();
     AutoPtr<QBase> ib_qrule_face = QBase::build(ib_qrule->type(), dim-1, ib_qrule->get_order());
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
@@ -1828,33 +2006,33 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
 
     // Setup extra data needed to compute stresses/forces.
     std::vector<NumericVector<double>*> PK1_stress_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems.begin();
-         cit != d_PK1_stress_fcn_systems.end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems[part].begin();
+         cit != d_PK1_stress_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
-        PK1_stress_fcn_data.push_back(d_fe_data_manager->buildGhostedSolutionVector(system.name()));
+        PK1_stress_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
     }
 
     std::vector<NumericVector<double>*> lag_pressure_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems.begin();
-         cit != d_lag_pressure_fcn_systems.end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems[part].begin();
+         cit != d_lag_pressure_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
-        lag_pressure_fcn_data.push_back(d_fe_data_manager->buildGhostedSolutionVector(system.name()));
+        lag_pressure_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
     }
 
     std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems.begin();
-         cit != d_lag_surface_force_fcn_systems.end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems[part].begin();
+         cit != d_lag_surface_force_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
-        lag_surface_force_fcn_data.push_back(d_fe_data_manager->buildGhostedSolutionVector(system.name()));
+        lag_surface_force_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
     }
 
     // Loop over the patches to spread the transmission elastic force density
     // onto the grid.
-    const blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_element_map = d_fe_data_manager->getActivePatchElementMap();
-    const int level_num = d_fe_data_manager->getLevelNumber();
+    const blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_element_map = d_fe_data_managers[part]->getActivePatchElementMap();
+    const int level_num = d_fe_data_managers[part]->getLevelNumber();
     TensorValue<double> PP, dX_ds, dX_ds_inv_trans;
     VectorValue<double> F, F_s;
     Point X_qp;
@@ -1936,8 +2114,8 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
                 // this part of the physical boundary; if not, skip the present
                 // side.
                 const bool compute_transmission_force = d_split_interior_and_bdry_forces && !at_dirichlet_bdry;
-                const bool compute_pressure = (d_split_interior_and_bdry_forces && d_lag_pressure_fcn != NULL);
-                const bool compute_surface_force = (d_split_interior_and_bdry_forces && d_lag_surface_force_fcn != NULL);
+                const bool compute_pressure = (d_split_interior_and_bdry_forces && d_lag_pressure_fcns[part] != NULL);
+                const bool compute_surface_force = (d_split_interior_and_bdry_forces && d_lag_surface_force_fcns[part] != NULL);
                 if (!(compute_transmission_force || compute_pressure || compute_surface_force)) continue;
 
                 fe_face->reinit(elem, side);
@@ -1961,21 +2139,21 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
                         // Compute the value of the first Piola-Kirchhoff stress
                         // tensor at the quadrature point and compute the
                         // corresponding force.
-                        d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctx);
+                        d_PK1_stress_fcns[part](PP,dX_ds,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
                         F -= PP*normal_face[qp]*JxW_face[qp];
                     }
                     if (compute_pressure)
                     {
                         // Compute the value of the pressure at the quadrature
                         // point and compute the corresponding force.
-                        d_lag_pressure_fcn(P,dX_ds,X_qp,s_qp,elem,side,X_ghost_vec,lag_pressure_fcn_data,time,d_lag_pressure_fcn_ctx);
+                        d_lag_pressure_fcns[part](P,dX_ds,X_qp,s_qp,elem,side,X_ghost_vec,lag_pressure_fcn_data,time,d_lag_pressure_fcn_ctxs[part]);
                         F -= P*J*dX_ds_inv_trans*normal_face[qp]*JxW_face[qp];
                     }
                     if (compute_surface_force)
                     {
                         // Compute the value of the surface force at the
                         // quadrature point and compute the corresponding force.
-                        d_lag_surface_force_fcn(F_s,dX_ds,X_qp,s_qp,elem,side,X_ghost_vec,lag_surface_force_fcn_data,time,d_lag_surface_force_fcn_ctx);
+                        d_lag_surface_force_fcns[part](F_s,dX_ds,X_qp,s_qp,elem,side,X_ghost_vec,lag_surface_force_fcn_data,time,d_lag_surface_force_fcn_ctxs[part]);
                         F += F_s;
                     }
                     const int idx = NDIM*qp_offset;
@@ -1995,8 +2173,8 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
 
         // Spread the boundary forces to the grid.
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const std::string& spread_weighting_fcn = d_fe_data_manager->getSpreadWeightingFunction();
-        const hier::IntVector<NDIM>& ghost_width = d_fe_data_manager->getGhostCellWidth();
+        const std::string& spread_weighting_fcn = d_fe_data_managers[part]->getSpreadWeightingFunction();
+        const hier::IntVector<NDIM>& ghost_width = d_fe_data_managers[part]->getGhostCellWidth();
         const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), ghost_width);
         Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
         LEInteractor::spread(f_data, T_bdry, NDIM, X_bdry, NDIM, patch, spread_box, spread_weighting_fcn);
@@ -2009,12 +2187,13 @@ IBFEHierarchyIntegrator::imposeJumpConditions(
     const int f_data_idx,
     NumericVector<double>& F_ghost_vec,
     NumericVector<double>& X_ghost_vec,
-    const double& time)
+    const double& time,
+    const unsigned int part)
 {
     if (!d_split_interior_and_bdry_forces) return;
 
     // Extract the mesh.
-    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
+    EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
     const int dim = mesh.mesh_dimension();
 
@@ -2043,34 +2222,34 @@ IBFEHierarchyIntegrator::imposeJumpConditions(
 
     // Setup extra data needed to compute stresses/forces.
     std::vector<NumericVector<double>*> PK1_stress_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems.begin();
-         cit != d_PK1_stress_fcn_systems.end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems[part].begin();
+         cit != d_PK1_stress_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
-        PK1_stress_fcn_data.push_back(d_fe_data_manager->buildGhostedSolutionVector(system.name()));
+        PK1_stress_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
     }
 
     std::vector<NumericVector<double>*> lag_pressure_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems.begin();
-         cit != d_lag_pressure_fcn_systems.end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems[part].begin();
+         cit != d_lag_pressure_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
-        lag_pressure_fcn_data.push_back(d_fe_data_manager->buildGhostedSolutionVector(system.name()));
+        lag_pressure_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
     }
 
     std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems.begin();
-         cit != d_lag_surface_force_fcn_systems.end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems[part].begin();
+         cit != d_lag_surface_force_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
-        lag_surface_force_fcn_data.push_back(d_fe_data_manager->buildGhostedSolutionVector(system.name()));
+        lag_surface_force_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
     }
 
     // Loop over the patches to impose jump conditions on the Eulerian grid that
     // are determined from the interior and transmission elastic force
     // densities.
-    const blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_element_map = d_fe_data_manager->getActivePatchElementMap();
-    const int level_num = d_fe_data_manager->getLevelNumber();
+    const blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_element_map = d_fe_data_managers[part]->getActivePatchElementMap();
+    const int level_num = d_fe_data_managers[part]->getLevelNumber();
     TensorValue<double> PP, dX_ds, dX_ds_inv_trans;
     VectorValue<double> F, F_s, F_qp, n;
     Point X_qp;
@@ -2150,8 +2329,8 @@ IBFEHierarchyIntegrator::imposeJumpConditions(
                 // this part of the physical boundary; if not, skip the present
                 // side.
                 const bool compute_transmission_force = d_split_interior_and_bdry_forces && !at_dirichlet_bdry;
-                const bool compute_pressure = (d_split_interior_and_bdry_forces && d_lag_pressure_fcn != NULL);
-                const bool compute_surface_force = (d_split_interior_and_bdry_forces && d_lag_surface_force_fcn != NULL);
+                const bool compute_pressure = (d_split_interior_and_bdry_forces && d_lag_pressure_fcns[part] != NULL);
+                const bool compute_surface_force = (d_split_interior_and_bdry_forces && d_lag_surface_force_fcns[part] != NULL);
                 if (!(compute_transmission_force || compute_pressure || compute_surface_force)) continue;
 
                 // Construct a side element.
@@ -2298,21 +2477,21 @@ IBFEHierarchyIntegrator::imposeJumpConditions(
                         // Compute the value of the first Piola-Kirchhoff stress
                         // tensor at the quadrature point and compute the
                         // corresponding force.
-                        d_PK1_stress_fcn(PP,dX_ds,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctx);
+                        d_PK1_stress_fcns[part](PP,dX_ds,X_qp,s_qp,elem,X_ghost_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
                         F -= PP*normal_face[qp];
                     }
                     if (compute_pressure)
                     {
                         // Compute the value of the pressure at the quadrature
                         // point and compute the corresponding force.
-                        d_lag_pressure_fcn(P,dX_ds,X_qp,s_qp,elem,side,X_ghost_vec,lag_pressure_fcn_data,time,d_lag_pressure_fcn_ctx);
+                        d_lag_pressure_fcns[part](P,dX_ds,X_qp,s_qp,elem,side,X_ghost_vec,lag_pressure_fcn_data,time,d_lag_pressure_fcn_ctxs[part]);
                         F -= P*J*dX_ds_inv_trans*normal_face[qp];
                     }
                     if (compute_surface_force)
                     {
                         // Compute the value of the surface force at the
                         // quadrature point and compute the corresponding force.
-                        d_lag_surface_force_fcn(F_s,dX_ds,X_qp,s_qp,elem,side,X_ghost_vec,lag_surface_force_fcn_data,time,d_lag_surface_force_fcn_ctx);
+                        d_lag_surface_force_fcns[part](F_s,dX_ds,X_qp,s_qp,elem,side,X_ghost_vec,lag_surface_force_fcn_data,time,d_lag_surface_force_fcn_ctxs[part]);
                         F += F_s;
                     }
 
@@ -2359,14 +2538,15 @@ IBFEHierarchyIntegrator::imposeJumpConditions(
 }// imposeJumpConditions
 
 void
-IBFEHierarchyIntegrator::initializeCoordinates()
+IBFEHierarchyIntegrator::initializeCoordinates(
+    const unsigned int part)
 {
-    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
+    EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     MeshBase& mesh = equation_systems->get_mesh();
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
     NumericVector<double>& X_coords = *X_system.solution;
-    const bool identity_mapping = d_coordinate_mapping_fcn == NULL;
+    const bool identity_mapping = d_coordinate_mapping_fcns[part] == NULL;
     for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
     {
         Node* n = *it;
@@ -2377,7 +2557,7 @@ IBFEHierarchyIntegrator::initializeCoordinates()
             Point X = s;
             if (!identity_mapping)
             {
-                d_coordinate_mapping_fcn(X, s, d_coordinate_mapping_fcn_ctx);
+                d_coordinate_mapping_fcns[part](X, s, d_coordinate_mapping_fcn_ctxs[part]);
             }
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -2392,9 +2572,10 @@ IBFEHierarchyIntegrator::initializeCoordinates()
 }// initializeCoordinates
 
 void
-IBFEHierarchyIntegrator::updateCoordinateMapping()
+IBFEHierarchyIntegrator::updateCoordinateMapping(
+    const unsigned int part)
 {
-    EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
+    EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     MeshBase& mesh = equation_systems->get_mesh();
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();

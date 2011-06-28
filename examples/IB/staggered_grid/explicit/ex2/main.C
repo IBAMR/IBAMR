@@ -460,9 +460,9 @@ main(
 
         tbox::Pointer<IBLagrangianSourceStrategy> source_generator = NULL;
 
-        myPostProcessor* t_post_processor = new myPostProcessor();
+        myPostProcessor* t_post_processor = NULL; // new myPostProcessor();
         t_post_processor->d_force_generator = force_generator;
-        tbox::Pointer<IBPostProcessStrategy> post_processor = t_post_processor;
+        tbox::Pointer<IBPostProcessStrategy> post_processor = NULL; // t_post_processor;
 
         tbox::Pointer<IBStaggeredHierarchyIntegrator> time_integrator =
             new IBStaggeredHierarchyIntegrator(

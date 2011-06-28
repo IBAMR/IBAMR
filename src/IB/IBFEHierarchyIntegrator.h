@@ -91,6 +91,21 @@ public:
         bool register_for_restart=true);
 
     /*!
+     * Constructor.
+     *
+     * When assertion checking is active, passing any null pointer or an empty
+     * string as an argument will result in an assertion failure.
+     */
+    IBFEHierarchyIntegrator(
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        SAMRAI::tbox::Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
+        std::vector<IBTK::FEDataManager*> fe_data_managers,
+        IBTK::LDataManager* l_data_manager=NULL,
+        bool register_for_restart=true);
+
+    /*!
      * Destructor.
      *
      * The destructor for IBFEHierarchyIntegrator unregisters the integrator
@@ -105,6 +120,16 @@ public:
     getName() const;
 
     /*!
+     * Typedef specifying interface for coordinate mapping function.
+     */
+    typedef
+    void
+    (*CoordinateMappingFcnPtr)(
+        libMesh::Point& X,
+        const libMesh::Point& s,
+        void* ctx);
+
+    /*!
      * Register the (optional) function used to initialize the physical
      * coordinates from the Lagrangian coordinates.
      *
@@ -114,8 +139,25 @@ public:
      */
     void
     registerInitialCoordinateMappingFunction(
-        void (*coordinate_mapping_fcn)(libMesh::Point&, const libMesh::Point& s, void* ctx),
-        void* coordinate_mapping_fcn_ctx=NULL);
+        CoordinateMappingFcnPtr coordinate_mapping_fcn,
+        void* coordinate_mapping_fcn_ctx=NULL,
+        const unsigned int part=0);
+
+    /*!
+     * Typedef specifying interface for PK1 stress tensor function.
+     */
+    typedef
+    void
+    (*PK1StressFcnPtr)(
+        libMesh::TensorValue<double>& PP,
+        const libMesh::TensorValue<double>& dX_ds,
+        const libMesh::Point& X,
+        const libMesh::Point& s,
+        libMesh::Elem* const elem,
+        libMesh::NumericVector<double>& X_vec,
+        const std::vector<libMesh::NumericVector<double>*>& system_data,
+        const double& time,
+        void* ctx);
 
     /*!
      * Register the function to compute the first Piola-Kirchhoff stress tensor,
@@ -123,9 +165,27 @@ public:
      */
     void
     registerPK1StressTensorFunction(
-        void (*PK1_stress_fcn)(libMesh::TensorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx),
+        PK1StressFcnPtr PK1_stress_fcn,
         std::vector<unsigned int> PK1_stress_fcn_systems=std::vector<unsigned int>(),
-        void* PK1_stress_fcn_ctx=NULL);
+        void* PK1_stress_fcn_ctx=NULL,
+        const unsigned int part=0);
+
+    /*!
+     * Typedef specifying interface for Lagrangian body force distribution
+     * function.
+     */
+    typedef
+    void
+    (*LagBodyForceFcnPtr)(
+        libMesh::VectorValue<double>& F,
+        const libMesh::TensorValue<double>& dX_ds,
+        const libMesh::Point& X,
+        const libMesh::Point& s,
+        libMesh::Elem* const elem,
+        libMesh::NumericVector<double>& X_vec,
+        const std::vector<libMesh::NumericVector<double>*>& system_data,
+        const double& time,
+        void* ctx);
 
     /*!
      * Register the (optional) function to compute body force distributions on
@@ -133,9 +193,28 @@ public:
      */
     void
     registerLagBodyForceFunction(
-        void (*lag_body_force_fcn)(libMesh::VectorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx),
+        LagBodyForceFcnPtr lag_body_force_fcn,
         std::vector<unsigned int> lag_body_force_fcn_systems=std::vector<unsigned int>(),
-        void* lag_body_force_fcn_ctx=NULL);
+        void* lag_body_force_fcn_ctx=NULL,
+        const unsigned int part=0);
+
+    /*!
+     * Typedef specifying interface for Lagrangian pressure force distribution
+     * function.
+     */
+    typedef
+    void
+    (*LagPressureFcnPtr)(
+        double& P,
+        const libMesh::TensorValue<double>& dX_ds,
+        const libMesh::Point& X,
+        const libMesh::Point& s,
+        libMesh::Elem* const elem,
+        const unsigned short int side,
+        libMesh::NumericVector<double>& X_vec,
+        const std::vector<libMesh::NumericVector<double>*>& system_data,
+        const double& time,
+        void* ctx);
 
     /*!
      * Register the (optional) function to compute surface pressure
@@ -143,9 +222,28 @@ public:
      */
     void
     registerLagPressureFunction(
-        void (*lag_pressure_fcn)(double&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, const unsigned short int side, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx),
+        LagPressureFcnPtr lag_pressure_fcn,
         std::vector<unsigned int> lag_pressure_fcn_systems=std::vector<unsigned int>(),
-        void* lag_pressure_fcn_ctx=NULL);
+        void* lag_pressure_fcn_ctx=NULL,
+        const unsigned int part=0);
+
+    /*!
+     * Typedef specifying interface for Lagrangian surface force distribution
+     * function.
+     */
+    typedef
+    void
+    (*LagSurfaceForceFcnPtr)(
+        libMesh::VectorValue<double>& F,
+        const libMesh::TensorValue<double>& dX_ds,
+        const libMesh::Point& X,
+        const libMesh::Point& s,
+        libMesh::Elem* const elem,
+        const unsigned short int side,
+        libMesh::NumericVector<double>& X_vec,
+        const std::vector<libMesh::NumericVector<double>*>& system_data,
+        const double& time,
+        void* ctx);
 
     /*!
      * Register the (optional) function to compute surface force distributions
@@ -153,9 +251,10 @@ public:
      */
     void
     registerLagSurfaceForceFunction(
-        void (*lag_surface_force_fcn)(libMesh::VectorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const elem, const unsigned short int side, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx),
+        LagSurfaceForceFcnPtr lag_surface_force_fcn,
         std::vector<unsigned int> lag_surface_force_fcn_systems=std::vector<unsigned int>(),
-        void* lag_surface_force_fcn_ctx=NULL);
+        void* lag_surface_force_fcn_ctx=NULL,
+        const unsigned int part=0);
 
     /*!
      * Register the function used to compute the forces on the Lagrangian fiber
@@ -605,6 +704,13 @@ private:
         const IBFEHierarchyIntegrator& that);
 
     /*
+     * Common class constructor.
+     */
+    void
+    commonConstructor(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+
+    /*
      * \brief Compute the interior elastic density, possibly splitting off the
      * normal component of the transmission force along the physical boundary of
      * the Lagrangian structure.
@@ -613,7 +719,8 @@ private:
     computeInteriorForceDensity(
         libMesh::NumericVector<double>& G_vec,
         libMesh::NumericVector<double>& X_vec,
-        const double& time);
+        const double& time,
+        const unsigned int part);
 
     /*!
      * \brief Spread the transmission force density along the physical boundary
@@ -623,7 +730,8 @@ private:
     spreadTransmissionForceDensity(
         const int f_data_idx,
         libMesh::NumericVector<double>& X_ghost_vec,
-        const double& time);
+        const double& time,
+        const unsigned int part);
 
     /*!
      * \brief Impose jump conditions determined from the interior and
@@ -635,7 +743,8 @@ private:
         const int f_data_idx,
         libMesh::NumericVector<double>& F_ghost_vec,
         libMesh::NumericVector<double>& X_ghost_vec,
-        const double& time);
+        const double& time,
+        const unsigned int part);
 
     /*!
      * \brief Initialize the physical coordinates using the supplied coordinate
@@ -643,13 +752,15 @@ private:
      * are taken to be the Lagrangian coordinates.
      */
     void
-    initializeCoordinates();
+    initializeCoordinates(
+        const unsigned int part);
 
     /*!
      * \brief Compute dX = X - s, useful mainly for visualization purposes.
      */
     void
-    updateCoordinateMapping();
+    updateCoordinateMapping(
+        const unsigned int part);
 
     /*!
      * Read input values, indicated above, from given database.  The boolean
@@ -690,7 +801,8 @@ private:
     /*
      * Pointer to the FE data associated with this time integration object.
      */
-    IBTK::FEDataManager* d_fe_data_manager;
+    const unsigned int d_num_parts;
+    std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     bool d_use_IB_spreading_operator;
     bool d_use_IB_interpolation_operator;
     bool d_split_interior_and_bdry_forces;
@@ -704,31 +816,31 @@ private:
     /*
      * Function used to compute the initial coordinates of the Lagrangian mesh.
      */
-    void (*d_coordinate_mapping_fcn)(libMesh::Point&, const libMesh::Point& s, void* ctx);
-    void* d_coordinate_mapping_fcn_ctx;
+    std::vector<CoordinateMappingFcnPtr> d_coordinate_mapping_fcns;
+    std::vector<void*> d_coordinate_mapping_fcn_ctxs;
 
     /*
      * Function used to compute the first Piola-Kirchhoff stress tensor.
      */
-    void (*d_PK1_stress_fcn)(libMesh::TensorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx);
-    std::vector<unsigned int> d_PK1_stress_fcn_systems;
-    void* d_PK1_stress_fcn_ctx;
+    std::vector<PK1StressFcnPtr> d_PK1_stress_fcns;
+    std::vector<std::vector<unsigned int> > d_PK1_stress_fcn_systems;
+    std::vector<void*> d_PK1_stress_fcn_ctxs;
 
     /*
      * Optional function use to compute additional body and surface forces on
      * the Lagrangian mesh.
      */
-    void (*d_lag_body_force_fcn)(libMesh::VectorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx);
-    std::vector<unsigned int> d_lag_body_force_fcn_systems;
-    void* d_lag_body_force_fcn_ctx;
+    std::vector<LagBodyForceFcnPtr> d_lag_body_force_fcns;
+    std::vector<std::vector<unsigned int> > d_lag_body_force_fcn_systems;
+    std::vector<void*> d_lag_body_force_fcn_ctxs;
 
-    void (*d_lag_pressure_fcn)(double&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const, const unsigned short int side, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx);
-    std::vector<unsigned int> d_lag_pressure_fcn_systems;
-    void* d_lag_pressure_fcn_ctx;
+    std::vector<LagPressureFcnPtr> d_lag_pressure_fcns;
+    std::vector<std::vector<unsigned int> > d_lag_pressure_fcn_systems;
+    std::vector<void*> d_lag_pressure_fcn_ctxs;
 
-    void (*d_lag_surface_force_fcn)(libMesh::VectorValue<double>&, const libMesh::TensorValue<double>& dX_ds, const libMesh::Point& X, const libMesh::Point& s, libMesh::Elem* const, const unsigned short int side, libMesh::NumericVector<double>& X_vec, const std::vector<libMesh::NumericVector<double>*>& system_data, const double& time, void* ctx);
-    std::vector<unsigned int> d_lag_surface_force_fcn_systems;
-    void* d_lag_surface_force_fcn_ctx;
+    std::vector<LagSurfaceForceFcnPtr> d_lag_surface_force_fcns;
+    std::vector<std::vector<unsigned int> > d_lag_surface_force_fcn_systems;
+    std::vector<void*> d_lag_surface_force_fcn_ctxs;
 
     /*
      * Support for traditional fiber-based Lagrangian data.

@@ -695,7 +695,7 @@ intersect_line_with_face(
                 A11 = p1(2)-p2(2);
                 C2  = p2(2)- r(2);
             }
-            else if (q(1) != 0)
+            else if (q(1) != 0.0)
             {
                 A00 = p0(0)-p2(0);
                 A01 = p1(0)-p2(0);
