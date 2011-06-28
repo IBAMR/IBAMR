@@ -45,6 +45,7 @@
 #include <face.h>
 #include <petsc_vector.h>
 #include <point.h>
+#include <string_to_enum.h>
 #include <type_tensor.h>
 #include <type_vector.h>
 #include <vector_value.h>
@@ -517,6 +518,8 @@ outer_product(
     return u_prod_v;
 }// outer_product
 
+// WARNING: This code is specialized to the case in which q is a unit vector
+// aligned with the coordinate axes.
 inline std::vector<std::pair<double,libMesh::Point> >
 intersect_line_with_edge(
     libMesh::Edge* elem,
@@ -526,16 +529,139 @@ intersect_line_with_edge(
     std::vector<std::pair<double,libMesh::Point> > t_vals;
     switch (elem->type())
     {
+        case libMeshEnums::EDGE2:
+        {
+            // Linear interpolation:
+            //
+            //    0.5*(1-u)*p0 + 0.5*(1+u)*p1 = r + t * q
+            //
+            // Factor the interpolation formula:
+            //
+            //    0.5*(p1-p0)*u+0.5*(p1+p0) = r + t*q
+            //
+            // Solve for u:
+            //
+            //    a*u + b = 0
+            //
+            // with:
+            //
+            //    a = 0.5*(-p0+p1)
+            //    b = 0.5*(p0+p1) - r
+            const libMesh::Point& p0 = *elem->get_node(0);
+            const libMesh::Point& p1 = *elem->get_node(1);
+            double a, b;
+            if (q(0) != 0.0)
+            {
+                a = 0.5*(p1(1)-p0(1));
+                b = 0.5*(p1(1)+p0(1))-r(1);
+            }
+            else
+            {
+                a = 0.5*(p1(0)-p0(0));
+                b = 0.5*(p1(0)+p0(0))-r(0);
+            }
+            const double u = -b/a;
+
+            // Look for intersections within the element interior.
+            if (u >= -1.0 && u <= 1.0)
+            {
+                double t;
+                if (std::abs(q(0)) >= std::abs(q(1)))
+                {
+                    const double p = p0(0)*0.5*(1.0-u) + p1(0)*0.5*(1.0+u);
+                    t = (p-r(0))/q(0);
+                }
+                else
+                {
+                    const double p = p0(1)*0.5*(1.0-u) + p1(1)*0.5*(1.0+u);
+                    t = (p-r(1))/q(1);
+                }
+                t_vals.push_back(std::make_pair(t,libMesh::Point(u,0.0,0.0)));
+            }
+            break;
+        }
+        case libMeshEnums::EDGE3:
+        {
+            // Quadratic interpolation:
+            //
+            //    0.5*u*(u-1)*p0 + 0.5*u*(u+1)*p1 + (1-u*u)*p2 = r + t * q
+            //
+            // Factor the interpolation formula:
+            //
+            //    (0.5*p0+0.5*p1-p2)*u^2 + 0.5*(p1-p0)*u + p2 = r + t * q
+            //
+            // Solve for u:
+            //
+            //    a*u^2 + b*u + c = 0
+            //
+            // with:
+            //
+            //    a = (0.5*p0+0.5*p1-p2)
+            //    b = 0.5*(p1-p0)
+            //    c = p2-r
+            const libMesh::Point& p0 = *elem->get_node(0);
+            const libMesh::Point& p1 = *elem->get_node(1);
+            const libMesh::Point& p2 = *elem->get_node(2);
+            double a, b, c;
+            if (q(0) != 0.0)
+            {
+                a = (0.5*p0(1)+0.5*p1(1)-p2(1));
+                b = 0.5*(p1(1)-p0(1));
+                c = p2(1)-r(1);
+            }
+            else
+            {
+                a = (0.5*p0(0)+0.5*p1(0)-p2(0));
+                b = 0.5*(p1(0)-p0(0));
+                c = p2(0)-r(0);
+            }
+            const double disc = b*b - 4.0*a*c;
+            std::vector<double> u_vals;
+            if (disc > 0.0)
+            {
+                const double q = -0.5*(b+(b>0.0 ? 1.0 : -1.0)*sqrt(disc));
+                const double u0 = q/a;
+                u_vals.push_back(u0);
+                const double u1 = c/q;
+                if (std::abs(u0-u1) > std::numeric_limits<double>::epsilon())
+                {
+                    u_vals.push_back(u1);
+                }
+            }
+
+            // Look for intersections within the element interior.
+            for (unsigned int k = 0; k < u_vals.size(); ++k)
+            {
+                double u = u_vals[k];
+                if (u >= -1.0 && u <= 1.0)
+                {
+                    double t;
+                    if (std::abs(q(0)) >= std::abs(q(1)))
+                    {
+                        const double p = 0.5*u*(u-1.0)*p0(0) + 0.5*u*(u+1.0)*p1(0) + (1.0-u*u)*p2(0);
+                        t = (p-r(0))/q(0);
+                    }
+                    else
+                    {
+                        const double p = 0.5*u*(u-1.0)*p0(1) + 0.5*u*(u+1.0)*p1(1) + (1.0-u*u)*p2(1);
+                        t = (p-r(1))/q(1);
+                    }
+                    t_vals.push_back(std::make_pair(t,libMesh::Point(u,0.0,0.0)));
+                }
+            }
+            break;
+        }
         default:
         {
-            TBOX_ERROR("unsupported\n");
+            TBOX_ERROR("intersect_line_with_edge():"
+                       << "  element type " << libMesh::Utility::enum_to_string<libMeshEnums::ElemType>(elem->type()) << " is not supported at this time.\n");
         }
     }
     return t_vals;
 }// intersect_line_with_edge
 
-// WARNING: specialized to the case in which q is a unit vector aligned with the
-// coordinate axes.
+// WARNING: This code is specialized to the case in which q is a unit vector
+// aligned with the coordinate axes.
 inline std::vector<std::pair<double,libMesh::Point> >
 intersect_line_with_face(
     libMesh::Face* elem,
@@ -545,6 +671,78 @@ intersect_line_with_face(
     std::vector<std::pair<double,libMesh::Point> > t_vals;
     switch (elem->type())
     {
+        case libMeshEnums::TRI3:
+        {
+            // Linear interpolation:
+            //
+            //    u*p0 + v*p1 + (1-u-v)*p2 = r + t * q
+            //
+            // Factor the interpolation formula:
+            //
+            //    (p0-p2)*u + (p1-p2)*v + p2 = r + t*q
+            //
+            // Solve a small linear system for u and v.
+            const libMesh::Point& p0 = *elem->get_node(0);
+            const libMesh::Point& p1 = *elem->get_node(1);
+            const libMesh::Point& p2 = *elem->get_node(2);
+            double A00, A10, A01, A11, C1, C2;
+            if (q(0) != 0.0)
+            {
+                A00 = p0(1)-p2(1);
+                A01 = p1(1)-p2(1);
+                C1  = p2(1)- r(1);
+                A10 = p0(2)-p2(2);
+                A11 = p1(2)-p2(2);
+                C2  = p2(2)- r(2);
+            }
+            else if (q(1) != 0)
+            {
+                A00 = p0(0)-p2(0);
+                A01 = p1(0)-p2(0);
+                C1  = p2(0)- r(0);
+                A10 = p0(2)-p2(2);
+                A11 = p1(2)-p2(2);
+                C2  = p2(2)- r(2);
+            }
+            else
+            {
+                A00 = p0(0)-p2(0);
+                A01 = p1(0)-p2(0);
+                C1  = p2(0)- r(0);
+                A10 = p0(1)-p2(1);
+                A11 = p1(1)-p2(1);
+                C2  = p2(1)- r(1);
+            }
+            const double det = A00*A11-A10*A01;
+            if (std::abs(det) > std::numeric_limits<double>::epsilon())
+            {
+                const double u =  (A01*C2-A11*C1)/det;
+                const double v = -(A00*C2-A10*C1)/det;
+
+                // Look for intersections within the element interior.
+                if (u >= 0.0 && v >= 0.0 && (u+v) <= 1.0)
+                {
+                    double t;
+                    if (std::abs(q(0)) >= std::abs(q(1)) && std::abs(q(0)) >= std::abs(q(2)))
+                    {
+                        const double p = u*p0(0) + v*p1(0) + (1.0-u-v)*p2(0);
+                        t = (p-r(0))/q(0);
+                    }
+                    else if (std::abs(q(1)) >= std::abs(q(2)))
+                    {
+                        const double p = u*p0(1) + v*p1(1) + (1.0-u-v)*p2(1);
+                        t = (p-r(1))/q(1);
+                    }
+                    else
+                    {
+                        const double p = u*p0(2) + v*p1(2) + (1.0-u-v)*p2(2);
+                        t = (p-r(2))/q(2);
+                    }
+                    t_vals.push_back(std::make_pair(t,libMesh::Point(u,v,0.0)));
+                }
+            }
+            break;
+        }
         case libMeshEnums::QUAD4:
         {
             const libMesh::Point& p00 = *elem->get_node(0);
@@ -592,7 +790,7 @@ intersect_line_with_face(
                 D2 = d(1)-r(1);
             }
 
-            // v^2 (A2*C1 - A1*C2) + v (A2*D1 - A1*D2 + B2*C1 - B1*C2) + (B2*D1 - B1*D2) = 0
+            // (A2*C1 - A1*C2) v^2 + (A2*D1 - A1*D2 + B2*C1 - B1*C2) v + (B2*D1 - B1*D2) = 0
             std::vector<double> v_vals;
             {
                 const double a = A2*C1 - A1*C2;
@@ -603,8 +801,8 @@ intersect_line_with_face(
                 {
                     const double q = -0.5*(b+(b>0.0 ? 1.0 : -1.0)*sqrt(disc));
                     const double v0 = q/a;
-                    const double v1 = c/q;
                     v_vals.push_back(v0);
+                    const double v1 = c/q;
                     if (std::abs(v0-v1) > std::numeric_limits<double>::epsilon())
                     {
                         v_vals.push_back(v1);
@@ -631,19 +829,21 @@ intersect_line_with_face(
 
                     if (u >= 0.0 && u <= 1.0)
                     {
-                        const libMesh::Point p = p00*(1.0-u)*(1.0-v) + p01*(1.0-u)*v + p10*u*(1.0-v) + p11*u*v;
                         double t;
                         if (std::abs(q(0)) >= std::abs(q(1)) && std::abs(q(0)) >= std::abs(q(2)))
                         {
-                            t = (p(0)-r(0))/q(0);
+                            const double p = p00(0)*(1.0-u)*(1.0-v) + p01(0)*(1.0-u)*v + p10(0)*u*(1.0-v) + p11(0)*u*v;
+                            t = (p-r(0))/q(0);
                         }
                         else if (std::abs(q(1)) >= std::abs(q(2)))
                         {
-                            t = (p(1)-r(1))/q(1);
+                            const double p = p00(1)*(1.0-u)*(1.0-v) + p01(1)*(1.0-u)*v + p10(1)*u*(1.0-v) + p11(1)*u*v;
+                            t = (p-r(1))/q(1);
                         }
                         else
                         {
-                            t = (p(2)-r(2))/q(2);
+                            const double p = p00(2)*(1.0-u)*(1.0-v) + p01(2)*(1.0-u)*v + p10(2)*u*(1.0-v) + p11(2)*u*v;
+                            t = (p-r(2))/q(2);
                         }
                         t_vals.push_back(std::make_pair(t,libMesh::Point(2.0*u-1.0,2.0*v-1.0,0.0)));
                     }
@@ -653,7 +853,8 @@ intersect_line_with_face(
         }
         default:
         {
-            TBOX_ERROR("unimplemented\n");
+            TBOX_ERROR("intersect_line_with_face():"
+                       << "  element type " << libMesh::Utility::enum_to_string<libMeshEnums::ElemType>(elem->type()) << " is not supported at this time.\n");
         }
     }
     return t_vals;

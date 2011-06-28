@@ -2334,7 +2334,7 @@ IBFEHierarchyIntegrator::imposeJumpConditions(
                     // NOTE: This additional correction appears to be
                     // ineffective when we use "diffuse" force spreading; hence,
                     // we compute it only when we do NOT use the IB/FE version
-                    // of the "standard" IB force spreading operator.
+                    // of the IB force spreading operator.
                     if (d_use_IB_spreading_operator)
                     {
                         F_qp.zero();
