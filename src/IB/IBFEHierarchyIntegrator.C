@@ -2192,16 +2192,10 @@ IBFEHierarchyIntegrator::imposeJumpConditions(
                 intersection_axes         .reserve(estimated_max_size);
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
-                    // Reset the nodal coordinates, projecting away the
-                    // coordinate in the direction of interest.
-                    for (unsigned int k = 0; k < n_node_side; ++k)
-                    {
-                        Point& X = side_elem->point(k);
-                        for (unsigned int d = 0; d < NDIM; ++d)
-                        {
-                            X(d) = (d == axis ? 0.0 : X_node_cache[k](d));
-                        }
-                    }
+                    // Setup a unit vector pointing in the appropriate
+                    // coordinate direction.
+                    VectorValue<double> q;
+                    q(axis) = 1.0;
 
                     // Loop over the relevant range of indices.
                     blitz::TinyVector<int,NDIM> i_begin, i_end, ic;
@@ -2226,15 +2220,20 @@ IBFEHierarchyIntegrator::imposeJumpConditions(
                         {
                             for (ic[0] = i_begin[0]; ic[0] < i_end[0]; ++ic[0])
                             {
-                                Point p;
+                                Point r;
                                 for (unsigned int d = 0; d < NDIM; ++d)
                                 {
-                                    p(d) = (d == axis ? 0.0 : x_lower[d] + dx[d]*(static_cast<double>(ic[d]-patch_lower[d])+0.5));
+                                    r(d) = (d == axis ? 0.0 : x_lower[d] + dx[d]*(static_cast<double>(ic[d]-patch_lower[d])+0.5));
                                 }
-                                const Point master_coords = FEInterface::inverse_map(dim-1, fe_type, side_elem.get(), p, TOLERANCE, false);
-                                if (FEInterface::on_reference_element(master_coords,side_elem->type()))
+#if (NDIM == 2)
+                                std::vector<std::pair<double,Point> > intersections = intersect_line_with_edge(dynamic_cast<Edge*>(side_elem.get()), r, q);
+#endif
+#if (NDIM == 3)
+                                std::vector<std::pair<double,Point> > intersections = intersect_line_with_face(dynamic_cast<Face*>(side_elem.get()), r, q);
+#endif
+                                for (unsigned int k = 0; k < intersections.size(); ++k)
                                 {
-                                    intersection_master_coords.push_back(master_coords);
+                                    intersection_master_coords.push_back(intersections[k].second);
                                     intersection_axes.push_back(axis);
                                 }
                             }

@@ -69,6 +69,9 @@ coordinate_mapping_function(
 {
     X(0) = s(0) + 0.6;
     X(1) = s(1) + 0.5;
+#if (NDIM == 3)
+    X(2) = s(2) + 0.5;
+#endif
     return;
 }// coordinate_mapping_function
 
@@ -85,15 +88,14 @@ PK1_stress_function(
     const Point& /*s*/,
     Elem* const /*elem*/,
     NumericVector<double>& /*X_vec*/,
-    const std::vector<NumericVector<double>*>& /*system_data*/,
+    const vector<NumericVector<double>*>& /*system_data*/,
     const double& /*time*/,
     void* /*ctx*/)
 {
     PP = struct_mu*dX_ds;
     if (use_div_penalization)
     {
-        TensorValue<double> dX_ds_inv_trans;
-        tensor_inverse_transpose(dX_ds_inv_trans, dX_ds, NDIM);
+        const TensorValue<double> dX_ds_inv_trans = tensor_inverse_transpose(dX_ds, NDIM);
         PP += (-struct_mu + struct_lambda*log(dX_ds.det()))*dX_ds_inv_trans;
     }
     return;
@@ -435,14 +437,14 @@ main(
     input_db->printClassData(plog);
 
     // Indicate the Eulerian data components to be saved for postprocessing.
-    hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int U_data_idx = var_db->mapVariableAndContextToIndex(
         navier_stokes_integrator->getVelocityVar(), navier_stokes_integrator->getCurrentContext());
     const int P_data_idx = var_db->mapVariableAndContextToIndex(
         navier_stokes_integrator->getPressureVar(), navier_stokes_integrator->getCurrentContext());
     const int P_extrap_data_idx = var_db->mapVariableAndContextToIndex(
         navier_stokes_integrator->getExtrapolatedPressureVar(), navier_stokes_integrator->getCurrentContext());
-    hier::ComponentSelector hier_data_comps;
+    ComponentSelector hier_data_comps;
     hier_data_comps.setFlag(U_data_idx);
     hier_data_comps.setFlag(P_data_idx);
     hier_data_comps.setFlag(P_extrap_data_idx);
