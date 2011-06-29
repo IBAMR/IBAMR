@@ -51,6 +51,9 @@
 #include <type_vector.h>
 #include <vector_value.h>
 
+// SAMRAI INCLUDES
+#include <tbox/Utilities.h>
+
 /////////////////////////////// FUNCTION DEFINITIONS /////////////////////////
 
 namespace IBTK
