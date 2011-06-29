@@ -1998,8 +1998,8 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
     const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
     System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
+#ifdef DEBUG_CHECK_ASSERTIONS
     const DofMap& X_dof_map = X_system.get_dof_map();
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
 #endif
