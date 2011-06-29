@@ -2055,7 +2055,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
         // Setup vectors to store the values of T and X at the quadrature
         // points.  We compute a conservative upper bound on the number of
         // quadrature points to try to avoid unnecessary reallocations.
-        static const unsigned int n_qp_estimate = std::pow(static_cast<int>(22),static_cast<int>(NDIM-1));
+        static const unsigned int n_qp_estimate = (NDIM == 2 ? 22 : 22*22);
         std::vector<double> T_bdry;
         T_bdry.reserve(NDIM*n_qp_estimate*num_active_patch_elems);
         std::vector<double> X_bdry;

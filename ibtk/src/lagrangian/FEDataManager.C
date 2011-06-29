@@ -412,7 +412,7 @@ FEDataManager::spread(
         // Setup vectors to store the values of F_JxW and X at the quadrature
         // points.  We compute a conservative upper bound on the number of
         // quadrature points to try to avoid unnecessary reallocations.
-        static const unsigned int n_qp_estimate = std::pow(static_cast<int>(22),static_cast<int>(NDIM));
+        static const unsigned int n_qp_estimate = (NDIM == 2 ? 22*22 : 22*22*22);
         std::vector<double> F_JxW_qp(n_vars*n_qp_estimate*num_active_patch_elems);
         std::vector<double>     X_qp(NDIM  *n_qp_estimate*num_active_patch_elems);
 
@@ -988,7 +988,7 @@ FEDataManager::interp(
         // Setup vectors to store the values of F and X at the quadrature
         // points.  We compute a conservative upper bound on the number of
         // quadrature points to try to avoid unnecessary reallocations.
-        static const unsigned int n_qp_estimate = std::pow(static_cast<int>(22),static_cast<int>(NDIM));
+        static const unsigned int n_qp_estimate = (NDIM == 2 ? 22*22 : 22*22*22);
         std::vector<double> F_qp(n_vars*n_qp_estimate*num_active_patch_elems);
         std::vector<double> X_qp(NDIM  *n_qp_estimate*num_active_patch_elems);
 
