@@ -412,7 +412,7 @@ FEDataManager::spread(
         // Setup vectors to store the values of F_JxW and X at the quadrature
         // points.  We compute a conservative upper bound on the number of
         // quadrature points to try to avoid unnecessary reallocations.
-        static const unsigned int n_qp_estimate = (NDIM == 2 ? 16*16 : 16*16*16);
+        static const unsigned int n_qp_estimate = std::pow(22,NDIM);
         std::vector<double> F_JxW_qp(n_vars*n_qp_estimate*num_active_patch_elems);
         std::vector<double>     X_qp(NDIM  *n_qp_estimate*num_active_patch_elems);
 
@@ -988,7 +988,7 @@ FEDataManager::interp(
         // Setup vectors to store the values of F and X at the quadrature
         // points.  We compute a conservative upper bound on the number of
         // quadrature points to try to avoid unnecessary reallocations.
-        static const unsigned int n_qp_estimate = (NDIM == 2 ? 16*16 : 16*16*16);
+        static const unsigned int n_qp_estimate = std::pow(22,NDIM);
         std::vector<double> F_qp(n_vars*n_qp_estimate*num_active_patch_elems);
         std::vector<double> X_qp(NDIM  *n_qp_estimate*num_active_patch_elems);
 
@@ -1931,8 +1931,8 @@ FEDataManager::FEDataManager(
       d_interp_weighting_fcn(interp_weighting_fcn),
       d_spread_weighting_fcn(spread_weighting_fcn),
       d_interp_uses_consistent_mass_matrix(interp_uses_consistent_mass_matrix),
-      d_qrule(new QAdaptiveGauss(2,NDIM,FIFTH)),
-      d_qrule_face(new QAdaptiveGauss(2,NDIM-1,FIFTH)),
+      d_qrule(new QAdaptiveGauss(NDIM,FIFTH)),
+      d_qrule_face(new QAdaptiveGauss(NDIM-1,FIFTH)),
       d_ghost_width(ghost_width),
       d_es(NULL),
       d_level_number(-1),
