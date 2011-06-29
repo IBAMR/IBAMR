@@ -50,6 +50,9 @@
 // PETSC INCLUDES
 #include <petsc.h>
 
+// IBTK INCLUDES
+#include <ibtk/libmesh_utilities.h>
+
 // SAMRAI INCLUDES
 #include <CellVariable.h>
 #include <LoadBalancer.h>
@@ -105,7 +108,6 @@ public:
         const std::string& name,
         const std::string& interp_weighting_fcn,
         const std::string& spread_weighting_fcn,
-        libMesh::QBase* const qrule,
         const bool interp_uses_consistent_mass_matrix,
         bool register_for_restart=true);
 
@@ -199,8 +201,15 @@ public:
      * \return A pointer to the quadrature rule used to construct the discrete
      * Lagrangian-Eulerian interation operators.
      */
-    libMesh::QBase*
+    QAdaptiveGauss*
     getQuadratureRule() const;
+
+    /*!
+     * \return A pointer to the quadrature rule used to construct the discrete
+     * Lagrangian-Eulerian interation operators.
+     */
+    QAdaptiveGauss*
+    getQuadratureRuleFace() const;
 
     /*!
      * \return A boolean value indicating whether the interpolation operator is
@@ -477,7 +486,6 @@ protected:
         const std::string& object_name,
         const std::string& interp_weighting_fcn,
         const std::string& spread_weighting_fcn,
-        libMesh::QBase* const qrule,
         const bool interp_uses_consistent_mass_matrix,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width,
         bool register_for_restart=true);
@@ -629,8 +637,9 @@ private:
      */
     const std::string d_interp_weighting_fcn;
     const std::string d_spread_weighting_fcn;
-    libMesh::QBase* const d_qrule;
     const bool d_interp_uses_consistent_mass_matrix;
+    QAdaptiveGauss* d_qrule;
+    QAdaptiveGauss* d_qrule_face;
 
     /*
      * SAMRAI::hier::IntVector object which determines the ghost cell width of

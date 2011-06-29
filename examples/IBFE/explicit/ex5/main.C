@@ -206,10 +206,9 @@ main(
     // the Cartesian grid.
     const string quad_type = input_db->getStringWithDefault("quad_type", "QGAUSS");
     const string quad_order = input_db->getStringWithDefault("quad_order", "SIXTH");
-    AutoPtr<QBase> qrule = QBase::build(Utility::string_to_enum<QuadratureType>(quad_type),NDIM,Utility::string_to_enum<Order>(quad_order));
     const string weighting_fcn = input_db->getStringWithDefault("weighting_fcn", "IB_4");
     const bool use_consistent_mass_matrix = input_db->getBoolWithDefault("use_consistent_mass_matrix", true);
-    FEDataManager* const fe_data_manager = FEDataManager::getManager("IBFE Manager", weighting_fcn, weighting_fcn, qrule.get(), use_consistent_mass_matrix);
+    FEDataManager* const fe_data_manager = FEDataManager::getManager("IBFE Manager", weighting_fcn, weighting_fcn, use_consistent_mass_matrix);
     const int mesh_level_number = input_db->getInteger("MAX_LEVELS")-1;
     EquationSystems equation_systems(mesh);
     fe_data_manager->setEquationSystems(&equation_systems, mesh_level_number);

@@ -1976,8 +1976,8 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
     const int dim = mesh.mesh_dimension();
-    QBase* ib_qrule = d_fe_data_managers[part]->getQuadratureRule();
-    AutoPtr<QBase> ib_qrule_face = QBase::build(ib_qrule->type(), dim-1, ib_qrule->get_order());
+    QAdaptiveGauss* ib_qrule = d_fe_data_managers[part]->getQuadratureRule();
+    QAdaptiveGauss* ib_qrule_face = d_fe_data_managers[part]->getQuadratureRuleFace();
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
@@ -1991,7 +1991,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     fe->attach_quadrature_rule(ib_qrule);
     fe->get_xyz();  // prevents FE::reinit() from rebuilding all FE data items...
     AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
-    fe_face->attach_quadrature_rule(ib_qrule_face.get());
+    fe_face->attach_quadrature_rule(ib_qrule_face);
     const std::vector<Point>& q_point_face = fe_face->get_xyz();
     const std::vector<double>& JxW_face = fe_face->get_JxW();
     const std::vector<Point>& normal_face = fe_face->get_normals();
@@ -2037,6 +2037,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     VectorValue<double> F, F_s;
     Point X_qp;
     double P;
+    std::vector<Point> elem_X;
     blitz::Array<double,2> X_node;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
@@ -2047,23 +2048,18 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
         const int num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
+        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* const patch_dx = patch_geom->getDx();
+
         // Setup vectors to store the values of T and X at the quadrature
         // points.  We compute a conservative upper bound on the number of
         // quadrature points to try to avoid unnecessary reallocations.
-        static const unsigned int safety_factor = 2;
-        if (dim == 2)
-        {
-            ib_qrule_face->init(EDGE4);
-        }
-        if (dim == 3)
-        {
-            ib_qrule_face->init(QUAD9);
-        }
-        const unsigned int n_qp_estimate = ib_qrule_face->n_points();
+        static const unsigned int n_qp_estimate = (NDIM == 2 ? 16 : 16*16);
         std::vector<double> T_bdry;
-        T_bdry.reserve(safety_factor*NDIM*n_qp_estimate*num_active_patch_elems);
+        T_bdry.reserve(NDIM*n_qp_estimate*num_active_patch_elems);
         std::vector<double> X_bdry;
-        X_bdry.reserve(safety_factor*NDIM*n_qp_estimate*num_active_patch_elems);
+        X_bdry.reserve(NDIM*n_qp_estimate*num_active_patch_elems);
 
         // Loop over the elements and compute the values to be spread and the
         // positions of the quadrature points.
@@ -2086,6 +2082,8 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
             }
             if (!has_physical_boundaries) continue;
 
+            get_nodal_positions(elem_X, elem, X_ghost_vec, X_system.number());
+            ib_qrule->set_elem_data(&elem_X, patch_dx);
             fe->reinit(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -2118,6 +2116,9 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
                 const bool compute_surface_force = (d_split_interior_and_bdry_forces && d_lag_surface_force_fcns[part] != NULL);
                 if (!(compute_transmission_force || compute_pressure || compute_surface_force)) continue;
 
+                AutoPtr<Elem> side_elem = elem->build_side(side);
+                get_nodal_positions(elem_X, side_elem.get(), X_ghost_vec, X_system.number());
+                ib_qrule_face->set_elem_data(&elem_X, patch_dx);
                 fe_face->reinit(elem, side);
 
                 const unsigned int n_qp = ib_qrule_face->n_points();
@@ -2172,7 +2173,6 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
         if (qp_offset == 0) continue;
 
         // Spread the boundary forces to the grid.
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const std::string& spread_weighting_fcn = d_fe_data_managers[part]->getSpreadWeightingFunction();
         const hier::IntVector<NDIM>& ghost_width = d_fe_data_managers[part]->getGhostCellWidth();
         const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), ghost_width);

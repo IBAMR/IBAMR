@@ -49,7 +49,6 @@
 #include <ibtk/LEInteractor.h>
 #include <ibtk/compiler_hints.h>
 #include <ibtk/ibtk_utilities.h>
-#include <ibtk/libmesh_utilities.h>
 #include <ibtk/namespaces.h>
 
 // LIBMESH INCLUDES
@@ -137,7 +136,6 @@ FEDataManager::getManager(
     const std::string& name,
     const std::string& interp_weighting_fcn,
     const std::string& spread_weighting_fcn,
-    QBase* const qrule,
     const bool interp_uses_consistent_mass_matrix,
     bool register_for_restart)
 {
@@ -145,7 +143,7 @@ FEDataManager::getManager(
     {
         const int stencil_size = std::max(LEInteractor::getStencilSize(interp_weighting_fcn),LEInteractor::getStencilSize(spread_weighting_fcn));
         const IntVector<NDIM> ghost_width = static_cast<int>(floor(0.5*static_cast<double>(stencil_size)))+1;
-        s_data_manager_instances[name] = new FEDataManager(name, interp_weighting_fcn, spread_weighting_fcn, qrule, interp_uses_consistent_mass_matrix, ghost_width, register_for_restart);
+        s_data_manager_instances[name] = new FEDataManager(name, interp_weighting_fcn, spread_weighting_fcn, interp_uses_consistent_mass_matrix, ghost_width, register_for_restart);
     }
     if (!s_registered_callback)
     {
@@ -252,11 +250,17 @@ FEDataManager::getSpreadWeightingFunction() const
     return d_spread_weighting_fcn;
 }// getSpreadWeightingFunction
 
-QBase*
+QAdaptiveGauss*
 FEDataManager::getQuadratureRule() const
 {
     return d_qrule;
 }// getQuadratureRule
+
+QAdaptiveGauss*
+FEDataManager::getQuadratureRuleFace() const
+{
+    return d_qrule_face;
+}// getQuadratureRuleFace
 
 bool
 FEDataManager::getInterpUsesConsistentMassMatrix() const
@@ -390,6 +394,7 @@ FEDataManager::spread(
     // Loop over the patches to interpolate nodal values on the FE mesh to the
     // element quadrature points, then spread thost values onto the Eulerian
     // grid.
+    std::vector<Point> elem_X;
     blitz::Array<double,2> F_node, X_node;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
@@ -400,21 +405,16 @@ FEDataManager::spread(
         const unsigned int num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
+        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* const patch_dx = patch_geom->getDx();
+
         // Setup vectors to store the values of F_JxW and X at the quadrature
         // points.  We compute a conservative upper bound on the number of
         // quadrature points to try to avoid unnecessary reallocations.
-        if (dim == 2)
-        {
-            d_qrule->init(QUAD9);
-        }
-        if (dim == 3)
-        {
-            d_qrule->init(HEX27);
-        }
-        const unsigned int n_qp_estimate = d_qrule->n_points();
-        static const unsigned int safety_factor = 2;
-        std::vector<double> F_JxW_qp(safety_factor*n_vars*n_qp_estimate*num_active_patch_elems);
-        std::vector<double>     X_qp(safety_factor*NDIM  *n_qp_estimate*num_active_patch_elems);
+        static const unsigned int n_qp_estimate = (NDIM == 2 ? 16*16 : 16*16*16);
+        std::vector<double> F_JxW_qp(n_vars*n_qp_estimate*num_active_patch_elems);
+        std::vector<double>     X_qp(NDIM  *n_qp_estimate*num_active_patch_elems);
 
         // Loop over the elements and compute the values to be spread and the
         // positions of the quadrature points.
@@ -422,13 +422,16 @@ FEDataManager::spread(
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             const Elem* const elem = patch_elems(e_idx);
+            get_nodal_positions(elem_X, elem, X_vec, X_system.number());
 
+            d_qrule->set_elem_data(&elem_X, patch_dx);
             F_fe->reinit(elem);
             for (unsigned int i = 0; i < n_vars; ++i)
             {
                 F_dof_map.dof_indices(elem, F_dof_indices(i), i);
             }
 
+            d_qrule->set_elem_data(&elem_X, patch_dx);
             X_fe->reinit(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -469,7 +472,6 @@ FEDataManager::spread(
         //
         // NOTE: Values are spread only from those quadrature points that are
         // within the ghost cell width of the patch interior.
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), d_ghost_width);
         Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
         Pointer<CellData<NDIM,double> > f_cc_data = f_data;
@@ -968,6 +970,7 @@ FEDataManager::interp(
     // the interpolated velocity field onto the FE basis functions.
     AutoPtr<NumericVector<double> > F_rhs_vec = F_vec.zero_clone();
     std::vector<DenseVector<double> > F_rhs_e(n_vars);
+    std::vector<Point> elem_X;
     blitz::Array<double,2> X_node;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
     int local_patch_num = 0;
@@ -978,28 +981,25 @@ FEDataManager::interp(
         const unsigned int num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
+        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* const patch_dx = patch_geom->getDx();
+
         // Setup vectors to store the values of F and X at the quadrature
         // points.  We compute a conservative upper bound on the number of
         // quadrature points to try to avoid unnecessary reallocations.
-        if (dim == 2)
-        {
-            d_qrule->init(QUAD9);
-        }
-        if (dim == 3)
-        {
-            d_qrule->init(HEX27);
-        }
-        const unsigned int n_qp_estimate = d_qrule->n_points();
-        static const unsigned int safety_factor = 2;
-        std::vector<double> F_qp(safety_factor*n_vars*n_qp_estimate*num_active_patch_elems);
-        std::vector<double> X_qp(safety_factor*NDIM  *n_qp_estimate*num_active_patch_elems);
+        static const unsigned int n_qp_estimate = (NDIM == 2 ? 16*16 : 16*16*16);
+        std::vector<double> F_qp(n_vars*n_qp_estimate*num_active_patch_elems);
+        std::vector<double> X_qp(NDIM  *n_qp_estimate*num_active_patch_elems);
 
         // Loop over the elements and compute the positions of the quadrature points.
         int qp_offset = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             const Elem* const elem = patch_elems(e_idx);
+            get_nodal_positions(elem_X, elem, X_vec, X_system.number());
 
+            d_qrule->set_elem_data(&elem_X, patch_dx);
             X_fe->reinit(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -1030,7 +1030,6 @@ FEDataManager::interp(
         //
         // NOTE: Values are interpolated only to those quadrature points that
         // are within the patch interior.
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM>& interp_box = patch->getBox();
         Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
         Pointer<CellData<NDIM,double> > f_cc_data = f_data;
@@ -1045,7 +1044,9 @@ FEDataManager::interp(
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             const Elem* const elem = patch_elems(e_idx);
+            get_nodal_positions(elem_X, elem, X_vec, X_system.number());
 
+            d_qrule->set_elem_data(&elem_X, patch_dx);
             F_fe->reinit(elem);
             for (unsigned int i = 0; i < n_vars; ++i)
             {
@@ -1815,6 +1816,7 @@ FEDataManager::applyGradientDetector(
 
         // Tag cells for refinement whenever they contain active element
         // quadrature points.
+        std::vector<Point> elem_X;
         blitz::Array<double,2> X_node;
         blitz::TinyVector<double,NDIM> X_qp;
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
@@ -1840,6 +1842,8 @@ FEDataManager::applyGradientDetector(
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 const Elem* const elem = patch_elems(e_idx);
+                get_nodal_positions(elem_X, elem, *X_ghost_vec, X_system.number());
+                d_qrule->set_elem_data(&elem_X, patch_dx);
                 X_fe->reinit(elem);
                 for (unsigned int d = 0; d < dim; ++d)
                 {
@@ -1914,7 +1918,6 @@ FEDataManager::FEDataManager(
     const std::string& object_name,
     const std::string& interp_weighting_fcn,
     const std::string& spread_weighting_fcn,
-    QBase* const qrule,
     const bool interp_uses_consistent_mass_matrix,
     const IntVector<NDIM>& ghost_width,
     bool register_for_restart)
@@ -1927,8 +1930,9 @@ FEDataManager::FEDataManager(
       d_finest_ln(-1),
       d_interp_weighting_fcn(interp_weighting_fcn),
       d_spread_weighting_fcn(spread_weighting_fcn),
-      d_qrule(qrule),
       d_interp_uses_consistent_mass_matrix(interp_uses_consistent_mass_matrix),
+      d_qrule(new QAdaptiveGauss(2,NDIM,FIFTH)),
+      d_qrule_face(new QAdaptiveGauss(2,NDIM-1,FIFTH)),
       d_ghost_width(ghost_width),
       d_es(NULL),
       d_level_number(-1),
@@ -1988,6 +1992,8 @@ FEDataManager::FEDataManager(
 
 FEDataManager::~FEDataManager()
 {
+    delete d_qrule;
+    delete d_qrule_face;
     for (std::map<std::string,NumericVector<double>*>::iterator it = d_system_ghost_vec.begin();
          it != d_system_ghost_vec.end(); ++it)
     {
@@ -2044,6 +2050,7 @@ FEDataManager::updateQuadPointCountData(
         NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
         X_vec->localize(*X_ghost_vec);
         X_dof_map.enforce_constraints_exactly(X_system, X_ghost_vec);
+        std::vector<Point> elem_X;
         blitz::Array<double,2> X_node;
         blitz::TinyVector<double,NDIM> X_qp;
         int local_patch_num = 0;
@@ -2066,6 +2073,8 @@ FEDataManager::updateQuadPointCountData(
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 const Elem* const elem = patch_elems(e_idx);
+                get_nodal_positions(elem_X, elem, *X_ghost_vec, X_system.number());
+                d_qrule->set_elem_data(&elem_X, patch_dx);
                 X_fe->reinit(elem);
                 for (unsigned int d = 0; d < dim; ++d)
                 {
@@ -2259,6 +2268,7 @@ FEDataManager::collectActivePatchElements(
 
         // Keep only those elements that have a quadrature point on the local
         // patch.
+        std::vector<Point> elem_X;
         blitz::Array<double,2> X_node;
         blitz::TinyVector<double,NDIM> X_qp;
         int local_patch_num = 0;
@@ -2284,6 +2294,8 @@ FEDataManager::collectActivePatchElements(
             for ( ; el_it != el_end; ++el_it)
             {
                 Elem* const elem = *el_it;
+                get_nodal_positions(elem_X, elem, *X_ghost_vec, X_system.number());
+                d_qrule->set_elem_data(&elem_X, patch_dx);
                 X_fe->reinit(elem);
                 for (unsigned int d = 0; d < dim; ++d)
                 {
