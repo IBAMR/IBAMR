@@ -197,10 +197,18 @@ main(
     Mesh mesh(NDIM);
     const int R = input_db->getIntegerWithDefault("R", 3);
     string elem_type = input_db->getStringWithDefault("elem_type", "QUAD4");
+#if 0
     MeshTools::Generation::build_sphere(mesh,
                                         0.2,
                                         R,
                                         Utility::string_to_enum<ElemType>(elem_type));
+#else
+    MeshTools::Generation::build_cube(mesh, 3, 3, 3,
+                                      -0.2, 0.2,
+                                      -0.2, 0.2,
+                                      -0.2, 0.2,
+                                      Utility::string_to_enum<ElemType>(elem_type));
+#endif
     struct_mu = input_db->getDoubleWithDefault("struct_mu", struct_mu);
     struct_lambda = input_db->getDoubleWithDefault("struct_lambda", struct_lambda);
     use_div_penalization = input_db->getBoolWithDefault("use_div_penalization", use_div_penalization);
@@ -211,7 +219,10 @@ main(
     const string quad_order = input_db->getStringWithDefault("quad_order", "SIXTH");
     const string weighting_fcn = input_db->getStringWithDefault("weighting_fcn", "IB_4");
     const bool use_consistent_mass_matrix = input_db->getBoolWithDefault("use_consistent_mass_matrix", true);
-    FEDataManager* const fe_data_manager = FEDataManager::getManager("IBFE Manager", weighting_fcn, weighting_fcn, use_consistent_mass_matrix);
+    QAdaptiveGauss::POINT_DENSITY = input_db->getDoubleWithDefault("POINT_DENSITY",1.0);
+    QAdaptiveGauss qrule(NDIM);
+    QAdaptiveGauss qrule_face(NDIM-1);
+    FEDataManager* const fe_data_manager = FEDataManager::getManager("IBFE Manager", weighting_fcn, weighting_fcn, use_consistent_mass_matrix, &qrule, &qrule_face);
     const int mesh_level_number = input_db->getInteger("MAX_LEVELS")-1;
     EquationSystems equation_systems(mesh);
     fe_data_manager->setEquationSystems(&equation_systems, mesh_level_number);

@@ -430,27 +430,27 @@ FEDataManager::spread(
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             const Elem* const elem = patch_elems(e_idx);
-            get_nodal_positions(elem_X, elem, X_vec, X_system.number());
 
-            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(&elem_X, patch_dx);
-            F_fe->reinit(elem);
             for (unsigned int i = 0; i < n_vars; ++i)
             {
                 F_dof_map.dof_indices(elem, F_dof_indices(i), i);
             }
+            get_values_for_interpolation(F_node, F_vec, F_dof_indices);
 
-            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(&elem_X, patch_dx);
-            X_fe->reinit(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_dof_map.dof_indices(elem, X_dof_indices(d), d);
             }
+            get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+
+            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(X_node, patch_dx);
+            F_fe->reinit(elem);
+            X_fe->reinit(elem);
 
             const unsigned int n_qp = d_qrule->n_points();
             if (UNLIKELY(F_JxW_qp.size() < n_vars*(qp_offset+n_qp))) F_JxW_qp.resize(n_vars*(qp_offset+n_qp));
             if (UNLIKELY(    X_qp.size() < NDIM  *(qp_offset+n_qp)))     X_qp.resize(NDIM  *(qp_offset+n_qp));
 
-            get_values_for_interpolation(F_node, F_vec, F_dof_indices);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = n_vars*(qp+qp_offset);
@@ -461,7 +461,6 @@ FEDataManager::spread(
                 }
             }
 
-            get_values_for_interpolation(X_node, X_vec, X_dof_indices);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = NDIM*(qp+qp_offset);
@@ -1009,20 +1008,20 @@ FEDataManager::interp(
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             const Elem* const elem = patch_elems(e_idx);
-            get_nodal_positions(elem_X, elem, X_vec, X_system.number());
 
-            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(&elem_X, patch_dx);
-            X_fe->reinit(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_dof_map.dof_indices(elem, X_dof_indices(d), d);
             }
+            get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+
+            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(X_node, patch_dx);
+            X_fe->reinit(elem);
 
             const unsigned int n_qp = d_qrule->n_points();
             if (UNLIKELY(F_qp.size() < n_vars*(qp_offset+n_qp))) F_qp.resize(n_vars*(qp_offset+n_qp));
             if (UNLIKELY(X_qp.size() < NDIM  *(qp_offset+n_qp))) X_qp.resize(NDIM  *(qp_offset+n_qp));
 
-            get_values_for_interpolation(X_node, X_vec, X_dof_indices);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = NDIM*(qp+qp_offset);
@@ -1056,10 +1055,7 @@ FEDataManager::interp(
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             const Elem* const elem = patch_elems(e_idx);
-            get_nodal_positions(elem_X, elem, X_vec, X_system.number());
 
-            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(&elem_X, patch_dx);
-            F_fe->reinit(elem);
             for (unsigned int i = 0; i < n_vars; ++i)
             {
                 F_dof_map.dof_indices(elem, F_dof_indices(i), i);
@@ -1072,6 +1068,15 @@ FEDataManager::interp(
                     F_rhs_e[i].zero();
                 }
             }
+
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                X_dof_map.dof_indices(elem, X_dof_indices(d), d);
+            }
+            get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+
+            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(X_node, patch_dx);
+            F_fe->reinit(elem);
 
             const unsigned int n_qp = d_qrule->n_points();
             const unsigned int n_basis = F_dof_indices(0).size();
@@ -1857,14 +1862,13 @@ FEDataManager::applyGradientDetector(
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 const Elem* const elem = patch_elems(e_idx);
-                get_nodal_positions(elem_X, elem, *X_ghost_vec, X_system.number());
-                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(&elem_X, patch_dx);
-                X_fe->reinit(elem);
                 for (unsigned int d = 0; d < dim; ++d)
                 {
                     X_dof_map.dof_indices(elem, X_dof_indices(d), d);
                 }
                 get_values_for_interpolation(X_node, *X_ghost_vec.get(), X_dof_indices);
+                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(X_node, patch_dx);
+                X_fe->reinit(elem);
                 for (unsigned int qp = 0; qp < d_qrule->n_points(); ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, phi_X);
@@ -2093,14 +2097,13 @@ FEDataManager::updateQuadPointCountData(
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 const Elem* const elem = patch_elems(e_idx);
-                get_nodal_positions(elem_X, elem, *X_ghost_vec, X_system.number());
-                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(&elem_X, patch_dx);
-                X_fe->reinit(elem);
                 for (unsigned int d = 0; d < dim; ++d)
                 {
                     X_dof_map.dof_indices(elem, X_dof_indices(d), d);
                 }
                 get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
+                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(X_node, patch_dx);
+                X_fe->reinit(elem);
                 for (unsigned int qp = 0; qp < d_qrule->n_points(); ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, phi_X);
@@ -2316,15 +2319,16 @@ FEDataManager::collectActivePatchElements(
             for ( ; el_it != el_end; ++el_it)
             {
                 Elem* const elem = *el_it;
-                get_nodal_positions(elem_X, elem, *X_ghost_vec, X_system.number());
-                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(&elem_X, patch_dx);
-                X_fe->reinit(elem);
+
                 for (unsigned int d = 0; d < dim; ++d)
                 {
                     X_dof_map.dof_indices(elem, X_dof_indices(d), d);
                 }
-
                 get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
+
+                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(X_node, patch_dx);
+                X_fe->reinit(elem);
+
                 bool found_qp = false;
                 for (unsigned int qp = 0; qp < d_qrule->n_points() && !found_qp; ++qp)
                 {

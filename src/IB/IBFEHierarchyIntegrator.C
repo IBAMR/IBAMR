@@ -1991,6 +1991,8 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
 #endif
     blitz::Array<std::vector<unsigned int>,1> dof_indices(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) dof_indices(d).reserve(27);
+    blitz::Array<std::vector<unsigned int>,1> side_dof_indices(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) side_dof_indices(d).reserve(9);
     AutoPtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
     fe->attach_quadrature_rule(ib_qrule);
     fe->get_xyz();  // prevents FE::reinit() from rebuilding all FE data items...
@@ -2042,7 +2044,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     Point X_qp;
     double P;
     std::vector<Point> elem_X;
-    blitz::Array<double,2> X_node;
+    blitz::Array<double,2> X_node, X_node_side;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -2086,13 +2088,14 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
             }
             if (!has_physical_boundaries) continue;
 
-            get_nodal_positions(elem_X, elem, X_ghost_vec, X_system.number());
-            if (using_adaptive_qrule) ib_adaptive_qrule->set_elem_data(&elem_X, patch_dx);
-            fe->reinit(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 dof_map.dof_indices(elem, dof_indices(d), d);
             }
+            get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
+
+            if (using_adaptive_qrule) ib_adaptive_qrule->set_elem_data(X_node, patch_dx);
+            fe->reinit(elem);
 
             // Loop over the element boundaries.
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
@@ -2121,8 +2124,13 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
                 if (!(compute_transmission_force || compute_pressure || compute_surface_force)) continue;
 
                 AutoPtr<Elem> side_elem = elem->build_side(side);
-                get_nodal_positions(elem_X, side_elem.get(), X_ghost_vec, X_system.number());
-                if (using_adaptive_qrule_face) ib_adaptive_qrule_face->set_elem_data(&elem_X, patch_dx);
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    dof_map.dof_indices(side_elem.get(), side_dof_indices(d), d);
+                }
+                get_values_for_interpolation(X_node_side, X_ghost_vec, side_dof_indices);
+
+                if (using_adaptive_qrule_face) ib_adaptive_qrule_face->set_elem_data(X_node_side, patch_dx);
                 fe_face->reinit(elem, side);
 
                 const unsigned int n_qp = ib_qrule_face->n_points();
@@ -2130,7 +2138,6 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
                 T_bdry.resize(T_bdry.size()+NDIM*n_qp);
                 X_bdry.resize(X_bdry.size()+NDIM*n_qp);
 
-                get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
                 for (unsigned int qp = 0; qp < n_qp; ++qp, ++qp_offset)
                 {
                     const Point& s_qp = q_point_face[qp];
