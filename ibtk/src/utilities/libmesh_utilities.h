@@ -345,18 +345,27 @@ inline void
 get_nodal_positions(
     std::vector<libMesh::Point>& elem_X,
     const libMesh::Elem* const elem,
-    const libMesh::NumericVector<double>& X_vec,
+    libMesh::NumericVector<double>& X_vec,
     const unsigned int X_sys_num)
 {
-    elem_X.resize(elem->n_nodes());
-    for (unsigned int k = 0; k < elem->n_nodes(); ++k)
+    const unsigned int n_nodes = elem->n_nodes();
+    elem_X.resize(n_nodes);
+    libMesh::PetscVector<double>* X_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&X_vec);
+    Vec X_global_vec = X_petsc_vec->vec();
+    Vec X_local_vec;
+    VecGhostGetLocalForm(X_global_vec,&X_local_vec);
+    double* values;
+    VecGetArray(X_local_vec, &values);
+    for (unsigned int k = 0; k < n_nodes; ++k)
     {
         libMesh::Node* node = elem->get_node(k);
-        for (unsigned d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
-            elem_X[k](d) = X_vec(node->dof_number(X_sys_num,d,0));
+            elem_X[k](d) = values[node->dof_number(X_sys_num,d,0)];
         }
     }
+    VecRestoreArray(X_local_vec, &values);
+    VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
     return;
 }// get_nodal_positions
 
@@ -380,7 +389,7 @@ get_values_for_interpolation(
         U_node(k) = values[local_index];
     }
     VecRestoreArray(U_local_vec, &values);
-    VecGhostRestoreLocalForm(U_global_vec,&U_local_vec);
+    VecGhostRestoreLocalForm(U_global_vec, &U_local_vec);
     return;
 }// get_values_for_interpolation
 
@@ -408,7 +417,7 @@ get_values_for_interpolation(
         }
     }
     VecRestoreArray(U_local_vec, &values);
-    VecGhostRestoreLocalForm(U_global_vec,&U_local_vec);
+    VecGhostRestoreLocalForm(U_global_vec, &U_local_vec);
     return;
 }// get_values_for_interpolation
 
