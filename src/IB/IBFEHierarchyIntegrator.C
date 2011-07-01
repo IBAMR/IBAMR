@@ -2094,7 +2094,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
             }
             get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
 
-            if (using_adaptive_qrule) ib_adaptive_qrule->set_elem_data(X_node, patch_dx);
+            if (using_adaptive_qrule) ib_adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
             fe->reinit(elem);
 
             // Loop over the element boundaries.
@@ -2130,7 +2130,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
                 }
                 get_values_for_interpolation(X_node_side, X_ghost_vec, side_dof_indices);
 
-                if (using_adaptive_qrule_face) ib_adaptive_qrule_face->set_elem_data(X_node_side, patch_dx);
+                if (using_adaptive_qrule_face) ib_adaptive_qrule_face->set_elem_data(side_elem->type(), X_node_side, patch_dx);
                 fe_face->reinit(elem, side);
 
                 const unsigned int n_qp = ib_qrule_face->n_points();

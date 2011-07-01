@@ -443,7 +443,7 @@ FEDataManager::spread(
             }
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
 
-            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(X_node, patch_dx);
+            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
             F_fe->reinit(elem);
             X_fe->reinit(elem);
 
@@ -1015,7 +1015,7 @@ FEDataManager::interp(
             }
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
 
-            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(X_node, patch_dx);
+            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
             X_fe->reinit(elem);
 
             const unsigned int n_qp = d_qrule->n_points();
@@ -1075,7 +1075,7 @@ FEDataManager::interp(
             }
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
 
-            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(X_node, patch_dx);
+            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
             F_fe->reinit(elem);
 
             const unsigned int n_qp = d_qrule->n_points();
@@ -1867,7 +1867,7 @@ FEDataManager::applyGradientDetector(
                     X_dof_map.dof_indices(elem, X_dof_indices(d), d);
                 }
                 get_values_for_interpolation(X_node, *X_ghost_vec.get(), X_dof_indices);
-                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(X_node, patch_dx);
+                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
                 X_fe->reinit(elem);
                 for (unsigned int qp = 0; qp < d_qrule->n_points(); ++qp)
                 {
@@ -2102,7 +2102,7 @@ FEDataManager::updateQuadPointCountData(
                     X_dof_map.dof_indices(elem, X_dof_indices(d), d);
                 }
                 get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
-                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(X_node, patch_dx);
+                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
                 X_fe->reinit(elem);
                 for (unsigned int qp = 0; qp < d_qrule->n_points(); ++qp)
                 {
@@ -2326,7 +2326,7 @@ FEDataManager::collectActivePatchElements(
                 }
                 get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
 
-                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(X_node, patch_dx);
+                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
                 X_fe->reinit(elem);
 
                 bool found_qp = false;

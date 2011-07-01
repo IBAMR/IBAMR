@@ -103,27 +103,51 @@ public:
 
     inline void
     set_elem_data(
+        const ElemType type,
         const blitz::Array<double,2>& X_node,
         const double* const dx)
         {
-            const int n_nodes = X_node.extent(0);
+            int n_nodes;
+            switch (type)
+            {
+                case EDGE2:
+                case EDGE3:
+                case EDGE4:
+                    n_nodes = 2;
+                    break;
+                case TRI3:
+                case TRI6:
+                    n_nodes = 3;
+                    break;
+                case QUAD4:
+                case QUAD8:
+                case QUAD9:
+                    n_nodes = 4;
+                    break;
+                case TET4:
+                case TET10:
+                    n_nodes = 4;
+                    break;
+                case HEX8:
+                case HEX20:
+                case HEX27:
+                    n_nodes = 8;
+                    break;
+                default:
+                    n_nodes = 0;
+            }
+
+            libMesh::Point elem_X[8];
             for (int k = 0; k < n_nodes; ++k)
             {
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    d_elem_X[k](d) = X_node(k,d);
+                    elem_X[k](d) = X_node(k,d);
                 }
             }
-            d_dx_min = *std::min_element(dx,dx+NDIM);
-            return;
-        }
 
-private:
-    inline void
-    init_1D(
-        const ElemType type,
-        unsigned int /*p_level=0*/)
-        {
+            const double dx_min = *std::min_element(dx,dx+NDIM);
+
             unsigned int min_points;
             switch (type)
             {
@@ -136,6 +160,24 @@ private:
                 case EDGE4:
                     min_points = 3;
                     break;
+                case TRI3:
+                case QUAD4:
+                    min_points = 1;
+                    break;
+                case TRI6:
+                case QUAD8:
+                case QUAD9:
+                    min_points = 2;
+                    break;
+                case TET4:
+                case HEX8:
+                    min_points = 1;
+                    break;
+                case TET10:
+                case HEX20:
+                case HEX27:
+                    min_points = 2;
+                    break;
                 default:
                     min_points = 0;
             }
@@ -146,49 +188,20 @@ private:
                 case EDGE3:
                 case EDGE4:
                 {
-                    const double l_max = (d_elem_X[1] - d_elem_X[0]).size();
-                    const int n = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max/d_dx_min)));
+                    const double l_max = (elem_X[1] - elem_X[0]).size();
+                    const int n = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max/dx_min)));
                     const libMesh::QGauss& q = *d_q1d[n];
                     _points  = q.get_points();
                     _weights = q.get_weights();
                     break;
                 }
-                default:
-                    TBOX_ERROR("unsupported\n");
-            }
-            return;
-        }
-
-    inline void
-    init_2D(
-        const ElemType type,
-        unsigned int /*p_level=0*/)
-        {
-            unsigned int min_points;
-            switch (type)
-            {
-                case TRI3:
-                case QUAD4:
-                    min_points = 1;
-                    break;
-                case TRI6:
-                case QUAD8:
-                case QUAD9:
-                    min_points = 2;
-                    break;
-                default:
-                    min_points = 0;
-            }
-
-            switch (type)
-            {
                 case TRI3:
                 case TRI6:
                 {
-                    const double l_max = std::max((d_elem_X[1] - d_elem_X[0]).size(),
-                                                  std::max((d_elem_X[2] - d_elem_X[0]).size(),
-                                                           (d_elem_X[2] - d_elem_X[1]).size()));
-                    const int n = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max/d_dx_min)));
+                    const double l_max = std::max((elem_X[1] - elem_X[0]).size(),
+                                                  std::max((elem_X[2] - elem_X[0]).size(),
+                                                           (elem_X[2] - elem_X[1]).size()));
+                    const int n = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max/dx_min)));
                     const libMesh::QGauss& q = *d_qtri2d[n];
                     _points  = q.get_points();
                     _weights = q.get_weights();
@@ -198,14 +211,14 @@ private:
                 case QUAD8:
                 case QUAD9:
                 {
-                    const double l_max0 = std::max((d_elem_X[1] - d_elem_X[0]).size(),
-                                                   (d_elem_X[2] - d_elem_X[3]).size());
-                    const int n0 = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max0/d_dx_min)));
+                    const double l_max0 = std::max((elem_X[1] - elem_X[0]).size(),
+                                                   (elem_X[2] - elem_X[3]).size());
+                    const int n0 = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max0/dx_min)));
                     const libMesh::QGauss& q0 = *d_q1d[n0];
 
-                    const double l_max1 = std::max((d_elem_X[3] - d_elem_X[0]).size(),
-                                                   (d_elem_X[2] - d_elem_X[1]).size());
-                    const int n1 = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max1/d_dx_min)));
+                    const double l_max1 = std::max((elem_X[3] - elem_X[0]).size(),
+                                                   (elem_X[2] - elem_X[1]).size());
+                    const int n1 = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max1/dx_min)));
                     const libMesh::QGauss& q1 = *d_q1d[n1];
 
                     const unsigned int n_points0 = q0.n_points();
@@ -232,45 +245,16 @@ private:
                     }
                     break;
                 }
-                default:
-                    TBOX_ERROR("unsupported\n");
-            }
-            return;
-        }
-
-    inline void
-    init_3D(
-        const ElemType type,
-        unsigned int /*p_level=0*/)
-        {
-            unsigned int min_points;
-            switch (type)
-            {
-                case TET4:
-                case HEX8:
-                    min_points = 1;
-                    break;
-                case TET10:
-                case HEX20:
-                case HEX27:
-                    min_points = 2;
-                    break;
-                default:
-                    min_points = 0;
-            }
-
-            switch (type)
-            {
                 case TET4:
                 case TET10:
                 {
-                    const double l_max = std::max(std::max((d_elem_X[1] - d_elem_X[0]).size(),
-                                                           (d_elem_X[2] - d_elem_X[0]).size()),
-                                                  std::max(std::max((d_elem_X[3] - d_elem_X[0]).size(),
-                                                                    (d_elem_X[2] - d_elem_X[1]).size()),
-                                                           std::max((d_elem_X[3] - d_elem_X[1]).size(),
-                                                                    (d_elem_X[3] - d_elem_X[2]).size())));
-                    const int n = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max/d_dx_min)));
+                    const double l_max = std::max(std::max((elem_X[1] - elem_X[0]).size(),
+                                                           (elem_X[2] - elem_X[0]).size()),
+                                                  std::max(std::max((elem_X[3] - elem_X[0]).size(),
+                                                                    (elem_X[2] - elem_X[1]).size()),
+                                                           std::max((elem_X[3] - elem_X[1]).size(),
+                                                                    (elem_X[3] - elem_X[2]).size())));
+                    const int n = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max/dx_min)));
                     const libMesh::QGauss& q = *d_qtet3d[n];
                     _points  = q.get_points();
                     _weights = q.get_weights();
@@ -280,25 +264,25 @@ private:
                 case HEX20:
                 case HEX27:
                 {
-                    const double l_max0 = std::max(std::max((d_elem_X[1] - d_elem_X[0]).size(),
-                                                            (d_elem_X[2] - d_elem_X[3]).size()),
-                                                   std::max((d_elem_X[5] - d_elem_X[4]).size(),
-                                                            (d_elem_X[6] - d_elem_X[7]).size()));
-                    const int n0 = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max0/d_dx_min)));
+                    const double l_max0 = std::max(std::max((elem_X[1] - elem_X[0]).size(),
+                                                            (elem_X[2] - elem_X[3]).size()),
+                                                   std::max((elem_X[5] - elem_X[4]).size(),
+                                                            (elem_X[6] - elem_X[7]).size()));
+                    const int n0 = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max0/dx_min)));
                     const libMesh::QGauss& q0 = *d_q1d[n0];
 
-                    const double l_max1 = std::max(std::max((d_elem_X[3] - d_elem_X[0]).size(),
-                                                            (d_elem_X[2] - d_elem_X[1]).size()),
-                                                   std::max((d_elem_X[7] - d_elem_X[4]).size(),
-                                                            (d_elem_X[6] - d_elem_X[5]).size()));
-                    const int n1 = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max1/d_dx_min)));
+                    const double l_max1 = std::max(std::max((elem_X[3] - elem_X[0]).size(),
+                                                            (elem_X[2] - elem_X[1]).size()),
+                                                   std::max((elem_X[7] - elem_X[4]).size(),
+                                                            (elem_X[6] - elem_X[5]).size()));
+                    const int n1 = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max1/dx_min)));
                     const libMesh::QGauss& q1 = *d_q1d[n1];
 
-                    const double l_max2 = std::max(std::max((d_elem_X[4] - d_elem_X[0]).size(),
-                                                            (d_elem_X[5] - d_elem_X[1]).size()),
-                                                   std::max((d_elem_X[6] - d_elem_X[2]).size(),
-                                                            (d_elem_X[7] - d_elem_X[3]).size()));
-                    const int n2 = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max2/d_dx_min)));
+                    const double l_max2 = std::max(std::max((elem_X[4] - elem_X[0]).size(),
+                                                            (elem_X[5] - elem_X[1]).size()),
+                                                   std::max((elem_X[6] - elem_X[2]).size(),
+                                                            (elem_X[7] - elem_X[3]).size()));
+                    const int n2 = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max2/dx_min)));
                     const libMesh::QGauss& q2 = *d_q1d[n2];
 
                     const unsigned int n_points0 = q0.n_points();
@@ -338,11 +322,37 @@ private:
             return;
         }
 
+private:
+    inline void
+    init_1D(
+        const ElemType /*type*/,
+        unsigned int /*p_level=0*/)
+        {
+            // intentionally blank
+            return;
+        }
+
+    inline void
+    init_2D(
+        const ElemType /*type*/,
+        unsigned int /*p_level=0*/)
+        {
+            // intentionally blank
+            return;
+        }
+
+    inline void
+    init_3D(
+        const ElemType /*type*/,
+        unsigned int /*p_level=0*/)
+        {
+            // intentionally blank
+            return;
+        }
+
     libMesh::QGauss*    d_q1d[23];
     libMesh::QGauss* d_qtri2d[23];
     libMesh::QGauss* d_qtet3d[23];
-    libMesh::Point d_elem_X[27];
-    double d_dx_min;
 };
 
 inline void
