@@ -62,11 +62,11 @@ class QAdaptiveGauss
     : public libMesh::QBase
 {
 public:
+    static double POINT_DENSITY;
     inline
     QAdaptiveGauss(
-        const unsigned int dim,
-        const Order order=INVALID_ORDER)
-        : libMesh::QBase(dim, order)
+        const unsigned int dim)
+        : libMesh::QBase(dim, FIRST)
         {
             for (unsigned int n = 1; n <= 22; ++n)
             {
@@ -127,7 +127,7 @@ private:
                     min_points = 2;
                     break;
                 case EDGE4:
-                    min_points = 4;
+                    min_points = 3;
                     break;
                 default:
                     min_points = 0;
@@ -140,7 +140,7 @@ private:
                 case EDGE4:
                 {
                     const double l_max = ((*d_elem_X)[1] - (*d_elem_X)[0]).size();
-                    const int n = std::max(min_points,2*static_cast<unsigned int>(std::ceil(l_max/d_dx_min)));
+                    const int n = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max/d_dx_min)));
                     const libMesh::QGauss& q = *d_q1d[n];
                     _points  = q.get_points();
                     _weights = q.get_weights();
@@ -182,7 +182,7 @@ private:
                     const double l_max = std::max(((*d_elem_X)[1] - (*d_elem_X)[0]).size(),
                                                   std::max(((*d_elem_X)[2] - (*d_elem_X)[0]).size(),
                                                            ((*d_elem_X)[2] - (*d_elem_X)[1]).size()));
-                    const int n = std::max(min_points,2*static_cast<unsigned int>(std::ceil(l_max/d_dx_min)));
+                    const int n = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max/d_dx_min)));
                     const libMesh::QGauss& q = *d_qtri2d[n];
                     _points  = q.get_points();
                     _weights = q.get_weights();
@@ -194,12 +194,12 @@ private:
                 {
                     const double l_max0 = std::max(((*d_elem_X)[1] - (*d_elem_X)[0]).size(),
                                                    ((*d_elem_X)[2] - (*d_elem_X)[3]).size());
-                    const int n0 = std::max(min_points,2*static_cast<unsigned int>(std::ceil(l_max0/d_dx_min)));
+                    const int n0 = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max0/d_dx_min)));
                     const libMesh::QGauss& q0 = *d_q1d[n0];
 
                     const double l_max1 = std::max(((*d_elem_X)[3] - (*d_elem_X)[0]).size(),
                                                    ((*d_elem_X)[2] - (*d_elem_X)[1]).size());
-                    const int n1 = std::max(min_points,2*static_cast<unsigned int>(std::ceil(l_max1/d_dx_min)));
+                    const int n1 = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max1/d_dx_min)));
                     const libMesh::QGauss& q1 = *d_q1d[n1];
 
                     const unsigned int n_points0 = q0.n_points();
@@ -265,7 +265,7 @@ private:
                                                                     ((*d_elem_X)[2] - (*d_elem_X)[1]).size()),
                                                            std::max(((*d_elem_X)[3] - (*d_elem_X)[1]).size(),
                                                                     ((*d_elem_X)[3] - (*d_elem_X)[2]).size())));
-                    const int n = std::max(min_points,2*static_cast<unsigned int>(std::ceil(l_max/d_dx_min)));
+                    const int n = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max/d_dx_min)));
                     const libMesh::QGauss& q = *d_qtet3d[n];
                     _points  = q.get_points();
                     _weights = q.get_weights();
@@ -279,21 +279,21 @@ private:
                                                             ((*d_elem_X)[2] - (*d_elem_X)[3]).size()),
                                                    std::max(((*d_elem_X)[5] - (*d_elem_X)[4]).size(),
                                                             ((*d_elem_X)[6] - (*d_elem_X)[7]).size()));
-                    const int n0 = std::max(min_points,2*static_cast<unsigned int>(std::ceil(l_max0/d_dx_min)));
+                    const int n0 = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max0/d_dx_min)));
                     const libMesh::QGauss& q0 = *d_q1d[n0];
 
                     const double l_max1 = std::max(std::max(((*d_elem_X)[3] - (*d_elem_X)[0]).size(),
                                                             ((*d_elem_X)[2] - (*d_elem_X)[1]).size()),
                                                    std::max(((*d_elem_X)[7] - (*d_elem_X)[4]).size(),
                                                             ((*d_elem_X)[6] - (*d_elem_X)[5]).size()));
-                    const int n1 = std::max(min_points,2*static_cast<unsigned int>(std::ceil(l_max1/d_dx_min)));
+                    const int n1 = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max1/d_dx_min)));
                     const libMesh::QGauss& q1 = *d_q1d[n1];
 
                     const double l_max2 = std::max(std::max(((*d_elem_X)[4] - (*d_elem_X)[0]).size(),
                                                             ((*d_elem_X)[5] - (*d_elem_X)[1]).size()),
                                                    std::max(((*d_elem_X)[6] - (*d_elem_X)[2]).size(),
                                                             ((*d_elem_X)[7] - (*d_elem_X)[3]).size()));
-                    const int n2 = std::max(min_points,2*static_cast<unsigned int>(std::ceil(l_max2/d_dx_min)));
+                    const int n2 = std::max(min_points,static_cast<unsigned int>(std::ceil(POINT_DENSITY*l_max2/d_dx_min)));
                     const libMesh::QGauss& q2 = *d_q1d[n2];
 
                     const unsigned int n_points0 = q0.n_points();

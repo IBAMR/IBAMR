@@ -1978,6 +1978,10 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     const int dim = mesh.mesh_dimension();
     QBase* ib_qrule = d_fe_data_managers[part]->getQuadratureRule();
     QBase* ib_qrule_face = d_fe_data_managers[part]->getQuadratureRuleFace();
+    QAdaptiveGauss* ib_adaptive_qrule = dynamic_cast<QAdaptiveGauss*>(ib_qrule);
+    QAdaptiveGauss* ib_adaptive_qrule_face = dynamic_cast<QAdaptiveGauss*>(ib_qrule_face);
+    const bool using_adaptive_qrule = (ib_adaptive_qrule != NULL);
+    const bool using_adaptive_qrule_face = (ib_adaptive_qrule_face != NULL);
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
@@ -2049,8 +2053,8 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
         if (num_active_patch_elems == 0) continue;
 
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
-//      const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-//      const double* const patch_dx = patch_geom->getDx();
+        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* const patch_dx = patch_geom->getDx();
 
         // Setup vectors to store the values of T and X at the quadrature
         // points.  We compute a conservative upper bound on the number of
@@ -2083,7 +2087,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
             if (!has_physical_boundaries) continue;
 
             get_nodal_positions(elem_X, elem, X_ghost_vec, X_system.number());
-//          ib_qrule->set_elem_data(&elem_X, patch_dx);
+            if (using_adaptive_qrule) ib_adaptive_qrule->set_elem_data(&elem_X, patch_dx);
             fe->reinit(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -2118,7 +2122,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
 
                 AutoPtr<Elem> side_elem = elem->build_side(side);
                 get_nodal_positions(elem_X, side_elem.get(), X_ghost_vec, X_system.number());
-//              ib_qrule_face->set_elem_data(&elem_X, patch_dx);
+                if (using_adaptive_qrule_face) ib_adaptive_qrule_face->set_elem_data(&elem_X, patch_dx);
                 fe_face->reinit(elem, side);
 
                 const unsigned int n_qp = ib_qrule_face->n_points();

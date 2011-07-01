@@ -81,6 +81,8 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
+double QAdaptiveGauss::POINT_DENSITY = 2.0;
+
 namespace
 {
 // Timers.
@@ -361,6 +363,10 @@ FEDataManager::spread(
     const MeshBase& mesh = d_es->get_mesh();
     const int dim = mesh.mesh_dimension();
 
+    // Determine whether we are using adaptive quadrature.
+    QAdaptiveGauss* adaptive_qrule = dynamic_cast<QAdaptiveGauss*>(d_qrule);
+    const bool using_adaptive_qrule = adaptive_qrule != NULL;
+
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& F_system = d_es->get_system(system_name);
     const unsigned int n_vars = F_system.n_vars();
@@ -408,8 +414,8 @@ FEDataManager::spread(
         if (num_active_patch_elems == 0) continue;
 
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-//      const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-//      const double* const patch_dx = patch_geom->getDx();
+        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* const patch_dx = patch_geom->getDx();
 
         // Setup vectors to store the values of F_JxW and X at the quadrature
         // points.  We compute a conservative upper bound on the number of
@@ -426,14 +432,14 @@ FEDataManager::spread(
             const Elem* const elem = patch_elems(e_idx);
             get_nodal_positions(elem_X, elem, X_vec, X_system.number());
 
-//          d_qrule->set_elem_data(&elem_X, patch_dx);
+            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(&elem_X, patch_dx);
             F_fe->reinit(elem);
             for (unsigned int i = 0; i < n_vars; ++i)
             {
                 F_dof_map.dof_indices(elem, F_dof_indices(i), i);
             }
 
-//          d_qrule->set_elem_data(&elem_X, patch_dx);
+            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(&elem_X, patch_dx);
             X_fe->reinit(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -933,6 +939,10 @@ FEDataManager::interp(
     const MeshBase& mesh = d_es->get_mesh();
     const int dim = mesh.mesh_dimension();
 
+    // Determine whether we are using adaptive quadrature.
+    QAdaptiveGauss* adaptive_qrule = dynamic_cast<QAdaptiveGauss*>(d_qrule);
+    const bool using_adaptive_qrule = adaptive_qrule != NULL;
+
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& F_system = d_es->get_system(system_name);
     const unsigned int n_vars = F_system.n_vars();
@@ -984,8 +994,8 @@ FEDataManager::interp(
         if (num_active_patch_elems == 0) continue;
 
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-//      const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-//      const double* const patch_dx = patch_geom->getDx();
+        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* const patch_dx = patch_geom->getDx();
 
         // Setup vectors to store the values of F and X at the quadrature
         // points.  We compute a conservative upper bound on the number of
@@ -1001,7 +1011,7 @@ FEDataManager::interp(
             const Elem* const elem = patch_elems(e_idx);
             get_nodal_positions(elem_X, elem, X_vec, X_system.number());
 
-//          d_qrule->set_elem_data(&elem_X, patch_dx);
+            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(&elem_X, patch_dx);
             X_fe->reinit(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -1048,7 +1058,7 @@ FEDataManager::interp(
             const Elem* const elem = patch_elems(e_idx);
             get_nodal_positions(elem_X, elem, X_vec, X_system.number());
 
-//          d_qrule->set_elem_data(&elem_X, patch_dx);
+            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(&elem_X, patch_dx);
             F_fe->reinit(elem);
             for (unsigned int i = 0; i < n_vars; ++i)
             {
@@ -1801,6 +1811,9 @@ FEDataManager::applyGradientDetector(
         const MeshBase& mesh = d_es->get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
 
+        QAdaptiveGauss* adaptive_qrule = dynamic_cast<QAdaptiveGauss*>(d_qrule);
+        const bool using_adaptive_qrule = adaptive_qrule != NULL;
+
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1845,7 +1858,7 @@ FEDataManager::applyGradientDetector(
             {
                 const Elem* const elem = patch_elems(e_idx);
                 get_nodal_positions(elem_X, elem, *X_ghost_vec, X_system.number());
-//              d_qrule->set_elem_data(&elem_X, patch_dx);
+                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(&elem_X, patch_dx);
                 X_fe->reinit(elem);
                 for (unsigned int d = 0; d < dim; ++d)
                 {
@@ -2041,6 +2054,9 @@ FEDataManager::updateQuadPointCountData(
         const MeshBase& mesh = d_es->get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
 
+        QAdaptiveGauss* adaptive_qrule = dynamic_cast<QAdaptiveGauss*>(d_qrule);
+        const bool using_adaptive_qrule = adaptive_qrule != NULL;
+
         System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -2078,7 +2094,7 @@ FEDataManager::updateQuadPointCountData(
             {
                 const Elem* const elem = patch_elems(e_idx);
                 get_nodal_positions(elem_X, elem, *X_ghost_vec, X_system.number());
-//              d_qrule->set_elem_data(&elem_X, patch_dx);
+                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(&elem_X, patch_dx);
                 X_fe->reinit(elem);
                 for (unsigned int d = 0; d < dim; ++d)
                 {
@@ -2192,6 +2208,8 @@ FEDataManager::collectActivePatchElements(
     // Get the necessary FE data.
     const MeshBase& mesh = d_es->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
+    QAdaptiveGauss* adaptive_qrule = dynamic_cast<QAdaptiveGauss*>(d_qrule);
+    const bool using_adaptive_qrule = adaptive_qrule != NULL;
     System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -2299,7 +2317,7 @@ FEDataManager::collectActivePatchElements(
             {
                 Elem* const elem = *el_it;
                 get_nodal_positions(elem_X, elem, *X_ghost_vec, X_system.number());
-//              d_qrule->set_elem_data(&elem_X, patch_dx);
+                if (using_adaptive_qrule) adaptive_qrule->set_elem_data(&elem_X, patch_dx);
                 X_fe->reinit(elem);
                 for (unsigned int d = 0; d < dim; ++d)
                 {
