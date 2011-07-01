@@ -137,13 +137,15 @@ FEDataManager::getManager(
     const std::string& interp_weighting_fcn,
     const std::string& spread_weighting_fcn,
     const bool interp_uses_consistent_mass_matrix,
+    QBase* qrule,
+    QBase* qrule_face,
     bool register_for_restart)
 {
     if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
     {
         const int stencil_size = std::max(LEInteractor::getStencilSize(interp_weighting_fcn),LEInteractor::getStencilSize(spread_weighting_fcn));
         const IntVector<NDIM> ghost_width = static_cast<int>(floor(0.5*static_cast<double>(stencil_size)))+1;
-        s_data_manager_instances[name] = new FEDataManager(name, interp_weighting_fcn, spread_weighting_fcn, interp_uses_consistent_mass_matrix, ghost_width, register_for_restart);
+        s_data_manager_instances[name] = new FEDataManager(name, interp_weighting_fcn, spread_weighting_fcn, interp_uses_consistent_mass_matrix, qrule, qrule_face, ghost_width, register_for_restart);
     }
     if (!s_registered_callback)
     {
@@ -250,13 +252,13 @@ FEDataManager::getSpreadWeightingFunction() const
     return d_spread_weighting_fcn;
 }// getSpreadWeightingFunction
 
-QAdaptiveGauss*
+QBase*
 FEDataManager::getQuadratureRule() const
 {
     return d_qrule;
 }// getQuadratureRule
 
-QAdaptiveGauss*
+QBase*
 FEDataManager::getQuadratureRuleFace() const
 {
     return d_qrule_face;
@@ -406,8 +408,8 @@ FEDataManager::spread(
         if (num_active_patch_elems == 0) continue;
 
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-        const double* const patch_dx = patch_geom->getDx();
+//      const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+//      const double* const patch_dx = patch_geom->getDx();
 
         // Setup vectors to store the values of F_JxW and X at the quadrature
         // points.  We compute a conservative upper bound on the number of
@@ -424,14 +426,14 @@ FEDataManager::spread(
             const Elem* const elem = patch_elems(e_idx);
             get_nodal_positions(elem_X, elem, X_vec, X_system.number());
 
-            d_qrule->set_elem_data(&elem_X, patch_dx);
+//          d_qrule->set_elem_data(&elem_X, patch_dx);
             F_fe->reinit(elem);
             for (unsigned int i = 0; i < n_vars; ++i)
             {
                 F_dof_map.dof_indices(elem, F_dof_indices(i), i);
             }
 
-            d_qrule->set_elem_data(&elem_X, patch_dx);
+//          d_qrule->set_elem_data(&elem_X, patch_dx);
             X_fe->reinit(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -982,8 +984,8 @@ FEDataManager::interp(
         if (num_active_patch_elems == 0) continue;
 
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-        const double* const patch_dx = patch_geom->getDx();
+//      const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+//      const double* const patch_dx = patch_geom->getDx();
 
         // Setup vectors to store the values of F and X at the quadrature
         // points.  We compute a conservative upper bound on the number of
@@ -999,7 +1001,7 @@ FEDataManager::interp(
             const Elem* const elem = patch_elems(e_idx);
             get_nodal_positions(elem_X, elem, X_vec, X_system.number());
 
-            d_qrule->set_elem_data(&elem_X, patch_dx);
+//          d_qrule->set_elem_data(&elem_X, patch_dx);
             X_fe->reinit(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -1046,7 +1048,7 @@ FEDataManager::interp(
             const Elem* const elem = patch_elems(e_idx);
             get_nodal_positions(elem_X, elem, X_vec, X_system.number());
 
-            d_qrule->set_elem_data(&elem_X, patch_dx);
+//          d_qrule->set_elem_data(&elem_X, patch_dx);
             F_fe->reinit(elem);
             for (unsigned int i = 0; i < n_vars; ++i)
             {
@@ -1843,7 +1845,7 @@ FEDataManager::applyGradientDetector(
             {
                 const Elem* const elem = patch_elems(e_idx);
                 get_nodal_positions(elem_X, elem, *X_ghost_vec, X_system.number());
-                d_qrule->set_elem_data(&elem_X, patch_dx);
+//              d_qrule->set_elem_data(&elem_X, patch_dx);
                 X_fe->reinit(elem);
                 for (unsigned int d = 0; d < dim; ++d)
                 {
@@ -1919,6 +1921,8 @@ FEDataManager::FEDataManager(
     const std::string& interp_weighting_fcn,
     const std::string& spread_weighting_fcn,
     const bool interp_uses_consistent_mass_matrix,
+    QBase* qrule,
+    QBase* qrule_face,
     const IntVector<NDIM>& ghost_width,
     bool register_for_restart)
     : COORDINATES_SYSTEM_NAME("coordinates system"),
@@ -1931,8 +1935,8 @@ FEDataManager::FEDataManager(
       d_interp_weighting_fcn(interp_weighting_fcn),
       d_spread_weighting_fcn(spread_weighting_fcn),
       d_interp_uses_consistent_mass_matrix(interp_uses_consistent_mass_matrix),
-      d_qrule(new QAdaptiveGauss(NDIM,FIFTH)),
-      d_qrule_face(new QAdaptiveGauss(NDIM-1,FIFTH)),
+      d_qrule(qrule),
+      d_qrule_face(qrule_face),
       d_ghost_width(ghost_width),
       d_es(NULL),
       d_level_number(-1),
@@ -2074,7 +2078,7 @@ FEDataManager::updateQuadPointCountData(
             {
                 const Elem* const elem = patch_elems(e_idx);
                 get_nodal_positions(elem_X, elem, *X_ghost_vec, X_system.number());
-                d_qrule->set_elem_data(&elem_X, patch_dx);
+//              d_qrule->set_elem_data(&elem_X, patch_dx);
                 X_fe->reinit(elem);
                 for (unsigned int d = 0; d < dim; ++d)
                 {
@@ -2295,7 +2299,7 @@ FEDataManager::collectActivePatchElements(
             {
                 Elem* const elem = *el_it;
                 get_nodal_positions(elem_X, elem, *X_ghost_vec, X_system.number());
-                d_qrule->set_elem_data(&elem_X, patch_dx);
+//              d_qrule->set_elem_data(&elem_X, patch_dx);
                 X_fe->reinit(elem);
                 for (unsigned int d = 0; d < dim; ++d)
                 {

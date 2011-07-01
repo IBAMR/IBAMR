@@ -1976,8 +1976,8 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
     const int dim = mesh.mesh_dimension();
-    QAdaptiveGauss* ib_qrule = d_fe_data_managers[part]->getQuadratureRule();
-    QAdaptiveGauss* ib_qrule_face = d_fe_data_managers[part]->getQuadratureRuleFace();
+    QBase* ib_qrule = d_fe_data_managers[part]->getQuadratureRule();
+    QBase* ib_qrule_face = d_fe_data_managers[part]->getQuadratureRuleFace();
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
     System& system = equation_systems->get_system(FORCE_SYSTEM_NAME);
@@ -2049,8 +2049,8 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
         if (num_active_patch_elems == 0) continue;
 
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-        const double* const patch_dx = patch_geom->getDx();
+//      const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+//      const double* const patch_dx = patch_geom->getDx();
 
         // Setup vectors to store the values of T and X at the quadrature
         // points.  We compute a conservative upper bound on the number of
@@ -2083,7 +2083,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
             if (!has_physical_boundaries) continue;
 
             get_nodal_positions(elem_X, elem, X_ghost_vec, X_system.number());
-            ib_qrule->set_elem_data(&elem_X, patch_dx);
+//          ib_qrule->set_elem_data(&elem_X, patch_dx);
             fe->reinit(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -2118,7 +2118,7 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
 
                 AutoPtr<Elem> side_elem = elem->build_side(side);
                 get_nodal_positions(elem_X, side_elem.get(), X_ghost_vec, X_system.number());
-                ib_qrule_face->set_elem_data(&elem_X, patch_dx);
+//              ib_qrule_face->set_elem_data(&elem_X, patch_dx);
                 fe_face->reinit(elem, side);
 
                 const unsigned int n_qp = ib_qrule_face->n_points();
