@@ -18,10 +18,9 @@ DX = L/NFINEST
 DT = CFL_MAX*DX/U_MAX
 
 elem_type = "QUAD4"
-quad_type = "QGAUSS"
-quad_order = "TWENTYTHIRD"
 weighting_fcn = "IB_4"
 use_consistent_mass_matrix = FALSE
+point_density = 2.0
 
 VelocityInitialConditions {
    function_0 = "0.0"

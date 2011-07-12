@@ -215,11 +215,9 @@ main(
 
     // Create the FE data manager that manages mappings between the FE mesh and
     // the Cartesian grid.
-    const string quad_type = input_db->getStringWithDefault("quad_type", "QGAUSS");
-    const string quad_order = input_db->getStringWithDefault("quad_order", "SIXTH");
     const string weighting_fcn = input_db->getStringWithDefault("weighting_fcn", "IB_4");
     const bool use_consistent_mass_matrix = input_db->getBoolWithDefault("use_consistent_mass_matrix", true);
-    QAdaptiveGauss::POINT_DENSITY = input_db->getDoubleWithDefault("POINT_DENSITY",1.0);
+    QAdaptiveGauss::POINT_DENSITY = input_db->getDoubleWithDefault("point_density", 2.0);
     QAdaptiveGauss qrule(NDIM);
     QAdaptiveGauss qrule_face(NDIM-1);
     FEDataManager* const fe_data_manager = FEDataManager::getManager("IBFE Manager", weighting_fcn, weighting_fcn, use_consistent_mass_matrix, &qrule, &qrule_face);

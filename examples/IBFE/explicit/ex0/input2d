@@ -20,10 +20,9 @@ DT = 0.25*DX
 smooth_case = FALSE
 
 elem_type = "QUAD4"
-quad_type = "QGAUSS"
-quad_order = "FIFTEENTH"
 weighting_fcn = "IB_4"
 use_consistent_mass_matrix = FALSE
+point_density = 2.0
 
 VelocityInitialConditions {
    function_0 = "0.0"
