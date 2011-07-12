@@ -617,14 +617,13 @@ jacobian(
     const int qp,
     const blitz::Array<double,2>& X_node,
     const blitz::Array<libMesh::VectorValue<double>,2>& dphi,
-    const blitz::Array<double,1>* const strain_J_bar_node,
-    const blitz::Array<double,2>* const strain_phi)
+    const blitz::Array<double,1>& strain_J_bar_node,
+    const blitz::Array<double,2>& strain_phi)
 {
     jacobian(dX_ds, qp, X_node, dphi);
-    if (strain_J_bar_node == NULL || strain_phi == NULL) return;
     const int dim = X_node.extent(blitz::secondDim);
     const double J = dX_ds.det();
-    const double J_bar = interpolate(qp,*strain_J_bar_node,*strain_phi);
+    const double J_bar = interpolate(qp,strain_J_bar_node,strain_phi);
     const double alpha = pow(J_bar/J,1.0/static_cast<double>(dim));
     dX_ds *= alpha;
     if (dim == 2) dX_ds(2,2) = 1.0;
@@ -637,14 +636,13 @@ jacobian(
     const int qp,
     const blitz::Array<double,2>& X_node,
     const std::vector<std::vector<libMesh::VectorValue<double> > >& dphi,
-    const blitz::Array<double,1>* const strain_J_bar_node,
-    const std::vector<std::vector<double> >* const strain_phi)
+    const blitz::Array<double,1>& strain_J_bar_node,
+    const std::vector<std::vector<double> >& strain_phi)
 {
     jacobian(dX_ds, qp, X_node, dphi);
-    if (strain_J_bar_node == NULL || strain_phi == NULL) return;
     const int dim = X_node.extent(blitz::secondDim);
     const double J = dX_ds.det();
-    const double J_bar = interpolate(qp,*strain_J_bar_node,*strain_phi);
+    const double J_bar = interpolate(qp,strain_J_bar_node,strain_phi);
     const double alpha = pow(J_bar/J,1.0/static_cast<double>(dim));
     dX_ds *= alpha;
     if (dim == 2) dX_ds(2,2) = 1.0;

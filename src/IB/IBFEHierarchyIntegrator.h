@@ -74,6 +74,7 @@ public:
     static const std::string COORD_MAPPING_SYSTEM_NAME;
     static const std::string         FORCE_SYSTEM_NAME;
     static const std::string      VELOCITY_SYSTEM_NAME;
+    static const std::string         J_BAR_SYSTEM_NAME;
 
     /*!
      * Constructor.
@@ -150,7 +151,7 @@ public:
     void
     (*PK1StressFcnPtr)(
         libMesh::TensorValue<double>& PP,
-        const libMesh::TensorValue<double>& dX_ds,
+        const libMesh::TensorValue<double>& FF,
         const libMesh::Point& X,
         const libMesh::Point& s,
         libMesh::Elem* const elem,
@@ -178,7 +179,7 @@ public:
     void
     (*LagBodyForceFcnPtr)(
         libMesh::VectorValue<double>& F,
-        const libMesh::TensorValue<double>& dX_ds,
+        const libMesh::TensorValue<double>& FF,
         const libMesh::Point& X,
         const libMesh::Point& s,
         libMesh::Elem* const elem,
@@ -206,7 +207,7 @@ public:
     void
     (*LagPressureFcnPtr)(
         double& P,
-        const libMesh::TensorValue<double>& dX_ds,
+        const libMesh::TensorValue<double>& FF,
         const libMesh::Point& X,
         const libMesh::Point& s,
         libMesh::Elem* const elem,
@@ -235,7 +236,7 @@ public:
     void
     (*LagSurfaceForceFcnPtr)(
         libMesh::VectorValue<double>& F,
-        const libMesh::TensorValue<double>& dX_ds,
+        const libMesh::TensorValue<double>& FF,
         const libMesh::Point& X,
         const libMesh::Point& s,
         libMesh::Elem* const elem,
@@ -711,6 +712,15 @@ private:
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*
+     * \brief Compute the projected dilatational strain J_bar.
+     */
+    void
+    computeProjectedDilatationalStrain(
+        libMesh::NumericVector<double>& J_bar_vec,
+        libMesh::NumericVector<double>& X_vec,
+        const unsigned int part);
+
+    /*
      * \brief Compute the interior elastic density, possibly splitting off the
      * normal component of the transmission force along the physical boundary of
      * the Lagrangian structure.
@@ -719,6 +729,7 @@ private:
     computeInteriorForceDensity(
         libMesh::NumericVector<double>& G_vec,
         libMesh::NumericVector<double>& X_vec,
+        libMesh::NumericVector<double>* J_bar_vec,
         const double& time,
         const unsigned int part);
 
@@ -730,6 +741,7 @@ private:
     spreadTransmissionForceDensity(
         const int f_data_idx,
         libMesh::NumericVector<double>& X_ghost_vec,
+        libMesh::NumericVector<double>* J_bar_ghost_vec,
         const double& time,
         const unsigned int part);
 
@@ -743,6 +755,7 @@ private:
         const int f_data_idx,
         libMesh::NumericVector<double>& F_ghost_vec,
         libMesh::NumericVector<double>& X_ghost_vec,
+        libMesh::NumericVector<double>* J_bar_ghost_vec,
         const double& time,
         const unsigned int part);
 
@@ -808,8 +821,11 @@ private:
     bool d_split_interior_and_bdry_forces;
     bool d_use_jump_conditions;
     bool d_use_consistent_mass_matrix;
+    bool d_use_Fbar_projection;
     libMeshEnums::FEFamily d_fe_family;
     libMeshEnums::Order d_fe_order;
+    libMeshEnums::FEFamily d_J_bar_fe_family;
+    libMeshEnums::Order d_J_bar_fe_order;
     libMeshEnums::QuadratureType d_quad_type;
     libMeshEnums::Order d_quad_order;
 
