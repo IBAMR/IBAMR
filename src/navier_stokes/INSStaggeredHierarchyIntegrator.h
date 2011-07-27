@@ -613,6 +613,7 @@ public:
     ///  The following routines:
     ///
     ///      getVelocityVar(),
+    ///      getAdvectionVelocityVar(),
     ///      getPressureVar(),
     ///      getExtrapolatedPressureVar(),
     ///      getForceVar(),
@@ -623,10 +624,20 @@ public:
     ///
 
     /*!
-     * Return a pointer to the fluid velocity state variable.
+     * Return a pointer to the side-centered fluid velocity state variable.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> >
     getVelocityVar() const;
+
+    /*!
+     * Return a pointer to the face-centered advection velocity variable.
+     *
+     * \note This variable is non-NULL \em only when an
+     * AdvDiffHierarchyIntegrator object has been registered with this fluid
+     * solver object.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >
+    getAdvectionVelocityVar() const;
 
     /*!
      * Return a pointer to the fluid pressure state variable.

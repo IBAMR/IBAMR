@@ -2395,6 +2395,7 @@ INSStaggeredHierarchyIntegrator::applyGradientDetector(
 ///  The following routines:
 ///
 ///      getVelocityVar(),
+///      getAdvectionVelocityVar(),
 ///      getPressureVar(),
 ///      getExtrapolatedPressureVar(),
 ///      getForceVar(),
@@ -2408,6 +2409,12 @@ INSStaggeredHierarchyIntegrator::getVelocityVar() const
 {
     return d_U_var;
 }// getVelocityVar
+
+Pointer<FaceVariable<NDIM,double> >
+INSStaggeredHierarchyIntegrator::getAdvectionVelocityVar() const
+{
+    return d_U_fc_var;
+}// getAdvectionVelocityVar
 
 Pointer<CellVariable<NDIM,double> >
 INSStaggeredHierarchyIntegrator::getPressureVar() const
