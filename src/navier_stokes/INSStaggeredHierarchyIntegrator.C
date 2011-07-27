@@ -513,6 +513,11 @@ INSStaggeredHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator)
 {
     d_adv_diff_hier_integrator = adv_diff_hier_integrator;
+
+    // NOTE: Memory management for the face-centered advection velocity is
+    // handled by the advection-diffusion hierarchy integrator class.
+    d_U_fc_var = new FaceVariable<NDIM,double>(d_object_name+"::U_fc");
+    d_adv_diff_hier_integrator->registerAdvectionVelocity(d_U_fc_var, d_Q_fcn.isNull());
     return;
 }// registerAdvDiffHierarchyIntegrator
 
@@ -820,10 +825,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     // Setup (optional) advection-diffusion variables.
     if (!d_adv_diff_hier_integrator.isNull())
     {
-        // NOTE: Memory management for the face-centered advection velocity is
-        // handled by the advection-diffusion hierarchy integrator class.
-        d_U_fc_var = new FaceVariable<NDIM,double>(d_object_name+"::U_fc");
-        d_adv_diff_hier_integrator->registerAdvectionVelocity(d_U_fc_var, d_Q_fcn.isNull());
         d_adv_diff_hier_integrator->initializeHierarchyIntegrator(d_gridding_alg);
     }
 
