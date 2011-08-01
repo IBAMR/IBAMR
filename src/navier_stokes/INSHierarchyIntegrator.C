@@ -748,7 +748,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
                          "CONSTANT_REFINE");
     }
 
-    if (!d_F_var.isNull())
+    if (!d_F_fcn.isNull())
     {
         registerVariable(d_F_current_idx, d_F_new_idx, d_F_scratch_idx,
                          d_F_var, cell_ghosts,
@@ -762,7 +762,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
         d_F_new_idx = -1;
     }
 
-    if (!d_Q_var.isNull())
+    if (!d_Q_fcn.isNull())
     {
         registerVariable(d_Q_current_idx, d_Q_new_idx, d_Q_scratch_idx,
                          d_Q_var, cell_ghosts,
@@ -923,7 +923,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
 //          }
         }
 
-        if (!d_F_var.isNull() && d_output_F)
+        if (!d_F_fcn.isNull() && d_output_F)
         {
             d_visit_writer->registerPlotQuantity(
                 d_F_var->getName(), "VECTOR", d_F_current_idx, 0, d_F_scale);
@@ -938,7 +938,7 @@ INSHierarchyIntegrator::initializeHierarchyIntegrator(
             }
         }
 
-        if (!d_Q_var.isNull() && d_output_Q)
+        if (!d_Q_fcn.isNull() && d_output_Q)
         {
             d_visit_writer->registerPlotQuantity(
                 d_Q_var->getName(), "SCALAR", d_Q_current_idx, 0, d_Q_scale);
@@ -1691,7 +1691,7 @@ INSHierarchyIntegrator::predictAdvectionVelocity(
         d_hier_cc_data_ops->setToScalar(d_F_U_current_idx, 0.0);
     }
 
-    if (!d_F_var.isNull())
+    if (!d_F_fcn.isNull())
     {
         d_hier_cc_data_ops->axpy(d_F_U_current_idx, +(1.0/d_rho), d_F_current_idx, d_F_U_current_idx);
     }
