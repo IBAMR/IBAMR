@@ -45,6 +45,7 @@
 #endif
 
 // IBTK INCLUDES
+#include <ibtk/ExtendedRobinBcCoefStrategy.h>
 #include <ibtk/PhysicalBoundaryUtilities.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
@@ -631,9 +632,12 @@ SCPoissonHypreLevelSolver::setMatrixCoefficients_constant_coefficients()
                             dx, shifted_patch_x_lower.data(), shifted_patch_x_upper.data()));
 
                     // Set the boundary condition coefficients.
+                    ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[axis]);
+                    if (extended_bc_coef != NULL) extended_bc_coef->setHomogeneousBc(true);
                     d_bc_coefs[axis]->setBcCoefs(
                         acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL,
                         *patch, trimmed_bdry_box, d_apply_time);
+                    if (extended_bc_coef != NULL) extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
 
                     // Restore the original patch geometry object.
                     patch->setPatchGeometry(pgeom);
@@ -715,9 +719,12 @@ SCPoissonHypreLevelSolver::setMatrixCoefficients_constant_coefficients()
                     Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(NULL       ,false);
 
                     // Set the boundary condition coefficients.
+                    ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[axis]);
+                    if (extended_bc_coef != NULL) extended_bc_coef->setHomogeneousBc(true);
                     d_bc_coefs[axis]->setBcCoefs(
                         acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL,
                         *patch, trimmed_bdry_box, d_apply_time);
+                    if (extended_bc_coef != NULL) extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
 
                     for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
                     {
@@ -1359,6 +1366,8 @@ SCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_constant_coefficients(
                 Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(NULL       ,false);
 
                 // Set the boundary condition coefficients.
+                ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coefs[axis]);
+                if (extended_bc_coef != NULL) extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
                 d_bc_coefs[axis]->setBcCoefs(
                     acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL,
                     *patch, trimmed_bdry_box, d_apply_time);

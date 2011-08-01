@@ -161,7 +161,7 @@ public:
      */
     void
     setPhysicalBcCoef(
-        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
 
     /*!
      * \brief Specify whether the boundary conditions are homogeneous.
@@ -504,7 +504,7 @@ private:
      * related data.
      */
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_bc_coef;
-    const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_bc_coef;
     bool d_homogeneous_bc;
     double d_apply_time;
     int d_depth;

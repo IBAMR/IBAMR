@@ -45,6 +45,7 @@
 #endif
 
 // IBTK INCLUDES
+#include <ibtk/ExtendedRobinBcCoefStrategy.h>
 #include <ibtk/PhysicalBoundaryUtilities.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
@@ -249,7 +250,7 @@ CCPoissonHypreLevelSolver::setPoissonSpecifications(
 
 void
 CCPoissonHypreLevelSolver::setPhysicalBcCoef(
-    const RobinBcCoefStrategy<NDIM>* bc_coef)
+    RobinBcCoefStrategy<NDIM>* bc_coef)
 {
     if (bc_coef != NULL)
     {
@@ -655,16 +656,13 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
         // then
         //
         //     u_o = -((a*h - 2*b)/(a*h + 2*b))*u_i
-        const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
-            PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+        const Array<BoundaryBox<NDIM> > physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
         const int n_physical_codim1_boxes = physical_codim1_boxes.size();
         for (int n = 0; n < n_physical_codim1_boxes; ++n)
         {
             const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-            const BoundaryBox<NDIM> trimmed_bdry_box =
-                PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-            const Box<NDIM> bc_coef_box =
-                PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+            const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+            const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
             ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
             ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
@@ -673,9 +671,12 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
             Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data, false);
             Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(NULL);
 
+            ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coef);
+            if (extended_bc_coef != NULL) extended_bc_coef->setHomogeneousBc(true);
             d_bc_coef->setBcCoefs(
                 acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL,
                 *patch, trimmed_bdry_box, d_apply_time);
+            if (extended_bc_coef != NULL) extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
 
             const unsigned int location_index = bdry_box.getLocationIndex();
             const unsigned int bdry_normal_axis =  location_index / 2;
@@ -1331,8 +1332,7 @@ CCPoissonHypreLevelSolver::solveSystem(
                 D_os_data.fillAll(d_poisson_spec.getDConstant());
             }
 
-            const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
-                PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+            const Array<BoundaryBox<NDIM> > physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
 
             if (d_grid_aligned_anisotropy)
             {
@@ -1579,10 +1579,8 @@ CCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_aligned(
     for (int n = 0; n < n_bdry_boxes; ++n)
     {
         const BoundaryBox<NDIM>& bdry_box = codim1_boxes[n];
-        const BoundaryBox<NDIM> trimmed_bdry_box =
-            PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-        const Box<NDIM> bc_coef_box =
-            PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+        const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+        const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
         ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
         ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
@@ -1592,6 +1590,8 @@ CCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_aligned(
         Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data, false);
         Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(&gcoef_data, false);
 
+        ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coef);
+        if (extended_bc_coef != NULL) extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
         d_bc_coef->setBcCoefs(
             acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL,
             *patch, trimmed_bdry_box, d_apply_time);
@@ -1659,10 +1659,8 @@ CCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_nonaligned(
     for (int n = 0; n < n_bdry_boxes; ++n)
     {
         const BoundaryBox<NDIM>& bdry_box = codim1_boxes[n];
-        const BoundaryBox<NDIM> trimmed_bdry_box =
-            PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-        const Box<NDIM> bc_coef_box =
-            PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+        const BoundaryBox<NDIM> trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+        const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
         ArrayData<NDIM,double> acoef_data(bc_coef_box, 1);
         ArrayData<NDIM,double> bcoef_data(bc_coef_box, 1);
@@ -1672,6 +1670,8 @@ CCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_nonaligned(
         Pointer<ArrayData<NDIM,double> > bcoef_data_ptr(&bcoef_data, false);
         Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(&gcoef_data, false);
 
+        ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(d_bc_coef);
+        if (extended_bc_coef != NULL) extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
         d_bc_coef->setBcCoefs(
             acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, NULL,
             *patch, trimmed_bdry_box, d_apply_time);
