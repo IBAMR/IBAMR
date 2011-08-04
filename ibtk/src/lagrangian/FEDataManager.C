@@ -418,15 +418,26 @@ FEDataManager::spread(
         const double* const patch_dx = patch_geom->getDx();
 
         // Setup vectors to store the values of F_JxW and X at the quadrature
-        // points.  We compute a conservative upper bound on the number of
-        // quadrature points to try to avoid unnecessary reallocations.
-        static const unsigned int n_qp_estimate = (NDIM == 2 ? 22*22 : 22*22*22);
-        std::vector<double> F_JxW_qp(n_vars*n_qp_estimate*num_active_patch_elems);
-        std::vector<double>     X_qp(NDIM  *n_qp_estimate*num_active_patch_elems);
+        // points.
+        unsigned int n_qp_patch = 0;
+        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+        {
+            const Elem* const elem = patch_elems(e_idx);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                X_dof_map.dof_indices(elem, X_dof_indices(d), d);
+            }
+            get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
+            n_qp_patch += d_qrule->n_points();
+        }
+        if (n_qp_patch == 0) continue;
+        std::vector<double> F_JxW_qp(n_vars*n_qp_patch);
+        std::vector<double>     X_qp(NDIM  *n_qp_patch);
 
         // Loop over the elements and compute the values to be spread and the
         // positions of the quadrature points.
-        int qp_offset = 0;
+        unsigned int qp_offset = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             const Elem* const elem = patch_elems(e_idx);
@@ -448,8 +459,6 @@ FEDataManager::spread(
             X_fe->reinit(elem);
 
             const unsigned int n_qp = d_qrule->n_points();
-            if (UNLIKELY(F_JxW_qp.size() < n_vars*(qp_offset+n_qp))) F_JxW_qp.resize(n_vars*(qp_offset+n_qp));
-            if (UNLIKELY(    X_qp.size() < NDIM  *(qp_offset+n_qp)))     X_qp.resize(NDIM  *(qp_offset+n_qp));
 
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
@@ -469,11 +478,6 @@ FEDataManager::spread(
 
             qp_offset += n_qp;
         }
-
-        if (qp_offset == 0) continue;
-
-        F_JxW_qp.resize(n_vars*qp_offset);
-        X_qp    .resize(NDIM  *qp_offset);
 
         // Spread values from the quadrature points to the Cartesian grid patch.
         //
@@ -997,14 +1001,25 @@ FEDataManager::interp(
         const double* const patch_dx = patch_geom->getDx();
 
         // Setup vectors to store the values of F and X at the quadrature
-        // points.  We compute a conservative upper bound on the number of
-        // quadrature points to try to avoid unnecessary reallocations.
-        static const unsigned int n_qp_estimate = (NDIM == 2 ? 22*22 : 22*22*22);
-        std::vector<double> F_qp(n_vars*n_qp_estimate*num_active_patch_elems);
-        std::vector<double> X_qp(NDIM  *n_qp_estimate*num_active_patch_elems);
+        // points.
+        unsigned int n_qp_patch = 0;
+        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+        {
+            const Elem* const elem = patch_elems(e_idx);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                X_dof_map.dof_indices(elem, X_dof_indices(d), d);
+            }
+            get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+            if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
+            n_qp_patch += d_qrule->n_points();
+        }
+        if (n_qp_patch == 0) continue;
+        std::vector<double> F_qp(n_vars*n_qp_patch);
+        std::vector<double> X_qp(NDIM  *n_qp_patch);
 
         // Loop over the elements and compute the positions of the quadrature points.
-        int qp_offset = 0;
+        unsigned int qp_offset = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             const Elem* const elem = patch_elems(e_idx);
@@ -1019,8 +1034,6 @@ FEDataManager::interp(
             X_fe->reinit(elem);
 
             const unsigned int n_qp = d_qrule->n_points();
-            if (UNLIKELY(F_qp.size() < n_vars*(qp_offset+n_qp))) F_qp.resize(n_vars*(qp_offset+n_qp));
-            if (UNLIKELY(X_qp.size() < NDIM  *(qp_offset+n_qp))) X_qp.resize(NDIM  *(qp_offset+n_qp));
 
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
@@ -1030,11 +1043,6 @@ FEDataManager::interp(
 
             qp_offset += n_qp;
         }
-
-        if (qp_offset == 0) continue;
-
-        F_qp.resize(n_vars*qp_offset);
-        X_qp.resize(NDIM  *qp_offset);
 
         // Interpolate values from the Cartesian grid patch to the quadrature
         // points.
