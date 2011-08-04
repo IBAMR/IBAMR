@@ -111,7 +111,7 @@
 
 namespace IBTK
 {
-static const bool ENABLE_TIMERS = false;
+static const bool ENABLE_TIMERS = true;
 }
 
 #define IBTK_TIMER_START(timer)                                 \

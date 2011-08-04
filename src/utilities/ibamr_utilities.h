@@ -92,7 +92,7 @@
 
 namespace IBAMR
 {
-static const bool ENABLE_TIMERS = false;
+static const bool ENABLE_TIMERS = true;
 }
 
 #define IBAMR_TIMER_START(timer)                                 \

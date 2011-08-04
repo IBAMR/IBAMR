@@ -429,6 +429,7 @@ FEDataManager::spread(
             }
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
             if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
+            X_fe->reinit(elem);
             n_qp_patch += d_qrule->n_points();
         }
         if (n_qp_patch == 0) continue;
@@ -1012,6 +1013,7 @@ FEDataManager::interp(
             }
             get_values_for_interpolation(X_node, X_vec, X_dof_indices);
             if (using_adaptive_qrule) adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
+            X_fe->reinit(elem);
             n_qp_patch += d_qrule->n_points();
         }
         if (n_qp_patch == 0) continue;
