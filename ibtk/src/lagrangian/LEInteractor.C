@@ -815,6 +815,8 @@ LEInteractor::interpolate(
     TBOX_ASSERT(!patch.isNull());
     TBOX_ASSERT(Q_depth == q_data->getDepth());
     TBOX_ASSERT(X_depth == NDIM);
+#else
+    NULL_USE(X_depth);
 #endif
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -878,6 +880,8 @@ LEInteractor::interpolate(
     TBOX_ASSERT(Q_depth == NDIM);
     TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(q_data->getDepth() == 1);
+#else
+    NULL_USE(X_depth);
 #endif
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -972,6 +976,8 @@ LEInteractor::interpolate(
     TBOX_ASSERT(Q_depth == q_data->getDepth());
     TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(Q_size/Q_depth == X_size/X_depth);
+#else
+    NULL_USE(Q_size);
 #endif
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -1052,6 +1058,8 @@ LEInteractor::interpolate(
     TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(Q_size/Q_depth == X_size/X_depth);
     TBOX_ASSERT(q_data->getDepth() == 1);
+#else
+    NULL_USE(Q_size);
 #endif
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -1199,6 +1207,8 @@ LEInteractor::spread(
     TBOX_ASSERT(!patch.isNull());
     TBOX_ASSERT(Q_depth == q_data->getDepth());
     TBOX_ASSERT(X_depth == NDIM);
+#else
+    NULL_USE(X_depth);
 #endif
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -1261,6 +1271,8 @@ LEInteractor::spread(
     TBOX_ASSERT(q_data->getDepth() == 1);
     TBOX_ASSERT(Q_depth == NDIM);
     TBOX_ASSERT(X_depth == NDIM);
+#else
+    NULL_USE(X_depth);
 #endif
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -1374,6 +1386,8 @@ LEInteractor::spread(
     TBOX_ASSERT(Q_depth == q_data->getDepth());
     TBOX_ASSERT(X_depth == NDIM);
     TBOX_ASSERT(Q_size/Q_depth == X_size/X_depth);
+#else
+    NULL_USE(Q_size);
 #endif
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
