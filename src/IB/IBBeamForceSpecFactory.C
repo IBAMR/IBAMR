@@ -90,7 +90,7 @@ IBBeamForceSpecFactory::setStreamableClassID(
 Pointer<Streamable>
 IBBeamForceSpecFactory::unpackStream(
     AbstractStream& stream,
-    const IntVector<NDIM>& offset)
+    const IntVector<NDIM>& /*offset*/)
 {
     int num_beams;
     stream.unpack(&num_beams,1);

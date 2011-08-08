@@ -95,9 +95,9 @@ public:
     void
     postProcessData(
         const int u_idx,
-        const int p_idx,
-        const int f_idx,
-        std::vector<tbox::Pointer<LData> > F_data,
+        const int /*p_idx*/,
+        const int /*f_idx*/,
+        std::vector<tbox::Pointer<LData> > /*F_data*/,
         std::vector<tbox::Pointer<LData> > X_data,
         std::vector<tbox::Pointer<LData> > U_data,
         const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
@@ -139,12 +139,9 @@ linear_spring_force(
     const double D[NDIM],
     const double& stf,
     const double& rst,
-    const int& lag_mastr_idx,
-    const int& lag_slave_idx)
+    const int& /*lag_mastr_idx*/,
+    const int& /*lag_slave_idx*/)
 {
-    (void) lag_mastr_idx;
-    (void) lag_slave_idx;
-
     /*
      * Compute the distance between the "master" and "slave" nodes.
      */

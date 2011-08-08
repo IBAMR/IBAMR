@@ -285,7 +285,7 @@ IBStandardInitializer::registerLSiloDataWriter(
 bool
 IBStandardInitializer::getLevelHasLagrangianData(
     const int level_number,
-    const bool can_be_refined) const
+    const bool /*can_be_refined*/) const
 {
     return !d_num_vertex[level_number].empty();
 }// getLevelHasLagrangianData
@@ -294,9 +294,9 @@ unsigned int
 IBStandardInitializer::computeLocalNodeCountOnPatchLevel(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
-    const double init_data_time,
+    const double /*init_data_time*/,
     const bool can_be_refined,
-    const bool initial_time)
+    const bool /*initial_time*/)
 {
     // Loop over all patches in the specified level of the patch level and count
     // the number of local vertices.
@@ -320,12 +320,11 @@ IBStandardInitializer::initializeStructureIndexingOnPatchLevel(
     std::map<int,std::string>& strct_id_to_strct_name_map,
     std::map<int,std::pair<int,int> >& strct_id_to_lag_idx_range_map,
     const int level_number,
-    const double init_data_time,
-    const bool can_be_refined,
-    const bool initial_time,
-    LDataManager* const l_data_manager)
+    const double /*init_data_time*/,
+    const bool /*can_be_refined*/,
+    const bool /*initial_time*/,
+    LDataManager* const /*l_data_manager*/)
 {
-    (void) l_data_manager;
     int offset = 0;
     for (int j = 0; j < static_cast<int>(d_base_filename[level_number].size()); ++j)
     {
@@ -345,13 +344,11 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     Pointer<LData>& U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
-    const double init_data_time,
+    const double /*init_data_time*/,
     const bool can_be_refined,
-    const bool initial_time,
-    LDataManager* const l_data_manager)
+    const bool /*initial_time*/,
+    LDataManager* const /*l_data_manager*/)
 {
-    (void) l_data_manager;
-
     // Determine the extents of the physical domain.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
     const double* const XLower = grid_geom->getXLower();
@@ -457,19 +454,17 @@ IBStandardInitializer::initializeDataOnPatchLevel(
 
 unsigned int
 IBStandardInitializer::initializeMassDataOnPatchLevel(
-    const unsigned int global_index_offset,
+    const unsigned int /*global_index_offset*/,
     const unsigned int local_index_offset,
     Pointer<LData>& M_data,
     Pointer<LData>& K_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
-    const double init_data_time,
+    const double /*init_data_time*/,
     const bool can_be_refined,
-    const bool initial_time,
-    LDataManager* const l_data_manager)
+    const bool /*initial_time*/,
+    LDataManager* const /*l_data_manager*/)
 {
-    (void) l_data_manager;
-
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
     blitz::Array<double,2>& M_array = *M_data->getGhostedLocalFormVecArray();
@@ -518,18 +513,16 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
 
 unsigned int
 IBStandardInitializer::initializeDirectorDataOnPatchLevel(
-    const unsigned int global_index_offset,
+    const unsigned int /*global_index_offset*/,
     const unsigned int local_index_offset,
     Pointer<LData>& D_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
-    const double init_data_time,
+    const double /*init_data_time*/,
     const bool can_be_refined,
-    const bool initial_time,
-    LDataManager* const l_data_manager)
+    const bool /*initial_time*/,
+    LDataManager* const /*l_data_manager*/)
 {
-    (void) l_data_manager;
-
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
     blitz::Array<double,2>& D_array = *D_data->getGhostedLocalFormVecArray();
@@ -567,7 +560,7 @@ void
 IBStandardInitializer::tagCellsForInitialRefinement(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
-    const double error_data_time,
+    const double /*error_data_time*/,
     const int tag_index)
 {
     // Loop over all patches in the specified level of the patch level and tag
@@ -960,11 +953,7 @@ IBStandardInitializer::readSpringFiles()
                                            << "  first vertex = " << e.first-d_vertex_offset[ln][j] << " second vertex = " << e.second-d_vertex_offset[ln][j] << std::endl
                                            << "  original spring constant      = " << d_spring_spec_data[ln][j].find(e)->second.stiffness     << std::endl
                                            << "  original resting length       = " << d_spring_spec_data[ln][j].find(e)->second.rest_length   << std::endl
-                                           << "  original force function index = " << d_spring_spec_data[ln][j].find(e)->second.force_fcn_idx << std::endl
-#if ENABLE_SUBDOMAIN_INDICES
-                                           << "  original subdomain index      = " << d_spring_spec_data[ln][j].find(e)->second.subdomain_idx << std::endl
-#endif
-                                           );
+                                           << "  original force function index = " << d_spring_spec_data[ln][j].find(e)->second.force_fcn_idx << std::endl);
                             }
                         }
                     }
@@ -2417,7 +2406,7 @@ IBStandardInitializer::getPatchVertices(
     std::vector<std::pair<int,int> >& patch_vertices,
     const Pointer<Patch<NDIM> > patch,
     const int level_number,
-    const bool can_be_refined) const
+    const bool /*can_be_refined*/) const
 {
     // Loop over all of the vertices to determine the indices of those vertices
     // within the present patch.

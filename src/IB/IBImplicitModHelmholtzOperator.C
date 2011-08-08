@@ -154,7 +154,7 @@ IBImplicitModHelmholtzOperator::deallocateOperatorState()
 
 void
 IBImplicitModHelmholtzOperator::enableLogging(
-    bool enabled)
+    bool /*enabled*/)
 {
     // intentionally blank
     return;

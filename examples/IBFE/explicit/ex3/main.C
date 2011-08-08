@@ -67,7 +67,7 @@ static const double mu = 2.0*C1;
 void
 PK1_stress_function(
     TensorValue<double>& PP,
-    const TensorValue<double>& dX_ds,
+    const TensorValue<double>& FF,
     const Point& /*X*/,
     const Point& /*s*/,
     Elem* const /*elem*/,
@@ -76,8 +76,8 @@ PK1_stress_function(
     const double& /*time*/,
     void* /*ctx*/)
 {
-    static const TensorValue<double> I(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);
-    PP = mu*(dX_ds-I);
+    static const TensorValue<double> II(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);
+    PP = mu*FF;
     return;
 }// PK1_stress_function
 }

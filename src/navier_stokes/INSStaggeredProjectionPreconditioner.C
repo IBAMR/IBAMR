@@ -370,7 +370,7 @@ INSStaggeredProjectionPreconditioner::deallocateSolverState()
 
 void
 INSStaggeredProjectionPreconditioner::setInitialGuessNonzero(
-    bool initial_guess_nonzero)
+    bool /*initial_guess_nonzero*/)
 {
     // intentionally blank
     return;
@@ -385,7 +385,7 @@ INSStaggeredProjectionPreconditioner::getInitialGuessNonzero() const
 
 void
 INSStaggeredProjectionPreconditioner::setMaxIterations(
-    int max_iterations)
+    int /*max_iterations*/)
 {
     // intentionally blank
     return;
@@ -400,7 +400,7 @@ INSStaggeredProjectionPreconditioner::getMaxIterations() const
 
 void
 INSStaggeredProjectionPreconditioner::setAbsoluteTolerance(
-    double abs_residual_tol)
+    double /*abs_residual_tol*/)
 {
     // intentionally blank
     return;
@@ -415,7 +415,7 @@ INSStaggeredProjectionPreconditioner::getAbsoluteTolerance() const
 
 void
 INSStaggeredProjectionPreconditioner::setRelativeTolerance(
-    double rel_residual_tol)
+    double /*rel_residual_tol*/)
 {
     // intentionally blank
     return;

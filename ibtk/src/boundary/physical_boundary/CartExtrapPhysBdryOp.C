@@ -290,7 +290,7 @@ CartExtrapPhysBdryOp::setExtrapolationType(
 void
 CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(
     Patch<NDIM>& patch,
-    const double fill_time,
+    const double /*fill_time*/,
     const IntVector<NDIM>& ghost_width_to_fill)
 {
     if (ghost_width_to_fill == IntVector<NDIM>(0)) return;
@@ -351,11 +351,11 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(
     }
 
     // Set the boundary values.
-    setPhysicalBoundaryConditions_cell(    patch, fill_time, bdry_fill_boxes);
-    setPhysicalBoundaryConditions_vec_cell(patch, fill_time, bdry_fill_boxes);
-    setPhysicalBoundaryConditions_face(    patch, fill_time, bdry_fill_boxes);
-    setPhysicalBoundaryConditions_node(    patch, fill_time, bdry_fill_boxes);
-    setPhysicalBoundaryConditions_side(    patch, fill_time, bdry_fill_boxes);
+    setPhysicalBoundaryConditions_cell(    patch, bdry_fill_boxes);
+    setPhysicalBoundaryConditions_vec_cell(patch, bdry_fill_boxes);
+    setPhysicalBoundaryConditions_face(    patch, bdry_fill_boxes);
+    setPhysicalBoundaryConditions_node(    patch, bdry_fill_boxes);
+    setPhysicalBoundaryConditions_side(    patch, bdry_fill_boxes);
     return;
 }// setPhysicalBoundaryConditions
 
@@ -367,10 +367,10 @@ CartExtrapPhysBdryOp::getRefineOpStencilWidth() const
 
 void
 CartExtrapPhysBdryOp::preprocessRefine(
-    Patch<NDIM>& fine,
-    const Patch<NDIM>& coarse,
-    const Box<NDIM>& fine_box,
-    const IntVector<NDIM>& ratio)
+    Patch<NDIM>& /*fine*/,
+    const Patch<NDIM>& /*coarse*/,
+    const Box<NDIM>& /*fine_box*/,
+    const IntVector<NDIM>& /*ratio*/)
 {
     // intentionally blank
     return;
@@ -378,10 +378,10 @@ CartExtrapPhysBdryOp::preprocessRefine(
 
 void
 CartExtrapPhysBdryOp::postprocessRefine(
-    Patch<NDIM>& fine,
-    const Patch<NDIM>& coarse,
-    const Box<NDIM>& fine_box,
-    const IntVector<NDIM>& ratio)
+    Patch<NDIM>& /*fine*/,
+    const Patch<NDIM>& /*coarse*/,
+    const Box<NDIM>& /*fine_box*/,
+    const IntVector<NDIM>& /*ratio*/)
 {
     // intentionally blank
     return;
@@ -394,7 +394,6 @@ CartExtrapPhysBdryOp::postprocessRefine(
 void
 CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
     Patch<NDIM>& patch,
-    const double fill_time,
     const std::vector<std::pair<Box<NDIM>,std::pair<int,int> > >& bdry_fill_boxes)
 {
     const Box<NDIM>& patch_box = patch.getBox();
@@ -496,7 +495,6 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
 void
 CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_vec_cell(
     Patch<NDIM>& patch,
-    const double fill_time,
     const std::vector<std::pair<Box<NDIM>,std::pair<int,int> > >& bdry_fill_boxes)
 {
     const Box<NDIM>& patch_box = patch.getBox();
@@ -605,7 +603,6 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_vec_cell(
 void
 CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
     Patch<NDIM>& patch,
-    const double fill_time,
     const std::vector<std::pair<Box<NDIM>,std::pair<int,int> > >& bdry_fill_boxes)
 {
     const Box<NDIM>& patch_box = patch.getBox();
@@ -714,7 +711,6 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
 void
 CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
     Patch<NDIM>& patch,
-    const double fill_time,
     const std::vector<std::pair<Box<NDIM>,std::pair<int,int> > >& bdry_fill_boxes)
 {
     const Box<NDIM>& patch_box = patch.getBox();
@@ -816,7 +812,6 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
 void
 CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
     Patch<NDIM>& patch,
-    const double fill_time,
     const std::vector<std::pair<Box<NDIM>,std::pair<int,int> > >& bdry_fill_boxes)
 {
     const Box<NDIM>& patch_box = patch.getBox();

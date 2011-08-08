@@ -449,7 +449,7 @@ SCLaplaceOperator::deallocateOperatorState()
 
 void
 SCLaplaceOperator::enableLogging(
-    bool enabled)
+    bool /*enabled*/)
 {
     TBOX_WARNING("SCLaplaceOperator::enableLogging() not supported" << std::endl);
     return;

@@ -255,7 +255,6 @@ private:
     void
     setPhysicalBoundaryConditions_cell(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const double fill_time,
         const std::vector<std::pair<SAMRAI::hier::Box<NDIM>,std::pair<int,int> > >& bdry_fill_boxes);
 
     /*!
@@ -265,7 +264,6 @@ private:
     void
     setPhysicalBoundaryConditions_vec_cell(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const double fill_time,
         const std::vector<std::pair<SAMRAI::hier::Box<NDIM>,std::pair<int,int> > >& bdry_fill_boxes);
 
     /*!
@@ -275,7 +273,6 @@ private:
     void
     setPhysicalBoundaryConditions_face(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const double fill_time,
         const std::vector<std::pair<SAMRAI::hier::Box<NDIM>,std::pair<int,int> > >& bdry_fill_boxes);
 
     /*!
@@ -285,7 +282,6 @@ private:
     void
     setPhysicalBoundaryConditions_node(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const double fill_time,
         const std::vector<std::pair<SAMRAI::hier::Box<NDIM>,std::pair<int,int> > >& bdry_fill_boxes);
 
     /*!
@@ -295,7 +291,6 @@ private:
     void
     setPhysicalBoundaryConditions_side(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const double fill_time,
         const std::vector<std::pair<SAMRAI::hier::Box<NDIM>,std::pair<int,int> > >& bdry_fill_boxes);
 
     /*

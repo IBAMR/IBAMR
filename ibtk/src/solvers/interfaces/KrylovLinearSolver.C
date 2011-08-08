@@ -85,11 +85,9 @@ KrylovLinearSolver::setNullspace(
 
 void
 KrylovLinearSolver::setNullspace(
-    const bool contains_constant_vector,
-    const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs)
+    const bool /*contains_constant_vector*/,
+    const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& /*nullspace_basis_vecs*/)
 {
-    (void) contains_constant_vector;
-    (void) nullspace_basis_vecs;
     // intentionally blank
     return;
 }// setNullspace

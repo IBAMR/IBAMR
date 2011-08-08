@@ -226,9 +226,9 @@ CartCellDoubleQuadraticCFInterpolation::~CartCellDoubleQuadraticCFInterpolation(
 
 void
 CartCellDoubleQuadraticCFInterpolation::setPhysicalBoundaryConditions(
-    Patch<NDIM>& patch,
-    const double fill_time,
-    const IntVector<NDIM>& ghost_width_to_fill)
+    Patch<NDIM>& /*patch*/,
+    const double /*fill_time*/,
+    const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
     // intentionally blank
     return;
@@ -245,10 +245,10 @@ CartCellDoubleQuadraticCFInterpolation::getRefineOpStencilWidth() const
 
 void
 CartCellDoubleQuadraticCFInterpolation::preprocessRefine(
-    Patch<NDIM>& fine,
-    const Patch<NDIM>& coarse,
-    const Box<NDIM>& fine_box,
-    const IntVector<NDIM>& ratio)
+    Patch<NDIM>& /*fine*/,
+    const Patch<NDIM>& /*coarse*/,
+    const Box<NDIM>& /*fine_box*/,
+    const IntVector<NDIM>& /*ratio*/)
 {
     // intentionally blank
     return;
@@ -292,11 +292,11 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine(
     // Use the appropriate version of the coarse-fine interpolation code.
     if (USING_EXPENSIVE_CF_INTERPOLATION)
     {
-        postprocessRefine_expensive(fine, coarse, fine_box, ratio);
+        postprocessRefine_expensive(fine, coarse, ratio);
     }
     else
     {
-        postprocessRefine_optimized(fine, coarse, fine_box, ratio);
+        postprocessRefine_optimized(fine, coarse, ratio);
     }
     return;
 }// postprocessRefine
@@ -434,7 +434,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension(
     }
     else
     {
-        computeNormalExtension_optimized(patch, ratio, ghost_width_to_fill);
+        computeNormalExtension_optimized(patch, ratio);
     }
     return;
 }// computeNormalExtension
@@ -447,7 +447,6 @@ void
 CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(
     Patch<NDIM>& fine,
     const Patch<NDIM>& coarse,
-    const Box<NDIM>& fine_box,
     const IntVector<NDIM>& ratio)
 {
     // Get the cf boundary boxes.
@@ -631,7 +630,6 @@ void
 CartCellDoubleQuadraticCFInterpolation::postprocessRefine_optimized(
     Patch<NDIM>& fine,
     const Patch<NDIM>& coarse,
-    const Box<NDIM>& fine_box,
     const IntVector<NDIM>& ratio)
 {
     // Get the co-dimension 1 cf boundary boxes.
@@ -818,8 +816,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(
 void
 CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_optimized(
     Patch<NDIM>& patch,
-    const IntVector<NDIM>& ratio,
-    const IntVector<NDIM>& ghost_width_to_fill)
+    const IntVector<NDIM>& ratio)
 {
     // Get the co-dimension 1 cf boundary boxes.
     const int patch_num = patch.getPatchNumber();

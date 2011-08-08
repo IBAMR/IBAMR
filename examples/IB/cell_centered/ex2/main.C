@@ -84,12 +84,9 @@ linear_spring_force(
     const double D[NDIM],
     const double& stf,
     const double& rst,
-    const int& lag_mastr_idx,
-    const int& lag_slave_idx)
+    const int& /*lag_mastr_idx*/,
+    const int& /*lag_slave_idx*/)
 {
-    (void) lag_mastr_idx;
-    (void) lag_slave_idx;
-
     /*
      * Compute the distance between the "master" and "slave" nodes.
      */

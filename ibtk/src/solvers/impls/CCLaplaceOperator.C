@@ -519,7 +519,7 @@ CCLaplaceOperator::deallocateOperatorState()
 
 void
 CCLaplaceOperator::enableLogging(
-    bool enabled)
+    bool /*enabled*/)
 {
     TBOX_WARNING("CCLaplaceOperator::enableLogging() not supported" << std::endl);
     return;

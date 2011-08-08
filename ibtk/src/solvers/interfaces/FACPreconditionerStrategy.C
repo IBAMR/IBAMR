@@ -59,7 +59,7 @@ FACPreconditionerStrategy::~FACPreconditionerStrategy()
 
 void
 FACPreconditionerStrategy::setFACPreconditioner(
-    ConstPointer<FACPreconditioner> preconditioner)
+    ConstPointer<FACPreconditioner> /*preconditioner*/)
 {
     // intentionally blank
     return;
@@ -67,8 +67,8 @@ FACPreconditionerStrategy::setFACPreconditioner(
 
 void
 FACPreconditionerStrategy::initializeOperatorState(
-    const SAMRAIVectorReal<NDIM,double>& solution,
-    const SAMRAIVectorReal<NDIM,double>& rhs)
+    const SAMRAIVectorReal<NDIM,double>& /*solution*/,
+    const SAMRAIVectorReal<NDIM,double>& /*rhs*/)
 {
     // intentionally blank
     return;

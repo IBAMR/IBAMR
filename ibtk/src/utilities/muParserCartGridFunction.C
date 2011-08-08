@@ -244,11 +244,11 @@ muParserCartGridFunction::isTimeDependent() const
 void
 muParserCartGridFunction::setDataOnPatch(
     const int data_idx,
-    Pointer<Variable<NDIM> > var,
+    Pointer<Variable<NDIM> > /*var*/,
     Pointer<Patch<NDIM> > patch,
     const double data_time,
-    const bool initial_time,
-    Pointer<PatchLevel<NDIM> > level)
+    const bool /*initial_time*/,
+    Pointer<PatchLevel<NDIM> > /*level*/)
 {
     d_parser_time = data_time;
 

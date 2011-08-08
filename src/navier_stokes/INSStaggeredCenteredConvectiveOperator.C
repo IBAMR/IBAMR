@@ -446,7 +446,7 @@ INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()
 
 void
 INSStaggeredCenteredConvectiveOperator::enableLogging(
-    bool enabled)
+    bool /*enabled*/)
 {
     // intentionally blank
     return;

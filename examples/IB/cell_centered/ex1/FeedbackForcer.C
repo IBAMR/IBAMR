@@ -104,13 +104,14 @@ FeedbackForcer::~FeedbackForcer()
 void
 FeedbackForcer::setDataOnPatch(
     const int data_idx,
-    tbox::Pointer<hier::Variable<NDIM> > var,
-    hier::Patch<NDIM>& patch,
+    tbox::Pointer<hier::Variable<NDIM> > /*var*/,
+    tbox::Pointer<hier::Patch<NDIM> > patch,
     const double data_time,
-    const bool initial_time)
+    const bool initial_time,
+    tbox::Pointer<hier::PatchLevel<NDIM> > /*level*/)
 {
-    tbox::Pointer<pdat::CellData<NDIM,double> > U_data = patch.getPatchData(d_U_data_idx);
-    tbox::Pointer<pdat::CellData<NDIM,double> > F_data = patch.getPatchData(data_idx);
+    tbox::Pointer<pdat::CellData<NDIM,double> > U_data = patch->getPatchData(d_U_data_idx);
+    tbox::Pointer<pdat::CellData<NDIM,double> > F_data = patch->getPatchData(data_idx);
     F_data->fillAll(0.0);
 
     if (initial_time) return;
@@ -120,9 +121,9 @@ FeedbackForcer::setDataOnPatch(
     const double T_wgt1 =       (1.0/(1.0+tanh(2.0)))*(tanh(4.0*data_time/T_ramp1-2.0)+tanh(2.0));
     const double T_wgt2 = 1.0 - (1.0/(1.0+tanh(2.0)))*(tanh(4.0*data_time/T_ramp2-2.0)+tanh(2.0));
 
-    const hier::Box<NDIM>& patch_box = patch.getBox();
+    const hier::Box<NDIM>& patch_box = patch->getBox();
     const hier::Index<NDIM>& patch_lower = patch_box.lower();
-    tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+    tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const XLower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
 

@@ -109,9 +109,8 @@ LSetDataFactory<T>::allocate(
 template<class T>
 size_t
 LSetDataFactory<T>::getSizeOfMemory(
-    const Box<NDIM>& box) const
+    const Box<NDIM>& /*box*/) const
 {
-    (void) box;
     return Arena::align(sizeof(LSetData<T>));
 }// getSizeOfMemory
 

@@ -91,8 +91,8 @@ DiagonalScalingPreconditioner::solveSystem(
 
 void
 DiagonalScalingPreconditioner::initializeSolverState(
-    const SAMRAIVectorReal<NDIM,double>& x,
-    const SAMRAIVectorReal<NDIM,double>& b)
+    const SAMRAIVectorReal<NDIM,double>& /*x*/,
+    const SAMRAIVectorReal<NDIM,double>& /*b*/)
 {
     // intentionally blank
     return;

@@ -103,11 +103,11 @@ IBEulerianSourceFunction::isTimeDependent() const
 void
 IBEulerianSourceFunction::setDataOnPatch(
     const int data_idx,
-    Pointer<Variable<NDIM> > var,
+    Pointer<Variable<NDIM> > /*var*/,
     Pointer<Patch<NDIM> > patch,
     const double data_time,
     const bool initial_time,
-    Pointer<PatchLevel<NDIM> > level)
+    Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<CellData<NDIM,double> > q_data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS

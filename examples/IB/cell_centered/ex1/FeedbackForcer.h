@@ -99,9 +99,10 @@ public:
     setDataOnPatch(
         const int data_idx,
         tbox::Pointer<hier::Variable<NDIM> > var,
-        hier::Patch<NDIM>& patch,
+        tbox::Pointer<hier::Patch<NDIM> > patch,
         const double data_time,
-        const bool initial_time=false);
+        const bool initial_time=false,
+        tbox::Pointer<hier::PatchLevel<NDIM> > level=tbox::Pointer<hier::PatchLevel<NDIM> >(NULL));
 
     //\}
 

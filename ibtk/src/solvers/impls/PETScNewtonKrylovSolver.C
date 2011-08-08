@@ -571,7 +571,7 @@ PETScNewtonKrylovSolver::resetSNESJacobian()
 
 PetscErrorCode
 PETScNewtonKrylovSolver::FormFunction_SAMRAI(
-    SNES snes,
+    SNES /*snes*/,
     Vec x,
     Vec f,
     void* p_ctx)
@@ -593,12 +593,10 @@ PETScNewtonKrylovSolver::FormJacobian_SAMRAI(
     SNES snes,
     Vec x,
     Mat* A,
-    Mat* B,
-    MatStructure* mat_structure,
+    Mat* /*B*/,
+    MatStructure* /*mat_structure*/,
     void* p_ctx)
 {
-    (void) snes;
-    (void) B;
     PETScNewtonKrylovSolver* newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
 #if (DEBUG_CHECK_ASSERTIONS)
     TBOX_ASSERT(newton_solver != NULL);

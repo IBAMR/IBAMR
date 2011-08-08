@@ -235,8 +235,6 @@ main(
         coarse_patch_hierarchy->getFromDatabase(coarse_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
         const double coarse_loop_time = coarse_hier_db->getDouble("loop_time");
-        const double coarse_end_time = coarse_hier_db->getDouble("end_time");
-        const double coarse_dt = coarse_hier_db->getDouble("dt");
 
         coarse_hier_db->close();
 
@@ -247,17 +245,10 @@ main(
         fine_patch_hierarchy->getFromDatabase(fine_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
         const double fine_loop_time = fine_hier_db->getDouble("loop_time");
-        const double fine_end_time = fine_hier_db->getDouble("end_time");
-        const double fine_dt = fine_hier_db->getDouble("dt");
 
         fine_hier_db->close();
 
         TBOX_ASSERT(tbox::MathUtilities<double>::equalEps(coarse_loop_time, fine_loop_time));
-        (void) coarse_end_time;
-        (void) coarse_dt;
-        (void) fine_end_time;
-        (void) fine_dt;
-
         loop_time = fine_loop_time;
         tbox::pout << "     loop time = " << loop_time << endl;
 

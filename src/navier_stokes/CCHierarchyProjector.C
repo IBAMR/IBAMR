@@ -291,13 +291,13 @@ CCHierarchyProjector::projectHierarchy(
     const double dt,
     const double time,
     const int U_idx,
-    const Pointer<CellVariable<NDIM,double> >& U_var,
+    const Pointer<CellVariable<NDIM,double> >& /*U_var*/,
     const int Phi_idx,
     const Pointer<CellVariable<NDIM,double> >& Phi_var,
     const int Grad_Phi_idx,
     const Pointer<CellVariable<NDIM,double> >& Grad_Phi_var,
     const int W_idx,
-    const Pointer<CellVariable<NDIM,double> >& W_var,
+    const Pointer<CellVariable<NDIM,double> >& /*W_var*/,
     const int Q_idx,
     const Pointer<CellVariable<NDIM,double> >& Q_var)
 {
@@ -403,9 +403,9 @@ void
 CCHierarchyProjector::initializeLevelData(
     const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     const int level_number,
-    const double init_data_time,
-    const bool can_be_refined,
-    const bool initial_time,
+    const double /*init_data_time*/,
+    const bool /*can_be_refined*/,
+    const bool /*initial_time*/,
     const Pointer<BasePatchLevel<NDIM> > old_level,
     const bool allocate_data)
 {
@@ -576,12 +576,11 @@ CCHierarchyProjector::putToDatabase(
 void
 CCHierarchyProjector::getFromInput(
     Pointer<Database> db,
-    bool is_from_restart)
+    bool /*is_from_restart*/)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
 #endif
-    (void) is_from_restart;
     d_max_iterations = db->getIntegerWithDefault("max_iterations", d_max_iterations);
     d_abs_residual_tol = db->getDoubleWithDefault("abs_residual_tol", d_abs_residual_tol);
     d_rel_residual_tol = db->getDoubleWithDefault("rel_residual_tol", d_rel_residual_tol);

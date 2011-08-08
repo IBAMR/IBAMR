@@ -83,7 +83,7 @@ static bool use_div_penalization = false;
 void
 PK1_stress_function(
     TensorValue<double>& PP,
-    const TensorValue<double>& dX_ds,
+    const TensorValue<double>& FF,
     const Point& /*X*/,
     const Point& /*s*/,
     Elem* const /*elem*/,
@@ -92,11 +92,11 @@ PK1_stress_function(
     const double& /*time*/,
     void* /*ctx*/)
 {
-    PP = struct_mu*dX_ds;
+    PP = struct_mu*FF;
     if (use_div_penalization)
     {
-        const TensorValue<double> dX_ds_inv_trans = tensor_inverse_transpose(dX_ds, NDIM);
-        PP += (-struct_mu + struct_lambda*log(dX_ds.det()))*dX_ds_inv_trans;
+        const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
+        PP += (-struct_mu + struct_lambda*log(FF.det()))*FF_inv_trans;
     }
     return;
 }// PK1_stress_function
@@ -197,18 +197,10 @@ main(
     Mesh mesh(NDIM);
     const int R = input_db->getIntegerWithDefault("R", 3);
     string elem_type = input_db->getStringWithDefault("elem_type", "QUAD4");
-#if 0
     MeshTools::Generation::build_sphere(mesh,
                                         0.2,
                                         R,
                                         Utility::string_to_enum<ElemType>(elem_type));
-#else
-    MeshTools::Generation::build_cube(mesh, 3, 3, 3,
-                                      -0.2, 0.2,
-                                      -0.2, 0.2,
-                                      -0.2, 0.2,
-                                      Utility::string_to_enum<ElemType>(elem_type));
-#endif
     struct_mu = input_db->getDoubleWithDefault("struct_mu", struct_mu);
     struct_lambda = input_db->getDoubleWithDefault("struct_lambda", struct_lambda);
     use_div_penalization = input_db->getBoolWithDefault("use_div_penalization", use_div_penalization);

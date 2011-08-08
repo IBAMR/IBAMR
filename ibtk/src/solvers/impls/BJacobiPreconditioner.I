@@ -115,7 +115,7 @@ BJacobiPreconditioner::getResidualNorm() const
 
 inline void
 BJacobiPreconditioner::enableLogging(
-    bool enabled)
+    bool /*enabled*/)
 {
     TBOX_WARNING("BJacobiPreconditioner::enableLogging() not supported" << std::endl);
     return;

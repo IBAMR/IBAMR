@@ -813,10 +813,6 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
             stencil_indices[i] = i;
         }
 
-        static const int x_axis = 0; (void) x_axis;
-        static const int y_axis = 1; (void) y_axis;
-        static const int z_axis = 2; (void) z_axis;
-
         std::map<Index<NDIM>,int,IndexComp> stencil_index_map;
         int stencil_index = 0;
 #if (NDIM == 3)
@@ -1337,12 +1333,12 @@ CCPoissonHypreLevelSolver::solveSystem(
             if (d_grid_aligned_anisotropy)
             {
                 adjustBoundaryRhsEntries_aligned(
-                    b_data, D_os_data_ptr, d_bc_coef, patch, physical_codim1_boxes, dx);
+                    b_data, D_os_data_ptr, patch, physical_codim1_boxes, dx);
             }
             else
             {
                 adjustBoundaryRhsEntries_nonaligned(
-                    b_data, D_os_data_ptr, d_bc_coef, patch, physical_codim1_boxes, dx);
+                    b_data, D_os_data_ptr, patch, physical_codim1_boxes, dx);
             }
         }
         copyToHypre(d_rhs_vec, b_data, patch_box);
@@ -1548,7 +1544,6 @@ void
 CCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_aligned(
     Pointer<CellData<NDIM,double> >& rhs_data,
     const Pointer<OutersideData<NDIM,double> >& D_data,
-    const RobinBcCoefStrategy<NDIM>* bc_strategy,
     const Pointer<Patch<NDIM> >& patch,
     const Array<BoundaryBox<NDIM> >& codim1_boxes,
     const double* const dx)
@@ -1628,7 +1623,6 @@ void
 CCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_nonaligned(
     Pointer<CellData<NDIM,double> >& rhs_data,
     const Pointer<OutersideData<NDIM,double> >& D_data,
-    const RobinBcCoefStrategy<NDIM>* bc_strategy,
     const Pointer<Patch<NDIM> >& patch,
     const Array<BoundaryBox<NDIM> >& codim1_boxes,
     const double* const dx)

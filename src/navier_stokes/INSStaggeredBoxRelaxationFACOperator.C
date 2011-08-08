@@ -323,7 +323,7 @@ modifyRhsForBcs(
     const SideData<NDIM,double>& U_data,
     const CellData<NDIM,double>& P_data,
     const INSCoefs& problem_coefs,
-    const double dt,
+    const double /*dt*/,
     const Box<NDIM>& box,
     const Box<NDIM>& ghost_box,
     const double* const dx)
@@ -918,8 +918,8 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
     const SAMRAIVectorReal<NDIM,double>& residual,
     int level_num,
     int num_sweeps,
-    bool performing_pre_sweeps,
-    bool performing_post_sweeps)
+    bool /*performing_pre_sweeps*/,
+    bool /*performing_post_sweeps*/)
 {
     if (num_sweeps == 0) return;
 

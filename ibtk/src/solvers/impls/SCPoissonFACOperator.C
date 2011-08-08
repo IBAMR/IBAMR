@@ -558,8 +558,8 @@ SCPoissonFACOperator::smoothError(
     const SAMRAIVectorReal<NDIM,double>& residual,
     int level_num,
     int num_sweeps,
-    bool performing_pre_sweeps,
-    bool performing_post_sweeps)
+    bool /*performing_pre_sweeps*/,
+    bool /*performing_post_sweeps*/)
 {
     if (num_sweeps == 0) return;
 
@@ -1523,9 +1523,6 @@ SCPoissonFACOperator::buildPatchLaplaceOperator(
 
     // Setup the finite difference stencil.  The stencil order is chosen to
     // optimize performance when setting the matrix coefficients.
-    static const int x_axis = 0; (void) x_axis;
-    static const int y_axis = 1; (void) y_axis;
-    static const int z_axis = 2; (void) z_axis;
     blitz::TinyVector<int,NDIM> num_cells;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -1533,6 +1530,7 @@ SCPoissonFACOperator::buildPatchLaplaceOperator(
     }
     std::vector<int> mat_stencil(stencil_sz);
 #if (NDIM == 2)
+    static const int x_axis = 0;
     mat_stencil[0] = -num_cells[x_axis]; // ylower
     mat_stencil[1] = -1;                 // xlower
     mat_stencil[2] = 0;
@@ -1540,6 +1538,8 @@ SCPoissonFACOperator::buildPatchLaplaceOperator(
     mat_stencil[4] = +num_cells[x_axis]; // yupper
 #endif
 #if (NDIM == 3)
+    static const int x_axis = 0;
+    static const int y_axis = 1;
     mat_stencil[0] = -num_cells[x_axis]*num_cells[y_axis]; // zlower
     mat_stencil[1] = -num_cells[x_axis];                   // ylower
     mat_stencil[2] = -1;                                   // xlower

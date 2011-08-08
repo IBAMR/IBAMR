@@ -69,11 +69,9 @@ NewtonKrylovSolver::~NewtonKrylovSolver()
 
 void
 NewtonKrylovSolver::initializeSolverState(
-    const SAMRAIVectorReal<NDIM,double>& u,
-    const SAMRAIVectorReal<NDIM,double>& r)
+    const SAMRAIVectorReal<NDIM,double>& /*u*/,
+    const SAMRAIVectorReal<NDIM,double>& /*r*/)
 {
-    (void) u;
-    (void) r;
     // intentionally blank
     return;
 }// initializeSolverState

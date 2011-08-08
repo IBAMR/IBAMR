@@ -629,7 +629,7 @@ update_triads(
     tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
     LDataManager* const l_data_manager,
     const double current_time,
-    const double dt)
+    const double /*dt*/)
 {
     // The angular velocity.
     static const double angw = 2.0*M_PI*freq;
@@ -654,7 +654,7 @@ update_triads(
         {
             // `global_idx' is the index of the vertex in the input file.
             const int global_idx = node_idx.getLagrangianIndex();
-            (void) global_idx;  // to prevent compiler warnings...
+            NULL_USE(global_idx);
 
             // `local_petsc_idx' is the index of the vertex in the internal
             // IBAMR data structures.  Generally, global_idx != local_petsc_idx.

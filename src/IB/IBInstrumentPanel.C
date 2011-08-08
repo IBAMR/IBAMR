@@ -116,6 +116,10 @@ init_meter_elements(
 {
 #if (NDIM == 2)
     TBOX_ERROR("no support for 2D flow meters at this time!\n");
+    NULL_USE(X_web);
+    NULL_USE(dA_web);
+    NULL_USE(X_perimeter);
+    NULL_USE(X_centroid);
 #endif
 #if (NDIM == 3)
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -198,6 +202,10 @@ compute_flow_correction(
     double U_dot_dA = 0.0;
 #if (NDIM == 2)
     TBOX_ERROR("no support for 2D flow meters at this time!\n");
+    NULL_USE(U_perimeter);
+    NULL_USE(U_centroid);
+    NULL_USE(X_perimeter);
+    NULL_USE(X_centroid);
 #endif
 #if (NDIM == 3)
     const int num_perimeter_nodes = X_perimeter.extent(0);
@@ -311,10 +319,10 @@ linear_interp(
     const Index<NDIM>& i_cell,
     const blitz::TinyVector<double,NDIM>& X_cell,
     const CellData<NDIM,double>& v,
-    const Index<NDIM>& patch_lower,
-    const Index<NDIM>& patch_upper,
-    const double* const xLower,
-    const double* const xUpper,
+    const Index<NDIM>& /*patch_lower*/,
+    const Index<NDIM>& /*patch_upper*/,
+    const double* const /*xLower*/,
+    const double* const /*xUpper*/,
     const double* const dx)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -370,10 +378,10 @@ linear_interp(
     const Index<NDIM>& i_cell,
     const blitz::TinyVector<double,NDIM>& X_cell,
     const SideData<NDIM,double>& v,
-    const Index<NDIM>& patch_lower,
-    const Index<NDIM>& patch_upper,
-    const double* const xLower,
-    const double* const xUpper,
+    const Index<NDIM>& /*patch_lower*/,
+    const Index<NDIM>& /*patch_upper*/,
+    const double* const /*xLower*/,
+    const double* const /*xUpper*/,
     const double* const dx)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS

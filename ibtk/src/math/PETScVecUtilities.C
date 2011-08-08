@@ -147,7 +147,7 @@ void
 PETScVecUtilities::constructPatchLevelVec(
     Vec& vec,
     const int data_idx,
-    Pointer<CellVariable<NDIM,double> > data_var,
+    Pointer<CellVariable<NDIM,double> > /*data_var*/,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
@@ -174,7 +174,7 @@ void
 PETScVecUtilities::constructPatchLevelVec(
     Vec& vec,
     const int data_idx,
-    Pointer<SideVariable<NDIM,double> > data_var,
+    Pointer<SideVariable<NDIM,double> > /*data_var*/,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
@@ -204,7 +204,7 @@ void
 PETScVecUtilities::copyToPatchLevelVec(
     Vec& vec,
     const int data_idx,
-    Pointer<CellVariable<NDIM,double> > data_var,
+    Pointer<CellVariable<NDIM,double> > /*data_var*/,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
@@ -236,7 +236,7 @@ void
 PETScVecUtilities::copyFromPatchLevelVec(
     Vec& vec,
     const int data_idx,
-    Pointer<CellVariable<NDIM,double> > data_var,
+    Pointer<CellVariable<NDIM,double> > /*data_var*/,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
@@ -266,7 +266,7 @@ void
 PETScVecUtilities::copyToPatchLevelVec(
     Vec& vec,
     const int data_idx,
-    Pointer<SideVariable<NDIM,double> > data_var,
+    Pointer<SideVariable<NDIM,double> > /*data_var*/,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
@@ -301,7 +301,7 @@ void
 PETScVecUtilities::copyFromPatchLevelVec(
     Vec& vec,
     const int data_idx,
-    Pointer<SideVariable<NDIM,double> > data_var,
+    Pointer<SideVariable<NDIM,double> > /*data_var*/,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
@@ -333,9 +333,9 @@ PETScVecUtilities::copyFromPatchLevelVec(
 void
 PETScVecUtilities::constructPatchLevelDOFIndices(
     const int dof_index_idx,
-    Pointer<CellVariable<NDIM,int> > dof_index_var,
+    Pointer<CellVariable<NDIM,int> > /*dof_index_var*/,
     const int data_idx,
-    Pointer<CellVariable<NDIM,double> > data_var,
+    Pointer<CellVariable<NDIM,double> > /*data_var*/,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     ArrayDataBasicOps<NDIM,int> patch_ops;
@@ -379,9 +379,9 @@ PETScVecUtilities::constructPatchLevelDOFIndices(
 void
 PETScVecUtilities::constructPatchLevelDOFIndices(
     const int dof_index_idx,
-    Pointer<SideVariable<NDIM,int> > dof_index_var,
+    Pointer<SideVariable<NDIM,int> > /*dof_index_var*/,
     const int data_idx,
-    Pointer<SideVariable<NDIM,double> > data_var,
+    Pointer<SideVariable<NDIM,double> > /*data_var*/,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     ArrayDataBasicOps<NDIM,int> patch_ops;

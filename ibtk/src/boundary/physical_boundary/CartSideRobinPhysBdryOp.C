@@ -488,10 +488,10 @@ CartSideRobinPhysBdryOp::getRefineOpStencilWidth() const
 
 void
 CartSideRobinPhysBdryOp::preprocessRefine(
-    Patch<NDIM>& fine,
-    const Patch<NDIM>& coarse,
-    const Box<NDIM>& fine_box,
-    const IntVector<NDIM>& ratio)
+    Patch<NDIM>& /*fine*/,
+    const Patch<NDIM>& /*coarse*/,
+    const Box<NDIM>& /*fine_box*/,
+    const IntVector<NDIM>& /*ratio*/)
 {
     // intentionally blank
     return;
@@ -499,10 +499,10 @@ CartSideRobinPhysBdryOp::preprocessRefine(
 
 void
 CartSideRobinPhysBdryOp::postprocessRefine(
-    Patch<NDIM>& fine,
-    const Patch<NDIM>& coarse,
-    const Box<NDIM>& fine_box,
-    const IntVector<NDIM>& ratio)
+    Patch<NDIM>& /*fine*/,
+    const Patch<NDIM>& /*coarse*/,
+    const Box<NDIM>& /*fine_box*/,
+    const IntVector<NDIM>& /*ratio*/)
 {
     // intentionally blank
     return;
@@ -817,7 +817,7 @@ CartSideRobinPhysBdryOp::setCodimension2BdryValues(
 #endif
                                    );
 #if (NDIM == 3)
-        if (location_index >= 0 && location_index < 4)
+        if (location_index < 4)
         {
             static const unsigned int axis = 0;
             CC_ROBIN_PHYS_BDRY_OP_2_FC(

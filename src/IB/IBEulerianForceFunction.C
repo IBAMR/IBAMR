@@ -119,7 +119,7 @@ IBEulerianForceFunction::setDataOnPatch(
     Pointer<Patch<NDIM> > patch,
     const double data_time,
     const bool initial_time,
-    Pointer<PatchLevel<NDIM> > level)
+    Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS

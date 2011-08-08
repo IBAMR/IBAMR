@@ -615,9 +615,9 @@ HierarchyVecCellDataOpsReal<TYPE>::axmy(
 template<class TYPE>
 void
 HierarchyVecCellDataOpsReal<TYPE>::abs(
-    const int dst_id,
-    const int src_id,
-    const bool interior_only) const
+    const int /*dst_id*/,
+    const int /*src_id*/,
+    const bool /*interior_only*/) const
 {
     TBOX_ERROR("HierarchyVecCellDataOpsReal<TYPE>::abs() unimplemented" << std::endl);
     return;
@@ -626,8 +626,8 @@ HierarchyVecCellDataOpsReal<TYPE>::abs(
 template<class TYPE>
 TYPE
 HierarchyVecCellDataOpsReal<TYPE>::min(
-    const int data_id,
-    const bool interior_only) const
+    const int /*data_id*/,
+    const bool /*interior_only*/) const
 {
     TBOX_ERROR("HierarchyVecCellDataOpsReal<TYPE>::min() unimplemented" << std::endl);
     return 0.0;
@@ -636,8 +636,8 @@ HierarchyVecCellDataOpsReal<TYPE>::min(
 template<class TYPE>
 TYPE
 HierarchyVecCellDataOpsReal<TYPE>::max(
-    const int data_id,
-    const bool interior_only) const
+    const int /*data_id*/,
+    const bool /*interior_only*/) const
 {
     TBOX_ERROR("HierarchyVecCellDataOpsReal<TYPE>::max() unimplemented" << std::endl);
     return 0.0;
@@ -646,10 +646,10 @@ HierarchyVecCellDataOpsReal<TYPE>::max(
 template<class TYPE>
 void
 HierarchyVecCellDataOpsReal<TYPE>::setRandomValues(
-    const int data_id,
-    const TYPE& width,
-    const TYPE& low,
-    const bool interior_only) const
+    const int /*data_id*/,
+    const TYPE& /*width*/,
+    const TYPE& /*low*/,
+    const bool /*interior_only*/) const
 {
     TBOX_ERROR("HierarchyVecCellDataOpsReal<TYPE>::setRandomValues() unimplemented" << std::endl);
     return;
@@ -658,8 +658,8 @@ HierarchyVecCellDataOpsReal<TYPE>::setRandomValues(
 template<class TYPE>
 int
 HierarchyVecCellDataOpsReal<TYPE>::numberOfEntries(
-    const int data_id,
-    const bool interior_only) const
+    const int /*data_id*/,
+    const bool /*interior_only*/) const
 {
     TBOX_ERROR("HierarchyVecCellDataOpsReal<TYPE>::numberOfEntries() unimplemented" << std::endl);
     return 0;
@@ -668,8 +668,8 @@ HierarchyVecCellDataOpsReal<TYPE>::numberOfEntries(
 template<class TYPE>
 double
 HierarchyVecCellDataOpsReal<TYPE>::sumControlVolumes(
-    const int data_id,
-    const int vol_id) const
+    const int /*data_id*/,
+    const int /*vol_id*/) const
 {
     TBOX_ERROR("HierarchyVecCellDataOpsReal<TYPE>::sumControlVolumes() unimplemented" << std::endl);
     return 0.0;
@@ -678,9 +678,9 @@ HierarchyVecCellDataOpsReal<TYPE>::sumControlVolumes(
 template<class TYPE>
 double
 HierarchyVecCellDataOpsReal<TYPE>::L1Norm(
-    const int data_id,
-    const int vol_id,
-    bool local_only) const
+    const int /*data_id*/,
+    const int /*vol_id*/,
+    bool /*local_only*/) const
 {
     TBOX_ERROR("HierarchyVecCellDataOpsReal<TYPE>::L1Norm() unimplemented" << std::endl);
     return 0.0;
@@ -689,9 +689,9 @@ HierarchyVecCellDataOpsReal<TYPE>::L1Norm(
 template<class TYPE>
 double
 HierarchyVecCellDataOpsReal<TYPE>::L2Norm(
-    const int data_id,
-    const int vol_id,
-    bool local_only) const
+    const int /*data_id*/,
+    const int /*vol_id*/,
+    bool /*local_only*/) const
 {
     TBOX_ERROR("HierarchyVecCellDataOpsReal<TYPE>::L2Norm() unimplemented" << std::endl);
     return 0.0;
@@ -700,9 +700,9 @@ HierarchyVecCellDataOpsReal<TYPE>::L2Norm(
 template<class TYPE>
 double
 HierarchyVecCellDataOpsReal<TYPE>::weightedL2Norm(
-    const int data_id,
-    const int wgt_id,
-    const int vol_id) const
+    const int /*data_id*/,
+    const int /*wgt_id*/,
+    const int /*vol_id*/) const
 {
     TBOX_ERROR("HierarchyVecCellDataOpsReal<TYPE>::weightedL2Norm() unimplemented" << std::endl);
     return 0.0;
@@ -711,8 +711,8 @@ HierarchyVecCellDataOpsReal<TYPE>::weightedL2Norm(
 template<class TYPE>
 double
 HierarchyVecCellDataOpsReal<TYPE>::RMSNorm(
-    const int data_id,
-    const int vol_id) const
+    const int /*data_id*/,
+    const int /*vol_id*/) const
 {
     TBOX_ERROR("HierarchyVecCellDataOpsReal<TYPE>::RMSNorm() unimplemented" << std::endl);
     return 0.0;
@@ -721,9 +721,9 @@ HierarchyVecCellDataOpsReal<TYPE>::RMSNorm(
 template<class TYPE>
 double
 HierarchyVecCellDataOpsReal<TYPE>::weightedRMSNorm(
-    const int data_id,
-    const int wgt_id,
-    const int vol_id) const
+    const int /*data_id*/,
+    const int /*wgt_id*/,
+    const int /*vol_id*/) const
 {
     TBOX_ERROR("HierarchyVecCellDataOpsReal<TYPE>::weightedRMSNorm() unimplemented" << std::endl);
     return 0.0;
@@ -732,9 +732,9 @@ HierarchyVecCellDataOpsReal<TYPE>::weightedRMSNorm(
 template<class TYPE>
 double
 HierarchyVecCellDataOpsReal<TYPE>::maxNorm(
-    const int data_id,
-    const int vol_id,
-    bool local_only) const
+    const int /*data_id*/,
+    const int /*vol_id*/,
+    bool /*local_only*/) const
 {
     TBOX_ERROR("HierarchyVecCellDataOpsReal<TYPE>::maxNorm() unimplemented" << std::endl);
     return 0.0;
@@ -743,10 +743,10 @@ HierarchyVecCellDataOpsReal<TYPE>::maxNorm(
 template<class TYPE>
 TYPE
 HierarchyVecCellDataOpsReal<TYPE>::dot(
-    const int data1_id,
-    const int data2_id,
-    const int vol_id,
-    bool local_only) const
+    const int /*data1_id*/,
+    const int /*data2_id*/,
+    const int /*vol_id*/,
+    bool /*local_only*/) const
 {
     TBOX_ERROR("HierarchyVecCellDataOpsReal<TYPE>::dot() unimplemented" << std::endl);
     return 0.0;
@@ -755,8 +755,8 @@ HierarchyVecCellDataOpsReal<TYPE>::dot(
 template<class TYPE>
 TYPE
 HierarchyVecCellDataOpsReal<TYPE>::integral(
-    const int data_id,
-    const int vol_id) const
+    const int /*data_id*/,
+    const int /*vol_id*/) const
 {
     TBOX_ERROR("HierarchyVecCellDataOpsReal<TYPE>::integral() unimplemented" << std::endl);
     return 0.0;
@@ -765,9 +765,9 @@ HierarchyVecCellDataOpsReal<TYPE>::integral(
 template<class TYPE>
 int
 HierarchyVecCellDataOpsReal<TYPE>::computeConstrProdPos(
-    const int data1_id,
-    const int data2_id,
-    const int vol_id) const
+    const int /*data1_id*/,
+    const int /*data2_id*/,
+    const int /*vol_id*/) const
 {
     TBOX_ERROR("HierarchyVecCellDataOpsReal<TYPE>::computeConstrProdPos() unimplemented" << std::endl);
     return 0;
@@ -776,10 +776,10 @@ HierarchyVecCellDataOpsReal<TYPE>::computeConstrProdPos(
 template<class TYPE>
 void
 HierarchyVecCellDataOpsReal<TYPE>::compareToScalar(
-    const int dst_id,
-    const int src_id,
-    const TYPE& alpha,
-    const int vol_id) const
+    const int /*dst_id*/,
+    const int /*src_id*/,
+    const TYPE& /*alpha*/,
+    const int /*vol_id*/) const
 {
     TBOX_ERROR("HierarchyVecCellDataOpsReal<TYPE>::compareToScalar() unimplemented" << std::endl);
     return;
@@ -788,9 +788,9 @@ HierarchyVecCellDataOpsReal<TYPE>::compareToScalar(
 template<class TYPE>
 int
 HierarchyVecCellDataOpsReal<TYPE>::testReciprocal(
-    const int dst_id,
-    const int src_id,
-    const int vol_id) const
+    const int /*dst_id*/,
+    const int /*src_id*/,
+    const int /*vol_id*/) const
 {
     TBOX_ERROR("HierarchyVecCellDataOpsReal<TYPE>::testReciprocal() unimplemented" << std::endl);
     return 0;
@@ -799,9 +799,9 @@ HierarchyVecCellDataOpsReal<TYPE>::testReciprocal(
 template<class TYPE>
 TYPE
 HierarchyVecCellDataOpsReal<TYPE>::maxPointwiseDivide(
-    const int numer_id,
-    const int denom_id,
-    bool local_only) const
+    const int /*numer_id*/,
+    const int /*denom_id*/,
+    bool /*local_only*/) const
 {
     TBOX_ERROR("HierarchyVecCellDataOpsReal<TYPE>::maxPointwiseDivide() unimplemented" << std::endl);
     return 0.0;
@@ -810,9 +810,9 @@ HierarchyVecCellDataOpsReal<TYPE>::maxPointwiseDivide(
 template<class TYPE>
 TYPE
 HierarchyVecCellDataOpsReal<TYPE>::minPointwiseDivide(
-    const int numer_id,
-    const int denom_id,
-    bool local_only) const
+    const int /*numer_id*/,
+    const int /*denom_id*/,
+    bool /*local_only*/) const
 {
     TBOX_ERROR("HierarchyVecCellDataOpsReal<TYPE>::minPointwiseDivide() unimplemented" << std::endl);
     return 0.0;

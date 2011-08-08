@@ -747,9 +747,15 @@ CPPFLAGS
 CCC
 CC
 CFLAGS
+LDFLAGS
+LIBS
+CPPFLAGS
 CXXCPP
+CPPFLAGS
 FC
-FCFLAGS'
+FCFLAGS
+LDFLAGS
+LIBS'
 
 
 # Initialize some variables set by options.

@@ -82,7 +82,7 @@ bool smooth_case = false;
 void
 PK1_stress_function(
     TensorValue<double>& PP,
-    const TensorValue<double>& dX_ds,
+    const TensorValue<double>& FF,
     const Point& /*X*/,
     const Point& /*s*/,
     Elem* const /*elem*/,
@@ -91,7 +91,7 @@ PK1_stress_function(
     const double& /*time*/,
     void* /*ctx*/)
 {
-    PP = (mu/w)*dX_ds;
+    PP = (mu/w)*FF;
     if (smooth_case)
     {
         PP(0,1) = 0.0;

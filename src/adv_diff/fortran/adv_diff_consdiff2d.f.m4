@@ -54,7 +54,6 @@ c
      &     qval)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Input.
 c
@@ -115,7 +114,8 @@ c
      &     qval)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
+      REAL fourth
+      parameter (fourth=0.25d0)
 c
 c     Input.
 c

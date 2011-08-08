@@ -846,7 +846,7 @@ private:
      * Determine the largest stable timestep on an individual patch level.
      */
     double
-    getLevelDt(
+    getStableTimestep(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx) const;
 
@@ -854,7 +854,7 @@ private:
      * Determine the largest stable timestep on an individual patch.
      */
     double
-    getPatchDt(
+    getStableTimestep(
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx) const;
 

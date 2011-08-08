@@ -54,7 +54,6 @@ c
      &     stabdt)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Input.
 c

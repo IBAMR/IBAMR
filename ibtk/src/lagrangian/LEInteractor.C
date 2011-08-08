@@ -840,7 +840,7 @@ LEInteractor::interpolate(
     // Interpolate.
     if (!local_indices.empty())
     {
-        interpolate(Q_data, Q_depth, X_data, X_depth,
+        interpolate(Q_data, Q_depth, X_data,
                     q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(),
                     x_lower, x_upper, dx,
                     patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
@@ -920,7 +920,7 @@ LEInteractor::interpolate(
             }
             x_lower_axis[axis] -= 0.5*dx[axis];
             x_upper_axis[axis] += 0.5*dx[axis];
-            interpolate(&Q_data_axis[0], 1, X_data, X_depth,
+            interpolate(&Q_data_axis[0], 1, X_data,
                         q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(), 1,
                         x_lower_axis.data(), x_upper_axis.data(), dx,
                         patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
@@ -998,7 +998,7 @@ LEInteractor::interpolate(
     // Interpolate.
     if (!local_indices.empty())
     {
-        interpolate(Q_data, Q_depth, X_data, X_depth,
+        interpolate(Q_data, Q_depth, X_data,
                     q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(),
                     x_lower, x_upper, dx,
                     patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
@@ -1095,7 +1095,7 @@ LEInteractor::interpolate(
             }
             x_lower_axis[axis] -= 0.5*dx[axis];
             x_upper_axis[axis] += 0.5*dx[axis];
-            interpolate(&Q_data_axis[0], 1, X_data, X_depth,
+            interpolate(&Q_data_axis[0], 1, X_data,
                         q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(), 1,
                         x_lower_axis.data(), x_upper_axis.data(), dx,
                         patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
@@ -1225,7 +1225,7 @@ LEInteractor::spread(
     if (!local_indices.empty())
     {
         spread(q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(),
-               Q_data, Q_depth, X_data, X_depth,
+               Q_data, Q_depth, X_data,
                x_lower, x_upper, dx,
                patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
                use_alt_one_sided_delta,
@@ -1308,7 +1308,7 @@ LEInteractor::spread(
                 Q_data_axis[local_indices[k]] = Q_data[NDIM*local_indices[k]+axis];
             }
             spread(q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(),axis), q_data->getGhostCellWidth(), 1,
-                   &Q_data_axis[0], 1, X_data, X_depth,
+                   &Q_data_axis[0], 1, X_data,
                    x_lower_axis.data(), x_upper_axis.data(), dx,
                    patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
                    use_alt_one_sided_delta,
@@ -1401,7 +1401,7 @@ LEInteractor::spread(
     if (!local_indices.empty())
     {
         spread(q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(),
-               Q_data, Q_depth, X_data, X_depth,
+               Q_data, Q_depth, X_data,
                x_lower, x_upper, dx,
                patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
                use_alt_one_sided_delta,
@@ -1415,7 +1415,7 @@ void
 LEInteractor::spread(
     Pointer<SideData<NDIM,double> > q_data,
     const double* const Q_data,
-    const int Q_size,
+    const int /*Q_size*/,
     const int Q_depth,
     const double* const X_data,
     const int X_size,
@@ -1481,7 +1481,7 @@ LEInteractor::spread(
                 Q_data_axis[local_indices[k]] = Q_data[NDIM*local_indices[k]+axis];
             }
             spread(q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(),axis), q_data->getGhostCellWidth(), 1,
-                   &Q_data_axis[0], 1, X_data, X_depth,
+                   &Q_data_axis[0], 1, X_data,
                    x_lower_axis.data(), x_upper_axis.data(), dx,
                    patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
                    use_alt_one_sided_delta,
@@ -1501,7 +1501,6 @@ LEInteractor::interpolate(
     double* const Q_data,
     const int Q_depth,
     const double* const X_data,
-    const int X_depth,
     const double* const q_data,
     const Box<NDIM>& q_data_box,
     const IntVector<NDIM>& q_gcw,
@@ -1786,7 +1785,6 @@ LEInteractor::spread(
     const double* const Q_data,
     const int Q_depth,
     const double* const X_data,
-    const int X_depth,
     const double* const x_lower,
     const double* const x_upper,
     const double* const dx,
@@ -2379,7 +2377,7 @@ LEInteractor::userDefinedInterpolate(
     const int* const q_gcw,
     const int q_depth,
     const double* const x_lower,
-    const double* const x_upper,
+    const double* const /*x_upper*/,
     const double* const dx,
     const int* const local_indices,
     const double* const X_shift,
@@ -2500,7 +2498,7 @@ LEInteractor::userDefinedSpread(
     const int* const q_gcw,
     const int q_depth,
     const double* const x_lower,
-    const double* const x_upper,
+    const double* const /*x_upper*/,
     const double* const dx,
     const double* const Q,
     const int Q_depth,

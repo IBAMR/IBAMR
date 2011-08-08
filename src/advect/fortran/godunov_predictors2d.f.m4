@@ -208,7 +208,6 @@ c
      &     qhalf0,qhalf1)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Input.
 c
@@ -332,7 +331,6 @@ c
      &     qhalf0,qhalf1)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Input.
 c
@@ -461,7 +459,6 @@ c
      &     qhalf0,qhalf1)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Input.
 c
@@ -522,7 +519,6 @@ c
      &     qhalf0)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Functions.
 c
@@ -557,12 +553,12 @@ c     Predict face centered values using a PLM (piecewise linear method)
 c     with unlimited second-order slopes.
 c
       do ic1 = ifirst1-1,ilast1+1
-         Qx = half*(Q(ifirst0-1+1,ic1)-Q(ifirst0-1-1,ic1))
+         Qx = 0.5d0*(Q(ifirst0-1+1,ic1)-Q(ifirst0-1-1,ic1))
          unorm = 0.5d0*(u0(ifirst0-1,ic1)+u0(ifirst0-1+1,ic1))
          do ic0 = ifirst0-1,ilast0
             qL = Q(ic0  ,ic1)
      &           + 0.5d0*(1.d0-unorm*dt/dx0)*Qx
-            Qx = half*(Q(ic0+1+1,ic1)-Q(ic0+1-1,ic1))
+            Qx = 0.5d0*(Q(ic0+1+1,ic1)-Q(ic0+1-1,ic1))
             unorm = 0.5d0*(u0(ic0+1,ic1)+u0(ic0+2,ic1))
             qR = Q(ic0+1,ic1)
      &           - 0.5d0*(1.d0+unorm*dt/dx0)*Qx
@@ -588,7 +584,6 @@ c
      &     qhalf0)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Functions.
 c
@@ -625,13 +620,13 @@ c     Predict face centered values using a PLM (piecewise linear method)
 c     with unlimited second-order slopes.
 c
       do ic1 = ifirst1-1,ilast1+1
-         Qx = half*(Q(ifirst0-1+1,ic1)-Q(ifirst0-1-1,ic1))
+         Qx = 0.5d0*(Q(ifirst0-1+1,ic1)-Q(ifirst0-1-1,ic1))
          unorm = 0.5d0*(u0(ifirst0-1,ic1)+u0(ifirst0-1+1,ic1))
          do ic0 = ifirst0-1,ilast0
             qL = Q(ic0  ,ic1)
      &           + 0.5d0*(1.d0-unorm*dt/dx0)*Qx
      &           + 0.5d0*dt*F(ic0  ,ic1)
-            Qx = half*(Q(ic0+1+1,ic1)-Q(ic0+1-1,ic1))
+            Qx = 0.5d0*(Q(ic0+1+1,ic1)-Q(ic0+1-1,ic1))
             unorm = 0.5d0*(u0(ic0+1,ic1)+u0(ic0+2,ic1))
             qR = Q(ic0+1,ic1)
      &           - 0.5d0*(1.d0+unorm*dt/dx0)*Qx
@@ -656,7 +651,9 @@ c
      &     qhalf0)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
+      REAL sixth,twothird
+      parameter (sixth=0.16666666666667d0)
+      parameter (twothird=0.66666666666667d0)
 c
 c     Functions.
 c
@@ -692,13 +689,13 @@ c     with unlimited fourth-order slopes.
 c
       do ic1 = ifirst1-1,ilast1+1
          Qx = twothird*(Q(ifirst0-1+1,ic1)-Q(ifirst0-1-1,ic1))
-     &        - sixth*half*(Q(ifirst0-1+2,ic1)-Q(ifirst0-1-2,ic1))
+     &        - sixth*0.5d0*(Q(ifirst0-1+2,ic1)-Q(ifirst0-1-2,ic1))
          unorm = 0.5d0*(u0(ifirst0-1,ic1)+u0(ifirst0-1+1,ic1))
          do ic0 = ifirst0-1,ilast0
             qL = Q(ic0  ,ic1)
      &           + 0.5d0*(1.d0-unorm*dt/dx0)*Qx
             Qx = twothird*(Q(ic0+1+1,ic1)-Q(ic0+1-1,ic1))
-     &           - sixth*half*(Q(ic0+1+2,ic1)-Q(ic0+1-2,ic1))
+     &           - sixth*0.5d0*(Q(ic0+1+2,ic1)-Q(ic0+1-2,ic1))
             unorm = 0.5d0*(u0(ic0+1,ic1)+u0(ic0+2,ic1))
             qR = Q(ic0+1,ic1)
      &           - 0.5d0*(1.d0+unorm*dt/dx0)*Qx
@@ -724,7 +721,9 @@ c
      &     qhalf0)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
+      REAL sixth,twothird
+      parameter (sixth=0.16666666666667d0)
+      parameter (twothird=0.66666666666667d0)
 c
 c     Functions.
 c
@@ -762,14 +761,14 @@ c     with unlimited fourth-order slopes.
 c
       do ic1 = ifirst1-1,ilast1+1
          Qx = twothird*(Q(ifirst0-1+1,ic1)-Q(ifirst0-1-1,ic1))
-     &        - sixth*half*(Q(ifirst0-1+2,ic1)-Q(ifirst0-1-2,ic1))
+     &        - sixth*0.5d0*(Q(ifirst0-1+2,ic1)-Q(ifirst0-1-2,ic1))
          unorm = 0.5d0*(u0(ifirst0-1,ic1)+u0(ifirst0-1+1,ic1))
          do ic0 = ifirst0-1,ilast0
             qL = Q(ic0  ,ic1)
      &           + 0.5d0*(1.d0-unorm*dt/dx0)*Qx
      &           + 0.5d0*dt*F(ic0  ,ic1)
             Qx = twothird*(Q(ic0+1+1,ic1)-Q(ic0+1-1,ic1))
-     &           - sixth*half*(Q(ic0+1+2,ic1)-Q(ic0+1-2,ic1))
+     &           - sixth*0.5d0*(Q(ic0+1+2,ic1)-Q(ic0+1-2,ic1))
             unorm = 0.5d0*(u0(ic0+1,ic1)+u0(ic0+2,ic1))
             qR = Q(ic0+1,ic1)
      &           - 0.5d0*(1.d0+unorm*dt/dx0)*Qx
@@ -794,7 +793,6 @@ c
      &     qhalf0)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Functions.
 c
@@ -875,7 +873,6 @@ c
      &     qhalf0)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Functions.
 c
@@ -958,7 +955,6 @@ c
      &     qhalf0)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Functions.
 c
@@ -1069,7 +1065,6 @@ c
      &     qhalf0)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Functions.
 c
@@ -1182,7 +1177,6 @@ c
      &     qhalf0)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Functions.
 c
@@ -1348,7 +1342,6 @@ c
      &     qhalf0)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Functions.
 c
@@ -1515,7 +1508,6 @@ c
      &     qhalf0)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Functions.
 c
@@ -1577,7 +1569,6 @@ c
      &     qhalf0)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Input.
 c

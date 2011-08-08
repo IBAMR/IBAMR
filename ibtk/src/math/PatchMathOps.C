@@ -1140,6 +1140,9 @@ PatchMathOps::curl(
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::curl():\n"
                << "  not implemented for NDIM != 3" << std::endl);
+    NULL_USE(dst);
+    NULL_USE(src);
+    NULL_USE(patch);
 #endif
 #if (NDIM == 3)
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -1313,6 +1316,9 @@ PatchMathOps::curl(
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::curl():\n"
                << "  not implemented for NDIM != 3" << std::endl);
+    NULL_USE(dst);
+    NULL_USE(src);
+    NULL_USE(patch);
 #endif
 #if (NDIM == 3)
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -3687,6 +3693,17 @@ PatchMathOps::vc_laplace(
 #if (NDIM == 3)
     TBOX_ERROR("PatchMathOps::vc_laplace():\n"
                << "  not presently implemented for NDIM = 3." << std::endl);
+    NULL_USE(dst);
+    NULL_USE(alpha);
+    NULL_USE(beta);
+    NULL_USE(coef);
+    NULL_USE(src1);
+    NULL_USE(gamma_in);
+    NULL_USE(src2_in);
+    NULL_USE(patch);
+    NULL_USE(l);
+    NULL_USE(m);
+    NULL_USE(n);
 #endif
     return;
 }// vc_laplace

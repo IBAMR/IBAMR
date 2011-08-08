@@ -368,7 +368,7 @@ INSStaggeredBlockFactorizationPreconditioner::deallocateSolverState()
 
 void
 INSStaggeredBlockFactorizationPreconditioner::setInitialGuessNonzero(
-    bool initial_guess_nonzero)
+    bool /*initial_guess_nonzero*/)
 {
     // intentionally blank
     return;
@@ -383,7 +383,7 @@ INSStaggeredBlockFactorizationPreconditioner::getInitialGuessNonzero() const
 
 void
 INSStaggeredBlockFactorizationPreconditioner::setMaxIterations(
-    int max_iterations)
+    int /*max_iterations*/)
 {
     // intentionally blank
     return;
@@ -398,7 +398,7 @@ INSStaggeredBlockFactorizationPreconditioner::getMaxIterations() const
 
 void
 INSStaggeredBlockFactorizationPreconditioner::setAbsoluteTolerance(
-    double abs_residual_tol)
+    double /*abs_residual_tol*/)
 {
     // intentionally blank
     return;
@@ -413,7 +413,7 @@ INSStaggeredBlockFactorizationPreconditioner::getAbsoluteTolerance() const
 
 void
 INSStaggeredBlockFactorizationPreconditioner::setRelativeTolerance(
-    double rel_residual_tol)
+    double /*rel_residual_tol*/)
 {
     // intentionally blank
     return;

@@ -722,12 +722,11 @@ GodunovAdvector::predictWithSourceTerm(
 void
 GodunovAdvector::getFromInput(
     Pointer<Database> db,
-    bool is_from_restart)
+    bool /*is_from_restart*/)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
 #endif
-    (void) is_from_restart;
 #if (NDIM == 3)
     d_using_full_ctu = db->getBoolWithDefault("using_full_ctu", d_using_full_ctu);
 #endif

@@ -653,7 +653,7 @@ INSStaggeredPPMConvectiveOperator::deallocateOperatorState()
 
 void
 INSStaggeredPPMConvectiveOperator::enableLogging(
-    bool enabled)
+    bool /*enabled*/)
 {
     // intentionally blank
     return;

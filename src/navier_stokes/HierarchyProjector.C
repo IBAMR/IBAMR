@@ -437,9 +437,9 @@ HierarchyProjector::projectHierarchy(
     const double time,
     const ProjectionMethodType& projection_type,
     const int u_idx,
-    const Pointer<FaceVariable<NDIM,double> >& u_var,
+    const Pointer<FaceVariable<NDIM,double> >& /*u_var*/,
     const int P_idx,
-    const Pointer<CellVariable<NDIM,double> >& P_var,
+    const Pointer<CellVariable<NDIM,double> >& /*P_var*/,
     const int Phi_idx,
     const Pointer<CellVariable<NDIM,double> >& Phi_var,
     const int grad_Phi_idx,
@@ -577,9 +577,9 @@ HierarchyProjector::projectHierarchy(
     const double time,
     const ProjectionMethodType& projection_type,
     const int u_idx,
-    const Pointer<SideVariable<NDIM,double> >& u_var,
+    const Pointer<SideVariable<NDIM,double> >& /*u_var*/,
     const int P_idx,
-    const Pointer<CellVariable<NDIM,double> >& P_var,
+    const Pointer<CellVariable<NDIM,double> >& /*P_var*/,
     const int Phi_idx,
     const Pointer<CellVariable<NDIM,double> >& Phi_var,
     const int grad_Phi_idx,
@@ -724,11 +724,11 @@ void
 HierarchyProjector::initializeLevelData(
     const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     const int level_number,
-    const double init_data_time,
-    const bool can_be_refined,
-    const bool initial_time,
+    const double /*init_data_time*/,
+    const bool /*can_be_refined*/,
+    const bool /*initial_time*/,
     const Pointer<BasePatchLevel<NDIM> > old_level,
-    const bool allocate_data)
+    const bool /*allocate_data*/)
 {
     IBAMR_TIMER_START(t_initialize_level_data);
 
@@ -870,12 +870,11 @@ HierarchyProjector::putToDatabase(
 void
 HierarchyProjector::getFromInput(
     Pointer<Database> db,
-    bool is_from_restart)
+    bool /*is_from_restart*/)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
 #endif
-    (void) is_from_restart;
     d_max_iterations = db->getIntegerWithDefault("max_iterations", d_max_iterations);
     d_abs_residual_tol = db->getDoubleWithDefault("abs_residual_tol", d_abs_residual_tol);
     d_rel_residual_tol = db->getDoubleWithDefault("rel_residual_tol", d_rel_residual_tol);

@@ -215,7 +215,7 @@ IBHDF5Initializer::~IBHDF5Initializer()
 bool
 IBHDF5Initializer::getLevelHasLagrangianData(
     const int level_number,
-    const bool can_be_refined) const
+    const bool /*can_be_refined*/) const
 {
     return !d_filenames[level_number].empty();
 }// getLevelHasLagrangianData
@@ -250,7 +250,7 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
     const double init_data_time,
     const bool can_be_refined,
     const bool initial_time,
-    LDataManager* const l_data_manager)
+    LDataManager* const /*l_data_manager*/)
 {
     if (!can_be_refined && level_number != d_max_levels-1)
     {
@@ -400,16 +400,16 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
 
 unsigned int
 IBHDF5Initializer::initializeMassDataOnPatchLevel(
-    const unsigned int global_index_offset,
-    const unsigned int local_index_offset,
-    Pointer<LData>& M_data,
-    Pointer<LData>& K_data,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
-    const int level_number,
-    const double init_data_time,
-    const bool can_be_refined,
-    const bool initial_time,
-    LDataManager* const l_data_manager)
+    const unsigned int /*global_index_offset*/,
+    const unsigned int /*local_index_offset*/,
+    Pointer<LData>& /*M_data*/,
+    Pointer<LData>& /*K_data*/,
+    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+    const int /*level_number*/,
+    const double /*init_data_time*/,
+    const bool /*can_be_refined*/,
+    const bool /*initial_time*/,
+    LDataManager* const /*l_data_manager*/)
 {
     TBOX_ERROR(d_object_name << "::initializeMassDataOnPatchLevel():\n  Not implemented.\n");
     int local_node_count = 0;
@@ -420,7 +420,7 @@ void
 IBHDF5Initializer::tagCellsForInitialRefinement(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
-    const double error_data_time,
+    const double /*error_data_time*/,
     const int tag_index)
 {
     Pointer<PatchLevel<NDIM> > tag_level = hierarchy->getPatchLevel(level_number);
@@ -656,9 +656,9 @@ void
 IBHDF5Initializer::buildLevelDataCache(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
-    const double init_data_time,
-    const bool can_be_refined,
-    const bool initial_time)
+    const double /*init_data_time*/,
+    const bool /*can_be_refined*/,
+    const bool /*initial_time*/)
 {
     if (d_cache_level_number != level_number)
     {
@@ -866,7 +866,7 @@ IBHDF5Initializer::buildLevelVertexDataCacheFromHDF5(
     const Pointer<PatchLevel<NDIM> > level,
     const std::string& filename,
     const int file_number,
-    const int num_files) const
+    const int /*num_files*/) const
 {
     num_vertex       = 0;
     num_local_vertex = 0;
@@ -1012,10 +1012,10 @@ IBHDF5Initializer::buildLevelSpringDataCacheFromHDF5(
     const std::set<int>& local_vertex_idx_set,
     const hid_t file_id,
     const std::string& base_group_name,
-    const Pointer<PatchLevel<NDIM> > level,
+    const Pointer<PatchLevel<NDIM> > /*level*/,
     const std::string& filename,
-    const int file_number,
-    const int num_files) const
+    const int /*file_number*/,
+    const int /*num_files*/) const
 {
     num_spring       = 0;
     num_local_spring = 0;
@@ -1251,10 +1251,10 @@ IBHDF5Initializer::buildLevelBeamDataCacheFromHDF5(
     const std::set<int>& local_vertex_idx_set,
     const hid_t file_id,
     const std::string& base_group_name,
-    const Pointer<PatchLevel<NDIM> > level,
+    const Pointer<PatchLevel<NDIM> > /*level*/,
     const std::string& filename,
-    const int file_number,
-    const int num_files) const
+    const int /*file_number*/,
+    const int /*num_files*/) const
 {
     num_beam       = 0;
     num_local_beam = 0;
@@ -1518,10 +1518,10 @@ IBHDF5Initializer::buildLevelTargetPointDataCacheFromHDF5(
     const std::set<int>& local_vertex_idx_set,
     const hid_t file_id,
     const std::string& base_group_name,
-    const Pointer<PatchLevel<NDIM> > level,
+    const Pointer<PatchLevel<NDIM> > /*level*/,
     const std::string& filename,
-    const int file_number,
-    const int num_files) const
+    const int /*file_number*/,
+    const int /*num_files*/) const
 {
     num_target_point       = 0;
     num_local_target_point = 0;
@@ -1697,10 +1697,10 @@ IBHDF5Initializer::buildLevelInstrumentationDataCacheFromHDF5(
     const std::set<int>& local_vertex_idx_set,
     const hid_t file_id,
     const std::string& base_group_name,
-    const Pointer<PatchLevel<NDIM> > level,
+    const Pointer<PatchLevel<NDIM> > /*level*/,
     const std::string& filename,
-    const int file_number,
-    const int num_files) const
+    const int /*file_number*/,
+    const int /*num_files*/) const
 {
     num_inst_point       = 0;
     num_local_inst_point = 0;

@@ -64,7 +64,7 @@ getIndexRange(
     int& i_lower,
     int& i_upper,
     const int data_idx,
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > data_var,
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > /*data_var*/,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     n_local = 0;
@@ -89,7 +89,7 @@ getIndexRange(
     int& i_lower,
     int& i_upper,
     const int data_idx,
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > data_var,
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > /*data_var*/,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     n_local = 0;
@@ -862,9 +862,6 @@ PETScMatUtilities::constructBoxLaplaceOp(
 
     // Setup the finite difference stencil.  The stencil order is chosen to try
     // to optimize performance when setting the matrix coefficients.
-    static const int x_axis = 0; (void) x_axis;
-    static const int y_axis = 1; (void) y_axis;
-    static const int z_axis = 2; (void) z_axis;
     blitz::TinyVector<int,NDIM> num_cells;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -872,6 +869,7 @@ PETScMatUtilities::constructBoxLaplaceOp(
     }
     std::vector<int> mat_stencil(stencil_sz);
 #if (NDIM == 2)
+    static const int x_axis = 0;
     mat_stencil[0] = -num_cells[x_axis]; // ylower
     mat_stencil[1] = -1;                 // xlower
     mat_stencil[2] = 0;
@@ -879,6 +877,8 @@ PETScMatUtilities::constructBoxLaplaceOp(
     mat_stencil[4] = +num_cells[x_axis]; // yupper
 #endif
 #if (NDIM == 3)
+    static const int x_axis = 0;
+    static const int y_axis = 1;
     mat_stencil[0] = -num_cells[x_axis]*num_cells[y_axis]; // zlower
     mat_stencil[1] = -num_cells[x_axis];                   // ylower
     mat_stencil[2] = -1;                                   // xlower

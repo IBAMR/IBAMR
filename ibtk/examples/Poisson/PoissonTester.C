@@ -94,8 +94,8 @@ PoissonTester::initializeLevelData(
     const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double init_data_time,
-    const bool can_be_refined,
-    const bool initial_time,
+    const bool /*can_be_refined*/,
+    const bool /*initial_time*/,
     const tbox::Pointer<hier::BasePatchLevel<NDIM> > old_level,
     const bool allocate_data)
 {

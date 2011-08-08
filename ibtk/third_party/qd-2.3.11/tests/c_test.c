@@ -7,7 +7,7 @@ int test_1() {
 
   double a[4], b[4], s[4], p[4], t[4], t2[4];
   double a_new[4], b_new[4], p_old[4];
-  double m, err;
+  double m;
   int r, i;
   const int max_iter = 20;
 

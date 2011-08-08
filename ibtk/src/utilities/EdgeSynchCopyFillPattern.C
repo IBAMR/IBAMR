@@ -73,7 +73,7 @@ Pointer<BoxOverlap<NDIM> >
 EdgeSynchCopyFillPattern::calculateOverlap(
     const BoxGeometry<NDIM>& dst_geometry,
     const BoxGeometry<NDIM>& src_geometry,
-    const Box<NDIM>& dst_patch_box,
+    const Box<NDIM>& /*dst_patch_box*/,
     const Box<NDIM>& src_mask,
     const bool overwrite_interior,
     const IntVector<NDIM>& src_offset) const

@@ -91,8 +91,8 @@ DiagonalScalingOperator::apply(
 
 void
 DiagonalScalingOperator::initializeOperatorState(
-    const SAMRAIVectorReal<NDIM,double>& x,
-    const SAMRAIVectorReal<NDIM,double>& y)
+    const SAMRAIVectorReal<NDIM,double>& /*x*/,
+    const SAMRAIVectorReal<NDIM,double>& /*y*/)
 {
     // intentionally blank
     return;
@@ -107,7 +107,7 @@ DiagonalScalingOperator::deallocateOperatorState()
 
 void
 DiagonalScalingOperator::enableLogging(
-    bool enabled)
+    bool /*enabled*/)
 {
     // intentionally blank
     return;

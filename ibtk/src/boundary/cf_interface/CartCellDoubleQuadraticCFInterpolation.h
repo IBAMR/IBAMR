@@ -244,14 +244,12 @@ private:
     postprocessRefine_expensive(
         SAMRAI::hier::Patch<NDIM>& fine,
         const SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::Box<NDIM>& fine_box,
         const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     void
     postprocessRefine_optimized(
         SAMRAI::hier::Patch<NDIM>& fine,
         const SAMRAI::hier::Patch<NDIM>& coarse,
-        const SAMRAI::hier::Box<NDIM>& fine_box,
         const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /*!
@@ -266,8 +264,7 @@ private:
     void
     computeNormalExtension_optimized(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const SAMRAI::hier::IntVector<NDIM>& ratio,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
+        const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /*!
      * The patch data indices corresponding to the "scratch" patch data that is

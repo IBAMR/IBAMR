@@ -452,7 +452,6 @@ private:
     adjustBoundaryRhsEntries_aligned(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> >& rhs_data,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::OutersideData<NDIM,double> >& D_data,
-        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_strategy,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& surface_boxes,
         const double* const dx);
@@ -465,7 +464,6 @@ private:
     adjustBoundaryRhsEntries_nonaligned(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> >& rhs_data,
         const SAMRAI::tbox::Pointer<SAMRAI::pdat::OutersideData<NDIM,double> >& D_data,
-        const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_strategy,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& surface_boxes,
         const double* const dx);

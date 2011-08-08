@@ -71,7 +71,7 @@ JacobianOperator::~JacobianOperator()
 
 void
 JacobianOperator::modifyRhsForInhomogeneousBc(
-    SAMRAIVectorReal<NDIM,double>& y)
+    SAMRAIVectorReal<NDIM,double>& /*y*/)
 {
     // intentionally blank
     return;

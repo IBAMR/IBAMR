@@ -111,11 +111,11 @@ QInit::~QInit()
 void
 QInit::setDataOnPatch(
     const int data_idx,
-    tbox::Pointer<hier::Variable<NDIM> > var,
+    tbox::Pointer<hier::Variable<NDIM> > /*var*/,
     tbox::Pointer<hier::Patch<NDIM> > patch,
     const double data_time,
-    const bool initial_time,
-    tbox::Pointer<hier::PatchLevel<NDIM> > level)
+    const bool /*initial_time*/,
+    tbox::Pointer<hier::PatchLevel<NDIM> > /*level*/)
 {
     tbox::Pointer< pdat::CellData<NDIM,double> > Q_data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS

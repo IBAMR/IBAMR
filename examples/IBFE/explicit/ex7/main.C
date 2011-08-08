@@ -100,11 +100,11 @@ PK1_stress_function(
         const int dof_index = elem->dof_number(fiber_axes_sys_num,d+0*NDIM,0);
         a0(d) = (*E_ghost)(dof_index);
     }
-    const TensorValue<double> A0 = outer_product(a0,a0);
-    const double I4 = CC.contract(A0);
+    const TensorValue<double> AA0 = outer_product(a0,a0);
+    const double I4 = CC.contract(AA0);
     if (I4 >= 1.0)
     {
-        PP += 2.0*k1*(I4-1)*exp(k2*(I4-1)*(I4-1))*FF*A0;
+        PP += 2.0*k1*(I4-1)*exp(k2*(I4-1)*(I4-1))*FF*AA0;
     }
 
     VectorValue<double> b0;
@@ -113,11 +113,11 @@ PK1_stress_function(
         const int dof_index = elem->dof_number(fiber_axes_sys_num,d+1*NDIM,0);
         b0(d) = (*E_ghost)(dof_index);
     }
-    const TensorValue<double> B0 = outer_product(b0,b0);
-    const double I6 = CC.contract(B0);
+    const TensorValue<double> BB0 = outer_product(b0,b0);
+    const double I6 = CC.contract(BB0);
     if (I6 >= 1.0)
     {
-        PP += 2.0*k1*(I6-1)*exp(k2*(I6-1)*(I6-1))*FF*B0;
+        PP += 2.0*k1*(I6-1)*exp(k2*(I6-1)*(I6-1))*FF*BB0;
     }
     return;
 }// PK1_stress_function
@@ -132,7 +132,7 @@ int X_sys_num = -1;
 void
 surface_force_function(
     VectorValue<double>& F,
-    const TensorValue<double>& /*dX_ds*/,
+    const TensorValue<double>& /*FF*/,
     const Point& X,
     const Point& s,
     Elem* const elem,

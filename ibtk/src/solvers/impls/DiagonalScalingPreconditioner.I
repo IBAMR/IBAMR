@@ -45,7 +45,7 @@ namespace IBTK
 
 inline void
 DiagonalScalingPreconditioner::setInitialGuessNonzero(
-    bool initial_guess_nonzero)
+    bool /*initial_guess_nonzero*/)
 {
     //TBOX_WARNING("DiagonalScalingPreconditioner::setInitialGuessNonzero() not supported" << std::endl);
     return;
@@ -60,7 +60,7 @@ DiagonalScalingPreconditioner::getInitialGuessNonzero() const
 
 inline void
 DiagonalScalingPreconditioner::setMaxIterations(
-    int max_iterations)
+    int /*max_iterations*/)
 {
     //TBOX_WARNING("DiagonalScalingPreconditioner::setMaxIterations() not supported" << std::endl);
     return;
@@ -75,7 +75,7 @@ DiagonalScalingPreconditioner::getMaxIterations() const
 
 inline void
 DiagonalScalingPreconditioner::setAbsoluteTolerance(
-    double abs_residual_tol)
+    double /*abs_residual_tol*/)
 {
     //TBOX_WARNING("DiagonalScalingPreconditioner::setAbsoluteTolerance() not supported" << std::endl);
     return;
@@ -90,7 +90,7 @@ DiagonalScalingPreconditioner::getAbsoluteTolerance() const
 
 inline void
 DiagonalScalingPreconditioner::setRelativeTolerance(
-    double rel_residual_tol)
+    double /*rel_residual_tol*/)
 {
     //TBOX_WARNING("DiagonalScalingPreconditioner::setRelativeTolerance() not supported" << std::endl);
     return;
@@ -119,7 +119,7 @@ DiagonalScalingPreconditioner::getResidualNorm() const
 
 inline void
 DiagonalScalingPreconditioner::enableLogging(
-    bool enabled)
+    bool /*enabled*/)
 {
     //TBOX_WARNING("DiagonalScalingPreconditioner::enableLogging() not supported" << std::endl);
     return;

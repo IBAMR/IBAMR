@@ -432,11 +432,8 @@ private:
     void
     adjustBoundaryRhsEntries_constant_coefficients(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> >& rhs_data,
-        const double D,
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
-        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim1_boxes,
-        const double* const dx);
+        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim1_boxes);
 
     /*!
      * \brief Object name.

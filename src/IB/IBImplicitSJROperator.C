@@ -283,7 +283,7 @@ IBImplicitSJROperator::apply(
 void
 IBImplicitSJROperator::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& in,
-    const SAMRAIVectorReal<NDIM,double>& out)
+    const SAMRAIVectorReal<NDIM,double>& /*out*/)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -360,7 +360,7 @@ IBImplicitSJROperator::deallocateOperatorState()
 
 void
 IBImplicitSJROperator::enableLogging(
-    bool enabled)
+    bool /*enabled*/)
 {
     // intentionally blank
     return;

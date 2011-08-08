@@ -261,7 +261,7 @@ INSStaggeredStokesOperator::apply(
 void
 INSStaggeredStokesOperator::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& in,
-    const SAMRAIVectorReal<NDIM,double>& out)
+    const SAMRAIVectorReal<NDIM,double>& /*out*/)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -307,7 +307,7 @@ INSStaggeredStokesOperator::deallocateOperatorState()
 
 void
 INSStaggeredStokesOperator::enableLogging(
-    bool enabled)
+    bool /*enabled*/)
 {
     // intentionally blank
     return;

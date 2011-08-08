@@ -582,7 +582,7 @@ PETScKrylovLinearSolver::resetKSPPC()
         int ierr;
 
         // Determine the preconditioner type to use.
-        size_t len = 255;
+        static const size_t len = 255;
         char pc_type_str[len];
         PetscTruth flg;
         ierr = PetscOptionsGetString(d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);  IBTK_CHKERRQ(ierr);

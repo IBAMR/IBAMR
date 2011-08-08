@@ -84,7 +84,7 @@ VelocityBcCoefs::setBcCoefs(
     tbox::Pointer<pdat::ArrayData<NDIM,double> >& acoef_data,
     tbox::Pointer<pdat::ArrayData<NDIM,double> >& bcoef_data,
     tbox::Pointer<pdat::ArrayData<NDIM,double> >& gcoef_data,
-    const tbox::Pointer<hier::Variable<NDIM> >& variable,
+    const tbox::Pointer<hier::Variable<NDIM> >& /*variable*/,
     const hier::Patch<NDIM>& patch,
     const hier::BoundaryBox<NDIM>& bdry_box,
     double fill_time) const

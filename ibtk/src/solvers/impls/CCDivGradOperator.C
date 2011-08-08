@@ -133,7 +133,7 @@ CCDivGradOperator::setHierarchyMathOps(
 
 void
 CCDivGradOperator::modifyRhsForInhomogeneousBc(
-    SAMRAIVectorReal<NDIM,double>& y)
+    SAMRAIVectorReal<NDIM,double>& /*y*/)
 {
     // intentionally blank
     return;
@@ -344,7 +344,7 @@ CCDivGradOperator::deallocateOperatorState()
 
 void
 CCDivGradOperator::enableLogging(
-    bool enabled)
+    bool /*enabled*/)
 {
     TBOX_WARNING("CCDivGradOperator::enableLogging() not supported" << std::endl);
     return;

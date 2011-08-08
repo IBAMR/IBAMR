@@ -109,9 +109,8 @@ LIndexSetDataFactory<T>::allocate(
 template<class T>
 size_t
 LIndexSetDataFactory<T>::getSizeOfMemory(
-    const Box<NDIM>& box) const
+    const Box<NDIM>& /*box*/) const
 {
-    (void) box;
     return Arena::align(sizeof(LIndexSetData<T>));
 }// getSizeOfMemory
 

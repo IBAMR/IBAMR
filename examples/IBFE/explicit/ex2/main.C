@@ -35,8 +35,11 @@
 #include <petsc.h>
 
 // Headers for basic libMesh objects
+#include <../base/variable.h>
 #include <boundary_info.h>
 #include <exodusII_io.h>
+#include <explicit_system.h>
+#include <fe.h>
 #include <mesh.h>
 #include <mesh_generation.h>
 #include <quadrature.h>
@@ -63,20 +66,32 @@ namespace ModelData
 static const double mu = 10.0;
 
 // Stress tensor function.
+unsigned int FF0_sys_num;
 void
 PK1_stress_function(
     TensorValue<double>& PP,
-    const TensorValue<double>& dX_ds,
+    const TensorValue<double>& FF1,
     const Point& /*X*/,
     const Point& /*s*/,
-    Elem* const /*elem*/,
+    Elem* const elem,
     NumericVector<double>& /*X_vec*/,
-    const std::vector<NumericVector<double>*>& /*system_data*/,
+    const vector<NumericVector<double>*>& system_data,
     const double& /*time*/,
     void* /*ctx*/)
 {
-    static const TensorValue<double> I(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);
-    PP = mu*(dX_ds-I);
+    const NumericVector<double>& FF0_vec = *system_data[0];
+    TensorValue<double> FF0(1.0 , 0.0 , 0.0,
+                            0.0 , 1.0 , 0.0,
+                            0.0 , 0.0 , 1.0);
+    for (unsigned int i = 0; i < NDIM; ++i)
+    {
+        for (unsigned int j = 0; j < NDIM; ++j)
+        {
+            FF0(i,j) = FF0_vec(elem->dof_number(FF0_sys_num,i*NDIM+j,0));
+        }
+    }
+    const TensorValue<double> FF = FF1*FF0;
+    PP = mu*(FF-tensor_inverse_transpose(FF,NDIM));
     return;
 }// PK1_stress_function
 }
@@ -128,6 +143,107 @@ dump_hier_data(
 }// dump_hier_data
 }
 using namespace Postprocessing;
+
+namespace InverseMapping
+{
+void
+update_inverse_mapping(
+    EquationSystems& equation_systems)
+{
+    // Update an initial deformation gradient to attempt to maintain the initial
+    // configuration of the material.
+    const MeshBase& mesh = equation_systems.get_mesh();
+    const int dim = mesh.mesh_dimension();
+    AutoPtr<QBase> qrule = QBase::build(QGAUSS, dim, CONSTANT);
+
+    // Extract the FE systems and DOF maps, and setup the FE objects.
+    System& FF0_system = equation_systems.get_system("FF0");
+    NumericVector<double>& FF0_vec = *FF0_system.solution;
+
+    System& X_system = equation_systems.get_system(IBFEHierarchyIntegrator::COORDS_SYSTEM_NAME);
+    NumericVector<double>& X_vec = *X_system.current_local_solution;
+    const DofMap& dof_map = X_system.get_dof_map();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
+#endif
+    blitz::Array<vector<unsigned int>,1> dof_indices(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) dof_indices(d).reserve(27);
+    AutoPtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
+    fe->attach_quadrature_rule(qrule.get());
+    const vector<vector<VectorValue<double> > >& dphi = fe->get_dphi();
+
+    // Update the deformation mapping.
+    TensorValue<double> FF;
+    blitz::Array<double,2> X_node;
+    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+    const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
+    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    {
+        Elem* const elem = *el_it;
+        fe->reinit(elem);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            dof_map.dof_indices(elem, dof_indices(d), d);
+        }
+        const unsigned int n_qp = qrule->n_points();
+        TBOX_ASSERT(n_qp == 1);
+        get_values_for_interpolation(X_node, X_vec, dof_indices);
+        jacobian(FF,0,X_node,dphi);
+        TensorValue<double> FF0(1.0 , 0.0 , 0.0,
+                                0.0 , 1.0 , 0.0,
+                                0.0 , 0.0 , 1.0);
+        for (unsigned int i = 0; i < NDIM; ++i)
+        {
+            for (unsigned int j = 0; j < NDIM; ++j)
+            {
+                FF0(i,j) = FF0_vec(elem->dof_number(FF0_sys_num,i*NDIM+j,0));
+            }
+        }
+        FF0 = FF0*make_incompressible_tensor(tensor_inverse(FF,dim),dim);
+        for (unsigned int i = 0; i < NDIM; ++i)
+        {
+            for (unsigned int j = 0; j < NDIM; ++j)
+            {
+                const int dof_index = elem->dof_number(FF0_sys_num,i*NDIM+j,0);
+                FF0_vec.set(dof_index, FF0(i,j));
+            }
+        }
+    }
+    FF0_vec.close();
+    FF0_vec.localize(*FF0_system.current_local_solution);
+    return;
+}// update_inverse_mapping
+
+void
+reset_coordinates(
+    EquationSystems& equation_systems)
+{
+    // Reset the deformed coordinates to correspond to the initial coordinates.
+    MeshBase& mesh = equation_systems.get_mesh();
+    System& X_system = equation_systems.get_system(IBFEHierarchyIntegrator::COORDS_SYSTEM_NAME);
+    const unsigned int X_sys_num = X_system.number();
+    NumericVector<double>& X_coords = *X_system.solution;
+    for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+    {
+        Node* n = *it;
+        if (n->n_vars(X_sys_num) > 0)
+        {
+            libmesh_assert(n->n_vars(X_sys_num) == NDIM);
+            const Point& s = *n;
+            Point X = s;
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                const int dof_index = n->dof_number(X_sys_num,d,0);
+                X_coords.set(dof_index,s(d));
+            }
+        }
+    }
+    X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_coords);
+    X_coords.close();
+    return;
+}// reset_coordinates
+}
+using namespace InverseMapping;
 
 int
 main(
@@ -214,6 +330,19 @@ main(
     const int mesh_level_number = input_db->getInteger("MAX_LEVELS")-1;
     EquationSystems equation_systems(mesh);
     fe_data_manager->setEquationSystems(&equation_systems, mesh_level_number);
+
+    // Build an equation systems that stores the initial deformation tensor.
+    ExplicitSystem& FF0_system = equation_systems.add_system<ExplicitSystem>("FF0");
+    FF0_sys_num = FF0_system.number();
+    for (unsigned int i = 0; i < NDIM; ++i)
+    {
+        for (unsigned int j = 0; j < NDIM; ++j)
+        {
+            ostringstream os;
+            os << "FF0_" << i << j;
+            FF0_system.add_variable(os.str(), CONSTANT, MONOMIAL);
+        }
+    }
 
     // Process "Main" section of the input database.
     Pointer<Database> main_db = input_db->getDatabase("Main");
@@ -363,7 +492,9 @@ main(
         "GriddingAlgorithm", input_db->getDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
     // Configure the IBFE solver.
-    time_integrator->registerPK1StressTensorFunction(&PK1_stress_function);
+    vector<unsigned int> PK1_stress_function_systems;
+    PK1_stress_function_systems.push_back(FF0_sys_num);
+    time_integrator->registerPK1StressTensorFunction(&PK1_stress_function, PK1_stress_function_systems);
     if (use_nonuniform_load_balancer)
     {
         time_integrator->registerLoadBalancer(load_balancer);
@@ -429,6 +560,25 @@ main(
     // Close the restart manager.
     RestartManager::getManager()->closeRestartFile();
 
+    // Initialize the residual deformation tensor to equal the identity matrix.
+    NumericVector<double>& FF0_vec = *FF0_system.solution;
+    MeshBase::element_iterator elements_begin = mesh.elements_begin();
+    MeshBase::element_iterator elements_end   = mesh.elements_end();
+    for (MeshBase::element_iterator it = elements_begin; it != elements_end; ++it)
+    {
+        Elem* elem = *it;
+        for (unsigned int i = 0; i < NDIM; ++i)
+        {
+            for (unsigned int j = 0; j < NDIM; ++j)
+            {
+                const int dof_index = elem->dof_number(FF0_sys_num,i*NDIM+j,0);
+                FF0_vec.set(dof_index, (i == j ? 1.0 : 0.0));
+            }
+        }
+    }
+    FF0_vec.close();
+    FF0_vec.localize(*FF0_system.current_local_solution);
+
     // Print the input database contents to the log file.
     plog << "Input database:" << endl;
     input_db->printClassData(plog);
@@ -480,6 +630,23 @@ main(
         pout << "Simulation time is " << loop_time                 << endl;
 
         double dt_new = time_integrator->advanceHierarchy(dt_now);
+
+        if (equation_systems.get_system(IBFEHierarchyIntegrator::VELOCITY_SYSTEM_NAME).solution->l2_norm() < 1.0e-5)
+        {
+            pout << "UPDATING INVERSE MAPPING!\n";
+            update_inverse_mapping(equation_systems);
+#if 0
+            reset_coordinates(equation_systems);
+            const Pointer<SideVariable<NDIM,double> > u_var = navier_stokes_integrator->getVelocityVar();
+            const Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
+            const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
+            const int coarsest_ln = 0;
+            const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+            HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+            hier_sc_data_ops.setToScalar(u_idx, 0.0);
+#endif
+        }
+
         loop_time += dt_now;
         dt_now = dt_new;
 

@@ -68,7 +68,6 @@
 
 #include <ibtk/CCPoissonFACOperator.h>
 #include <ibtk/CCLaplaceOperator.h>
-#include <ibtk/CCLaplaceOperator2.h>
 #include <ibtk/FACPreconditioner.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/NormOps.h>
@@ -341,18 +340,8 @@ main(
             new solv::LocationIndexRobinBcCoefs<NDIM>(
                 "bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs"));
 
-        tbox::Pointer<LinearOperator> laplace_op;
-        const bool use_fortran_kernels = input_db->getBoolWithDefault("use_fortran_kernels",true);
-        if (use_fortran_kernels)
-        {
-            laplace_op = new CCLaplaceOperator(
-                "laplace_op", poisson_spec, physical_bc_coef, homogeneous_bc);
-        }
-        else
-        {
-            laplace_op = new CCLaplaceOperator2(
-                "laplace_op", poisson_spec, physical_bc_coef, homogeneous_bc);
-        }
+        tbox::Pointer<LinearOperator> laplace_op = new CCLaplaceOperator(
+            "laplace_op", poisson_spec, physical_bc_coef, homogeneous_bc);
 
         tbox::Pointer<PETScKrylovLinearSolver> petsc_linear_solver =
             new PETScKrylovLinearSolver("petsc_linear_solver");

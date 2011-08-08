@@ -79,7 +79,7 @@ Pointer<BoxOverlap<NDIM> >
 CellNoCornersFillPattern::calculateOverlap(
     const BoxGeometry<NDIM>& dst_geometry,
     const BoxGeometry<NDIM>& src_geometry,
-    const Box<NDIM>& dst_patch_box,
+    const Box<NDIM>& /*dst_patch_box*/,
     const Box<NDIM>& src_mask,
     const bool overwrite_interior,
     const IntVector<NDIM>& src_offset) const
@@ -152,7 +152,7 @@ CellNoCornersFillPattern::calculateOverlap(
     const bool overwrite_interior,
     const IntVector<NDIM>& src_offset,
     const int dst_level_num,
-    const int src_level_num) const
+    const int /*src_level_num*/) const
 {
     Pointer<CellOverlap<NDIM> > box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);

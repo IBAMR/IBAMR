@@ -801,6 +801,45 @@ outer_product(
     return;
 }// outer_product
 
+inline void
+make_incompressible_tensor(
+    libMesh::TensorValue<double>& A,
+    const int dim)
+{
+    const double det_A = A.det();
+    const double alpha = pow(1.0/det_A,1.0/static_cast<double>(dim));
+    A *= alpha;
+    if (dim == 2)
+    {
+        A(0,2) = 0.0;
+        A(1,2) = 0.0;
+        A(2,0) = 0.0;
+        A(2,1) = 0.0;
+        A(2,2) = 1.0;
+    }
+    return;
+}// make_incompressible_tensor
+
+inline libMesh::TensorValue<double>
+make_incompressible_tensor(
+    const libMesh::TensorValue<double>& A,
+    const int dim)
+{
+    libMesh::TensorValue<double> A_incompressible = A;
+    const double det_A = A_incompressible.det();
+    const double alpha = pow(1.0/det_A,1.0/static_cast<double>(dim));
+    A_incompressible *= alpha;
+    if (dim == 2)
+    {
+        A_incompressible(0,2) = 0.0;
+        A_incompressible(1,2) = 0.0;
+        A_incompressible(2,0) = 0.0;
+        A_incompressible(2,1) = 0.0;
+        A_incompressible(2,2) = 1.0;
+    }
+    return A_incompressible;
+}// make_incompressible_tensor
+
 inline libMesh::TensorValue<double>
 outer_product(
     const libMesh::TypeVector<double>& u,

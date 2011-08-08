@@ -67,6 +67,8 @@
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CartExtrapPhysBdryOp.h>
 
+#include <blitz/array.h>
+
 using namespace SAMRAI;
 using namespace IBTK;
 using namespace std;

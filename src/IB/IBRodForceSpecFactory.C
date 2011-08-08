@@ -90,7 +90,7 @@ IBRodForceSpecFactory::setStreamableClassID(
 Pointer<Streamable>
 IBRodForceSpecFactory::unpackStream(
     AbstractStream& stream,
-    const IntVector<NDIM>& offset)
+    const IntVector<NDIM>& /*offset*/)
 {
     int num_rods;
     stream.unpack(&num_rods,1);

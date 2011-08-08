@@ -145,10 +145,10 @@ CartSideDoubleDivPreservingRefine::getRefineOpStencilWidth() const
 
 void
 CartSideDoubleDivPreservingRefine::preprocessRefine(
-    Patch<NDIM>& fine,
-    const Patch<NDIM>& coarse,
-    const Box<NDIM>& fine_box,
-    const IntVector<NDIM>& ratio)
+    Patch<NDIM>& /*fine*/,
+    const Patch<NDIM>& /*coarse*/,
+    const Box<NDIM>& /*fine_box*/,
+    const IntVector<NDIM>& /*ratio*/)
 {
     // intentionally blank
     return;

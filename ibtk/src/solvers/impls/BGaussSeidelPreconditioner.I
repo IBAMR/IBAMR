@@ -115,7 +115,7 @@ BGaussSeidelPreconditioner::getResidualNorm() const
 
 inline void
 BGaussSeidelPreconditioner::enableLogging(
-    bool enabled)
+    bool /*enabled*/)
 {
     TBOX_WARNING("BGaussSeidelPreconditioner::enableLogging() not supported" << std::endl);
     return;

@@ -190,7 +190,7 @@ INSStaggeredVCStokesOperator::modifyRhsForInhomogeneousBc(
 
 void
 INSStaggeredVCStokesOperator::apply(
-    const bool homogeneous_bc,
+    const bool /*homogeneous_bc*/,
     SAMRAIVectorReal<NDIM,double>& x,
     SAMRAIVectorReal<NDIM,double>& y)
 {
@@ -280,7 +280,7 @@ INSStaggeredVCStokesOperator::apply(
 void
 INSStaggeredVCStokesOperator::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& in,
-    const SAMRAIVectorReal<NDIM,double>& out)
+    const SAMRAIVectorReal<NDIM,double>& /*out*/)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -326,7 +326,7 @@ INSStaggeredVCStokesOperator::deallocateOperatorState()
 
 void
 INSStaggeredVCStokesOperator::enableLogging(
-    bool enabled)
+    bool /*enabled*/)
 {
     // intentionally blank
     return;

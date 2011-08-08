@@ -90,7 +90,7 @@ IBSpringForceSpecFactory::setStreamableClassID(
 Pointer<Streamable>
 IBSpringForceSpecFactory::unpackStream(
     AbstractStream& stream,
-    const IntVector<NDIM>& offset)
+    const IntVector<NDIM>& /*offset*/)
 {
     int num_springs;
     stream.unpack(&num_springs,1);

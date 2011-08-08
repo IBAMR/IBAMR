@@ -162,9 +162,9 @@ AdvDiffHypPatchOps::getName() const
 void
 AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
     Patch<NDIM>& patch,
-    const double time,
+    const double /*time*/,
     const double dt,
-    bool at_synchronization)
+    bool /*at_synchronization*/)
 {
     const Box<NDIM>& patch_box = patch.getBox();
     const Index<NDIM>& ilower = patch_box.lower();
@@ -308,10 +308,10 @@ void
 AdvDiffHypPatchOps::preprocessAdvanceLevelState(
     const Pointer<PatchLevel<NDIM> >& level,
     double current_time,
-    double dt,
-    bool first_step,
-    bool last_step,
-    bool regrid_advance)
+    double /*dt*/,
+    bool /*first_step*/,
+    bool /*last_step*/,
+    bool /*regrid_advance*/)
 {
     if (!d_compute_init_velocity) return;
 
@@ -335,9 +335,9 @@ AdvDiffHypPatchOps::postprocessAdvanceLevelState(
     const Pointer<PatchLevel<NDIM> >& level,
     double current_time,
     double dt,
-    bool first_step,
-    bool last_step,
-    bool regrid_advance)
+    bool /*first_step*/,
+    bool /*last_step*/,
+    bool /*regrid_advance*/)
 {
     if (!d_compute_final_velocity) return;
 

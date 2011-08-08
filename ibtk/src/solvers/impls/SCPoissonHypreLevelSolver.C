@@ -1086,7 +1086,6 @@ SCPoissonHypreLevelSolver::solveSystem(
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-        const double* const dx = pgeom->getDx();
 
         // Copy the solution data into the hypre vector, including ghost cell
         // values
@@ -1109,9 +1108,7 @@ SCPoissonHypreLevelSolver::solveSystem(
 
             if (d_constant_coefficients)
             {
-                const double D = d_poisson_spec.getDConstant();
-                adjustBoundaryRhsEntries_constant_coefficients(
-                    b_data, D, d_bc_coefs, patch, physical_codim1_boxes, dx);
+                adjustBoundaryRhsEntries_constant_coefficients(b_data, patch, physical_codim1_boxes);
             }
             else
             {
@@ -1328,11 +1325,8 @@ SCPoissonHypreLevelSolver::deallocateHypreData()
 void
 SCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_constant_coefficients(
     Pointer<SideData<NDIM,double> >& rhs_data,
-    const double D,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const Pointer<Patch<NDIM> >& patch,
-    const Array<BoundaryBox<NDIM> >& physical_codim1_boxes,
-    const double* const dx)
+    const Array<BoundaryBox<NDIM> >& physical_codim1_boxes)
 {
     static const IntVector<NDIM> gcw_to_fill = 1;
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();

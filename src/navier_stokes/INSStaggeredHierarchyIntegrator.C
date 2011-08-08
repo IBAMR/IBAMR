@@ -870,7 +870,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     pc_shell_types[3] = "none";
     d_stokes_solver->setValidPCShellTypes(pc_shell_types);
 
-    size_t len = 255;
+    static const size_t len = 255;
     char stokes_pc_type_str[len];
     ierr = PetscOptionsGetString("stokes_", "-pc_type", stokes_pc_type_str, len, &flg);  IBTK_CHKERRQ(ierr);
     std::string stokes_pc_type = "shell";
@@ -1254,7 +1254,7 @@ INSStaggeredHierarchyIntegrator::getStableTimestep(
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        dt_next = std::min(d_cfl*getLevelDt(level,ctx),dt_next);
+        dt_next = std::min(d_cfl*getStableTimestep(level,ctx),dt_next);
     }
 
     if (d_integrator_time+dt_next >= d_end_time)
@@ -3049,7 +3049,7 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers(
 }// initializeOperatorsAndSolvers
 
 double
-INSStaggeredHierarchyIntegrator::getLevelDt(
+INSStaggeredHierarchyIntegrator::getStableTimestep(
     Pointer<PatchLevel<NDIM> > level,
     Pointer<VariableContext> ctx) const
 {
@@ -3057,14 +3057,14 @@ INSStaggeredHierarchyIntegrator::getLevelDt(
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        stable_dt = std::min(stable_dt,getPatchDt(patch,ctx));
+        stable_dt = std::min(stable_dt,getStableTimestep(patch,ctx));
     }
     stable_dt = SAMRAI_MPI::minReduction(stable_dt);
     return stable_dt;
-}// getLevelDt
+}// getStableTimestep
 
 double
-INSStaggeredHierarchyIntegrator::getPatchDt(
+INSStaggeredHierarchyIntegrator::getStableTimestep(
     Pointer<Patch<NDIM> > patch,
     Pointer<VariableContext> ctx) const
 {
@@ -3095,7 +3095,7 @@ INSStaggeredHierarchyIntegrator::getPatchDt(
 #endif
                                  );
     return stable_dt;
-}// getPatchDt
+}// getStableTimestep
 
 void
 INSStaggeredHierarchyIntegrator::computeDivSourceTerm(

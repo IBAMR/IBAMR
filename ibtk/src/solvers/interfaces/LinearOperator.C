@@ -77,7 +77,7 @@ LinearOperator::isSymmetric() const
 
 void
 LinearOperator::modifyRhsForInhomogeneousBc(
-    SAMRAIVectorReal<NDIM,double>& y)
+    SAMRAIVectorReal<NDIM,double>& /*y*/)
 {
     TBOX_WARNING("LinearOperator::modifyRhsForInhomogeneousBc() not implemented for this operator" << std::endl);
     return;
@@ -136,11 +136,9 @@ LinearOperator::applyAdjointAdd(
 
 void
 LinearOperator::initializeOperatorState(
-    const SAMRAIVectorReal<NDIM,double>& in,
-    const SAMRAIVectorReal<NDIM,double>& out)
+    const SAMRAIVectorReal<NDIM,double>& /*in*/,
+    const SAMRAIVectorReal<NDIM,double>& /*out*/)
 {
-    (void) in;
-    (void) out;
     // intentionally blank
     return;
 }// initializeOperatorState

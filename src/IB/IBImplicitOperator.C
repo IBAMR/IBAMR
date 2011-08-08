@@ -175,7 +175,7 @@ IBImplicitOperator::deallocateOperatorState()
 
 void
 IBImplicitOperator::enableLogging(
-    bool enabled)
+    bool /*enabled*/)
 {
     // intentionally blank
     return;

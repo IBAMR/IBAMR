@@ -223,7 +223,7 @@ PETScMFFDJacobianOperator::deallocateOperatorState()
 
 void
 PETScMFFDJacobianOperator::enableLogging(
-    bool enabled)
+    bool /*enabled*/)
 {
     // intentionally blank
     return;

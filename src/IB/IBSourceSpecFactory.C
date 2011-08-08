@@ -90,7 +90,7 @@ IBSourceSpecFactory::setStreamableClassID(
 Pointer<Streamable>
 IBSourceSpecFactory::unpackStream(
     AbstractStream& stream,
-    const IntVector<NDIM>& offset)
+    const IntVector<NDIM>& /*offset*/)
 {
     Pointer<IBSourceSpec> ret_val = new IBSourceSpec();
     stream.unpack(&ret_val->d_master_idx,1);

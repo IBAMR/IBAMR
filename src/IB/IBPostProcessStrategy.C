@@ -69,11 +69,11 @@ IBPostProcessStrategy::~IBPostProcessStrategy()
 
 void
 IBPostProcessStrategy::initializeLevelData(
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
-    const int level_number,
-    const double init_data_time,
-    const bool initial_time,
-    LDataManager* const l_data_manager)
+    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+    const int /*level_number*/,
+    const double /*init_data_time*/,
+    const bool /*initial_time*/,
+    LDataManager* const /*l_data_manager*/)
 {
     // intentionally blank
     return;

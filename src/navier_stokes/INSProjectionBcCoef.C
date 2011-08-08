@@ -226,7 +226,7 @@ INSProjectionBcCoef::setVelocityPhysicalBcCoefs(
 
 void
 INSProjectionBcCoef::setTargetPatchDataIndex(
-    const int target_idx)
+    const int /*target_idx*/)
 {
     // intentionally blank
     return;

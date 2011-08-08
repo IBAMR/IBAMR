@@ -237,8 +237,8 @@ void
 IBKirchhoffRodForceGen::initializeLevelData(
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
-    const double init_data_time,
-    const bool initial_time,
+    const double /*init_data_time*/,
+    const bool /*initial_time*/,
     LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
@@ -248,9 +248,6 @@ IBKirchhoffRodForceGen::initializeLevelData(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
 #endif
-    (void) init_data_time;
-    (void) initial_time;
-
     int ierr;
 
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -429,10 +426,10 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     Pointer<LData> N_data,
     Pointer<LData> X_data,
     Pointer<LData> D_data,
-    Pointer<LData> U_data,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    Pointer<LData> /*U_data*/,
+    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     const int level_number,
-    const double data_time,
+    const double /*data_time*/,
     LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;

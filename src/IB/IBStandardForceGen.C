@@ -213,9 +213,6 @@ IBStandardForceGen::initializeLevelData(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
 #endif
-    (void) init_data_time;
-    (void) initial_time;
-
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
     // Resize the vectors corresponding to data individually maintained for
@@ -338,11 +335,11 @@ IBStandardForceGen::computeLagrangianForce(
 
 void
 IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
-    std::vector<int>& d_nnz,
-    std::vector<int>& o_nnz,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    std::vector<int>& /*d_nnz*/,
+    std::vector<int>& /*o_nnz*/,
+    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     const int level_number,
-    const double data_time,
+    const double /*data_time*/,
     LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
@@ -354,15 +351,15 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
 
 void
 IBStandardForceGen::computeLagrangianForceJacobian(
-    Mat& J_mat,
-    MatAssemblyType assembly_type,
-    const double X_coef,
-    Pointer<LData> X_data,
-    const double U_coef,
-    Pointer<LData> U_data,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    Mat& /*J_mat*/,
+    MatAssemblyType /*assembly_type*/,
+    const double /*X_coef*/,
+    Pointer<LData> /*X_data*/,
+    const double /*U_coef*/,
+    Pointer<LData> /*U_data*/,
+    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     const int level_number,
-    const double data_time,
+    const double /*data_time*/,
     LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
@@ -374,11 +371,11 @@ IBStandardForceGen::computeLagrangianForceJacobian(
 
 double
 IBStandardForceGen::computeLagrangianEnergy(
-    Pointer<LData> X_data,
-    Pointer<LData> U_data,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    Pointer<LData> /*X_data*/,
+    Pointer<LData> /*U_data*/,
+    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     const int level_number,
-    const double data_time,
+    const double /*data_time*/,
     LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return 0.0;
@@ -396,10 +393,10 @@ IBStandardForceGen::computeLagrangianEnergy(
 void
 IBStandardForceGen::initializeSpringLevelData(
     std::set<int>& nonlocal_petsc_idx_set,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     const int level_number,
-    const double init_data_time,
-    const bool initial_time,
+    const double /*init_data_time*/,
+    const bool /*initial_time*/,
     LDataManager* const l_data_manager)
 {
     blitz::Array<int,1>&            lag_mastr_node_idxs = d_spring_data[level_number].lag_mastr_node_idxs;
@@ -513,10 +510,10 @@ void
 IBStandardForceGen::computeLagrangianSpringForce(
     Pointer<LData> F_data,
     Pointer<LData> X_data,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     const int level_number,
-    const double data_time,
-    LDataManager* const l_data_manager)
+    const double /*data_time*/,
+    LDataManager* const /*l_data_manager*/)
 {
     const int num_springs = d_spring_data[level_number].lag_mastr_node_idxs.size();
     const int*               const restrict   lag_mastr_node_idxs = d_spring_data[level_number].lag_mastr_node_idxs  .data();
@@ -678,10 +675,10 @@ IBStandardForceGen::computeLagrangianSpringForce(
 void
 IBStandardForceGen::initializeBeamLevelData(
     std::set<int>& nonlocal_petsc_idx_set,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     const int level_number,
-    const double init_data_time,
-    const bool initial_time,
+    const double /*init_data_time*/,
+    const bool /*initial_time*/,
     LDataManager* const l_data_manager)
 {
     blitz::Array<int,1>&                                petsc_mastr_node_idxs = d_beam_data[level_number].petsc_mastr_node_idxs;
@@ -797,10 +794,10 @@ void
 IBStandardForceGen::computeLagrangianBeamForce(
     Pointer<LData> F_data,
     Pointer<LData> X_data,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     const int level_number,
-    const double data_time,
-    LDataManager* const l_data_manager)
+    const double /*data_time*/,
+    LDataManager* const /*l_data_manager*/)
 {
     const int num_beams = d_beam_data[level_number].petsc_mastr_node_idxs.size();
     const int*                             const restrict petsc_mastr_node_idxs = d_beam_data[level_number].petsc_mastr_node_idxs.data();
@@ -993,11 +990,11 @@ IBStandardForceGen::computeLagrangianBeamForce(
 
 void
 IBStandardForceGen::initializeTargetPointLevelData(
-    std::set<int>& nonlocal_petsc_idx_set,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    std::set<int>& /*nonlocal_petsc_idx_set*/,
+    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     const int level_number,
-    const double init_data_time,
-    const bool initial_time,
+    const double /*init_data_time*/,
+    const bool /*initial_time*/,
     LDataManager* const l_data_manager)
 {
     blitz::Array<int,1>&                              petsc_node_idxs = d_target_point_data[level_number].petsc_node_idxs;
@@ -1069,10 +1066,10 @@ IBStandardForceGen::computeLagrangianTargetPointForce(
     Pointer<LData> F_data,
     Pointer<LData> X_data,
     Pointer<LData> U_data,
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     const int level_number,
-    const double data_time,
-    LDataManager* const l_data_manager)
+    const double /*data_time*/,
+    LDataManager* const /*l_data_manager*/)
 {
     const int num_target_points = d_target_point_data[level_number].petsc_node_idxs.size();
     const int*                             const restrict petsc_node_idxs = d_target_point_data[level_number].petsc_node_idxs.data();

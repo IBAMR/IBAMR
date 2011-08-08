@@ -1782,8 +1782,7 @@ subroutine ddinp (iu, a)
 !   value must be placed on a single line of not more than 80 characters.
 
 implicit none
-integer iu, ln
-parameter (ln = 80)
+integer iu
 character*80 cs
 real*8 a(2)
 
@@ -1804,8 +1803,7 @@ subroutine ddinpc (a, b)
 !   Converts the CHARACTER*80 array A into the DD number B.
 
 implicit none
-integer i, id, ie, inz, ip, is, k, ln, lnn, beg
-parameter (ln = 80)
+integer i, id, ie, inz, ip, is, k, lnn, beg
 real*8 bi
 character*80 a
 character*1 ai
@@ -1932,8 +1930,7 @@ subroutine ddout (iu, a)
 !   E format, with lines 40 characters long.
 
 implicit none
-integer iu, ln
-parameter (ln = 40)
+integer iu
 character cs(40)
 real*8 a(2)
 

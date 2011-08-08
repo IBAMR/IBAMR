@@ -698,8 +698,8 @@ AdvectHypPatchOps::initializeDataOnPatch(
 double
 AdvectHypPatchOps::computeStableDtOnPatch(
     Patch<NDIM>& patch,
-    const bool initial_time,
-    const double dt_time)
+    const bool /*initial_time*/,
+    const double /*dt_time*/)
 {
     double stable_dt = std::numeric_limits<double>::max();
     for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
@@ -825,9 +825,9 @@ AdvectHypPatchOps::computeFluxesOnPatch(
 void
 AdvectHypPatchOps::conservativeDifferenceOnPatch(
     Patch<NDIM>& patch,
-    const double time,
+    const double /*time*/,
     const double dt,
-    bool at_synchronization)
+    bool /*at_synchronization*/)
 {
     const Box<NDIM>& patch_box = patch.getBox();
     const Index<NDIM>& ilower = patch_box.lower();
@@ -959,10 +959,10 @@ void
 AdvectHypPatchOps::preprocessAdvanceLevelState(
     const Pointer<PatchLevel<NDIM> >& level,
     double current_time,
-    double dt,
-    bool first_step,
-    bool last_step,
-    bool regrid_advance)
+    double /*dt*/,
+    bool /*first_step*/,
+    bool /*last_step*/,
+    bool /*regrid_advance*/)
 {
     if (!d_compute_init_velocity) return;
 
@@ -986,9 +986,9 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
     const Pointer<PatchLevel<NDIM> >& level,
     double current_time,
     double dt,
-    bool first_step,
-    bool last_step,
-    bool regrid_advance)
+    bool /*first_step*/,
+    bool /*last_step*/,
+    bool /*regrid_advance*/)
 {
     PatchCellDataOpsReal<NDIM,double> patch_cc_data_ops;
 
@@ -1077,9 +1077,9 @@ void
 AdvectHypPatchOps::tagGradientDetectorCells(
     Patch<NDIM>& patch,
     const double regrid_time,
-    const bool initial_error,
+    const bool /*initial_error*/,
     const int tag_indx,
-    const bool uses_richardson_extrapolation_too)
+    const bool /*uses_richardson_extrapolation_too*/)
 {
     const int error_level_number = patch.getPatchLevelNumber();
 
@@ -1492,7 +1492,7 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
 void
 AdvectHypPatchOps::getFromInput(
     Pointer<Database> db,
-    bool is_from_restart)
+    bool /*is_from_restart*/)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());

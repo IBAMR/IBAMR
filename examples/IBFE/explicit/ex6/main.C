@@ -104,11 +104,11 @@ PK1_stress_function(
         const int dof_index = elem->dof_number(fiber_axes_sys_num,d+0*NDIM,0);
         a0(d) = (*E_ghost)(dof_index);
     }
-    const TensorValue<double> A0 = outer_product(a0,a0);
-    const double I4 = CC.contract(A0);
+    const TensorValue<double> AA0 = outer_product(a0,a0);
+    const double I4 = CC.contract(AA0);
     if (I4 >= 1.0)
     {
-        PP += 2.0*k1*(I4-1)*exp(k2*(I4-1)*(I4-1))*FF*A0;
+        PP += 2.0*k1*(I4-1)*exp(k2*(I4-1)*(I4-1))*FF*AA0;
     }
 
     VectorValue<double> b0;
@@ -117,11 +117,11 @@ PK1_stress_function(
         const int dof_index = elem->dof_number(fiber_axes_sys_num,d+1*NDIM,0);
         b0(d) = (*E_ghost)(dof_index);
     }
-    const TensorValue<double> B0 = outer_product(b0,b0);
-    const double I6 = CC.contract(B0);
+    const TensorValue<double> BB0 = outer_product(b0,b0);
+    const double I6 = CC.contract(BB0);
     if (I6 >= 1.0)
     {
-        PP += 2.0*k1*(I6-1)*exp(k2*(I6-1)*(I6-1))*FF*B0;
+        PP += 2.0*k1*(I6-1)*exp(k2*(I6-1)*(I6-1))*FF*BB0;
     }
     return;
 }// PK1_stress_function
@@ -134,7 +134,7 @@ int X_sys_num = -1;
 void
 pressure_function(
     double& P,
-    const TensorValue<double>& /*dX_ds*/,
+    const TensorValue<double>& /*FF*/,
     const Point& /*X*/,
     const Point& /*s*/,
     Elem* const /*elem*/,
@@ -162,7 +162,7 @@ pressure_function(
 void
 surface_force_function(
     VectorValue<double>& F,
-    const TensorValue<double>& /*dX_ds*/,
+    const TensorValue<double>& /*FF*/,
     const Point& X,
     const Point& /*s*/,
     Elem* const elem,
@@ -282,22 +282,22 @@ compute_principle_strains(
             X_dof_map.dof_indices(elem, X_dof_indices(d), d);
         }
 
-        TensorValue<double> dX_ds;
+        TensorValue<double> FF;
         blitz::Array<double,2> X_node;
         get_values_for_interpolation(X_node, X_vec, X_dof_indices);
-        jacobian(dX_ds,0,X_node,X_dphi);
+        jacobian(FF,0,X_node,X_dphi);
 
         VectorValue<double> e_r(X_qpoint[0](0),X_qpoint[0](1),0);
         e_r /= e_r.size();
-        const double lambda_r = (dX_ds*e_r).size();
+        const double lambda_r = (FF*e_r).size();
 
         VectorValue<double> e_z(0,0,1.0);
         e_z /= e_z.size();
-        const double lambda_z = (dX_ds*e_z).size();
+        const double lambda_z = (FF*e_z).size();
 
         VectorValue<double> e_theta = e_z.cross(e_r);
         e_theta /= e_theta.size();
-        const double lambda_theta = (dX_ds*e_theta).size();
+        const double lambda_theta = (FF*e_theta).size();
 
         const int lambda_r_dof_index = elem->dof_number(principle_strains_sys_num,0,0);
         lambda_vec.set(lambda_r_dof_index,lambda_r);

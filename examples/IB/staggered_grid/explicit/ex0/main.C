@@ -95,9 +95,9 @@ public:
     void
     postProcessData(
         const int u_idx,
-        const int p_idx,
-        const int f_idx,
-        std::vector<tbox::Pointer<LData> > F_data,
+        const int /*p_idx*/,
+        const int /*f_idx*/,
+        std::vector<tbox::Pointer<LData> > /*F_data*/,
         std::vector<tbox::Pointer<LData> > X_data,
         std::vector<tbox::Pointer<LData> > U_data,
         const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,

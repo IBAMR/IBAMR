@@ -234,7 +234,7 @@ LSet<T>::setPeriodicOffset(
 template<class T>
 inline void
 LSet<T>::copySourceItem(
-    const SAMRAI::hier::Index<NDIM>& src_index,
+    const SAMRAI::hier::Index<NDIM>& /*src_index*/,
     const SAMRAI::hier::IntVector<NDIM>& src_offset,
     const LSet<T>& src_item)
 {

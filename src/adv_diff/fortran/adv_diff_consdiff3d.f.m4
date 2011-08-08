@@ -54,7 +54,6 @@ c
      &     qval)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
 c
 c     Input.
 c
@@ -119,7 +118,8 @@ c
      &     qval)
 c
       implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
+      REAL sixth
+      parameter (sixth=0.16666666666667d0)
 c
 c     Input.
 c

@@ -170,9 +170,9 @@ CartSideDoubleQuadraticCFInterpolation::~CartSideDoubleQuadraticCFInterpolation(
 
 void
 CartSideDoubleQuadraticCFInterpolation::setPhysicalBoundaryConditions(
-    Patch<NDIM>& patch,
-    const double fill_time,
-    const IntVector<NDIM>& ghost_width_to_fill)
+    Patch<NDIM>& /*patch*/,
+    const double /*fill_time*/,
+    const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
     // intentionally blank
     return;
@@ -189,10 +189,10 @@ CartSideDoubleQuadraticCFInterpolation::getRefineOpStencilWidth() const
 
 void
 CartSideDoubleQuadraticCFInterpolation::preprocessRefine(
-    Patch<NDIM>& fine,
-    const Patch<NDIM>& coarse,
-    const Box<NDIM>& fine_box,
-    const IntVector<NDIM>& ratio)
+    Patch<NDIM>& /*fine*/,
+    const Patch<NDIM>& /*coarse*/,
+    const Box<NDIM>& /*fine_box*/,
+    const IntVector<NDIM>& /*ratio*/)
 {
     // intentionally blank
     return;
@@ -439,7 +439,7 @@ void
 CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(
     Patch<NDIM>& patch,
     const IntVector<NDIM>& ratio,
-    const IntVector<NDIM>& ghost_width_to_fill)
+    const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_hierarchy.isNull());

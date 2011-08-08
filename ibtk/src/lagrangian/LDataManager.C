@@ -2282,7 +2282,7 @@ LDataManager::applyGradientDetector(
     const double error_data_time,
     const int tag_index,
     const bool initial_time,
-    const bool uses_richardson_extrapolation_too)
+    const bool /*uses_richardson_extrapolation_too*/)
 {
     IBTK_TIMER_START(t_apply_gradient_detector);
 

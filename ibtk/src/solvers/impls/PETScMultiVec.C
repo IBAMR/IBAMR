@@ -1057,10 +1057,12 @@ VecCreateMultiVec(
         DvOps.log = 0;
         DvOps.shift = 0;
         DvOps.create = 0;
-#if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 1)
-        DvOps.dotnorm2 = VecDotNorm2_MultiVec;
-#endif
                  );
+#if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 1)
+    IBTK_DO_ONCE(
+        DvOps.dotnorm2 = VecDotNorm2_MultiVec;
+                 );
+#endif
     ierr = PetscMemcpy((*vv)->ops,&DvOps,sizeof(DvOps)); CHKERRQ(ierr);
 
     // Initialize the data structures where the component vectors are stored.
