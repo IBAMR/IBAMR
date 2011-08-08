@@ -107,6 +107,9 @@ resetLocalPETScIndices(
     const int global_node_offset,
     const int num_local_nodes)
 {
+#ifndef DEBUG_CHECK_ASSERTIONS
+    NULL_USE(num_local_nodes);
+#endif
     for (blitz::Array<int,1>::iterator it = inds.begin(); it !=inds.end(); ++it)
     {
         int& idx = *it;

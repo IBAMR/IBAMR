@@ -368,6 +368,8 @@ SCPoissonHypreLevelSolver::initializeSolverState(
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
                    << "  coarsest_ln != finest_ln in SCPoissonHypreLevelSolver" << std::endl);
     }
+#else
+    NULL_USE(b);
 #endif
     // Deallocate the solver state if the solver is already initialized.
     if (d_is_initialized) deallocateSolverState();

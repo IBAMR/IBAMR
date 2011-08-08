@@ -420,6 +420,8 @@ CCHierarchyProjector::initializeLevelData(
         TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
     TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+#else
+    NULL_USE(old_level);
 #endif
 
     // Setup the 2^NDIM dimensional null space of the cell-centered exact
@@ -482,6 +484,9 @@ CCHierarchyProjector::resetHierarchyConfiguration(
     {
         TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
     }
+#else
+    NULL_USE(coarsest_level);
+    NULL_USE(finest_level);
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
 

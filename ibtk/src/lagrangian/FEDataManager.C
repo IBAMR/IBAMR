@@ -1779,6 +1779,9 @@ FEDataManager::resetHierarchyConfiguration(
     {
         TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
     }
+#else
+    NULL_USE(coarsest_ln);
+    NULL_USE(finest_ln);
 #endif
 
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
@@ -1809,6 +1812,8 @@ FEDataManager::applyGradientDetector(
     TBOX_ASSERT((level_number >= 0)
                 && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+#else
+    NULL_USE(hierarchy);
 #endif
 
     if (initial_time)

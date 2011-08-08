@@ -309,6 +309,8 @@ INSStaggeredProjectionPreconditioner::initializeSolverState(
     TBOX_ASSERT(d_hierarchy == b.getPatchHierarchy());
     TBOX_ASSERT(d_coarsest_ln == b.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln == b.getFinestLevelNumber());
+#else
+    NULL_USE(b);
 #endif
     d_wgt_cc_var = d_hier_math_ops->getCellWeightVariable();
     d_wgt_sc_var = d_hier_math_ops->getSideWeightVariable();

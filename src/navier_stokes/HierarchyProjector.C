@@ -741,6 +741,10 @@ HierarchyProjector::initializeLevelData(
         TBOX_ASSERT(level_number == old_level->getLevelNumber());
     }
     TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+#else
+    NULL_USE(hierarchy);
+    NULL_USE(level_number);
+    NULL_USE(old_level);
 #endif
 
     // intentionally blank

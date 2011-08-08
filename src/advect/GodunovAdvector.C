@@ -520,6 +520,8 @@ GodunovAdvector::enforceIncompressibility(
 
     TBOX_ASSERT(v_half.getBox()   == patch.getBox());
     TBOX_ASSERT(v_half.getDepth() == NDIM);
+#else
+    NULL_USE(u_ADV);
 #endif
     const Index<NDIM>& ilower = patch.getBox().lower();
     const Index<NDIM>& iupper = patch.getBox().upper();
@@ -729,6 +731,8 @@ GodunovAdvector::getFromInput(
 #endif
 #if (NDIM == 3)
     d_using_full_ctu = db->getBoolWithDefault("using_full_ctu", d_using_full_ctu);
+#else
+    NULL_USE(db);
 #endif
     return;
 }// getFromInput

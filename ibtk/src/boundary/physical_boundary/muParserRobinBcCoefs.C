@@ -84,6 +84,8 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(!input_db.isNull());
+#else
+    NULL_USE(object_name);
 #endif
     // Read in user-provided constants.
     Array<std::string> db_key_names = input_db->getAllKeys();

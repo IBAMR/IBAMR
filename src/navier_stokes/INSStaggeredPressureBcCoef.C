@@ -162,6 +162,8 @@ INSStaggeredPressureBcCoef::setBcCoefs(
     TBOX_ASSERT(!acoef_data.isNull());
     TBOX_ASSERT(!bcoef_data.isNull());
     TBOX_ASSERT(!gcoef_data.isNull());
+#else
+    NULL_USE(fill_time);
 #endif
     const unsigned int location_index   = bdry_box.getLocationIndex();
     const unsigned int bdry_normal_axis = location_index/2;

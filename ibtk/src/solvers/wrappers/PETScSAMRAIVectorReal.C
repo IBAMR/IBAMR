@@ -521,6 +521,8 @@ VecGetSize_SAMRAI(
     IBTK_TIMER_START(t_vec_get_size);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(v != PETSC_NULL);
+#else
+    NULL_USE(v);
 #endif
     *n = 0;
     IBTK_TIMER_STOP(t_vec_get_size);
@@ -535,6 +537,8 @@ VecGetLocalSize_SAMRAI(
     IBTK_TIMER_START(t_vec_get_local_size);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(v != PETSC_NULL);
+#else
+    NULL_USE(v);
 #endif
     *n = 0;
     IBTK_TIMER_STOP(t_vec_get_local_size);

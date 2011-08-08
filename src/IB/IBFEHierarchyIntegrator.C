@@ -1893,14 +1893,14 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
 #endif
 
-    System* J_bar_system;
-    const DofMap* J_bar_dof_map;
+    System* J_bar_system = NULL;
+    const DofMap* J_bar_dof_map = NULL;
     std::vector<unsigned int> J_bar_dof_indices;
     J_bar_dof_indices.reserve(27);
     AutoPtr<FEBase> J_bar_fe;
-    const std::vector<std::vector<double> >* J_bar_phi;
+    const std::vector<std::vector<double> >* J_bar_phi = NULL;
     AutoPtr<FEBase> J_bar_fe_face;
-    const std::vector<std::vector<double> >* J_bar_phi_face;
+    const std::vector<std::vector<double> >* J_bar_phi_face = NULL;
     if (J_bar_vec != NULL)
     {
         J_bar_system = &equation_systems->get_system(J_BAR_SYSTEM_NAME);
@@ -2195,19 +2195,19 @@ IBFEHierarchyIntegrator::spreadTransmissionForceDensity(
     const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
     const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
 
-    System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
 #ifdef DEBUG_CHECK_ASSERTIONS
+    System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
     const DofMap& X_dof_map = X_system.get_dof_map();
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
 #endif
 
-    System* J_bar_system;
-    const DofMap* J_bar_dof_map;
+    System* J_bar_system = NULL;
+    const DofMap* J_bar_dof_map = NULL;
     std::vector<unsigned int> J_bar_dof_indices;
     J_bar_dof_indices.reserve(27);
     AutoPtr<FEBase> J_bar_fe;
     AutoPtr<FEBase> J_bar_fe_face;
-    const std::vector<std::vector<double> >* J_bar_phi_face;
+    const std::vector<std::vector<double> >* J_bar_phi_face = NULL;
     if (J_bar_ghost_vec != NULL)
     {
         J_bar_system = &equation_systems->get_system(J_BAR_SYSTEM_NAME);
@@ -2463,11 +2463,11 @@ IBFEHierarchyIntegrator::imposeJumpConditions(
 #endif
 
     System* J_bar_system;
-    const DofMap* J_bar_dof_map;
+    const DofMap* J_bar_dof_map = NULL;
     std::vector<unsigned int> J_bar_dof_indices;
     J_bar_dof_indices.reserve(27);
     AutoPtr<FEBase> J_bar_fe_face;
-    const std::vector<std::vector<double> >* J_bar_phi_face;
+    const std::vector<std::vector<double> >* J_bar_phi_face = NULL;
     if (J_bar_ghost_vec != NULL)
     {
         J_bar_system = &equation_systems->get_system(J_BAR_SYSTEM_NAME);

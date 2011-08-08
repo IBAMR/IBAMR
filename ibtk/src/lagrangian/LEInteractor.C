@@ -867,12 +867,6 @@ LEInteractor::interpolate(
     const IntVector<NDIM>& periodic_shift,
     const std::string& interp_fcn)
 {
-    if (Q_depth != NDIM || q_data->getDepth() != 1)
-    {
-        TBOX_ERROR("LEInteractor::interpolate():\n"
-                   << "  side-centered interpolation requires vector-valued data.\n");
-    }
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!q_data.isNull());
     TBOX_ASSERT(!idx_data.isNull());
@@ -883,6 +877,12 @@ LEInteractor::interpolate(
 #else
     NULL_USE(X_depth);
 #endif
+    if (Q_depth != NDIM || q_data->getDepth() != 1)
+    {
+        TBOX_ERROR("LEInteractor::interpolate():\n"
+                   << "  side-centered interpolation requires vector-valued data.\n");
+    }
+
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
@@ -1045,12 +1045,6 @@ LEInteractor::interpolate(
     const Box<NDIM>& interp_box,
     const std::string& interp_fcn)
 {
-    if (Q_depth != NDIM || q_data->getDepth() != 1)
-    {
-        TBOX_ERROR("LEInteractor::interpolate():\n"
-                   << "  side-centered interpolation requires vector-valued data.\n");
-    }
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!q_data.isNull());
     TBOX_ASSERT(!patch.isNull());
@@ -1061,6 +1055,12 @@ LEInteractor::interpolate(
 #else
     NULL_USE(Q_size);
 #endif
+    if (Q_depth != NDIM || q_data->getDepth() != 1)
+    {
+        TBOX_ERROR("LEInteractor::interpolate():\n"
+                   << "  side-centered interpolation requires vector-valued data.\n");
+    }
+
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
@@ -1259,11 +1259,6 @@ LEInteractor::spread(
     const IntVector<NDIM>& periodic_shift,
     const std::string& spread_fcn)
 {
-    if (Q_depth != NDIM || q_data->getDepth() != 1)
-    {
-        TBOX_ERROR("LEInteractor::spread():\n"
-                   << "  side-centered spreading requires vector-valued data.\n");
-    }
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!q_data.isNull());
     TBOX_ASSERT(!idx_data.isNull());
@@ -1274,6 +1269,12 @@ LEInteractor::spread(
 #else
     NULL_USE(X_depth);
 #endif
+    if (Q_depth != NDIM || q_data->getDepth() != 1)
+    {
+        TBOX_ERROR("LEInteractor::spread():\n"
+                   << "  side-centered spreading requires vector-valued data.\n");
+    }
+
     // Determine the patch geometry.
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
