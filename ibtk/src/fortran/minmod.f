@@ -75,7 +75,7 @@ c
 c
 c     External functions.
 c
-      REAL minmod2
+      double precision minmod2
 c
 c     Input.
 c
