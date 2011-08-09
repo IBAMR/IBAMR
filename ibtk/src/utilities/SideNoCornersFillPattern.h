@@ -115,7 +115,7 @@ public:
      * \return                    pointer to the calculated overlap object
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlap<NDIM> >
-    calculateOverlap(
+    calculateOverlapOnLevel(
         const SAMRAI::hier::BoxGeometry<NDIM>& dst_geometry,
         const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
         const SAMRAI::hier::Box<NDIM>& dst_patch_box,

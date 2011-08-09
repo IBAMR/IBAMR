@@ -150,7 +150,7 @@ SideNoCornersFillPattern::calculateOverlap(
 }// calculateOverlap
 
 Pointer<BoxOverlap<NDIM> >
-SideNoCornersFillPattern::calculateOverlap(
+SideNoCornersFillPattern::calculateOverlapOnLevel(
     const BoxGeometry<NDIM>& dst_geometry,
     const BoxGeometry<NDIM>& src_geometry,
     const Box<NDIM>& dst_patch_box,
@@ -226,7 +226,7 @@ SideNoCornersFillPattern::calculateOverlap(
         }
     }
     return new SideOverlap<NDIM>(dst_boxes.data(), src_offset);
-}// calculateOverlap
+}// calculateOverlapOnLevel
 
 void
 SideNoCornersFillPattern::setTargetPatchLevelNumber(

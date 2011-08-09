@@ -144,7 +144,7 @@ CellNoCornersFillPattern::calculateOverlap(
 }// calculateOverlap
 
 Pointer<BoxOverlap<NDIM> >
-CellNoCornersFillPattern::calculateOverlap(
+CellNoCornersFillPattern::calculateOverlapOnLevel(
     const BoxGeometry<NDIM>& dst_geometry,
     const BoxGeometry<NDIM>& src_geometry,
     const Box<NDIM>& dst_patch_box,
@@ -217,7 +217,7 @@ CellNoCornersFillPattern::calculateOverlap(
         }
     }
     return new CellOverlap<NDIM>(dst_boxes, src_offset);
-}// calculateOverlap
+}// calculateOverlapOnLevel
 
 void
 CellNoCornersFillPattern::setTargetPatchLevelNumber(
