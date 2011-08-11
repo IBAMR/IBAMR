@@ -1,4 +1,4 @@
-// Filename: INSCoefs.C
+// Filename: INSProblemCoefs.C
 // Created on 24 Jul 2008 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -32,7 +32,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "INSCoefs.h"
+#include "INSProblemCoefs.h"
 
 // IBAMR INCLUDES
 #include <ibamr/namespaces.h>
@@ -56,6 +56,6 @@ namespace IBAMR
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 #include <tbox/Pointer.C>
-template class Pointer<IBAMR::INSCoefs>;
+template class Pointer<IBAMR::INSProblemCoefs>;
 
 //////////////////////////////////////////////////////////////////////////////

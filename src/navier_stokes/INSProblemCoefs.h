@@ -1,4 +1,4 @@
-// Filename: INSCoefs.h
+// Filename: INSProblemCoefs.h
 // Created on 26 Aug 2007 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_INSCoefs
-#define included_INSCoefs
+#ifndef included_INSProblemCoefs
+#define included_INSProblemCoefs
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -43,10 +43,11 @@
 namespace IBAMR
 {
 /*!
- * \brief Class INSCoefs is a lightweight utility class which is used to specify
- * the physical parameters of the incompressible Navier-Stokes equations.
+ * \brief Class INSProblemCoefs is a lightweight utility class that is used to
+ * specify the physical parameters of the incompressible Navier-Stokes
+ * equations.
  */
-class INSCoefs
+class INSProblemCoefs
     : public SAMRAI::tbox::DescribedClass
 {
 public:
@@ -54,7 +55,7 @@ public:
      * \brief Default constructor.
      */
     inline
-    INSCoefs(
+    INSProblemCoefs(
         const double rho=0.0,
         const double mu=0.0,
         const double lambda=0.0)
@@ -64,32 +65,32 @@ public:
         {
             // intentionally blank
             return;
-        }// INSCoefs
+        }// INSProblemCoefs
 
     /*!
      * \brief Copy constructor.
      *
      * \param from The value to copy to this object.
      */
-    INSCoefs(
-        const INSCoefs& from)
+    INSProblemCoefs(
+        const INSProblemCoefs& from)
         : d_rho(from.d_rho),
           d_mu(from.d_mu),
           d_lambda(from.d_lambda)
         {
             // intentionally blank
             return;
-        }// INSCoefs
+        }// INSProblemCoefs
 
     /*!
      * \brief Destructor.
      */
     inline
-    ~INSCoefs()
+    ~INSProblemCoefs()
         {
             // intentionally blank
             return;
-        }// ~INSCoefs
+        }// ~INSProblemCoefs
 
     /*!
      * \brief Assignment operator.
@@ -98,8 +99,8 @@ public:
      *
      * \return A reference to this object.
      */
-    INSCoefs& operator=(
-        const INSCoefs& that)
+    INSProblemCoefs& operator=(
+        const INSProblemCoefs& that)
         {
             if (&that != this)
             {
@@ -152,8 +153,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "INSCoefs.I"
+//#include "INSProblemCoefs.I"
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSCoefs
+#endif //#ifndef included_INSProblemCoefs
