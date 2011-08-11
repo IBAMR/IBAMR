@@ -35,7 +35,7 @@ build_triplet = @build@
 host_triplet = @host@
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
-subdir = src/navier_stokes
+subdir = src/base_hier_integrator
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_blas.m4 \
 	$(top_srcdir)/m4/ax_cxx_have_stl.m4 \
@@ -421,7 +421,7 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = fortran .
+SUBDIRS = .
 all: all-recursive
 
 .SUFFIXES:
@@ -435,9 +435,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/navier_stokes/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/base_hier_integrator/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign src/navier_stokes/Makefile
+	  $(AUTOMAKE) --foreign src/base_hier_integrator/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \

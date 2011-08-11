@@ -30,9 +30,12 @@ $(top_srcdir)/src/utilities/ibamr_utilities.h \
 $(top_srcdir)/src/utilities/namespaces.h
 
 ## Dimension-dependent libraries
+
+###
 ###$(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
 ###$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C \
 ###$(top_srcdir)/src/IB/IBStaggeredHierarchyIntegrator.C \
+###
 
 DIM_INDEPENDENT_SOURCES = \
 $(top_srcdir)/src/IB/IBAnchorPointSpec.C \
@@ -79,8 +82,10 @@ $(top_srcdir)/src/navier_stokes/INSProblemCoefs.C
 ###$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C
 ###endif
 
+###
 ###$(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
 ###$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.h \
+###
 
 pkg_include_HEADERS += \
 $(top_srcdir)/src/IB/IBAnchorPointSpec.I \

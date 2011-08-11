@@ -452,7 +452,6 @@ AC_CONFIG_FILES([
   examples/IBFE/explicit/ex7/Makefile
   examples/adv_diff/Makefile
   examples/advect/Makefile
-  examples/base_hier_integrator/Makefile
   examples/navier_stokes/Makefile
   examples/navier_stokes/cell_centered/Makefile
   examples/navier_stokes/cell_centered/approx_projection/Makefile
@@ -478,6 +477,7 @@ AC_CONFIG_FILES([
   src/adv_diff/fortran/Makefile
   src/advect/Makefile
   src/advect/fortran/Makefile
+  src/base_hier_integrator/Makefile
   src/navier_stokes/Makefile
   src/navier_stokes/fortran/Makefile
   src/utilities/Makefile

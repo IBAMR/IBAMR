@@ -55,14 +55,15 @@ public:
      */
     HierarchyIntegrator(
         const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Database> input_db,
         bool register_for_restart=true);
-
+    
     /*!
-     * The destructor for class HierarchyIntegrator unregisters the
-     * integrator object with the restart manager when so registered.
+     * The destructor for class HierarchyIntegrator unregisters the integrator
+     * object with the restart manager when the object is so registered.
      */
     ~HierarchyIntegrator();
-
+    
     /*!
      * Return the name of the hierarchy integrator object.
      */
@@ -70,164 +71,114 @@ public:
     getName() const;
 
     /*!
-     * Register a VisIt data writer so this object will write plot files that
-     * may be postprocessed with the VisIt visualization tool.
-     */
-    void
-    registerVisItDataWriter(
-        SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
-
-    ///
-    ///  Routines that allow for the registration of callback functions that are
-    ///  executed by the hierarchy integrator.
-    ///
-
-    /*!
-     * \brief Callback registration function.
-     */
-    void
-    registerPreprocessIntegrateHierarchyCallback(
-        void (*callback)(const double current_time, const double new_time, const int cycle_num, void* ctx),
-        void* ctx);
-
-    /*!
-     * \brief Callback registration function.
-     */
-    void
-    registerPostprocessIntegrateHierarchyCallback(
-        void (*callback)(const double current_time, const double new_time, const int cycle_num, void* ctx),
-        void* ctx);
-
-    /*!
-     * \brief Callback registration function.
-     */
-    void
-    registerPreprocessRegridHierarchyCallback(
-        void (*callback)(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy, const double regrid_data_time, const bool initial_time, void* ctx),
-        void* ctx);
-
-    /*!
-     * \brief Callback registration function.
-     */
-    void
-    registerPostprocessRegridHierarchyCallback(
-        void (*callback)(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy, const double regrid_data_time, const bool initial_time, void* ctx),
-        void* ctx);
-
-    /*!
-     * \brief Callback registration function.
-     */
-    void
-    registerPreprocessApplyGradientDetectorCallback(
-        void (*callback)(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy, const int level_number, const double error_data_time, const int tag_index, const bool initial_time, const bool uses_richardson_extrapolation_too, void* ctx),
-        void* ctx);
-
-    /*!
-     * \brief Callback registration function.
-     */
-    void
-    registerPostprocessApplyGradientDetectorCallback(
-        void (*callback)(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy, const int level_number, const double error_data_time, const int tag_index, const bool initial_time, const bool uses_richardson_extrapolation_too, void* ctx),
-        void* ctx);
-
-    ///
-    ///  Routines that facilitate the sharing of a single HierarchyMathOps
-    ///  object between multiple concrete HierarchyIntegrator objects.
-    ///
-
-    /*!
-     * Return a pointer to the HierarchyMathOps object being used by this
-     * integrator.
-     */
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps>
-    getHierarchyMathOps() const;
-
-    /*!
-     * Set the HierarchyMathOps object being used by this integrator.
+     * Initialize the variables, basic communications algorithms, solvers, and
+     * other data structures used by a concrete time integrator object.
      *
-     * When manage_ops is true, the HierarchyMathOps object is managed by the
-     * integrator.  In particular, the integrator is responsible for invoking
-     * HierarchyMathOps::setPatchHierarchy() and HierarchyMathOps::resetLevels()
-     * following any changes to the configuration of the patch hierarchy.
-     */
-    void
-    setHierarchyMathOps(
-        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-        const bool manage_ops=false);
-
-    /*!
-     * Returns whether this integrator is managing the state of its
-     * HierarchyMathOps object.
+     * This method is called automatically by initializePatchHierarchy() prior
+     * to the construction of the patch hierarchy.
      *
-     * When the integrator is managing the state of its HierarchyMathOps object,
-     * the integrator is responsible for invoking
-     * HierarchyMathOps::setPatchHierarchy() and HierarchyMathOps::resetLevels()
-     * following any changes to the configuration of the patch hierarchy.
-     */
-    bool
-    isManagingHierarchyMathOps() const;
-
-    ///
-    ///  Routines that provide basic hierarchy integrator functionality.
-    ///
-
-    /*!
-     * Initialize the variables and basic communications algorithms managed and
-     * used by a concrete time integrator.
+     * \note This method must be implemented so that it is safe to make multiple
+     * calls to this method.  Specifically, it must be possible for users to be
+     * able to make an explicit call to initializeHierarchyIntegrator() prior to
+     * calling initializePatchHierarchy().
      *
-     * This method must be called prior to calling initializeHierarchy().
+     * \note Because this method is called prior to the construction of the
+     * patch hierarchy, this method cannot initialize patch data associated with
+     * the variables managed by the integrator object, nor can it initialize the
+     * communications schedules associated with the integrator.
      */
     virtual void
-    initializeVariables(
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) = 0;
+    initializeHierarchyIntegrator(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
-     * Set AMR patch hierarchy configuration and data at start of simulation.
-     * If the computation is begun from a restart file, the hierarchy and data
-     * are read from the hierarchy database.  Otherwise, the hierarchy and data
-     * are initialized by the gridding algorithm data member.  In this case, the
-     * coarsest level is constructed and initialized.  Then, error estimation is
-     * performed to determine if and where it should be refined.  Successively
-     * finer levels are created and initialized until the maximum allowable
-     * number of levels is achieved or no further refinement is needed.  The
-     * double return value is the time increment for the first data advance
-     * step.
+     * Initialize the AMR patch hierarchy and data defined on the hierarchy at
+     * the start of a computation.  If the computation is begun from a restart
+     * file, the patch hierarchy and patch data are read from the hierarchy
+     * database.  Otherwise, the patch hierarchy and patch data are initialized
+     * by the gridding algorithm associated with the integrator object.
      *
-     * This function assumes that the hierarchy exists, but that it contains no
-     * patch levels, when it is called.  On return from this function, the
-     * initial hierarchy configuration and simulation data is set properly for
-     * the advanceHierarchy() function to be called.  In particular, on each
-     * level constructed only the data needed for initialization exists.
+     * The implementation of this function assumes that the hierarchy exists
+     * upon entry to the function, but that it contains no patch levels.  On
+     * return from this function, the state of the integrator object will be
+     * such that it is possible to step through time via the advanceHierarchy()
+     * function.
      */
-    double
-    initializeHierarchy();
+    void
+    initializePatchHierarchy(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
      * Integrate data on all patches on all levels of the patch hierarchy over
      * the specified time increment.
      */
-    double
+    void
     advanceHierarchy(
-        const double dt);
+        const double dt,
+        const int num_cycles=1);
 
     /*!
-     * Returns the maximum stable timestep size.
+     * Return the maximum stable time step size for the state data associated
+     * with the current, scratch, or new variable context.
      *
      * A default implementation is provided that returns
-     * min(dt_max,dt_current*growth_factor).  The growth condition is imposed to
-     * prevent excessive changes in the maximum stable timestep as the
-     * computation progresses.
+     * min(dt_max,dt_growth_factor*dt_current).  The growth condition prevents
+     * excessive changes in the time step size as the computation progresses.
      */
     virtual double
     getStableTimestep(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx) const;
+        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
+
+    /*!
+     * Synchronize data defined on the grid hierarchy.
+     *
+     * A default implementation is provided that synchronizes the state data
+     * associated with either the current or new data contexts, depending on
+     * which VariableContext is passed as an argument.
+     */
+    virtual void
+    synchronizeHierarchyData(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
+
+    /*!
+     * Reset the current data to equal the new data, update the time level of
+     * the current data, and deallocate the scratch and new data.
+     *
+     * A default implementation is provided that swaps data between the current
+     * and new variable contexts prior to deallocating the scratch and new data
+     * contexts.
+     */
+    virtual void
+    resetTimeDependentHierarchyData(
+        const double new_time);
+
+    /*!
+     * Reset the hierarchy integrator to the state at the beginning of the
+     * current time step.
+     *
+     * A default implementation is provided that deallocates the scratch and new
+     * data contexts.
+     */
+    virtual void
+    resetIntegratorToPreadvanceState();
+
+    /*!
+     * Regrid the patch hierarchy.
+     *
+     * A default implementation is provided that calls
+     * GriddingAlgorithm::regidAllFinerLevels() to regrid the patch hierarchy.
+     */
+    virtual void
+    regridHierarchy();
 
     /*!
      * Return true if the current step count indicates that regridding should
      * occur.
      *
      * A default implementation is provided that indicates that the hierarchy
-     * should be regridded at a fixed integer interval.
+     * should be regridded at a fixed integer interval of time steps.
      */
     virtual bool
     atRegridPoint() const;
@@ -251,57 +202,68 @@ public:
     getEndTime() const;
 
     /*!
-     * Return the integration step count for entire hierarchy (i.e., number of
-     * steps taken on the coarsest level).
+     * Return the number of time steps taken by the integrator.
      */
     int
     getIntegratorStep() const;
 
     /*!
-     * Return the maximum number of integration steps allowed for entire
-     * hierarchy (i.e., steps allowed on coarsest level).
+     * Return the maximum number of time steps allowed by the integrator.
      */
     int
     getMaxIntegratorSteps() const;
 
     /*!
-     * Return true if any integration steps remain, false otherwise.
+     * Return true if any time steps remain, false otherwise.
      */
     bool
     stepsRemaining() const;
 
     /*!
-     * Return a pointer to the patch hierarchy managed by integrator.
+     * Return a pointer to the patch hierarchy managed by the integrator.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
     getPatchHierarchy() const;
 
     /*!
-     * Return a pointer to the gridding algorithm object.
+     * Return a pointer to the gridding algorithm object managed by the integrator.
      */
     SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
     getGriddingAlgorithm() const;
+
+    /*!
+     * Register a VisIt data writer so the integrator can output data files that
+     * may be postprocessed with the VisIt visualization tool.
+     */
+    void
+    registerVisItDataWriter(
+        SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_writer);
+
+    /*!
+     * Prepare variables for plotting.
+     *
+     * \note Concrete time integrator objects may require that this function be
+     * called immediately before writing out VisIt visualization data.
+     *
+     * An empty default implementation is provided.
+     */
+    virtual void
+    setupVisItPlotData();
 
     ///
     ///  Routines to implement the time integration scheme.
     ///
 
     /*!
-     * Regrid the hierarchy.
-     *
-     * A default implementation is provided that simply calls
-     * GriddingAlgorithm::regidAllFinerLevels() to regrid the patch hierarchy.
-     */
-    virtual void
-    regridHierarchy();
-
-    /*!
      * Prepare to advance the data from current_time to new_time.
+     *
+     * An empty default implementation is provided.
      */
     virtual void
-    integrateHierarchy_initialize(
+    preprocessIntegrateHierarchy(
         const double current_time,
-        const double new_time) = 0;
+        const double new_time,
+        const int num_cycles=1);
 
     /*!
      * Advance the data from current_time to new_time but do not synchronize the
@@ -315,40 +277,14 @@ public:
 
     /*!
      * Clean up data following call to integrateHierarchy().
+     *
+     * An empty default implementation is provided.
      */
     virtual void
-    integrateHierarchy_finalize(
+    postprocessIntegrateHierarchy(
         const double current_time,
-        const double new_time) = 0;
-
-    /*!
-     * Synchronize data defined on the grid hierarchy.
-     *
-     * A default implementation is provided that synchronizes either the current
-     * state data or the new stat data, depending on which VariableContext is
-     * passed as an argument.
-     */
-    virtual void
-    synchronizeData(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
-
-    /*!
-     * Reset the current data to equal the new data, and deallocate the scratch
-     * and new data.
-     *
-     * A default implementation is provided that swaps data between the current
-     * and new variable contexts.
-     */
-    virtual void
-    resetCurrentData(
-        const double new_time);
-
-    /*!
-     * Reset the hierarchy integrator to the state at the beginning of the
-     * current timestep.
-     */
-    virtual void
-    resetToPreadvanceState();
+        const double new_time,
+        const int num_cycles=1);
 
     ///
     ///  Implementations of functions declared in the
@@ -357,42 +293,14 @@ public:
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
-     * hierarchy by the gridding algorithm.  The level number indicates that of
-     * the new level.  The old_level pointer corresponds to the level that
-     * resided in the hierarchy before the level with the specified number was
-     * introduced.  If the pointer is null, there was no level in the hierarchy
-     * prior to the call and the level data is set based on the user routines
-     * and the simulation time.  Otherwise, the specified level replaces the old
-     * level and the new level receives data from the old level appropriately
-     * before it is destroyed.
-     *
-     * Typically, when data is set, it is interpolated from coarser levels in
-     * the hierarchy.  If the data is to be set, the level number must match
-     * that of the old level, if non-null.  If the old level is non-null, then
-     * data is copied from the old level to the new level on regions of
-     * intersection between those levels before interpolation occurs.  Then,
-     * user-supplied patch routines are called to further initialize the data if
-     * needed.  The boolean argument initial_time is passed into the user's
-     * routines.
-     *
-     * The boolean argument initial_time indicates whether the level is being
-     * introduced for the first time (i.e., at initialization time), or after
-     * some regrid process during the calculation beyond the initial hierarchy
-     * construction.  This information is provided since the initialization of
-     * the data on a patch may be different in each of those circumstances.  The
-     * can_be_refined boolean argument indicates whether the level is the finest
-     * level allowed in the hierarchy.  This may or may not affect the data
-     * initialization process depending on the problem.
-     *
-     * When assertion checking is active, an unrecoverable exception will result
-     * if the hierarchy pointer is null, the level number does not match any
-     * level in the hierarchy, or the old level number does not match the level
-     * number (if the old level pointer is non-null).
+     * hierarchy by the gridding algorithm.
      *
      * A default implementation is provided that uses any registered
      * initialization functions to set initial values at the initial time, and
      * that copies data from the old hierarchy to the new one at subsequent
      * times.
+     *
+     * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
     virtual void
     initializeLevelData(
@@ -405,22 +313,12 @@ public:
         const bool allocate_data=true);
 
     /*!
-     * Reset cached communication schedules after the hierarchy has changed (for
-     * example, due to regridding) and the data has been initialized on the new
-     * levels.  The intent is that the cost of data movement on the hierarchy
-     * will be amortized across multiple communication cycles, if possible.  The
-     * level numbers indicate the range of levels in the hierarchy that have
-     * changed.  However, this routine updates communication schedules every
-     * level finer than and including that indexed by the coarsest level number
-     * given.
+     * Reset cached hierarchy dependent data.
      *
-     * When assertion checking is active, an unrecoverable exception will result
-     * if the hierarchy pointer is null, any pointer to a level in the hierarchy
-     * that is coarser than the finest level is null, or the given level numbers
-     * not specified properly; e.g., coarsest_level > finest_level.
-     *
-     * A default implementation is provided that setups the default
+     * A default implementation is provided that sets up the default
      * communication algorithms following a regridding operation.
+     * 
+     * \see SAMRAI::mesh::StandardTagAndInitStrategy::resetHierarchyConfiguration
      */
     virtual void
     resetHierarchyConfiguration(
@@ -430,25 +328,11 @@ public:
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
-     * should occur according to some user-supplied gradient criteria.  The
-     * double time argument is the regrid time.  The integer "tag_index"
-     * argument is the patch descriptor index of the cell centered integer tag
-     * array on each patch in the hierarchy.  The boolean argument initial_time
-     * indicates whether the level is being subject to refinement at the initial
-     * simulation time.  If it is false, then the error estimation process is
-     * being invoked at some later time after the AMR hierarchy was initially
-     * constructed.  The boolean argument uses_richardson_extrapolation_too is
-     * true when Richardson extrapolation error estimation is used in addition
-     * to the gradient detector, and false otherwise.  This argument helps the
-     * user to manage multiple regridding criteria.  This information is passed
-     * along to the user's patch tagging routines since the application of the
-     * gradient detector may be different in each case.
-     *
-     * When assertion checking is active, an unrecoverable exception will result
-     * if the hierarchy pointer is null or the level number does not match any
-     * existing level in the hierarchy.
+     * should occur according to user-supplied feature detection criteria.
      *
      * An empty default implementation is provided.
+     * 
+     * \see SAMRAI::mesh::StandardTagAndInitStrategy::applyGradientDetector
      */
     virtual void
     applyGradientDetector(
@@ -460,28 +344,28 @@ public:
         const bool uses_richardson_extrapolation_too);
 
     ///
-    ///  Routines to access to the various variable contexts maintained by the
+    ///  Routines to access to the variable contexts maintained by the
     ///  integrator.
     ///
 
     /*!
-     * Return pointer to the "current" variable context used by integrator.
-     * Current data corresponds to state data at the beginning of a timestep, or
-     * when a new level is initialized.
+     * Return a pointer to the "current" variable context used by integrator.
+     * Current data corresponds to state data at the beginning of a time step,
+     * or when a new level is initialized.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
     getCurrentContext() const;
 
     /*!
-     * Return pointer to the "new" variable context used by integrator.  New
-     * data corresponds to advanced state data at the end of a timestep.  The
-     * data is one timestep later than the "current" data.
+     * Return a pointer to the "new" variable context used by integrator.  New
+     * data corresponds to advanced state data at the end of a time step.  The
+     * data is one time step later than the "current" data.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
     getNewContext() const;
 
     /*!
-     * Return pointer to the "scratch" variable context used by integrator.
+     * Return a pointer to the "scratch" variable context used by integrator.
      * Scratch data typically corresponds to storage that user-routines in the
      * concrete GodunovAdvector object manipulate; in particular, scratch data
      * contains ghost cells.
@@ -490,50 +374,37 @@ public:
     getScratchContext() const;
 
     ///
-    /// Routine to prepare variables for plotting.
-    ///
-
-    /*!
-     * Prepare variables for plotting.
-     *
-     * A default empty implementation is provided.
-     */
-    virtual void
-    setupPlotVariables();
-
-    ///
     ///  Implementations of functions declared in the SAMRAI::tbox::Serializable
     ///  abstract base class.
     ///
 
     /*!
-     * Write out object state to the given database.
-     *
-     * When assertion checking is active, database pointer must be non-null.
+     * Write out object state to the given database.  The implementation of this
+     * method also calls putToDatabaseSpecialized().
      */
     void
     putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
+    /*!
+     * Write out specialized object state to the given database.
+     *
+     * An empty default implementation is provided.
+     */
+    virtual void
+    putToDatabaseSpecialized(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
 protected:
     /*!
-     * Register a "state" variable with the integrator.  When a refine operator
-     * is specified, the data for the variable is automatically maintained as
-     * the patch hierarchy evolves.
+     * Register a state variable with the integrator.  When a refine operator is
+     * specified, the data for the variable are automatically maintained as the
+     * patch hierarchy evolves.
      *
      * All state variables are registered with three contexts: current, new, and
-     * scratch.  The current context of a state variable is maintained from
-     * timestep to timestep and, optionally, as the patch hierarchy evolves.
-     *
-     * When a coarsen operator is specified, at the end of each timestep refined
-     * regions of the new context are re-filled with the underlying fine data.
-     * Whether or not a coarsen operation occurs, data in the current context is
-     * then overwritten by data in the new context.
-     *
-     * \note If a refine operator is not specified, the data for the variable is
-     * UNDEFINED following any changes to the hierarchy configuration.
-     *
-     * \todo Add variable registration to a HierarchyIntegrator base class.
+     * scratch.  The current context of a state variable is maintained from time
+     * step to time step and, if the necessary coarsen and refine operators are
+     * specified, as the patch hierarchy evolves.
      */
     void
     registerVariable(
@@ -543,15 +414,14 @@ protected:
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
         const SAMRAI::hier::IntVector<NDIM>& scratch_ghosts=SAMRAI::hier::IntVector<NDIM>(0),
         const std::string& coarsen_name="NO_COARSEN",
-        const std::string& refine_name="NO_REFINE");
+        const std::string& refine_name="NO_REFINE",
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> init_fcn=SAMRAI::tbox::Pointer<IBTK::CartGridFunction>(NULL));
 
     /*!
-     * Register a "scratch" variable with the integrator.  This data IS NOT
-     * maintained as the patch hierarchy evolves.
+     * Register a "scratch" variable with the integrator.  This data is not
+     * maintained from time step to time step.
      *
      * All scratch variables are registered with the scratch context.
-     *
-     * \todo Add variable registration to a HierarchyIntegrator base class.
      */
     void
     registerVariable(
@@ -559,15 +429,149 @@ protected:
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
         const SAMRAI::hier::IntVector<NDIM>& ghosts=SAMRAI::hier::IntVector<NDIM>(0));
 
+    /*!
+     * Read input values from a given database.  The implementation of this
+     * method also calls getFromInputSpecialized().
+     */
+    void
+    getFromInput(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
+        const bool is_from_restart);
+
+    /*!
+     * Read specialized object input values from a given database.
+     */
+    virtual void
+    getFromInputSpecialized(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
+        const bool is_from_restart);
+    
+    /*!
+     * Read object state from the restart file and initialize class data
+     * members.  The implementation of this method also calls
+     * getFromRestartSpecialized().
+     */
+    void
+    getFromRestart();
+    
+    /*!
+     * Read specialized object state from the restart file and initialize class
+     * data members.
+     */
+    virtual void
+    getFromRestartSpecialized();
+
+    /*
+     * The object name is used as a handle to databases stored in restart files
+     * and for error reporting purposes.
+     */
+    std::string d_object_name;
+
+    /*
+     * A boolean value indicating whether the class is registered with the
+     * restart database.
+     */ 
+    bool d_registered_for_restart;
+    
+    /*
+     * Pointers to the patch hierarchy and gridding algorithm objects associated
+     * with this time integration object.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
+
+    /*
+     * Indicates whether the hierarchy has been initialized.
+     */
+    bool d_hierarchy_is_initialized;
+
+    /*
+     * The object used to write out data for postprocessing by the VisIt
+     * visualization tool.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
+
+    /*
+     * Time and time step size data read from input or set at initialization.
+     */
+    double d_start_time, d_end_time;
+    double d_dt_previous, d_dt_max, d_dt_growth_factor;
+
+    /*
+     * The maximum number of time steps that may be taken by the integrator
+     * object.
+     */
+    int d_max_integrator_steps;
+
+    /*
+     * The number of integration steps taken between invocations of the
+     * regridding process.
+     */
+    int d_regrid_interval;
+
+    /*
+     * The regrid mode.  "Standard" regridding involves only one call to
+     * SAMRAI::mesh::GriddingAlgorithm::regridAllFinerLevels().  This limits the
+     * amount that the AMR grid hierarchy can change within a single call to
+     * regridHierarchy().  "Agressive" regridding involes multiple calls to
+     * SAMRAI::mesh::GriddingAlgorithm::regridAllFinerLevels(), effectively
+     * allowing arbitrary changes to the grid hierarchy configuration within a
+     * single call to regridHierarchy().
+     */    
+    RegridMode d_regrid_mode;
+
+    /*
+     * Indicates whether the integrator should output logging messages.
+     */
+    bool d_do_log;
+
+    /*
+     * The number of cells on each level by which tagged cells will be buffered
+     * after they have selected for refinement.  The tag buffer helps to
+     * guarantee that refined cells near important features in the solution will
+     * remain refined until the level is regridded next.
+     */
+    SAMRAI::tbox::Array<int> d_tag_buffer;
+
+    /*
+     * Cached communications algorithms, strategies, and schedules.
+     */
+    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > > RefineAlgorithmMap;
+    typedef std::map<std::string,SAMRAI::xfer::RefinePatchStrategy<NDIM>* > RefinePatchStrategyMap;
+    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > > RefineScheduleMap;
+
+    RefineAlgorithmMap     d_refine_algs;
+    RefinePatchStrategyMap d_refine_strategies;
+    RefineScheduleMap      d_refine_scheds;
+
+    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > > CoarsenAlgorithmMap;
+    typedef std::map<std::string,SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* > CoarsenPatchStrategyMap;
+    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > > CoarsenScheduleMap;
+    
+    CoarsenAlgorithmMap     d_calgs;
+    CoarsenPatchStrategyMap d_cstrategies;
+    CoarsenScheduleMap      d_cscheds;
+
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid;
+
+    /*
+     * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects
+     * are used for data management.
+     */
+    std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_state_variables;
+    std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_scratch_variables;
+
+    std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_copy_scratch_to_current_fast;
+    std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_copy_scratch_to_current_slow;
+
+    SAMRAI::hier::ComponentSelector d_current_data, d_new_data, d_scratch_data;
+
+    /*!
+     * Variable contexts.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current_context, d_new_context, d_scratch_context;
+    
 private:
-    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > >              RefineAlgMap;
-    typedef std::map<std::string,SAMRAI::xfer::RefinePatchStrategy<NDIM>* >                                 RefinePatchStrategyMap;
-    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > > RefineSchedMap;
-
-    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > >              CoarsenAlgMap;
-    typedef std::map<std::string,SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* >                                 CoarsenPatchStrategyMap;
-    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > > CoarsenSchedMap;
-
     /*!
      * \brief Default constructor.
      *
@@ -597,163 +601,6 @@ private:
     HierarchyIntegrator&
     operator=(
         const HierarchyIntegrator& that);
-
-    /*!
-     * Read input values, indicated above, from given database.  The boolean
-     * argument is_from_restart should be set to true if the simulation is
-     * beginning from restart.  Otherwise it should be set to false.
-     *
-     * When assertion checking is active, the database pointer must be non-null.
-     */
-    void
-    getFromInput(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
-        bool is_from_restart);
-
-    /*!
-     * Read object state from the restart file and initialize class data
-     * members.  The database from which the restart data is read is determined
-     * by the object_name specified in the constructor.
-     *
-     * Unrecoverable Errors:
-     *
-     *    -   The database corresponding to object_name is not found in the
-     *        restart file.
-     *
-     *    -   The class version number and restart version number do not match.
-     *
-     */
-    void
-    getFromRestart();
-
-    /*
-     * The object name is used as a handle to databases stored in restart files
-     * and for error reporting purposes.  The boolean is used to control restart
-     * file writing operations.
-     */
-    std::string d_object_name;
-    bool d_registered_for_restart;
-
-    /*
-     * Pointers to the patch hierarchy and gridding algorithm objects associated
-     * with this time integration object.
-     *
-     * The gridding algorithm provides grid generation and regridding routines
-     * for the AMR hierarchy.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
-
-    /*
-     * We cache a pointer to the VisIt data writer to register plot variables.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_writer;
-
-    /*
-     * Integrator data read from input or set at initialization.
-     */
-    double d_start_time;
-    double d_end_time;
-    double d_grow_dt;
-    int d_max_integrator_steps;
-
-    /*
-     * The number of cycles of fixed-point iteration to use per timestep.
-     */
-    int d_num_cycles;
-
-    /*
-     * The regrid interval indicates the number of integration steps taken
-     * between invocations of the regridding process.
-     *
-     * The regrid mode indicates whether to use "standard" regridding (grid
-     * generation involves only one call to
-     * SAMRAI::mesh::GriddingAlgorithm::regridAllFinerLevels()) or "agressive"
-     * regridding (grid generation involes multiple calls to
-     * SAMRAI::mesh::GriddingAlgorithm::regridAllFinerLevels()).
-     */
-    int d_regrid_interval;
-    RegridMode d_regrid_mode;
-
-    /*
-     * The tag buffer indicates the number of cells on each level by which
-     * tagged cells will be buffered after they have selected for refinement.
-     * These values are passed into the gridding algorithm routines during
-     * hierarchy construction and regridding.  The tag buffer helps to guarantee
-     * that refined cells near important features in the solution will remain
-     * refined until the level is regridded next.
-     */
-    bool d_using_default_tag_buffer;
-    SAMRAI::tbox::Array<int> d_tag_buffer;
-
-    /*
-     * A maximum timestep constraint.
-     */
-    double d_dt_max;
-
-    /*
-     * Indicates whether the integrator has been initialized.
-     */
-    bool d_is_initialized;
-
-    /*
-     * Indicates whether the integrator should output logging messages.
-     */
-    bool d_do_log;
-
-    /*
-     * Hierarchy operations objects.
-     */
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
-    bool d_is_managing_hier_math_ops;
-
-    /*
-     * Communications algorithms, patch strategies, and schedules.
-     */
-    RefineAlgMap           d_ralgs;
-    RefinePatchStrategyMap d_rstrategies;
-    RefineSchedMap         d_rscheds;
-
-    CoarsenAlgMap           d_calgs;
-    CoarsenPatchStrategyMap d_cstrategies;
-    CoarsenSchedMap         d_cscheds;
-
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid;
-
-    /*
-     * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects
-     * are used for data management.
-     */
-    std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_state_variables;
-    std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_scratch_variables;
-
-    std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_copy_scratch_to_current_fast;
-    std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_copy_scratch_to_current_slow;
-
-    SAMRAI::hier::ComponentSelector d_current_data;
-    SAMRAI::hier::ComponentSelector d_new_data;
-    SAMRAI::hier::ComponentSelector d_scratch_data;
-    SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
-
-    /*!
-     * Variable contexts.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current_context, d_new_context, d_scratch_context;
-
-    /*!
-     * \brief Callback function pointers and callback contexts.
-     */
-    std::vector<void (*)(const double current_time, const double new_time, const int cycle_num, void* ctx)> d_preprocess_integrate_hierarchy_callbacks;
-    std::vector<void*> d_preprocess_integrate_hierarchy_callback_ctxs;
-
-    std::vector<void (*)(const double current_time, const double new_time, const int cycle_num, void* ctx)> d_postprocess_integrate_hierarchy_callbacks;
-    std::vector<void*> d_postprocess_integrate_hierarchy_callback_ctxs;
-
-    std::vector<void (*)(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy, const double regrid_data_time, const bool initial_time, void* ctx)> d_regrid_hierarchy_callbacks;
-    std::vector<void*> d_regrid_hierarchy_callback_ctxs;
-
-    std::vector<void (*)(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy, const int level_number, const double error_data_time, const int tag_index, const bool initial_time, const bool uses_richardson_extrapolation_too, void* ctx)> d_apply_gradient_detector_callbacks;
-    std::vector<void*> d_apply_gradient_detector_callback_ctxs;
 };
 }// namespace IBAMR
 
