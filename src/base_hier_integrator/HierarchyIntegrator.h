@@ -35,6 +35,24 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// IBAMR INCLUDES
+#include <ibamr/ibamr_enums.h>
+
+// IBTK INCLUDES
+#include <ibtk/CartGridFunction.h>
+
+// SAMRAI INCLUDES
+#include <CoarsenAlgorithm.h>
+#include <GriddingAlgorithm.h>
+#include <RefineAlgorithm.h>
+#include <StandardTagAndInitStrategy.h>
+#include <VisItDataWriter.h>
+#include <tbox/Serializable.h>
+
+// C++ STDLIB INCLUDES
+#include <list>
+#include <map>
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -50,20 +68,21 @@ class HierarchyIntegrator
 {
 public:
     /*!
-     * The constructor for class HierarchyIntegrator registers the integrator
-     * object with the restart manager when requested.
+     * The constructor for class HierarchyIntegrator sets some default values,
+     * reads in configuration information from input and restart databases, and
+     * registers the integrator object with the restart manager when requested.
      */
     HierarchyIntegrator(
         const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Database> input_db,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         bool register_for_restart=true);
-    
+
     /*!
      * The destructor for class HierarchyIntegrator unregisters the integrator
      * object with the restart manager when the object is so registered.
      */
     ~HierarchyIntegrator();
-    
+
     /*!
      * Return the name of the hierarchy integrator object.
      */
@@ -317,7 +336,7 @@ public:
      *
      * A default implementation is provided that sets up the default
      * communication algorithms following a regridding operation.
-     * 
+     *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::resetHierarchyConfiguration
      */
     virtual void
@@ -331,7 +350,7 @@ public:
      * should occur according to user-supplied feature detection criteria.
      *
      * An empty default implementation is provided.
-     * 
+     *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::applyGradientDetector
      */
     virtual void
@@ -379,8 +398,11 @@ public:
     ///
 
     /*!
-     * Write out object state to the given database.  The implementation of this
-     * method also calls putToDatabaseSpecialized().
+     * Write out object state to the given database.
+     *
+     * A default implementation is provided that (1) writes out all state data
+     * defined in the base HierarchyIntegrator class and then (2) calls
+     * putToDatabaseSpecialized().
      */
     void
     putToDatabase(
@@ -429,38 +451,6 @@ protected:
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
         const SAMRAI::hier::IntVector<NDIM>& ghosts=SAMRAI::hier::IntVector<NDIM>(0));
 
-    /*!
-     * Read input values from a given database.  The implementation of this
-     * method also calls getFromInputSpecialized().
-     */
-    void
-    getFromInput(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
-        const bool is_from_restart);
-
-    /*!
-     * Read specialized object input values from a given database.
-     */
-    virtual void
-    getFromInputSpecialized(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
-        const bool is_from_restart);
-    
-    /*!
-     * Read object state from the restart file and initialize class data
-     * members.  The implementation of this method also calls
-     * getFromRestartSpecialized().
-     */
-    void
-    getFromRestart();
-    
-    /*!
-     * Read specialized object state from the restart file and initialize class
-     * data members.
-     */
-    virtual void
-    getFromRestartSpecialized();
-
     /*
      * The object name is used as a handle to databases stored in restart files
      * and for error reporting purposes.
@@ -470,9 +460,9 @@ protected:
     /*
      * A boolean value indicating whether the class is registered with the
      * restart database.
-     */ 
+     */
     bool d_registered_for_restart;
-    
+
     /*
      * Pointers to the patch hierarchy and gridding algorithm objects associated
      * with this time integration object.
@@ -494,14 +484,9 @@ protected:
     /*
      * Time and time step size data read from input or set at initialization.
      */
-    double d_start_time, d_end_time;
+    double d_integrator_time, d_start_time, d_end_time;
     double d_dt_previous, d_dt_max, d_dt_growth_factor;
-
-    /*
-     * The maximum number of time steps that may be taken by the integrator
-     * object.
-     */
-    int d_max_integrator_steps;
+    int d_integrator_step, d_max_integrator_steps;
 
     /*
      * The number of integration steps taken between invocations of the
@@ -517,13 +502,19 @@ protected:
      * SAMRAI::mesh::GriddingAlgorithm::regridAllFinerLevels(), effectively
      * allowing arbitrary changes to the grid hierarchy configuration within a
      * single call to regridHierarchy().
-     */    
+     */
     RegridMode d_regrid_mode;
 
     /*
      * Indicates whether the integrator should output logging messages.
      */
     bool d_do_log;
+
+    /*
+     * The type of extrapolation to use at physical boundaries when prolonging
+     * data during regridding.
+     */
+    std::string d_bdry_extrap_type;
 
     /*
      * The number of cells on each level by which tagged cells will be buffered
@@ -547,11 +538,14 @@ protected:
     typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > > CoarsenAlgorithmMap;
     typedef std::map<std::string,SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* > CoarsenPatchStrategyMap;
     typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > > CoarsenScheduleMap;
-    
-    CoarsenAlgorithmMap     d_calgs;
-    CoarsenPatchStrategyMap d_cstrategies;
-    CoarsenScheduleMap      d_cscheds;
 
+    CoarsenAlgorithmMap     d_coarsen_algs;
+    CoarsenPatchStrategyMap d_coarsen_strategies;
+    CoarsenScheduleMap      d_coarsen_scheds;
+
+    static const std::string SYNCH_CURRENT_STATE_DATA_ALG, SYNCH_NEW_STATE_DATA_ALG;
+
+    SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid;
 
     /*
@@ -566,11 +560,13 @@ protected:
 
     SAMRAI::hier::ComponentSelector d_current_data, d_new_data, d_scratch_data;
 
+    std::map<SAMRAI::hier::Variable<NDIM>*,SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_state_var_init_fcns;
+
     /*!
      * Variable contexts.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current_context, d_new_context, d_scratch_context;
-    
+
 private:
     /*!
      * \brief Default constructor.
@@ -601,6 +597,21 @@ private:
     HierarchyIntegrator&
     operator=(
         const HierarchyIntegrator& that);
+
+    /*!
+     * Read input values from a given database.
+     */
+    void
+    getFromInput(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
+        const bool is_from_restart);
+
+    /*!
+     * Read object state from the restart file and initialize class data
+     * members.
+     */
+    void
+    getFromRestart();
 };
 }// namespace IBAMR
 

@@ -44,6 +44,18 @@
 #define included_SAMRAI_config
 #endif
 
+// IBAMR INCLUDES
+#include <ibamr/namespaces.h>
+
+// IBTK INCLUDES
+#include <ibtk/CartExtrapPhysBdryOp.h>
+
+// SAMRAI INCLUDES
+#include <tbox/MathUtilities.h>
+
+// C++ STDLIB INCLUDES
+#include <limits>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -52,7 +64,12 @@ namespace IBAMR
 
 namespace
 {
+// Version of HierarchyIntegrator restart file data.
+static const int HIERARCHY_INTEGRATOR_VERSION = 1;
 }
+
+const std::string HierarchyIntegrator::SYNCH_CURRENT_STATE_DATA_ALG = "SYNCH_CURRENT_STATE_DATA";
+const std::string HierarchyIntegrator::SYNCH_NEW_STATE_DATA_ALG = "SYNCH_NEW_STATE_DATA";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -75,36 +92,45 @@ HierarchyIntegrator::HierarchyIntegrator(
     // Initialize state variables.
     d_hierarchy = NULL;
     d_gridding_alg = NULL;
-    d_hierarchy_is_initialized = false;    
+    d_hierarchy_is_initialized = false;
     d_visit_writer = NULL;
 
     // Set default values.
+    d_integrator_time = std::numeric_limits<double>::quiet_NaN();
     d_start_time = 0.0;
     d_end_time = std::numeric_limits<double>::max();
     d_dt_previous = 0.0;
     d_dt_max = 0.0;
     d_dt_growth_factor = 0.0;
+    d_integrator_step = 0;
     d_max_integrator_steps = std::numeric_limits<int>::max();
     d_regrid_interval = 1;
     d_regrid_mode = STANDARD;
     d_do_log = false;
-    
+    d_bdry_extrap_type = "LINEAR";
+
     // Initialize object with data read from the input and restart databases.
     const bool from_restart = RestartManager::getManager()->isFromRestart();
-    if (!input_db.isNull())
-    {
-        getFromInput(input_db, from_restart);
-    }
+    if (!input_db.isNull()) getFromInput(input_db, from_restart);
     if (from_restart)
     {
         getFromRestart();
     }
-    
+    else
+    {
+        d_integrator_time = d_start_time;
+        d_integrator_step = 0;
+    }
+
     // Initialize all variable contexts.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_current_context = var_db->getContext(d_object_name+"::CURRENT");
     d_new_context     = var_db->getContext(d_object_name+"::NEW"    );
     d_scratch_context = var_db->getContext(d_object_name+"::SCRATCH");
+
+    // Create default communications algorithms.
+    d_coarsen_algs[SYNCH_CURRENT_STATE_DATA_ALG] = new CoarsenAlgorithm<NDIM>();
+    d_coarsen_algs[SYNCH_NEW_STATE_DATA_ALG] = new CoarsenAlgorithm<NDIM>();
     return;
 }// HierarchyIntegrator
 
@@ -115,13 +141,15 @@ HierarchyIntegrator::~HierarchyIntegrator()
         RestartManager::getManager()->unregisterRestartItem(d_object_name);
         d_registered_for_restart = false;
     }
-    
-    for (RefinePatchStrategyMap::iterator it = d_rstrategies.begin(); it != d_rstrategies.end(); ++it)
+
+    for (RefinePatchStrategyMap::iterator it = d_refine_strategies.begin();
+         it != d_refine_strategies.end(); ++it)
     {
         if (it->second != NULL) delete it->second;
     }
-    
-    for (CoarsenPatchStrategyMap::iterator it = d_cstrategies.begin(); it != d_cstrategies.end(); ++it)
+
+    for (CoarsenPatchStrategyMap::iterator it = d_coarsen_strategies.begin();
+         it != d_coarsen_strategies.end(); ++it)
     {
         if (it->second != NULL) delete it->second;
     }
@@ -134,7 +162,7 @@ HierarchyIntegrator::getName() const
     return d_object_name;
 }// getName
 
-double
+void
 HierarchyIntegrator::initializePatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
@@ -147,10 +175,32 @@ HierarchyIntegrator::initializePatchHierarchy(
 #endif
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
-    
+
     // Initialize the hierarchy integrator prior to initializing the patch
     // hierarchy.
     initializeHierarchyIntegrator(d_hierarchy, d_gridding_alg);
+
+    // Setup the tag buffer.
+    if (d_tag_buffer.size() == 0)
+    {
+        d_tag_buffer.resizeArray(d_gridding_alg->getMaxLevels());
+        for (int i = 0; i < d_gridding_alg->getMaxLevels(); ++i)
+        {
+            d_tag_buffer[i] = 1;
+        }
+    }
+    else
+    {
+        if (d_tag_buffer.size() < d_gridding_alg->getMaxLevels())
+        {
+            int tsize = d_tag_buffer.size();
+            d_tag_buffer.resizeArray(d_gridding_alg->getMaxLevels());
+            for (int i = tsize; i < d_gridding_alg->getMaxLevels(); ++i)
+            {
+                d_tag_buffer[i] = d_tag_buffer[tsize-1];
+            }
+        }
+    }
 
     // Initialize the patch hierarchy.
     const bool from_restart = !RestartManager::getManager()->isFromRestart();
@@ -181,7 +231,7 @@ HierarchyIntegrator::initializePatchHierarchy(
     return;
 }// initializePatchHierarchy
 
-double
+void
 HierarchyIntegrator::advanceHierarchy(
     const double dt,
     const int num_cycles)
@@ -191,19 +241,18 @@ HierarchyIntegrator::advanceHierarchy(
 #endif
     const double current_time = d_integrator_time;
     const double new_time = d_integrator_time+dt;
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
-    
+
     // Regrid the patch hierarchy.
     if (atRegridPoint())
     {
         if (d_do_log) plog << d_object_name << "::advanceHierarchy(): regridding prior to timestep " << d_integrator_step << "\n";
         regridHierarchy();
     }
-    
+
     // Integrate the time-dependent data.
     if (d_do_log) plog << d_object_name << "::advanceHierarchy(): integrating data over time interval [" << current_time << "," << new_time << "]\n";
     preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
-    for (int cycle = 0; cycle < d_num_cycles; ++cycle)
+    for (int cycle = 0; cycle < num_cycles; ++cycle)
     {
         integrateHierarchy(current_time, new_time, cycle);
     }
@@ -212,7 +261,7 @@ HierarchyIntegrator::advanceHierarchy(
     // Synchronize the updated data.
     if (d_do_log) plog << d_object_name << "::advanceHierarchy(): synchronizing updated data\n";
     synchronizeHierarchyData(d_new_context);
-    
+
     // Reset all time dependent data.
     if (d_do_log) plog << d_object_name << "::advanceHierarchy(): resetting time dependent data\n";
     resetTimeDependentHierarchyData(new_time);
@@ -244,8 +293,8 @@ HierarchyIntegrator::synchronizeHierarchyData(
     const bool synch_new_data = (ctx->getName() == getNewContext()->getName());
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
     {
-        if (synch_current_data) d_cscheds["SYNCH_CURRENT_STATE_DATA"][ln]->coarsenData();
-        if (synch_new_data)     d_cscheds["SYNCH_NEW_STATE_DATA"    ][ln]->coarsenData();
+        if (synch_current_data) d_coarsen_scheds[SYNCH_CURRENT_STATE_DATA_ALG][ln]->coarsenData();
+        if (synch_new_data)     d_coarsen_scheds[SYNCH_NEW_STATE_DATA_ALG    ][ln]->coarsenData();
     }
     return;
 }// synchronizeHierarchyData
@@ -256,12 +305,12 @@ HierarchyIntegrator::resetTimeDependentHierarchyData(
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    
+
     // Advance the simulation time.
     d_dt_previous = new_time - d_integrator_time;
     d_integrator_time = new_time;
     ++d_integrator_step;
-    
+
     // Swap PatchData<NDIM> pointers between the current and new contexts.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     for (std::list<Pointer<Variable<NDIM> > >::const_iterator sv = d_state_variables.begin(); sv != d_state_variables.end(); ++sv)
@@ -286,7 +335,7 @@ HierarchyIntegrator::resetTimeDependentHierarchyData(
             }
         }
     }
-    
+
     // Deallocate the scratch and new data and reset the time of the current
     // data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -304,7 +353,7 @@ HierarchyIntegrator::resetIntegratorToPreadvanceState()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    
+
     // Deallocate the scratch and new data and reset the time of the current
     // data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -347,7 +396,6 @@ HierarchyIntegrator::regridHierarchy()
 bool
 HierarchyIntegrator::atRegridPoint() const
 {
-    const int level_number = 0;
     return ((d_integrator_step > 0) && (d_regrid_interval != 0) && (d_integrator_step % d_regrid_interval == 0));
 }// atRegridPoint
 
@@ -387,7 +435,7 @@ HierarchyIntegrator::stepsRemaining() const
     return (d_integrator_step < d_max_integrator_steps);
 }// stepsRemaining
 
-const Pointer<PatchHierarchy<NDIM> >
+Pointer<PatchHierarchy<NDIM> >
 HierarchyIntegrator::getPatchHierarchy() const
 {
     return d_hierarchy;
@@ -404,35 +452,31 @@ HierarchyIntegrator::registerVisItDataWriter(
     Pointer<VisItDataWriter<NDIM> > visit_writer)
 {
     d_visit_writer = visit_writer;
-    if (!d_adv_diff_hier_integrator.isNull())
-    {
-        d_adv_diff_hier_integrator->registerVisItDataWriter(visit_writer);
-    }
     return;
 }// registerVisItDataWriter
 
 void
-HierarchyIntegrator::setupVisItPlot()
+HierarchyIntegrator::setupVisItPlotData()
 {
     // intentionally blank
     return;
 }// setupVisItPlotData
 
 void
-HierarchyIntegrator::preproessIntegrateHierarchy(
-    const double current_time,
-    const double new_time,
-    const int num_cycles)
+HierarchyIntegrator::preprocessIntegrateHierarchy(
+    const double /*current_time*/,
+    const double /*new_time*/,
+    const int /*num_cycles*/)
 {
     // intentionally blank
     return;
-}// integrateHierarchy_initialize
+}// preprocessIntegrateHierarchy
 
 void
 HierarchyIntegrator::postprocessIntegrateHierarchy(
-    const double current_time,
-    const double new_time,
-    const int num_cycles)
+    const double /*current_time*/,
+    const double /*new_time*/,
+    const int /*num_cycles*/)
 {
     // intentionally blank
     return;
@@ -443,7 +487,7 @@ HierarchyIntegrator::initializeLevelData(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int level_number,
     const double init_data_time,
-    const bool can_be_refined,
+    const bool /*can_be_refined*/,
     const bool initial_time,
     const Pointer<BasePatchLevel<NDIM> > base_old_level,
     const bool allocate_data)
@@ -473,17 +517,48 @@ HierarchyIntegrator::initializeLevelData(
     {
         level->setTime(init_data_time, d_current_data);
     }
-    
+
     // Fill data from coarser levels in AMR hierarchy.
     if (!initial_time && (level_number > 0 || !old_level.isNull()))
     {
+        level->allocatePatchData(d_scratch_data, init_data_time);
+        CartExtrapPhysBdryOp extrap_bc_op(d_fill_after_regrid_bc_idxs, d_bdry_extrap_type);
+        d_fill_after_regrid->createSchedule(level, old_level, level_number-1, hierarchy, &extrap_bc_op)->fillData(init_data_time);
         TBOX_ASSERT(false);
     }
 
     // Initialize level data at the initial time.
     if (initial_time)
     {
-        TBOX_ASSERT(false);
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        for (std::list<Pointer<SAMRAI::hier::Variable<NDIM> > >::const_iterator cit = d_state_variables.begin();
+             cit != d_state_variables.end(); ++cit)
+        {
+            Pointer<Variable<NDIM> > var = *cit;
+            const int var_current_idx = var_db->mapVariableAndContextToIndex(var, getCurrentContext());
+            Pointer<CartGridFunction> var_init = d_state_var_init_fcns[var];
+            if (!var_init.isNull())
+            {
+                var_init->setDataOnPatchLevel(var_current_idx, var, level, init_data_time, initial_time);
+            }
+            else
+            {
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<CellData<NDIM,double> > var_current_cc_data = patch->getPatchData(var_current_idx);
+                    Pointer<EdgeData<NDIM,double> > var_current_ec_data = patch->getPatchData(var_current_idx);
+                    Pointer<FaceData<NDIM,double> > var_current_fc_data = patch->getPatchData(var_current_idx);
+                    Pointer<NodeData<NDIM,double> > var_current_nc_data = patch->getPatchData(var_current_idx);
+                    Pointer<SideData<NDIM,double> > var_current_sc_data = patch->getPatchData(var_current_idx);
+                    if      (!var_current_cc_data.isNull()) var_current_cc_data->fillAll(0.0);
+                    else if (!var_current_ec_data.isNull()) var_current_ec_data->fillAll(0.0);
+                    else if (!var_current_fc_data.isNull()) var_current_fc_data->fillAll(0.0);
+                    else if (!var_current_nc_data.isNull()) var_current_nc_data->fillAll(0.0);
+                    else if (!var_current_sc_data.isNull()) var_current_sc_data->fillAll(0.0);
+                }
+            }
+        }
     }
     return;
 }// initializeLevelData
@@ -504,40 +579,43 @@ HierarchyIntegrator::resetHierarchyConfiguration(
     }
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
-    
+
     // If we have added or removed a level, resize the communication schedule
     // vectors.
-    for (RefineAlgMap::const_iterator it = d_ralgs.begin(); it!= d_ralgs.end(); ++it)
+    for (RefineAlgorithmMap::const_iterator it = d_refine_algs.begin();
+         it!= d_refine_algs.end(); ++it)
     {
-        d_rscheds[it->first].resize(finest_hier_level+1);
+        d_refine_scheds[it->first].resize(finest_hier_level+1);
     }
 
-    for (CoarsenAlgMap::const_iterator it = d_calgs.begin();
-         it!= d_calgs.end(); ++it)
+    for (CoarsenAlgorithmMap::const_iterator it = d_coarsen_algs.begin();
+         it!= d_coarsen_algs.end(); ++it)
     {
-        d_cscheds[it->first].resize(finest_hier_level+1);
+        d_coarsen_scheds[it->first].resize(finest_hier_level+1);
     }
 
     // (Re)build refine communication schedules.  These are created for all
     // levels in the hierarchy.
-    for (RefineAlgMap::const_iterator it = d_ralgs.begin(); it!= d_ralgs.end(); ++it)
+    for (RefineAlgorithmMap::const_iterator it = d_refine_algs.begin();
+         it != d_refine_algs.end(); ++it)
     {
         for (int ln = coarsest_level; ln <= finest_hier_level; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            d_rscheds[it->first][ln] = it->second->createSchedule(level, ln-1, hierarchy, d_rstrategies[it->first]);
+            d_refine_scheds[it->first][ln] = it->second->createSchedule(level, ln-1, hierarchy, d_refine_strategies[it->first]);
         }
     }
 
     // (Re)build coarsen communication schedules.  These are set only for levels
     // >= 1.
-    for (CoarsenAlgMap::const_iterator it = d_calgs.begin(); it!= d_calgs.end(); ++it)
+    for (CoarsenAlgorithmMap::const_iterator it = d_coarsen_algs.begin();
+         it != d_coarsen_algs.end(); ++it)
     {
         for (int ln = std::max(coarsest_level,1); ln <= finest_hier_level; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
             Pointer<PatchLevel<NDIM> > coarser_level = hierarchy->getPatchLevel(ln-1);
-            d_cscheds[it->first][ln] = it->second->createSchedule(coarser_level, level, d_cstrategies[it->first]);
+            d_coarsen_scheds[it->first][ln] = it->second->createSchedule(coarser_level, level, d_coarsen_strategies[it->first]);
         }
     }
     return;
@@ -545,12 +623,12 @@ HierarchyIntegrator::resetHierarchyConfiguration(
 
 void
 HierarchyIntegrator::applyGradientDetector(
-    const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-    const int level_number,
-    const double error_data_time,
-    const int tag_index,
-    const bool initial_time,
-    const bool uses_richardson_extrapolation_too)
+    const Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+    const int /*level_number*/,
+    const double /*error_data_time*/,
+    const int /*tag_index*/,
+    const bool /*initial_time*/,
+    const bool /*uses_richardson_extrapolation_too*/)
 {
     // intentionally blank
     return;
@@ -578,16 +656,31 @@ void
 HierarchyIntegrator::putToDatabase(
     Pointer<Database> db)
 {
+    db->putInteger("HIERARCHY_INTEGRATOR_VERSION",HIERARCHY_INTEGRATOR_VERSION);
+    db->putDouble("d_integrator_time",d_integrator_time);
+    db->putDouble("d_start_time",d_start_time);
+    db->putDouble("d_end_time",d_end_time);
+    db->putDouble("d_dt_previous",d_dt_previous);
+    db->putDouble("d_dt_max",d_dt_max);
+    db->putDouble("d_dt_growth_factor",d_dt_growth_factor);
+    db->putInteger("d_integrator_step",d_integrator_step);
+    db->putInteger("d_max_integrator_steps",d_max_integrator_steps);
+    db->putInteger("d_regrid_interval",d_regrid_interval);
+    db->putString("d_regrid_mode",enum_to_string<RegridMode>(d_regrid_mode));
+    db->putBool("d_do_log",d_do_log);
+    db->putIntegerArray("d_tag_buffer",d_tag_buffer);
+    db->putString("d_bdry_extrap_type",d_bdry_extrap_type);
+    putToDatabaseSpecialized(db);
     return;
 }// putToDatabase
 
 void
 HierarchyIntegrator::putToDatabaseSpecialized(
-    Pointer<Database> db)
+    Pointer<Database> /*db*/)
 {
     // intentionally blank
     return;
-}// putToDatabase
+}// putToDatabaseSpecialized
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -599,11 +692,14 @@ HierarchyIntegrator::registerVariable(
     const Pointer<Variable<NDIM> > variable,
     const IntVector<NDIM>& scratch_ghosts,
     const std::string& coarsen_name,
-    const std::string& refine_name)
+    const std::string& refine_name,
+    Pointer<CartGridFunction> init_fcn)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!variable.isNull());
 #endif
+    d_state_var_init_fcns[variable] = init_fcn;
+
     const IntVector<NDIM> no_ghosts = 0;
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -651,8 +747,8 @@ HierarchyIntegrator::registerVariable(
     // used to synchronize the data on the hierarchy.
     if (!coarsen_operator.isNull())
     {
-        d_calgs["SYNCH_CURRENT_STATE_DATA"]->registerCoarsen(current_idx, current_idx, coarsen_operator);
-        d_calgs["SYNCH_NEW_STATE_DATA"    ]->registerCoarsen(    new_idx,     new_idx, coarsen_operator);
+        d_coarsen_algs[SYNCH_CURRENT_STATE_DATA_ALG]->registerCoarsen(current_idx, current_idx, coarsen_operator);
+        d_coarsen_algs[SYNCH_NEW_STATE_DATA_ALG    ]->registerCoarsen(    new_idx,     new_idx, coarsen_operator);
     }
     return;
 }// registerVariable
@@ -681,6 +777,69 @@ HierarchyIntegrator::registerVariable(
 }// registerVariable
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+HierarchyIntegrator::getFromInput(
+    Pointer<Database> db,
+    bool is_from_restart)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!db.isNull());
+#endif
+    // Read in data members from input database.
+    if (!is_from_restart)
+    {
+        d_start_time = db->getDoubleWithDefault("start_time",d_start_time);
+    }
+    d_end_time = db->getDoubleWithDefault("end_time",d_end_time);
+    d_dt_max = db->getDoubleWithDefault("dt_max",d_dt_max);
+    d_dt_growth_factor = db->getDoubleWithDefault("dt_growth_factor",d_dt_growth_factor);
+    d_max_integrator_steps = db->getIntegerWithDefault("max_integrator_steps",d_max_integrator_steps);
+    d_regrid_interval = db->getIntegerWithDefault("regrid_interval",d_regrid_interval);
+    d_regrid_mode = string_to_enum<RegridMode>(db->getStringWithDefault("regrid_mode",enum_to_string<RegridMode>(d_regrid_mode)));
+    d_do_log = db->getBoolWithDefault("enable_logging",d_do_log);
+    d_bdry_extrap_type = db->getStringWithDefault("bdry_extrap_type",d_bdry_extrap_type);
+    if (db->keyExists("tag_buffer"))
+    {
+        d_tag_buffer = db->getIntegerArray("tag_buffer");
+    }
+    return;
+}// getFromInput
+
+void
+HierarchyIntegrator::getFromRestart()
+{
+    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    Pointer<Database> db;
+    if (restart_db->isDatabase(d_object_name))
+    {
+        db = restart_db->getDatabase(d_object_name);
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << ":  Restart database corresponding to "
+                   << d_object_name << " not found in restart file." << std::endl);
+    }
+    int ver = db->getInteger("HIERARCHY_INTEGRATOR_VERSION");
+    if (ver != HIERARCHY_INTEGRATOR_VERSION)
+    {
+        TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
+    }
+    d_integrator_time = db->getDouble("d_integrator_time");
+    d_start_time = db->getDouble("d_start_time");
+    d_end_time = db->getDouble("d_end_time");
+    d_dt_previous = db->getDouble("d_dt_previous");
+    d_dt_max = db->getDouble("d_dt_max");
+    d_dt_growth_factor = db->getDouble("d_dt_growth_factor");
+    d_integrator_step = db->getInteger("d_integrator_step");
+    d_max_integrator_steps = db->getInteger("d_max_integrator_steps");
+    d_regrid_interval = db->getInteger("d_regrid_interval");
+    d_regrid_mode = string_to_enum<RegridMode>(db->getString("d_regrid_mode"));
+    d_do_log = db->getBool("d_do_log");
+    d_bdry_extrap_type = db->getString("d_bdry_extrap_type");
+    d_tag_buffer = db->getIntegerArray("d_tag_buffer");
+    return;
+}// getFromRestart
 
 //////////////////////////////////////////////////////////////////////////////
 
