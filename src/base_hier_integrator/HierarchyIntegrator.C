@@ -257,7 +257,7 @@ HierarchyIntegrator::advanceHierarchy(
     {
         integrateHierarchy(current_time, new_time, cycle);
     }
-    postprocessIntegrateHierarchy(current_time, new_time, num_cycles);
+    postprocessIntegrateHierarchy(current_time, new_time, /*skip_synchronize_new_state_data*/ true, num_cycles);
 
     // Synchronize the updated data.
     if (d_do_log) plog << d_object_name << "::advanceHierarchy(): synchronizing updated data\n";
@@ -474,6 +474,7 @@ void
 HierarchyIntegrator::postprocessIntegrateHierarchy(
     const double /*current_time*/,
     const double /*new_time*/,
+    const bool /*skip_synchronize_new_state_data*/,
     const int /*num_cycles*/)
 {
     // intentionally blank
@@ -581,13 +582,13 @@ HierarchyIntegrator::resetHierarchyConfiguration(
     // If we have added or removed a level, resize the communication schedule
     // vectors.
     for (RefineAlgorithmMap::const_iterator it = d_refine_algs.begin();
-         it!= d_refine_algs.end(); ++it)
+         it != d_refine_algs.end(); ++it)
     {
         d_refine_scheds[it->first].resize(finest_hier_level+1);
     }
 
     for (CoarsenAlgorithmMap::const_iterator it = d_coarsen_algs.begin();
-         it!= d_coarsen_algs.end(); ++it)
+         it != d_coarsen_algs.end(); ++it)
     {
         d_coarsen_scheds[it->first].resize(finest_hier_level+1);
     }

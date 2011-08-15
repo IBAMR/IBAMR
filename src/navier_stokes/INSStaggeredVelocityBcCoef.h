@@ -1,5 +1,5 @@
-// Filename: INSStaggeredPressureBcCoef.h
-// Created on 23 Jul 2008 by Boyce Griffith
+// Filename: INSStaggeredVelocityBcCoef.h
+// Created on 22 Jul 2008 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,13 +30,13 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_INSStaggeredPressureBcCoef
-#define included_INSStaggeredPressureBcCoef
+#ifndef included_INSStaggeredVelocityBcCoef
+#define included_INSStaggeredVelocityBcCoef
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/INSCoefs.h>
+#include <ibamr/INSProblemCoefs.h>
 
 // IBTK INCLUDES
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
@@ -49,8 +49,8 @@
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredPressureBcCoef is a concrete
- * SAMRAI::solv::RobinBcCoefStrategy that is used to specify pressure boundary
+ * \brief Class INSStaggeredVelocityBcCoef is a concrete
+ * SAMRAI::solv::RobinBcCoefStrategy that is used to specify velocity boundary
  * conditions for the staggered grid incompressible Navier-Stokes solver.
  *
  * This class interprets pure Dirichlet boundary conditions on the velocity as
@@ -58,13 +58,14 @@ namespace IBAMR
  * conditions are interpreted as prescribed traction (stress) boundary
  * conditions.
  */
-class INSStaggeredPressureBcCoef
+class INSStaggeredVelocityBcCoef
     : public IBTK::ExtendedRobinBcCoefStrategy
 {
 public:
     /*!
      * \brief Constructor.
      *
+     * \param comp_idx        Component of the velocity which this boundary condition specification is to operate on
      * \param problem_coefs   Problem coefficients
      * \param u_bc_coefs      Vector of boundary condition specification objects corresponding to the components of the velocity
      * \param homogeneous_bc  Whether to employ homogeneous (as opposed to inhomogeneous) boundary conditions
@@ -72,29 +73,16 @@ public:
      * \note Precisely NDIM boundary condition objects must be provided to the
      * class constructor.
      */
-    INSStaggeredPressureBcCoef(
-        const INSCoefs& problem_coefs,
+    INSStaggeredVelocityBcCoef(
+        const unsigned int comp_idx,
+        const INSProblemCoefs& problem_coefs,
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
         const bool homogeneous_bc=false);
 
     /*!
      * \brief Destructor.
      */
-    ~INSStaggeredPressureBcCoef();
-
-    /*!
-     * \brief Set the patch data index corresponding to the current velocity.
-     */
-    void
-    setVelocityCurrentPatchDataIndex(
-        const int u_current_idx);
-
-    /*!
-     * \brief Set the patch data index corresponding to the new velocity.
-     */
-    void
-    setVelocityNewPatchDataIndex(
-        const int u_new_idx);
+    ~INSStaggeredVelocityBcCoef();
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -208,7 +196,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredPressureBcCoef();
+    INSStaggeredVelocityBcCoef();
 
     /*!
      * \brief Copy constructor.
@@ -217,8 +205,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredPressureBcCoef(
-        const INSStaggeredPressureBcCoef& from);
+    INSStaggeredVelocityBcCoef(
+        const INSStaggeredVelocityBcCoef& from);
 
     /*!
      * \brief Assignment operator.
@@ -229,22 +217,23 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredPressureBcCoef&
+    INSStaggeredVelocityBcCoef&
     operator=(
-        const INSStaggeredPressureBcCoef& that);
+        const INSStaggeredVelocityBcCoef& that);
+
+    /*
+     * Component of the velocity which this boundary condition specification is
+     * to operate on.
+     */
+    const unsigned int d_comp_idx;
 
     /*
      * Problem coefficients.
      */
-    const INSCoefs& d_problem_coefs;
+    const INSProblemCoefs& d_problem_coefs;
 
     /*
-     * The current and new velocities.
-     */
-    int d_u_current_idx, d_u_new_idx;
-
-    /*
-     * The boundary condition specification objects for the updated velocity.
+     * The boundary condition specification objects for the velocity.
      */
     blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_u_bc_coefs;
 
@@ -254,7 +243,7 @@ private:
     double d_current_time, d_new_time;
 
     /*
-     * The patch data index corresponding to the current value of P.
+     * The patch data index corresponding to the current value of u.
      */
     int d_target_idx;
 
@@ -267,8 +256,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/INSStaggeredPressureBcCoef.I>
+//#include <ibamr/INSStaggeredVelocityBcCoef.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSStaggeredPressureBcCoef
+#endif //#ifndef included_INSStaggeredVelocityBcCoef

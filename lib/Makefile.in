@@ -119,6 +119,8 @@ am__objects_1 = libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR2d_a-AdvectHypPatchOps.$(OBJEXT) \
 	libIBAMR2d_a-GodunovAdvector.$(OBJEXT) \
 	libIBAMR2d_a-HierarchyIntegrator.$(OBJEXT) \
+	libIBAMR2d_a-INSHierarchyIntegrator.$(OBJEXT) \
+	libIBAMR2d_a-INSStaggeredHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-INSProblemCoefs.$(OBJEXT)
 am_libIBAMR2d_a_OBJECTS = $(am__objects_1) \
 	adv_diff_consdiff2d.$(OBJEXT) advect_detect2d.$(OBJEXT) \
@@ -163,6 +165,8 @@ am__objects_2 = libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR3d_a-AdvectHypPatchOps.$(OBJEXT) \
 	libIBAMR3d_a-GodunovAdvector.$(OBJEXT) \
 	libIBAMR3d_a-HierarchyIntegrator.$(OBJEXT) \
+	libIBAMR3d_a-INSHierarchyIntegrator.$(OBJEXT) \
+	libIBAMR3d_a-INSStaggeredHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-INSProblemCoefs.$(OBJEXT)
 am_libIBAMR3d_a_OBJECTS = $(am__objects_2) \
 	adv_diff_consdiff3d.$(OBJEXT) advect_detect3d.$(OBJEXT) \
@@ -532,14 +536,6 @@ $(top_builddir)/src/fortran/sqrtm.f
 
 ###
 ###$(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
-###$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.h \
-###$(top_srcdir)/src/IB/IBImplicitJacobian.h \
-###$(top_srcdir)/src/IB/IBImplicitModHelmholtzOperator.h \
-###$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.I \
-###$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.h \
-###$(top_srcdir)/src/IB/IBImplicitOperator.h \
-###$(top_srcdir)/src/IB/IBImplicitSFROperator.h \
-###$(top_srcdir)/src/IB/IBImplicitSJROperator.h \
 ###
 pkg_include_HEADERS = $(top_srcdir)/src/utilities/ibamr_enums.h \
 	$(top_srcdir)/src/utilities/ibamr_utilities.h \
@@ -572,7 +568,6 @@ pkg_include_HEADERS = $(top_srcdir)/src/utilities/ibamr_enums.h \
 	$(top_srcdir)/src/IB/IBSpringForceSpec.I \
 	$(top_srcdir)/src/IB/IBSpringForceSpec.h \
 	$(top_srcdir)/src/IB/IBSpringForceSpecFactory.h \
-	$(top_srcdir)/src/IB/IBStaggeredHierarchyIntegrator.h \
 	$(top_srcdir)/src/IB/IBStandardForceGen.h \
 	$(top_srcdir)/src/IB/IBStandardSourceGen.h \
 	$(top_srcdir)/src/IB/IBStandardInitializer.h \
@@ -584,18 +579,12 @@ pkg_include_HEADERS = $(top_srcdir)/src/utilities/ibamr_enums.h \
 	$(top_srcdir)/src/advect/AdvectHypPatchOps.h \
 	$(top_srcdir)/src/advect/GodunovAdvector.h \
 	$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.h \
+	$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.h \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.h \
 	$(top_srcdir)/src/navier_stokes/INSProblemCoefs.h
 
 ###
 ###$(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
-###$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C \
-###$(top_srcdir)/src/IB/IBImplicitJacobian.C \
-###$(top_srcdir)/src/IB/IBImplicitModHelmholtzOperator.C \
-###$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C \
-###$(top_srcdir)/src/IB/IBImplicitOperator.C \
-###$(top_srcdir)/src/IB/IBImplicitSFROperator.C \
-###$(top_srcdir)/src/IB/IBImplicitSJROperator.C \
-###$(top_srcdir)/src/IB/IBStaggeredHierarchyIntegrator.C \
 ###
 DIM_INDEPENDENT_SOURCES = \
 $(top_srcdir)/src/IB/IBAnchorPointSpec.C \
@@ -629,6 +618,8 @@ $(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.C \
 $(top_srcdir)/src/advect/AdvectHypPatchOps.C \
 $(top_srcdir)/src/advect/GodunovAdvector.C \
 $(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C \
+$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C \
+$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C \
 $(top_srcdir)/src/navier_stokes/INSProblemCoefs.C
 
 
@@ -778,7 +769,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBStandardSourceGen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBTargetPointForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBTargetPointForceSpecFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSProblemCoefs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffHypPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvectHypPatchOps.Po@am__quote@
@@ -810,7 +803,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBStandardSourceGen.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBTargetPointForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBTargetPointForceSpecFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSProblemCoefs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredHierarchyIntegrator.Po@am__quote@
 
 .C.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -1260,6 +1255,34 @@ libIBAMR2d_a-HierarchyIntegrator.obj: $(top_srcdir)/src/base_hier_integrator/Hie
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-HierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C'; fi`
 
+libIBAMR2d_a-INSHierarchyIntegrator.o: $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSHierarchyIntegrator.Tpo -c -o libIBAMR2d_a-INSHierarchyIntegrator.o `test -f '$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR2d_a-INSHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C' object='libIBAMR2d_a-INSHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSHierarchyIntegrator.o `test -f '$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C
+
+libIBAMR2d_a-INSHierarchyIntegrator.obj: $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSHierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSHierarchyIntegrator.Tpo -c -o libIBAMR2d_a-INSHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR2d_a-INSHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C' object='libIBAMR2d_a-INSHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C'; fi`
+
+libIBAMR2d_a-INSStaggeredHierarchyIntegrator.o: $(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredHierarchyIntegrator.Tpo -c -o libIBAMR2d_a-INSStaggeredHierarchyIntegrator.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSStaggeredHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR2d_a-INSStaggeredHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C' object='libIBAMR2d_a-INSStaggeredHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredHierarchyIntegrator.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C
+
+libIBAMR2d_a-INSStaggeredHierarchyIntegrator.obj: $(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredHierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredHierarchyIntegrator.Tpo -c -o libIBAMR2d_a-INSStaggeredHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSStaggeredHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR2d_a-INSStaggeredHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C' object='libIBAMR2d_a-INSStaggeredHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; fi`
+
 libIBAMR2d_a-INSProblemCoefs.o: $(top_srcdir)/src/navier_stokes/INSProblemCoefs.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSProblemCoefs.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSProblemCoefs.Tpo -c -o libIBAMR2d_a-INSProblemCoefs.o `test -f '$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSProblemCoefs.Tpo $(DEPDIR)/libIBAMR2d_a-INSProblemCoefs.Po
@@ -1707,6 +1730,34 @@ libIBAMR3d_a-HierarchyIntegrator.obj: $(top_srcdir)/src/base_hier_integrator/Hie
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C' object='libIBAMR3d_a-HierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-HierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C'; fi`
+
+libIBAMR3d_a-INSHierarchyIntegrator.o: $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSHierarchyIntegrator.Tpo -c -o libIBAMR3d_a-INSHierarchyIntegrator.o `test -f '$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR3d_a-INSHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C' object='libIBAMR3d_a-INSHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSHierarchyIntegrator.o `test -f '$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C
+
+libIBAMR3d_a-INSHierarchyIntegrator.obj: $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSHierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSHierarchyIntegrator.Tpo -c -o libIBAMR3d_a-INSHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR3d_a-INSHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C' object='libIBAMR3d_a-INSHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C'; fi`
+
+libIBAMR3d_a-INSStaggeredHierarchyIntegrator.o: $(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredHierarchyIntegrator.Tpo -c -o libIBAMR3d_a-INSStaggeredHierarchyIntegrator.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSStaggeredHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR3d_a-INSStaggeredHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C' object='libIBAMR3d_a-INSStaggeredHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredHierarchyIntegrator.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C
+
+libIBAMR3d_a-INSStaggeredHierarchyIntegrator.obj: $(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredHierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredHierarchyIntegrator.Tpo -c -o libIBAMR3d_a-INSStaggeredHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSStaggeredHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR3d_a-INSStaggeredHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C' object='libIBAMR3d_a-INSStaggeredHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; fi`
 
 libIBAMR3d_a-INSProblemCoefs.o: $(top_srcdir)/src/navier_stokes/INSProblemCoefs.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSProblemCoefs.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSProblemCoefs.Tpo -c -o libIBAMR3d_a-INSProblemCoefs.o `test -f '$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C

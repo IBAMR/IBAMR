@@ -36,8 +36,9 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/INSCoefs.h>
+#include <ibamr/INSProblemCoefs.h>
 #include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
+#include <ibamr/INSStaggeredPressureBcCoef.h>
 
 // IBTK INCLUDES
 #include <ibtk/LinearOperator.h>
@@ -66,10 +67,9 @@ public:
      * \brief Class constructor.
      */
     INSStaggeredStokesOperator(
-        const INSCoefs& problem_coefs,
+        const INSProblemCoefs& problem_coefs,
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs,
         SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops);
 
     /*!
@@ -258,7 +258,7 @@ private:
     double d_current_time, d_new_time, d_dt;
 
     // Problem coefficients.
-    const INSCoefs& d_problem_coefs;
+    const INSProblemCoefs& d_problem_coefs;
     SAMRAI::solv::PoissonSpecifications d_helmholtz_spec;
 
     // Math objects.
@@ -269,7 +269,7 @@ private:
     bool d_correcting_rhs;
     const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_bc_coefs;
     SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_U_bc_helper;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
+    INSStaggeredPressureBcCoef d_P_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_P_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.

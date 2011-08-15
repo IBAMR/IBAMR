@@ -33,14 +33,6 @@ $(top_srcdir)/src/utilities/namespaces.h
 
 ###
 ###$(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
-###$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.C \
-###$(top_srcdir)/src/IB/IBImplicitJacobian.C \
-###$(top_srcdir)/src/IB/IBImplicitModHelmholtzOperator.C \
-###$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.C \
-###$(top_srcdir)/src/IB/IBImplicitOperator.C \
-###$(top_srcdir)/src/IB/IBImplicitSFROperator.C \
-###$(top_srcdir)/src/IB/IBImplicitSJROperator.C \
-###$(top_srcdir)/src/IB/IBStaggeredHierarchyIntegrator.C \
 ###
 
 DIM_INDEPENDENT_SOURCES = \
@@ -75,6 +67,8 @@ $(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.C \
 $(top_srcdir)/src/advect/AdvectHypPatchOps.C \
 $(top_srcdir)/src/advect/GodunovAdvector.C \
 $(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C \
+$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C \
+$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C \
 $(top_srcdir)/src/navier_stokes/INSProblemCoefs.C
 
 ###if LIBMESH_ENABLED
@@ -84,14 +78,6 @@ $(top_srcdir)/src/navier_stokes/INSProblemCoefs.C
 
 ###
 ###$(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
-###$(top_srcdir)/src/IB/IBImplicitHierarchyIntegrator.h \
-###$(top_srcdir)/src/IB/IBImplicitJacobian.h \
-###$(top_srcdir)/src/IB/IBImplicitModHelmholtzOperator.h \
-###$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.I \
-###$(top_srcdir)/src/IB/IBImplicitModHelmholtzPETScLevelSolver.h \
-###$(top_srcdir)/src/IB/IBImplicitOperator.h \
-###$(top_srcdir)/src/IB/IBImplicitSFROperator.h \
-###$(top_srcdir)/src/IB/IBImplicitSJROperator.h \
 ###
 
 pkg_include_HEADERS += \
@@ -123,7 +109,6 @@ $(top_srcdir)/src/IB/IBSpringForceFunctions.h \
 $(top_srcdir)/src/IB/IBSpringForceSpec.I \
 $(top_srcdir)/src/IB/IBSpringForceSpec.h \
 $(top_srcdir)/src/IB/IBSpringForceSpecFactory.h \
-$(top_srcdir)/src/IB/IBStaggeredHierarchyIntegrator.h \
 $(top_srcdir)/src/IB/IBStandardForceGen.h \
 $(top_srcdir)/src/IB/IBStandardSourceGen.h \
 $(top_srcdir)/src/IB/IBStandardInitializer.h \
@@ -135,6 +120,8 @@ $(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.h \
 $(top_srcdir)/src/advect/AdvectHypPatchOps.h \
 $(top_srcdir)/src/advect/GodunovAdvector.h \
 $(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.h \
+$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.h \
+$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.h \
 $(top_srcdir)/src/navier_stokes/INSProblemCoefs.h
 
 ###if LIBMESH_ENABLED

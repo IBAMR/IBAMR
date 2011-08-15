@@ -1,5 +1,5 @@
-// Filename: INSStaggeredProjectionPreconditioner.h
-// Created on 29 Mar 2008 by Boyce Griffith
+// Filename: INSStaggeredBlockFactorizationPreconditioner.h
+// Created on 22 Sep 2008 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,13 +30,13 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_INSStaggeredProjectionPreconditioner
-#define included_INSStaggeredProjectionPreconditioner
+#ifndef included_INSStaggeredBlockFactorizationPreconditioner
+#define included_INSStaggeredBlockFactorizationPreconditioner
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/INSCoefs.h>
+#include <ibamr/INSProblemCoefs.h>
 
 // IBTK INCLUDES
 #include <ibtk/LinearSolver.h>
@@ -48,25 +48,26 @@
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredProjectionPreconditioner is a concrete
- * IBTK::LinearSolver which implements a staggered grid (MAC) projection solver
- * for the incompressible Stokes operator.
+ * \brief Class INSStaggeredBlockFactorizationPreconditioner is a concrete
+ * IBTK::LinearSolver which implements a staggered grid (MAC) block
+ * factorization (approximate Schur complement) preconditioner for the
+ * incompressible Navier-Stokes equations.
  *
  * This class is intended to be used with an iterative (Krylov or Newton-Krylov)
  * incompressible flow solver.
  *
  * \see INSStaggeredHierarchyIntegrator
  */
-class INSStaggeredProjectionPreconditioner
+class INSStaggeredBlockFactorizationPreconditioner
     : public IBTK::LinearSolver
 {
 public:
     /*!
      * \brief Class constructor
      */
-    INSStaggeredProjectionPreconditioner(
-        const INSCoefs& problem_coefs,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* Phi_bc_coef,
+    INSStaggeredBlockFactorizationPreconditioner(
+        const INSProblemCoefs& problem_coefs,
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
         const bool normalize_pressure,
         SAMRAI::tbox::Pointer<IBTK::LinearSolver> velocity_helmholtz_solver,
         SAMRAI::tbox::Pointer<IBTK::LinearSolver> pressure_poisson_solver,
@@ -77,19 +78,15 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~INSStaggeredProjectionPreconditioner();
+    ~INSStaggeredBlockFactorizationPreconditioner();
 
     /*!
      * \brief Set the current time interval.
-     *
-     * \note The time increment dt is not required to equal
-     * new_time-current_time.
      */
     void
     setTimeInterval(
         const double current_time,
-        const double new_time,
-        const double dt);
+        const double new_time);
 
     /*!
      * \name Linear solver functionality.
@@ -242,7 +239,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredProjectionPreconditioner();
+    INSStaggeredBlockFactorizationPreconditioner();
 
     /*!
      * \brief Copy constructor.
@@ -251,8 +248,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredProjectionPreconditioner(
-        const INSStaggeredProjectionPreconditioner& from);
+    INSStaggeredBlockFactorizationPreconditioner(
+        const INSStaggeredBlockFactorizationPreconditioner& from);
 
     /*!
      * \brief Assignment operator.
@@ -263,9 +260,9 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredProjectionPreconditioner&
+    INSStaggeredBlockFactorizationPreconditioner&
     operator=(
-        const INSStaggeredProjectionPreconditioner& that);
+        const INSStaggeredBlockFactorizationPreconditioner& that);
 
     // Indicates whether the preconditioner should output logging messages.
     bool d_do_log;
@@ -277,7 +274,7 @@ private:
     double d_current_time, d_new_time, d_dt;
 
     // Problem coefficients.
-    const INSCoefs& d_problem_coefs;
+    const INSProblemCoefs& d_problem_coefs;
     SAMRAI::solv::PoissonSpecifications d_pressure_helmholtz_spec;
 
     // Normalize the pressure when necessary.
@@ -297,23 +294,25 @@ private:
     double d_volume;
 
     // Boundary condition objects.
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_Phi_bc_coef;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_P_bdry_fill_op, d_no_fill_op;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln, d_finest_ln;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Phi_var, d_F_var;
-    int d_Phi_scratch_idx, d_F_scratch_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_var;
+    int d_U_scratch_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_var;
+    int d_P_scratch_idx;
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/INSStaggeredProjectionPreconditioner.I>
+//#include <ibamr/INSStaggeredBlockFactorizationPreconditioner.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSStaggeredProjectionPreconditioner
+#endif //#ifndef included_INSStaggeredBlockFactorizationPreconditioner

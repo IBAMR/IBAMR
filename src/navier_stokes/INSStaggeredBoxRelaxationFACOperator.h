@@ -39,7 +39,7 @@
 #include <petscksp.h>
 
 // IBAMR INCLUDES
-#include <ibamr/INSCoefs.h>
+#include <ibamr/INSProblemCoefs.h>
 
 // IBTK INCLUDES
 #include <ibtk/CartCellRobinPhysBdryOp.h>
@@ -107,12 +107,12 @@ public:
     //\{
 
     /*!
-     * \brief Set the INSCoefs object and timestep size used to specify the
-     * coefficients for the time-dependent incompressible Stokes operator.
+     * \brief Set the INSProblemCoefs object and timestep size used to specify
+     * the coefficients for the time-dependent incompressible Stokes operator.
      */
     void
     setProblemCoefficients(
-        const INSCoefs& problem_coefs,
+        const INSProblemCoefs& problem_coefs,
         const double dt);
 
     /*!
@@ -351,20 +351,16 @@ public:
         int coarsest_ln);
 
     /*!
-     * \brief Compute composite grid residual on a single level.
-     *
-     * \param residual residual vector
-     * \param solution solution vector
-     * \param rhs source (right hand side) vector
-     * \param level_num level number
-     * \param error_equation_indicator flag stating whether u is an error vector or a solution vector
+     * \brief Compute the composite-grid residual on the specified range of
+     * levels of the patch hierarchy.
      */
     void
     computeResidual(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs,
-        int level_num);
+        int coarsest_level_num,
+        int finest_level_num);
 
     /*!
      * \brief Compute hierarchy-dependent data.
@@ -546,7 +542,7 @@ private:
     /*
      * Problem coefficient specifications.
      */
-    INSCoefs d_problem_coefs;
+    INSProblemCoefs d_problem_coefs;
     double d_dt;
 
     /*

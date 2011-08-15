@@ -86,6 +86,16 @@ public:
         SAMRAI::tbox::ConstPointer<FACPreconditioner> preconditioner);
 
     /*!
+     * \brief Set the current time interval (for a time-dependent solver).
+     *
+     * \note An empty default implementation is provided.
+     */
+    virtual void
+    setTimeInterval(
+        const double current_time,
+        const double new_time);
+
+    /*!
      * \brief Restrict the residual from the source vector to the destination
      * vector on the specified level of the patch hierarchy.
      *

@@ -72,6 +72,16 @@ public:
     //\{
 
     /*!
+     * \brief Set the current time interval (for a time-dependent solver).
+     *
+     * \note An empty default implementation is provided.
+     */
+    virtual void
+    setTimeInterval(
+        const double current_time,
+        const double new_time);
+    
+    /*!
      * \brief Set the nullspace of the linear system.
      *
      * Should not assume the basis vector, if any, to be normalized.  If the

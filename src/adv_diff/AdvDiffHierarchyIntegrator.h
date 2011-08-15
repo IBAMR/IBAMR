@@ -341,10 +341,6 @@ public:
 
     /*!
      * Return the maximum stable time step size.
-     *
-     * A default implementation is provided that returns
-     * min(dt_max,dt_growth_factor*dt_current).  The growth condition prevents
-     * excessive changes in the time step size as the computation progresses.
      */
     double
     getStableTimestep();

@@ -68,6 +68,15 @@ LinearSolver::~LinearSolver()
 }// ~LinearSolver()
 
 void
+LinearSolver::setTimeInterval(
+    const double /*current_time*/,
+    const double /*new_time*/)
+{
+    // intentionally blank
+    return;
+}// setTimeInterval
+
+void
 LinearSolver::setNullspace(
     const bool contains_constant_vector,
     Pointer<SAMRAIVectorReal<NDIM,double> > nullspace_basis_vec)

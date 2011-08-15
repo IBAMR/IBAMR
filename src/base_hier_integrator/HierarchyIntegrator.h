@@ -294,7 +294,7 @@ public:
         const int cycle_num=0) = 0;
 
     /*!
-     * Clean up data following call to integrateHierarchy().
+     * Clean up data following call(s) to integrateHierarchy().
      *
      * An empty default implementation is provided.
      */
@@ -302,6 +302,7 @@ public:
     postprocessIntegrateHierarchy(
         const double current_time,
         const double new_time,
+        const bool skip_synchronize_new_state_data,
         const int num_cycles=1);
 
     ///

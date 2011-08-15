@@ -173,17 +173,16 @@ INSStaggeredProjectionPreconditioner::~INSStaggeredProjectionPreconditioner()
 void
 INSStaggeredProjectionPreconditioner::setTimeInterval(
     const double current_time,
-    const double new_time,
-    const double dt)
+    const double new_time)
 {
     const double rho    = d_problem_coefs.getRho();
     const double mu     = d_problem_coefs.getMu();
     const double lambda = d_problem_coefs.getLambda();
     d_current_time = current_time;
     d_new_time = new_time;
-    d_dt = dt;
-    d_pressure_helmholtz_spec.setCConstant(1.0+0.5*d_dt*lambda/rho);
-    d_pressure_helmholtz_spec.setDConstant(   -0.5*d_dt*mu    /rho);
+    const double dt = d_new_time-d_current_time;
+    d_pressure_helmholtz_spec.setCConstant(1.0+0.5*dt*lambda/rho);
+    d_pressure_helmholtz_spec.setDConstant(   -0.5*dt*mu    /rho);
     return;
 }// setTimeInterval
 
