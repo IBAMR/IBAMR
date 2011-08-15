@@ -1,6 +1,3 @@
-// constants
-PI = 3.141592653589793e+00
-
 // grid spacing parameters
 MAX_LEVELS = 2   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
@@ -38,8 +35,8 @@ AdvDiffHierarchyIntegrator {
    }
 
    HyperbolicLevelIntegrator {
-      cfl                      = 0.9975e0  // max cfl factor used in problem
-      cfl_init                 = 0.9975e0  // initial cfl factor
+      cfl                      = 0.975e0  // max cfl factor used in problem
+      cfl_init                 = 0.975e0  // initial cfl factor
       lag_dt_computation       = TRUE
       use_ghosts_to_compute_dt = FALSE
    }
@@ -50,26 +47,15 @@ AdvDiffHierarchyIntegrator {
    using_FAC = TRUE
 
    FACOps {
-      fac_max_cycles = 1
-      fac_uses_presmoothing = FALSE
-      fac_initial_guess_nonzero = FALSE
-
-      skip_restrict_sol = TRUE
-      skip_restrict_residual = FALSE
-
-      ssor_iterations = 1
-
       coarse_solver_choice = "block_jacobi"
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
-      prolongation_method = "LINEAR_REFINE"
-      cf_discretization   = "LINEAR_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      prolongation_method = "CONSTANT_REFINE"
    }
 
    FACPreconditioners {
-      max_cycles = 1
-      residual_tol = 1.0e-12
-      num_pre_sweeps  = 0  // this should always be 0
+      num_pre_sweeps  = 0
       num_post_sweeps = 3
    }
 }

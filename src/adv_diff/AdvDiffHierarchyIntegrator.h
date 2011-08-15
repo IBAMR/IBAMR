@@ -95,6 +95,7 @@ public:
     AdvDiffHierarchyIntegrator(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geometry,
         SAMRAI::tbox::Pointer<GodunovAdvector> explicit_predictor,
         bool register_for_restart=true);
 
@@ -345,9 +346,23 @@ public:
      * min(dt_max,dt_growth_factor*dt_current).  The growth condition prevents
      * excessive changes in the time step size as the computation progresses.
      */
-    virtual double
-    getStableTimestep(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
+    double
+    getStableTimestep();
+
+    /*!
+     * Reset the current data to equal the new data, update the time level of
+     * the current data, and deallocate the scratch and new data.
+     */
+    void
+    resetTimeDependentHierarchyData(
+        const double new_time);
+
+    /*!
+     * Reset the hierarchy integrator to the state at the beginning of the
+     * current time step.
+     */
+    void
+    resetIntegratorToPreadvanceState();
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -355,7 +370,7 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
-    virtual void
+    void
     initializeLevelData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -370,7 +385,7 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::resetHierarchyConfiguration
      */
-    virtual void
+    void
     resetHierarchyConfiguration(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,

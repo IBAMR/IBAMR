@@ -38,6 +38,9 @@
 #include <cstring>
 #include <tbox/Utilities.h>
 
+namespace IBAMR
+{
+
 /*!
  * \brief Routine for converting strings to enums.
  */
@@ -224,6 +227,8 @@ enum_to_string<ViscousTimesteppingType>(
     if (val == CRANK_NICOLSON) return "CRANK_NICOLSON";
     return "UNKNOWN_VISCOUS_TIMESTEPPING_METHOD";
 }// enum_to_string
+
+}// namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

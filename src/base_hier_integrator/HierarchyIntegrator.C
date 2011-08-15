@@ -100,8 +100,8 @@ HierarchyIntegrator::HierarchyIntegrator(
     d_start_time = 0.0;
     d_end_time = std::numeric_limits<double>::max();
     d_dt_previous = 0.0;
-    d_dt_max = 0.0;
-    d_dt_growth_factor = 0.0;
+    d_dt_max = std::numeric_limits<double>::max();
+    d_dt_growth_factor = 10.0;
     d_integrator_step = 0;
     d_max_integrator_steps = std::numeric_limits<int>::max();
     d_regrid_interval = 1;
@@ -203,7 +203,7 @@ HierarchyIntegrator::initializePatchHierarchy(
     }
 
     // Initialize the patch hierarchy.
-    const bool from_restart = !RestartManager::getManager()->isFromRestart();
+    const bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart)
     {
         d_hierarchy->getFromRestart(d_gridding_alg->getMaxLevels());
@@ -237,7 +237,8 @@ HierarchyIntegrator::advanceHierarchy(
     const int num_cycles)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_end_time >= d_integrator_time+dt);
+    TBOX_ASSERT(dt > 0.0);
+    TBOX_ASSERT(d_integrator_time+dt <= d_end_time);
 #endif
     const double current_time = d_integrator_time;
     const double new_time = d_integrator_time+dt;
@@ -269,18 +270,15 @@ HierarchyIntegrator::advanceHierarchy(
 }// advanceHierarchy
 
 double
-HierarchyIntegrator::getStableTimestep(
-    Pointer<VariableContext> /*ctx*/)
+HierarchyIntegrator::getStableTimestep()
 {
+    double dt = d_dt_max;
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
-    if (initial_time)
+    if (!initial_time)
     {
-        return d_dt_max;
+        dt = std::min(d_dt_max,d_dt_growth_factor*d_dt_previous);
     }
-    else
-    {
-        return std::min(d_dt_max,d_dt_growth_factor*d_dt_previous);
-    }
+    return std::min(dt,d_end_time-d_integrator_time);
 }// getStableTimestep
 
 void
@@ -793,7 +791,14 @@ HierarchyIntegrator::getFromInput(
     }
     d_end_time = db->getDoubleWithDefault("end_time",d_end_time);
     d_dt_max = db->getDoubleWithDefault("dt_max",d_dt_max);
-    d_dt_growth_factor = db->getDoubleWithDefault("dt_growth_factor",d_dt_growth_factor);
+    if (db->keyExists("grow_dt"))
+    {
+        d_dt_growth_factor = db->getDouble("grow_dt");
+    }
+    else
+    {
+        d_dt_growth_factor = db->getDoubleWithDefault("dt_growth_factor",d_dt_growth_factor);
+    }
     d_max_integrator_steps = db->getIntegerWithDefault("max_integrator_steps",d_max_integrator_steps);
     d_regrid_interval = db->getIntegerWithDefault("regrid_interval",d_regrid_interval);
     d_regrid_mode = string_to_enum<RegridMode>(db->getStringWithDefault("regrid_mode",enum_to_string<RegridMode>(d_regrid_mode)));

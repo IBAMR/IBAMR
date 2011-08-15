@@ -377,19 +377,21 @@ public:
         int coarsest_ln);
 
     /*!
-     * \brief Compute composite grid residual on a single level.
+     * \brief Compute composite grid residual on a range of levels.
      *
      * \param residual residual vector
      * \param solution solution vector
      * \param rhs source (right hand side) vector
-     * \param level_num level number
+     * \param coarsest_level_num coarsest level number
+     * \param finest_level_num finest level number
      */
     void
     computeResidual(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs,
-        int level_num);
+        int coarsest_level_num,
+        int finest_level_num);
 
     /*!
      * \brief Compute hierarchy-dependent data.

@@ -151,15 +151,16 @@ public:
         int coarsest_level_num) = 0;
 
     /*!
-     * \brief Compute the composite-grid residual on the specified level of the
-     * patch hierarchy.
+     * \brief Compute the composite-grid residual on the specified range of
+     * levels of the patch hierarchy.
      */
     virtual void
     computeResidual(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs,
-        int level_num) = 0;
+        int coarsest_level_num,
+        int finest_level_num) = 0;
 
     /*!
      * \brief Initialize any hierarchy-dependent data.

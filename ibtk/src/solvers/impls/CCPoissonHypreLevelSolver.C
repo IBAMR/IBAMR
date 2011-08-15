@@ -1357,6 +1357,14 @@ CCPoissonHypreLevelSolver::solveSystem(
     {
         HYPRE_StructPFMGSetMaxIter(d_solver, d_max_iterations);
         HYPRE_StructPFMGSetTol(d_solver, d_rel_residual_tol);
+        if (d_initial_guess_nonzero)
+        {
+            HYPRE_StructPFMGSetNonZeroGuess(d_solver);
+        }
+        else
+        {
+            HYPRE_StructPFMGSetZeroGuess(d_solver);
+        }
         HYPRE_StructPFMGSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
         HYPRE_StructPFMGGetNumIterations(d_solver, &d_current_its);
         HYPRE_StructPFMGGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
@@ -1365,6 +1373,14 @@ CCPoissonHypreLevelSolver::solveSystem(
     {
         HYPRE_StructSMGSetMaxIter(d_solver, d_max_iterations);
         HYPRE_StructSMGSetTol(d_solver, d_rel_residual_tol);
+        if (d_initial_guess_nonzero)
+        {
+            HYPRE_StructSMGSetNonZeroGuess(d_solver);
+        }
+        else
+        {
+            HYPRE_StructSMGSetZeroGuess(d_solver);
+        }
         HYPRE_StructSMGSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
         HYPRE_StructSMGGetNumIterations(d_solver, &d_current_its);
         HYPRE_StructSMGGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);

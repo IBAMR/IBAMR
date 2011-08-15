@@ -56,6 +56,7 @@ FACPreconditioner::FACPreconditioner(
       d_hierarchy(NULL),
       d_coarsest_ln(0),
       d_finest_ln(0),
+      d_cycle_type(V_CYCLE),
       d_num_pre_sweeps(1),
       d_num_post_sweeps(1),
       d_f(),
@@ -92,16 +93,38 @@ FACPreconditioner::solveSystem(
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(u,f);
 
+    // Keep track of whether we need to (re-)compute the residual.  u is
+    // required to be zero upon entry to this function, so as long as u is
+    // unmodified, the residual is simply equal to the right-hand-side vector f.
+    d_recompute_residual = false;
+
     // Apply a single FAC cycle.
-    if (d_num_pre_sweeps == 0)
+    if (d_cycle_type == V_CYCLE && d_num_pre_sweeps == 0)
     {
-        FACCycle(u, f, d_finest_ln);
+        // V-cycle MG without presmoothing keeps the residual equal to the
+        // initial right-hand-side vector f, so we can simply use that vector
+        // for the residual in the FAC algorithm.
+        FACVCycleNoPreSmoothing(u, f, d_finest_ln);
     }
     else
     {
         d_f->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&f, false), false);
         d_r->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&f, false), false);
-        FACCycle(u, *d_f, d_finest_ln);
+        switch (d_cycle_type)
+        {
+            case V_CYCLE:
+                FACVCycle(u, *d_f, d_finest_ln);
+                break;
+            case W_CYCLE:
+                FACWCycle(u, *d_f, d_finest_ln);
+                break;
+            case F_CYCLE:
+                FACFCycle(u, *d_f, d_finest_ln);
+                break;
+            default:
+                TBOX_ERROR(d_object_name << "::solveSystem():\n"
+                           << "  unrecognized FAC cycle type: " << enum_to_string<MGCycleType>(d_cycle_type) << "." << std::endl);
+        }
     }
 
     // Deallocate the solver, when necessary.
@@ -126,14 +149,14 @@ FACPreconditioner::initializeSolverState(
     d_finest_ln   = solution.getFinestLevelNumber();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_hierarchy == rhs.getPatchHierarchy());
+    TBOX_ASSERT(d_hierarchy   == rhs.getPatchHierarchy());
     TBOX_ASSERT(d_coarsest_ln == rhs.getCoarsestLevelNumber());
-    TBOX_ASSERT(d_finest_ln == rhs.getFinestLevelNumber());
+    TBOX_ASSERT(d_finest_ln   == rhs.getFinestLevelNumber());
 #endif
     d_fac_strategy.initializeOperatorState(solution, rhs);
 
     // Create temporary vectors.
-    if (d_num_pre_sweeps > 0)
+    if (!(d_cycle_type == V_CYCLE && d_num_pre_sweeps == 0))
     {
         d_f = rhs.cloneVector("");
         d_f->allocateVectorData();
@@ -183,6 +206,9 @@ FACPreconditioner::getFromInput(
 {
     if (db.isNull()) return;
 
+    MGCycleType cycle_type = string_to_enum<MGCycleType>(db->getStringWithDefault("cycle_type", enum_to_string<MGCycleType>(d_cycle_type)));
+    setMGCycleType(cycle_type);
+
     int num_pre_sweeps = db->getIntegerWithDefault("num_pre_sweeps", d_num_pre_sweeps);
     setNumPreSmoothingSweeps(num_pre_sweeps);
 
@@ -195,38 +221,188 @@ FACPreconditioner::getFromInput(
 }// getFromInput
 
 void
-FACPreconditioner::FACCycle(
+FACPreconditioner::FACVCycleNoPreSmoothing(
     SAMRAIVectorReal<NDIM,double>& u,
     SAMRAIVectorReal<NDIM,double>& f,
     int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
+        // Solve Au = f on the coarsest level.
         d_fac_strategy.solveCoarsestLevel(u, f, level_num);
     }
     else
     {
-        if (d_num_pre_sweeps > 0)
-        {
-            d_fac_strategy.smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
-            d_fac_strategy.computeResidual(*d_r, u, f, level_num);
-            d_fac_strategy.restrictResidual(*d_r, f, level_num-1);
-            FACCycle(u, f, level_num-1);
-            d_fac_strategy.prolongErrorAndCorrect(u, u, level_num);
-        }
-        else
-        {
-            d_fac_strategy.restrictResidual(f, f, level_num-1);
-            FACCycle(u, f, level_num-1);
-            d_fac_strategy.prolongError(u, u, level_num);
-        }
+        // Restrict the residual to the next coarser level.
+        d_fac_strategy.restrictResidual(f, f, level_num-1);
+
+        // Recursively call the FAC algorithm.
+        FACVCycleNoPreSmoothing(u, f, level_num-1);
+
+        // Prolong the error from the next coarser level and correct the
+        // solution on the current level.
+        d_fac_strategy.prolongErrorAndCorrect(u, u, level_num);
+
+        // Smooth error on the current level.
         if (d_num_post_sweeps > 0)
         {
             d_fac_strategy.smoothError(u, f, level_num, d_num_post_sweeps, false, true);
         }
     }
     return;
-}// FACCycle
+}// FACVCycleNoPreSmoothing
+
+void
+FACPreconditioner::FACVCycle(
+    SAMRAIVectorReal<NDIM,double>& u,
+    SAMRAIVectorReal<NDIM,double>& f,
+    int level_num)
+{
+    if (level_num == d_coarsest_ln)
+    {
+        // Solve Au = f on the coarsest level.
+        d_fac_strategy.solveCoarsestLevel(u, f, level_num);
+        d_recompute_residual = true;
+    }
+    else
+    {
+        // Smooth the error on the current level.
+        if (d_num_pre_sweeps > 0)
+        {
+            d_fac_strategy.smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
+            d_recompute_residual = true;
+        }
+
+        // Compute the composite-grid residual on the current level and the next
+        // coarser level, and restrict the residual to the next coarser level.
+        if (d_recompute_residual)
+        {
+            d_fac_strategy.computeResidual(*d_r, u, f, level_num-1, level_num);
+            d_fac_strategy.restrictResidual(*d_r, f, level_num-1);
+        }
+        else
+        {
+            d_fac_strategy.restrictResidual(f, f, level_num-1);
+        }
+
+        // Recursively call the FAC algorithm.
+        FACVCycle(u, f, level_num-1);
+
+        // Prolong the error from the next coarser level and correct the
+        // solution on level.
+        d_fac_strategy.prolongErrorAndCorrect(u, u, level_num);
+
+        // Smooth error on level.
+        if (d_num_post_sweeps > 0)
+        {
+            d_fac_strategy.smoothError(u, f, level_num, d_num_post_sweeps, false, true);
+            d_recompute_residual = true;
+        }
+    }
+    return;
+}// FACVCycle
+
+void
+FACPreconditioner::FACWCycle(
+    SAMRAIVectorReal<NDIM,double>& u,
+    SAMRAIVectorReal<NDIM,double>& f,
+    int level_num)
+{
+    if (level_num == d_coarsest_ln)
+    {
+        // Solve Au = f on the coarsest level.
+        d_fac_strategy.solveCoarsestLevel(u, f, level_num);
+        d_recompute_residual = true;
+    }
+    else
+    {
+        // Smooth the error on the current level.
+        if (d_num_pre_sweeps > 0)
+        {
+            d_fac_strategy.smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
+            d_recompute_residual = true;
+        }
+
+        // Compute the composite-grid residual on the current level and the next
+        // coarser level, and restrict the residual to the next coarser level.
+        if (d_recompute_residual)
+        {
+            d_fac_strategy.computeResidual(*d_r, u, f, level_num-1, level_num);
+            d_fac_strategy.restrictResidual(*d_r, f, level_num-1);
+        }
+        else
+        {
+            d_fac_strategy.restrictResidual(f, f, level_num-1);
+        }
+
+        // Recursively call the FAC algorithm.
+        FACWCycle(u, f, level_num-1);
+        FACWCycle(u, f, level_num-1);
+
+        // Prolong the error from the next coarser level and correct the
+        // solution on level.
+        d_fac_strategy.prolongErrorAndCorrect(u, u, level_num);
+
+        // Smooth error on level.
+        if (d_num_post_sweeps > 0)
+        {
+            d_fac_strategy.smoothError(u, f, level_num, d_num_post_sweeps, false, true);
+            d_recompute_residual = true;
+        }
+    }
+    return;
+}// FACWCycle
+
+void
+FACPreconditioner::FACFCycle(
+    SAMRAIVectorReal<NDIM,double>& u,
+    SAMRAIVectorReal<NDIM,double>& f,
+    int level_num)
+{
+    if (level_num == d_coarsest_ln)
+    {
+        // Solve Au = f on the coarsest level.
+        d_fac_strategy.solveCoarsestLevel(u, f, level_num);
+        d_recompute_residual = true;
+    }
+    else
+    {
+        // Smooth the error on the current level.
+        if (d_num_pre_sweeps > 0)
+        {
+            d_fac_strategy.smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
+            d_recompute_residual = true;
+        }
+
+        // Compute the composite-grid residual on the current level and the next
+        // coarser level, and restrict the residual to the next coarser level.
+        if (d_recompute_residual)
+        {
+            d_fac_strategy.computeResidual(*d_r, u, f, level_num-1, level_num);
+            d_fac_strategy.restrictResidual(*d_r, f, level_num-1);
+        }
+        else
+        {
+            d_fac_strategy.restrictResidual(f, f, level_num-1);
+        }
+
+        // Recursively call the FAC algorithm.
+        FACWCycle(u, f, level_num-1);
+        FACVCycle(u, f, level_num-1);
+
+        // Prolong the error from the next coarser level and correct the
+        // solution on level.
+        d_fac_strategy.prolongErrorAndCorrect(u, u, level_num);
+
+        // Smooth error on level.
+        if (d_num_post_sweeps > 0)
+        {
+            d_fac_strategy.smoothError(u, f, level_num, d_num_post_sweeps, false, true);
+            d_recompute_residual = true;
+        }
+    }
+    return;
+}// FACFCycle
 
 //////////////////////////////////////////////////////////////////////////////
 

@@ -35,35 +35,14 @@
 #include <petsc.h>
 
 // Headers for basic SAMRAI objects
-#include <PatchLevel.h>
-#include <VariableDatabase.h>
-#include <tbox/Database.h>
-#include <tbox/InputDatabase.h>
-#include <tbox/InputManager.h>
-#include <tbox/MathUtilities.h>
-#include <tbox/PIO.h>
-#include <tbox/Pointer.h>
-#include <tbox/RestartManager.h>
-#include <tbox/SAMRAIManager.h>
-#include <tbox/SAMRAI_MPI.h>
-#include <tbox/TimerManager.h>
-#include <tbox/Utilities.h>
-
-// Headers for major algorithm/data structure objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
-#include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
-#include <PatchHierarchy.h>
 #include <StandardTagAndInitialize.h>
-#include <VisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <LocationIndexRobinBcCoefs.h>
-
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
-#include <ibamr/GodunovAdvector.h>
-
 #include "QInit.h"
 #include "UFunction.h"
 
@@ -260,8 +239,9 @@ main(
     const bool write_restart = restart_interval > 0
         && !restart_write_dirname.empty();
 
-    const ConvectiveDifferencingType difference_form = string_to_enum<ConvectiveDifferencingType>(main_db->getStringWithDefault("difference_form", enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
-    tbox::pout << "solving the advection-diffusion equation in " << enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
+    const ConvectiveDifferencingType difference_form = IBAMR::string_to_enum<ConvectiveDifferencingType>(
+        main_db->getStringWithDefault("difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
+    tbox::pout << "solving the advection-diffusion equation in " << IBAMR::enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
 
     int timer_dump_interval = 0;
     if (main_db->keyExists("timer_dump_interval"))
@@ -312,7 +292,7 @@ main(
         new AdvDiffHierarchyIntegrator(
             "AdvDiffHierarchyIntegrator",
             input_db->getDatabase("AdvDiffHierarchyIntegrator"),
-            patch_hierarchy, predictor);
+            grid_geometry, predictor);
 
     tbox::Pointer< pdat::FaceVariable<NDIM,double> > u_var = new pdat::FaceVariable<NDIM,double>("u");
     UFunction u_fcn("UFunction", grid_geometry, input_db->getDatabase("UFunction"));
@@ -371,8 +351,7 @@ main(
      * Initialize hierarchy configuration and data on all patches.  Then, close
      * restart file and write initial state for visualization.
      */
-    time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
-    double dt_now = time_integrator->initializeHierarchy();
+    time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
     tbox::RestartManager::getManager()->closeRestartFile();
 
     /*
@@ -417,10 +396,9 @@ main(
         tbox::pout << "At beginning of timestep # " <<  iteration_num - 1 << endl;
         tbox::pout << "Simulation time is " << loop_time                  << endl;
 
-        double dt_new = time_integrator->advanceHierarchy(dt_now);
-
-        loop_time += dt_now;
-        dt_now = dt_new;
+        const double dt = time_integrator->getStableTimestep();
+        time_integrator->advanceHierarchy(dt);
+        loop_time += dt;
 
         tbox::pout <<                                                        endl;
         tbox::pout << "At end       of timestep # " <<  iteration_num - 1 << endl;
@@ -523,6 +501,5 @@ main(
 
     tbox::SAMRAIManager::shutdown();
     PetscFinalize();
-
     return 0;
 }// main

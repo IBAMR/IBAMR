@@ -89,6 +89,7 @@ static const int ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION = 2;
 AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     const std::string& object_name,
     Pointer<Database> input_db,
+    Pointer<CartesianGridGeometry<NDIM> > grid_geometry,
     Pointer<GodunovAdvector> explicit_predictor,
     bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart),
@@ -164,7 +165,7 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
         object_name+"::AdvDiffHypPatchOps",
         hyp_patch_ops_input_db,
         explicit_predictor,
-        d_hierarchy->getGridGeometry(),
+        grid_geometry,
         d_registered_for_restart);
 
     Pointer<Database> hyp_level_integrator_input_db;
@@ -491,10 +492,20 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
 {
     if (d_integrator_is_initialized) return;
 
+    d_hierarchy = hierarchy;
+    d_gridding_alg = gridding_alg;
+
+    // Register the VisIt data writer with the patch strategy object that
+    // actually registers variables for plotting.
+    if (!d_visit_writer.isNull())
+    {
+        d_hyp_patch_ops->registerVisItDataWriter(d_visit_writer);
+    }
+
     // Setup hierarchy data operations objects.
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
     Pointer<CellVariable<NDIM,double> > cc_var = new CellVariable<NDIM,double>("cc_var");
-    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy, true);
+    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
 
     // Register variables with the hyperbolic level integrator.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -558,7 +569,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     //
     // NOTE: This must be done AFTER all variables have been registered with the
     // level integrator.
-    d_hyp_level_integrator->initializeLevelIntegrator(gridding_alg);
+    d_hyp_level_integrator->initializeLevelIntegrator(d_gridding_alg);
 
     // Setup coarsening communications algorithms, used in synchronizing refined
     // regions of coarse data with the underlying fine data.
@@ -719,6 +730,14 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(Q_temp_idx);
         }
+    }
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        static const bool first_step = true;
+        static const bool last_step = false;
+        d_hyp_level_integrator->advanceLevel(
+            d_hierarchy->getPatchLevel(ln), d_hierarchy, current_time, new_time, first_step, last_step);
     }
 
     if (finest_ln > 0)
@@ -941,8 +960,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 }// integrateHierarchy
 
 double
-AdvDiffHierarchyIntegrator::getStableTimestep(
-    Pointer<VariableContext> /*ctx*/)
+AdvDiffHierarchyIntegrator::getStableTimestep()
 {
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     double dt = d_dt_max;
@@ -955,8 +973,42 @@ AdvDiffHierarchyIntegrator::getStableTimestep(
     {
         dt = std::min(dt,d_dt_growth_factor*d_dt_previous);
     }
-    return dt;
+    return std::min(dt,d_end_time-d_integrator_time);
 }// getStableTimestep
+
+void
+AdvDiffHierarchyIntegrator::resetTimeDependentHierarchyData(
+    const double new_time)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    // Advance the simulation time.
+    d_dt_previous = new_time - d_integrator_time;
+    d_integrator_time = new_time;
+    ++d_integrator_step;
+
+    // Reset the time dependent data.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        d_hyp_level_integrator->resetTimeDependentData(
+            d_hierarchy->getPatchLevel(ln), d_integrator_time, d_gridding_alg->levelCanBeRefined(ln));
+    }
+    return;
+}// resetTimeDependentHierarchyData
+
+void
+AdvDiffHierarchyIntegrator::resetIntegratorToPreadvanceState()
+{
+    // We use the HyperbolicLevelIntegrator to handle most data management.
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        d_hyp_level_integrator->resetDataToPreadvanceState(d_hierarchy->getPatchLevel(ln));
+    }
+    return;
+}// resetIntegratorToPreadvanceState
 
 void
 AdvDiffHierarchyIntegrator::initializeLevelData(

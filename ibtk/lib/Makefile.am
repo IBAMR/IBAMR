@@ -47,6 +47,8 @@ $(top_srcdir)/src/utilities/Interpolator.I \
 $(top_srcdir)/src/utilities/Interpolator.h \
 $(top_srcdir)/src/utilities/compiler_hints.h \
 $(top_srcdir)/src/utilities/efficient_add_or_update.h \
+$(top_srcdir)/src/utilities/ibtk_enums.h \
+$(top_srcdir)/src/utilities/ibtk_utilities.h \
 $(top_srcdir)/src/utilities/namespaces.h
 
 ## Dimension-dependent libraries
@@ -335,8 +337,7 @@ $(top_srcdir)/src/utilities/muParserCartGridFunction.h
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
 $(top_srcdir)/src/lagrangian/FEDataManager.h \
-$(top_srcdir)/src/utilities/libmesh_utilities.h \
-$(top_srcdir)/src/utilities/ibtk_utilities.h
+$(top_srcdir)/src/utilities/libmesh_utilities.h
 endif
 
 libIBTK2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2

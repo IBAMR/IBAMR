@@ -109,7 +109,7 @@ public:
     virtual void
     initializeHierarchyIntegrator(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) = 0;
 
     /*!
      * Initialize the AMR patch hierarchy and data defined on the hierarchy at
@@ -147,8 +147,7 @@ public:
      * excessive changes in the time step size as the computation progresses.
      */
     virtual double
-    getStableTimestep(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
+    getStableTimestep();
 
     /*!
      * Synchronize data defined on the grid hierarchy.

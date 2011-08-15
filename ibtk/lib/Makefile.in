@@ -41,8 +41,7 @@ DIST_COMMON = $(pkg_include_HEADERS) $(srcdir)/Makefile.am \
 @SAMRAI3D_ENABLED_TRUE@am__append_2 = libIBTK3d.a
 @LIBMESH_ENABLED_TRUE@am__append_3 = $(top_srcdir)/src/lagrangian/FEDataManager.C \
 @LIBMESH_ENABLED_TRUE@	$(top_srcdir)/src/lagrangian/FEDataManager.h \
-@LIBMESH_ENABLED_TRUE@	$(top_srcdir)/src/utilities/libmesh_utilities.h \
-@LIBMESH_ENABLED_TRUE@	$(top_srcdir)/src/utilities/ibtk_utilities.h
+@LIBMESH_ENABLED_TRUE@	$(top_srcdir)/src/utilities/libmesh_utilities.h
 subdir = lib
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_blas.m4 \
@@ -211,7 +210,6 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/lagrangian/FEDataManager.C \
 	$(top_srcdir)/src/lagrangian/FEDataManager.h \
 	$(top_srcdir)/src/utilities/libmesh_utilities.h \
-	$(top_srcdir)/src/utilities/ibtk_utilities.h \
 	$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f \
 	$(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop2d.f \
 	$(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen2d.f \
@@ -464,7 +462,6 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/lagrangian/FEDataManager.C \
 	$(top_srcdir)/src/lagrangian/FEDataManager.h \
 	$(top_srcdir)/src/utilities/libmesh_utilities.h \
-	$(top_srcdir)/src/utilities/ibtk_utilities.h \
 	$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.f \
 	$(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop3d.f \
 	$(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen3d.f \
@@ -976,6 +973,8 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/utilities/Interpolator.h \
 	$(top_srcdir)/src/utilities/compiler_hints.h \
 	$(top_srcdir)/src/utilities/efficient_add_or_update.h \
+	$(top_srcdir)/src/utilities/ibtk_enums.h \
+	$(top_srcdir)/src/utilities/ibtk_utilities.h \
 	$(top_srcdir)/src/utilities/namespaces.h \
 	$(top_srcdir)/src/boundary/HierarchyGhostCellInterpolation.h \
 	$(top_srcdir)/src/boundary/cf_interface/CartCellDoubleQuadraticCFInterpolation.h \
