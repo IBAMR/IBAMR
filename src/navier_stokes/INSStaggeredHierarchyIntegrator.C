@@ -881,11 +881,12 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(
 #endif
         
         // Compute max ||Omega||_2.
+        const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
 #if (NDIM == 2)
-        d_Omega_max = std::max(+d_hier_cc_data_ops->max(d_Omega_new_idx), -d_hier_cc_data_ops->min(d_Omega_new_idx));
+        d_Omega_max = d_hier_cc_data_ops->maxNorm(d_Omega_new_idx, wgt_cc_idx);
 #endif
 #if (NDIM == 3)
-        d_Omega_max = d_hier_cc_data_ops->max(d_Omega_Norm_new_idx);
+        d_Omega_max = d_hier_cc_data_ops->max(d_Omega_Norm_new_idx, wgt_cc_idx);
 #endif
     }
     
@@ -1125,17 +1126,19 @@ INSStaggeredHierarchyIntegrator::initializeLevelData(
             if (level_number == 0) d_Omega_max = 0.0;
 
             level->allocatePatchData(d_U_scratch_idx, init_data_time);
+
+            // Fill ghost cells.
             HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
             Pointer<HierarchySideDataOpsReal<NDIM,double> > hier_sc_data_ops = hier_ops_manager->getOperationsDouble(d_U_sc_var, d_hierarchy, true);
             hier_sc_data_ops->resetLevels(0, level_number);
             hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
-            
             typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
             InterpolationTransactionComponent U_bc_component(d_U_scratch_idx, SIDE_DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
             HierarchyGhostCellInterpolation U_bdry_bc_fill_op;
             U_bdry_bc_fill_op.initializeOperatorState(U_bc_component, d_hierarchy, 0, level_number);
             U_bdry_bc_fill_op.fillData(init_data_time);
 
+            // Compute Omega = curl U on the grid and determine max ||Omega||_2.
             PatchCellDataOpsReal<NDIM,double> patch_cc_data_ops;
             PatchMathOps patch_math_ops;
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
