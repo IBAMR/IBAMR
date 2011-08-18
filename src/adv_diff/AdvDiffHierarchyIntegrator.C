@@ -147,8 +147,8 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
 #endif
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
-    if (!input_db.isNull()) getFromInput(input_db, from_restart);
     if (from_restart) getFromRestart();
+    if (!input_db.isNull()) getFromInput(input_db, from_restart);
 
     // Get initialization data for the hyperbolic patch strategy objects.
     if (input_db->keyExists("HyperbolicLevelIntegrator"))
@@ -578,8 +578,8 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
         const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
         Pointer<CoarsenOperator<NDIM> > coarsen_operator = grid_geom->lookupCoarsenOperator(Q_var, "CONSERVATIVE_COARSEN");
-        d_coarsen_algs[SYNCH_CURRENT_STATE_DATA_ALG]->registerCoarsen(Q_current_idx, Q_current_idx, coarsen_operator);
-        d_coarsen_algs[SYNCH_NEW_STATE_DATA_ALG]->registerCoarsen(Q_new_idx, Q_new_idx, coarsen_operator);
+        d_coarsen_algs[SYNCH_CURRENT_DATA_ALG]->registerCoarsen(Q_current_idx, Q_current_idx, coarsen_operator);
+        d_coarsen_algs[SYNCH_NEW_DATA_ALG]->registerCoarsen(Q_new_idx, Q_new_idx, coarsen_operator);
     }
 
     // Operators and solvers are maintained for each variable registered with the
@@ -1147,21 +1147,6 @@ AdvDiffHierarchyIntegrator::applyGradientDetectorSpecialized(
     const bool initial_time,
     const bool uses_richardson_extrapolation_too)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
-    TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
-    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
-#endif
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-
-    // Untag all cells prior to tagging.
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        Pointer<CellData<NDIM,int> > tags_data = patch->getPatchData(tag_index);
-        tags_data->fillAll(0);
-    }
-
     // Tag cells for refinement according to the criteria specified by the
     // criteria specified by the level integrator.
     d_hyp_level_integrator->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);

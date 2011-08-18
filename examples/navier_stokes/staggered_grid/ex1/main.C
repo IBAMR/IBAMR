@@ -229,8 +229,7 @@ main(
                 }
                 if (main_db->keyExists("visit_number_procs_per_file"))
                 {
-                    visit_number_procs_per_file =
-                        main_db->getInteger("visit_number_procs_per_file");
+                    visit_number_procs_per_file = main_db->getInteger("visit_number_procs_per_file");
                 }
             }
         }
@@ -306,14 +305,8 @@ main(
         tbox::RestartManager* restart_manager = tbox::RestartManager::getManager();
         if (is_from_restart)
         {
-            restart_manager->openRestartFile(
-                restart_read_dirname, restore_num, tbox::SAMRAI_MPI::getNodes());
+            restart_manager->openRestartFile(restart_read_dirname, restore_num, tbox::SAMRAI_MPI::getNodes());
         }
-
-        /*
-         * Create initial condition specification objects.
-         */
-        UInit u_init("UInit", input_db->getDatabase("UInit"));
 
         /*
          * Create major algorithm and data objects which comprise the
@@ -322,54 +315,27 @@ main(
          * constructor for details.  For more information on the composition of
          * objects for this application, see comments at top of file.
          */
-        tbox::Pointer<geom::CartesianGridGeometry<NDIM> > grid_geometry =
-            new geom::CartesianGridGeometry<NDIM>(
-                "CartesianGeometry",
-                input_db->getDatabase("CartesianGeometry"));
+        tbox::Pointer<geom::CartesianGridGeometry<NDIM> > grid_geometry = new geom::CartesianGridGeometry<NDIM>("CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
+        tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy = new hier::PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        tbox::Pointer<INSStaggeredHierarchyIntegrator> time_integrator = new INSStaggeredHierarchyIntegrator("INSStaggeredHierarchyIntegrator", input_db->getDatabase("INSStaggeredHierarchyIntegrator"));
+        tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector = new mesh::StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator, input_db->getDatabase("StandardTagAndInitialize"));
+        tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator = new mesh::BergerRigoutsos<NDIM>();
+        tbox::Pointer<mesh::LoadBalancer<NDIM> > load_balancer = new mesh::LoadBalancer<NDIM>("LoadBalancer", input_db->getDatabase("LoadBalancer"));
+        tbox::Pointer<mesh::GriddingAlgorithm<NDIM> > gridding_algorithm = new mesh::GriddingAlgorithm<NDIM>("GriddingAlgorithm", input_db->getDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
-        tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy =
-            new hier::PatchHierarchy<NDIM>(
-                "PatchHierarchy",
-                grid_geometry);
-
-        tbox::Pointer<INSStaggeredHierarchyIntegrator> time_integrator =
-            new INSStaggeredHierarchyIntegrator(
-                "INSStaggeredHierarchyIntegrator",
-                input_db->getDatabase("INSStaggeredHierarchyIntegrator"),
-                patch_hierarchy);
-        time_integrator->registerVelocityInitialConditions(
-            tbox::Pointer<CartGridFunction>(&u_init,false));
-
-        tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
-            new mesh::StandardTagAndInitialize<NDIM>(
-                "StandardTagAndInitialize",
-                time_integrator,
-                input_db->getDatabase("StandardTagAndInitialize"));
-
-        tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator =
-            new mesh::BergerRigoutsos<NDIM>();
-
-        tbox::Pointer<mesh::LoadBalancer<NDIM> > load_balancer =
-            new mesh::LoadBalancer<NDIM>(
-                "LoadBalancer",
-                input_db->getDatabase("LoadBalancer"));
-
-        tbox::Pointer<mesh::GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new mesh::GriddingAlgorithm<NDIM>(
-                "GriddingAlgorithm",
-                input_db->getDatabase("GriddingAlgorithm"),
-                error_detector, box_generator, load_balancer);
+        /*
+         * Create initial condition specification objects.
+         */
+        UInit u_init("UInit", input_db->getDatabase("UInit"));
+        time_integrator->registerVelocityInitialConditions(tbox::Pointer<CartGridFunction>(&u_init,false));
 
         /*
          * Set up visualization plot file writer.
          */
-        tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer =
-            new appu::VisItDataWriter<NDIM>(
-                "VisIt Writer",
-                visit_dump_dirname, visit_number_procs_per_file);
-
+        tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer;
         if (uses_visit)
         {
+            visit_data_writer = new appu::VisItDataWriter<NDIM>("VisIt Writer", visit_dump_dirname, visit_number_procs_per_file);
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
 
@@ -377,8 +343,7 @@ main(
          * Initialize hierarchy configuration and data on all patches.  Then,
          * close restart file and write initial state for visualization.
          */
-        time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
-        double dt_now = time_integrator->initializeHierarchy();
+        time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
         tbox::RestartManager::getManager()->closeRestartFile();
 
         /*
@@ -392,15 +357,15 @@ main(
         /*
          * Write initial visualization files.
          */
+        double loop_time = time_integrator->getIntegratorTime();
+        int iteration_num = time_integrator->getIntegratorStep();
         if (viz_dump_data)
         {
             if (uses_visit)
             {
                 tbox::pout << "\nWriting visualization files...\n\n";
-                visit_data_writer->writePlotData(
-                    patch_hierarchy,
-                    time_integrator->getIntegratorStep(),
-                    time_integrator->getIntegratorTime());
+                time_integrator->setupPlotData();
+                visit_data_writer->writePlotData(patch_hierarchy, loop_time, iteration_num);
             }
         }
 
@@ -408,14 +373,9 @@ main(
          * Time step loop.  Note that the step count and integration time are
          * maintained by the time integrator object.
          */
-        double loop_time = time_integrator->getIntegratorTime();
         double loop_time_end = time_integrator->getEndTime();
-        double dt_old = 0.0;
-
-        int iteration_num = time_integrator->getIntegratorStep();
-
-        while (!tbox::MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
-               time_integrator->stepsRemaining())
+        double dt_old = 0.0, dt_now = 0.0;
+        while (!tbox::MathUtilities<double>::equalEps(loop_time,loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep() + 1;
 
@@ -425,10 +385,11 @@ main(
             tbox::pout << "Simulation time is " << loop_time                  << endl;
 
             dt_old = dt_now;
-            double dt_new = time_integrator->advanceHierarchy(dt_now);
+            dt_now = time_integrator->getTimeStepSize();
+
+            time_integrator->advanceHierarchy(dt_now);
 
             loop_time += dt_now;
-            dt_now = dt_new;
 
             tbox::pout <<                                                        endl;
             tbox::pout << "At end       of timestep # " <<  iteration_num - 1 << endl;
@@ -449,8 +410,7 @@ main(
             if (write_restart && iteration_num%restart_interval == 0)
             {
                 tbox::pout << "\nWriting restart files...\n\n";
-                tbox::RestartManager::getManager()->writeRestartFile(
-                    restart_write_dirname, iteration_num);
+                tbox::RestartManager::getManager()->writeRestartFile(restart_write_dirname, iteration_num);
             }
 
             if (viz_dump_data && iteration_num%viz_dump_interval == 0)
@@ -458,8 +418,8 @@ main(
                 if (uses_visit)
                 {
                     tbox::pout << "\nWriting visualization files...\n\n";
-                    visit_data_writer->writePlotData(
-                        patch_hierarchy, iteration_num, loop_time);
+                    time_integrator->setupPlotData();
+                    visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
                 }
             }
 
@@ -482,12 +442,8 @@ main(
                 hier_db->create(file_name);
 
                 hier::ComponentSelector hier_data;
-                hier_data.setFlag(var_db->mapVariableAndContextToIndex(time_integrator->getVelocityVar(),
-                                                                       time_integrator->getCurrentContext()));
-                hier_data.setFlag(var_db->mapVariableAndContextToIndex(time_integrator->getPressureVar(),
-                                                                       time_integrator->getCurrentContext()));
-                hier_data.setFlag(var_db->mapVariableAndContextToIndex(time_integrator->getExtrapolatedPressureVar(),
-                                                                       time_integrator->getCurrentContext()));
+                hier_data.setFlag(var_db->mapVariableAndContextToIndex(time_integrator->getVelocityVariable(), time_integrator->getCurrentContext()));
+                hier_data.setFlag(var_db->mapVariableAndContextToIndex(time_integrator->getPressureVariable(), time_integrator->getCurrentContext()));
 
                 patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
                 hier_db->putDouble("loop_time", loop_time);
@@ -517,8 +473,8 @@ main(
             if (uses_visit)
             {
                 tbox::pout << "\nWriting visualization files...\n\n";
-                visit_data_writer->writePlotData(
-                    patch_hierarchy, iteration_num, loop_time);
+                time_integrator->setupPlotData();
+                visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
             }
         }
 

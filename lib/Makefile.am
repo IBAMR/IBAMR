@@ -30,11 +30,6 @@ $(top_srcdir)/src/utilities/ibamr_utilities.h \
 $(top_srcdir)/src/utilities/namespaces.h
 
 ## Dimension-dependent libraries
-
-#
-#$(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
-#
-
 DIM_INDEPENDENT_SOURCES = \
 $(top_srcdir)/src/IB/IBAnchorPointSpec.C \
 $(top_srcdir)/src/IB/IBAnchorPointSpecFactory.C \
@@ -43,6 +38,7 @@ $(top_srcdir)/src/IB/IBBeamForceSpecFactory.C \
 $(top_srcdir)/src/IB/IBEulerianForceFunction.C \
 $(top_srcdir)/src/IB/IBEulerianSourceFunction.C \
 $(top_srcdir)/src/IB/IBHDF5Initializer.C \
+$(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
 $(top_srcdir)/src/IB/IBInstrumentPanel.C \
 $(top_srcdir)/src/IB/IBInstrumentationSpec.C \
 $(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \

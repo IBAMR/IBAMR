@@ -48,6 +48,7 @@
 #include <FaceVariable.h>
 #include <HierarchyCellDataOpsReal.h>
 #include <HierarchyFaceDataOpsReal.h>
+#include <HierarchyNodeDataOpsReal.h>
 #include <HierarchySideDataOpsReal.h>
 #include <NodeVariable.h>
 #include <OuterfaceVariable.h>

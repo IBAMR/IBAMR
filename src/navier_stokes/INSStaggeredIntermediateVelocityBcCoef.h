@@ -48,16 +48,14 @@ namespace IBAMR
 /*!
  * \brief Class INSStaggeredIntermediateVelocityBcCoef is a concrete
  * SAMRAI::solv::RobinBcCoefStrategy that is used to specify boundary conditions
- * for the intermediate velocity solve embedded in the preconditioner for the
- * staggered grid incompressible Navier-Stokes solver.
+ * for the intermediate velocity solve embedded in a block preconditioner for
+ * the staggered grid incompressible Navier-Stokes solver.
  *
- * This class interprets pure Dirichlet boundary conditions on the velocity as
- * prescribed velocity boundary conditions, whereas pure Neumann boundary
- * conditions are interpreted as prescribed traction (stress) boundary
- * conditions.  These are translated into Dirichlet and Neumann boundary
- * conditions, respectively.  Since the intermediate velocity solve is performed
- * within the context of a preconditioning step, homogeneous boundary conditions
- * are prescribed.
+ * This class interprets pure Dirichlet boundary conditions as prescribed
+ * velocity boundary conditions, whereas pure Neumann boundary conditions are
+ * interpreted as prescribed traction (stress) boundary conditions.  These are
+ * translated into Dirichlet and Neumann boundary conditions, respectively, for
+ * the intermediate velocity.
  */
 class INSStaggeredIntermediateVelocityBcCoef
     : public IBTK::ExtendedRobinBcCoefStrategy
@@ -67,7 +65,7 @@ public:
      * \brief Constructor.
      *
      * \param comp_idx        Component of the velocity which this boundary condition specification is to operate on
-     * \param u_bc_coefs      Vector of boundary condition specification objects corresponding to the components of the velocity
+     * \param bc_coefs        Vector of boundary condition specification objects
      * \param homogeneous_bc  Whether to employ homogeneous (as opposed to inhomogeneous) boundary conditions
      *
      * \note Precisely NDIM boundary condition objects must be provided to the
@@ -75,7 +73,7 @@ public:
      */
     INSStaggeredIntermediateVelocityBcCoef(
         const int comp_idx,
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
         const bool homogeneous_bc=false);
 
     /*!
@@ -85,13 +83,13 @@ public:
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-     * physical boundary conditions for the velocity.
+     * physical boundary conditions.
      *
-     * \param u_bc_coefs  Vector of boundary condition specification objects corresponding to the components of the velocity
+     * \param bc_coefs  Vector of boundary condition specification objects
      */
     void
-    setVelocityPhysicalBcCoefs(
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs);
+    setPhysicalBoundaryConditions(
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
 
     /*!
      * \name Implementation of IBTK::ExtendedRobinBcCoefStrategy interface.
@@ -221,7 +219,7 @@ private:
     /*
      * The boundary condition specification objects for the updated velocity.
      */
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_u_bc_coefs;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs;
 
     /*
      * The patch data index corresponding to the current value of P.

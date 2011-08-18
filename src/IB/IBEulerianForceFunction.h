@@ -83,7 +83,7 @@ public:
      * will be added to the IB force.
      */
     void
-    registerBodyForceSpecification(
+    registerBodyForceFunction(
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn);
 
     /*!

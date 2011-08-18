@@ -95,7 +95,8 @@ public:
      */
     void
     setConvectiveOperator(
-        SAMRAI::tbox::Pointer<IBTK::GeneralOperator> convective_op);
+        SAMRAI::tbox::Pointer<IBTK::GeneralOperator> convective_op,
+        ConvectiveDifferencingType convective_difference_form=UNKNOWN_CONVECTIVE_DIFFERENCING_TYPE);
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -112,7 +113,7 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
-     * Preparre to advance the data from current_time to new_time.
+     * Prepare to advance the data from current_time to new_time.
      */
     void
     preprocessIntegrateHierarchy(
@@ -308,11 +309,6 @@ private:
     INSProblemCoefs d_problem_coefs;
 
     /*
-     * The number of cycles of fixed-point iteration to use per timestep.
-     */
-    int d_num_cycles;
-
-    /*
      * The maximum CFL number.
      *
      * NOTE: Empirical tests suggest that the maximum stable CFL number is
@@ -320,7 +316,7 @@ private:
      *
      *    num_cycles == 1 ===> CFL <= 0.25
      *    num_cycles == 2 ===> CFL <= 0.5
-     *    num_cycles == 23===> CFL <= 1.0
+     *    num_cycles == 3 ===> CFL <= 1.0
      */
     double d_cfl_max;
 
@@ -337,11 +333,6 @@ private:
      * zero mean (i.e., discrete integral) at the end of each timestep.
      */
     bool d_normalize_pressure;
-
-    /*
-     * This enum determines the differencing form of the convective operator.
-     */
-    ConvectiveDifferencingType d_convective_difference_form;
 
     /*
      * This boolean value determines whether the convective acceleration term is
@@ -377,7 +368,7 @@ private:
      */
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_Q_bdry_bc_fill_op, d_no_fill_op;
     SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_U_bc_helper;
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_star_bc_coefs;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_bc_coefs, d_U_star_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_Phi_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_side_synch_op;
@@ -401,6 +392,7 @@ private:
 
     bool d_convective_op_needs_init;
     SAMRAI::tbox::Pointer<IBTK::GeneralOperator> d_convective_op;
+    ConvectiveDifferencingType d_convective_difference_form;
 
     bool d_helmholtz_solver_needs_init;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>          d_helmholtz_hypre_pc_db, d_helmholtz_fac_pc_db;

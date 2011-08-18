@@ -56,7 +56,8 @@ namespace IBAMR
  * This class interprets pure Dirichlet boundary conditions on the velocity as
  * prescribed velocity boundary conditions, whereas pure Neumann boundary
  * conditions are interpreted as prescribed traction (stress) boundary
- * conditions.
+ * conditions.  These are translated into Dirichlet and generalized Neumann
+ * boundary conditions, respectively, for the velocity.
  */
 class INSStaggeredVelocityBcCoef
     : public IBTK::ExtendedRobinBcCoefStrategy
@@ -67,7 +68,7 @@ public:
      *
      * \param comp_idx        Component of the velocity which this boundary condition specification is to operate on
      * \param problem_coefs   Problem coefficients
-     * \param u_bc_coefs      Vector of boundary condition specification objects corresponding to the components of the velocity
+     * \param bc_coefs        Vector of boundary condition specification objects
      * \param homogeneous_bc  Whether to employ homogeneous (as opposed to inhomogeneous) boundary conditions
      *
      * \note Precisely NDIM boundary condition objects must be provided to the
@@ -76,7 +77,7 @@ public:
     INSStaggeredVelocityBcCoef(
         const unsigned int comp_idx,
         const INSProblemCoefs& problem_coefs,
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
         const bool homogeneous_bc=false);
 
     /*!
@@ -86,13 +87,13 @@ public:
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-     * physical boundary conditions for the velocity.
+     * physical boundary conditions.
      *
-     * \param u_bc_coefs  Vector of boundary condition specification objects corresponding to the components of the velocity
+     * \param bc_coefs  Vector of boundary condition specification objects
      */
     void
-    setVelocityPhysicalBcCoefs(
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs);
+    setPhysicalBoundaryConditions(
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
 
     /*!
      * \brief Set the current time interval.
@@ -235,7 +236,7 @@ private:
     /*
      * The boundary condition specification objects for the velocity.
      */
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_u_bc_coefs;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs;
 
     /*
      * The current time interval.

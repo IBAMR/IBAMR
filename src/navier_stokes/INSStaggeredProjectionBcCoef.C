@@ -65,13 +65,13 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredProjectionBcCoef::INSStaggeredProjectionBcCoef(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
-    : d_u_bc_coefs(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
+    : d_bc_coefs(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_target_idx(-1),
       d_homogeneous_bc(false)
 {
-    setVelocityPhysicalBcCoefs(u_bc_coefs);
+    setPhysicalBoundaryConditions(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
 }// INSStaggeredProjectionBcCoef
@@ -83,12 +83,12 @@ INSStaggeredProjectionBcCoef::~INSStaggeredProjectionBcCoef()
 }// ~INSStaggeredProjectionBcCoef
 
 void
-INSStaggeredProjectionBcCoef::setVelocityPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs)
+INSStaggeredProjectionBcCoef::setPhysicalBoundaryConditions(
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
 {
-    d_u_bc_coefs = u_bc_coefs;
+    d_bc_coefs = bc_coefs;
     return;
-}// setVelocityPhysicalBcCoefs
+}// setPhysicalBoundaryConditions
 
 void
 INSStaggeredProjectionBcCoef::setTargetPatchDataIndex(
@@ -119,7 +119,7 @@ INSStaggeredProjectionBcCoef::setBcCoefs(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(d_u_bc_coefs[d] != NULL);
+        TBOX_ASSERT(d_bc_coefs[d] != NULL);
     }
     TBOX_ASSERT(!acoef_data.isNull());
     TBOX_ASSERT(!bcoef_data.isNull());
@@ -135,7 +135,7 @@ INSStaggeredProjectionBcCoef::setBcCoefs(
 #endif
 
     // Set the unmodified velocity bc coefs.
-    d_u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
+    d_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 
     // Modify the velocity boundary conditions to correspond to pressure
     // boundary conditions.
@@ -169,7 +169,7 @@ INSStaggeredProjectionBcCoef::setBcCoefs(
             // homogeneous Dirichlet boundary conditions on the pressure.
             alpha = 1.0;
             beta  = 0.0;
-            gamma = 0.0;
+            gamma = (d_homogeneous_bc ? 0.0 : -gamma);
         }
         else
         {
@@ -185,13 +185,13 @@ INSStaggeredProjectionBcCoef::numberOfExtensionsFillable() const
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(d_u_bc_coefs[d] != NULL);
+        TBOX_ASSERT(d_bc_coefs[d] != NULL);
     }
 #endif
     IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ret_val = IntVector<NDIM>::min(ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
+        ret_val = IntVector<NDIM>::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
 }// numberOfExtensionsFillable

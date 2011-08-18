@@ -48,7 +48,7 @@ VelocityBcCoefs_1 {
    gcoef_function_3 = "0.0"
 }
 
-IBStaggeredHierarchyIntegrator {
+IBHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
    end_time              = 0.8e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps

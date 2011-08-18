@@ -89,7 +89,7 @@ public:
      */
     void
     registerPhysicalBoundaryConditions(
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs);
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
 
     /*!
      * Supply initial conditions for the pressure.
@@ -144,14 +144,14 @@ protected:
      * Fluid solver variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_U_var, d_P_var, d_F_var, d_Q_var;
-    
+
     /*
      * Objects to set initial conditions, boundary conditions, body forces, and
      * fluid source/sink distributions.
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_U_init, d_P_init;
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_U_bc_coef;
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_bc_coefs;
+    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_bc_coefs;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn;
 
 private:

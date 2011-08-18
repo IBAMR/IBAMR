@@ -35,28 +35,10 @@
 #include <petsc.h>
 
 // Headers for basic SAMRAI objects
-#include <PatchLevel.h>
-#include <VariableDatabase.h>
-#include <tbox/Database.h>
-#include <tbox/InputDatabase.h>
-#include <tbox/InputManager.h>
-#include <tbox/MathUtilities.h>
-#include <tbox/PIO.h>
-#include <tbox/Pointer.h>
-#include <tbox/RestartManager.h>
-#include <tbox/SAMRAIManager.h>
-#include <tbox/SAMRAI_MPI.h>
-#include <tbox/TimerManager.h>
-#include <tbox/Utilities.h>
-
-// Headers for major algorithm/data structure objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
-#include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
-#include <PatchHierarchy.h>
 #include <StandardTagAndInitialize.h>
-#include <VisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
@@ -376,13 +358,15 @@ main(
         /*
          * Write initial visualization files.
          */
+        double loop_time = time_integrator->getIntegratorTime();
+        int iteration_num = time_integrator->getIntegratorStep();
         if (viz_dump_data)
         {
             if (uses_visit)
             {
                 tbox::pout << "\nWriting visualization files...\n\n";
                 time_integrator->setupPlotData();
-                visit_data_writer->writePlotData(patch_hierarchy, time_integrator->getIntegratorTime());
+                visit_data_writer->writePlotData(patch_hierarchy, loop_time, iteration_num);
             }
         }
 
@@ -414,16 +398,10 @@ main(
          * Time step loop.  Note that the step count and integration time are
          * maintained by the time integrator object.
          */
-        double loop_time = time_integrator->getIntegratorTime();
         double loop_time_end = time_integrator->getEndTime();
-        double dt_old = 0.0;
-
-        int iteration_num = time_integrator->getIntegratorStep();
-
+        double dt_old = 0.0, dt_now = 0.0;
         tbox::SAMRAI_MPI::barrier();
-
-        while (!tbox::MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
-               time_integrator->stepsRemaining())
+        while (!tbox::MathUtilities<double>::equalEps(loop_time,loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep() + 1;
 
@@ -432,14 +410,14 @@ main(
             tbox::pout << "At beginning of timestep # " <<  iteration_num - 1 << endl;
             tbox::pout << "Simulation time is " << loop_time                  << endl;
 
-            const double dt = time_integrator->getTimeStepSize();
+            dt_old = dt_now;
+            dt_now = time_integrator->getTimeStepSize();
 
             t_advance_hierarchy->start();
             time_integrator->advanceHierarchy(dt);
             t_advance_hierarchy->stop();
 
-            loop_time += dt;
-            dt_old = dt;
+            loop_time += dt_now;
 
             tbox::pout <<                                                        endl;
             tbox::pout << "At end       of timestep # " <<  iteration_num - 1 << endl;
@@ -566,6 +544,5 @@ main(
 
     tbox::SAMRAIManager::shutdown();
     PetscFinalize();
-
     return 0;
 }// main

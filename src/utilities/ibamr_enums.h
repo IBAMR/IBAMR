@@ -102,6 +102,39 @@ enum_to_string<ConvectiveDifferencingType>(
 }// enum_to_string
 
 /*!
+ * \brief Enumerated type for different standard data contexts.
+ */
+enum VariableContextType
+{
+    CURRENT_DATA,
+    NEW_DATA,
+    SCRATCH_DATA,
+    UNKNOWN_VARIABLE_CONTEXT_TYPE=-1
+};
+
+template<>
+inline VariableContextType
+string_to_enum<VariableContextType>(
+    const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "CURRENT_DATA") == 0) return CURRENT_DATA;
+    if (strcasecmp(val.c_str(), "NEW_DATA"    ) == 0) return NEW_DATA;
+    if (strcasecmp(val.c_str(), "SCRATCH_DATA") == 0) return SCRATCH_DATA;
+    return UNKNOWN_VARIABLE_CONTEXT_TYPE;
+}// string_to_enum
+
+template<>
+inline std::string
+enum_to_string<VariableContextType>(
+    const VariableContextType& val)
+{
+    if (val == CURRENT_DATA) return "CURRENT_DATA";
+    if (val == NEW_DATA    ) return "NEW_DATA";
+    if (val == SCRATCH_DATA) return "SCRATCH_DATA";
+    return "UNKNOWN_VARIABLE_CONTEXT_TYPE";
+}// enum_to_string
+
+/*!
  * \brief Enumerated type for different pressure update schemes for the
  * projection method.
  */

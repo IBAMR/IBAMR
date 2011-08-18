@@ -57,7 +57,6 @@
 // IBTK INCLUDES
 #include <ibtk/CartSideDoubleDivPreservingRefine.h>
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/RefinePatchStrategySet.h>
 
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
@@ -248,17 +247,9 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     d_Phi_bc_coef = NULL;
 
     // Initialize object with data read from the input and restart databases.
-    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    bool from_restart = RestartManager::getManager()->isFromRestart();
+    if (from_restart) getFromRestart();
     if (!input_db.isNull()) getFromInput(input_db, from_restart);
-    if (from_restart)
-    {
-        getFromRestart();
-    }
-    else
-    {
-        d_integrator_time = d_start_time;
-        d_integrator_step = 0;
-    }
 
     // Initialize all variables.
     d_U_sc_var       = new SideVariable<NDIM,double>(d_object_name+"::U"          );
@@ -304,14 +295,17 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
     }
     if (d_P_bc_coef != NULL) delete d_P_bc_coef;
     if (d_Phi_bc_coef != NULL) delete d_Phi_bc_coef;
+    if (d_fill_after_regrid_phys_bdry_bc_op != NULL) delete d_fill_after_regrid_phys_bdry_bc_op;
     return;
 }// ~INSStaggeredHierarchyIntegrator
 
 void
 INSStaggeredHierarchyIntegrator::setConvectiveOperator(
-    Pointer<GeneralOperator> convective_op)
+    Pointer<GeneralOperator> convective_op,
+    ConvectiveDifferencingType convective_difference_form)
 {
     d_convective_op = convective_op;
+    d_convective_difference_form = convective_difference_form;
     if (d_convective_op.isNull()) d_creeping_flow = true;
     return;
 }// setConvectiveOperator
@@ -491,6 +485,12 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     // Initialize operator and solver objects.
     initializeOperatorsAndSolvers();
 
+    // Setup a boundary op to set velocity boundary conditions on regrid.
+    //
+    // NOTE: This code is fragile: it uses the updated U_bc_coefs object created
+    // by initializeOperatorsAndSolvers().  This needs to be fixed.
+    d_fill_after_regrid_phys_bdry_bc_op = new CartSideRobinPhysBdryOp(d_U_scratch_idx, d_U_bc_coefs, false);
+
     // Indicate that the integrator has been initialized.
     d_integrator_is_initialized = true;
     return;
@@ -505,7 +505,6 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
-    if (d_do_log) plog << d_object_name << "::integrateHierarchy_initialize(): current_time = " << current_time << ", new_time = " << new_time << ", dt = " << dt << "\n";
 
     // Allocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -645,25 +644,25 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(
     // Synchronize new state data.
     if (!skip_synchronize_new_state_data)
     {
-        if (d_do_log) plog << d_object_name << "::advanceHierarchy(): synchronizing updated data\n";
-        synchronizeHierarchyData(d_new_context);
+        if (d_do_log) plog << d_object_name << "::postprocessIntegrateHierarchy(): synchronizing updated data\n";
+        synchronizeHierarchyData(NEW_DATA);
     }
 
     if (d_using_vorticity_tagging)
     {
         // Compute max ||Omega||_2.
         d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
-        d_hier_math_ops->curl(d_Omega_scratch_idx, d_Omega_var, d_U_scratch_idx, d_U_sc_var, d_U_bdry_bc_fill_op, new_time);
+        d_hier_math_ops->curl(d_Omega_new_idx, d_Omega_var, d_U_scratch_idx, d_U_sc_var, d_U_bdry_bc_fill_op, new_time);
 #if (NDIM == 3)
-        d_hier_math_ops->pointwiseL2Norm(d_Omega_Norm_scratch_idx, d_Omega_Norm_var, d_Omega_scratch_idx, d_Omega_var);
+        d_hier_math_ops->pointwiseL2Norm(d_Omega_Norm_new_idx, d_Omega_Norm_var, d_Omega_new_idx, d_Omega_var);
 #endif
 
         const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
 #if (NDIM == 2)
-        d_Omega_max = d_hier_cc_data_ops->maxNorm(d_Omega_scratch_idx, wgt_cc_idx);
+        d_Omega_max = d_hier_cc_data_ops->maxNorm(d_Omega_new_idx, wgt_cc_idx);
 #endif
 #if (NDIM == 3)
-        d_Omega_max = d_hier_cc_data_ops->max(d_Omega_Norm_scratch_idx, wgt_cc_idx);
+        d_Omega_max = d_hier_cc_data_ops->max(d_Omega_Norm_new_idx, wgt_cc_idx);
 #endif
     }
 
@@ -719,7 +718,7 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
     }
 
     // Synchronize the state data on the patch hierarchy.
-    synchronizeHierarchyData(getCurrentContext());
+    synchronizeHierarchyData(CURRENT_DATA);
     return;
 }// regridHierarchy
 
@@ -774,7 +773,7 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
         scratch_data.setFlag( d_U_regrid_idx);
         scratch_data.setFlag(    d_U_src_idx);
         scratch_data.setFlag(d_indicator_idx);
-        level->allocatePatchData(d_scratch_data, init_data_time);
+        level->allocatePatchData(scratch_data, init_data_time);
         if (!old_level.isNull()) old_level->allocatePatchData(scratch_data, init_data_time);
 
         // Set the indicator data to equal "0" in each patch of the new
@@ -850,7 +849,10 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
             if (level_number == 0) d_Omega_max = 0.0;
 
             // Allocate scratch data.
-            level->allocatePatchData(d_U_scratch_idx, init_data_time);
+            for (int ln = 0; ln <= level_number; ++ln)
+            {
+                hierarchy->getPatchLevel(ln)->allocatePatchData(d_U_scratch_idx, init_data_time);
+            }
 
             // Fill ghost cells.
             HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
@@ -885,7 +887,10 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
             }
 
             // Deallocate scratch data.
-            level->deallocatePatchData(d_U_scratch_idx);
+            for (int ln = 0; ln <= level_number; ++ln)
+            {
+                hierarchy->getPatchLevel(ln)->deallocatePatchData(d_U_scratch_idx);
+            }
         }
     }
     return;
@@ -960,36 +965,28 @@ INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(
 #endif
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
-    // Untag all cells.
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        Pointer<CellData<NDIM,int> > tags_data = patch->getPatchData(tag_index);
-        tags_data->fillAll(0);
-    }
-
     // Tag cells based on the magnitude of the vorticity.
     //
     // Note that if either the relative or absolute threshold is zero for a
     // particular level, no tagging is performed on that level.
     if (d_using_vorticity_tagging)
     {
-        const double Omega_rel_thresh =
-            (level_number >= 0 && level_number < d_Omega_rel_thresh.getSize()
-             ? d_Omega_rel_thresh[level_number]
-             : (level_number < 0
-                ? d_Omega_rel_thresh[0]
-                : d_Omega_rel_thresh[d_Omega_rel_thresh.size()-1]));
-        const double Omega_abs_thresh =
-            (level_number >= 0 && level_number < d_Omega_abs_thresh.getSize()
-             ? d_Omega_abs_thresh[level_number]
-             : (level_number < 0
-                ? d_Omega_abs_thresh[0]
-                : d_Omega_abs_thresh[d_Omega_abs_thresh.size()-1]));
-        if (Omega_rel_thresh > 0.0 && Omega_abs_thresh > 0.0)
+        double Omega_rel_thresh = 0.0;
+        if (d_Omega_rel_thresh.size() > 0)
         {
-            const double thresh = sqrt(std::numeric_limits<double>::epsilon()) +
-                std::min(Omega_rel_thresh*d_Omega_max, Omega_abs_thresh);
+            Omega_rel_thresh = d_Omega_rel_thresh[std::max(std::min(level_number,d_Omega_rel_thresh.size()-1),0)];
+        }
+        double Omega_abs_thresh = 0.0;
+        if (d_Omega_abs_thresh.size() > 0)
+        {
+            Omega_abs_thresh = d_Omega_abs_thresh[std::max(std::min(level_number,d_Omega_abs_thresh.size()-1),0)];
+        }
+        if (Omega_rel_thresh > 0.0 || Omega_abs_thresh > 0.0)
+        {
+            double thresh = std::numeric_limits<double>::max();
+            if (Omega_rel_thresh > 0.0) thresh = std::min(thresh, Omega_rel_thresh*d_Omega_max);
+            if (Omega_abs_thresh > 0.0) thresh = std::min(thresh, Omega_abs_thresh            );
+            thresh += sqrt(std::numeric_limits<double>::epsilon());
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -1253,7 +1250,7 @@ INSStaggeredHierarchyIntegrator::regridProjection()
         const double Div_U_norm_oo = d_hier_cc_data_ops->maxNorm(d_Div_U_scratch_idx, wgt_cc_idx);
         if (d_Q_fcn.isNull())
         {
-            plog << d_object_name << "::regridProjection():\n"
+            plog << d_object_name << "::regridHierarchy():\n"
                  << "  performing regrid projection\n"
                  << "  before projection:\n"
                  << "    ||Div U||_1  = " << Div_U_norm_1  << "\n"
@@ -1262,7 +1259,7 @@ INSStaggeredHierarchyIntegrator::regridProjection()
         }
         else
         {
-            plog << d_object_name << "::regridProjection():\n"
+            plog << d_object_name << "::regridHierarchy():\n"
                  << "  performing regrid projection\n"
                  << "  before projection:\n"
                  << "    ||Div U - Q||_1  = " << Div_U_norm_1  << "\n"
@@ -1306,7 +1303,7 @@ INSStaggeredHierarchyIntegrator::regridProjection()
 
     if (d_regrid_projection_fac_pc_db.isNull())
     {
-        TBOX_WARNING(d_object_name << "::initializeHierarchyIntegrator():\n" <<
+        TBOX_WARNING(d_object_name << "::regridHierarchy():\n" <<
                      "  regrid projection poisson fac pc solver database is null." << std::endl);
     }
     Pointer<CCPoissonFACOperator> regrid_projection_fac_op = new CCPoissonFACOperator(d_object_name+"::Regrid Projection Poisson FAC Operator", d_regrid_projection_fac_pc_db);
@@ -1398,14 +1395,13 @@ INSStaggeredHierarchyIntegrator::initializeOperatorsAndSolvers()
 {
     // Setup physical boundary conditions objects.
     d_U_bc_helper = new INSStaggeredPhysicalBoundaryHelper();
-    blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> bc_coefs = d_U_bc_coefs;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,d_problem_coefs,bc_coefs);
-        d_U_star_bc_coefs[d] = new INSStaggeredIntermediateVelocityBcCoef(d,bc_coefs);
+        d_U_bc_coefs[d] = new INSStaggeredVelocityBcCoef(d,d_problem_coefs,d_bc_coefs);
+        d_U_star_bc_coefs[d] = new INSStaggeredIntermediateVelocityBcCoef(d,d_bc_coefs);
     }
-    d_P_bc_coef = new INSStaggeredPressureBcCoef(d_problem_coefs,bc_coefs);
-    d_Phi_bc_coef = new INSStaggeredProjectionBcCoef(bc_coefs);
+    d_P_bc_coef = new INSStaggeredPressureBcCoef(d_problem_coefs,d_bc_coefs);
+    d_Phi_bc_coef = new INSStaggeredProjectionBcCoef(d_bc_coefs);
 
     // Setup the Stokes operator.
     d_stokes_op_needs_init = true;
@@ -1729,7 +1725,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_helmholtz_solver->setOperator(d_helmholtz_op);
         if (d_helmholtz_solver_needs_init || !MathUtilities<double>::equalEps(dt,d_dt_previous))
         {
-            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): Initializing Helmholtz solver" << std::endl;
+            if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): Initializing Helmholtz solver" << std::endl;
             d_helmholtz_solver->initializeSolverState(*d_U_scratch_vec,*d_U_rhs_vec);
         }
         d_helmholtz_solver_needs_init = false;
@@ -1764,7 +1760,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_poisson_solver->setOperator(d_poisson_op);
         if (d_poisson_solver_needs_init)
         {
-            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): Initializing Poisson solver" << std::endl;
+            if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): Initializing Poisson solver" << std::endl;
             d_poisson_solver->initializeSolverState(*d_P_scratch_vec,*d_P_rhs_vec);
         }
         d_poisson_solver_needs_init = false;
@@ -1774,7 +1770,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     {
         if (d_stokes_op_needs_init && !d_stokes_solver_needs_init)
         {
-            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): Initializing incompressible Stokes operator" << std::endl;
+            if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): Initializing incompressible Stokes operator" << std::endl;
             d_stokes_op->initializeOperatorState(*d_U_scratch_vec,*d_U_rhs_vec);
         }
         d_stokes_op_needs_init = false;
@@ -1786,7 +1782,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_stokes_solver->setOperator(d_stokes_op);
         if (d_stokes_solver_needs_init)
         {
-            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): Initializing incompressible Stokes solver" << std::endl;
+            if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): Initializing incompressible Stokes solver" << std::endl;
             if (!d_vanka_fac_op.isNull())
             {
                 d_vanka_fac_op->setProblemCoefficients(d_problem_coefs,dt);
@@ -1813,7 +1809,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     {
         if (d_convective_op_needs_init)
         {
-            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): Initializing convective operator" << std::endl;
+            if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): Initializing convective operator" << std::endl;
             d_convective_op->initializeOperatorState(*d_U_scratch_vec,*d_U_rhs_vec);
         }
         d_convective_op_needs_init = false;
@@ -1910,8 +1906,12 @@ INSStaggeredHierarchyIntegrator::getFromInput(
     else if (db->keyExists("CFL")) d_cfl_max = db->getDouble("CFL");
     else if (db->keyExists("CFL_max")) d_cfl_max = db->getDouble("CFL_max");
     if (db->keyExists("using_vorticity_tagging")) d_using_vorticity_tagging = db->getBool("using_vorticity_tagging");
-    if (db->keyExists("Omega_rel_thresh")) db->getDoubleArray("Omega_rel_thresh");
-    if (db->keyExists("Omega_abs_thresh")) db->getDoubleArray("Omega_abs_thresh");
+    if (db->keyExists("Omega_rel_thresh")) d_Omega_rel_thresh = db->getDoubleArray("Omega_rel_thresh");
+    else if (db->keyExists("omega_rel_thresh")) d_Omega_rel_thresh = db->getDoubleArray("omega_rel_thresh");
+    else if (db->keyExists("vorticity_rel_thresh")) d_Omega_rel_thresh = db->getDoubleArray("vorticity_rel_thresh");
+    if (db->keyExists("Omega_abs_thresh")) d_Omega_abs_thresh = db->getDoubleArray("Omega_abs_thresh");
+    else if (db->keyExists("omega_abs_thresh")) d_Omega_abs_thresh = db->getDoubleArray("omega_abs_thresh");
+    else if (db->keyExists("vorticity_abs_thresh")) d_Omega_abs_thresh = db->getDoubleArray("vorticity_abs_thresh");
     if (db->keyExists("normalize_pressure")) d_normalize_pressure = db->getBool("normalize_pressure");
     if (db->keyExists("convective_difference_form")) d_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("convective_difference_form"));
     if (db->keyExists("creeping_flow")) d_creeping_flow = db->getBool("creeping_flow");

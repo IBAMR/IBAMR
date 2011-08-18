@@ -63,14 +63,14 @@ namespace IBAMR
 
 INSStaggeredIntermediateVelocityBcCoef::INSStaggeredIntermediateVelocityBcCoef(
     const int comp_idx,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
     : d_comp_idx(comp_idx),
-      d_u_bc_coefs(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
+      d_bc_coefs(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_target_idx(-1),
       d_homogeneous_bc(false)
 {
-    setVelocityPhysicalBcCoefs(u_bc_coefs);
+    setPhysicalBoundaryConditions(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
 }// INSStaggeredIntermediateVelocityBcCoef
@@ -82,12 +82,12 @@ INSStaggeredIntermediateVelocityBcCoef::~INSStaggeredIntermediateVelocityBcCoef(
 }// ~INSStaggeredIntermediateVelocityBcCoef
 
 void
-INSStaggeredIntermediateVelocityBcCoef::setVelocityPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs)
+INSStaggeredIntermediateVelocityBcCoef::setPhysicalBoundaryConditions(
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
 {
-    d_u_bc_coefs = u_bc_coefs;
+    d_bc_coefs = bc_coefs;
     return;
-}// setVelocityPhysicalBcCoefs
+}// setPhysicalBoundaryConditions
 
 void
 INSStaggeredIntermediateVelocityBcCoef::setTargetPatchDataIndex(
@@ -118,14 +118,12 @@ INSStaggeredIntermediateVelocityBcCoef::setBcCoefs(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(d_u_bc_coefs[d] != NULL);
+        TBOX_ASSERT(d_bc_coefs[d] != NULL);
     }
 #endif
     // Set the unmodified velocity bc coefs.
-    d_u_bc_coefs[d_comp_idx]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
-
-    // Ensure homogeneous boundary conditions are prescribed.
-    if (!gcoef_data.isNull()) gcoef_data->fillAll(0.0);
+    d_bc_coefs[d_comp_idx]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
+    if (d_homogeneous_bc) if (!gcoef_data.isNull()) gcoef_data->fillAll(0.0);
     return;
 }// setBcCoefs
 
@@ -135,13 +133,13 @@ INSStaggeredIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(d_u_bc_coefs[d] != NULL);
+        TBOX_ASSERT(d_bc_coefs[d] != NULL);
     }
 #endif
     IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ret_val = IntVector<NDIM>::min(ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
+        ret_val = IntVector<NDIM>::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
 }// numberOfExtensionsFillable

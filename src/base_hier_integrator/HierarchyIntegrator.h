@@ -76,7 +76,7 @@ public:
     HierarchyIntegrator(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        bool register_for_restart=true);
+        bool register_for_restart);
 
     /*!
      * The destructor for class HierarchyIntegrator unregisters the integrator
@@ -128,7 +128,7 @@ public:
      * such that it is possible to step through time via the advanceHierarchy()
      * function.
      */
-    void
+    virtual void
     initializePatchHierarchy(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
@@ -137,10 +137,9 @@ public:
      * Integrate data on all patches on all levels of the patch hierarchy over
      * the specified time increment.
      */
-    void
+    virtual void
     advanceHierarchy(
-        const double dt,
-        const int num_cycles=1);
+        const double dt);
 
     /*!
      * Return the current value of the maximum time step size for the integrator
@@ -162,7 +161,7 @@ public:
      */
     void
     synchronizeHierarchyData(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
+        VariableContextType ctx_type);
 
     /*!
      * Reset the current data to equal the new data, update the time level of
@@ -385,6 +384,14 @@ public:
     ///
 
     /*!
+     * Return a pointer the variable context corresponding to the specified
+     * variable context type.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>
+    getContext(
+        VariableContextType ctx_type) const;
+
+    /*!
      * Return a pointer to the "current" variable context used by integrator.
      * Current data corresponds to state data at the beginning of a time step,
      * or when a new level is initialized.
@@ -446,7 +453,7 @@ protected:
      */
     virtual void
     synchronizeHierarchyDataSpecialized(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
+        VariableContextType ctx_type);
 
     /*!
      * Virtual method to perform implementation-specific data reset operations.
@@ -643,6 +650,11 @@ protected:
     int d_integrator_step, d_max_integrator_steps;
 
     /*
+     * The number of cycles of fixed-point iteration to use per timestep.
+     */
+    int d_num_cycles;
+
+    /*
      * The number of integration steps taken between invocations of the
      * regridding process.
      */
@@ -703,10 +715,11 @@ protected:
     CoarsenPatchStrategyMap d_coarsen_strategies;
     CoarsenScheduleMap      d_coarsen_scheds;
 
-    static const std::string SYNCH_CURRENT_STATE_DATA_ALG, SYNCH_NEW_STATE_DATA_ALG;
+    static const std::string SYNCH_CURRENT_DATA_ALG, SYNCH_NEW_DATA_ALG;
 
     SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
     SAMRAI::xfer::RefineAlgorithm<NDIM> d_fill_after_regrid_refine_alg;
+    SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_fill_after_regrid_phys_bdry_bc_op;
 
     /*
      * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects

@@ -35,33 +35,16 @@
 #include <petsc.h>
 
 // Headers for basic SAMRAI objects
-#include <PatchLevel.h>
-#include <VariableDatabase.h>
-#include <tbox/Database.h>
-#include <tbox/InputDatabase.h>
-#include <tbox/InputManager.h>
-#include <tbox/MathUtilities.h>
-#include <tbox/PIO.h>
-#include <tbox/Pointer.h>
-#include <tbox/RestartManager.h>
-#include <tbox/SAMRAIManager.h>
-#include <tbox/SAMRAI_MPI.h>
-#include <tbox/TimerManager.h>
-#include <tbox/Utilities.h>
-
-// Headers for major algorithm/data structure objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
-#include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
-#include <PatchHierarchy.h>
 #include <StandardTagAndInitialize.h>
-#include <VisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/IBStaggeredHierarchyIntegrator.h>
+#include <ibamr/IBHierarchyIntegrator.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
+#include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibtk/LSiloDataWriter.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -71,63 +54,15 @@ using namespace IBTK;
 using namespace SAMRAI;
 using namespace std;
 
-/*
- * A simple post-processor to compute the total energy in the system.
- */
-class myPostProcessor
-    : public IBPostProcessStrategy
-{
-public:
-    tbox::Pointer<IBLagrangianForceStrategy> d_force_generator;
-
-    myPostProcessor()
-    {
-        // intentionally blank
-        return;
-    }// myPostProcessor()
-
-    ~myPostProcessor()
-    {
-        // intentionally blank
-        return;
-    }// ~myPostProcessor()
-
-    void
-    postProcessData(
-        const int u_idx,
-        const int /*p_idx*/,
-        const int /*f_idx*/,
-        std::vector<tbox::Pointer<LData> > /*F_data*/,
-        std::vector<tbox::Pointer<LData> > X_data,
-        std::vector<tbox::Pointer<LData> > U_data,
-        const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
-        const int coarsest_level_number,
-        const int finest_level_number,
-        const double data_time,
-        LDataManager* const l_data_manager)
-    {
-        // Compute the total energy in the system as 0.5*|u|^2 - X*F.
-        HierarchyMathOps hier_math_ops("HierarchyMathOps", hierarchy);
-        hier_math_ops.setPatchHierarchy(hierarchy);
-        hier_math_ops.resetLevels(coarsest_level_number, finest_level_number);
-        const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
-
-        math::HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(hierarchy, coarsest_level_number, finest_level_number);
-        const double kinetic_energy = 0.5*hier_sc_data_ops.dot(u_idx, u_idx, wgt_sc_idx);
-
-        double potential_energy = 0.0;
-        for (int ln = coarsest_level_number; ln <= finest_level_number; ++ln)
-        {
-            potential_energy += d_force_generator->computeLagrangianEnergy(X_data[ln], U_data[ln], hierarchy, ln, data_time, l_data_manager);
-        }
-
-        tbox::pout << "\ntime = " << data_time << "\n"
-                   << "kinetic energy = " << kinetic_energy << "\n"
-                   << "potential energy = " << potential_energy << "\n"
-                   << "total energy = " << kinetic_energy + potential_energy << "\n\n";
-        return;
-    }// postProcessData
-};
+// Function prototypes
+void
+output_data(
+    tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy,
+    tbox::Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
+    LDataManager* l_data_manager,
+    const int iteration_num,
+    const double loop_time,
+    const string& data_dump_dirname);
 
 /************************************************************************
  * For each run, the input filename and restart information (if         *
@@ -331,31 +266,30 @@ main(
             }
         }
 
-        int hier_dump_interval = 0;
-        if (main_db->keyExists("hier_dump_interval"))
+        int data_dump_interval = 0;
+        if (main_db->keyExists("data_dump_interval"))
         {
-            hier_dump_interval = main_db->getInteger("hier_dump_interval");
+            data_dump_interval = main_db->getInteger("data_dump_interval");
         }
 
-        string hier_dump_dirname;
-        if (hier_dump_interval > 0)
+        string data_dump_dirname;
+        if (data_dump_interval > 0)
         {
-            if (main_db->keyExists("hier_dump_dirname"))
+            if (main_db->keyExists("data_dump_dirname"))
             {
-                hier_dump_dirname = main_db->getString("hier_dump_dirname");
+                data_dump_dirname = main_db->getString("data_dump_dirname");
             }
             else
             {
-                TBOX_ERROR("hier_dump_interval > 0, but key `hier_dump_dirname'"
+                TBOX_ERROR("data_dump_interval > 0, but key `data_dump_dirname'"
                            << " not specified in input file");
             }
         }
 
-        const bool write_hier_data = (hier_dump_interval > 0)
-            && !(hier_dump_dirname.empty());
-        if (write_hier_data)
+        const bool write_data = (data_dump_interval > 0) && !(data_dump_dirname.empty());
+        if (write_data)
         {
-            tbox::Utilities::recursiveMkdir(hier_dump_dirname);
+            tbox::Utilities::recursiveMkdir(data_dump_dirname);
         }
 
         int timer_dump_interval = 0;
@@ -385,8 +319,7 @@ main(
         tbox::RestartManager* restart_manager = tbox::RestartManager::getManager();
         if (is_from_restart)
         {
-            restart_manager->openRestartFile(
-                restart_read_dirname, restore_num, tbox::SAMRAI_MPI::getNodes());
+            restart_manager->openRestartFile(restart_read_dirname, restore_num, tbox::SAMRAI_MPI::getNodes());
         }
 
         /*
@@ -396,76 +329,38 @@ main(
          * constructor for details.  For more information on the composition of
          * objects for this application, see comments at top of file.
          */
-        tbox::Pointer<geom::CartesianGridGeometry<NDIM> > grid_geometry =
-            new geom::CartesianGridGeometry<NDIM>(
-                "CartesianGeometry",
-                input_db->getDatabase("CartesianGeometry"));
-
-        tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy =
-            new hier::PatchHierarchy<NDIM>(
-                "PatchHierarchy",
-                grid_geometry);
-
-       tbox::Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator =
-            new INSStaggeredHierarchyIntegrator(
-                "INSStaggeredHierarchyIntegrator",
-                input_db->getDatabase("INSStaggeredHierarchyIntegrator"),
-                patch_hierarchy);
-
-        tbox::Pointer<IBStandardForceGen> force_generator = new IBStandardForceGen();
-
-        tbox::Pointer<IBLagrangianSourceStrategy> source_generator = NULL;
-
-        myPostProcessor* t_post_processor = new myPostProcessor();
-        t_post_processor->d_force_generator = force_generator;
-        tbox::Pointer<IBPostProcessStrategy> post_processor = t_post_processor;
-
-        tbox::Pointer<IBStaggeredHierarchyIntegrator> time_integrator =
-            new IBStaggeredHierarchyIntegrator(
-                "IBStaggeredHierarchyIntegrator",
-                input_db->getDatabase("IBStaggeredHierarchyIntegrator"),
-                patch_hierarchy, navier_stokes_integrator,
-                force_generator, source_generator, post_processor);
-
-        tbox::Pointer<IBStandardInitializer> initializer =
-            new IBStandardInitializer(
-                "IBStandardInitializer",
-                input_db->getDatabase("IBStandardInitializer"));
-        time_integrator->registerLInitStrategy(initializer);
-
-        tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
-            new mesh::StandardTagAndInitialize<NDIM>(
-                "StandardTagAndInitialize",
-                time_integrator,
-                input_db->getDatabase("StandardTagAndInitialize"));
-
-        tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator =
-            new mesh::BergerRigoutsos<NDIM>();
-
-        tbox::Pointer<mesh::LoadBalancer<NDIM> > load_balancer =
-            new mesh::LoadBalancer<NDIM>(
-                "LoadBalancer",
-                input_db->getDatabase("LoadBalancer"));
-
-        tbox::Pointer<mesh::GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new mesh::GriddingAlgorithm<NDIM>(
-                "GriddingAlgorithm",
-                input_db->getDatabase("GriddingAlgorithm"),
-                error_detector, box_generator, load_balancer);
+        tbox::Pointer<geom::CartesianGridGeometry<NDIM> > grid_geometry = new geom::CartesianGridGeometry<NDIM>("CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
+        tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy = new hier::PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        tbox::Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator("INSStaggeredHierarchyIntegrator", input_db->getDatabase("INSStaggeredHierarchyIntegrator"));
+        tbox::Pointer<IBHierarchyIntegrator> time_integrator = new IBHierarchyIntegrator("IBHierarchyIntegrator", input_db->getDatabase("IBHierarchyIntegrator"), navier_stokes_integrator);
+        tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector = new mesh::StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator, input_db->getDatabase("StandardTagAndInitialize"));
+        tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator = new mesh::BergerRigoutsos<NDIM>();
+        tbox::Pointer<mesh::LoadBalancer<NDIM> > load_balancer = new mesh::LoadBalancer<NDIM>("LoadBalancer", input_db->getDatabase("LoadBalancer"));
+        tbox::Pointer<mesh::GriddingAlgorithm<NDIM> > gridding_algorithm = new mesh::GriddingAlgorithm<NDIM>("GriddingAlgorithm", input_db->getDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         /*
-         * Create initial condition specification objects.
+         * Setup IB initializaton.
          */
-        tbox::Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
-            "u_init", input_db->getDatabase("VelocityInitialConditions"), grid_geometry);
-        time_integrator->registerVelocityInitialConditions(u_init);
+        tbox::Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer("IBStandardInitializer", input_db->getDatabase("IBStandardInitializer"));
+        time_integrator->registerLInitStrategy(ib_initializer);
 
         /*
-         * Create boundary condition specification objects (when necessary).
+         * Setup IB forcing.
+         */
+        tbox::Pointer<IBStandardForceGen> ib_force_fcn = new IBStandardForceGen();
+        time_integrator->registerIBLagrangianForceFunction(ib_force_fcn);
+
+        /*
+         * Create Eulerian initial condition specification objects.
+         */
+        tbox::Pointer<CartGridFunction> u_init = new muParserCartGridFunction("u_init", input_db->getDatabase("VelocityInitialConditions"), grid_geometry);
+        navier_stokes_integrator->registerVelocityInitialConditions(u_init);
+
+        /*
+         * Create Eulerian boundary condition specification objects (when necessary).
          */
         const hier::IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         const bool periodic_domain = periodic_shift.min() != 0;
-
         blitz::TinyVector<solv::RobinBcCoefStrategy<NDIM>*,NDIM> u_bc_coefs;
         if (!periodic_domain)
         {
@@ -481,34 +376,29 @@ main(
 
                 u_bc_coefs[d] = new muParserRobinBcCoefs(bc_coefs_name, input_db->getDatabase(bc_coefs_db_name), grid_geometry);
             }
-            time_integrator->registerVelocityPhysicalBcCoefs(u_bc_coefs);
+            navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
         /*
-         * Create body force function specification objects (when necessary).
+         * Create Eulerian body force function specification objects (when
+         * necessary).
          */
         if (input_db->keyExists("ForcingFunction"))
         {
-            tbox::Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
-                "f_fcn", input_db->getDatabase("ForcingFunction"), grid_geometry);
-            time_integrator->registerBodyForceSpecification(f_fcn);
+            tbox::Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction("f_fcn", input_db->getDatabase("ForcingFunction"), grid_geometry);
+            time_integrator->registerBodyForceFunction(f_fcn);
         }
 
         /*
          * Set up visualization plot file writer.
          */
-        tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer =
-            new appu::VisItDataWriter<NDIM>(
-                "VisIt Writer",
-                visit_dump_dirname, visit_number_procs_per_file);
-        tbox::Pointer<LSiloDataWriter> silo_data_writer =
-            new LSiloDataWriter(
-                "LSiloDataWriter",
-                visit_dump_dirname);
-
+        tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer;
+        tbox::Pointer<LSiloDataWriter> silo_data_writer;
         if (uses_visit)
         {
-            initializer->registerLSiloDataWriter(silo_data_writer);
+            visit_data_writer = new appu::VisItDataWriter<NDIM>("VisIt Writer", visit_dump_dirname, visit_number_procs_per_file);
+            silo_data_writer = new LSiloDataWriter("LSiloDataWriter", visit_dump_dirname);
+            ib_initializer->registerLSiloDataWriter(silo_data_writer);
             time_integrator->registerVisItDataWriter(visit_data_writer);
             time_integrator->registerLSiloDataWriter(silo_data_writer);
         }
@@ -517,15 +407,14 @@ main(
          * Initialize hierarchy configuration and data on all patches.  Then,
          * close restart file and write initial state for visualization.
          */
-        time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
-        double dt_now = time_integrator->initializeHierarchy();
+        time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
         tbox::RestartManager::getManager()->closeRestartFile();
 
         /*
          * Deallocate the Lagrangian initializer, as it is no longer needed.
          */
         time_integrator->freeLInitStrategy();
-        initializer.setNull();
+        ib_initializer.setNull();
 
         /*
          * After creating all objects and initializing their state, we print the
@@ -538,99 +427,32 @@ main(
         /*
          * Write initial visualization files.
          */
+        double loop_time = time_integrator->getIntegratorTime();
+        int iteration_num = time_integrator->getIntegratorStep();
         if (viz_dump_data)
         {
             if (uses_visit)
             {
                 tbox::pout << "\nWriting visualization files...\n\n";
-                visit_data_writer->writePlotData(
-                    patch_hierarchy,
-                    time_integrator->getIntegratorStep(),
-                    time_integrator->getIntegratorTime());
-                silo_data_writer->writePlotData(
-                    time_integrator->getIntegratorStep(),
-                    time_integrator->getIntegratorTime());
+                time_integrator->setupPlotData();
+                visit_data_writer->writePlotData(patch_hierarchy, loop_time, iteration_num);
+                silo_data_writer->writePlotData(loop_time, iteration_num);
             }
-        }
-
-        /*
-         * Perform initial post processing.
-         */
-        if (postprocess_data)
-        {
-            time_integrator->postProcessData();
         }
 
         /*
          * Time step loop.  Note that the step count and integration time are
          * maintained by the time integrator object.
          */
-        double loop_time = time_integrator->getIntegratorTime();
         double loop_time_end = time_integrator->getEndTime();
-        double dt_old = 0.0;
-
-        int iteration_num = time_integrator->getIntegratorStep();
-#if 0
-        /*
-         * At specified intervals, write state data for post-processing.
-         */
-        if (write_hier_data && iteration_num%hier_dump_interval == 0)
+        double dt_old = 0.0, dt_now = 0.0;
+        if (write_data && iteration_num%data_dump_interval == 0)
         {
-            /*
-             * Write Cartesian data.
-             */
-            hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
-
-            tbox::plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
-            tbox::plog << "simulation time is " << loop_time << endl;
-
-            string file_name = hier_dump_dirname + "/" + "hier_data.";
-            char temp_buf[128];
-            sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, tbox::SAMRAI_MPI::getRank());
-            file_name += temp_buf;
-
-            tbox::Pointer<tbox::HDFDatabase> hier_db = new tbox::HDFDatabase("hier_db");
-            hier_db->create(file_name);
-
-            hier::ComponentSelector hier_data;
-            hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVar(),
-                                                                   navier_stokes_integrator->getCurrentContext()));
-            hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVar(),
-                                                                   navier_stokes_integrator->getCurrentContext()));
-            hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getExtrapolatedPressureVar(),
-                                                                   navier_stokes_integrator->getCurrentContext()));
-
-            patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
-            hier_db->putDouble("loop_time", loop_time);
-            hier_db->putDouble("end_time", loop_time_end);
-            hier_db->putDouble("dt", dt_now);
-            hier_db->putInteger("iteration_num", iteration_num);
-            hier_db->putInteger("hier_dump_interval", hier_dump_interval);
-
-            hier_db->close();
-
-            /*
-             * Write Lagrangian data.
-             */
-            const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
-            LDataManager* l_data_manager = time_integrator->getLDataManager();
-            tbox::Pointer<LData> X_data = l_data_manager->getLData("X", finest_hier_level);
-            Vec X_petsc_vec = X_data->getGlobalVec();
-            Vec X_lag_vec;
-            VecDuplicate(X_petsc_vec, &X_lag_vec);
-            l_data_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
-            file_name = hier_dump_dirname + "/" + "X.";
-            sprintf(temp_buf, "%05d", iteration_num);
-            file_name += temp_buf;
-            PetscViewer viewer;
-            PetscViewerASCIIOpen(PETSC_COMM_WORLD, file_name.c_str(), &viewer);
-            VecView(X_lag_vec, viewer);
-            PetscViewerDestroy(viewer);
-            VecDestroy(X_lag_vec);
+            output_data(patch_hierarchy,
+                        navier_stokes_integrator, time_integrator->getLDataManager(),
+                        iteration_num, loop_time, data_dump_dirname);
         }
-#endif
-        while (!tbox::MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
-               time_integrator->stepsRemaining())
+        while (!tbox::MathUtilities<double>::equalEps(loop_time,loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep() + 1;
 
@@ -640,10 +462,9 @@ main(
             tbox::pout << "Simulation time is " << loop_time                  << endl;
 
             dt_old = dt_now;
-            double dt_new = time_integrator->advanceHierarchy(dt_now);
-
+            dt_now = time_integrator->getTimeStepSize();
+            time_integrator->advanceHierarchy(dt_now);
             loop_time += dt_now;
-            dt_now = dt_new;
 
             tbox::pout <<                                                        endl;
             tbox::pout << "At end       of timestep # " <<  iteration_num - 1 << endl;
@@ -653,7 +474,7 @@ main(
 
             /*
              * At specified intervals, write visualization and restart files,
-             * and print out timer data.
+             * print out timer data, write state data, and post process data.
              */
             if (write_timer_data && iteration_num%timer_dump_interval == 0)
             {
@@ -666,83 +487,25 @@ main(
                 if (uses_visit)
                 {
                     tbox::pout << "\nWriting visualization files...\n\n";
-                    visit_data_writer->writePlotData(
-                        patch_hierarchy, iteration_num, loop_time);
-                    silo_data_writer->writePlotData(
-                        iteration_num, loop_time);
+                    time_integrator->setupPlotData();
+                    visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+                    silo_data_writer->writePlotData(iteration_num, loop_time);
                 }
             }
 
             if (write_restart && iteration_num%restart_interval == 0)
             {
                 tbox::pout << "\nWriting restart files...\n\n";
-                tbox::RestartManager::getManager()->writeRestartFile(
-                    restart_write_dirname, iteration_num);
-
-                if (stop_after_writing_restart) break;
+                tbox::RestartManager::getManager()->writeRestartFile(restart_write_dirname, iteration_num);
             }
-#if 0
-            /*
-             * At specified intervals, write state data for post-processing.
-             */
-            if (write_hier_data && iteration_num%hier_dump_interval == 0)
+
+            if (write_data && iteration_num%data_dump_interval == 0)
             {
-                /*
-                 * Write Cartesian data.
-                 */
-                hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
-
-                tbox::plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
-                tbox::plog << "simulation time is " << loop_time << endl;
-
-                string file_name = hier_dump_dirname + "/" + "hier_data.";
-                char temp_buf[128];
-                sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, tbox::SAMRAI_MPI::getRank());
-                file_name += temp_buf;
-
-                tbox::Pointer<tbox::HDFDatabase> hier_db = new tbox::HDFDatabase("hier_db");
-                hier_db->create(file_name);
-
-                hier::ComponentSelector hier_data;
-                hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVar(),
-                                                                       navier_stokes_integrator->getCurrentContext()));
-                hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVar(),
-                                                                       navier_stokes_integrator->getCurrentContext()));
-                hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getExtrapolatedPressureVar(),
-                                                                       navier_stokes_integrator->getCurrentContext()));
-
-                patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
-                hier_db->putDouble("loop_time", loop_time);
-                hier_db->putDouble("end_time", loop_time_end);
-                hier_db->putDouble("dt", dt_now);
-                hier_db->putInteger("iteration_num", iteration_num);
-                hier_db->putInteger("hier_dump_interval", hier_dump_interval);
-
-                hier_db->close();
-
-                /*
-                 * Write Lagrangian data.
-                 */
-                const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
-                LDataManager* l_data_manager = time_integrator->getLDataManager();
-                tbox::Pointer<LData> X_data = l_data_manager->getLData("X", finest_hier_level);
-                Vec X_petsc_vec = X_data->getGlobalVec();
-                Vec X_lag_vec;
-                VecDuplicate(X_petsc_vec, &X_lag_vec);
-                l_data_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
-                file_name = hier_dump_dirname + "/" + "X.";
-                sprintf(temp_buf, "%05d", iteration_num);
-                file_name += temp_buf;
-                PetscViewer viewer;
-                PetscViewerASCIIOpen(PETSC_COMM_WORLD, file_name.c_str(), &viewer);
-                VecView(X_lag_vec, viewer);
-                PetscViewerDestroy(viewer);
-                VecDestroy(X_lag_vec);
+                output_data(patch_hierarchy,
+                            navier_stokes_integrator, time_integrator->getLDataManager(),
+                            iteration_num, loop_time, data_dump_dirname);
             }
-#endif
-            /*
-             * At specified intervals, post-process data.
-             */
+
             if (postprocess_data && iteration_num%postprocess_interval == 0)
             {
                 time_integrator->postProcessData();
@@ -750,7 +513,7 @@ main(
         }
 
         /*
-         * Ensure the final timer data is written out.
+         * Ensure the final timer and visualization data are written out.
          */
         if (write_timer_data && iteration_num%timer_dump_interval != 0)
         {
@@ -758,23 +521,20 @@ main(
             tbox::TimerManager::getManager()->print(tbox::plog);
         }
 
-        /*
-         * Ensure the last state is written out.
-         */
         if (viz_dump_data && iteration_num%viz_dump_interval != 0)
         {
             if (uses_visit)
             {
                 tbox::pout << "\nWriting visualization files...\n\n";
-                visit_data_writer->writePlotData(
-                    patch_hierarchy, iteration_num, loop_time);
-                silo_data_writer->writePlotData(
-                    iteration_num, loop_time);
+                time_integrator->setupPlotData();
+                visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+                silo_data_writer->writePlotData(iteration_num, loop_time);
             }
         }
 
         /*
-         * Cleanup boundary condition specification objects (when necessary).
+         * Cleanup Eulerian boundary condition specification objects (when
+         * necessary).
          */
         if (!periodic_domain)
         {
@@ -784,6 +544,59 @@ main(
 
     tbox::SAMRAIManager::shutdown();
     PetscFinalize();
-
     return 0;
 }// main
+
+void
+output_data(
+    tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy,
+    tbox::Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
+    LDataManager* l_data_manager,
+    const int iteration_num,
+    const double loop_time,
+    const string& data_dump_dirname)
+{
+    tbox::plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
+    tbox::plog << "simulation time is " << loop_time << endl;
+
+    /*
+     * Write Cartesian data.
+     */
+    string file_name = data_dump_dirname + "/" + "hier_data.";
+    char temp_buf[128];
+    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, tbox::SAMRAI_MPI::getRank());
+    file_name += temp_buf;
+
+    tbox::Pointer<tbox::HDFDatabase> hier_db = new tbox::HDFDatabase("hier_db");
+    hier_db->create(file_name);
+
+    hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
+    hier::ComponentSelector hier_data;
+    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(), navier_stokes_integrator->getCurrentContext()));
+    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(), navier_stokes_integrator->getCurrentContext()));
+
+    patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
+    hier_db->putDouble("loop_time", loop_time);
+    hier_db->putInteger("iteration_num", iteration_num);
+
+    hier_db->close();
+
+    /*
+     * Write Lagrangian data.
+     */
+    const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
+    tbox::Pointer<LData> X_data = l_data_manager->getLData("X", finest_hier_level);
+    Vec X_petsc_vec = X_data->getVec();
+    Vec X_lag_vec;
+    VecDuplicate(X_petsc_vec, &X_lag_vec);
+    l_data_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
+    file_name = data_dump_dirname + "/" + "X.";
+    sprintf(temp_buf, "%05d", iteration_num);
+    file_name += temp_buf;
+    PetscViewer viewer;
+    PetscViewerASCIIOpen(PETSC_COMM_WORLD, file_name.c_str(), &viewer);
+    VecView(X_lag_vec, viewer);
+    PetscViewerDestroy(viewer);
+    VecDestroy(X_lag_vec);
+    return;
+}// output_data
