@@ -45,6 +45,7 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
@@ -87,7 +88,7 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredStokesOperator::INSStaggeredStokesOperator(
-    const INSCoefs& problem_coefs,
+    const INSProblemCoefs& problem_coefs,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs,
     Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper,
     RobinBcCoefStrategy<NDIM>* P_bc_coef,
@@ -95,7 +96,6 @@ INSStaggeredStokesOperator::INSStaggeredStokesOperator(
     : d_is_initialized(false),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
-      d_dt(std::numeric_limits<double>::quiet_NaN()),
       d_problem_coefs(problem_coefs),
       d_helmholtz_spec("INSStaggeredStokesOperator::helmholtz_spec"),
       d_hier_math_ops(hier_math_ops),
@@ -141,9 +141,9 @@ INSStaggeredStokesOperator::setTimeInterval(
     const double lambda = d_problem_coefs.getLambda();
     d_current_time = current_time;
     d_new_time = new_time;
-    d_dt = d_new_time-d_current_time;
-    d_helmholtz_spec.setCConstant((rho/d_dt)+0.5*lambda);
-    d_helmholtz_spec.setDConstant(          -0.5*mu    );
+    const double dt = d_new_time-d_current_time;
+    d_helmholtz_spec.setCConstant((rho/dt)+0.5*lambda);
+    d_helmholtz_spec.setDConstant(        -0.5*mu    );
     return;
 }// setTimeInterval
 
@@ -226,23 +226,10 @@ INSStaggeredStokesOperator::apply(
 
     // Compute the action of the operator:
     //      A*[u;p] = [((rho/dt)*I-0.5*mu*L)*u + grad p; -div u].
-    static const bool cf_bdry_synch = true;
-    d_hier_math_ops->grad(
-        U_out_idx, U_out_sc_var,
-        cf_bdry_synch,
-        1.0, P_scratch_idx, P_scratch_cc_var, d_no_fill_op, d_new_time);
-    d_hier_math_ops->laplace(
-        U_out_idx, U_out_sc_var,
-        d_helmholtz_spec,
-        U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
-        1.0,
-        U_out_idx, U_out_sc_var);
+    d_hier_math_ops->grad(U_out_idx, U_out_sc_var, /*cf_bdry_synch*/ true, 1.0, P_scratch_idx, P_scratch_cc_var, d_no_fill_op, d_new_time);
+    d_hier_math_ops->laplace(U_out_idx, U_out_sc_var, d_helmholtz_spec, U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time, 1.0, U_out_idx, U_out_sc_var);
     if (!d_U_bc_helper.isNull()) d_U_bc_helper->zeroValuesAtDirichletBoundaries(U_out_idx);
-
-    d_hier_math_ops->div(
-        P_out_idx, P_out_cc_var,
-        -1.0, U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time,
-        cf_bdry_synch);
+    d_hier_math_ops->div(P_out_idx, P_out_cc_var, -1.0, U_scratch_idx, U_scratch_sc_var, d_no_fill_op, d_new_time, /*cf_bdry_synch*/ true);
 
     IBAMR_TIMER_STOP(t_apply);
     return;

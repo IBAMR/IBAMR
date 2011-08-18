@@ -138,7 +138,7 @@ compute_cell_index(
 void
 buildBoxOperator(
     Mat& A,
-    const INSCoefs& problem_coefs,
+    const INSProblemCoefs& problem_coefs,
     const double dt,
     const Box<NDIM>& box,
     const Box<NDIM>& ghost_box,
@@ -322,7 +322,7 @@ modifyRhsForBcs(
     Vec& v,
     const SideData<NDIM,double>& U_data,
     const CellData<NDIM,double>& P_data,
-    const INSCoefs& problem_coefs,
+    const INSProblemCoefs& problem_coefs,
     const double /*dt*/,
     const Box<NDIM>& box,
     const Box<NDIM>& ghost_box,
@@ -594,7 +594,7 @@ INSStaggeredBoxRelaxationFACOperator::~INSStaggeredBoxRelaxationFACOperator()
 
 void
 INSStaggeredBoxRelaxationFACOperator::setProblemCoefficients(
-    const INSCoefs& problem_coefs,
+    const INSProblemCoefs& problem_coefs,
     const double dt)
 {
     d_problem_coefs = problem_coefs;
@@ -1160,100 +1160,70 @@ INSStaggeredBoxRelaxationFACOperator::computeResidual(
     SAMRAIVectorReal<NDIM,double>& residual,
     const SAMRAIVectorReal<NDIM,double>& solution,
     const SAMRAIVectorReal<NDIM,double>& rhs,
-    int level_num)
+    int coarsest_level_num,
+    int finest_level_num)
 {
     IBAMR_TIMER_START(t_compute_residual);
 
-    if (!d_preconditioner.isNull() && d_preconditioner->getNumPreSmoothingSweeps() == 0)
+    const int U_res_idx = residual.getComponentDescriptorIndex(0);
+    const int U_sol_idx = solution.getComponentDescriptorIndex(0);
+    const int U_rhs_idx = rhs.getComponentDescriptorIndex(0);
+
+    const Pointer<SideVariable<NDIM,double> > U_res_sc_var = residual.getComponentVariable(0);
+    const Pointer<SideVariable<NDIM,double> > U_sol_sc_var = solution.getComponentVariable(0);
+    const Pointer<SideVariable<NDIM,double> > U_rhs_sc_var = rhs.getComponentVariable(0);
+
+    const int P_res_idx = residual.getComponentDescriptorIndex(1);
+    const int P_sol_idx = solution.getComponentDescriptorIndex(1);
+    const int P_rhs_idx = rhs.getComponentDescriptorIndex(1);
+
+    const Pointer<CellVariable<NDIM,double> > P_res_cc_var = residual.getComponentVariable(1);
+    const Pointer<CellVariable<NDIM,double> > P_sol_cc_var = solution.getComponentVariable(1);
+    const Pointer<CellVariable<NDIM,double> > P_rhs_cc_var = rhs.getComponentVariable(1);
+
+    // Fill ghost-cell values.
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    Pointer<VariableFillPattern<NDIM> > sc_fill_pattern = new SideNoCornersFillPattern(GHOSTS, false, false, true);
+    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(GHOSTS, false, false, true);
+    InterpolationTransactionComponent U_scratch_component(U_sol_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, sc_fill_pattern);
+    InterpolationTransactionComponent P_scratch_component(P_sol_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , cc_fill_pattern);
+    std::vector<InterpolationTransactionComponent> U_P_components(2);
+    U_P_components[0] = U_scratch_component;
+    U_P_components[1] = P_scratch_component;
+    if (d_hier_bdry_fill_ops[finest_level_num].isNull())
     {
-        // Compute the residual, r = f - A*u = f - A*0.
-        residual.copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(const_cast<SAMRAIVectorReal<NDIM,double>*>(&rhs),false), false);
+        d_hier_bdry_fill_ops[finest_level_num] = new HierarchyGhostCellInterpolation();
+        d_hier_bdry_fill_ops[finest_level_num]->initializeOperatorState(U_P_components, d_hierarchy, coarsest_level_num, finest_level_num);
     }
     else
     {
-        // Compute the residual, r = f - A*u.
-        const int U_res_idx = residual.getComponentDescriptorIndex(0);
-        const int U_sol_idx = solution.getComponentDescriptorIndex(0);
-        const int U_rhs_idx = rhs.getComponentDescriptorIndex(0);
-
-        const Pointer<SideVariable<NDIM,double> > U_res_sc_var = residual.getComponentVariable(0);
-        const Pointer<SideVariable<NDIM,double> > U_sol_sc_var = solution.getComponentVariable(0);
-        const Pointer<SideVariable<NDIM,double> > U_rhs_sc_var = rhs.getComponentVariable(0);
-
-        const int P_res_idx = residual.getComponentDescriptorIndex(1);
-        const int P_sol_idx = solution.getComponentDescriptorIndex(1);
-        const int P_rhs_idx = rhs.getComponentDescriptorIndex(1);
-
-        const Pointer<CellVariable<NDIM,double> > P_res_cc_var = residual.getComponentVariable(1);
-        const Pointer<CellVariable<NDIM,double> > P_sol_cc_var = solution.getComponentVariable(1);
-        const Pointer<CellVariable<NDIM,double> > P_rhs_cc_var = rhs.getComponentVariable(1);
-
-        // NOTE: Here, we assume that the residual is to be computed only during
-        // pre-sweeps and only for zero initial guesses, so that we need to
-        // compute A*u ONLY on levels level_num and level_num-1.
-
-        // Fill ghost-cell values.
-        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        Pointer<VariableFillPattern<NDIM> > sc_fill_pattern = new SideNoCornersFillPattern(GHOSTS, false, false, true);
-        Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(GHOSTS, false, false, true);
-        InterpolationTransactionComponent U_scratch_component(U_sol_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs, sc_fill_pattern);
-        InterpolationTransactionComponent P_scratch_component(P_sol_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_P_bc_coef , cc_fill_pattern);
-        std::vector<InterpolationTransactionComponent> U_P_components(2);
-        U_P_components[0] = U_scratch_component;
-        U_P_components[1] = P_scratch_component;
-        if (d_hier_bdry_fill_ops[level_num].isNull())
-        {
-            d_hier_bdry_fill_ops[level_num] = new HierarchyGhostCellInterpolation();
-            d_hier_bdry_fill_ops[level_num]->initializeOperatorState(U_P_components, d_hierarchy, level_num, level_num);
-        }
-        else
-        {
-            d_hier_bdry_fill_ops[level_num]->resetTransactionComponents(U_P_components);
-        }
-        d_hier_bdry_fill_ops[level_num]->setHomogeneousBc(true);
-        d_hier_bdry_fill_ops[level_num]->fillData(d_new_time);
-        if (level_num > d_coarsest_ln) xeqScheduleGhostFillNoCoarse(std::make_pair(U_sol_idx, P_sol_idx), level_num-1);
-
-        // Compute the residual, r = f - A*u.  We assume that u=0 for all levels
-        // coarser than level_num, and therefore that A*u = 0 on all levels
-        // coarser than level_num-1.  (A*u may be non-zero on level_num-1
-        // because of coarse-grid corrections at coarse-fine interfaces.)
-        if (d_hier_math_ops[level_num].isNull())
-        {
-            std::ostringstream stream;
-            stream << d_object_name << "::hier_math_ops_" << level_num;
-            d_hier_math_ops[level_num] = new HierarchyMathOps(stream.str(), d_hierarchy, std::max(d_coarsest_ln,level_num-1), level_num);
-        }
-
-        const double rho = d_problem_coefs.getRho();
-        const double mu = d_problem_coefs.getMu();
-        const double lambda = d_problem_coefs.getLambda();
-        PoissonSpecifications helmholtz_spec("");
-        helmholtz_spec.setCConstant((rho/d_dt)+0.5*lambda);
-        helmholtz_spec.setDConstant(          -0.5*mu    );
-
-        static const bool cf_bdry_synch = true;
-        d_hier_math_ops[level_num]->grad(
-            U_res_idx, U_res_sc_var,
-            cf_bdry_synch,
-            1.0, P_sol_idx, P_sol_cc_var, NULL, d_new_time);
-        d_hier_math_ops[level_num]->laplace(
-            U_res_idx, U_res_sc_var,
-            helmholtz_spec,
-            U_sol_idx, U_sol_sc_var, NULL, d_new_time,
-            1.0,
-            U_res_idx, U_res_sc_var);
-
-        d_hier_math_ops[level_num]->div(
-            P_res_idx, P_res_cc_var,
-            -1.0, U_sol_idx, U_sol_sc_var, NULL, d_new_time,
-            cf_bdry_synch);
-
-        HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(d_hierarchy, std::max(d_coarsest_ln,level_num-1), level_num);
-        hier_sc_data_ops.axpy(U_res_idx, -1.0, U_res_idx, U_rhs_idx, false);
-        HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(d_hierarchy, std::max(d_coarsest_ln,level_num-1), level_num);
-        hier_cc_data_ops.axpy(P_res_idx, -1.0, P_res_idx, P_rhs_idx, false);
+        d_hier_bdry_fill_ops[finest_level_num]->resetTransactionComponents(U_P_components);
     }
+    d_hier_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
+    d_hier_bdry_fill_ops[finest_level_num]->fillData(d_new_time);
+
+    // Compute the residual, r = f - A*u.
+    if (d_hier_math_ops[finest_level_num].isNull())
+    {
+        std::ostringstream stream;
+        stream << d_object_name << "::hier_math_ops_" << finest_level_num;
+        d_hier_math_ops[finest_level_num] = new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
+    }
+
+    d_hier_math_ops[finest_level_num]->grad(U_res_idx, U_res_sc_var, /*cf_bdry_synch*/ true, 1.0, P_sol_idx, P_sol_cc_var, NULL, d_new_time);
+    const double rho = d_problem_coefs.getRho();
+    const double mu = d_problem_coefs.getMu();
+    const double lambda = d_problem_coefs.getLambda();
+    PoissonSpecifications helmholtz_spec("");
+    helmholtz_spec.setCConstant((rho/d_dt)+0.5*lambda);
+    helmholtz_spec.setDConstant(          -0.5*mu    );
+    d_hier_math_ops[finest_level_num]->laplace(U_res_idx, U_res_sc_var, helmholtz_spec, U_sol_idx, U_sol_sc_var, NULL, d_new_time, 1.0, U_res_idx, U_res_sc_var);
+    HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
+    hier_sc_data_ops.axpy(U_res_idx, -1.0, U_res_idx, U_rhs_idx, false);
+
+    d_hier_math_ops[finest_level_num]->div(P_res_idx, P_res_cc_var, -1.0, U_sol_idx, U_sol_sc_var, NULL, d_new_time, /*cf_bdry_synch*/ true);
+    HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
+    hier_cc_data_ops.axpy(P_res_idx, -1.0, P_res_idx, P_rhs_idx, false);
 
     IBAMR_TIMER_STOP(t_compute_residual);
     return;

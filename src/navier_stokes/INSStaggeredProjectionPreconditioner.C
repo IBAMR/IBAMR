@@ -86,7 +86,7 @@ static Timer* t_deallocate_solver_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredProjectionPreconditioner::INSStaggeredProjectionPreconditioner(
-    const INSCoefs& problem_coefs,
+    const INSProblemCoefs& problem_coefs,
     RobinBcCoefStrategy<NDIM>* Phi_bc_coef,
     const bool normalize_pressure,
     Pointer<LinearSolver> velocity_helmholtz_solver,
@@ -98,7 +98,6 @@ INSStaggeredProjectionPreconditioner::INSStaggeredProjectionPreconditioner(
       d_is_initialized(false),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
-      d_dt(std::numeric_limits<double>::quiet_NaN()),
       d_problem_coefs(problem_coefs),
       d_pressure_helmholtz_spec("INSStaggeredProjectionPreconditioner::pressure_helmholtz_spec"),
       d_normalize_pressure(normalize_pressure),
@@ -201,6 +200,7 @@ INSStaggeredProjectionPreconditioner::solveSystem(
     const double rho    = d_problem_coefs.getRho();
 //  const double mu     = d_problem_coefs.getMu();
 //  const double lambda = d_problem_coefs.getLambda();
+    const double dt = d_new_time-d_current_time;
 
     // Get the vector components.
     const int U_in_idx = b.getComponentDescriptorIndex(0);
@@ -248,12 +248,12 @@ INSStaggeredProjectionPreconditioner::solveSystem(
     const bool u_star_cf_bdry_synch = true;
     d_hier_math_ops->div(
         d_F_scratch_idx, d_F_var, // dst
-        -rho/d_dt,                // alpha
+        -rho/dt,                  // alpha
         U_out_idx, U_out_sc_var,  // src1
         d_no_fill_op,             // src1_bdry_fill
         d_new_time,               // src1_bdry_fill_time
         u_star_cf_bdry_synch,     // src1_cf_bdry_synch
-        -rho/d_dt,                // beta
+        -rho/dt,                  // beta
         P_in_idx, P_in_cc_var);   // src2
 
     // Solve -div grad Phi = F = -(rho/dt)*(P_in + div u^{*}).
@@ -264,7 +264,7 @@ INSStaggeredProjectionPreconditioner::solveSystem(
     d_hier_math_ops->grad(
         U_out_idx, U_out_sc_var,         // dst
         u_new_cf_bdry_synch,             // dst_cf_bdry_synch
-        -d_dt/rho,                       // alpha
+        -dt/rho,                         // alpha
         d_Phi_scratch_idx, d_Phi_var,    // src1
         d_Phi_bdry_fill_op,              // src1_bdry_fill
         0.5*(d_current_time+d_new_time), // src1_bdry_fill_time

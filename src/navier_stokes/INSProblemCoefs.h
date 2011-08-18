@@ -121,6 +121,17 @@ public:
         }// getRho
 
     /*!
+     * \brief Set the mass density coefficient of the fluid.
+     */
+    inline void
+    setRho(
+        const double rho)
+        {
+            d_rho = rho;
+            return;
+        }// setRho
+
+    /*!
      * \return The dynamic viscosity coefficient of the fluid.
      */
     inline double
@@ -130,6 +141,17 @@ public:
         }// getMu
 
     /*!
+     * \brief Set the dynamic viscosity coefficient of the fluid.
+     */
+    inline void
+    setMu(
+        const double mu)
+        {
+            d_mu = mu;
+            return;
+        }// setMu
+
+    /*!
      * \return The drag coefficient of the fluid.
      */
     inline double
@@ -137,6 +159,17 @@ public:
         {
             return d_lambda;
         }// getLambda
+
+    /*!
+     * \brief Set the drag coefficient of the fluid.
+     */
+    inline void
+    setLambda(
+        const double lambda)
+        {
+            d_lambda = lambda;
+            return;
+        }// setLambda
 
 protected:
 

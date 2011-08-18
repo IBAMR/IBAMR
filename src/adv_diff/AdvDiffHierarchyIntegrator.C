@@ -89,7 +89,6 @@ static const int ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION = 2;
 AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     const std::string& object_name,
     Pointer<Database> input_db,
-    Pointer<CartesianGridGeometry<NDIM> > grid_geometry,
     Pointer<GodunovAdvector> explicit_predictor,
     bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart),
@@ -117,10 +116,12 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_Q_init(),
       d_Q_bc_coef(),
       d_hyp_level_integrator(NULL),
+      d_hyp_level_integrator_db(NULL),
       d_hyp_patch_ops(NULL),
+      d_hyp_patch_ops_db(NULL),
+      d_explicit_predictor(explicit_predictor),
       d_integrator_is_initialized(false),
       d_hier_cc_data_ops(NULL),
-      d_hier_math_ops(NULL),
       d_temp_context(),
       d_sol_vecs(),
       d_rhs_vecs(),
@@ -149,41 +150,23 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     if (!input_db.isNull()) getFromInput(input_db, from_restart);
     if (from_restart) getFromRestart();
 
-    // Initialize the HyperbolicPatchStrategy and HyperbolicLevelIntegrator
-    // objects that provide numerical routines for explicitly integrating the
-    // advective terms.
-    Pointer<Database> hyp_patch_ops_input_db;
-    if (input_db->keyExists("AdvDiffHypPatchOps"))
-    {
-        hyp_patch_ops_input_db = input_db->getDatabase("AdvDiffHypPatchOps");
-    }
-    else
-    {
-        hyp_patch_ops_input_db = new NullDatabase();
-    }
-    d_hyp_patch_ops = new AdvDiffHypPatchOps(
-        object_name+"::AdvDiffHypPatchOps",
-        hyp_patch_ops_input_db,
-        explicit_predictor,
-        grid_geometry,
-        d_registered_for_restart);
-
-    Pointer<Database> hyp_level_integrator_input_db;
+    // Get initialization data for the hyperbolic patch strategy objects.
     if (input_db->keyExists("HyperbolicLevelIntegrator"))
     {
-        hyp_level_integrator_input_db = input_db->getDatabase("HyperbolicLevelIntegrator");
+        d_hyp_level_integrator_db = input_db->getDatabase("HyperbolicLevelIntegrator");
     }
     else
     {
-        hyp_level_integrator_input_db = new NullDatabase();
+        d_hyp_level_integrator_db = new NullDatabase();
     }
-    static const bool using_time_refinement = false;
-    d_hyp_level_integrator = new HyperbolicLevelIntegrator<NDIM>(
-        object_name+"::HyperbolicLevelIntegrator",
-        hyp_level_integrator_input_db,
-        d_hyp_patch_ops,
-        register_for_restart,
-        using_time_refinement);
+    if (input_db->keyExists("AdvDiffHypPatchOps"))
+    {
+        d_hyp_patch_ops_db = input_db->getDatabase("AdvDiffHypPatchOps");
+    }
+    else
+    {
+        d_hyp_patch_ops_db = new NullDatabase();
+    }
 
     // Get initialization data for the FAC ops and FAC preconditioners.
     if (d_using_FAC)
@@ -214,13 +197,6 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
             d_fac_pc_db = new NullDatabase();
         }
     }
-
-    // Setup variable contexts.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    d_temp_context = var_db->getContext(d_object_name+"::TEMP_CONTEXT");
-    d_current_context = d_hyp_level_integrator->getCurrentContext();
-    d_scratch_context = d_hyp_level_integrator->getScratchContext();
-    d_new_context = d_hyp_level_integrator->getNewContext();
     return;
 }// AdvDiffHierarchyIntegrator
 
@@ -494,9 +470,33 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
 
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
 
-    // Register the VisIt data writer with the patch strategy object that
-    // actually registers variables for plotting.
+    // Initialize the HyperbolicPatchStrategy and HyperbolicLevelIntegrator
+    // objects that provide numerical routines for explicitly integrating the
+    // advective terms.
+    d_hyp_patch_ops = new AdvDiffHypPatchOps(
+        d_object_name+"::AdvDiffHypPatchOps",
+        d_hyp_patch_ops_db,
+        d_explicit_predictor,
+        grid_geom,
+        d_registered_for_restart);
+    d_hyp_level_integrator = new HyperbolicLevelIntegrator<NDIM>(
+        d_object_name+"::HyperbolicLevelIntegrator",
+        d_hyp_level_integrator_db,
+        d_hyp_patch_ops,
+        d_registered_for_restart,
+        /*using_time_refinement*/ false);
+
+    // Setup variable contexts.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    d_temp_context = var_db->getContext(d_object_name+"::TEMP_CONTEXT");
+    d_current_context = d_hyp_level_integrator->getCurrentContext();
+    d_scratch_context = d_hyp_level_integrator->getScratchContext();
+    d_new_context = d_hyp_level_integrator->getNewContext();
+
+    // Register the VisIt data writer with the patch strategy object, which is
+    // the object that actually registers variables for plotting.
     if (!d_visit_writer.isNull())
     {
         d_hyp_patch_ops->registerVisItDataWriter(d_visit_writer);
@@ -508,8 +508,6 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
 
     // Register variables with the hyperbolic level integrator.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-
     for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
          cit != d_u_var.end(); ++cit)
     {
@@ -573,7 +571,6 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Setup coarsening communications algorithms, used in synchronizing refined
     // regions of coarse data with the underlying fine data.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
          cit != d_Q_var.end(); ++cit)
     {
@@ -583,12 +580,6 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         Pointer<CoarsenOperator<NDIM> > coarsen_operator = grid_geom->lookupCoarsenOperator(Q_var, "CONSERVATIVE_COARSEN");
         d_coarsen_algs[SYNCH_CURRENT_STATE_DATA_ALG]->registerCoarsen(Q_current_idx, Q_current_idx, coarsen_operator);
         d_coarsen_algs[SYNCH_NEW_STATE_DATA_ALG]->registerCoarsen(Q_new_idx, Q_new_idx, coarsen_operator);
-    }
-
-    // Setup the Hierarchy math operations object.
-    if (d_hier_math_ops.isNull())
-    {
-        d_hier_math_ops = new HierarchyMathOps(d_object_name+"::HierarchyMathOps", d_hierarchy);
     }
 
     // Operators and solvers are maintained for each variable registered with the
@@ -959,25 +950,27 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
     return;
 }// integrateHierarchy
 
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
 double
-AdvDiffHierarchyIntegrator::getStableTimestep()
+AdvDiffHierarchyIntegrator::getTimeStepSizeSpecialized()
 {
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     double dt = d_dt_max;
+    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         dt = std::min(dt, d_hyp_level_integrator->getLevelDt(level, d_integrator_time, initial_time));
     }
-    if (!initial_time)
+    if (!initial_time && d_dt_growth_factor >= 1.0)
     {
         dt = std::min(dt,d_dt_growth_factor*d_dt_previous);
     }
-    return std::min(dt,d_end_time-d_integrator_time);
-}// getStableTimestep
+    return dt;
+}// getTimeStepSizeSpecialized
 
 void
-AdvDiffHierarchyIntegrator::resetTimeDependentHierarchyData(
+AdvDiffHierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(
     const double new_time)
 {
     const int coarsest_ln = 0;
@@ -995,10 +988,10 @@ AdvDiffHierarchyIntegrator::resetTimeDependentHierarchyData(
             d_hierarchy->getPatchLevel(ln), d_integrator_time, d_gridding_alg->levelCanBeRefined(ln));
     }
     return;
-}// resetTimeDependentHierarchyData
+}// resetTimeDependentHierarchyDataSpecialized
 
 void
-AdvDiffHierarchyIntegrator::resetIntegratorToPreadvanceState()
+AdvDiffHierarchyIntegrator::resetIntegratorToPreadvanceStateSpecialized()
 {
     // We use the HyperbolicLevelIntegrator to handle most data management.
     const int coarsest_ln = 0;
@@ -1008,10 +1001,10 @@ AdvDiffHierarchyIntegrator::resetIntegratorToPreadvanceState()
         d_hyp_level_integrator->resetDataToPreadvanceState(d_hierarchy->getPatchLevel(ln));
     }
     return;
-}// resetIntegratorToPreadvanceState
+}// resetIntegratorToPreadvanceStateSpecialized
 
 void
-AdvDiffHierarchyIntegrator::initializeLevelData(
+AdvDiffHierarchyIntegrator::initializeLevelDataSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int level_number,
     const double init_data_time,
@@ -1069,10 +1062,10 @@ AdvDiffHierarchyIntegrator::initializeLevelData(
         }
     }
     return;
-}// initializeLevelData
+}// initializeLevelDataSpecialized
 
 void
-AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
+AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int coarsest_level,
     const int finest_level)
@@ -1117,10 +1110,6 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
         d_hier_bdry_fill_ops[l]->initializeOperatorState(transaction_comp, d_hierarchy);
     }
 
-    // Reset the Hierarchy math operations for the new configuration.
-    d_hier_math_ops->setPatchHierarchy(hierarchy);
-    d_hier_math_ops->resetLevels(0, finest_hier_level);
-
     // Reset the solution and rhs vectors.
     d_sol_vecs.resize(d_Q_var.size());
     d_rhs_vecs.resize(d_Q_var.size());
@@ -1146,32 +1135,11 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
     std::fill(d_helmholtz_solvers_need_init.begin(), d_helmholtz_solvers_need_init.end(), true);
     d_coarsest_reset_ln = coarsest_level;
     d_finest_reset_ln = finest_level;
-
-    // If we have added or removed a level, resize the communication schedule
-    // vectors.
-    for (CoarsenAlgorithmMap::const_iterator it = d_coarsen_algs.begin();
-         it != d_coarsen_algs.end(); ++it)
-    {
-        d_coarsen_scheds[it->first].resize(finest_hier_level+1);
-    }
-
-    // (Re)build coarsen communication schedules.  These are set only for levels
-    // >= 1.
-    for (CoarsenAlgorithmMap::const_iterator it = d_coarsen_algs.begin();
-         it != d_coarsen_algs.end(); ++it)
-    {
-        for (int ln = std::max(coarsest_level,1); ln <= finest_hier_level; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevel<NDIM> > coarser_level = hierarchy->getPatchLevel(ln-1);
-            d_coarsen_scheds[it->first][ln] = it->second->createSchedule(coarser_level, level, d_coarsen_strategies[it->first]);
-        }
-    }
     return;
-}// resetHierarchyConfiguration
+}// resetHierarchyConfigurationSpecialized
 
 void
-AdvDiffHierarchyIntegrator::applyGradientDetector(
+AdvDiffHierarchyIntegrator::applyGradientDetectorSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double error_data_time,
@@ -1195,10 +1163,10 @@ AdvDiffHierarchyIntegrator::applyGradientDetector(
     }
 
     // Tag cells for refinement according to the criteria specified by the
-    // criteria specified by the HyperbolicLevelIntegrator<NDIM>.
+    // criteria specified by the level integrator.
     d_hyp_level_integrator->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     return;
-}// applyGradientDetector
+}// applyGradientDetectorSpecialized
 
 void
 AdvDiffHierarchyIntegrator::putToDatabaseSpecialized(
@@ -1225,13 +1193,12 @@ AdvDiffHierarchyIntegrator::getFromInput(
     // Read in data members from input database.
     if (!is_from_restart)
     {
-        d_viscous_timestepping_type = string_to_enum<ViscousTimesteppingType>(
-            db->getStringWithDefault("viscous_timestepping_type", enum_to_string<ViscousTimesteppingType>(d_viscous_timestepping_type)));
+        if (db->keyExists("viscous_timestepping_type")) d_viscous_timestepping_type = string_to_enum<ViscousTimesteppingType>(db->getString("viscous_timestepping_type"));
     }
-    d_max_iterations = db->getIntegerWithDefault("max_iterations", d_max_iterations);
-    d_abs_residual_tol = db->getDoubleWithDefault("abs_residual_tol", d_abs_residual_tol);
-    d_rel_residual_tol = db->getDoubleWithDefault("rel_residual_tol", d_rel_residual_tol);
-    d_using_FAC = db->getBoolWithDefault("using_FAC", d_using_FAC);
+    if (db->keyExists("max_iterations")) d_max_iterations = db->getInteger("max_iterations");
+    if (db->keyExists("abs_residual_tol")) d_abs_residual_tol = db->getDouble("abs_residual_tol");
+    if (db->keyExists("rel_residual_tol")) d_rel_residual_tol = db->getDouble("rel_residual_tol");
+    if (db->keyExists("using_FAC")) d_using_FAC = db->getBool("using_FAC");
     return;
 }// getFromInput
 

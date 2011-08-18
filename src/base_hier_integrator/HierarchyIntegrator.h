@@ -40,6 +40,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/CartGridFunction.h>
+#include <ibtk/HierarchyMathOps.h>
 
 // SAMRAI INCLUDES
 #include <CoarsenAlgorithm.h>
@@ -90,20 +91,23 @@ public:
     getName() const;
 
     /*!
-     * Initialize the variables, basic communications algorithms, solvers, and
-     * other data structures used by a concrete time integrator object.
+     * Virtual method to initialize the variables, basic communications
+     * algorithms, solvers, and other data structures used by a concrete time
+     * integrator object.
      *
      * This method is called automatically by initializePatchHierarchy() prior
      * to the construction of the patch hierarchy.
      *
-     * \note This method must be implemented so that it is safe to make multiple
-     * calls to this method.  Specifically, it must be possible for users to be
-     * able to make an explicit call to initializeHierarchyIntegrator() prior to
-     * calling initializePatchHierarchy().
+     * \note This method should be implemented so that it is safe to make
+     * multiple calls to this method.  Implementations should indicate whether
+     * it is possible for users to be able to make an explicit call to
+     * initializeHierarchyIntegrator() prior to calling
+     * initializePatchHierarchy().
      *
-     * \note Because this method is called prior to the construction of the
-     * patch hierarchy, this method cannot initialize patch data associated with
-     * the variables managed by the integrator object, nor can it initialize the
+     * \note This method is called \em prior to the initial construction of the
+     * patch hierarchy.  Consequently, implementations of this method are unable
+     * to initialize patch data associated with the variables managed by the
+     * integrator object, nor can they initialize hierarchy-dependent
      * communications schedules associated with the integrator.
      */
     virtual void
@@ -139,24 +143,24 @@ public:
         const int num_cycles=1);
 
     /*!
-     * Return the maximum stable time step size for the state data associated
-     * with the current, scratch, or new variable context.
+     * Return the current value of the maximum time step size for the integrator
+     * object.
      *
-     * A default implementation is provided that returns
-     * min(dt_max,dt_growth_factor*dt_current).  The growth condition prevents
-     * excessive changes in the time step size as the computation progresses.
+     * Subclasses can control the method used to determined the time step size
+     * by overriding the protected virtual member function
+     * getTimeStepSizeSpecialized().
      */
-    virtual double
-    getStableTimestep();
+    double
+    getTimeStepSize();
 
     /*!
      * Synchronize data defined on the grid hierarchy.
      *
-     * A default implementation is provided that synchronizes the state data
-     * associated with either the current or new data contexts, depending on
-     * which VariableContext is passed as an argument.
+     * Subclasses can control the method used to synchronize data on the grid
+     * hierarchy by overriding the protected virtual member function
+     * synchronizeHierarchyDataSpecialized().
      */
-    virtual void
+    void
     synchronizeHierarchyData(
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
 
@@ -164,11 +168,11 @@ public:
      * Reset the current data to equal the new data, update the time level of
      * the current data, and deallocate the scratch and new data.
      *
-     * A default implementation is provided that swaps data between the current
-     * and new variable contexts prior to deallocating the scratch and new data
-     * contexts.
+     * Subclasses can control the method used to reset data on the grid
+     * hierarchy by overriding the protected virtual member function
+     * resetTimeDependentHierarchyDataSpecialized().
      */
-    virtual void
+    void
     resetTimeDependentHierarchyData(
         const double new_time);
 
@@ -176,29 +180,33 @@ public:
      * Reset the hierarchy integrator to the state at the beginning of the
      * current time step.
      *
-     * A default implementation is provided that deallocates the scratch and new
-     * data contexts.
+     * Subclasses can control the method used to reset data on the grid
+     * hierarchy by overriding the protected virtual member function
+     * resetTimeDependentHierarchyDataSpecialized().
      */
-    virtual void
+    void
     resetIntegratorToPreadvanceState();
 
     /*!
-     * Regrid the patch hierarchy.
+     * Virtual method to regrid the patch hierarchy.
      *
      * A default implementation is provided that calls
      * GriddingAlgorithm::regidAllFinerLevels() to regrid the patch hierarchy.
+     * Subclasses can control the method used to regrid the patch hierarchy by
+     * overriding this public virtual member function.
      */
     virtual void
     regridHierarchy();
 
     /*!
-     * Return true if the current step count indicates that regridding should
-     * occur.
+     * Return a boolean value that indicates whether regridding should occur at
+     * the current time step.
      *
-     * A default implementation is provided that indicates that the hierarchy
-     * should be regridded at a fixed integer interval of time steps.
+     * Subclasses can control the method used to trigger adaptive regridding by
+     * overriding the protected virtual member function
+     * atRegridPointSpecialized().
      */
-    virtual bool
+    bool
     atRegridPoint() const;
 
     /*!
@@ -260,20 +268,21 @@ public:
     /*!
      * Prepare variables for plotting.
      *
-     * \note Concrete time integrator objects may require that this function be
-     * called immediately before writing out VisIt visualization data.
+     * Subclasses can control the method used to setup plot data by overriding
+     * the protected virtual member function setupPlotData().
      *
-     * An empty default implementation is provided.
+     * \note Subclasses are allowed to require that this function be called
+     * immediately before writing visualization data.
      */
-    virtual void
-    setupVisItPlotData();
+    void
+    setupPlotData();
 
     ///
     ///  Routines to implement the time integration scheme.
     ///
 
     /*!
-     * Prepare to advance the data from current_time to new_time.
+     * Virtual method to prepare to advance data from current_time to new_time.
      *
      * An empty default implementation is provided.
      */
@@ -284,8 +293,12 @@ public:
         const int num_cycles=1);
 
     /*!
-     * Advance the data from current_time to new_time but do not synchronize the
-     * data on the hierarchy.
+     * Pure virtual method to advance data from current_time to new_time.
+     *
+     * Implementations of this virtual function are not required to synchronize
+     * data on the patch hierarchy.  Data synchronization may be done
+     * (optionally) in a specialization of the public virtual member function
+     * postprocessIntegrateHierarchy().
      */
     virtual void
     integrateHierarchy(
@@ -294,7 +307,8 @@ public:
         const int cycle_num=0) = 0;
 
     /*!
-     * Clean up data following call(s) to integrateHierarchy().
+     * Virtual method to clean up data following call(s) to
+     * integrateHierarchy().
      *
      * An empty default implementation is provided.
      */
@@ -314,14 +328,13 @@ public:
      * Initialize data on a new level after it is inserted into an AMR patch
      * hierarchy by the gridding algorithm.
      *
-     * A default implementation is provided that uses any registered
-     * initialization functions to set initial values at the initial time, and
-     * that copies data from the old hierarchy to the new one at subsequent
-     * times.
+     * \note Subclasses should not override the implementation of this function
+     * provided by class HierarchyIntegrator.  Instead, they should override the
+     * protected virtual member function initializeLevelDataSpecialized().
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
-    virtual void
+    void
     initializeLevelData(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -334,12 +347,14 @@ public:
     /*!
      * Reset cached hierarchy dependent data.
      *
-     * A default implementation is provided that sets up the default
-     * communication algorithms following a regridding operation.
+     * \note Subclasses should not override the implementation of this function
+     * provided by class HierarchyIntegrator.  Instead, they should override the
+     * protected virtual member function
+     * resetHierarchyConfigurationSpecialized().
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::resetHierarchyConfiguration
      */
-    virtual void
+    void
     resetHierarchyConfiguration(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
@@ -349,11 +364,13 @@ public:
      * Set integer tags to "one" in cells where refinement of the given level
      * should occur according to user-supplied feature detection criteria.
      *
-     * An empty default implementation is provided.
+     * \note Subclasses should not override the implementation of this function
+     * provided by class HierarchyIntegrator.  Instead, they should override the
+     * protected virtual member function applyGradientDetectorSpecialized().
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::applyGradientDetector
      */
-    virtual void
+    void
     applyGradientDetector(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
@@ -400,16 +417,121 @@ public:
     /*!
      * Write out object state to the given database.
      *
-     * A default implementation is provided that (1) writes out all state data
-     * defined in the base HierarchyIntegrator class and then (2) calls
-     * putToDatabaseSpecialized().
+     * \note Subclasses should not override the implementation of this function
+     * provided by class HierarchyIntegrator.  Instead, they should override the
+     * protected virtual member function putToDatabaseSpecialized().
      */
     void
     putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
+protected:
     /*!
-     * Write out specialized object state to the given database.
+     * Virtual method to compute an implementation-specific maximum stable time
+     * step size.
+     *
+     * A default implementation is provided that returns
+     * min(dt_max,dt_growth_factor*dt_current).  The growth condition prevents
+     * excessive changes in the time step size as the computation progresses.
+     */
+    virtual double
+    getTimeStepSizeSpecialized();
+
+    /*!
+     * Virtual method to perform implementation-specific data synchronization.
+     *
+     * A default implementation is provided that synchronizes state data
+     * registered with the HierarchyIntegrator object using the coarsen
+     * operations specified by calls to registerVariable().
+     */
+    virtual void
+    synchronizeHierarchyDataSpecialized(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
+
+    /*!
+     * Virtual method to perform implementation-specific data reset operations.
+     *
+     * A default implementation is provided that first swaps the current and new
+     * PatchData pointers, and then deallocates the new and scratch data
+     * contexts.
+     */
+    virtual void
+    resetTimeDependentHierarchyDataSpecialized(
+        const double new_time);
+
+    /*!
+     * Virtual method to perform implementation-specific data reset operations.
+     *
+     * A default implementation is provided that deallocates the new and scratch
+     * data contexts when data associated with those contexts have been
+     * allocated.
+     */
+    virtual void
+    resetIntegratorToPreadvanceStateSpecialized();
+
+    /*!
+     * Virtual method to provide implementation-specific function to determine
+     * whether to regridding should occur at the current time step.
+     *
+     * A default implementation is provided that indicates that the hierarchy
+     * should be regridded at a fixed integer interval of time steps.
+     */
+    virtual bool
+    atRegridPointSpecialized() const;
+
+    /*!
+     * Virtual method to perform implementation-specific visualization setup.
+     *
+     * An empty default implementation is provided.
+     */
+    virtual void
+    setupPlotDataSpecialized();
+
+    /*!
+     * Virtual method to perform implementation-specific data initialization on
+     * a new level after it is inserted into an AMR patch hierarchy by the
+     * gridding algorithm.
+     *
+     * An empty default implementation is provided.
+     */
+    virtual void
+    initializeLevelDataSpecialized(
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        const int level_number,
+        const double init_data_time,
+        const bool can_be_refined,
+        const bool initial_time,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
+        const bool allocate_data);
+
+    /*!
+     * Virtual method to perform implementation-specific data reset operations.
+     *
+     * An empty default implementation is provided.
+     */
+    virtual void
+    resetHierarchyConfigurationSpecialized(
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        const int coarsest_level,
+        const int finest_level);
+
+    /*!
+     * Virtual method to perform implementation-specific cell tagging
+     * operations.
+     *
+     * An empty default implementation is provided.
+     */
+    virtual void
+    applyGradientDetectorSpecialized(
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        const int level_number,
+        const double error_data_time,
+        const int tag_index,
+        const bool initial_time,
+        const bool uses_richardson_extrapolation_too);
+
+    /*!
+     * Protecethod to write implementation-specific object state to a database.
      *
      * An empty default implementation is provided.
      */
@@ -417,7 +539,6 @@ public:
     putToDatabaseSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
-protected:
     /*!
      * Register a state variable with the integrator.  When a refine operator is
      * specified, the data for the variable are automatically maintained as the
@@ -451,6 +572,33 @@ protected:
         const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
         const SAMRAI::hier::IntVector<NDIM>& ghosts=SAMRAI::hier::IntVector<NDIM>(0));
 
+    /*!
+     * Register a "child" integrator object with this integrator object.
+     *
+     * \note Multiple child integrator objects may be registered with a single
+     * parent integrator object.
+     */
+    void
+    registerChildHierarchyIntegrator(
+        HierarchyIntegrator* child_integrator);
+
+    /*!
+     * Register a "parent" integrator object with this integrator object.
+     *
+     * \note Only a single parent integrator object may be registered with a
+     * particular child integrator object.
+     */
+    void
+    registerParentHierarchyIntegrator(
+        HierarchyIntegrator* parent_integrator);
+
+    /*!
+     * Build the HierarchyMathOps object.
+     */
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps>
+    buildHierarchyMathOps(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+
     /*
      * The object name is used as a handle to databases stored in restart files
      * and for error reporting purposes.
@@ -474,6 +622,12 @@ protected:
      * Indicates whether the hierarchy has been initialized.
      */
     bool d_hierarchy_is_initialized;
+
+    /*
+     * Collection of child integrator objects.
+     */
+    HierarchyIntegrator* d_parent_integrator;
+    std::set<HierarchyIntegrator*> d_child_integrators;
 
     /*
      * The object used to write out data for postprocessing by the VisIt
@@ -525,6 +679,12 @@ protected:
     SAMRAI::tbox::Array<int> d_tag_buffer;
 
     /*
+     * Hierarchy operations objects.
+     */
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
+    bool d_manage_hier_math_ops;
+
+    /*
      * Cached communications algorithms, strategies, and schedules.
      */
     typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > > RefineAlgorithmMap;
@@ -546,7 +706,7 @@ protected:
     static const std::string SYNCH_CURRENT_STATE_DATA_ALG, SYNCH_NEW_STATE_DATA_ALG;
 
     SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_fill_after_regrid;
+    SAMRAI::xfer::RefineAlgorithm<NDIM> d_fill_after_regrid_refine_alg;
 
     /*
      * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects

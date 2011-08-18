@@ -42,7 +42,6 @@
 #include <ibamr/INSHierarchyIntegrator.h>
 #include <ibamr/INSProblemCoefs.h>
 #include <ibamr/INSStaggeredBoxRelaxationFACOperator.h>
-#include <ibamr/INSStaggeredPPMConvectiveOperator.h>
 #include <ibamr/INSStaggeredStokesOperator.h>
 
 // IBTK INCLUDES
@@ -74,7 +73,6 @@ public:
     INSStaggeredHierarchyIntegrator(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geometry,
         bool register_for_restart=true);
 
     /*!
@@ -83,6 +81,21 @@ public:
      * registered.
      */
     ~INSStaggeredHierarchyIntegrator();
+
+    /*!
+     * Register an operator to compute the convective acceleration term u*grad
+     * u.
+     *
+     * By default, this solver uses class INSStaggeredPPMConvectiveOperator to
+     * compute the convective acceleration term.
+     *
+     * If a NULL pointer is passed as the argument to this function, the
+     * convective acceleration term is dropped, so that the solver effectively
+     * solves the time-dependent (creeping) Stokes equations.
+     */
+    void
+    setConvectiveOperator(
+        SAMRAI::tbox::Pointer<IBTK::GeneralOperator> convective_op);
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -128,47 +141,37 @@ public:
         const int num_cycles=1);
 
     /*!
-     * Return the maximum stable time step size.
-     */
-    double
-    getStableTimestep();
-
-    /*!
      * Regrid the patch hierarchy.
      */
     void
     regridHierarchy();
 
+protected:
     /*!
-     * Return true if the current step count indicates that regridding should
-     * occur.
+     * Return the maximum stable time step size.
      */
-    bool
-    atRegridPoint() const;
+    double
+    getTimeStepSizeSpecialized();
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
      * hierarchy by the gridding algorithm.
-     *
-     * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
     void
-    initializeLevelData(
+    initializeLevelDataSpecialized(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
         const bool can_be_refined,
         const bool initial_time,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level=SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
-        const bool allocate_data=true);
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
+        const bool allocate_data);
 
     /*!
      * Reset cached hierarchy dependent data.
-     *
-     * \see SAMRAI::mesh::StandardTagAndInitStrategy::resetHierarchyConfiguration
      */
     void
-    resetHierarchyConfiguration(
+    resetHierarchyConfigurationSpecialized(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
         const int finest_level);
@@ -178,7 +181,7 @@ public:
      * should occur according to the magnitude of the fluid vorticity.
      */
     void
-    applyGradientDetector(
+    applyGradientDetectorSpecialized(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double error_data_time,
@@ -190,7 +193,7 @@ public:
      * Prepare variables for plotting.
      */
     void
-    setupVisItPlotData();
+    setupPlotDataSpecialized();
 
     /*!
      * Write out specialized object state to the given database.
@@ -247,11 +250,16 @@ private:
     regridProjection();
 
     /*!
-     * (Re-)initialize the operators and solvers used by the hierarchy
-     * integrator.
+     * Initialize the operators and solvers used by the hierarchy integrator.
      */
     void
-    initializeOperatorsAndSolvers(
+    initializeOperatorsAndSolvers();
+
+    /*!
+     * Reinitialize the operators and solvers used by the hierarchy integrator.
+     */
+    void
+    reinitializeOperatorsAndSolvers(
         const double current_time,
         const double new_time);
 
@@ -268,6 +276,21 @@ private:
     double
     getStableTimestep(
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+
+    /*!
+     * Read input values from a given database.
+     */
+    void
+    getFromInput(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
+        const bool is_from_restart);
+
+    /*!
+     * Read object state from the restart file and initialize class data
+     * members.
+     */
+    void
+    getFromRestart();
 
     /*
      * Boolean value that indicates whether the integrator has been initialized.
@@ -319,7 +342,7 @@ private:
      * This enum determines the differencing form of the convective operator.
      */
     ConvectiveDifferencingType d_convective_difference_form;
-    
+
     /*
      * This boolean value determines whether the convective acceleration term is
      * included in the momentum equation.  (If it is not, this solver
@@ -332,7 +355,7 @@ private:
      * reprojected following adaptive regridding.
      */
     double d_regrid_max_div_growth_factor;
-    
+
     /*
      * Double precision values are (optional) factors used to rescale the
      * velocity, pressure, and force for plotting.
@@ -348,11 +371,6 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > d_hier_sc_data_ops;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
-
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_wgt_cc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_wgt_sc_var;
-    double d_volume;
 
     /*
      * Boundary condition and data synchronization operators.
@@ -363,7 +381,7 @@ private:
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_Phi_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_side_synch_op;
-    
+
     /*
      * Hierarchy operators and solvers.
      */
@@ -382,7 +400,7 @@ private:
     SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> d_stokes_op;
 
     bool d_convective_op_needs_init;
-    SAMRAI::tbox::Pointer<INSStaggeredPPMConvectiveOperator> d_convective_op;
+    SAMRAI::tbox::Pointer<IBTK::GeneralOperator> d_convective_op;
 
     bool d_helmholtz_solver_needs_init;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>          d_helmholtz_hypre_pc_db, d_helmholtz_fac_pc_db;

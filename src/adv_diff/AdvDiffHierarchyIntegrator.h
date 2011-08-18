@@ -95,7 +95,6 @@ public:
     AdvDiffHierarchyIntegrator(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geometry,
         SAMRAI::tbox::Pointer<GodunovAdvector> explicit_predictor,
         bool register_for_restart=true);
 
@@ -339,18 +338,20 @@ public:
         const double new_time,
         const int cycle_num=0);
 
+protected:
+
     /*!
      * Return the maximum stable time step size.
      */
     double
-    getStableTimestep();
+    getTimeStepSizeSpecialized();
 
     /*!
      * Reset the current data to equal the new data, update the time level of
      * the current data, and deallocate the scratch and new data.
      */
     void
-    resetTimeDependentHierarchyData(
+    resetTimeDependentHierarchyDataSpecialized(
         const double new_time);
 
     /*!
@@ -358,31 +359,27 @@ public:
      * current time step.
      */
     void
-    resetIntegratorToPreadvanceState();
+    resetIntegratorToPreadvanceStateSpecialized();
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
      * hierarchy by the gridding algorithm.
-     *
-     * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
     void
-    initializeLevelData(
+    initializeLevelDataSpecialized(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double init_data_time,
         const bool can_be_refined,
         const bool initial_time,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level=SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
-        const bool allocate_data=true);
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
+        const bool allocate_data);
 
     /*!
      * Reset cached hierarchy dependent data.
-     *
-     * \see SAMRAI::mesh::StandardTagAndInitStrategy::resetHierarchyConfiguration
      */
     void
-    resetHierarchyConfiguration(
+    resetHierarchyConfigurationSpecialized(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int coarsest_level,
         const int finest_level);
@@ -393,7 +390,7 @@ public:
      * GodunovAdvector object.
      */
     void
-    applyGradientDetector(
+    applyGradientDetectorSpecialized(
         const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         const int level_number,
         const double error_data_time,
@@ -408,7 +405,6 @@ public:
     putToDatabaseSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
-protected:
     /*!
      * Enum indicating the time integration employed for the implicit
      * discretization of the viscous terms.
@@ -498,14 +494,15 @@ private:
     /*
      * The SAMRAI::algs::HyperbolicLevelIntegrator supplies generic operations
      * use to handle the explicit integration of advection terms.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> > d_hyp_level_integrator;
-
-    /*
+     *
      * The advection patch strategy supplies the advection-specific operations
      * needed to treat data on patches in the AMR grid hierarchy.
      */
+    SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> > d_hyp_level_integrator;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hyp_level_integrator_db;
     SAMRAI::tbox::Pointer<AdvDiffHypPatchOps> d_hyp_patch_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hyp_patch_ops_db;
+    SAMRAI::tbox::Pointer<GodunovAdvector> d_explicit_predictor;
 
     /*
      * Boolean value that indicates whether the integrator has been initialized.
@@ -516,7 +513,6 @@ private:
      * Hierarchy operations objects.
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
     std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> > d_hier_bdry_fill_ops;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_no_fill_op;
 

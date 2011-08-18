@@ -69,7 +69,7 @@ namespace IBAMR
 
 INSStaggeredVelocityBcCoef::INSStaggeredVelocityBcCoef(
     const unsigned int comp_idx,
-    const INSCoefs& problem_coefs,
+    const INSProblemCoefs& problem_coefs,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
     const bool homogeneous_bc)
     : d_comp_idx(comp_idx),

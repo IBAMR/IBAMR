@@ -68,7 +68,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredPressureBcCoef::INSStaggeredPressureBcCoef(
-    const INSCoefs& problem_coefs,
+    const INSProblemCoefs& problem_coefs,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
     const bool homogeneous_bc)
     : d_problem_coefs(problem_coefs),

@@ -231,8 +231,7 @@ main(
                 }
                 if (main_db->keyExists("visit_number_procs_per_file"))
                 {
-                    visit_number_procs_per_file =
-                        main_db->getInteger("visit_number_procs_per_file");
+                    visit_number_procs_per_file = main_db->getInteger("visit_number_procs_per_file");
                 }
             }
         }
@@ -281,8 +280,7 @@ main(
         tbox::RestartManager* restart_manager = tbox::RestartManager::getManager();
         if (is_from_restart)
         {
-            restart_manager->openRestartFile(
-                restart_read_dirname, restore_num, tbox::SAMRAI_MPI::getNodes());
+            restart_manager->openRestartFile(restart_read_dirname, restore_num, tbox::SAMRAI_MPI::getNodes());
         }
 
         /*
@@ -292,50 +290,19 @@ main(
          * constructor for details.  For more information on the composition of
          * objects for this application, see comments at top of file.
          */
-        tbox::Pointer<geom::CartesianGridGeometry<NDIM> > grid_geometry =
-            new geom::CartesianGridGeometry<NDIM>(
-                "CartesianGeometry",
-                input_db->getDatabase("CartesianGeometry"));
-
-        tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy =
-            new hier::PatchHierarchy<NDIM>(
-                "PatchHierarchy",
-                grid_geometry);
-
-        tbox::Pointer<INSStaggeredHierarchyIntegrator> time_integrator =
-            new INSStaggeredHierarchyIntegrator(
-                "INSStaggeredHierarchyIntegrator",
-                input_db->getDatabase("INSStaggeredHierarchyIntegrator"),
-                patch_hierarchy);
-
-        tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
-            new mesh::StandardTagAndInitialize<NDIM>(
-                "StandardTagAndInitialize",
-                time_integrator,
-                input_db->getDatabase("StandardTagAndInitialize"));
-
-        tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator =
-            new mesh::BergerRigoutsos<NDIM>();
-
-        tbox::Pointer<mesh::LoadBalancer<NDIM> > load_balancer =
-            new mesh::LoadBalancer<NDIM>(
-                "LoadBalancer",
-                input_db->getDatabase("LoadBalancer"));
-
-        tbox::Pointer<mesh::GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new mesh::GriddingAlgorithm<NDIM>(
-                "GriddingAlgorithm",
-                input_db->getDatabase("GriddingAlgorithm"),
-                error_detector, box_generator, load_balancer);
+        tbox::Pointer<geom::CartesianGridGeometry<NDIM> > grid_geometry = new geom::CartesianGridGeometry<NDIM>("CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
+        tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy = new hier::PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        tbox::Pointer<INSStaggeredHierarchyIntegrator> time_integrator = new INSStaggeredHierarchyIntegrator("INSStaggeredHierarchyIntegrator", input_db->getDatabase("INSStaggeredHierarchyIntegrator"));
+        tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector = new mesh::StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator, input_db->getDatabase("StandardTagAndInitialize"));
+        tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator = new mesh::BergerRigoutsos<NDIM>();
+        tbox::Pointer<mesh::LoadBalancer<NDIM> > load_balancer = new mesh::LoadBalancer<NDIM>("LoadBalancer", input_db->getDatabase("LoadBalancer"));
+        tbox::Pointer<mesh::GriddingAlgorithm<NDIM> > gridding_algorithm = new mesh::GriddingAlgorithm<NDIM>("GriddingAlgorithm", input_db->getDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         /*
          * Create initial condition specification objects.
          */
-        tbox::Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
-            "u_init", input_db->getDatabase("VelocityInitialConditions"), grid_geometry);
-        tbox::Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
-            "p_init", input_db->getDatabase("PressureInitialConditions"), grid_geometry);
-
+        tbox::Pointer<CartGridFunction> u_init = new muParserCartGridFunction("u_init", input_db->getDatabase("VelocityInitialConditions"), grid_geometry);
+        tbox::Pointer<CartGridFunction> p_init = new muParserCartGridFunction("p_init", input_db->getDatabase("PressureInitialConditions"), grid_geometry);
         time_integrator->registerVelocityInitialConditions(u_init);
         time_integrator->registerPressureInitialConditions(p_init);
 
@@ -360,7 +327,7 @@ main(
 
                 u_bc_coefs[d] = new muParserRobinBcCoefs(bc_coefs_name, input_db->getDatabase(bc_coefs_db_name), grid_geometry);
             }
-            time_integrator->registerVelocityPhysicalBcCoefs(u_bc_coefs);
+            time_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
         /*
@@ -368,9 +335,8 @@ main(
          */
         if (input_db->keyExists("ForcingFunction"))
         {
-            tbox::Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
-                "f_fcn", input_db->getDatabase("ForcingFunction"), grid_geometry);
-            time_integrator->registerBodyForceSpecification(f_fcn);
+            tbox::Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction("f_fcn", input_db->getDatabase("ForcingFunction"), grid_geometry);
+            time_integrator->registerBodyForceFunction(f_fcn);
         }
 
         /*
@@ -378,21 +344,17 @@ main(
          */
         if (input_db->keyExists("SourceSinkFunction"))
         {
-            tbox::Pointer<CartGridFunction> q_fcn = new muParserCartGridFunction(
-                "q_fcn", input_db->getDatabase("SourceSinkFunction"), grid_geometry);
-            time_integrator->registerSourceSpecification(q_fcn);
+            tbox::Pointer<CartGridFunction> q_fcn = new muParserCartGridFunction("q_fcn", input_db->getDatabase("SourceSinkFunction"), grid_geometry);
+            time_integrator->registerFluidSourceFunction(q_fcn);
         }
 
         /*
          * Set up visualization plot file writer.
          */
-        tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer =
-            new appu::VisItDataWriter<NDIM>(
-                "VisIt Writer",
-                visit_dump_dirname, visit_number_procs_per_file);
-
+        tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer;
         if (uses_visit)
         {
+            visit_data_writer = new appu::VisItDataWriter<NDIM>("VisIt Writer", visit_dump_dirname, visit_number_procs_per_file);
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
 
@@ -400,8 +362,7 @@ main(
          * Initialize hierarchy configuration and data on all patches.  Then,
          * close restart file and write initial state for visualization.
          */
-        time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
-        double dt_now = time_integrator->initializeHierarchy();
+        time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
         tbox::RestartManager::getManager()->closeRestartFile();
 
         /*
@@ -420,10 +381,8 @@ main(
             if (uses_visit)
             {
                 tbox::pout << "\nWriting visualization files...\n\n";
-                visit_data_writer->writePlotData(
-                    patch_hierarchy,
-                    time_integrator->getIntegratorStep(),
-                    time_integrator->getIntegratorTime());
+                time_integrator->setupPlotData();
+                visit_data_writer->writePlotData(patch_hierarchy, time_integrator->getIntegratorTime());
             }
         }
 
@@ -473,13 +432,14 @@ main(
             tbox::pout << "At beginning of timestep # " <<  iteration_num - 1 << endl;
             tbox::pout << "Simulation time is " << loop_time                  << endl;
 
+            const double dt = time_integrator->getTimeStepSize();
+
             t_advance_hierarchy->start();
-            dt_old = dt_now;
-            double dt_new = time_integrator->advanceHierarchy(dt_now);
+            time_integrator->advanceHierarchy(dt);
             t_advance_hierarchy->stop();
 
-            loop_time += dt_now;
-            dt_now = dt_new;
+            loop_time += dt;
+            dt_old = dt;
 
             tbox::pout <<                                                        endl;
             tbox::pout << "At end       of timestep # " <<  iteration_num - 1 << endl;
@@ -500,8 +460,7 @@ main(
             if (write_restart && iteration_num%restart_interval == 0)
             {
                 tbox::pout << "\nWriting restart files...\n\n";
-                tbox::RestartManager::getManager()->writeRestartFile(
-                    restart_write_dirname, iteration_num);
+                tbox::RestartManager::getManager()->writeRestartFile(restart_write_dirname, iteration_num);
             }
 
             if (viz_dump_data && iteration_num%viz_dump_interval == 0)
@@ -509,8 +468,8 @@ main(
                 if (uses_visit)
                 {
                     tbox::pout << "\nWriting visualization files...\n\n";
-                    visit_data_writer->writePlotData(
-                        patch_hierarchy, iteration_num, loop_time);
+                    time_integrator->setupPlotData();
+                    visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
                 }
             }
         }
@@ -532,23 +491,23 @@ main(
             if (uses_visit)
             {
                 tbox::pout << "\nWriting visualization files...\n\n";
-                visit_data_writer->writePlotData(
-                    patch_hierarchy, iteration_num, loop_time);
+                time_integrator->setupPlotData();
+                visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
             }
         }
-#if 1
+
         /*
          * Determine the accuracy of the computed solution.
          */
         hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
 
-        const tbox::Pointer<pdat::SideVariable<NDIM,double> > u_var = time_integrator->getVelocityVar();
+        const tbox::Pointer<pdat::SideVariable<NDIM,double> > u_var = time_integrator->getVelocityVariable();
         const tbox::Pointer<hier::VariableContext> u_ctx = time_integrator->getCurrentContext();
 
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
         const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
 
-        const tbox::Pointer<pdat::CellVariable<NDIM,double> > p_var = time_integrator->getPressureVar();
+        const tbox::Pointer<pdat::CellVariable<NDIM,double> > p_var = time_integrator->getPressureVariable();
         const tbox::Pointer<hier::VariableContext> p_ctx = time_integrator->getCurrentContext();
 
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
@@ -585,18 +544,16 @@ main(
                    << "  L2-norm:  " << hier_cc_data_ops.L2Norm(p_idx,wgt_cc_idx)  << "\n"
                    << "  max-norm: " << hier_cc_data_ops.maxNorm(p_idx,wgt_cc_idx) << "\n";
 
-        time_integrator->reinterpolateVelocity(time_integrator->getCurrentContext());
-
         if (viz_dump_data)
         {
             if (uses_visit)
             {
                 tbox::pout << "\nWriting visualization files...\n\n";
-                visit_data_writer->writePlotData(
-                    patch_hierarchy, iteration_num+1, loop_time);
+                time_integrator->setupPlotData();
+                visit_data_writer->writePlotData(patch_hierarchy, iteration_num+1, loop_time);
             }
         }
-#endif
+
         /*
          * Cleanup boundary condition specification objects (when necessary).
          */

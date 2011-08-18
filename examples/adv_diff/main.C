@@ -396,7 +396,7 @@ main(
         tbox::pout << "At beginning of timestep # " <<  iteration_num - 1 << endl;
         tbox::pout << "Simulation time is " << loop_time                  << endl;
 
-        const double dt = time_integrator->getStableTimestep();
+        const double dt = time_integrator->getTimeStepSize();
         time_integrator->advanceHierarchy(dt);
         loop_time += dt;
 
