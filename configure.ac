@@ -437,9 +437,6 @@ AC_CONFIG_FILES([
   examples/IB/staggered_grid/explicit/ex2/Makefile
   examples/IB/staggered_grid/explicit/ex3/Makefile
   examples/IB/staggered_grid/explicit/ex4/Makefile
-  examples/IB/staggered_grid/implicit/Makefile
-  examples/IB/staggered_grid/implicit/ex0/Makefile
-  examples/IB/staggered_grid/implicit/ex1/Makefile
   examples/IBFE/Makefile
   examples/IBFE/explicit/Makefile
   examples/IBFE/explicit/ex0/Makefile
