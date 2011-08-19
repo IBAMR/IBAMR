@@ -43,16 +43,11 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
+#include <ibamr/app_namespaces.h>
+#include <ibtk/AppInitializer.h>
 #include <LocationIndexRobinBcCoefs.h>
 #include "QInit.h"
 #include "UFunction.h"
-
-// C++ namespace delcarations
-#include <ibamr/namespaces.h>
-using namespace IBAMR;
-using namespace IBTK;
-using namespace SAMRAI;
-using namespace std;
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -70,13 +65,6 @@ main(
     int argc,
     char* argv[])
 {
-    if (argc == 1)
-    {
-        pout << "USAGE:  " << argv[0] << " <input filename> <restart dir> <restore number> [options]\n"
-             << "OPTIONS: PETSc command line options; use -help for more information\n";
-        return -1;
-    }
-
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
@@ -85,140 +73,47 @@ main(
 
     {// cleanup dynamically allocated objects prior to shutdown
 
-        // Process command line options.
-        const string input_filename = argv[1];
-        string restart_read_dirname;
-        int restore_num = 0;
-        bool is_from_restart = false;
-        if (argc >= 4)
-        {
-            // Check whether this appears to be a restarted run.
-            FILE* fstream = (SAMRAI_MPI::getRank() == 0 ? fopen(argv[2], "r") : NULL);
-            if (SAMRAI_MPI::bcast(fstream != NULL ? 1 : 0, 0) == 1)
-            {
-                restart_read_dirname = argv[2];
-                restore_num = atoi(argv[3]);
-                is_from_restart = true;
-            }
-            if (fstream != NULL)
-            {
-                fclose(fstream);
-            }
-        }
+        // Parse command line options, set some standard options from the input
+        // file, initialize the restart database (if this is a restarted run),
+        // and enable file logging.
+        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
+        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        Pointer<Database> main_db = app_initializer->getComponentDatabase("Main");
 
-        // Create input database and parse all data in input file.
-        Pointer<Database> input_db = new InputDatabase("input_db");
-        InputManager::getManager()->parseInputFile(input_filename, input_db);
+        // Get various standard options set in the input file.
+        const bool dump_viz_data = app_initializer->dumpVizData();
+        const int viz_dump_interval = app_initializer->getVizDumpInterval();
+        const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
 
-        // Process "Main" section of the input database.
-        Pointer<Database> main_db = input_db->getDatabase("Main");
+        const bool dump_restart_data = app_initializer->dumpRestartData();
+        const int restart_dump_interval = app_initializer->getRestartDumpInterval();
+        const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
 
-        // Configure logging options.
-        const string log_file_name = main_db->getStringWithDefault("log_file_name","IBAMR.log");
-        const bool log_all_nodes = main_db->getBoolWithDefault("log_all_nodes",false);
-        if (log_all_nodes)
-        {
-            PIO::logAllNodes(log_file_name);
-        }
-        else
-        {
-            PIO::logOnlyNodeZero(log_file_name);
-        }
-
-        // Configure visualization options.
-        const int viz_dump_interval = main_db->getIntegerWithDefault("viz_dump_interval",0);
-        const bool viz_dump_data = viz_dump_interval > 0;
-        string viz_dump_dirname;
-        bool uses_visit = false;
-        int visit_number_procs_per_file = 1;
-        if (viz_dump_data)
-        {
-            Array<string> viz_writer;
-            if (main_db->keyExists("viz_writer"))
-            {
-                viz_writer = main_db->getStringArray("viz_writer");
-            }
-            for (int i = 0; i < viz_writer.getSize(); i++)
-            {
-                if (viz_writer[i] == "VisIt") uses_visit = true;
-            }
-
-            if (main_db->keyExists("viz_dump_dirname"))
-            {
-                viz_dump_dirname = main_db->getString("viz_dump_dirname");
-                if (viz_dump_dirname.empty())
-                {
-                    TBOX_ERROR("viz_dump_interval > 0, but `viz_dump_dirname' is empty\n");
-                }
-            }
-            else
-            {
-                TBOX_ERROR("viz_dump_interval > 0, but key `viz_dump_dirname' not specifed in input file\n");
-            }
-
-            if (uses_visit)
-            {
-                visit_number_procs_per_file = main_db->getIntegerWithDefault("visit_number_procs_per_file",visit_number_procs_per_file);
-            }
-        }
-
-        // Configure restart options.
-        const int restart_interval = main_db->getIntegerWithDefault("restart_interval",0);
-        const bool write_restart = restart_interval > 0;
-        string restart_write_dirname;
-        if (write_restart)
-        {
-            if (main_db->keyExists("restart_write_dirname"))
-            {
-                restart_write_dirname = main_db->getString("restart_write_dirname");
-                if (restart_write_dirname.empty())
-                {
-                    TBOX_ERROR("restart_interval > 0, but `restart_write_dirname' is empty\n");
-                }
-            }
-            else
-            {
-                TBOX_ERROR("restart_interval > 0, but key `restart_write_dirname' not specifed in input file\n");
-            }
-        }
-
-        // Configure timing options.
-        const int timer_dump_interval = main_db->getIntegerWithDefault("timer_dump_interval",0);
-        const bool write_timer_data = timer_dump_interval > 0;
-        if (write_timer_data)
-        {
-            TimerManager::createManager(input_db->getDatabase("TimerManager"));
-        }
-
-        // Process restart data if this is a restarted run.
-        if (is_from_restart)
-        {
-            RestartManager::getManager()->openRestartFile(
-                restart_read_dirname, restore_num, SAMRAI_MPI::getNodes());
-        }
+        const bool dump_timer_data = app_initializer->dumpTimerData();
+        const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
-            "CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
+            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
             "PatchHierarchy", grid_geometry);
         Pointer<GodunovAdvector> predictor = new GodunovAdvector(
-            "GodunovAdvector", input_db->getDatabase("GodunovAdvector"));
+            "GodunovAdvector", app_initializer->getComponentDatabase("GodunovAdvector"));
         Pointer<AdvDiffHierarchyIntegrator> time_integrator = new AdvDiffHierarchyIntegrator(
-            "AdvDiffHierarchyIntegrator", input_db->getDatabase("AdvDiffHierarchyIntegrator"), predictor);
+            "AdvDiffHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffHierarchyIntegrator"), predictor);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", time_integrator, input_db->getDatabase("StandardTagAndInitialize"));
+            "StandardTagAndInitialize", time_integrator, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>(
-            "LoadBalancer", input_db->getDatabase("LoadBalancer"));
+            "LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
         Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>(
-            "GriddingAlgorithm", input_db->getDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
+            "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Setup the advection velocity.
         Pointer< FaceVariable<NDIM,double> > u_var = new FaceVariable<NDIM,double>("u");
-        UFunction u_fcn("UFunction", grid_geometry, input_db->getDatabase("UFunction"));
+        UFunction u_fcn("UFunction", grid_geometry, app_initializer->getComponentDatabase("UFunction"));
         const bool u_is_div_free = true;
         time_integrator->registerAdvectionVelocity(u_var);
         time_integrator->setAdvectionVelocityIsDivergenceFree(u_var, u_is_div_free);
@@ -232,10 +127,10 @@ main(
         pout << "solving the advection-diffusion equation in "
              << IBAMR::enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
         Pointer< CellVariable<NDIM,double> > Q_var = new CellVariable<NDIM,double>("Q");
-        QInit Q_init("QInit", grid_geometry, input_db->getDatabase("QInit"));
+        QInit Q_init("QInit", grid_geometry, app_initializer->getComponentDatabase("QInit"));
         LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
-            "physical_bc_coef", input_db->getDatabase("LocationIndexRobinBcCoefs"));
-        const double kappa = input_db->getDatabase("QInit")->getDouble("kappa");
+            "physical_bc_coef", app_initializer->getComponentDatabase("LocationIndexRobinBcCoefs"));
+        const double kappa = app_initializer->getComponentDatabase("QInit")->getDouble("kappa");
         time_integrator->registerTransportedQuantity(Q_var);
         time_integrator->setAdvectionVelocity(Q_var, u_var);
         time_integrator->setDiffusionCoefficient(Q_var, kappa);
@@ -244,11 +139,9 @@ main(
         time_integrator->setPhysicalBcCoefs(Q_var, &physical_bc_coef);
 
         // Set up visualization plot file writer.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer;
+        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
-            visit_data_writer = new VisItDataWriter<NDIM>(
-                "VisItDataWriter", viz_dump_dirname, visit_number_procs_per_file);
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
 
@@ -265,14 +158,11 @@ main(
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
-        if (viz_dump_data)
+        if (dump_viz_data && uses_visit)
         {
-            if (uses_visit)
-            {
-                pout << "Writing visualization files...\n";
-                time_integrator->setupPlotData();
-                visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-            }
+            pout << "\n\nWriting visualization files...\n\n";
+            time_integrator->setupPlotData();
+            visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
         }
 
         // Main time step loop.
@@ -303,21 +193,18 @@ main(
             // and print out timer data.
             iteration_num += 1;
             const bool last_step = !time_integrator->stepsRemaining();
-            if (viz_dump_data && (iteration_num%viz_dump_interval == 0 || last_step))
+            if (dump_viz_data && uses_visit && (iteration_num%viz_dump_interval == 0 || last_step))
             {
-                if (uses_visit)
-                {
-                    pout << "\nWriting visualization files...\n\n";
-                    time_integrator->setupPlotData();
-                    visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-                }
+                pout << "\nWriting visualization files...\n\n";
+                time_integrator->setupPlotData();
+                visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
             }
-            if (write_restart && (iteration_num%restart_interval == 0 || last_step))
+            if (dump_restart_data && (iteration_num%restart_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting restart files...\n\nn";
-                RestartManager::getManager()->writeRestartFile(restart_write_dirname, iteration_num);
+                RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
             }
-            if (write_timer_data && (iteration_num%timer_dump_interval == 0 || last_step))
+            if (dump_timer_data && (iteration_num%timer_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
@@ -355,7 +242,7 @@ main(
              << "  max-norm: " << hier_cc_data_ops.maxNorm(Q_idx,wgt_idx) << "\n"
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 
-        if (viz_dump_data)
+        if (dump_viz_data)
         {
             if (uses_visit)
             {

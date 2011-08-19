@@ -800,7 +800,7 @@ IBHierarchyIntegrator::integrateHierarchy(
     // Spread F(n+1/2) to f(n+1/2).
     d_hier_velocity_data_ops->setToScalar(d_F_idx, 0.0);
     resetAnchorPointValues(d_F_half_data, coarsest_ln, finest_ln);
-    d_l_data_manager->spread(d_F_idx, d_F_half_data, d_X_half_data, std::vector<Pointer<RefineSchedule<NDIM> > >(NULL), true, true);
+    d_l_data_manager->spread(d_F_idx, d_F_half_data, d_X_half_data, d_refine_scheds["NONE"], true, true);
 
     // Compute the source/sink strengths corresponding to any distributed
     // internal fluid sources or sinks.

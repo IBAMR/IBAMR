@@ -641,6 +641,8 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
     TBOX_ASSERT(d_end_time > d_integrator_time);
     TBOX_ASSERT(MathUtilities<double>::equalEps(d_integrator_time,current_time));
     TBOX_ASSERT(cycle_num == 0);
+#else
+    NULL_USE(cycle_num);
 #endif
     const double dt = new_time - current_time;
     const int coarsest_ln = 0;

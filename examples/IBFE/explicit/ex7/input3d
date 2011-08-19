@@ -195,8 +195,8 @@ Main {
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_interval      = 0                        // zero to turn off
-   restart_write_dirname = "restart_IB3d"
+   restart_dump_interval      = 0                        // zero to turn off
+   restart_dump_dirname = "restart_IB3d"
 
 // timer dump parameters
    timer_dump_interval   = 0                        // zero to turn off

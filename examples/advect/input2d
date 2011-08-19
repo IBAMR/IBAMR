@@ -51,23 +51,23 @@ TimeRefinementIntegrator {
 
 Main {
 // log file parameters
-   log_file_name    = "advect2d.log"
-   log_all_nodes    = FALSE
+   log_file_name               = "advect2d.log"
+   log_all_nodes               = FALSE
 
 // visualization dump parameters
-   viz_writer            = "VisIt"
-   viz_dump_interval     = 2           // zero to turn off
-   viz_dump_dirname      = "viz_advect2d"
+   viz_writer                  = "VisIt"
+   viz_dump_interval           = 2           // zero to turn off
+   viz_dump_dirname            = "viz_advect2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_interval      = 0           // zero to turn off
-   restart_write_dirname = "restart_advect2d"
+   restart_dump_interval      = 0           // zero to turn off
+   restart_dump_dirname       = "restart_advect2d"
 
 // application parameters
-   timestepping = "REFINED"
-   u_is_div_free = TRUE
-   difference_form = "CONSERVATIVE"
+   timestepping               = "REFINED"
+   u_is_div_free              = TRUE
+   difference_form            = "CONSERVATIVE"
 }
 
 CartesianGeometry {

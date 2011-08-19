@@ -1089,6 +1089,9 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     {
         TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
     }
+#else
+    NULL_USE(coarsest_level);
+    NULL_USE(finest_level);
 #endif
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
 

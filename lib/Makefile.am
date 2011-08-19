@@ -27,6 +27,7 @@ $(top_builddir)/src/fortran/sqrtm.f
 pkg_include_HEADERS = \
 $(top_srcdir)/src/utilities/ibamr_enums.h \
 $(top_srcdir)/src/utilities/ibamr_utilities.h \
+$(top_srcdir)/src/utilities/app_namespaces.h \
 $(top_srcdir)/src/utilities/namespaces.h
 
 ## Dimension-dependent libraries
@@ -75,7 +76,6 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredPhysicalBoundaryHelper.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSProblemCoefs.C
 
@@ -137,7 +137,6 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredPhysicalBoundaryHelper.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.h \
-$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSProblemCoefs.h
 

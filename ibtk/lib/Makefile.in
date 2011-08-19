@@ -177,6 +177,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/wrappers/PETScSAMRAIVectorReal.C \
 	$(top_srcdir)/src/solvers/wrappers/PETScSNESFunctionGOWrapper.C \
 	$(top_srcdir)/src/solvers/wrappers/PETScSNESJacobianJOWrapper.C \
+	$(top_srcdir)/src/utilities/AppInitializer.C \
 	$(top_srcdir)/src/utilities/CartGridFunction.C \
 	$(top_srcdir)/src/utilities/CellNoCornersFillPattern.C \
 	$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C \
@@ -305,6 +306,7 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-PETScSAMRAIVectorReal.$(OBJEXT) \
 	libIBTK2d_a-PETScSNESFunctionGOWrapper.$(OBJEXT) \
 	libIBTK2d_a-PETScSNESJacobianJOWrapper.$(OBJEXT) \
+	libIBTK2d_a-AppInitializer.$(OBJEXT) \
 	libIBTK2d_a-CartGridFunction.$(OBJEXT) \
 	libIBTK2d_a-CellNoCornersFillPattern.$(OBJEXT) \
 	libIBTK2d_a-CoarsenPatchStrategySet.$(OBJEXT) \
@@ -429,6 +431,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/wrappers/PETScSAMRAIVectorReal.C \
 	$(top_srcdir)/src/solvers/wrappers/PETScSNESFunctionGOWrapper.C \
 	$(top_srcdir)/src/solvers/wrappers/PETScSNESJacobianJOWrapper.C \
+	$(top_srcdir)/src/utilities/AppInitializer.C \
 	$(top_srcdir)/src/utilities/CartGridFunction.C \
 	$(top_srcdir)/src/utilities/CellNoCornersFillPattern.C \
 	$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C \
@@ -556,6 +559,7 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-PETScSAMRAIVectorReal.$(OBJEXT) \
 	libIBTK3d_a-PETScSNESFunctionGOWrapper.$(OBJEXT) \
 	libIBTK3d_a-PETScSNESJacobianJOWrapper.$(OBJEXT) \
+	libIBTK3d_a-AppInitializer.$(OBJEXT) \
 	libIBTK3d_a-CartGridFunction.$(OBJEXT) \
 	libIBTK3d_a-CellNoCornersFillPattern.$(OBJEXT) \
 	libIBTK3d_a-CoarsenPatchStrategySet.$(OBJEXT) \
@@ -1099,6 +1103,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/solvers/wrappers/PETScSNESFunctionGOWrapper.h \
 	$(top_srcdir)/src/solvers/wrappers/PETScSNESJacobianJOWrapper.I \
 	$(top_srcdir)/src/solvers/wrappers/PETScSNESJacobianJOWrapper.h \
+	$(top_srcdir)/src/utilities/AppInitializer.h \
 	$(top_srcdir)/src/utilities/CartGridFunction.h \
 	$(top_srcdir)/src/utilities/CellNoCornersFillPattern.h \
 	$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.I \
@@ -1220,6 +1225,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/solvers/wrappers/PETScSAMRAIVectorReal.C \
 	$(top_srcdir)/src/solvers/wrappers/PETScSNESFunctionGOWrapper.C \
 	$(top_srcdir)/src/solvers/wrappers/PETScSNESJacobianJOWrapper.C \
+	$(top_srcdir)/src/utilities/AppInitializer.C \
 	$(top_srcdir)/src/utilities/CartGridFunction.C \
 	$(top_srcdir)/src/utilities/CellNoCornersFillPattern.C \
 	$(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C \
@@ -1374,6 +1380,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Interpolator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-AppInitializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-BJacobiPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CCDivGradHypreLevelSolver.Po@am__quote@
@@ -1486,6 +1493,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-VecCellVariable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-muParserCartGridFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-muParserRobinBcCoefs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-AppInitializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-BGaussSeidelPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-BJacobiPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CCDivGradHypreLevelSolver.Po@am__quote@
@@ -2850,6 +2858,20 @@ libIBTK2d_a-PETScSNESJacobianJOWrapper.obj: $(top_srcdir)/src/solvers/wrappers/P
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/wrappers/PETScSNESJacobianJOWrapper.C' object='libIBTK2d_a-PETScSNESJacobianJOWrapper.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PETScSNESJacobianJOWrapper.obj `if test -f '$(top_srcdir)/src/solvers/wrappers/PETScSNESJacobianJOWrapper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/wrappers/PETScSNESJacobianJOWrapper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/wrappers/PETScSNESJacobianJOWrapper.C'; fi`
+
+libIBTK2d_a-AppInitializer.o: $(top_srcdir)/src/utilities/AppInitializer.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-AppInitializer.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-AppInitializer.Tpo -c -o libIBTK2d_a-AppInitializer.o `test -f '$(top_srcdir)/src/utilities/AppInitializer.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/AppInitializer.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-AppInitializer.Tpo $(DEPDIR)/libIBTK2d_a-AppInitializer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/AppInitializer.C' object='libIBTK2d_a-AppInitializer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-AppInitializer.o `test -f '$(top_srcdir)/src/utilities/AppInitializer.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/AppInitializer.C
+
+libIBTK2d_a-AppInitializer.obj: $(top_srcdir)/src/utilities/AppInitializer.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-AppInitializer.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-AppInitializer.Tpo -c -o libIBTK2d_a-AppInitializer.obj `if test -f '$(top_srcdir)/src/utilities/AppInitializer.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/AppInitializer.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/AppInitializer.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-AppInitializer.Tpo $(DEPDIR)/libIBTK2d_a-AppInitializer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/AppInitializer.C' object='libIBTK2d_a-AppInitializer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-AppInitializer.obj `if test -f '$(top_srcdir)/src/utilities/AppInitializer.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/AppInitializer.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/AppInitializer.C'; fi`
 
 libIBTK2d_a-CartGridFunction.o: $(top_srcdir)/src/utilities/CartGridFunction.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-CartGridFunction.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-CartGridFunction.Tpo -c -o libIBTK2d_a-CartGridFunction.o `test -f '$(top_srcdir)/src/utilities/CartGridFunction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/CartGridFunction.C
@@ -4418,6 +4440,20 @@ libIBTK3d_a-PETScSNESJacobianJOWrapper.obj: $(top_srcdir)/src/solvers/wrappers/P
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/wrappers/PETScSNESJacobianJOWrapper.C' object='libIBTK3d_a-PETScSNESJacobianJOWrapper.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PETScSNESJacobianJOWrapper.obj `if test -f '$(top_srcdir)/src/solvers/wrappers/PETScSNESJacobianJOWrapper.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/wrappers/PETScSNESJacobianJOWrapper.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/wrappers/PETScSNESJacobianJOWrapper.C'; fi`
+
+libIBTK3d_a-AppInitializer.o: $(top_srcdir)/src/utilities/AppInitializer.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-AppInitializer.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-AppInitializer.Tpo -c -o libIBTK3d_a-AppInitializer.o `test -f '$(top_srcdir)/src/utilities/AppInitializer.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/AppInitializer.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-AppInitializer.Tpo $(DEPDIR)/libIBTK3d_a-AppInitializer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/AppInitializer.C' object='libIBTK3d_a-AppInitializer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-AppInitializer.o `test -f '$(top_srcdir)/src/utilities/AppInitializer.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/AppInitializer.C
+
+libIBTK3d_a-AppInitializer.obj: $(top_srcdir)/src/utilities/AppInitializer.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-AppInitializer.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-AppInitializer.Tpo -c -o libIBTK3d_a-AppInitializer.obj `if test -f '$(top_srcdir)/src/utilities/AppInitializer.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/AppInitializer.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/AppInitializer.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-AppInitializer.Tpo $(DEPDIR)/libIBTK3d_a-AppInitializer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/AppInitializer.C' object='libIBTK3d_a-AppInitializer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-AppInitializer.obj `if test -f '$(top_srcdir)/src/utilities/AppInitializer.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/AppInitializer.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/AppInitializer.C'; fi`
 
 libIBTK3d_a-CartGridFunction.o: $(top_srcdir)/src/utilities/CartGridFunction.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-CartGridFunction.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-CartGridFunction.Tpo -c -o libIBTK3d_a-CartGridFunction.o `test -f '$(top_srcdir)/src/utilities/CartGridFunction.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/CartGridFunction.C

@@ -28,177 +28,103 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // Config files
-#include <IBTK_config.h>
+#include <IBTK_prefix_config.h>
 #include <SAMRAI_config.h>
-#include <petsc.h>
+
+// Headers for basic PETSc functions
+#include <petscsys.h>
 
 // Headers for major SAMRAI objects
 #include <BergerRigoutsos.h>
-#include <GriddingAlgorithm.h>
-#include <HierarchyDataOpsManager.h>
+#include <CartesianGridGeometry.h>
 #include <LoadBalancer.h>
 #include <StandardTagAndInitialize.h>
-#include <VisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/muParserCartGridFunction.h>
+#include <ibtk/app_namespaces.h>
 
 using namespace SAMRAI;
 using namespace IBTK;
 using namespace std;
 
-/************************************************************************
- *                                                                      *
- * For each run, the input filename must be given on the command line.  *
- * In all cases, the command line is:                                   *
- *                                                                      *
- *    executable <input file name> <PETSc options>                      *
- *                                                                      *
- ************************************************************************
- */
-
+/*******************************************************************************
+ * For each run, the input filename must be given on the command line.  In all *
+ * cases, the command line is:                                                 *
+ *                                                                             *
+ *    executable <input file name>                                             *
+ *                                                                             *
+ *******************************************************************************/
 int
 main(
     int argc,
     char *argv[])
 {
-    /*
-     * Initialize PETSc, MPI, and SAMRAI.
-     */
+    // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
-    tbox::SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    tbox::SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    tbox::SAMRAIManager::startup();
+    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
+    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
+    SAMRAIManager::startup();
 
-    {// ensure all smart Pointers are properly deleted
+    {// cleanup dynamically allocated objects prior to shutdown
 
-        string input_filename = argv[1];
-        tbox::plog << "input_filename = " << input_filename << "\n";
+        // Parse command line options, set some standard options from the input
+        // file, and enable file logging.
+        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "vc_laplace.log");
+        Pointer<Database> input_db = app_initializer->getInputDatabase();
 
-        /*
-         * Create input database and parse all data in input file.
-         */
-        tbox::Pointer<tbox::Database> input_db = new tbox::InputDatabase("input_db");
-        tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
+        // Get various standard options set in the input file.
+        const bool dump_viz_data = app_initializer->dumpVizData();
+        const int viz_dump_interval = app_initializer->getVizDumpInterval();
+        const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
+        
+        // Create major algorithm and data objects that comprise the
+        // application.  These objects are configured from the input database.
+        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
+            "PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>(
+            "LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>(
+            "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
-        /*
-         * Retrieve "Main" section of the input database.
-         */
-        tbox::Pointer<tbox::Database> main_db = input_db->getDatabase("Main");
+        // Create variables and register them with the variable database.
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        Pointer<VariableContext> ctx = var_db->getContext("context");
 
-        string log_file_name = "laplace_test.log";
-        if (main_db->keyExists("log_file_name"))
-        {
-            log_file_name = main_db->getString("log_file_name");
-        }
-        bool log_all_nodes = false;
-        if (main_db->keyExists("log_all_nodes"))
-        {
-            log_all_nodes = main_db->getBool("log_all_nodes");
-        }
-        if (log_all_nodes)
-        {
-            tbox::PIO::logAllNodes(log_file_name);
-        }
-        else
-        {
-            tbox::PIO::logOnlyNodeZero(log_file_name);
-        }
+        Pointer<SideVariable<NDIM,double> > u_side_var = new SideVariable<NDIM,double>("u_side");
+        Pointer<SideVariable<NDIM,double> > f_side_var = new SideVariable<NDIM,double>("f_side");
+        Pointer<SideVariable<NDIM,double> > e_side_var = new SideVariable<NDIM,double>("e_side");
 
-        string visit_dump_dirname = "viz";
-        if (main_db->keyExists("visit_dump_dirname"))
-        {
-            visit_dump_dirname = main_db->getString("visit_dump_dirname");
-        }
+        const int u_side_idx = var_db->registerVariableAndContext(u_side_var, ctx, IntVector<NDIM>((USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1)));
+        const int f_side_idx = var_db->registerVariableAndContext(f_side_var, ctx, IntVector<NDIM>((USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1)));
+        const int e_side_idx = var_db->registerVariableAndContext(e_side_var, ctx, IntVector<NDIM>((USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1)));
 
-        int visit_number_procs_per_file = 1;
-        if (main_db->keyExists("visit_number_procs_per_file"))
-        {
-            visit_number_procs_per_file = main_db->getInteger("visit_number_procs_per_file");
-        }
+        Pointer<CellVariable<NDIM,double> > u_cell_var = new CellVariable<NDIM,double>("u_cell",NDIM);
+        Pointer<CellVariable<NDIM,double> > f_cell_var = new CellVariable<NDIM,double>("f_cell",NDIM);
+        Pointer<CellVariable<NDIM,double> > e_cell_var = new CellVariable<NDIM,double>("e_cell",NDIM);
 
-        bool timer_enabled = false;
-        if (main_db->keyExists("timer_enabled"))
-        {
-            timer_enabled = main_db->getBool("timer_enabled");
-        }
-        if (timer_enabled)
-        {
-            tbox::TimerManager::createManager(input_db->getDatabase("TimerManager"));
-        }
+        const int u_cell_idx = var_db->registerVariableAndContext(u_cell_var, ctx, IntVector<NDIM>(0));
+        const int f_cell_idx = var_db->registerVariableAndContext(f_cell_var, ctx, IntVector<NDIM>(0));
+        const int e_cell_idx = var_db->registerVariableAndContext(e_cell_var, ctx, IntVector<NDIM>(0));
 
-        /*
-         * Create major algorithm and data objects which comprise the
-         * application.  Each object will be initialized from input data from
-         * the input database.  Refer to each class constructor for details.
-         */
-        tbox::Pointer<geom::CartesianGridGeometry<NDIM> > grid_geometry =
-            new geom::CartesianGridGeometry<NDIM>("CartesianGeometry",
-                                                  input_db->getDatabase("CartesianGeometry"));
+        Pointer<NodeVariable<NDIM,double> > mu_node_var = new NodeVariable<NDIM,double>("mu_node");
 
-        tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy =
-            new hier::PatchHierarchy<NDIM>("PatchHierarchy",
-                                           grid_geometry);
+        const int mu_node_idx = var_db->registerVariableAndContext(mu_node_var, ctx, IntVector<NDIM>((USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1)));
 
-        tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
-            new mesh::StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                                     NULL,
-                                                     input_db->getDatabase("StandardTagAndInitialize"));
-
-        tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator =
-            new mesh::BergerRigoutsos<NDIM>();
-
-        tbox::Pointer<mesh::LoadBalancer<NDIM> > load_balancer =
-            new mesh::LoadBalancer<NDIM>("LoadBalancer",
-                                         input_db->getDatabase("LoadBalancer"));
-
-        tbox::Pointer<mesh::GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new mesh::GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                              input_db->getDatabase("GriddingAlgorithm"),
-                                              error_detector,
-                                              box_generator,
-                                              load_balancer);
-
-        /*
-         * Create variables and register then with the variable database.
-         */
-        hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
-        tbox::Pointer<hier::VariableContext> ctx = var_db->getContext("context");
-
-        tbox::Pointer<pdat::SideVariable<NDIM,double> > u_side_var = new pdat::SideVariable<NDIM,double>("u_side");
-        tbox::Pointer<pdat::SideVariable<NDIM,double> > f_side_var = new pdat::SideVariable<NDIM,double>("f_side");
-        tbox::Pointer<pdat::SideVariable<NDIM,double> > e_side_var = new pdat::SideVariable<NDIM,double>("e_side");
-
-        const int u_side_idx = var_db->registerVariableAndContext(u_side_var, ctx, hier::IntVector<NDIM>((USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1)));
-        const int f_side_idx = var_db->registerVariableAndContext(f_side_var, ctx, hier::IntVector<NDIM>((USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1)));
-        const int e_side_idx = var_db->registerVariableAndContext(e_side_var, ctx, hier::IntVector<NDIM>((USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1)));
-
-        tbox::Pointer<pdat::CellVariable<NDIM,double> > u_cell_var = new pdat::CellVariable<NDIM,double>("u_cell",NDIM);
-        tbox::Pointer<pdat::CellVariable<NDIM,double> > f_cell_var = new pdat::CellVariable<NDIM,double>("f_cell",NDIM);
-        tbox::Pointer<pdat::CellVariable<NDIM,double> > e_cell_var = new pdat::CellVariable<NDIM,double>("e_cell",NDIM);
-
-        const int u_cell_idx = var_db->registerVariableAndContext(u_cell_var, ctx, hier::IntVector<NDIM>(0));
-        const int f_cell_idx = var_db->registerVariableAndContext(f_cell_var, ctx, hier::IntVector<NDIM>(0));
-        const int e_cell_idx = var_db->registerVariableAndContext(e_cell_var, ctx, hier::IntVector<NDIM>(0));
-
-        tbox::Pointer<pdat::NodeVariable<NDIM,double> > mu_node_var = new pdat::NodeVariable<NDIM,double>("mu_node");
-
-        const int mu_node_idx = var_db->registerVariableAndContext(mu_node_var, ctx, hier::IntVector<NDIM>((USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1)));
-
-        /*
-         * Create visualization plot file writer and register variables for
-         * plotting.
-         */
-        tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer =
-            new appu::VisItDataWriter<NDIM>("VisIt Writer",
-                                            visit_dump_dirname,
-                                            visit_number_procs_per_file);
+        // Register variables for plotting.
+        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
 
         visit_data_writer->registerPlotQuantity(u_cell_var->getName(), "VECTOR", u_cell_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            std::ostringstream stream;
+            ostringstream stream;
             stream << d;
             visit_data_writer->registerPlotQuantity(u_cell_var->getName()+stream.str(), "SCALAR", u_cell_idx, d);
         }
@@ -206,7 +132,7 @@ main(
         visit_data_writer->registerPlotQuantity(f_cell_var->getName(), "VECTOR", f_cell_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            std::ostringstream stream;
+            ostringstream stream;
             stream << d;
             visit_data_writer->registerPlotQuantity(f_cell_var->getName()+stream.str(), "SCALAR", f_cell_idx, d);
         }
@@ -214,18 +140,15 @@ main(
         visit_data_writer->registerPlotQuantity(e_cell_var->getName(), "VECTOR", e_cell_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            std::ostringstream stream;
+            ostringstream stream;
             stream << d;
             visit_data_writer->registerPlotQuantity(e_cell_var->getName()+stream.str(), "SCALAR", e_cell_idx, d);
         }
 
         visit_data_writer->registerPlotQuantity(mu_node_var->getName(), "SCALAR", mu_node_idx);
 
-        /*
-         * Initialize the AMR patch hierarchy.
-         */
+        // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
-
         int tag_buffer = 1;
         int level_number = 0;
         bool done = false;
@@ -236,17 +159,13 @@ main(
             ++level_number;
         }
 
-        /*
-         * Set the simulation time to be zero.
-         */
+        // Set the simulation time to be zero.
         const double data_time = 0.0;
 
-        /*
-         * Allocate data on each level of the patch hierarchy.
-         */
+        // Allocate data on each level of the patch hierarchy.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            tbox::Pointer<hier::PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData( u_side_idx, data_time);
             level->allocatePatchData( f_side_idx, data_time);
             level->allocatePatchData( e_side_idx, data_time);
@@ -256,77 +175,54 @@ main(
             level->allocatePatchData(mu_node_idx, data_time);
         }
 
-        /*
-         * Setup exact solution data.
-         */
-        muParserCartGridFunction u_fcn("u", input_db->getDatabase("u"), grid_geometry);
-        muParserCartGridFunction f_fcn("f", input_db->getDatabase("f"), grid_geometry);
-        muParserCartGridFunction mu_fcn("mu", input_db->getDatabase("mu"), grid_geometry);
+        // Setup exact solution data.
+        muParserCartGridFunction  u_fcn("u" , app_initializer->getComponentDatabase("u") , grid_geometry);
+        muParserCartGridFunction  f_fcn("f" , app_initializer->getComponentDatabase("f") , grid_geometry);
+        muParserCartGridFunction mu_fcn("mu", app_initializer->getComponentDatabase("mu"), grid_geometry);
 
-        u_fcn.setDataOnPatchHierarchy(u_side_idx, u_side_var, patch_hierarchy, data_time);
-        f_fcn.setDataOnPatchHierarchy(e_side_idx, e_side_var, patch_hierarchy, data_time);
+        u_fcn .setDataOnPatchHierarchy( u_side_idx,  u_side_var, patch_hierarchy, data_time);
+        f_fcn .setDataOnPatchHierarchy( e_side_idx,  e_side_var, patch_hierarchy, data_time);
         mu_fcn.setDataOnPatchHierarchy(mu_node_idx, mu_node_var, patch_hierarchy, data_time);
 
-        /*
-         * Create an object to communicate ghost cell data.
-         */
+        // Create an object to communicate ghost cell data.
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        InterpolationTransactionComponent  u_transaction( u_side_idx, "CUBIC_COARSEN" , "LINEAR");
-        InterpolationTransactionComponent mu_transaction(mu_node_idx, "CONSTANT_COARSEN" , "LINEAR");
-        std::vector<InterpolationTransactionComponent> transactions(2);
+        InterpolationTransactionComponent  u_transaction( u_side_idx, "CUBIC_COARSEN"   , "LINEAR");
+        InterpolationTransactionComponent mu_transaction(mu_node_idx, "CONSTANT_COARSEN", "LINEAR");
+        vector<InterpolationTransactionComponent> transactions(2);
         transactions[0] =  u_transaction;
         transactions[1] = mu_transaction;
-
-        tbox::Pointer<HierarchyGhostCellInterpolation> bdry_fill_op =
-            new HierarchyGhostCellInterpolation();
+        Pointer<HierarchyGhostCellInterpolation> bdry_fill_op = new HierarchyGhostCellInterpolation();
         bdry_fill_op->initializeOperatorState(transactions, patch_hierarchy);
 
-        /*
-         * Create the math operations object and get the patch data index for
-         * the side-centered weighting factor.
-         */
+        // Create the math operations object and get the patch data index for
+        // the side-centered weighting factor.
         HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
         const int dx_side_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
-        /*
-         * Compute (f0,f1) := div mu (grad(u0,u1) + grad(u0,u1)^T).
-         */
-        hier_math_ops.vc_laplace(
-            f_side_idx, f_side_var,
-            1.0, 0.0, mu_node_idx, mu_node_var,
-            u_side_idx, u_side_var,
-            bdry_fill_op, data_time);
+        // Compute (f0,f1) := div mu (grad(u0,u1) + grad(u0,u1)^T).
+        hier_math_ops.vc_laplace(f_side_idx, f_side_var, 1.0, 0.0, mu_node_idx, mu_node_var, u_side_idx, u_side_var, bdry_fill_op, data_time);
 
-        /*
-         * Compute error and print error norms.
-         */
-        tbox::Pointer<math::HierarchyDataOpsReal<NDIM,double> > hier_side_data_ops =
-            math::HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(
+        // Compute error and print error norms.
+        Pointer<HierarchyDataOpsReal<NDIM,double> > hier_side_data_ops =
+            HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(
                 u_side_var, patch_hierarchy, true);
         hier_side_data_ops->subtract(e_side_idx, e_side_idx, f_side_idx);  // computes e := e - f
+        pout << "|e|_oo = " << hier_side_data_ops->maxNorm(e_side_idx, dx_side_idx) << "\n";
+        pout << "|e|_2  = " << hier_side_data_ops-> L2Norm(e_side_idx, dx_side_idx) << "\n";
+        pout << "|e|_1  = " << hier_side_data_ops-> L1Norm(e_side_idx, dx_side_idx) << "\n";
 
-        tbox::pout << "|e|_oo = " << hier_side_data_ops->maxNorm(e_side_idx, dx_side_idx) << "\n";
-        tbox::pout << "|e|_2  = " << hier_side_data_ops-> L2Norm(e_side_idx, dx_side_idx) << "\n";
-        tbox::pout << "|e|_1  = " << hier_side_data_ops-> L1Norm(e_side_idx, dx_side_idx) << "\n";
-
-        /*
-         * Interpolate the side-centered data to cell centers (for output
-         * purposes only).
-         */
+        // Interpolate the side-centered data to cell centers for output.
         static const bool synch_cf_interface = true;
         hier_math_ops.interp(u_cell_idx, u_cell_var, u_side_idx, u_side_var, NULL, data_time, synch_cf_interface);
         hier_math_ops.interp(f_cell_idx, f_cell_var, f_side_idx, f_side_var, NULL, data_time, synch_cf_interface);
         hier_math_ops.interp(e_cell_idx, e_cell_var, e_side_idx, e_side_var, NULL, data_time, synch_cf_interface);
 
-        /*
-         * Output data for plotting.
-         */
+        // Output data for plotting.
         visit_data_writer->writePlotData(patch_hierarchy, 0, data_time);
 
-    }// ensure all smart Pointers are properly deleted
+    }// cleanup dynamically allocated objects prior to shutdown
 
-    tbox::SAMRAIManager::shutdown();
+    SAMRAIManager::shutdown();
     PetscFinalize();
-
     return 0;
 }// main

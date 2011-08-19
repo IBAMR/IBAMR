@@ -45,11 +45,7 @@
 #include <blitz/tinyvec.h>
 
 // C++ namespace delcarations
-#include <ibamr/namespaces.h>
-using namespace IBTK;
-using namespace SAMRAI;
-using namespace std;
-using namespace blitz;
+#include <ibamr/app_namespaces.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

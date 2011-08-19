@@ -159,21 +159,21 @@ INSStaggeredHierarchyIntegrator {
 
 Main {
 // log file parameters
-   log_file_name    = "INS2d.log"
-   log_all_nodes    = FALSE
+   log_file_name               = "INS2d.log"
+   log_all_nodes               = FALSE
 
 // visualization dump parameters
-   viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST/8   // zero to turn off
-   viz_dump_dirname      = "viz_INS2d"
+   viz_writer                  = "VisIt"
+   viz_dump_interval           = NFINEST/8   // zero to turn off
+   viz_dump_dirname            = "viz_INS2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_interval      = 0           // zero to turn off
-   restart_write_dirname = "restart_INS2d"
+   restart_dump_interval       = 0           // zero to turn off
+   restart_dump_dirname        = "restart_INS2d"
 
 // timer dump parameters
-   timer_dump_interval   = 0           // zero to turn off
+   timer_dump_interval         = 0           // zero to turn off
 }
 
 CartesianGeometry {
