@@ -103,12 +103,7 @@ default_linear_spring_force(
     /*
      * Compute the distance between the "master" and "slave" nodes.
      */
-    double R_sq = 0.0;
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        R_sq += D[d]*D[d];
-    }
-    const double R = sqrt(R_sq);
+    const double R = std::sqrt(std::inner_product(D,D+NDIM,D,0.0));
 
     /*
      * Compute the force applied to the "master" node.

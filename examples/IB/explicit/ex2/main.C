@@ -80,7 +80,7 @@ linear_spring_force(
     const int& /*lag_slave_idx*/)
 {
     // Compute the distance between the "master" and "slave" nodes.
-    const double r = sqrt(inner_product(D,D+NDIM,D,1.0));
+    const double r = sqrt(inner_product(D,D+NDIM,D,0.0));
 
     // Compute the force applied to the "master" node.
     if (rst > numeric_limits<double>::epsilon() &&

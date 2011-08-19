@@ -3,7 +3,7 @@ MU  = 1.2e-3     // corresponds to Re=210
 RHO = 3.0e-4
 V0  = 280.0
 G   = 980.0
-CFL = 0.25
+CFL = 0.01
 
 // grid spacing parameters
 MAX_LEVELS = 3   // maximum number of levels in locally refined grid
@@ -64,11 +64,10 @@ IBHierarchyIntegrator {
    end_time              = 1.2e0    // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    regrid_cfl_interval   = 1.0-CFL
-   dt_max = 8.0e-3/(NFINEST^2)
+   dt_max = 0.128/(NFINEST^2)
    num_cycles = 2
    delta_fcn = "IB_4"
    enable_logging = TRUE
-
    using_pIB_method = TRUE
    gravitational_acceleration = 0.0 , -G
 }
