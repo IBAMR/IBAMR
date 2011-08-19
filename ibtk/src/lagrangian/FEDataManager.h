@@ -48,7 +48,7 @@
 #include <sparse_matrix.h>
 
 // PETSC INCLUDES
-#include <petsc.h>
+#include <petscsys.h>
 
 // IBTK INCLUDES
 #include <ibtk/libmesh_utilities.h>

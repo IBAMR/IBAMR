@@ -279,7 +279,7 @@ main(
             {
                 pout << "Writing visualization files...\n";
                 time_integrator->setupPlotData();
-                visit_data_writer->writePlotData(patch_hierarchy, loop_time, iteration_num);
+                visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
             }
         }
 
@@ -311,8 +311,8 @@ main(
             // print out timer data, and store hierarchy data for post
             // processing.
             iteration_num += 1;
-            if (viz_dump_data &&
-                (iteration_num%viz_dump_interval == 0 || !time_integrator->stepsRemaining()))
+            const bool last_step = !time_integrator->stepsRemaining();
+            if (viz_dump_data && (iteration_num%viz_dump_interval == 0 || last_step))
             {
                 if (uses_visit)
                 {
@@ -321,20 +321,17 @@ main(
                     visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
                 }
             }
-            if (write_restart &&
-                (iteration_num%restart_interval == 0 || !time_integrator->stepsRemaining()))
+            if (write_restart &&  (iteration_num%restart_interval == 0 || last_step))
             {
                 pout << "\nWriting restart files...\n\nn";
                 RestartManager::getManager()->writeRestartFile(restart_write_dirname, iteration_num);
             }
-            if (write_timer_data &&
-                (iteration_num%timer_dump_interval == 0 || !time_integrator->stepsRemaining()))
+            if (write_timer_data && (iteration_num%timer_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
-            if (write_hier_data &&
-                (iteration_num%hier_dump_interval == 0 || !time_integrator->stepsRemaining()))
+            if (write_hier_data && (iteration_num%hier_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting hierarchy data files...\n\n";
                 string file_name = hier_dump_dirname + "/" + "hier_data.";

@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // PETSC INCLUDES
-#include <petsc.h>
+#include <petscsys.h>
 
 // IBAMR INCLUDES
 #include <ibamr/INSHierarchyIntegrator.h>

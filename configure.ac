@@ -426,17 +426,10 @@ AC_CONFIG_FILES([
   doc/online_Doxyfile
   examples/Makefile
   examples/IB/Makefile
-  examples/IB/cell_centered/Makefile
-  examples/IB/cell_centered/ex0/Makefile
-  examples/IB/cell_centered/ex1/Makefile
-  examples/IB/cell_centered/ex2/Makefile
-  examples/IB/staggered_grid/Makefile
-  examples/IB/staggered_grid/explicit/Makefile
-  examples/IB/staggered_grid/explicit/ex0/Makefile
-  examples/IB/staggered_grid/explicit/ex1/Makefile
-  examples/IB/staggered_grid/explicit/ex2/Makefile
-  examples/IB/staggered_grid/explicit/ex3/Makefile
-  examples/IB/staggered_grid/explicit/ex4/Makefile
+  examples/IB/explicit/Makefile
+  examples/IB/explicit/ex0/Makefile
+  examples/IB/explicit/ex1/Makefile
+  examples/IB/explicit/ex2/Makefile
   examples/IBFE/Makefile
   examples/IBFE/explicit/Makefile
   examples/IBFE/explicit/ex0/Makefile

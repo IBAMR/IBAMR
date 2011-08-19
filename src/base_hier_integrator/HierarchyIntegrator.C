@@ -191,25 +191,11 @@ HierarchyIntegrator::initializePatchHierarchy(
     }
 
     // Setup the tag buffer.
-    if (d_tag_buffer.size() == 0)
+    setupTagBuffer(d_gridding_alg);
+    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin();
+         it != d_child_integrators.end(); ++it)
     {
-        d_tag_buffer.resizeArray(d_gridding_alg->getMaxLevels());
-        for (int i = 0; i < d_gridding_alg->getMaxLevels(); ++i)
-        {
-            d_tag_buffer[i] = 1;
-        }
-    }
-    else
-    {
-        if (d_tag_buffer.size() < d_gridding_alg->getMaxLevels())
-        {
-            int tsize = d_tag_buffer.size();
-            d_tag_buffer.resizeArray(d_gridding_alg->getMaxLevels());
-            for (int i = tsize; i < d_gridding_alg->getMaxLevels(); ++i)
-            {
-                d_tag_buffer[i] = d_tag_buffer[tsize-1];
-            }
-        }
+        (*it)->setupTagBuffer(d_gridding_alg);
     }
 
     // Initialize the patch hierarchy.
@@ -400,7 +386,9 @@ HierarchyIntegrator::getMaxIntegratorSteps() const
 bool
 HierarchyIntegrator::stepsRemaining() const
 {
-    return (d_integrator_step < d_max_integrator_steps);
+    return ((d_integrator_step < d_max_integrator_steps) &&
+            (d_integrator_time < d_end_time) &&
+            !MathUtilities<double>::equalEps(d_integrator_time, d_end_time));
 }// stepsRemaining
 
 Pointer<PatchHierarchy<NDIM> >
@@ -813,7 +801,14 @@ HierarchyIntegrator::resetIntegratorToPreadvanceStateSpecialized()
 bool
 HierarchyIntegrator::atRegridPointSpecialized() const
 {
-    return (d_integrator_step > 0) && (d_regrid_interval != 0) && (d_integrator_step % d_regrid_interval == 0);
+    if (d_parent_integrator != NULL)
+    {
+        return false;
+    }
+    else
+    {
+        return (d_integrator_step > 0) && (d_regrid_interval != 0) && (d_integrator_step % d_regrid_interval == 0);
+    }
 }// atRegridPointSpecialized
 
 void
@@ -998,6 +993,33 @@ HierarchyIntegrator::buildHierarchyMathOps(
     }
     return d_hier_math_ops;
 }// buildHierarchyMathOps
+
+void
+HierarchyIntegrator::setupTagBuffer(
+    Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+{
+    if (d_tag_buffer.size() == 0)
+    {
+        d_tag_buffer.resizeArray(gridding_alg->getMaxLevels());
+        for (int i = 0; i < gridding_alg->getMaxLevels(); ++i)
+        {
+            d_tag_buffer[i] = 1;
+        }
+    }
+    else
+    {
+        if (d_tag_buffer.size() < gridding_alg->getMaxLevels())
+        {
+            int tsize = d_tag_buffer.size();
+            d_tag_buffer.resizeArray(gridding_alg->getMaxLevels());
+            for (int i = tsize; i < gridding_alg->getMaxLevels(); ++i)
+            {
+                d_tag_buffer[i] = d_tag_buffer[tsize-1];
+            }
+        }
+    }
+    return;
+}// setupTagBuffer
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -36724,7 +36724,7 @@ echo
 echo "================"
 echo "Outputting files"
 echo "================"
-ac_config_files="$ac_config_files Makefile bin/Makefile config/make.inc doc/Doxyfile doc/Makefile doc/online_Doxyfile examples/Makefile examples/IB/Makefile examples/IB/cell_centered/Makefile examples/IB/cell_centered/ex0/Makefile examples/IB/cell_centered/ex1/Makefile examples/IB/cell_centered/ex2/Makefile examples/IB/staggered_grid/Makefile examples/IB/staggered_grid/explicit/Makefile examples/IB/staggered_grid/explicit/ex0/Makefile examples/IB/staggered_grid/explicit/ex1/Makefile examples/IB/staggered_grid/explicit/ex2/Makefile examples/IB/staggered_grid/explicit/ex3/Makefile examples/IB/staggered_grid/explicit/ex4/Makefile examples/IBFE/Makefile examples/IBFE/explicit/Makefile examples/IBFE/explicit/ex0/Makefile examples/IBFE/explicit/ex1/Makefile examples/IBFE/explicit/ex2/Makefile examples/IBFE/explicit/ex3/Makefile examples/IBFE/explicit/ex4/Makefile examples/IBFE/explicit/ex5/Makefile examples/IBFE/explicit/ex6/Makefile examples/IBFE/explicit/ex7/Makefile examples/adv_diff/Makefile examples/advect/Makefile examples/navier_stokes/Makefile examples/navier_stokes/ex0/Makefile examples/navier_stokes/ex1/Makefile examples/navier_stokes/ex2/Makefile examples/navier_stokes/ex3/Makefile examples/vc_navier_stokes/Makefile examples/vc_navier_stokes/operator_test/Makefile examples/vc_navier_stokes/solver_test/Makefile lib/Makefile src/Makefile src/fortran/Makefile src/IB/Makefile src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/advect/Makefile src/advect/fortran/Makefile src/base_hier_integrator/Makefile src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile src/utilities/Makefile src/tools/Makefile"
+ac_config_files="$ac_config_files Makefile bin/Makefile config/make.inc doc/Doxyfile doc/Makefile doc/online_Doxyfile examples/Makefile examples/IB/Makefile examples/IB/explicit/Makefile examples/IB/explicit/ex0/Makefile examples/IB/explicit/ex1/Makefile examples/IB/explicit/ex2/Makefile examples/IBFE/Makefile examples/IBFE/explicit/Makefile examples/IBFE/explicit/ex0/Makefile examples/IBFE/explicit/ex1/Makefile examples/IBFE/explicit/ex2/Makefile examples/IBFE/explicit/ex3/Makefile examples/IBFE/explicit/ex4/Makefile examples/IBFE/explicit/ex5/Makefile examples/IBFE/explicit/ex6/Makefile examples/IBFE/explicit/ex7/Makefile examples/adv_diff/Makefile examples/advect/Makefile examples/navier_stokes/Makefile examples/navier_stokes/ex0/Makefile examples/navier_stokes/ex1/Makefile examples/navier_stokes/ex2/Makefile examples/navier_stokes/ex3/Makefile examples/vc_navier_stokes/Makefile examples/vc_navier_stokes/operator_test/Makefile examples/vc_navier_stokes/solver_test/Makefile lib/Makefile src/Makefile src/fortran/Makefile src/IB/Makefile src/adv_diff/Makefile src/adv_diff/fortran/Makefile src/advect/Makefile src/advect/fortran/Makefile src/base_hier_integrator/Makefile src/navier_stokes/Makefile src/navier_stokes/fortran/Makefile src/utilities/Makefile src/tools/Makefile"
 
 
 
@@ -37499,17 +37499,10 @@ do
     "doc/online_Doxyfile") CONFIG_FILES="$CONFIG_FILES doc/online_Doxyfile" ;;
     "examples/Makefile") CONFIG_FILES="$CONFIG_FILES examples/Makefile" ;;
     "examples/IB/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IB/Makefile" ;;
-    "examples/IB/cell_centered/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IB/cell_centered/Makefile" ;;
-    "examples/IB/cell_centered/ex0/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IB/cell_centered/ex0/Makefile" ;;
-    "examples/IB/cell_centered/ex1/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IB/cell_centered/ex1/Makefile" ;;
-    "examples/IB/cell_centered/ex2/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IB/cell_centered/ex2/Makefile" ;;
-    "examples/IB/staggered_grid/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IB/staggered_grid/Makefile" ;;
-    "examples/IB/staggered_grid/explicit/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IB/staggered_grid/explicit/Makefile" ;;
-    "examples/IB/staggered_grid/explicit/ex0/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IB/staggered_grid/explicit/ex0/Makefile" ;;
-    "examples/IB/staggered_grid/explicit/ex1/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IB/staggered_grid/explicit/ex1/Makefile" ;;
-    "examples/IB/staggered_grid/explicit/ex2/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IB/staggered_grid/explicit/ex2/Makefile" ;;
-    "examples/IB/staggered_grid/explicit/ex3/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IB/staggered_grid/explicit/ex3/Makefile" ;;
-    "examples/IB/staggered_grid/explicit/ex4/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IB/staggered_grid/explicit/ex4/Makefile" ;;
+    "examples/IB/explicit/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IB/explicit/Makefile" ;;
+    "examples/IB/explicit/ex0/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IB/explicit/ex0/Makefile" ;;
+    "examples/IB/explicit/ex1/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IB/explicit/ex1/Makefile" ;;
+    "examples/IB/explicit/ex2/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IB/explicit/ex2/Makefile" ;;
     "examples/IBFE/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IBFE/Makefile" ;;
     "examples/IBFE/explicit/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IBFE/explicit/Makefile" ;;
     "examples/IBFE/explicit/ex0/Makefile") CONFIG_FILES="$CONFIG_FILES examples/IBFE/explicit/ex0/Makefile" ;;

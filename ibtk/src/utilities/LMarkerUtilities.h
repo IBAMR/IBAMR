@@ -42,7 +42,7 @@
 #include <vector>
 
 // PETSC INCLUDES
-#include <petsc.h>
+#include <petscsys.h>
 
 // SAMRAI INCLUDES
 #include <PatchHierarchy.h>

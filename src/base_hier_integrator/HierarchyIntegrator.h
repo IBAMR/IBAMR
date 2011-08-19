@@ -481,7 +481,11 @@ protected:
      * whether to regridding should occur at the current time step.
      *
      * A default implementation is provided that indicates that the hierarchy
-     * should be regridded at a fixed integer interval of time steps.
+     * should be regridded at a fixed integer interval of time steps unless a
+     * parent integrator has been registered with this integrator.  If a parent
+     * integrator has been registered with this integrator,
+     * atRegridPointSpecialized() returns false, in order to allow the parent
+     * integrator to control the timing of regridding.
      */
     virtual bool
     atRegridPointSpecialized() const;
@@ -605,6 +609,13 @@ protected:
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps>
     buildHierarchyMathOps(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+
+    /*!
+     * Setup the tag buffer.
+     */
+    void
+    setupTagBuffer(
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*
      * The object name is used as a handle to databases stored in restart files

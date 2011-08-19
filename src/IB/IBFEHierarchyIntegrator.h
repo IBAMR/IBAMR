@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // PETSC INCLUDES
-#include <petsc.h>
+#include <petscsys.h>
 
 // BLITZ INCLUDES
 #include <blitz/array.h>
