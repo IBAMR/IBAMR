@@ -377,6 +377,7 @@ SCPoissonFACOperator::setCoarsestLevelSolverChoice(
     if (d_coarse_solver_choice == "hypre")
     {
         d_using_hypre = true;
+        d_hypre_solver = new SCPoissonHypreLevelSolver(d_object_name+"::hypre_solver", d_hypre_db);
         if (d_is_initialized)
         {
             initializeHypreLevelSolver();
@@ -1410,9 +1411,6 @@ SCPoissonFACOperator::xeqScheduleSideDataSynch(
 void
 SCPoissonFACOperator::initializeHypreLevelSolver()
 {
-    d_hypre_solver = new SCPoissonHypreLevelSolver(d_object_name+"::hypre_solver", d_hypre_db);
-    d_hypre_solver->setTime(d_apply_time);
-
     SAMRAIVectorReal<NDIM,double> solution_level(d_solution->getName()+"::level", d_solution->getPatchHierarchy(), d_coarsest_ln, d_coarsest_ln);
     for (int comp = 0; comp < d_solution->getNumberOfComponents(); ++comp)
     {
@@ -1429,6 +1427,7 @@ SCPoissonFACOperator::initializeHypreLevelSolver()
     // always employ homogeneous boundary conditions.
     d_hypre_solver->setPoissonSpecifications(d_poisson_spec);
     d_hypre_solver->setPhysicalBcCoefs(d_bc_coefs);
+    d_hypre_solver->setTime(d_apply_time);
     d_hypre_solver->setHomogeneousBc(true);
     d_hypre_solver->initializeSolverState(solution_level, rhs_level);
     return;

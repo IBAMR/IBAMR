@@ -1,4 +1,4 @@
-// Filename: INSStaggeredProjectionBcCoef.h
+// Filename: INSProjectionBcCoef.h
 // Created on 23 Jul 2008 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_INSStaggeredProjectionBcCoef
-#define included_INSStaggeredProjectionBcCoef
+#ifndef included_INSProjectionBcCoef
+#define included_INSProjectionBcCoef
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -46,10 +46,10 @@
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredIntermediateVelocityBcCoef is a concrete
+ * \brief Class INSIntermediateVelocityBcCoef is a concrete
  * SAMRAI::solv::RobinBcCoefStrategy that is used to specify boundary conditions
- * for the projection Poisson problem embedded in a block preconditioner for the
- * staggered grid incompressible Navier-Stokes solver.
+ * for the projection Poisson problem embedded in a projection method or in a
+ * block preconditioner for the incompressible Navier-Stokes equations.
  *
  * This class interprets pure Dirichlet boundary conditions as prescribed
  * velocity boundary conditions, whereas pure Neumann boundary conditions are
@@ -57,7 +57,7 @@ namespace IBAMR
  * translated into Neumann and Dirichlet boundary conditions, respectively, for
  * the projection Poisson problem.
  */
-class INSStaggeredProjectionBcCoef
+class INSProjectionBcCoef
     : public IBTK::ExtendedRobinBcCoefStrategy
 {
 public:
@@ -70,14 +70,14 @@ public:
      * \note Precisely NDIM boundary condition objects must be provided to the
      * class constructor.
      */
-    INSStaggeredProjectionBcCoef(
+    INSProjectionBcCoef(
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
         const bool homogeneous_bc=false);
 
     /*!
      * \brief Destructor.
      */
-    ~INSStaggeredProjectionBcCoef();
+    ~INSProjectionBcCoef();
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -183,7 +183,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredProjectionBcCoef();
+    INSProjectionBcCoef();
 
     /*!
      * \brief Copy constructor.
@@ -192,8 +192,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredProjectionBcCoef(
-        const INSStaggeredProjectionBcCoef& from);
+    INSProjectionBcCoef(
+        const INSProjectionBcCoef& from);
 
     /*!
      * \brief Assignment operator.
@@ -204,9 +204,9 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredProjectionBcCoef&
+    INSProjectionBcCoef&
     operator=(
-        const INSStaggeredProjectionBcCoef& that);
+        const INSProjectionBcCoef& that);
 
     /*
      * The boundary condition specification objects for the updated velocity.
@@ -227,8 +227,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/INSStaggeredProjectionBcCoef.I>
+//#include <ibamr/INSProjectionBcCoef.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSStaggeredProjectionBcCoef
+#endif //#ifndef included_INSProjectionBcCoef

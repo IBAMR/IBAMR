@@ -408,6 +408,14 @@ CCPoissonFACOperator::setCoarsestLevelSolverChoice(
     if (d_coarse_solver_choice == "hypre")
     {
         d_using_hypre = true;
+        d_hypre_solvers.resize(d_depth);
+        for (int depth = 0; depth < d_depth; ++depth)
+        {
+            std::ostringstream stream;
+            stream << depth;
+            d_hypre_solvers[depth] = new CCPoissonHypreLevelSolver(d_object_name+"::hypre_solver_"+stream.str(), d_hypre_db);
+            d_hypre_solvers[depth]->setDataDepth(depth);
+        }
         if (d_is_initialized)
         {
             initializeHypreLevelSolvers();
@@ -1362,16 +1370,6 @@ CCPoissonFACOperator::xeqScheduleGhostFillNoCoarse(
 void
 CCPoissonFACOperator::initializeHypreLevelSolvers()
 {
-    d_hypre_solvers.resize(d_depth);
-    for (int depth = 0; depth < d_depth; ++depth)
-    {
-        std::ostringstream stream;
-        stream << depth;
-        d_hypre_solvers[depth] = new CCPoissonHypreLevelSolver(d_object_name+"::hypre_solver_"+stream.str(), d_hypre_db);
-        d_hypre_solvers[depth]->setTime(d_apply_time);
-        d_hypre_solvers[depth]->setDataDepth(depth);
-    }
-
     SAMRAIVectorReal<NDIM,double> solution_level(d_solution->getName()+"::level", d_solution->getPatchHierarchy(), d_coarsest_ln, d_coarsest_ln);
     for (int comp = 0; comp < d_solution->getNumberOfComponents(); ++comp)
     {
@@ -1390,6 +1388,7 @@ CCPoissonFACOperator::initializeHypreLevelSolvers()
     {
         d_hypre_solvers[depth]->setPoissonSpecifications(d_poisson_spec);
         d_hypre_solvers[depth]->setPhysicalBcCoef(d_bc_coefs[depth]);
+        d_hypre_solvers[depth]->setTime(d_apply_time);
         d_hypre_solvers[depth]->setHomogeneousBc(true);
         d_hypre_solvers[depth]->initializeSolverState(solution_level, rhs_level);
     }

@@ -180,6 +180,14 @@ public:
     //\{
 
     /*!
+     * \brief Set the current time interval (for a time-dependent solver).
+     */
+    void
+    setTimeInterval(
+        const double current_time,
+        const double new_time);
+
+    /*!
      * \brief Set the linear operator used when solving \f$Ax=b\f$.
      */
     void

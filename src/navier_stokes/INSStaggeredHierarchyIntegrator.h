@@ -40,8 +40,6 @@
 
 // IBAMR INCLUDES
 #include <ibamr/INSHierarchyIntegrator.h>
-#include <ibamr/INSProblemCoefs.h>
-#include <ibamr/INSStaggeredBoxRelaxationFACOperator.h>
 #include <ibamr/INSStaggeredStokesOperator.h>
 
 // IBTK INCLUDES
@@ -83,6 +81,19 @@ public:
     ~INSStaggeredHierarchyIntegrator();
 
     /*!
+     * Set the problem coefficients used by the solver.
+     */
+    void
+    setINSProblemCoefs(
+        INSProblemCoefs problem_coefs);
+
+    /*!
+     * Get the problem coefficients used by the solver.
+     */
+    INSProblemCoefs
+    getINSProblemCoefs() const;
+
+    /*!
      * Register an operator to compute the convective acceleration term u*grad
      * u.
      *
@@ -97,6 +108,60 @@ public:
     setConvectiveOperator(
         SAMRAI::tbox::Pointer<IBTK::GeneralOperator> convective_op,
         ConvectiveDifferencingType convective_difference_form=UNKNOWN_CONVECTIVE_DIFFERENCING_TYPE);
+
+    /*!
+     * Get the convective operator being used by this solver class.
+     *
+     * \note This operator is not initialized until the patch hierarchy is
+     * initialized.
+     */
+    SAMRAI::tbox::Pointer<IBTK::GeneralOperator>
+    getConvectiveOperator() const;
+
+    /*!
+     * Get the type of convective differencing being used by this solver class.
+     */
+    ConvectiveDifferencingType
+    getConvectiveDifferenceForm() const;
+
+    /*!
+     * Register a preconditioner for the incompressible Stokes equations.
+     *
+     * By default, this solver uses class INSStaggeredProjectionPreconditioner
+     * to precondition the incompressible Stokes system.
+     */
+    void
+    setStokesPreconditioner(
+        SAMRAI::tbox::Pointer<IBTK::LinearSolver> stokes_pc);
+
+    /*!
+     * Get the preconditioner being used by this solver class.
+     *
+     * \note This preconditioner is not initialized until the patch hierarchy is
+     * initialized.
+     */
+    SAMRAI::tbox::Pointer<IBTK::LinearSolver>
+    getStokesPreconditioner();
+
+    /*!
+     * Return a subdomain solver for the velocity subsystem.  Such solvers can
+     * be useful in constructing block preconditioners.
+     *
+     * \note Data management for the preconditioner object is managed by this
+     * solver class.
+     */
+    SAMRAI::tbox::Pointer<IBTK::LinearSolver>
+    buildVelocitySubdomainSolver();
+
+    /*!
+     * Return a subdomain solver for the pressure subsystem.  Such solvers can
+     * be useful in constructing block preconditioners.
+     *
+     * \note Data management for the preconditioner object is managed by this
+     * solver class.
+     */
+    SAMRAI::tbox::Pointer<IBTK::LinearSolver>
+    buildPressureSubdomainSolver();
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -413,11 +478,10 @@ private:
     SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver>   d_poisson_solver;
 
     bool d_stokes_solver_needs_init;
-    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver>        d_stokes_solver;
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>                   d_stokes_pc;
-    SAMRAI::tbox::Pointer<INSStaggeredBoxRelaxationFACOperator> d_vanka_fac_op;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>               d_vanka_fac_pc_db;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>               d_regrid_projection_fac_pc_db;
+    SAMRAI::tbox::Pointer<IBTK::PETScKrylovLinearSolver>   d_stokes_solver;
+    SAMRAI::tbox::Pointer<IBTK::LinearSolver>              d_stokes_pc;
+
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>          d_regrid_projection_fac_pc_db;
 
     /*!
      * State and scratch variables not defined in INSHierarchyIntegrator base

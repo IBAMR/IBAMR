@@ -10,20 +10,21 @@ N = 16                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 DT = 0.5/NFINEST
 
-UInit {
+VelocityInitialConditions {
    rho = 80.0
    delta = 0.05
+   function_0 = "if(X1 < 0.5 , tanh(rho*(X1-0.25)) , tanh(rho*(0.75-X1)))"
+   function_1 = "delta*sin(2.0*pi*(X0+0.25))"
 }
 
 INSStaggeredHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
    end_time              = 0.75e0   // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
-   max_integrator_steps  = 10000    // max number of simulation timesteps
-   regrid_interval       = 1
 
    enable_logging = TRUE
 
+   num_cycles = 3
    cfl = 1.0
    dt_max = DT
 
@@ -45,68 +46,50 @@ INSStaggeredHierarchyIntegrator {
    normalize_pressure = TRUE
 
    HelmholtzHypreSolver {
-      solver_type           = "PCG"
-      precond_type          = "Split"
-      split_solver_type     = "Jacobi"
-      relative_residual_tol = 1.0e-2
-      max_iterations        = 100
+      solver_type           = "Split"
+      split_solver_type     = "PFMG"
+      relative_residual_tol = 1.0e-12
+      max_iterations        = 1
       enable_logging        = FALSE
    }
 
    HelmholtzFACSolver {
-      max_cycles = 1
-      residual_tol = 1.0e-12
-      num_pre_sweeps  = 0  // this should always be 0
-      num_post_sweeps = 2
-
-      fac_max_cycles = 1
-      fac_uses_presmoothing = FALSE
-      fac_initial_guess_nonzero = FALSE
-
-      skip_restrict_sol = TRUE
-      skip_restrict_residual = FALSE
-
-      coarse_solver_choice = "block_jacobi"
-      coarse_solver_tolerance = 1.0e-30
-      coarse_solver_max_iterations = 2
-      prolongation_method = "CONSERVATIVE_LINEAR_REFINE"
-      cf_discretization   = "CONSERVATIVE_LINEAR_REFINE"
+      num_pre_sweeps  = 0
+      num_post_sweeps = 1
+      coarse_solver_choice = "hypre"
+      coarse_solver_tolerance = 1.0e-12
+      coarse_solver_max_iterations = 1
+      prolongation_method = "CONSTANT_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      hypre_solver {
+         solver_type           = "Split"
+         split_solver_type     = "PFMG"
+         relative_residual_tol = 1.0e-12
+         max_iterations        = 1
+         enable_logging        = FALSE
+      }
    }
 
    PoissonHypreSolver {
-      solver_type           = "PCG"
-      precond_type          = "PFMG"
+      solver_type           = "PFMG"
       rap_type              = 0
       relax_type            = 2
       skip_relax            = 1
-      num_pre_relax_steps   = 1
-      num_post_relax_steps  = 1
+      num_pre_relax_steps   = 2
+      num_post_relax_steps  = 2
       relative_residual_tol = 1.0e-2
       max_iterations        = 100
       enable_logging        = FALSE
    }
 
    PoissonFACSolver {
-      max_cycles = 1
-      residual_tol = 1.0e-12
-      num_pre_sweeps  = 0  // this should always be 0
+      num_pre_sweeps  = 0
       num_post_sweeps = 3
-
-      fac_max_cycles = 1
-      fac_uses_presmoothing = FALSE
-      fac_initial_guess_nonzero = FALSE
-
-      skip_restrict_sol = TRUE
-      skip_restrict_residual = FALSE
-
-      ssor_iterations = 1
-
       coarse_solver_choice = "hypre"
       coarse_solver_tolerance = 1.0e-12
       coarse_solver_max_iterations = 1
       prolongation_method = "LINEAR_REFINE"
-      cf_discretization   = "LINEAR_REFINE"
-
+      restriction_method  = "CONSERVATIVE_COARSEN"
       hypre_solver {
          solver_type           = "PFMG"
          rap_type              = 0
@@ -137,7 +120,7 @@ Main {
    restart_write_dirname = "restart_INS2d"
 
 // hierarchy data dump parameters
-   hier_dump_interval = NFINEST/8      // zero to turn off
+   hier_dump_interval = 0              // zero to turn off
    hier_dump_dirname  = "hier_data_INS2d"
 
 // timer dump parameters
@@ -168,12 +151,6 @@ GriddingAlgorithm {
       level_0 =  4,  4 // smallest patch allowed in hierarchy
                        // all finer levels will use same values as level_0...
    }
-
-   allow_patches_smaller_than_ghostwidth = TRUE
-   allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
-   coalesce_boxes = TRUE
-   check_nonrefined_tags     = 'e'
-   check_overlapping_patches = 'e'
 
    efficiency_tolerance   = 0.85e0    // min % of tag cells in new patch level
    combine_efficiency     = 0.85e0    // chop box if sum of volumes of smaller

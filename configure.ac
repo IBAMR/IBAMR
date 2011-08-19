@@ -453,19 +453,10 @@ AC_CONFIG_FILES([
   examples/adv_diff/Makefile
   examples/advect/Makefile
   examples/navier_stokes/Makefile
-  examples/navier_stokes/cell_centered/Makefile
-  examples/navier_stokes/cell_centered/approx_projection/Makefile
-  examples/navier_stokes/cell_centered/approx_projection/ex0/Makefile
-  examples/navier_stokes/cell_centered/approx_projection/ex1/Makefile
-  examples/navier_stokes/cell_centered/approx_projection/ex2/Makefile
-  examples/navier_stokes/cell_centered/exact_projection/Makefile
-  examples/navier_stokes/cell_centered/exact_projection/ex0/Makefile
-  examples/navier_stokes/cell_centered/exact_projection/ex1/Makefile
-  examples/navier_stokes/staggered_grid/Makefile
-  examples/navier_stokes/staggered_grid/ex0/Makefile
-  examples/navier_stokes/staggered_grid/ex1/Makefile
-  examples/navier_stokes/staggered_grid/ex2/Makefile
-  examples/navier_stokes/staggered_grid/ex3/Makefile
+  examples/navier_stokes/ex0/Makefile
+  examples/navier_stokes/ex1/Makefile
+  examples/navier_stokes/ex2/Makefile
+  examples/navier_stokes/ex3/Makefile
   examples/vc_navier_stokes/Makefile
   examples/vc_navier_stokes/operator_test/Makefile
   examples/vc_navier_stokes/solver_test/Makefile

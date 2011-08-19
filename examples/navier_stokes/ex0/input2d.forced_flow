@@ -82,11 +82,11 @@ INSStaggeredHierarchyIntegrator {
    start_time            = 0.0e0    // initial simulation time
    end_time              = 0.5      // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
-   max_integrator_steps  = 10000000 // max number of simulation timesteps
-   regrid_interval       = 10000000 // disable regridding
+   regrid_interval       = 10000000 // effectively disable regridding
 
    enable_logging = TRUE
 
+   num_cycles = 3
    cfl = 0.5
    dt_max = 1.0/(2*NFINEST)
 
@@ -108,25 +108,61 @@ INSStaggeredHierarchyIntegrator {
    normalize_pressure = TRUE
 
    HelmholtzHypreSolver {
-      solver_type           = "PCG"
-      precond_type          = "Split"
-      split_solver_type     = "SMG"
+      solver_type           = "Split"
+      split_solver_type     = "PFMG"
+      relative_residual_tol = 1.0e-12
+      max_iterations        = 1
+      enable_logging        = FALSE
+   }
+
+   HelmholtzFACSolver {
+      num_pre_sweeps  = 0
+      num_post_sweeps = 1
+      coarse_solver_choice = "hypre"
+      coarse_solver_tolerance = 1.0e-12
+      coarse_solver_max_iterations = 1
+      prolongation_method = "CONSTANT_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      hypre_solver {
+         solver_type           = "Split"
+         split_solver_type     = "PFMG"
+         relative_residual_tol = 1.0e-12
+         max_iterations        = 1
+         enable_logging        = FALSE
+      }
+   }
+
+   PoissonHypreSolver {
+      solver_type           = "PFMG"
+      rap_type              = 0
+      relax_type            = 2
+      skip_relax            = 1
+      num_pre_relax_steps   = 2
+      num_post_relax_steps  = 2
       relative_residual_tol = 1.0e-2
       max_iterations        = 100
       enable_logging        = FALSE
    }
 
-   PoissonHypreSolver {
-      solver_type           = "PCG"
-      precond_type          = "PFMG"
-      rap_type              = 0
-      relax_type            = 2
-      skip_relax            = 1
-      num_pre_relax_steps   = 1
-      num_post_relax_steps  = 1
-      relative_residual_tol = 1.0e-2
-      max_iterations        = 100
-      enable_logging        = FALSE
+   PoissonFACSolver {
+      num_pre_sweeps  = 0
+      num_post_sweeps = 3
+      coarse_solver_choice = "hypre"
+      coarse_solver_tolerance = 1.0e-12
+      coarse_solver_max_iterations = 1
+      prolongation_method = "LINEAR_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      hypre_solver {
+         solver_type           = "PFMG"
+         rap_type              = 0
+         relax_type            = 2
+         skip_relax            = 1
+         num_pre_relax_steps   = 0
+         num_post_relax_steps  = 3
+         relative_residual_tol = 1.0e-12
+         max_iterations        = 1
+         enable_logging        = FALSE
+      }
    }
 }
 
@@ -157,8 +193,6 @@ CartesianGeometry {
 }
 
 GriddingAlgorithm {
-   allow_patches_smaller_than_ghostwidth = TRUE
-
    max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level

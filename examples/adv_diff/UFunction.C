@@ -44,23 +44,14 @@
 #define included_SAMRAI_config
 #endif
 
-// SAMRAI INCLUDES
-#include <ArrayData.h>
-#include <Box.h>
-#include <CartesianPatchGeometry.h>
-#include <FaceData.h>
-#include <FaceIndex.h>
-#include <FaceIterator.h>
-#include <Index.h>
-
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 UFunction::UFunction(
     const string& object_name,
-    tbox::Pointer<hier::GridGeometry<NDIM> > grid_geom,
-    tbox::Pointer<tbox::Database> input_db)
+    Pointer<GridGeometry<NDIM> > grid_geom,
+    Pointer<Database> input_db)
     : CartGridFunction(object_name),
       d_object_name(object_name),
       d_grid_geom(grid_geom),
@@ -97,13 +88,13 @@ UFunction::~UFunction()
 void
 UFunction::setDataOnPatch(
     const int data_idx,
-    tbox::Pointer<hier::Variable<NDIM> > /*var*/,
-    tbox::Pointer<hier::Patch<NDIM> > patch,
+    Pointer<Variable<NDIM> > /*var*/,
+    Pointer<Patch<NDIM> > patch,
     const double /*data_time*/,
     const bool /*initial_time*/,
-    tbox::Pointer<hier::PatchLevel<NDIM> > /*level*/)
+    Pointer<PatchLevel<NDIM> > /*level*/)
 {
-    tbox::Pointer< pdat::FaceData<NDIM,double> > u_data = patch->getPatchData(data_idx);
+    Pointer<FaceData<NDIM,double> > u_data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!u_data.isNull());
 #endif
@@ -118,21 +109,21 @@ UFunction::setDataOnPatch(
     }
     else if (d_init_type == "VORTEX")
     {
-        const hier::Box<NDIM>& patch_box = patch->getBox();
-        const hier::Index<NDIM>& patch_lower = patch_box.lower();
-        tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        const Box<NDIM>& patch_box = patch->getBox();
+        const Index<NDIM>& patch_lower = patch_box.lower();
+        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
 
         const double* const XLower = pgeom->getXLower();
         const double* const dx = pgeom->getDx();
 
-        blitz::TinyVector<double,NDIM> X;
+        TinyVector<double,NDIM> X;
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (pdat::FaceIterator<NDIM> it(patch_box,axis); it; it++)
+            for (FaceIterator<NDIM> it(patch_box,axis); it; it++)
             {
-                const pdat::FaceIndex<NDIM>& i = it();
-                const hier::Index<NDIM>& cell_idx = i.toCell(1);
+                const FaceIndex<NDIM>& i = it();
+                const Index<NDIM>& cell_idx = i.toCell(1);
 
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
@@ -180,7 +171,7 @@ UFunction::setDataOnPatch(
 
 void
 UFunction::getFromInput(
-    tbox::Pointer<tbox::Database> db)
+    Pointer<Database> db)
 {
     if (!db.isNull())
     {

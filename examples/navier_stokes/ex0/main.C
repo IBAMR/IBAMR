@@ -83,7 +83,7 @@ main(
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
-    {// cleanup all dynamically allocated objects prior to shutdown
+    {// cleanup dynamically allocated objects prior to shutdown
 
         // Process command line options.
         const string input_filename = argv[1];
@@ -279,7 +279,7 @@ main(
         plog << "Input database:\n";
         input_db->printClassData(plog);
 
-        // Write out initial data.
+        // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
         if (viz_dump_data)
@@ -291,22 +291,6 @@ main(
                 visit_data_writer->writePlotData(patch_hierarchy, loop_time, iteration_num);
             }
         }
-
-        // Count the number of cells in each level of the patch hierarchy.
-        int number_of_cells = 0;
-        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            const BoxArray<NDIM>& level_boxes = level->getBoxes();
-            int number_of_level_cells = 0;
-            for (int k = 0; k < level_boxes.size(); ++k)
-            {
-                number_of_level_cells += level_boxes[k].size();
-            }
-            pout << "level " << ln << " cells = " << number_of_level_cells << "\n";
-            number_of_cells += number_of_level_cells;
-        }
-        pout << "total number of cells = " << number_of_cells << "\n";
 
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
@@ -335,18 +319,6 @@ main(
             // At specified intervals, write visualization and restart files,
             // and print out timer data.
             iteration_num += 1;
-            if (write_timer_data &&
-                (iteration_num%timer_dump_interval == 0 || !time_integrator->stepsRemaining()))
-            {
-                pout << "\nWriting timer data...\n\n";
-                TimerManager::getManager()->print(plog);
-            }
-            if (write_restart &&
-                (iteration_num%restart_interval == 0 || !time_integrator->stepsRemaining()))
-            {
-                pout << "\nWriting restart files...\n\nn";
-                RestartManager::getManager()->writeRestartFile(restart_write_dirname, iteration_num);
-            }
             if (viz_dump_data &&
                 (iteration_num%viz_dump_interval == 0 || !time_integrator->stepsRemaining()))
             {
@@ -357,10 +329,21 @@ main(
                     visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
                 }
             }
+            if (write_restart &&
+                (iteration_num%restart_interval == 0 || !time_integrator->stepsRemaining()))
+            {
+                pout << "\nWriting restart files...\n\nn";
+                RestartManager::getManager()->writeRestartFile(restart_write_dirname, iteration_num);
+            }
+            if (write_timer_data &&
+                (iteration_num%timer_dump_interval == 0 || !time_integrator->stepsRemaining()))
+            {
+                pout << "\nWriting timer data...\n\n";
+                TimerManager::getManager()->print(plog);
+            }
         }
 
         // Determine the accuracy of the computed solution.
-
         pout << "\n"
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
              << "Computing error norms.\n\n";
@@ -426,7 +409,7 @@ main(
             for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
         }
 
-    }// cleanup all smart Pointers prior to shutdown
+    }// cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();
     PetscFinalize();

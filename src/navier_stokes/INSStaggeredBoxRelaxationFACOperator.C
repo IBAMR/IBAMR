@@ -594,11 +594,9 @@ INSStaggeredBoxRelaxationFACOperator::~INSStaggeredBoxRelaxationFACOperator()
 
 void
 INSStaggeredBoxRelaxationFACOperator::setProblemCoefficients(
-    const INSProblemCoefs& problem_coefs,
-    const double dt)
+    const INSProblemCoefs& problem_coefs)
 {
     d_problem_coefs = problem_coefs;
-    d_dt = dt;
     return;
 }// setProblemCoefficients
 
@@ -637,6 +635,7 @@ INSStaggeredBoxRelaxationFACOperator::setTimeInterval(
 {
     d_current_time = current_time;
     d_new_time = new_time;
+    d_dt = d_new_time-d_current_time;
     return;
 }// setTimeInterval
 

@@ -121,15 +121,15 @@ am__objects_1 = libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR2d_a-GodunovAdvector.$(OBJEXT) \
 	libIBAMR2d_a-HierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-INSHierarchyIntegrator.$(OBJEXT) \
+	libIBAMR2d_a-INSIntermediateVelocityBcCoef.$(OBJEXT) \
+	libIBAMR2d_a-INSProjectionBcCoef.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredBlockFactorizationPreconditioner.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredCenteredConvectiveOperator.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredHierarchyIntegrator.$(OBJEXT) \
-	libIBAMR2d_a-INSStaggeredIntermediateVelocityBcCoef.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredPPMConvectiveOperator.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredPhysicalBoundaryHelper.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredPressureBcCoef.$(OBJEXT) \
-	libIBAMR2d_a-INSStaggeredProjectionBcCoef.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredProjectionPreconditioner.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredStokesOperator.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredVCStokesOperator.$(OBJEXT) \
@@ -180,15 +180,15 @@ am__objects_2 = libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR3d_a-GodunovAdvector.$(OBJEXT) \
 	libIBAMR3d_a-HierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-INSHierarchyIntegrator.$(OBJEXT) \
+	libIBAMR3d_a-INSIntermediateVelocityBcCoef.$(OBJEXT) \
+	libIBAMR3d_a-INSProjectionBcCoef.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredBlockFactorizationPreconditioner.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredCenteredConvectiveOperator.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredHierarchyIntegrator.$(OBJEXT) \
-	libIBAMR3d_a-INSStaggeredIntermediateVelocityBcCoef.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredPPMConvectiveOperator.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredPhysicalBoundaryHelper.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredPressureBcCoef.$(OBJEXT) \
-	libIBAMR3d_a-INSStaggeredProjectionBcCoef.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredProjectionPreconditioner.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredStokesOperator.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredVCStokesOperator.$(OBJEXT) \
@@ -603,15 +603,15 @@ pkg_include_HEADERS = $(top_srcdir)/src/utilities/ibamr_enums.h \
 	$(top_srcdir)/src/advect/GodunovAdvector.h \
 	$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.h \
 	$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.h \
+	$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.h \
+	$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.h \
-	$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPhysicalBoundaryHelper.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.h \
-	$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.h \
@@ -651,15 +651,15 @@ $(top_srcdir)/src/advect/AdvectHypPatchOps.C \
 $(top_srcdir)/src/advect/GodunovAdvector.C \
 $(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C \
 $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C \
+$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C \
+$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredPhysicalBoundaryHelper.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVCStokesOperator.C \
@@ -815,16 +815,16 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBTargetPointForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBTargetPointForceSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSHierarchyIntegrator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSIntermediateVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSProblemCoefs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSProjectionBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredBlockFactorizationPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredCenteredConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredHierarchyIntegrator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredIntermediateVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredPPMConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredPhysicalBoundaryHelper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredPressureBcCoef.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredProjectionBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredProjectionPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredStokesOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredVCStokesOperator.Po@am__quote@
@@ -862,16 +862,16 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBTargetPointForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBTargetPointForceSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSHierarchyIntegrator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSIntermediateVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSProblemCoefs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSProjectionBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredBlockFactorizationPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredCenteredConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredHierarchyIntegrator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredIntermediateVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredPPMConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredPhysicalBoundaryHelper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredPressureBcCoef.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredProjectionBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredProjectionPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredStokesOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredVCStokesOperator.Po@am__quote@
@@ -1353,6 +1353,34 @@ libIBAMR2d_a-INSHierarchyIntegrator.obj: $(top_srcdir)/src/navier_stokes/INSHier
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C'; fi`
 
+libIBAMR2d_a-INSIntermediateVelocityBcCoef.o: $(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSIntermediateVelocityBcCoef.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSIntermediateVelocityBcCoef.Tpo -c -o libIBAMR2d_a-INSIntermediateVelocityBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSIntermediateVelocityBcCoef.Tpo $(DEPDIR)/libIBAMR2d_a-INSIntermediateVelocityBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C' object='libIBAMR2d_a-INSIntermediateVelocityBcCoef.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSIntermediateVelocityBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C
+
+libIBAMR2d_a-INSIntermediateVelocityBcCoef.obj: $(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSIntermediateVelocityBcCoef.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSIntermediateVelocityBcCoef.Tpo -c -o libIBAMR2d_a-INSIntermediateVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSIntermediateVelocityBcCoef.Tpo $(DEPDIR)/libIBAMR2d_a-INSIntermediateVelocityBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C' object='libIBAMR2d_a-INSIntermediateVelocityBcCoef.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSIntermediateVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C'; fi`
+
+libIBAMR2d_a-INSProjectionBcCoef.o: $(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSProjectionBcCoef.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSProjectionBcCoef.Tpo -c -o libIBAMR2d_a-INSProjectionBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSProjectionBcCoef.Tpo $(DEPDIR)/libIBAMR2d_a-INSProjectionBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C' object='libIBAMR2d_a-INSProjectionBcCoef.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSProjectionBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C
+
+libIBAMR2d_a-INSProjectionBcCoef.obj: $(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSProjectionBcCoef.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSProjectionBcCoef.Tpo -c -o libIBAMR2d_a-INSProjectionBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSProjectionBcCoef.Tpo $(DEPDIR)/libIBAMR2d_a-INSProjectionBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C' object='libIBAMR2d_a-INSProjectionBcCoef.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSProjectionBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C'; fi`
+
 libIBAMR2d_a-INSStaggeredBlockFactorizationPreconditioner.o: $(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredBlockFactorizationPreconditioner.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredBlockFactorizationPreconditioner.Tpo -c -o libIBAMR2d_a-INSStaggeredBlockFactorizationPreconditioner.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSStaggeredBlockFactorizationPreconditioner.Tpo $(DEPDIR)/libIBAMR2d_a-INSStaggeredBlockFactorizationPreconditioner.Po
@@ -1409,20 +1437,6 @@ libIBAMR2d_a-INSStaggeredHierarchyIntegrator.obj: $(top_srcdir)/src/navier_stoke
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; fi`
 
-libIBAMR2d_a-INSStaggeredIntermediateVelocityBcCoef.o: $(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredIntermediateVelocityBcCoef.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredIntermediateVelocityBcCoef.Tpo -c -o libIBAMR2d_a-INSStaggeredIntermediateVelocityBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSStaggeredIntermediateVelocityBcCoef.Tpo $(DEPDIR)/libIBAMR2d_a-INSStaggeredIntermediateVelocityBcCoef.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C' object='libIBAMR2d_a-INSStaggeredIntermediateVelocityBcCoef.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredIntermediateVelocityBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C
-
-libIBAMR2d_a-INSStaggeredIntermediateVelocityBcCoef.obj: $(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredIntermediateVelocityBcCoef.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredIntermediateVelocityBcCoef.Tpo -c -o libIBAMR2d_a-INSStaggeredIntermediateVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSStaggeredIntermediateVelocityBcCoef.Tpo $(DEPDIR)/libIBAMR2d_a-INSStaggeredIntermediateVelocityBcCoef.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C' object='libIBAMR2d_a-INSStaggeredIntermediateVelocityBcCoef.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredIntermediateVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C'; fi`
-
 libIBAMR2d_a-INSStaggeredPPMConvectiveOperator.o: $(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredPPMConvectiveOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredPPMConvectiveOperator.Tpo -c -o libIBAMR2d_a-INSStaggeredPPMConvectiveOperator.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSStaggeredPPMConvectiveOperator.Tpo $(DEPDIR)/libIBAMR2d_a-INSStaggeredPPMConvectiveOperator.Po
@@ -1464,20 +1478,6 @@ libIBAMR2d_a-INSStaggeredPressureBcCoef.obj: $(top_srcdir)/src/navier_stokes/INS
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C' object='libIBAMR2d_a-INSStaggeredPressureBcCoef.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredPressureBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C'; fi`
-
-libIBAMR2d_a-INSStaggeredProjectionBcCoef.o: $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredProjectionBcCoef.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredProjectionBcCoef.Tpo -c -o libIBAMR2d_a-INSStaggeredProjectionBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSStaggeredProjectionBcCoef.Tpo $(DEPDIR)/libIBAMR2d_a-INSStaggeredProjectionBcCoef.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C' object='libIBAMR2d_a-INSStaggeredProjectionBcCoef.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredProjectionBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C
-
-libIBAMR2d_a-INSStaggeredProjectionBcCoef.obj: $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredProjectionBcCoef.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredProjectionBcCoef.Tpo -c -o libIBAMR2d_a-INSStaggeredProjectionBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSStaggeredProjectionBcCoef.Tpo $(DEPDIR)/libIBAMR2d_a-INSStaggeredProjectionBcCoef.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C' object='libIBAMR2d_a-INSStaggeredProjectionBcCoef.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredProjectionBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C'; fi`
 
 libIBAMR2d_a-INSStaggeredProjectionPreconditioner.o: $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredProjectionPreconditioner.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredProjectionPreconditioner.Tpo -c -o libIBAMR2d_a-INSStaggeredProjectionPreconditioner.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C
@@ -2011,6 +2011,34 @@ libIBAMR3d_a-INSHierarchyIntegrator.obj: $(top_srcdir)/src/navier_stokes/INSHier
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C'; fi`
 
+libIBAMR3d_a-INSIntermediateVelocityBcCoef.o: $(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSIntermediateVelocityBcCoef.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSIntermediateVelocityBcCoef.Tpo -c -o libIBAMR3d_a-INSIntermediateVelocityBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSIntermediateVelocityBcCoef.Tpo $(DEPDIR)/libIBAMR3d_a-INSIntermediateVelocityBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C' object='libIBAMR3d_a-INSIntermediateVelocityBcCoef.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSIntermediateVelocityBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C
+
+libIBAMR3d_a-INSIntermediateVelocityBcCoef.obj: $(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSIntermediateVelocityBcCoef.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSIntermediateVelocityBcCoef.Tpo -c -o libIBAMR3d_a-INSIntermediateVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSIntermediateVelocityBcCoef.Tpo $(DEPDIR)/libIBAMR3d_a-INSIntermediateVelocityBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C' object='libIBAMR3d_a-INSIntermediateVelocityBcCoef.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSIntermediateVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C'; fi`
+
+libIBAMR3d_a-INSProjectionBcCoef.o: $(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSProjectionBcCoef.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSProjectionBcCoef.Tpo -c -o libIBAMR3d_a-INSProjectionBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSProjectionBcCoef.Tpo $(DEPDIR)/libIBAMR3d_a-INSProjectionBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C' object='libIBAMR3d_a-INSProjectionBcCoef.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSProjectionBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C
+
+libIBAMR3d_a-INSProjectionBcCoef.obj: $(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSProjectionBcCoef.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSProjectionBcCoef.Tpo -c -o libIBAMR3d_a-INSProjectionBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSProjectionBcCoef.Tpo $(DEPDIR)/libIBAMR3d_a-INSProjectionBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C' object='libIBAMR3d_a-INSProjectionBcCoef.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSProjectionBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C'; fi`
+
 libIBAMR3d_a-INSStaggeredBlockFactorizationPreconditioner.o: $(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredBlockFactorizationPreconditioner.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredBlockFactorizationPreconditioner.Tpo -c -o libIBAMR3d_a-INSStaggeredBlockFactorizationPreconditioner.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSStaggeredBlockFactorizationPreconditioner.Tpo $(DEPDIR)/libIBAMR3d_a-INSStaggeredBlockFactorizationPreconditioner.Po
@@ -2067,20 +2095,6 @@ libIBAMR3d_a-INSStaggeredHierarchyIntegrator.obj: $(top_srcdir)/src/navier_stoke
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; fi`
 
-libIBAMR3d_a-INSStaggeredIntermediateVelocityBcCoef.o: $(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredIntermediateVelocityBcCoef.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredIntermediateVelocityBcCoef.Tpo -c -o libIBAMR3d_a-INSStaggeredIntermediateVelocityBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSStaggeredIntermediateVelocityBcCoef.Tpo $(DEPDIR)/libIBAMR3d_a-INSStaggeredIntermediateVelocityBcCoef.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C' object='libIBAMR3d_a-INSStaggeredIntermediateVelocityBcCoef.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredIntermediateVelocityBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C
-
-libIBAMR3d_a-INSStaggeredIntermediateVelocityBcCoef.obj: $(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredIntermediateVelocityBcCoef.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredIntermediateVelocityBcCoef.Tpo -c -o libIBAMR3d_a-INSStaggeredIntermediateVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSStaggeredIntermediateVelocityBcCoef.Tpo $(DEPDIR)/libIBAMR3d_a-INSStaggeredIntermediateVelocityBcCoef.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C' object='libIBAMR3d_a-INSStaggeredIntermediateVelocityBcCoef.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredIntermediateVelocityBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredIntermediateVelocityBcCoef.C'; fi`
-
 libIBAMR3d_a-INSStaggeredPPMConvectiveOperator.o: $(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredPPMConvectiveOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredPPMConvectiveOperator.Tpo -c -o libIBAMR3d_a-INSStaggeredPPMConvectiveOperator.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSStaggeredPPMConvectiveOperator.Tpo $(DEPDIR)/libIBAMR3d_a-INSStaggeredPPMConvectiveOperator.Po
@@ -2122,20 +2136,6 @@ libIBAMR3d_a-INSStaggeredPressureBcCoef.obj: $(top_srcdir)/src/navier_stokes/INS
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C' object='libIBAMR3d_a-INSStaggeredPressureBcCoef.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredPressureBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C'; fi`
-
-libIBAMR3d_a-INSStaggeredProjectionBcCoef.o: $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredProjectionBcCoef.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredProjectionBcCoef.Tpo -c -o libIBAMR3d_a-INSStaggeredProjectionBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSStaggeredProjectionBcCoef.Tpo $(DEPDIR)/libIBAMR3d_a-INSStaggeredProjectionBcCoef.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C' object='libIBAMR3d_a-INSStaggeredProjectionBcCoef.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredProjectionBcCoef.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C
-
-libIBAMR3d_a-INSStaggeredProjectionBcCoef.obj: $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredProjectionBcCoef.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredProjectionBcCoef.Tpo -c -o libIBAMR3d_a-INSStaggeredProjectionBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSStaggeredProjectionBcCoef.Tpo $(DEPDIR)/libIBAMR3d_a-INSStaggeredProjectionBcCoef.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C' object='libIBAMR3d_a-INSStaggeredProjectionBcCoef.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredProjectionBcCoef.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionBcCoef.C'; fi`
 
 libIBAMR3d_a-INSStaggeredProjectionPreconditioner.o: $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredProjectionPreconditioner.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredProjectionPreconditioner.Tpo -c -o libIBAMR3d_a-INSStaggeredProjectionPreconditioner.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C

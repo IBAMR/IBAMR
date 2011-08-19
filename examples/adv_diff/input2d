@@ -6,6 +6,7 @@ N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 GodunovAdvector {
+   // intentionally blank
 }
 
 AdvDiffHierarchyIntegrator {
@@ -17,7 +18,7 @@ AdvDiffHierarchyIntegrator {
    end_time              = 0.2      // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000    // max number of simulation timesteps
-   regrid_interval       = 10000    // disable regridding (fixed grid computation)
+   regrid_interval       = 10000    // effectively disable regridding
 
    AdvDiffHypPatchOps {
       compute_init_velocity  = TRUE
@@ -27,7 +28,6 @@ AdvDiffHierarchyIntegrator {
 
       Refinement_data {
          refine_criteria = "QVAL_GRADIENT"
-
          QVAL_GRADIENT {
             grad_tol = 25,25,0.1
          }
@@ -101,8 +101,6 @@ CartesianGeometry {
 }
 
 GriddingAlgorithm {
-   allow_patches_smaller_than_ghostwidth = TRUE
-
    max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level

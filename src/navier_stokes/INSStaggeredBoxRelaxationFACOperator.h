@@ -112,8 +112,7 @@ public:
      */
     void
     setProblemCoefficients(
-        const INSProblemCoefs& problem_coefs,
-        const double dt);
+        const INSProblemCoefs& problem_coefs);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify

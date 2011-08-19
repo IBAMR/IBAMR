@@ -348,7 +348,7 @@ main(
         RestartManager::getManager()->openRestartFile(restart_read_dirname, restore_num, SAMRAI_MPI::getNodes());
     }
 
-    // Create major algorithm and data objects which comprise the application.
+    // Create major algorithm and data objects that comprise the application.
     // These objects are configured from the input database and, if this is a
     // restarted run, from the restart database.
     Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(

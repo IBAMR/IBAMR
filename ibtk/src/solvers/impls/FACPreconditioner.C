@@ -84,6 +84,15 @@ FACPreconditioner::~FACPreconditioner()
     return;
 }// ~FACPreconditioner
 
+void
+FACPreconditioner::setTimeInterval(
+    const double current_time,
+    const double new_time)
+{
+    d_fac_strategy.setTimeInterval(current_time, new_time);
+    return;
+}// setTimeInterval
+
 bool
 FACPreconditioner::solveSystem(
     SAMRAIVectorReal<NDIM,double>& u,

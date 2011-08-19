@@ -1,4 +1,4 @@
-// Filename: INSStaggeredIntermediateVelocityBcCoef.h
+// Filename: INSIntermediateVelocityBcCoef.h
 // Created on 24 Jul 2008 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_INSStaggeredIntermediateVelocityBcCoef
-#define included_INSStaggeredIntermediateVelocityBcCoef
+#ifndef included_INSIntermediateVelocityBcCoef
+#define included_INSIntermediateVelocityBcCoef
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -46,10 +46,10 @@
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredIntermediateVelocityBcCoef is a concrete
+ * \brief Class INSIntermediateVelocityBcCoef is a concrete
  * SAMRAI::solv::RobinBcCoefStrategy that is used to specify boundary conditions
- * for the intermediate velocity solve embedded in a block preconditioner for
- * the staggered grid incompressible Navier-Stokes solver.
+ * for the intermediate velocity solve embedded in a projection method or in a
+ * block preconditioner for the incompressible Navier-Stokes equations.
  *
  * This class interprets pure Dirichlet boundary conditions as prescribed
  * velocity boundary conditions, whereas pure Neumann boundary conditions are
@@ -57,7 +57,7 @@ namespace IBAMR
  * translated into Dirichlet and Neumann boundary conditions, respectively, for
  * the intermediate velocity.
  */
-class INSStaggeredIntermediateVelocityBcCoef
+class INSIntermediateVelocityBcCoef
     : public IBTK::ExtendedRobinBcCoefStrategy
 {
 public:
@@ -71,7 +71,7 @@ public:
      * \note Precisely NDIM boundary condition objects must be provided to the
      * class constructor.
      */
-    INSStaggeredIntermediateVelocityBcCoef(
+    INSIntermediateVelocityBcCoef(
         const int comp_idx,
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
         const bool homogeneous_bc=false);
@@ -79,7 +79,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~INSStaggeredIntermediateVelocityBcCoef();
+    ~INSIntermediateVelocityBcCoef();
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -185,7 +185,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredIntermediateVelocityBcCoef();
+    INSIntermediateVelocityBcCoef();
 
     /*!
      * \brief Copy constructor.
@@ -194,8 +194,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredIntermediateVelocityBcCoef(
-        const INSStaggeredIntermediateVelocityBcCoef& from);
+    INSIntermediateVelocityBcCoef(
+        const INSIntermediateVelocityBcCoef& from);
 
     /*!
      * \brief Assignment operator.
@@ -206,9 +206,9 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredIntermediateVelocityBcCoef&
+    INSIntermediateVelocityBcCoef&
     operator=(
-        const INSStaggeredIntermediateVelocityBcCoef& that);
+        const INSIntermediateVelocityBcCoef& that);
 
     /*
      * Component of the velocity which this boundary condition specification is
@@ -235,8 +235,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/INSStaggeredIntermediateVelocityBcCoef.I>
+//#include <ibamr/INSIntermediateVelocityBcCoef.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSStaggeredIntermediateVelocityBcCoef
+#endif //#ifndef included_INSIntermediateVelocityBcCoef

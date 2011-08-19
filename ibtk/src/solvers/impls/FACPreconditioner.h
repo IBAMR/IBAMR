@@ -92,6 +92,14 @@ public:
     //\{
 
     /*!
+     * \brief Set the current time interval (for a time-dependent solver).
+     */
+    void
+    setTimeInterval(
+        const double current_time,
+        const double new_time);
+
+    /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
      *
      * Before calling solveSystem(), the form of the solution \a x and

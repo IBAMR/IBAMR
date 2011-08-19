@@ -59,6 +59,15 @@ PETScKrylovLinearSolver::getPETScKSP() const
 }// getPETScKSP
 
 inline void
+PETScKrylovLinearSolver::setTimeInterval(
+    const double current_time,
+    const double new_time)
+{
+    if (!d_pc_solver.isNull()) d_pc_solver->setTimeInterval(current_time, new_time);
+    return;
+}// setTimeInterval
+
+inline void
 PETScKrylovLinearSolver::setOperator(
     SAMRAI::tbox::Pointer<LinearOperator> A)
 {
