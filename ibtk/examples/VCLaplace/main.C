@@ -37,6 +37,8 @@
 // Headers for major SAMRAI objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
+#include <GriddingAlgorithm.h>
+#include <HierarchyDataOpsManager.h>
 #include <LoadBalancer.h>
 #include <StandardTagAndInitialize.h>
 
@@ -45,10 +47,6 @@
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/app_namespaces.h>
-
-using namespace SAMRAI;
-using namespace IBTK;
-using namespace std;
 
 /*******************************************************************************
  * For each run, the input filename must be given on the command line.  In all *
@@ -75,11 +73,6 @@ main(
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "vc_laplace.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
-        // Get various standard options set in the input file.
-        const bool dump_viz_data = app_initializer->dumpVizData();
-        const int viz_dump_interval = app_initializer->getVizDumpInterval();
-        const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
-        
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
@@ -102,9 +95,9 @@ main(
         Pointer<SideVariable<NDIM,double> > f_side_var = new SideVariable<NDIM,double>("f_side");
         Pointer<SideVariable<NDIM,double> > e_side_var = new SideVariable<NDIM,double>("e_side");
 
-        const int u_side_idx = var_db->registerVariableAndContext(u_side_var, ctx, IntVector<NDIM>((USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1)));
-        const int f_side_idx = var_db->registerVariableAndContext(f_side_var, ctx, IntVector<NDIM>((USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1)));
-        const int e_side_idx = var_db->registerVariableAndContext(e_side_var, ctx, IntVector<NDIM>((USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1)));
+        const int u_side_idx = var_db->registerVariableAndContext(u_side_var, ctx, IntVector<NDIM>(1));
+        const int f_side_idx = var_db->registerVariableAndContext(f_side_var, ctx, IntVector<NDIM>(1));
+        const int e_side_idx = var_db->registerVariableAndContext(e_side_var, ctx, IntVector<NDIM>(1));
 
         Pointer<CellVariable<NDIM,double> > u_cell_var = new CellVariable<NDIM,double>("u_cell",NDIM);
         Pointer<CellVariable<NDIM,double> > f_cell_var = new CellVariable<NDIM,double>("f_cell",NDIM);
@@ -116,10 +109,11 @@ main(
 
         Pointer<NodeVariable<NDIM,double> > mu_node_var = new NodeVariable<NDIM,double>("mu_node");
 
-        const int mu_node_idx = var_db->registerVariableAndContext(mu_node_var, ctx, IntVector<NDIM>((USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1)));
+        const int mu_node_idx = var_db->registerVariableAndContext(mu_node_var, ctx, IntVector<NDIM>(1));
 
         // Register variables for plotting.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        TBOX_ASSERT(!visit_data_writer.isNull());
 
         visit_data_writer->registerPlotQuantity(u_cell_var->getName(), "VECTOR", u_cell_idx);
         for (unsigned int d = 0; d < NDIM; ++d)

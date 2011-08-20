@@ -44,6 +44,8 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CCLaplaceOperator.h>
+#include <ibtk/CCPoissonFACOperator.h>
+#include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/app_namespaces.h>
 
@@ -69,7 +71,7 @@ main(
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_laplace.log");
+        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_poisson.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
@@ -147,21 +149,43 @@ main(
         muParserCartGridFunction u_fcn("u", app_initializer->getComponentDatabase("u"), grid_geometry);
         muParserCartGridFunction f_fcn("f", app_initializer->getComponentDatabase("f"), grid_geometry);
 
-        u_fcn.setDataOnPatchHierarchy(u_cc_idx, u_cc_var, patch_hierarchy, 0.0);
-        f_fcn.setDataOnPatchHierarchy(e_cc_idx, e_cc_var, patch_hierarchy, 0.0);
+        u_fcn.setDataOnPatchHierarchy(e_cc_idx, e_cc_var, patch_hierarchy, 0.0);
+        f_fcn.setDataOnPatchHierarchy(f_cc_idx, f_cc_var, patch_hierarchy, 0.0);
 
-        // Compute -L*u = f.
+        // Setup the Poisson solver.
         PoissonSpecifications poisson_spec("poisson_spec");
         poisson_spec.setCConstant( 0.0);
         poisson_spec.setDConstant(-1.0);
         RobinBcCoefStrategy<NDIM>* bc_coef = NULL;
-        CCLaplaceOperator laplace_op("laplace op", poisson_spec, bc_coef);
-        laplace_op.initializeOperatorState(u_vec,f_vec);
-        laplace_op.apply(u_vec,f_vec);
+        Pointer<CCLaplaceOperator> laplace_op = new CCLaplaceOperator("laplace op", poisson_spec, bc_coef);
+        PETScKrylovLinearSolver poisson_solver("poisson solver");
+        poisson_solver.setOperator(laplace_op);
+        poisson_solver.setNullspace(true, NULL);
+        if (gridding_algorithm->getMaxLevels() == 1)
+        {
+            Pointer<CCPoissonHypreLevelSolver> poisson_hypre_pc = new CCPoissonHypreLevelSolver(
+                "CCPoissonHypreLevelSolver", app_initializer->getComponentDatabase("HyprePoissonSolver"));
+            poisson_hypre_pc->setPoissonSpecifications(poisson_spec);
+            poisson_solver.setPreconditioner(poisson_hypre_pc);
+        }
+        else
+        {
+            Pointer<CCPoissonFACOperator> poisson_fac_op = new CCPoissonFACOperator(
+                "CCPoissonFACOperator", app_initializer->getComponentDatabase("FACPoissonSolver"));
+            poisson_fac_op->setPoissonSpecifications(poisson_spec);
+            Pointer<FACPreconditioner> poisson_fac_pc = new FACPreconditioner(
+                "FACPreconditioner", poisson_fac_op, app_initializer->getComponentDatabase("FACPoissonSolver"));
+            poisson_solver.setPreconditioner(poisson_fac_pc);
+        }
+        poisson_solver.initializeSolverState(u_vec,f_vec);
+
+        // Solve -L*u = f.
+        u_vec.setToScalar(0.0);
+        poisson_solver.solveSystem(u_vec,f_vec);
 
         // Compute error and print error norms.
         e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&e_vec,false),
-                       Pointer<SAMRAIVectorReal<NDIM,double> >(&f_vec,false));
+                       Pointer<SAMRAIVectorReal<NDIM,double> >(&u_vec,false));
         pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
         pout << "|e|_2  = " << e_vec. L2Norm() << "\n";
         pout << "|e|_1  = " << e_vec. L1Norm() << "\n";

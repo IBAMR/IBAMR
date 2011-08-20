@@ -49,6 +49,7 @@ $(top_srcdir)/src/utilities/compiler_hints.h \
 $(top_srcdir)/src/utilities/efficient_add_or_update.h \
 $(top_srcdir)/src/utilities/ibtk_enums.h \
 $(top_srcdir)/src/utilities/ibtk_utilities.h \
+$(top_srcdir)/src/utilities/app_namespaces.h \
 $(top_srcdir)/src/utilities/namespaces.h
 
 ## Dimension-dependent libraries

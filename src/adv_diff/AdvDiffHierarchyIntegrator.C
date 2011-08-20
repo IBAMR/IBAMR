@@ -607,7 +607,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
             d_helmholtz_fac_ops[l]->setPoissonSpecifications(d_helmholtz_specs[l]);
             d_helmholtz_fac_ops[l]->setPhysicalBcCoefs(d_Q_bc_coef[Q_var]);
             d_helmholtz_fac_pcs[l] = new FACPreconditioner(d_object_name+"::FAC Preconditioner::"+name,
-                                                           *d_helmholtz_fac_ops[l], d_fac_pc_db);
+                                                           d_helmholtz_fac_ops[l], d_fac_pc_db);
         }
 
         d_helmholtz_solvers[l] = new PETScKrylovLinearSolver(d_object_name+"::PETSc Krylov solver::"+name, "adv_diff_");

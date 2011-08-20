@@ -8,7 +8,7 @@ f {
 
 Main {
 // log file parameters
-   log_file_name = "CCLaplaceTester2d.log"
+   log_file_name = "CCPoissonTester2d.log"
    log_all_nodes = FALSE
 
 // visualization dump parameters
@@ -18,6 +18,39 @@ Main {
 
 // timer dump parameters
    timer_enabled = TRUE
+}
+
+HyprePoissonSolver {
+   solver_type           = "PFMG"
+   rap_type              = 0
+   relax_type            = 2
+   skip_relax            = 1
+   num_pre_relax_steps   = 2
+   num_post_relax_steps  = 2
+   relative_residual_tol = 1.0e-2
+   max_iterations        = 100
+   enable_logging        = FALSE
+}
+
+FACPoissonSolver {
+   num_pre_sweeps  = 0
+   num_post_sweeps = 3
+   coarse_solver_choice = "hypre"
+   coarse_solver_tolerance = 1.0e-12
+   coarse_solver_max_iterations = 1
+   prolongation_method = "LINEAR_REFINE"
+   restriction_method  = "CONSERVATIVE_COARSEN"
+   hypre_solver {
+      solver_type           = "PFMG"
+      rap_type              = 0
+      relax_type            = 2
+      skip_relax            = 1
+      num_pre_relax_steps   = 0
+      num_post_relax_steps  = 3
+      relative_residual_tol = 1.0e-12
+      max_iterations        = 1
+      enable_logging        = FALSE
+   }
 }
 
 N = 8

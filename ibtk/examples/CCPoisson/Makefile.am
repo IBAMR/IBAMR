@@ -2,7 +2,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.C PoissonTester.C PoissonTester.h
+SOURCES = main.C
 EXTRA_DIST = README input2d input3d
 
 EXTRA_PROGRAMS =

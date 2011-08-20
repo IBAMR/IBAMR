@@ -48,7 +48,7 @@ namespace IBTK
 
 FACPreconditioner::FACPreconditioner(
     const std::string& object_name,
-    FACPreconditionerStrategy& fac_strategy,
+    Pointer<FACPreconditionerStrategy> fac_strategy,
     tbox::Pointer<tbox::Database> input_db)
     : d_object_name(object_name),
       d_is_initialized(false),
@@ -66,7 +66,7 @@ FACPreconditioner::FACPreconditioner(
     /*
      * Register this class with the FACPreconditionerStrategy object.
      */
-    d_fac_strategy.setFACPreconditioner(Pointer<FACPreconditioner>(this,false));
+    d_fac_strategy->setFACPreconditioner(Pointer<FACPreconditioner>(this,false));
 
     /*
      * Initialize object with data read from input database.
@@ -89,7 +89,7 @@ FACPreconditioner::setTimeInterval(
     const double current_time,
     const double new_time)
 {
-    d_fac_strategy.setTimeInterval(current_time, new_time);
+    d_fac_strategy->setTimeInterval(current_time, new_time);
     return;
 }// setTimeInterval
 
@@ -162,7 +162,7 @@ FACPreconditioner::initializeSolverState(
     TBOX_ASSERT(d_coarsest_ln == rhs.getCoarsestLevelNumber());
     TBOX_ASSERT(d_finest_ln   == rhs.getFinestLevelNumber());
 #endif
-    d_fac_strategy.initializeOperatorState(solution, rhs);
+    d_fac_strategy->initializeOperatorState(solution, rhs);
 
     // Create temporary vectors.
     if (!(d_cycle_type == V_CYCLE && d_num_pre_sweeps == 0))
@@ -200,7 +200,7 @@ FACPreconditioner::deallocateSolverState()
     }
 
     // Deallocate operator state.
-    d_fac_strategy.deallocateOperatorState();
+    d_fac_strategy->deallocateOperatorState();
 
     // Indicate that the operator is NOT initialized.
     d_is_initialized = false;
@@ -238,24 +238,24 @@ FACPreconditioner::FACVCycleNoPreSmoothing(
     if (level_num == d_coarsest_ln)
     {
         // Solve Au = f on the coarsest level.
-        d_fac_strategy.solveCoarsestLevel(u, f, level_num);
+        d_fac_strategy->solveCoarsestLevel(u, f, level_num);
     }
     else
     {
         // Restrict the residual to the next coarser level.
-        d_fac_strategy.restrictResidual(f, f, level_num-1);
+        d_fac_strategy->restrictResidual(f, f, level_num-1);
 
         // Recursively call the FAC algorithm.
         FACVCycleNoPreSmoothing(u, f, level_num-1);
 
         // Prolong the error from the next coarser level and correct the
         // solution on the current level.
-        d_fac_strategy.prolongErrorAndCorrect(u, u, level_num);
+        d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
 
         // Smooth error on the current level.
         if (d_num_post_sweeps > 0)
         {
-            d_fac_strategy.smoothError(u, f, level_num, d_num_post_sweeps, false, true);
+            d_fac_strategy->smoothError(u, f, level_num, d_num_post_sweeps, false, true);
         }
     }
     return;
@@ -270,7 +270,7 @@ FACPreconditioner::FACVCycle(
     if (level_num == d_coarsest_ln)
     {
         // Solve Au = f on the coarsest level.
-        d_fac_strategy.solveCoarsestLevel(u, f, level_num);
+        d_fac_strategy->solveCoarsestLevel(u, f, level_num);
         d_recompute_residual = true;
     }
     else
@@ -278,7 +278,7 @@ FACPreconditioner::FACVCycle(
         // Smooth the error on the current level.
         if (d_num_pre_sweeps > 0)
         {
-            d_fac_strategy.smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
+            d_fac_strategy->smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
             d_recompute_residual = true;
         }
 
@@ -286,12 +286,12 @@ FACPreconditioner::FACVCycle(
         // coarser level, and restrict the residual to the next coarser level.
         if (d_recompute_residual)
         {
-            d_fac_strategy.computeResidual(*d_r, u, f, level_num-1, level_num);
-            d_fac_strategy.restrictResidual(*d_r, f, level_num-1);
+            d_fac_strategy->computeResidual(*d_r, u, f, level_num-1, level_num);
+            d_fac_strategy->restrictResidual(*d_r, f, level_num-1);
         }
         else
         {
-            d_fac_strategy.restrictResidual(f, f, level_num-1);
+            d_fac_strategy->restrictResidual(f, f, level_num-1);
         }
 
         // Recursively call the FAC algorithm.
@@ -299,12 +299,12 @@ FACPreconditioner::FACVCycle(
 
         // Prolong the error from the next coarser level and correct the
         // solution on level.
-        d_fac_strategy.prolongErrorAndCorrect(u, u, level_num);
+        d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
 
         // Smooth error on level.
         if (d_num_post_sweeps > 0)
         {
-            d_fac_strategy.smoothError(u, f, level_num, d_num_post_sweeps, false, true);
+            d_fac_strategy->smoothError(u, f, level_num, d_num_post_sweeps, false, true);
             d_recompute_residual = true;
         }
     }
@@ -320,7 +320,7 @@ FACPreconditioner::FACWCycle(
     if (level_num == d_coarsest_ln)
     {
         // Solve Au = f on the coarsest level.
-        d_fac_strategy.solveCoarsestLevel(u, f, level_num);
+        d_fac_strategy->solveCoarsestLevel(u, f, level_num);
         d_recompute_residual = true;
     }
     else
@@ -328,7 +328,7 @@ FACPreconditioner::FACWCycle(
         // Smooth the error on the current level.
         if (d_num_pre_sweeps > 0)
         {
-            d_fac_strategy.smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
+            d_fac_strategy->smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
             d_recompute_residual = true;
         }
 
@@ -336,12 +336,12 @@ FACPreconditioner::FACWCycle(
         // coarser level, and restrict the residual to the next coarser level.
         if (d_recompute_residual)
         {
-            d_fac_strategy.computeResidual(*d_r, u, f, level_num-1, level_num);
-            d_fac_strategy.restrictResidual(*d_r, f, level_num-1);
+            d_fac_strategy->computeResidual(*d_r, u, f, level_num-1, level_num);
+            d_fac_strategy->restrictResidual(*d_r, f, level_num-1);
         }
         else
         {
-            d_fac_strategy.restrictResidual(f, f, level_num-1);
+            d_fac_strategy->restrictResidual(f, f, level_num-1);
         }
 
         // Recursively call the FAC algorithm.
@@ -350,12 +350,12 @@ FACPreconditioner::FACWCycle(
 
         // Prolong the error from the next coarser level and correct the
         // solution on level.
-        d_fac_strategy.prolongErrorAndCorrect(u, u, level_num);
+        d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
 
         // Smooth error on level.
         if (d_num_post_sweeps > 0)
         {
-            d_fac_strategy.smoothError(u, f, level_num, d_num_post_sweeps, false, true);
+            d_fac_strategy->smoothError(u, f, level_num, d_num_post_sweeps, false, true);
             d_recompute_residual = true;
         }
     }
@@ -371,7 +371,7 @@ FACPreconditioner::FACFCycle(
     if (level_num == d_coarsest_ln)
     {
         // Solve Au = f on the coarsest level.
-        d_fac_strategy.solveCoarsestLevel(u, f, level_num);
+        d_fac_strategy->solveCoarsestLevel(u, f, level_num);
         d_recompute_residual = true;
     }
     else
@@ -379,7 +379,7 @@ FACPreconditioner::FACFCycle(
         // Smooth the error on the current level.
         if (d_num_pre_sweeps > 0)
         {
-            d_fac_strategy.smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
+            d_fac_strategy->smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
             d_recompute_residual = true;
         }
 
@@ -387,12 +387,12 @@ FACPreconditioner::FACFCycle(
         // coarser level, and restrict the residual to the next coarser level.
         if (d_recompute_residual)
         {
-            d_fac_strategy.computeResidual(*d_r, u, f, level_num-1, level_num);
-            d_fac_strategy.restrictResidual(*d_r, f, level_num-1);
+            d_fac_strategy->computeResidual(*d_r, u, f, level_num-1, level_num);
+            d_fac_strategy->restrictResidual(*d_r, f, level_num-1);
         }
         else
         {
-            d_fac_strategy.restrictResidual(f, f, level_num-1);
+            d_fac_strategy->restrictResidual(f, f, level_num-1);
         }
 
         // Recursively call the FAC algorithm.
@@ -401,12 +401,12 @@ FACPreconditioner::FACFCycle(
 
         // Prolong the error from the next coarser level and correct the
         // solution on level.
-        d_fac_strategy.prolongErrorAndCorrect(u, u, level_num);
+        d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
 
         // Smooth error on level.
         if (d_num_post_sweeps > 0)
         {
-            d_fac_strategy.smoothError(u, f, level_num, d_num_post_sweeps, false, true);
+            d_fac_strategy->smoothError(u, f, level_num, d_num_post_sweeps, false, true);
             d_recompute_residual = true;
         }
     }

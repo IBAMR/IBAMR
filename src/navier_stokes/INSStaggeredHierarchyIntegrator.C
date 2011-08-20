@@ -412,7 +412,7 @@ INSStaggeredHierarchyIntegrator::buildVelocitySubdomainSolver()
             }
             d_helmholtz_fac_op = new SCPoissonFACOperator(d_object_name+"::Helmholtz FAC Operator", d_helmholtz_fac_pc_db);
             d_helmholtz_fac_op->setPoissonSpecifications(*d_helmholtz_spec);
-            d_helmholtz_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Helmholtz Preconditioner", *d_helmholtz_fac_op, d_helmholtz_fac_pc_db);
+            d_helmholtz_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Helmholtz Preconditioner", d_helmholtz_fac_op, d_helmholtz_fac_pc_db);
             d_helmholtz_solver->setPreconditioner(d_helmholtz_fac_pc);
         }
         d_helmholtz_solver->setKSPType("preonly");
@@ -474,7 +474,7 @@ INSStaggeredHierarchyIntegrator::buildPressureSubdomainSolver()
             }
             d_poisson_fac_op = new CCPoissonFACOperator(d_object_name+"::Poisson FAC Operator", d_poisson_fac_pc_db);
             d_poisson_fac_op->setPoissonSpecifications(*d_poisson_spec);
-            d_poisson_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Poisson Preconditioner", *d_poisson_fac_op, d_poisson_fac_pc_db);
+            d_poisson_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Poisson Preconditioner", d_poisson_fac_op, d_poisson_fac_pc_db);
             d_poisson_solver->setPreconditioner(d_poisson_fac_pc);
         }
         d_poisson_solver->setKSPType("preonly");
@@ -1493,7 +1493,7 @@ INSStaggeredHierarchyIntegrator::regridProjection()
     regrid_projection_fac_op->setPoissonSpecifications(regrid_projection_spec);
     regrid_projection_fac_op->setPhysicalBcCoef(&Phi_bc_coef);
     regrid_projection_fac_op->setTime(d_integrator_time);
-    Pointer<FACPreconditioner> regrid_projection_fac_pc = new FACPreconditioner(d_object_name+"::Regrid Projection Poisson Preconditioner", *regrid_projection_fac_op, d_regrid_projection_fac_pc_db);
+    Pointer<FACPreconditioner> regrid_projection_fac_pc = new FACPreconditioner(d_object_name+"::Regrid Projection Poisson Preconditioner", regrid_projection_fac_op, d_regrid_projection_fac_pc_db);
 
     PETScKrylovLinearSolver regrid_projection_solver(d_object_name+"::Regrid Projection Poisson Krylov Solver", regrid_projection_prefix);
     regrid_projection_solver.setOperator(regrid_projection_op);

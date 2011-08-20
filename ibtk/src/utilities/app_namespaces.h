@@ -36,15 +36,10 @@
 //////////////////////////////////////////////////////////////////////////////
 
 /*!
- * Defines "using" declarations for all namespaces used in IBAMR and IBTK.  This
- * header file may be included in application codes, but it MUST NOT be included
- * in any other header (.h) or inline (.I) file in the library.
+ * Defines "using" declarations for all namespaces used in IBTK.  This header
+ * file may be included in application codes, but it MUST NOT be included in any
+ * other header (.h) or inline (.I) file in the library.
  */
-namespace IBAMR
-{
-}
-using namespace IBAMR;
-
 namespace IBTK
 {
 }

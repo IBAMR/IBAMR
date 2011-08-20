@@ -78,7 +78,7 @@ public:
      */
     FACPreconditioner(
         const std::string& object_name,
-        FACPreconditionerStrategy& fac_strategy,
+        SAMRAI::tbox::Pointer<FACPreconditionerStrategy> fac_strategy,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
 
     /*!
@@ -400,7 +400,7 @@ private:
 
     std::string d_object_name;
     bool d_is_initialized;
-    FACPreconditionerStrategy& d_fac_strategy;
+    SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln;
     int d_finest_ln;

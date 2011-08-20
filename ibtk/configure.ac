@@ -411,8 +411,8 @@ AC_CONFIG_FILES([
   doc/online_Doxyfile
   examples/Makefile
   examples/CCLaplace/Makefile
+  examples/CCPoisson/Makefile
   examples/PhysBdryOps/Makefile
-  examples/Poisson/Makefile
   examples/SCLaplace/Makefile
   examples/VCLaplace/Makefile
   lib/Makefile

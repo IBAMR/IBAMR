@@ -38,7 +38,7 @@ DIST_COMMON = README $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 EXTRA_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2)
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
 @SAMRAI3D_ENABLED_TRUE@am__append_2 = main3d
-subdir = examples/Poisson
+subdir = examples/CCPoisson
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_blas.m4 \
 	$(top_srcdir)/m4/ax_cxx_have_stl.m4 \
@@ -59,14 +59,14 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 @SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT)
 @SAMRAI3D_ENABLED_TRUE@am__EXEEXT_2 = main3d$(EXEEXT)
-am__objects_1 = main2d-main.$(OBJEXT) main2d-PoissonTester.$(OBJEXT)
+am__objects_1 = main2d-main.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 am__DEPENDENCIES_1 = ${top_builddir}/lib/libIBTK.a
 main2d_DEPENDENCIES = $(IBTK2d_LIBS) $(am__DEPENDENCIES_1)
 main2d_LINK = $(CXXLD) $(main2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am__objects_2 = main3d-main.$(OBJEXT) main3d-PoissonTester.$(OBJEXT)
+am__objects_2 = main3d-main.$(OBJEXT)
 am_main3d_OBJECTS = $(am__objects_2)
 main3d_OBJECTS = $(am_main3d_OBJECTS)
 main3d_DEPENDENCIES = $(IBTK3d_LIBS) $(am__DEPENDENCIES_1)
@@ -81,10 +81,6 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-CCLD = $(CC)
-LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 DIST_SOURCES = $(main2d_SOURCES) $(main3d_SOURCES)
 ETAGS = etags
 CTAGS = ctags
@@ -413,7 +409,7 @@ IBTK2d_LIBS = ${top_builddir}/lib/libIBTK2d.a
 IBTK3d_LIBS = ${top_builddir}/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SOURCES = main.C PoissonTester.C PoissonTester.h
+SOURCES = main.C
 EXTRA_DIST = README input2d input3d
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBTK_LDFLAGS) $(IBTK2d_LIBS) $(IBTK_LIBS)
@@ -434,9 +430,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/Poisson/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/CCPoisson/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign examples/Poisson/Makefile
+	  $(AUTOMAKE) --foreign examples/CCPoisson/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -468,9 +464,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-PoissonTester.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-PoissonTester.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-main.Po@am__quote@
 
 .C.o:
@@ -501,20 +495,6 @@ main2d-main.obj: main.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-main.obj `if test -f 'main.C'; then $(CYGPATH_W) 'main.C'; else $(CYGPATH_W) '$(srcdir)/main.C'; fi`
 
-main2d-PoissonTester.o: PoissonTester.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-PoissonTester.o -MD -MP -MF $(DEPDIR)/main2d-PoissonTester.Tpo -c -o main2d-PoissonTester.o `test -f 'PoissonTester.C' || echo '$(srcdir)/'`PoissonTester.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main2d-PoissonTester.Tpo $(DEPDIR)/main2d-PoissonTester.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='PoissonTester.C' object='main2d-PoissonTester.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-PoissonTester.o `test -f 'PoissonTester.C' || echo '$(srcdir)/'`PoissonTester.C
-
-main2d-PoissonTester.obj: PoissonTester.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-PoissonTester.obj -MD -MP -MF $(DEPDIR)/main2d-PoissonTester.Tpo -c -o main2d-PoissonTester.obj `if test -f 'PoissonTester.C'; then $(CYGPATH_W) 'PoissonTester.C'; else $(CYGPATH_W) '$(srcdir)/PoissonTester.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main2d-PoissonTester.Tpo $(DEPDIR)/main2d-PoissonTester.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='PoissonTester.C' object='main2d-PoissonTester.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-PoissonTester.obj `if test -f 'PoissonTester.C'; then $(CYGPATH_W) 'PoissonTester.C'; else $(CYGPATH_W) '$(srcdir)/PoissonTester.C'; fi`
-
 main3d-main.o: main.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-main.o -MD -MP -MF $(DEPDIR)/main3d-main.Tpo -c -o main3d-main.o `test -f 'main.C' || echo '$(srcdir)/'`main.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main3d-main.Tpo $(DEPDIR)/main3d-main.Po
@@ -528,20 +508,6 @@ main3d-main.obj: main.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='main.C' object='main3d-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-main.obj `if test -f 'main.C'; then $(CYGPATH_W) 'main.C'; else $(CYGPATH_W) '$(srcdir)/main.C'; fi`
-
-main3d-PoissonTester.o: PoissonTester.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-PoissonTester.o -MD -MP -MF $(DEPDIR)/main3d-PoissonTester.Tpo -c -o main3d-PoissonTester.o `test -f 'PoissonTester.C' || echo '$(srcdir)/'`PoissonTester.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main3d-PoissonTester.Tpo $(DEPDIR)/main3d-PoissonTester.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='PoissonTester.C' object='main3d-PoissonTester.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-PoissonTester.o `test -f 'PoissonTester.C' || echo '$(srcdir)/'`PoissonTester.C
-
-main3d-PoissonTester.obj: PoissonTester.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-PoissonTester.obj -MD -MP -MF $(DEPDIR)/main3d-PoissonTester.Tpo -c -o main3d-PoissonTester.obj `if test -f 'PoissonTester.C'; then $(CYGPATH_W) 'PoissonTester.C'; else $(CYGPATH_W) '$(srcdir)/PoissonTester.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main3d-PoissonTester.Tpo $(DEPDIR)/main3d-PoissonTester.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='PoissonTester.C' object='main3d-PoissonTester.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-PoissonTester.obj `if test -f 'PoissonTester.C'; then $(CYGPATH_W) 'PoissonTester.C'; else $(CYGPATH_W) '$(srcdir)/PoissonTester.C'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

@@ -3,7 +3,7 @@ MU  = 1.2e-3     // corresponds to Re=210
 RHO = 3.0e-4
 V0  = 280.0
 G   = 980.0
-CFL = 0.01
+CFL = 0.05
 
 // grid spacing parameters
 MAX_LEVELS = 3   // maximum number of levels in locally refined grid

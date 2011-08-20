@@ -311,9 +311,7 @@ output_data(
     plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
     plog << "simulation time is " << loop_time << endl;
 
-    /*
-     * Write Cartesian data.
-     */
+    // Write Cartesian data.
     string file_name = data_dump_dirname + "/" + "hier_data.";
     char temp_buf[128];
     sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
@@ -329,9 +327,7 @@ output_data(
     hier_db->putInteger("iteration_num", iteration_num);
     hier_db->close();
 
-    /*
-     * Write Lagrangian data.
-     */
+    // Write Lagrangian data.
     const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
     Pointer<LData> X_data = l_data_manager->getLData("X", finest_hier_level);
     Vec X_petsc_vec = X_data->getVec();

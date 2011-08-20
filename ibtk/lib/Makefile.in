@@ -979,6 +979,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/utilities/efficient_add_or_update.h \
 	$(top_srcdir)/src/utilities/ibtk_enums.h \
 	$(top_srcdir)/src/utilities/ibtk_utilities.h \
+	$(top_srcdir)/src/utilities/app_namespaces.h \
 	$(top_srcdir)/src/utilities/namespaces.h \
 	$(top_srcdir)/src/boundary/HierarchyGhostCellInterpolation.h \
 	$(top_srcdir)/src/boundary/cf_interface/CartCellDoubleQuadraticCFInterpolation.h \

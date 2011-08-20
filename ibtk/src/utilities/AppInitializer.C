@@ -67,9 +67,9 @@ AppInitializer::AppInitializer(
     if (argc == 1)
     {
         TBOX_ERROR("USAGE: " << argv[0] << " <input filename> <restart dir> <restore number> [options]\n" <<
-                   "OPTIONS: PETSc command line options; use -help for more information.\n");        
+                   "OPTIONS: PETSc command line options; use -help for more information.\n");
     }
-    
+
     // Process command line options.
     const std::string input_filename = argv[1];
     std::string restart_read_dirname;
@@ -90,7 +90,7 @@ AppInitializer::AppInitializer(
             fclose(fstream);
         }
     }
-    
+
     // Process restart data if this is a restarted run.
     if (d_is_from_restart)
     {
@@ -100,14 +100,14 @@ AppInitializer::AppInitializer(
     // Create input database and parse all data in input file.
     d_input_db = new InputDatabase("input_db");
     InputManager::getManager()->parseInputFile(input_filename, d_input_db);
-    
+
     // Process "Main" section of the input database.
     Pointer<Database> main_db = new NullDatabase();
     if (d_input_db->isDatabase("Main"))
     {
         main_db = d_input_db->getDatabase("Main");
     }
-    
+
     // Configure logging options.
     const std::string log_file_name = main_db->getStringWithDefault("log_file_name", default_log_file_name);
     const bool log_all_nodes = main_db->getBoolWithDefault("log_all_nodes", false);
@@ -122,7 +122,7 @@ AppInitializer::AppInitializer(
             PIO::logOnlyNodeZero(log_file_name);
         }
     }
-    
+
     // Configure visualization options.
     if (main_db->keyExists("viz_interval"))
     {
@@ -181,31 +181,54 @@ AppInitializer::AppInitializer(
             }
         }
     }
-    
-    if (d_viz_dump_interval > 0)
+
+    Array<std::string> viz_writers_arr;
+    if (main_db->keyExists("viz_writer"))
     {
-        Array<std::string> viz_writers_arr;
-        if (main_db->keyExists("viz_writer"))
-        {
-            viz_writers_arr = main_db->getStringArray("viz_writer");
-        }
-        else if (main_db->keyExists("viz_writers"))
-        {
-            viz_writers_arr = main_db->getStringArray("viz_writers");
-        }
+        viz_writers_arr = main_db->getStringArray("viz_writer");
+    }
+    else if (main_db->keyExists("viz_writers"))
+    {
+        viz_writers_arr = main_db->getStringArray("viz_writers");
+    }
+    if (viz_writers_arr.size() > 0)
+    {
         d_viz_writers = std::vector<std::string>(viz_writers_arr.getPointer(),
                                                  viz_writers_arr.getPointer()+viz_writers_arr.size());
-        for (unsigned int i = 0; i < d_viz_writers.size(); i++)
+    }
+    if (d_viz_dump_interval == 0 && d_viz_writers.size() > 0)
+    {
+        if (main_db->keyExists("viz_dirname"))
         {
-            if (d_viz_writers[i] == "VisIt")
+            d_viz_dump_dirname = main_db->getString("viz_dirname");
+            if (d_viz_dump_dirname.empty())
             {
-                const int visit_number_procs_per_file = main_db->getIntegerWithDefault("visit_number_procs_per_file", 1);
-                d_visit_data_writer = new VisItDataWriter<NDIM>("VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
-                d_silo_data_writer = new LSiloDataWriter("LSiloDataWriter", d_viz_dump_dirname);
+                pout << "WARNING: AppInitializer::AppInitializer(): `viz_writers' is set, but `viz_dirname' is empty\n";
             }
         }
+        else if (main_db->keyExists("viz_dump_dirname"))
+        {
+            d_viz_dump_dirname = main_db->getString("viz_dump_dirname");
+            if (d_viz_dump_dirname.empty())
+            {
+                pout << "WARNING: AppInitializer::AppInitializer(): `viz_writers' is set, but `viz_dump_dirname' is empty\n";
+            }
+        }
+        else
+        {
+            pout << "WARNING: AppInitializer::AppInitializer(): `viz_writers' is set, but key `viz_dump_dirname' not specifed in input file\n";
+        }
     }
-    
+    for (unsigned int i = 0; i < d_viz_writers.size(); i++)
+    {
+        if (d_viz_writers[i] == "VisIt")
+        {
+            const int visit_number_procs_per_file = main_db->getIntegerWithDefault("visit_number_procs_per_file", 1);
+            d_visit_data_writer = new VisItDataWriter<NDIM>("VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
+            d_silo_data_writer = new LSiloDataWriter("LSiloDataWriter", d_viz_dump_dirname);
+        }
+    }
+
     // Configure restart options.
     if (main_db->keyExists("restart_interval"))
     {
@@ -264,7 +287,7 @@ AppInitializer::AppInitializer(
             }
         }
     }
-    
+
     // Configure post-processing data output options.
     if (main_db->keyExists("data_interval"))
     {
@@ -323,7 +346,7 @@ AppInitializer::AppInitializer(
             }
         }
     }
-    
+
     // Configure timer options.
     if (main_db->keyExists("timer_interval"))
     {
@@ -337,7 +360,7 @@ AppInitializer::AppInitializer(
     {
         d_timer_dump_interval = main_db->getIntegerWithDefault("timer_dump_interval", 0);
     }
-    
+
     if (d_timer_dump_interval > 0)
     {
         Pointer<Database> timer_manager_db = new NullDatabase();
