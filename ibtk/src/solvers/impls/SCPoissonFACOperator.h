@@ -112,7 +112,7 @@ public:
      */
     SCPoissonFACOperator(
         const std::string& object_name,
-        const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db=NULL);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
 
     /*!
      * \brief Destructor.
@@ -152,7 +152,7 @@ public:
      */
     void
     setTime(
-        const double time);
+        double time);
 
     //\}
 
@@ -183,8 +183,8 @@ public:
      */
     void
     setResetLevels(
-        const int coarsest_ln,
-        const int finest_ln);
+        int coarsest_ln,
+        int finest_ln);
 
     /*!
      * \brief Specify the ghost cell width for \em both the solution and the
@@ -451,9 +451,9 @@ private:
      */
     void
     xeqScheduleProlongation(
-        const int dst_idx,
-        const int src_idx,
-        const int dst_ln);
+        int dst_idx,
+        int src_idx,
+        int dst_ln);
 
     /*!
      * \brief Execute schedule for restricting solution or residual to the
@@ -461,25 +461,25 @@ private:
      */
     void
     xeqScheduleRestriction(
-        const int dst_idx,
-        const int src_idx,
-        const int dst_ln);
+        int dst_idx,
+        int src_idx,
+        int dst_ln);
 
     /*!
      * \brief Execute schedule for filling ghosts on the specified level.
      */
     void
     xeqScheduleGhostFillNoCoarse(
-        const int dst_idx,
-        const int dst_ln);
+        int dst_idx,
+        int dst_ln);
 
     /*!
      * \brief Execute schedule for synchronizing data on the specified level.
      */
     void
     xeqScheduleSideDataSynch(
-        const int dst_idx,
-        const int dst_ln);
+        int dst_idx,
+        int dst_ln);
 
     //\}
 
@@ -503,8 +503,8 @@ private:
     buildPatchLaplaceOperator(
         Mat& A,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
-        const int component_axis,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        int component_axis,
         const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
 
     /*!

@@ -59,15 +59,15 @@ public:
      * \brief Constructor
      */
     CopyToRootSchedule(
-        const int root_proc,
+        int root_proc,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-        const int src_patch_data_idx);
+        int src_patch_data_idx);
 
     /*!
      * \brief Constructor
      */
     CopyToRootSchedule(
-        const int root_proc,
+        int root_proc,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
         const std::vector<int>& src_patch_data_idxs);
 

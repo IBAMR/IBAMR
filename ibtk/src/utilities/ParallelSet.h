@@ -96,7 +96,7 @@ public:
      */
     void
     addItem(
-        const int key);
+        int key);
 
     /*!
      * \brief Remove an item from the set.
@@ -111,7 +111,7 @@ public:
      */
     void
     removeItem(
-        const int key);
+        int key);
 
     /*!
      * \brief Communicate data to (re-)initialize the set.

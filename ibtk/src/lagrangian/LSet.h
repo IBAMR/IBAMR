@@ -292,14 +292,14 @@ public:
      */
     void
     putToDatabase(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& database);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database);
 
     /*!
      * \brief Unpack data from a database.
      */
     void
     getFromDatabase(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& database);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database);
 
 private:
     /*!

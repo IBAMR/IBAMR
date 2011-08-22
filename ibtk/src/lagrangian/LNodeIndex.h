@@ -61,9 +61,9 @@ public:
      * \brief Default constructor.
      */
     LNodeIndex(
-        const int lagrangian_nidx=-1,
-        const int global_petsc_nidx=-1,
-        const int local_petsc_nidx=-1,
+        int lagrangian_nidx=-1,
+        int global_petsc_nidx=-1,
+        int local_petsc_nidx=-1,
         const SAMRAI::hier::IntVector<NDIM>& periodic_offset=SAMRAI::hier::IntVector<NDIM>(0),
         const blitz::TinyVector<double,NDIM>& periodic_displacement=0.0);
 
@@ -110,7 +110,7 @@ public:
      */
     void
     setLagrangianIndex(
-        const int lagrangian_nidx);
+        int lagrangian_nidx);
 
     /*!
      * \return The global PETSc index referenced by this LNodeIndex object.
@@ -123,7 +123,7 @@ public:
      */
     void
     setGlobalPETScIndex(
-        const int global_petsc_nidx);
+        int global_petsc_nidx);
 
     /*!
      * \return The local PETSc index referenced by this LNodeIndex object.
@@ -136,7 +136,7 @@ public:
      */
     void
     setLocalPETScIndex(
-        const int local_petsc_nidx);
+        int local_petsc_nidx);
 
     /*!
      * \brief Indicate that the LNodeIndex object has been shifted across a
@@ -215,7 +215,7 @@ private:
  */
 class LNodeIndexPosnComp
     : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
-      std::binary_function<const LNodeIndex* const,const LNodeIndex* const,bool>
+      std::binary_function<const LNodeIndex*,const LNodeIndex*,bool>
 {
 public:
     LNodeIndexPosnComp(
@@ -283,7 +283,7 @@ private:
  */
 struct LNodeIndexLagrangianIndexComp
     : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
-      std::binary_function<const LNodeIndex* const,const LNodeIndex* const,bool>
+      std::binary_function<const LNodeIndex*,const LNodeIndex*,bool>
 {
     inline bool
     operator()(
@@ -312,7 +312,7 @@ struct LNodeIndexLagrangianIndexComp
  */
 struct LNodeIndexGlobalPETScIndexComp
     : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
-      std::binary_function<const LNodeIndex* const,const LNodeIndex* const,bool>
+      std::binary_function<const LNodeIndex*,const LNodeIndex*,bool>
 {
     inline bool
     operator()(
@@ -341,7 +341,7 @@ struct LNodeIndexGlobalPETScIndexComp
  */
 struct LNodeIndexLocalPETScIndexComp
     : std::binary_function<const LNodeIndex&,const LNodeIndex&,bool>,
-      std::binary_function<const LNodeIndex* const,const LNodeIndex* const,bool>
+      std::binary_function<const LNodeIndex*,const LNodeIndex*,bool>
 {
     inline bool
     operator()(

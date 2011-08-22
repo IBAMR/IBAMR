@@ -929,7 +929,7 @@ CCDivGradHypreLevelSolver::solveSystem(
 void
 CCDivGradHypreLevelSolver::copyToHypre(
     HYPRE_StructVector vector,
-    const Pointer<CellData<NDIM,double> >& src_data,
+    const Pointer<CellData<NDIM,double> > src_data,
     const Box<NDIM>& box,
     const IntVector<NDIM>& chkbrd_mode_id)
 {
@@ -948,7 +948,7 @@ CCDivGradHypreLevelSolver::copyToHypre(
 
 void
 CCDivGradHypreLevelSolver::copyFromHypre(
-    Pointer<CellData<NDIM,double> >& dst_data,
+    Pointer<CellData<NDIM,double> > dst_data,
     HYPRE_StructVector vector,
     const Box<NDIM>& box,
     const IntVector<NDIM>& chkbrd_mode_id)
@@ -1041,10 +1041,5 @@ CCDivGradHypreLevelSolver::deallocateHypreData()
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 }// namespace IBTK
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::CCDivGradHypreLevelSolver>;
 
 //////////////////////////////////////////////////////////////////////////////

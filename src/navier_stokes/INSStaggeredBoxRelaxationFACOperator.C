@@ -451,7 +451,7 @@ copyFromVec(
 
 INSStaggeredBoxRelaxationFACOperator::INSStaggeredBoxRelaxationFACOperator(
     const std::string& object_name,
-    const Pointer<Database>& input_db)
+    const Pointer<Database> input_db)
     : d_object_name(object_name),
       d_is_initialized(false),
       d_solution(NULL),
@@ -1830,10 +1830,5 @@ INSStaggeredBoxRelaxationFACOperator::sanityCheck()
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBTK
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBAMR::INSStaggeredBoxRelaxationFACOperator>;
 
 //////////////////////////////////////////////////////////////////////////////

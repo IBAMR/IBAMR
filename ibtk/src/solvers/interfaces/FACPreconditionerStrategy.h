@@ -92,8 +92,8 @@ public:
      */
     virtual void
     setTimeInterval(
-        const double current_time,
-        const double new_time);
+        double current_time,
+        double new_time);
 
     /*!
      * \brief Restrict the residual from the source vector to the destination

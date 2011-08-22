@@ -1,5 +1,5 @@
-// Filename: IBAnchorPointSpecFactory.C
-// Created on 18 Aug 2008 by Boyce Griffith
+// Filename: ConvectiveOperator.C
+// Created on 21 Aug 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "IBAnchorPointSpecFactory.h"
+#include "ConvectiveOperator.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -45,11 +45,7 @@
 #endif
 
 // IBAMR INCLUDES
-#include <ibamr/IBAnchorPointSpec.h>
 #include <ibamr/namespaces.h>
-
-// IBTK INCLUDES
-#include <ibtk/StreamableManager.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -57,55 +53,71 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-int IBAnchorPointSpecFactory::s_class_id = -1;
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBAnchorPointSpecFactory::IBAnchorPointSpecFactory()
-{
-    setStreamableClassID(StreamableManager::getUnregisteredID());
-    return;
-}// IBAnchorPointSpecFactory
-
-IBAnchorPointSpecFactory::~IBAnchorPointSpecFactory()
+ConvectiveOperator::ConvectiveOperator(
+    const ConvectiveDifferencingType difference_form)
+    : d_difference_form(difference_form),
+      d_u_idx(-1)
 {
     // intentionally blank
     return;
-}// ~IBAnchorPointSpecFactory
+}// ConvectiveOperator
 
-int
-IBAnchorPointSpecFactory::getStreamableClassID() const
+ConvectiveOperator::~ConvectiveOperator()
 {
-    return s_class_id;
-}// getStreamableClassID
+    deallocateOperatorState();
+    return;
+}// ~ConvectiveOperator
 
 void
-IBAnchorPointSpecFactory::setStreamableClassID(
-    const int class_id)
+ConvectiveOperator::setAdvectionVelocity(
+    const int u_idx)
 {
-    s_class_id = class_id;
+    d_u_idx = u_idx;
     return;
-}// setStreamableClassID
+}// setAdvectionVelocity
 
-Pointer<Streamable>
-IBAnchorPointSpecFactory::unpackStream(
-    AbstractStream& stream,
-    const IntVector<NDIM>& /*offset*/)
+int
+ConvectiveOperator::getAdvectionVelocity() const
 {
-    Pointer<IBAnchorPointSpec> ret_val;
-    stream.unpack(&ret_val->d_node_idx,1);
-#if ENABLE_SUBDOMAIN_INDICES
-    stream.unpack(&ret_val->d_subdomain_idx,1);
-#endif
-    return ret_val;
-}// unpackStream
+    return d_u_idx;
+}// getAdvectionVelocity
+
+void
+ConvectiveOperator::setConvectiveDifferencingType(
+    const ConvectiveDifferencingType difference_form)
+{
+    d_difference_form = difference_form;
+    return;
+}// setConvectiveDifferencingType
+
+ConvectiveDifferencingType
+ConvectiveOperator::getConvectiveDifferencingType() const
+{
+    return d_difference_form;
+}// getConvectiveDifferencingType
+
+void
+ConvectiveOperator::apply(
+    SAMRAIVectorReal<NDIM,double>& x,
+    SAMRAIVectorReal<NDIM,double>& y)
+{
+    // Get the vector components.
+    const int Q_idx = x.getComponentDescriptorIndex(0);
+    const int N_idx = y.getComponentDescriptorIndex(0);
+
+    // Compute the action of the operator.
+    applyConvectiveOperator(Q_idx, N_idx);
+    return;
+}// apply
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
-/////////////////////////////// NAMESPACE ////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 
-} // namespace IBAMR
+}// namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

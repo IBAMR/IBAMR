@@ -202,9 +202,9 @@ public:
      */
     void
     preprocessIntegrateHierarchy(
-        const double current_time,
-        const double new_time,
-        const int num_cycles=1);
+        double current_time,
+        double new_time,
+        int num_cycles=1);
 
     /*!
      * Synchronously advance each level in the hierarchy over the given time
@@ -212,19 +212,19 @@ public:
      */
     void
     integrateHierarchy(
-        const double current_time,
-        const double new_time,
-        const int cycle_num=0);
+        double current_time,
+        double new_time,
+        int cycle_num=0);
 
     /*!
      * Clean up data following call(s) to integrateHierarchy().
      */
     void
     postprocessIntegrateHierarchy(
-        const double current_time,
-        const double new_time,
-        const bool skip_synchronize_new_state_data,
-        const int num_cycles=1);
+        double current_time,
+        double new_time,
+        bool skip_synchronize_new_state_data,
+        int num_cycles=1);
 
     /*!
      * Regrid the hierarchy.
@@ -252,22 +252,22 @@ protected:
      */
     void
     initializeLevelDataSpecialized(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-        const bool allocate_data);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
+        bool allocate_data);
 
     /*!
      * Reset cached hierarchy dependent data.
      */
     void
     resetHierarchyConfigurationSpecialized(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int coarsest_level,
-        const int finest_level);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int coarsest_level,
+        int finest_level);
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -275,12 +275,12 @@ protected:
      */
     void
     applyGradientDetectorSpecialized(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double error_data_time,
-        const int tag_index,
-        const bool initial_time,
-        const bool uses_richardson_extrapolation_too);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double error_data_time,
+        int tag_index,
+        bool initial_time,
+        bool uses_richardson_extrapolation_too);
 
     /*!
      * Write out specialized object state to the given database.
@@ -326,8 +326,8 @@ private:
      */
     void
     resetLagrangianForceFunction(
-        const double init_data_time,
-        const bool initial_time);
+        double init_data_time,
+        bool initial_time);
 
     /*!
      * Initialize the IBLagrangianSourceStrategy object for the current
@@ -335,8 +335,8 @@ private:
      */
     void
     resetLagrangianSourceFunction(
-        const double init_data_time,
-        const bool initial_time);
+        double init_data_time,
+        bool initial_time);
 
     /*!
      * Initialize the IBPostProcessStrategy object for the current configuration
@@ -344,8 +344,8 @@ private:
      */
     void
     resetPostProcessor(
-        const double init_data_time,
-        const bool initial_time);
+        double init_data_time,
+        bool initial_time);
 
     /*!
      * Compute the flow rates and pressures in the internal flow meters and
@@ -353,8 +353,8 @@ private:
      */
     void
     updateIBInstrumentationData(
-        const int timestep_num,
-        const double data_time);
+        int timestep_num,
+        double data_time);
 
     /*!
      * Set the elements of the Lagrangian vector to zero at anchored nodes of
@@ -363,8 +363,8 @@ private:
     void
     resetAnchorPointValues(
         std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > V_data,
-        const int coarsest_ln,
-        const int finest_ln);
+        int coarsest_ln,
+        int finest_ln);
 
     /*!
      * Set the values of the distributed internal sources/sinks on the Cartesian
@@ -376,9 +376,9 @@ private:
      */
     void
     computeSourceStrengths(
-        const int coarsest_level,
-        const int finest_level,
-        const double data_time,
+        int coarsest_level,
+        int finest_level,
+        double data_time,
         const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data);
 
     /*!
@@ -390,9 +390,9 @@ private:
      */
     void
     computeSourcePressures(
-        const int coarsest_level,
-        const int finest_level,
-        const double data_time,
+        int coarsest_level,
+        int finest_level,
+        double data_time,
         const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data);
 
     /*!
@@ -506,8 +506,8 @@ private:
     /*
      * Hierarchy operations objects.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > d_hier_velocity_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_pressure_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM,double> > d_hier_velocity_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_pressure_cc_data_ops;
 
     /*
      * Eulerian variables.

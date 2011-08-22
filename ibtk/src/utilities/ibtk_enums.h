@@ -59,7 +59,7 @@ string_to_enum(
 template<typename T>
 inline std::string
 enum_to_string(
-    const T& val)
+    T val)
 {
     TBOX_ERROR("UNSUPPORTED ENUM TYPE\n");
     return "UNKNOWN";
@@ -93,7 +93,7 @@ string_to_enum<MGCycleType>(
 template<>
 inline std::string
 enum_to_string<MGCycleType>(
-    const MGCycleType& val)
+    MGCycleType val)
 {
     if (val == V_CYCLE) return "V_CYCLE";
     if (val == W_CYCLE) return "W_CYCLE";

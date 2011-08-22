@@ -164,7 +164,7 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
-    const ConvectiveDifferencingType& difference_form)
+    const ConvectiveDifferencingType difference_form)
     : d_is_initialized(false),
       d_difference_form(difference_form),
       d_refine_alg(NULL),
@@ -461,10 +461,5 @@ INSStaggeredCenteredConvectiveOperator::enableLogging(
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBAMR
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBAMR::INSStaggeredCenteredConvectiveOperator>;
 
 //////////////////////////////////////////////////////////////////////////////

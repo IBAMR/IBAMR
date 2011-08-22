@@ -69,68 +69,10 @@ JacobianOperator::~JacobianOperator()
     return;
 }// ~JacobianOperator()
 
-void
-JacobianOperator::modifyRhsForInhomogeneousBc(
-    SAMRAIVectorReal<NDIM,double>& /*y*/)
-{
-    // intentionally blank
-    return;
-}// modifyRhsForInhomogeneousBc
-
-void
-JacobianOperator::applyAdd(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y,
-    SAMRAIVectorReal<NDIM,double>& z)
-{
-    LinearOperator::applyAdd(x,y,z);
-    return;
-}// applyAdd
-
-void
-JacobianOperator::applyAdjoint(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y)
-{
-    LinearOperator::applyAdjoint(x,y);
-    return;
-}// applyAdjoint
-
-void
-JacobianOperator::applyAdjointAdd(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y,
-    SAMRAIVectorReal<NDIM,double>& z)
-{
-    LinearOperator::applyAdjointAdd(x,y,z);
-    return;
-}// applyAdjointAdd
-
-void
-JacobianOperator::initializeOperatorState(
-    const SAMRAIVectorReal<NDIM,double>& in,
-    const SAMRAIVectorReal<NDIM,double>& out)
-{
-    LinearOperator::initializeOperatorState(in,out);
-    return;
-}// initializeOperatorState
-
-void
-JacobianOperator::deallocateOperatorState()
-{
-    LinearOperator::deallocateOperatorState();
-    return;
-}// deallocateOperatorState
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBTK
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::JacobianOperator>;
 
 //////////////////////////////////////////////////////////////////////////////

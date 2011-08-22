@@ -212,7 +212,7 @@ StreamableManager::packStream(
 {
     const int num_data = data_items.size();;
     stream.pack(&num_data,1);
-    for_each(data_items.begin(),data_items.end(),StreamablePackStream(&stream));
+    for_each(&data_items[0],&data_items[0]+data_items.size(),StreamablePackStream(&stream));
     return;
 }// packStream
 
@@ -256,7 +256,5 @@ StreamableManager::createUniqueID()
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 } // namespace IBTK
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

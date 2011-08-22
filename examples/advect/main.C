@@ -120,16 +120,16 @@ main(
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
-            "PatchHierarchy", grid_geometry);
         Pointer<GodunovAdvector> advector = new GodunovAdvector(
             "GodunovAdvector", app_initializer->getComponentDatabase("GodunovAdvector"));
         Pointer<AdvectHypPatchOps> hyp_patch_ops = new AdvectHypPatchOps(
             "AdvectHypPatchOps", app_initializer->getComponentDatabase("AdvectHypPatchOps"), advector, grid_geometry);
         Pointer<HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator = new HyperbolicLevelIntegrator<NDIM>(
             "HyperbolicLevelIntegrator", app_initializer->getComponentDatabase("HyperbolicLevelIntegrator"), hyp_patch_ops, true, using_refined_timestepping);
+        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
+            "PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
             "StandardTagAndInitialize", hyp_level_integrator, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
@@ -275,7 +275,7 @@ main(
         {
             visit_data_writer->writePlotData(patch_hierarchy, iteration_num+1, loop_time);
         }
-        
+
     }// cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();

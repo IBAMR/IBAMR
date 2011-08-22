@@ -108,13 +108,13 @@ public:
      * \brief Default constructor.
      */
     IBBeamForceSpec(
-        const unsigned int num_beams=0);
+        unsigned int num_beams=0);
 
     /*!
      * \brief Alternative constructor.
      */
     IBBeamForceSpec(
-        const int master_idx,
+        int master_idx,
         const std::vector<NeighborIdxs>& neighbor_idxs,
         const std::vector<double>& bend_rigidities,
         const std::vector<blitz::TinyVector<double,NDIM> >& mesh_dependent_curvatures

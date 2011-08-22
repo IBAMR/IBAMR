@@ -74,7 +74,7 @@ public:
      */
     virtual void
     setTargetPatchDataIndex(
-        const int target_idx) = 0;
+        int target_idx) = 0;
 
     /*!
      * \brief Set whether the class is filling homogeneous or inhomogeneous
@@ -82,7 +82,7 @@ public:
      */
     virtual void
     setHomogeneousBc(
-        const bool homogeneous_bc) = 0;
+        bool homogeneous_bc) = 0;
 
     //\}
 

@@ -355,18 +355,18 @@ private:
     setupHypreSolver();
     bool
     solveSystem(
-        const int x_idx,
-        const int b_idx,
+        int x_idx,
+        int b_idx,
         const SAMRAI::hier::IntVector<NDIM>& chkbrd_mode_id);
     void
     copyToHypre(
         HYPRE_StructVector vector,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> >& src_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > src_data,
         const SAMRAI::hier::Box<NDIM>& box,
         const SAMRAI::hier::IntVector<NDIM>& chkbrd_mode_id);
     void
     copyFromHypre(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> >& dst_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > dst_data,
         HYPRE_StructVector vector,
         const SAMRAI::hier::Box<NDIM>& box,
         const SAMRAI::hier::IntVector<NDIM>& chkbrd_mode_id);

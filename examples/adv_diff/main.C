@@ -95,14 +95,14 @@ main(
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
+        Pointer<AdvDiffHierarchyIntegrator> time_integrator = new AdvDiffHierarchyIntegrator(
+            "AdvDiffHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffHierarchyIntegrator"), predictor);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
             "PatchHierarchy", grid_geometry);
         Pointer<GodunovAdvector> predictor = new GodunovAdvector(
             "GodunovAdvector", app_initializer->getComponentDatabase("GodunovAdvector"));
-        Pointer<AdvDiffHierarchyIntegrator> time_integrator = new AdvDiffHierarchyIntegrator(
-            "AdvDiffHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffHierarchyIntegrator"), predictor);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
             "StandardTagAndInitialize", time_integrator, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
@@ -112,7 +112,7 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Setup the advection velocity.
-        Pointer< FaceVariable<NDIM,double> > u_var = new FaceVariable<NDIM,double>("u");
+        Pointer<FaceVariable<NDIM,double> > u_var = new FaceVariable<NDIM,double>("u");
         UFunction u_fcn("UFunction", grid_geometry, app_initializer->getComponentDatabase("UFunction"));
         const bool u_is_div_free = true;
         time_integrator->registerAdvectionVelocity(u_var);
@@ -126,7 +126,7 @@ main(
                     "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
         pout << "solving the advection-diffusion equation in "
              << IBAMR::enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
-        Pointer< CellVariable<NDIM,double> > Q_var = new CellVariable<NDIM,double>("Q");
+        Pointer<CellVariable<NDIM,double> > Q_var = new CellVariable<NDIM,double>("Q");
         QInit Q_init("QInit", grid_geometry, app_initializer->getComponentDatabase("QInit"));
         LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
             "physical_bc_coef", app_initializer->getComponentDatabase("LocationIndexRobinBcCoefs"));

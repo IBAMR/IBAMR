@@ -95,7 +95,7 @@ public:
      */
     virtual void
     setStreamableClassID(
-        const int class_id) = 0;
+        int class_id) = 0;
 
     /*!
      * \brief Build a Streamable object by unpacking data from the data stream.

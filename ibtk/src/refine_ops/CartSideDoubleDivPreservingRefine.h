@@ -60,11 +60,11 @@ public:
      * \brief Constructor.
      */
     CartSideDoubleDivPreservingRefine(
-        const int u_dst_idx,
-        const int u_src_idx,
-        const int indicator_idx,
-        const double fill_time=0.0,
-        SAMRAI::xfer::RefinePatchStrategy<NDIM>* const phys_bdry_op=NULL);
+        int u_dst_idx,
+        int u_src_idx,
+        int indicator_idx,
+        double fill_time=0.0,
+        SAMRAI::xfer::RefinePatchStrategy<NDIM>* phys_bdry_op=NULL);
 
     /*!
      * \brief Destructor.
@@ -99,7 +99,7 @@ public:
     void
     setPhysicalBoundaryConditions(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const double fill_time,
+        double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!

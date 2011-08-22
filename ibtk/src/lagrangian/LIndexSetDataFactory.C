@@ -119,7 +119,7 @@ bool
 LIndexSetDataFactory<T>::validCopyTo(
     const Pointer<PatchDataFactory<NDIM> >& dst_pdf) const
 {
-    Pointer<LIndexSetDataFactory<T> > lnidf = dst_pdf;
+    const Pointer<LIndexSetDataFactory<T> > lnidf = dst_pdf;
     return !lnidf.isNull();
 }// validCopyTo
 

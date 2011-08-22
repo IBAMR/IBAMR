@@ -71,14 +71,14 @@ public:
      * Create a message stream of the specified size in bytes.
      */
     FixedSizedStream(
-        const int bytes);
+        int bytes);
 
     /*!
      * Create a message stream with the specified buffer.
      */
     FixedSizedStream(
-        const void* const buffer,
-        const int bytes);
+        const void* buffer,
+        int bytes);
 
     /*!
      * Destructor for a message stream.
@@ -115,7 +115,7 @@ public:
      */
     void
     setCurrentIndex(
-        const int index);
+        int index);
 
     /*!
      * Reset the index to the beginning of the buffer.  This is the same as
@@ -151,7 +151,7 @@ public:
     void
     pack(
         const bool* data,
-        const int n=1);
+        int n=1);
 
     /*!
      * Remove an array of bools from the message stream.
@@ -159,7 +159,7 @@ public:
     void
     unpack(
         bool* data,
-        const int n=1);
+        int n=1);
 
     //\}
 
@@ -190,7 +190,7 @@ public:
     void
     pack(
         const char* data,
-        const int n=1);
+        int n=1);
 
     /*!
      * Remove an array of chars from the message stream.
@@ -198,7 +198,7 @@ public:
     void
     unpack(
         char* data,
-        const int n=1);
+        int n=1);
 
     //\}
 
@@ -229,7 +229,7 @@ public:
     void
     pack(
         const dcomplex* data,
-        const int n=1);
+        int n=1);
 
     /*!
      * Remove an array of double complex from the message stream.
@@ -237,7 +237,7 @@ public:
     void
     unpack(
         dcomplex* data,
-        const int n=1);
+        int n=1);
 
     //\}
 
@@ -268,7 +268,7 @@ public:
     void
     pack(
         const double* data,
-        const int n=1);
+        int n=1);
 
     /*!
      * Remove an array of doubles from the message stream.
@@ -276,7 +276,7 @@ public:
     void
     unpack(
         double* data,
-        const int n=1);
+        int n=1);
 
     //\}
 
@@ -307,7 +307,7 @@ public:
     void
     pack(
         const float* data,
-        const int n=1);
+        int n=1);
 
     /*!
      * Remove an array of floats from the message stream.
@@ -315,7 +315,7 @@ public:
     void
     unpack(
         float* data,
-        const int n=1);
+        int n=1);
 
     //\}
 
@@ -346,7 +346,7 @@ public:
     void
     pack(
         const int* data,
-        const int n=1);
+        int n=1);
 
     /*!
      * Remove an array of integers from the message stream.
@@ -354,7 +354,7 @@ public:
     void
     unpack(
         int* data,
-        const int n=1);
+        int n=1);
 
     //\}
 
@@ -397,7 +397,7 @@ private:
      */
     void*
     getPointerAndAdvanceCursor(
-        const int bytes);
+        int bytes);
 
     /*!
      * \brief Pack the specified data to the buffer.
@@ -405,7 +405,7 @@ private:
     template<typename T>
     void
     __pack(
-        const T* const m_data,
+        const T* m_data,
         unsigned int m_bytes);
 
     /*!
@@ -414,7 +414,7 @@ private:
     template<typename T>
     void
     __unpack(
-        T* const m_data,
+        T* m_data,
         unsigned int m_bytes);
 
     /*

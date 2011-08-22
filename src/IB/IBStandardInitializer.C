@@ -340,8 +340,8 @@ IBStandardInitializer::initializeDataOnPatchLevel(
     const int lag_node_index_idx,
     const unsigned int global_index_offset,
     const unsigned int local_index_offset,
-    Pointer<LData>& X_data,
-    Pointer<LData>& U_data,
+    Pointer<LData> X_data,
+    Pointer<LData> U_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double /*init_data_time*/,
@@ -456,8 +456,8 @@ unsigned int
 IBStandardInitializer::initializeMassDataOnPatchLevel(
     const unsigned int /*global_index_offset*/,
     const unsigned int local_index_offset,
-    Pointer<LData>& M_data,
-    Pointer<LData>& K_data,
+    Pointer<LData> M_data,
+    Pointer<LData> K_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double /*init_data_time*/,
@@ -515,7 +515,7 @@ unsigned int
 IBStandardInitializer::initializeDirectorDataOnPatchLevel(
     const unsigned int /*global_index_offset*/,
     const unsigned int local_index_offset,
-    Pointer<LData>& D_data,
+    Pointer<LData> D_data,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double /*init_data_time*/,
@@ -3289,10 +3289,5 @@ IBStandardInitializer::getFromInput(
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 }// namespace IBAMR
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBAMR::IBStandardInitializer>;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -105,7 +105,6 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/boundary/physical_boundary/CartSideRobinPhysBdryOp.C \
 	$(top_srcdir)/src/boundary/physical_boundary/ExtendedRobinBcCoefStrategy.C \
 	$(top_srcdir)/src/boundary/physical_boundary/PhysicalBoundaryUtilities.C \
-	$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C \
 	$(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C \
 	$(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.C \
 	$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.C \
@@ -238,7 +237,6 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-CartSideRobinPhysBdryOp.$(OBJEXT) \
 	libIBTK2d_a-ExtendedRobinBcCoefStrategy.$(OBJEXT) \
 	libIBTK2d_a-PhysicalBoundaryUtilities.$(OBJEXT) \
-	libIBTK2d_a-TimeDependentLocationIndexRobinBcCoefs.$(OBJEXT) \
 	libIBTK2d_a-muParserRobinBcCoefs.$(OBJEXT) \
 	libIBTK2d_a-CartCellDoubleCubicCoarsen.$(OBJEXT) \
 	libIBTK2d_a-CartSideDoubleCubicCoarsen.$(OBJEXT) \
@@ -359,7 +357,6 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/boundary/physical_boundary/CartSideRobinPhysBdryOp.C \
 	$(top_srcdir)/src/boundary/physical_boundary/ExtendedRobinBcCoefStrategy.C \
 	$(top_srcdir)/src/boundary/physical_boundary/PhysicalBoundaryUtilities.C \
-	$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C \
 	$(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C \
 	$(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.C \
 	$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.C \
@@ -491,7 +488,6 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-CartSideRobinPhysBdryOp.$(OBJEXT) \
 	libIBTK3d_a-ExtendedRobinBcCoefStrategy.$(OBJEXT) \
 	libIBTK3d_a-PhysicalBoundaryUtilities.$(OBJEXT) \
-	libIBTK3d_a-TimeDependentLocationIndexRobinBcCoefs.$(OBJEXT) \
 	libIBTK3d_a-muParserRobinBcCoefs.$(OBJEXT) \
 	libIBTK3d_a-CartCellDoubleCubicCoarsen.$(OBJEXT) \
 	libIBTK3d_a-CartSideDoubleCubicCoarsen.$(OBJEXT) \
@@ -990,7 +986,6 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/boundary/physical_boundary/CartSideRobinPhysBdryOp.h \
 	$(top_srcdir)/src/boundary/physical_boundary/ExtendedRobinBcCoefStrategy.h \
 	$(top_srcdir)/src/boundary/physical_boundary/PhysicalBoundaryUtilities.h \
-	$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.h \
 	$(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.h \
 	$(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.h \
 	$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.h \
@@ -1154,7 +1149,6 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/boundary/physical_boundary/CartSideRobinPhysBdryOp.C \
 	$(top_srcdir)/src/boundary/physical_boundary/ExtendedRobinBcCoefStrategy.C \
 	$(top_srcdir)/src/boundary/physical_boundary/PhysicalBoundaryUtilities.C \
-	$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C \
 	$(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C \
 	$(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.C \
 	$(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.C \
@@ -1486,7 +1480,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-Streamable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-StreamableFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-StreamableManager.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-TimeDependentLocationIndexRobinBcCoefs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-VecCellCoarsenAdapter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-VecCellData.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-VecCellDataFactory.Po@am__quote@
@@ -1599,7 +1592,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-Streamable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-StreamableFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-StreamableManager.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-TimeDependentLocationIndexRobinBcCoefs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-VecCellCoarsenAdapter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-VecCellData.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-VecCellDataFactory.Po@am__quote@
@@ -1851,20 +1843,6 @@ libIBTK2d_a-PhysicalBoundaryUtilities.obj: $(top_srcdir)/src/boundary/physical_b
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/boundary/physical_boundary/PhysicalBoundaryUtilities.C' object='libIBTK2d_a-PhysicalBoundaryUtilities.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PhysicalBoundaryUtilities.obj `if test -f '$(top_srcdir)/src/boundary/physical_boundary/PhysicalBoundaryUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/boundary/physical_boundary/PhysicalBoundaryUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/boundary/physical_boundary/PhysicalBoundaryUtilities.C'; fi`
-
-libIBTK2d_a-TimeDependentLocationIndexRobinBcCoefs.o: $(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-TimeDependentLocationIndexRobinBcCoefs.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-TimeDependentLocationIndexRobinBcCoefs.Tpo -c -o libIBTK2d_a-TimeDependentLocationIndexRobinBcCoefs.o `test -f '$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C' || echo '$(srcdir)/'`$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-TimeDependentLocationIndexRobinBcCoefs.Tpo $(DEPDIR)/libIBTK2d_a-TimeDependentLocationIndexRobinBcCoefs.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C' object='libIBTK2d_a-TimeDependentLocationIndexRobinBcCoefs.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-TimeDependentLocationIndexRobinBcCoefs.o `test -f '$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C' || echo '$(srcdir)/'`$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C
-
-libIBTK2d_a-TimeDependentLocationIndexRobinBcCoefs.obj: $(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-TimeDependentLocationIndexRobinBcCoefs.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-TimeDependentLocationIndexRobinBcCoefs.Tpo -c -o libIBTK2d_a-TimeDependentLocationIndexRobinBcCoefs.obj `if test -f '$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C'; then $(CYGPATH_W) '$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-TimeDependentLocationIndexRobinBcCoefs.Tpo $(DEPDIR)/libIBTK2d_a-TimeDependentLocationIndexRobinBcCoefs.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C' object='libIBTK2d_a-TimeDependentLocationIndexRobinBcCoefs.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-TimeDependentLocationIndexRobinBcCoefs.obj `if test -f '$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C'; then $(CYGPATH_W) '$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C'; fi`
 
 libIBTK2d_a-muParserRobinBcCoefs.o: $(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-muParserRobinBcCoefs.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-muParserRobinBcCoefs.Tpo -c -o libIBTK2d_a-muParserRobinBcCoefs.o `test -f '$(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C' || echo '$(srcdir)/'`$(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C
@@ -3433,20 +3411,6 @@ libIBTK3d_a-PhysicalBoundaryUtilities.obj: $(top_srcdir)/src/boundary/physical_b
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/boundary/physical_boundary/PhysicalBoundaryUtilities.C' object='libIBTK3d_a-PhysicalBoundaryUtilities.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PhysicalBoundaryUtilities.obj `if test -f '$(top_srcdir)/src/boundary/physical_boundary/PhysicalBoundaryUtilities.C'; then $(CYGPATH_W) '$(top_srcdir)/src/boundary/physical_boundary/PhysicalBoundaryUtilities.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/boundary/physical_boundary/PhysicalBoundaryUtilities.C'; fi`
-
-libIBTK3d_a-TimeDependentLocationIndexRobinBcCoefs.o: $(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-TimeDependentLocationIndexRobinBcCoefs.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-TimeDependentLocationIndexRobinBcCoefs.Tpo -c -o libIBTK3d_a-TimeDependentLocationIndexRobinBcCoefs.o `test -f '$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C' || echo '$(srcdir)/'`$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-TimeDependentLocationIndexRobinBcCoefs.Tpo $(DEPDIR)/libIBTK3d_a-TimeDependentLocationIndexRobinBcCoefs.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C' object='libIBTK3d_a-TimeDependentLocationIndexRobinBcCoefs.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-TimeDependentLocationIndexRobinBcCoefs.o `test -f '$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C' || echo '$(srcdir)/'`$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C
-
-libIBTK3d_a-TimeDependentLocationIndexRobinBcCoefs.obj: $(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-TimeDependentLocationIndexRobinBcCoefs.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-TimeDependentLocationIndexRobinBcCoefs.Tpo -c -o libIBTK3d_a-TimeDependentLocationIndexRobinBcCoefs.obj `if test -f '$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C'; then $(CYGPATH_W) '$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-TimeDependentLocationIndexRobinBcCoefs.Tpo $(DEPDIR)/libIBTK3d_a-TimeDependentLocationIndexRobinBcCoefs.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C' object='libIBTK3d_a-TimeDependentLocationIndexRobinBcCoefs.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-TimeDependentLocationIndexRobinBcCoefs.obj `if test -f '$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C'; then $(CYGPATH_W) '$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C'; fi`
 
 libIBTK3d_a-muParserRobinBcCoefs.o: $(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-muParserRobinBcCoefs.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-muParserRobinBcCoefs.Tpo -c -o libIBTK3d_a-muParserRobinBcCoefs.o `test -f '$(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C' || echo '$(srcdir)/'`$(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C

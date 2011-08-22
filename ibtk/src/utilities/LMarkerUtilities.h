@@ -75,14 +75,14 @@ public:
      */
     static void
     advectMarkers(
-        const int mark_current_idx,
-        const int mark_new_idx,
-        const int u_idx,
-        const double dt,
+        int mark_current_idx,
+        int mark_new_idx,
+        int u_idx,
+        double dt,
         const std::string& weighting_fcn,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int coarsest_ln=-1,
-        const int finest_ln=-1);
+        int coarsest_ln=-1,
+        int finest_ln=-1);
 
     /*!
      * Collect all marker data onto the coarsest level of the patch hierarchy
@@ -90,7 +90,7 @@ public:
      */
     static void
     collectMarkersOnPatchHierarchy(
-        const int mark_idx,
+        int mark_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
@@ -100,12 +100,12 @@ public:
      */
     static void
     initializeMarkersOnLevel(
-        const int mark_idx,
+        int mark_idx,
         const std::vector<blitz::TinyVector<double,NDIM> >& mark_init_posns,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const bool initial_time,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        bool initial_time,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level);
 
     /*!
      * Prune marker data in refined regions of the specified levels of the patch
@@ -113,20 +113,20 @@ public:
      */
     static void
     pruneDuplicateMarkers(
-        const int mark_idx,
+        int mark_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int coarsest_ln=-1,
-        const int finest_ln=-1);
+        int coarsest_ln=-1,
+        int finest_ln=-1);
 
     /*!
      * Count the markers.
      */
     static int
     countMarkers(
-        const int mark_idx,
+        int mark_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int coarsest_ln=-1,
-        const int finest_ln=-1);
+        int coarsest_ln=-1,
+        int finest_ln=-1);
 
 private:
     /*!

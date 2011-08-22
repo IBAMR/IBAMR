@@ -82,7 +82,7 @@ public:
      */
     void
     setStreamableClassID(
-        const int class_id);
+        int class_id);
 
     /*!
      * \brief Build an IBTargetPointForceSpec object by unpacking data from the

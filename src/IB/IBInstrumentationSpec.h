@@ -101,9 +101,9 @@ public:
      * \brief Default constructor.
      */
     IBInstrumentationSpec(
-        const int master_idx=-1,
-        const int meter_idx=-1,
-        const int node_idx=-1);
+        int master_idx=-1,
+        int meter_idx=-1,
+        int node_idx=-1);
 
     /*!
      * \brief Destructor.

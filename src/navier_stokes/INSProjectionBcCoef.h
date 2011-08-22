@@ -35,6 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// IBAMR INCLUDES
+#include <ibamr/INSProblemCoefs.h>
+
 // IBTK INCLUDES
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
 
@@ -64,6 +67,7 @@ public:
     /*!
      * \brief Constructor.
      *
+     * \param problem_coefs   Problem coefficients
      * \param bc_coefs        Vector of boundary condition specification objects
      * \param homogeneous_bc  Whether to employ homogeneous (as opposed to inhomogeneous) boundary conditions
      *
@@ -71,13 +75,24 @@ public:
      * class constructor.
      */
     INSProjectionBcCoef(
+        const INSProblemCoefs* problem_coefs,
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
-        const bool homogeneous_bc=false);
+        bool homogeneous_bc=false);
 
     /*!
      * \brief Destructor.
      */
     ~INSProjectionBcCoef();
+
+    /*!
+     * \brief Set the INSProblemCoefs object used by this boundary condition
+     * specification object.
+     *
+     * \param problem_coefs   Problem coefficients
+     */
+    void
+    setINSProblemCoefs(
+        const INSProblemCoefs* problem_coefs);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -90,6 +105,14 @@ public:
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
 
     /*!
+     * \brief Set the current time interval.
+     */
+    void
+    setTimeInterval(
+        double current_time,
+        double new_time);
+
+    /*!
      * \name Implementation of IBTK::ExtendedRobinBcCoefStrategy interface.
      */
     //\{
@@ -99,7 +122,7 @@ public:
      */
     void
     setTargetPatchDataIndex(
-        const int target_idx);
+        int target_idx);
 
     /*!
      * \brief Set whether the class is filling homogeneous or inhomogeneous
@@ -107,7 +130,7 @@ public:
      */
     void
     setHomogeneousBc(
-        const bool homogeneous_bc);
+        bool homogeneous_bc);
 
     //\}
 

@@ -177,7 +177,7 @@ public:
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::pdat::FaceData<NDIM,double>& q_half,
         const SAMRAI::hier::Patch<NDIM>& patch,
-        const double dt) const;
+        double dt) const;
 
     /*!
      * \brief Compute predicted time- and face-centered values from
@@ -206,7 +206,7 @@ public:
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::pdat::CellData<NDIM,double>& Q,
         const SAMRAI::hier::Patch<NDIM>& patch,
-        const double dt) const;
+        double dt) const;
 
     /*!
      * \brief Compute predicted time- and face-centered values from
@@ -236,7 +236,7 @@ public:
         const SAMRAI::pdat::CellData<NDIM,double>& Q,
         const SAMRAI::pdat::CellData<NDIM,double>& F,
         const SAMRAI::hier::Patch<NDIM>& patch,
-        const double dt) const;
+        double dt) const;
 
     /*!
      * \brief Compute predicted time- and face-centered MAC velocities from a
@@ -265,7 +265,7 @@ public:
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::pdat::CellData<NDIM,double>& V,
         const SAMRAI::hier::Patch<NDIM>& patch,
-        const double dt) const;
+        double dt) const;
 
     /*!
      * \brief Compute predicted time- and face-centered MAC velocities from a
@@ -295,7 +295,7 @@ public:
         const SAMRAI::pdat::CellData<NDIM,double>& V,
         const SAMRAI::pdat::CellData<NDIM,double>& F,
         const SAMRAI::hier::Patch<NDIM>& patch,
-        const double dt) const;
+        double dt) const;
 
     /*!
      * \brief Subtract the face-centered gradient of a scalar from a predicted
@@ -373,7 +373,7 @@ private:
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::pdat::CellData<NDIM,double>& Q,
         const SAMRAI::hier::Patch<NDIM>& patch,
-        const double dt) const;
+        double dt) const;
     void
     predictWithSourceTerm(
         SAMRAI::pdat::FaceData<NDIM,double>& q_half,
@@ -381,7 +381,7 @@ private:
         const SAMRAI::pdat::CellData<NDIM,double>& Q,
         const SAMRAI::pdat::CellData<NDIM,double>& F,
         const SAMRAI::hier::Patch<NDIM>& patch,
-        const double dt) const;
+        double dt) const;
 
     /*
      * These private member functions read data from input and restart.  When

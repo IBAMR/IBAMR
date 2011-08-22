@@ -78,9 +78,9 @@ public:
      */
     virtual void
     setTimeInterval(
-        const double current_time,
-        const double new_time);
-    
+        double current_time,
+        double new_time);
+
     /*!
      * \brief Set the nullspace of the linear system.
      *
@@ -92,7 +92,7 @@ public:
      */
     virtual void
     setNullspace(
-        const bool contains_constant_vector,
+        bool contains_constant_vector,
         SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > nullspace_basis_vec);
 
     /*!
@@ -106,7 +106,7 @@ public:
      */
     virtual void
     setNullspace(
-        const bool contains_constant_vector,
+        bool contains_constant_vector,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs);
 
     /*!

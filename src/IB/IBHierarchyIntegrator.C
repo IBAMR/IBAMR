@@ -281,8 +281,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    d_hier_velocity_data_ops = hier_ops_manager->getOperationsDouble(d_ins_hier_integrator->getVelocityVariable(), hierarchy, true);
-    d_hier_pressure_data_ops = hier_ops_manager->getOperationsDouble(d_ins_hier_integrator->getPressureVariable(), hierarchy, true);
+    d_hier_velocity_data_ops    = hier_ops_manager->getOperationsDouble(d_ins_hier_integrator->getVelocityVariable(), hierarchy, true);
+    d_hier_pressure_cc_data_ops = hier_ops_manager->getOperationsDouble(d_ins_hier_integrator->getPressureVariable(), hierarchy, true);
 
     // Initialize all variables.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -1084,9 +1084,9 @@ IBHierarchyIntegrator::postProcessData()
     if (d_post_processor.isNull()) return;
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int U_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getCurrentContext());
-    const int P_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVariable(), d_ins_hier_integrator->getCurrentContext());
-    const int F_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getForceVariable(), d_ins_hier_integrator->getCurrentContext());
+    const int U_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator-> getVelocityVariable(), d_ins_hier_integrator->getCurrentContext());
+    const int P_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator-> getPressureVariable(), d_ins_hier_integrator->getCurrentContext());
+    const int F_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getBodyForceVariable(), d_ins_hier_integrator->getCurrentContext());
 
     PetscErrorCode ierr;
 
@@ -1226,9 +1226,9 @@ IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 
     // Reset the Hierarchy data operations for the new hierarchy configuration.
     d_hier_velocity_data_ops->setPatchHierarchy(hierarchy);
-    d_hier_pressure_data_ops->setPatchHierarchy(hierarchy);
+    d_hier_pressure_cc_data_ops->setPatchHierarchy(hierarchy);
     d_hier_velocity_data_ops->resetLevels(0, finest_hier_level);
-    d_hier_pressure_data_ops->resetLevels(0, finest_hier_level);
+    d_hier_pressure_cc_data_ops->resetLevels(0, finest_hier_level);
 
     // If we have added or removed a level, resize the anchor point vectors.
     d_anchor_point_local_idxs.clear();
@@ -1528,7 +1528,7 @@ IBHierarchyIntegrator::computeSourceStrengths(
     }
 
     // Spread the sources/sinks onto the Cartesian grid.
-    d_hier_pressure_data_ops->setToScalar(d_Q_idx, 0.0);
+    d_hier_pressure_cc_data_ops->setToScalar(d_Q_idx, 0.0);
     for (int ln = coarsest_level; ln <= finest_level; ++ln)
     {
         if (d_n_src[ln] > 0)
@@ -1599,7 +1599,7 @@ IBHierarchyIntegrator::computeSourceStrengths(
             Q_max = std::max(Q_max,std::abs(d_Q_src[ln][k]));
         }
     }
-    const double q_total = d_hier_pressure_data_ops->integral(d_Q_idx, wgt_idx);
+    const double q_total = d_hier_pressure_cc_data_ops->integral(d_Q_idx, wgt_idx);
 
     if (d_do_log)
     {
@@ -1665,11 +1665,12 @@ IBHierarchyIntegrator::computeSourceStrengths(
             }
         }
 
-        if (std::abs(d_hier_pressure_data_ops->integral(d_Q_idx, wgt_idx) > 1.0e-12))
+        const double integral_Q = d_hier_pressure_cc_data_ops->integral(d_Q_idx, wgt_idx);
+        if (std::abs(integral_Q) > 1.0e-12)
         {
             TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
                        << "  ``external'' source/sink does not correctly offset net inflow/outflow into domain.\n"
-                       << "  integral{q} = " << d_hier_pressure_data_ops->integral(d_Q_idx, wgt_idx) << " != 0.\n");
+                       << "  integral{q} = " << integral_Q << " != 0.\n");
         }
     }
     return;
@@ -1955,10 +1956,5 @@ IBHierarchyIntegrator::getFromRestart()
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 } // namespace IBAMR
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBAMR::IBHierarchyIntegrator>;
 
 //////////////////////////////////////////////////////////////////////////////

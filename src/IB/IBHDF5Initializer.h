@@ -88,8 +88,8 @@ public:
      */
     bool
     getLevelHasLagrangianData(
-        const int level_number,
-        const bool can_be_refined) const;
+        int level_number,
+        bool can_be_refined) const;
 
     /*!
      * \brief Determine the number of local nodes on the specified patch level.
@@ -98,11 +98,11 @@ public:
      */
     unsigned int
     computeLocalNodeCountOnPatchLevel(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time);
 
     /*!
      * \brief Initialize the LNode and LData data needed to specify the
@@ -112,17 +112,17 @@ public:
      */
     unsigned int
     initializeDataOnPatchLevel(
-        const int lag_node_index_idx,
-        const unsigned int global_index_offset,
-        const unsigned int local_index_offset,
-        SAMRAI::tbox::Pointer<IBTK::LData>& X_data,
-        SAMRAI::tbox::Pointer<IBTK::LData>& U_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time,
-        IBTK::LDataManager* const l_data_manager);
+        int lag_node_index_idx,
+        unsigned int global_index_offset,
+        unsigned int local_index_offset,
+        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> U_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Initialize the LData needed to specify the mass and spring
@@ -132,16 +132,16 @@ public:
      */
     unsigned int
     initializeMassDataOnPatchLevel(
-        const unsigned int global_index_offset,
-        const unsigned int local_index_offset,
-        SAMRAI::tbox::Pointer<IBTK::LData>& M_data,
-        SAMRAI::tbox::Pointer<IBTK::LData>& K_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time,
-        IBTK::LDataManager* const l_data_manager);
+        unsigned int global_index_offset,
+        unsigned int local_index_offset,
+        SAMRAI::tbox::Pointer<IBTK::LData> M_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> K_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Tag cells for initial refinement.
@@ -154,10 +154,10 @@ public:
      */
     void
     tagCellsForInitialRefinement(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double error_data_time,
-        const int tag_index);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double error_data_time,
+        int tag_index);
 
 protected:
 
@@ -200,8 +200,8 @@ private:
     findLocalPatchIndices(
         std::vector<SAMRAI::hier::Index<NDIM> >& cell_idxs,
         std::vector<int>& patch_nums,
-        const int level_number,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level) const;
+        int level_number,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level) const;
 
     /*!
      * \brief Compute the cell indices of all local vertices provided by the
@@ -211,9 +211,9 @@ private:
     findLocalPatchIndicesFromHDF5(
         std::vector<SAMRAI::hier::Index<NDIM> >& cell_idxs,
         std::vector<int>& patch_nums,
-        const hid_t file_id,
+        hid_t file_id,
         const std::string& base_group_name,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
         const std::string& filename) const;
 
     /*!
@@ -222,11 +222,11 @@ private:
      */
     void
     buildLevelDataCache(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time);
 
     /*!
      * \brief Cache all local data provided by the specified HDF5 file that is
@@ -241,12 +241,12 @@ private:
         std::vector<SAMRAI::hier::Index<NDIM> >& cell_idxs,
         std::vector<int>& patch_nums,
         std::set<int>& local_vertex_idx_set,
-        const hid_t file_id,
+        hid_t file_id,
         const std::string& base_group_name,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
         const std::string& filename,
-        const int file_number,
-        const int num_files) const;
+        int file_number,
+        int num_files) const;
 
     void
     buildLevelSpringDataCacheFromHDF5(
@@ -254,12 +254,12 @@ private:
         int& num_local_spring,
         std::map<int,SAMRAI::tbox::Pointer<IBSpringForceSpec> >& spring_data_map,
         const std::set<int>& local_vertex_idx_set,
-        const hid_t file_id,
+        hid_t file_id,
         const std::string& base_group_name,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
         const std::string& filename,
-        const int file_number,
-        const int num_files) const;
+        int file_number,
+        int num_files) const;
 
     void
     buildLevelBeamDataCacheFromHDF5(
@@ -267,12 +267,12 @@ private:
         int& num_local_beam,
         std::map<int,SAMRAI::tbox::Pointer<IBBeamForceSpec> >& beam_data_map,
         const std::set<int>& local_vertex_idx_set,
-        const hid_t file_id,
+        hid_t file_id,
         const std::string& base_group_name,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
         const std::string& filename,
-        const int file_number,
-        const int num_files) const;
+        int file_number,
+        int num_files) const;
 
     void
     buildLevelTargetPointDataCacheFromHDF5(
@@ -280,12 +280,12 @@ private:
         int& num_local_target_point,
         std::map<int,SAMRAI::tbox::Pointer<IBTargetPointForceSpec> >& target_point_data_map,
         const std::set<int>& local_vertex_idx_set,
-        const hid_t file_id,
+        hid_t file_id,
         const std::string& base_group_name,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
         const std::string& filename,
-        const int file_number,
-        const int num_files) const;
+        int file_number,
+        int num_files) const;
 
     void
     buildLevelInstrumentationDataCacheFromHDF5(
@@ -294,12 +294,12 @@ private:
         int& num_local_inst_point,
         std::map<int,SAMRAI::tbox::Pointer<IBInstrumentationSpec> >& inst_point_data_map,
         const std::set<int>& local_vertex_idx_set,
-        const hid_t file_id,
+        hid_t file_id,
         const std::string& base_group_name,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
         const std::string& filename,
-        const int file_number,
-        const int num_files) const;
+        int file_number,
+        int num_files) const;
 
     /*!
      * \brief Clear all cached level data.
@@ -313,7 +313,7 @@ private:
     int
     getCanonicalLagrangianIndex(
         const std::pair<int,int>& global_vertex_idx,
-        const int global_index_offset) const;
+        int global_index_offset) const;
 
     /*!
      * \return The specification objects associated with the specified vertex.
@@ -322,7 +322,7 @@ private:
     initializeSpecs(
         const std::pair<int,int>& local_vertex_idx,
         const std::pair<int,int>& global_vertex_idx,
-        const int global_index_offset);
+        int global_index_offset);
 
     /*!
      * Read input values, indicated above, from given database.

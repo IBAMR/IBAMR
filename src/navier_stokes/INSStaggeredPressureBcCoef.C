@@ -68,7 +68,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredPressureBcCoef::INSStaggeredPressureBcCoef(
-    const INSProblemCoefs& problem_coefs,
+    const INSProblemCoefs* problem_coefs,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
     : d_problem_coefs(problem_coefs),
@@ -106,6 +106,14 @@ INSStaggeredPressureBcCoef::setVelocityNewPatchDataIndex(
     d_u_new_idx = u_new_idx;
     return;
 }// setVelocityNewPatchDataIndex
+
+void
+INSStaggeredPressureBcCoef::setINSProblemCoefs(
+    const INSProblemCoefs* problem_coefs)
+{
+    d_problem_coefs = problem_coefs;
+    return;
+}// setINSProblemCoefs
 
 void
 INSStaggeredPressureBcCoef::setPhysicalBoundaryConditions(
@@ -199,7 +207,7 @@ INSStaggeredPressureBcCoef::setBcCoefs(
     const Box<NDIM> ghost_box = u_current_data->getGhostBox() * u_new_data->getGhostBox();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    const double mu = d_problem_coefs.getMu();
+    const double mu = d_problem_coefs->getMu();
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const Index<NDIM>& i = it();
@@ -310,7 +318,5 @@ INSStaggeredPressureBcCoef::numberOfExtensionsFillable() const
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 }// namespace IBAMR
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

@@ -36,7 +36,12 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
+#include <ibamr/ConvectiveOperator.h>
 #include <ibamr/HierarchyIntegrator.h>
+#include <ibamr/INSProblemCoefs.h>
+
+// IBTK INCLUDES
+#include <ibtk/LinearSolver.h>
 
 // SAMRAI INCLUDES
 #include <LocationIndexRobinBcCoefs.h>
@@ -67,7 +72,11 @@ public:
     INSHierarchyIntegrator(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        bool register_for_restart=true);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > U_var,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > P_var,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > F_var,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > Q_var,
+        bool register_for_restart);
 
     /*!
      * The destructor for class INSHierarchyIntegrator unregisters the
@@ -77,11 +86,18 @@ public:
     ~INSHierarchyIntegrator();
 
     /*!
-     * Supply initial conditions for the velocity field.
+     * Set the problem coefficients used by the solver.
      */
     void
-    registerVelocityInitialConditions(
-        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> U_init);
+    setINSProblemCoefs(
+        INSProblemCoefs problem_coefs);
+
+    /*!
+     * Get a const pointer to the problem coefficients object used by the
+     * solver.
+     */
+    const INSProblemCoefs*
+    getINSProblemCoefs() const;
 
     /*!
      * Supply a physical boundary conditions specificaion for the velocity
@@ -92,24 +108,32 @@ public:
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
 
     /*!
+     * Supply initial conditions for the velocity field.
+     */
+    void
+    registerVelocityInitialConditions(
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> U_init);
+
+    /*!
      * Supply initial conditions for the pressure.
      *
-     * \note These initial conditions are used for output purposes only.  They
-     * are not actually used in the computation.
+     * \note Initial conditions are not required for the pressure, but when
+     * available, they can speed the convergence of the solver during the
+     * initial time step.
      */
     void
     registerPressureInitialConditions(
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> P_init);
 
     /*!
-     * Supply a body force (optional).
+     * Supply a body force.
      */
     void
     registerBodyForceFunction(
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn);
 
     /*!
-     * Supply a fluid source/sink distribution (optional).
+     * Supply a fluid source/sink distribution.
      */
     void
     registerFluidSourceFunction(
@@ -131,28 +155,246 @@ public:
      * Return a pointer to the body force variable.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >
-    getForceVariable() const;
+    getBodyForceVariable() const;
 
     /*!
      * Return a pointer to the source strength variable.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >
-    getSourceVariable() const;
+    getFluidSourceVariable() const;
+
+    /*!
+     * Get a vector of pointers to the intermediate velocity boundary condition
+     * specification objects.
+     */
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>
+    getIntermediateVelocityBoundaryConditions() const;
+
+    /*!
+     * Get a pointer to the projection Poisson problem boundary condition
+     * specification object.
+     */
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>*
+    getProjectionBoundaryConditions() const;
+
+    /*!
+     * \brief Set the default convective differencing form to be used by the
+     * solver.
+     */
+    void
+    setDefaultConvectiveDifferencingType(
+        ConvectiveDifferencingType difference_form);
+
+    /*!
+     * \brief Get the default convective differencing form used by the solver.
+     */
+    ConvectiveDifferencingType
+    getDefaultConvectiveDifferencingType() const;
+
+    /*!
+     * \brief Set whether the integrator solves the time-dependent (creeping)
+     * Stokes equations.  Otherwise, the integrator solves the time-dependent
+     * Navier-Stokes equations.
+     */
+    void
+    setCreepingFlow(
+        bool creeping_flow);
+
+    /*!
+     * \brief Get whether the integrator solves the time-dependent (creeping)
+     * Stokes equations.  Otherwise, the integrator solves the time-dependent
+     * Navier-Stokes equations.
+     */
+    bool
+    getCreepingFlow() const;
+
+    /*!
+     * Register an operator to compute the convective acceleration term u*grad
+     * u.
+     *
+     * If the supplied operator is NULL, then the integrator will solve the
+     * time-dependent (creeping) Stokes equations instead of the Navier-Stokes
+     * equations.
+     *
+     * The boolean flag needs_reinit_when_dt_changes indicates whether the
+     * operator needs to be explicitly reinitialized when the time step size
+     * changes.
+     */
+    void
+    setConvectiveOperator(
+        SAMRAI::tbox::Pointer<ConvectiveOperator> convective_op,
+        bool needs_reinit_when_dt_changes);
+
+    /*!
+     * Get the convective operator being used by this solver class.
+     *
+     * If the time integrator is configured to solve the time-dependent
+     * (creeping) Stokes equations, then the returned pointer will be NULL.
+     *
+     * If the convective operator has not already been constructed, then this
+     * function will initialize a default convective operator.
+     */
+    virtual SAMRAI::tbox::Pointer<ConvectiveOperator>
+    getConvectiveOperator() = 0;
+
+    /*!
+     * Register a solver for the velocity subsystem.
+     *
+     * The boolean flag needs_reinit_when_dt_changes indicates whether the
+     * solver needs to be explicitly reinitialized when the time step size
+     * changes.
+     */
+    void
+    setVelocitySubdomainSolver(
+        SAMRAI::tbox::Pointer<IBTK::LinearSolver> velocity_solver,
+        bool needs_reinit_when_dt_changes);
+
+    /*!
+     * Get the subdomain solver for the velocity subsystem.  Such solvers can be
+     * useful in constructing block preconditioners.
+     *
+     * If the velocity subdomain solver has not already been constructed, then
+     * this function will initialize a default solver.
+     */
+    virtual SAMRAI::tbox::Pointer<IBTK::LinearSolver>
+    getVelocitySubdomainSolver() = 0;
+
+    /*!
+     * Register a solver for the pressure subsystem.
+     *
+     * The boolean flag needs_reinit_when_dt_changes indicates whether the
+     * solver needs to be explicitly reinitialized when the time step size
+     * changes.
+     */
+    void
+    setPressureSubdomainSolver(
+        SAMRAI::tbox::Pointer<IBTK::LinearSolver> pressure_solver,
+        bool needs_reinit_when_dt_changes);
+
+    /*!
+     * Get the subdomain solver for the pressure subsystem.  Such solvers can be
+     * useful in constructing block preconditioners.
+     *
+     * If the pressure subdomain solver has not already been constructed, then
+     * this function will initialize a default solver.
+     */
+    virtual SAMRAI::tbox::Pointer<IBTK::LinearSolver>
+    getPressureSubdomainSolver() = 0;
 
 protected:
+    /*!
+     * Return the maximum stable time step size.
+     */
+    double
+    getTimeStepSizeSpecialized();
+
+    /*!
+     * Determine the largest stable timestep on an individual patch level.
+     */
+    double
+    getStableTimestep(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level) const;
+
+    /*!
+     * Determine the largest stable timestep on an individual patch.
+     */
+    virtual double
+    getStableTimestep(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const = 0;
+
+    /*!
+     * Write out specialized object state to the given database.
+     */
+    void
+    putToDatabaseSpecialized(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
     /*
+     * Boolean value that indicates whether the integrator has been initialized.
+     */
+    bool d_integrator_is_initialized;
+
+    /*!
+     * Problem coeficients.
+     */
+    INSProblemCoefs d_problem_coefs;
+
+    /*!
+     * The maximum CFL number.
+     */
+    double d_cfl_max;
+
+    /*!
+     * Cell tagging criteria based on the relative and absolute magnitudes of
+     * the local vorticity.
+     */
+    bool d_using_vorticity_tagging;
+    SAMRAI::tbox::Array<double> d_Omega_rel_thresh, d_Omega_abs_thresh;
+    double d_Omega_max;
+
+    /*!
+     * This boolean value determines whether the pressure is normalized to have
+     * zero mean (i.e., discrete integral) at the end of each timestep.
+     */
+    bool d_normalize_pressure;
+
+    /*!
+     * This boolean value determines whether the convective acceleration term is
+     * included in the momentum equation.  (If it is not, this solver
+     * effectively solves the so-called creeping Stokes equations.)
+     */
+    bool d_creeping_flow;
+
+    /*!
+     * Threshold that determines whether the velocity field needs to be
+     * reprojected following adaptive regridding.
+     */
+    double d_regrid_max_div_growth_factor;
+
+    /*!
+     * Double precision values are (optional) factors used to rescale the
+     * velocity, pressure, and force for plotting.
+     *
+     * Boolean values indicates whether to output various quantities for
+     * visualization.
+     */
+    double d_U_scale, d_P_scale, d_F_scale, d_Q_scale, d_Omega_scale, d_Div_U_scale;
+    bool d_output_U, d_output_P, d_output_F, d_output_Q, d_output_Omega, d_output_Div_U;
+
+    /*!
      * Fluid solver variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_U_var, d_P_var, d_F_var, d_Q_var;
 
-    /*
+    /*!
      * Objects to set initial conditions, boundary conditions, body forces, and
      * fluid source/sink distributions.
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_U_init, d_P_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_bc_coefs;
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs, d_U_star_bc_coefs;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_Phi_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_Q_bdry_bc_fill_op, d_no_fill_op;
+
+    /*!
+     * Hierarchy operators and solvers and related configuration data.
+     */
+    int d_coarsest_reset_ln, d_finest_reset_ln;
+
+    ConvectiveDifferencingType d_default_convective_difference_form;
+    SAMRAI::tbox::Pointer<ConvectiveOperator> d_convective_op;
+    bool d_convective_op_needs_reinit_when_dt_changes;
+
+    SAMRAI::tbox::Pointer<IBTK::LinearSolver> d_velocity_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_velocity_hypre_pc_db, d_velocity_fac_pc_db;
+    bool d_velocity_solver_needs_reinit_when_dt_changes;
+
+    SAMRAI::tbox::Pointer<IBTK::LinearSolver> d_pressure_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_pressure_hypre_pc_db, d_pressure_fac_pc_db;
+    bool d_pressure_solver_needs_reinit_when_dt_changes;
+
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_regrid_projection_fac_pc_db;
 
 private:
     /*!
@@ -184,6 +426,21 @@ private:
     INSHierarchyIntegrator&
     operator=(
         const INSHierarchyIntegrator& that);
+
+    /*!
+     * Read input values from a given database.
+     */
+    void
+    getFromInput(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
+        bool is_from_restart);
+
+    /*!
+     * Read object state from the restart file and initialize class data
+     * members.
+     */
+    void
+    getFromRestart();
 };
 }// namespace IBAMR
 

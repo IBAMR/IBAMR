@@ -139,7 +139,7 @@ public:
      */
     virtual void
     advanceHierarchy(
-        const double dt);
+        double dt);
 
     /*!
      * Return the current value of the maximum time step size for the integrator
@@ -173,7 +173,7 @@ public:
      */
     void
     resetTimeDependentHierarchyData(
-        const double new_time);
+        double new_time);
 
     /*!
      * Reset the hierarchy integrator to the state at the beginning of the
@@ -287,9 +287,9 @@ public:
      */
     virtual void
     preprocessIntegrateHierarchy(
-        const double current_time,
-        const double new_time,
-        const int num_cycles=1);
+        double current_time,
+        double new_time,
+        int num_cycles=1);
 
     /*!
      * Pure virtual method to advance data from current_time to new_time.
@@ -301,9 +301,9 @@ public:
      */
     virtual void
     integrateHierarchy(
-        const double current_time,
-        const double new_time,
-        const int cycle_num=0) = 0;
+        double current_time,
+        double new_time,
+        int cycle_num=0) = 0;
 
     /*!
      * Virtual method to clean up data following call(s) to
@@ -313,10 +313,10 @@ public:
      */
     virtual void
     postprocessIntegrateHierarchy(
-        const double current_time,
-        const double new_time,
-        const bool skip_synchronize_new_state_data,
-        const int num_cycles=1);
+        double current_time,
+        double new_time,
+        bool skip_synchronize_new_state_data,
+        int num_cycles=1);
 
     ///
     ///  Implementations of functions declared in the
@@ -335,13 +335,13 @@ public:
      */
     void
     initializeLevelData(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level=SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
-        const bool allocate_data=true);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level=SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
+        bool allocate_data=true);
 
     /*!
      * Reset cached hierarchy dependent data.
@@ -355,9 +355,9 @@ public:
      */
     void
     resetHierarchyConfiguration(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int coarsest_level,
-        const int finest_level);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int coarsest_level,
+        int finest_level);
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -371,12 +371,12 @@ public:
      */
     void
     applyGradientDetector(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double error_data_time,
-        const int tag_index,
-        const bool initial_time,
-        const bool uses_richardson_extrapolation_too);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double error_data_time,
+        int tag_index,
+        bool initial_time,
+        bool uses_richardson_extrapolation_too);
 
     ///
     ///  Routines to access to the variable contexts maintained by the
@@ -464,7 +464,7 @@ protected:
      */
     virtual void
     resetTimeDependentHierarchyDataSpecialized(
-        const double new_time);
+        double new_time);
 
     /*!
      * Virtual method to perform implementation-specific data reset operations.
@@ -507,13 +507,13 @@ protected:
      */
     virtual void
     initializeLevelDataSpecialized(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-        const bool allocate_data);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
+        bool allocate_data);
 
     /*!
      * Virtual method to perform implementation-specific data reset operations.
@@ -522,9 +522,9 @@ protected:
      */
     virtual void
     resetHierarchyConfigurationSpecialized(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int coarsest_level,
-        const int finest_level);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int coarsest_level,
+        int finest_level);
 
     /*!
      * Virtual method to perform implementation-specific cell tagging
@@ -534,12 +534,12 @@ protected:
      */
     virtual void
     applyGradientDetectorSpecialized(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double error_data_time,
-        const int tag_index,
-        const bool initial_time,
-        const bool uses_richardson_extrapolation_too);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double error_data_time,
+        int tag_index,
+        bool initial_time,
+        bool uses_richardson_extrapolation_too);
 
     /*!
      * Protecethod to write implementation-specific object state to a database.
@@ -565,7 +565,7 @@ protected:
         int& current_idx,
         int& new_idx,
         int& scratch_idx,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
         const SAMRAI::hier::IntVector<NDIM>& scratch_ghosts=SAMRAI::hier::IntVector<NDIM>(0),
         const std::string& coarsen_name="NO_COARSEN",
         const std::string& refine_name="NO_REFINE",
@@ -580,7 +580,7 @@ protected:
     void
     registerVariable(
         int& scratch_idx,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
         const SAMRAI::hier::IntVector<NDIM>& ghosts=SAMRAI::hier::IntVector<NDIM>(0));
 
     /*!
@@ -788,7 +788,7 @@ private:
     void
     getFromInput(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
-        const bool is_from_restart);
+        bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data

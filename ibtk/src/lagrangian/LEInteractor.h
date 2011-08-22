@@ -137,11 +137,11 @@ public:
     template<class T>
     static void
     interpolate(
-        SAMRAI::tbox::Pointer<LData>& Q_data,
-        const SAMRAI::tbox::Pointer<LData>& X_data,
-        const SAMRAI::tbox::Pointer<LIndexSetData<T> >& idx_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        SAMRAI::tbox::Pointer<LData> Q_data,
+        SAMRAI::tbox::Pointer<LData> X_data,
+        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::Box<NDIM>& interp_box,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
         const std::string& interp_fcn="IB_4");
@@ -164,11 +164,11 @@ public:
     template<class T>
     static void
     interpolate(
-        SAMRAI::tbox::Pointer<LData>& Q_data,
-        const SAMRAI::tbox::Pointer<LData>& X_data,
-        const SAMRAI::tbox::Pointer<LIndexSetData<T> >& idx_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        SAMRAI::tbox::Pointer<LData> Q_data,
+        SAMRAI::tbox::Pointer<LData> X_data,
+        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::Box<NDIM>& interp_box,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
         const std::string& interp_fcn="IB_4");
@@ -191,13 +191,13 @@ public:
     template<class T>
     static void
     interpolate(
-        double* const Q_data,
-        const int Q_depth,
-        const double* const X_data,
-        const int X_depth,
-        const SAMRAI::tbox::Pointer<LIndexSetData<T> >& idx_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        double* Q_data,
+        int Q_depth,
+        const double* X_data,
+        int X_depth,
+        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::Box<NDIM>& interp_box,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
         const std::string& interp_fcn="IB_4");
@@ -220,13 +220,13 @@ public:
     template<class T>
     static void
     interpolate(
-        double* const Q_data,
-        const int Q_depth,
-        const double* const X_data,
-        const int X_depth,
-        const SAMRAI::tbox::Pointer<LIndexSetData<T> >& idx_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        double* Q_data,
+        int Q_depth,
+        const double* X_data,
+        int X_depth,
+        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::Box<NDIM>& interp_box,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
         const std::string& interp_fcn="IB_4");
@@ -249,11 +249,11 @@ public:
     static void
     interpolate(
         std::vector<double>& Q_data,
-        const int Q_depth,
+        int Q_depth,
         const std::vector<double>& X_data,
-        const int X_depth,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        int X_depth,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::Box<NDIM>& interp_box,
         const std::string& interp_fcn="IB_4");
 
@@ -274,14 +274,14 @@ public:
      */
     static void
     interpolate(
-        double* const Q_data,
-        const int Q_size,
-        const int Q_depth,
-        const double* const X_data,
-        const int X_size,
-        const int X_depth,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        double* Q_data,
+        int Q_size,
+        int Q_depth,
+        const double* X_data,
+        int X_size,
+        int X_depth,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::Box<NDIM>& interp_box,
         const std::string& interp_fcn="IB_4");
 
@@ -303,11 +303,11 @@ public:
     static void
     interpolate(
         std::vector<double>& Q_data,
-        const int Q_depth,
+        int Q_depth,
         const std::vector<double>& X_data,
-        const int X_depth,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        int X_depth,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::Box<NDIM>& interp_box,
         const std::string& interp_fcn="IB_4");
 
@@ -328,14 +328,14 @@ public:
      */
     static void
     interpolate(
-        double* const Q_data,
-        const int Q_size,
-        const int Q_depth,
-        const double* const X_data,
-        const int X_size,
-        const int X_depth,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        double* Q_data,
+        int Q_size,
+        int Q_depth,
+        const double* X_data,
+        int X_size,
+        int X_depth,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::Box<NDIM>& interp_box,
         const std::string& interp_fcn="IB_4");
 
@@ -361,10 +361,10 @@ public:
     static void
     spread(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
-        const SAMRAI::tbox::Pointer<LData>& Q_data,
-        const SAMRAI::tbox::Pointer<LData>& X_data,
-        const SAMRAI::tbox::Pointer<LIndexSetData<T> >& idx_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        SAMRAI::tbox::Pointer<LData> Q_data,
+        SAMRAI::tbox::Pointer<LData> X_data,
+        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::Box<NDIM>& spread_box,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
         const std::string& spread_fcn="IB_4");
@@ -391,10 +391,10 @@ public:
     static void
     spread(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
-        const SAMRAI::tbox::Pointer<LData>& Q_data,
-        const SAMRAI::tbox::Pointer<LData>& X_data,
-        const SAMRAI::tbox::Pointer<LIndexSetData<T> >& idx_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        SAMRAI::tbox::Pointer<LData> Q_data,
+        SAMRAI::tbox::Pointer<LData> X_data,
+        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::Box<NDIM>& spread_box,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
         const std::string& spread_fcn="IB_4");
@@ -421,12 +421,12 @@ public:
     static void
     spread(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
-        const double* const Q_data,
-        const int Q_depth,
-        const double* const X_data,
-        const int X_depth,
-        const SAMRAI::tbox::Pointer<LIndexSetData<T> >& idx_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        const double* Q_data,
+        int Q_depth,
+        const double* X_data,
+        int X_depth,
+        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::Box<NDIM>& spread_box,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
         const std::string& spread_fcn="IB_4");
@@ -453,12 +453,12 @@ public:
     static void
     spread(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
-        const double* const Q_data,
-        const int Q_depth,
-        const double* const X_data,
-        const int X_depth,
-        const SAMRAI::tbox::Pointer<LIndexSetData<T> >& idx_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        const double* Q_data,
+        int Q_depth,
+        const double* X_data,
+        int X_depth,
+        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::Box<NDIM>& spread_box,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
         const std::string& spread_fcn="IB_4");
@@ -485,10 +485,10 @@ public:
     spread(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
         const std::vector<double>& Q_data,
-        const int Q_depth,
+        int Q_depth,
         const std::vector<double>& X_data,
-        const int X_depth,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        int X_depth,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::Box<NDIM>& spread_box,
         const std::string& spread_fcn="IB_4");
 
@@ -514,10 +514,10 @@ public:
     spread(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
         const std::vector<double>& Q_data,
-        const int Q_depth,
+        int Q_depth,
         const std::vector<double>& X_data,
-        const int X_depth,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        int X_depth,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::Box<NDIM>& spread_box,
         const std::string& spread_fcn="IB_4");
 
@@ -542,13 +542,13 @@ public:
     static void
     spread(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
-        const double* const Q_data,
-        const int Q_size,
-        const int Q_depth,
-        const double* const X_data,
-        const int X_size,
-        const int X_depth,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        const double* Q_data,
+        int Q_size,
+        int Q_depth,
+        const double* X_data,
+        int X_size,
+        int X_depth,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::Box<NDIM>& spread_box,
         const std::string& spread_fcn="IB_4");
 
@@ -573,13 +573,13 @@ public:
     static void
     spread(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
-        const double* const Q_data,
-        const int Q_size,
-        const int Q_depth,
-        const double* const X_data,
-        const int X_size,
-        const int X_depth,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        const double* Q_data,
+        int Q_size,
+        int Q_depth,
+        const double* X_data,
+        int X_size,
+        int X_depth,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::Box<NDIM>& spread_box,
         const std::string& spread_fcn="IB_4");
 
@@ -626,16 +626,16 @@ private:
      */
     static void
     interpolate(
-        double* const Q_data,
-        const int Q_depth,
-        const double* const X_data,
-        const double* const q_data,
+        double* Q_data,
+        int Q_depth,
+        const double* X_data,
+        const double* q_data,
         const SAMRAI::hier::Box<NDIM>& q_data_box,
         const SAMRAI::hier::IntVector<NDIM>& q_gcw,
-        const int q_depth,
-        const double* const x_lower,
-        const double* const x_upper,
-        const double* const dx,
+        int q_depth,
+        const double* x_lower,
+        const double* x_upper,
+        const double* dx,
         const blitz::TinyVector<int,NDIM>& patch_touches_lower_physical_bdry,
         const blitz::TinyVector<int,NDIM>& patch_touches_upper_physical_bdry,
         const blitz::TinyVector<int,NDIM>& use_alt_one_sided_delta,
@@ -648,16 +648,16 @@ private:
      */
     static void
     spread(
-        double* const q_data,
+        double* q_data,
         const SAMRAI::hier::Box<NDIM>& q_data_box,
         const SAMRAI::hier::IntVector<NDIM>& q_gcw,
-        const int q_depth,
-        const double* const Q_data,
-        const int Q_depth,
-        const double* const X_data,
-        const double* const x_lower,
-        const double* const x_upper,
-        const double* const dx,
+        int q_depth,
+        const double* Q_data,
+        int Q_depth,
+        const double* X_data,
+        const double* x_lower,
+        const double* x_upper,
+        const double* dx,
         const blitz::TinyVector<int,NDIM>& patch_touches_lower_physical_bdry,
         const blitz::TinyVector<int,NDIM>& patch_touches_upper_physical_bdry,
         const blitz::TinyVector<int,NDIM>& use_alt_one_sided_delta,
@@ -675,9 +675,9 @@ private:
         std::vector<int>& local_indices,
         std::vector<double>& periodic_offsets,
         const SAMRAI::hier::Box<NDIM>& box,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
-        const SAMRAI::tbox::Pointer<LIndexSetData<T> >& idx_data);
+        SAMRAI::tbox::Pointer<LIndexSetData<T> > idx_data);
 
     /*!
      * \brief Compute the local PETSc indices located within the provided box
@@ -687,10 +687,10 @@ private:
     buildLocalIndices(
         std::vector<int>& local_indices,
         const SAMRAI::hier::Box<NDIM>& box,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
-        const double* const X_data,
-        const int X_size,
-        const int X_depth);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        const double* X_data,
+        int X_size,
+        int X_depth);
 
     /*!
      * Implementation of the IB interpolation operation for a user-defined
@@ -699,18 +699,18 @@ private:
     static void
     userDefinedInterpolate(
         double* Q,
-        const int Q_depth,
-        const double* const X,
-        const double* const q,
+        int Q_depth,
+        const double* X,
+        const double* q,
         const SAMRAI::hier::Box<NDIM>& q_data_box,
-        const int* const q_gcw,
-        const int q_depth,
-        const double* const x_lower,
-        const double* const x_upper,
-        const double* const dx,
-        const int* const local_indices,
-        const double* const X_shift,
-        const int num_local_indices);
+        const int* q_gcw,
+        int q_depth,
+        const double* x_lower,
+        const double* x_upper,
+        const double* dx,
+        const int* local_indices,
+        const double* X_shift,
+        int num_local_indices);
 
     /*!
      * Implementation of the IB spreading operation for a user-defined kernel.
@@ -719,17 +719,17 @@ private:
     userDefinedSpread(
         double* q,
         const SAMRAI::hier::Box<NDIM>& q_data_box,
-        const int* const q_gcw,
-        const int q_depth,
-        const double* const x_lower,
-        const double* const x_upper,
-        const double* const dx,
-        const double* const Q,
-        const int Q_depth,
-        const double* const X,
-        const int* const local_indices,
-        const double* const X_shift,
-        const int num_local_indices);
+        const int* q_gcw,
+        int q_depth,
+        const double* x_lower,
+        const double* x_upper,
+        const double* dx,
+        const double* Q,
+        int Q_depth,
+        const double* X,
+        const int* local_indices,
+        const double* X_shift,
+        int num_local_indices);
 };
 }// namespace IBTK
 

@@ -56,9 +56,9 @@ public:
      */
     inline
     INSProblemCoefs(
-        const double rho=0.0,
-        const double mu=0.0,
-        const double lambda=0.0)
+        double rho=0.0,
+        double mu=0.0,
+        double lambda=0.0)
         : d_rho(rho),
           d_mu(mu),
           d_lambda(lambda)
@@ -125,7 +125,7 @@ public:
      */
     inline void
     setRho(
-        const double rho)
+        double rho)
         {
             d_rho = rho;
             return;
@@ -145,7 +145,7 @@ public:
      */
     inline void
     setMu(
-        const double mu)
+        double mu)
         {
             d_mu = mu;
             return;
@@ -165,7 +165,7 @@ public:
      */
     inline void
     setLambda(
-        const double lambda)
+        double lambda)
         {
             d_lambda = lambda;
             return;

@@ -245,9 +245,9 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(
-    const ConvectiveDifferencingType& difference_form)
-    : d_is_initialized(false),
-      d_difference_form(difference_form),
+    const ConvectiveDifferencingType difference_form)
+    : ConvectiveOperator(difference_form),
+      d_is_initialized(false),
       d_refine_alg(NULL),
       d_refine_op(NULL),
       d_refine_scheds(),
@@ -257,8 +257,7 @@ INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(
       d_U_var(NULL),
       d_U_scratch_idx(-1)
 {
-    if (d_difference_form != ADVECTIVE &&
-        d_difference_form != CONSERVATIVE)
+    if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE)
     {
         TBOX_ERROR("INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator():\n"
                    << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
@@ -552,24 +551,6 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
 }// applyConvectiveOperator
 
 void
-INSStaggeredPPMConvectiveOperator::apply(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y)
-{
-    IBAMR_TIMER_START(t_apply);
-
-    // Get the vector components.
-    const int U_idx = x.getComponentDescriptorIndex(0);
-    const int N_idx = y.getComponentDescriptorIndex(0);
-
-    // Compute the action of the operator.
-    applyConvectiveOperator(U_idx, N_idx);
-
-    IBAMR_TIMER_STOP(t_apply);
-    return;
-}// apply
-
-void
 INSStaggeredPPMConvectiveOperator::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& in,
     const SAMRAIVectorReal<NDIM,double>& out)
@@ -593,10 +574,7 @@ INSStaggeredPPMConvectiveOperator::initializeOperatorState(
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     d_refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
     d_refine_alg = new RefineAlgorithm<NDIM>();
-    d_refine_alg->registerRefine(d_U_scratch_idx,                   // destination
-                                 in.getComponentDescriptorIndex(0), // source
-                                 d_U_scratch_idx,                   // temporary work space
-                                 d_refine_op);
+    d_refine_alg->registerRefine(d_U_scratch_idx, in.getComponentDescriptorIndex(0), d_U_scratch_idx, d_refine_op);
     d_refine_strategy = new CartExtrapPhysBdryOp(d_U_scratch_idx, BDRY_EXTRAP_TYPE);
     d_refine_scheds.resize(d_finest_ln+1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -668,10 +646,5 @@ INSStaggeredPPMConvectiveOperator::enableLogging(
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBAMR
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBAMR::INSStaggeredPPMConvectiveOperator>;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -88,8 +88,8 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredStokesOperator::INSStaggeredStokesOperator(
-    const INSProblemCoefs& problem_coefs,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs,
+    const INSProblemCoefs* problem_coefs,
+    blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> U_bc_coefs,
     Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper,
     RobinBcCoefStrategy<NDIM>* P_bc_coef,
     Pointer<HierarchyMathOps> hier_math_ops)
@@ -136,9 +136,9 @@ INSStaggeredStokesOperator::setTimeInterval(
     const double current_time,
     const double new_time)
 {
-    const double rho    = d_problem_coefs.getRho();
-    const double mu     = d_problem_coefs.getMu();
-    const double lambda = d_problem_coefs.getLambda();
+    const double rho    = d_problem_coefs->getRho();
+    const double mu     = d_problem_coefs->getMu();
+    const double lambda = d_problem_coefs->getLambda();
     d_current_time = current_time;
     d_new_time = new_time;
     const double dt = d_new_time-d_current_time;
@@ -306,10 +306,5 @@ INSStaggeredStokesOperator::enableLogging(
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBAMR
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBAMR::INSStaggeredStokesOperator>;
 
 //////////////////////////////////////////////////////////////////////////////

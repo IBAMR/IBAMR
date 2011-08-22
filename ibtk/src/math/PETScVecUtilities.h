@@ -142,7 +142,7 @@ public:
     static void
     constructPatchLevelVec(
         Vec& vec,
-        const int data_idx,
+        int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > data_var,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
@@ -159,7 +159,7 @@ public:
     static void
     constructPatchLevelVec(
         Vec& vec,
-        const int data_idx,
+        int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > data_var,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
@@ -170,7 +170,7 @@ public:
     static void
     copyToPatchLevelVec(
         Vec& vec,
-        const int data_idx,
+        int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > data_var,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
@@ -181,7 +181,7 @@ public:
     static void
     copyFromPatchLevelVec(
         Vec& vec,
-        const int data_idx,
+        int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > data_var,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
@@ -192,7 +192,7 @@ public:
     static void
     copyToPatchLevelVec(
         Vec& vec,
-        const int data_idx,
+        int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > data_var,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
@@ -203,7 +203,7 @@ public:
     static void
     copyFromPatchLevelVec(
         Vec& vec,
-        const int data_idx,
+        int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > data_var,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
@@ -218,9 +218,9 @@ public:
      */
     static void
     constructPatchLevelDOFIndices(
-        const int dof_index_idx,
+        int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,int> > dof_index_var,
-        const int data_idx,
+        int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > data_var,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
@@ -235,9 +235,9 @@ public:
      */
     static void
     constructPatchLevelDOFIndices(
-        const int dof_index_idx,
+        int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,int> > dof_index_var,
-        const int data_idx,
+        int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > data_var,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
@@ -247,7 +247,7 @@ public:
     static void
     constrainPatchLevelVec(
         Vec& vec,
-        const int dof_index_idx,
+        int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,int> > dof_index_var,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > dof_index_fill);
@@ -258,7 +258,7 @@ public:
     static void
     constrainPatchLevelVec(
         Vec& vec,
-        const int dof_index_idx,
+        int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,int> > dof_index_var,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > dof_index_fill);

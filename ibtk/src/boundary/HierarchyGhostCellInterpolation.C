@@ -148,7 +148,7 @@ HierarchyGhostCellInterpolation::setHomogeneousBc(
 void
 HierarchyGhostCellInterpolation::initializeOperatorState(
     const InterpolationTransactionComponent transaction_comp,
-    Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int coarsest_ln,
     const int finest_ln)
 {
@@ -162,8 +162,8 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
 
 void
 HierarchyGhostCellInterpolation::initializeOperatorState(
-    const std::vector<InterpolationTransactionComponent> transaction_comps,
-    Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const std::vector<InterpolationTransactionComponent>& transaction_comps,
+    const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int coarsest_ln,
     const int finest_ln)
 {
@@ -539,7 +539,7 @@ HierarchyGhostCellInterpolation::deallocateOperatorState()
 
 void
 HierarchyGhostCellInterpolation::fillData(
-    const double& fill_time)
+    double fill_time)
 {
     IBTK_TIMER_START(t_fill_data);
 
@@ -650,10 +650,5 @@ HierarchyGhostCellInterpolation::fillData(
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 }// namespace IBTK
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::HierarchyGhostCellInterpolation>;
 
 //////////////////////////////////////////////////////////////////////////////

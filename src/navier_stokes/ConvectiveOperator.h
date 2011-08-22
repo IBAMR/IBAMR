@@ -1,5 +1,5 @@
-// Filename: INSStaggeredCenteredConvectiveOperator.h
-// Created on 30 Oct 2008 by Boyce Griffith
+// Filename: ConvectiveOperator.h
+// Created on 21 Aug 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_INSStaggeredCenteredConvectiveOperator
-#define included_INSStaggeredCenteredConvectiveOperator
+#ifndef included_ConvectiveOperator
+#define included_ConvectiveOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -41,47 +41,64 @@
 // IBTK INCLUDES
 #include <ibtk/GeneralOperator.h>
 
-// SAMRAI INCLUDES
-#include <RefineAlgorithm.h>
-#include <RefineOperator.h>
-#include <SideVariable.h>
-
-// C++ STDLIB INCLUDES
-#include <vector>
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredCenteredConvectiveOperator is a concrete
- * IBTK::GeneralOperator which implements a centered convective differencing
- * operator.
- *
- * \see INSStaggeredHierarchyIntegrator
+ * \brief Class ConvectiveOperator is a abstract class for an implementation of
+ * a convective differencing operator.
  */
-class INSStaggeredCenteredConvectiveOperator
+class ConvectiveOperator
     : public IBTK::GeneralOperator
 {
 public:
     /*!
      * \brief Class constructor.
      */
-    INSStaggeredCenteredConvectiveOperator(
+    ConvectiveOperator(
         ConvectiveDifferencingType difference_form);
 
     /*!
      * \brief Destructor.
      */
-    ~INSStaggeredCenteredConvectiveOperator();
+    ~ConvectiveOperator();
 
     /*!
-     * \brief Compute the action of the convective operator.
+     * \brief Set the patch data index corresponding to the advection velocity
+     * to be used when computing the convective derivative.
      */
     void
+    setAdvectionVelocity(
+        int u_idx);
+
+    /*!
+     * \brief Get the patch data index corresponding to the advection velocity
+     * used when computing the convective derivative.
+     */
+    int
+    getAdvectionVelocity() const;
+
+    /*!
+     * \brief Set the convective differencing form to be used by the operator.
+     */
+    void
+    setConvectiveDifferencingType(
+        ConvectiveDifferencingType difference_form);
+
+    /*!
+     * \brief Get the convective differencing form used by the operator.
+     */
+    ConvectiveDifferencingType
+    getConvectiveDifferencingType() const;
+
+    /*!
+     * \brief Compute N = u * grad Q.
+     */
+    virtual void
     applyConvectiveOperator(
-        int U_idx,
-        int N_idx);
+        int Q_idx,
+        int N_idx) = 0;
 
     /*!
      * \name General operator functionality.
@@ -114,70 +131,18 @@ public:
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
 
-    /*!
-     * \brief Compute hierarchy dependent data required for computing y=F[x] and
-     * z=F[x]+y.
-     *
-     * The vector arguments for apply(), applyAdjoint(), etc, need not match
-     * those for initializeOperatorState().  However, there must be a certain
-     * degree of similarity, including
-     * - hierarchy configuration (hierarchy pointer and level range)
-     * - number, type and alignment of vector component data
-     * - ghost cell widths of data in the input and output vectors
-     *
-     * \note It is generally necessary to reinitialize the operator state when
-     * the hierarchy configuration changes.
-     *
-     * It is safe to call initializeOperatorState() when the state is already
-     * initialized.  In this case, the operator state is first deallocated and
-     * then reinitialized.
-     *
-     * Conditions on arguments:
-     * - input and output vectors must have same hierarchy
-     * - input and output vectors must have same structure, depth, etc.
-     *
-     * Call deallocateOperatorState() to remove any data allocated by this
-     * method.
-     *
-     * \see deallocateOperatorState
-     *
-     * \param in input vector
-     * \param out output vector
-     */
-    void
-    initializeOperatorState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
-
-    /*!
-     * \brief Remove all hierarchy dependent data allocated by
-     * initializeOperatorState().
-     *
-     * \note It is safe to call deallocateOperatorState() when the operator
-     * state is already deallocated.
-     *
-     * \see initializeOperatorState
-     */
-    void
-    deallocateOperatorState();
-
     //\}
 
+protected:
     /*!
-     * \name Logging functions.
+     * Enumerated type that determines which form of differencing to use.
      */
-    //\{
+    ConvectiveDifferencingType d_difference_form;
 
     /*!
-     * \brief Enable or disable logging.
-     *
-     * \param enabled logging state: true=on, false=off
+     * The advection velocity patch data descriptor index.
      */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
+    int d_u_idx;
 
 private:
     /*!
@@ -185,7 +150,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredCenteredConvectiveOperator();
+    ConvectiveOperator();
 
     /*!
      * \brief Copy constructor.
@@ -194,8 +159,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredCenteredConvectiveOperator(
-        const INSStaggeredCenteredConvectiveOperator& from);
+    ConvectiveOperator(
+        const ConvectiveOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -206,36 +171,16 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredCenteredConvectiveOperator&
+    ConvectiveOperator&
     operator=(
-        const INSStaggeredCenteredConvectiveOperator& that);
-
-    // Whether the operator is initialized.
-    bool d_is_initialized;
-
-    // Determines which form of differencing to use.
-    const ConvectiveDifferencingType d_difference_form;
-
-    // Data communication algorithms, operators, and schedules.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_refine_alg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_refine_op;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_refine_strategy;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_refine_scheds;
-
-    // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
-
-    // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_var;
-    int d_U_scratch_idx;
+        const ConvectiveOperator& that);
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/INSStaggeredCenteredConvectiveOperator.I>
+//#include <ibamr/ConvectiveOperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSStaggeredCenteredConvectiveOperator
+#endif //#ifndef included_ConvectiveOperator

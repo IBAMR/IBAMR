@@ -160,7 +160,7 @@ struct IndexComp
 
 CCPoissonFACOperator::CCPoissonFACOperator(
     const std::string& object_name,
-    const Pointer<Database>& input_db)
+    const Pointer<Database> input_db)
     : d_object_name(object_name),
       d_is_initialized(false),
       d_solution(NULL),
@@ -1429,7 +1429,7 @@ void
 CCPoissonFACOperator::buildPatchLaplaceOperator(
     Mat& A,
     const PoissonSpecifications& poisson_spec,
-    const Pointer<Patch<NDIM> >& patch,
+    const Pointer<Patch<NDIM> > patch,
     const IntVector<NDIM>& ghost_cell_width)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1503,7 +1503,7 @@ CCPoissonFACOperator::buildPatchLaplaceOperator_aligned(
     Mat& A,
     const Pointer<CellData<NDIM,double> > C_data,
     const Pointer<SideData<NDIM,double> > D_data,
-    const Pointer<Patch<NDIM> >& patch,
+    const Pointer<Patch<NDIM> > patch,
     const IntVector<NDIM>& ghost_cell_width)
 {
     int ierr;
@@ -1627,7 +1627,7 @@ CCPoissonFACOperator::buildPatchLaplaceOperator_nonaligned(
     Mat& A,
     const Pointer<CellData<NDIM,double> > C_data,
     const Pointer<SideData<NDIM,double> > D_data,
-    const Pointer<Patch<NDIM> >& patch,
+    const Pointer<Patch<NDIM> > patch,
     const IntVector<NDIM>& ghost_cell_width)
 {
     int ierr;
@@ -1881,10 +1881,5 @@ CCPoissonFACOperator::sanityCheck()
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBTK
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::CCPoissonFACOperator>;
 
 //////////////////////////////////////////////////////////////////////////////

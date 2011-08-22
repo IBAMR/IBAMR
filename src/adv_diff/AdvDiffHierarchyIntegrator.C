@@ -214,7 +214,7 @@ AdvDiffHierarchyIntegrator::~AdvDiffHierarchyIntegrator()
     return;
 }// ~AdvDiffHierarchyIntegrator
 
-const ViscousTimesteppingType&
+ViscousTimesteppingType
 AdvDiffHierarchyIntegrator::getViscousTimesteppingType() const
 {
     return d_viscous_timestepping_type;
@@ -374,7 +374,7 @@ AdvDiffHierarchyIntegrator::setIncompressibilityFixTerm(
 void
 AdvDiffHierarchyIntegrator::setConvectiveDifferencingType(
     Pointer<CellVariable<NDIM,double> > Q_var,
-    const ConvectiveDifferencingType& difference_form)
+    const ConvectiveDifferencingType difference_form)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
@@ -386,7 +386,7 @@ AdvDiffHierarchyIntegrator::setConvectiveDifferencingType(
 void
 AdvDiffHierarchyIntegrator::setDiffusionCoefficient(
     Pointer<CellVariable<NDIM,double> > Q_var,
-    const double& kappa)
+    const double kappa)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
@@ -398,7 +398,7 @@ AdvDiffHierarchyIntegrator::setDiffusionCoefficient(
 void
 AdvDiffHierarchyIntegrator::setDampingCoefficient(
     Pointer<CellVariable<NDIM,double> > Q_var,
-    const double& lambda)
+    const double lambda)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
@@ -1215,10 +1215,5 @@ AdvDiffHierarchyIntegrator::getFromRestart()
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBAMR
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBAMR::AdvDiffHierarchyIntegrator>;
 
 //////////////////////////////////////////////////////////////////////////////

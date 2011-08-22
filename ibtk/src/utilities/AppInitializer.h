@@ -81,8 +81,8 @@ public:
      */
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
     getRestartDatabase(
-        const bool suppress_warning=false);
-    
+        bool suppress_warning=false);
+
     /*!
      * Return initialization database for the requested solver component.  This
      * is equivalent to:
@@ -94,20 +94,20 @@ public:
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>
     getComponentDatabase(
         const std::string& component_name,
-        const bool suppress_warning=false);
+        bool suppress_warning=false);
 
     /*!
      * Return a boolean value indicating whether to write visualization data.
      */
     bool
     dumpVizData() const;
-    
+
     /*!
      * Return the visualization dump interval.
      */
     int
     getVizDumpInterval() const;
-    
+
     /*!
      * Return the visualization dump directory name.
      */
@@ -138,49 +138,49 @@ public:
      */
     SAMRAI::tbox::Pointer<LSiloDataWriter>
     getLSiloDataWriter() const;
-    
+
     /*!
      * Return a boolean value indicating whether to write restart data.
      */
     bool
     dumpRestartData() const;
-    
+
     /*!
      * Return the restart dump interval.
      */
     int
     getRestartDumpInterval() const;
-    
+
     /*!
      * Return the restart dump directory name.
      */
     std::string
     getRestartDumpDirectory() const;
- 
+
     /*!
      * Return a boolean value indicating whether to write post processing data.
      */
     bool
     dumpPostProcessingData() const;
-    
+
     /*!
      * Return the post processing data dump interval.
      */
     int
     getPostProcessingDataDumpInterval() const;
-    
+
     /*!
      * Return the post processing data dump directory name.
      */
     std::string
     getPostProcessingDataDumpDirectory() const;
-    
+
     /*!
      * Return a boolean value indicating whether to write timer data.
      */
     bool
     dumpTimerData() const;
-    
+
     /*!
      * Return the timer dump interval.
      */
@@ -229,7 +229,7 @@ private:
     std::vector<std::string> d_viz_writers;
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_data_writer;
     SAMRAI::tbox::Pointer<LSiloDataWriter> d_silo_data_writer;
-    
+
     /*!
      * Restart options.
      */

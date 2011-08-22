@@ -98,7 +98,7 @@ INSStaggeredHierarchyIntegrator {
 
    normalize_pressure = TRUE
 
-   HelmholtzHypreSolver {
+   VelocityHypreSolver {
       solver_type           = "Split"
       split_solver_type     = "PFMG"
       relative_residual_tol = 1.0e-12
@@ -106,7 +106,7 @@ INSStaggeredHierarchyIntegrator {
       enable_logging        = FALSE
    }
 
-   HelmholtzFACSolver {
+   VelocityFACSolver {
       num_pre_sweeps  = 0
       num_post_sweeps = 1
       coarse_solver_choice = "hypre"
@@ -123,7 +123,7 @@ INSStaggeredHierarchyIntegrator {
       }
    }
 
-   PoissonHypreSolver {
+   PressureHypreSolver {
       solver_type           = "PFMG"
       rap_type              = 0
       relax_type            = 2
@@ -135,7 +135,7 @@ INSStaggeredHierarchyIntegrator {
       enable_logging        = FALSE
    }
 
-   PoissonFACSolver {
+   PressureFACSolver {
       num_pre_sweeps  = 0
       num_post_sweeps = 3
       coarse_solver_choice = "hypre"

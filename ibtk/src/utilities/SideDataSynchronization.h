@@ -184,7 +184,7 @@ public:
      */
     void
     synchronizeData(
-        const double& fill_time);
+        double fill_time);
 
 protected:
 

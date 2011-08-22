@@ -58,7 +58,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScMFFDJacobianOperator::PETScMFFDJacobianOperator(
-    std::string options_prefix)
+    const std::string& options_prefix)
     : JacobianOperator(false),
       d_F(NULL),
       d_nonlinear_solver(NULL),
@@ -262,10 +262,5 @@ PETScMFFDJacobianOperator::FormFunction_SAMRAI(
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBTK
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::PETScMFFDJacobianOperator>;
 
 //////////////////////////////////////////////////////////////////////////////

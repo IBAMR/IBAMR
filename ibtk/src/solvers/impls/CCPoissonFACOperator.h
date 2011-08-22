@@ -112,7 +112,7 @@ public:
      */
     CCPoissonFACOperator(
         const std::string& object_name,
-        const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db=NULL);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
 
     /*!
      * \brief Destructor.
@@ -143,7 +143,7 @@ public:
      */
     void
     setPhysicalBcCoef(
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef);
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -165,7 +165,7 @@ public:
      */
     void
     setTime(
-        const double time);
+        double time);
 
     //\}
 
@@ -196,8 +196,8 @@ public:
      */
     void
     setResetLevels(
-        const int coarsest_ln,
-        const int finest_ln);
+        int coarsest_ln,
+        int finest_ln);
 
     /*!
      * \brief Specify the ghost cell width for \em both the solution and the
@@ -464,9 +464,9 @@ private:
      */
     void
     xeqScheduleProlongation(
-        const int dst_idx,
-        const int src_idx,
-        const int dst_ln);
+        int dst_idx,
+        int src_idx,
+        int dst_ln);
 
     /*!
      * \brief Execute schedule for restricting solution or residual to the
@@ -474,9 +474,9 @@ private:
      */
     void
     xeqScheduleRestriction(
-        const int dst_idx,
-        const int src_idx,
-        const int dst_ln);
+        int dst_idx,
+        int src_idx,
+        int dst_ln);
 
     /*!
      * \brief Execute schedule for filling ghosts on the specified level.  This
@@ -484,8 +484,8 @@ private:
      */
     void
     xeqScheduleGhostFillNoCoarse(
-        const int dst_idx,
-        const int dst_ln);
+        int dst_idx,
+        int dst_ln);
 
     //\}
 
@@ -509,7 +509,7 @@ private:
     buildPatchLaplaceOperator(
         Mat& A,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
 
     /*!
@@ -519,9 +519,9 @@ private:
     static void
     buildPatchLaplaceOperator_aligned(
         Mat& A,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > C_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > D_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > C_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > D_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
 
     /*!
@@ -531,9 +531,9 @@ private:
     static void
     buildPatchLaplaceOperator_nonaligned(
         Mat& A,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > C_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > D_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > C_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > D_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
 
     /*!

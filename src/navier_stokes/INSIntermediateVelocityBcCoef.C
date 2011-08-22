@@ -63,6 +63,7 @@ namespace IBAMR
 
 INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(
     const int comp_idx,
+    const INSProblemCoefs* /*problem_coefs*/,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
     : d_comp_idx(comp_idx),
@@ -82,12 +83,29 @@ INSIntermediateVelocityBcCoef::~INSIntermediateVelocityBcCoef()
 }// ~INSIntermediateVelocityBcCoef
 
 void
+INSIntermediateVelocityBcCoef::setINSProblemCoefs(
+    const INSProblemCoefs* /*problem_coefs*/)
+{
+    // intentionally blank
+    return;
+}// setINSProblemCoefs
+
+void
 INSIntermediateVelocityBcCoef::setPhysicalBoundaryConditions(
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
 {
     d_bc_coefs = bc_coefs;
     return;
 }// setPhysicalBoundaryConditions
+
+void
+INSIntermediateVelocityBcCoef::setTimeInterval(
+    const double /*current_time*/,
+    const double /*new_time*/)
+{
+    // intentionally blank
+    return;
+}// setTimeInterval
 
 void
 INSIntermediateVelocityBcCoef::setTargetPatchDataIndex(
@@ -151,7 +169,5 @@ INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 }// namespace IBAMR
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

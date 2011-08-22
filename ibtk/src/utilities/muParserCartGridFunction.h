@@ -96,11 +96,11 @@ public:
      */
     void
     setDataOnPatch(
-        const int data_idx,
+        int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const double data_time,
-        const bool initial_time=false,
+        double data_time,
+        bool initial_time=false,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level=SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
 
     //\}

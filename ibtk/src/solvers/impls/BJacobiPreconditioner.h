@@ -97,7 +97,7 @@ public:
     void
     setComponentPreconditioner(
         SAMRAI::tbox::Pointer<LinearSolver> preconditioner,
-        const unsigned int component);
+        unsigned int component);
 
     /*!
      * \name Linear solver functionality.

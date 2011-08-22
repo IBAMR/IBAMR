@@ -110,8 +110,8 @@ public:
     refine(
         SAMRAI::hier::Patch<NDIM>& fine,
         const SAMRAI::hier::Patch<NDIM>& coarse,
-        const int dst_component,
-        const int src_component,
+        int dst_component,
+        int src_component,
         const SAMRAI::hier::Box<NDIM>& fine_box,
         const SAMRAI::hier::IntVector<NDIM>& ratio) const;
 

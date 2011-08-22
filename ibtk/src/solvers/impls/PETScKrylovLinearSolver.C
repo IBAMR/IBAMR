@@ -924,9 +924,4 @@ PETScKrylovLinearSolver::PCApply_SAMRAI(
 
 }// namespace IBTK
 
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::PETScKrylovLinearSolver>;
-
 //////////////////////////////////////////////////////////////////////////////

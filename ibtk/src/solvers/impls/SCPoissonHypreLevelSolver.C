@@ -1223,7 +1223,7 @@ SCPoissonHypreLevelSolver::solveSystem(
 void
 SCPoissonHypreLevelSolver::copyToHypre(
     HYPRE_SStructVector vector,
-    const Pointer<SideData<NDIM,double> >& src_data,
+    const Pointer<SideData<NDIM,double> > src_data,
     const Box<NDIM>& box)
 {
     const bool copy_data = src_data->getGhostBox() != box;
@@ -1245,7 +1245,7 @@ SCPoissonHypreLevelSolver::copyToHypre(
 
 void
 SCPoissonHypreLevelSolver::copyFromHypre(
-    Pointer<SideData<NDIM,double> >& dst_data,
+    Pointer<SideData<NDIM,double> > dst_data,
     HYPRE_SStructVector vector,
     const Box<NDIM>& box)
 {
@@ -1342,8 +1342,8 @@ SCPoissonHypreLevelSolver::deallocateHypreData()
 
 void
 SCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_constant_coefficients(
-    Pointer<SideData<NDIM,double> >& rhs_data,
-    const Pointer<Patch<NDIM> >& patch,
+    Pointer<SideData<NDIM,double> > rhs_data,
+    const Pointer<Patch<NDIM> > patch,
     const Array<BoundaryBox<NDIM> >& physical_codim1_boxes)
 {
     static const IntVector<NDIM> gcw_to_fill = 1;
@@ -1421,10 +1421,5 @@ SCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_constant_coefficients(
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 }// namespace IBTK
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::SCPoissonHypreLevelSolver>;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -112,7 +112,7 @@ public:
     void
     setComponentPreconditioner(
         SAMRAI::tbox::Pointer<LinearSolver> preconditioner,
-        const unsigned int component);
+        unsigned int component);
 
     /*!
      * \brief Set the linear operators to be employed on the specified vector
@@ -120,8 +120,8 @@ public:
      */
     void
     setComponentOperators(
-        std::vector<SAMRAI::tbox::Pointer<LinearOperator> > linear_ops,
-        const unsigned int component);
+        const std::vector<SAMRAI::tbox::Pointer<LinearOperator> >& linear_ops,
+        unsigned int component);
 
     /*!
      * \brief Indicate whether to apply the component preconditioners
@@ -129,7 +129,7 @@ public:
      */
     void
     setSymmetricPreconditioner(
-        const bool symmetric_preconditioner);
+        bool symmetric_preconditioner);
 
     /*!
      * \brief Indicate whether to apply the component preconditioners in
@@ -138,7 +138,7 @@ public:
      */
     void
     setReversedOrder(
-        const bool reverse_order);
+        bool reverse_order);
 
     /*!
      * \name Linear solver functionality.
@@ -367,7 +367,7 @@ private:
      */
     static std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >
     getComponentVectors(
-        const SAMRAI::tbox::ConstPointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > x);
+        SAMRAI::tbox::ConstPointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > x);
 
     /*!
      * Boolean value to indicate whether the preconditioner is presently

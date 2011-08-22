@@ -81,8 +81,8 @@ public:
      */
     virtual void
     setTimeInterval(
-        const double current_time,
-        const double new_time);
+        double current_time,
+        double new_time);
 
     /*!
      * \brief Set the nonlinear operator \f$F[x]\f$ used by the solver.

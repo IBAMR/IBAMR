@@ -94,7 +94,7 @@ public:
      */
     INSStaggeredBoxRelaxationFACOperator(
         const std::string& object_name,
-        const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db=NULL);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
 
     /*!
      * \brief Destructor.
@@ -137,8 +137,8 @@ public:
      */
     void
     setTimeInterval(
-        const double current_time,
-        const double new_time);
+        double current_time,
+        double new_time);
 
     //\}
 
@@ -169,8 +169,8 @@ public:
      */
     void
     setResetLevels(
-        const int coarsest_ln,
-        const int finest_ln);
+        int coarsest_ln,
+        int finest_ln);
 
     /*!
      * \brief Specify the ghost cell width for \em both the solution and the
@@ -434,7 +434,7 @@ private:
     xeqScheduleProlongation(
         const std::pair<int,int>& dst_idxs,
         const std::pair<int,int>& src_idxs,
-        const int dst_ln);
+        int dst_ln);
 
     /*!
      * \brief Execute schedule for restricting solution or residual to the
@@ -444,7 +444,7 @@ private:
     xeqScheduleRestriction(
         const std::pair<int,int>& dst_idxs,
         const std::pair<int,int>& src_idxs,
-        const int dst_ln);
+        int dst_ln);
 
     /*!
      * \brief Execute schedule for filling ghosts on the specified level.
@@ -452,15 +452,15 @@ private:
     void
     xeqScheduleGhostFillNoCoarse(
         const std::pair<int,int>& dst_idxs,
-        const int dst_ln);
+        int dst_ln);
 
     /*!
      * \brief Execute schedule for synchronizing data on the specified level.
      */
     void
     xeqScheduleSideDataSynch(
-        const int dst_idx,
-        const int dst_ln);
+        int dst_idx,
+        int dst_ln);
 
     //\}
 

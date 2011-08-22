@@ -69,7 +69,7 @@ public:
     void
     setNodes(
         const std::vector<LNode*>& nodes,
-        const bool sorted=false);
+        bool sorted=false);
 
     /*!
      * \brief Return a const reference to the set of local LNode objects.
@@ -104,7 +104,7 @@ public:
     void
     setGhostNodes(
         const std::vector<LNode*>& ghost_nodes,
-        const bool sorted=false);
+        bool sorted=false);
 
     /*!
      * \brief Return a const reference to the set of local ghost LNode objects.

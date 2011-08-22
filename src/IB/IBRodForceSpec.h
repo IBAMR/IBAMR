@@ -95,13 +95,13 @@ public:
      * \brief Default constructor.
      */
     IBRodForceSpec(
-        const unsigned int num_rods=0);
+        unsigned int num_rods=0);
 
     /*!
      * \brief Alternate constructor.
      */
     IBRodForceSpec(
-        const int master_idx,
+        int master_idx,
         const std::vector<int>& next_idxs,
         const std::vector<blitz::TinyVector<double,NUM_MATERIAL_PARAMS> >& material_params
 #if ENABLE_SUBDOMAIN_INDICES

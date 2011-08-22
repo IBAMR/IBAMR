@@ -69,7 +69,7 @@ namespace IBAMR
 
 INSStaggeredVelocityBcCoef::INSStaggeredVelocityBcCoef(
     const unsigned int comp_idx,
-    const INSProblemCoefs& problem_coefs,
+    const INSProblemCoefs* problem_coefs,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
     : d_comp_idx(comp_idx),
@@ -90,6 +90,14 @@ INSStaggeredVelocityBcCoef::~INSStaggeredVelocityBcCoef()
     // intentionally blank
     return;
 }// ~INSStaggeredVelocityBcCoef
+
+void
+INSStaggeredVelocityBcCoef::setINSProblemCoefs(
+    const INSProblemCoefs* problem_coefs)
+{
+    d_problem_coefs = problem_coefs;
+    return;
+}// setINSProblemCoefs
 
 void
 INSStaggeredVelocityBcCoef::setPhysicalBoundaryConditions(
@@ -178,7 +186,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
     const Box<NDIM>& ghost_box = u_data->getGhostBox();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    const double mu = d_problem_coefs.getMu();
+    const double mu = d_problem_coefs->getMu();
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const Index<NDIM>& i = it();
@@ -294,7 +302,5 @@ INSStaggeredVelocityBcCoef::numberOfExtensionsFillable() const
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 }// namespace IBAMR
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

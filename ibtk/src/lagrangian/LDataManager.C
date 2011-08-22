@@ -267,7 +267,7 @@ LDataManager::spread(
     std::vector<Pointer<LData> >& F_data,
     std::vector<Pointer<LData> >& X_data,
     std::vector<Pointer<LData> >& ds_data,
-    std::vector<Pointer<RefineSchedule<NDIM> > > f_prolongation_scheds,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
     const bool F_data_ghost_node_update,
     const bool X_data_ghost_node_update,
     const bool ds_data_ghost_node_update,
@@ -321,7 +321,7 @@ LDataManager::spread(
     const int f_data_idx,
     std::vector<Pointer<LData> >& F_data,
     std::vector<Pointer<LData> >& X_data,
-    std::vector<Pointer<RefineSchedule<NDIM> > > f_prolongation_scheds,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
     const bool F_data_ghost_node_update,
     const bool X_data_ghost_node_update,
     const int coarsest_ln_in,
@@ -440,8 +440,8 @@ LDataManager::interp(
     const int f_data_idx,
     std::vector<Pointer<LData> >& F_data,
     std::vector<Pointer<LData> >& X_data,
-    std::vector<Pointer<CoarsenSchedule<NDIM> > > f_synch_scheds,
-    std::vector<Pointer<RefineSchedule<NDIM> > > f_ghost_fill_scheds,
+    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& f_synch_scheds,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& f_ghost_fill_scheds,
     const double fill_data_time,
     const int coarsest_ln_in,
     const int finest_ln_in)
@@ -2705,7 +2705,7 @@ LDataManager::interp_specialized(
     const int f_data_idx,
     std::vector<Pointer<LData> >& F_data,
     std::vector<Pointer<LData> >& X_data,
-    std::vector<Pointer<RefineSchedule<NDIM> > > f_ghost_fill_scheds,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& f_ghost_fill_scheds,
     const double fill_data_time,
     const int coarsest_ln,
     const int finest_ln)
@@ -3084,7 +3084,7 @@ void
 LDataManager::computeNodeOffsets(
     unsigned int& num_nodes,
     unsigned int& node_offset,
-    const unsigned int& num_local_nodes)
+    const unsigned int num_local_nodes)
 {
     IBTK_TIMER_START(t_compute_node_offsets);
 
@@ -3285,7 +3285,5 @@ LDataManager::getFromRestart()
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 } // namespace IBTK
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

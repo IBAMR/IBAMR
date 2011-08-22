@@ -262,9 +262,4 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(
 
 }// namespace IBTK
 
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::CartCellDoubleBoundsPreservingConservativeLinearRefine>;
-
 //////////////////////////////////////////////////////////////////////////////

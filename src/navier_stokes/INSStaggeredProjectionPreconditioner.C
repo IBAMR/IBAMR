@@ -458,9 +458,4 @@ INSStaggeredProjectionPreconditioner::enableLogging(
 
 }// namespace IBAMR
 
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBAMR::INSStaggeredProjectionPreconditioner>;
-
 //////////////////////////////////////////////////////////////////////////////

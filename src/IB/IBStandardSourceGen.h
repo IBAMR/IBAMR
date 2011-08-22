@@ -74,8 +74,8 @@ public:
      */
     static void
     setNumSources(
-        const int ln,
-        const unsigned int num_sources);
+        int ln,
+        unsigned int num_sources);
 
     /*!
      * \brief Get the number of internal sources and sinks on the specified
@@ -83,7 +83,7 @@ public:
      */
     static unsigned int
     getNumSources(
-        const int ln);
+        int ln);
 
     /*!
      * \brief Set the names of the internal sources and sinks on the specified
@@ -91,7 +91,7 @@ public:
      */
     static void
     setSourceNames(
-        const int ln,
+        int ln,
         const std::vector<std::string>& names);
 
     /*!
@@ -100,7 +100,7 @@ public:
      */
     static const std::vector<std::string>&
     getSourceNames(
-        const int ln);
+        int ln);
 
     /*!
      * \brief Set the sizes of the internal sources and sinks on the specified
@@ -108,7 +108,7 @@ public:
      */
     static void
     setSourceRadii(
-        const int ln,
+        int ln,
         const std::vector<double>& radii);
 
     /*!
@@ -117,7 +117,7 @@ public:
      */
     static const std::vector<double>&
     getSourceRadii(
-        const int ln);
+        int ln);
 
     /*!
      * \brief Return a reference to the vector of source strengths.
@@ -126,21 +126,21 @@ public:
      */
     std::vector<double>&
     getSourceStrengths(
-        const int ln);
+        int ln);
 
     /*!
      * \brief Return a const reference to the vector of source strengths.
      */
     const std::vector<double>&
     getSourceStrengths(
-        const int ln) const;
+        int ln) const;
 
     /*!
      * \brief Return a const reference to the vector of source pressures.
      */
     const std::vector<double>&
     getSourcePressures(
-        const int ln) const;
+        int ln) const;
 
     /*!
      * \brief Setup the data needed to compute source/sink data on the specified
@@ -150,11 +150,11 @@ public:
      */
     void
     initializeLevelData(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool initial_time,
-        IBTK::LDataManager* const l_data_manager);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool initial_time,
+        IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Specify the number of distributed internal sources or sinks.
@@ -165,10 +165,10 @@ public:
      */
     unsigned int
     getNumSources(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double data_time,
-        IBTK::LDataManager* const l_data_manager);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double data_time,
+        IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Compute the source locations for each of the distributed internal
@@ -183,10 +183,10 @@ public:
         std::vector<blitz::TinyVector<double,NDIM> >& X_src,
         std::vector<double>& r_src,
         SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double data_time,
-        IBTK::LDataManager* const l_data_manager);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double data_time,
+        IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Set the normalized pressures at the sources.
@@ -194,10 +194,10 @@ public:
     void
     setSourcePressures(
         const std::vector<double>& P_src,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double data_time,
-        IBTK::LDataManager* const l_data_manager);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double data_time,
+        IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Compute the source strengths for each of the distributed internal
@@ -210,10 +210,10 @@ public:
     void
     computeSourceStrengths(
         std::vector<double>& Q_src,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double data_time,
-        IBTK::LDataManager* const l_data_manager);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double data_time,
+        IBTK::LDataManager* l_data_manager);
 
     /*!
      * Write out object state to the given database.

@@ -78,28 +78,28 @@ public:
      */
     virtual void
     initializeLevelData(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool initial_time,
-        IBTK::LDataManager* const l_data_manager);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool initial_time,
+        IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Post-process data on the patch hierarchy.
      */
     virtual void
     postProcessData(
-        const int u_idx,
-        const int p_idx,
-        const int f_idx,
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > F_data,
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > X_data,
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > U_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int coarsest_level_number,
-        const int finest_level_number,
-        const double data_time,
-        IBTK::LDataManager* const l_data_manager) = 0;
+        int u_idx,
+        int p_idx,
+        int f_idx,
+        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& F_data,
+        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data,
+        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& U_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int coarsest_level_number,
+        int finest_level_number,
+        double data_time,
+        IBTK::LDataManager* l_data_manager) = 0;
 
 private:
     /*!

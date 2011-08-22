@@ -104,7 +104,7 @@ ParallelMap::operator=(
 void
 ParallelMap::addItem(
     const int key,
-    const tbox::Pointer<Streamable>& item)
+    const tbox::Pointer<Streamable> item)
 {
     d_pending_additions.insert(std::make_pair(key,item));
     return;
@@ -255,10 +255,5 @@ ParallelMap::getMap() const
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 } // namespace IBTK
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::ParallelMap>;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -65,6 +65,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSProjectionBcCoef::INSProjectionBcCoef(
+    const INSProblemCoefs* /*problem_coefs*/,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
     : d_bc_coefs(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
@@ -83,12 +84,29 @@ INSProjectionBcCoef::~INSProjectionBcCoef()
 }// ~INSProjectionBcCoef
 
 void
+INSProjectionBcCoef::setINSProblemCoefs(
+    const INSProblemCoefs* /*problem_coefs*/)
+{
+    // intentionally blank
+    return;
+}// setINSProblemCoefs
+
+void
 INSProjectionBcCoef::setPhysicalBoundaryConditions(
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
 {
     d_bc_coefs = bc_coefs;
     return;
 }// setPhysicalBoundaryConditions
+
+void
+INSProjectionBcCoef::setTimeInterval(
+    const double /*current_time*/,
+    const double /*new_time*/)
+{
+    // intentionally blank
+    return;
+}// setTimeInterval
 
 void
 INSProjectionBcCoef::setTargetPatchDataIndex(
@@ -203,7 +221,5 @@ INSProjectionBcCoef::numberOfExtensionsFillable() const
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 }// namespace IBAMR
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

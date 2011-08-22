@@ -103,8 +103,8 @@ public:
      */
     void
     resetLevels(
-        const int coarsest_ln,
-        const int finest_ln);
+        int coarsest_ln,
+        int finest_ln);
 
     //\}
 
@@ -118,9 +118,9 @@ public:
     void
     registerMarkerCloud(
         const std::string& name,
-        const int nmarks,
-        const int first_lag_idx,
-        const int level_number);
+        int nmarks,
+        int first_lag_idx,
+        int level_number);
 
     /*!
      * \brief Register or update a range of Lagrangian indices that are to be
@@ -134,8 +134,8 @@ public:
         const std::string& name,
         const SAMRAI::hier::IntVector<NDIM>& nelem,
         const SAMRAI::hier::IntVector<NDIM>& periodic,
-        const int first_lag_idx,
-        const int level_number);
+        int first_lag_idx,
+        int level_number);
 
     /*!
      * \brief Register or update several ranges of Lagrangian indices that are
@@ -150,7 +150,7 @@ public:
         const std::vector<SAMRAI::hier::IntVector<NDIM> >& nelem,
         const std::vector<SAMRAI::hier::IntVector<NDIM> >& periodic,
         const std::vector<int>& first_lag_idx,
-        const int level_number);
+        int level_number);
 
     /*!
      * \brief Register or update an unstructured mesh.
@@ -161,8 +161,8 @@ public:
     void
     registerUnstructuredMesh(
         const std::string& name,
-        const std::multimap<int,std::pair<int,int> > edge_map,
-        const int level_number);
+        const std::multimap<int,std::pair<int,int> >& edge_map,
+        int level_number);
 
     /*!
      * \brief Register the coordinates of the curvilinear mesh with the Silo
@@ -171,7 +171,7 @@ public:
     void
     registerCoordsData(
         SAMRAI::tbox::Pointer<LData> coords_data,
-        const int level_number);
+        int level_number);
 
     /*!
      * \brief Register a variable for plotting with the Silo data writer.
@@ -180,7 +180,7 @@ public:
     registerVariableData(
         const std::string& var_name,
         SAMRAI::tbox::Pointer<LData> var_data,
-        const int level_number);
+        int level_number);
 
     /*!
      * \brief Register a variable for plotting with the Silo data writer with a
@@ -190,9 +190,9 @@ public:
     registerVariableData(
         const std::string& var_name,
         SAMRAI::tbox::Pointer<LData> var_data,
-        const int start_depth,
-        const int var_depth,
-        const int level_number);
+        int start_depth,
+        int var_depth,
+        int level_number);
 
     /*!
      * \brief Register or update a single Lagrangian AO (application ordering)
@@ -206,7 +206,7 @@ public:
     void
     registerLagrangianAO(
         AO& ao,
-        const int level_number);
+        int level_number);
 
     /*!
      * \brief Register or update a collection of Lagrangian AO (application
@@ -220,16 +220,16 @@ public:
     void
     registerLagrangianAO(
         std::vector<AO>& ao,
-        const int coarsest_ln,
-        const int finest_ln);
+        int coarsest_ln,
+        int finest_ln);
 
     /*!
      * \brief Write the plot data to disk.
      */
     void
     writePlotData(
-        const int time_step_number,
-        const double simulation_time);
+        int time_step_number,
+        double simulation_time);
 
     ///
     ///  The following routines:
@@ -289,7 +289,7 @@ private:
     void
     buildVecScatters(
         AO& ao,
-        const int level_number);
+        int level_number);
 
     /*!
      * Read object state from the restart file and initialize class data

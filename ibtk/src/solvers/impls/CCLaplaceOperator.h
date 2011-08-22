@@ -78,8 +78,8 @@ public:
     CCLaplaceOperator(
         const std::string& object_name,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef,
-        const bool homogeneous_bc=true);
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
+        bool homogeneous_bc=true);
 
     /*!
      * \brief Constructor for class CCLaplaceOperator initializes the operator
@@ -94,7 +94,7 @@ public:
         const std::string& object_name,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        const bool homogeneous_bc=true);
+        bool homogeneous_bc=true);
 
     /*!
      * \brief Destructor.
@@ -120,7 +120,7 @@ public:
      */
     void
     setPhysicalBcCoef(
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef);
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -141,7 +141,7 @@ public:
      */
     void
     setHomogeneousBc(
-        const bool homogeneous_bc);
+        bool homogeneous_bc);
 
     /*!
      * \brief Set the hierarchy time, for use with the refinement schedules and
@@ -149,7 +149,7 @@ public:
      */
     void
     setTime(
-        const double time);
+        double time);
 
     /*!
      * \brief Set the HierarchyMathOps object used by the operator.

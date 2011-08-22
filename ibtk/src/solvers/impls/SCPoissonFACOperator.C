@@ -138,7 +138,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 SCPoissonFACOperator::SCPoissonFACOperator(
     const std::string& object_name,
-    const Pointer<Database>& input_db)
+    const Pointer<Database> input_db)
     : d_object_name(object_name),
       d_is_initialized(false),
       d_solution(NULL),
@@ -1467,7 +1467,7 @@ void
 SCPoissonFACOperator::buildPatchLaplaceOperator(
     Mat& A,
     const PoissonSpecifications& poisson_spec,
-    const Pointer<Patch<NDIM> >& patch,
+    const Pointer<Patch<NDIM> > patch,
     const int component_axis,
     const IntVector<NDIM>& ghost_cell_width)
 {
@@ -1639,10 +1639,5 @@ SCPoissonFACOperator::sanityCheck()
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBTK
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::SCPoissonFACOperator>;
 
 //////////////////////////////////////////////////////////////////////////////

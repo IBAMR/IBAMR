@@ -112,7 +112,7 @@ BGaussSeidelPreconditioner::setComponentPreconditioner(
 
 void
 BGaussSeidelPreconditioner::setComponentOperators(
-    std::vector<Pointer<LinearOperator> > linear_ops,
+    const std::vector<Pointer<LinearOperator> >& linear_ops,
     const unsigned int component)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -372,13 +372,5 @@ BGaussSeidelPreconditioner::getComponentVectors(
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBTK
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::BGaussSeidelPreconditioner>;
-
-#include <tbox/ConstPointer.C>
-template class ConstPointer<SAMRAIVectorReal<NDIM,double> >;
 
 //////////////////////////////////////////////////////////////////////////////

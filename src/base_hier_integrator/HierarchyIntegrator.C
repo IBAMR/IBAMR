@@ -238,6 +238,8 @@ HierarchyIntegrator::advanceHierarchy(
     const double current_time = d_integrator_time;
     const double new_time = d_integrator_time+dt;
 
+    if (d_do_log) plog << d_object_name << "::advanceHierarchy(): time interval = [" << current_time << "," << new_time << "], dt = " << dt << "\n";
+
     // Regrid the patch hierarchy.
     if (atRegridPoint())
     {
@@ -246,10 +248,20 @@ HierarchyIntegrator::advanceHierarchy(
     }
 
     // Integrate the time-dependent data.
-    if (d_do_log) plog << d_object_name << "::advanceHierarchy(): time interval = [" << current_time << "," << new_time << "], dt = " << dt << "\n";
     preprocessIntegrateHierarchy(current_time, new_time, d_num_cycles);
+    plog << d_object_name << "::advanceHierarchy(): integrating hierarchy\n";
     for (int cycle = 0; cycle < d_num_cycles; ++cycle)
     {
+        if (d_do_log)
+        {
+            if (d_num_cycles == 1)
+            {
+            }
+            else
+            {
+                plog << d_object_name << "::advanceHierarchy(): executing cycle " << cycle+1 << " of " << d_num_cycles << "\n";
+            }
+        }
         integrateHierarchy(current_time, new_time, cycle);
     }
     postprocessIntegrateHierarchy(current_time, new_time, /*skip_synchronize_new_state_data*/ true, d_num_cycles);
@@ -591,7 +603,7 @@ HierarchyIntegrator::resetHierarchyConfiguration(
     for (RefineAlgorithmMap::const_iterator it = d_refine_algs.begin();
          it != d_refine_algs.end(); ++it)
     {
-        for (int ln = coarsest_level; ln <= finest_hier_level; ++ln)
+        for (int ln = coarsest_level; ln <= std::min(finest_level+1,finest_hier_level); ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
             d_refine_scheds[it->first][ln] = it->second->createSchedule(level, ln-1, hierarchy, d_refine_strategies[it->first]);
@@ -603,9 +615,9 @@ HierarchyIntegrator::resetHierarchyConfiguration(
     for (CoarsenAlgorithmMap::const_iterator it = d_coarsen_algs.begin();
          it != d_coarsen_algs.end(); ++it)
     {
-        for (int ln = std::max(coarsest_level,1); ln <= finest_hier_level; ++ln)
+        for (int ln = std::max(coarsest_level,1); ln <= std::min(finest_level+1,finest_level); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM> >         level = hierarchy->getPatchLevel(ln  );
             Pointer<PatchLevel<NDIM> > coarser_level = hierarchy->getPatchLevel(ln-1);
             d_coarsen_scheds[it->first][ln] = it->second->createSchedule(coarser_level, level, d_coarsen_strategies[it->first]);
         }
@@ -1087,10 +1099,5 @@ HierarchyIntegrator::getFromRestart()
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBAMR
-
-/////////////////////// TEMPLATE TANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBAMR::HierarchyIntegrator>;
 
 //////////////////////////////////////////////////////////////////////////////

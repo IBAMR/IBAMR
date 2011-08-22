@@ -60,7 +60,7 @@ public:
      * \brief Default constructor.
      */
     LMarker(
-        const int idx=-1,
+        int idx=-1,
         const blitz::TinyVector<double,NDIM>& X=0.0,
         const blitz::TinyVector<double,NDIM>& U=0.0,
         const SAMRAI::hier::IntVector<NDIM>& periodic_offset=SAMRAI::hier::IntVector<NDIM>(0));
@@ -114,7 +114,7 @@ public:
      */
     void
     setIndex(
-        const int& idx);
+        int idx);
 
     /*!
      * \return A const reference to the marker position.

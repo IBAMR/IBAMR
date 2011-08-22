@@ -59,7 +59,7 @@ string_to_enum(
 template<typename T>
 inline std::string
 enum_to_string(
-    const T& val)
+    T val)
 {
     TBOX_ERROR("UNSUPPORTED ENUM TYPE\n");
     return "UNKNOWN";
@@ -93,7 +93,7 @@ string_to_enum<ConvectiveDifferencingType>(
 template<>
 inline std::string
 enum_to_string<ConvectiveDifferencingType>(
-    const ConvectiveDifferencingType& val)
+    ConvectiveDifferencingType val)
 {
     if (val == ADVECTIVE     ) return "ADVECTIVE";
     if (val == CONSERVATIVE  ) return "CONSERVATIVE";
@@ -126,7 +126,7 @@ string_to_enum<VariableContextType>(
 template<>
 inline std::string
 enum_to_string<VariableContextType>(
-    const VariableContextType& val)
+    VariableContextType val)
 {
     if (val == CURRENT_DATA) return "CURRENT_DATA";
     if (val == NEW_DATA    ) return "NEW_DATA";
@@ -158,7 +158,7 @@ string_to_enum<ProjectionMethodType>(
 template<>
 inline std::string
 enum_to_string<ProjectionMethodType>(
-    const ProjectionMethodType& val)
+    ProjectionMethodType val)
 {
     if (val == PRESSURE_UPDATE   ) return "PRESSURE_UPDATE";
     if (val == PRESSURE_INCREMENT) return "PRESSURE_INCREMENT";
@@ -188,7 +188,7 @@ string_to_enum<RegridMode>(
 template<>
 inline std::string
 enum_to_string<RegridMode>(
-    const RegridMode& val)
+    RegridMode val)
 {
     if (val == STANDARD  ) return "STANDARD";
     if (val == AGGRESSIVE) return "AGGRESSIVE";
@@ -222,7 +222,7 @@ string_to_enum<StokesPreconditionerType>(
 template<>
 inline std::string
 enum_to_string<StokesPreconditionerType>(
-    const StokesPreconditionerType& val)
+    StokesPreconditionerType val)
 {
     if (val == NONE               ) return "NONE";
     if (val == PROJECTION_METHOD  ) return "PROJECTION_METHOD";
@@ -254,7 +254,7 @@ string_to_enum<ViscousTimesteppingType>(
 template<>
 inline std::string
 enum_to_string<ViscousTimesteppingType>(
-    const ViscousTimesteppingType& val)
+    ViscousTimesteppingType val)
 {
     if (val == BACKWARD_EULER) return "BACKWARD_EULER";
     if (val == CRANK_NICOLSON) return "CRANK_NICOLSON";

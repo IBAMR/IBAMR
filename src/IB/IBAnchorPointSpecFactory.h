@@ -81,7 +81,7 @@ public:
      */
     void
     setStreamableClassID(
-        const int class_id);
+        int class_id);
 
     /*!
      * \brief Build an IBAnchorPointSpec object by unpacking data from the data

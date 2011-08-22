@@ -45,7 +45,7 @@ namespace IBTK
 
 inline size_t
 StreamableManager::getDataStreamSize(
-    const SAMRAI::tbox::Pointer<Streamable>& data_item) const
+    const SAMRAI::tbox::Pointer<Streamable> data_item) const
 {
     return SAMRAI::tbox::AbstractStream::sizeofInt() + data_item->getDataStreamSize();
 }// getDataStreamSize
@@ -53,7 +53,7 @@ StreamableManager::getDataStreamSize(
 inline void
 StreamableManager::packStream(
     SAMRAI::tbox::AbstractStream& stream,
-    SAMRAI::tbox::Pointer<Streamable>& data_item)
+    SAMRAI::tbox::Pointer<Streamable> data_item)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!data_item.isNull());
@@ -68,7 +68,7 @@ inline void
 StreamableManager::unpackStream(
     SAMRAI::tbox::AbstractStream& stream,
     const SAMRAI::hier::IntVector<NDIM>& offset,
-    SAMRAI::tbox::Pointer<Streamable>& data_item)
+    SAMRAI::tbox::Pointer<Streamable> data_item)
 {
     int streamable_id;
     stream.unpack(&streamable_id,1);

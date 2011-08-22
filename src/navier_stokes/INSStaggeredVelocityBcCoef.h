@@ -75,15 +75,25 @@ public:
      * class constructor.
      */
     INSStaggeredVelocityBcCoef(
-        const unsigned int comp_idx,
-        const INSProblemCoefs& problem_coefs,
+        unsigned int comp_idx,
+        const INSProblemCoefs* problem_coefs,
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
-        const bool homogeneous_bc=false);
+        bool homogeneous_bc=false);
 
     /*!
      * \brief Destructor.
      */
     ~INSStaggeredVelocityBcCoef();
+
+    /*!
+     * \brief Set the INSProblemCoefs object used by this boundary condition
+     * specification object.
+     *
+     * \param problem_coefs   Problem coefficients
+     */
+    void
+    setINSProblemCoefs(
+        const INSProblemCoefs* problem_coefs);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -100,8 +110,8 @@ public:
      */
     void
     setTimeInterval(
-        const double current_time,
-        const double new_time);
+        double current_time,
+        double new_time);
 
     /*!
      * \name Implementation of IBTK::ExtendedRobinBcCoefStrategy interface.
@@ -113,7 +123,7 @@ public:
      */
     void
     setTargetPatchDataIndex(
-        const int target_idx);
+        int target_idx);
 
     /*!
      * \brief Set whether the class is filling homogeneous or inhomogeneous
@@ -121,7 +131,7 @@ public:
      */
     void
     setHomogeneousBc(
-        const bool homogeneous_bc);
+        bool homogeneous_bc);
 
     //\}
 
@@ -231,7 +241,7 @@ private:
     /*
      * Problem coefficients.
      */
-    const INSProblemCoefs& d_problem_coefs;
+    const INSProblemCoefs* d_problem_coefs;
 
     /*
      * The boundary condition specification objects for the velocity.

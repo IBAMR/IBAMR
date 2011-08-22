@@ -117,7 +117,7 @@ public:
      * The choice of time integration scheme is set via the input database
      * provided to the class constructor.
      */
-    const ViscousTimesteppingType&
+    ViscousTimesteppingType
     getViscousTimesteppingType() const;
 
     /*!
@@ -133,7 +133,7 @@ public:
     void
     registerAdvectionVelocity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
-        const bool manage_data=true);
+        bool manage_data=true);
 
     /*!
      * Indicate whether a particular advection velocity is discretely divergence
@@ -142,7 +142,7 @@ public:
     void
     setAdvectionVelocityIsDivergenceFree(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
-        const bool is_div_free);
+        bool is_div_free);
 
     /*!
      * Supply an IBTK::CartGridFunction object to specify the value of a
@@ -162,7 +162,7 @@ public:
     void
     registerSourceTerm(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
-        const bool manage_data=true);
+        bool manage_data=true);
 
     /*!
      * Supply an IBTK::CartGridFunction object to specify the value of a
@@ -187,7 +187,7 @@ public:
     void
     registerIncompressibilityFixTerm(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_Phi_var,
-        const bool manage_data=true);
+        bool manage_data=true);
 
     /*!
      * Supply an IBTK::CartGridFunction object to specify the value of a
@@ -208,7 +208,7 @@ public:
     void
     registerTransportedQuantity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        const bool manage_data=true);
+        bool manage_data=true);
 
     /*!
      * Set the face-centered advection velocity to be used with a particular
@@ -253,7 +253,7 @@ public:
     void
     setConvectiveDifferencingType(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        const ConvectiveDifferencingType& difference_form);
+        ConvectiveDifferencingType difference_form);
 
     /*!
      * Set the scalar diffusion coefficient corresponding to a quantity that has
@@ -262,7 +262,7 @@ public:
     void
     setDiffusionCoefficient(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        const double& kappa);
+        double kappa);
 
     /*!
      * Set the scalar linear damping coefficient corresponding to a quantity
@@ -271,7 +271,7 @@ public:
     void
     setDampingCoefficient(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        const double& lambda);
+        double lambda);
 
     /*!
      * Set a grid function to provide initial conditions for a quantity that has
@@ -334,9 +334,9 @@ public:
      */
     void
     integrateHierarchy(
-        const double current_time,
-        const double new_time,
-        const int cycle_num=0);
+        double current_time,
+        double new_time,
+        int cycle_num=0);
 
 protected:
 
@@ -352,7 +352,7 @@ protected:
      */
     void
     resetTimeDependentHierarchyDataSpecialized(
-        const double new_time);
+        double new_time);
 
     /*!
      * Reset the hierarchy integrator to the state at the beginning of the
@@ -367,22 +367,22 @@ protected:
      */
     void
     initializeLevelDataSpecialized(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-        const bool allocate_data);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
+        bool allocate_data);
 
     /*!
      * Reset cached hierarchy dependent data.
      */
     void
     resetHierarchyConfigurationSpecialized(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int coarsest_level,
-        const int finest_level);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int coarsest_level,
+        int finest_level);
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -391,12 +391,12 @@ protected:
      */
     void
     applyGradientDetectorSpecialized(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double error_data_time,
-        const int tag_index,
-        const bool initial_time,
-        const bool uses_richardson_extrapolation_too);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double error_data_time,
+        int tag_index,
+        bool initial_time,
+        bool uses_richardson_extrapolation_too);
 
     /*!
      * Write out specialized object state to the given database.

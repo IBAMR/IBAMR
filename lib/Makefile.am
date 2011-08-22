@@ -22,9 +22,11 @@ clean-local:
 ## Dimension-independent library
 libIBAMR_a_SOURCES = \
 $(top_builddir)/src/advect/fortran/godunov_helpers.f \
-$(top_builddir)/src/fortran/sqrtm.f
+$(top_builddir)/src/fortran/sqrtm.f \
+$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C
 
 pkg_include_HEADERS = \
+$(top_srcdir)/src/navier_stokes/INSProblemCoefs.h \
 $(top_srcdir)/src/utilities/ibamr_enums.h \
 $(top_srcdir)/src/utilities/ibamr_utilities.h \
 $(top_srcdir)/src/utilities/app_namespaces.h \
@@ -64,6 +66,7 @@ $(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.C \
 $(top_srcdir)/src/advect/AdvectHypPatchOps.C \
 $(top_srcdir)/src/advect/GodunovAdvector.C \
 $(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C \
+$(top_srcdir)/src/navier_stokes/ConvectiveOperator.C \
 $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C \
 $(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C \
@@ -76,8 +79,7 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredPhysicalBoundaryHelper.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
-$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C
+$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C
 
 ###if LIBMESH_ENABLED
 ###DIM_INDEPENDENT_SOURCES += \
@@ -125,6 +127,7 @@ $(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.h \
 $(top_srcdir)/src/advect/AdvectHypPatchOps.h \
 $(top_srcdir)/src/advect/GodunovAdvector.h \
 $(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.h \
+$(top_srcdir)/src/navier_stokes/ConvectiveOperator.h \
 $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.h \
 $(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.h \
@@ -137,8 +140,7 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredPhysicalBoundaryHelper.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.h \
-$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h \
-$(top_srcdir)/src/navier_stokes/INSProblemCoefs.h
+$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h
 
 ###if LIBMESH_ENABLED
 ###pkg_include_HEADERS += \
