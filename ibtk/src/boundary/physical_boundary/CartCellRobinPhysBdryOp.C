@@ -262,6 +262,48 @@ CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(
     return;
 }// CartCellRobinPhysBdryOp
 
+CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(
+    const int patch_data_index,
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+    const bool homogeneous_bc)
+    : d_patch_data_indices(),
+      d_bc_coefs(),
+      d_homogeneous_bc(false)
+{
+    setPatchDataIndex(patch_data_index);
+    setPhysicalBcCoefs(bc_coefs);
+    setHomogeneousBc(homogeneous_bc);
+    return;
+}// CartCellRobinPhysBdryOp
+
+CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(
+    const std::set<int>& patch_data_indices,
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+    const bool homogeneous_bc)
+    : d_patch_data_indices(),
+      d_bc_coefs(),
+      d_homogeneous_bc(false)
+{
+    setPatchDataIndices(patch_data_indices);
+    setPhysicalBcCoefs(bc_coefs);
+    setHomogeneousBc(homogeneous_bc);
+    return;
+}// CartCellRobinPhysBdryOp
+
+CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(
+    const ComponentSelector& patch_data_indices,
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+    const bool homogeneous_bc)
+    : d_patch_data_indices(),
+      d_bc_coefs(),
+      d_homogeneous_bc(false)
+{
+    setPatchDataIndices(patch_data_indices);
+    setPhysicalBcCoefs(bc_coefs);
+    setHomogeneousBc(homogeneous_bc);
+    return;
+}// CartCellRobinPhysBdryOp
+
 CartCellRobinPhysBdryOp::~CartCellRobinPhysBdryOp()
 {
     // intentionally blank
@@ -323,6 +365,14 @@ CartCellRobinPhysBdryOp::setPhysicalBcCoefs(
     }
 #endif
     d_bc_coefs = bc_coefs;
+    return;
+}// setPhysicalBcCoefs
+
+void
+CartCellRobinPhysBdryOp::setPhysicalBcCoefs(
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
+{
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(&bc_coefs[0],&bc_coefs[0]+NDIM));
     return;
 }// setPhysicalBcCoefs
 
