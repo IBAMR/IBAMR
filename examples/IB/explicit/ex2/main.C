@@ -67,10 +67,10 @@ inline void
 linear_spring_force(
     double F[NDIM],
     const double D[NDIM],
-    const double& stf,
-    const double& rst,
-    const int& /*lag_mastr_idx*/,
-    const int& /*lag_slave_idx*/)
+    const double stf,
+    const double rst,
+    const int /*lag_mastr_idx*/,
+    const int /*lag_slave_idx*/)
 {
     // Compute the distance between the "master" and "slave" nodes.
     const double r = sqrt(inner_product(D,D+NDIM,D,0.0));
@@ -138,6 +138,8 @@ main(
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
+        Pointer<INSHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
+            "INSStaggeredHierarchyIntegrator", app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
         Pointer<IBHierarchyIntegrator> time_integrator = new IBHierarchyIntegrator(
             "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), navier_stokes_integrator);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
@@ -146,8 +148,6 @@ main(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
             "PatchHierarchy", grid_geometry);
-        Pointer<INSHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
-            "INSStaggeredHierarchyIntegrator", app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>(
             "LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));

@@ -62,8 +62,8 @@ c
       REAL function median(a,b,c)
       implicit none
       REAL a,b,c
-      REAL minmod2
-      median = a + minmod2(b-a,c-a)
+      REAL minmod
+      median = a + minmod(b-a,c-a)
       return
       end
 c
@@ -200,7 +200,7 @@ c
      &     usefullctu,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     nQgc0,nQgc1,nQgc2,
-     &     Q,Qscratch1,Qscratch2,
+     &     Q0,Q1,Q2,
      &     dQ,Q_L,Q_R,
      &     nugc0,nugc1,nugc2,
      &     nqhalfgc0,nqhalfgc1,nqhalfgc2,
@@ -223,13 +223,13 @@ c
 
       REAL dx(0:NDIM-1), dt
 
-      REAL Q(CELL3dVECG(ifirst,ilast,nQgc))
-      REAL Qscratch1(ifirst1-nQgc1:ilast1+nQgc1,
-     &               ifirst2-nQgc2:ilast2+nQgc2,
-     &               ifirst0-nQgc0:ilast0+nQgc0)
-      REAL Qscratch2(ifirst2-nQgc2:ilast2+nQgc2,
-     &               ifirst0-nQgc0:ilast0+nQgc0,
-     &               ifirst1-nQgc1:ilast1+nQgc1)
+      REAL Q0(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL Q1(ifirst1-nQgc1:ilast1+nQgc1,
+     &        ifirst2-nQgc2:ilast2+nQgc2,
+     &        ifirst0-nQgc0:ilast0+nQgc0)
+      REAL Q2(ifirst2-nQgc2:ilast2+nQgc2,
+     &        ifirst0-nQgc0:ilast0+nQgc0,
+     &        ifirst1-nQgc1:ilast1+nQgc1)
       REAL dQ(CELL3dVECG(ifirst,ilast,nQgc))
       REAL Q_L(CELL3dVECG(ifirst,ilast,nQgc))
       REAL Q_R(CELL3dVECG(ifirst,ilast,nQgc))
@@ -258,8 +258,8 @@ c
       do ic2 = ifirst2-nQgc2,ilast2+nQgc2
          do ic1 = ifirst1-nQgc1,ilast1+nQgc1
             do ic0 = ifirst0-nQgc0,ilast0+nQgc0
-               Qscratch1(ic1,ic2,ic0) = Q(ic0,ic1,ic2)
-               Qscratch2(ic2,ic0,ic1) = Q(ic0,ic1,ic2)
+               Q1(ic1,ic2,ic0) = Q0(ic0,ic1,ic2)
+               Q2(ic2,ic0,ic1) = Q0(ic0,ic1,ic2)
             enddo
          enddo
       enddo
@@ -274,7 +274,7 @@ c
      &     dx(0),dt,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     nQgc0,nQgc1,nQgc2,
-     &     Q,dQ,Q_L,Q_R,
+     &     Q0,dQ,Q_L,Q_R,
      &     nugc0,nugc1,nugc2,
      &     nqhalfgc0,nqhalfgc1,nqhalfgc2,
      &     u0,
@@ -284,7 +284,7 @@ c
      &     dx(1),dt,
      &     ifirst1,ilast1,ifirst2,ilast2,ifirst0,ilast0,
      &     nQgc1,nQgc2,nQgc0,
-     &     Qscratch1,dQ,Q_L,Q_R,
+     &     Q1,dQ,Q_L,Q_R,
      &     nugc1,nugc2,nugc0,
      &     nqhalfgc1,nqhalfgc2,nqhalfgc0,
      &     u1,
@@ -294,7 +294,7 @@ c
      &     dx(2),dt,
      &     ifirst2,ilast2,ifirst0,ilast0,ifirst1,ilast1,
      &     nQgc2,nQgc0,nQgc1,
-     &     Qscratch2,dQ,Q_L,Q_R,
+     &     Q2,dQ,Q_L,Q_R,
      &     nugc2,nugc0,nugc1,
      &     nqhalfgc2,nqhalfgc0,nqhalfgc1,
      &     u2,
@@ -394,9 +394,9 @@ c
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     nQgc0,nQgc1,nQgc2,
      &     nFgc0,nFgc1,nFgc2,
-     &     Q,Qscratch1,Qscratch2,
+     &     Q0,Q1,Q2,
      &     dQ,Q_L,Q_R,
-     &     F,Fscratch1,Fscratch2,
+     &     F0,F1,F2,
      &     nugc0,nugc1,nugc2,
      &     nqhalfgc0,nqhalfgc1,nqhalfgc2,
      &     u0,u1,u2,
@@ -419,24 +419,24 @@ c
 
       REAL dx(0:NDIM-1), dt
 
-      REAL Q(CELL3dVECG(ifirst,ilast,nQgc))
-      REAL Qscratch1(ifirst1-nQgc1:ilast1+nQgc1,
-     &               ifirst2-nQgc2:ilast2+nQgc2,
-     &               ifirst0-nQgc0:ilast0+nQgc0)
-      REAL Qscratch2(ifirst2-nQgc2:ilast2+nQgc2,
-     &               ifirst0-nQgc0:ilast0+nQgc0,
-     &               ifirst1-nQgc1:ilast1+nQgc1)
+      REAL Q0(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL Q1(ifirst1-nQgc1:ilast1+nQgc1,
+     &        ifirst2-nQgc2:ilast2+nQgc2,
+     &        ifirst0-nQgc0:ilast0+nQgc0)
+      REAL Q2(ifirst2-nQgc2:ilast2+nQgc2,
+     &        ifirst0-nQgc0:ilast0+nQgc0,
+     &        ifirst1-nQgc1:ilast1+nQgc1)
       REAL dQ(CELL3dVECG(ifirst,ilast,nQgc))
       REAL Q_L(CELL3dVECG(ifirst,ilast,nQgc))
       REAL Q_R(CELL3dVECG(ifirst,ilast,nQgc))
 
-      REAL F(CELL3dVECG(ifirst,ilast,nFgc))
-      REAL Fscratch1(ifirst1-nFgc1:ilast1+nFgc1,
-     &               ifirst2-nFgc2:ilast2+nFgc2,
-     &               ifirst0-nFgc0:ilast0+nFgc0)
-      REAL Fscratch2(ifirst2-nFgc2:ilast2+nFgc2,
-     &               ifirst0-nFgc0:ilast0+nFgc0,
-     &               ifirst1-nFgc1:ilast1+nFgc1)
+      REAL F0(CELL3dVECG(ifirst,ilast,nFgc))
+      REAL F1(ifirst1-nFgc1:ilast1+nFgc1,
+     &        ifirst2-nFgc2:ilast2+nFgc2,
+     &        ifirst0-nFgc0:ilast0+nFgc0)
+      REAL F2(ifirst2-nFgc2:ilast2+nFgc2,
+     &        ifirst0-nFgc0:ilast0+nFgc0,
+     &        ifirst1-nFgc1:ilast1+nFgc1)
 
       REAL u0(FACE3d0VECG(ifirst,ilast,nugc))
       REAL u1(FACE3d1VECG(ifirst,ilast,nugc))
@@ -462,8 +462,8 @@ c
       do ic2 = ifirst2-nQgc2,ilast2+nQgc2
          do ic1 = ifirst1-nQgc1,ilast1+nQgc1
             do ic0 = ifirst0-nQgc0,ilast0+nQgc0
-               Qscratch1(ic1,ic2,ic0) = Q(ic0,ic1,ic2)
-               Qscratch2(ic2,ic0,ic1) = Q(ic0,ic1,ic2)
+               Q1(ic1,ic2,ic0) = Q0(ic0,ic1,ic2)
+               Q2(ic2,ic0,ic1) = Q0(ic0,ic1,ic2)
             enddo
          enddo
       enddo
@@ -471,8 +471,8 @@ c
       do ic2 = ifirst2-nFgc2,ilast2+nFgc2
          do ic1 = ifirst1-nFgc1,ilast1+nFgc1
             do ic0 = ifirst0-nFgc0,ilast0+nFgc0
-               Fscratch1(ic1,ic2,ic0) = F(ic0,ic1,ic2)
-               Fscratch2(ic2,ic0,ic1) = F(ic0,ic1,ic2)
+               F1(ic1,ic2,ic0) = F0(ic0,ic1,ic2)
+               F2(ic2,ic0,ic1) = F0(ic0,ic1,ic2)
             enddo
          enddo
       enddo
@@ -488,8 +488,8 @@ c
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     nQgc0,nQgc1,nQgc2,
      &     nFgc0,nFgc1,nFgc2,
-     &     Q,dQ,Q_L,Q_R,
-     &     F,
+     &     Q0,dQ,Q_L,Q_R,
+     &     F0,
      &     nugc0,nugc1,nugc2,
      &     nqhalfgc0,nqhalfgc1,nqhalfgc2,
      &     u0,
@@ -500,8 +500,8 @@ c
      &     ifirst1,ilast1,ifirst2,ilast2,ifirst0,ilast0,
      &     nQgc1,nQgc2,nQgc0,
      &     nFgc1,nFgc2,nFgc0,
-     &     Qscratch1,dQ,Q_L,Q_R,
-     &     Fscratch1,
+     &     Q1,dQ,Q_L,Q_R,
+     &     F1,
      &     nugc1,nugc2,nugc0,
      &     nqhalfgc1,nqhalfgc2,nqhalfgc0,
      &     u1,
@@ -512,8 +512,8 @@ c
      &     ifirst2,ilast2,ifirst0,ilast0,ifirst1,ilast1,
      &     nQgc2,nQgc0,nQgc1,
      &     nFgc2,nFgc0,nFgc1,
-     &     Qscratch2,dQ,Q_L,Q_R,
-     &     Fscratch2,
+     &     Q2,dQ,Q_L,Q_R,
+     &     F2,
      &     nugc2,nugc0,nugc1,
      &     nqhalfgc2,nqhalfgc0,nqhalfgc1,
      &     u2,
@@ -1289,4 +1289,254 @@ c
       return
       end
 c
+      subroutine godunov_extrapolate3d(
+     &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
+     &     nQgc0,nQgc1,nQgc2,
+     &     Q0,Q1,Q2,
+     &     dQ,Q_L,Q_R,
+     &     nugc0,nugc1,nugc2,
+     &     nqhalfgc0,nqhalfgc1,nqhalfgc2,
+     &     u0,u1,u2,
+     &     qhalf0,qhalf1,qhalf2)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2
+
+      INTEGER nQgc0,nQgc1,nQgc2
+
+      INTEGER nugc0,nugc1,nugc2
+      INTEGER nqhalfgc0,nqhalfgc1,nqhalfgc2
+
+      REAL Q0(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL Q1(ifirst1-nQgc1:ilast1+nQgc1,
+     &        ifirst2-nQgc2:ilast2+nQgc2,
+     &        ifirst0-nQgc0:ilast0+nQgc0)
+      REAL Q2(ifirst2-nQgc2:ilast2+nQgc2,
+     &        ifirst0-nQgc0:ilast0+nQgc0,
+     &        ifirst1-nQgc1:ilast1+nQgc1)
+      REAL dQ(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL Q_L(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL Q_R(CELL3dVECG(ifirst,ilast,nQgc))
+
+      REAL u0(FACE3d0VECG(ifirst,ilast,nugc))
+      REAL u1(FACE3d1VECG(ifirst,ilast,nugc))
+      REAL u2(FACE3d2VECG(ifirst,ilast,nugc))
+c
+c     Input/Output.
+c
+      REAL qhalf0(FACE3d0VECG(ifirst,ilast,nqhalfgc))
+      REAL qhalf1(FACE3d1VECG(ifirst,ilast,nqhalfgc))
+      REAL qhalf2(FACE3d2VECG(ifirst,ilast,nqhalfgc))
+c
+c     Local variables.
+c
+      INTEGER ic0,ic1,ic2
+c
+c     Make permuted copies of Q.
+c
+      do ic2 = ifirst2-nQgc2,ilast2+nQgc2
+         do ic1 = ifirst1-nQgc1,ilast1+nQgc1
+            do ic0 = ifirst0-nQgc0,ilast0+nQgc0
+               Q1(ic1,ic2,ic0) = Q0(ic0,ic1,ic2)
+               Q2(ic2,ic0,ic1) = Q0(ic0,ic1,ic2)
+            enddo
+         enddo
+      enddo
+c
+c     Extrapolate in the x-direction.
+c
+      call godunov_xsPPM7_extrapolate3d(
+     &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
+     &     nQgc0,nQgc1,nQgc2,
+     &     Q0,dQ,Q_L,Q_R,
+     &     nugc0,nugc1,nugc2,
+     &     nqhalfgc0,nqhalfgc1,nqhalfgc2,
+     &     u0,
+     &     qhalf0)
+c
+c     Extrapolate in the y-direction.
+c
+      call godunov_xsPPM7_extrapolate3d(
+     &     ifirst1,ilast1,ifirst2,ilast2,ifirst0,ilast0,
+     &     nQgc1,nQgc2,nQgc0,
+     &     Q1,dQ,Q_L,Q_R,
+     &     nugc1,nugc2,nugc0,
+     &     nqhalfgc1,nqhalfgc2,nqhalfgc0,
+     &     u1,
+     &     qhalf1)
+c
+c     Extrapolate in the z-direction.
+c
+      call godunov_xsPPM7_extrapolate3d(
+     &     ifirst2,ilast2,ifirst0,ilast0,ifirst1,ilast1,
+     &     nQgc2,nQgc0,nQgc1,
+     &     Q2,dQ,Q_L,Q_R,
+     &     nugc2,nugc0,nugc1,
+     &     nqhalfgc2,nqhalfgc0,nqhalfgc1,
+     &     u2,
+     &     qhalf2)
+c
+      return
+      end
+c
+      subroutine godunov_xsPPM7_extrapolate3d(
+     &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
+     &     nQgc0,nQgc1,nQgc2,
+     &     Q,dQ,Q_L,Q_R,
+     &     nugc0,nugc1,nugc2,
+     &     nqhalfgc0,nqhalfgc1,nqhalfgc2,
+     &     u0,
+     &     qhalf0)
+c
+      implicit none
+c
+c     Functions.
+c
+      REAL median,sign_eps,WENO5_interp
+c
+c     Input.
+c
+      INTEGER ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2
+
+      INTEGER nQgc0,nQgc1,nQgc2
+
+      INTEGER nugc0,nugc1,nugc2
+      INTEGER nqhalfgc0,nqhalfgc1,nqhalfgc2
+
+      REAL Q(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL dQ(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL Q_L(CELL3dVECG(ifirst,ilast,nQgc))
+      REAL Q_R(CELL3dVECG(ifirst,ilast,nQgc))
+
+      REAL u0(FACE3d0VECG(ifirst,ilast,nugc))
+c
+c     Input/Output.
+c
+      REAL qhalf0(FACE3d0VECG(ifirst,ilast,nqhalfgc))
+c
+c     Local variables.
+c
+      INTEGER ic0,ic1,ic2
+      REAL QQ,QQ_L,QQ_R
+      REAL QQ_star_L,QQ_star_R
+      REAL QQ_WENO(-2:2)
+      REAL QQ_WENO_L,QQ_WENO_R
+      REAL QQ_4th_L,QQ_4th_R
+      REAL dQQ_C,dQQ_L,dQQ_R,dQQ
+      REAL P0,P1,P2
+      INTEGER i
+c
+c     Predict face centered values using the xsPPM7 scheme of Rider,
+c     Greenough, and Kamm.
+c
+      do ic2 = ifirst2-1,ilast2+1
+         do ic1 = ifirst1-1,ilast1+1
+            do ic0 = ifirst0-2,ilast0+2
+               dQQ_C = 0.5d0*(Q(ic0+1,ic1,ic2)-Q(ic0-1,ic1,ic2))
+               dQQ_L =       (Q(ic0  ,ic1,ic2)-Q(ic0-1,ic1,ic2))
+               dQQ_R =       (Q(ic0+1,ic1,ic2)-Q(ic0  ,ic1,ic2))
+               if (dQQ_R*dQQ_L .gt. 1.d-12) then
+                  dQQ = min(abs(dQQ_C),2.d0*abs(dQQ_L),2.d0*abs(dQQ_R))*
+     c                 sign(1.d0,dQQ_C)
+               else
+                  dQQ = 0.d0
+               endif
+               dQ(ic0,ic1,ic2) = dQQ
+            enddo
+
+            do ic0 = ifirst0-1,ilast0+1
+c
+c     Compute a 7th order interpolation.
+c
+               QQ   = Q(ic0,ic1,ic2)
+               QQ_L = (1.d0/420.d0)*(
+     &              -   3.d0*Q(ic0+3,ic1,ic2)
+     &              +  25.d0*Q(ic0+2,ic1,ic2)
+     &              - 101.d0*Q(ic0+1,ic1,ic2)
+     &              + 319.d0*Q(ic0  ,ic1,ic2)
+     &              + 214.d0*Q(ic0-1,ic1,ic2)
+     &              -  38.d0*Q(ic0-2,ic1,ic2)
+     &              +   4.d0*Q(ic0-3,ic1,ic2))
+               QQ_R = (1.d0/420.d0)*(
+     &              -   3.d0*Q(ic0-3,ic1,ic2)
+     &              +  25.d0*Q(ic0-2,ic1,ic2)
+     &              - 101.d0*Q(ic0-1,ic1,ic2)
+     &              + 319.d0*Q(ic0  ,ic1,ic2)
+     &              + 214.d0*Q(ic0+1,ic1,ic2)
+     &              -  38.d0*Q(ic0+2,ic1,ic2)
+     &              +   4.d0*Q(ic0+3,ic1,ic2))
+               Q_L(ic0,ic1,ic2) = QQ_L
+               Q_R(ic0,ic1,ic2) = QQ_R
+c
+c     Check for extrema or violations of monotonicity.
+c
+               call monotonize(
+     &              Q(ic0-1,ic1,ic2),
+     &              QQ_L,QQ_R,QQ_star_L,QQ_star_R)
+               if ( ((QQ_star_L-QQ_L)**2.d0 .ge. 1.d-12) .or.
+     &              ((QQ_star_R-QQ_R)**2.d0 .ge. 1.d-12) ) then
+                  do i = -2,2
+                     QQ_WENO(i) = Q(ic0-i,ic1,ic2)
+                  enddo
+                  QQ_WENO_L = WENO5_interp(QQ_WENO)
+                  do i = -2,2
+                     QQ_WENO(i) = Q(ic0+i,ic1,ic2)
+                  enddo
+                  QQ_WENO_R = WENO5_interp(QQ_WENO)
+                  if ( ((QQ_star_L-QQ)**2.d0 .le. 1.d-12) .or.
+     &                 ((QQ_star_R-QQ)**2.d0 .le. 1.d-12) ) then
+                     QQ_WENO_L = median(QQ,QQ_WENO_L,QQ_L)
+                     QQ_WENO_R = median(QQ,QQ_WENO_R,QQ_R)
+                     call monotonize(
+     &                    Q(ic0-1,ic1,ic2),
+     &                    QQ_WENO_L,QQ_WENO_R,QQ_star_L,QQ_star_R)
+                  else
+                     QQ_4th_L = 0.5d0*(
+     &                    Q(ic0-1,ic1,ic2)+Q(ic0,ic1,ic2)) -
+     &                    (1.d0/6.d0)*(
+     &                    dQ(ic0,ic1,ic2)-dQ(ic0-1,ic1,ic2))
+                     QQ_4th_R = 0.5d0*(
+     &                    Q(ic0,ic1,ic2)+Q(ic0+1,ic1,ic2)) -
+     &                    (1.d0/6.d0)*(
+     &                    dQ(ic0+1,ic1,ic2)-dQ(ic0,ic1,ic2))
+                     QQ_4th_L = median(QQ_4th_L,QQ_WENO_L,QQ_L)
+                     QQ_4th_R = median(QQ_4th_R,QQ_WENO_R,QQ_R)
+                     call monotonize(
+     &                    Q(ic0-1,ic1,ic2),
+     &                    QQ_4th_L,QQ_4th_R,QQ_star_L,QQ_star_R)
+                  endif
+                  Q_L(ic0,ic1,ic2) = median(QQ_WENO_L,QQ_star_L,QQ_L)
+                  Q_R(ic0,ic1,ic2) = median(QQ_WENO_R,QQ_star_R,QQ_R)
+               endif
+            enddo
+
+            do ic0 = ifirst0-1,ilast0
+               QQ        = Q  (ic0  ,ic1,ic2)
+               QQ_star_L = Q_L(ic0  ,ic1,ic2)
+               QQ_star_R = Q_R(ic0  ,ic1,ic2)
+               P0 = 1.5d0*QQ-0.25d0*(QQ_star_L+QQ_star_R)
+               P1 = QQ_star_R-QQ_star_L
+               P2 = 3.d0*(QQ_star_L+QQ_star_R)-6.d0*QQ
+               QQ_L = P0 + 0.5d0*P1 + 0.25d0*P2
+
+               QQ        = Q  (ic0+1,ic1,ic2)
+               QQ_star_L = Q_L(ic0+1,ic1,ic2)
+               QQ_star_R = Q_R(ic0+1,ic1,ic2)
+               P0 = 1.5d0*QQ-0.25d0*(QQ_star_L+QQ_star_R)
+               P1 = QQ_star_R-QQ_star_L
+               P2 = 3.d0*(QQ_star_L+QQ_star_R)-6.d0*QQ
+               QQ_R = P0 - 0.5d0*P1 + 0.25d0*P2
+
+               qhalf0(ic0+1,ic1,ic2) =
+     &              0.5d0*(QQ_L+QQ_R)+
+     &              sign_eps(u0(ic0+1,ic1,ic2))*0.5d0*(QQ_L-QQ_R)
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

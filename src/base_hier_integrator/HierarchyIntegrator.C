@@ -101,7 +101,6 @@ HierarchyIntegrator::HierarchyIntegrator(
     d_integrator_time = std::numeric_limits<double>::quiet_NaN();
     d_start_time = 0.0;
     d_end_time = std::numeric_limits<double>::max();
-    d_dt_previous = 0.0;
     d_dt_max = std::numeric_limits<double>::max();
     d_dt_growth_factor = 2.0;
     d_integrator_step = 0;
@@ -248,23 +247,18 @@ HierarchyIntegrator::advanceHierarchy(
     }
 
     // Integrate the time-dependent data.
-    preprocessIntegrateHierarchy(current_time, new_time, d_num_cycles);
+    const int num_cycles = getNumberOfCycles();
+    preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
     plog << d_object_name << "::advanceHierarchy(): integrating hierarchy\n";
-    for (int cycle = 0; cycle < d_num_cycles; ++cycle)
+    for (int cycle = 0; cycle < num_cycles; ++cycle)
     {
-        if (d_do_log)
+        if (d_do_log && num_cycles != 1)
         {
-            if (d_num_cycles == 1)
-            {
-            }
-            else
-            {
-                plog << d_object_name << "::advanceHierarchy(): executing cycle " << cycle+1 << " of " << d_num_cycles << "\n";
-            }
+            plog << d_object_name << "::advanceHierarchy(): executing cycle " << cycle+1 << " of " << num_cycles << "\n";
         }
         integrateHierarchy(current_time, new_time, cycle);
     }
-    postprocessIntegrateHierarchy(current_time, new_time, /*skip_synchronize_new_state_data*/ true, d_num_cycles);
+    postprocessIntegrateHierarchy(current_time, new_time, /*skip_synchronize_new_state_data*/ true, num_cycles);
 
     // Synchronize the updated data.
     if (d_do_log) plog << d_object_name << "::advanceHierarchy(): synchronizing updated data\n";
@@ -439,6 +433,12 @@ HierarchyIntegrator::setupPlotData()
     }
     return;
 }// setupPlotData
+
+int
+HierarchyIntegrator::getNumberOfCycles()
+{
+    return d_num_cycles;
+}// getNumberOfCycles
 
 void
 HierarchyIntegrator::preprocessIntegrateHierarchy(
@@ -695,7 +695,10 @@ HierarchyIntegrator::putToDatabase(
     db->putDouble("d_integrator_time",d_integrator_time);
     db->putDouble("d_start_time",d_start_time);
     db->putDouble("d_end_time",d_end_time);
-    db->putDouble("d_dt_previous",d_dt_previous);
+    const int dt_previous_size = d_dt_previous.size();
+    db->putInteger("d_dt_previous_size",dt_previous_size);
+    const std::vector<double> dt_previous_vec(d_dt_previous.begin(),d_dt_previous.end());
+    db->putDoubleArray("d_dt_previous_vec",&dt_previous_vec[0],dt_previous_vec.size());
     db->putDouble("d_dt_max",d_dt_max);
     db->putDouble("d_dt_growth_factor",d_dt_growth_factor);
     db->putInteger("d_integrator_step",d_integrator_step);
@@ -719,7 +722,7 @@ HierarchyIntegrator::getTimeStepSizeSpecialized()
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     if (!initial_time && d_dt_growth_factor >= 1.0)
     {
-        dt = std::min(dt, d_dt_growth_factor*d_dt_previous);
+        dt = std::min(dt, d_dt_growth_factor*d_dt_previous[0]);
     }
     return dt;
 }// getTimeStepSizeSpecialized
@@ -751,7 +754,9 @@ HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Advance the simulation time.
-    d_dt_previous = new_time - d_integrator_time;
+    d_dt_previous.push_front(new_time - d_integrator_time);
+    static const unsigned int MAX_DT_PREVIOUS_SIZE = 31;
+    if (d_dt_previous.size() > MAX_DT_PREVIOUS_SIZE) d_dt_previous.pop_back();
     d_integrator_time = new_time;
     ++d_integrator_step;
 
@@ -1082,7 +1087,10 @@ HierarchyIntegrator::getFromRestart()
     d_integrator_time = db->getDouble("d_integrator_time");
     d_start_time = db->getDouble("d_start_time");
     d_end_time = db->getDouble("d_end_time");
-    d_dt_previous = db->getDouble("d_dt_previous");
+    const int dt_previous_size = db->getInteger("d_dt_previous_size");
+    std::vector<double> dt_previous_vec(dt_previous_size);
+    db->getDoubleArray("d_dt_previous_vec",&dt_previous_vec[0],dt_previous_vec.size());
+    d_dt_previous = std::deque<double>(dt_previous_vec.begin(),dt_previous_vec.end());
     d_dt_max = db->getDouble("d_dt_max");
     d_dt_growth_factor = db->getDouble("d_dt_growth_factor");
     d_integrator_step = db->getInteger("d_integrator_step");

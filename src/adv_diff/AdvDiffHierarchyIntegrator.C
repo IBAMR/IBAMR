@@ -647,6 +647,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
     const double dt = new_time - current_time;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     ////////////////////////////////////////////////////////////////////////////
@@ -761,7 +762,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 
     // Indicate that all solvers need to be reinitialized if the current
     // timestep size is different from the previous one.
-    if (!MathUtilities<double>::equalEps(dt,d_dt_previous))
+    if (initial_time || !MathUtilities<double>::equalEps(dt,d_dt_previous[0]))
     {
         std::fill(d_helmholtz_solvers_need_init.begin(),d_helmholtz_solvers_need_init.end(), true);
         d_coarsest_reset_ln = 0;
@@ -966,7 +967,7 @@ AdvDiffHierarchyIntegrator::getTimeStepSizeSpecialized()
     }
     if (!initial_time && d_dt_growth_factor >= 1.0)
     {
-        dt = std::min(dt,d_dt_growth_factor*d_dt_previous);
+        dt = std::min(dt,d_dt_growth_factor*d_dt_previous[0]);
     }
     return dt;
 }// getTimeStepSizeSpecialized
@@ -979,7 +980,9 @@ AdvDiffHierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Advance the simulation time.
-    d_dt_previous = new_time - d_integrator_time;
+    d_dt_previous.push_front(new_time - d_integrator_time);
+    static const unsigned int MAX_DT_PREVIOUS_SIZE = 31;
+    if (d_dt_previous.size() > MAX_DT_PREVIOUS_SIZE) d_dt_previous.pop_back();
     d_integrator_time = new_time;
     ++d_integrator_step;
 

@@ -51,6 +51,7 @@
 #include <tbox/Serializable.h>
 
 // C++ STDLIB INCLUDES
+#include <deque>
 #include <list>
 #include <map>
 
@@ -279,6 +280,13 @@ public:
     ///
     ///  Routines to implement the time integration scheme.
     ///
+
+    /*!
+     * Virtual method to return the number of cycles to perform for the present
+     * time step.
+     */
+    virtual int
+    getNumberOfCycles();
 
     /*!
      * Virtual method to prepare to advance data from current_time to new_time.
@@ -657,8 +665,9 @@ protected:
      * Time and time step size data read from input or set at initialization.
      */
     double d_integrator_time, d_start_time, d_end_time;
-    double d_dt_previous, d_dt_max, d_dt_growth_factor;
+    double d_dt_max, d_dt_growth_factor;
     int d_integrator_step, d_max_integrator_steps;
+    std::deque<double> d_dt_previous;
 
     /*
      * The number of cycles of fixed-point iteration to use per timestep.

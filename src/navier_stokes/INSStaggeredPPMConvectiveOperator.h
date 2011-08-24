@@ -40,7 +40,6 @@
 
 // SAMRAI INCLUDES
 #include <RefineAlgorithm.h>
-#include <RefineOperator.h>
 #include <SideVariable.h>
 
 // C++ STDLIB INCLUDES

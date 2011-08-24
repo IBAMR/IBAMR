@@ -192,6 +192,12 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
+     * Returns the number of cycles to perform for the present time step.
+     */
+    int
+    getNumberOfCycles();
+
+    /*!
      * Prepare to advance the data from current_time to new_time.
      */
     void
@@ -332,6 +338,12 @@ private:
     regridProjection();
 
     /*!
+     * Boolean indicating whether to use 2nd-order Crank-Nicolson
+     * Adams-Bashforth in the initial time step cycle.
+     */
+    bool d_using_CNAB;
+
+    /*!
      * Hierarchy operations objects.
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
@@ -396,6 +408,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_Norm_var;
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Div_U_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_N_old_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_regrid_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_src_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_indicator_var;
@@ -418,6 +431,8 @@ private:
     int d_Omega_Norm_current_idx, d_Omega_Norm_new_idx, d_Omega_Norm_scratch_idx;
 #endif
     int      d_Div_U_current_idx,      d_Div_U_new_idx,      d_Div_U_scratch_idx;
+    int      d_N_old_current_idx,      d_N_old_new_idx,      d_N_old_scratch_idx;
+    int      d_U_old_current_idx,      d_U_old_new_idx,      d_U_old_scratch_idx;
 
     /*
      * Patch data descriptor indices for all "scratch" variables managed by the

@@ -90,7 +90,6 @@ IBHierarchyIntegrator {
    grow_dt               = 2.0e0    // growth factor for timesteps
    regrid_cfl_interval   = 0.5
    dt_max = 1.6e-1/NFINEST
-   num_cycles = 3
    delta_fcn = "IB_4"
    enable_logging = TRUE
 }

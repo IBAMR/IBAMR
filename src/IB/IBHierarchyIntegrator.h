@@ -198,6 +198,12 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
+     * Returns the number of cycles to perform for the present time step.
+     */
+    int
+    getNumberOfCycles();
+
+    /*!
      * Prepare to advance the data from current_time to new_time.
      */
     void
@@ -514,18 +520,17 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_V_var, d_F_var, d_Q_var;
     SAMRAI::tbox::Pointer<IBTK::LMarkerSetVariable> d_mark_var;
-    int d_V_idx, d_W_idx, d_F_idx, d_N_idx, d_Q_idx, d_mark_current_idx, d_mark_scratch_idx;
+    int d_V_idx, d_F_idx, d_Q_idx, d_mark_current_idx, d_mark_scratch_idx;
 
     /*
      * Lagrangian variables.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_current_data, d_X_half_data, d_X_new_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_U_current_data, d_U_half_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_current_data, d_X_half_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_U_current_data, d_U_half_data, d_U_old_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_F_half_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_K_data, d_M_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_Y_current_data, d_Y_new_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_dY_dt_current_data, d_dY_dt_new_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_F_K_half_data;
 
     /*
      * List of local indices of local anchor points.

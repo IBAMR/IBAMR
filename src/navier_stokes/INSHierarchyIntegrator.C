@@ -88,7 +88,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
 {
     // Set some default values.
     d_integrator_is_initialized = false;
-    d_num_cycles = 3;
+    d_num_cycles = 1;
     d_cfl_max = 1.0;
     d_using_vorticity_tagging = false;
     d_Omega_max = 0.0;
@@ -349,7 +349,7 @@ INSHierarchyIntegrator::getTimeStepSizeSpecialized()
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     if (!initial_time && d_dt_growth_factor >= 1.0)
     {
-        dt = std::min(dt,d_dt_growth_factor*d_dt_previous);
+        dt = std::min(dt,d_dt_growth_factor*d_dt_previous[0]);
     }
     return dt;
 }// getTimeStepSizeSpecialized
