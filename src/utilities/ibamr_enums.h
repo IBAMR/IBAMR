@@ -102,6 +102,36 @@ enum_to_string<ConvectiveDifferencingType>(
 }// enum_to_string
 
 /*!
+ * \brief Enumerated type for different basic time stepping schemes.
+ */
+enum TimesteppingType
+{
+    MIDPOINT_RULE,
+    TRAPEZOIDAL_RULE,
+    UNKNOWN_TIME_STEPPING_TYPE=-1
+};
+
+template<>
+inline TimesteppingType
+string_to_enum<TimesteppingType>(
+    const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "MIDPOINT_RULE"   ) == 0) return MIDPOINT_RULE;
+    if (strcasecmp(val.c_str(), "TRAPEZOIDAL_RULE") == 0) return TRAPEZOIDAL_RULE;
+    return UNKNOWN_TIME_STEPPING_TYPE;
+}// string_to_enum
+
+template<>
+inline std::string
+enum_to_string<TimesteppingType>(
+    TimesteppingType val)
+{
+    if (val == MIDPOINT_RULE   ) return "MIDPOINT_RULE";
+    if (val == TRAPEZOIDAL_RULE) return "TRAPEZOIDAL_RULE";
+    return "UNKNOWN_TIME_STEPPING_TYPE";
+}// enum_to_string
+
+/*!
  * \brief Enumerated type for different standard data contexts.
  */
 enum VariableContextType

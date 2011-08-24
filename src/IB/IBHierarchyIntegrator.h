@@ -49,7 +49,6 @@
 
 // IBTK INCLUDES
 #include <ibtk/LDataManager.h>
-#include <ibtk/LMarkerSetVariable.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -126,12 +125,6 @@ public:
      */
     IBTK::LDataManager*
     getLDataManager() const;
-
-    /*!
-     * Return a pointer to the LagMarker index data state variable.
-     */
-    SAMRAI::tbox::Pointer<IBTK::LMarkerSetVariable>
-    getLMarkerSetVariable() const;
 
     /*!
      * Return a pointer to the instrumentation manager object.
@@ -295,6 +288,11 @@ protected:
     putToDatabaseSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
+    /*!
+     * Time stepping scheme.
+     */
+    TimesteppingType d_timestepping_scheme;
+
 private:
     /*!
      * \brief Default constructor.
@@ -371,6 +369,55 @@ private:
         std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > V_data,
         int coarsest_ln,
         int finest_ln);
+
+    /*!
+     * Perform a single forward Euler step for the pIB state variables.
+     */
+    void
+    pIBEulerStep(
+        SAMRAI::tbox::Pointer<IBTK::LData> K_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> M_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> X_current_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> Y_new_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> dY_dt_current_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> dY_dt_new_data,
+        double dt);
+
+    /*!
+     * Perform a single explicit midpoint-rule step for the pIB state variables.
+     */
+    void
+    pIBMidpointStep(
+        SAMRAI::tbox::Pointer<IBTK::LData> K_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> M_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> X_half_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> Y_new_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> dY_dt_current_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> dY_dt_new_data,
+        double dt);
+
+    /*!
+     * Compute pIB forces for a midpoint-rule type time stepping scheme.
+     */
+    void
+    pIBMidpointForcing(
+        SAMRAI::tbox::Pointer<IBTK::LData> F_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> K_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> X_half_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> Y_new_data);
+
+    /*!
+     * Compute pIB forces for a trapezoidal-rule type time stepping scheme.
+     */
+    void
+    pIBTRForcing(
+        SAMRAI::tbox::Pointer<IBTK::LData> F_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> K_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> Y_data);
 
     /*!
      * Set the values of the distributed internal sources/sinks on the Cartesian
@@ -504,12 +551,6 @@ private:
     double d_regrid_cfl_interval, d_regrid_cfl_estimate;
 
     /*
-     * Input file for initial marker positions, indices, and clouds.
-     */
-    std::string d_mark_input_file_name;
-    std::vector<blitz::TinyVector<double,NDIM> > d_mark_init_posns;
-
-    /*
      * Hierarchy operations objects.
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM,double> > d_hier_velocity_data_ops;
@@ -519,15 +560,14 @@ private:
      * Eulerian variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_V_var, d_F_var, d_Q_var;
-    SAMRAI::tbox::Pointer<IBTK::LMarkerSetVariable> d_mark_var;
-    int d_V_idx, d_F_idx, d_Q_idx, d_mark_current_idx, d_mark_scratch_idx;
+    int d_V_idx, d_F_idx, d_F_current_idx, d_Q_idx;
 
     /*
      * Lagrangian variables.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_current_data, d_X_half_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_U_current_data, d_U_half_data, d_U_old_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_F_half_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_current_data, d_X_new_data, d_X_half_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_U_current_data, d_U_new_data, d_U_half_data, d_U_old_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_F_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_K_data, d_M_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_Y_current_data, d_Y_new_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_dY_dt_current_data, d_dY_dt_new_data;

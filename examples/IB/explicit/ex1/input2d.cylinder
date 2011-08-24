@@ -75,7 +75,7 @@ INSStaggeredHierarchyIntegrator {
 
    convective_difference_form = "ADVECTIVE"
    using_vorticity_tagging = TRUE
-   vorticity_abs_thresh = 0.5 , 1 , 2
+   vorticity_abs_thresh = 0.5
 
    output_U = TRUE
    output_P = TRUE
