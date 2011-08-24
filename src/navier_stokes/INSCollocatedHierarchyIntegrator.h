@@ -1,5 +1,5 @@
-// Filename: INSStaggeredHierarchyIntegrator.h
-// Created on 20 Mar 2008 by Boyce Griffith
+// Filename: INSCollocatedHierarchyIntegrator.h
+// Created on 24 Aug 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_INSStaggeredHierarchyIntegrator
-#define included_INSStaggeredHierarchyIntegrator
+#ifndef included_INSCollocatedHierarchyIntegrator
+#define included_INSCollocatedHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -40,58 +40,41 @@
 
 // IBAMR INCLUDES
 #include <ibamr/INSHierarchyIntegrator.h>
-#include <ibamr/INSStaggeredStokesOperator.h>
 
 // IBTK INCLUDES
 #include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/CCPoissonFACOperator.h>
-#include <ibtk/SCLaplaceOperator.h>
-#include <ibtk/SCPoissonFACOperator.h>
-#include <ibtk/SideDataSynchronization.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredHierarchyIntegrator provides a staggered-grid solver
- * for the incompressible Navier-Stokes equations on an AMR grid hierarchy.
+ * \brief Class INSCollocatedHierarchyIntegrator provides a collocated
+ * projection method-based solver for the incompressible Navier-Stokes equations
+ * on an AMR grid hierarchy.
  */
-class INSStaggeredHierarchyIntegrator
+class INSCollocatedHierarchyIntegrator
     : public INSHierarchyIntegrator
 {
 public:
     /*!
-     * The constructor for class INSStaggeredHierarchyIntegrator sets some
+     * The constructor for class INSCollocatedHierarchyIntegrator sets some
      * default values, reads in configuration information from input and restart
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    INSStaggeredHierarchyIntegrator(
+    INSCollocatedHierarchyIntegrator(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         bool register_for_restart=true);
 
     /*!
-     * The destructor for class INSStaggeredHierarchyIntegrator unregisters the
+     * The destructor for class INSCollocatedHierarchyIntegrator unregisters the
      * integrator object with the restart manager when the object is so
      * registered.
      */
-    ~INSStaggeredHierarchyIntegrator();
-
-    /*!
-     * Get a vector of pointers to the true velocity boundary condition
-     * specification objects.
-     */
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>
-    getVelocityBoundaryConditions() const;
-
-    /*!
-     * Get a pointer to the true pressure boundary condition specification
-     * object.
-     */
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>*
-    getPressureBoundaryConditions() const;
+    ~INSCollocatedHierarchyIntegrator();
 
     /*!
      * Get the convective operator being used by this solver class.
@@ -100,7 +83,7 @@ public:
      * (creeping) Stokes equations, then the returned pointer will be NULL.
      *
      * If the convective operator has not already been constructed, then this
-     * function will initialize a INSStaggeredPPMConvectiveOperator.
+     * function will initialize a INSCollocatedPPMConvectiveOperator.
      */
     SAMRAI::tbox::Pointer<ConvectiveOperator>
     getConvectiveOperator();
@@ -126,56 +109,6 @@ public:
      */
     SAMRAI::tbox::Pointer<IBTK::LinearSolver>
     getPressureSubdomainSolver();
-
-    /*!
-     * Register a solver for the time-dependent incompressible Stokes equations.
-     *
-     * The boolean flag needs_reinit_when_dt_changes indicates whether the
-     * solver needs to be explicitly reinitialized when the time step size
-     * changes.
-     */
-    void
-    setStokesSolver(
-        SAMRAI::tbox::Pointer<IBTK::LinearSolver> stokes_pc,
-        bool needs_reinit_when_dt_changes);
-
-    /*!
-     * Get the solver for the time-dependent incompressible Stokes equations
-     * used by this solver class.
-     *
-     * If the solver has not already been constructed, then this function will
-     * initialize a default solver, which is currently a PETScKrylovLinearSolver
-     * preconditioned by the default Stokes preconditioner provided by
-     * getStokesPreconditioner().  If a user-specified preconditioner has
-     * already been registered with the integrator, that preconditioner is used
-     * in place of the default preconditioner.
-     */
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>
-    getStokesSolver();
-
-    /*!
-     * Register a preconditioner for the time-dependent incompressible Stokes
-     * equations.
-     *
-     * The boolean flag needs_reinit_when_dt_changes indicates whether the
-     * preconditioner needs to be explicitly reinitialized when the time step
-     * size changes.
-     */
-    void
-    setStokesPreconditioner(
-        SAMRAI::tbox::Pointer<IBTK::LinearSolver> stokes_pc,
-        bool needs_reinit_when_dt_changes);
-
-    /*!
-     * Get the preconditioner for the time-dependent incompressible Stokes
-     * equations used by this solver class.
-     *
-     * If the preconditioner has not already been constructed, then this
-     * function will initialize a default preconditioner, which is currently
-     * INSStaggeredProjectionPreconditioner.
-     */
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>
-    getStokesPreconditioner();
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -288,7 +221,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredHierarchyIntegrator();
+    INSCollocatedHierarchyIntegrator();
 
     /*!
      * \brief Copy constructor.
@@ -297,8 +230,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredHierarchyIntegrator(
-        const INSStaggeredHierarchyIntegrator& from);
+    INSCollocatedHierarchyIntegrator(
+        const INSCollocatedHierarchyIntegrator& from);
 
     /*!
      * \brief Assignment operator.
@@ -309,9 +242,9 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredHierarchyIntegrator&
+    INSCollocatedHierarchyIntegrator&
     operator=(
-        const INSStaggeredHierarchyIntegrator& that);
+        const INSCollocatedHierarchyIntegrator& that);
 
     /*!
      * Compute the appropriate source term that must be added to the momentum
@@ -347,15 +280,6 @@ private:
      * Hierarchy operations objects.
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM,double> > d_hier_sc_data_ops;
-
-    /*
-     * Boundary condition and data synchronization operators.
-     */
-    SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_U_bc_helper;
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_bc_coefs;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
-    SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_side_synch_op;
 
     /*
      * Hierarchy operators and solvers.
@@ -368,17 +292,13 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_N_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_P_scratch_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_P_rhs_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_sol_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_rhs_vec;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_nul_vec;
     bool d_vectors_need_init;
 
     bool d_convective_op_needs_init;
 
-    SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator>         d_velocity_op;
+    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>         d_velocity_op;
     SAMRAI::solv::PoissonSpecifications*                   d_velocity_spec;
-    SAMRAI::tbox::Pointer<IBTK::SCPoissonHypreLevelSolver> d_velocity_hypre_pc;
-    SAMRAI::tbox::Pointer<IBTK::SCPoissonFACOperator>      d_velocity_fac_op;
+    SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>      d_velocity_fac_op;
     SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>         d_velocity_fac_pc;
     bool d_velocity_solver_needs_init;
 
@@ -389,18 +309,11 @@ private:
     SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>         d_pressure_fac_pc;
     bool d_pressure_solver_needs_init;
 
-    SAMRAI::tbox::Pointer<INSStaggeredStokesOperator>      d_stokes_op;
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>              d_stokes_solver;
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>              d_stokes_pc;
-    bool d_stokes_solver_needs_reinit_when_dt_changes, d_stokes_solver_needs_init;
-
     /*!
      * Fluid solver variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_sc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_U_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_P_cc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_F_sc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Q_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_var;
@@ -408,11 +321,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_Norm_var;
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Div_U_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_N_old_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_regrid_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_src_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_indicator_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_F_div_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_N_old_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_div_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the
@@ -421,10 +331,8 @@ private:
      * State variables have three contexts: current, scratch, and new.
      */
     int          d_U_current_idx,          d_U_new_idx,          d_U_scratch_idx;
-    int       d_U_cc_current_idx,       d_U_cc_new_idx,       d_U_cc_scratch_idx;
     int          d_P_current_idx,          d_P_new_idx,          d_P_scratch_idx;
     int          d_F_current_idx,          d_F_new_idx,          d_F_scratch_idx;
-    int       d_F_cc_current_idx,       d_F_cc_new_idx,       d_F_cc_scratch_idx;
     int          d_Q_current_idx,          d_Q_new_idx,          d_Q_scratch_idx;
     int      d_Omega_current_idx,      d_Omega_new_idx,      d_Omega_scratch_idx;
 #if (NDIM == 3)
@@ -439,14 +347,14 @@ private:
      *
      * Scratch variables have only one context: scratch.
      */
-    int d_U_regrid_idx, d_U_src_idx, d_indicator_idx, d_F_div_idx;
+    int d_F_div_idx;
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/INSStaggeredHierarchyIntegrator.I>
+//#include <ibamr/INSCollocatedHierarchyIntegrator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSStaggeredHierarchyIntegrator
+#endif //#ifndef included_INSCollocatedHierarchyIntegrator

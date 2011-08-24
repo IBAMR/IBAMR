@@ -1,5 +1,5 @@
-// Filename: INSStaggeredCenteredConvectiveOperator.h
-// Created on 30 Oct 2008 by Boyce Griffith
+// Filename: INSCollocatedPPMConvectiveOperator.h
+// Created on 24 Aug 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_INSStaggeredCenteredConvectiveOperator
-#define included_INSStaggeredCenteredConvectiveOperator
+#ifndef included_INSCollocatedPPMConvectiveOperator
+#define included_INSCollocatedPPMConvectiveOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -39,8 +39,9 @@
 #include <ibamr/ConvectiveOperator.h>
 
 // SAMRAI INCLUDES
+#include <CellVariable.h>
+#include <FaceVariable.h>
 #include <RefineAlgorithm.h>
-#include <SideVariable.h>
 
 // C++ STDLIB INCLUDES
 #include <vector>
@@ -50,26 +51,30 @@
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredCenteredConvectiveOperator is a concrete
- * ConvectiveOperator which implements a centered convective differencing
- * operator.
+ * \brief Class INSCollocatedPPMConvectiveOperator is a concrete
+ * ConvectiveOperator that implements a upwind convective differencing operator
+ * based on the piecewise parabolic method (PPM).
  *
- * \see INSStaggeredHierarchyIntegrator
+ * Class INSCollocatedPPMConvectiveOperator computes the convective derivative of
+ * a cell-centered velocity field using the xsPPM7 method of Rider, Greenough,
+ * and Kamm.
+ *
+ * \see INSCollocatedHierarchyIntegrator
  */
-class INSStaggeredCenteredConvectiveOperator
+class INSCollocatedPPMConvectiveOperator
     : public ConvectiveOperator
 {
 public:
     /*!
      * \brief Class constructor.
      */
-    INSStaggeredCenteredConvectiveOperator(
+    INSCollocatedPPMConvectiveOperator(
         ConvectiveDifferencingType difference_form);
 
     /*!
      * \brief Destructor.
      */
-    ~INSStaggeredCenteredConvectiveOperator();
+    ~INSCollocatedPPMConvectiveOperator();
 
     /*!
      * \brief Compute the action of the convective operator.
@@ -155,7 +160,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredCenteredConvectiveOperator();
+    INSCollocatedPPMConvectiveOperator();
 
     /*!
      * \brief Copy constructor.
@@ -164,8 +169,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredCenteredConvectiveOperator(
-        const INSStaggeredCenteredConvectiveOperator& from);
+    INSCollocatedPPMConvectiveOperator(
+        const INSCollocatedPPMConvectiveOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -176,9 +181,9 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredCenteredConvectiveOperator&
+    INSCollocatedPPMConvectiveOperator&
     operator=(
-        const INSStaggeredCenteredConvectiveOperator& that);
+        const INSCollocatedPPMConvectiveOperator& that);
 
     // Whether the operator is initialized.
     bool d_is_initialized;
@@ -194,15 +199,17 @@ private:
     int d_coarsest_ln, d_finest_ln;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_U_var;
     int d_U_scratch_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_u_extrap_var, d_flux_var;
+    int d_u_extrap_idx, d_flux_idx;
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/INSStaggeredCenteredConvectiveOperator.I>
+//#include <ibamr/INSCollocatedPPMConvectiveOperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSStaggeredCenteredConvectiveOperator
+#endif //#ifndef included_INSCollocatedPPMConvectiveOperator

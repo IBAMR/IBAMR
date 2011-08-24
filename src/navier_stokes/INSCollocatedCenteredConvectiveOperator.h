@@ -1,5 +1,5 @@
-// Filename: INSStaggeredCenteredConvectiveOperator.h
-// Created on 30 Oct 2008 by Boyce Griffith
+// Filename: INSCollocatedCenteredConvectiveOperator.h
+// Created on 24 Aug 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_INSStaggeredCenteredConvectiveOperator
-#define included_INSStaggeredCenteredConvectiveOperator
+#ifndef included_INSCollocatedCenteredConvectiveOperator
+#define included_INSCollocatedCenteredConvectiveOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -39,8 +39,8 @@
 #include <ibamr/ConvectiveOperator.h>
 
 // SAMRAI INCLUDES
+#include <CellVariable.h>
 #include <RefineAlgorithm.h>
-#include <SideVariable.h>
 
 // C++ STDLIB INCLUDES
 #include <vector>
@@ -50,26 +50,26 @@
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredCenteredConvectiveOperator is a concrete
+ * \brief Class INSCollocatedCenteredConvectiveOperator is a concrete
  * ConvectiveOperator which implements a centered convective differencing
  * operator.
  *
- * \see INSStaggeredHierarchyIntegrator
+ * \see INSCollocatedHierarchyIntegrator
  */
-class INSStaggeredCenteredConvectiveOperator
+class INSCollocatedCenteredConvectiveOperator
     : public ConvectiveOperator
 {
 public:
     /*!
      * \brief Class constructor.
      */
-    INSStaggeredCenteredConvectiveOperator(
+    INSCollocatedCenteredConvectiveOperator(
         ConvectiveDifferencingType difference_form);
 
     /*!
      * \brief Destructor.
      */
-    ~INSStaggeredCenteredConvectiveOperator();
+    ~INSCollocatedCenteredConvectiveOperator();
 
     /*!
      * \brief Compute the action of the convective operator.
@@ -155,7 +155,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredCenteredConvectiveOperator();
+    INSCollocatedCenteredConvectiveOperator();
 
     /*!
      * \brief Copy constructor.
@@ -164,8 +164,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredCenteredConvectiveOperator(
-        const INSStaggeredCenteredConvectiveOperator& from);
+    INSCollocatedCenteredConvectiveOperator(
+        const INSCollocatedCenteredConvectiveOperator& from);
 
     /*!
      * \brief Assignment operator.
@@ -176,9 +176,9 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredCenteredConvectiveOperator&
+    INSCollocatedCenteredConvectiveOperator&
     operator=(
-        const INSStaggeredCenteredConvectiveOperator& that);
+        const INSCollocatedCenteredConvectiveOperator& that);
 
     // Whether the operator is initialized.
     bool d_is_initialized;
@@ -194,15 +194,15 @@ private:
     int d_coarsest_ln, d_finest_ln;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_U_var;
     int d_U_scratch_idx;
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/INSStaggeredCenteredConvectiveOperator.I>
+//#include <ibamr/INSCollocatedCenteredConvectiveOperator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSStaggeredCenteredConvectiveOperator
+#endif //#ifndef included_INSCollocatedCenteredConvectiveOperator

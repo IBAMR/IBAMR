@@ -67,6 +67,9 @@ $(top_srcdir)/src/advect/AdvectHypPatchOps.C \
 $(top_srcdir)/src/advect/GodunovAdvector.C \
 $(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C \
 $(top_srcdir)/src/navier_stokes/ConvectiveOperator.C \
+$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.C \
+$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.C \
+$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.C \
 $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C \
 $(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C \
@@ -128,6 +131,9 @@ $(top_srcdir)/src/advect/AdvectHypPatchOps.h \
 $(top_srcdir)/src/advect/GodunovAdvector.h \
 $(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.h \
 $(top_srcdir)/src/navier_stokes/ConvectiveOperator.h \
+$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.h \
+$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.h \
+$(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.h \
 $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.h \
 $(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.h \
