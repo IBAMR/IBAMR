@@ -57,8 +57,7 @@ namespace IBTK
  *
  * This solver class uses the \em hypre library to solve linear equations of the
  * form \f$ \mbox{$-\nabla^{\mathrm cc} \cdot \nabla^{\mathrm cc} u$} = f \f$,
- * as necessary to implement a so-called \em exact cell-centered projection
- * method.
+ * as necessary to implement an \em exact cell-centered projection method.
  *
  * \note This solver class \em only supports \em periodic boundary conditions.
  * Support for physical boundary conditions is not currently planned for this

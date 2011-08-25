@@ -277,6 +277,17 @@ private:
     bool d_using_CNAB;
 
     /*!
+     * Value determining the type of projection method to use.
+     */
+    ProjectionMethodType d_projection_method_type;
+
+    /*!
+     * Boolean indicating whether to use the Brown-Cortez-Minion 2nd-order
+     * pressure update.
+     */
+    bool d_using_2nd_order_pressure_update;
+
+    /*!
      * Hierarchy operations objects.
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;

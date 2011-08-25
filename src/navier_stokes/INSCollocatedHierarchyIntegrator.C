@@ -191,6 +191,17 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(
     if (input_db->keyExists("use_CNAB")) d_using_CNAB = input_db->getBool("use_CNAB");
     else if (input_db->keyExists("using_CNAB")) d_using_CNAB = input_db->getBool("using_CNAB");
 
+    // Check to see what kind of projection method to use.
+    d_projection_method_type = PRESSURE_INCREMENT;
+    if (input_db->keyExists("proj_method_type")) d_projection_method_type = string_to_enum<ProjectionMethodType>(input_db->getString("proj_method_type"));
+    else if (input_db->keyExists("projection_method_type")) d_projection_method_type = string_to_enum<ProjectionMethodType>(input_db->getString("projection_method_type"));
+
+    d_using_2nd_order_pressure_update = true;
+    if (input_db->keyExists("use_2nd_order_pressure_update")) d_using_2nd_order_pressure_update = input_db->getBool("use_2nd_order_pressure_update");
+    else if (input_db->keyExists("using_2nd_order_pressure_update")) d_using_2nd_order_pressure_update = input_db->getBool("using_2nd_order_pressure_update");
+    else if (input_db->keyExists("use_second_order_pressure_update")) d_using_2nd_order_pressure_update = input_db->getBool("use_second_order_pressure_update");
+    else if (input_db->keyExists("using_second_order_pressure_update")) d_using_2nd_order_pressure_update = input_db->getBool("using_second_order_pressure_update");
+
     // Set all solver components to null.
     d_velocity_spec     = NULL;
     d_velocity_op       = NULL;
@@ -219,7 +230,7 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(
     d_Omega_Norm_var  = new CellVariable<NDIM,double>(d_object_name+"::|Omega|_2"       );
 #endif
     d_Div_U_var       = new CellVariable<NDIM,double>(d_object_name+"::Div_U"           );
-    d_N_old_var       = new CellVariable<NDIM,double>(d_object_name+"::N_old"           );
+    d_N_old_var       = new CellVariable<NDIM,double>(d_object_name+"::N_old"      ,NDIM);
     d_Grad_P_var      = new CellVariable<NDIM,double>(d_object_name+"::Grad_P"     ,NDIM);
     d_Phi_var         = new CellVariable<NDIM,double>(d_object_name+"::Phi"             );
     d_Grad_Phi_cc_var = new CellVariable<NDIM,double>(d_object_name+"::Grad_Phi_cc",NDIM);
@@ -268,7 +279,7 @@ INSCollocatedHierarchyIntegrator::getVelocitySubdomainSolver()
         d_velocity_spec = new PoissonSpecifications(d_object_name+"::velocity_spec");
         d_velocity_op = new CCLaplaceOperator(d_object_name+"::Velocity Subdomain Operator", *d_velocity_spec, d_U_star_bc_coefs, true);
         d_velocity_solver = new PETScKrylovLinearSolver(d_object_name+"::Velocity Subdomain Krylov Solver", velocity_prefix);
-        d_velocity_solver->setInitialGuessNonzero(false);
+        d_velocity_solver->setInitialGuessNonzero(true);
         d_velocity_solver->setAbsoluteTolerance(1.0e-30);
         d_velocity_solver->setRelativeTolerance(1.0e-06);
         d_velocity_solver->setMaxIterations(25);
@@ -316,7 +327,7 @@ INSCollocatedHierarchyIntegrator::getPressureSubdomainSolver()
         d_pressure_spec = new PoissonSpecifications(d_object_name+"::pressure_spec");
         d_pressure_op = new CCLaplaceOperator(d_object_name+"::Pressure Subdomain Operator", *d_pressure_spec, d_Phi_bc_coef, true);
         d_pressure_solver = new PETScKrylovLinearSolver(d_object_name+"::Pressure Subdomain Krylov Solver", pressure_prefix);
-        d_pressure_solver->setInitialGuessNonzero(false);
+        d_pressure_solver->setInitialGuessNonzero(true);
         d_pressure_solver->setAbsoluteTolerance(1.0e-30);
         d_pressure_solver->setRelativeTolerance(1.0e-06);
         d_pressure_solver->setMaxIterations(25);
@@ -379,6 +390,53 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
 
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
+
+    if (d_gridding_alg->getMaxLevels() > 1 && d_projection_method_type == PRESSURE_INCREMENT)
+    {
+        pout << "\n"
+             << "   ********************************************************************************\n"
+             << "   * INSCollocatedHierarchyIntegrator:                                            *\n"
+             << "   *                                                                              *\n"
+             << "   * WARNING: PRESSURE_INCREMENT projection method exhibits very slow convergence *\n"
+             << "   *          when used with locally refined grids.                               *\n"
+             << "   *                                                                              *\n"
+             << "   *          Sugest changing projection method type to PRESSURE_UPDATE.          *\n"
+             << "   ******************************************************************************\n\n";
+        // NOTE: It is not clear what is causing this lack of convergence.
+        //
+        // The basic pressure-increment projection method with is:
+        //
+        // (1)      rho{[u(*) - u(n)]/dt + N(n+1/2)} = - Grad_h P(n-1/2) + mu Lap_h[u(*) + u(n)]/2
+        //
+        // (2)      rho[u(n+1) - u(*)]/dt = - Grad_h Phi
+        //          Div_h u(n+1)          = 0
+        //
+        // (3)      P(n+1/2) = P(n-1/2) + Phi
+        //
+        // This formulation uses a first-order accurate pressure update formula.
+        // Te second-order accurate (Brown-Cortez-Minion) pressure update is:
+        //
+        // (3-alt)  P(n+1/2) = P(n-1/2) + (I - mu*rho/2*dt Lap_h) Phi
+        //
+        // Notice that this algorithm is constructed by assuming that Grad_h and
+        // Lap_h commute.  This is true only on uniform periodic grids.  On
+        // locally-refined grids or in the presence of physical boundaries, this
+        // is no longer the case.
+        //
+        // One guess is that the poor performance of the algorithm is related to
+        // this lack of commutativity, and could be corrected by lagging Grad P
+        // instead of P.  E.g., by keeping track of a vector-valued quantity GP,
+        // as follows:
+        //
+        // (1)      rho{[u(*) - u(n)]/dt + N(n+1/2)} = - GP(n-1/2) + mu Lap_h[u(*) + u(n)]/2
+        //
+        // (2)      rho[u(n+1) - u(*)]/dt = - Grad_h Phi
+        //          Div_h u(n+1)          = 0
+        //
+        // (3)      GP(n+1/2) = GP(n-1/2) + Grad_h Phi
+        //
+        // This possibility has not been investigated at this point.
+    }
 
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
@@ -668,14 +726,33 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
     d_hier_cc_data_ops->linearSum(         U_half_idx, 0.5,     d_U_current_idx, 0.5,     d_U_new_idx);
     d_hier_fc_data_ops->linearSum(d_u_ADV_scratch_idx, 0.5, d_u_ADV_current_idx, 0.5, d_u_ADV_new_idx);
 
-    // Setup the right-hand side vector.
-#if 0
-    d_hier_cc_data_ops->copyData(d_P_scratch_idx, d_P_new_idx);
+    // Compute the current approximation to the pressure gradient.
+    if (cycle_num == 0)
+    {
+        switch (d_projection_method_type)
+        {
+            case PRESSURE_INCREMENT:
+                d_hier_cc_data_ops->copyData(d_P_scratch_idx, d_P_current_idx);
+                break;
+            case PRESSURE_UPDATE:
+                d_hier_cc_data_ops->setToScalar(d_P_scratch_idx, 0.0);
+                break;
+            default:
+                TBOX_ERROR("INSCollocatedPPMCollocatedHierarchyIntegrator::integrateHierarchy():\n"
+                           << "  unsupported projection method type: " << enum_to_string<ProjectionMethodType>(d_projection_method_type) << " \n"
+                           << "  valid choices are: PRESSURE_INCREMENT, PRESSURE_UPDATE\n");
+        }
+    }
+    else
+    {
+        d_hier_cc_data_ops->copyData(d_P_scratch_idx, d_P_new_idx);
+    }
     d_hier_math_ops->grad(
         d_Grad_P_idx, d_Grad_P_var,
         1.0, d_P_scratch_idx, d_P_var, d_P_bdry_bc_fill_op, current_time+0.5*dt);
+
+    // Setup the right-hand side vector.
     d_hier_cc_data_ops->subtract(d_U_rhs_vec->getComponentDescriptorIndex(0), d_U_rhs_vec->getComponentDescriptorIndex(0), d_Grad_P_idx);
-#endif
     if (!d_creeping_flow)
     {
         for (int ln = finest_ln; ln > coarsest_ln; --ln)
@@ -721,14 +798,14 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
         d_hier_cc_data_ops->subtract(d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Q_new_idx);
     }
 
-    // Solve for U(*).
+    // Solve for U(*) and compute u_ADV(*).
     d_hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
     d_velocity_solver->solveSystem(*d_U_scratch_vec, *d_U_rhs_vec);
     d_hier_math_ops->interp(
         d_u_ADV_scratch_idx, d_u_ADV_var, /*synch_cf_bdry*/ true,
         d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, new_time);
 
-    // Project U(*) to compute U(n+1).
+    // Project U(*) to compute U(n+1) and u_ADV(n+1).
     d_hier_math_ops->div(
         d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Phi_rhs_vec->getComponentVariable(0),
         -rho/dt, d_u_ADV_scratch_idx, d_u_ADV_var, d_no_fill_op, new_time, /*synch_cf_bdry*/ false,
@@ -737,6 +814,14 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
     {
         const double Div_U_mean = (1.0/volume)*d_hier_cc_data_ops->integral(d_Phi_rhs_vec->getComponentDescriptorIndex(0), wgt_cc_idx);
         d_hier_cc_data_ops->addScalar(d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Phi_rhs_vec->getComponentDescriptorIndex(0), -Div_U_mean);
+    }
+    if (cycle_num == 0)
+    {
+        d_hier_cc_data_ops->subtract(d_Phi_idx, d_P_current_idx, d_P_scratch_idx);
+    }
+    else
+    {
+        d_hier_cc_data_ops->setToScalar(d_Phi_idx, 0.0);
     }
     d_pressure_solver->solveSystem(*d_Phi_vec, *d_Phi_rhs_vec);
     d_hier_math_ops->grad(
@@ -750,12 +835,12 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
 
     // Determine P(n+1/2).
     PoissonSpecifications helmholtz_spec(d_object_name+"::helmholtz_spec");
-    helmholtz_spec.setCConstant(1.0+0.5*lambda);
-    helmholtz_spec.setDConstant(   -0.5*mu    );
+    helmholtz_spec.setCConstant(1.0+0.5*dt*lambda);
+    helmholtz_spec.setDConstant(   -0.5*dt*mu/rho);
     d_hier_math_ops->laplace(
         d_P_new_idx, d_P_var,
         helmholtz_spec, d_Phi_idx, d_Phi_var, d_no_fill_op, current_time+0.5*dt,
-        0.0, d_P_scratch_idx, d_P_var);
+        1.0, d_P_scratch_idx, d_P_var);
     if (d_normalize_pressure)
     {
         const double P_mean = (1.0/volume)*d_hier_cc_data_ops->integral(d_P_new_idx, wgt_cc_idx);
@@ -763,9 +848,7 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
     }
 
     // Reset the right-hand side vector.
-#if 0
     d_hier_cc_data_ops->add(d_U_rhs_vec->getComponentDescriptorIndex(0), d_U_rhs_vec->getComponentDescriptorIndex(0), d_Grad_P_idx);
-#endif
     if (!d_creeping_flow)
     {
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
@@ -1338,7 +1421,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
             if (!(d_velocity_solver_needs_reinit_when_dt_changes && dt_change)) d_velocity_fac_op->setResetLevels(d_coarsest_reset_ln, d_finest_reset_ln);
         }
 
-        d_velocity_solver->setInitialGuessNonzero(false);
+        d_velocity_solver->setInitialGuessNonzero(true);
         Pointer<KrylovLinearSolver> p_velocity_solver = d_velocity_solver;
         if (!p_velocity_solver.isNull()) p_velocity_solver->setOperator(d_velocity_op);
         if (d_velocity_solver_needs_init)
@@ -1374,7 +1457,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
             if (!(d_pressure_solver_needs_reinit_when_dt_changes && dt_change)) d_pressure_fac_op->setResetLevels(d_coarsest_reset_ln, d_finest_reset_ln);
         }
 
-        d_pressure_solver->setInitialGuessNonzero(false);
+        d_pressure_solver->setInitialGuessNonzero(true);
         Pointer<KrylovLinearSolver> p_pressure_solver = d_pressure_solver;
         if (!p_pressure_solver.isNull()) p_pressure_solver->setOperator(d_pressure_op);
         if (d_pressure_solver_needs_init)
