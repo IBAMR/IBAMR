@@ -42,6 +42,7 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
@@ -106,8 +107,23 @@ main(
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<INSHierarchyIntegrator> time_integrator = new INSStaggeredHierarchyIntegrator(
-            "INSStaggeredHierarchyIntegrator", app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+        Pointer<INSHierarchyIntegrator> time_integrator;
+        const string solver_type = app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
+        if (solver_type == "STAGGERED")
+        {
+            time_integrator = new INSStaggeredHierarchyIntegrator(
+                "INSStaggeredHierarchyIntegrator", app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+        }
+        else if (solver_type == "COLLOCATED")
+        {
+            time_integrator = new INSCollocatedHierarchyIntegrator(
+                "INSCollocatedHierarchyIntegrator", app_initializer->getComponentDatabase("INSCollocatedHierarchyIntegrator"));
+        }
+        else
+        {
+            TBOX_ERROR("Unsupported solver type: " << solver_type << "\n" <<
+                       "Valid options are: COLLOCATED, STAGGERED");
+        }
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
@@ -246,13 +262,13 @@ main(
 
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-        const Pointer<SideVariable<NDIM,double> > u_var = time_integrator->getVelocityVariable();
+        const Pointer<Variable<NDIM> > u_var = time_integrator->getVelocityVariable();
         const Pointer<VariableContext> u_ctx = time_integrator->getCurrentContext();
 
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
         const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
 
-        const Pointer<CellVariable<NDIM,double> > p_var = time_integrator->getPressureVariable();
+        const Pointer<Variable<NDIM> > p_var = time_integrator->getPressureVariable();
         const Pointer<VariableContext> p_ctx = time_integrator->getCurrentContext();
 
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
@@ -275,18 +291,33 @@ main(
         const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
         const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
-        HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-        hier_sc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
-        pout << "Error in u at time " << loop_time << ":\n"
-             << "  L1-norm:  " << hier_sc_data_ops.L1Norm(u_idx,wgt_sc_idx)  << "\n"
-             << "  L2-norm:  " << hier_sc_data_ops.L2Norm(u_idx,wgt_sc_idx)  << "\n"
-             << "  max-norm: " << hier_sc_data_ops.maxNorm(u_idx,wgt_sc_idx) << "\n";
+        Pointer<CellVariable<NDIM,double> > u_cc_var = u_var;
+        if (!u_cc_var.isNull())
+        {
+            HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+            hier_cc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
+            pout << "Error in u at time " << loop_time << ":\n"
+                 << "  L1-norm:  " << hier_cc_data_ops. L1Norm(u_idx,wgt_cc_idx)  << "\n"
+                 << "  L2-norm:  " << hier_cc_data_ops. L2Norm(u_idx,wgt_cc_idx)  << "\n"
+                 << "  max-norm: " << hier_cc_data_ops.maxNorm(u_idx,wgt_cc_idx) << "\n";
+        }
+
+        Pointer<SideVariable<NDIM,double> > u_sc_var = u_var;
+        if (!u_sc_var.isNull())
+        {
+            HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+            hier_sc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
+            pout << "Error in u at time " << loop_time << ":\n"
+                 << "  L1-norm:  " << hier_sc_data_ops. L1Norm(u_idx,wgt_sc_idx)  << "\n"
+                 << "  L2-norm:  " << hier_sc_data_ops. L2Norm(u_idx,wgt_sc_idx)  << "\n"
+                 << "  max-norm: " << hier_sc_data_ops.maxNorm(u_idx,wgt_sc_idx) << "\n";
+        }
 
         HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(p_idx, p_idx, p_cloned_idx);
         pout << "Error in p at time " << loop_time-0.5*dt << ":\n"
-             << "  L1-norm:  " << hier_cc_data_ops.L1Norm(p_idx,wgt_cc_idx)  << "\n"
-             << "  L2-norm:  " << hier_cc_data_ops.L2Norm(p_idx,wgt_cc_idx)  << "\n"
+             << "  L1-norm:  " << hier_cc_data_ops. L1Norm(p_idx,wgt_cc_idx)  << "\n"
+             << "  L2-norm:  " << hier_cc_data_ops. L2Norm(p_idx,wgt_cc_idx)  << "\n"
              << "  max-norm: " << hier_cc_data_ops.maxNorm(p_idx,wgt_cc_idx) << "\n"
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 

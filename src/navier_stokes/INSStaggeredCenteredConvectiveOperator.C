@@ -160,7 +160,6 @@ INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
     : ConvectiveOperator(difference_form),
       d_is_initialized(false),
       d_refine_alg(NULL),
-      d_refine_op(NULL),
       d_refine_scheds(),
       d_hierarchy(NULL),
       d_coarsest_ln(-1),
@@ -229,7 +228,8 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
     // Setup communications algorithm.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
-    refine_alg->registerRefine(d_U_scratch_idx, U_idx, d_U_scratch_idx, d_refine_op);
+    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    refine_alg->registerRefine(d_U_scratch_idx, U_idx, d_U_scratch_idx, refine_op);
 
     // Compute the convective derivative.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -357,9 +357,9 @@ INSStaggeredCenteredConvectiveOperator::initializeOperatorState(
 #endif
     // Setup the refine algorithm, operator, patch strategy, and schedules.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    d_refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
     d_refine_alg = new RefineAlgorithm<NDIM>();
-    d_refine_alg->registerRefine(d_U_scratch_idx, in.getComponentDescriptorIndex(0), d_U_scratch_idx, d_refine_op);
+    d_refine_alg->registerRefine(d_U_scratch_idx, in.getComponentDescriptorIndex(0), d_U_scratch_idx, refine_op);
     d_refine_strategy = new CartExtrapPhysBdryOp(d_U_scratch_idx, BDRY_EXTRAP_TYPE);
     d_refine_scheds.resize(d_finest_ln+1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -401,7 +401,6 @@ INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()
     }
 
     // Deallocate the refine algorithm, operator, patch strategy, and schedules.
-    d_refine_op.setNull();
     d_refine_alg.setNull();
     d_refine_strategy.setNull();
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)

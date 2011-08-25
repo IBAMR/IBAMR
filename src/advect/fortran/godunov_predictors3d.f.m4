@@ -1432,8 +1432,10 @@ c
 c     Predict face centered values using the xsPPM7 scheme of Rider,
 c     Greenough, and Kamm.
 c
-      do ic2 = ifirst2-1,ilast2+1
-         do ic1 = ifirst1-1,ilast1+1
+!!!!! do ic2 = ifirst2-1,ilast2+1
+      do ic2 = ifirst2,ilast2
+!!!!!    do ic1 = ifirst1-1,ilast1+1
+         do ic1 = ifirst1,ilast1
             do ic0 = ifirst0-2,ilast0+2
                dQQ_C = 0.5d0*(Q(ic0+1,ic1,ic2)-Q(ic0-1,ic1,ic2))
                dQQ_L =       (Q(ic0  ,ic1,ic2)-Q(ic0-1,ic1,ic2))

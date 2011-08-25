@@ -1734,7 +1734,8 @@ c
 c     Extrapolate face centered values using the xsPPM7 scheme of Rider,
 c     Greenough, and Kamm.
 c
-      do ic1 = ifirst1-1,ilast1+1
+!!!!! do ic1 = ifirst1-1,ilast1+1
+      do ic1 = ifirst1,ilast1
          do ic0 = ifirst0-2,ilast0+2
             dQQ_C = 0.5d0*(Q(ic0+1,ic1)-Q(ic0-1,ic1))
             dQQ_L =       (Q(ic0  ,ic1)-Q(ic0-1,ic1))

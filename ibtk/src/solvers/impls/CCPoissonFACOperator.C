@@ -1392,6 +1392,17 @@ CCPoissonFACOperator::initializeHypreLevelSolvers()
 
     // Note that since the bottom solver is solving for the error, it must
     // always employ homogeneous boundary conditions.
+    if (d_hypre_solvers.size() != static_cast<unsigned int>(d_depth))
+    {
+        d_hypre_solvers.resize(d_depth);
+        for (int depth = 0; depth < d_depth; ++depth)
+        {
+            std::ostringstream stream;
+            stream << depth;
+            d_hypre_solvers[depth] = new CCPoissonHypreLevelSolver(d_object_name+"::hypre_solver_"+stream.str(), d_hypre_db);
+            d_hypre_solvers[depth]->setDataDepth(depth);
+        }
+    }
     for (int depth = 0; depth < d_depth; ++depth)
     {
         d_hypre_solvers[depth]->setPoissonSpecifications(d_poisson_spec);
