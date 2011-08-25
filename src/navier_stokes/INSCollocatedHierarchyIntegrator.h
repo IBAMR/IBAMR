@@ -42,6 +42,8 @@
 #include <ibamr/INSHierarchyIntegrator.h>
 
 // IBTK INCLUDES
+#include <ibtk/CCDivGradOperator.h>
+#include <ibtk/CCDivGradHypreLevelSolver.h>
 #include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/CCPoissonFACOperator.h>
 
@@ -109,6 +111,27 @@ public:
      */
     SAMRAI::tbox::Pointer<IBTK::LinearSolver>
     getPressureSubdomainSolver();
+
+    /*!
+     * Register a solver for the exact projection-Poisson problem.
+     *
+     * The boolean flag needs_reinit_when_dt_changes indicates whether the
+     * solver needs to be explicitly reinitialized when the time step size
+     * changes.
+     */
+    void
+    setExactProjectionSolver(
+        SAMRAI::tbox::Pointer<IBTK::LinearSolver> exact_projection_solver,
+        bool needs_reinit_when_dt_changes);
+
+    /*!
+     * Get the solver for the exact projection-Poisson problem.
+     *
+     * If the solver has not already been constructed, then this function will
+     * initialize a multigrid preconditioned PETScKrylovLinearSolver.
+     */
+    SAMRAI::tbox::Pointer<IBTK::LinearSolver>
+    getExactProjectionSolver();
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -288,6 +311,12 @@ private:
     bool d_using_2nd_order_pressure_update;
 
     /*!
+     * Boolean indicating whether to use an exact projection for the
+     * cell-centered velocity.  Otherwise we use an approximate projection.
+     */
+    bool d_using_exact_projection;
+
+    /*!
      * Hierarchy operations objects.
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
@@ -320,6 +349,12 @@ private:
     SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>      d_pressure_fac_op;
     SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>         d_pressure_fac_pc;
     bool d_pressure_solver_needs_init;
+
+    SAMRAI::tbox::Pointer<IBTK::LinearSolver>              d_exact_projection_solver;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>          d_exact_projection_hypre_pc_db;
+    SAMRAI::tbox::Pointer<IBTK::CCDivGradOperator>         d_exact_projection_op;
+    SAMRAI::tbox::Pointer<IBTK::CCDivGradHypreLevelSolver> d_exact_projection_hypre_pc;
+    bool d_exact_projection_solver_needs_reinit_when_dt_changes, d_exact_projection_solver_needs_init;
 
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_P_bdry_bc_fill_op, d_Phi_bdry_bc_fill_op;
 

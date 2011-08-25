@@ -202,6 +202,13 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(
     else if (input_db->keyExists("use_second_order_pressure_update")) d_using_2nd_order_pressure_update = input_db->getBool("use_second_order_pressure_update");
     else if (input_db->keyExists("using_second_order_pressure_update")) d_using_2nd_order_pressure_update = input_db->getBool("using_second_order_pressure_update");
 
+    d_using_exact_projection = false;
+    if (input_db->keyExists("use_exact_projection")) d_using_exact_projection = input_db->getBool("use_exact_projection");
+    else if (input_db->keyExists("using_exact_projection")) d_using_exact_projection = input_db->getBool("using_exact_projection");
+
+    if      (input_db->keyExists("ExactProjectionHypreSolver"        )) d_exact_projection_hypre_pc_db = input_db->getDatabase("ExactProjectionHypreSolver");
+    else if (input_db->keyExists("ExactProjectionHyprePreconditioner")) d_exact_projection_hypre_pc_db = input_db->getDatabase("ExactProjectionHyprePreconditioner");
+
     // Set all solver components to null.
     d_velocity_spec     = NULL;
     d_velocity_op       = NULL;
@@ -380,6 +387,84 @@ INSCollocatedHierarchyIntegrator::getPressureSubdomainSolver()
     }
     return d_pressure_solver;
 }// getPressureSubdomainSolver
+
+void
+INSCollocatedHierarchyIntegrator::setExactProjectionSolver(
+    Pointer<LinearSolver> exact_projection_solver,
+    const bool needs_reinit_when_dt_changes)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!d_integrator_is_initialized);
+    TBOX_ASSERT(d_exact_projection_solver.isNull());
+#endif
+    d_exact_projection_solver = exact_projection_solver;
+    d_exact_projection_solver_needs_reinit_when_dt_changes = needs_reinit_when_dt_changes;
+    return;
+}// setExactProjectionSolver
+
+Pointer<LinearSolver>
+INSCollocatedHierarchyIntegrator::getExactProjectionSolver()
+{
+    if (d_exact_projection_solver.isNull())
+    {
+        static const std::string exact_projection_prefix = "exact_projection_";
+        d_exact_projection_op = new CCDivGradOperator(d_object_name+"::Exact Projection Poisson Operator");
+        d_exact_projection_solver = new PETScKrylovLinearSolver(d_object_name+"::Exact Projection Poisson Krylov Solver", exact_projection_prefix);
+        d_exact_projection_solver->setInitialGuessNonzero(true);
+        d_exact_projection_solver->setAbsoluteTolerance(1.0e-30);
+        d_exact_projection_solver->setRelativeTolerance(1.0e-06);
+        d_exact_projection_solver->setMaxIterations(25);
+        Pointer<PETScKrylovLinearSolver> p_exact_projection_solver = d_exact_projection_solver;
+        p_exact_projection_solver->setOperator(d_exact_projection_op);
+        if (d_normalize_pressure) p_exact_projection_solver->setNullspace(d_normalize_pressure, NULL);
+        static const size_t len = 255;
+        char exact_projection_pc_type_str[len];
+        PetscTruth flg;
+        int ierr = PetscOptionsGetString("exact_projection_", "-pc_type", exact_projection_pc_type_str, len, &flg);  IBTK_CHKERRQ(ierr);
+        std::string exact_projection_pc_type = "shell";
+        if (flg)
+        {
+            exact_projection_pc_type = std::string(exact_projection_pc_type_str);
+        }
+        if (!(exact_projection_pc_type == "none" || exact_projection_pc_type == "shell"))
+        {
+            TBOX_ERROR(d_object_name << "::getExactProjectionSolver():\n" <<
+                       "  invalid exact projection Poisson preconditioner type: " << exact_projection_pc_type << "\n"
+                       "  valid exact project Poisson preconditioner types: shell, none" << std::endl);
+        }
+        if (exact_projection_pc_type != "none")
+        {
+            if (d_gridding_alg->getMaxLevels() == 1)
+            {
+                Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+                const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    if (periodic_shift[d] == 0)
+                    {
+                        TBOX_ERROR(d_object_name << "::getExactProjectionSolver():\n" <<
+                                   "  not supported for non-periodic grids." << std::endl);
+                    }
+                }
+                if (d_exact_projection_hypre_pc_db.isNull())
+                {
+                    TBOX_WARNING(d_object_name << "::getExactProjectionSolver():\n" <<
+                                 "  exact projection Poisson hypre PC solver database is null." << std::endl);
+                }
+                d_exact_projection_hypre_pc = new CCDivGradHypreLevelSolver(d_object_name+"::Exact Projection Poisson Preconditioner", d_exact_projection_hypre_pc_db);
+                p_exact_projection_solver->setPreconditioner(d_exact_projection_hypre_pc);
+            }
+            else
+            {
+                TBOX_ERROR(d_object_name << "::getExactProjectionSolver():\n" <<
+                           "  not supported for locally-refined grids." << std::endl);
+            }
+        }
+        d_exact_projection_solver_needs_reinit_when_dt_changes = false;
+        d_exact_projection_solver_needs_init = true;
+    }
+    return d_exact_projection_solver;
+}// getExactProjectionSolver
 
 void
 INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
@@ -613,6 +698,7 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
     // Setup the component solvers.
     d_velocity_solver = getVelocitySubdomainSolver();
     d_pressure_solver = getPressureSubdomainSolver();
+    if (d_using_exact_projection) d_exact_projection_solver = getExactProjectionSolver();
 
     // Setup the convective operator.
     d_convective_op = getConvectiveOperator();
@@ -828,9 +914,19 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
         d_Grad_Phi_fc_idx, d_Grad_Phi_fc_var, /*synch_cf_bdry*/ true,
         1.0, d_Phi_idx, d_Phi_var, d_Phi_bdry_bc_fill_op, current_time+0.5*dt);
     d_hier_fc_data_ops->axpy(d_u_ADV_new_idx, -dt/rho, d_Grad_Phi_fc_idx, d_u_ADV_scratch_idx);
-    d_hier_math_ops->interp(
-        d_Grad_Phi_cc_idx, d_Grad_Phi_cc_var,
-        d_Grad_Phi_fc_idx, d_Grad_Phi_fc_var, d_no_fill_op, current_time+0.5*dt, /*synch_cf_bdry*/ false);
+    if (d_using_exact_projection)
+    {
+        d_exact_projection_solver->solveSystem(*d_Phi_vec, *d_Phi_rhs_vec);
+        d_hier_math_ops->grad(
+            d_Grad_Phi_cc_idx, d_Grad_Phi_cc_var,
+            1.0, d_Phi_idx, d_Phi_var, d_Phi_bdry_bc_fill_op, current_time+0.5*dt);
+    }
+    else
+    {
+        d_hier_math_ops->interp(
+            d_Grad_Phi_cc_idx, d_Grad_Phi_cc_var,
+            d_Grad_Phi_fc_idx, d_Grad_Phi_fc_var, d_no_fill_op, current_time+0.5*dt, /*synch_cf_bdry*/ false);
+    }
     d_hier_cc_data_ops->axpy(d_U_new_idx, -dt/rho, d_Grad_Phi_cc_idx, d_U_scratch_idx);
 
     // Determine P(n+1/2).
@@ -1078,6 +1174,7 @@ INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_convective_op_needs_init = true;
     d_velocity_solver_needs_init = true;
     d_pressure_solver_needs_init = true;
+    d_exact_projection_solver_needs_init = true;
     return;
 }// resetHierarchyConfigurationSpecialized
 
@@ -1290,9 +1387,19 @@ INSCollocatedHierarchyIntegrator::regridProjection()
         d_Grad_Phi_fc_idx, d_Grad_Phi_fc_var, /*synch_cf_bdry*/ true,
         1.0, d_Phi_idx, d_Phi_var, d_no_fill_op, d_integrator_time);
     d_hier_fc_data_ops->subtract(d_u_ADV_current_idx, d_u_ADV_current_idx, d_Grad_Phi_fc_idx);
-    d_hier_math_ops->interp(
-        d_Grad_Phi_cc_idx, d_Grad_Phi_cc_var,
-        d_Grad_Phi_fc_idx, d_Grad_Phi_fc_var, d_no_fill_op, d_integrator_time, /*synch_cf_bdry*/ false);
+    if (d_using_exact_projection)
+    {
+        d_exact_projection_solver->solveSystem(sol_vec, rhs_vec);
+        d_hier_math_ops->grad(
+            d_Grad_Phi_cc_idx, d_Grad_Phi_cc_var,
+            1.0, d_Phi_idx, d_Phi_var, d_Phi_bdry_bc_fill_op, d_integrator_time);
+    }
+    else
+    {
+        d_hier_math_ops->interp(
+            d_Grad_Phi_cc_idx, d_Grad_Phi_cc_var,
+            d_Grad_Phi_fc_idx, d_Grad_Phi_fc_var, d_no_fill_op, d_integrator_time, /*synch_cf_bdry*/ false);
+    }
     d_hier_cc_data_ops->subtract(d_U_current_idx, d_U_current_idx, d_Grad_Phi_cc_idx);
 
     // Deallocate scratch data.
@@ -1355,9 +1462,10 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     const bool dt_change = initial_time || !MathUtilities<double>::equalEps(dt,d_dt_previous[0]);
     if (dt_change)
     {
-        if (d_convective_op_needs_reinit_when_dt_changes)   d_convective_op_needs_init = true;
-        if (d_velocity_solver_needs_reinit_when_dt_changes) d_velocity_solver_needs_init = true;
-        if (d_pressure_solver_needs_reinit_when_dt_changes) d_pressure_solver_needs_init = true;
+        if (          d_convective_op_needs_reinit_when_dt_changes)           d_convective_op_needs_init = true;
+        if (        d_velocity_solver_needs_reinit_when_dt_changes)         d_velocity_solver_needs_init = true;
+        if (        d_pressure_solver_needs_reinit_when_dt_changes)         d_pressure_solver_needs_init = true;
+        if (d_exact_projection_solver_needs_reinit_when_dt_changes) d_exact_projection_solver_needs_init = true;
     }
 
     // Setup solver vectors.
@@ -1465,6 +1573,20 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
             if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): Initializing pressure subdomain solver" << std::endl;
             d_pressure_solver->initializeSolverState(*d_Phi_vec,*d_Phi_rhs_vec);
             d_pressure_solver_needs_init = false;
+        }
+    }
+
+    if (!d_exact_projection_solver.isNull())
+    {
+        d_exact_projection_op->setHierarchyMathOps(d_hier_math_ops);
+        d_exact_projection_solver->setInitialGuessNonzero(true);
+        Pointer<KrylovLinearSolver> p_exact_projection_solver = d_exact_projection_solver;
+        if (!p_exact_projection_solver.isNull()) p_exact_projection_solver->setOperator(d_exact_projection_op);
+        if (d_exact_projection_solver_needs_init)
+        {
+            if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): Initializing exact-projection Poisson solver" << std::endl;
+            d_exact_projection_solver->initializeSolverState(*d_Phi_vec,*d_Phi_rhs_vec);
+            d_exact_projection_solver_needs_init = false;
         }
     }
     return;
