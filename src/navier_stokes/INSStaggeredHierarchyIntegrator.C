@@ -356,7 +356,7 @@ INSStaggeredHierarchyIntegrator::getVelocitySubdomainSolver()
         d_velocity_solver = new PETScKrylovLinearSolver(d_object_name+"::Velocity Subdomain Krylov Solver", velocity_prefix);
         d_velocity_solver->setInitialGuessNonzero(false);
         d_velocity_solver->setAbsoluteTolerance(1.0e-30);
-        d_velocity_solver->setRelativeTolerance(1.0e-02);
+        d_velocity_solver->setRelativeTolerance(1.0e-01);
         d_velocity_solver->setMaxIterations(25);
         Pointer<PETScKrylovLinearSolver> p_velocity_solver = d_velocity_solver;
         p_velocity_solver->setOperator(d_velocity_op);
@@ -400,6 +400,18 @@ INSStaggeredHierarchyIntegrator::getVelocitySubdomainSolver()
                 d_velocity_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Velocity Subdomain Preconditioner", d_velocity_fac_op, d_velocity_fac_pc_db);
                 p_velocity_solver->setPreconditioner(d_velocity_fac_pc);
             }
+            p_velocity_solver->setKSPType("richardson");
+        }
+        else
+        {
+            if (d_gridding_alg->getMaxLevels() == 1)
+            {
+                p_velocity_solver->setKSPType("cg");
+            }
+            else
+            {
+                p_velocity_solver->setKSPType("gmres");
+            }
         }
         d_velocity_solver_needs_reinit_when_dt_changes = true;
         d_velocity_solver_needs_init = true;
@@ -418,7 +430,7 @@ INSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
         d_pressure_solver = new PETScKrylovLinearSolver(d_object_name+"::Pressure Subdomain Krylov Solver", pressure_prefix);
         d_pressure_solver->setInitialGuessNonzero(false);
         d_pressure_solver->setAbsoluteTolerance(1.0e-30);
-        d_pressure_solver->setRelativeTolerance(1.0e-02);
+        d_pressure_solver->setRelativeTolerance(1.0e-01);
         d_pressure_solver->setMaxIterations(25);
         Pointer<PETScKrylovLinearSolver> p_pressure_solver = d_pressure_solver;
         p_pressure_solver->setOperator(d_pressure_op);
@@ -462,6 +474,18 @@ INSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
                 d_pressure_fac_op->setPoissonSpecifications(*d_pressure_spec);
                 d_pressure_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Pressure Subdomain Preconditioner", d_pressure_fac_op, d_pressure_fac_pc_db);
                 p_pressure_solver->setPreconditioner(d_pressure_fac_pc);
+            }
+            p_pressure_solver->setKSPType("richardson");
+        }
+        else
+        {
+            if (d_gridding_alg->getMaxLevels() == 1)
+            {
+                p_pressure_solver->setKSPType("cg");
+            }
+            else
+            {
+                p_pressure_solver->setKSPType("gmres");
             }
         }
         d_pressure_solver_needs_reinit_when_dt_changes = false;
@@ -1435,7 +1459,7 @@ INSStaggeredHierarchyIntegrator::regridProjection()
     regrid_projection_solver.setPreconditioner(regrid_projection_fac_pc);
 
     // Set some default options.
-    regrid_projection_solver.setKSPType("gmres");
+    regrid_projection_solver.setKSPType("fgmres");
     regrid_projection_solver.setAbsoluteTolerance(1.0e-12);
     regrid_projection_solver.setRelativeTolerance(1.0e-08);
     regrid_projection_solver.setMaxIterations(25);

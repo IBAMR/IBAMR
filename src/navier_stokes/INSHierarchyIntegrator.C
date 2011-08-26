@@ -510,6 +510,10 @@ INSHierarchyIntegrator::getFromInput(
     else if (db->keyExists("PoissonFACPreconditioner"         )) d_pressure_fac_pc_db   = db->getDatabase("PoissonFACPreconditioner");
     if      (db->keyExists("RegridProjectionFACSolver"        )) d_regrid_projection_fac_pc_db = db->getDatabase("RegridProjectionFACSolver");
     else if (db->keyExists("RegridProjectionFACPreconditioner")) d_regrid_projection_fac_pc_db = db->getDatabase("RegridProjectionFACPreconditioner");
+    else if (db->keyExists("PressureFACSolver"                )) d_regrid_projection_fac_pc_db = db->getDatabase("PressureFACSolver");
+    else if (db->keyExists("PressureFACPreconditioner"        )) d_regrid_projection_fac_pc_db = db->getDatabase("PressureFACPreconditioner");
+    else if (db->keyExists("PoissonFACSolver"                 )) d_regrid_projection_fac_pc_db = db->getDatabase("PoissonFACSolver");
+    else if (db->keyExists("PoissonFACPreconditioner"         )) d_regrid_projection_fac_pc_db = db->getDatabase("PoissonFACPreconditioner");
     return;
 }// getFromInput
 
