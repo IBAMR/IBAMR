@@ -178,6 +178,19 @@ public:
     getProjectionBoundaryConditions() const;
 
     /*!
+     * \brief Set the default convective operator type to be used by the solver.
+     */
+    void
+    setDefaultConvectiveOperatorType(
+        ConvectiveOperatorType op_type);
+
+    /*!
+     * \brief Get the default convective operator type used by the solver.
+     */
+    ConvectiveOperatorType
+    getDefaultConvectiveOperatorType() const;
+
+    /*!
      * \brief Set the default convective differencing form to be used by the
      * solver.
      */
@@ -382,6 +395,7 @@ protected:
      */
     int d_coarsest_reset_ln, d_finest_reset_ln;
 
+    ConvectiveOperatorType d_default_convective_op_type;
     ConvectiveDifferencingType d_default_convective_difference_form;
     SAMRAI::tbox::Pointer<ConvectiveOperator> d_convective_op;
     bool d_convective_op_needs_reinit_when_dt_changes;

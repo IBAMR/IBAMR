@@ -54,81 +54,86 @@
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
-#include <FaceData.h>
-#include <FaceGeometry.h>
-#include <SideData.h>
-#include <SideGeometry.h>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define NAVIER_STOKES_STAGGERED_ADV_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_adv_derivative2d,NAVIER_STOKES_STAGGERED_ADV_DERIVATIVE2D)
-#define NAVIER_STOKES_STAGGERED_DIV_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_div_derivative2d,NAVIER_STOKES_STAGGERED_DIV_DERIVATIVE2D)
-#define NAVIER_STOKES_STAGGERED_SKEW_SYM_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_skew_sym_derivative2d,NAVIER_STOKES_STAGGERED_SKEW_SYM_DERIVATIVE2D)
+#define ADVECT_CENTERED_FACE_ADV_DERIVATIVE_FC FC_FUNC_(advect_centered_face_adv_derivative2d,ADVECT_CENTERED_FACE_ADV_DERIVATIVE2D)
+#define ADVECT_CENTERED_FACE_DIV_DERIVATIVE_FC FC_FUNC_(advect_centered_face_div_derivative2d,ADVECT_CENTERED_FACE_DIV_DERIVATIVE2D)
+#define ADVECT_CENTERED_FACE_SKEW_SYM_DERIVATIVE_FC FC_FUNC_(advect_centered_face_skew_sym_derivative2d,ADVECT_CENTERED_FACE_SKEW_SYM_DERIVATIVE2D)
 #endif
 
 #if (NDIM == 3)
-#define NAVIER_STOKES_STAGGERED_ADV_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_adv_derivative3d,NAVIER_STOKES_STAGGERED_ADV_DERIVATIVE3D)
-#define NAVIER_STOKES_STAGGERED_DIV_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_div_derivative3d,NAVIER_STOKES_STAGGERED_DIV_DERIVATIVE3D)
-#define NAVIER_STOKES_STAGGERED_SKEW_SYM_DERIVATIVE_FC FC_FUNC_(navier_stokes_staggered_skew_sym_derivative3d,NAVIER_STOKES_STAGGERED_SKEW_SYM_DERIVATIVE3D)
+#define ADVECT_CENTERED_FACE_ADV_DERIVATIVE_FC FC_FUNC_(advect_centered_face_adv_derivative3d,ADVECT_CENTERED_FACE_ADV_DERIVATIVE3D)
+#define ADVECT_CENTERED_FACE_DIV_DERIVATIVE_FC FC_FUNC_(advect_centered_face_div_derivative3d,ADVECT_CENTERED_FACE_DIV_DERIVATIVE3D)
+#define ADVECT_CENTERED_FACE_SKEW_SYM_DERIVATIVE_FC FC_FUNC_(advect_centered_face_skew_sym_derivative3d,ADVECT_CENTERED_FACE_SKEW_SYM_DERIVATIVE3D)
 #endif
 
 extern "C"
 {
     void
-    NAVIER_STOKES_STAGGERED_ADV_DERIVATIVE_FC(
+    ADVECT_CENTERED_FACE_ADV_DERIVATIVE_FC(
         const double* ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
         const double* , const double* ,
         const int& , const int& ,
-        double* , double*
+        const double* ,
+        const int& , const int& ,
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
         const int& , const int& , const int& ,
         const double* , const double* , const double* ,
         const int& , const int& , const int& ,
-        double* , double* , double*
+        const double* ,
+        const int& , const int& , const int& ,
 #endif
+        double*
                                               );
 
     void
-    NAVIER_STOKES_STAGGERED_DIV_DERIVATIVE_FC(
+    ADVECT_CENTERED_FACE_DIV_DERIVATIVE_FC(
         const double* ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
         const double* , const double* ,
         const int& , const int& ,
-        double* , double*
+        const double* ,
+        const int& , const int& ,
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
         const int& , const int& , const int& ,
         const double* , const double* , const double* ,
         const int& , const int& , const int& ,
-        double* , double* , double*
+        const double* ,
+        const int& , const int& , const int& ,
 #endif
+        double*
                                               );
 
     void
-    NAVIER_STOKES_STAGGERED_SKEW_SYM_DERIVATIVE_FC(
+    ADVECT_CENTERED_FACE_SKEW_SYM_DERIVATIVE_FC(
         const double* ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
         const double* , const double* ,
         const int& , const int& ,
-        double* , double*
+        const double* ,
+        const int& , const int& ,
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
         const int& , const int& , const int& ,
         const double* , const double* , const double* ,
         const int& , const int& , const int& ,
-        double* , double* , double*
+        const double* ,
+        const int& , const int& , const int& ,
 #endif
+        double*
                                                    );
 }
 
@@ -215,7 +220,135 @@ INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(
     const int U_idx,
     const int N_idx)
 {
-    TBOX_ERROR("incomplete implementation.\n");
+    IBAMR_TIMER_START(t_apply_convective_operator);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    if (!d_is_initialized)
+    {
+        TBOX_ERROR("INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator():\n"
+                   << "  operator must be initialized prior to call to applyConvectiveOperator\n");
+    }
+#endif
+
+    // Setup communications algorithm.
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
+    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    refine_alg->registerRefine(d_U_scratch_idx, U_idx, d_U_scratch_idx, refine_op);
+
+    // Compute convective differences.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        refine_alg->resetSchedule(d_refine_scheds[ln]);
+        d_refine_scheds[ln]->fillData(0.0);
+        d_refine_alg->resetSchedule(d_refine_scheds[ln]);
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const dx = patch_geom->getDx();
+
+            const Box<NDIM>& patch_box = patch->getBox();
+            const IntVector<NDIM>& patch_lower = patch_box.lower();
+            const IntVector<NDIM>& patch_upper = patch_box.upper();
+
+            Pointer<CellData<NDIM,double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            const IntVector<NDIM>& U_data_gcw = U_data->getGhostCellWidth();
+
+            Pointer<FaceData<NDIM,double> > u_ADV_data = patch->getPatchData(d_u_idx);
+            const IntVector<NDIM>& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
+
+            Pointer<CellData<NDIM,double> > N_data = patch->getPatchData(N_idx);
+            const IntVector<NDIM>& N_data_gcw = N_data->getGhostCellWidth();
+
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                switch (d_difference_form)
+                {
+                    case CONSERVATIVE:
+                        ADVECT_CENTERED_FACE_DIV_DERIVATIVE_FC(
+                            dx,
+#if (NDIM == 2)
+                            patch_lower(0), patch_upper(0),
+                            patch_lower(1), patch_upper(1),
+                            u_ADV_data_gcw(0), u_ADV_data_gcw(1),
+                            u_ADV_data->getPointer(0), u_ADV_data->getPointer(1),
+                            U_data_gcw(0), U_data_gcw(1),
+                            U_data->getPointer(axis),
+                            N_data_gcw(0), N_data_gcw(1),
+#endif
+#if (NDIM == 3)
+                            patch_lower(0), patch_upper(0),
+                            patch_lower(1), patch_upper(1),
+                            patch_lower(2), patch_upper(2),
+                            u_ADV_data_gcw(0), u_ADV_data_gcw(1), u_ADV_data_gcw(2),
+                            u_ADV_data->getPointer(0), u_ADV_data->getPointer(1), u_ADV_data->getPointer(2),
+                            U_data_gcw(0), U_data_gcw(1), U_data_gcw(2),
+                            U_data->getPointer(axis),
+                            N_data_gcw(0), N_data_gcw(1), N_data_gcw(2),
+#endif
+                            N_data->getPointer(axis)
+                                                               );
+                        break;
+                    case ADVECTIVE:
+                        ADVECT_CENTERED_FACE_ADV_DERIVATIVE_FC(
+                            dx,
+#if (NDIM == 2)
+                            patch_lower(0), patch_upper(0),
+                            patch_lower(1), patch_upper(1),
+                            u_ADV_data_gcw(0), u_ADV_data_gcw(1),
+                            u_ADV_data->getPointer(0), u_ADV_data->getPointer(1),
+                            U_data_gcw(0), U_data_gcw(1),
+                            U_data->getPointer(axis),
+                            N_data_gcw(0), N_data_gcw(1),
+#endif
+#if (NDIM == 3)
+                            patch_lower(0), patch_upper(0),
+                            patch_lower(1), patch_upper(1),
+                            patch_lower(2), patch_upper(2),
+                            u_ADV_data_gcw(0), u_ADV_data_gcw(1), u_ADV_data_gcw(2),
+                            u_ADV_data->getPointer(0), u_ADV_data->getPointer(1), u_ADV_data->getPointer(2),
+                            U_data_gcw(0), U_data_gcw(1), U_data_gcw(2),
+                            U_data->getPointer(axis),
+                            N_data_gcw(0), N_data_gcw(1), N_data_gcw(2),
+#endif
+                            N_data->getPointer(axis)
+                                                               );
+                        break;
+                    case SKEW_SYMMETRIC:
+                        ADVECT_CENTERED_FACE_SKEW_SYM_DERIVATIVE_FC(
+                            dx,
+#if (NDIM == 2)
+                            patch_lower(0), patch_upper(0),
+                            patch_lower(1), patch_upper(1),
+                            u_ADV_data_gcw(0), u_ADV_data_gcw(1),
+                            u_ADV_data->getPointer(0), u_ADV_data->getPointer(1),
+                            U_data_gcw(0), U_data_gcw(1),
+                            U_data->getPointer(axis),
+                            N_data_gcw(0), N_data_gcw(1),
+#endif
+#if (NDIM == 3)
+                            patch_lower(0), patch_upper(0),
+                            patch_lower(1), patch_upper(1),
+                            patch_lower(2), patch_upper(2),
+                            u_ADV_data_gcw(0), u_ADV_data_gcw(1), u_ADV_data_gcw(2),
+                            u_ADV_data->getPointer(0), u_ADV_data->getPointer(1), u_ADV_data->getPointer(2),
+                            U_data_gcw(0), U_data_gcw(1), U_data_gcw(2),
+                            U_data->getPointer(axis),
+                            N_data_gcw(0), N_data_gcw(1), N_data_gcw(2),
+#endif
+                            N_data->getPointer(axis)
+                                                                   );
+                        break;
+                    default:
+                        TBOX_ERROR("INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator():\n"
+                                   << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
+                                   << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
+                }
+            }
+        }
+    }
     return;
 }// applyConvectiveOperator
 

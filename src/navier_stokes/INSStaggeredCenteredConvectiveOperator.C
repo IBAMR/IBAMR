@@ -252,8 +252,8 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
             Pointer<SideData<NDIM,double> > N_data = patch->getPatchData(N_idx);
             Pointer<SideData<NDIM,double> > U_data = patch->getPatchData(d_U_scratch_idx);
 
-            const IntVector<NDIM>& N_ghosts = N_data->getGhostCellWidth();
-            const IntVector<NDIM>& U_ghosts = U_data->getGhostCellWidth();
+            const IntVector<NDIM>& N_data_gcw = N_data->getGhostCellWidth();
+            const IntVector<NDIM>& U_data_gcw = U_data->getGhostCellWidth();
 
             switch (d_difference_form)
             {
@@ -263,18 +263,18 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
 #if (NDIM == 2)
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
-                        U_ghosts(0), U_ghosts(1),
+                        U_data_gcw(0), U_data_gcw(1),
                         U_data->getPointer(0), U_data->getPointer(1),
-                        N_ghosts(0), N_ghosts(1),
+                        N_data_gcw(0), N_data_gcw(1),
                         N_data->getPointer(0), N_data->getPointer(1)
 #endif
 #if (NDIM == 3)
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
                         patch_lower(2), patch_upper(2),
-                        U_ghosts(0), U_ghosts(1), U_ghosts(2),
+                        U_data_gcw(0), U_data_gcw(1), U_data_gcw(2),
                         U_data->getPointer(0), U_data->getPointer(1), U_data->getPointer(2),
-                        N_ghosts(0), N_ghosts(1), N_ghosts(2),
+                        N_data_gcw(0), N_data_gcw(1), N_data_gcw(2),
                         N_data->getPointer(0), N_data->getPointer(1), N_data->getPointer(2)
 #endif
                                                               );
@@ -285,18 +285,18 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
 #if (NDIM == 2)
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
-                        U_ghosts(0), U_ghosts(1),
+                        U_data_gcw(0), U_data_gcw(1),
                         U_data->getPointer(0), U_data->getPointer(1),
-                        N_ghosts(0), N_ghosts(1),
+                        N_data_gcw(0), N_data_gcw(1),
                         N_data->getPointer(0), N_data->getPointer(1)
 #endif
 #if (NDIM == 3)
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
                         patch_lower(2), patch_upper(2),
-                        U_ghosts(0), U_ghosts(1), U_ghosts(2),
+                        U_data_gcw(0), U_data_gcw(1), U_data_gcw(2),
                         U_data->getPointer(0), U_data->getPointer(1), U_data->getPointer(2),
-                        N_ghosts(0), N_ghosts(1), N_ghosts(2),
+                        N_data_gcw(0), N_data_gcw(1), N_data_gcw(2),
                         N_data->getPointer(0), N_data->getPointer(1), N_data->getPointer(2)
 #endif
                                                               );
@@ -307,18 +307,18 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
 #if (NDIM == 2)
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
-                        U_ghosts(0), U_ghosts(1),
+                        U_data_gcw(0), U_data_gcw(1),
                         U_data->getPointer(0), U_data->getPointer(1),
-                        N_ghosts(0), N_ghosts(1),
+                        N_data_gcw(0), N_data_gcw(1),
                         N_data->getPointer(0), N_data->getPointer(1)
 #endif
 #if (NDIM == 3)
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
                         patch_lower(2), patch_upper(2),
-                        U_ghosts(0), U_ghosts(1), U_ghosts(2),
+                        U_data_gcw(0), U_data_gcw(1), U_data_gcw(2),
                         U_data->getPointer(0), U_data->getPointer(1), U_data->getPointer(2),
-                        N_ghosts(0), N_ghosts(1), N_ghosts(2),
+                        N_data_gcw(0), N_data_gcw(1), N_data_gcw(2),
                         N_data->getPointer(0), N_data->getPointer(1), N_data->getPointer(2)
 #endif
                                                                    );

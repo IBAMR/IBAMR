@@ -66,6 +66,36 @@ enum_to_string(
 }// enum_to_string
 
 /*!
+ * \brief Enumerated type for different convective operator types.
+ */
+enum ConvectiveOperatorType
+{
+    CENTERED,
+    PPM,
+    UNKNOWN_CONVECTIVE_OPERATOR_TYPE=-1
+};
+
+template<>
+inline ConvectiveOperatorType
+string_to_enum<ConvectiveOperatorType>(
+    const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "CENTERED") == 0) return CENTERED;
+    if (strcasecmp(val.c_str(), "PPM"     ) == 0) return PPM;
+    return UNKNOWN_CONVECTIVE_OPERATOR_TYPE;
+}// string_to_enum
+
+template<>
+inline std::string
+enum_to_string<ConvectiveOperatorType>(
+    ConvectiveOperatorType val)
+{
+    if (val == CENTERED) return "CENTERED";
+    if (val == PPM      ) return "PPM";
+    return "UNKNOWN_CONVECTIVE_OPERATOR_TYPE";
+}// enum_to_string
+
+/*!
  * \brief Enumerated type for different convective differencing schemes.
  */
 enum ConvectiveDifferencingType

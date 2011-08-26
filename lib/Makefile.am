@@ -156,6 +156,7 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
+$(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f \
 $(top_builddir)/src/advect/fortran/advect_detect2d.f \
 $(top_builddir)/src/advect/fortran/advect_diff2d.f \
 $(top_builddir)/src/advect/fortran/advect_stable2d.f \
@@ -169,6 +170,7 @@ $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f
 libIBAMR3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 libIBAMR3d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
+$(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f \
 $(top_builddir)/src/advect/fortran/advect_detect3d.f \
 $(top_builddir)/src/advect/fortran/advect_diff3d.f \
 $(top_builddir)/src/advect/fortran/advect_stable3d.f \

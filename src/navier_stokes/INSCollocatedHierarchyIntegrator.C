@@ -47,6 +47,7 @@
 // IBAMR INCLUDES
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
 #include <ibamr/INSProjectionBcCoef.h>
+#include <ibamr/INSCollocatedCenteredConvectiveOperator.h>
 #include <ibamr/INSCollocatedPPMConvectiveOperator.h>
 #include <ibamr/namespaces.h>
 
@@ -191,6 +192,13 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(
     if (input_db->keyExists("use_CNAB")) d_using_CNAB = input_db->getBool("use_CNAB");
     else if (input_db->keyExists("using_CNAB")) d_using_CNAB = input_db->getBool("using_CNAB");
 
+    // Check to see whether the convective operator type has been set.
+    d_default_convective_op_type = PPM;
+    if      (input_db->keyExists("convective_op_type"))               d_default_convective_op_type = string_to_enum<ConvectiveOperatorType>(input_db->getString("convective_op_type"));
+    else if (input_db->keyExists("convective_operator_type"))         d_default_convective_op_type = string_to_enum<ConvectiveOperatorType>(input_db->getString("convective_operator_type"));
+    else if (input_db->keyExists("default_convective_op_type"))       d_default_convective_op_type = string_to_enum<ConvectiveOperatorType>(input_db->getString("default_convective_op_type"));
+    else if (input_db->keyExists("default_convective_operator_type")) d_default_convective_op_type = string_to_enum<ConvectiveOperatorType>(input_db->getString("default_convective_operator_type"));
+
     // Check to see what kind of projection method to use.
     d_projection_method_type = PRESSURE_INCREMENT;
     if (input_db->keyExists("proj_method_type")) d_projection_method_type = string_to_enum<ProjectionMethodType>(input_db->getString("proj_method_type"));
@@ -270,7 +278,19 @@ INSCollocatedHierarchyIntegrator::getConvectiveOperator()
     }
     else if (d_convective_op.isNull())
     {
-        d_convective_op = new INSCollocatedPPMConvectiveOperator(d_default_convective_difference_form);
+        switch (d_default_convective_op_type)
+        {
+            case CENTERED:
+                d_convective_op = new INSCollocatedCenteredConvectiveOperator(d_default_convective_difference_form);
+                break;
+            case PPM:
+                d_convective_op = new INSCollocatedPPMConvectiveOperator(d_default_convective_difference_form);
+                break;
+            default:
+                TBOX_ERROR("INSCollocatedHierarchyIntegrator::getConvectiveOperator():\n"
+                           << "  unsupported convective operator type: " << d_default_convective_op_type << " \n"
+                           << "  valid choices are: CENTERED, PPM\n");
+        }
         d_convective_op_needs_reinit_when_dt_changes = false;
         d_convective_op_needs_init = true;
     }

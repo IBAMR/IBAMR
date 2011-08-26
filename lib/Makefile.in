@@ -139,9 +139,10 @@ am__objects_1 = libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredStokesOperator.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredVelocityBcCoef.$(OBJEXT)
 am_libIBAMR2d_a_OBJECTS = $(am__objects_1) \
-	adv_diff_consdiff2d.$(OBJEXT) advect_detect2d.$(OBJEXT) \
-	advect_diff2d.$(OBJEXT) advect_stable2d.$(OBJEXT) \
-	godunov_predictors2d.$(OBJEXT) \
+	adv_diff_consdiff2d.$(OBJEXT) \
+	advect_centered_derivatives2d.$(OBJEXT) \
+	advect_detect2d.$(OBJEXT) advect_diff2d.$(OBJEXT) \
+	advect_stable2d.$(OBJEXT) godunov_predictors2d.$(OBJEXT) \
 	navier_stokes_bdryop2d.$(OBJEXT) \
 	navier_stokes_divsource2d.$(OBJEXT) \
 	navier_stokes_stabledt2d.$(OBJEXT) \
@@ -200,9 +201,10 @@ am__objects_2 = libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredStokesOperator.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredVelocityBcCoef.$(OBJEXT)
 am_libIBAMR3d_a_OBJECTS = $(am__objects_2) \
-	adv_diff_consdiff3d.$(OBJEXT) advect_detect3d.$(OBJEXT) \
-	advect_diff3d.$(OBJEXT) advect_stable3d.$(OBJEXT) \
-	godunov_predictors3d.$(OBJEXT) \
+	adv_diff_consdiff3d.$(OBJEXT) \
+	advect_centered_derivatives3d.$(OBJEXT) \
+	advect_detect3d.$(OBJEXT) advect_diff3d.$(OBJEXT) \
+	advect_stable3d.$(OBJEXT) godunov_predictors3d.$(OBJEXT) \
 	navier_stokes_bdryop3d.$(OBJEXT) \
 	navier_stokes_divsource3d.$(OBJEXT) \
 	navier_stokes_stabledt3d.$(OBJEXT) \
@@ -687,6 +689,7 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
+$(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f \
 $(top_builddir)/src/advect/fortran/advect_detect2d.f \
 $(top_builddir)/src/advect/fortran/advect_diff2d.f \
 $(top_builddir)/src/advect/fortran/advect_stable2d.f \
@@ -700,6 +703,7 @@ $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f
 libIBAMR3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 libIBAMR3d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
+$(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f \
 $(top_builddir)/src/advect/fortran/advect_detect3d.f \
 $(top_builddir)/src/advect/fortran/advect_diff3d.f \
 $(top_builddir)/src/advect/fortran/advect_stable3d.f \
@@ -2319,6 +2323,12 @@ adv_diff_consdiff2d.o: $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.
 adv_diff_consdiff2d.obj: $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o adv_diff_consdiff2d.obj `if test -f '$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f'; then $(CYGPATH_W) '$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f'; fi`
 
+advect_centered_derivatives2d.o: $(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_centered_derivatives2d.o `test -f '$(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f
+
+advect_centered_derivatives2d.obj: $(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_centered_derivatives2d.obj `if test -f '$(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f'; then $(CYGPATH_W) '$(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f'; fi`
+
 advect_detect2d.o: $(top_builddir)/src/advect/fortran/advect_detect2d.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_detect2d.o `test -f '$(top_builddir)/src/advect/fortran/advect_detect2d.f' || echo '$(srcdir)/'`$(top_builddir)/src/advect/fortran/advect_detect2d.f
 
@@ -2378,6 +2388,12 @@ adv_diff_consdiff3d.o: $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.
 
 adv_diff_consdiff3d.obj: $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o adv_diff_consdiff3d.obj `if test -f '$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f'; then $(CYGPATH_W) '$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f'; fi`
+
+advect_centered_derivatives3d.o: $(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_centered_derivatives3d.o `test -f '$(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f' || echo '$(srcdir)/'`$(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f
+
+advect_centered_derivatives3d.obj: $(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f
+	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_centered_derivatives3d.obj `if test -f '$(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f'; then $(CYGPATH_W) '$(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f'; else $(CYGPATH_W) '$(srcdir)/$(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f'; fi`
 
 advect_detect3d.o: $(top_builddir)/src/advect/fortran/advect_detect3d.f
 	$(F77) $(AM_FFLAGS) $(FFLAGS) -c -o advect_detect3d.o `test -f '$(top_builddir)/src/advect/fortran/advect_detect3d.f' || echo '$(srcdir)/'`$(top_builddir)/src/advect/fortran/advect_detect3d.f

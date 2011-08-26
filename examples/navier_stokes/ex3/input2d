@@ -16,6 +16,7 @@ START_TIME         = 0.0e0                    // initial simulation time
 END_TIME           = 500.0                    // final simulation time
 GROW_DT            = 2.0e0                    // growth factor for timesteps
 NUM_CYCLES         = 1                        // number of cycles of fixed-point iteration
+CONVECTIVE_OP_TYPE = "PPM"                    // convective differencing discretization type
 CONVECTIVE_FORM    = "ADVECTIVE"              // how to compute the convective terms
 NORMALIZE_PRESSURE = TRUE                     // whether to explicitly force the pressure to have mean zero
 U_MAX              = 1.0                      // maximum flow speed
@@ -76,6 +77,7 @@ INSCollocatedHierarchyIntegrator {
    end_time                   = END_TIME
    grow_dt                    = GROW_DT
    num_cycles                 = NUM_CYCLES
+   convective_op_type         = CONVECTIVE_OP_TYPE
    convective_difference_form = CONVECTIVE_FORM
    normalize_pressure         = NORMALIZE_PRESSURE
    cfl                        = CFL_MAX
@@ -156,6 +158,7 @@ INSStaggeredHierarchyIntegrator {
    end_time                   = END_TIME
    grow_dt                    = GROW_DT
    num_cycles                 = NUM_CYCLES
+   convective_op_type         = CONVECTIVE_OP_TYPE
    convective_difference_form = CONVECTIVE_FORM
    normalize_pressure         = NORMALIZE_PRESSURE
    cfl                        = CFL_MAX

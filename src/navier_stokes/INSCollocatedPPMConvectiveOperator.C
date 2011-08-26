@@ -426,7 +426,6 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(
             {
                 case CONSERVATIVE:
                 {
-                    N_data->fillAll(0.0);
                     Pointer<FaceData<NDIM,double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
                     const IntVector<NDIM>& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                     FaceData<NDIM,double> u_ADV_data(patch_box, 1, u_flux_data_gcw);
