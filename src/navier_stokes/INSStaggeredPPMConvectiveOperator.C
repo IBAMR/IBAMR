@@ -50,6 +50,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/CartExtrapPhysBdryOp.h>
+#include <ibtk/CartSideDoubleSpecializedLinearRefine.h>
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
@@ -68,6 +69,7 @@
 #define CONVECT_DERIVATIVE_FC FC_FUNC_(convect_derivative2d, CONVECT_DERIVATIVE2D)
 #define GODUNOV_EXTRAPOLATE_FC FC_FUNC_(godunov_extrapolate2d, GODUNOV_EXTRAPOLATE2D)
 #define NAVIER_STOKES_INTERP_COMPS_FC FC_FUNC_(navier_stokes_interp_comps2d, NAVIER_STOKES_INTERP_COMPS2D)
+#define NAVIER_STOKES_RESET_ADV_VELOCITY_FC FC_FUNC_(navier_stokes_reset_adv_velocity2d, NAVIER_STOKES_RESET_ADV_VELOCITY2D)
 #define SKEW_SYM_DERIVATIVE_FC FC_FUNC_(skew_sym_derivative2d, SKEW_SYM_DERIVATIVE2D)
 #endif
 
@@ -76,6 +78,7 @@
 #define CONVECT_DERIVATIVE_FC FC_FUNC_(convect_derivative3d, CONVECT_DERIVATIVE3D)
 #define GODUNOV_EXTRAPOLATE_FC FC_FUNC_(godunov_extrapolate3d, GODUNOV_EXTRAPOLATE3D)
 #define NAVIER_STOKES_INTERP_COMPS_FC FC_FUNC_(navier_stokes_interp_comps3d, NAVIER_STOKES_INTERP_COMPS3D)
+#define NAVIER_STOKES_RESET_ADV_VELOCITY_FC FC_FUNC_(navier_stokes_reset_adv_velocity3d, NAVIER_STOKES_RESET_ADV_VELOCITY3D)
 #define SKEW_SYM_DERIVATIVE_FC FC_FUNC_(skew_sym_derivative3d, SKEW_SYM_DERIVATIVE3D)
 #endif
 
@@ -177,6 +180,39 @@ extern "C"
         double* , double* , double*
 #endif
                                   );
+
+    void
+    NAVIER_STOKES_RESET_ADV_VELOCITY_FC(
+#if (NDIM == 2)
+        const int& , const int& , const int& , const int& ,
+        const int& , const int& ,
+        double* , double* ,
+        const int& , const int& ,
+        const double* , const double* ,
+        const int& , const int& , const int& , const int& ,
+        const int& , const int& ,
+        double* , double* ,
+        const int& , const int& ,
+        const double* , const double*
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        double* , double* , double* ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double* ,
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        double* , double* , double* ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double* ,
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        double* , double* , double* ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double*
+#endif
+                                        );
 
     void
     SKEW_SYM_DERIVATIVE_FC(
@@ -301,7 +337,7 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
     // Setup communications algorithm.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
-    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "SPECIALIZED_LINEAR_REFINE");
     refine_alg->registerRefine(d_U_scratch_idx, U_idx, d_U_scratch_idx, refine_op);
 
     // Compute the convective derivative.
@@ -412,6 +448,48 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
                     U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),          U_adv_data [axis]->getPointer(2),
                     U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),          U_half_data[axis]->getPointer(2));
 #endif
+            }
+#if (NDIM == 2)
+            NAVIER_STOKES_RESET_ADV_VELOCITY_FC(
+                side_boxes[0].lower(0), side_boxes[0].upper(0),
+                side_boxes[0].lower(1), side_boxes[0].upper(1),
+                U_adv_data [0]->getGhostCellWidth()(0), U_adv_data [0]->getGhostCellWidth()(1),
+                U_adv_data [0]->getPointer(0),          U_adv_data [0]->getPointer(1),
+                U_half_data[0]->getGhostCellWidth()(0), U_half_data[0]->getGhostCellWidth()(1),
+                U_half_data[0]->getPointer(0),          U_half_data[0]->getPointer(1),
+                side_boxes[1].lower(0), side_boxes[1].upper(0),
+                side_boxes[1].lower(1), side_boxes[1].upper(1),
+                U_adv_data [1]->getGhostCellWidth()(0), U_adv_data [1]->getGhostCellWidth()(1),
+                U_adv_data [1]->getPointer(0),          U_adv_data [1]->getPointer(1),
+                U_half_data[1]->getGhostCellWidth()(0), U_half_data[1]->getGhostCellWidth()(1),
+                U_half_data[1]->getPointer(0),          U_half_data[1]->getPointer(1));
+#endif
+#if (NDIM == 3)
+            NAVIER_STOKES_RESET_ADV_VELOCITY_FC(
+                side_boxes[0].lower(0), side_boxes[0].upper(0),
+                side_boxes[0].lower(1), side_boxes[0].upper(1),
+                side_boxes[0].lower(2), side_boxes[0].upper(2),
+                U_adv_data [0]->getGhostCellWidth()(0), U_adv_data [0]->getGhostCellWidth()(1), U_adv_data [0]->getGhostCellWidth()(2),
+                U_adv_data [0]->getPointer(0),          U_adv_data [0]->getPointer(1),          U_adv_data [0]->getPointer(2),
+                U_half_data[0]->getGhostCellWidth()(0), U_half_data[0]->getGhostCellWidth()(1), U_half_data[0]->getGhostCellWidth()(2),
+                U_half_data[0]->getPointer(0),          U_half_data[0]->getPointer(1),          U_half_data[0]->getPointer(2),
+                side_boxes[1].lower(0), side_boxes[1].upper(0),
+                side_boxes[1].lower(1), side_boxes[1].upper(1),
+                side_boxes[1].lower(2), side_boxes[1].upper(2),
+                U_adv_data [1]->getGhostCellWidth()(0), U_adv_data [1]->getGhostCellWidth()(1), U_adv_data [1]->getGhostCellWidth()(2),
+                U_adv_data [1]->getPointer(0),          U_adv_data [1]->getPointer(1),          U_adv_data [1]->getPointer(2),
+                U_half_data[1]->getGhostCellWidth()(0), U_half_data[1]->getGhostCellWidth()(1), U_half_data[1]->getGhostCellWidth()(2),
+                U_half_data[1]->getPointer(0),          U_half_data[1]->getPointer(1),          U_half_data[1]->getPointer(2),
+                side_boxes[2].lower(0), side_boxes[2].upper(0),
+                side_boxes[2].lower(1), side_boxes[2].upper(1),
+                side_boxes[2].lower(2), side_boxes[2].upper(2),
+                U_adv_data [2]->getGhostCellWidth()(0), U_adv_data [2]->getGhostCellWidth()(1), U_adv_data [2]->getGhostCellWidth()(2),
+                U_adv_data [2]->getPointer(0),          U_adv_data [2]->getPointer(1),          U_adv_data [2]->getPointer(2),
+                U_half_data[2]->getGhostCellWidth()(0), U_half_data[2]->getGhostCellWidth()(1), U_half_data[2]->getGhostCellWidth()(2),
+                U_half_data[2]->getPointer(0),          U_half_data[2]->getPointer(1),          U_half_data[2]->getPointer(2));
+#endif
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
                 switch (d_difference_form)
                 {
                     case CONSERVATIVE:
@@ -530,7 +608,8 @@ INSStaggeredPPMConvectiveOperator::initializeOperatorState(
 #endif
     // Setup the refine algorithm, operator, patch strategy, and schedules.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
+    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "SPECIALIZED_LINEAR_REFINE");
     d_refine_alg = new RefineAlgorithm<NDIM>();
     d_refine_alg->registerRefine(d_U_scratch_idx, in.getComponentDescriptorIndex(0), d_U_scratch_idx, refine_op);
     d_refine_strategy = new CartExtrapPhysBdryOp(d_U_scratch_idx, BDRY_EXTRAP_TYPE);

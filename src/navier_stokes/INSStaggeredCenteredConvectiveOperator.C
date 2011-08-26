@@ -50,6 +50,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/CartExtrapPhysBdryOp.h>
+#include <ibtk/CartSideDoubleSpecializedLinearRefine.h>
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
@@ -228,7 +229,7 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
     // Setup communications algorithm.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
-    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "SPECIALIZED_LINEAR_REFINE");
     refine_alg->registerRefine(d_U_scratch_idx, U_idx, d_U_scratch_idx, refine_op);
 
     // Compute the convective derivative.
@@ -357,7 +358,8 @@ INSStaggeredCenteredConvectiveOperator::initializeOperatorState(
 #endif
     // Setup the refine algorithm, operator, patch strategy, and schedules.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
+    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "SPECIALIZED_LINEAR_REFINE");
     d_refine_alg = new RefineAlgorithm<NDIM>();
     d_refine_alg->registerRefine(d_U_scratch_idx, in.getComponentDescriptorIndex(0), d_U_scratch_idx, refine_op);
     d_refine_strategy = new CartExtrapPhysBdryOp(d_U_scratch_idx, BDRY_EXTRAP_TYPE);

@@ -56,6 +56,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/CartSideDoubleDivPreservingRefine.h>
+#include <ibtk/CartSideDoubleSpecializedLinearRefine.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 
@@ -573,6 +574,9 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Register state variables that are maintained by the
     // INSStaggeredHierarchyIntegrator.
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
+
     const IntVector<NDIM> cell_ghosts = CELLG;
     const IntVector<NDIM> side_ghosts = SIDEG;
     const IntVector<NDIM> no_ghosts = 0;
@@ -580,7 +584,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     registerVariable(d_U_current_idx, d_U_new_idx, d_U_scratch_idx,
                      d_U_var, side_ghosts,
                      "CONSERVATIVE_COARSEN",
-                     "CONSERVATIVE_LINEAR_REFINE",
+                     "SPECIALIZED_LINEAR_REFINE",
                      d_U_init);
 
     registerVariable(d_U_cc_current_idx, d_U_cc_new_idx, d_U_cc_scratch_idx,
@@ -599,7 +603,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         registerVariable(d_F_current_idx, d_F_new_idx, d_F_scratch_idx,
                          d_F_var, side_ghosts,
                          "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE",
+                         "SPECIALIZED_LINEAR_REFINE",
                          d_F_fcn);
 
         registerVariable(d_F_cc_current_idx, d_F_cc_new_idx, d_F_cc_scratch_idx,
@@ -652,7 +656,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         registerVariable(d_N_old_current_idx, d_N_old_new_idx, d_N_old_scratch_idx,
                          d_N_old_var, side_ghosts,
                          "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE");
+                         "SPECIALIZED_LINEAR_REFINE");
     }
 
     // Register scratch variables that are maintained by the
@@ -728,7 +732,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Setup a specialized coarsen algorithm.
     d_coarsen_algs["CONVECTIVE_OP"] = new CoarsenAlgorithm<NDIM>();
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
     d_coarsen_algs["CONVECTIVE_OP"]->registerCoarsen(d_U_scratch_idx, d_U_scratch_idx, coarsen_op);
 
