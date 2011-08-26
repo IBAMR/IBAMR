@@ -40,6 +40,8 @@
 
 // SAMRAI INCLUDES
 #include <CellVariable.h>
+#include <CoarsenAlgorithm.h>
+#include <FaceVariable.h>
 #include <RefineAlgorithm.h>
 
 // C++ STDLIB INCLUDES
@@ -184,6 +186,8 @@ private:
     bool d_is_initialized;
 
     // Data communication algorithms, operators, and schedules.
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_coarsen_scheds;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_refine_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_refine_strategy;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_refine_scheds;
@@ -195,6 +199,8 @@ private:
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_U_var;
     int d_U_scratch_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_u_extrap_var, d_u_flux_var;
+    int d_u_extrap_idx, d_u_flux_idx;
 };
 }// namespace IBAMR
 
