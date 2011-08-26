@@ -42,6 +42,7 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
@@ -106,8 +107,23 @@ main(
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<INSHierarchyIntegrator> time_integrator = new INSStaggeredHierarchyIntegrator(
-            "INSStaggeredHierarchyIntegrator", app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+        Pointer<INSHierarchyIntegrator> time_integrator;
+        const string solver_type = app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
+        if (solver_type == "STAGGERED")
+        {
+            time_integrator = new INSStaggeredHierarchyIntegrator(
+                "INSStaggeredHierarchyIntegrator", app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+        }
+        else if (solver_type == "COLLOCATED")
+        {
+            time_integrator = new INSCollocatedHierarchyIntegrator(
+                "INSCollocatedHierarchyIntegrator", app_initializer->getComponentDatabase("INSCollocatedHierarchyIntegrator"));
+        }
+        else
+        {
+            TBOX_ERROR("Unsupported solver type: " << solver_type << "\n" <<
+                       "Valid options are: COLLOCATED, STAGGERED");
+        }
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
@@ -121,20 +137,26 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Create initial condition specification objects.
-        Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
-            "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
-        time_integrator->registerVelocityInitialConditions(u_init);
+        if (input_db->keyExists("VelocityInitialConditions"))
+        {
+            Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+                "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
+            time_integrator->registerVelocityInitialConditions(u_init);
+        }
 
         // Create boundary condition specification objects (when necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> u_bc_coefs;
-        for (unsigned int d = 0; d < NDIM; ++d)
+        if (periodic_shift.min() > 0)
         {
-            if (periodic_shift[d] > 0)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 u_bc_coefs[d] = NULL;
             }
-            else
+        }
+        else
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 ostringstream bc_coefs_name_stream;
                 bc_coefs_name_stream << "u_bc_coefs_" << d;

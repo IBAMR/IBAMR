@@ -147,13 +147,16 @@ main(
         // Create boundary condition specification objects (when necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> u_bc_coefs;
-        for (unsigned int d = 0; d < NDIM; ++d)
+        if (periodic_shift.min() > 0)
         {
-            if (periodic_shift[d] > 0)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 u_bc_coefs[d] = NULL;
             }
-            else
+        }
+        else
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 ostringstream bc_coefs_name_stream;
                 bc_coefs_name_stream << "u_bc_coefs_" << d;

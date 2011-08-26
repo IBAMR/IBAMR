@@ -630,52 +630,55 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         if (d_output_U)
         {
-            d_visit_writer->registerPlotQuantity(d_U_var->getName(), "VECTOR", d_U_current_idx, 0, d_U_scale);
+            d_visit_writer->registerPlotQuantity("U", "VECTOR", d_U_current_idx, 0, d_U_scale);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                std::ostringstream stream;
-                stream << d;
-                d_visit_writer->registerPlotQuantity(d_U_var->getName()+stream.str(), "SCALAR", d_U_current_idx, d, d_U_scale);
+                if (d == 0) d_visit_writer->registerPlotQuantity("U_x", "SCALAR", d_U_current_idx, d, d_U_scale);
+                if (d == 1) d_visit_writer->registerPlotQuantity("U_y", "SCALAR", d_U_current_idx, d, d_U_scale);
+                if (d == 2) d_visit_writer->registerPlotQuantity("U_z", "SCALAR", d_U_current_idx, d, d_U_scale);
             }
         }
 
         if (d_output_P)
         {
-            d_visit_writer->registerPlotQuantity(d_P_var->getName(), "SCALAR", d_P_current_idx, 0, d_P_scale);
+            d_visit_writer->registerPlotQuantity("P", "SCALAR", d_P_current_idx, 0, d_P_scale);
         }
 
         if (!d_F_fcn.isNull() && d_output_F)
         {
-            d_visit_writer->registerPlotQuantity(d_F_var->getName(), "VECTOR", d_F_current_idx, 0, d_F_scale);
+            d_visit_writer->registerPlotQuantity("F", "VECTOR", d_F_current_idx, 0, d_F_scale);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                std::ostringstream stream;
-                stream << d;
-                d_visit_writer->registerPlotQuantity(d_F_var->getName()+stream.str(), "SCALAR", d_F_current_idx, d, d_F_scale);
+                if (d == 0) d_visit_writer->registerPlotQuantity("F_x", "SCALAR", d_F_current_idx, d, d_F_scale);
+                if (d == 1) d_visit_writer->registerPlotQuantity("F_y", "SCALAR", d_F_current_idx, d, d_F_scale);
+                if (d == 2) d_visit_writer->registerPlotQuantity("F_z", "SCALAR", d_F_current_idx, d, d_F_scale);
             }
         }
 
         if (!d_Q_fcn.isNull() && d_output_Q)
         {
-            d_visit_writer->registerPlotQuantity(d_Q_var->getName(), "SCALAR", d_Q_current_idx, 0, d_Q_scale);
+            d_visit_writer->registerPlotQuantity("Q", "SCALAR", d_Q_current_idx, 0, d_Q_scale);
         }
 
         if (d_output_Omega)
         {
-            d_visit_writer->registerPlotQuantity(d_Omega_var->getName(), (NDIM == 2) ? "SCALAR" : "VECTOR", d_Omega_current_idx);
+#if (NDIM == 2)
+            d_visit_writer->registerPlotQuantity("Omega", "SCALAR", d_Omega_current_idx, 0, d_Omega_scale);
+#endif
 #if (NDIM == 3)
+            d_visit_writer->registerPlotQuantity("Omega", "VECTOR", d_Omega_current_idx, 0, d_Omega_scale);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                std::ostringstream stream;
-                stream << d;
-                d_visit_writer->registerPlotQuantity(d_Omega_var->getName()+stream.str(), "SCALAR", d_Omega_current_idx, d, d_Omega_scale);
+                if (d == 0) d_visit_writer->registerPlotQuantity("Omega_x", "SCALAR", d_Omega_current_idx, d, d_Omega_scale);
+                if (d == 1) d_visit_writer->registerPlotQuantity("Omega_y", "SCALAR", d_Omega_current_idx, d, d_Omega_scale);
+                if (d == 2) d_visit_writer->registerPlotQuantity("Omega_z", "SCALAR", d_Omega_current_idx, d, d_Omega_scale);
             }
 #endif
         }
 
         if (d_output_Div_U)
         {
-            d_visit_writer->registerPlotQuantity(d_Div_U_var->getName(), "SCALAR", d_Div_U_current_idx, 0, d_Div_U_scale);
+            d_visit_writer->registerPlotQuantity("Div U", "SCALAR", d_Div_U_current_idx, 0, d_Div_U_scale);
         }
     }
 
