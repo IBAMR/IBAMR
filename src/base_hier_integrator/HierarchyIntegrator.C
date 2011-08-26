@@ -951,24 +951,27 @@ HierarchyIntegrator::registerVariable(
 
 void
 HierarchyIntegrator::registerVariable(
-    int& scratch_idx,
+    int& idx,
     const Pointer<Variable<NDIM> > variable,
-    const IntVector<NDIM>& scratch_ghosts)
+    const IntVector<NDIM>& ghosts,
+    Pointer<VariableContext> ctx)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!variable.isNull());
 #endif
-
+    if (ctx.isNull()) ctx = getScratchContext();
+        
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    scratch_idx = -1; // insure that uninitialized variable patch data
-                      // descriptor indices cause errors
+    idx = -1; // insure that uninitialized variable patch data descriptor indices cause errors
 
     d_scratch_variables.push_back(variable);
 
     // Setup the scratch context.
-    scratch_idx = var_db->registerVariableAndContext(variable, getScratchContext(), scratch_ghosts);
-    d_scratch_data.setFlag(scratch_idx);
+    idx = var_db->registerVariableAndContext(variable, ctx, ghosts);
+    if (ctx == getCurrentContext()) d_current_data.setFlag(idx);
+    if (ctx == getScratchContext()) d_scratch_data.setFlag(idx);
+    if (ctx == getNewContext()    ) d_new_data    .setFlag(idx);
     return;
 }// registerVariable
 

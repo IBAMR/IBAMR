@@ -580,16 +580,18 @@ protected:
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> init_fcn=SAMRAI::tbox::Pointer<IBTK::CartGridFunction>(NULL));
 
     /*!
-     * Register a "scratch" variable with the integrator.  This data is not
-     * maintained from time step to time step.
+     * Register a variable with the integrator that may not be maintained from
+     * time step to time step.
      *
-     * All scratch variables are registered with the scratch context.
+     * By default, variables are registered with the scratch context, which is
+     * deallocated after each time step.
      */
     void
     registerVariable(
-        int& scratch_idx,
+        int& idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
-        const SAMRAI::hier::IntVector<NDIM>& ghosts=SAMRAI::hier::IntVector<NDIM>(0));
+        const SAMRAI::hier::IntVector<NDIM>& ghosts=SAMRAI::hier::IntVector<NDIM>(0),
+        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx=SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>(NULL));
 
     /*!
      * Register a "child" integrator object with this integrator object.

@@ -390,6 +390,8 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(
             // the patch hierarchy.
             if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
             {
+                Pointer<FaceData<NDIM,double> > u_ADV_data = patch->getPatchData(d_u_idx);
+                const IntVector<NDIM>& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
                 Pointer<FaceData<NDIM,double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
                 const IntVector<NDIM>& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -400,10 +402,12 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(
 #if (NDIM == 2)
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
-                        u_extrap_data_gcw(0), u_extrap_data_gcw(1),
+//                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
+                        u_ADV_data_gcw   (0), u_ADV_data_gcw   (1),
                         u_extrap_data_gcw(0), u_extrap_data_gcw(1),
                         u_flux_data_gcw  (0), u_flux_data_gcw  (1),
-                        u_extrap_data->getPointer(0,0)   , u_extrap_data->getPointer(1,1),
+//                      u_extrap_data->getPointer(0,0),    u_extrap_data->getPointer(1,1),
+                        u_ADV_data   ->getPointer(0),      u_ADV_data   ->getPointer(1),
                         u_extrap_data->getPointer(0,axis), u_extrap_data->getPointer(1,axis),
                         u_flux_data  ->getPointer(0,axis), u_flux_data  ->getPointer(1,axis)
 #endif
@@ -411,10 +415,12 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
                         patch_lower(2), patch_upper(2),
-                        u_extrap_data_gcw(0), u_extrap_data_gcw(1), u_extrap_data_gcw(2),
+//                      u_extrap_data_gcw(0), u_extrap_data_gcw(1), u_extrap_data_gcw(2),
+                        u_ADV_data_gcw   (0), u_ADV_data_gcw   (1), u_ADV_data_gcw   (2),
                         u_extrap_data_gcw(0), u_extrap_data_gcw(1), u_extrap_data_gcw(2),
                         u_flux_data_gcw  (0), u_flux_data_gcw  (1), u_flux_data_gcw  (2),
-                        u_extrap_data->getPointer(0,0),    u_extrap_data->getPointer(1,1),    u_extrap_data->getPointer(2,2),
+//                      u_extrap_data->getPointer(0,0),    u_extrap_data->getPointer(1,1),    u_extrap_data->getPointer(2,2),
+                        u_ADV_data   ->getPointer(0),      u_ADV_data   ->getPointer(1),      u_ADV_data   ->getPointer(2),
                         u_extrap_data->getPointer(0,axis), u_extrap_data->getPointer(1,axis), u_extrap_data->getPointer(2,axis),
                         u_flux_data  ->getPointer(0,axis), u_flux_data  ->getPointer(1,axis), u_flux_data  ->getPointer(2,axis)
 #endif
@@ -450,6 +456,8 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(
 
             if (d_difference_form == ADVECTIVE || d_difference_form == SKEW_SYMMETRIC)
             {
+                Pointer<FaceData<NDIM,double> > u_ADV_data = patch->getPatchData(d_u_idx);
+                const IntVector<NDIM>& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
                 Pointer<FaceData<NDIM,double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
                 const IntVector<NDIM>& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -459,9 +467,11 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(
 #if (NDIM == 2)
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
+//                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
+                        u_ADV_data_gcw   (0), u_ADV_data_gcw   (1),
                         u_extrap_data_gcw(0), u_extrap_data_gcw(1),
-                        u_extrap_data_gcw(0), u_extrap_data_gcw(1),
-                        u_extrap_data->getPointer(0,0),    u_extrap_data->getPointer(1,1),
+//                      u_extrap_data->getPointer(0,0),    u_extrap_data->getPointer(1,1),
+                        u_ADV_data   ->getPointer(0),      u_ADV_data   ->getPointer(1),
                         u_extrap_data->getPointer(0,axis), u_extrap_data->getPointer(1,axis),
                         N_data_gcw(0), N_data_gcw(1),
 #endif
@@ -469,9 +479,11 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
                         patch_lower(2), patch_upper(2),
+//                      u_extrap_data_gcw(0), u_extrap_data_gcw(1), u_extrap_data_gcw(2),
+                        u_ADV_data_gcw   (0), u_ADV_data_gcw   (1), u_ADV_data_gcw   (2),
                         u_extrap_data_gcw(0), u_extrap_data_gcw(1), u_extrap_data_gcw(2),
-                        u_extrap_data_gcw(0), u_extrap_data_gcw(1), u_extrap_data_gcw(2),
-                        u_extrap_data->getPointer(0,0),    u_extrap_data->getPointer(1,1),    u_extrap_data->getPointer(2,2),
+//                      u_extrap_data->getPointer(0,0),    u_extrap_data->getPointer(1,1),    u_extrap_data->getPointer(2,2),
+                        u_ADV_data   ->getPointer(0),      u_ADV_data   ->getPointer(1),      u_ADV_data   ->getPointer(2),
                         u_extrap_data->getPointer(0,axis), u_extrap_data->getPointer(1,axis), u_extrap_data->getPointer(2,axis),
                         N_data_gcw(0), N_data_gcw(1), N_data_gcw(2),
 #endif

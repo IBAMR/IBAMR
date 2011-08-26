@@ -192,6 +192,24 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
+     * Initialize the AMR patch hierarchy and data defined on the hierarchy at
+     * the start of a computation.  If the computation is begun from a restart
+     * file, the patch hierarchy and patch data are read from the hierarchy
+     * database.  Otherwise, the patch hierarchy and patch data are initialized
+     * by the gridding algorithm associated with the integrator object.
+     *
+     * The implementation of this function assumes that the hierarchy exists
+     * upon entry to the function, but that it contains no patch levels.  On
+     * return from this function, the state of the integrator object will be
+     * such that it is possible to step through time via the advanceHierarchy()
+     * function.
+     */
+    void
+    initializePatchHierarchy(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+
+    /*!
      * Returns the number of cycles to perform for the present time step.
      */
     int
@@ -403,12 +421,12 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_F_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_F_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Q_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_var;
-#if (NDIM == 3)
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_Norm_var;
-#endif
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Div_U_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_N_old_var;
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Div_U_var;
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Omega_Norm_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_regrid_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_U_src_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_indicator_var;
@@ -420,18 +438,19 @@ private:
      *
      * State variables have three contexts: current, scratch, and new.
      */
-    int          d_U_current_idx,          d_U_new_idx,          d_U_scratch_idx;
-    int       d_U_cc_current_idx,       d_U_cc_new_idx,       d_U_cc_scratch_idx;
-    int          d_P_current_idx,          d_P_new_idx,          d_P_scratch_idx;
-    int          d_F_current_idx,          d_F_new_idx,          d_F_scratch_idx;
-    int       d_F_cc_current_idx,       d_F_cc_new_idx,       d_F_cc_scratch_idx;
-    int          d_Q_current_idx,          d_Q_new_idx,          d_Q_scratch_idx;
-    int      d_Omega_current_idx,      d_Omega_new_idx,      d_Omega_scratch_idx;
-#if (NDIM == 3)
-    int d_Omega_Norm_current_idx, d_Omega_Norm_new_idx, d_Omega_Norm_scratch_idx;
-#endif
-    int      d_Div_U_current_idx,      d_Div_U_new_idx,      d_Div_U_scratch_idx;
-    int      d_N_old_current_idx,      d_N_old_new_idx,      d_N_old_scratch_idx;
+    int     d_U_current_idx,     d_U_new_idx,     d_U_scratch_idx;
+    int     d_P_current_idx,     d_P_new_idx,     d_P_scratch_idx;
+    int     d_F_current_idx,     d_F_new_idx,     d_F_scratch_idx;
+    int     d_Q_current_idx,     d_Q_new_idx,     d_Q_scratch_idx;
+    int d_N_old_current_idx, d_N_old_new_idx, d_N_old_scratch_idx;
+
+    /*
+     * Patch data descriptor indices for all "plot" variables managed by the
+     * integrator.
+     *
+     * Plot variables have one context: current.
+     */
+    int d_U_cc_idx, d_F_cc_idx, d_Omega_idx, d_Div_U_idx;
 
     /*
      * Patch data descriptor indices for all "scratch" variables managed by the
@@ -439,7 +458,7 @@ private:
      *
      * Scratch variables have only one context: scratch.
      */
-    int d_U_regrid_idx, d_U_src_idx, d_indicator_idx, d_F_div_idx;
+    int d_Omega_Norm_idx, d_U_regrid_idx, d_U_src_idx, d_indicator_idx, d_F_div_idx;
 };
 }// namespace IBAMR
 

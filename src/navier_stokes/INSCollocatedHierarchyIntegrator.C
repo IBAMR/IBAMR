@@ -237,15 +237,20 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(
     d_P_var           = INSHierarchyIntegrator::d_P_var;
     d_F_var           = INSHierarchyIntegrator::d_F_var;
     d_Q_var           = INSHierarchyIntegrator::d_Q_var;
+    d_N_old_var       = new CellVariable<NDIM,double>(d_object_name+"::N_old"      ,NDIM);
+
 #if (NDIM == 2)
     d_Omega_var       = new CellVariable<NDIM,double>(d_object_name+"::Omega"           );
 #endif
 #if (NDIM == 3)
     d_Omega_var       = new CellVariable<NDIM,double>(d_object_name+"::Omega"      ,NDIM);
-    d_Omega_Norm_var  = new CellVariable<NDIM,double>(d_object_name+"::|Omega|_2"       );
 #endif
     d_Div_U_var       = new CellVariable<NDIM,double>(d_object_name+"::Div_U"           );
-    d_N_old_var       = new CellVariable<NDIM,double>(d_object_name+"::N_old"      ,NDIM);
+    d_Div_u_ADV_var   = new CellVariable<NDIM,double>(d_object_name+"::Div_u_ADV"       );
+#if (NDIM == 3)
+
+    d_Omega_Norm_var  = new CellVariable<NDIM,double>(d_object_name+"::|Omega|_2"       );
+#endif
     d_Grad_P_var      = new CellVariable<NDIM,double>(d_object_name+"::Grad_P"     ,NDIM);
     d_Phi_var         = new CellVariable<NDIM,double>(d_object_name+"::Phi"             );
     d_Grad_Phi_cc_var = new CellVariable<NDIM,double>(d_object_name+"::Grad_Phi_cc",NDIM);
@@ -607,21 +612,6 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
         d_Q_scratch_idx = -1;
     }
 
-    registerVariable(d_Omega_current_idx, d_Omega_new_idx, d_Omega_scratch_idx,
-                     d_Omega_var, cell_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "LINEAR_REFINE");
-#if (NDIM == 3)
-    registerVariable(d_Omega_Norm_current_idx, d_Omega_Norm_new_idx, d_Omega_Norm_scratch_idx,
-                     d_Omega_Norm_var, cell_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "LINEAR_REFINE");
-#endif
-    registerVariable(d_Div_U_current_idx, d_Div_U_new_idx, d_Div_U_scratch_idx,
-                     d_Div_U_var, cell_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "CONSTANT_REFINE");
-
     if (d_using_CNAB)
     {
         registerVariable(d_N_old_current_idx, d_N_old_new_idx, d_N_old_scratch_idx,
@@ -629,13 +619,22 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
                          "CONSERVATIVE_COARSEN",
                          "CONSERVATIVE_LINEAR_REFINE");
     }
+    
+    // Register plot variables that are maintained by the
+    // INSCollocatedHierarchyIntegrator.
+    registerVariable(    d_Omega_idx,     d_Omega_var,   no_ghosts, getCurrentContext());
+    registerVariable(    d_Div_U_idx,     d_Div_U_var, cell_ghosts, getCurrentContext());
+    registerVariable(d_Div_u_ADV_idx, d_Div_u_ADV_var,   no_ghosts, getCurrentContext());
 
     // Register scratch variables that are maintained by the
     // INSCollocatedHierarchyIntegrator.
-    registerVariable(d_Grad_P_idx, d_Grad_P_var, no_ghosts);
-    registerVariable(d_Phi_idx, d_Phi_var, cell_ghosts);
-    registerVariable(d_Grad_Phi_cc_idx, d_Grad_Phi_cc_var, no_ghosts);
-    registerVariable(d_Grad_Phi_fc_idx, d_Grad_Phi_fc_var, no_ghosts);
+#if (NDIM == 3)
+    registerVariable( d_Omega_Norm_idx,  d_Omega_Norm_var,   no_ghosts);
+#endif
+    registerVariable(     d_Grad_P_idx,      d_Grad_P_var,   no_ghosts);
+    registerVariable(        d_Phi_idx,         d_Phi_var, cell_ghosts);
+    registerVariable(d_Grad_Phi_cc_idx, d_Grad_Phi_cc_var,   no_ghosts);
+    registerVariable(d_Grad_Phi_fc_idx, d_Grad_Phi_fc_var,   no_ghosts);
     if (!d_Q_fcn.isNull())
     {
         registerVariable(d_F_div_idx, d_F_div_var, no_ghosts);
@@ -683,22 +682,23 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
         if (d_output_Omega)
         {
 #if (NDIM == 2)
-            d_visit_writer->registerPlotQuantity("Omega", "SCALAR", d_Omega_current_idx, 0, d_Omega_scale);
+            d_visit_writer->registerPlotQuantity("Omega", "SCALAR", d_Omega_idx, 0, d_Omega_scale);
 #endif
 #if (NDIM == 3)
-            d_visit_writer->registerPlotQuantity("Omega", "VECTOR", d_Omega_current_idx, 0, d_Omega_scale);
+            d_visit_writer->registerPlotQuantity("Omega", "VECTOR", d_Omega_idx, 0, d_Omega_scale);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                if (d == 0) d_visit_writer->registerPlotQuantity("Omega_x", "SCALAR", d_Omega_current_idx, d, d_Omega_scale);
-                if (d == 1) d_visit_writer->registerPlotQuantity("Omega_y", "SCALAR", d_Omega_current_idx, d, d_Omega_scale);
-                if (d == 2) d_visit_writer->registerPlotQuantity("Omega_z", "SCALAR", d_Omega_current_idx, d, d_Omega_scale);
+                if (d == 0) d_visit_writer->registerPlotQuantity("Omega_x", "SCALAR", d_Omega_idx, d, d_Omega_scale);
+                if (d == 1) d_visit_writer->registerPlotQuantity("Omega_y", "SCALAR", d_Omega_idx, d, d_Omega_scale);
+                if (d == 2) d_visit_writer->registerPlotQuantity("Omega_z", "SCALAR", d_Omega_idx, d, d_Omega_scale);
             }
 #endif
         }
 
         if (d_output_Div_U)
         {
-            d_visit_writer->registerPlotQuantity("Div U", "SCALAR", d_Div_U_current_idx, 0, d_Div_U_scale);
+            d_visit_writer->registerPlotQuantity("Div U"    , "SCALAR",     d_Div_U_idx, 0, d_Div_U_scale);
+            d_visit_writer->registerPlotQuantity("Div u_ADV", "SCALAR", d_Div_u_ADV_idx, 0, d_Div_U_scale);
         }
     }
 
@@ -734,6 +734,24 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
     return;
 }// initializeHierarchyIntegrator
 
+void
+INSCollocatedHierarchyIntegrator::initializePatchHierarchy(
+    Pointer<PatchHierarchy<NDIM> > hierarchy,
+    Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+{
+    HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
+    
+    // Project the velocity field if this is the initial time step.  Note that
+    // regridProjection() also has the effect of initializing u_ADV.
+    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
+    if (initial_time)
+    {
+        regridProjection();
+        synchronizeHierarchyData(CURRENT_DATA);
+    }
+    return;
+}// initializePatchHierarhcy
+
 int
 INSCollocatedHierarchyIntegrator::getNumberOfCycles()
 {
@@ -754,15 +772,6 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
-
-    // Project the velocity field if this is the initial time step.  Note that
-    // regridProjection() also initializes u_ADV.
-    if (initial_time)
-    {
-        regridProjection();
-        synchronizeHierarchyData(CURRENT_DATA);
-    }
 
     // Allocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1005,19 +1014,19 @@ INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(
     {
         d_hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
         d_hier_math_ops->curl(
-            d_Omega_new_idx, d_Omega_var,
+            d_Omega_idx, d_Omega_var,
             d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, new_time);
 #if (NDIM == 3)
         d_hier_math_ops->pointwiseL2Norm(
-            d_Omega_Norm_new_idx, d_Omega_Norm_var,
-            d_Omega_new_idx, d_Omega_var);
+            d_Omega_Norm_idx, d_Omega_Norm_var,
+            d_Omega_idx, d_Omega_var);
 #endif
         const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
 #if (NDIM == 2)
-        d_Omega_max = d_hier_cc_data_ops->maxNorm(d_Omega_new_idx, wgt_cc_idx);
+        d_Omega_max = d_hier_cc_data_ops->maxNorm(d_Omega_idx, wgt_cc_idx);
 #endif
 #if (NDIM == 3)
-        d_Omega_max = d_hier_cc_data_ops->max(d_Omega_Norm_new_idx, wgt_cc_idx);
+        d_Omega_max = d_hier_cc_data_ops->max(d_Omega_Norm_idx, wgt_cc_idx);
 #endif
     }
 
@@ -1117,19 +1126,19 @@ INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
 
             // Compute max |Omega|_2.
             hier_math_ops.curl(
-                d_Omega_current_idx, d_Omega_var,
+                d_Omega_idx, d_Omega_var,
                 d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, init_data_time);
 #if (NDIM == 3)
             hier_math_ops.pointwiseL2Norm(
-                d_Omega_Norm_current_idx, d_Omega_Norm_var,
-                d_Omega_current_idx, d_Omega_var);
+                d_Omega_Norm_idx, d_Omega_Norm_var,
+                d_Omega_idx, d_Omega_var);
 #endif
             const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 #if (NDIM == 2)
-            d_Omega_max = hier_cc_data_ops->maxNorm(d_Omega_current_idx, wgt_cc_idx);
+            d_Omega_max = hier_cc_data_ops->maxNorm(d_Omega_idx, wgt_cc_idx);
 #endif
 #if (NDIM == 3)
-            d_Omega_max = hier_cc_data_ops->max(d_Omega_Norm_current_idx, wgt_cc_idx);
+            d_Omega_max = hier_cc_data_ops->max(d_Omega_Norm_idx, wgt_cc_idx);
 #endif
         }
 
@@ -1244,12 +1253,12 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
                 Pointer<CellData<NDIM,int> > tags_data = patch->getPatchData(tag_index);
-                Pointer<CellData<NDIM,double> > Omega_current_data = patch->getPatchData(d_Omega_current_idx);
+                Pointer<CellData<NDIM,double> > Omega_data = patch->getPatchData(d_Omega_idx);
                 for (CellIterator<NDIM> ic(patch_box); ic; ic++)
                 {
                     const Index<NDIM>& i = ic();
 #if (NDIM == 2)
-                    if (std::abs((*Omega_current_data)(i)) > thresh)
+                    if (std::abs((*Omega_data)(i)) > thresh)
                     {
                         (*tags_data)(i) = 1;
                     }
@@ -1258,7 +1267,7 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(
                     double norm_Omega_sq = 0.0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        norm_Omega_sq += (*Omega_current_data)(i,d)*(*Omega_current_data)(i,d);
+                        norm_Omega_sq += (*Omega_data)(i,d)*(*Omega_data)(i,d);
                     }
                     const double norm_Omega = sqrt(norm_Omega_sq);
                     if (norm_Omega > thresh)
@@ -1292,14 +1301,20 @@ INSCollocatedHierarchyIntegrator::setupPlotDataSpecialized()
 
     // Compute Omega = curl U.
     if (d_output_Omega) d_hier_math_ops->curl(
-        d_Omega_current_idx, d_Omega_var,
+        d_Omega_idx, d_Omega_var,
         d_U_scratch_idx, d_U_var, d_no_fill_op, d_integrator_time);
 
     // Compute Div U.
-    if (d_output_Div_U) d_hier_math_ops->div(
-        d_Div_U_current_idx, d_Div_U_var,
-        1.0, d_U_scratch_idx, d_U_var, d_no_fill_op, d_integrator_time);
-
+    if (d_output_Div_U)
+    {
+        d_hier_math_ops->div(
+            d_Div_U_idx, d_Div_U_var,
+            1.0, d_U_scratch_idx, d_U_var, d_no_fill_op, d_integrator_time);
+        d_hier_math_ops->div(
+            d_Div_u_ADV_idx, d_Div_u_ADV_var,
+            +1.0, d_u_ADV_current_idx, d_u_ADV_var, d_no_fill_op, d_integrator_time, /*synch_cf_bdry*/ false);
+    }
+    
     // Deallocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -1323,7 +1338,7 @@ INSCollocatedHierarchyIntegrator::regridProjection()
     sol_vec.addComponent(d_Phi_var, d_Phi_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
     SAMRAIVectorReal<NDIM,double> rhs_vec(d_object_name+"::rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
-    rhs_vec.addComponent(d_Div_U_var, d_Div_U_scratch_idx, wgt_cc_idx, d_hier_cc_data_ops);
+    rhs_vec.addComponent(d_Div_U_var, d_Div_U_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
     // Setup the regrid Poisson solver.
     const std::string regrid_projection_prefix = "regrid_projection_";
@@ -1372,7 +1387,6 @@ INSCollocatedHierarchyIntegrator::regridProjection()
     // Allocate temporary data.
     ComponentSelector scratch_idxs;
     scratch_idxs.setFlag(d_U_scratch_idx);
-    scratch_idxs.setFlag(d_Div_U_scratch_idx);
     scratch_idxs.setFlag(d_Phi_idx);
     scratch_idxs.setFlag(d_Grad_Phi_cc_idx);
     scratch_idxs.setFlag(d_Grad_Phi_fc_idx);
@@ -1390,11 +1404,11 @@ INSCollocatedHierarchyIntegrator::regridProjection()
 
     // Setup the right-hand side vector for the projection-Poisson solve.
     d_hier_math_ops->div(
-        d_Div_U_scratch_idx, d_Div_U_var,
+        d_Div_U_idx, d_Div_U_var,
         -1.0, d_u_ADV_current_idx, d_u_ADV_var, d_no_fill_op, d_integrator_time, /*synch_cf_bdry*/ false,
         +1.0, d_Q_current_idx, d_Q_var);
-    const double Div_U_mean = (1.0/volume)*d_hier_cc_data_ops->integral(d_Div_U_scratch_idx, wgt_cc_idx);
-    d_hier_cc_data_ops->addScalar(d_Div_U_scratch_idx, d_Div_U_scratch_idx, -Div_U_mean);
+    const double Div_U_mean = (1.0/volume)*d_hier_cc_data_ops->integral(d_Div_U_idx, wgt_cc_idx);
+    d_hier_cc_data_ops->addScalar(d_Div_U_idx, d_Div_U_idx, -Div_U_mean);
 
     // Solve the projection pressure-Poisson problem.
     regrid_projection_solver.solveSystem(sol_vec,rhs_vec);
