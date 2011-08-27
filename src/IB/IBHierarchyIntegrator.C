@@ -1144,7 +1144,15 @@ IBHierarchyIntegrator::atRegridPointSpecialized() const
 {
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
     if (initial_time) return true;
-    return d_regrid_cfl_interval > 0.0 ? (d_regrid_cfl_estimate >= d_regrid_cfl_interval) : (d_regrid_interval == 0 ? false : (d_integrator_step % d_regrid_interval == 0));
+    if (d_regrid_cfl_interval > 0.0)
+    {
+        return (d_regrid_cfl_estimate >= d_regrid_cfl_interval);
+    }
+    else if (d_regrid_interval != 0)
+    {
+        return (d_integrator_step % d_regrid_interval == 0);
+    }
+    return false;
 }// atRegridPointSpecialized
 
 void
@@ -1326,6 +1334,7 @@ IBHierarchyIntegrator::putToDatabaseSpecialized(
     }
     db->putDouble("d_regrid_cfl_interval", d_regrid_cfl_interval);
     db->putDouble("d_regrid_cfl_estimate", d_regrid_cfl_estimate);
+    db->putInteger("d_regrid_interval", d_regrid_interval);
     return;
 }// putToDatabaseSpecialized
 
@@ -1951,6 +1960,7 @@ IBHierarchyIntegrator::getFromInput(
     }
     if (db->keyExists("num_cycles")) d_num_cycles = db->getInteger("num_cycles");
     if (db->keyExists("regrid_cfl_interval")) d_regrid_cfl_interval = db->getDouble("regrid_cfl_interval");
+    if (db->keyExists("regrid_interval")) d_regrid_interval = db->getInteger("regrid_interval");
     return;
 }// getFromInput
 
@@ -2035,6 +2045,7 @@ IBHierarchyIntegrator::getFromRestart()
     }
     d_regrid_cfl_interval = db->getDouble("d_regrid_cfl_interval");
     d_regrid_cfl_estimate = db->getDouble("d_regrid_cfl_estimate");
+    d_regrid_interval = db->getInteger("d_regrid_interval");
     return;
 }// getFromRestart
 
