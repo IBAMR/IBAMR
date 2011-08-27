@@ -45,6 +45,7 @@
 #include <ibamr/IBHierarchyIntegrator.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
+#include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
@@ -55,7 +56,7 @@
 void
 output_data(
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-    Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
+    Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
     LDataManager* l_data_manager,
     const int iteration_num,
     const double loop_time,
@@ -103,6 +104,10 @@ main(
         const bool dump_postproc_data = app_initializer->dumpPostProcessingData();
         const int postproc_data_dump_interval = app_initializer->getPostProcessingDataDumpInterval();
         const string postproc_data_dump_dirname = app_initializer->getPostProcessingDataDumpDirectory();
+        if (dump_postproc_data && (postproc_data_dump_interval > 0) && !postproc_data_dump_dirname.empty())
+        {
+            Utilities::recursiveMkdir(postproc_data_dump_dirname);
+        }
 
         const bool dump_timer_data = app_initializer->dumpTimerData();
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
@@ -110,8 +115,23 @@ main(
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<INSHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
-            "INSStaggeredHierarchyIntegrator", app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+        Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
+        const string solver_type = app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
+        if (solver_type == "STAGGERED")
+        {
+            navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
+                "INSStaggeredHierarchyIntegrator", app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+        }
+        else if (solver_type == "COLLOCATED")
+        {
+            navier_stokes_integrator = new INSCollocatedHierarchyIntegrator(
+                "INSCollocatedHierarchyIntegrator", app_initializer->getComponentDatabase("INSCollocatedHierarchyIntegrator"));
+        }
+        else
+        {
+            TBOX_ERROR("Unsupported solver type: " << solver_type << "\n" <<
+                       "Valid options are: COLLOCATED, STAGGERED");
+        }
         Pointer<IBHierarchyIntegrator> time_integrator = new IBHierarchyIntegrator(
             "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
@@ -133,10 +153,16 @@ main(
         Pointer<IBStandardForceGen> ib_force_fcn = new IBStandardForceGen();
         time_integrator->registerIBLagrangianForceFunction(ib_force_fcn);
 
-        // Create Eulerian initial condition specification objects.
+        // Create Eulerian initial condition specification objects.  These
+        // objects also are used to specify exact solution values for error
+        // analysis.
         Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
         navier_stokes_integrator->registerVelocityInitialConditions(u_init);
+        
+        Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
+            "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
+        navier_stokes_integrator->registerPressureInitialConditions(p_init);
 
         // Create Eulerian boundary condition specification objects (when necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
@@ -163,11 +189,10 @@ main(
                 u_bc_coefs[d] = new muParserRobinBcCoefs(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
             }
-            time_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
+            navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
-        // Create Eulerian body force function specification objects (when
-        // necessary).
+        // Create Eulerian body force function specification objects.
         if (input_db->keyExists("ForcingFunction"))
         {
             Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
@@ -192,11 +217,35 @@ main(
         time_integrator->freeLInitStrategy();
         ib_initializer.setNull();
         app_initializer.setNull();
-
+        
         // Print the input database contents to the log file.
         plog << "Input database:\n";
         input_db->printClassData(plog);
 
+        // Setup data used to determine the accuracy of the computed solution.
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        
+        const Pointer<Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
+        const Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
+        
+        const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
+        const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
+        
+        const Pointer<Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
+        const Pointer<VariableContext> p_ctx = navier_stokes_integrator->getCurrentContext();
+        
+        const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
+        const int p_cloned_idx = var_db->registerClonedPatchDataIndex(p_var, p_idx);
+        visit_data_writer->registerPlotQuantity("P error", "SCALAR", p_cloned_idx);
+        
+        const int coarsest_ln = 0;
+        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(u_cloned_idx);
+            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(p_cloned_idx);
+        }
+        
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
@@ -260,8 +309,62 @@ main(
                             navier_stokes_integrator, time_integrator->getLDataManager(),
                             iteration_num, loop_time, postproc_data_dump_dirname);
             }
-        }
 
+            // Compute velocity and pressure error norms.
+            const int coarsest_ln = 0;
+            const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                if (!level->checkAllocated(u_cloned_idx)) level->allocatePatchData(u_cloned_idx);
+                if (!level->checkAllocated(p_cloned_idx)) level->allocatePatchData(p_cloned_idx);
+            }
+            
+            pout << "\n"
+                 << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+                 << "Computing error norms.\n\n";
+            
+            u_init->setDataOnPatchHierarchy(u_cloned_idx, u_var, patch_hierarchy, loop_time);
+            p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, loop_time-0.5*dt);
+            
+            HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
+            hier_math_ops.setPatchHierarchy(patch_hierarchy);
+            hier_math_ops.resetLevels(coarsest_ln, finest_ln);
+            const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
+            const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
+            
+            Pointer<CellVariable<NDIM,double> > u_cc_var = u_var;
+            if (!u_cc_var.isNull())
+            {
+                HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+                hier_cc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
+                pout << "Error in u at time " << loop_time << ":\n"
+                     << "  L1-norm:  " << hier_cc_data_ops. L1Norm(u_cloned_idx,wgt_cc_idx)  << "\n"
+                     << "  L2-norm:  " << hier_cc_data_ops. L2Norm(u_cloned_idx,wgt_cc_idx)  << "\n"
+                     << "  max-norm: " << hier_cc_data_ops.maxNorm(u_cloned_idx,wgt_cc_idx) << "\n";
+            }
+            
+            Pointer<SideVariable<NDIM,double> > u_sc_var = u_var;
+            if (!u_sc_var.isNull())
+            {
+                HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+                hier_sc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
+                pout << "Error in u at time " << loop_time << ":\n"
+                     << "  L1-norm:  " << hier_sc_data_ops. L1Norm(u_cloned_idx,wgt_sc_idx)  << "\n"
+                     << "  L2-norm:  " << hier_sc_data_ops. L2Norm(u_cloned_idx,wgt_sc_idx)  << "\n"
+                     << "  max-norm: " << hier_sc_data_ops.maxNorm(u_cloned_idx,wgt_sc_idx) << "\n";
+            }
+            
+            HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+            hier_cc_data_ops.subtract(p_cloned_idx, p_idx, p_cloned_idx);
+            pout << "Error in p at time " << loop_time-0.5*dt << ":\n"
+                 << "  L1-norm:  " << hier_cc_data_ops. L1Norm(p_cloned_idx,wgt_cc_idx)  << "\n"
+                 << "  L2-norm:  " << hier_cc_data_ops. L2Norm(p_cloned_idx,wgt_cc_idx)  << "\n"
+                 << "  max-norm: " << hier_cc_data_ops.maxNorm(p_cloned_idx,wgt_cc_idx) << "\n"
+                 << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+            
+        }
+        
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
@@ -276,7 +379,7 @@ main(
 void
 output_data(
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-    Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
+    Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
     LDataManager* l_data_manager,
     const int iteration_num,
     const double loop_time,

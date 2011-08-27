@@ -2,6 +2,7 @@
 MU = 1.0e-2
 RHO = 1.0
 K = 1.0
+W = 0.0625
 
 // constants
 PI = 3.14159265358979
@@ -13,18 +14,32 @@ N = 64                                    // actual    number of grid cells on c
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
 DX_FINEST = 1.0/NFINEST
 
+VelocityInitialConditions {
+   function_0 = "0.0"
+   function_1 = "0.0"
+}
+
+PressureInitialConditions {
+   R = 0.25
+   w = W
+   mu = K
+   p0_smooth = (mu*PI/(3*w))*(R^2 - (R+w)^3/R)
+   p0_sharp = mu*PI*R
+   function = "if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R, (p0_sharp - mu/(R+w)), if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w, (p0_sharp + (mu/w)*R/(R+w)), p0_sharp)) + if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R, (p0_smooth + (mu/R)), if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w, (p0_smooth + (mu/w)*(1/R)*(R+w-sqrt((X0-0.5)^2 + (X1-0.5)^2))), p0_smooth))"
+}
+
 // solver parameters
 DELTA_FUNCTION      = "IB_4"
 SOLVER_TYPE         = "STAGGERED"                // the fluid solver to use (STAGGERED or COLLOCATED)
 START_TIME          = 0.0e0                      // initial simulation time
-END_TIME            = (3.0^log10(K))*0.55/K      // final simulation time
+END_TIME            = (3.0^log10(K))*1.5/K       // final simulation time
 GROW_DT             = 2.0e0                      // growth factor for timesteps
 NUM_CYCLES          = 1                          // number of cycles of fixed-point iteration
 CONVECTIVE_OP_TYPE  = "PPM"                      // convective differencing discretization type
 CONVECTIVE_FORM     = "ADVECTIVE"                // how to compute the convective terms
 NORMALIZE_PRESSURE  = TRUE                       // whether to explicitly force the pressure to have mean zero
 CFL_MAX             = 0.3                        // maximum CFL number
-DT_MAX              = (1.0/K)*1.6e-2*DX_FINEST   // maximum timestep size
+DT_MAX              = (1.0/K)*0.25*DX_FINEST     // maximum timestep size
 VORTICITY_TAGGING   = FALSE                      // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = 1                          // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL = 0.5                        // effectively disable regridding
@@ -88,10 +103,11 @@ IBHierarchyIntegrator {
 
 IBStandardInitializer {
    max_levels      = MAX_LEVELS
-   structure_names = "curve2d_64"
+   structure_names = "shell2d_64" , "shell2d_radial_64"
 
-   beta  = 0.35
+   beta  = 0.25
    alpha = 0.25^2/beta
+   w = W
 
    A = PI*alpha*beta     // area of ellipse
    R = sqrt(A/PI)        // radius of disc with equivalent area as the ellipse
@@ -99,11 +115,18 @@ IBStandardInitializer {
 
    dx = 1.0/NFINEST
    num_node_circum = ceil(perim/(dx/3)/4)*4
+   num_node_radial = ceil(w/(dx/3)/4)*4
    ds = 2.0*PI*R/num_node_circum
+   dr = w/num_node_radial
    
-   curve2d_64 {
+   shell2d_64 {
       level_number = MAX_LEVELS - 1
-      uniform_spring_stiffness = K/ds
+      uniform_spring_stiffness = (K/w)*dr/ds
+   }
+   
+   shell2d_radial_64 {
+      level_number = MAX_LEVELS - 1
+      uniform_spring_stiffness = (K/w)*ds/dr
    }
 }
 

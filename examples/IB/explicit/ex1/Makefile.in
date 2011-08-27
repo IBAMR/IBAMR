@@ -38,7 +38,7 @@ DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 EXTRA_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2)
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
 @SAMRAI3D_ENABLED_TRUE@am__append_2 = main3d
-subdir = examples/IB/explicit/ex0
+subdir = examples/IB/explicit/ex1
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_blas.m4 \
 	$(top_srcdir)/m4/ax_cxx_have_stl.m4 \
@@ -411,13 +411,16 @@ IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SOURCES = main.C
-EXTRA_DIST = input2d input3d generate_mesh2d.m curve2d_64.vertex \
+EXTRA_DIST = input2d input2d.shell input2d.shell_circum_fibers input3d \
+	generate_curve2d.m generate_shell2d.m curve2d_64.vertex \
 	curve2d_128.vertex curve2d_256.vertex curve2d_512.vertex \
-	curve2d_1024.vertex curve2d_64.spring curve2d_128.spring \
-	curve2d_256.spring curve2d_512.spring curve2d_1024.spring \
-	shell2d_64.vertex shell2d_128.vertex shell2d_256.vertex \
-	shell2d_64.spring shell2d_128.spring shell2d_256.spring \
-	sphere3d.vertex sphere3d.spring
+	curve2d_64.spring curve2d_128.spring curve2d_256.spring \
+	curve2d_512.spring shell2d_64.vertex shell2d_128.vertex \
+	shell2d_256.vertex shell2d_64.spring shell2d_128.spring \
+	shell2d_256.spring shell2d_radial_64.vertex \
+	shell2d_radial_128.vertex shell2d_radial_256.vertex \
+	shell2d_radial_64.spring shell2d_radial_128.spring \
+	shell2d_radial_256.spring sphere3d.vertex sphere3d.spring
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_SOURCES = $(SOURCES)
@@ -437,9 +440,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/IB/explicit/ex0/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/IB/explicit/ex1/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign examples/IB/explicit/ex0/Makefile
+	  $(AUTOMAKE) --foreign examples/IB/explicit/ex1/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -717,18 +720,22 @@ uninstall-am:
 
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input[23]d $(PWD) ; \
-	  cp -f $(srcdir)/curve2d_{64,128,256,512,1024}.{vertex,spring} $(PWD) ; \
+	  cp -f $(srcdir)/input2d{,.shell,.shell_circum_fibers} $(PWD) ; \
+	  cp -f $(srcdir)/curve2d_{64,128,256,512}.{vertex,spring} $(PWD) ; \
 	  cp -f $(srcdir)/shell2d_{64,128,256}.{vertex,spring} $(PWD) ; \
+	  cp -f $(srcdir)/shell2d_radial_{64,128,256}.{vertex,spring} $(PWD) ; \
+	  cp -f $(srcdir)/input3d $(PWD) ; \
 	  cp -f $(srcdir)/sphere3d.{vertex,spring} $(PWD) ; \
 	fi ;
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/input[23]d ; \
-	  rm -f $(builddir)/curve2d_{64,128,256,512,1024}.{vertex,spring} ; \
+	  rm -f $(builddir)/input2d{,.shell,.shell_circum_fibers} ; \
+	  rm -f $(builddir)/curve2d_{64,128,256,512}.{vertex,spring} ; \
 	  rm -f $(builddir)/shell2d_{64,128,256}.{vertex,spring} ; \
+	  rm -f $(builddir)/shell2d_radial_{64,128,256}.{vertex,spring} ; \
+	  rm -f $(builddir)/input3d ; \
 	  rm -f $(builddir)/sphere3d.{vertex,spring} ; \
 	fi ;
 

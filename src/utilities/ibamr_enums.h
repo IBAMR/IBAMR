@@ -211,7 +211,10 @@ string_to_enum<ProjectionMethodType>(
     const std::string& val)
 {
     if (strcasecmp(val.c_str(), "PRESSURE_UPDATE"   ) == 0) return PRESSURE_UPDATE;
+    if (strcasecmp(val.c_str(), "KIM_MOIN"          ) == 0) return PRESSURE_UPDATE;
     if (strcasecmp(val.c_str(), "PRESSURE_INCREMENT") == 0) return PRESSURE_INCREMENT;
+    if (strcasecmp(val.c_str(), "BCG"               ) == 0) return PRESSURE_INCREMENT;
+    if (strcasecmp(val.c_str(), "BELL_COLELLA_GLAZ" ) == 0) return PRESSURE_INCREMENT;
     return UNKNOWN_PROJECTION_METHOD_TYPE;
 }// string_to_enum
 

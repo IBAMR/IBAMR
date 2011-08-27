@@ -201,18 +201,24 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(
 
     // Check to see what kind of projection method to use.
     d_projection_method_type = PRESSURE_INCREMENT;
-    if (input_db->keyExists("proj_method_type")) d_projection_method_type = string_to_enum<ProjectionMethodType>(input_db->getString("proj_method_type"));
+    if      (input_db->keyExists("proj_method_type"))       d_projection_method_type = string_to_enum<ProjectionMethodType>(input_db->getString("proj_method_type"));
     else if (input_db->keyExists("projection_method_type")) d_projection_method_type = string_to_enum<ProjectionMethodType>(input_db->getString("projection_method_type"));
 
     d_using_2nd_order_pressure_update = true;
-    if (input_db->keyExists("use_2nd_order_pressure_update")) d_using_2nd_order_pressure_update = input_db->getBool("use_2nd_order_pressure_update");
-    else if (input_db->keyExists("using_2nd_order_pressure_update")) d_using_2nd_order_pressure_update = input_db->getBool("using_2nd_order_pressure_update");
-    else if (input_db->keyExists("use_second_order_pressure_update")) d_using_2nd_order_pressure_update = input_db->getBool("use_second_order_pressure_update");
+    if      (input_db->keyExists("use_2nd_order_pressure_update"))      d_using_2nd_order_pressure_update = input_db->getBool("use_2nd_order_pressure_update");
+    else if (input_db->keyExists("using_2nd_order_pressure_update"))    d_using_2nd_order_pressure_update = input_db->getBool("using_2nd_order_pressure_update");
+    else if (input_db->keyExists("use_second_order_pressure_update"))   d_using_2nd_order_pressure_update = input_db->getBool("use_second_order_pressure_update");
     else if (input_db->keyExists("using_second_order_pressure_update")) d_using_2nd_order_pressure_update = input_db->getBool("using_second_order_pressure_update");
 
     d_using_exact_projection = false;
-    if (input_db->keyExists("use_exact_projection")) d_using_exact_projection = input_db->getBool("use_exact_projection");
-    else if (input_db->keyExists("using_exact_projection")) d_using_exact_projection = input_db->getBool("using_exact_projection");
+    if      (input_db->keyExists("use_exact_proj"))                d_using_exact_projection = input_db->getBool("use_exact_proj");
+    else if (input_db->keyExists("using_exact_proj"))              d_using_exact_projection = input_db->getBool("using_exact_proj");
+    else if (input_db->keyExists("use_exact_proj_method"))         d_using_exact_projection = input_db->getBool("use_exact_proj_method");
+    else if (input_db->keyExists("using_exact_proj_method"))       d_using_exact_projection = input_db->getBool("using_exact_proj_method");
+    else if (input_db->keyExists("use_exact_projection"))          d_using_exact_projection = input_db->getBool("use_exact_projection");
+    else if (input_db->keyExists("using_exact_projection"))        d_using_exact_projection = input_db->getBool("using_exact_projection");
+    else if (input_db->keyExists("use_exact_projection_method"))   d_using_exact_projection = input_db->getBool("use_exact_projection_method");
+    else if (input_db->keyExists("using_exact_projection_method")) d_using_exact_projection = input_db->getBool("using_exact_projection_method");
 
     if      (input_db->keyExists("ExactProjectionHypreSolver"        )) d_exact_projection_hypre_pc_db = input_db->getDatabase("ExactProjectionHypreSolver");
     else if (input_db->keyExists("ExactProjectionHyprePreconditioner")) d_exact_projection_hypre_pc_db = input_db->getDatabase("ExactProjectionHyprePreconditioner");
@@ -772,7 +778,11 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
+    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
 
+    // Zero-out the initial pressure (if any).
+    if (initial_time) d_hier_cc_data_ops->setToScalar(d_P_current_idx, 0.0);
+    
     // Allocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {

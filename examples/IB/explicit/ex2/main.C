@@ -45,6 +45,7 @@
 #include <ibamr/IBHierarchyIntegrator.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
+#include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
@@ -55,7 +56,7 @@
 void
 output_data(
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-    Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
+    Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
     LDataManager* l_data_manager,
     const int iteration_num,
     const double loop_time,
@@ -103,6 +104,10 @@ main(
         const bool dump_postproc_data = app_initializer->dumpPostProcessingData();
         const int postproc_data_dump_interval = app_initializer->getPostProcessingDataDumpInterval();
         const string postproc_data_dump_dirname = app_initializer->getPostProcessingDataDumpDirectory();
+        if (dump_postproc_data && (postproc_data_dump_interval > 0) && !postproc_data_dump_dirname.empty())
+        {
+            Utilities::recursiveMkdir(postproc_data_dump_dirname);
+        }
 
         const bool dump_timer_data = app_initializer->dumpTimerData();
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
@@ -110,8 +115,23 @@ main(
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<INSHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
-            "INSStaggeredHierarchyIntegrator", app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+        Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
+        const string solver_type = app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
+        if (solver_type == "STAGGERED")
+        {
+            navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
+                "INSStaggeredHierarchyIntegrator", app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+        }
+        else if (solver_type == "COLLOCATED")
+        {
+            navier_stokes_integrator = new INSCollocatedHierarchyIntegrator(
+                "INSCollocatedHierarchyIntegrator", app_initializer->getComponentDatabase("INSCollocatedHierarchyIntegrator"));
+        }
+        else
+        {
+            TBOX_ERROR("Unsupported solver type: " << solver_type << "\n" <<
+                       "Valid options are: COLLOCATED, STAGGERED");
+        }
         Pointer<IBHierarchyIntegrator> time_integrator = new IBHierarchyIntegrator(
             "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
@@ -134,10 +154,20 @@ main(
         time_integrator->registerIBLagrangianForceFunction(ib_force_fcn);
 
         // Create Eulerian initial condition specification objects.
-        Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
-            "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
-        navier_stokes_integrator->registerVelocityInitialConditions(u_init);
-
+        if (input_db->keyExists("VelocityInitialConditions"))
+        {
+            Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+                "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
+            navier_stokes_integrator->registerVelocityInitialConditions(u_init);
+        }
+        
+        if (input_db->keyExists("PressureInitialConditions"))
+        {
+            Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
+                "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
+            navier_stokes_integrator->registerPressureInitialConditions(p_init);
+        }
+        
         // Create Eulerian boundary condition specification objects (when necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> u_bc_coefs;
@@ -163,11 +193,10 @@ main(
                 u_bc_coefs[d] = new muParserRobinBcCoefs(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
             }
-            time_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
+            navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
-        // Create Eulerian body force function specification objects (when
-        // necessary).
+        // Create Eulerian body force function specification objects.
         if (input_db->keyExists("ForcingFunction"))
         {
             Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
@@ -192,11 +221,11 @@ main(
         time_integrator->freeLInitStrategy();
         ib_initializer.setNull();
         app_initializer.setNull();
-
+        
         // Print the input database contents to the log file.
         plog << "Input database:\n";
         input_db->printClassData(plog);
-
+        
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
@@ -259,9 +288,9 @@ main(
                 output_data(patch_hierarchy,
                             navier_stokes_integrator, time_integrator->getLDataManager(),
                             iteration_num, loop_time, postproc_data_dump_dirname);
-            }
+            }            
         }
-
+        
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
@@ -276,7 +305,7 @@ main(
 void
 output_data(
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-    Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
+    Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
     LDataManager* l_data_manager,
     const int iteration_num,
     const double loop_time,
