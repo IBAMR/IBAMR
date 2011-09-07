@@ -2074,8 +2074,6 @@ IBFEHierarchyIntegrator::computeInteriorForceDensity(
             const unsigned int n_qp = qrule_face->n_points();
             const unsigned int n_basis = dof_indices(0).size();
 
-            get_values_for_interpolation(X_node, X_vec, dof_indices);
-            if (J_bar_vec != NULL) get_values_for_interpolation(J_bar_node, *J_bar_vec, J_bar_dof_indices);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const Point& s_qp = q_point_face[qp];
