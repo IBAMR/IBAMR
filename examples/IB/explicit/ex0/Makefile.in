@@ -36,7 +36,7 @@ host_triplet = @host@
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
 EXTRA_PROGRAMS = $(am__EXEEXT_1)
-@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
+@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d main2d_static
 subdir = examples/IB/explicit/ex0
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_blas.m4 \
@@ -56,15 +56,20 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT)
-am__objects_1 = main2d-main.$(OBJEXT)
-am_main2d_OBJECTS = $(am__objects_1)
+@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT) \
+@SAMRAI2D_ENABLED_TRUE@	main2d_static$(EXEEXT)
+am_main2d_OBJECTS = main2d-main.$(OBJEXT)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 am__DEPENDENCIES_1 = ${top_builddir}/lib/libIBAMR.a \
 	${top_builddir}/ibtk/lib/libIBTK.a
 main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(am__DEPENDENCIES_1)
 main2d_LINK = $(CXXLD) $(main2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_main2d_static_OBJECTS = main2d_static-main_static.$(OBJEXT)
+main2d_static_OBJECTS = $(am_main2d_static_OBJECTS)
+main2d_static_DEPENDENCIES = $(IBAMR2d_LIBS) $(am__DEPENDENCIES_1)
+main2d_static_LINK = $(CXXLD) $(main2d_static_CXXFLAGS) $(CXXFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
@@ -74,7 +79,7 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-DIST_SOURCES = $(main2d_SOURCES)
+DIST_SOURCES = $(main2d_SOURCES) $(main2d_static_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -402,7 +407,7 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SOURCES = main.C
+SOURCES = main.C main_static.C
 EXTRA_DIST = input2d input2d.shell input2d.shell_circum_fibers \
 	generate_curve2d.m generate_shell2d.m curve2d_64.vertex \
 	curve2d_128.vertex curve2d_256.vertex curve2d_512.vertex \
@@ -415,7 +420,10 @@ EXTRA_DIST = input2d input2d.shell input2d.shell_circum_fibers \
 	shell2d_radial_256.spring ##shell2d_radial_512.spring
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-main2d_SOURCES = $(SOURCES)
+main2d_SOURCES = main.C
+main2d_static_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+main2d_static_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+main2d_static_SOURCES = main_static.C
 all: all-am
 
 .SUFFIXES:
@@ -453,6 +461,9 @@ $(am__aclocal_m4_deps):
 main2d$(EXEEXT): $(main2d_OBJECTS) $(main2d_DEPENDENCIES) 
 	@rm -f main2d$(EXEEXT)
 	$(main2d_LINK) $(main2d_OBJECTS) $(main2d_LDADD) $(LIBS)
+main2d_static$(EXEEXT): $(main2d_static_OBJECTS) $(main2d_static_DEPENDENCIES) 
+	@rm -f main2d_static$(EXEEXT)
+	$(main2d_static_LINK) $(main2d_static_OBJECTS) $(main2d_static_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -461,6 +472,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d_static-main_static.Po@am__quote@
 
 .C.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -489,6 +501,20 @@ main2d-main.obj: main.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='main.C' object='main2d-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-main.obj `if test -f 'main.C'; then $(CYGPATH_W) 'main.C'; else $(CYGPATH_W) '$(srcdir)/main.C'; fi`
+
+main2d_static-main_static.o: main_static.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_static_CXXFLAGS) $(CXXFLAGS) -MT main2d_static-main_static.o -MD -MP -MF $(DEPDIR)/main2d_static-main_static.Tpo -c -o main2d_static-main_static.o `test -f 'main_static.C' || echo '$(srcdir)/'`main_static.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main2d_static-main_static.Tpo $(DEPDIR)/main2d_static-main_static.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='main_static.C' object='main2d_static-main_static.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_static_CXXFLAGS) $(CXXFLAGS) -c -o main2d_static-main_static.o `test -f 'main_static.C' || echo '$(srcdir)/'`main_static.C
+
+main2d_static-main_static.obj: main_static.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_static_CXXFLAGS) $(CXXFLAGS) -MT main2d_static-main_static.obj -MD -MP -MF $(DEPDIR)/main2d_static-main_static.Tpo -c -o main2d_static-main_static.obj `if test -f 'main_static.C'; then $(CYGPATH_W) 'main_static.C'; else $(CYGPATH_W) '$(srcdir)/main_static.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main2d_static-main_static.Tpo $(DEPDIR)/main2d_static-main_static.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='main_static.C' object='main2d_static-main_static.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_static_CXXFLAGS) $(CXXFLAGS) -c -o main2d_static-main_static.obj `if test -f 'main_static.C'; then $(CYGPATH_W) 'main_static.C'; else $(CYGPATH_W) '$(srcdir)/main_static.C'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

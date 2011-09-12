@@ -302,6 +302,10 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
     if (!d_N_vec     .isNull()) d_N_vec     ->freeVectorComponents();
     if (!d_P_rhs_vec .isNull()) d_P_rhs_vec ->freeVectorComponents();
     if (!d_nul_vec   .isNull()) d_nul_vec   ->freeVectorComponents();
+    for (unsigned int k = 0; k < d_U_nul_vecs.size(); ++k)
+    {
+        if (!d_U_nul_vecs[k].isNull()) d_U_nul_vecs[k]->freeVectorComponents();
+    }
     return;
 }// ~INSStaggeredHierarchyIntegrator
 
@@ -780,7 +784,7 @@ INSStaggeredHierarchyIntegrator::initializePatchHierarchy(
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
-    
+
     // Project the velocity field if this is the initial time step.
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     if (initial_time)
@@ -1601,6 +1605,18 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
             d_nul_vec = d_sol_vec->cloneVector(d_object_name+"::nul_vec");
         }
 
+        if (MathUtilities<double>::equalEps(rho, 0.0))
+        {
+            d_U_nul_vecs.resize(NDIM);
+            for (unsigned int k = 0; k < NDIM; ++k)
+            {
+                if (!d_U_nul_vecs[k].isNull()) d_U_nul_vecs[k]->freeVectorComponents();
+                std::ostringstream stream;
+                stream << k;
+                d_U_nul_vecs[k] = d_U_scratch_vec->cloneVector(d_object_name+"::U_nul_vec_"+stream.str());
+            }
+        }
+
         d_vectors_need_init = false;
     }
 
@@ -1666,6 +1682,25 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_velocity_solver->setInitialGuessNonzero(false);
         Pointer<KrylovLinearSolver> p_velocity_solver = d_velocity_solver;
         if (!p_velocity_solver.isNull()) p_velocity_solver->setOperator(d_velocity_op);
+        if (MathUtilities<double>::equalEps(rho, 0.0))
+        {
+            for (unsigned int k = 0; k < NDIM; ++k)
+            {
+                d_U_nul_vecs[k]->allocateVectorData(current_time);
+                for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+                {
+                    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                    {
+                        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                        Pointer<SideData<NDIM,double> > U_nul_data = patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
+                        U_nul_data->fillAll(0.0);
+                        U_nul_data->getArrayData(k).fillAll(1.0);
+                    }
+                }
+            }
+            p_velocity_solver->setNullspace(false, d_U_nul_vecs);
+        }
         if (d_velocity_solver_needs_init)
         {
             if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): Initializing velocity subdomain solver" << std::endl;

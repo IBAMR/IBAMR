@@ -277,6 +277,10 @@ INSCollocatedHierarchyIntegrator::~INSCollocatedHierarchyIntegrator()
     if (!d_U_half_vec .isNull()) d_U_half_vec ->freeVectorComponents();
     if (!d_N_vec      .isNull()) d_N_vec      ->freeVectorComponents();
     if (!d_Phi_rhs_vec.isNull()) d_Phi_rhs_vec->freeVectorComponents();
+    for (unsigned int k = 0; k < d_U_nul_vecs.size(); ++k)
+    {
+        if (!d_U_nul_vecs[k].isNull()) d_U_nul_vecs[k]->freeVectorComponents();
+    }
     return;
 }// ~INSCollocatedHierarchyIntegrator
 
@@ -532,7 +536,7 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
         // This formulation uses a first-order accurate pressure update formula.
         // Te second-order accurate (Brown-Cortez-Minion) pressure update is:
         //
-        // (3-alt)  P(n+1/2) = P(n-1/2) + (I - mu*rho/2*dt Lap_h) Phi
+        // (3-alt)  P(n+1/2) = P(n-1/2) + (I - mu*dt/2*rho Lap_h) Phi
         //
         // Notice that this algorithm is constructed by assuming that Grad_h and
         // Lap_h commute.  This is true only on uniform periodic grids.  On
@@ -625,7 +629,7 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
                          "CONSERVATIVE_COARSEN",
                          "CONSERVATIVE_LINEAR_REFINE");
     }
-    
+
     // Register plot variables that are maintained by the
     // INSCollocatedHierarchyIntegrator.
     registerVariable(    d_Omega_idx,     d_Omega_var,   no_ghosts, getCurrentContext());
@@ -746,7 +750,7 @@ INSCollocatedHierarchyIntegrator::initializePatchHierarchy(
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
-    
+
     // Project the velocity field if this is the initial time step.  Note that
     // regridProjection() also has the effect of initializing u_ADV.
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
@@ -782,7 +786,7 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(
 
     // Zero-out the initial pressure (if any).
     if (initial_time) d_hier_cc_data_ops->setToScalar(d_P_current_idx, 0.0);
-    
+
     // Allocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -934,10 +938,11 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
         d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, new_time);
 
     // Project U(*) to compute U(n+1) and u_ADV(n+1).
+    const double div_fac = (MathUtilities<double>::equalEps(rho,0.0) || MathUtilities<double>::equalEps(dt,0.0) ? 1.0 : rho/dt);
     d_hier_math_ops->div(
         d_Phi_rhs_vec->getComponentDescriptorIndex(0), d_Phi_rhs_vec->getComponentVariable(0),
-        -rho/dt, d_u_ADV_scratch_idx, d_u_ADV_var, d_no_fill_op, new_time, /*synch_cf_bdry*/ false,
-        +rho/dt, d_Q_new_idx, d_Q_var);
+        -div_fac, d_u_ADV_scratch_idx, d_u_ADV_var, d_no_fill_op, new_time, /*synch_cf_bdry*/ false,
+        +div_fac, d_Q_new_idx, d_Q_var);
     if (d_normalize_pressure)
     {
         const double Div_U_mean = (1.0/volume)*d_hier_cc_data_ops->integral(d_Phi_rhs_vec->getComponentDescriptorIndex(0), wgt_cc_idx);
@@ -955,7 +960,7 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
     d_hier_math_ops->grad(
         d_Grad_Phi_fc_idx, d_Grad_Phi_fc_var, /*synch_cf_bdry*/ true,
         1.0, d_Phi_idx, d_Phi_var, d_Phi_bdry_bc_fill_op, current_time+0.5*dt);
-    d_hier_fc_data_ops->axpy(d_u_ADV_new_idx, -dt/rho, d_Grad_Phi_fc_idx, d_u_ADV_scratch_idx);
+    d_hier_fc_data_ops->axpy(d_u_ADV_new_idx, -1.0/div_fac, d_Grad_Phi_fc_idx, d_u_ADV_scratch_idx);
     if (d_using_exact_projection)
     {
         d_exact_projection_solver->solveSystem(*d_Phi_vec, *d_Phi_rhs_vec);
@@ -969,12 +974,25 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
             d_Grad_Phi_cc_idx, d_Grad_Phi_cc_var,
             d_Grad_Phi_fc_idx, d_Grad_Phi_fc_var, d_no_fill_op, current_time+0.5*dt, /*synch_cf_bdry*/ false);
     }
-    d_hier_cc_data_ops->axpy(d_U_new_idx, -dt/rho, d_Grad_Phi_cc_idx, d_U_scratch_idx);
+    d_hier_cc_data_ops->axpy(d_U_new_idx, -1.0/div_fac, d_Grad_Phi_cc_idx, d_U_scratch_idx);
 
     // Determine P(n+1/2).
     PoissonSpecifications helmholtz_spec(d_object_name+"::helmholtz_spec");
-    helmholtz_spec.setCConstant(1.0+0.5*dt*lambda);
-    helmholtz_spec.setDConstant(   -0.5*dt*mu/rho);
+    if (MathUtilities<double>::equalEps(rho,0.0))
+    {
+        helmholtz_spec.setCConstant( 0.0   );
+        helmholtz_spec.setDConstant(-0.5*mu);
+    }
+    else if (d_using_2nd_order_pressure_update)
+    {
+        helmholtz_spec.setCConstant(1.0+0.5*dt*lambda/rho);
+        helmholtz_spec.setDConstant(   -0.5*dt*mu    /rho);
+    }
+    else
+    {
+        helmholtz_spec.setCConstant(1.0);
+        helmholtz_spec.setDConstant(0.0);
+    }
     d_hier_math_ops->laplace(
         d_P_new_idx, d_P_var,
         helmholtz_spec, d_Phi_idx, d_Phi_var, d_no_fill_op, current_time+0.5*dt,
@@ -1324,7 +1342,7 @@ INSCollocatedHierarchyIntegrator::setupPlotDataSpecialized()
             d_Div_u_ADV_idx, d_Div_u_ADV_var,
             +1.0, d_u_ADV_current_idx, d_u_ADV_var, d_no_fill_op, d_integrator_time, /*synch_cf_bdry*/ false);
     }
-    
+
     // Deallocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -1534,6 +1552,18 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_N_vec       = d_U_scratch_vec->cloneVector(d_object_name+"::N_vec"      );
         d_Phi_rhs_vec = d_Phi_vec      ->cloneVector(d_object_name+"::Phi_rhs_vec");
 
+        if (MathUtilities<double>::equalEps(rho, 0.0))
+        {
+            d_U_nul_vecs.resize(NDIM);
+            for (unsigned int k = 0; k < NDIM; ++k)
+            {
+                if (!d_U_nul_vecs[k].isNull()) d_U_nul_vecs[k]->freeVectorComponents();
+                std::ostringstream stream;
+                stream << k;
+                d_U_nul_vecs[k] = d_U_scratch_vec->cloneVector(d_object_name+"::U_nul_vec_"+stream.str());
+            }
+        }
+
         d_vectors_need_init = false;
     }
 
@@ -1579,6 +1609,25 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_velocity_solver->setInitialGuessNonzero(true);
         Pointer<KrylovLinearSolver> p_velocity_solver = d_velocity_solver;
         if (!p_velocity_solver.isNull()) p_velocity_solver->setOperator(d_velocity_op);
+        if (MathUtilities<double>::equalEps(rho, 0.0))
+        {
+            for (unsigned int k = 0; k < NDIM; ++k)
+            {
+                d_U_nul_vecs[k]->allocateVectorData(current_time);
+                for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+                {
+                    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                    {
+                        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                        Pointer<CellData<NDIM,double> > U_nul_data = patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
+                        U_nul_data->fillAll(0.0);
+                        U_nul_data->fill(1.0,k);
+                    }
+                }
+            }
+            p_velocity_solver->setNullspace(false, d_U_nul_vecs);
+        }
         if (d_velocity_solver_needs_init)
         {
             if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): Initializing velocity subdomain solver" << std::endl;

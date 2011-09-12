@@ -808,7 +808,7 @@ IBHierarchyIntegrator::integrateHierarchy(
         //    trapezoidal rule: U^{n+1/2} = 0.5[R^{n} u^{n} + R^{n+1} u^{n+1}].
         Vec X_current_vec = d_X_current_data[ln]->getVec();
         Vec X_new_vec = d_X_new_data[ln]->getVec();
-        Vec U_half_vec = d_U_current_data[ln]->getVec();
+        Vec U_half_vec = d_U_half_data[ln]->getVec();
         ierr = VecWAXPY(X_new_vec, dt, U_half_vec, X_current_vec);  IBTK_CHKERRQ(ierr);
         Vec X_half_vec = d_X_half_data[ln]->getVec();
         ierr = VecCopy(X_new_vec, X_half_vec);  IBTK_CHKERRQ(ierr);

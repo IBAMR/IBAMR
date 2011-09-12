@@ -179,9 +179,17 @@ INSStaggeredProjectionPreconditioner::setTimeInterval(
     const double lambda = d_problem_coefs.getLambda();
     d_current_time = current_time;
     d_new_time = new_time;
-    const double dt = d_new_time-d_current_time;
-    d_pressure_helmholtz_spec.setCConstant(1.0+0.5*dt*lambda/rho);
-    d_pressure_helmholtz_spec.setDConstant(   -0.5*dt*mu    /rho);
+    if (MathUtilities<double>::equalEps(rho,0.0))
+    {
+        d_pressure_helmholtz_spec.setCConstant( 0.0   );
+        d_pressure_helmholtz_spec.setDConstant(-0.5*mu);
+    }
+    else
+    {
+        const double dt = d_new_time-d_current_time;
+        d_pressure_helmholtz_spec.setCConstant(1.0+0.5*dt*lambda/rho);
+        d_pressure_helmholtz_spec.setDConstant(   -0.5*dt*mu    /rho);
+    }
     return;
 }// setTimeInterval
 
@@ -245,15 +253,16 @@ INSStaggeredProjectionPreconditioner::solveSystem(
     d_velocity_helmholtz_solver->solveSystem(*U_out_vec,*U_in_vec);
 
     // Compute F = -(rho/dt)*(P_in + div u^{*}).
+    const double div_fac = (MathUtilities<double>::equalEps(rho,0.0) || MathUtilities<double>::equalEps(dt,0.0) ? 1.0 : rho/dt);
     const bool u_star_cf_bdry_synch = true;
     d_hier_math_ops->div(
         d_F_scratch_idx, d_F_var, // dst
-        -rho/dt,                  // alpha
+        -div_fac,                 // alpha
         U_out_idx, U_out_sc_var,  // src1
         d_no_fill_op,             // src1_bdry_fill
         d_new_time,               // src1_bdry_fill_time
         u_star_cf_bdry_synch,     // src1_cf_bdry_synch
-        -rho/dt,                  // beta
+        -div_fac,                 // beta
         P_in_idx, P_in_cc_var);   // src2
 
     // Solve -div grad Phi = F = -(rho/dt)*(P_in + div u^{*}).
@@ -264,7 +273,7 @@ INSStaggeredProjectionPreconditioner::solveSystem(
     d_hier_math_ops->grad(
         U_out_idx, U_out_sc_var,         // dst
         u_new_cf_bdry_synch,             // dst_cf_bdry_synch
-        -dt/rho,                         // alpha
+        -1.0/div_fac,                    // alpha
         d_Phi_scratch_idx, d_Phi_var,    // src1
         d_Phi_bdry_fill_op,              // src1_bdry_fill
         0.5*(d_current_time+d_new_time), // src1_bdry_fill_time
