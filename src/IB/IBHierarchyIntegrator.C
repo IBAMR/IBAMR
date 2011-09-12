@@ -575,7 +575,7 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(
         d_U_current_data[ln] = d_l_data_manager->getLData(LDataManager:: VEL_DATA_NAME,ln);
         d_U_new_data    [ln] = d_l_data_manager->createLData("U_new",ln,NDIM);
         d_U_half_data   [ln] = d_l_data_manager->createLData("U_half",ln,NDIM);
-        d_U_old_data    [ln] = d_l_data_manager->createLData("U_old",ln,NDIM);
+        d_U_old_data    [ln] = d_l_data_manager->getLData("U_old",ln);
         d_F_data        [ln] = d_l_data_manager->createLData("F",ln,NDIM);
         if (d_using_pIB_method)
         {
@@ -614,7 +614,7 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(
         // interpolation of X^{n} and X^{n+1}.
         Vec X_current_vec = d_X_current_data[ln]->getVec();
         Vec X_new_vec = d_X_new_data[ln]->getVec();
-        ierr = VecWAXPY(X_new_vec, dt, U_current_vec, X_current_vec);  IBTK_CHKERRQ(ierr);
+        ierr = VecWAXPY(X_new_vec, dt, U_half_vec, X_current_vec);  IBTK_CHKERRQ(ierr);
         Vec X_half_vec = d_X_half_data[ln]->getVec();
         ierr = VecCopy(X_new_vec, X_half_vec);  IBTK_CHKERRQ(ierr);
         ierr = VecAXPBY(X_half_vec, 0.5, 0.5, X_current_vec);  IBTK_CHKERRQ(ierr);
@@ -670,6 +670,79 @@ IBHierarchyIntegrator::integrateHierarchy(
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
+
+    // Update IB and pIB data to account for the updated fluid velocity field.
+    if (cycle_num > 0)
+    {
+        // Interpolate the Eulerian velocity to the Lagrangian mesh.
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const int U_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getCurrentContext());
+        const int U_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getNewContext());
+        switch (d_timestepping_scheme)
+        {
+            case MIDPOINT_RULE:
+            {
+                d_hier_velocity_data_ops->linearSum(d_V_idx, 0.5, U_current_idx, 0.5, U_new_idx);
+                d_l_data_manager->interp(d_V_idx, d_U_half_data, d_X_half_data, d_coarsen_scheds["V->V::S->S::CONSERVATIVE_COARSEN"], d_refine_scheds["V->V::S->S::GHOST_FILL"], current_time+0.5*dt);
+                resetAnchorPointValues(d_U_half_data, coarsest_ln, finest_ln);
+                break;
+            }
+            case TRAPEZOIDAL_RULE:
+            {
+                d_hier_velocity_data_ops->copyData(d_V_idx, U_new_idx);
+                d_l_data_manager->interp(d_V_idx, d_U_new_data, d_X_new_data, d_coarsen_scheds["V->V::S->S::CONSERVATIVE_COARSEN"], d_refine_scheds["V->V::S->S::GHOST_FILL"], current_time+dt);
+                resetAnchorPointValues(d_U_new_data, coarsest_ln, finest_ln);
+                for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+                {
+                    if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+                    Vec U_current_vec = d_U_current_data[ln]->getVec();
+                    Vec U_new_vec = d_U_new_data[ln]->getVec();
+                    Vec U_half_vec = d_U_half_data[ln]->getVec();
+                    ierr = VecCopy(U_new_vec, U_half_vec);  IBTK_CHKERRQ(ierr);
+                    ierr = VecAXPBY(U_half_vec, 0.5, 0.5, U_current_vec);  IBTK_CHKERRQ(ierr);
+                }
+                break;
+            }
+            default:
+            {
+                TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                           << "  unrecognized timestepping type: " << enum_to_string<TimesteppingType>(d_timestepping_scheme) << "." << std::endl);
+            }
+        }
+
+        // Update IB and pIB data.
+        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): updating Lagrangian data\n";
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+
+            // Update the value of X at time t^{n+1}.  Then define X at time
+            // t^{n+1/2} to be the linear interpolation of X^{n} and X^{n+1}.
+            //
+            // Notice that U^{n+1/2} has been computed in a manner that is
+            // consistent with the time stepping scheme:
+            //
+            //    midpoint    rule: U^{n+1/2} = R^{n+1/2} u^{n+1/2}
+            //    trapezoidal rule: U^{n+1/2} = 0.5[R^{n} u^{n} + R^{n+1} u^{n+1}].
+            Vec X_current_vec = d_X_current_data[ln]->getVec();
+            Vec X_new_vec = d_X_new_data[ln]->getVec();
+            Vec U_half_vec = d_U_half_data[ln]->getVec();
+            ierr = VecWAXPY(X_new_vec, dt, U_half_vec, X_current_vec);  IBTK_CHKERRQ(ierr);
+            Vec X_half_vec = d_X_half_data[ln]->getVec();
+            ierr = VecCopy(X_new_vec, X_half_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecAXPBY(X_half_vec, 0.5, 0.5, X_current_vec);  IBTK_CHKERRQ(ierr);
+
+            // Update the values of Y and dY_dt at time t^{n+1}.  In this case,
+            // (explicit) midpoint rule and (explicit) trapezoidal rule are
+            // equivalent, and so we simply use the (explicit) midpoint rule.
+            if (d_using_pIB_method)
+            {
+                pIBMidpointStep(d_K_data[ln], d_M_data[ln], d_X_half_data[ln],
+                                d_Y_current_data[ln], d_Y_new_data[ln],
+                                d_dY_dt_current_data[ln], d_dY_dt_new_data[ln], dt);
+            }
+        }
+    }
 
     // Compute the Lagrangian forces and spread them to the Eulerian grid.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -756,99 +829,15 @@ IBHierarchyIntegrator::integrateHierarchy(
         computeSourcePressures(coarsest_ln, finest_ln, current_time+0.5*dt, d_X_half_data);
     }
 
-    // Interpolate the Eulerian velocity to the Lagrangian mesh.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int U_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getCurrentContext());
-    const int U_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getNewContext());
-    switch (d_timestepping_scheme)
-    {
-        case MIDPOINT_RULE:
-        {
-            d_hier_velocity_data_ops->linearSum(d_V_idx, 0.5, U_current_idx, 0.5, U_new_idx);
-            d_l_data_manager->interp(d_V_idx, d_U_half_data, d_X_half_data, d_coarsen_scheds["V->V::S->S::CONSERVATIVE_COARSEN"], d_refine_scheds["V->V::S->S::GHOST_FILL"], current_time+0.5*dt);
-            resetAnchorPointValues(d_U_half_data, coarsest_ln, finest_ln);
-            break;
-        }
-        case TRAPEZOIDAL_RULE:
-        {
-            d_hier_velocity_data_ops->copyData(d_V_idx, U_new_idx);
-            d_l_data_manager->interp(d_V_idx, d_U_new_data, d_X_new_data, d_coarsen_scheds["V->V::S->S::CONSERVATIVE_COARSEN"], d_refine_scheds["V->V::S->S::GHOST_FILL"], current_time+dt);
-            resetAnchorPointValues(d_U_new_data, coarsest_ln, finest_ln);
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-                Vec U_current_vec = d_U_current_data[ln]->getVec();
-                Vec U_new_vec = d_U_new_data[ln]->getVec();
-                Vec U_half_vec = d_U_half_data[ln]->getVec();
-                ierr = VecCopy(U_new_vec, U_half_vec);  IBTK_CHKERRQ(ierr);
-                ierr = VecAXPBY(U_half_vec, 0.5, 0.5, U_current_vec);  IBTK_CHKERRQ(ierr);
-            }
-            break;
-        }
-        default:
-        {
-            TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                       << "  unrecognized timestepping type: " << enum_to_string<TimesteppingType>(d_timestepping_scheme) << "." << std::endl);
-        }
-    }
-
-    // Update IB and pIB data.
-    if (d_do_log) plog << d_object_name << "::integrateHierarchy(): updating Lagrangian data\n";
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-
-        // Update the value of X at time t^{n+1}.  Then define X at time
-        // t^{n+1/2} to be the linear interpolation of X^{n} and X^{n+1}.
-        //
-        // Notice that U^{n+1/2} has been computed in a manner that is
-        // consistent with the time stepping scheme:
-        //
-        //    midpoint    rule: U^{n+1/2} = R^{n+1/2} u^{n+1/2}
-        //    trapezoidal rule: U^{n+1/2} = 0.5[R^{n} u^{n} + R^{n+1} u^{n+1}].
-        Vec X_current_vec = d_X_current_data[ln]->getVec();
-        Vec X_new_vec = d_X_new_data[ln]->getVec();
-        Vec U_half_vec = d_U_half_data[ln]->getVec();
-        ierr = VecWAXPY(X_new_vec, dt, U_half_vec, X_current_vec);  IBTK_CHKERRQ(ierr);
-        Vec X_half_vec = d_X_half_data[ln]->getVec();
-        ierr = VecCopy(X_new_vec, X_half_vec);  IBTK_CHKERRQ(ierr);
-        ierr = VecAXPBY(X_half_vec, 0.5, 0.5, X_current_vec);  IBTK_CHKERRQ(ierr);
-
-        // Update the values of Y and dY_dt at time t^{n+1}.  In this case,
-        // (explicit) midpoint rule and (explicit) trapezoidal rule are
-        // equivalent, and so we simply use the (explicit) midpoint rule.
-        if (d_using_pIB_method)
-        {
-            pIBMidpointStep(d_K_data[ln], d_M_data[ln], d_X_half_data[ln],
-                            d_Y_current_data[ln], d_Y_new_data[ln],
-                            d_dY_dt_current_data[ln], d_dY_dt_new_data[ln], dt);
-        }
-    }
-
     // In the last cycle, compute U at time t^{n+1}, which will be needed in the
     // subsequent time step.
     if (cycle_num+1 == getNumberOfCycles())
     {
-        switch (d_timestepping_scheme)
-        {
-            case MIDPOINT_RULE:
-            {
-                d_hier_velocity_data_ops->copyData(d_V_idx, U_new_idx);
-                d_l_data_manager->interp(d_V_idx, d_U_new_data, d_X_new_data, d_coarsen_scheds["V->V::S->S::CONSERVATIVE_COARSEN"], d_refine_scheds["V->V::S->S::GHOST_FILL"], current_time+dt);
-                resetAnchorPointValues(d_U_new_data, coarsest_ln, finest_ln);
-            }
-            case TRAPEZOIDAL_RULE:
-            {
-                d_l_data_manager->interp(d_V_idx, d_U_new_data, d_X_new_data, d_coarsen_scheds["none"], d_refine_scheds["none"], current_time+dt);
-                resetAnchorPointValues(d_U_new_data, coarsest_ln, finest_ln);
-                break;
-            }
-            default:
-            {
-                TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                           << "  unrecognized timestepping type: " << enum_to_string<TimesteppingType>(d_timestepping_scheme) << "." << std::endl);
-            }
-        }
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const int U_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getNewContext());
+        d_hier_velocity_data_ops->copyData(d_V_idx, U_new_idx);
+        d_l_data_manager->interp(d_V_idx, d_U_new_data, d_X_new_data, d_coarsen_scheds["V->V::S->S::CONSERVATIVE_COARSEN"], d_refine_scheds["V->V::S->S::GHOST_FILL"], current_time+dt);
+        resetAnchorPointValues(d_U_new_data, coarsest_ln, finest_ln);
     }
     return;
 }// integrateHierarchy
@@ -873,26 +862,26 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(
         // Reset U data.
         Vec U_current_vec = d_U_current_data[ln]->getVec();
         Vec U_old_vec = d_U_old_data[ln]->getVec();
-        ierr = VecSwap(U_current_vec, U_old_vec);  IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(U_current_vec, U_old_vec);  IBTK_CHKERRQ(ierr);
         Vec U_new_vec = d_U_new_data[ln]->getVec();
-        ierr = VecSwap(U_current_vec, U_new_vec);  IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(U_new_vec, U_current_vec);  IBTK_CHKERRQ(ierr);
 
         // Reset X data.
         Vec X_current_vec = d_X_current_data[ln]->getVec();
         Vec X_new_vec = d_X_new_data[ln]->getVec();
-        ierr = VecSwap(X_current_vec, X_new_vec);  IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(X_new_vec, X_current_vec);  IBTK_CHKERRQ(ierr);
 
         if (d_using_pIB_method)
         {
             // Reset Y data.
             Vec Y_current_vec = d_Y_current_data[ln]->getVec();
             Vec Y_new_vec = d_Y_new_data[ln]->getVec();
-            ierr = VecSwap(Y_new_vec, Y_current_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecCopy(Y_new_vec, Y_current_vec);  IBTK_CHKERRQ(ierr);
 
             // Reset dY/dt data.
             Vec dY_dt_current_vec = d_dY_dt_current_data[ln]->getVec();
             Vec dY_dt_new_vec = d_dY_dt_new_data[ln]->getVec();
-            ierr = VecSwap(dY_dt_new_vec, dY_dt_current_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecCopy(dY_dt_new_vec, dY_dt_current_vec);  IBTK_CHKERRQ(ierr);
         }
     }
 
