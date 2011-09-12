@@ -366,7 +366,7 @@ private:
      */
     void
     resetAnchorPointValues(
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > V_data,
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > U_data,
         int coarsest_ln,
         int finest_ln);
 
@@ -380,8 +380,8 @@ private:
         SAMRAI::tbox::Pointer<IBTK::LData> X_current_data,
         SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data,
         SAMRAI::tbox::Pointer<IBTK::LData> Y_new_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> dY_dt_current_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> dY_dt_new_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> V_current_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> V_new_data,
         double dt);
 
     /*!
@@ -394,8 +394,8 @@ private:
         SAMRAI::tbox::Pointer<IBTK::LData> X_half_data,
         SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data,
         SAMRAI::tbox::Pointer<IBTK::LData> Y_new_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> dY_dt_current_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> dY_dt_new_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> V_current_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> V_new_data,
         double dt);
 
     /*!
@@ -559,8 +559,8 @@ private:
     /*
      * Eulerian variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_V_var, d_F_var, d_Q_var;
-    int d_V_idx, d_F_idx, d_F_current_idx, d_Q_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_u_var, d_f_var, d_q_var;
+    int d_u_idx, d_f_idx, d_f_current_idx, d_q_idx;
 
     /*
      * Lagrangian variables.
@@ -570,7 +570,7 @@ private:
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_F_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_K_data, d_M_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_Y_current_data, d_Y_new_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_dY_dt_current_data, d_dY_dt_new_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_V_current_data, d_V_new_data;
 
     /*
      * List of local indices of local anchor points.

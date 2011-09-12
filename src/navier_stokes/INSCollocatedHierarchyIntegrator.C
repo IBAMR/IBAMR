@@ -187,11 +187,6 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(
         new CellVariable<NDIM,double>(object_name+"::Q"),
         register_for_restart)
 {
-    // Check to see if we are using AB-2.
-    d_using_CNAB = (d_num_cycles == 1);
-    if (input_db->keyExists("use_CNAB")) d_using_CNAB = input_db->getBool("use_CNAB");
-    else if (input_db->keyExists("using_CNAB")) d_using_CNAB = input_db->getBool("using_CNAB");
-
     // Check to see whether the convective operator type has been set.
     d_default_convective_op_type = PPM;
     if      (input_db->keyExists("convective_op_type"))               d_default_convective_op_type = string_to_enum<ConvectiveOperatorType>(input_db->getString("convective_op_type"));
@@ -622,13 +617,10 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
         d_Q_scratch_idx = -1;
     }
 
-    if (d_using_CNAB)
-    {
-        registerVariable(d_N_old_current_idx, d_N_old_new_idx, d_N_old_scratch_idx,
-                         d_N_old_var, cell_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE");
-    }
+    registerVariable(d_N_old_current_idx, d_N_old_new_idx, d_N_old_scratch_idx,
+                     d_N_old_var, cell_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "CONSERVATIVE_LINEAR_REFINE");
 
     // Register plot variables that are maintained by the
     // INSCollocatedHierarchyIntegrator.
@@ -765,24 +757,31 @@ INSCollocatedHierarchyIntegrator::initializePatchHierarchy(
 int
 INSCollocatedHierarchyIntegrator::getNumberOfCycles()
 {
-    if (d_using_CNAB && d_num_cycles == 1)
+    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
+    if (initial_time)
     {
-        const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
-        if (initial_time) return 2;
+        return std::max(2,d_num_cycles);
     }
-    return d_num_cycles;
+    else
+    {
+        return d_num_cycles;
+    }
 }// getNumberOfCycles
 
 void
 INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(
     const double current_time,
     const double new_time,
-    const int /*num_cycles*/)
+    const int num_cycles)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
+
+    // Keep track of the number of cycles to be used for the present integration
+    // step.
+    d_num_cycles_step = num_cycles;
 
     // Zero-out the initial pressure (if any).
     if (initial_time) d_hier_cc_data_ops->setToScalar(d_P_current_idx, 0.0);
@@ -903,10 +902,10 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
         d_convective_op->setAdvectionVelocity(d_u_ADV_scratch_idx);
         d_convective_op->apply(*d_U_half_vec, *d_N_vec);
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
-        if (d_using_CNAB && cycle_num == 0)
+        if (cycle_num == 0)
         {
             d_hier_cc_data_ops->copyData(d_N_old_new_idx, N_idx);
-            if (!initial_time)
+            if (!initial_time && d_num_cycles_step == 1)
             {
                 const double omega = dt / d_dt_previous[0];
                 d_hier_cc_data_ops->linearSum(N_idx, 1.0 + 0.5*omega, N_idx, -0.5*omega, d_N_old_current_idx);

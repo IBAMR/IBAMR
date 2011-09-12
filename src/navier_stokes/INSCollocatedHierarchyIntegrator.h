@@ -312,10 +312,10 @@ private:
     regridProjection();
 
     /*!
-     * Boolean indicating whether to use 2nd-order Crank-Nicolson
-     * Adams-Bashforth in the initial time step cycle.
+     * Value indicating the number of solver cycles to be used for the present
+     * time step.
      */
-    bool d_using_CNAB;
+    int d_num_cycles_step;
 
     /*!
      * Value determining the type of projection method to use.
