@@ -10,11 +10,16 @@ alpha = 0.25^2/beta;
 A = pi*alpha*beta;      % area of ellipse
 R = sqrt(A/pi);         % radius of disc with equivalent area as the ellipse
 perim = 2*pi*R;         % perimeter of the equivalent disc
+
 dx = 1/N;
-num_node_circum = ceil(perim/(dx/3)/4)*4;
+dx_64 = 1/64;
+
+num_node_circum = (dx_64/dx)*ceil(perim/(dx_64/3)/4)*4;
 ds = perim/num_node_circum;
-num_node_radial = ceil(w/(dx/3)/4)*4;
+
+num_node_radial = (dx_64/dx)*ceil(w/(dx_64/3)/4)*4+1;
 dr = w/num_node_radial;
+
 num_node = num_node_radial*num_node_circum;
 
 kappa = 1.0/w;

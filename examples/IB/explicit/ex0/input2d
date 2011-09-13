@@ -109,7 +109,8 @@ IBStandardInitializer {
    perim = 2*PI*R        // perimeter of the equivalent disc
 
    dx = 1.0/NFINEST
-   num_node_circum = ceil(perim/(dx/3)/4)*4
+   dx_64 = 1.0/64
+   num_node_circum = (dx_64/dx)*ceil(perim/(dx_64/3)/4)*4
    ds = 2.0*PI*R/num_node_circum
    
    curve2d_64 {
