@@ -28,7 +28,7 @@ CFL_MAX             = 0.3                        // maximum CFL number
 DT_MAX              = (1.0/K)*0.25*DX_FINEST     // maximum timestep size
 VORTICITY_TAGGING   = FALSE                      // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = 1                          // size of tag buffer used by grid generation algorithm
-REGRID_CFL_INTERVAL = 0.5                        // effectively disable regridding
+REGRID_CFL_INTERVAL = 0.5                        // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
 OUTPUT_U            = TRUE
 OUTPUT_P            = TRUE
 OUTPUT_F            = FALSE
@@ -76,14 +76,14 @@ VelocityBcCoefs_1 {
 }
 
 IBHierarchyIntegrator {
-   start_time      = START_TIME
-   end_time        = END_TIME
-   grow_dt         = GROW_DT
-   num_cycles      = NUM_CYCLES
+   start_time          = START_TIME
+   end_time            = END_TIME
+   grow_dt             = GROW_DT
+   num_cycles          = NUM_CYCLES
    regrid_cfl_interval = REGRID_CFL_INTERVAL
-   dt_max          = DT_MAX
-   delta_fcn       = DELTA_FUNCTION
-   enable_logging  = ENABLE_LOGGING
+   dt_max              = DT_MAX
+   delta_fcn           = DELTA_FUNCTION
+   enable_logging      = ENABLE_LOGGING
    timestepping_scheme = "MIDPOINT_RULE"
 }
 
