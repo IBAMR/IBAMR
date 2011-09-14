@@ -63,73 +63,6 @@ namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-namespace
-{
-struct StreamableGetDataStreamSizeSum
-    : std::binary_function<size_t,Pointer<Streamable>,size_t>
-{
-    inline size_t
-    operator()(
-        size_t size_so_far,
-        const Pointer<Streamable>& data) const
-        {
-            return size_so_far+StreamableManager::getManager()->getDataStreamSize(data);
-        }
-};
-
-class StreamablePackStream
-    : public std::unary_function<Pointer<Streamable>,void>
-{
-public:
-    inline
-    StreamablePackStream(
-        AbstractStream* const stream)
-        : d_stream(stream)
-        {
-            return;
-        }
-
-    inline void
-    operator()(
-        Pointer<Streamable>& data) const
-        {
-            StreamableManager::getManager()->packStream(*d_stream,data);
-            return;
-        }
-
-private:
-    AbstractStream* const d_stream;
-};
-
-class StreamableUnpackStream
-    : public std::unary_function<void,Pointer<Streamable> >
-{
-public:
-    inline
-    StreamableUnpackStream(
-        AbstractStream* const stream,
-        const IntVector<NDIM>& offset)
-        : d_stream(stream),
-          d_offset(offset)
-        {
-            return;
-        }
-
-    inline Pointer<Streamable>
-    operator()() const
-        {
-            Pointer<Streamable> data_out;
-            StreamableManager::getManager()->unpackStream(
-                *d_stream,d_offset,data_out);
-            return data_out;
-        }
-
-private:
-    AbstractStream* const d_stream;
-    const IntVector<NDIM>& d_offset;
-};
-}
-
 StreamableManager* StreamableManager::s_data_manager_instance = NULL;
 bool StreamableManager::s_registered_callback = false;
 int StreamableManager::s_current_id_number = 0;
@@ -195,40 +128,6 @@ StreamableManager::registerFactory(
     efficient_add_or_update(d_factory_map, factory_id, factory);
     return factory_id;
 }// registerFactory
-
-size_t
-StreamableManager::getDataStreamSize(
-    const std::vector<Pointer<Streamable> >& data_items) const
-{
-    return std::accumulate(data_items.begin(), data_items.end(),
-                           AbstractStream::sizeofInt(),
-                           StreamableGetDataStreamSizeSum());
-}//getDataStreamSize
-
-void
-StreamableManager::packStream(
-    AbstractStream& stream,
-    std::vector<Pointer<Streamable> >& data_items)
-{
-    const int num_data = data_items.size();;
-    stream.pack(&num_data,1);
-    for_each(&data_items[0],&data_items[0]+data_items.size(),StreamablePackStream(&stream));
-    return;
-}// packStream
-
-void
-StreamableManager::unpackStream(
-    AbstractStream& stream,
-    const IntVector<NDIM>& offset,
-    std::vector<Pointer<Streamable> >& data_items)
-{
-    int num_data;
-    stream.unpack(&num_data,1);
-    data_items.resize(num_data);
-    generate(data_items.begin(),data_items.end(),StreamableUnpackStream(&stream,offset));
-    std::vector<Pointer<Streamable> >(data_items).swap(data_items); // trim-to-fit
-    return;
-}// unpackStream
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

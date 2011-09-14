@@ -542,25 +542,6 @@ ib4_delta_fcn(
     }
 }// ib4_delta_fcn
 
-struct GetLocalPETScIndex
-    : std::unary_function<const LNodeIndex&,int>,
-      std::unary_function<const SAMRAI::tbox::Pointer<LNodeIndex>&,int>
-{
-    inline int
-    operator()(
-        const LNodeIndex& index) const
-        {
-            return index.getLocalPETScIndex();
-        }
-
-    inline int
-    operator()(
-        const SAMRAI::tbox::Pointer<LNodeIndex>& index) const
-        {
-            return index->getLocalPETScIndex();
-        }
-};
-
 struct SortModeComp
     : std::binary_function<std::pair<const LNodeIndex*,blitz::TinyVector<double,NDIM> >,std::pair<const LNodeIndex*,blitz::TinyVector<double,NDIM> >,bool>
 {
@@ -2290,8 +2271,12 @@ LEInteractor::buildLocalIndices(
                     }
                 }
 
+                unsigned int k_start = local_indices.size();
                 local_indices.resize(local_indices.size()+num_ids);
-                std::transform(node_set.begin(), node_set.end(), local_indices.end()-num_ids, GetLocalPETScIndex());
+                for (unsigned int k = 0; k < node_set.size(); ++k)
+                {
+                    local_indices[k+k_start] = node_set[k]->getLocalPETScIndex();
+                }
             }
         }
     }

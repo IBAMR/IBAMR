@@ -311,68 +311,6 @@ private:
      * \brief The periodic offset.
      */
     SAMRAI::hier::IntVector<NDIM> d_offset;
-
-    /*!
-     * \brief Misc. nested structs and classes.
-     */
-    struct LSetGetDataStreamSizeSum
-        : std::binary_function<size_t,const typename LSet<T>::value_type&,size_t>
-    {
-        inline size_t
-        operator()(
-            size_t size_so_far,
-            const typename LSet<T>::value_type& item) const
-            {
-                return size_so_far+item->getDataStreamSize();
-            }
-    };
-
-    class LSetPackStream
-        : public std::unary_function<typename LSet<T>::value_type&,void>
-    {
-    public:
-        inline
-        LSetPackStream(
-            SAMRAI::tbox::AbstractStream* const stream)
-            : d_stream(stream)
-            {
-                return;
-            }
-
-        inline void
-        operator()(
-            typename LSet<T>::value_type& item) const
-            {
-                item->packStream(*d_stream);
-                return;
-            }
-    private:
-        SAMRAI::tbox::AbstractStream* const d_stream;
-    };
-
-    class LSetUnpackStream
-        : public std::unary_function<void,typename LSet<T>::value_type>
-    {
-    public:
-        inline
-        LSetUnpackStream(
-            SAMRAI::tbox::AbstractStream* const stream,
-            const SAMRAI::hier::IntVector<NDIM>& offset)
-            : d_stream(stream),
-              d_offset(offset)
-            {
-                return;
-            }
-
-        inline typename LSet<T>::value_type
-        operator()() const
-            {
-                return new T(*d_stream,d_offset);
-            }
-    private:
-        SAMRAI::tbox::AbstractStream* const d_stream;
-        const SAMRAI::hier::IntVector<NDIM>& d_offset;
-    };
 };
 }// namespace IBTK
 
