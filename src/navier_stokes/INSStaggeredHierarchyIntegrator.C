@@ -1183,6 +1183,9 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
             for (int ln = 0; ln <= level_number; ++ln)
             {
                 hierarchy->getPatchLevel(ln)->allocatePatchData(d_U_scratch_idx, init_data_time);
+#if (NDIM == 3)
+                hierarchy->getPatchLevel(ln)->allocatePatchData(d_Omega_Norm_idx, init_data_time);
+#endif
             }
 
             // Fill ghost cells.
@@ -1219,6 +1222,9 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
             for (int ln = 0; ln <= level_number; ++ln)
             {
                 hierarchy->getPatchLevel(ln)->deallocatePatchData(d_U_scratch_idx);
+#if (NDIM == 3)
+                hierarchy->getPatchLevel(ln)->deallocatePatchData(d_Omega_Norm_idx);
+#endif
             }
         }
     }

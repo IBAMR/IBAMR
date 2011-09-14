@@ -83,7 +83,7 @@ c
      &     )
 
       REAL C(
-     &     CELL3dVECG(ifirst,ilast,n_N_gc)
+     &     CELL3dVECG(ifirst,ilast,n_C_gc)
      &     )
 c
 c     Output.
@@ -169,7 +169,7 @@ c
      &     )
 
       REAL C(
-     &     CELL3dVECG(ifirst,ilast,n_N_gc)
+     &     CELL3dVECG(ifirst,ilast,n_C_gc)
      &     )
 c
 c     Output.
@@ -255,7 +255,7 @@ c
      &     )
 
       REAL C(
-     &     CELL3dVECG(ifirst,ilast,n_N_gc)
+     &     CELL3dVECG(ifirst,ilast,n_C_gc)
      &     )
 c
 c     Output.
@@ -356,7 +356,7 @@ c
      &     )
 
       REAL C(
-     &     CELL3dVECG(ifirst,ilast,n_N_gc)
+     &     CELL3dVECG(ifirst,ilast,n_C_gc)
      &     )
 c
 c     Output.
@@ -442,7 +442,7 @@ c
      &     )
 
       REAL C(
-     &     CELL3dVECG(ifirst,ilast,n_N_gc)
+     &     CELL3dVECG(ifirst,ilast,n_C_gc)
      &     )
 c
 c     Output.
@@ -528,7 +528,7 @@ c
      &     )
 
       REAL C(
-     &     CELL3dVECG(ifirst,ilast,n_N_gc)
+     &     CELL3dVECG(ifirst,ilast,n_C_gc)
      &     )
 c
 c     Output.

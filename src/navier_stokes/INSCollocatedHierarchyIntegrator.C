@@ -249,7 +249,6 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(
     d_Div_U_var       = new CellVariable<NDIM,double>(d_object_name+"::Div_U"           );
     d_Div_u_ADV_var   = new CellVariable<NDIM,double>(d_object_name+"::Div_u_ADV"       );
 #if (NDIM == 3)
-
     d_Omega_Norm_var  = new CellVariable<NDIM,double>(d_object_name+"::|Omega|_2"       );
 #endif
     d_Grad_P_var      = new CellVariable<NDIM,double>(d_object_name+"::Grad_P"     ,NDIM);
@@ -1127,6 +1126,9 @@ INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
         for (int ln = 0; ln <= level_number; ++ln)
         {
             hierarchy->getPatchLevel(ln)->allocatePatchData(d_U_scratch_idx, init_data_time);
+#if (NDIM == 3)
+            hierarchy->getPatchLevel(ln)->allocatePatchData(d_Omega_Norm_idx, init_data_time);
+#endif
         }
 
         // Fill ghost cells.
@@ -1173,6 +1175,9 @@ INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
         for (int ln = 0; ln <= level_number; ++ln)
         {
             hierarchy->getPatchLevel(ln)->deallocatePatchData(d_U_scratch_idx);
+#if (NDIM == 3)
+            hierarchy->getPatchLevel(ln)->deallocatePatchData(d_Omega_Norm_idx);
+#endif
         }
     }
     return;

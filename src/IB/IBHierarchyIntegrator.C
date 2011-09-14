@@ -421,9 +421,6 @@ IBHierarchyIntegrator::initializePatchHierarchy(
         {
             const bool can_be_refined = level_number < finest_ln || d_gridding_alg->levelCanBeRefined(level_number);
 
-            // Setup Lagrangian data to store the lagged velocity.
-            d_l_data_manager->createLData("U_old",level_number,NDIM,/*manage_data*/ true);
-
             // Initialize source/sink data.
             if (!d_ib_source_fcn.isNull())
             {
@@ -554,7 +551,6 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(
     d_U_current_data.resize(finest_ln+1);
     d_U_new_data    .resize(finest_ln+1);
     d_U_half_data   .resize(finest_ln+1);
-    d_U_old_data    .resize(finest_ln+1);
     d_F_data        .resize(finest_ln+1);
     if (d_using_pIB_method)
     {
@@ -575,7 +571,6 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(
         d_U_current_data[ln] = d_l_data_manager->getLData(LDataManager:: VEL_DATA_NAME,ln);
         d_U_new_data    [ln] = d_l_data_manager->createLData("U_new",ln,NDIM);
         d_U_half_data   [ln] = d_l_data_manager->createLData("U_half",ln,NDIM);
-        d_U_old_data    [ln] = d_l_data_manager->getLData("U_old",ln);
         d_F_data        [ln] = d_l_data_manager->createLData("F",ln,NDIM);
         if (d_using_pIB_method)
         {
@@ -593,70 +588,28 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
-        // When num_cycles == 1, use U^{n} and U^{n-1} to define an
-        // approximation to U^{n+1} using linear extrapolation.
-        //
-        // When num_cycles > 1, use U^{n} as an initial approximation to
-        // U^{n+1}.
-        //
-        // In either case, then define an approximation to U^{n+1/2} by linearly
-        // interpolating U^{n} and U^{n+1}.
+        // Use U^{n} as an initial approximation to U^{n+1}.
         Vec U_current_vec = d_U_current_data[ln]->getVec();
         Vec U_new_vec = d_U_new_data[ln]->getVec();
         ierr = VecCopy(U_current_vec, U_new_vec);  IBTK_CHKERRQ(ierr);
-        if (d_integrator_step > 0 && num_cycles == 1)
-        {
-            Vec U_old_vec = d_U_old_data[ln]->getVec();
-            double omega = dt / d_dt_previous[0];
-            ierr = VecAXPBY(U_new_vec, -omega, 1.0+omega, U_old_vec);  IBTK_CHKERRQ(ierr);
-        }
         Vec U_half_vec = d_U_half_data[ln]->getVec();
-        ierr = VecCopy(U_new_vec, U_half_vec);  IBTK_CHKERRQ(ierr);
-        ierr = VecAXPBY(U_half_vec, 0.5, 0.5, U_current_vec);  IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(U_current_vec, U_half_vec);  IBTK_CHKERRQ(ierr);
 
-        // When num_cycles == 1, use Adams-Bashforth to define X^{n+1}.
-        //
-        // When num_cycles > 1, use X^{n} as an initial approximation to
-        // X^{n+1}.
-        //
-        // In either case, then define an approximation to U^{n+1/2} by linearly
-        // interpolating X^{n} and X^{n+1}.
+        // Use forward Euler to compute an initial approximation to X^{n+1} and
+        // set X^{n+1/2} = 0.5(X^{n+1} + X^{n}).
         Vec X_current_vec = d_X_current_data[ln]->getVec();
         Vec X_new_vec = d_X_new_data[ln]->getVec();
-        if (num_cycles == 1)
-        {
-            ierr = VecWAXPY(X_new_vec, dt, U_half_vec, X_current_vec);  IBTK_CHKERRQ(ierr);
-        }
-        else
-        {
-            ierr = VecCopy(X_current_vec, X_new_vec);  IBTK_CHKERRQ(ierr);
-        }
+        ierr = VecWAXPY(X_new_vec, dt, U_current_vec, X_current_vec);  IBTK_CHKERRQ(ierr);
         Vec X_half_vec = d_X_half_data[ln]->getVec();
-        ierr = VecCopy(X_new_vec, X_half_vec);  IBTK_CHKERRQ(ierr);
-        ierr = VecAXPBY(X_half_vec, 0.5, 0.5, X_current_vec);  IBTK_CHKERRQ(ierr);
+        ierr = VecWAXPY(X_half_vec, 0.5*dt, U_current_vec, X_current_vec);  IBTK_CHKERRQ(ierr);
 
-        // When num_cycles == 1, use forward Euler to define initial
-        // approximations to Y^{n+1} and V^{n+1}.
-        //
-        // When num_cycles > 1, use Y^{n} and V^{n} as initial approximations to
-        // Y^{n+1} and V^{n+1}.
+        // Use forward Euler to compute initial approximations to Y^{n+1} and
+        // V^{n+1}.
         if (d_using_pIB_method)
         {
-            if (num_cycles == 1)
-            {
-                pIBEulerStep(d_K_data[ln], d_M_data[ln], d_X_current_data[ln],
-                             d_Y_current_data[ln], d_Y_new_data[ln],
-                             d_V_current_data[ln], d_V_new_data[ln], dt);
-            }
-            else
-            {
-                Vec Y_current_vec = d_Y_current_data[ln]->getVec();
-                Vec Y_new_vec = d_Y_new_data[ln]->getVec();
-                ierr = VecCopy(Y_current_vec, Y_new_vec);  IBTK_CHKERRQ(ierr);
-                Vec V_current_vec = d_V_current_data[ln]->getVec();
-                Vec V_new_vec = d_V_new_data[ln]->getVec();
-                ierr = VecCopy(V_current_vec, V_new_vec);  IBTK_CHKERRQ(ierr);
-            }
+            pIBEulerStep(d_K_data[ln], d_M_data[ln], d_X_current_data[ln],
+                         d_Y_new_data[ln], d_Y_current_data[ln],
+                         d_V_new_data[ln], d_V_current_data[ln], dt);
         }
     }
 
@@ -700,46 +653,6 @@ IBHierarchyIntegrator::integrateHierarchy(
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
 
-    // Interpolate the Eulerian velocity to the nodes of the Lagrangian mesh.
-    // This needs to be done only for cycle_num > 0.
-    if (cycle_num > 0)
-    {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getCurrentContext());
-        const int u_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getNewContext());
-        switch (d_timestepping_scheme)
-        {
-            case MIDPOINT_RULE:
-            {
-                d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
-                d_l_data_manager->interp(d_u_idx, d_U_half_data, d_X_half_data, d_coarsen_scheds["u->u::S->S::CONSERVATIVE_COARSEN"], d_refine_scheds["u->u::S->S::GHOST_FILL"], current_time+0.5*dt);
-                resetAnchorPointValues(d_U_half_data, coarsest_ln, finest_ln);
-                break;
-            }
-            case TRAPEZOIDAL_RULE:
-            {
-                d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
-                d_l_data_manager->interp(d_u_idx, d_U_new_data, d_X_new_data, d_coarsen_scheds["u->u::S->S::CONSERVATIVE_COARSEN"], d_refine_scheds["u->u::S->S::GHOST_FILL"], current_time+dt);
-                resetAnchorPointValues(d_U_new_data, coarsest_ln, finest_ln);
-                for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-                {
-                    if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-                    Vec U_current_vec = d_U_current_data[ln]->getVec();
-                    Vec U_new_vec = d_U_new_data[ln]->getVec();
-                    Vec U_half_vec = d_U_half_data[ln]->getVec();
-                    ierr = VecCopy(U_new_vec, U_half_vec);  IBTK_CHKERRQ(ierr);
-                    ierr = VecAXPBY(U_half_vec, 0.5, 0.5, U_current_vec);  IBTK_CHKERRQ(ierr);
-                }
-                break;
-            }
-            default:
-            {
-                TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                           << "  unrecognized timestepping type: " << enum_to_string<TimesteppingType>(d_timestepping_scheme) << "." << std::endl);
-            }
-        }
-    }
-
     // Compute the Lagrangian forces and spread them to the Eulerian grid.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -756,7 +669,7 @@ IBHierarchyIntegrator::integrateHierarchy(
                 }
                 if (d_using_pIB_method)
                 {
-                    pIBMidpointForcing(d_F_data[ln], d_K_data[ln], d_X_half_data[ln], d_Y_current_data[ln], d_Y_new_data[ln]);
+                    pIBMidpointForcing(d_F_data[ln], d_K_data[ln], d_X_half_data[ln], d_Y_new_data[ln], d_Y_current_data[ln]);
                 }
                 break;
             }
@@ -813,6 +726,42 @@ IBHierarchyIntegrator::integrateHierarchy(
     // fluid sources or sinks.
     computeSourcePressures(coarsest_ln, finest_ln, current_time+0.5*dt, d_X_half_data);
 
+    // Interpolate the Eulerian velocity to the nodes of the Lagrangian mesh.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getCurrentContext());
+    const int u_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getNewContext());
+    switch (d_timestepping_scheme)
+    {
+        case MIDPOINT_RULE:
+        {
+            d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
+            d_l_data_manager->interp(d_u_idx, d_U_half_data, d_X_half_data, d_coarsen_scheds["u->u::S->S::CONSERVATIVE_COARSEN"], d_refine_scheds["u->u::S->S::GHOST_FILL"], current_time+0.5*dt);
+            resetAnchorPointValues(d_U_half_data, coarsest_ln, finest_ln);
+            break;
+        }
+        case TRAPEZOIDAL_RULE:
+        {
+            d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
+            d_l_data_manager->interp(d_u_idx, d_U_new_data, d_X_new_data, d_coarsen_scheds["u->u::S->S::CONSERVATIVE_COARSEN"], d_refine_scheds["u->u::S->S::GHOST_FILL"], current_time+dt);
+            resetAnchorPointValues(d_U_new_data, coarsest_ln, finest_ln);
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+                Vec U_current_vec = d_U_current_data[ln]->getVec();
+                Vec U_new_vec = d_U_new_data[ln]->getVec();
+                Vec U_half_vec = d_U_half_data[ln]->getVec();
+                ierr = VecCopy(U_new_vec, U_half_vec);  IBTK_CHKERRQ(ierr);
+                ierr = VecAXPBY(U_half_vec, 0.5, 0.5, U_current_vec);  IBTK_CHKERRQ(ierr);
+            }
+            break;
+        }
+        default:
+        {
+            TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                       << "  unrecognized timestepping type: " << enum_to_string<TimesteppingType>(d_timestepping_scheme) << "." << std::endl);
+        }
+    }
+
     // Update IB and pIB data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -831,17 +780,16 @@ IBHierarchyIntegrator::integrateHierarchy(
         Vec U_half_vec = d_U_half_data[ln]->getVec();
         ierr = VecWAXPY(X_new_vec, dt, U_half_vec, X_current_vec);  IBTK_CHKERRQ(ierr);
         Vec X_half_vec = d_X_half_data[ln]->getVec();
-        ierr = VecCopy(X_new_vec, X_half_vec);  IBTK_CHKERRQ(ierr);
-        ierr = VecAXPBY(X_half_vec, 0.5, 0.5, X_current_vec);  IBTK_CHKERRQ(ierr);
+        ierr = VecWAXPY(X_half_vec, 0.5*dt, U_half_vec, X_current_vec);  IBTK_CHKERRQ(ierr);
 
         // Update the values of Y and V(=dY/dt) at time t^{n+1}.  In this case,
         // the (explicit) midpoint rule and (explicit) trapezoidal rules are
-        // equivalent, and so we simply use the (explicit) midpoint rule.
+        // equivalent, and so we simply use the (explicit) trapezoidal rule.
         if (d_using_pIB_method)
         {
-            pIBMidpointStep(d_K_data[ln], d_M_data[ln], d_X_half_data[ln],
-                            d_Y_current_data[ln], d_Y_new_data[ln],
-                            d_V_current_data[ln], d_V_new_data[ln], dt);
+            pIBTRStep(d_K_data[ln], d_M_data[ln], d_X_new_data[ln], d_X_current_data[ln],
+                      d_Y_new_data[ln], d_Y_current_data[ln],
+                      d_V_new_data[ln], d_V_current_data[ln], dt);
         }
     }
     return;
@@ -871,29 +819,27 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
-        // Reset U data.
-        Vec U_current_vec = d_U_current_data[ln]->getVec();
-        Vec U_old_vec = d_U_old_data[ln]->getVec();
-        ierr = VecCopy(U_current_vec, U_old_vec);  IBTK_CHKERRQ(ierr);
-        Vec U_new_vec = d_U_new_data[ln]->getVec();
-        ierr = VecCopy(U_new_vec, U_current_vec);  IBTK_CHKERRQ(ierr);
-
         // Reset X data.
         Vec X_current_vec = d_X_current_data[ln]->getVec();
         Vec X_new_vec = d_X_new_data[ln]->getVec();
-        ierr = VecCopy(X_new_vec, X_current_vec);  IBTK_CHKERRQ(ierr);
+        ierr = VecSwap(X_new_vec, X_current_vec);  IBTK_CHKERRQ(ierr);
+
+        // Reset U data.
+        Vec U_current_vec = d_U_current_data[ln]->getVec();
+        Vec U_new_vec = d_U_new_data[ln]->getVec();
+        ierr = VecSwap(U_new_vec, U_current_vec);  IBTK_CHKERRQ(ierr);
 
         if (d_using_pIB_method)
         {
             // Reset Y data.
             Vec Y_current_vec = d_Y_current_data[ln]->getVec();
             Vec Y_new_vec = d_Y_new_data[ln]->getVec();
-            ierr = VecCopy(Y_new_vec, Y_current_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecSwap(Y_new_vec, Y_current_vec);  IBTK_CHKERRQ(ierr);
 
             // Reset V(=dY/dt) data.
             Vec V_current_vec = d_V_current_data[ln]->getVec();
             Vec V_new_vec = d_V_new_data[ln]->getVec();
-            ierr = VecCopy(V_new_vec, V_current_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecSwap(V_new_vec, V_current_vec);  IBTK_CHKERRQ(ierr);
         }
     }
 
@@ -931,7 +877,6 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(
     d_U_current_data.clear();
     d_U_new_data    .clear();
     d_U_half_data   .clear();
-    d_U_old_data    .clear();
     d_F_data        .clear();
     if (d_using_pIB_method)
     {
@@ -1464,10 +1409,10 @@ IBHierarchyIntegrator::pIBEulerStep(
     SAMRAI::tbox::Pointer<IBTK::LData> K_data,
     SAMRAI::tbox::Pointer<IBTK::LData> M_data,
     SAMRAI::tbox::Pointer<IBTK::LData> X_current_data,
-    SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data,
     SAMRAI::tbox::Pointer<IBTK::LData> Y_new_data,
-    SAMRAI::tbox::Pointer<IBTK::LData> V_current_data,
+    SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data,
     SAMRAI::tbox::Pointer<IBTK::LData> V_new_data,
+    SAMRAI::tbox::Pointer<IBTK::LData> V_current_data,
     double dt)
 {
     const double* const restrict K =         K_data->getLocalFormArray()   ->data();
@@ -1477,52 +1422,55 @@ IBHierarchyIntegrator::pIBEulerStep(
     const double* const restrict V = V_current_data->getLocalFormVecArray()->data();
     double* const restrict   Y_new =     Y_new_data->getLocalFormVecArray()->data();
     double* const restrict   V_new =     V_new_data->getLocalFormVecArray()->data();
-    const unsigned int n_local = X_current_data->getLocalNodeCount();
+    const unsigned int n_local = M_data->getLocalNodeCount();
     unsigned int i, d;
     for (i = 0; i < n_local; ++i)
     {
         for (d = 0; d < NDIM; ++d)
         {
             Y_new[NDIM*i+d] = Y[NDIM*i+d] + dt*V[NDIM*i+d];
-            V_new[NDIM*i+d] = V[NDIM*i+d] + dt*(-(K[i]/M[i])*(Y[NDIM*i+d]-X[NDIM*i+d]) + d_gravitational_acceleration[d]);
+            V_new[NDIM*i+d] = V[NDIM*i+d] + dt*(-K[i]*(Y[NDIM*i+d]-X[NDIM*i+d])/M[i] + d_gravitational_acceleration[d]);
         }
     }
     return;
-}// pIBEulerStep
+}// pIBAB2Step
 
 void
-IBHierarchyIntegrator::pIBMidpointStep(
+IBHierarchyIntegrator::pIBTRStep(
     SAMRAI::tbox::Pointer<IBTK::LData> K_data,
     SAMRAI::tbox::Pointer<IBTK::LData> M_data,
-    SAMRAI::tbox::Pointer<IBTK::LData> X_half_data,
-    SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data,
+    SAMRAI::tbox::Pointer<IBTK::LData> X_new_data,
+    SAMRAI::tbox::Pointer<IBTK::LData> X_current_data,
     SAMRAI::tbox::Pointer<IBTK::LData> Y_new_data,
-    SAMRAI::tbox::Pointer<IBTK::LData> V_current_data,
+    SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data,
     SAMRAI::tbox::Pointer<IBTK::LData> V_new_data,
+    SAMRAI::tbox::Pointer<IBTK::LData> V_current_data,
     double dt)
 {
-    const double* const restrict      K =         K_data->getLocalFormArray()   ->data();
-    const double* const restrict      M =         M_data->getLocalFormArray()   ->data();
-    const double* const restrict X_half =    X_half_data->getLocalFormVecArray()->data();
-    const double* const restrict      Y = Y_current_data->getLocalFormVecArray()->data();
-    const double* const restrict      V = V_current_data->getLocalFormVecArray()->data();
-    double* const restrict        Y_new =     Y_new_data->getLocalFormVecArray()->data();
-    double* const restrict        V_new =     V_new_data->getLocalFormVecArray()->data();
-    const unsigned int n_local = X_half_data->getLocalNodeCount();
+    const double* const restrict     K =         K_data->getLocalFormArray()   ->data();
+    const double* const restrict     M =         M_data->getLocalFormArray()   ->data();
+    const double* const restrict X_new =     X_new_data->getLocalFormVecArray()->data();
+    const double* const restrict     X = X_current_data->getLocalFormVecArray()->data();
+    const double* const restrict     Y = Y_current_data->getLocalFormVecArray()->data();
+    const double* const restrict     V = V_current_data->getLocalFormVecArray()->data();
+    double* const restrict       Y_new =     Y_new_data->getLocalFormVecArray()->data();
+    double* const restrict       V_new =     V_new_data->getLocalFormVecArray()->data();
+    const unsigned int n_local = M_data->getLocalNodeCount();
     unsigned int i, d;
-    double Y_half, V_half;
+    double V_half, X_half, Y_half;
     for (i = 0; i < n_local; ++i)
     {
         for (d = 0; d < NDIM; ++d)
         {
-            Y_half = 0.5*(Y[NDIM*i+d]+Y_new[NDIM*i+d]);
             V_half = 0.5*(V[NDIM*i+d]+V_new[NDIM*i+d]);
+            X_half = 0.5*(X[NDIM*i+d]+X_new[NDIM*i+d]);
+            Y_half = 0.5*(Y[NDIM*i+d]+Y_new[NDIM*i+d]);
             Y_new[NDIM*i+d] = Y[NDIM*i+d] + dt*V_half;
-            V_new[NDIM*i+d] = V[NDIM*i+d] + dt*(-(K[i]/M[i])*(Y_half-X_half[NDIM*i+d]) + d_gravitational_acceleration[d]);
+            V_new[NDIM*i+d] = V[NDIM*i+d] + dt*(-K[i]*(Y_half-X_half)/M[i] + d_gravitational_acceleration[d]);
         }
     }
     return;
-}// pIBMidpointStep
+}// pIBTRStep
 
 void
 IBHierarchyIntegrator::pIBMidpointForcing(
@@ -1545,7 +1493,7 @@ IBHierarchyIntegrator::pIBMidpointForcing(
         for (d = 0; d < NDIM; ++d)
         {
             Y_half = 0.5*(Y[NDIM*i+d]+Y_new[NDIM*i+d]);
-            F[NDIM*i+d] = K[i]*(Y_half-X_half[NDIM*i+d]);
+            F[NDIM*i+d] += K[i]*(Y_half-X_half[NDIM*i+d]);
         }
     }
     return;
@@ -1568,7 +1516,7 @@ IBHierarchyIntegrator::pIBTRForcing(
     {
         for (d = 0; d < NDIM; ++d)
         {
-            F[NDIM*i+d] = K[i]*(Y[NDIM*i+d]-X[NDIM*i+d]);
+            F[NDIM*i+d] += K[i]*(Y[NDIM*i+d]-X[NDIM*i+d]);
         }
     }
     return;

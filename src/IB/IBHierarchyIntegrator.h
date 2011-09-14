@@ -378,24 +378,26 @@ private:
         SAMRAI::tbox::Pointer<IBTK::LData> K_data,
         SAMRAI::tbox::Pointer<IBTK::LData> M_data,
         SAMRAI::tbox::Pointer<IBTK::LData> X_current_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data,
         SAMRAI::tbox::Pointer<IBTK::LData> Y_new_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> V_current_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data,
         SAMRAI::tbox::Pointer<IBTK::LData> V_new_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> V_current_data,
         double dt);
 
     /*!
-     * Perform a single explicit midpoint-rule step for the pIB state variables.
+     * Perform a single explicit trapezoidal-rule step for the pIB state
+     * variables.
      */
     void
-    pIBMidpointStep(
+    pIBTRStep(
         SAMRAI::tbox::Pointer<IBTK::LData> K_data,
         SAMRAI::tbox::Pointer<IBTK::LData> M_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> X_half_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> X_new_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> X_current_data,
         SAMRAI::tbox::Pointer<IBTK::LData> Y_new_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> V_current_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data,
         SAMRAI::tbox::Pointer<IBTK::LData> V_new_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> V_current_data,
         double dt);
 
     /*!
@@ -406,8 +408,8 @@ private:
         SAMRAI::tbox::Pointer<IBTK::LData> F_data,
         SAMRAI::tbox::Pointer<IBTK::LData> K_data,
         SAMRAI::tbox::Pointer<IBTK::LData> X_half_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> Y_new_data);
+        SAMRAI::tbox::Pointer<IBTK::LData> Y_new_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data);
 
     /*!
      * Compute pIB forces for a trapezoidal-rule type time stepping scheme.
@@ -566,7 +568,7 @@ private:
      * Lagrangian variables.
      */
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_current_data, d_X_new_data, d_X_half_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_U_current_data, d_U_new_data, d_U_half_data, d_U_old_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_U_current_data, d_U_new_data, d_U_half_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_F_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_K_data, d_M_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_Y_current_data, d_Y_new_data;
