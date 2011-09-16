@@ -1060,7 +1060,10 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
     {
         pout << d_object_name << "::regridHierarchy():\n"
              << "  WARNING: projecting the interpolated velocity field\n";
+        pout << "WARNNG: NOT DOING THE NEEDED PROJECTION!\n";
+#if 0  // XXXX
         regridProjection();
+#endif // XXXX
     }
 
     // Synchronize the state data on the patch hierarchy.
@@ -1358,9 +1361,11 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
     // Compute Div U.
     if (d_output_Div_U)
     {
+#if 0  // XXXX
         d_hier_math_ops->div(
             d_Div_U_idx, d_Div_U_var,
             1.0, d_U_current_idx, d_U_var, d_no_fill_op, d_integrator_time, false);
+#endif // XXXX
     }
     return;
 }// setupPlotDataSpecialized

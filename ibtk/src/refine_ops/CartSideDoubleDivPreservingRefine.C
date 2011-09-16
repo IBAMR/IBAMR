@@ -88,11 +88,12 @@ buildBoxOperator(
     // Allocate a PETSc matrix for the box operator.
     const int size = box.size();
     ierr = MatCreateSeqDense(PETSC_COMM_SELF, size, size, PETSC_NULL, &A);  IBTK_CHKERRQ(ierr);
-    ierr = MatSetFromOptions(A);
 
     // Set the matrix coefficients to correspond to the standard finite
     // difference approximation to the Laplacian with homogeneous Neumann
-    // boundary conditions.
+    // boundary conditions.  We clamp the (0,0) value to equal zero in order to
+    // make the linear system nonsingular.
+    ierr = MatSetValue(A, 0, 0, 1.0, INSERT_VALUES);  IBTK_CHKERRQ(ierr);
     const Index<NDIM>& box_lower = box.lower();
     const Index<NDIM>& box_upper = box.upper();
     for (Box<NDIM>::Iterator b(box); b; b++)
@@ -101,7 +102,6 @@ buildBoxOperator(
         Index<NDIM> i_shift;
         const int mat_row = compute_cell_index(i,box);
         if (mat_row == 0) continue;
-
         std::vector<int> mat_cols;
         std::vector<double> mat_vals;
         mat_cols.reserve(2*NDIM+1);
@@ -114,7 +114,9 @@ buildBoxOperator(
             {
                 i_shift = i;
                 i_shift(axis) -= 1;
-                mat_cols.push_back(compute_cell_index(i_shift,box));
+                const int i_off_diagonal = compute_cell_index(i_shift,box);
+                if (i_off_diagonal == 0) continue;
+                mat_cols.push_back(i_off_diagonal);
                 mat_vals[0] +=     -1.0/(dx[axis]*dx[axis]) ;
                 mat_vals.push_back(+1.0/(dx[axis]*dx[axis]));
             }
@@ -122,19 +124,17 @@ buildBoxOperator(
             {
                 i_shift = i;
                 i_shift(axis) += 1;
-                mat_cols.push_back(compute_cell_index(i_shift,box));
+                const int i_off_diagonal = compute_cell_index(i_shift,box);
+                if (i_off_diagonal == 0) continue;
+                mat_cols.push_back(i_off_diagonal);
                 mat_vals[0] +=     -1.0/(dx[axis]*dx[axis]) ;
                 mat_vals.push_back(+1.0/(dx[axis]*dx[axis]));
             }
         }
-
         static const int m = 1;
         static const int n = mat_vals.size();
         ierr = MatSetValues(A, m, &mat_row, n, &mat_cols[0], &mat_vals[0], INSERT_VALUES);  IBTK_CHKERRQ(ierr);
     }
-
-    // Make the system nonsingular.
-    ierr = MatSetValue(A, 0, 0, 1.0, INSERT_VALUES);  IBTK_CHKERRQ(ierr);
 
     // Assemble the matrix.
     ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
@@ -150,12 +150,13 @@ formRHS(
     const double* const dx)
 {
     int ierr;
-    double sum = 0.0;
+    double div_u_coarse = 0.0;
+
+    // Div Grad Phi = f = Div u* - (Div u)_coarse.
     for (Box<NDIM>::Iterator b(box); b; b++)
     {
         const Index<NDIM>& i = b();
         const int idx = compute_cell_index(i, box);
-        if (idx == 0) continue;
         double div_u_star = 0.0;
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
@@ -163,18 +164,15 @@ formRHS(
             const SideIndex<NDIM> s_i_lower(i, axis, SideIndex<NDIM>::Lower);
             div_u_star += (U_data(s_i_upper)-U_data(s_i_lower))/dx[axis];
         }
+        div_u_coarse += div_u_star;
         ierr = VecSetValue(div_u_star_vec, idx, div_u_star, INSERT_VALUES);  IBTK_CHKERRQ(ierr);
-        pout << "i = " << i << " div u_star = " << div_u_star << "\n";
-        sum += div_u_star;
     }
-
-    // Clamp one of the values to equal zero.
-    ierr = VecSetValue(div_u_star_vec, 0, 0.0, INSERT_VALUES);  IBTK_CHKERRQ(ierr);
-
-    // Assemble the vector.
     ierr = VecAssemblyBegin(div_u_star_vec);  IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyEnd(div_u_star_vec);  IBTK_CHKERRQ(ierr);
-    ierr = VecShift(div_u_star_vec, -sum);  IBTK_CHKERRQ(ierr);
+    ierr = VecShift(div_u_star_vec, -div_u_coarse);  IBTK_CHKERRQ(ierr);
+    ierr = VecSetValue(div_u_star_vec, 0, 0.0, INSERT_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(div_u_star_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(div_u_star_vec);  IBTK_CHKERRQ(ierr);
     return;
 }// formRHS
 
@@ -301,7 +299,11 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
     KSP ksp;
     ierr = KSPCreate(PETSC_COMM_SELF, &ksp);  IBTK_CHKERRQ(ierr);
     ierr = KSPSetOperators(ksp, A, A, SAME_PRECONDITIONER);  IBTK_CHKERRQ(ierr);
-    ierr = KSPSetFromOptions(ksp);  IBTK_CHKERRQ(ierr);
+    ierr = KSPSetType(ksp, KSPPREONLY);  IBTK_CHKERRQ(ierr);
+
+    PC pc;
+    ierr = KSPGetPC(ksp, &pc);  IBTK_CHKERRQ(ierr);
+    ierr = PCSetType(pc, PCLU);  IBTK_CHKERRQ(ierr);
 
     // Perform local projections.
 #if (NDIM == 3)
