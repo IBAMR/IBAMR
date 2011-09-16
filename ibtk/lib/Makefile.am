@@ -343,6 +343,7 @@ endif
 
 libIBTK2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBTK2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
+$(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation2d.f \
 $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f \
 $(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop2d.f \
 $(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen2d.f \

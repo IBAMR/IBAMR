@@ -35,6 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// PETSC INCLUDES
+#include <petsc.h>
+
 // SAMRAI INCLUDES
 #include <RefinePatchStrategy.h>
 
@@ -44,8 +47,9 @@ namespace IBTK
 {
 /*!
  * \brief Class CartSideDoubleDivPreservingRefine is a concrete
- * SAMRAI::xfer::RefinePatchStrategy that corrects prolonged side-centered
- * double precision patch data to satisfy a discrete divergence condition.
+ * SAMRAI::xfer::RefinePatchStrategy which prolongs side-centered double
+ * precision patch data via conservative linear interpolation with
+ * divergence-preserving corrections.
  */
 class CartSideDoubleDivPreservingRefine
     : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
@@ -55,7 +59,9 @@ public:
      * \brief Constructor.
      */
     CartSideDoubleDivPreservingRefine(
-        int u_idx);
+        int u_dst_idx,
+        int u_src_idx,
+        int indicator_idx);
 
     /*!
      * \brief Destructor.
@@ -173,9 +179,11 @@ private:
         const CartSideDoubleDivPreservingRefine& that);
 
     /*!
-     * Patch data index to correct.
+     * Patch data indices.
      */
-    const int d_u_idx;
+    const int d_u_dst_idx;
+    const int d_u_src_idx;
+    const int d_indicator_idx;
 };
 }// namespace IBTK
 

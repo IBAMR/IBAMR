@@ -61,7 +61,8 @@
 // FORTRAN ROUTINES
 #if (NDIM == 2)
 #define CC_QUAD_TANGENTIAL_INTERPOLATION_FC FC_FUNC(ccquadtangentialinterpolation2d,CCQUADTANGENTIALINTERPOLATION2D)
-#define CC_QUAD_NORMAL_INTERPOLATION_FC FC_FUNC(ccquadnormalinterpolation2d,CCQUADNORMALINTERPOLATION2D)
+// XXXX QUAD===>LINEAR
+#define CC_QUAD_NORMAL_INTERPOLATION_FC FC_FUNC(cclinearnormalinterpolation2d,CCLINEARNORMALINTERPOLATION2D)
 #endif
 #if (NDIM == 3)
 #define CC_QUAD_TANGENTIAL_INTERPOLATION_FC FC_FUNC(ccquadtangentialinterpolation3d,CCQUADTANGENTIALINTERPOLATION3D)
@@ -261,6 +262,7 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine(
     const Box<NDIM>& fine_box,
     const IntVector<NDIM>& ratio)
 {
+    return; // XXXX
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_hierarchy.isNull());
 #endif
