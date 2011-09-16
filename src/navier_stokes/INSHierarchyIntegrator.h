@@ -388,7 +388,7 @@ protected:
     blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs, d_U_star_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_Phi_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_Q_bdry_bc_fill_op, d_no_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_P_bdry_bc_fill_op, d_Q_bdry_bc_fill_op, d_no_fill_op;
 
     /*!
      * Hierarchy operators and solvers and related configuration data.

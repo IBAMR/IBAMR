@@ -256,22 +256,26 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     d_P_var          = INSHierarchyIntegrator::d_P_var;
     d_F_var          = INSHierarchyIntegrator::d_F_var;
     d_Q_var          = INSHierarchyIntegrator::d_Q_var;
-    d_N_old_var      = new SideVariable<NDIM,double>(d_object_name+"::N_old"     );
+    d_N_old_var      = new SideVariable<NDIM,double>(d_object_name+"::N_old"      );
 
-    d_U_cc_var       = new CellVariable<NDIM,double>(d_object_name+"::U_cc", NDIM);
-    d_F_cc_var       = new CellVariable<NDIM,double>(d_object_name+"::F_cc", NDIM);
+    d_U_cc_var       = new CellVariable<NDIM,double>(d_object_name+"::U_cc",  NDIM);
+    d_F_cc_var       = new CellVariable<NDIM,double>(d_object_name+"::F_cc",  NDIM);
 #if (NDIM == 2)
-    d_Omega_var      = new CellVariable<NDIM,double>(d_object_name+"::Omega"     );
+    d_Omega_var      = new CellVariable<NDIM,double>(d_object_name+"::Omega"      );
 #endif
 #if (NDIM == 3)
-    d_Omega_var      = new CellVariable<NDIM,double>(d_object_name+"::Omega",NDIM);
+    d_Omega_var      = new CellVariable<NDIM,double>(d_object_name+"::Omega", NDIM);
 #endif
-    d_Div_U_var      = new CellVariable<NDIM,double>(d_object_name+"::Div_U"     );
+    d_Div_U_var      = new CellVariable<NDIM,double>(d_object_name+"::Div_U"      );
+    d_Grad_P_var     = new CellVariable<NDIM,double>(d_object_name+"::Grad_P",NDIM);
 
 #if (NDIM == 3)
-    d_Omega_Norm_var = new CellVariable<NDIM,double>(d_object_name+"::|Omega|_2" );
+    d_Omega_Norm_var = new CellVariable<NDIM,double>(d_object_name+"::|Omega|_2"  );
 #endif
-    d_F_div_var      = new SideVariable<NDIM,double>(d_object_name+"::F_div"     );
+    d_U_regrid_var   = new SideVariable<NDIM,double>(d_object_name+"::U_regrid"   );
+    d_U_src_var      = new SideVariable<NDIM,double>(d_object_name+"::U_src"      );
+    d_indicator_var  = new SideVariable<NDIM,double>(d_object_name+"::indicator"  );
+    d_F_div_var      = new SideVariable<NDIM,double>(d_object_name+"::F_div"      );
     return;
 }// INSStaggeredHierarchyIntegrator
 
@@ -664,14 +668,23 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         d_F_cc_idx = -1;
     }
-    registerVariable(d_Omega_idx, d_Omega_var,   no_ghosts, getCurrentContext());
-    registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext());
+    registerVariable( d_Omega_idx,  d_Omega_var,   no_ghosts, getCurrentContext());
+    registerVariable( d_Div_U_idx,  d_Div_U_var, cell_ghosts, getCurrentContext());
+    registerVariable(d_Grad_P_idx, d_Grad_P_var, cell_ghosts, getCurrentContext());
 
     // Register scratch variables that are maintained by the
     // INSStaggeredHierarchyIntegrator.
 #if (NDIM == 3)
     registerVariable(d_Omega_Norm_idx, d_Omega_Norm_var, no_ghosts);
 #endif
+    Index<NDIM> max_ratio(0);
+    for (int ln = 1; ln < gridding_alg->getMaxLevels(); ++ln)
+    {
+        max_ratio = Index<NDIM>::max(max_ratio,gridding_alg->getRatioToCoarserLevel(ln));
+    }
+    registerVariable( d_U_regrid_idx,  d_U_regrid_var,   max_ratio);
+    registerVariable(    d_U_src_idx,     d_U_src_var, side_ghosts);
+    registerVariable(d_indicator_idx, d_indicator_var, side_ghosts);
     if (!d_Q_fcn.isNull())
     {
         registerVariable(d_F_div_idx, d_F_div_var, no_ghosts);
@@ -698,6 +711,13 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         if (d_output_P)
         {
             d_visit_writer->registerPlotQuantity("P", "SCALAR", d_P_current_idx, 0, d_P_scale);
+            d_visit_writer->registerPlotQuantity("Grad P", "VECTOR", d_Grad_P_idx, 0, d_P_scale);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                if (d == 0) d_visit_writer->registerPlotQuantity("Grad P_x", "SCALAR", d_Grad_P_idx, d, d_P_scale);
+                if (d == 1) d_visit_writer->registerPlotQuantity("Grad P_y", "SCALAR", d_Grad_P_idx, d, d_P_scale);
+                if (d == 2) d_visit_writer->registerPlotQuantity("Grad P_z", "SCALAR", d_Grad_P_idx, d, d_P_scale);
+            }
         }
 
         if (!d_F_fcn.isNull() && d_output_F)
@@ -1060,10 +1080,7 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
     {
         pout << d_object_name << "::regridHierarchy():\n"
              << "  WARNING: projecting the interpolated velocity field\n";
-        pout << "WARNNG: NOT DOING THE NEEDED PROJECTION!\n";
-#if 0  // XXXX
         regridProjection();
-#endif // XXXX
     }
 
     // Synchronize the state data on the patch hierarchy.
@@ -1097,23 +1114,80 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
     // Correct the divergence of the interpolated velocity data.
-    if (!initial_time && (level_number > 0 || !old_level.isNull()))
+    if (!initial_time && level_number > 0)
     {
         // Allocate scratch data.
         ComponentSelector scratch_data;
-        scratch_data.setFlag(d_U_scratch_idx);
+        scratch_data.setFlag( d_U_regrid_idx);
+        scratch_data.setFlag(    d_U_src_idx);
+        scratch_data.setFlag(d_indicator_idx);
         level->allocatePatchData(scratch_data, init_data_time);
         if (!old_level.isNull()) old_level->allocatePatchData(scratch_data, init_data_time);
+
+        // Set the indicator data to equal "0" in each patch of the new patch
+        // level, and initialize values of U to cause floating point errors if
+        // we fail to re-initialize it properly.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<SideData<NDIM,double> > indicator_data = patch->getPatchData(d_indicator_idx);
+            indicator_data->fillAll(0.0);
+
+            Pointer<SideData<NDIM,double> > U_current_data = patch->getPatchData(d_U_current_idx);
+            Pointer<SideData<NDIM,double> >  U_regrid_data = patch->getPatchData( d_U_regrid_idx);
+            Pointer<SideData<NDIM,double> >     U_src_data = patch->getPatchData(    d_U_src_idx);
+            U_current_data->fillAll(std::numeric_limits<double>::quiet_NaN());
+            U_regrid_data ->fillAll(std::numeric_limits<double>::quiet_NaN());
+            U_src_data    ->fillAll(std::numeric_limits<double>::quiet_NaN());
+        }
+
+        if (!old_level.isNull())
+        {
+            // Set the indicator data to equal "1" on each patch of the old
+            // patch level and reset U.
+            for (PatchLevel<NDIM>::Iterator p(old_level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = old_level->getPatch(p());
+
+                Pointer<SideData<NDIM,double> > indicator_data = patch->getPatchData(d_indicator_idx);
+                indicator_data->fillAll(1.0);
+
+                Pointer<SideData<NDIM,double> > U_current_data = patch->getPatchData(d_U_current_idx);
+                Pointer<SideData<NDIM,double> >  U_regrid_data = patch->getPatchData( d_U_regrid_idx);
+                Pointer<SideData<NDIM,double> >     U_src_data = patch->getPatchData(    d_U_src_idx);
+                U_regrid_data->copy(*U_current_data);
+                U_src_data   ->copy(*U_current_data);
+            }
+
+            // Create a communications schedule to copy data from the old patch
+            // level to the new patch level.
+            //
+            // Note that this will set the indicator data to equal "1" at each
+            // location in the new patch level that is a copy of a location from
+            // the old patch level.
+            RefineAlgorithm<NDIM> copy_data;
+            copy_data.registerRefine( d_U_regrid_idx,  d_U_regrid_idx,  d_U_regrid_idx, NULL);
+            copy_data.registerRefine(    d_U_src_idx,     d_U_src_idx,     d_U_src_idx, NULL);
+            copy_data.registerRefine(d_indicator_idx, d_indicator_idx, d_indicator_idx, NULL);
+            ComponentSelector bc_fill_data;
+            bc_fill_data.setFlag(d_U_regrid_idx);
+            bc_fill_data.setFlag(   d_U_src_idx);
+            CartSideRobinPhysBdryOp phys_bdry_bc_op(bc_fill_data, d_U_bc_coefs, false);
+            copy_data.createSchedule(level, old_level, &phys_bdry_bc_op)->fillData(init_data_time);
+        }
 
         // Setup the divergence- and curl-preserving prolongation refine
         // algorithm and refine the velocity data.
         RefineAlgorithm<NDIM> fill_div_free_prolongation;
-        fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_scratch_idx, new CartSideDoubleSpecializedLinearRefine());
-        CartSideRobinPhysBdryOp phys_bdry_bc_op(d_U_scratch_idx, d_U_bc_coefs, false);
-        CartSideDoubleDivPreservingRefine div_preserving_op(d_U_scratch_idx);
-        RefinePatchStrategy<NDIM>* refine_patch_strategies[2] = { &phys_bdry_bc_op , &div_preserving_op };
-        RefinePatchStrategySet patch_strategy_set(refine_patch_strategies, refine_patch_strategies+2, false);
-        fill_div_free_prolongation.createSchedule(level, old_level, level_number-1, hierarchy, &patch_strategy_set)->fillData(init_data_time);
+        Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+        Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "SPECIALIZED_LINEAR_REFINE");
+        fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_regrid_idx, refine_op);
+        CartSideRobinPhysBdryOp phys_bdry_bc_op(d_U_regrid_idx, d_U_bc_coefs, false);
+        CartSideDoubleDivPreservingRefine div_preserving_op(d_U_regrid_idx, d_U_src_idx, d_indicator_idx);
+        RefinePatchStrategy<NDIM>* refine_strategies[2] = { &phys_bdry_bc_op , &div_preserving_op };
+        RefinePatchStrategySet refine_strategy_set(refine_strategies,refine_strategies+2,false);
+        fill_div_free_prolongation.createSchedule(level, old_level, level_number-1, hierarchy, &refine_strategy_set)->fillData(init_data_time);
 
         // Free scratch data.
         level->deallocatePatchData(scratch_data);
@@ -1212,6 +1286,10 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     InterpolationTransactionComponent U_bc_component(d_U_scratch_idx, SIDE_DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY, d_U_bc_coefs);
     d_U_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
+
+    InterpolationTransactionComponent P_bc_component(d_P_scratch_idx, CELL_DATA_COARSEN_TYPE, d_bdry_extrap_type, CONSISTENT_TYPE_2_BDRY);
+    d_P_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    d_P_bdry_bc_fill_op->initializeOperatorState(P_bc_component, d_hierarchy);
 
     if (!d_Q_fcn.isNull())
     {
@@ -1337,6 +1415,27 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
             F_sc_idx, d_F_var, d_no_fill_op, d_integrator_time, synch_cf_interface);
     }
 
+    // Compute Grad P.
+    if (d_output_P)
+    {
+        const int coarsest_ln = 0;
+        const int finest_ln = d_hierarchy->getFinestLevelNumber();
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(d_P_scratch_idx, d_integrator_time);
+        }
+        d_hier_cc_data_ops->copyData(d_P_scratch_idx, d_P_current_idx);
+        d_hier_math_ops->grad(
+            d_Grad_P_idx, d_Grad_P_var,
+            1.0, d_P_scratch_idx, d_P_var, d_P_bdry_bc_fill_op, d_integrator_time);
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->deallocatePatchData(d_P_scratch_idx);
+        }
+    }
+
     // Compute Omega = curl U.
     if (d_output_Omega)
     {
@@ -1361,11 +1460,9 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
     // Compute Div U.
     if (d_output_Div_U)
     {
-#if 0  // XXXX
         d_hier_math_ops->div(
             d_Div_U_idx, d_Div_U_var,
             1.0, d_U_current_idx, d_U_var, d_no_fill_op, d_integrator_time, false);
-#endif // XXXX
     }
     return;
 }// setupPlotDataSpecialized

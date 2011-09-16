@@ -375,7 +375,7 @@ private:
     SAMRAI::tbox::Pointer<IBTK::CCDivGradHypreLevelSolver> d_exact_projection_hypre_pc;
     bool d_exact_projection_solver_needs_reinit_when_dt_changes, d_exact_projection_solver_needs_init;
 
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_P_bdry_bc_fill_op, d_Phi_bdry_bc_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_bc_fill_op;
 
     /*!
      * Fluid solver variables.
