@@ -22,7 +22,7 @@ NUM_CYCLES          = 1                          // number of cycles of fixed-po
 CONVECTIVE_OP_TYPE  = "PPM"                      // convective differencing discretization type
 CONVECTIVE_FORM     = "ADVECTIVE"                // how to compute the convective terms
 NORMALIZE_PRESSURE  = FALSE                      // whether to explicitly force the pressure to have mean zero
-CFL_MAX             = 0.05                       // maximum CFL number
+CFL_MAX             = 0.025                      // maximum CFL number
 DT_MAX              = 1.28e-1/(NFINEST^2)        // maximum timestep size
 VORTICITY_TAGGING   = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = 2                          // size of tag buffer used by grid generation algorithm
@@ -287,7 +287,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 16*int(floor(1/CFL_MAX))  // zero to turn off
+   viz_dump_interval           = 32*int(floor(1/CFL_MAX))  // zero to turn off
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 

@@ -5,8 +5,8 @@ MU = 2.0*R/Re       // the viscosity required to attain the desired Re
 RHO = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 3                            // maximum number of levels in locally refined grid
-REF_RATIO  = 4                            // refinement ratio between levels
+MAX_LEVELS = 5                            // maximum number of levels in locally refined grid
+REF_RATIO  = 2                            // refinement ratio between levels
 N = 16                                    // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
 L = 16.0                                  // width of computational domain
@@ -25,7 +25,7 @@ NORMALIZE_PRESSURE  = FALSE                      // whether to explicitly force 
 CFL_MAX             = 0.3                        // maximum CFL number
 DT_MAX              = 1.25e-1*DX_FINEST          // maximum timestep size
 VORTICITY_TAGGING   = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
-TAG_BUFFER          = 2                          // size of tag buffer used by grid generation algorithm
+TAG_BUFFER          = 1                          // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL = 0.5                        // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
 OUTPUT_U            = TRUE
 OUTPUT_P            = TRUE
@@ -199,7 +199,7 @@ INSStaggeredHierarchyIntegrator {
    cfl                        = CFL_MAX
    dt_max                     = DT_MAX
    using_vorticity_tagging    = VORTICITY_TAGGING
-   vorticity_abs_thresh       = 1
+   vorticity_abs_thresh       = 0.125
    tag_buffer                 = TAG_BUFFER
    output_U                   = OUTPUT_U
    output_P                   = OUTPUT_P
@@ -321,6 +321,7 @@ GriddingAlgorithm {
                        // all finer levels will use same values as level_0...
    }
 
+   allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
    efficiency_tolerance   = 0.95e0    // min % of tag cells in new patch level
    combine_efficiency     = 0.95e0    // chop box if sum of volumes of smaller
                                       // boxes < efficiency * vol of large box

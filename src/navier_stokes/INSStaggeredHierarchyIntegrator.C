@@ -59,6 +59,7 @@
 #include <ibtk/CartSideDoubleSpecializedLinearRefine.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
+#include <ibtk/RefinePatchStrategySet.h>
 
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
@@ -198,8 +199,8 @@ static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
-static const std::string CELL_DATA_COARSEN_TYPE = "CUBIC_COARSEN";
-static const std::string SIDE_DATA_COARSEN_TYPE = "CUBIC_COARSEN";
+static const std::string CELL_DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
+static const std::string SIDE_DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
 
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells.
@@ -270,9 +271,6 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
 #if (NDIM == 3)
     d_Omega_Norm_var = new CellVariable<NDIM,double>(d_object_name+"::|Omega|_2" );
 #endif
-    d_U_regrid_var   = new SideVariable<NDIM,double>(d_object_name+"::U_regrid"  );
-    d_U_src_var      = new SideVariable<NDIM,double>(d_object_name+"::U_src"     );
-    d_indicator_var  = new SideVariable<NDIM,double>(d_object_name+"::indicator" );
     d_F_div_var      = new SideVariable<NDIM,double>(d_object_name+"::F_div"     );
     return;
 }// INSStaggeredHierarchyIntegrator
@@ -674,9 +672,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 #if (NDIM == 3)
     registerVariable(d_Omega_Norm_idx, d_Omega_Norm_var, no_ghosts);
 #endif
-    registerVariable( d_U_regrid_idx,  d_U_regrid_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
-    registerVariable(    d_U_src_idx,     d_U_src_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
-    registerVariable(d_indicator_idx, d_indicator_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
     if (!d_Q_fcn.isNull())
     {
         registerVariable(d_F_div_idx, d_F_div_var, no_ghosts);
@@ -1098,73 +1093,24 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
 #endif
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
-    // Use divergence- and curl-preserving prolongation to re-set velocity data.
+    // Correct the divergence of the interpolated velocity data.
     if (!initial_time && (level_number > 0 || !old_level.isNull()))
     {
         // Allocate scratch data.
         ComponentSelector scratch_data;
-        scratch_data.setFlag( d_U_regrid_idx);
-        scratch_data.setFlag(    d_U_src_idx);
-        scratch_data.setFlag(d_indicator_idx);
+        scratch_data.setFlag(d_U_scratch_idx);
         level->allocatePatchData(scratch_data, init_data_time);
         if (!old_level.isNull()) old_level->allocatePatchData(scratch_data, init_data_time);
-
-        // Set the indicator data to equal "0" in each patch of the new
-        // patch level and initialize values of U to cause a floating point
-        // error if used incorrectly.
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<SideData<NDIM,double> > indicator_data = patch->getPatchData(d_indicator_idx);
-            indicator_data->fillAll(0.0);
-            Pointer<SideData<NDIM,double> > U_current_data = patch->getPatchData(d_U_current_idx);
-            Pointer<SideData<NDIM,double> >  U_regrid_data = patch->getPatchData( d_U_regrid_idx);
-            Pointer<SideData<NDIM,double> >     U_src_data = patch->getPatchData(    d_U_src_idx);
-            U_current_data->fillAll(std::numeric_limits<double>::quiet_NaN());
-            U_regrid_data ->fillAll(std::numeric_limits<double>::quiet_NaN());
-            U_src_data    ->fillAll(std::numeric_limits<double>::quiet_NaN());
-        }
-
-        if (!old_level.isNull())
-        {
-            // Set the indicator data to equal "1" on each patch of the old
-            // patch level and reset U.
-            for (PatchLevel<NDIM>::Iterator p(old_level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = old_level->getPatch(p());
-                Pointer<SideData<NDIM,double> > indicator_data = patch->getPatchData(d_indicator_idx);
-                indicator_data->fillAll(1.0);
-                Pointer<SideData<NDIM,double> > U_current_data = patch->getPatchData(d_U_current_idx);
-                Pointer<SideData<NDIM,double> >  U_regrid_data = patch->getPatchData( d_U_regrid_idx);
-                Pointer<SideData<NDIM,double> >     U_src_data = patch->getPatchData(    d_U_src_idx);
-                U_regrid_data->copy(*U_current_data);
-                U_src_data   ->copy(*U_current_data);
-            }
-
-            // Create a communications schedule to copy data from the old
-            // patch level to the new patch level.
-            //
-            // Note that this will set the indicator data to equal "1" at
-            // each location in the new patch level that is a copy of a
-            // location from the old patch level.
-            RefineAlgorithm<NDIM> copy_data;
-            copy_data.registerRefine( d_U_regrid_idx,  d_U_regrid_idx,  d_U_regrid_idx, NULL);
-            copy_data.registerRefine(    d_U_src_idx,     d_U_src_idx,     d_U_src_idx, NULL);
-            copy_data.registerRefine(d_indicator_idx, d_indicator_idx, d_indicator_idx, NULL);
-            ComponentSelector bc_fill_data;
-            bc_fill_data.setFlag(d_U_regrid_idx);
-            bc_fill_data.setFlag(   d_U_src_idx);
-            CartSideRobinPhysBdryOp phys_bdry_bc_op(bc_fill_data, d_U_bc_coefs, false);
-            copy_data.createSchedule(level, old_level, &phys_bdry_bc_op)->fillData(init_data_time);
-        }
 
         // Setup the divergence- and curl-preserving prolongation refine
         // algorithm and refine the velocity data.
         RefineAlgorithm<NDIM> fill_div_free_prolongation;
-        fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_regrid_idx, NULL);
-        CartSideRobinPhysBdryOp phys_bdry_bc_op(d_U_regrid_idx, d_U_bc_coefs, false);
-        CartSideDoubleDivPreservingRefine div_preserving_op(d_U_regrid_idx, d_U_src_idx, d_indicator_idx, init_data_time, Pointer<RefinePatchStrategy<NDIM> >(&phys_bdry_bc_op,false));
-        fill_div_free_prolongation.createSchedule(level, old_level, level_number-1, hierarchy, &div_preserving_op)->fillData(init_data_time);
+        fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_scratch_idx, new CartSideDoubleSpecializedLinearRefine());
+        CartSideRobinPhysBdryOp phys_bdry_bc_op(d_U_scratch_idx, d_U_bc_coefs, false);
+        CartSideDoubleDivPreservingRefine div_preserving_op(d_U_scratch_idx);
+        RefinePatchStrategy<NDIM>* refine_patch_strategies[2] = { &phys_bdry_bc_op , &div_preserving_op };
+        RefinePatchStrategySet patch_strategy_set(refine_patch_strategies, refine_patch_strategies+2, false);
+        fill_div_free_prolongation.createSchedule(level, old_level, level_number-1, hierarchy, &patch_strategy_set)->fillData(init_data_time);
 
         // Free scratch data.
         level->deallocatePatchData(scratch_data);

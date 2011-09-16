@@ -36,10 +36,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // SAMRAI INCLUDES
-#include <CartesianSideDoubleConservativeLinearRefine.h>
-#include <CartesianSideDoubleWeightedAverage.h>
-#include <CoarsenOperator.h>
-#include <RefineOperator.h>
 #include <RefinePatchStrategy.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -48,9 +44,8 @@ namespace IBTK
 {
 /*!
  * \brief Class CartSideDoubleDivPreservingRefine is a concrete
- * SAMRAI::xfer::RefinePatchStrategy which prolongs side-centered double
- * precision patch data via conservative linear interpolation with divergence-
- * and curl-preserving corrections.
+ * SAMRAI::xfer::RefinePatchStrategy that corrects prolonged side-centered
+ * double precision patch data to satisfy a discrete divergence condition.
  */
 class CartSideDoubleDivPreservingRefine
     : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
@@ -60,24 +55,12 @@ public:
      * \brief Constructor.
      */
     CartSideDoubleDivPreservingRefine(
-        int u_dst_idx,
-        int u_src_idx,
-        int indicator_idx,
-        double fill_time=0.0,
-        SAMRAI::xfer::RefinePatchStrategy<NDIM>* phys_bdry_op=NULL);
+        int u_idx);
 
     /*!
      * \brief Destructor.
      */
     ~CartSideDoubleDivPreservingRefine();
-
-    /*!
-     * \brief The number of required ghost cells.
-     *
-     * \note This value is chosen to allow refinement ratios up to 4.  A larger
-     * value is necessary for refinement ratios greater than 4.
-     */
-    static const int REFINE_OP_STENCIL_WIDTH = 4;
 
     /*!
      * \name Implementation of SAMRAI::xfer::RefinePatchStrategy interface.
@@ -190,27 +173,9 @@ private:
         const CartSideDoubleDivPreservingRefine& that);
 
     /*!
-     * Patch data indices.
+     * Patch data index to correct.
      */
-    const int d_u_dst_idx;
-    const int d_u_src_idx;
-    const int d_indicator_idx;
-
-    /*!
-     * Routines for setting physical boundary conditions.
-     */
-    const double d_fill_time;
-    SAMRAI::xfer::RefinePatchStrategy<NDIM>* const d_phys_bdry_op;
-
-    /*!
-     * The standard conservative linear refine operator.
-     */
-    SAMRAI::geom::CartesianSideDoubleConservativeLinearRefine<NDIM> d_conservative_linear_refine_op;
-
-    /*!
-     * The standard conservative coarsening operator.
-     */
-    SAMRAI::geom::CartesianSideDoubleWeightedAverage<NDIM> d_conservative_coarsen_op;
+    const int d_u_idx;
 };
 }// namespace IBTK
 
