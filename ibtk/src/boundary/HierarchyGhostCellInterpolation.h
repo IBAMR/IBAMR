@@ -86,7 +86,7 @@ public:
          */
         inline
         InterpolationTransactionComponent(
-            const int data_idx=-1,
+            int data_idx=-1,
             const std::string& coarsen_op_name="NONE",
             const std::string& phys_bdry_extrap_type="NONE",
             bool consistent_type_2_bdry=false,
@@ -108,7 +108,7 @@ public:
          */
         inline
         InterpolationTransactionComponent(
-            const int data_idx,
+            int data_idx,
             const std::string& coarsen_op_name,
             const std::string& phys_bdry_extrap_type,
             bool consistent_type_2_bdry,
@@ -130,7 +130,7 @@ public:
          */
         inline
         InterpolationTransactionComponent(
-            const int data_idx,
+            int data_idx,
             const std::string& coarsen_op_name,
             const std::string& phys_bdry_extrap_type,
             bool consistent_type_2_bdry,

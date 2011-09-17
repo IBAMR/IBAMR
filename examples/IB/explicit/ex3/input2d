@@ -6,8 +6,8 @@ G      = 980.0
 LAMBDA = RHO*G/V0
 
 // grid spacing parameters
-MAX_LEVELS = 3                            // maximum number of levels in locally refined grid
-REF_RATIO  = 4                            // refinement ratio between levels
+MAX_LEVELS = 5                            // maximum number of levels in locally refined grid
+REF_RATIO  = 2                            // refinement ratio between levels
 N = 16                                    // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
 L = 9.0                                   // width of computational domain
@@ -129,7 +129,7 @@ INSCollocatedHierarchyIntegrator {
    cfl                        = CFL_MAX
    dt_max                     = DT_MAX
    using_vorticity_tagging    = VORTICITY_TAGGING
-   vorticity_rel_thresh       = 0.125 , 0.0625
+   vorticity_rel_thresh       = 0.25 , 0.125 , 0.0625
    tag_buffer                 = TAG_BUFFER
    output_U                   = OUTPUT_U
    output_P                   = OUTPUT_P
@@ -210,7 +210,7 @@ INSStaggeredHierarchyIntegrator {
    cfl                        = CFL_MAX
    dt_max                     = DT_MAX
    using_vorticity_tagging    = VORTICITY_TAGGING
-   vorticity_rel_thresh       = 0.125 , 0.0625
+   vorticity_rel_thresh       = 0.25 , 0.125 , 0.0625
    tag_buffer                 = TAG_BUFFER
    output_U                   = OUTPUT_U
    output_P                   = OUTPUT_P

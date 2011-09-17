@@ -45,7 +45,6 @@
 #endif
 
 // IBTK INCLUDES
-#include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/namespaces.h>
 
@@ -55,164 +54,65 @@
 #include <SideVariable.h>
 #include <tbox/MathUtilities.h>
 
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
-
 // C++ STDLIB INCLUDES
 #include <limits>
 #include <vector>
+
+// FORTRAN ROUTINES
+#if (NDIM == 2)
+#define DIV_PRESERVING_CORRECTION_FC FC_FUNC_(div_preserving_correction2d,DIV_PRESERVING_CORRECTION2D)
+#endif
+
+#if (NDIM == 3)
+#define DIV_PRESERVING_CORRECTION_FC FC_FUNC_(div_preserving_correction3d,DIV_PRESERVING_CORRECTION3D)
+#endif
+
+extern "C"
+{
+    void
+    DIV_PRESERVING_CORRECTION_FC(
+        double* u0, double* u1,
+#if (NDIM == 3)
+        double* u2,
+#endif
+        const int& u_gcw,
+        const int& ilower0, const int& iupper0,
+        const int& ilower1, const int& iupper1,
+#if (NDIM == 3)
+        const int& ilower2, const int& iupper2,
+#endif
+        const int& correction_box_ilower0, const int& correction_box_iupper0,
+        const int& correction_box_ilower1, const int& correction_box_iupper1,
+#if (NDIM == 3)
+        const int& correction_box_ilower2, const int& correction_box_iupper2,
+#endif
+        const int* ratio, const double* dx_fine
+                                 );
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
-namespace
-{
-void
-buildBoxOperator(
-    Mat& A,
-    const Box<NDIM>& box,
-    const double* const dx)
-{
-    int ierr;
-
-    // Allocate a PETSc matrix for the box operator.
-    const int size = box.size();
-    std::vector<int> nnz(size);
-    for (int j = 0; j < size; ++j)
-    {
-        if (j == 0) nnz[j] = size;
-        else        nnz[j] = std::min(size,2*NDIM+1);
-    }
-    ierr = MatCreateSeqAIJ(PETSC_COMM_SELF, size, size, PETSC_DEFAULT, &nnz[0], &A);  IBTK_CHKERRQ(ierr);
-    ierr = MatSetFromOptions(A);
-
-    // Set the matrix coefficients to correspond to the standard finite
-    // difference approximation to the Laplacian with homogeneous Neumann
-    // boundary conditions.  We explicitly force the mean value of the solution
-    // to equal zero.
-    for (int j = 0; j < size; ++j)
-    {
-        ierr = MatSetValue(A, 0, j, 1.0, INSERT_VALUES);  IBTK_CHKERRQ(ierr);
-    }
-    for (Box<NDIM>::Iterator b(box); b; b++)
-    {
-        const Index<NDIM>& i = b();
-        const int mat_row = box.offset(i);
-        if (mat_row == 0) continue;  // don't reset values in the first row
-        std::vector<double> mat_vals(2*NDIM+1,0.0);
-        std::vector<int   > mat_cols(2*NDIM+1, -1);
-        mat_vals[0] = 0.0;
-        mat_cols[0] = mat_row;
-        for (int axis = 0, s = 1; axis < NDIM; ++axis)
-        {
-            for (int shift = -1; shift <= 1; shift += 2, ++s)
-            {
-                Index<NDIM> i_shift = i;
-                i_shift(axis) += shift;
-                if (!box.contains(i_shift)) continue;
-                const int mat_col = box.offset(i_shift);
-                mat_vals[0] -= 1.0/(dx[axis]*dx[axis]);  //     diagonal entry
-                mat_vals[s] += 1.0/(dx[axis]*dx[axis]);  // off-diagonal entry
-                mat_cols[s]  = mat_col;
-            }
-        }
-        static const int m = 1;
-        static const int n = mat_vals.size();
-        ierr = MatSetValues(A, m, &mat_row, n, &mat_cols[0], &mat_vals[0], INSERT_VALUES);  IBTK_CHKERRQ(ierr);
-    }
-
-    // Assemble the matrix.
-    ierr = MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
-    ierr = MatAssemblyEnd  (A, MAT_FINAL_ASSEMBLY);  IBTK_CHKERRQ(ierr);
-
-    Vec M_sum;
-    VecCreateSeq(PETSC_COMM_SELF, size, &M_sum);
-    MatGetRowSum(A,M_sum);
-    for (int k = 0; k < size; ++k)
-    {
-        double sum;
-        VecGetValues(M_sum, 1, &k, &sum);
-    }
-    return;
-}// buildBoxOperator
-
-inline void
-formRHS(
-    Vec& f_vec,
-    const SideData<NDIM,double>& U_data,
-    const Box<NDIM>& box,
-    const double* const dx)
-{
-    int ierr;
-
-    // u* = u + Grad Phi ===> Div Grad Phi = f = Div u* - Div u.
-    //
-    // Because we wish to maintain the discrete divergence of the overlying
-    // coarse grid cell, we impose Div u = (Div u)_coarse instead of Div = 0.
-    double div_u_coarse = 0.0;
-    for (Box<NDIM>::Iterator b(box); b; b++)
-    {
-        const Index<NDIM>& i = b();
-        const int idx = box.offset(i);
-        double div_u_star = 0.0;
-        for (unsigned int axis = 0; axis < NDIM; ++axis)
-        {
-            const SideIndex<NDIM> s_i_upper(i, axis, SideIndex<NDIM>::Upper);
-            const SideIndex<NDIM> s_i_lower(i, axis, SideIndex<NDIM>::Lower);
-            div_u_star += (U_data(s_i_upper)-U_data(s_i_lower))/dx[axis];
-        }
-        div_u_coarse += div_u_star;
-        ierr = VecSetValue(f_vec, idx, div_u_star, INSERT_VALUES);  IBTK_CHKERRQ(ierr);
-    }
-    div_u_coarse /= static_cast<double>(box.size());
-    ierr = VecAssemblyBegin(f_vec);  IBTK_CHKERRQ(ierr);
-    ierr = VecAssemblyEnd  (f_vec);  IBTK_CHKERRQ(ierr);
-    ierr = VecShift(f_vec, -div_u_coarse);  IBTK_CHKERRQ(ierr);
-    ierr = VecSetValue(f_vec, 0, 0.0, INSERT_VALUES);  IBTK_CHKERRQ(ierr);
-    ierr = VecAssemblyBegin(f_vec);  IBTK_CHKERRQ(ierr);
-    ierr = VecAssemblyEnd  (f_vec);  IBTK_CHKERRQ(ierr);
-    return;
-}// formRHS
-
-inline void
-correctVelocity(
-    Vec& phi_vec,
-    SideData<NDIM,double>& U_data,
-    const Box<NDIM>& box,
-    const double* const dx)
-{
-    int ierr;
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
-    {
-        Box<NDIM> side_box = box;
-        side_box.lower()(axis) += 1;
-        for (Box<NDIM>::Iterator b(side_box); b; b++)
-        {
-            const Index<NDIM>& i_upper = b();
-            Index<NDIM>        i_lower = i_upper;
-            i_lower(axis) -= 1;
-            int idxs[2] = { box.offset(i_lower) , box.offset(i_upper) };
-            double phi_vals[2];
-            ierr = VecGetValues(phi_vec, 2, idxs, phi_vals);  IBTK_CHKERRQ(ierr);
-            const SideIndex<NDIM> s_i(i_upper, axis, SideIndex<NDIM>::Lower);
-            U_data(s_i) -= (phi_vals[1]-phi_vals[0])/dx[axis];
-        }
-    }
-    return;
-}// correctVelocity
-}
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CartSideDoubleDivPreservingRefine::CartSideDoubleDivPreservingRefine(
     const int u_dst_idx,
     const int u_src_idx,
-    const int indicator_idx)
+    const int indicator_idx,
+    Pointer<RefineOperator<NDIM> > refine_op,
+    Pointer<CoarsenOperator<NDIM> > coarsen_op,
+    const double fill_time,
+    RefinePatchStrategy<NDIM>* const phys_bdry_op)
     : d_u_dst_idx(u_dst_idx),
       d_u_src_idx(u_src_idx),
-      d_indicator_idx(indicator_idx)
+      d_indicator_idx(indicator_idx),
+      d_fill_time(fill_time),
+      d_phys_bdry_op(phys_bdry_op),
+      d_refine_op(refine_op),
+      d_coarsen_op(coarsen_op)
 {
     // intentionally blank
     return;
@@ -226,18 +126,21 @@ CartSideDoubleDivPreservingRefine::~CartSideDoubleDivPreservingRefine()
 
 void
 CartSideDoubleDivPreservingRefine::setPhysicalBoundaryConditions(
-    Patch<NDIM>& /*patch*/,
-    const double /*fill_time*/,
-    const IntVector<NDIM>& /*ghost_width_to_fill*/)
+    Patch<NDIM>& patch,
+    const double fill_time,
+    const IntVector<NDIM>& ghost_width_to_fill)
 {
-    // intentionally blank
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(MathUtilities<double>::equalEps(fill_time,d_fill_time));
+#endif
+    if (d_phys_bdry_op != NULL) d_phys_bdry_op->setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
     return;
 }// setPhysicalBoundaryConditions
 
 IntVector<NDIM>
 CartSideDoubleDivPreservingRefine::getRefineOpStencilWidth() const
 {
-    return 0;
+    return REFINE_OP_STENCIL_WIDTH;
 }// getRefineOpStencilWidth
 
 void
@@ -254,35 +157,71 @@ CartSideDoubleDivPreservingRefine::preprocessRefine(
 void
 CartSideDoubleDivPreservingRefine::postprocessRefine(
     Patch<NDIM>& fine,
-    const Patch<NDIM>& /*coarse*/,
-    const Box<NDIM>& fine_box,
+    const Patch<NDIM>& coarse,
+    const Box<NDIM>& unrestricted_fine_box,
     const IntVector<NDIM>& ratio)
 {
+    // NOTE: This operator cannot fill the full ghost cell width of the
+    // destination data.  We instead restrict the size of the fine box to ensure
+    // that we have adequate data to apply the divergence- and curl-preserving
+    // corrections.
+    const Box<NDIM> fine_box = unrestricted_fine_box * Box<NDIM>::grow(fine.getBox(),2);
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+    for (int d = 0; d < NDIM; ++d)
+    {
+        if (ratio(d)%2 != 0)
+        {
+            TBOX_ERROR("CartSideDoubleDivPreservingRefine::postprocessRefine():\n"
+                       << "  refinement ratio must be a power of 2 for divergence- and curl-preserving refinement operator." << std::endl);
+        }
+    }
+#endif
+
     Pointer<SideData<NDIM,double> > fdata = fine.getPatchData(d_u_dst_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!fdata.isNull());
 #endif
+    const int fdata_ghosts = fdata->getGhostCellWidth().max();
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(fdata_ghosts == fdata->getGhostCellWidth().min());
+#endif
     const int fdata_depth = fdata->getDepth();
 
-    if (fine.checkAllocated(d_u_src_idx) && fine.checkAllocated(d_indicator_idx))
+    Pointer<SideData<NDIM,double> > cdata = coarse.getPatchData(d_u_dst_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!cdata.isNull());
+    const int cdata_ghosts = cdata->getGhostCellWidth().max();
+    TBOX_ASSERT(cdata_ghosts == cdata->getGhostCellWidth().min());
+    const int cdata_depth = cdata->getDepth();
+    TBOX_ASSERT(cdata_depth == fdata_depth);
+#endif
+
+    if (ratio == IntVector<NDIM>(2))
     {
+        // Perform (limited) conservative prolongation of the coarse grid data.
+        d_refine_op->refine(fine, coarse, d_u_dst_idx, d_u_dst_idx, fine_box, ratio);
+
         Pointer<SideData<NDIM,double> >     u_src_data = fine.getPatchData(    d_u_src_idx);
         Pointer<SideData<NDIM,double> > indicator_data = fine.getPatchData(d_indicator_idx);
 
         // Ensure that we do not modify any of the data from the old level by
         // setting the value of the fine grid data to equal u_src wherever the
         // indicator data equals "1".
-        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        if (!u_src_data.isNull() && !indicator_data.isNull())
         {
-            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_box,axis)); b; b++)
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                const Index<NDIM>& i = b();
-                const SideIndex<NDIM> i_s(i,axis,0);
-                if (std::abs((*indicator_data)(i_s)-1.0) < 1.0e-12)
+                for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_box,axis)); b; b++)
                 {
-                    for (int depth = 0; depth < fdata_depth; ++depth)
+                    const Index<NDIM>& i = b();
+                    const SideIndex<NDIM> i_s(i,axis,0);
+                    if (std::abs((*indicator_data)(i_s)-1.0) < 1.0e-12)
                     {
-                        (*fdata)(i_s,depth) = (*u_src_data)(i_s,depth);
+                        for (int depth = 0; depth < fdata_depth; ++depth)
+                        {
+                            (*fdata)(i_s,depth) = (*u_src_data)(i_s,depth);
+                        }
                     }
                 }
             }
@@ -292,99 +231,140 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
         // of the level wherever the indicator data does NOT equal "1".  Notice
         // that this loop actually modifies only data that is NOT covered by an
         // overlying coarse grid cell face.
-        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        if (!indicator_data.isNull())
         {
-            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_box,axis)); b; b++)
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                const Index<NDIM>& i = b();
-                const SideIndex<NDIM> i_s(i,axis,0);
-                if (!(std::abs((*indicator_data)(i_s)-1.0) < 1.0e-12))
+                for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_box,axis)); b; b++)
                 {
-                    const Index<NDIM> i_coarse_lower = IndexUtilities::coarsen(i,ratio);
-                    const Index<NDIM> i_lower = IndexUtilities::refine(i_coarse_lower,ratio);
-                    if (i(axis) == i_lower(axis)) continue;
-
-                    Index<NDIM> i_coarse_upper = i_coarse_lower;
-                    i_coarse_upper(axis) += 1;
-                    const Index<NDIM> i_upper = IndexUtilities::refine(i_coarse_upper,ratio);
-
-                    const double w1 = static_cast<double>(i(axis)-i_lower(axis))/static_cast<double>(ratio(axis));
-                    const double w0 = 1.0-w1;
-
-                    const SideIndex<NDIM> i_s_lower(i_lower,axis,0);
-                    const SideIndex<NDIM> i_s_upper(i_upper,axis,0);
-                    for (int depth = 0; depth < fdata_depth; ++depth)
+                    const Index<NDIM>& i = b();
+                    const SideIndex<NDIM> i_s(i,axis,0);
+                    if (!(std::abs((*indicator_data)(i_s)-1.0) < 1.0e-12))
                     {
-                        (*fdata)(i_s,depth) = w0*(*fdata)(i_s_lower,depth) + w1*(*fdata)(i_s_upper,depth);
+                        const Index<NDIM> i_coarse_lower = IndexUtilities::coarsen(i,ratio);
+                        const Index<NDIM> i_lower = IndexUtilities::refine(i_coarse_lower,ratio);
+                        if (i(axis) == i_lower(axis)) continue;
+
+                        Index<NDIM> i_coarse_upper = i_coarse_lower;
+                        i_coarse_upper(axis) += 1;
+                        const Index<NDIM> i_upper = IndexUtilities::refine(i_coarse_upper,ratio);
+
+                        const double w1 = static_cast<double>(i(axis)-i_lower(axis))/static_cast<double>(ratio(axis));
+                        const double w0 = 1.0-w1;
+
+                        const SideIndex<NDIM> i_s_lower(i_lower,axis,0);
+                        const SideIndex<NDIM> i_s_upper(i_upper,axis,0);
+                        for (int depth = 0; depth < fdata_depth; ++depth)
+                        {
+                            (*fdata)(i_s,depth) = w0*(*fdata)(i_s_lower,depth) + w1*(*fdata)(i_s_upper,depth);
+                        }
                     }
                 }
             }
         }
-    }
 
-    // Determine the box on which we need to compute the divergence-preserving
-    // correction.
-    const Box<NDIM> correction_box = Box<NDIM>::refine(Box<NDIM>::coarsen(fine_box,ratio),ratio);
+        // Determine the box on which we need to compute the divergence- and
+        // curl-preserving correction.
+        const Box<NDIM> correction_box = Box<NDIM>::refine(Box<NDIM>::coarsen(fine_box,2),2);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(fdata->getGhostBox().contains(correction_box));
+        TBOX_ASSERT(fdata->getGhostBox().contains(correction_box));
 #endif
-
-    // Setup a linear solver to compute the local projection.
-    int ierr;
-
-    Box<NDIM> box;
-    Index<NDIM>& box_lower = box.lower();
-    Index<NDIM>& box_upper = box.upper();
-    box_lower = Index<NDIM>(0);
-    box_upper = ratio-Index<NDIM>(1);
-
-    Mat L_mat;
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = fine.getPatchGeometry();
-    const double* const dx = pgeom->getDx();
-    buildBoxOperator(L_mat, box, dx);
-
-    Vec phi_vec, f_vec;
-    ierr = MatGetVecs(L_mat, &phi_vec, &f_vec);  IBTK_CHKERRQ(ierr);
-
-    KSP ksp;
-    ierr = KSPCreate(PETSC_COMM_SELF, &ksp);  IBTK_CHKERRQ(ierr);
-    ierr = KSPSetOperators(ksp, L_mat, L_mat, SAME_PRECONDITIONER);  IBTK_CHKERRQ(ierr);
-    ierr = KSPSetType(ksp, KSPPREONLY);  IBTK_CHKERRQ(ierr);
-
-    PC pc;
-    ierr = KSPGetPC(ksp, &pc);  IBTK_CHKERRQ(ierr);
-    ierr = PCSetType(pc, PCLU);  IBTK_CHKERRQ(ierr);
-
-    // Perform local projections to impose a discrete divergence condition.
-#if (NDIM == 3)
-    for (int n2 = fine_box.lower()(2); n2 < fine_box.upper()(2); n2 += ratio(2))
-    {
-        box_lower(2) = n2;
-        box_upper(2) = n2+ratio(2)-1;
-#endif
-        for (int n1 = fine_box.lower()(1); n1 < fine_box.upper()(1); n1 += ratio(1))
+        // Apply the divergence- and curl-preserving correction to the fine grid
+        // data.
+        Pointer<CartesianPatchGeometry<NDIM> > pgeom_fine = fine.getPatchGeometry();
+        const double* const dx_fine = pgeom_fine->getDx();
+        for (int d = 0; d < fdata_depth; ++d)
         {
-            box_lower(1) = n1;
-            box_upper(1) = n1+ratio(1)-1;
-            for (int n0 = fine_box.lower()(0); n0 < fine_box.upper()(0); n0 += ratio(0))
-            {
-                box_lower(0) = n0;
-                box_upper(0) = n0+ratio(0)-1;
+            DIV_PRESERVING_CORRECTION_FC(
+                fdata->getPointer(0,d),
+                fdata->getPointer(1,d),
+#if (NDIM == 3)
+                fdata->getPointer(2,d),
+#endif
+                fdata_ghosts,
+                fdata->getBox().lower()(0), fdata->getBox().upper()(0),
+                fdata->getBox().lower()(1), fdata->getBox().upper()(1),
+#if (NDIM == 3)
+                fdata->getBox().lower()(2), fdata->getBox().upper()(2),
+#endif
+                correction_box.lower()(0), correction_box.upper()(0),
+                correction_box.lower()(1), correction_box.upper()(1),
+#if (NDIM == 3)
+                correction_box.lower()(2), correction_box.upper()(2),
+#endif
+                ratio, dx_fine);
+        }
+    }
+    else
+    {
+        // Setup an intermediate patch.
+        const Box<NDIM> intermediate_patch_box = Box<NDIM>::refine(coarse.getBox(),2);
+        Patch<NDIM> intermediate(intermediate_patch_box, coarse.getPatchDescriptor());
+        intermediate.allocatePatchData(d_u_dst_idx);
 
-                formRHS(f_vec, *fdata, box, dx);
-                ierr = KSPSolve(ksp, f_vec, phi_vec);  IBTK_CHKERRQ(ierr);
-                correctVelocity(phi_vec, *fdata, box, dx);
+        // Setup a patch geometry object for the intermediate patch.
+        Pointer<CartesianPatchGeometry<NDIM> > pgeom_coarse = coarse.getPatchGeometry();
+        const IntVector<NDIM>& ratio_to_level_zero_coarse = pgeom_coarse->getRatio();
+        Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            touches_regular_bdry [axis].resizeArray(2);
+            touches_periodic_bdry[axis].resizeArray(2);
+            for (int upperlower = 0; upperlower < 2; ++upperlower)
+            {
+                touches_regular_bdry [axis][upperlower] = pgeom_coarse->getTouchesRegularBoundary( axis,upperlower);
+                touches_periodic_bdry[axis][upperlower] = pgeom_coarse->getTouchesPeriodicBoundary(axis,upperlower);
             }
         }
-#if (NDIM == 3)
-    }
-#endif
+        const double* const dx_coarse = pgeom_coarse->getDx();
 
-    // Clean-up allocated data.
-    ierr = VecDestroy(phi_vec);  IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(f_vec);  IBTK_CHKERRQ(ierr);
-    ierr = MatDestroy(L_mat);  IBTK_CHKERRQ(ierr);
-    ierr = KSPDestroy(ksp);  IBTK_CHKERRQ(ierr);
+        const IntVector<NDIM> ratio_to_level_zero_intermediate = ratio_to_level_zero_coarse*2;
+        double dx_intermediate[NDIM], x_lower_intermediate[NDIM], x_upper_intermediate[NDIM];
+        for (int d = 0; d < NDIM; ++d)
+        {
+            dx_intermediate[d] = 0.5*dx_coarse[d];
+            x_lower_intermediate[d] = pgeom_coarse->getXLower()[d];
+            x_upper_intermediate[d] = pgeom_coarse->getXUpper()[d];
+        }
+        intermediate.setPatchGeometry(new CartesianPatchGeometry<NDIM>(
+                                          ratio_to_level_zero_intermediate, touches_regular_bdry, touches_periodic_bdry,
+                                          dx_intermediate, x_lower_intermediate, x_upper_intermediate));
+
+        // The intermediate box where we need to fill data must be large enough
+        // to provide ghost cell values for the fine fill box.
+        const Box<NDIM> intermediate_box = Box<NDIM>::grow(Box<NDIM>::coarsen(fine_box,ratio/2),2);
+
+        // Setup the original velocity and indicator data.
+        if (fine.checkAllocated(d_u_src_idx) && fine.checkAllocated(d_indicator_idx))
+        {
+            intermediate.allocatePatchData(d_u_src_idx);
+            intermediate.allocatePatchData(d_indicator_idx);
+            Pointer<SideData<NDIM,double> >     u_src_idata = intermediate.getPatchData(    d_u_src_idx);
+            Pointer<SideData<NDIM,double> > indicator_idata = intermediate.getPatchData(d_indicator_idx);
+            u_src_idata->fillAll(std::numeric_limits<double>::quiet_NaN());
+            indicator_idata->fillAll(-1.0);
+#ifdef DEBUG_CHECK_ASSERTIONS
+            Pointer<SideData<NDIM,double> >     u_src_fdata = fine.getPatchData(    d_u_src_idx);
+            Pointer<SideData<NDIM,double> > indicator_fdata = fine.getPatchData(d_indicator_idx);
+            TBOX_ASSERT(    u_src_fdata->getGhostBox().contains(Box<NDIM>::refine(intermediate_box,ratio/2)));
+            TBOX_ASSERT(indicator_fdata->getGhostBox().contains(Box<NDIM>::refine(intermediate_box,ratio/2)));
+#endif
+            d_coarsen_op->coarsen(intermediate, fine,     d_u_src_idx,     d_u_src_idx, intermediate_box, ratio/2);
+            d_coarsen_op->coarsen(intermediate, fine, d_indicator_idx, d_indicator_idx, intermediate_box, ratio/2);
+        }
+
+        // Recursively refine from the coarse patch to the fine patch.
+        postprocessRefine(intermediate, coarse, intermediate_box, 2);
+        postprocessRefine(fine, intermediate, fine_box, ratio/2);
+
+        // Deallocate any allocated patch data.
+        intermediate.deallocatePatchData(d_u_dst_idx);
+        if (fine.checkAllocated(d_u_src_idx) && fine.checkAllocated(d_indicator_idx))
+        {
+            intermediate.deallocatePatchData(d_u_src_idx);
+            intermediate.deallocatePatchData(d_indicator_idx);
+        }
+    }
     return;
 }// postprocessRefine
 
@@ -395,5 +375,10 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 }// namespace IBTK
+
+/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
+
+#include <tbox/Pointer.C>
+template class Pointer<IBTK::CartSideDoubleDivPreservingRefine>;
 
 //////////////////////////////////////////////////////////////////////////////

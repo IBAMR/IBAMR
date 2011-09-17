@@ -79,6 +79,22 @@ struct CellIndexFortranOrder
 class IndexUtilities
 {
 public:
+    /*
+     * \return The coarsened version of a cell-centered index.
+     */
+    static SAMRAI::hier::Index<NDIM>
+    coarsen(
+        const SAMRAI::hier::Index<NDIM>& i_fine,
+        const SAMRAI::hier::Index<NDIM>& ratio);
+
+    /*
+     * \return The refined version of a cell-centered index.
+     */
+    static SAMRAI::hier::Index<NDIM>
+    refine(
+        const SAMRAI::hier::Index<NDIM>& i_coarsen,
+        const SAMRAI::hier::Index<NDIM>& ratio);
+
     /*!
      * \return The cell index corresponding to location \p X relative
      * to \p XLower and \p XUpper for the specified Cartesian grid

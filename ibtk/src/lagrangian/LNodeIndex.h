@@ -267,8 +267,8 @@ public:
 
     inline bool
     operator()(
-        const LNodeIndex* const lhs,
-        const LNodeIndex* const rhs)
+        const LNodeIndex* lhs,
+        const LNodeIndex* rhs)
         {
             return (*this)(*lhs,*rhs);
         }// operator()
@@ -299,8 +299,8 @@ struct LNodeIndexLagrangianIndexComp
 
     inline bool
     operator()(
-        const LNodeIndex* const lhs,
-        const LNodeIndex* const rhs)
+        const LNodeIndex* lhs,
+        const LNodeIndex* rhs)
         {
             return (*this)(*lhs,*rhs);
         }// operator()
@@ -328,8 +328,8 @@ struct LNodeIndexGlobalPETScIndexComp
 
     inline bool
     operator()(
-        const LNodeIndex* const lhs,
-        const LNodeIndex* const rhs)
+        const LNodeIndex* lhs,
+        const LNodeIndex* rhs)
         {
             return (*this)(*lhs,*rhs);
         }// operator()
@@ -357,8 +357,8 @@ struct LNodeIndexLocalPETScIndexComp
 
     inline bool
     operator()(
-        const LNodeIndex* const lhs,
-        const LNodeIndex* const rhs)
+        const LNodeIndex* lhs,
+        const LNodeIndex* rhs)
         {
             return (*this)(*lhs,*rhs);
         }// operator()

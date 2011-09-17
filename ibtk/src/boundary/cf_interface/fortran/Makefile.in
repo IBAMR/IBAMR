@@ -381,8 +381,12 @@ IBTK2d_LIBS = ${top_builddir}/lib/libIBTK2d.a
 IBTK3d_LIBS = ${top_builddir}/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXTRA_DIST = linearcfinterpolation2d.f.m4 quadcfinterpolation2d.f.m4 quadcfinterpolation3d.f.m4
-BUILT_SOURCES = linearcfinterpolation2d.f quadcfinterpolation2d.f quadcfinterpolation3d.f
+EXTRA_DIST = linearcfinterpolation2d.f.m4  linearcfinterpolation3d.f.m4 \
+                quadcfinterpolation2d.f.m4    quadcfinterpolation3d.f.m4
+
+BUILT_SOURCES = linearcfinterpolation2d.f     linearcfinterpolation3d.f    \
+                quadcfinterpolation2d.f       quadcfinterpolation3d.f
+
 CLEANFILES = ${BUILT_SOURCES}
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am

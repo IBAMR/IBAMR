@@ -95,7 +95,7 @@ static const int BOX_GHOSTS = 0;
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values; used only to evaluate composite grid
 // residuals.
-static const std::string DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
+static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 
 // Type of extrapolation to use at physical boundaries; used only to evaluate
 // composite grid residuals.

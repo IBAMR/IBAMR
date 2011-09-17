@@ -1,7 +1,7 @@
 // physical parameters
 R = 0.5             // the cylinder radius
-Re = 200.0          // the desired Reynolds number (Re)
-MU = 2.0*R/Re       // the viscosity required to attain the desired Re
+Re = 200.0          // the Reynolds number
+MU = 2.0*R/Re       // the viscosity required to attain the specified Reynolds number
 RHO = 1.0
 
 // grid spacing parameters
@@ -25,7 +25,7 @@ NORMALIZE_PRESSURE  = FALSE                      // whether to explicitly force 
 CFL_MAX             = 0.3                        // maximum CFL number
 DT_MAX              = 1.25e-1*DX_FINEST          // maximum timestep size
 VORTICITY_TAGGING   = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
-TAG_BUFFER          = 1                          // size of tag buffer used by grid generation algorithm
+TAG_BUFFER          = 2                          // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL = 0.5                        // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
 OUTPUT_U            = TRUE
 OUTPUT_P            = TRUE
@@ -119,7 +119,7 @@ INSCollocatedHierarchyIntegrator {
    cfl                        = CFL_MAX
    dt_max                     = DT_MAX
    using_vorticity_tagging    = VORTICITY_TAGGING
-   vorticity_abs_thresh       = 1
+   vorticity_abs_thresh       = 2 , 1 , 0.5 , 0.25
    tag_buffer                 = TAG_BUFFER
    output_U                   = OUTPUT_U
    output_P                   = OUTPUT_P
@@ -199,7 +199,7 @@ INSStaggeredHierarchyIntegrator {
    cfl                        = CFL_MAX
    dt_max                     = DT_MAX
    using_vorticity_tagging    = VORTICITY_TAGGING
-   vorticity_abs_thresh       = 0.125
+   vorticity_abs_thresh       = 2 , 1 , 0.5 , 0.25
    tag_buffer                 = TAG_BUFFER
    output_U                   = OUTPUT_U
    output_P                   = OUTPUT_P

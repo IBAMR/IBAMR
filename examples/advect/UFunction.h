@@ -82,11 +82,11 @@ public:
      */
     void
     setDataOnPatch(
-        const int data_idx,
+        int data_idx,
         Pointer<Variable<NDIM> > var,
         Pointer<Patch<NDIM> > patch,
-        const double data_time,
-        const bool initial_time=false,
+        double data_time,
+        bool initial_time=false,
         Pointer<PatchLevel<NDIM> > level=Pointer<PatchLevel<NDIM> >(NULL));
 
 protected:

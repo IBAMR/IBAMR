@@ -56,6 +56,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/CartSideDoubleDivPreservingRefine.h>
+#include <ibtk/CartSideDoubleSpecializedConstantRefine.h>
 #include <ibtk/CartSideDoubleSpecializedLinearRefine.h>
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
@@ -199,8 +200,8 @@ static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
-static const std::string CELL_DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
-static const std::string SIDE_DATA_COARSEN_TYPE = "CONSERVATIVE_COARSEN";
+static const std::string CELL_DATA_COARSEN_TYPE = "CUBIC_COARSEN";
+static const std::string SIDE_DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells.
@@ -267,7 +268,6 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     d_Omega_var      = new CellVariable<NDIM,double>(d_object_name+"::Omega", NDIM);
 #endif
     d_Div_U_var      = new CellVariable<NDIM,double>(d_object_name+"::Div_U"      );
-    d_Grad_P_var     = new CellVariable<NDIM,double>(d_object_name+"::Grad_P",NDIM);
 
 #if (NDIM == 3)
     d_Omega_Norm_var = new CellVariable<NDIM,double>(d_object_name+"::|Omega|_2"  );
@@ -604,6 +604,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     // Register state variables that are maintained by the
     // INSStaggeredHierarchyIntegrator.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedConstantRefine());
     grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
 
     const IntVector<NDIM> cell_ghosts = CELLG;
@@ -668,23 +669,17 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         d_F_cc_idx = -1;
     }
-    registerVariable( d_Omega_idx,  d_Omega_var,   no_ghosts, getCurrentContext());
-    registerVariable( d_Div_U_idx,  d_Div_U_var, cell_ghosts, getCurrentContext());
-    registerVariable(d_Grad_P_idx, d_Grad_P_var, cell_ghosts, getCurrentContext());
+    registerVariable(d_Omega_idx, d_Omega_var,   no_ghosts, getCurrentContext());
+    registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext());
 
     // Register scratch variables that are maintained by the
     // INSStaggeredHierarchyIntegrator.
 #if (NDIM == 3)
     registerVariable(d_Omega_Norm_idx, d_Omega_Norm_var, no_ghosts);
 #endif
-    Index<NDIM> max_ratio(0);
-    for (int ln = 1; ln < gridding_alg->getMaxLevels(); ++ln)
-    {
-        max_ratio = Index<NDIM>::max(max_ratio,gridding_alg->getRatioToCoarserLevel(ln));
-    }
-    registerVariable( d_U_regrid_idx,  d_U_regrid_var,   max_ratio);
-    registerVariable(    d_U_src_idx,     d_U_src_var, side_ghosts);
-    registerVariable(d_indicator_idx, d_indicator_var, side_ghosts);
+    registerVariable( d_U_regrid_idx,  d_U_regrid_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
+    registerVariable(    d_U_src_idx,     d_U_src_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
+    registerVariable(d_indicator_idx, d_indicator_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
     if (!d_Q_fcn.isNull())
     {
         registerVariable(d_F_div_idx, d_F_div_var, no_ghosts);
@@ -711,13 +706,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
         if (d_output_P)
         {
             d_visit_writer->registerPlotQuantity("P", "SCALAR", d_P_current_idx, 0, d_P_scale);
-            d_visit_writer->registerPlotQuantity("Grad P", "VECTOR", d_Grad_P_idx, 0, d_P_scale);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                if (d == 0) d_visit_writer->registerPlotQuantity("Grad P_x", "SCALAR", d_Grad_P_idx, d, d_P_scale);
-                if (d == 1) d_visit_writer->registerPlotQuantity("Grad P_y", "SCALAR", d_Grad_P_idx, d, d_P_scale);
-                if (d == 2) d_visit_writer->registerPlotQuantity("Grad P_z", "SCALAR", d_Grad_P_idx, d, d_P_scale);
-            }
         }
 
         if (!d_F_fcn.isNull() && d_output_F)
@@ -1181,13 +1169,12 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
         // algorithm and refine the velocity data.
         RefineAlgorithm<NDIM> fill_div_free_prolongation;
         Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+        fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_regrid_idx, NULL);
         Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "SPECIALIZED_LINEAR_REFINE");
-        fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_regrid_idx, refine_op);
+        Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
         CartSideRobinPhysBdryOp phys_bdry_bc_op(d_U_regrid_idx, d_U_bc_coefs, false);
-        CartSideDoubleDivPreservingRefine div_preserving_op(d_U_regrid_idx, d_U_src_idx, d_indicator_idx);
-        RefinePatchStrategy<NDIM>* refine_strategies[2] = { &phys_bdry_bc_op , &div_preserving_op };
-        RefinePatchStrategySet refine_strategy_set(refine_strategies,refine_strategies+2,false);
-        fill_div_free_prolongation.createSchedule(level, old_level, level_number-1, hierarchy, &refine_strategy_set)->fillData(init_data_time);
+        CartSideDoubleDivPreservingRefine div_preserving_op(d_U_regrid_idx, d_U_src_idx, d_indicator_idx, refine_op, coarsen_op, init_data_time, &phys_bdry_bc_op);
+        fill_div_free_prolongation.createSchedule(level, old_level, level_number-1, hierarchy, &div_preserving_op)->fillData(init_data_time);
 
         // Free scratch data.
         level->deallocatePatchData(scratch_data);
@@ -1413,27 +1400,6 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         d_hier_math_ops->interp(
             F_cc_idx, d_F_cc_var,
             F_sc_idx, d_F_var, d_no_fill_op, d_integrator_time, synch_cf_interface);
-    }
-
-    // Compute Grad P.
-    if (d_output_P)
-    {
-        const int coarsest_ln = 0;
-        const int finest_ln = d_hierarchy->getFinestLevelNumber();
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            level->allocatePatchData(d_P_scratch_idx, d_integrator_time);
-        }
-        d_hier_cc_data_ops->copyData(d_P_scratch_idx, d_P_current_idx);
-        d_hier_math_ops->grad(
-            d_Grad_P_idx, d_Grad_P_var,
-            1.0, d_P_scratch_idx, d_P_var, d_P_bdry_bc_fill_op, d_integrator_time);
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            level->deallocatePatchData(d_P_scratch_idx);
-        }
     }
 
     // Compute Omega = curl U.

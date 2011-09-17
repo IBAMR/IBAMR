@@ -66,6 +66,18 @@ INSCollocatedHierarchyIntegrator {
    projection_method_type        = PROJECTION_METHOD_TYPE
    use_2nd_order_pressure_update = SECOND_ORDER_PRESSURE_UPDATE
 
+   VelocityHypreSolver {
+      solver_type           = "PFMG"
+      rap_type              = 0
+      relax_type            = 2
+      skip_relax            = 1
+      num_pre_relax_steps   = 2
+      num_post_relax_steps  = 2
+      relative_residual_tol = 1.0e-12
+      max_iterations        = 1
+      enable_logging        = FALSE
+   }
+
    VelocityFACSolver {
       num_pre_sweeps  = 0
       num_post_sweeps = 1

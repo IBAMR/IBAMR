@@ -55,6 +55,7 @@ $(top_srcdir)/src/utilities/namespaces.h
 ## Dimension-dependent libraries
 DIM_INDEPENDENT_SOURCES = \
 $(top_srcdir)/src/boundary/HierarchyGhostCellInterpolation.C \
+$(top_srcdir)/src/boundary/cf_interface/CartCellDoubleLinearCFInterpolation.C \
 $(top_srcdir)/src/boundary/cf_interface/CartCellDoubleQuadraticCFInterpolation.C \
 $(top_srcdir)/src/boundary/cf_interface/CartSideDoubleQuadraticCFInterpolation.C \
 $(top_srcdir)/src/boundary/cf_interface/CoarseFineBoundaryRefinePatchStrategy.C \
@@ -100,6 +101,7 @@ $(top_srcdir)/src/patch_data/VecCellVariable.C \
 $(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.C \
 $(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.C \
 $(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C \
+$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedConstantRefine.C \
 $(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C \
 $(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C \
 $(top_srcdir)/src/refine_ops/LMarkerRefine.C \
@@ -173,6 +175,7 @@ endif
 
 pkg_include_HEADERS += \
 $(top_srcdir)/src/boundary/HierarchyGhostCellInterpolation.h \
+$(top_srcdir)/src/boundary/cf_interface/CartCellDoubleLinearCFInterpolation.h \
 $(top_srcdir)/src/boundary/cf_interface/CartCellDoubleQuadraticCFInterpolation.h \
 $(top_srcdir)/src/boundary/cf_interface/CartSideDoubleQuadraticCFInterpolation.h \
 $(top_srcdir)/src/boundary/cf_interface/CoarseFineBoundaryRefinePatchStrategy.h \
@@ -245,6 +248,7 @@ $(top_srcdir)/src/patch_data/VecCellVariable.h \
 $(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.h \
 $(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.h \
 $(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.h \
+$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedConstantRefine.h \
 $(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.h \
 $(top_srcdir)/src/refine_ops/VecCellRefineAdapter.h \
 $(top_srcdir)/src/refine_ops/LMarkerRefine.h \
@@ -363,6 +367,7 @@ $(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
 
 libIBTK3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 libIBTK3d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
+$(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation3d.f \
 $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.f \
 $(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop3d.f \
 $(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen3d.f \

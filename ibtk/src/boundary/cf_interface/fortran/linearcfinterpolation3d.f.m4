@@ -38,10 +38,10 @@ c     TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 c     THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 c     SUCH DAMAGE.
 c
-define(NDIM,2)dnl
+define(NDIM,3)dnl
 define(REAL,`double precision')dnl
 define(INTEGER,`integer')dnl
-include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
+include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -50,10 +50,11 @@ c     interfaces.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine cclinearnormalinterpolation2d(
+      subroutine cclinearnormalinterpolation3d(
      &     U,U_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
+     &     ilower2,iupper2,
      &     location_index,ratio,
      &     blower,bupper)
 c
@@ -63,6 +64,7 @@ c     Input.
 c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
       INTEGER U_gcw
 
       INTEGER location_index,ratio
@@ -71,12 +73,13 @@ c
 c
 c     Input/Output.
 c
-      REAL U(CELL2d(ilower,iupper,U_gcw))
+      REAL U(CELL3d(ilower,iupper,U_gcw))
 c
 c     Local variables.
 c
       INTEGER i,ibeg,iend,i_p,i_q
       INTEGER j,jbeg,jend,j_p,j_q
+      INTEGER k,kbeg,kend,k_p,k_q
       REAL R
 c
 c     Set the values along the appropriate side.
@@ -86,6 +89,9 @@ c
 
       jbeg = max(blower(1),ilower1)
       jend = min(bupper(1),iupper1)
+
+      kbeg = max(blower(2),ilower2)
+      kend = min(bupper(2),iupper2)
 
       R = dble(ratio)
 
@@ -98,20 +104,30 @@ c
             do j = jbeg,jend,ratio
                do j_p = j,j+ratio-1
                   j_q = j+(ratio-1+j-j_p)
-                  U(ilower0-1,j_p) = (
-     &                 2.d0*U(ilower0-1,j_p)
-     &                 +  R*U(ilower0  ,j_p)
-     &                 -    U(ilower0  ,j_q))/(R+1.d0)
+                  do k = kbeg,kend,ratio
+                     do k_p = k,k+ratio-1
+                        k_q = k+(ratio-1+k-k_p)
+                        U(ilower0-1,j_p,k_p) = (
+     &                       2.d0*U(ilower0-1,j_p,k_p)
+     &                       +  R*U(ilower0  ,j_p,k_p)
+     &                       -    U(ilower0  ,j_q,k_q))/(R+1.d0)
+                     enddo
+                  enddo
                enddo
             enddo
          else
             do j = jbeg,jend,ratio
                do j_p = j,j+ratio-1
                   j_q = j+(ratio-1+j-j_p)
-                  U(iupper0+1,j_p) = (
-     &                 2.d0*U(iupper0+1,j_p)
-     &                 +  R*U(iupper0  ,j_p)
-     &                 -    U(iupper0  ,j_q))/(R+1.d0)
+                  do k = kbeg,kend,ratio
+                     do k_p = k,k+ratio-1
+                        k_q = k+(ratio-1+k-k_p)
+                        U(iupper0+1,j_p,k_p) = (
+     &                       2.d0*U(iupper0+1,j_p,k_p)
+     &                       +  R*U(iupper0  ,j_p,k_p)
+     &                       -    U(iupper0  ,j_q,k_q))/(R+1.d0)
+                     enddo
+                  enddo
                enddo
             enddo
          endif
@@ -125,20 +141,67 @@ c
             do i = ibeg,iend,ratio
                do i_p = i,i+ratio-1
                   i_q = i+(ratio-1+i-i_p)
-                  U(i_p,ilower1-1) = (
-     &                 2.d0*U(i_p,ilower1-1)
-     &                 +  R*U(i_p,ilower1  )
-     &                 -    U(i_q,ilower1  ))/(R+1.d0)
+                  do k = kbeg,kend,ratio
+                     do k_p = k,k+ratio-1
+                        k_q = k+(ratio-1+k-k_p)
+                        U(i_p,ilower1-1,k_p) = (
+     &                       2.d0*U(i_p,ilower1-1,k_p)
+     &                       +  R*U(i_p,ilower1  ,k_p)
+     &                       -    U(i_q,ilower1  ,k_q))/(R+1.d0)
+                     enddo
+                  enddo
                enddo
             enddo
          else
             do i = ibeg,iend,ratio
                do i_p = i,i+ratio-1
                   i_q = i+(ratio-1+i-i_p)
-                  U(i_p,iupper1+1) = (
-     &                 2.d0*U(i_p,iupper1+1)
-     &                 +  R*U(i_p,iupper1  )
-     &                 -    U(i_q,iupper1  ))/(R+1.d0)
+                  do k = kbeg,kend,ratio
+                     do k_p = k,k+ratio-1
+                        k_q = k+(ratio-1+k-k_p)
+                        U(i_p,iupper1+1,k_p) = (
+     &                       2.d0*U(i_p,iupper1+1,k_p)
+     &                       +  R*U(i_p,iupper1  ,k_p)
+     &                       -    U(i_q,iupper1  ,k_q))/(R+1.d0)
+                     enddo
+                  enddo
+               enddo
+            enddo
+         endif
+
+      elseif ( (location_index .eq. 4) .or.
+     &         (location_index .eq. 5) ) then
+c
+c     Set the values along the upper/lower z side of the patch.
+c
+         if (location_index .eq. 4) then
+            do i = ibeg,iend,ratio
+               do i_p = i,i+ratio-1
+                  i_q = i+(ratio-1+i-i_p)
+                  do j = jbeg,jend,ratio
+                     do j_p = j,j+ratio-1
+                        j_q = j+(ratio-1+j-j_p)
+                        U(i_p,j_p,ilower2-1) = (
+     &                       2.d0*U(i_p,j_p,ilower2-1)
+     &                       +  R*U(i_p,j_p,ilower2  )
+     &                       -    U(i_q,j_q,ilower2  ))/(R+1.d0)
+                     enddo
+                  enddo
+               enddo
+            enddo
+         else
+            do i = ibeg,iend,ratio
+               do i_p = i,i+ratio-1
+                  i_q = i+(ratio-1+i-i_p)
+                  do j = jbeg,jend,ratio
+                     do j_p = j,j+ratio-1
+                        j_q = j+(ratio-1+j-j_p)
+                        U(i_p,j_p,iupper2+1) = (
+     &                       2.d0*U(i_p,j_p,iupper2+1)
+     &                       +  R*U(i_p,j_p,iupper2  )
+     &                       -    U(i_q,j_q,iupper2  ))/(R+1.d0)
+                     enddo
+                  enddo
                enddo
             enddo
          endif
