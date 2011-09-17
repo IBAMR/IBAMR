@@ -1,5 +1,5 @@
-// Filename: CartSideDoubleSpecializedLinearRefine.h
-// Created on 08 Feb 2011 by Boyce Griffith
+// Filename: CartSideDoubleSpecializedConstantRefine.h
+// Created on 17 Sep 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_CartSideDoubleSpecializedLinearRefine
-#define included_CartSideDoubleSpecializedLinearRefine
+#ifndef included_CartSideDoubleSpecializedConstantRefine
+#define included_CartSideDoubleSpecializedConstantRefine
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -43,24 +43,23 @@
 namespace IBTK
 {
 /*!
- * \brief Class CartSideDoubleSpecializedLinearRefine is a concrete
+ * \brief Class CartSideDoubleSpecializedConstantRefine is a concrete
  * SAMRAI::xfer::RefineOperator object that prolongs side-centered double
- * precision patch data via linear interpolation in the normal direction and
- * MC-limited piecewise-linear interpolation in the tangential direction.
+ * precision patch data via constant prolongation.
  */
-class CartSideDoubleSpecializedLinearRefine
+class CartSideDoubleSpecializedConstantRefine
     : public SAMRAI::xfer::RefineOperator<NDIM>
 {
 public:
     /*!
      * \brief Default constructor.
      */
-    CartSideDoubleSpecializedLinearRefine();
+    CartSideDoubleSpecializedConstantRefine();
 
     /*!
      * \brief Destructor.
      */
-    ~CartSideDoubleSpecializedLinearRefine();
+    ~CartSideDoubleSpecializedConstantRefine();
 
     /*!
      * \name Implementation of SAMRAI::xfer::RefineOperator interface.
@@ -128,8 +127,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CartSideDoubleSpecializedLinearRefine(
-        const CartSideDoubleSpecializedLinearRefine& from);
+    CartSideDoubleSpecializedConstantRefine(
+        const CartSideDoubleSpecializedConstantRefine& from);
 
     /*!
      * \brief Assignment operator.
@@ -140,9 +139,9 @@ private:
      *
      * \return A reference to this object.
      */
-    CartSideDoubleSpecializedLinearRefine&
+    CartSideDoubleSpecializedConstantRefine&
     operator=(
-        const CartSideDoubleSpecializedLinearRefine& that);
+        const CartSideDoubleSpecializedConstantRefine& that);
 
     /*!
      * The operator name.
@@ -153,8 +152,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibtk/CartSideDoubleSpecializedLinearRefine.I>
+//#include <ibtk/CartSideDoubleSpecializedConstantRefine.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_CartSideDoubleSpecializedLinearRefine
+#endif //#ifndef included_CartSideDoubleSpecializedConstantRefine

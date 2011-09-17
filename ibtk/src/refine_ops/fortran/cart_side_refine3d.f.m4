@@ -76,6 +76,128 @@ minmod3(
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Perform specialized refine operation that employs constant
+c     prolongation followed by linear interpolation.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine cart_side_specialized_constant_refine3d(
+     &     u0_f,u1_f,u2_f,u_f_gcw,
+     &     flower0,fupper0,
+     &     flower1,fupper1,
+     &     flower2,fupper2,
+     &     u0_c,u1_c,u2_c,u_c_gcw,
+     &     clower0,cupper0,
+     &     clower1,cupper1,
+     &     clower2,cupper2,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     fill_lower0,fill_upper0,
+     &     fill_lower1,fill_upper1,
+     &     fill_lower2,fill_upper2,
+     &     ratio)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER u_f_gcw
+      INTEGER flower0,fupper0
+      INTEGER flower1,fupper1
+      INTEGER flower2,fupper2
+      INTEGER u_c_gcw
+      INTEGER clower0,cupper0
+      INTEGER clower1,cupper1
+      INTEGER clower2,cupper2
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER fill_lower0,fill_upper0
+      INTEGER fill_lower1,fill_upper1
+      INTEGER fill_lower2,fill_upper2
+      INTEGER ratio(0:NDIM-1)
+
+      REAL u0_c(SIDE3d0(clower,cupper,u_c_gcw))
+      REAL u1_c(SIDE3d1(clower,cupper,u_c_gcw))
+      REAL u2_c(SIDE3d2(clower,cupper,u_c_gcw))
+c
+c     Output.
+c
+      REAL u0_f(SIDE3d0(flower,fupper,u_f_gcw))
+      REAL u1_f(SIDE3d1(flower,fupper,u_f_gcw))
+      REAL u2_f(SIDE3d2(flower,fupper,u_f_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+      INTEGER i_c0,i_c1,i_c2
+      REAL w0,w1
+c
+c     Refine data.
+c
+      do i2=fill_lower2,fill_upper2
+         coarsen_index(i2,i_c2,ratio(2))
+         do i1=fill_lower1,fill_upper1
+            coarsen_index(i1,i_c1,ratio(1))
+            do i0=fill_lower0,fill_upper0+1
+               coarsen_index(i0,i_c0,ratio(0))
+               if ( i0 .ge. ilower0 .and. i0 .le. iupper0+1 .and.
+     &              i1 .ge. ilower1 .and. i1 .le. iupper1   .and.
+     &              i2 .ge. ilower2 .and. i2 .le. iupper2   ) then
+                  w1 = dble(i0-ratio(0)*i_c0)/dble(ratio(0))
+                  w0 = 1.d0-w1
+                  u0_f(i0,i1,i2) =
+     &                 w0*u0_c(i_c0  ,i_c1,i_c2) +
+     &                 w1*u0_c(i_c0+1,i_c1,i_c2)
+               endif
+            enddo
+         enddo
+      enddo
+
+      do i2=fill_lower2,fill_upper2
+         coarsen_index(i2,i_c2,ratio(2))
+         do i1=fill_lower1,fill_upper1+1
+            coarsen_index(i1,i_c1,ratio(1))
+            do i0=fill_lower0,fill_upper0
+               coarsen_index(i0,i_c0,ratio(0))
+               if ( i0 .ge. ilower0 .and. i0 .le. iupper0   .and.
+     &              i1 .ge. ilower1 .and. i1 .le. iupper1+1 .and.
+     &              i2 .ge. ilower2 .and. i2 .le. iupper2   ) then
+                  w1 = dble(i1-ratio(1)*i_c1)/dble(ratio(1))
+                  w0 = 1.d0-w1
+                  u1_f(i0,i1,i2) =
+     &                 w0*u1_c(i_c0,i_c1  ,i_c2) +
+     &                 w1*u1_c(i_c0,i_c1+1,i_c2)
+               endif
+            enddo
+         enddo
+      enddo
+
+      do i2=fill_lower2,fill_upper2+1
+         coarsen_index(i2,i_c2,ratio(2))
+         do i1=fill_lower1,fill_upper1
+            coarsen_index(i1,i_c1,ratio(1))
+            do i0=fill_lower0,fill_upper0
+               coarsen_index(i0,i_c0,ratio(0))
+               if ( i0 .ge. ilower0 .and. i0 .le. iupper0   .and.
+     &              i1 .ge. ilower1 .and. i1 .le. iupper1   .and.
+     &              i2 .ge. ilower2 .and. i2 .le. iupper2+1 ) then
+                  w1 = dble(i2-ratio(2)*i_c2)/dble(ratio(2))
+                  w0 = 1.d0-w1
+                  u2_f(i0,i1,i2) =
+     &                 w0*u2_c(i_c0,i_c1,i_c2  ) +
+     &                 w1*u2_c(i_c0,i_c1,i_c2+1)
+               endif
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Perform specialized refine operation that employs linear
 c     interpolation in the normal direction and constant interpolation
 c     in the tangential direction.

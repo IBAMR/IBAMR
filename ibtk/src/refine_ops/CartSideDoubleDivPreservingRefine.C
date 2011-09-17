@@ -46,6 +46,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/IndexUtilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -263,12 +264,14 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
 #endif
     const int fdata_depth = fdata->getDepth();
 
-    // Reset the values of any fine grid values for which the indicator data is
-    // set to "1".
     if (fine.checkAllocated(d_u_src_idx) && fine.checkAllocated(d_indicator_idx))
     {
         Pointer<SideData<NDIM,double> >     u_src_data = fine.getPatchData(    d_u_src_idx);
         Pointer<SideData<NDIM,double> > indicator_data = fine.getPatchData(d_indicator_idx);
+
+        // Ensure that we do not modify any of the data from the old level by
+        // setting the value of the fine grid data to equal u_src wherever the
+        // indicator data equals "1".
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_box,axis)); b; b++)
@@ -280,6 +283,39 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
                     for (int depth = 0; depth < fdata_depth; ++depth)
                     {
                         (*fdata)(i_s,depth) = (*u_src_data)(i_s,depth);
+                    }
+                }
+            }
+        }
+
+        // Reinterpolate data in the normal direction in the newly refined part
+        // of the level wherever the indicator data does NOT equal "1".  Notice
+        // that this loop actually modifies only data that is NOT covered by an
+        // overlying coarse grid cell face.
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_box,axis)); b; b++)
+            {
+                const Index<NDIM>& i = b();
+                const SideIndex<NDIM> i_s(i,axis,0);
+                if (!(std::abs((*indicator_data)(i_s)-1.0) < 1.0e-12))
+                {
+                    const Index<NDIM> i_coarse_lower = IndexUtilities::coarsen(i,ratio);
+                    const Index<NDIM> i_lower = IndexUtilities::refine(i_coarse_lower,ratio);
+                    if (i(axis) == i_lower(axis)) continue;
+
+                    Index<NDIM> i_coarse_upper = i_coarse_lower;
+                    i_coarse_upper(axis) += 1;
+                    const Index<NDIM> i_upper = IndexUtilities::refine(i_coarse_upper,ratio);
+
+                    const double w1 = static_cast<double>(i(axis)-i_lower(axis))/static_cast<double>(ratio(axis));
+                    const double w0 = 1.0-w1;
+
+                    const SideIndex<NDIM> i_s_lower(i_lower,axis,0);
+                    const SideIndex<NDIM> i_s_upper(i_upper,axis,0);
+                    for (int depth = 0; depth < fdata_depth; ++depth)
+                    {
+                        (*fdata)(i_s,depth) = w0*(*fdata)(i_s_lower,depth) + w1*(*fdata)(i_s_upper,depth);
                     }
                 }
             }

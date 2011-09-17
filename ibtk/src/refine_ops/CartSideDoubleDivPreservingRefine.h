@@ -47,9 +47,9 @@ namespace IBTK
 {
 /*!
  * \brief Class CartSideDoubleDivPreservingRefine is a concrete
- * SAMRAI::xfer::RefinePatchStrategy which prolongs side-centered double
- * precision patch data via conservative linear interpolation with
- * divergence-preserving corrections.
+ * SAMRAI::xfer::RefinePatchStrategy that corrects conservatively interpolated
+ * side-centered double precision patch data to maintain the discrete divergence
+ * of the overlying coarse grid data.
  */
 class CartSideDoubleDivPreservingRefine
     : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
