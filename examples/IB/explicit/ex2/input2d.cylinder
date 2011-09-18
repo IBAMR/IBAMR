@@ -93,7 +93,7 @@ C_IB_6 = 67.0/128.0                      // corresponds to IB_6 delta function
 C = C_IB_4
 
 M_s = RHO/((C/DX_FINEST)^2)              // effective particle mass
-tau_s = 3.75*DT_MAX                      // decay half-life  for critically damped Kelvin-Voigt element
+tau_s = 4.0*DT_MAX                       // decay half-life  for critically damped Kelvin-Voigt element
 K_s = M_s*(log(0.5)/tau_s)^2             // spring  constant for critically damped Kelvin-Voigt element
 E_s = 2.0*sqrt(K_s*M_s)                  // damping constant for critically damped Kelvin-Voigt element
 
