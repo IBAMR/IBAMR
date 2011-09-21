@@ -288,11 +288,6 @@ protected:
     putToDatabaseSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
-    /*!
-     * Time stepping scheme.
-     */
-    TimesteppingType d_timestepping_scheme;
-
 private:
     /*!
      * \brief Default constructor.
@@ -385,15 +380,13 @@ private:
         double dt);
 
     /*!
-     * Perform a single explicit trapezoidal-rule step for the pIB state
-     * variables.
+     * Perform a single explicit midpoint rule step for the pIB state variables.
      */
     void
-    pIBTRStep(
+    pIBMidpointStep(
         SAMRAI::tbox::Pointer<IBTK::LData> K_data,
         SAMRAI::tbox::Pointer<IBTK::LData> M_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> X_new_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> X_current_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> X_half_data,
         SAMRAI::tbox::Pointer<IBTK::LData> Y_new_data,
         SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data,
         SAMRAI::tbox::Pointer<IBTK::LData> V_new_data,

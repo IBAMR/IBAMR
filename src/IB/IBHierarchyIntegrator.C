@@ -122,7 +122,6 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
 
     // Set some default values.
     d_integrator_is_initialized = false;
-    d_timestepping_scheme = MIDPOINT_RULE;
     d_num_cycles = 1;
     d_interp_delta_fcn = "IB_4";
     d_spread_delta_fcn = "IB_4";
@@ -613,30 +612,6 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(
         }
     }
 
-    // When using the (explicit) trapezoidal rule, we compute the Lagrangian
-    // forces at the beginning of the time step and spread those forces to the
-    // Eulerian grid.
-    if (d_timestepping_scheme == TRAPEZOIDAL_RULE)
-    {
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            Vec F_vec = d_F_data[ln]->getVec();
-            ierr = VecSet(F_vec, 0.0);  IBTK_CHKERRQ(ierr);
-            if (!d_ib_force_fcn.isNull())
-            {
-                d_ib_force_fcn->computeLagrangianForce(d_F_data[ln], d_X_current_data[ln], d_U_current_data[ln], d_hierarchy, ln, current_time, d_l_data_manager);
-            }
-            if (d_using_pIB_method)
-            {
-                pIBTRForcing(d_F_data[ln], d_K_data[ln], d_X_current_data[ln], d_Y_current_data[ln]);
-            }
-        }
-        d_hier_velocity_data_ops->setToScalar(d_f_current_idx, 0.0);
-        resetAnchorPointValues(d_F_data, coarsest_ln, finest_ln);
-        d_l_data_manager->spread(d_f_current_idx, d_F_data, d_X_current_data, d_refine_scheds["NONE"], true, true);
-    }
-
     // Initialize the fluid solver.
     d_ins_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
     return;
@@ -659,61 +634,18 @@ IBHierarchyIntegrator::integrateHierarchy(
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
         Vec F_vec = d_F_data[ln]->getVec();
         ierr = VecSet(F_vec, 0.0);  IBTK_CHKERRQ(ierr);
-        switch (d_timestepping_scheme)
+        if (!d_ib_force_fcn.isNull())
         {
-            case MIDPOINT_RULE:
-            {
-                if (!d_ib_force_fcn.isNull())
-                {
-                    d_ib_force_fcn->computeLagrangianForce(d_F_data[ln], d_X_half_data[ln], d_U_half_data[ln], d_hierarchy, ln, current_time+0.5*dt, d_l_data_manager);
-                }
-                if (d_using_pIB_method)
-                {
-                    pIBMidpointForcing(d_F_data[ln], d_K_data[ln], d_X_half_data[ln], d_Y_new_data[ln], d_Y_current_data[ln]);
-                }
-                break;
-            }
-            case TRAPEZOIDAL_RULE:
-            {
-                if (!d_ib_force_fcn.isNull())
-                {
-                    d_ib_force_fcn->computeLagrangianForce(d_F_data[ln], d_X_new_data[ln], d_U_new_data[ln], d_hierarchy, ln, current_time+dt, d_l_data_manager);
-                }
-                if (d_using_pIB_method)
-                {
-                    pIBTRForcing(d_F_data[ln], d_K_data[ln], d_X_new_data[ln], d_Y_new_data[ln]);
-                }
-                break;
-            }
-            default:
-            {
-                TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                           << "  unrecognized timestepping type: " << enum_to_string<TimesteppingType>(d_timestepping_scheme) << "." << std::endl);
-            }
+            d_ib_force_fcn->computeLagrangianForce(d_F_data[ln], d_X_half_data[ln], d_U_half_data[ln], d_hierarchy, ln, current_time+0.5*dt, d_l_data_manager);
+        }
+        if (d_using_pIB_method)
+        {
+            pIBMidpointForcing(d_F_data[ln], d_K_data[ln], d_X_half_data[ln], d_Y_new_data[ln], d_Y_current_data[ln]);
         }
     }
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
-    switch (d_timestepping_scheme)
-    {
-        case MIDPOINT_RULE:
-        {
-            resetAnchorPointValues(d_F_data, coarsest_ln, finest_ln);
-            d_l_data_manager->spread(d_f_idx, d_F_data, d_X_half_data, d_refine_scheds["NONE"], true, true);
-            break;
-        }
-        case TRAPEZOIDAL_RULE:
-        {
-            resetAnchorPointValues(d_F_data, coarsest_ln, finest_ln);
-            d_l_data_manager->spread(d_f_idx, d_F_data, d_X_new_data , d_refine_scheds["NONE"], true, true);
-            d_hier_velocity_data_ops->linearSum(d_f_idx, 0.5, d_f_idx, 0.5, d_f_current_idx);
-            break;
-        }
-        default:
-        {
-            TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                       << "  unrecognized timestepping type: " << enum_to_string<TimesteppingType>(d_timestepping_scheme) << "." << std::endl);
-        }
-    }
+    resetAnchorPointValues(d_F_data, coarsest_ln, finest_ln);
+    d_l_data_manager->spread(d_f_idx, d_F_data, d_X_half_data, d_refine_scheds["NONE"], true, true);
 
     // Compute the source/sink strengths corresponding to any distributed
     // internal fluid sources or sinks.
@@ -730,51 +662,17 @@ IBHierarchyIntegrator::integrateHierarchy(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getCurrentContext());
     const int u_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getNewContext());
-    switch (d_timestepping_scheme)
-    {
-        case MIDPOINT_RULE:
-        {
-            d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
-            d_l_data_manager->interp(d_u_idx, d_U_half_data, d_X_half_data, d_coarsen_scheds["u->u::S->S::CONSERVATIVE_COARSEN"], d_refine_scheds["u->u::S->S::GHOST_FILL"], current_time+0.5*dt);
-            resetAnchorPointValues(d_U_half_data, coarsest_ln, finest_ln);
-            break;
-        }
-        case TRAPEZOIDAL_RULE:
-        {
-            d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
-            d_l_data_manager->interp(d_u_idx, d_U_new_data, d_X_new_data, d_coarsen_scheds["u->u::S->S::CONSERVATIVE_COARSEN"], d_refine_scheds["u->u::S->S::GHOST_FILL"], current_time+dt);
-            resetAnchorPointValues(d_U_new_data, coarsest_ln, finest_ln);
-            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-            {
-                if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-                Vec U_current_vec = d_U_current_data[ln]->getVec();
-                Vec U_new_vec = d_U_new_data[ln]->getVec();
-                Vec U_half_vec = d_U_half_data[ln]->getVec();
-                ierr = VecCopy(U_new_vec, U_half_vec);  IBTK_CHKERRQ(ierr);
-                ierr = VecAXPBY(U_half_vec, 0.5, 0.5, U_current_vec);  IBTK_CHKERRQ(ierr);
-            }
-            break;
-        }
-        default:
-        {
-            TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                       << "  unrecognized timestepping type: " << enum_to_string<TimesteppingType>(d_timestepping_scheme) << "." << std::endl);
-        }
-    }
+    d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
+    d_l_data_manager->interp(d_u_idx, d_U_half_data, d_X_half_data, d_coarsen_scheds["u->u::S->S::CONSERVATIVE_COARSEN"], d_refine_scheds["u->u::S->S::GHOST_FILL"], current_time+0.5*dt);
+    resetAnchorPointValues(d_U_half_data, coarsest_ln, finest_ln);
 
     // Update IB and pIB data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
-        // Update the value of X at time t^{n+1}.  Then define X at time
-        // t^{n+1/2} to be the linear interpolation of X^{n} and X^{n+1}.
-        //
-        // Notice that U^{n+1/2} has been computed in a manner that is
-        // consistent with the time stepping scheme:
-        //
-        //    midpoint    rule: U^{n+1/2} = R^{n+1/2} u^{n+1/2}
-        //    trapezoidal rule: U^{n+1/2} = 0.5[R^{n} u^{n} + R^{n+1} u^{n+1}].
+        // Update the value of X at time t^{n+1} and set X^{n+1/2} = 0.5(X^{n+1}
+        // + X^{n})
         Vec X_current_vec = d_X_current_data[ln]->getVec();
         Vec X_new_vec = d_X_new_data[ln]->getVec();
         Vec U_half_vec = d_U_half_data[ln]->getVec();
@@ -782,14 +680,12 @@ IBHierarchyIntegrator::integrateHierarchy(
         Vec X_half_vec = d_X_half_data[ln]->getVec();
         ierr = VecWAXPY(X_half_vec, 0.5*dt, U_half_vec, X_current_vec);  IBTK_CHKERRQ(ierr);
 
-        // Update the values of Y and V(=dY/dt) at time t^{n+1}.  In this case,
-        // the (explicit) midpoint rule and (explicit) trapezoidal rules are
-        // equivalent, and so we simply use the (explicit) trapezoidal rule.
+        // Update the values of Y and V(=dY/dt) at time t^{n+1}.
         if (d_using_pIB_method)
         {
-            pIBTRStep(d_K_data[ln], d_M_data[ln], d_X_new_data[ln], d_X_current_data[ln],
-                      d_Y_new_data[ln], d_Y_current_data[ln],
-                      d_V_new_data[ln], d_V_current_data[ln], dt);
+            pIBMidpointStep(d_K_data[ln], d_M_data[ln], d_X_half_data[ln],
+                            d_Y_new_data[ln], d_Y_current_data[ln],
+                            d_V_new_data[ln], d_V_current_data[ln], dt);
         }
     }
     return;
@@ -1239,7 +1135,6 @@ IBHierarchyIntegrator::putToDatabaseSpecialized(
     Pointer<Database> db)
 {
     db->putInteger("IB_HIERARCHY_INTEGRATOR_VERSION",IB_HIERARCHY_INTEGRATOR_VERSION);
-    db->putString("d_timestepping_scheme", enum_to_string<TimesteppingType>(d_timestepping_scheme));
     db->putString("d_interp_delta_fcn", d_interp_delta_fcn);
     db->putString("d_spread_delta_fcn", d_spread_delta_fcn);
     db->putIntegerArray("d_ghosts", d_ghosts, NDIM);
@@ -1436,55 +1331,52 @@ IBHierarchyIntegrator::pIBEulerStep(
 }// pIBAB2Step
 
 void
-IBHierarchyIntegrator::pIBTRStep(
+IBHierarchyIntegrator::pIBMidpointStep(
     SAMRAI::tbox::Pointer<IBTK::LData> K_data,
     SAMRAI::tbox::Pointer<IBTK::LData> M_data,
-    SAMRAI::tbox::Pointer<IBTK::LData> X_new_data,
-    SAMRAI::tbox::Pointer<IBTK::LData> X_current_data,
+    SAMRAI::tbox::Pointer<IBTK::LData> X_half_data,
     SAMRAI::tbox::Pointer<IBTK::LData> Y_new_data,
     SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data,
     SAMRAI::tbox::Pointer<IBTK::LData> V_new_data,
     SAMRAI::tbox::Pointer<IBTK::LData> V_current_data,
     double dt)
 {
-    const double* const restrict     K =         K_data->getLocalFormArray()   ->data();
-    const double* const restrict     M =         M_data->getLocalFormArray()   ->data();
-    const double* const restrict X_new =     X_new_data->getLocalFormVecArray()->data();
-    const double* const restrict     X = X_current_data->getLocalFormVecArray()->data();
-    const double* const restrict     Y = Y_current_data->getLocalFormVecArray()->data();
-    const double* const restrict     V = V_current_data->getLocalFormVecArray()->data();
-    double* const restrict       Y_new =     Y_new_data->getLocalFormVecArray()->data();
-    double* const restrict       V_new =     V_new_data->getLocalFormVecArray()->data();
+    const double* const restrict      K =         K_data->getLocalFormArray()   ->data();
+    const double* const restrict      M =         M_data->getLocalFormArray()   ->data();
+    const double* const restrict X_half =    X_half_data->getLocalFormVecArray()->data();
+    const double* const restrict      Y = Y_current_data->getLocalFormVecArray()->data();
+    const double* const restrict      V = V_current_data->getLocalFormVecArray()->data();
+    double* const restrict        Y_new =     Y_new_data->getLocalFormVecArray()->data();
+    double* const restrict        V_new =     V_new_data->getLocalFormVecArray()->data();
     const unsigned int n_local = M_data->getLocalNodeCount();
     unsigned int i, d;
-    double V_half, X_half, Y_half;
+    double V_half, Y_half;
     for (i = 0; i < n_local; ++i)
     {
         for (d = 0; d < NDIM; ++d)
         {
             V_half = 0.5*(V[NDIM*i+d]+V_new[NDIM*i+d]);
-            X_half = 0.5*(X[NDIM*i+d]+X_new[NDIM*i+d]);
             Y_half = 0.5*(Y[NDIM*i+d]+Y_new[NDIM*i+d]);
             Y_new[NDIM*i+d] = Y[NDIM*i+d] + dt*V_half;
-            V_new[NDIM*i+d] = V[NDIM*i+d] + dt*(-K[i]*(Y_half-X_half)/M[i] + d_gravitational_acceleration[d]);
+            V_new[NDIM*i+d] = V[NDIM*i+d] + dt*(-K[i]*(Y_half-X_half[NDIM*i+d])/M[i] + d_gravitational_acceleration[d]);
         }
     }
     return;
-}// pIBTRStep
+}// pIBMidpointStep
 
 void
 IBHierarchyIntegrator::pIBMidpointForcing(
     SAMRAI::tbox::Pointer<IBTK::LData> F_data,
     SAMRAI::tbox::Pointer<IBTK::LData> K_data,
     SAMRAI::tbox::Pointer<IBTK::LData> X_half_data,
-    SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data,
-    SAMRAI::tbox::Pointer<IBTK::LData> Y_new_data)
+    SAMRAI::tbox::Pointer<IBTK::LData> Y_new_data,
+    SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data)
 {
     double* const restrict            F =         F_data->getLocalFormVecArray()->data();
     const double* const restrict      K =         K_data->getLocalFormArray()   ->data();
     const double* const restrict X_half =    X_half_data->getLocalFormVecArray()->data();
-    const double* const restrict      Y = Y_current_data->getLocalFormVecArray()->data();
     const double* const restrict  Y_new =     Y_new_data->getLocalFormVecArray()->data();
+    const double* const restrict      Y = Y_current_data->getLocalFormVecArray()->data();
     const unsigned int n_local = F_data->getLocalNodeCount();
     unsigned int i, d;
     double Y_half;
@@ -1867,10 +1759,6 @@ IBHierarchyIntegrator::getFromInput(
 {
     if (!is_from_restart)
     {
-        if (db->keyExists("time_stepping_type")) d_timestepping_scheme = string_to_enum<TimesteppingType>(db->getString("time_stepping_type"));
-        else if (db->keyExists("timestepping_type")) d_timestepping_scheme = string_to_enum<TimesteppingType>(db->getString("timestepping_type"));
-        else if (db->keyExists("time_stepping_scheme")) d_timestepping_scheme = string_to_enum<TimesteppingType>(db->getString("time_stepping_scheme"));
-        else if (db->keyExists("timestepping_scheme")) d_timestepping_scheme = string_to_enum<TimesteppingType>(db->getString("timestepping_scheme"));
         if (db->isString("interp_delta_fcn") && db->isString("spread_delta_fcn"))
         {
             d_interp_delta_fcn = db->getStringWithDefault("interp_delta_fcn", d_interp_delta_fcn);
@@ -1930,7 +1818,6 @@ IBHierarchyIntegrator::getFromRestart()
     {
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
-    d_timestepping_scheme = string_to_enum<TimesteppingType>(db->getString("d_timestepping_scheme"));
     if (db->isString("d_interp_delta_fcn") && db->isString("d_spread_delta_fcn"))
     {
         d_interp_delta_fcn = db->getString("d_interp_delta_fcn");
