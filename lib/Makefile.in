@@ -104,6 +104,7 @@ am__objects_1 = libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBLagrangianForceStrategy.$(OBJEXT) \
 	libIBAMR2d_a-IBLagrangianForceStrategySet.$(OBJEXT) \
 	libIBAMR2d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
+	libIBAMR2d_a-IBMethodStrategy.$(OBJEXT) \
 	libIBAMR2d_a-IBPostProcessStrategy.$(OBJEXT) \
 	libIBAMR2d_a-IBRodForceSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBRodForceSpecFactory.$(OBJEXT) \
@@ -166,6 +167,7 @@ am__objects_2 = libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBLagrangianForceStrategy.$(OBJEXT) \
 	libIBAMR3d_a-IBLagrangianForceStrategySet.$(OBJEXT) \
 	libIBAMR3d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
+	libIBAMR3d_a-IBMethodStrategy.$(OBJEXT) \
 	libIBAMR3d_a-IBPostProcessStrategy.$(OBJEXT) \
 	libIBAMR3d_a-IBRodForceSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBRodForceSpecFactory.$(OBJEXT) \
@@ -591,6 +593,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategy.h \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategySet.h \
 	$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.h \
+	$(top_srcdir)/src/IB/IBMethodStrategy.h \
 	$(top_srcdir)/src/IB/IBPostProcessStrategy.h \
 	$(top_srcdir)/src/IB/IBRodForceSpec.I \
 	$(top_srcdir)/src/IB/IBRodForceSpec.h \
@@ -646,6 +649,7 @@ $(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategy.C \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategySet.C \
 $(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
+$(top_srcdir)/src/IB/IBMethodStrategy.C \
 $(top_srcdir)/src/IB/IBPostProcessStrategy.C \
 $(top_srcdir)/src/IB/IBRodForceSpec.C \
 $(top_srcdir)/src/IB/IBRodForceSpecFactory.C \
@@ -821,6 +825,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategySet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBLagrangianSourceStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBMethodStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBPostProcessStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBRodForceSpecFactory.Po@am__quote@
@@ -870,6 +875,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategySet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBLagrangianSourceStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBMethodStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBPostProcessStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBRodForceSpecFactory.Po@am__quote@
@@ -1136,6 +1142,20 @@ libIBAMR2d_a-IBLagrangianSourceStrategy.obj: $(top_srcdir)/src/IB/IBLagrangianSo
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C' object='libIBAMR2d_a-IBLagrangianSourceStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBLagrangianSourceStrategy.obj `if test -f '$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C'; fi`
+
+libIBAMR2d_a-IBMethodStrategy.o: $(top_srcdir)/src/IB/IBMethodStrategy.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBMethodStrategy.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBMethodStrategy.Tpo -c -o libIBAMR2d_a-IBMethodStrategy.o `test -f '$(top_srcdir)/src/IB/IBMethodStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMethodStrategy.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBMethodStrategy.Tpo $(DEPDIR)/libIBAMR2d_a-IBMethodStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMethodStrategy.C' object='libIBAMR2d_a-IBMethodStrategy.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBMethodStrategy.o `test -f '$(top_srcdir)/src/IB/IBMethodStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMethodStrategy.C
+
+libIBAMR2d_a-IBMethodStrategy.obj: $(top_srcdir)/src/IB/IBMethodStrategy.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBMethodStrategy.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBMethodStrategy.Tpo -c -o libIBAMR2d_a-IBMethodStrategy.obj `if test -f '$(top_srcdir)/src/IB/IBMethodStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMethodStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMethodStrategy.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBMethodStrategy.Tpo $(DEPDIR)/libIBAMR2d_a-IBMethodStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMethodStrategy.C' object='libIBAMR2d_a-IBMethodStrategy.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBMethodStrategy.obj `if test -f '$(top_srcdir)/src/IB/IBMethodStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMethodStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMethodStrategy.C'; fi`
 
 libIBAMR2d_a-IBPostProcessStrategy.o: $(top_srcdir)/src/IB/IBPostProcessStrategy.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBPostProcessStrategy.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBPostProcessStrategy.Tpo -c -o libIBAMR2d_a-IBPostProcessStrategy.o `test -f '$(top_srcdir)/src/IB/IBPostProcessStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBPostProcessStrategy.C
@@ -1822,6 +1842,20 @@ libIBAMR3d_a-IBLagrangianSourceStrategy.obj: $(top_srcdir)/src/IB/IBLagrangianSo
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C' object='libIBAMR3d_a-IBLagrangianSourceStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBLagrangianSourceStrategy.obj `if test -f '$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C'; fi`
+
+libIBAMR3d_a-IBMethodStrategy.o: $(top_srcdir)/src/IB/IBMethodStrategy.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBMethodStrategy.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBMethodStrategy.Tpo -c -o libIBAMR3d_a-IBMethodStrategy.o `test -f '$(top_srcdir)/src/IB/IBMethodStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMethodStrategy.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBMethodStrategy.Tpo $(DEPDIR)/libIBAMR3d_a-IBMethodStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMethodStrategy.C' object='libIBAMR3d_a-IBMethodStrategy.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBMethodStrategy.o `test -f '$(top_srcdir)/src/IB/IBMethodStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMethodStrategy.C
+
+libIBAMR3d_a-IBMethodStrategy.obj: $(top_srcdir)/src/IB/IBMethodStrategy.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBMethodStrategy.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBMethodStrategy.Tpo -c -o libIBAMR3d_a-IBMethodStrategy.obj `if test -f '$(top_srcdir)/src/IB/IBMethodStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMethodStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMethodStrategy.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBMethodStrategy.Tpo $(DEPDIR)/libIBAMR3d_a-IBMethodStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMethodStrategy.C' object='libIBAMR3d_a-IBMethodStrategy.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBMethodStrategy.obj `if test -f '$(top_srcdir)/src/IB/IBMethodStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMethodStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMethodStrategy.C'; fi`
 
 libIBAMR3d_a-IBPostProcessStrategy.o: $(top_srcdir)/src/IB/IBPostProcessStrategy.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBPostProcessStrategy.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBPostProcessStrategy.Tpo -c -o libIBAMR3d_a-IBPostProcessStrategy.o `test -f '$(top_srcdir)/src/IB/IBPostProcessStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBPostProcessStrategy.C

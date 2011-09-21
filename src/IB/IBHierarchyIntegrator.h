@@ -39,13 +39,10 @@
 #include <petscsys.h>
 
 // IBAMR INCLUDES
-#include <ibamr/INSHierarchyIntegrator.h>
 #include <ibamr/IBEulerianForceFunction.h>
 #include <ibamr/IBEulerianSourceFunction.h>
-#include <ibamr/IBInstrumentPanel.h>
-#include <ibamr/IBLagrangianForceStrategy.h>
-#include <ibamr/IBLagrangianSourceStrategy.h>
-#include <ibamr/IBPostProcessStrategy.h>
+#include <ibamr/IBMethodStrategy.h>
+#include <ibamr/INSHierarchyIntegrator.h>
 
 // IBTK INCLUDES
 #include <ibtk/LDataManager.h>
@@ -70,6 +67,7 @@ public:
     IBHierarchyIntegrator(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        SAMRAI::tbox::Pointer<IBMethodStrategy> ib_method_ops,
         SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,
         bool register_for_restart=true);
 
@@ -85,71 +83,6 @@ public:
     void
     registerBodyForceFunction(
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn);
-
-    /*!
-     * Supply a Lagrangian force object.
-     */
-    void
-    registerIBLagrangianForceFunction(
-        SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> ib_force_fcn);
-
-    /*!
-     * Supply a Lagrangian source object.
-     */
-    void
-    registerIBLagrangianSourceFunction(
-        SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> ib_source_fcn);
-
-    /*!
-     * Supply a Lagrangian initialization object.
-     */
-    void
-    registerLInitStrategy(
-        SAMRAI::tbox::Pointer<IBTK::LInitStrategy> l_initializer);
-
-    /*!
-     * Free references to Lagrangian initialization objects.
-     */
-    void
-    freeLInitStrategy();
-
-    /*!
-     * Supply a postprocessor object.
-     */
-    void
-    registerIBPostProcessor(
-        SAMRAI::tbox::Pointer<IBPostProcessStrategy> ib_postprocessor);
-
-    /*!
-     * Return a pointer to the Lagrangian data manager object.
-     */
-    IBTK::LDataManager*
-    getLDataManager() const;
-
-    /*!
-     * Return a pointer to the instrumentation manager object.
-     */
-    SAMRAI::tbox::Pointer<IBInstrumentPanel>
-    getIBInstrumentPanel() const;
-
-    /*!
-     * Register a Lagrangian Silo data writer so this class will write plot
-     * files that may be postprocessed with the VisIt visualization tool.
-     */
-    void
-    registerLSiloDataWriter(
-        SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> silo_writer);
-
-#if (NDIM == 3)
-    /*!
-     * Register a Lagrangian myocardial3D data writer so this class will write
-     * plot files that may be postprocessed with the myocardial3D visualization
-     * program.
-     */
-    void
-    registerLM3DDataWriter(
-        SAMRAI::tbox::Pointer<IBTK::LM3DDataWriter> m3D_writer);
-#endif
 
     /*!
      * Register a load balancer for non-uniform load balancing.
@@ -320,130 +253,6 @@ private:
         const IBHierarchyIntegrator& that);
 
     /*!
-     * Initialize the IBLagrangianForceStrategy object for the current
-     * configuration of the curvilinear mesh.
-     */
-    void
-    resetLagrangianForceFunction(
-        double init_data_time,
-        bool initial_time);
-
-    /*!
-     * Initialize the IBLagrangianSourceStrategy object for the current
-     * configuration of the curvilinear mesh.
-     */
-    void
-    resetLagrangianSourceFunction(
-        double init_data_time,
-        bool initial_time);
-
-    /*!
-     * Initialize the IBPostProcessStrategy object for the current configuration
-     * of the curvilinear mesh.
-     */
-    void
-    resetPostProcessor(
-        double init_data_time,
-        bool initial_time);
-
-    /*!
-     * Compute the flow rates and pressures in the internal flow meters and
-     * pressure gauges.
-     */
-    void
-    updateIBInstrumentationData(
-        int timestep_num,
-        double data_time);
-
-    /*!
-     * Set the elements of the Lagrangian vector to zero at anchored nodes of
-     * the curvilinear mesh.
-     */
-    void
-    resetAnchorPointValues(
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > U_data,
-        int coarsest_ln,
-        int finest_ln);
-
-    /*!
-     * Perform a single forward Euler step for the pIB state variables.
-     */
-    void
-    pIBEulerStep(
-        SAMRAI::tbox::Pointer<IBTK::LData> K_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> M_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> X_current_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> Y_new_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> V_new_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> V_current_data,
-        double dt);
-
-    /*!
-     * Perform a single explicit midpoint rule step for the pIB state variables.
-     */
-    void
-    pIBMidpointStep(
-        SAMRAI::tbox::Pointer<IBTK::LData> K_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> M_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> X_half_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> Y_new_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> V_new_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> V_current_data,
-        double dt);
-
-    /*!
-     * Compute pIB forces for a midpoint-rule type time stepping scheme.
-     */
-    void
-    pIBMidpointForcing(
-        SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> K_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> X_half_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> Y_new_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> Y_current_data);
-
-    /*!
-     * Compute pIB forces for a trapezoidal-rule type time stepping scheme.
-     */
-    void
-    pIBTRForcing(
-        SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> K_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> Y_data);
-
-    /*!
-     * Set the values of the distributed internal sources/sinks on the Cartesian
-     * grid hierarchy.
-     *
-     * \note This method computes the point source/sink strengths, spreads those
-     * values to the Cartesian grid using the cosine delta function, and
-     * synchronizes the data on the hierarchy.
-     */
-    void
-    computeSourceStrengths(
-        int coarsest_level,
-        int finest_level,
-        double data_time,
-        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data);
-
-    /*!
-     * Get the values of the pressures at the positions of the distributed
-     * internal sources/sinks.
-     *
-     * \note This method interpolates the \em new Cartesian grid pressure at the
-     * given locations of the internal sources/sinks.
-     */
-    void
-    computeSourcePressures(
-        int coarsest_level,
-        int finest_level,
-        double data_time,
-        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data);
-
-    /*!
      * Read input values from a given database.
      */
     void
@@ -470,72 +279,6 @@ private:
     SAMRAI::tbox::Pointer<INSHierarchyIntegrator> d_ins_hier_integrator;
 
     /*
-     * The LDataManager is used to coordinate the distribution of Lagrangian
-     * data on the patch hierarchy.
-     */
-    IBTK::LDataManager* d_l_data_manager;
-    std::string d_interp_delta_fcn, d_spread_delta_fcn;
-    SAMRAI::hier::IntVector<NDIM> d_ghosts;
-
-    /*
-     * Visualization data writers.
-     */
-    SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> d_silo_writer;
-#if (NDIM == 3)
-    SAMRAI::tbox::Pointer<IBTK::LM3DDataWriter> d_m3D_writer;
-#endif
-
-    /*
-     * The load balancer.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
-
-    /*
-     * Instrumentation (flow meter and pressure gauge) algorithms and data
-     * structures.
-     */
-    SAMRAI::tbox::Pointer<IBInstrumentPanel> d_instrument_panel;
-    std::vector<double> d_total_flow_volume;
-
-    /*
-     * The specification and initialization information for the Lagrangian data
-     * used by the integrator.
-     */
-    SAMRAI::tbox::Pointer<IBTK::LInitStrategy> d_l_initializer;
-
-    /*
-     * The force generators.
-     */
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_body_force_fcn;
-    SAMRAI::tbox::Pointer<IBEulerianForceFunction> d_eulerian_force_fcn;
-    SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> d_ib_force_fcn;
-    bool d_ib_force_fcn_needs_init;
-
-    /*
-     * The source/sink generators.
-     */
-    SAMRAI::tbox::Pointer<IBEulerianSourceFunction> d_eulerian_source_fcn;
-    SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> d_ib_source_fcn;
-    bool d_ib_source_fcn_needs_init;
-    std::vector<std::vector<blitz::TinyVector<double,NDIM> > > d_X_src;
-    std::vector<std::vector<double > > d_r_src, d_P_src, d_Q_src;
-    std::vector<int> d_n_src;
-    bool d_normalize_source_strength;
-
-    /*
-     * Post-processor object.
-     */
-    SAMRAI::tbox::Pointer<IBPostProcessStrategy> d_post_processor;
-    bool d_post_processor_needs_init;
-
-    /*
-     * Parameters for the penalty IB method for boundaries with additional
-     * boundary mass.
-     */
-    bool d_using_pIB_method;
-    blitz::TinyVector<double,NDIM> d_gravitational_acceleration;
-
-    /*
      * The regrid CFL interval indicates the number of meshwidths a particle may
      * move in any coordinate direction between invocations of the regridding
      * process.
@@ -555,25 +298,23 @@ private:
      * Eulerian variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_u_var, d_f_var, d_q_var;
-    int d_u_idx, d_f_idx, d_f_current_idx, d_q_idx;
+    int d_u_idx, d_f_idx, d_q_idx;
 
     /*
-     * Lagrangian variables.
+     * Body force functions.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_current_data, d_X_new_data, d_X_half_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_U_current_data, d_U_new_data, d_U_half_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_F_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_K_data, d_M_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_Y_current_data, d_Y_new_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_V_current_data, d_V_new_data;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_body_force_fcn;
+    SAMRAI::tbox::Pointer<IBEulerianForceFunction> d_eulerian_force_fcn;
 
     /*
-     * List of local indices of local anchor points.
-     *
-     * NOTE: IB points are automatically considered to be anchored if they are
-     * within 2.0*sqrt(epsilon_mach) of the physical boundary.
+     * The source/sink distribution functions.
      */
-    std::vector<std::set<int> > d_anchor_point_local_idxs;
+    SAMRAI::tbox::Pointer<IBEulerianSourceFunction> d_eulerian_source_fcn;
+
+    /*
+     * IB method strategy object.
+     */
+    SAMRAI::tbox::Pointer<IBMethodStrategy> d_ib_method_ops;
 };
 }// namespace IBAMR
 
