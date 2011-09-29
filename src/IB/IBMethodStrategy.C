@@ -68,6 +68,14 @@ IBMethodStrategy::~IBMethodStrategy()
 }// ~IBMethodStrategy
 
 void
+IBMethodStrategy::registerIBHierarchyIntegrator(
+    IBHierarchyIntegrator* ib_solver)
+{
+    d_ib_solver = ib_solver;
+    return;
+}// registerIBHierarchyIntegrator
+
+void
 IBMethodStrategy::preprocessIntegrateData(
     double /*current_time*/,
     double /*new_time*/,
@@ -87,20 +95,59 @@ IBMethodStrategy::postprocessIntegrateData(
     return;
 }// postprocessIntegrateData
 
+bool
+IBMethodStrategy::hasFluidSources() const
+{
+    return false;
+}// hasFluidSources
+
 void
-IBMethodStrategy::postProcessData(
+IBMethodStrategy::computeLagrangianFluidSource(
+    double /*data_time*/)
+{
+    // intentionally blank
+    return;
+}// computeLagrangianFluidSource
+
+void
+IBMethodStrategy::spreadFluidSource(
+    int /*q_data_idx*/,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*q_prolongation_scheds*/,
+    double /*data_time*/)
+{
+    // intentionally blank
+    return;
+}// spreadFluidSource
+
+void
+IBMethodStrategy::interpolatePressure(
+    int /*p_data_idx*/,
+    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*p_synch_scheds*/,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*p_ghost_fill_scheds*/,
+    double /*data_time*/)
+{
+    // intentionally blank
+    return;
+}// interpolatePressure
+
+void
+IBMethodStrategy::postprocessData(
     Pointer<PatchHierarchy<NDIM> > /*hierarchy*/)
 {
     // intentionally blank
     return;
-}// postProcessData
+}// postprocessData
 
 void
 IBMethodStrategy::initializePatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/,
     int /*u_data_idx*/,
-    double /*init_data_time*/)
+    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+    int /*integrator_step*/,
+    double /*init_data_time*/,
+    bool /*initial_time*/)
 {
     // intentionally blank
     return;

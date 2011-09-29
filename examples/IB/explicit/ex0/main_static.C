@@ -43,6 +43,7 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBHierarchyIntegrator.h>
+#include <ibamr/IBMethod.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
@@ -122,8 +123,10 @@ main(
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n" <<
                        "Valid options are: COLLOCATED, STAGGERED");
         }
+        Pointer<IBMethod> ib_method_ops = new IBMethod(
+            "IBMethod", app_initializer->getComponentDatabase("IBMethod"));
         Pointer<IBHierarchyIntegrator> time_integrator = new IBHierarchyIntegrator(
-            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), navier_stokes_integrator);
+            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops, navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
@@ -139,9 +142,9 @@ main(
         // Configure the IB solver.
         Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
             "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
-        time_integrator->registerLInitStrategy(ib_initializer);
+        ib_method_ops->registerLInitStrategy(ib_initializer);
         Pointer<IBStandardForceGen> ib_force_fcn = new IBStandardForceGen();
-        time_integrator->registerIBLagrangianForceFunction(ib_force_fcn);
+        ib_method_ops->registerIBLagrangianForceFunction(ib_force_fcn);
 
         // Create Eulerian initial condition specification objects.  These
         // objects also are used to specify exact solution values for error
@@ -197,14 +200,14 @@ main(
         {
             ib_initializer->registerLSiloDataWriter(silo_data_writer);
             time_integrator->registerVisItDataWriter(visit_data_writer);
-            time_integrator->registerLSiloDataWriter(silo_data_writer);
+            ib_method_ops->registerLSiloDataWriter(silo_data_writer);
         }
 
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.
-        time_integrator->freeLInitStrategy();
+        ib_method_ops->freeLInitStrategy();
         app_initializer.setNull();
 
         // Print the input database contents to the log file.
@@ -247,7 +250,7 @@ main(
         }
 
         // Make a copy of the initial positions of the structure.
-        LDataManager* l_data_manager = time_integrator->getLDataManager();
+        LDataManager* l_data_manager = ib_method_ops->getLDataManager();
         const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
         Pointer<LData> X_data = l_data_manager->getLData("X", finest_hier_level);
         Vec X_petsc_vec = X_data->getVec();

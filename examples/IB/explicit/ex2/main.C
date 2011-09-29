@@ -136,7 +136,7 @@ main(
         Pointer<IBMethod> ib_method_ops = new IBMethod(
             "IBMethod", app_initializer->getComponentDatabase("IBMethod"));
         Pointer<IBHierarchyIntegrator> time_integrator = new IBHierarchyIntegrator(
-            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), navier_stokes_integrator, ib_method_ops);
+            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops, navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(

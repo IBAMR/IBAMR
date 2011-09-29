@@ -82,9 +82,12 @@ IBHierarchyIntegrator {
    num_cycles          = NUM_CYCLES
    regrid_cfl_interval = REGRID_CFL_INTERVAL
    dt_max              = DT_MAX
-   delta_fcn           = DELTA_FUNCTION
    enable_logging      = ENABLE_LOGGING
-   timestepping_scheme = "MIDPOINT_RULE"
+}
+
+IBMethod {
+   delta_fcn      = DELTA_FUNCTION
+   enable_logging = ENABLE_LOGGING
 }
 
 IBStandardInitializer {

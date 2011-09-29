@@ -104,6 +104,7 @@ am__objects_1 = libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBLagrangianForceStrategy.$(OBJEXT) \
 	libIBAMR2d_a-IBLagrangianForceStrategySet.$(OBJEXT) \
 	libIBAMR2d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
+	libIBAMR2d_a-IBMethod.$(OBJEXT) \
 	libIBAMR2d_a-IBMethodStrategy.$(OBJEXT) \
 	libIBAMR2d_a-IBPostProcessStrategy.$(OBJEXT) \
 	libIBAMR2d_a-IBRodForceSpec.$(OBJEXT) \
@@ -117,6 +118,7 @@ am__objects_1 = libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBStandardInitializer.$(OBJEXT) \
 	libIBAMR2d_a-IBTargetPointForceSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBTargetPointForceSpecFactory.$(OBJEXT) \
+	libIBAMR2d_a-PenaltyIBMethod.$(OBJEXT) \
 	libIBAMR2d_a-AdvDiffHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-AdvDiffHypPatchOps.$(OBJEXT) \
 	libIBAMR2d_a-AdvectHypPatchOps.$(OBJEXT) \
@@ -167,6 +169,7 @@ am__objects_2 = libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBLagrangianForceStrategy.$(OBJEXT) \
 	libIBAMR3d_a-IBLagrangianForceStrategySet.$(OBJEXT) \
 	libIBAMR3d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
+	libIBAMR3d_a-IBMethod.$(OBJEXT) \
 	libIBAMR3d_a-IBMethodStrategy.$(OBJEXT) \
 	libIBAMR3d_a-IBPostProcessStrategy.$(OBJEXT) \
 	libIBAMR3d_a-IBRodForceSpec.$(OBJEXT) \
@@ -180,6 +183,7 @@ am__objects_2 = libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBStandardInitializer.$(OBJEXT) \
 	libIBAMR3d_a-IBTargetPointForceSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBTargetPointForceSpecFactory.$(OBJEXT) \
+	libIBAMR3d_a-PenaltyIBMethod.$(OBJEXT) \
 	libIBAMR3d_a-AdvDiffHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-AdvDiffHypPatchOps.$(OBJEXT) \
 	libIBAMR3d_a-AdvectHypPatchOps.$(OBJEXT) \
@@ -564,11 +568,6 @@ $(top_builddir)/src/advect/fortran/godunov_helpers.f \
 $(top_builddir)/src/fortran/sqrtm.f \
 $(top_srcdir)/src/navier_stokes/INSProblemCoefs.C
 
-
-###if LIBMESH_ENABLED
-###DIM_INDEPENDENT_SOURCES += \
-###$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C
-###endif
 pkg_include_HEADERS =  \
 	$(top_srcdir)/src/navier_stokes/INSProblemCoefs.h \
 	$(top_srcdir)/src/utilities/ibamr_enums.h \
@@ -593,6 +592,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategy.h \
 	$(top_srcdir)/src/IB/IBLagrangianForceStrategySet.h \
 	$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.h \
+	$(top_srcdir)/src/IB/IBMethod.h \
 	$(top_srcdir)/src/IB/IBMethodStrategy.h \
 	$(top_srcdir)/src/IB/IBPostProcessStrategy.h \
 	$(top_srcdir)/src/IB/IBRodForceSpec.I \
@@ -611,6 +611,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/IB/IBTargetPointForceSpec.I \
 	$(top_srcdir)/src/IB/IBTargetPointForceSpec.h \
 	$(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.h \
+	$(top_srcdir)/src/IB/PenaltyIBMethod.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.h \
 	$(top_srcdir)/src/advect/AdvectHypPatchOps.h \
@@ -649,6 +650,7 @@ $(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategy.C \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategySet.C \
 $(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
+$(top_srcdir)/src/IB/IBMethod.C \
 $(top_srcdir)/src/IB/IBMethodStrategy.C \
 $(top_srcdir)/src/IB/IBPostProcessStrategy.C \
 $(top_srcdir)/src/IB/IBRodForceSpec.C \
@@ -662,6 +664,7 @@ $(top_srcdir)/src/IB/IBStandardSourceGen.C \
 $(top_srcdir)/src/IB/IBStandardInitializer.C \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.C \
 $(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C \
+$(top_srcdir)/src/IB/PenaltyIBMethod.C \
 $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
 $(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.C \
 $(top_srcdir)/src/advect/AdvectHypPatchOps.C \
@@ -685,11 +688,6 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C
 
-
-###if LIBMESH_ENABLED
-###pkg_include_HEADERS += \
-###$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.h
-###endif
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
@@ -825,6 +823,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBLagrangianForceStrategySet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBLagrangianSourceStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBMethodStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBPostProcessStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Po@am__quote@
@@ -854,6 +853,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredProjectionPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredStokesOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredVelocityBcCoef.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-PenaltyIBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffHypPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvectHypPatchOps.Po@am__quote@
@@ -875,6 +875,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBLagrangianForceStrategySet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBLagrangianSourceStrategy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBMethodStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBPostProcessStrategy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Po@am__quote@
@@ -904,6 +905,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredProjectionPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredStokesOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredVelocityBcCoef.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-PenaltyIBMethod.Po@am__quote@
 
 .C.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -1143,6 +1145,20 @@ libIBAMR2d_a-IBLagrangianSourceStrategy.obj: $(top_srcdir)/src/IB/IBLagrangianSo
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBLagrangianSourceStrategy.obj `if test -f '$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C'; fi`
 
+libIBAMR2d_a-IBMethod.o: $(top_srcdir)/src/IB/IBMethod.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBMethod.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBMethod.Tpo -c -o libIBAMR2d_a-IBMethod.o `test -f '$(top_srcdir)/src/IB/IBMethod.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMethod.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBMethod.Tpo $(DEPDIR)/libIBAMR2d_a-IBMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMethod.C' object='libIBAMR2d_a-IBMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBMethod.o `test -f '$(top_srcdir)/src/IB/IBMethod.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMethod.C
+
+libIBAMR2d_a-IBMethod.obj: $(top_srcdir)/src/IB/IBMethod.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBMethod.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBMethod.Tpo -c -o libIBAMR2d_a-IBMethod.obj `if test -f '$(top_srcdir)/src/IB/IBMethod.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMethod.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMethod.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBMethod.Tpo $(DEPDIR)/libIBAMR2d_a-IBMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMethod.C' object='libIBAMR2d_a-IBMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBMethod.obj `if test -f '$(top_srcdir)/src/IB/IBMethod.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMethod.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMethod.C'; fi`
+
 libIBAMR2d_a-IBMethodStrategy.o: $(top_srcdir)/src/IB/IBMethodStrategy.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBMethodStrategy.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBMethodStrategy.Tpo -c -o libIBAMR2d_a-IBMethodStrategy.o `test -f '$(top_srcdir)/src/IB/IBMethodStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMethodStrategy.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBMethodStrategy.Tpo $(DEPDIR)/libIBAMR2d_a-IBMethodStrategy.Po
@@ -1324,6 +1340,20 @@ libIBAMR2d_a-IBTargetPointForceSpecFactory.obj: $(top_srcdir)/src/IB/IBTargetPoi
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C' object='libIBAMR2d_a-IBTargetPointForceSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBTargetPointForceSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C'; fi`
+
+libIBAMR2d_a-PenaltyIBMethod.o: $(top_srcdir)/src/IB/PenaltyIBMethod.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-PenaltyIBMethod.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-PenaltyIBMethod.Tpo -c -o libIBAMR2d_a-PenaltyIBMethod.o `test -f '$(top_srcdir)/src/IB/PenaltyIBMethod.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/PenaltyIBMethod.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-PenaltyIBMethod.Tpo $(DEPDIR)/libIBAMR2d_a-PenaltyIBMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/PenaltyIBMethod.C' object='libIBAMR2d_a-PenaltyIBMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-PenaltyIBMethod.o `test -f '$(top_srcdir)/src/IB/PenaltyIBMethod.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/PenaltyIBMethod.C
+
+libIBAMR2d_a-PenaltyIBMethod.obj: $(top_srcdir)/src/IB/PenaltyIBMethod.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-PenaltyIBMethod.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-PenaltyIBMethod.Tpo -c -o libIBAMR2d_a-PenaltyIBMethod.obj `if test -f '$(top_srcdir)/src/IB/PenaltyIBMethod.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/PenaltyIBMethod.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/PenaltyIBMethod.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-PenaltyIBMethod.Tpo $(DEPDIR)/libIBAMR2d_a-PenaltyIBMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/PenaltyIBMethod.C' object='libIBAMR2d_a-PenaltyIBMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-PenaltyIBMethod.obj `if test -f '$(top_srcdir)/src/IB/PenaltyIBMethod.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/PenaltyIBMethod.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/PenaltyIBMethod.C'; fi`
 
 libIBAMR2d_a-AdvDiffHierarchyIntegrator.o: $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-AdvDiffHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-AdvDiffHierarchyIntegrator.Tpo -c -o libIBAMR2d_a-AdvDiffHierarchyIntegrator.o `test -f '$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C
@@ -1843,6 +1873,20 @@ libIBAMR3d_a-IBLagrangianSourceStrategy.obj: $(top_srcdir)/src/IB/IBLagrangianSo
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBLagrangianSourceStrategy.obj `if test -f '$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C'; fi`
 
+libIBAMR3d_a-IBMethod.o: $(top_srcdir)/src/IB/IBMethod.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBMethod.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBMethod.Tpo -c -o libIBAMR3d_a-IBMethod.o `test -f '$(top_srcdir)/src/IB/IBMethod.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMethod.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBMethod.Tpo $(DEPDIR)/libIBAMR3d_a-IBMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMethod.C' object='libIBAMR3d_a-IBMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBMethod.o `test -f '$(top_srcdir)/src/IB/IBMethod.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMethod.C
+
+libIBAMR3d_a-IBMethod.obj: $(top_srcdir)/src/IB/IBMethod.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBMethod.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBMethod.Tpo -c -o libIBAMR3d_a-IBMethod.obj `if test -f '$(top_srcdir)/src/IB/IBMethod.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMethod.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMethod.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBMethod.Tpo $(DEPDIR)/libIBAMR3d_a-IBMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBMethod.C' object='libIBAMR3d_a-IBMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBMethod.obj `if test -f '$(top_srcdir)/src/IB/IBMethod.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBMethod.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBMethod.C'; fi`
+
 libIBAMR3d_a-IBMethodStrategy.o: $(top_srcdir)/src/IB/IBMethodStrategy.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBMethodStrategy.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBMethodStrategy.Tpo -c -o libIBAMR3d_a-IBMethodStrategy.o `test -f '$(top_srcdir)/src/IB/IBMethodStrategy.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBMethodStrategy.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBMethodStrategy.Tpo $(DEPDIR)/libIBAMR3d_a-IBMethodStrategy.Po
@@ -2024,6 +2068,20 @@ libIBAMR3d_a-IBTargetPointForceSpecFactory.obj: $(top_srcdir)/src/IB/IBTargetPoi
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C' object='libIBAMR3d_a-IBTargetPointForceSpecFactory.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBTargetPointForceSpecFactory.obj `if test -f '$(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C'; fi`
+
+libIBAMR3d_a-PenaltyIBMethod.o: $(top_srcdir)/src/IB/PenaltyIBMethod.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-PenaltyIBMethod.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-PenaltyIBMethod.Tpo -c -o libIBAMR3d_a-PenaltyIBMethod.o `test -f '$(top_srcdir)/src/IB/PenaltyIBMethod.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/PenaltyIBMethod.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-PenaltyIBMethod.Tpo $(DEPDIR)/libIBAMR3d_a-PenaltyIBMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/PenaltyIBMethod.C' object='libIBAMR3d_a-PenaltyIBMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-PenaltyIBMethod.o `test -f '$(top_srcdir)/src/IB/PenaltyIBMethod.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/PenaltyIBMethod.C
+
+libIBAMR3d_a-PenaltyIBMethod.obj: $(top_srcdir)/src/IB/PenaltyIBMethod.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-PenaltyIBMethod.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-PenaltyIBMethod.Tpo -c -o libIBAMR3d_a-PenaltyIBMethod.obj `if test -f '$(top_srcdir)/src/IB/PenaltyIBMethod.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/PenaltyIBMethod.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/PenaltyIBMethod.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-PenaltyIBMethod.Tpo $(DEPDIR)/libIBAMR3d_a-PenaltyIBMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/PenaltyIBMethod.C' object='libIBAMR3d_a-PenaltyIBMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-PenaltyIBMethod.obj `if test -f '$(top_srcdir)/src/IB/PenaltyIBMethod.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/PenaltyIBMethod.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/PenaltyIBMethod.C'; fi`
 
 libIBAMR3d_a-AdvDiffHierarchyIntegrator.o: $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-AdvDiffHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-AdvDiffHierarchyIntegrator.Tpo -c -o libIBAMR3d_a-AdvDiffHierarchyIntegrator.o `test -f '$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C

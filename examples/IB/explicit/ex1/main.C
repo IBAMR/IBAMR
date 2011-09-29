@@ -43,6 +43,7 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBHierarchyIntegrator.h>
+#include <ibamr/IBMethod.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
@@ -132,8 +133,10 @@ main(
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n" <<
                        "Valid options are: COLLOCATED, STAGGERED");
         }
+        Pointer<IBMethod> ib_method_ops = new IBMethod(
+            "IBMethod", app_initializer->getComponentDatabase("IBMethod"));
         Pointer<IBHierarchyIntegrator> time_integrator = new IBHierarchyIntegrator(
-            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), navier_stokes_integrator);
+            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops, navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
@@ -149,9 +152,9 @@ main(
         // Configure the IB solver.
         Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
             "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
-        time_integrator->registerLInitStrategy(ib_initializer);
+        ib_method_ops->registerLInitStrategy(ib_initializer);
         Pointer<IBStandardForceGen> ib_force_fcn = new IBStandardForceGen();
-        time_integrator->registerIBLagrangianForceFunction(ib_force_fcn);
+        ib_method_ops->registerIBLagrangianForceFunction(ib_force_fcn);
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -160,14 +163,14 @@ main(
                 "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerVelocityInitialConditions(u_init);
         }
-        
+
         if (input_db->keyExists("PressureInitialConditions"))
         {
             Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerPressureInitialConditions(p_init);
         }
-        
+
         // Create Eulerian boundary condition specification objects (when necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> u_bc_coefs;
@@ -211,21 +214,21 @@ main(
         {
             ib_initializer->registerLSiloDataWriter(silo_data_writer);
             time_integrator->registerVisItDataWriter(visit_data_writer);
-            time_integrator->registerLSiloDataWriter(silo_data_writer);
+            ib_method_ops->registerLSiloDataWriter(silo_data_writer);
         }
 
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.
-        time_integrator->freeLInitStrategy();
+        ib_method_ops->freeLInitStrategy();
         ib_initializer.setNull();
         app_initializer.setNull();
-        
+
         // Print the input database contents to the log file.
         plog << "Input database:\n";
         input_db->printClassData(plog);
-        
+
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
@@ -286,11 +289,11 @@ main(
             if (dump_postproc_data && (iteration_num%postproc_data_dump_interval == 0 || last_step))
             {
                 output_data(patch_hierarchy,
-                            navier_stokes_integrator, time_integrator->getLDataManager(),
+                            navier_stokes_integrator, ib_method_ops->getLDataManager(),
                             iteration_num, loop_time, postproc_data_dump_dirname);
-            }            
+            }
         }
-        
+
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];

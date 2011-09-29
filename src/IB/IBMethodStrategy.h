@@ -36,10 +36,22 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // SAMRAI INCLUDES
+#include <CoarsenSchedule.h>
 #include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
+#include <RefineSchedule.h>
 #include <StandardTagAndInitStrategy.h>
 #include <tbox/Serializable.h>
+
+// C++ STDLIB INCLUDES
+#include <vector>
+
+/////////////////////////////// FORWARD DECLARATION //////////////////////////
+
+namespace IBAMR
+{
+class IBHierarchyIntegrator;
+}
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -55,7 +67,7 @@ class IBMethodStrategy
 {
 public:
     /*!
-     * \brief Default constructor.
+     * \brief Constructor.
      */
     IBMethodStrategy();
 
@@ -66,11 +78,19 @@ public:
     ~IBMethodStrategy();
 
     /*!
+     * Register the IBHierarchyIntegrator object that is using this strategy
+     * class.
+     */
+    void
+    registerIBHierarchyIntegrator(
+        IBHierarchyIntegrator* ib_solver);
+
+    /*!
      * Return the number of ghost cells required by the Lagrangian-Eulerian
      * interaction routines.
      */
-    virtual SAMRAI::hier::IntVector<NDIM>
-    getMinimumGhostCellWidth() = 0;
+    virtual const SAMRAI::hier::IntVector<NDIM>&
+    getMinimumGhostCellWidth() const = 0;
 
     /*!
      * Virtual method to prepare to advance data from current_time to new_time.
@@ -101,8 +121,10 @@ public:
      */
     virtual void
     interpolateVelocity(
-        const int u_data_idx,
-        const double data_time) = 0;
+        int u_data_idx,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+        double data_time) = 0;
 
     /*!
      * Advance the positions of the Lagrangian structure using forward Euler.
@@ -134,9 +156,18 @@ public:
      * within the current time interval.
      */
     virtual void
-    spreadLagrangianForce(
-        const int f_data_idx,
-        const double data_time) = 0;
+    spreadForce(
+        int f_data_idx,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
+        double data_time) = 0;
+
+    /*!
+     * Indicate whether there are any internal fluid sources/sinks.
+     *
+     * A default implementation is provided that returns false.
+     */
+    virtual bool
+    hasFluidSources() const;
 
     /*!
      * Compute the Lagrangian source/sink density at the specified time within
@@ -155,9 +186,10 @@ public:
      * An empty default implementation is provided.
      */
     virtual void
-    spreadLagrangianFluidSource(
-        const int q_data_idx,
-        const double data_time);
+    spreadFluidSource(
+        int q_data_idx,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& q_prolongation_scheds,
+        double data_time);
 
     /*!
      * Compute the pressures at the positions of any distributed internal fluid
@@ -167,8 +199,10 @@ public:
      */
     virtual void
     interpolatePressure(
-        const int p_data_idx,
-        const double data_time);
+        int p_data_idx,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& p_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& p_ghost_fill_scheds,
+        double data_time);
 
     /*!
      * Execute user-defined post-processing operations.
@@ -176,7 +210,7 @@ public:
      * An empty default implementation is provided.
      */
     virtual void
-    postProcessData(
+    postprocessData(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
@@ -195,7 +229,11 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg,
         int u_data_idx,
-        double init_data_time);
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+        int integrator_step,
+        double init_data_time,
+        bool initial_time);
 
     /*!
      * Register a load balancer and work load patch data index with the IB
@@ -296,6 +334,12 @@ public:
     void
     putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
+protected:
+    /*!
+     * The IBHierarchyIntegrator object that is using this strategy class.
+     */
+    IBHierarchyIntegrator* d_ib_solver;
 
 private:
     /*!

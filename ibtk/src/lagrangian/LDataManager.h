@@ -700,7 +700,7 @@ public:
      * in which alpha and beta are parameters that each default to the value 1.
      */
     void
-    updateWorkloadData(
+    updateWorkloadEstimates(
         int coarsest_ln=-1,
         int finest_ln=-1);
 

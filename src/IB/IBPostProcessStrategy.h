@@ -88,7 +88,7 @@ public:
      * \brief Post-process data on the patch hierarchy.
      */
     virtual void
-    postProcessData(
+    postprocessData(
         int u_idx,
         int p_idx,
         int f_idx,

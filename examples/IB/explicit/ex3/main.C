@@ -47,6 +47,7 @@
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+#include <ibamr/PenaltyIBMethod.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -162,8 +163,10 @@ main(
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n" <<
                        "Valid options are: COLLOCATED, STAGGERED");
         }
+        Pointer<PenaltyIBMethod> ib_method_ops = new PenaltyIBMethod(
+            "PenaltyIBMethod", app_initializer->getComponentDatabase("PenaltyIBMethod"));
         Pointer<IBHierarchyIntegrator> time_integrator = new IBHierarchyIntegrator(
-            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), navier_stokes_integrator);
+            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops, navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
@@ -179,10 +182,10 @@ main(
         // Configure the IB solver.
         Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
             "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
-        time_integrator->registerLInitStrategy(ib_initializer);
+        ib_method_ops->registerLInitStrategy(ib_initializer);
         Pointer<IBStandardForceGen> ib_force_fcn = new IBStandardForceGen();
         ib_force_fcn->registerSpringForceFunction(0,&linear_spring_force);
-        time_integrator->registerIBLagrangianForceFunction(ib_force_fcn);
+        ib_method_ops->registerIBLagrangianForceFunction(ib_force_fcn);
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -242,14 +245,14 @@ main(
         {
             ib_initializer->registerLSiloDataWriter(silo_data_writer);
             time_integrator->registerVisItDataWriter(visit_data_writer);
-            time_integrator->registerLSiloDataWriter(silo_data_writer);
+            ib_method_ops->registerLSiloDataWriter(silo_data_writer);
         }
 
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.
-        time_integrator->freeLInitStrategy();
+        ib_method_ops->freeLInitStrategy();
         ib_initializer.setNull();
         app_initializer.setNull();
 
@@ -317,7 +320,7 @@ main(
             if (dump_postproc_data && (iteration_num%postproc_data_dump_interval == 0 || last_step))
             {
                 output_data(patch_hierarchy,
-                            navier_stokes_integrator, time_integrator->getLDataManager(),
+                            navier_stokes_integrator, ib_method_ops->getLDataManager(),
                             iteration_num, loop_time, postproc_data_dump_dirname);
             }
         }

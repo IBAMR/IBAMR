@@ -60,7 +60,8 @@ public:
      */
     IBMethod(
         const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        bool register_for_restart=true);
 
     /*!
      * \brief Destructor.
@@ -136,8 +137,8 @@ public:
      * Return the number of ghost cells required by the Lagrangian-Eulerian
      * interaction routines.
      */
-    SAMRAI::hier::IntVector<NDIM>
-    getMinimumGhostCellWidth();
+    const SAMRAI::hier::IntVector<NDIM>&
+    getMinimumGhostCellWidth() const;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.
@@ -163,8 +164,10 @@ public:
      */
     void
     interpolateVelocity(
-        const int u_data_idx,
-        const double data_time);
+        int u_data_idx,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+        double data_time);
 
     /*!
      * Advance the positions of the Lagrangian structure using forward Euler.
@@ -196,9 +199,16 @@ public:
      * within the current time interval.
      */
     void
-    spreadLagrangianForce(
-        const int f_data_idx,
-        const double data_time);
+    spreadForce(
+        int f_data_idx,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
+        double data_time);
+
+    /*!
+     * Indicate whether there are any internal fluid sources/sinks.
+     */
+    virtual bool
+    hasFluidSources() const;
 
     /*!
      * Compute the Lagrangian source/sink density at the specified time within
@@ -217,9 +227,10 @@ public:
      * An empty default implementation is provided.
      */
     void
-    spreadLagrangianFluidSource(
-        const int q_data_idx,
-        const double data_time);
+    spreadFluidSource(
+        int q_data_idx,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& q_prolongation_scheds,
+        double data_time);
 
     /*!
      * Compute the pressures at the positions of any distributed internal fluid
@@ -229,14 +240,16 @@ public:
      */
     void
     interpolatePressure(
-        const int p_data_idx,
-        const double data_time);
+        int p_data_idx,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& p_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& p_ghost_fill_scheds,
+        double data_time);
 
     /*!
      * Execute user-defined post-processing operations.
      */
     void
-    postProcessData(
+    postprocessData(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
@@ -253,7 +266,11 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg,
         int u_data_idx,
-        double init_data_time);
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+        int integrator_step,
+        double init_data_time,
+        bool initial_time);
 
     /*!
      * Register a load balancer and work load patch data index with the IB
@@ -339,53 +356,45 @@ public:
     putToDatabase(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
-private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
+protected:
+    /*
+     * Indicates whether the integrator should output logging messages.
      */
-    IBMethod();
+    bool d_do_log;
 
-    /*!
-     * \brief Copy constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     *
-     * \param from The value to copy to this object.
+    /*
+     * Pointers to the patch hierarchy and gridding algorithm objects associated
+     * with this object.
      */
-    IBMethod(
-        const IBMethod& from);
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
 
-    /*!
-     * \brief Assignment operator.
-     *
-     * \note This operator is not implemented and should not be used.
-     *
-     * \param that The value to assign to this object.
-     *
-     * \return A reference to this object.
+    /*
+     * The current time step interval.
      */
-    IBMethod&
-    operator=(
-        const IBMethod& that);
+    double d_current_time, d_new_time;
 
+    /*
+     * Boolean values tracking whether certain quantities need to be
+     * reinitialized.
+     */
+    bool d_X_current_needs_ghost_fill, d_X_new_needs_ghost_fill, d_X_half_needs_ghost_fill;
+    bool d_F_current_needs_ghost_fill, d_F_new_needs_ghost_fill, d_F_half_needs_ghost_fill;
+    bool d_X_half_needs_reinit, d_U_half_needs_reinit;
     /*
      * The LDataManager is used to coordinate the distribution of Lagrangian
      * data on the patch hierarchy.
      */
     IBTK::LDataManager* d_l_data_manager;
     std::string d_interp_delta_fcn, d_spread_delta_fcn;
+    SAMRAI::hier::IntVector<NDIM> d_ghosts;
 
     /*
      * Lagrangian variables.
      */
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_current_data, d_X_new_data, d_X_half_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_U_current_data, d_U_new_data, d_U_half_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_F_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_K_data, d_M_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_Y_current_data, d_Y_new_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_V_current_data, d_V_new_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_F_current_data, d_F_new_data, d_F_half_data;
 
     /*
      * List of local indices of local anchor points.
@@ -425,13 +434,6 @@ private:
     bool d_normalize_source_strength;
 
     /*
-     * Parameters for the penalty IB method for boundaries with additional
-     * boundary mass.
-     */
-    bool d_using_pIB_method;
-    blitz::TinyVector<double,NDIM> d_gravitational_acceleration;
-
-    /*
      * Post-processor object.
      */
     SAMRAI::tbox::Pointer<IBPostProcessStrategy> d_post_processor;
@@ -444,6 +446,117 @@ private:
 #if (NDIM == 3)
     SAMRAI::tbox::Pointer<IBTK::LM3DDataWriter> d_m3D_writer;
 #endif
+
+private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    IBMethod();
+
+    /*!
+     * \brief Copy constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     *
+     * \param from The value to copy to this object.
+     */
+    IBMethod(
+        const IBMethod& from);
+
+    /*!
+     * \brief Assignment operator.
+     *
+     * \note This operator is not implemented and should not be used.
+     *
+     * \param that The value to assign to this object.
+     *
+     * \return A reference to this object.
+     */
+    IBMethod&
+    operator=(
+        const IBMethod& that);
+
+    /*!
+     * Reset the Lagrangian force function object.
+     */
+    void
+    resetLagrangianForceFunction(
+        double init_data_time,
+        bool initial_time);
+
+    /*!
+     * Reset the Lagrangian source function object.
+     */
+    void
+    resetLagrangianSourceFunction(
+        double init_data_time,
+        bool initial_time);
+
+    /*!
+     * Reset the post-processor object.
+     */
+    void
+    resetPostProcessor(
+        double init_data_time,
+        bool initial_time);
+
+    /*!
+     * Compute the flow rates and pressures in the internal flow meters and
+     * pressure gauges.
+     */
+    void
+    updateIBInstrumentationData(
+        int timestep_num,
+        double data_time);
+
+    /*!
+     * Interpolate the current and new data to obtain values at the midpoint of
+     * the time interval.
+     */
+    void
+    reinitMidpointData(
+        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& current_data,
+        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& new_data,
+        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& half_data);
+
+    /*!
+     * Set the elements of the Lagrangian vector to zero at anchored nodes of
+     * the curvilinear mesh.
+     */
+    void
+    resetAnchorPointValues(
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > U_data,
+        int coarsest_ln,
+        int finest_ln);
+
+    /*!
+     * Read input values from a given database.
+     */
+    void
+    getFromInput(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
+        bool is_from_restart);
+
+    /*!
+     * Read object state from the restart file and initialize class data
+     * members.
+     */
+    void
+    getFromRestart();
+
+    /*
+     * The object name is used as a handle to databases stored in restart files
+     * and for error reporting purposes.
+     */
+    std::string d_object_name;
+
+    /*
+     * A boolean value indicating whether the class is registered with the
+     * restart database.
+     */
+    bool d_registered_for_restart;
 };
 }// namespace IBAMR
 

@@ -103,7 +103,7 @@ static Timer* t_map_lagrangian_to_petsc;
 static Timer* t_map_petsc_to_lagrangian;
 static Timer* t_begin_data_redistribution;
 static Timer* t_end_data_redistribution;
-static Timer* t_update_workload_data;
+static Timer* t_update_workload_estimates;
 static Timer* t_initialize_level_data;
 static Timer* t_reset_hierarchy_configuration;
 static Timer* t_apply_gradient_detector;
@@ -1839,11 +1839,11 @@ LDataManager::endDataRedistribution(
 }// endDataRedistribution
 
 void
-LDataManager::updateWorkloadData(
+LDataManager::updateWorkloadEstimates(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
-    IBTK_TIMER_START(t_update_workload_data);
+    IBTK_TIMER_START(t_update_workload_estimates);
 
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
@@ -1878,9 +1878,9 @@ LDataManager::updateWorkloadData(
         }
     }
 
-    IBTK_TIMER_STOP(t_update_workload_data);
+    IBTK_TIMER_STOP(t_update_workload_estimates);
     return;
-}// updateWorkloadData
+}// updateWorkloadEstimates
 
 ///
 ///  The following routines:
@@ -2314,7 +2314,7 @@ LDataManager::applyGradientDetector(
 
         // Compute the workload and node count data on the next finer level of
         // the patch hierarchy.
-        updateWorkloadData(level_number+1);
+        updateWorkloadEstimates(level_number+1);
 
         // Coarsen the node count data from the next finer level of the patch
         // hierarchy.
@@ -2375,7 +2375,7 @@ LDataManager::applyGradientDetector(
 
         // Compute the workload and node count data on the present level of the
         // patch hierarchy (since it was invalidated above).
-        updateWorkloadData(level_number);
+        updateWorkloadEstimates(level_number);
     }
 
     IBTK_TIMER_STOP(t_apply_gradient_detector);
@@ -2621,7 +2621,7 @@ LDataManager::LDataManager(
         t_map_petsc_to_lagrangian = TimerManager::getManager()->getTimer("IBTK::LDataManager::mapPETScToLagrangian()");
         t_begin_data_redistribution = TimerManager::getManager()->getTimer("IBTK::LDataManager::beginDataRedistribution()");
         t_end_data_redistribution = TimerManager::getManager()->getTimer("IBTK::LDataManager::endDataRedistribution()");
-        t_update_workload_data = TimerManager::getManager()->getTimer("IBTK::LDataManager::updateWorkloadData()");
+        t_update_workload_estimates = TimerManager::getManager()->getTimer("IBTK::LDataManager::updateWorkloadEstimates()");
         t_initialize_level_data = TimerManager::getManager()->getTimer("IBTK::LDataManager::initializeLevelData()");
         t_reset_hierarchy_configuration = TimerManager::getManager()->getTimer("IBTK::LDataManager::resetHierarchyConfiguration()");
         t_apply_gradient_detector = TimerManager::getManager()->getTimer("IBTK::LDataManager::applyGradientDetector()");

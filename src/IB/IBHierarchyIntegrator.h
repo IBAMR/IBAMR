@@ -47,6 +47,13 @@
 // IBTK INCLUDES
 #include <ibtk/LDataManager.h>
 
+/////////////////////////////// FORWARD DECLARATION //////////////////////////
+
+namespace IBAMR
+{
+class IBMethod;
+}
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -59,6 +66,8 @@ class IBHierarchyIntegrator
     : public HierarchyIntegrator
 {
 public:
+    friend class IBMethod;
+
     /*!
      * The constructor for class IBHierarchyIntegrator sets some default values,
      * reads in configuration information from input and restart databases, and

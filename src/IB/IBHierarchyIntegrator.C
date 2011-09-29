@@ -84,6 +84,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
 {
     // Set the IB method operations objects.
     d_ib_method_ops = ib_method_ops;
+    d_ib_method_ops->registerIBHierarchyIntegrator(this);
 
     // Register the fluid solver as a child integrator of this integrator
     // object.
@@ -170,23 +171,34 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     d_u_idx = var_db->registerVariableAndContext(d_u_var, getScratchContext(),    ghosts);
     d_f_idx = var_db->registerVariableAndContext(d_f_var, getScratchContext(), no_ghosts);
 
-    Pointer<CellVariable<NDIM,double> > p_cc_var = d_ins_hier_integrator->getPressureVariable();
-    if (!p_cc_var.isNull())
+    if (d_ib_method_ops->hasFluidSources())
     {
-        d_q_var = new CellVariable<NDIM,double>(d_object_name+"::q");
+        Pointer<CellVariable<NDIM,double> > p_cc_var = d_ins_hier_integrator->getPressureVariable();
+        if (!p_cc_var.isNull())
+        {
+            d_q_var = new CellVariable<NDIM,double>(d_object_name+"::q");
+        }
+        else
+        {
+            TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n"
+                       << "  unsupported pressure data centering" << std::endl);
+        }
+        d_q_idx = var_db->registerVariableAndContext(d_q_var, getScratchContext(), no_ghosts);
     }
     else
     {
-        TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n"
-                   << "  unsupported pressure data centering" << std::endl);
+        d_q_var = NULL;
+        d_q_idx = -1;
     }
-    d_q_idx = var_db->registerVariableAndContext(d_q_var, getScratchContext(), no_ghosts);
 
     // Initialize the objects used to manage Lagrangian-Eulerian interaction.
     d_eulerian_force_fcn = new IBEulerianForceFunction(d_object_name+"::IBEulerianForceFunction", d_f_idx, d_f_idx, d_f_idx);
     d_ins_hier_integrator->registerBodyForceFunction(d_eulerian_force_fcn);
-    d_eulerian_source_fcn = new IBEulerianSourceFunction(d_object_name+"::IBEulerianSourceFunction", d_q_idx, d_q_idx, d_q_idx);
-    d_ins_hier_integrator->registerFluidSourceFunction(d_eulerian_source_fcn);
+    if (d_ib_method_ops->hasFluidSources())
+    {
+        d_eulerian_source_fcn = new IBEulerianSourceFunction(d_object_name+"::IBEulerianSourceFunction", d_q_idx, d_q_idx, d_q_idx);
+        d_ins_hier_integrator->registerFluidSourceFunction(d_eulerian_source_fcn);
+    }
 
     // Initialize the fluid solver.  It is necessary to do this after
     // registering a body force function or fluid source distribution function.
@@ -250,12 +262,18 @@ IBHierarchyIntegrator::initializePatchHierarchy(
     d_ib_method_ops->endDataRedistribution(hierarchy, gridding_alg);
 
     // Initialize Lagrangian data on the patch hierarchy.
+    const int coarsest_ln = 0;
+    const int finest_ln = hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(d_u_idx, d_integrator_time);
+    }
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                    d_ins_hier_integrator->getCurrentContext());
     d_hier_velocity_data_ops->copyData(d_u_idx, u_current_idx);
-    const int coarsest_ln = 0;
-    const int finest_ln = hierarchy->getFinestLevelNumber();
+    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
     for (int ln = finest_ln; ln > coarsest_ln; --ln)
     {
         d_coarsen_scheds["u->u::S->S::CONSERVATIVE_COARSEN"][ln]->coarsenData();
@@ -264,7 +282,12 @@ IBHierarchyIntegrator::initializePatchHierarchy(
     {
         d_refine_scheds["u->u::S->S::GHOST_FILL"][ln]->fillData(d_integrator_time);
     }
-    d_ib_method_ops->initializePatchHierarchy(hierarchy, gridding_alg, d_u_idx, d_integrator_time);
+    d_ib_method_ops->initializePatchHierarchy(hierarchy, gridding_alg, d_u_idx, d_coarsen_scheds["NONE"], d_refine_scheds["NONE"], d_integrator_step, d_integrator_time, initial_time);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(d_u_idx);
+    }
 
     // Indicate that the hierarchy is initialized.
     d_hierarchy_is_initialized = true;
@@ -289,7 +312,10 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(
     // Setup the Eulerian body force and fluid source/sink functions.
     d_eulerian_force_fcn->registerBodyForceFunction(d_body_force_fcn);
     d_eulerian_force_fcn ->setTimeInterval(current_time, new_time);
-    d_eulerian_source_fcn->setTimeInterval(current_time, new_time);
+    if (d_ib_method_ops->hasFluidSources())
+    {
+        d_eulerian_source_fcn->setTimeInterval(current_time, new_time);
+    }
 
     // Allocate Eulerian scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -297,7 +323,10 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_u_idx, current_time);
         level->allocatePatchData(d_f_idx, current_time);
-        level->allocatePatchData(d_q_idx, current_time);
+        if (d_ib_method_ops->hasFluidSources())
+        {
+            level->allocatePatchData(d_q_idx, current_time);
+        }
     }
 
     // Initialize the fluid solver.
@@ -321,7 +350,6 @@ IBHierarchyIntegrator::integrateHierarchy(
     const double new_time,
     const int cycle_num)
 {
-    const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -335,36 +363,35 @@ IBHierarchyIntegrator::integrateHierarchy(
     // Compute the Lagrangian forces and spread them to the Eulerian grid.
     d_ib_method_ops->computeLagrangianForce(current_time+0.5*dt);
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
-    d_ib_method_ops->spreadLagrangianForce(d_f_idx, current_time+0.5*dt);
+    d_ib_method_ops->spreadForce(d_f_idx, d_refine_scheds["NONE"], current_time+0.5*dt);
 
     // Compute the Lagrangian source/sink strengths and spread them to the
     // Eulerian grid.
-    d_ib_method_ops->computeLagrangianFluidSource(current_time+0.5*dt);
-    d_hier_velocity_data_ops->setToScalar(d_q_idx, 0.0);
-    d_ib_method_ops->spreadLagrangianFluidSource(d_q_idx, current_time+0.5*dt);
+    if (d_ib_method_ops->hasFluidSources())
+    {
+        d_ib_method_ops->computeLagrangianFluidSource(current_time+0.5*dt);
+        d_hier_pressure_cc_data_ops->setToScalar(d_q_idx, 0.0);
+        d_ib_method_ops->spreadFluidSource(d_q_idx, d_refine_scheds["NONE"], current_time+0.5*dt);
+    }
 
     // Solve the incompressible Navier-Stokes equations.
     d_ins_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
 
     // Interpolate the Eulerian velocity to the curvilinear mesh.
     d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
-    for (int ln = finest_ln; ln > coarsest_ln; --ln)
-    {
-        d_coarsen_scheds["u->u::S->S::CONSERVATIVE_COARSEN"][ln]->coarsenData();
-    }
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        d_refine_scheds["u->u::S->S::GHOST_FILL"][ln]->fillData(d_integrator_time);
-    }
-    d_ib_method_ops->interpolateVelocity(d_u_idx, current_time+0.5*dt);
-
-    // Compute the pressure at the updated locations of any distributed internal
-    // fluid sources or sinks.
-    d_ib_method_ops->interpolatePressure(p_new_idx, current_time+0.5*dt);
+    d_refine_scheds["u->u::S->S::GHOST_FILL"][finest_ln]->fillData(d_integrator_time);
+    d_ib_method_ops->interpolateVelocity(d_u_idx, d_coarsen_scheds["NONE"], d_refine_scheds["NONE"], current_time+0.5*dt);
 
     // Compute an updated prediction of the updated positions of the Lagrangian
     // structure.
     d_ib_method_ops->midpointStep(current_time, new_time);
+
+    // Compute the pressure at the updated locations of any distributed internal
+    // fluid sources or sinks.
+    if (d_ib_method_ops->hasFluidSources())
+    {
+        d_ib_method_ops->interpolatePressure(p_new_idx, d_coarsen_scheds["NONE"], d_refine_scheds["NONE"], current_time+0.5*dt);
+    }
     return;
 }// integrateHierarchy
 
@@ -384,15 +411,8 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(
 
     // Interpolate the Eulerian velocity to the curvilinear mesh.
     d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
-    for (int ln = finest_ln; ln > coarsest_ln; --ln)
-    {
-        d_coarsen_scheds["u->u::S->S::CONSERVATIVE_COARSEN"][ln]->coarsenData();
-    }
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        d_refine_scheds["u->u::S->S::GHOST_FILL"][ln]->fillData(d_integrator_time);
-    }
-    d_ib_method_ops->interpolateVelocity(d_u_idx, new_time);
+    d_refine_scheds["u->u::S->S::GHOST_FILL"][finest_ln]->fillData(d_integrator_time);
+    d_ib_method_ops->interpolateVelocity(d_u_idx, d_coarsen_scheds["NONE"], d_refine_scheds["NONE"], new_time);
 
     // Synchronize new state data.
     if (!skip_synchronize_new_state_data)
@@ -440,7 +460,10 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_f_idx);
-        level->deallocatePatchData(d_q_idx);
+        if (d_ib_method_ops->hasFluidSources())
+        {
+            level->deallocatePatchData(d_q_idx);
+        }
     }
     return;
 }// postprocessIntegrateHierarchy

@@ -49,6 +49,7 @@ $(top_srcdir)/src/IB/IBKirchhoffRodForceGen.C \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategy.C \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategySet.C \
 $(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
+$(top_srcdir)/src/IB/IBMethod.C \
 $(top_srcdir)/src/IB/IBMethodStrategy.C \
 $(top_srcdir)/src/IB/IBPostProcessStrategy.C \
 $(top_srcdir)/src/IB/IBRodForceSpec.C \
@@ -62,6 +63,7 @@ $(top_srcdir)/src/IB/IBStandardSourceGen.C \
 $(top_srcdir)/src/IB/IBStandardInitializer.C \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.C \
 $(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C \
+$(top_srcdir)/src/IB/PenaltyIBMethod.C \
 $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
 $(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.C \
 $(top_srcdir)/src/advect/AdvectHypPatchOps.C \
@@ -85,11 +87,6 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C
 
-###if LIBMESH_ENABLED
-###DIM_INDEPENDENT_SOURCES += \
-###$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.C
-###endif
-
 pkg_include_HEADERS += \
 $(top_srcdir)/src/IB/IBAnchorPointSpec.I \
 $(top_srcdir)/src/IB/IBAnchorPointSpec.h \
@@ -109,6 +106,7 @@ $(top_srcdir)/src/IB/IBKirchhoffRodForceGen.h \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategy.h \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategySet.h \
 $(top_srcdir)/src/IB/IBLagrangianSourceStrategy.h \
+$(top_srcdir)/src/IB/IBMethod.h \
 $(top_srcdir)/src/IB/IBMethodStrategy.h \
 $(top_srcdir)/src/IB/IBPostProcessStrategy.h \
 $(top_srcdir)/src/IB/IBRodForceSpec.I \
@@ -127,6 +125,7 @@ $(top_srcdir)/src/IB/IBStandardInitializer.h \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.I \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.h \
 $(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.h \
+$(top_srcdir)/src/IB/PenaltyIBMethod.h \
 $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.h \
 $(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.h \
 $(top_srcdir)/src/advect/AdvectHypPatchOps.h \
@@ -149,11 +148,6 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h
-
-###if LIBMESH_ENABLED
-###pkg_include_HEADERS += \
-###$(top_srcdir)/src/IB/IBFEHierarchyIntegrator.h
-###endif
 
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \

@@ -23,7 +23,7 @@ CONVECTIVE_OP_TYPE  = "PPM"                      // convective differencing disc
 CONVECTIVE_FORM     = "ADVECTIVE"                // how to compute the convective terms
 NORMALIZE_PRESSURE  = FALSE                      // whether to explicitly force the pressure to have mean zero
 CFL_MAX             = 0.3                        // maximum CFL number
-DT_MAX              = 1.25e-1*DX_FINEST          // maximum timestep size
+DT_MAX              = 6.25e-2*DX_FINEST          // maximum timestep size
 VORTICITY_TAGGING   = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = 2                          // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL = 0.5                        // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
@@ -83,9 +83,12 @@ IBHierarchyIntegrator {
    num_cycles          = NUM_CYCLES
    regrid_cfl_interval = REGRID_CFL_INTERVAL
    dt_max              = DT_MAX
-   delta_fcn           = DELTA_FUNCTION
    enable_logging      = ENABLE_LOGGING
-   timestepping_scheme = "MIDPOINT_RULE"
+}
+
+IBMethod {
+   delta_fcn      = DELTA_FUNCTION
+   enable_logging = ENABLE_LOGGING
 }
 
 C_IB_4 = 3.0/8.0                         // corresponds to IB_4 delta function

@@ -88,10 +88,12 @@ IBHierarchyIntegrator {
    num_cycles          = NUM_CYCLES
    regrid_cfl_interval = REGRID_CFL_INTERVAL
    dt_max              = DT_MAX
-   delta_fcn           = DELTA_FUNCTION
    enable_logging      = ENABLE_LOGGING
-   timestepping_scheme = "MIDPOINT_RULE"
-   using_pIB_method    = TRUE
+}
+
+PenaltyIBMethod {
+   delta_fcn      = DELTA_FUNCTION
+   enable_logging = ENABLE_LOGGING
    gravitational_acceleration = 0.0 , -G
 }
 
