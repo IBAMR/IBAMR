@@ -372,7 +372,7 @@ protected:
     /*
      * The current time step interval.
      */
-    double d_current_time, d_new_time;
+    double d_current_time, d_new_time, d_half_time;
 
     /*
      * Boolean values tracking whether certain quantities need to be
