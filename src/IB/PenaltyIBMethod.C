@@ -70,10 +70,7 @@ PenaltyIBMethod::PenaltyIBMethod(
     bool register_for_restart)
     : IBMethod(object_name, input_db, register_for_restart)
 {
-    // NOTE: Parent class constructor registers class with the restart manager.
-
-    // Set the object name.
-    d_object_name = object_name;
+    // NOTE: Parent class constructor registers class with the restart manager, sets object name.
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -85,6 +82,9 @@ PenaltyIBMethod::PenaltyIBMethod(
 PenaltyIBMethod::~PenaltyIBMethod()
 {
     // intentionally blank
+    //
+    // NOTE: Parent class constructor unregisters class with the restart
+    // manager.
     return;
 }// ~PenaltyIBMethod
 
@@ -112,21 +112,16 @@ PenaltyIBMethod::preprocessIntegrateData(
         d_K_data        [ln] = d_l_data_manager->getLData("K",ln);
         d_M_data        [ln] = d_l_data_manager->getLData("M",ln);
         d_Y_current_data[ln] = d_l_data_manager->getLData("Y",ln);
-        d_Y_new_data    [ln] = d_l_data_manager->createLData("Y_new" ,ln,NDIM);
+        d_Y_new_data    [ln] = d_l_data_manager->createLData("Y_new",ln,NDIM);
         d_V_current_data[ln] = d_l_data_manager->getLData("V",ln);
-        d_V_new_data    [ln] = d_l_data_manager->createLData("V_new" ,ln,NDIM);
-
+        d_V_new_data    [ln] = d_l_data_manager->createLData("V_new",ln,NDIM);
+#ifdef DEBUG_CHECK_ASSERTIONS
+        // Initialize Y^{n+1} and V^{n+1} to cause floating-point exceptions if
+        // not initialized correctly.
         int ierr;
-
-        // Initialize Y^{n+1} to equal Y^{n}.
-        Vec Y_current_vec = d_Y_current_data[ln]->getVec();
-        Vec Y_new_vec = d_Y_new_data[ln]->getVec();
-        ierr = VecCopy(Y_current_vec, Y_new_vec);  IBTK_CHKERRQ(ierr);
-
-        // Initialize V^{n+1} to equal V^{n}.
-        Vec V_current_vec = d_V_current_data[ln]->getVec();
-        Vec V_new_vec = d_V_new_data[ln]->getVec();
-        ierr = VecCopy(V_current_vec, V_new_vec);  IBTK_CHKERRQ(ierr);
+        ierr = VecSet(d_Y_new_data [ln]->getVec(), std::numeric_limits<double>::max());  IBTK_CHKERRQ(ierr);
+        ierr = VecSet(d_V_new_data [ln]->getVec(), std::numeric_limits<double>::max());  IBTK_CHKERRQ(ierr);
+#endif
     }
     return;
 }// preprocessIntegrateData
@@ -146,18 +141,9 @@ PenaltyIBMethod::postprocessIntegrateData(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-
         int ierr;
-
-        // Reset Y data.
-        Vec Y_current_vec = d_Y_current_data[ln]->getVec();
-        Vec Y_new_vec = d_Y_new_data[ln]->getVec();
-        ierr = VecSwap(Y_new_vec, Y_current_vec);  IBTK_CHKERRQ(ierr);
-
-        // Reset V data.
-        Vec V_current_vec = d_V_current_data[ln]->getVec();
-        Vec V_new_vec = d_V_new_data[ln]->getVec();
-        ierr = VecSwap(V_new_vec, V_current_vec);  IBTK_CHKERRQ(ierr);
+        ierr = VecSwap(d_Y_current_data[ln]->getVec(), d_Y_new_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
+        ierr = VecSwap(d_V_current_data[ln]->getVec(), d_V_new_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
     }
 
     // Deallocate Lagrangian scratch data.
@@ -255,7 +241,6 @@ PenaltyIBMethod::computeLagrangianForce(
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double dt = d_new_time-d_current_time;
 
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
@@ -278,22 +263,27 @@ PenaltyIBMethod::computeLagrangianForce(
         }
         d_F_current_needs_ghost_fill = true;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_current_time+0.5*dt))
+    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
     {
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            double* const restrict       F = d_F_half_data[ln]->getLocalFormVecArray()->data();
-            const double* const restrict K =      d_K_data[ln]->getLocalFormArray()   ->data();
-            const double* const restrict X = d_X_half_data[ln]->getLocalFormVecArray()->data();
-            const double* const restrict Y = d_Y_half_data[ln]->getLocalFormVecArray()->data();
+            double* const restrict       F     =    d_F_half_data[ln]->getLocalFormVecArray()->data();
+            const double* const restrict K     =         d_K_data[ln]->getLocalFormArray()   ->data();
+            const double* const restrict X     = d_X_current_data[ln]->getLocalFormVecArray()->data();
+            const double* const restrict Y     = d_Y_current_data[ln]->getLocalFormVecArray()->data();
+            const double* const restrict X_new =     d_X_new_data[ln]->getLocalFormVecArray()->data();
+            const double* const restrict Y_new =     d_Y_new_data[ln]->getLocalFormVecArray()->data();
             const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
             unsigned int i, d;
+            double X_half, Y_half;
             for (i = 0; i < n_local; ++i)
             {
                 for (d = 0; d < NDIM; ++d)
                 {
-                    F[NDIM*i+d] += K[i]*(Y[NDIM*i+d]-X[NDIM*i+d]);
+                    X_half = 0.5*(X[NDIM*i+d]+X_new[NDIM*i+d]);
+                    Y_half = 0.5*(Y[NDIM*i+d]+Y_new[NDIM*i+d]);
+                    F[NDIM*i+d] += K[i]*(Y_half-X_half);
                 }
             }
         }
@@ -364,12 +354,8 @@ PenaltyIBMethod::initializePatchHierarchy(
 
             // Set initial conditions.
             int ierr;
-            Vec X_vec = X_data->getVec();
-            Vec Y_vec = Y_data->getVec();
-            ierr = VecCopy(X_vec, Y_vec);  IBTK_CHKERRQ(ierr);
-            Vec U_vec = U_data->getVec();
-            Vec V_vec = V_data->getVec();
-            ierr = VecCopy(U_vec, V_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecCopy(X_data->getVec(), Y_data->getVec());  IBTK_CHKERRQ(ierr);
+            ierr = VecCopy(U_data->getVec(), V_data->getVec());  IBTK_CHKERRQ(ierr);
         }
     }
     return;

@@ -334,8 +334,9 @@ GriddingAlgorithm {
                        // all finer levels will use same values as level_0...
    }
 
-   efficiency_tolerance   = 0.95e0    // min % of tag cells in new patch level
-   combine_efficiency     = 0.95e0    // chop box if sum of volumes of smaller
+   allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
+   efficiency_tolerance   = 0.80e0    // min % of tag cells in new patch level
+   combine_efficiency     = 0.80e0    // chop box if sum of volumes of smaller
                                       // boxes < efficiency * vol of large box
 }
 

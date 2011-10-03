@@ -350,8 +350,8 @@ IBHierarchyIntegrator::integrateHierarchy(
     const double new_time,
     const int cycle_num)
 {
+    const double half_time = current_time+0.5*(new_time-current_time);
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double dt = new_time-current_time;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                    d_ins_hier_integrator->getCurrentContext());
@@ -361,17 +361,17 @@ IBHierarchyIntegrator::integrateHierarchy(
                                                                    d_ins_hier_integrator->getNewContext());
 
     // Compute the Lagrangian forces and spread them to the Eulerian grid.
-    d_ib_method_ops->computeLagrangianForce(current_time+0.5*dt);
+    d_ib_method_ops->computeLagrangianForce(half_time);
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
-    d_ib_method_ops->spreadForce(d_f_idx, d_refine_scheds["NONE"], current_time+0.5*dt);
+    d_ib_method_ops->spreadForce(d_f_idx, d_refine_scheds["NONE"], half_time);
 
     // Compute the Lagrangian source/sink strengths and spread them to the
     // Eulerian grid.
     if (d_ib_method_ops->hasFluidSources())
     {
-        d_ib_method_ops->computeLagrangianFluidSource(current_time+0.5*dt);
+        d_ib_method_ops->computeLagrangianFluidSource(half_time);
         d_hier_pressure_cc_data_ops->setToScalar(d_q_idx, 0.0);
-        d_ib_method_ops->spreadFluidSource(d_q_idx, d_refine_scheds["NONE"], current_time+0.5*dt);
+        d_ib_method_ops->spreadFluidSource(d_q_idx, d_refine_scheds["NONE"], half_time);
     }
 
     // Solve the incompressible Navier-Stokes equations.
@@ -380,7 +380,7 @@ IBHierarchyIntegrator::integrateHierarchy(
     // Interpolate the Eulerian velocity to the curvilinear mesh.
     d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
     d_refine_scheds["u->u::S->S::GHOST_FILL"][finest_ln]->fillData(d_integrator_time);
-    d_ib_method_ops->interpolateVelocity(d_u_idx, d_coarsen_scheds["NONE"], d_refine_scheds["NONE"], current_time+0.5*dt);
+    d_ib_method_ops->interpolateVelocity(d_u_idx, d_coarsen_scheds["NONE"], d_refine_scheds["NONE"], half_time);
 
     // Compute an updated prediction of the updated positions of the Lagrangian
     // structure.
@@ -390,7 +390,7 @@ IBHierarchyIntegrator::integrateHierarchy(
     // fluid sources or sinks.
     if (d_ib_method_ops->hasFluidSources())
     {
-        d_ib_method_ops->interpolatePressure(p_new_idx, d_coarsen_scheds["NONE"], d_refine_scheds["NONE"], current_time+0.5*dt);
+        d_ib_method_ops->interpolatePressure(p_new_idx, d_coarsen_scheds["NONE"], d_refine_scheds["NONE"], half_time);
     }
     return;
 }// integrateHierarchy

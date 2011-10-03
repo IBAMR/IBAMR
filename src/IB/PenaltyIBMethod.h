@@ -142,8 +142,8 @@ protected:
      * Lagrangian variables.
      */
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_K_data, d_M_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_Y_current_data, d_Y_new_data, d_Y_half_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_V_current_data, d_V_new_data, d_V_half_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_Y_current_data, d_Y_new_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_V_current_data, d_V_new_data;
 
     /*
      * Gravitational acceleration.

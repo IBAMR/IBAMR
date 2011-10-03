@@ -2,7 +2,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.C main_static.C
+SOURCES = main.C
 EXTRA_DIST  = input2d input2d.shell input2d.shell_circum_fibers
 EXTRA_DIST += generate_curve2d.m generate_shell2d.m
 
@@ -15,16 +15,12 @@ EXTRA_DIST += shell2d_radial_64.spring shell2d_radial_128.spring shell2d_radial_
 
 EXTRA_PROGRAMS =
 if SAMRAI2D_ENABLED
-EXTRA_PROGRAMS += main2d main2d_static
+EXTRA_PROGRAMS += main2d
 endif
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_SOURCES = main.C
-
-main2d_static_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-main2d_static_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-main2d_static_SOURCES = main_static.C
 
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \

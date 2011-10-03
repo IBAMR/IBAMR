@@ -140,14 +140,17 @@ IBMethod::IBMethod(
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
-    d_new_time = std::numeric_limits<double>::quiet_NaN();
-    d_half_time = std::numeric_limits<double>::quiet_NaN();
+    d_new_time     = std::numeric_limits<double>::quiet_NaN();
+    d_half_time    = std::numeric_limits<double>::quiet_NaN();
 
     // Indicate all Lagrangian data needs ghost values to be refilled, and that
     // all intermediate data needs to be initialized.
     d_X_current_needs_ghost_fill = true;
     d_X_new_needs_ghost_fill     = true;
     d_X_half_needs_ghost_fill    = true;
+    d_F_current_needs_ghost_fill = true;
+    d_F_new_needs_ghost_fill     = true;
+    d_F_half_needs_ghost_fill    = true;
     d_X_half_needs_reinit        = true;
     d_U_half_needs_reinit        = true;
     return;
@@ -155,7 +158,11 @@ IBMethod::IBMethod(
 
 IBMethod::~IBMethod()
 {
-    // intentionally blank
+    if (d_registered_for_restart)
+    {
+        RestartManager::getManager()->unregisterRestartItem(d_object_name);
+        d_registered_for_restart = false;
+    }
     return;
 }// ~IBMethod
 
@@ -302,19 +309,20 @@ IBMethod::preprocessIntegrateData(
 
         int ierr;
 
-        // Initialize X^{n+1} to equal X^{n}.
-        Vec X_current_vec = d_X_current_data[ln]->getVec();
-        Vec X_new_vec = d_X_new_data[ln]->getVec();
-        ierr = VecCopy(X_current_vec, X_new_vec);  IBTK_CHKERRQ(ierr);
-
         // Initialize U^{n+1} to equal U^{n}.
-        Vec U_current_vec = d_U_current_data[ln]->getVec();
-        Vec U_new_vec = d_U_new_data[ln]->getVec();
-        ierr = VecCopy(U_current_vec, U_new_vec);  IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(d_U_current_data[ln]->getVec(), d_U_new_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+        // Initialize X^{n+1/2}, X^{n+1}, and U^{n+1/2} to cause floating-point
+        // exceptions if not initialized correctly.
+        ierr = VecSet(d_X_half_data[ln]->getVec(), std::numeric_limits<double>::max());  IBTK_CHKERRQ(ierr);
+        ierr = VecSet(d_X_new_data [ln]->getVec(), std::numeric_limits<double>::max());  IBTK_CHKERRQ(ierr);
+        ierr = VecSet(d_U_half_data[ln]->getVec(), std::numeric_limits<double>::max());  IBTK_CHKERRQ(ierr);
+#endif
     }
 
-    // Indicate all updated Lagrangian data needs ghost values to be refilled,
-    // and that all intermediate data needs to be initialized.
+    // Indicate all updated Lagrangian data need ghost values to be refilled,
+    // and that all intermediate data need to be reinitialized.
     d_X_new_needs_ghost_fill  = true;
     d_X_half_needs_ghost_fill = true;
     d_X_half_needs_reinit     = true;
@@ -351,20 +359,11 @@ IBMethod::postprocessIntegrateData(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-
         int ierr;
-
-        // Reset X data.
-        Vec X_current_vec = d_X_current_data[ln]->getVec();
-        Vec X_new_vec = d_X_new_data[ln]->getVec();
-        ierr = VecSwap(X_new_vec, X_current_vec);  IBTK_CHKERRQ(ierr);
-
-        // Reset U data.
-        Vec U_current_vec = d_U_current_data[ln]->getVec();
-        Vec U_new_vec = d_U_new_data[ln]->getVec();
-        ierr = VecSwap(U_new_vec, U_current_vec);  IBTK_CHKERRQ(ierr);
+        ierr = VecSwap(d_X_current_data[ln]->getVec(), d_X_new_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
+        ierr = VecSwap(d_U_current_data[ln]->getVec(), d_U_new_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
     }
-    std::swap(d_X_current_needs_ghost_fill,d_X_new_needs_ghost_fill);
+    d_X_current_needs_ghost_fill = true;
 
     // Deallocate Lagrangian scratch data.
     d_X_current_data.clear();
@@ -379,8 +378,8 @@ IBMethod::postprocessIntegrateData(
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
-    d_new_time = std::numeric_limits<double>::quiet_NaN();
-    d_half_time = std::numeric_limits<double>::quiet_NaN();
+    d_new_time     = std::numeric_limits<double>::quiet_NaN();
+    d_half_time    = std::numeric_limits<double>::quiet_NaN();
     return;
 }// postprocessIntegrateData
 
@@ -433,11 +432,7 @@ IBMethod::eulerStep(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        int ierr;
-        Vec X_current_vec = d_X_current_data[ln]->getVec();
-        Vec X_new_vec = d_X_new_data[ln]->getVec();
-        Vec U_current_vec = d_U_current_data[ln]->getVec();
-        ierr = VecWAXPY(X_new_vec, dt, U_current_vec, X_current_vec);  IBTK_CHKERRQ(ierr);
+        int ierr = VecWAXPY(d_X_new_data[ln]->getVec(), dt, d_U_current_data[ln]->getVec(), d_X_current_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
     }
     d_X_new_needs_ghost_fill  = true;
     d_X_half_needs_ghost_fill = true;
@@ -463,11 +458,7 @@ IBMethod::midpointStep(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        int ierr;
-        Vec X_current_vec = d_X_current_data[ln]->getVec();
-        Vec X_new_vec = d_X_new_data[ln]->getVec();
-        Vec U_half_vec = d_U_half_data[ln]->getVec();
-        ierr = VecWAXPY(X_new_vec, dt, U_half_vec, X_current_vec);  IBTK_CHKERRQ(ierr);
+        int ierr = VecWAXPY(d_X_new_data[ln]->getVec(), dt, d_U_half_data[ln]->getVec(), d_X_current_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
     }
     d_X_new_needs_ghost_fill  = true;
     d_X_half_needs_ghost_fill = true;
@@ -494,8 +485,7 @@ IBMethod::computeLagrangianForce(
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
             if (d_F_current_data[ln].isNull()) d_F_current_data[ln] = d_l_data_manager->createLData("F",ln,NDIM);
-            Vec F_current_vec = d_F_current_data[ln]->getVec();
-            ierr = VecSet(F_current_vec, 0.0);  IBTK_CHKERRQ(ierr);
+            ierr = VecSet(d_F_current_data[ln]->getVec(), 0.0);  IBTK_CHKERRQ(ierr);
             if (!d_ib_force_fcn.isNull())
             {
                 d_ib_force_fcn->computeLagrangianForce(d_F_current_data[ln], d_X_current_data[ln], d_U_current_data[ln], d_hierarchy, ln, data_time, d_l_data_manager);
@@ -520,8 +510,7 @@ IBMethod::computeLagrangianForce(
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
             if (d_F_half_data[ln].isNull()) d_F_half_data[ln] = d_l_data_manager->createLData("F_half",ln,NDIM);
-            Vec F_half_vec = d_F_half_data[ln]->getVec();
-            ierr = VecSet(F_half_vec, 0.0);  IBTK_CHKERRQ(ierr);
+            ierr = VecSet(d_F_half_data[ln]->getVec(), 0.0);  IBTK_CHKERRQ(ierr);
             if (!d_ib_force_fcn.isNull())
             {
                 d_ib_force_fcn->computeLagrangianForce(d_F_half_data[ln], d_X_half_data[ln], d_U_half_data[ln], d_hierarchy, ln, data_time, d_l_data_manager);
@@ -535,8 +524,7 @@ IBMethod::computeLagrangianForce(
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
             if (d_F_new_data[ln].isNull()) d_F_new_data[ln] = d_l_data_manager->createLData("F_new",ln,NDIM);
-            Vec F_new_vec = d_F_new_data[ln]->getVec();
-            ierr = VecSet(F_new_vec, 0.0);  IBTK_CHKERRQ(ierr);
+            ierr = VecSet(d_F_new_data[ln]->getVec(), 0.0);  IBTK_CHKERRQ(ierr);
             if (!d_ib_force_fcn.isNull())
             {
                 d_ib_force_fcn->computeLagrangianForce(d_F_new_data[ln], d_X_new_data[ln], d_U_new_data[ln], d_hierarchy, ln, data_time, d_l_data_manager);
@@ -977,8 +965,7 @@ IBMethod::postprocessData(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        Vec F_vec = F_data[ln]->getVec();
-        int ierr = VecSet(F_vec, 0.0);  IBTK_CHKERRQ(ierr);
+        int ierr = VecSet(F_data[ln]->getVec(), 0.0);  IBTK_CHKERRQ(ierr);
         if (!d_ib_force_fcn.isNull())
         {
             d_ib_force_fcn->computeLagrangianForce(F_data[ln], X_data[ln], U_data[ln], hierarchy, ln, current_time, d_l_data_manager);
@@ -1054,8 +1041,8 @@ IBMethod::initializePatchHierarchy(
 
     // Indicate that the force and source strategies and the post processor need
     // to be re-initialized.
-    d_ib_force_fcn_needs_init = true;
-    d_ib_source_fcn_needs_init = true;
+    d_ib_force_fcn_needs_init   = true;
+    d_ib_source_fcn_needs_init  = true;
     d_post_processor_needs_init = true;
     return;
 }// initializePatchHierarchy
@@ -1144,6 +1131,12 @@ IBMethod::endDataRedistribution(
         }
         X_data[ln]->restoreArrays();
     }
+
+    // Indicate that the force and source strategies and the post processor need
+    // to be re-initialized.
+    d_ib_force_fcn_needs_init   = true;
+    d_ib_source_fcn_needs_init  = true;
+    d_post_processor_needs_init = true;
     return;
 }// endDataRedistribution
 
@@ -1295,6 +1288,24 @@ IBMethod::putToDatabase(
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
+void
+IBMethod::reinitMidpointData(
+    const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& current_data,
+    const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& new_data,
+    const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& half_data)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    int ierr;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+        ierr = VecWAXPY(half_data[ln]->getVec(), 1.0, current_data[ln]->getVec(), new_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
+        ierr = VecScale(half_data[ln]->getVec(), 0.5);  IBTK_CHKERRQ(ierr);
+    }
+    return;
+}// reinitMidpointData
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
@@ -1386,27 +1397,6 @@ IBMethod::updateIBInstrumentationData(
     }
     return;
 }// updateIBInstrumentationData
-
-void
-IBMethod::reinitMidpointData(
-    const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& current_data,
-    const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& new_data,
-    const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& half_data)
-{
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        int ierr;
-        Vec current_vec = current_data[ln]->getVec();
-        Vec     new_vec =     new_data[ln]->getVec();
-        Vec    half_vec =    half_data[ln]->getVec();
-        ierr = VecWAXPY(half_vec, 1.0, current_vec, new_vec);  IBTK_CHKERRQ(ierr);
-        ierr = VecScale(half_vec, 0.5);  IBTK_CHKERRQ(ierr);
-    }
-    return;
-}// reinitMidpointData
 
 void
 IBMethod::resetAnchorPointValues(

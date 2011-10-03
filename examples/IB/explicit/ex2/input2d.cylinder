@@ -122,7 +122,7 @@ INSCollocatedHierarchyIntegrator {
    cfl                        = CFL_MAX
    dt_max                     = DT_MAX
    using_vorticity_tagging    = VORTICITY_TAGGING
-   vorticity_abs_thresh       = 2 , 1 , 0.5 , 0.25
+   vorticity_abs_thresh       = 0.25 , 0.5 , 1 , 2
    tag_buffer                 = TAG_BUFFER
    output_U                   = OUTPUT_U
    output_P                   = OUTPUT_P
@@ -202,7 +202,7 @@ INSStaggeredHierarchyIntegrator {
    cfl                        = CFL_MAX
    dt_max                     = DT_MAX
    using_vorticity_tagging    = VORTICITY_TAGGING
-   vorticity_abs_thresh       = 2 , 1 , 0.5 , 0.25
+   vorticity_abs_thresh       = 0.25 , 0.5 , 1 , 2
    tag_buffer                 = TAG_BUFFER
    output_U                   = OUTPUT_U
    output_P                   = OUTPUT_P
@@ -325,8 +325,8 @@ GriddingAlgorithm {
    }
 
    allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
-   efficiency_tolerance   = 0.95e0    // min % of tag cells in new patch level
-   combine_efficiency     = 0.95e0    // chop box if sum of volumes of smaller
+   efficiency_tolerance   = 0.80e0    // min % of tag cells in new patch level
+   combine_efficiency     = 0.80e0    // chop box if sum of volumes of smaller
                                       // boxes < efficiency * vol of large box
 }
 

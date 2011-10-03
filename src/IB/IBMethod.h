@@ -357,6 +357,16 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
 protected:
+    /*!
+     * Interpolate the current and new data to obtain values at the midpoint of
+     * the time interval.
+     */
+    void
+    reinitMidpointData(
+        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& current_data,
+        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& new_data,
+        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& half_data);
+
     /*
      * Indicates whether the integrator should output logging messages.
      */
@@ -381,6 +391,7 @@ protected:
     bool d_X_current_needs_ghost_fill, d_X_new_needs_ghost_fill, d_X_half_needs_ghost_fill;
     bool d_F_current_needs_ghost_fill, d_F_new_needs_ghost_fill, d_F_half_needs_ghost_fill;
     bool d_X_half_needs_reinit, d_U_half_needs_reinit;
+
     /*
      * The LDataManager is used to coordinate the distribution of Lagrangian
      * data on the patch hierarchy.
@@ -510,16 +521,6 @@ private:
     updateIBInstrumentationData(
         int timestep_num,
         double data_time);
-
-    /*!
-     * Interpolate the current and new data to obtain values at the midpoint of
-     * the time interval.
-     */
-    void
-    reinitMidpointData(
-        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& current_data,
-        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& new_data,
-        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& half_data);
 
     /*!
      * Set the elements of the Lagrangian vector to zero at anchored nodes of
