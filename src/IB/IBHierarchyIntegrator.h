@@ -41,7 +41,7 @@
 // IBAMR INCLUDES
 #include <ibamr/IBEulerianForceFunction.h>
 #include <ibamr/IBEulerianSourceFunction.h>
-#include <ibamr/IBMethodStrategy.h>
+#include <ibamr/IBStrategy.h>
 #include <ibamr/INSHierarchyIntegrator.h>
 
 // IBTK INCLUDES
@@ -76,7 +76,7 @@ public:
     IBHierarchyIntegrator(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<IBMethodStrategy> ib_method_ops,
+        SAMRAI::tbox::Pointer<IBStrategy> ib_method_ops,
         SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,
         bool register_for_restart=true);
 
@@ -321,9 +321,9 @@ private:
     SAMRAI::tbox::Pointer<IBEulerianSourceFunction> d_eulerian_source_fcn;
 
     /*
-     * IB method strategy object.
+     * IB method implementation object.
      */
-    SAMRAI::tbox::Pointer<IBMethodStrategy> d_ib_method_ops;
+    SAMRAI::tbox::Pointer<IBStrategy> d_ib_method_ops;
 };
 }// namespace IBAMR
 

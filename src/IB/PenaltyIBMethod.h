@@ -47,7 +47,7 @@ namespace IBAMR
 {
 /*!
  * \brief Class PenaltyIBMethod is an implementation of the abstract base class
- * IBMethodStrategy that provides functionality required by the standard IB
+ * IBStrategy that provides functionality required by the penalty IB (pIB)
  * method.
  */
 class PenaltyIBMethod

@@ -39,8 +39,8 @@
 #include <ibamr/IBInstrumentPanel.h>
 #include <ibamr/IBLagrangianForceStrategy.h>
 #include <ibamr/IBLagrangianSourceStrategy.h>
-#include <ibamr/IBMethodStrategy.h>
 #include <ibamr/IBPostProcessStrategy.h>
+#include <ibamr/IBStrategy.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -48,11 +48,10 @@ namespace IBAMR
 {
 /*!
  * \brief Class IBMethod is an implementation of the abstract base class
- * IBMethodStrategy that provides functionality required by the standard IB
- * method.
+ * IBStrategy that provides functionality required by the standard IB method.
  */
 class IBMethod
-    : public IBMethodStrategy
+    : public IBStrategy
 {
 public:
     /*!

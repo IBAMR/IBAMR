@@ -77,7 +77,7 @@ static const int IB_HIERARCHY_INTEGRATOR_VERSION = 2;
 IBHierarchyIntegrator::IBHierarchyIntegrator(
     const std::string& object_name,
     Pointer<Database> input_db,
-    Pointer<IBMethodStrategy> ib_method_ops,
+    Pointer<IBStrategy> ib_method_ops,
     Pointer<INSHierarchyIntegrator> ins_hier_integrator,
     bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart)

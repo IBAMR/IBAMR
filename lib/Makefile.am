@@ -50,7 +50,6 @@ $(top_srcdir)/src/IB/IBLagrangianForceStrategy.C \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategySet.C \
 $(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
 $(top_srcdir)/src/IB/IBMethod.C \
-$(top_srcdir)/src/IB/IBMethodStrategy.C \
 $(top_srcdir)/src/IB/IBPostProcessStrategy.C \
 $(top_srcdir)/src/IB/IBRodForceSpec.C \
 $(top_srcdir)/src/IB/IBRodForceSpecFactory.C \
@@ -61,6 +60,7 @@ $(top_srcdir)/src/IB/IBSpringForceSpecFactory.C \
 $(top_srcdir)/src/IB/IBStandardForceGen.C \
 $(top_srcdir)/src/IB/IBStandardSourceGen.C \
 $(top_srcdir)/src/IB/IBStandardInitializer.C \
+$(top_srcdir)/src/IB/IBStrategy.C \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.C \
 $(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C \
 $(top_srcdir)/src/IB/PenaltyIBMethod.C \
@@ -107,7 +107,6 @@ $(top_srcdir)/src/IB/IBLagrangianForceStrategy.h \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategySet.h \
 $(top_srcdir)/src/IB/IBLagrangianSourceStrategy.h \
 $(top_srcdir)/src/IB/IBMethod.h \
-$(top_srcdir)/src/IB/IBMethodStrategy.h \
 $(top_srcdir)/src/IB/IBPostProcessStrategy.h \
 $(top_srcdir)/src/IB/IBRodForceSpec.I \
 $(top_srcdir)/src/IB/IBRodForceSpec.h \
@@ -122,6 +121,7 @@ $(top_srcdir)/src/IB/IBSpringForceSpecFactory.h \
 $(top_srcdir)/src/IB/IBStandardForceGen.h \
 $(top_srcdir)/src/IB/IBStandardSourceGen.h \
 $(top_srcdir)/src/IB/IBStandardInitializer.h \
+$(top_srcdir)/src/IB/IBStrategy.h \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.I \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.h \
 $(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.h \

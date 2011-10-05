@@ -1,4 +1,4 @@
-// Filename: IBMethodStrategy.h
+// Filename: IBStrategy.h
 // Created on 21 Sep 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBMethodStrategy
-#define included_IBMethodStrategy
+#ifndef included_IBStrategy
+#define included_IBStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -58,10 +58,10 @@ class IBHierarchyIntegrator;
 namespace IBAMR
 {
 /*!
- * \brief Class IBMethodStrategy provides a generic interface for specifying the
+ * \brief Class IBStrategy provides a generic interface for specifying the
  * implementation details of a particular version of the IB method.
  */
-class IBMethodStrategy
+class IBStrategy
     : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>,
       public SAMRAI::tbox::Serializable
 {
@@ -69,13 +69,13 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBMethodStrategy();
+    IBStrategy();
 
     /*!
      * \brief Virtual destructor.
      */
     virtual
-    ~IBMethodStrategy();
+    ~IBStrategy();
 
     /*!
      * Register the IBHierarchyIntegrator object that is using this strategy
@@ -349,8 +349,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBMethodStrategy(
-        const IBMethodStrategy& from);
+    IBStrategy(
+        const IBStrategy& from);
 
     /*!
      * \brief Assignment operator.
@@ -361,16 +361,16 @@ private:
      *
      * \return A reference to this object.
      */
-    IBMethodStrategy&
+    IBStrategy&
     operator=(
-        const IBMethodStrategy& that);
+        const IBStrategy& that);
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/IBMethodStrategy.I>
+//#include <ibamr/IBStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBMethodStrategy
+#endif //#ifndef included_IBStrategy

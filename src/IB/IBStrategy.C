@@ -1,4 +1,4 @@
-// Filename: IBMethodStrategy.C
+// Filename: IBStrategy.C
 // Created on 21 Sep 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "IBMethodStrategy.h"
+#include "IBStrategy.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -55,20 +55,20 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBMethodStrategy::IBMethodStrategy()
+IBStrategy::IBStrategy()
 {
     // intentionally blank
     return;
-}// IBMethodStrategy
+}// IBStrategy
 
-IBMethodStrategy::~IBMethodStrategy()
+IBStrategy::~IBStrategy()
 {
     // intentionally blank
     return;
-}// ~IBMethodStrategy
+}// ~IBStrategy
 
 void
-IBMethodStrategy::registerIBHierarchyIntegrator(
+IBStrategy::registerIBHierarchyIntegrator(
     IBHierarchyIntegrator* ib_solver)
 {
     d_ib_solver = ib_solver;
@@ -76,7 +76,7 @@ IBMethodStrategy::registerIBHierarchyIntegrator(
 }// registerIBHierarchyIntegrator
 
 void
-IBMethodStrategy::preprocessIntegrateData(
+IBStrategy::preprocessIntegrateData(
     double /*current_time*/,
     double /*new_time*/,
     int /*num_cycles*/)
@@ -86,7 +86,7 @@ IBMethodStrategy::preprocessIntegrateData(
 }// preprocessIntegrateData
 
 void
-IBMethodStrategy::postprocessIntegrateData(
+IBStrategy::postprocessIntegrateData(
     double /*current_time*/,
     double /*new_time*/,
     int /*num_cycles*/)
@@ -96,13 +96,13 @@ IBMethodStrategy::postprocessIntegrateData(
 }// postprocessIntegrateData
 
 bool
-IBMethodStrategy::hasFluidSources() const
+IBStrategy::hasFluidSources() const
 {
     return false;
 }// hasFluidSources
 
 void
-IBMethodStrategy::computeLagrangianFluidSource(
+IBStrategy::computeLagrangianFluidSource(
     double /*data_time*/)
 {
     // intentionally blank
@@ -110,7 +110,7 @@ IBMethodStrategy::computeLagrangianFluidSource(
 }// computeLagrangianFluidSource
 
 void
-IBMethodStrategy::spreadFluidSource(
+IBStrategy::spreadFluidSource(
     int /*q_data_idx*/,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*q_prolongation_scheds*/,
     double /*data_time*/)
@@ -120,7 +120,7 @@ IBMethodStrategy::spreadFluidSource(
 }// spreadFluidSource
 
 void
-IBMethodStrategy::interpolatePressure(
+IBStrategy::interpolatePressure(
     int /*p_data_idx*/,
     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*p_synch_scheds*/,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*p_ghost_fill_scheds*/,
@@ -131,7 +131,7 @@ IBMethodStrategy::interpolatePressure(
 }// interpolatePressure
 
 void
-IBMethodStrategy::postprocessData(
+IBStrategy::postprocessData(
     Pointer<PatchHierarchy<NDIM> > /*hierarchy*/)
 {
     // intentionally blank
@@ -139,7 +139,7 @@ IBMethodStrategy::postprocessData(
 }// postprocessData
 
 void
-IBMethodStrategy::initializePatchHierarchy(
+IBStrategy::initializePatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/,
     int /*u_data_idx*/,
@@ -154,7 +154,7 @@ IBMethodStrategy::initializePatchHierarchy(
 }// initializePatchHierarchy
 
 void
-IBMethodStrategy::registerLoadBalancer(
+IBStrategy::registerLoadBalancer(
     Pointer<LoadBalancer<NDIM> > /*load_balancer*/,
     int /*workload_data_idx*/)
 {
@@ -163,7 +163,7 @@ IBMethodStrategy::registerLoadBalancer(
 }// registerLoadBalancer
 
 void
-IBMethodStrategy::updateWorkloadEstimates(
+IBStrategy::updateWorkloadEstimates(
     Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     int /*workload_data_idx*/)
 {
@@ -172,7 +172,7 @@ IBMethodStrategy::updateWorkloadEstimates(
 }// updateWorkloadEstimates
 
 void
-IBMethodStrategy::beginDataRedistribution(
+IBStrategy::beginDataRedistribution(
     Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
@@ -181,7 +181,7 @@ IBMethodStrategy::beginDataRedistribution(
 }// beginDataRedistribution
 
 void
-IBMethodStrategy::endDataRedistribution(
+IBStrategy::endDataRedistribution(
     Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
@@ -190,7 +190,7 @@ IBMethodStrategy::endDataRedistribution(
 }// endDataRedistribution
 
 void
-IBMethodStrategy::initializeLevelData(
+IBStrategy::initializeLevelData(
     Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
     int /*level_number*/,
     double /*init_data_time*/,
@@ -204,7 +204,7 @@ IBMethodStrategy::initializeLevelData(
 }// initializeLevelData
 
 void
-IBMethodStrategy::resetHierarchyConfiguration(
+IBStrategy::resetHierarchyConfiguration(
     Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
     int /*coarsest_level*/,
     int /*finest_level*/)
@@ -214,7 +214,7 @@ IBMethodStrategy::resetHierarchyConfiguration(
 }// resetHierarchyConfiguration
 
 void
-IBMethodStrategy::applyGradientDetector(
+IBStrategy::applyGradientDetector(
     Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
     int /*level_number*/,
     double /*error_data_time*/,
@@ -227,7 +227,7 @@ IBMethodStrategy::applyGradientDetector(
 }// applyGradientDetector
 
 void
-IBMethodStrategy::putToDatabase(
+IBStrategy::putToDatabase(
     Pointer<Database> /*db*/)
 {
     // intentionally blank
