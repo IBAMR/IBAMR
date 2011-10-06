@@ -227,6 +227,16 @@ AppInitializer::AppInitializer(
             d_visit_data_writer = new VisItDataWriter<NDIM>("VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
             d_silo_data_writer = new LSiloDataWriter("LSiloDataWriter", d_viz_dump_dirname);
         }
+        if (d_viz_writers[i] == "ExodusII")
+        {
+            d_exodus_filename = main_db->getStringWithDefault("exodus_filename", "output.ex2");
+            if (!d_exodus_filename.empty())
+            {
+                std::ostringstream exodus_filename_stream;
+                exodus_filename_stream << d_viz_dump_dirname << "/" << d_exodus_filename;
+                d_exodus_filename = exodus_filename_stream.str();
+            }
+        }
     }
 
     // Configure restart options.
@@ -453,6 +463,12 @@ AppInitializer::getLSiloDataWriter() const
 {
     return d_silo_data_writer;
 }// getLSiloDataWriter
+
+std::string
+AppInitializer::getExodusIIFilename() const
+{
+    return d_exodus_filename;
+}// getExodusIIFilename
 
 bool
 AppInitializer::dumpRestartData() const

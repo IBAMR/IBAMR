@@ -2028,8 +2028,6 @@ FEDataManager::FEDataManager(
 
 FEDataManager::~FEDataManager()
 {
-    delete d_qrule;
-    delete d_qrule_face;
     for (std::map<std::string,NumericVector<double>*>::iterator it = d_system_ghost_vec.begin();
          it != d_system_ghost_vec.end(); ++it)
     {

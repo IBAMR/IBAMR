@@ -87,6 +87,11 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C
 
+if LIBMESH_ENABLED
+DIM_INDEPENDENT_SOURCES += \
+$(top_srcdir)/src/IB/IBFEMethod.C
+endif
+
 pkg_include_HEADERS += \
 $(top_srcdir)/src/IB/IBAnchorPointSpec.I \
 $(top_srcdir)/src/IB/IBAnchorPointSpec.h \
@@ -148,6 +153,11 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h
+
+if LIBMESH_ENABLED
+pkg_include_HEADERS += \
+$(top_srcdir)/src/IB/IBFEMethod.h
+endif
 
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \

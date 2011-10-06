@@ -1150,8 +1150,6 @@ IBMethod::initializeLevelData(
     Pointer<BasePatchLevel<NDIM> > old_level,
     bool allocate_data)
 {
-    d_l_data_manager->setPatchHierarchy(hierarchy);
-    d_l_data_manager->resetLevels(0, hierarchy->getFinestLevelNumber());
     d_l_data_manager->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     return;
 }// initializeLevelData
@@ -1162,9 +1160,10 @@ IBMethod::resetHierarchyConfiguration(
     int coarsest_level,
     int finest_level)
 {
-    d_l_data_manager->resetHierarchyConfiguration(base_hierarchy, coarsest_level, finest_level);
-
     const int finest_hier_level = base_hierarchy->getFinestLevelNumber();
+    d_l_data_manager->setPatchHierarchy(base_hierarchy);
+    d_l_data_manager->resetLevels(0, finest_hier_level);
+    d_l_data_manager->resetHierarchyConfiguration(base_hierarchy, coarsest_level, finest_level);
 
     // If we have added or removed a level, resize the anchor point vectors.
     d_anchor_point_local_idxs.clear();
@@ -1300,8 +1299,7 @@ IBMethod::reinitMidpointData(
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        ierr = VecWAXPY(half_data[ln]->getVec(), 1.0, current_data[ln]->getVec(), new_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
-        ierr = VecScale(half_data[ln]->getVec(), 0.5);  IBTK_CHKERRQ(ierr);
+        ierr = VecAXPBYPCZ(half_data[ln]->getVec(), 0.5, 0.5, 0.0, current_data[ln]->getVec(), new_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
     }
     return;
 }// reinitMidpointData

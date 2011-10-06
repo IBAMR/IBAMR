@@ -195,12 +195,6 @@ private:
      */
     void
     getFromRestart();
-
-    /*
-     * The object name is used as a handle to databases stored in restart files
-     * and for error reporting purposes.
-     */
-    std::string d_object_name;
 };
 }// namespace IBAMR
 

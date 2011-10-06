@@ -457,6 +457,18 @@ protected:
     SAMRAI::tbox::Pointer<IBTK::LM3DDataWriter> d_m3D_writer;
 #endif
 
+    /*
+     * The object name is used as a handle to databases stored in restart files
+     * and for error reporting purposes.
+     */
+    std::string d_object_name;
+
+    /*
+     * A boolean value indicating whether the class is registered with the
+     * restart database.
+     */
+    bool d_registered_for_restart;
+
 private:
     /*!
      * \brief Default constructor.
@@ -545,18 +557,6 @@ private:
      */
     void
     getFromRestart();
-
-    /*
-     * The object name is used as a handle to databases stored in restart files
-     * and for error reporting purposes.
-     */
-    std::string d_object_name;
-
-    /*
-     * A boolean value indicating whether the class is registered with the
-     * restart database.
-     */
-    bool d_registered_for_restart;
 };
 }// namespace IBAMR
 

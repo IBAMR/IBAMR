@@ -140,6 +140,15 @@ public:
     getLSiloDataWriter() const;
 
     /*!
+     * Return the ExodusII visualization file name.
+     *
+     * If the application is not configured to use ExodusII, an empty string
+     * will be returned.
+     */
+    std::string
+    getExodusIIFilename() const;
+
+    /*!
      * Return a boolean value indicating whether to write restart data.
      */
     bool
@@ -229,6 +238,7 @@ private:
     std::vector<std::string> d_viz_writers;
     SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_data_writer;
     SAMRAI::tbox::Pointer<LSiloDataWriter> d_silo_data_writer;
+    std::string d_exodus_filename;
 
     /*!
      * Restart options.
