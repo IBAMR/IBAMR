@@ -1013,11 +1013,11 @@ intersect_line_with_face(
         {
             // Linear interpolation:
             //
-            //    u*p0 + v*p1 + (1-u-v)*p2 = r + t * q
+            //    (1-u-v)*p0 + u*p1 + v*p2 = r + t * q
             //
             // Factor the interpolation formula:
             //
-            //    (p0-p2)*u + (p1-p2)*v + p2 = r + t*q
+            //    (p1-p0)*u + (p2-p0)*v + p0 = r + t*q
             //
             // Solve a small linear system for u and v.
             const libMesh::Point& p0 = *elem->get_node(0);
@@ -1026,30 +1026,30 @@ intersect_line_with_face(
             double A00, A10, A01, A11, C1, C2;
             if (q(0) != 0.0)
             {
-                A00 = p0(1)-p2(1);
-                A01 = p1(1)-p2(1);
-                C1  = p2(1)- r(1);
-                A10 = p0(2)-p2(2);
-                A11 = p1(2)-p2(2);
-                C2  = p2(2)- r(2);
+                A00 = p1(1)-p0(1);
+                A01 = p2(1)-p0(1);
+                C1  = p0(1)- r(1);
+                A10 = p1(2)-p0(2);
+                A11 = p2(2)-p0(2);
+                C2  = p0(2)- r(2);
             }
             else if (q(1) != 0.0)
             {
-                A00 = p0(0)-p2(0);
-                A01 = p1(0)-p2(0);
-                C1  = p2(0)- r(0);
-                A10 = p0(2)-p2(2);
-                A11 = p1(2)-p2(2);
-                C2  = p2(2)- r(2);
+                A00 = p1(0)-p0(0);
+                A01 = p2(0)-p0(0);
+                C1  = p0(0)- r(0);
+                A10 = p1(2)-p0(2);
+                A11 = p2(2)-p0(2);
+                C2  = p0(2)- r(2);
             }
             else
             {
-                A00 = p0(0)-p2(0);
-                A01 = p1(0)-p2(0);
-                C1  = p2(0)- r(0);
-                A10 = p0(1)-p2(1);
-                A11 = p1(1)-p2(1);
-                C2  = p2(1)- r(1);
+                A00 = p1(0)-p0(0);
+                A01 = p2(0)-p0(0);
+                C1  = p0(0)- r(0);
+                A10 = p1(1)-p0(1);
+                A11 = p2(1)-p0(1);
+                C2  = p0(1)- r(1);
             }
             const double det = A00*A11-A10*A01;
             if (std::abs(det) > std::numeric_limits<double>::epsilon())

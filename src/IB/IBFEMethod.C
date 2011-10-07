@@ -1683,8 +1683,8 @@ IBFEMethod::imposeJumpConditions(
                 intersection_axes         .reserve(estimated_max_size);
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
-                    // Setup a unit vector pointing in the appropriate
-                    // coordinate direction.
+                    // Setup a unit vector pointing in the coordinate direction
+                    // of interest.
                     VectorValue<double> q;
                     q(axis) = 1.0;
 
@@ -1699,8 +1699,8 @@ IBFEMethod::imposeJumpConditions(
                         }
                         else
                         {
-                            i_begin[d] = std::ceil((X_min[d]-x_lower[d])/dx[d] - 0.5) + patch_lower[d];
-                            i_end  [d] = std::ceil((X_max[d]-x_lower[d])/dx[d] - 0.5) + patch_lower[d];
+                            i_begin[d] = std::ceil((X_min[d]-x_lower[d])/dx[d] - 0.5 - 1.0) + patch_lower[d];  // NOTE: added "safety factor" of one grid cell to range of indices
+                            i_end  [d] = std::ceil((X_max[d]-x_lower[d])/dx[d] - 0.5 + 1.0) + patch_lower[d];
                         }
                     }
 #if (NDIM == 3)
@@ -1775,11 +1775,16 @@ IBFEMethod::imposeJumpConditions(
                     {
                         if (d == axis)
                         {
-                            TBOX_ASSERT(x_lower[d]+(static_cast<double>(i(d)-patch_lower[d])-0.5)*dx[d] <= X_qp(d) && x_lower[d]+(static_cast<double>(i(d)-patch_lower[d])+0.5)*dx[d] >= X_qp(d));
+                            const double X_lower_bound = x_lower[d]+(static_cast<double>(i(d)-patch_lower[d])-0.5)*dx[d]-sqrt(std::numeric_limits<double>::epsilon());
+                            const double X_upper_bound = x_lower[d]+(static_cast<double>(i(d)-patch_lower[d])+0.5)*dx[d]+sqrt(std::numeric_limits<double>::epsilon());
+                            TBOX_ASSERT(X_lower_bound <= X_qp(d) && X_upper_bound >= X_qp(d));
                         }
                         else
                         {
-                            TBOX_ASSERT(std::abs(x_lower[d]+(static_cast<double>(i(d)-patch_lower[d])+0.5)*dx[d] - X_qp(d)) < sqrt(std::numeric_limits<double>::epsilon()));
+                            const double X_intersection = x_lower[d]+(static_cast<double>(i(d)-patch_lower[d])+0.5)*dx[d];
+                            const double X_interp = X_qp(d);
+                            const double rel_diff = std::abs(X_intersection-X_interp)/std::max(1.0,std::max(std::abs(X_intersection),std::abs(X_interp)));
+                            TBOX_ASSERT(rel_diff <= sqrt(std::numeric_limits<double>::epsilon()));
                         }
                     }
 #endif

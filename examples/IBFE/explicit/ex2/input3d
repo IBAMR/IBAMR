@@ -5,13 +5,13 @@ RHO = 1.0
 // grid spacing parameters
 MAX_LEVELS = 2                            // maximum number of levels in locally refined grid
 REF_RATIO  = 2                            // refinement ratio between levels
-N = 32                                    // actual    number of grid cells on coarsest grid level
+N = 16                                    // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
-M = 2                                     // Lagrangian mesh spacing
+M = 1                                     // Lagrangian mesh spacing
 DX_FINEST = 1.0/NFINEST
 
 smooth_case = FALSE
-elem_type = "QUAD4"
+elem_type = "TET4"
 
 // solver parameters
 USE_IB_DELTA_FUNCTIONS     = TRUE              // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction
@@ -51,16 +51,22 @@ VelocityBcCoefs_0 {
    acoef_function_1 = "0.0"
    acoef_function_2 = "0.0"
    acoef_function_3 = "0.0"
+   acoef_function_4 = "0.0"
+   acoef_function_5 = "0.0"
 
    bcoef_function_0 = "1.0"
    bcoef_function_1 = "1.0"
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
+   bcoef_function_4 = "1.0"
+   bcoef_function_5 = "1.0"
 
    gcoef_function_0 = "-1.0e-1"
    gcoef_function_1 = " 1.0e-1"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
 }
 
 VelocityBcCoefs_1 {
@@ -68,16 +74,45 @@ VelocityBcCoefs_1 {
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
+}
+
+VelocityBcCoefs_2 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
 }
 
 IBHierarchyIntegrator {
@@ -277,52 +312,52 @@ Main {
    solver_type = SOLVER_TYPE
 
 // log file parameters
-   log_file_name               = "IB2d.log"
+   log_file_name               = "IB3d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt" , "ExodusII"
    viz_dump_interval           = NFINEST/4                  // zero to turn off
-   viz_dump_dirname            = "viz_IB2d"
+   viz_dump_dirname            = "viz_IB3d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
    restart_dump_interval       = 0                          // zero to turn off
-   restart_dump_dirname        = "restart_IB2d"
+   restart_dump_dirname        = "restart_IB3d"
 
 // hierarchy data dump parameters
    data_dump_interval          = 0                          // zero to turn off
-   data_dump_dirname           = "hier_data_IB2d"
+   data_dump_dirname           = "hier_data_IB3d"
 
 // timer dump parameters
    timer_dump_interval         = 0                          // zero to turn off
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0) , (2*N - 1,N - 1) ]
-   x_lo         = 0.0, 0.0         // lower end of computational domain.
-   x_up         = 2.0, 1.0         // upper end of computational domain.
-   periodic_dimension = 0, 0
+   domain_boxes = [ (0,0,0) , (2*N - 1,N - 1,N - 1) ]
+   x_lo         = 0.0, 0.0, 0.0         // lower end of computational domain.
+   x_up         = 2.0, 1.0, 1.0         // upper end of computational domain.
+   periodic_dimension = 0, 0, 0
 }
 
 GriddingAlgorithm {
-   max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
+   max_levels = MAX_LEVELS                     // Maximum number of levels in hierarchy.
    ratio_to_coarser {
-      level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level
-      level_2 = REF_RATIO,REF_RATIO
-      level_3 = REF_RATIO,REF_RATIO
-      level_4 = REF_RATIO,REF_RATIO
-      level_5 = REF_RATIO,REF_RATIO
+      level_1 = REF_RATIO,REF_RATIO,REF_RATIO  // vector ratio to next coarser level
+      level_2 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_4 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_5 = REF_RATIO,REF_RATIO,REF_RATIO
    }
 
    largest_patch_size {
-      level_0 =512,512 // largest patch allowed in hierarchy
-                       // all finer levels will use same values as level_0...
+      level_0 =512,512,512 // largest patch allowed in hierarchy
+                           // all finer levels will use same values as level_0...
    }
 
    smallest_patch_size {
-      level_0 =  8,  8 // smallest patch allowed in hierarchy
-                       // all finer levels will use same values as level_0...
+      level_0 =  8,  8,  8 // smallest patch allowed in hierarchy
+                           // all finer levels will use same values as level_0...
    }
 
    efficiency_tolerance   = 0.85e0    // min % of tag cells in new patch level

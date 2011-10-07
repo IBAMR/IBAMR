@@ -71,7 +71,7 @@ PK1_stress_function(
     const TensorValue<double>& FF,
     const Point& /*X*/,
     const Point& /*s*/,
-    Elem* const elem,
+    Elem* const /*elem*/,
     NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
@@ -152,12 +152,23 @@ main(
         // system before calling IBFEMethod::initializeFEData().
         Mesh mesh(NDIM);
         const int M = input_db->getIntegerWithDefault("M", 4);
+#if (NDIM == 2)
         string elem_type = input_db->getStringWithDefault("elem_type", "QUAD4");
         MeshTools::Generation::build_square(mesh,
                                             M, 10*M,
                                             0.95, 1.05,
                                             0.0, 1,
                                             Utility::string_to_enum<ElemType>(elem_type));
+#endif
+#if (NDIM == 3)
+        string elem_type = input_db->getStringWithDefault("elem_type", "HEX8");
+        MeshTools::Generation::build_cube(mesh,
+                                          M, 10*M, 10*M,
+                                          0.95, 1.05,
+                                          0.0, 1,
+                                          0.0, 1,
+                                          Utility::string_to_enum<ElemType>(elem_type));
+#endif
         const MeshBase::const_element_iterator end_el = mesh.elements_end();
         for (MeshBase::const_element_iterator el = mesh.elements_begin(); el != end_el; ++el)
         {
@@ -168,14 +179,18 @@ main(
                 if (at_mesh_bdry)
                 {
                     const short int boundary_id = mesh.boundary_info->boundary_id(elem,side);
-                    if (boundary_id == 0)
+#if (NDIM == 2)
+                    if (boundary_id == 0 || boundary_id == 2)
                     {
                         mesh.boundary_info->add_side(elem, side, FEDataManager::DIRICHLET_BDRY_ID);
                     }
-                    else if (boundary_id == 2)
+#endif
+#if (NDIM == 3)
+                    if (!(boundary_id == 2 || boundary_id == 4))
                     {
                         mesh.boundary_info->add_side(elem, side, FEDataManager::DIRICHLET_BDRY_ID);
                     }
+#endif
                 }
             }
         }
