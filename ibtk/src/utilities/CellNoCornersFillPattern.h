@@ -61,10 +61,10 @@ public:
      * include_edges_on_src_level have no effect for 2D problems.
      */
     CellNoCornersFillPattern(
-        const int stencil_width,
-        const bool include_dst_patch_box,
-        const bool include_edges_on_dst_level,
-        const bool include_edges_on_src_level);
+        int stencil_width,
+        bool include_dst_patch_box,
+        bool include_edges_on_dst_level,
+        bool include_edges_on_src_level);
 
     /*!
      * \brief Destructor.
@@ -93,7 +93,7 @@ public:
         const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
         const SAMRAI::hier::Box<NDIM>& dst_patch_box,
         const SAMRAI::hier::Box<NDIM>& src_mask,
-        const bool overwrite_interior,
+        bool overwrite_interior,
         const SAMRAI::hier::IntVector<NDIM>& src_offset) const;
 
     /*!
@@ -120,17 +120,17 @@ public:
         const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
         const SAMRAI::hier::Box<NDIM>& dst_patch_box,
         const SAMRAI::hier::Box<NDIM>& src_mask,
-        const bool overwrite_interior,
+        bool overwrite_interior,
         const SAMRAI::hier::IntVector<NDIM>& src_offset,
-        const int dst_level_num,
-        const int src_level_num) const;
+        int dst_level_num,
+        int src_level_num) const;
 
     /*!
      * Set the target patch level number for the variable fill pattern.
      */
     void
     setTargetPatchLevelNumber(
-        const int level_num);
+        int level_num);
 
     /*!
      * Returns the stencil width.

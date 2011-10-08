@@ -28,247 +28,86 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // Config files
-#include <IBTK_config.h>
+#include <IBTK_prefix_config.h>
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc objects
-#include <petsc.h>
+#include <petscsys.h>
 
-// Headers for basic SAMRAI objects
-#include <PatchLevel.h>
-#include <VariableDatabase.h>
-#include <tbox/Database.h>
-#include <tbox/InputDatabase.h>
-#include <tbox/InputManager.h>
-#include <tbox/PIO.h>
-#include <tbox/Pointer.h>
-#include <tbox/RestartManager.h>
-#include <tbox/SAMRAIManager.h>
-#include <tbox/SAMRAI_MPI.h>
-#include <tbox/TimerManager.h>
-#include <tbox/Utilities.h>
-
-// Headers for major algorithm/data structure objects
+// Headers for major SAMRAI objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
 #include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
-#include <PatchHierarchy.h>
 #include <StandardTagAndInitialize.h>
-#include <VisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <CellVariable.h>
-#include <HierarchyDataOpsManager.h>
-#include <VariableDatabase.h>
-
+#include <ibtk/AppInitializer.h>
 #include <ibtk/CCLaplaceOperator.h>
-#include <ibtk/NormOps.h>
 #include <ibtk/muParserCartGridFunction.h>
+#include <ibtk/app_namespaces.h>
 
-using namespace SAMRAI;
-using namespace IBTK;
-using namespace std;
-
-/************************************************************************
- *                                                                      *
- * For each run, the input filename must be given on the command line.  *
- * In all cases, the command line is:                                   *
- *                                                                      *
- *    executable <input file name> <PETSc options>                      *
- *                                                                      *
- ************************************************************************
- */
-
+/*******************************************************************************
+ * For each run, the input filename must be given on the command line.  In all *
+ * cases, the command line is:                                                 *
+ *                                                                             *
+ *    executable <input file name>                                             *
+ *                                                                             *
+ *******************************************************************************/
 int
 main(
     int argc,
     char *argv[])
 {
-    /*
-     * Initialize PETSc, MPI, and SAMRAI.
-     */
+    // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
-    tbox::SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    tbox::SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    tbox::SAMRAIManager::startup();
+    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
+    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
+    SAMRAIManager::startup();
 
-    {// ensure all smart Pointers are properly deleted
-        string input_filename;
-        input_filename = argv[1];
+    {// cleanup dynamically allocated objects prior to shutdown
 
-        tbox::plog << "input_filename = " << input_filename << endl;
+        // Parse command line options, set some standard options from the input
+        // file, and enable file logging.
+        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_laplace.log");
+        Pointer<Database> input_db = app_initializer->getInputDatabase();
 
-        /*
-         * Create input database and parse all data in input file.
-         */
-        tbox::Pointer<tbox::Database> input_db = new tbox::InputDatabase("input_db");
-        tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
+        // Create major algorithm and data objects that comprise the
+        // application.  These objects are configured from the input database.
+        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
+            "PatchHierarchy",grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>(
+            "LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>(
+            "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
-        /*
-         * Retrieve "Main" section of the input database.
-         */
-        tbox::Pointer<tbox::Database> main_db = input_db->getDatabase("Main");
+        // Create variables and register them with the variable database.
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        Pointer<VariableContext> ctx = var_db->getContext("context");
 
-        string log_file_name = "laplace_test.log";
-        if (main_db->keyExists("log_file_name"))
-        {
-            log_file_name = main_db->getString("log_file_name");
-        }
-        bool log_all_nodes = false;
-        if (main_db->keyExists("log_all_nodes"))
-        {
-            log_all_nodes = main_db->getBool("log_all_nodes");
-        }
-        if (log_all_nodes)
-        {
-            tbox::PIO::logAllNodes(log_file_name);
-        }
-        else
-        {
-            tbox::PIO::logOnlyNodeZero(log_file_name);
-        }
+        Pointer<CellVariable<NDIM,double> > u_cc_var = new CellVariable<NDIM,double>("u_cc");
+        Pointer<CellVariable<NDIM,double> > f_cc_var = new CellVariable<NDIM,double>("f_cc");
+        Pointer<CellVariable<NDIM,double> > e_cc_var = new CellVariable<NDIM,double>("e_cc");
 
-        bool viz_dump_enabled = false;
-        tbox::Array<string> viz_writer(1);
-        viz_writer[0] = "VisIt";
-        string viz_dump_filename;
-        string visit_dump_dirname;
-        bool uses_visit = false;
-        int visit_number_procs_per_file = 1;
-        if (main_db->keyExists("viz_dump_enabled"))
-        {
-            viz_dump_enabled = main_db->getBool("viz_dump_enabled");
-        }
-        if (viz_dump_enabled)
-        {
-            if (main_db->keyExists("viz_writer"))
-            {
-                viz_writer = main_db->getStringArray("viz_writer");
-            }
-            if (main_db->keyExists("viz_dump_filename"))
-            {
-                viz_dump_filename = main_db->getString("viz_dump_filename");
-            }
-            string viz_dump_dirname;
-            if (main_db->keyExists("viz_dump_dirname"))
-            {
-                viz_dump_dirname = main_db->getString("viz_dump_dirname");
-            }
-            for (int i = 0; i < viz_writer.getSize(); ++i)
-            {
-                if (viz_writer[i] == "VisIt") uses_visit = true;
-            }
-            if (uses_visit)
-            {
-                visit_dump_dirname = viz_dump_dirname;
-            }
-            else
-            {
-                TBOX_ERROR("main(): "
-                           << "\nUnrecognized 'viz_writer' entry..."
-                           << "\nOnly valid option is 'VisIt'"
-                           << endl);
-            }
-            if (uses_visit)
-            {
-                if (viz_dump_dirname.empty())
-                {
-                    TBOX_ERROR("main(): "
-                               << "\nviz_dump_dirname is null ... "
-                               << "\nThis must be specified for use with VisIt"
-                               << endl);
-                }
-                if (main_db->keyExists("visit_number_procs_per_file"))
-                {
-                    visit_number_procs_per_file =
-                        main_db->getInteger("visit_number_procs_per_file");
-                }
-            }
-        }
+        const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVector<NDIM>(1));
+        const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVector<NDIM>(1));
+        const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, IntVector<NDIM>(1));
 
-        const bool viz_dump_data = viz_dump_enabled;
+        // Register variables for plotting.
+        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        TBOX_ASSERT(!visit_data_writer.isNull());
 
-        bool timer_enabled = false;
-        if (main_db->keyExists("timer_enabled"))
-        {
-            timer_enabled = main_db->getBool("timer_enabled");
-        }
+        visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "SCALAR", u_cc_idx);
+        visit_data_writer->registerPlotQuantity(f_cc_var->getName(), "SCALAR", f_cc_idx);
+        visit_data_writer->registerPlotQuantity(e_cc_var->getName(), "SCALAR", e_cc_idx);
 
-        const bool write_timer_data = timer_enabled;
-
-        if (write_timer_data)
-        {
-            tbox::TimerManager::createManager(input_db->getDatabase("TimerManager"));
-        }
-
-        /*
-         * Create major algorithm and data objects which comprise application.
-         * Each object will be initialized either from input data or restart
-         * files, or a combination of both.  Refer to each class constructor for
-         * details.  For more information on the composition of objects for this
-         * application, see comments at top of file.
-         */
-        tbox::Pointer<geom::CartesianGridGeometry<NDIM> > grid_geometry =
-            new geom::CartesianGridGeometry<NDIM>("CartesianGeometry",
-                                                  input_db->getDatabase("CartesianGeometry"));
-
-        tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy =
-            new hier::PatchHierarchy<NDIM>("PatchHierarchy",grid_geometry);
-
-        tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
-            new mesh::StandardTagAndInitialize<NDIM>(
-                "StandardTagAndInitialize",
-                NULL,
-                input_db->getDatabase("StandardTagAndInitialize"));
-
-        tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator = new mesh::BergerRigoutsos<NDIM>();
-
-        tbox::Pointer<mesh::LoadBalancer<NDIM> > load_balancer =
-            new mesh::LoadBalancer<NDIM>("LoadBalancer",
-                                         input_db->getDatabase("LoadBalancer"));
-
-        tbox::Pointer<mesh::GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new mesh::GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                              input_db->getDatabase("GriddingAlgorithm"),
-                                              error_detector,
-                                              box_generator,
-                                              load_balancer);
-
-        /*
-         * Set up variables.
-         */
-        tbox::Pointer<pdat::CellVariable<NDIM,double> > u_cc_var = new pdat::CellVariable<NDIM,double>("u_cc");
-        tbox::Pointer<pdat::CellVariable<NDIM,double> > f_cc_var = new pdat::CellVariable<NDIM,double>("f_cc");
-        tbox::Pointer<pdat::CellVariable<NDIM,double> > e_cc_var = new pdat::CellVariable<NDIM,double>("e_cc");
-
-        hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
-        tbox::Pointer<hier::VariableContext> ctx = var_db->getContext("context");
-        const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, hier::IntVector<NDIM>((USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1)));
-        const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, hier::IntVector<NDIM>((USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1)));
-        const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, hier::IntVector<NDIM>((USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1)));
-
-        /*
-         * Set up visualization plot file writer.
-         */
-        tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer;
-
-        if (uses_visit)
-        {
-            visit_data_writer = new appu::VisItDataWriter<NDIM>("VisIt Writer",
-                                                                visit_dump_dirname,
-                                                                visit_number_procs_per_file);
-
-            visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "SCALAR", u_cc_idx);
-            visit_data_writer->registerPlotQuantity(f_cc_var->getName(), "SCALAR", f_cc_idx);
-            visit_data_writer->registerPlotQuantity(e_cc_var->getName(), "SCALAR", e_cc_idx);
-        }
-
-        /*
-         * Initialize hierarchy configuration and data on all patches.
-         */
+        // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
-
         int tag_buffer = 1;
         int level_number = 0;
         bool done = false;
@@ -279,20 +118,22 @@ main(
             ++level_number;
         }
 
+        // Allocate data on each level of the patch hierarchy.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            tbox::Pointer<hier::PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_cc_idx, 0.0);
             level->allocatePatchData(f_cc_idx, 0.0);
             level->allocatePatchData(e_cc_idx, 0.0);
         }
 
+        // Setup vector objects.
         HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
         const int h_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
-        solv::SAMRAIVectorReal<NDIM,double> u_vec("u", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
-        solv::SAMRAIVectorReal<NDIM,double> f_vec("f", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
-        solv::SAMRAIVectorReal<NDIM,double> e_vec("e", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorReal<NDIM,double> u_vec("u", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorReal<NDIM,double> f_vec("f", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorReal<NDIM,double> e_vec("e", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
 
         u_vec.addComponent(u_cc_var, u_cc_idx, h_cc_idx);
         f_vec.addComponent(f_cc_var, f_cc_idx, h_cc_idx);
@@ -302,62 +143,47 @@ main(
         f_vec.setToScalar(0.0);
         e_vec.setToScalar(0.0);
 
-        /*
-         * Setup exact solutions.
-         */
-        muParserCartGridFunction u_fcn("u", input_db->getDatabase("u"), grid_geometry);
-        muParserCartGridFunction f_fcn("f", input_db->getDatabase("f"), grid_geometry);
+        // Setup exact solutions.
+        muParserCartGridFunction u_fcn("u", app_initializer->getComponentDatabase("u"), grid_geometry);
+        muParserCartGridFunction f_fcn("f", app_initializer->getComponentDatabase("f"), grid_geometry);
 
         u_fcn.setDataOnPatchHierarchy(u_cc_idx, u_cc_var, patch_hierarchy, 0.0);
         f_fcn.setDataOnPatchHierarchy(e_cc_idx, e_cc_var, patch_hierarchy, 0.0);
 
-        /*
-         * Compute (I - L)*u = f.
-         */
-        solv::PoissonSpecifications poisson_spec("poisson_spec");
+        // Compute -L*u = f.
+        PoissonSpecifications poisson_spec("poisson_spec");
         poisson_spec.setCConstant( 0.0);
         poisson_spec.setDConstant(-1.0);
-        solv::RobinBcCoefStrategy<NDIM>* bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* bc_coef = NULL;
         CCLaplaceOperator laplace_op("laplace op", poisson_spec, bc_coef);
         laplace_op.initializeOperatorState(u_vec,f_vec);
         laplace_op.apply(u_vec,f_vec);
 
-        /*
-         * Compute error, error norms.
-         */
-#if 0
-        tbox::Pointer<math::HierarchyDataOpsReal<NDIM,double> > hier_cc_data_ops = math::HierarchyDataOpsManager<NDIM>::getManager()->
-            getOperationsDouble(u_cc_var, patch_hierarchy, true);
-        hier_cc_data_ops->resetLevels(0,0);
-        hier_cc_data_ops->setToScalar(u_cc_idx, 0.0);
-        hier_cc_data_ops->setToScalar(f_cc_idx, 0.0);
-        hier_cc_data_ops->setToScalar(e_cc_idx, 0.0);
-#endif
-        e_vec.subtract(tbox::Pointer<solv::SAMRAIVectorReal<NDIM,double> >(&e_vec,false),
-                       tbox::Pointer<solv::SAMRAIVectorReal<NDIM,double> >(&f_vec,false));
-        tbox::pout << "|e|_oo = " << NormOps::maxNorm(&e_vec) << endl;
-        tbox::pout << "|e|_2  = " << NormOps:: L2Norm(&e_vec) << endl;
-        tbox::pout << "|e|_1  = " << NormOps:: L1Norm(&e_vec) << endl;
+        // Compute error and print error norms.
+        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&e_vec,false),
+                       Pointer<SAMRAIVectorReal<NDIM,double> >(&f_vec,false));
+        pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
+        pout << "|e|_2  = " << e_vec. L2Norm() << "\n";
+        pout << "|e|_1  = " << e_vec. L1Norm() << "\n";
 
-        /*
-         * Write out data files for plotting.
-         */
+        // Set invalid values on coarse levels (i.e., coarse-grid values that
+        // are covered by finer grid patches) to equal zero.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber()-1; ++ln)
         {
-            tbox::Pointer<hier::PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            hier::BoxArray<NDIM> refined_region_boxes;
-            tbox::Pointer<hier::PatchLevel<NDIM> > next_finer_level = patch_hierarchy->getPatchLevel(ln+1);
+            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            BoxArray<NDIM> refined_region_boxes;
+            Pointer<PatchLevel<NDIM> > next_finer_level = patch_hierarchy->getPatchLevel(ln+1);
             refined_region_boxes = next_finer_level->getBoxes();
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
-            for (hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(p());
-                const hier::Box<NDIM>& patch_box = patch->getBox();
-                tbox::Pointer<pdat::CellData<NDIM,double> > e_cc_data = patch->getPatchData(e_cc_idx);
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Box<NDIM>& patch_box = patch->getBox();
+                Pointer<CellData<NDIM,double> > e_cc_data = patch->getPatchData(e_cc_idx);
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                 {
-                    const hier::Box<NDIM> refined_box = refined_region_boxes[i];
-                    const hier::Box<NDIM> intersection = hier::Box<NDIM>::grow(patch_box,1)*refined_box;
+                    const Box<NDIM> refined_box = refined_region_boxes[i];
+                    const Box<NDIM> intersection = Box<NDIM>::grow(patch_box,1)*refined_box;
                     if (!intersection.empty())
                     {
                         e_cc_data->fillAll(0.0, intersection);
@@ -365,14 +191,13 @@ main(
                 }
             }
         }
-        if (viz_dump_data)
-        {
-            if (uses_visit) visit_data_writer->writePlotData(patch_hierarchy, 0, 0.0);
-        }
-    }// ensure all smart Pointers are properly deleted
 
-    tbox::SAMRAIManager::shutdown();
+        // Output data for plotting.
+        visit_data_writer->writePlotData(patch_hierarchy, 0, 0.0);
+
+    }// cleanup dynamically allocated objects prior to shutdown
+
+    SAMRAIManager::shutdown();
     PetscFinalize();
-
     return 0;
 }// main

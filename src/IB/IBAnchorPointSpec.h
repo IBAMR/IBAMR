@@ -96,9 +96,9 @@ public:
      * \brief Default constructor.
      */
     IBAnchorPointSpec(
-        const int node_idx=-1
+        int node_idx=-1
 #if ENABLE_SUBDOMAIN_INDICES
-        ,const int subdomain_idx=-1
+        ,int subdomain_idx=-1
 #endif
                       );
 

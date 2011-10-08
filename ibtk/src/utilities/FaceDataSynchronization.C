@@ -281,7 +281,7 @@ FaceDataSynchronization::deallocateOperatorState()
 
 void
 FaceDataSynchronization::synchronizeData(
-    const double& fill_time)
+    const double fill_time)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_is_initialized);
@@ -307,10 +307,5 @@ FaceDataSynchronization::synchronizeData(
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 }// namespace IBTK
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::FaceDataSynchronization>;
 
 //////////////////////////////////////////////////////////////////////////////

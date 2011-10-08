@@ -117,7 +117,7 @@ public:
      */
     void
     setOptionsPrefix(
-        const std::string options_prefix);
+        const std::string& options_prefix);
 
     /*!
      * \name Functions for specifying the Poisson problem.
@@ -142,7 +142,7 @@ public:
      */
     void
     setPhysicalBcCoef(
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef);
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
@@ -163,7 +163,7 @@ public:
      */
     void
     setHomogeneousBc(
-        const bool homogeneous_bc);
+        bool homogeneous_bc);
 
     /*!
      * \brief Set the hierarchy time, for use with the refinement schedules and
@@ -171,7 +171,7 @@ public:
      */
     void
     setTime(
-        const double time);
+        double time);
 
     //\}
 

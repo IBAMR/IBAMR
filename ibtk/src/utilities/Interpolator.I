@@ -85,7 +85,7 @@ Interpolator::~Interpolator()
 
 inline double
 Interpolator::operator()(
-    const double& x) const
+    double x) const
 {
     std::vector<double>::const_iterator x_it = std::lower_bound(d_x.begin(), d_x.end(), x);
     if (UNLIKELY(x_it == d_x.begin())) return d_x.front();

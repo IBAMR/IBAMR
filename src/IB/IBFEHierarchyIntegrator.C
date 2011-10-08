@@ -2974,9 +2974,4 @@ IBFEHierarchyIntegrator::getFromRestart()
 
 } // namespace IBAMR
 
-/////////////////////////////// TEMPLATE INTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBAMR::IBFEHierarchyIntegrator>;
-
 //////////////////////////////////////////////////////////////////////////////

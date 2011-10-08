@@ -136,18 +136,18 @@ public:
      */
     void
     initializeHierarchyIndependentData(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        IBTK::LDataManager* const l_data_manager);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Initialize hierarchy- and configuration-dependent data.
      */
     void
     initializeHierarchyDependentData(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        IBTK::LDataManager* const l_data_manager,
-        const int timestep_num,
-        const double data_time);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        IBTK::LDataManager* l_data_manager,
+        int timestep_num,
+        double data_time);
 
     /*!
      * \brief Compute the flow rates and pressures in the various distributed
@@ -155,12 +155,12 @@ public:
      */
     void
     readInstrumentData(
-        const int U_data_idx,
-        const int P_data_idx,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        IBTK::LDataManager* const l_data_manager,
-        const int timestep_num,
-        const double data_time);
+        int U_data_idx,
+        int P_data_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        IBTK::LDataManager* l_data_manager,
+        int timestep_num,
+        double data_time);
 
     /*!
      * \brief Set the directory where plot data is to be written.
@@ -178,8 +178,8 @@ public:
      */
     void
     writePlotData(
-        const int timestep_num,
-        const double simulation_time);
+        int timestep_num,
+        double simulation_time);
 
 private:
     /*!

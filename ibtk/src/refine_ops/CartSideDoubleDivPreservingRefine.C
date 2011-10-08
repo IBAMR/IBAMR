@@ -45,6 +45,7 @@
 #endif
 
 // IBTK INCLUDES
+#include <ibtk/IndexUtilities.h>
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -52,9 +53,6 @@
 #include <SideData.h>
 #include <SideVariable.h>
 #include <tbox/MathUtilities.h>
-
-// BLITZ++ INCLUDES
-#include <blitz/tinyvec.h>
 
 // C++ STDLIB INCLUDES
 #include <limits>
@@ -104,6 +102,8 @@ CartSideDoubleDivPreservingRefine::CartSideDoubleDivPreservingRefine(
     const int u_dst_idx,
     const int u_src_idx,
     const int indicator_idx,
+    Pointer<RefineOperator<NDIM> > refine_op,
+    Pointer<CoarsenOperator<NDIM> > coarsen_op,
     const double fill_time,
     RefinePatchStrategy<NDIM>* const phys_bdry_op)
     : d_u_dst_idx(u_dst_idx),
@@ -111,8 +111,8 @@ CartSideDoubleDivPreservingRefine::CartSideDoubleDivPreservingRefine(
       d_indicator_idx(indicator_idx),
       d_fill_time(fill_time),
       d_phys_bdry_op(phys_bdry_op),
-      d_conservative_linear_refine_op(),
-      d_conservative_coarsen_op()
+      d_refine_op(refine_op),
+      d_coarsen_op(coarsen_op)
 {
     // intentionally blank
     return;
@@ -168,7 +168,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
     const Box<NDIM> fine_box = unrestricted_fine_box * Box<NDIM>::grow(fine.getBox(),2);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned int d = 0; d < NDIM; ++d)
+    for (int d = 0; d < NDIM; ++d)
     {
         if (ratio(d)%2 != 0)
         {
@@ -200,14 +200,16 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
     if (ratio == IntVector<NDIM>(2))
     {
         // Perform (limited) conservative prolongation of the coarse grid data.
-        d_conservative_linear_refine_op.refine(fine, coarse, d_u_dst_idx, d_u_dst_idx, fine_box, ratio);
+        d_refine_op->refine(fine, coarse, d_u_dst_idx, d_u_dst_idx, fine_box, ratio);
 
-        // Reset the values of any fine grid values for which the indicator data
-        // is set to "1".
-        if (fine.checkAllocated(d_u_src_idx) && fine.checkAllocated(d_indicator_idx))
+        Pointer<SideData<NDIM,double> >     u_src_data = fine.getPatchData(    d_u_src_idx);
+        Pointer<SideData<NDIM,double> > indicator_data = fine.getPatchData(d_indicator_idx);
+
+        // Ensure that we do not modify any of the data from the old level by
+        // setting the value of the fine grid data to equal u_src wherever the
+        // indicator data equals "1".
+        if (!u_src_data.isNull() && !indicator_data.isNull())
         {
-            Pointer<SideData<NDIM,double> >     u_src_data = fine.getPatchData(    d_u_src_idx);
-            Pointer<SideData<NDIM,double> > indicator_data = fine.getPatchData(d_indicator_idx);
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_box,axis)); b; b++)
@@ -219,6 +221,42 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
                         for (int depth = 0; depth < fdata_depth; ++depth)
                         {
                             (*fdata)(i_s,depth) = (*u_src_data)(i_s,depth);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Reinterpolate data in the normal direction in the newly refined part
+        // of the level wherever the indicator data does NOT equal "1".  Notice
+        // that this loop actually modifies only data that is NOT covered by an
+        // overlying coarse grid cell face.
+        if (!indicator_data.isNull())
+        {
+            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            {
+                for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_box,axis)); b; b++)
+                {
+                    const Index<NDIM>& i = b();
+                    const SideIndex<NDIM> i_s(i,axis,0);
+                    if (!(std::abs((*indicator_data)(i_s)-1.0) < 1.0e-12))
+                    {
+                        const Index<NDIM> i_coarse_lower = IndexUtilities::coarsen(i,ratio);
+                        const Index<NDIM> i_lower = IndexUtilities::refine(i_coarse_lower,ratio);
+                        if (i(axis) == i_lower(axis)) continue;
+
+                        Index<NDIM> i_coarse_upper = i_coarse_lower;
+                        i_coarse_upper(axis) += 1;
+                        const Index<NDIM> i_upper = IndexUtilities::refine(i_coarse_upper,ratio);
+
+                        const double w1 = static_cast<double>(i(axis)-i_lower(axis))/static_cast<double>(ratio(axis));
+                        const double w0 = 1.0-w1;
+
+                        const SideIndex<NDIM> i_s_lower(i_lower,axis,0);
+                        const SideIndex<NDIM> i_s_upper(i_upper,axis,0);
+                        for (int depth = 0; depth < fdata_depth; ++depth)
+                        {
+                            (*fdata)(i_s,depth) = w0*(*fdata)(i_s_lower,depth) + w1*(*fdata)(i_s_upper,depth);
                         }
                     }
                 }
@@ -268,7 +306,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
         Pointer<CartesianPatchGeometry<NDIM> > pgeom_coarse = coarse.getPatchGeometry();
         const IntVector<NDIM>& ratio_to_level_zero_coarse = pgeom_coarse->getRatio();
         Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
-        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        for (int axis = 0; axis < NDIM; ++axis)
         {
             touches_regular_bdry [axis].resizeArray(2);
             touches_periodic_bdry[axis].resizeArray(2);
@@ -281,8 +319,8 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
         const double* const dx_coarse = pgeom_coarse->getDx();
 
         const IntVector<NDIM> ratio_to_level_zero_intermediate = ratio_to_level_zero_coarse*2;
-        blitz::TinyVector<double,NDIM> dx_intermediate, x_lower_intermediate, x_upper_intermediate;
-        for (unsigned int d = 0; d < NDIM; ++d)
+        double dx_intermediate[NDIM], x_lower_intermediate[NDIM], x_upper_intermediate[NDIM];
+        for (int d = 0; d < NDIM; ++d)
         {
             dx_intermediate[d] = 0.5*dx_coarse[d];
             x_lower_intermediate[d] = pgeom_coarse->getXLower()[d];
@@ -290,7 +328,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
         }
         intermediate.setPatchGeometry(new CartesianPatchGeometry<NDIM>(
                                           ratio_to_level_zero_intermediate, touches_regular_bdry, touches_periodic_bdry,
-                                          dx_intermediate.data(), x_lower_intermediate.data(), x_upper_intermediate.data()));
+                                          dx_intermediate, x_lower_intermediate, x_upper_intermediate));
 
         // The intermediate box where we need to fill data must be large enough
         // to provide ghost cell values for the fine fill box.
@@ -311,8 +349,8 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(
             TBOX_ASSERT(    u_src_fdata->getGhostBox().contains(Box<NDIM>::refine(intermediate_box,ratio/2)));
             TBOX_ASSERT(indicator_fdata->getGhostBox().contains(Box<NDIM>::refine(intermediate_box,ratio/2)));
 #endif
-            d_conservative_coarsen_op.coarsen(intermediate, fine,     d_u_src_idx,     d_u_src_idx, intermediate_box, ratio/2);
-            d_conservative_coarsen_op.coarsen(intermediate, fine, d_indicator_idx, d_indicator_idx, intermediate_box, ratio/2);
+            d_coarsen_op->coarsen(intermediate, fine,     d_u_src_idx,     d_u_src_idx, intermediate_box, ratio/2);
+            d_coarsen_op->coarsen(intermediate, fine, d_indicator_idx, d_indicator_idx, intermediate_box, ratio/2);
         }
 
         // Recursively refine from the coarse patch to the fine patch.

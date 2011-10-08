@@ -83,19 +83,19 @@ public:
      */
     virtual bool
     getLevelHasLagrangianData(
-        const int level_number,
-        const bool can_be_refined) const = 0;
+        int level_number,
+        bool can_be_refined) const = 0;
 
     /*!
      * \return The number of local nodes on the patch level.
      */
     virtual unsigned int
     computeLocalNodeCountOnPatchLevel(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time) = 0;
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time) = 0;
 
     /*!
      * \brief Initialize the structure indexing information on the patch level.
@@ -106,11 +106,11 @@ public:
     initializeStructureIndexingOnPatchLevel(
         std::map<int,std::string>& strct_id_to_strct_name_map,
         std::map<int,std::pair<int,int> >& strct_id_to_lag_idx_range_map,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time,
-        LDataManager* const l_data_manager);
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        LDataManager* l_data_manager);
 
     /*!
      * \brief Initialize the LNode and LData data needed to specify the
@@ -120,17 +120,17 @@ public:
      */
     virtual unsigned int
     initializeDataOnPatchLevel(
-        const int lag_node_index_idx,
-        const unsigned int global_index_offset,
-        const unsigned int local_index_offset,
-        SAMRAI::tbox::Pointer<LData>& X_data,
-        SAMRAI::tbox::Pointer<LData>& U_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time,
-        LDataManager* const l_data_manager) = 0;
+        int lag_node_index_idx,
+        unsigned int global_index_offset,
+        unsigned int local_index_offset,
+        SAMRAI::tbox::Pointer<LData> X_data,
+        SAMRAI::tbox::Pointer<LData> U_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        LDataManager* l_data_manager) = 0;
 
     /*!
      * \brief Initialize the LData needed to specify the mass and spring
@@ -143,16 +143,16 @@ public:
      */
     virtual unsigned int
     initializeMassDataOnPatchLevel(
-        const unsigned int global_index_offset,
-        const unsigned int local_index_offset,
-        SAMRAI::tbox::Pointer<LData>& M_data,
-        SAMRAI::tbox::Pointer<LData>& K_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time,
-        LDataManager* const l_data_manager);
+        unsigned int global_index_offset,
+        unsigned int local_index_offset,
+        SAMRAI::tbox::Pointer<LData> M_data,
+        SAMRAI::tbox::Pointer<LData> K_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        LDataManager* l_data_manager);
 
     /*!
      * \brief Initialize the LData needed to specify director vectors required
@@ -165,15 +165,15 @@ public:
      */
     virtual unsigned int
     initializeDirectorDataOnPatchLevel(
-        const unsigned int global_index_offset,
-        const unsigned int local_index_offset,
-        SAMRAI::tbox::Pointer<LData>& D_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time,
-        LDataManager* const l_data_manager);
+        unsigned int global_index_offset,
+        unsigned int local_index_offset,
+        SAMRAI::tbox::Pointer<LData> D_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        LDataManager* l_data_manager);
 
     /*!
      * \brief Provide cell tagging for the initial configuration of the
@@ -190,10 +190,10 @@ public:
      */
     virtual void
     tagCellsForInitialRefinement(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double error_data_time,
-        const int tag_index);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double error_data_time,
+        int tag_index);
 
 private:
     /*!

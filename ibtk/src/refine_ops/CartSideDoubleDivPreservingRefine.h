@@ -36,8 +36,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // SAMRAI INCLUDES
-#include <CartesianSideDoubleConservativeLinearRefine.h>
-#include <CartesianSideDoubleWeightedAverage.h>
 #include <CoarsenOperator.h>
 #include <RefineOperator.h>
 #include <RefinePatchStrategy.h>
@@ -60,22 +58,25 @@ public:
      * \brief Constructor.
      */
     CartSideDoubleDivPreservingRefine(
-        const int u_dst_idx,
-        const int u_src_idx,
-        const int indicator_idx,
-        const double fill_time=0.0,
-        SAMRAI::xfer::RefinePatchStrategy<NDIM>* const phys_bdry_op=NULL);
+        int u_dst_idx,
+        int u_src_idx,
+        int indicator_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_op,
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > coarsen_op,
+        double fill_time,
+        SAMRAI::xfer::RefinePatchStrategy<NDIM>* phys_bdry_op);
 
     /*!
-     * \brief Destructor.
+     * \brief Virtual destructor.
      */
+    virtual
     ~CartSideDoubleDivPreservingRefine();
 
     /*!
      * \brief The number of required ghost cells.
      *
      * \note This value is chosen to allow refinement ratios up to 4.  A larger
-     * value is necessary for refinement ratios greater than 4.
+     * value would be necessary for refinement ratios greater than 4.
      */
     static const int REFINE_OP_STENCIL_WIDTH = 4;
 
@@ -96,10 +97,10 @@ public:
      * \param fill_time            Double simulation time for boundary filling.
      * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over all registered scratch components.
      */
-    void
+    virtual void
     setPhysicalBoundaryConditions(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const double fill_time,
+        double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!
@@ -107,7 +108,7 @@ public:
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      */
-    SAMRAI::hier::IntVector<NDIM>
+    virtual SAMRAI::hier::IntVector<NDIM>
     getRefineOpStencilWidth() const;
 
     /*!
@@ -125,7 +126,7 @@ public:
      * \param fine_box  Box region on fine patch into which data is refined.
      * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
      */
-    void
+    virtual void
     preprocessRefine(
         SAMRAI::hier::Patch<NDIM>& fine,
         const SAMRAI::hier::Patch<NDIM>& coarse,
@@ -147,7 +148,7 @@ public:
      * \param fine_box  Box region on fine patch into which data is refined.
      * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
      */
-    void
+    virtual void
     postprocessRefine(
         SAMRAI::hier::Patch<NDIM>& fine,
         const SAMRAI::hier::Patch<NDIM>& coarse,
@@ -203,14 +204,14 @@ private:
     SAMRAI::xfer::RefinePatchStrategy<NDIM>* const d_phys_bdry_op;
 
     /*!
-     * The standard conservative linear refine operator.
+     * The basic linear refine operator.
      */
-    SAMRAI::geom::CartesianSideDoubleConservativeLinearRefine<NDIM> d_conservative_linear_refine_op;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_refine_op;
 
     /*!
-     * The standard conservative coarsening operator.
+     * The basic coarsening operator.
      */
-    SAMRAI::geom::CartesianSideDoubleWeightedAverage<NDIM> d_conservative_coarsen_op;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_coarsen_op;
 };
 }// namespace IBTK
 

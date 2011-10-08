@@ -87,8 +87,8 @@ unsigned int
 LInitStrategy::initializeMassDataOnPatchLevel(
     const unsigned int /*global_index_offset*/,
     const unsigned int /*local_index_offset*/,
-    Pointer<LData>& /*M_data*/,
-    Pointer<LData>& /*K_data*/,
+    Pointer<LData> /*M_data*/,
+    Pointer<LData> /*K_data*/,
     const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     const int /*level_number*/,
     const double /*init_data_time*/,
@@ -105,7 +105,7 @@ unsigned int
 LInitStrategy::initializeDirectorDataOnPatchLevel(
     const unsigned int /*global_index_offset*/,
     const unsigned int /*local_index_offset*/,
-    Pointer<LData>& /*D_data*/,
+    Pointer<LData> /*D_data*/,
     const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     const int /*level_number*/,
     const double /*init_data_time*/,
@@ -137,10 +137,5 @@ LInitStrategy::tagCellsForInitialRefinement(
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 } // namespace IBTK
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::LInitStrategy>;
 
 //////////////////////////////////////////////////////////////////////////////

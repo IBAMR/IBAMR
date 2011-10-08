@@ -44,21 +44,14 @@
 #define included_SAMRAI_config
 #endif
 
-// SAMRAI INCLUDES
-#include <Box.h>
-#include <CartesianPatchGeometry.h>
-#include <CellData.h>
-#include <CellIterator.h>
-#include <Index.h>
-
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 QInit::QInit(
     const string& object_name,
-    tbox::Pointer<hier::GridGeometry<NDIM> > grid_geom,
-    tbox::Pointer<tbox::Database> input_db)
+    Pointer<GridGeometry<NDIM> > grid_geom,
+    Pointer<Database> input_db)
     : CartGridFunction(object_name),
       d_object_name(object_name),
       d_grid_geom(grid_geom),
@@ -111,37 +104,37 @@ QInit::~QInit()
 void
 QInit::setDataOnPatch(
     const int data_idx,
-    tbox::Pointer<hier::Variable<NDIM> > /*var*/,
-    tbox::Pointer<hier::Patch<NDIM> > patch,
+    Pointer<Variable<NDIM> > /*var*/,
+    Pointer<Patch<NDIM> > patch,
     const double data_time,
     const bool /*initial_time*/,
-    tbox::Pointer<hier::PatchLevel<NDIM> > /*level*/)
+    Pointer<PatchLevel<NDIM> > /*level*/)
 {
-    tbox::Pointer< pdat::CellData<NDIM,double> > Q_data = patch->getPatchData(data_idx);
+    Pointer<CellData<NDIM,double> > Q_data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!Q_data.isNull());
 #endif
-    const hier::Box<NDIM>& patch_box = patch->getBox();
-    const hier::Index<NDIM>& patch_lower = patch_box.lower();
-    tbox::Pointer<geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const Box<NDIM>& patch_box = patch->getBox();
+    const Index<NDIM>& patch_lower = patch_box.lower();
+    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
 
     const double* const XLower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
 
     double r_squared;
-    blitz::TinyVector<double,NDIM> X;
+    TinyVector<double,NDIM> X;
     const double t = data_time;
 
     Q_data->fillAll(0.0);
 
     if (d_init_type == "GAUSSIAN")
     {
-        for (pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
+        for (CellIterator<NDIM> ic(patch_box); ic; ic++)
         {
-            const hier::Index<NDIM>& i = ic();
+            const Index<NDIM>& i = ic();
             // NOTE: This assumes the lattice of Gaussians are being advected
             // and diffused in the unit square.
-            blitz::TinyVector<int,NDIM> offset;
+            TinyVector<int,NDIM> offset;
             for (offset[0] = -2; offset[0] <= 2; ++(offset[0]))
             {
                 for (offset[1] = -2; offset[1] <= 2; ++(offset[1]))
@@ -172,9 +165,9 @@ QInit::setDataOnPatch(
     }
     else if (d_init_type == "ZALESAK")
     {
-        for (pdat::CellIterator<NDIM> ic(patch_box); ic; ic++)
+        for (CellIterator<NDIM> ic(patch_box); ic; ic++)
         {
-            const hier::Index<NDIM>& i = ic();
+            const Index<NDIM>& i = ic();
             r_squared = 0.0;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -208,7 +201,7 @@ QInit::setDataOnPatch(
 
 void
 QInit::getFromInput(
-    tbox::Pointer<tbox::Database> db)
+    Pointer<Database> db)
 {
     if (!db.isNull())
     {

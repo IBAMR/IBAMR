@@ -96,9 +96,4 @@ IBLagrangianSourceStrategy::initializeLevelData(
 
 } // namespace IBAMR
 
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBAMR::IBLagrangianSourceStrategy>;
-
 //////////////////////////////////////////////////////////////////////////////

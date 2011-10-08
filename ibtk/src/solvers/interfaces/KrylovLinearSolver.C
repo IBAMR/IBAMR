@@ -67,56 +67,10 @@ KrylovLinearSolver::~KrylovLinearSolver()
     return;
 }// ~KrylovLinearSolver()
 
-void
-KrylovLinearSolver::setNullspace(
-    const bool contains_constant_vector,
-    Pointer<SAMRAIVectorReal<NDIM,double> > nullspace_basis_vec)
-{
-    if (!nullspace_basis_vec.isNull())
-    {
-        setNullspace(contains_constant_vector, std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >(1, nullspace_basis_vec));
-    }
-    else
-    {
-        setNullspace(contains_constant_vector, std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >());
-    }
-    return;
-}// setNullspace
-
-void
-KrylovLinearSolver::setNullspace(
-    const bool /*contains_constant_vector*/,
-    const std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >& /*nullspace_basis_vecs*/)
-{
-    // intentionally blank
-    return;
-}// setNullspace
-
-void
-KrylovLinearSolver::initializeSolverState(
-    const SAMRAIVectorReal<NDIM,double>& x,
-    const SAMRAIVectorReal<NDIM,double>& b)
-{
-    LinearSolver::initializeSolverState(x,b);
-    return;
-}// initializeSolverState
-
-void
-KrylovLinearSolver::deallocateSolverState()
-{
-    LinearSolver::deallocateSolverState();
-    return;
-}// deallocateSolverState
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBTK
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::KrylovLinearSolver>;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -181,11 +181,11 @@ INSStaggeredPhysicalBoundaryHelper::resetValuesAtDirichletBoundaries(
 void
 INSStaggeredPhysicalBoundaryHelper::cacheBcCoefData(
     const int u_idx,
-    const Pointer<Variable<NDIM> >& u_var,
+    const Pointer<Variable<NDIM> > u_var,
     blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
     const double fill_time,
     const IntVector<NDIM>& gcw_to_fill,
-    const Pointer<PatchHierarchy<NDIM> >& hierarchy)
+    const Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -284,10 +284,5 @@ INSStaggeredPhysicalBoundaryHelper::clearBcCoefData()
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBAMR
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBAMR::INSStaggeredPhysicalBoundaryHelper>;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -53,8 +53,8 @@ IBTargetPointForceSpec::getIsRegisteredWithStreamableManager()
 inline
 IBTargetPointForceSpec::IBTargetPointForceSpec(
     const int master_idx,
-    const double& kappa_target,
-    const double& eta_target,
+    const double kappa_target,
+    const double eta_target,
     const blitz::TinyVector<double,NDIM>& X_target
 #if ENABLE_SUBDOMAIN_INDICES
     ,const int subdomain_idx

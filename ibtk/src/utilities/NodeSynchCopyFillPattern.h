@@ -63,7 +63,7 @@ public:
      * \brief Constructor
      */
     NodeSynchCopyFillPattern(
-        const unsigned int axis);
+        unsigned int axis);
 
     /*!
      * \brief Destructor
@@ -92,7 +92,7 @@ public:
         const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
         const SAMRAI::hier::Box<NDIM>& dst_patch_box,
         const SAMRAI::hier::Box<NDIM>& src_mask,
-        const bool overwrite_interior,
+        bool overwrite_interior,
         const SAMRAI::hier::IntVector<NDIM>& src_offset) const;
 
     /*!

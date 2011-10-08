@@ -69,18 +69,18 @@ namespace IBAMR
 
 INSStaggeredVelocityBcCoef::INSStaggeredVelocityBcCoef(
     const unsigned int comp_idx,
-    const INSCoefs& problem_coefs,
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
+    const INSProblemCoefs* problem_coefs,
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
     : d_comp_idx(comp_idx),
       d_problem_coefs(problem_coefs),
-      d_u_bc_coefs(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
+      d_bc_coefs(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_target_idx(-1),
       d_homogeneous_bc(false)
 {
-    setVelocityPhysicalBcCoefs(u_bc_coefs);
+    setPhysicalBoundaryConditions(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
     return;
 }// INSStaggeredVelocityBcCoef
@@ -92,12 +92,20 @@ INSStaggeredVelocityBcCoef::~INSStaggeredVelocityBcCoef()
 }// ~INSStaggeredVelocityBcCoef
 
 void
-INSStaggeredVelocityBcCoef::setVelocityPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs)
+INSStaggeredVelocityBcCoef::setINSProblemCoefs(
+    const INSProblemCoefs* problem_coefs)
 {
-    d_u_bc_coefs = u_bc_coefs;
+    d_problem_coefs = problem_coefs;
     return;
-}// setVelocityPhysicalBcCoefs
+}// setINSProblemCoefs
+
+void
+INSStaggeredVelocityBcCoef::setPhysicalBoundaryConditions(
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
+{
+    d_bc_coefs = bc_coefs;
+    return;
+}// setPhysicalBoundaryConditions
 
 void
 INSStaggeredVelocityBcCoef::setTimeInterval(
@@ -138,11 +146,11 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(d_u_bc_coefs[d] != NULL);
+        TBOX_ASSERT(d_bc_coefs[d] != NULL);
     }
 #endif
     // Set the unmodified velocity bc coefs.
-    d_u_bc_coefs[d_comp_idx]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
+    d_bc_coefs[d_comp_idx]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 
     // We do not make any further modifications to the values of acoef_data and
     // bcoef_data beyond this point.
@@ -178,7 +186,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(
     const Box<NDIM>& ghost_box = u_data->getGhostBox();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    const double mu = d_problem_coefs.getMu();
+    const double mu = d_problem_coefs->getMu();
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const Index<NDIM>& i = it();
@@ -276,13 +284,13 @@ INSStaggeredVelocityBcCoef::numberOfExtensionsFillable() const
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(d_u_bc_coefs[d] != NULL);
+        TBOX_ASSERT(d_bc_coefs[d] != NULL);
     }
 #endif
     IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ret_val = IntVector<NDIM>::min(ret_val, d_u_bc_coefs[d]->numberOfExtensionsFillable());
+        ret_val = IntVector<NDIM>::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
 }// numberOfExtensionsFillable
@@ -294,7 +302,5 @@ INSStaggeredVelocityBcCoef::numberOfExtensionsFillable() const
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 }// namespace IBAMR
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

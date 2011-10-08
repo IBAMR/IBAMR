@@ -93,8 +93,8 @@ public:
      */
     HierarchyVecCellDataOpsReal(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int coarsest_level=-1,
-        const int finest_level=-1);
+        int coarsest_level=-1,
+        int finest_level=-1);
 
     /*!
      * Virtual destructor for the HierarchyVecCellDataOpsReal class.
@@ -114,8 +114,8 @@ public:
      */
     void
     resetLevels(
-        const int coarsest_level,
-        const int finest_level);
+        int coarsest_level,
+        int finest_level);
 
     /*!
      * Return const pointer to patch hierarchy associated with operations.
@@ -128,65 +128,65 @@ public:
      */
     void
     copyData(
-        const int dst_id,
-        const int src_id,
-        const bool interior_only=true) const;
+        int dst_id,
+        int src_id,
+        bool interior_only=true) const;
 
     /*!
      * Swap data pointers (i.e., storage) between two data components.
      */
     void
     swapData(
-        const int data1_id,
-        const int data2_id) const;
+        int data1_id,
+        int data2_id) const;
 
     /*!
      * Print data over multiple levels to specified output stream.
      */
     void
     printData(
-        const int data_id,
+        int data_id,
         std::ostream& s,
-        const bool interior_only=true) const;
+        bool interior_only=true) const;
 
     /*!
      * Set data component to given scalar.
      */
     void
     setToScalar(
-        const int data_id,
+        int data_id,
         const TYPE& alpha,
-        const bool interior_only=true) const;
+        bool interior_only=true) const;
 
     /*!
      * Set destination to source multiplied by given scalar, pointwise.
      */
     void
     scale(
-        const int dst_id,
+        int dst_id,
         const TYPE& alpha,
-        const int src_id,
-        const bool interior_only=true) const;
+        int src_id,
+        bool interior_only=true) const;
 
     /*!
      * Add scalar to each entry in source data and set destination to result.
      */
     void
     addScalar(
-        const int dst_id,
-        const int src_id,
+        int dst_id,
+        int src_id,
         const TYPE& alpha,
-        const bool interior_only=true) const;
+        bool interior_only=true) const;
 
     /*!
      * Set destination to sum of two source components, pointwise.
      */
     void
     add(
-        const int dst_id,
-        const int src1_id,
-        const int src2_id,
-        const bool interior_only=true) const;
+        int dst_id,
+        int src1_id,
+        int src2_id,
+        bool interior_only=true) const;
 
     /*!
      * Subtract second source component from first source component pointwise
@@ -194,20 +194,20 @@ public:
      */
     void
     subtract(
-        const int dst_id,
-        const int src1_id,
-        const int src2_id,
-        const bool interior_only=true) const;
+        int dst_id,
+        int src1_id,
+        int src2_id,
+        bool interior_only=true) const;
 
     /*!
      * Set destination component to product of two source components, pointwise.
      */
     void
     multiply(
-        const int dst_id,
-        const int src1_id,
-        const int src2_id,
-        const bool interior_only=true) const;
+        int dst_id,
+        int src1_id,
+        int src2_id,
+        bool interior_only=true) const;
 
     /*!
      * Divide first data component by second source component pointwise and set
@@ -215,10 +215,10 @@ public:
      */
     void
     divide(
-        const int dst_id,
-        const int src1_id,
-        const int src2_id,
-        const bool interior_only=true) const;
+        int dst_id,
+        int src1_id,
+        int src2_id,
+        bool interior_only=true) const;
 
     /*!
      * Set each entry of destination component to reciprocal of corresponding
@@ -226,9 +226,9 @@ public:
      */
     void
     reciprocal(
-        const int dst_id,
-        const int src_id,
-        const bool interior_only=true) const;
+        int dst_id,
+        int src_id,
+        bool interior_only=true) const;
 
     /*!
      * Set \f$d = \alpha s_1 + \beta s_2\f$, where \f$d\f$ is the destination
@@ -237,12 +237,12 @@ public:
      */
     void
     linearSum(
-        const int dst_id,
+        int dst_id,
         const TYPE& alpha,
-        const int src1_id,
+        int src1_id,
         const TYPE& beta,
-        const int src2_id,
-        const bool interior_only=true) const;
+        int src2_id,
+        bool interior_only=true) const;
 
     /*!
      * Set \f$d = \alpha s_1 + s_2\f$, where \f$d\f$ is the destination patch
@@ -251,11 +251,11 @@ public:
      */
     void
     axpy(
-        const int dst_id,
+        int dst_id,
         const TYPE& alpha,
-        const int src1_id,
-        const int src2_id,
-        const bool interior_only=true) const;
+        int src1_id,
+        int src2_id,
+        bool interior_only=true) const;
 
     /*!
      * Set \f$d = \alpha s_1 - s_2\f$, where \f$d\f$ is the destination patch
@@ -264,36 +264,36 @@ public:
      */
     void
     axmy(
-        const int dst_id,
+        int dst_id,
         const TYPE& alpha,
-        const int src1_id,
-        const int src2_id,
-        const bool interior_only=true) const;
+        int src1_id,
+        int src2_id,
+        bool interior_only=true) const;
 
     /*!
      * Set destination data to absolute value of source data, pointwise.
      */
     void
     abs(
-        const int dst_id,
-        const int src_id,
-        const bool interior_only=true) const;
+        int dst_id,
+        int src_id,
+        bool interior_only=true) const;
 
     /*!
      * Return minimum data value over all patches in the collection of levels.
      */
     TYPE
     min(
-        const int data_id,
-        const bool interior_only=true) const;
+        int data_id,
+        bool interior_only=true) const;
 
     /*!
      * Return maximum data value over all patches in the collection of levels.
      */
     TYPE
     max(
-        const int data_id,
-        const bool interior_only=true) const;
+        int data_id,
+        bool interior_only=true) const;
 
     /*!
      * Set data entries to random values.  See the operations in the array data
@@ -302,10 +302,10 @@ public:
      */
     void
     setRandomValues(
-        const int data_id,
+        int data_id,
         const TYPE& width,
         const TYPE& low,
-        const bool interior_only=true) const;
+        bool interior_only=true) const;
 
     /*!
      * Return the total number of data values for the component on the set of
@@ -316,8 +316,8 @@ public:
      */
     int
     numberOfEntries(
-        const int data_id,
-        const bool interior_only=true) const;
+        int data_id,
+        bool interior_only=true) const;
 
     /*!
      * Return sum of the control volumes associated with the data component.
@@ -327,8 +327,8 @@ public:
      */
     double
     sumControlVolumes(
-        const int data_id,
-        const int vol_id) const;
+        int data_id,
+        int vol_id) const;
 
     /*!
      * Return discrete \f$L_1\f$-norm of the data using the control volume to
@@ -340,8 +340,8 @@ public:
      */
     double
     L1Norm(
-        const int data_id,
-        const int vol_id = -1,
+        int data_id,
+        int vol_id = -1,
         bool local_only=false) const;
 
     /*!
@@ -355,8 +355,8 @@ public:
      */
     double
     L2Norm(
-        const int data_id,
-        const int vol_id = -1,
+        int data_id,
+        int vol_id = -1,
         bool local_only=false) const;
 
     /*!
@@ -369,9 +369,9 @@ public:
      */
     double
     weightedL2Norm(
-        const int data_id,
-        const int weight_id,
-        const int vol_id = -1) const;
+        int data_id,
+        int weight_id,
+        int vol_id = -1) const;
 
     /*!
      * Return discrete root mean squared norm of the data.  If the control
@@ -382,8 +382,8 @@ public:
      */
     double
     RMSNorm(
-        const int data_id,
-        const int vol_id = -1) const;
+        int data_id,
+        int vol_id = -1) const;
 
     /*!
      * Return discrete weighted root mean squared norm of the data.  If the
@@ -394,9 +394,9 @@ public:
      */
     double
     weightedRMSNorm(
-        const int data_id,
-        const int weight_id,
-        const int vol_id = -1) const;
+        int data_id,
+        int weight_id,
+        int vol_id = -1) const;
 
     /*!
      * Return the \f$\max\f$-norm of the data using the control volume to weight
@@ -409,8 +409,8 @@ public:
      */
     double
     maxNorm(
-        const int data_id,
-        const int vol_id = -1,
+        int data_id,
+        int vol_id = -1,
         bool local_only=false) const;
 
     /*!
@@ -423,9 +423,9 @@ public:
      */
     TYPE
     dot(
-        const int data1_id,
-        const int data2_id,
-        const int vol_id = -1,
+        int data1_id,
+        int data2_id,
+        int vol_id = -1,
         bool local_only=false) const;
 
     /*!
@@ -434,8 +434,8 @@ public:
      */
     TYPE
     integral(
-        const int data_id,
-        const int vol_id) const;
+        int data_id,
+        int vol_id) const;
 
     /*!
      * Return 1 if \f$\|data2_i\| > 0\f$ and \f$data1_i * data2_i \leq 0\f$, for
@@ -445,9 +445,9 @@ public:
      */
     int
     computeConstrProdPos(
-        const int data1_id,
-        const int data2_id,
-        const int vol_id = -1) const;
+        int data1_id,
+        int data2_id,
+        int vol_id = -1) const;
 
     /*!
      * Wherever \f$cvol_i > 0\f$ in the set of patch data indices, set \f$dst_i
@@ -457,10 +457,10 @@ public:
      */
     void
     compareToScalar(
-        const int dst_id,
-        const int src_id,
+        int dst_id,
+        int src_id,
         const TYPE& alpha,
-        const int vol_id = -1) const;
+        int vol_id = -1) const;
 
     /*!
      * Wherever \f$cvol_i > 0\f$ in the set of patch data indices, set \f$dst_i
@@ -471,9 +471,9 @@ public:
      */
     int
     testReciprocal(
-        const int dst_id,
-        const int src_id,
-        const int vol_id = -1) const;
+        int dst_id,
+        int src_id,
+        int vol_id = -1) const;
 
     /*!
      * \brief Compute max of "conditional" quotients of two arrays.
@@ -486,8 +486,8 @@ public:
      */
     TYPE
     maxPointwiseDivide(
-        const int numer_id,
-        const int denom_id,
+        int numer_id,
+        int denom_id,
         bool local_only=false) const;
 
     /*!
@@ -503,8 +503,8 @@ public:
      */
     TYPE
     minPointwiseDivide(
-        const int numer_id,
-        const int denom_id,
+        int numer_id,
+        int denom_id,
         bool local_only=false) const;
 
 private:

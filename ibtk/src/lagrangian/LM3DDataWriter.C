@@ -103,7 +103,7 @@ LM3DDataWriter::LM3DDataWriter(
     const std::string& object_name,
     const std::string& dump_directory_name,
     const std::string& experiment_name,
-    const int& experiment_number)
+    const int experiment_number)
     : d_object_name(object_name),
       d_dump_directory_name(dump_directory_name),
       d_experiment_name(experiment_name),
@@ -1193,7 +1193,7 @@ LM3DDataWriter::buildVecScatters(
 
 std::string
 LM3DDataWriter::getMarkerFileName(
-    const int& timestep_number) const
+    const int timestep_number) const
 {
     std::ostringstream stream;
     if (timestep_number < 999999)
@@ -1209,7 +1209,7 @@ LM3DDataWriter::getMarkerFileName(
 
 std::string
 LM3DDataWriter::getFiberFileName(
-    const int& timestep_number) const
+    const int timestep_number) const
 {
     std::ostringstream stream;
     if (timestep_number < 999999)
@@ -1244,10 +1244,5 @@ LM3DDataWriter::getCatScriptFileName() const
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 } // namespace IBTK
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::LM3DDataWriter>;
 
 //////////////////////////////////////////////////////////////////////////////

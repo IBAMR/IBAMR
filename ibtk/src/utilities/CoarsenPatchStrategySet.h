@@ -61,7 +61,7 @@ public:
     CoarsenPatchStrategySet(
         InputIterator first,
         InputIterator last,
-        const bool managed=true)
+        bool managed=true)
         : d_strategy_set(first,last),
           d_managed(managed)
         {

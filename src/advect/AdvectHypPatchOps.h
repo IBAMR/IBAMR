@@ -168,7 +168,7 @@ public:
     void
     registerAdvectionVelocity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
-        const bool manage_data=true);
+        bool manage_data=true);
 
     /*!
      * Indicate whether a particular advection velocity is discretely divergence
@@ -177,7 +177,7 @@ public:
     void
     setAdvectionVelocityIsDivergenceFree(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
-        const bool is_div_free);
+        bool is_div_free);
 
     /*!
      * Set an IBTK::CartGridFunction object that specifies the value of a
@@ -197,7 +197,7 @@ public:
     void
     registerSourceTerm(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
-        const bool manage_data=true);
+        bool manage_data=true);
 
     /*!
      * Set an IBTK::CartGridFunction object that specifies the value of a
@@ -222,7 +222,7 @@ public:
     void
     registerIncompressibilityFixTerm(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > grad_Phi_var,
-        const bool manage_data=true);
+        bool manage_data=true);
 
     /*!
      * Set an IBTK::CartGridFunction object that specifies the value of a
@@ -243,7 +243,7 @@ public:
     void
     registerTransportedQuantity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        const bool manage_data=true);
+        bool manage_data=true);
 
     /*!
      * Set the face-centered advection velocity to be used with a particular
@@ -288,7 +288,7 @@ public:
     void
     setConvectiveDifferencingType(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
-        const ConvectiveDifferencingType& difference_form);
+        ConvectiveDifferencingType difference_form);
 
     /*!
      * Set a grid function to provide initial conditions for a quantity that has
@@ -355,8 +355,8 @@ public:
     virtual void
     initializeDataOnPatch(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const double data_time,
-        const bool initial_time);
+        double data_time,
+        bool initial_time);
 
     /*!
      * \brief Compute a stable time increment for patch using an explicit CFL
@@ -365,8 +365,8 @@ public:
     virtual double
     computeStableDtOnPatch(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const bool initial_time,
-        const double dt_time);
+        bool initial_time,
+        double dt_time);
 
     /*!
      * \brief Compute the time integral of the fluxes to be used in conservative
@@ -378,8 +378,8 @@ public:
     virtual void
     computeFluxesOnPatch(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const double time,
-        const double dt);
+        double time,
+        double dt);
 
     /*!
      * \brief Update solution variables by performing a conservative difference
@@ -388,8 +388,8 @@ public:
     virtual void
     conservativeDifferenceOnPatch(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const double time,
-        const double dt,
+        double time,
+        double dt,
         bool at_synchronization);
 
     /*!
@@ -440,10 +440,10 @@ public:
     virtual void
     tagGradientDetectorCells(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const double regrid_time,
-        const bool initial_error,
-        const int tag_indexindx,
-        const bool uses_richardson_extrapolation_too);
+        double regrid_time,
+        bool initial_error,
+        int tag_indexindx,
+        bool uses_richardson_extrapolation_too);
 
     ///
     ///  The following routine:
@@ -461,7 +461,7 @@ public:
     virtual void
     setPhysicalBoundaryConditions(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const double fill_time,
+        double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     ///
@@ -614,7 +614,7 @@ private:
     void
     setInflowBoundaryConditions(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const double fill_time);
+        double fill_time);
 
     /*
      * These private member functions read data from input and restart.  When

@@ -111,9 +111,4 @@ DiagonalScalingPreconditioner::deallocateSolverState()
 
 }// namespace IBTK
 
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::DiagonalScalingPreconditioner>;
-
 //////////////////////////////////////////////////////////////////////////////

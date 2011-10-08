@@ -116,7 +116,7 @@ LMarker::getIndex()
 
 inline void
 LMarker::setIndex(
-    const int& idx)
+    int idx)
 {
     d_idx = idx;
     return;

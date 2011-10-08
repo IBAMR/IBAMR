@@ -86,7 +86,7 @@ static Timer* t_deallocate_solver_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredBlockFactorizationPreconditioner::INSStaggeredBlockFactorizationPreconditioner(
-    const INSCoefs& problem_coefs,
+    const INSProblemCoefs& problem_coefs,
     RobinBcCoefStrategy<NDIM>* P_bc_coef,
     const bool normalize_pressure,
     Pointer<LinearSolver> velocity_helmholtz_solver,
@@ -456,10 +456,5 @@ INSStaggeredBlockFactorizationPreconditioner::enableLogging(
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBAMR
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBAMR::INSStaggeredBlockFactorizationPreconditioner>;
 
 //////////////////////////////////////////////////////////////////////////////

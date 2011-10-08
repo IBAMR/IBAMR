@@ -46,7 +46,7 @@ namespace IBTK
  * \brief Class CartSideDoubleSpecializedLinearRefine is a concrete
  * SAMRAI::xfer::RefineOperator object that prolongs side-centered double
  * precision patch data via linear interpolation in the normal direction and
- * constant interpolatioon in the tangential direction.
+ * MC-limited piecewise-linear interpolation in the tangential direction.
  */
 class CartSideDoubleSpecializedLinearRefine
     : public SAMRAI::xfer::RefineOperator<NDIM>
@@ -111,8 +111,8 @@ public:
     refine(
         SAMRAI::hier::Patch<NDIM>& fine,
         const SAMRAI::hier::Patch<NDIM>& coarse,
-        const int dst_component,
-        const int src_component,
+        int dst_component,
+        int src_component,
         const SAMRAI::hier::Box<NDIM>& fine_box,
         const SAMRAI::hier::IntVector<NDIM>& ratio) const;
 

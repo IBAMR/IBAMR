@@ -48,7 +48,7 @@ namespace IBTK
 
 CopyToRootSchedule::CopyToRootSchedule(
     const int root_proc,
-    Pointer<PatchLevel<NDIM> > patch_level,
+    const Pointer<PatchLevel<NDIM> > patch_level,
     const int src_patch_data_idx)
     : d_root_proc(root_proc),
       d_patch_level(patch_level),
@@ -62,7 +62,7 @@ CopyToRootSchedule::CopyToRootSchedule(
 
 CopyToRootSchedule::CopyToRootSchedule(
     const int root_proc,
-    Pointer<PatchLevel<NDIM> > patch_level,
+    const Pointer<PatchLevel<NDIM> > patch_level,
     const std::vector<int>& src_patch_data_idxs)
     : d_root_proc(root_proc),
       d_patch_level(patch_level),
@@ -132,10 +132,5 @@ CopyToRootSchedule::commonClassCtor()
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 }// namespace IBTK
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::CopyToRootSchedule>;
 
 //////////////////////////////////////////////////////////////////////////////

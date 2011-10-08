@@ -13,7 +13,6 @@ Main {
 
 // visualization dump parameters
    viz_writer = "VisIt"
-   viz_dump_enabled = TRUE
    viz_dump_dirname = "viz2d"
    visit_number_procs_per_file = 1
 
@@ -25,13 +24,14 @@ N = 8
 
 CartesianGeometry {
    domain_boxes       = [(0,0), (N - 1,N - 1)]
-   x_lo               = 0, 0  // lower end of computational domain.
-   x_up               = 1, 1  // upper end of computational domain.
+   x_lo               = 0, 0      // lower end of computational domain.
+   x_up               = 1, 1      // upper end of computational domain.
    periodic_dimension = 1, 1
 }
 
 GriddingAlgorithm {
    max_levels = 2                 // Maximum number of levels in hierarchy.
+
    ratio_to_coarser {
       level_1 = 4, 4              // vector ratio to next coarser level
    }
@@ -72,6 +72,5 @@ TimerManager{
    print_exclusive = FALSE
    print_total = TRUE
    print_threshold = 1.0
-
    timer_list = "IBTK::*::*"
 }

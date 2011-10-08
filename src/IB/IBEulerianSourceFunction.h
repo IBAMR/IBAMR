@@ -61,9 +61,9 @@ public:
      */
     IBEulerianSourceFunction(
         const std::string& object_name,
-        const int Q_current_idx,
-        const int Q_new_idx,
-        const int Q_half_idx);
+        int Q_current_idx,
+        int Q_new_idx,
+        int Q_half_idx);
 
     /*!
      * \brief Destructor.
@@ -75,8 +75,8 @@ public:
      */
     void
     setTimeInterval(
-        const double current_time,
-        const double new_time);
+        double current_time,
+        double new_time);
 
     /*!
      * \name Methods to set the data.
@@ -94,11 +94,11 @@ public:
      */
     void
     setDataOnPatch(
-        const int data_idx,
+        int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const double data_time,
-        const bool initial_time=false,
+        double data_time,
+        bool initial_time=false,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level=SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
 
     //\}

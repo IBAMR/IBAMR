@@ -426,20 +426,11 @@ AC_CONFIG_FILES([
   doc/online_Doxyfile
   examples/Makefile
   examples/IB/Makefile
-  examples/IB/cell_centered/Makefile
-  examples/IB/cell_centered/ex0/Makefile
-  examples/IB/cell_centered/ex1/Makefile
-  examples/IB/cell_centered/ex2/Makefile
-  examples/IB/staggered_grid/Makefile
-  examples/IB/staggered_grid/explicit/Makefile
-  examples/IB/staggered_grid/explicit/ex0/Makefile
-  examples/IB/staggered_grid/explicit/ex1/Makefile
-  examples/IB/staggered_grid/explicit/ex2/Makefile
-  examples/IB/staggered_grid/explicit/ex3/Makefile
-  examples/IB/staggered_grid/explicit/ex4/Makefile
-  examples/IB/staggered_grid/implicit/Makefile
-  examples/IB/staggered_grid/implicit/ex0/Makefile
-  examples/IB/staggered_grid/implicit/ex1/Makefile
+  examples/IB/explicit/Makefile
+  examples/IB/explicit/ex0/Makefile
+  examples/IB/explicit/ex1/Makefile
+  examples/IB/explicit/ex2/Makefile
+  examples/IB/explicit/ex3/Makefile
   examples/IBFE/Makefile
   examples/IBFE/explicit/Makefile
   examples/IBFE/explicit/ex0/Makefile
@@ -447,28 +438,13 @@ AC_CONFIG_FILES([
   examples/IBFE/explicit/ex2/Makefile
   examples/IBFE/explicit/ex3/Makefile
   examples/IBFE/explicit/ex4/Makefile
-  examples/IBFE/explicit/ex5/Makefile
-  examples/IBFE/explicit/ex6/Makefile
-  examples/IBFE/explicit/ex7/Makefile
   examples/adv_diff/Makefile
   examples/advect/Makefile
   examples/navier_stokes/Makefile
-  examples/navier_stokes/cell_centered/Makefile
-  examples/navier_stokes/cell_centered/approx_projection/Makefile
-  examples/navier_stokes/cell_centered/approx_projection/ex0/Makefile
-  examples/navier_stokes/cell_centered/approx_projection/ex1/Makefile
-  examples/navier_stokes/cell_centered/approx_projection/ex2/Makefile
-  examples/navier_stokes/cell_centered/exact_projection/Makefile
-  examples/navier_stokes/cell_centered/exact_projection/ex0/Makefile
-  examples/navier_stokes/cell_centered/exact_projection/ex1/Makefile
-  examples/navier_stokes/staggered_grid/Makefile
-  examples/navier_stokes/staggered_grid/ex0/Makefile
-  examples/navier_stokes/staggered_grid/ex1/Makefile
-  examples/navier_stokes/staggered_grid/ex2/Makefile
-  examples/navier_stokes/staggered_grid/ex3/Makefile
-  examples/vc_navier_stokes/Makefile
-  examples/vc_navier_stokes/operator_test/Makefile
-  examples/vc_navier_stokes/solver_test/Makefile
+  examples/navier_stokes/ex0/Makefile
+  examples/navier_stokes/ex1/Makefile
+  examples/navier_stokes/ex2/Makefile
+  examples/navier_stokes/ex3/Makefile
   lib/Makefile
   src/Makefile
   src/fortran/Makefile
@@ -477,6 +453,7 @@ AC_CONFIG_FILES([
   src/adv_diff/fortran/Makefile
   src/advect/Makefile
   src/advect/fortran/Makefile
+  src/base_hier_integrator/Makefile
   src/navier_stokes/Makefile
   src/navier_stokes/fortran/Makefile
   src/utilities/Makefile

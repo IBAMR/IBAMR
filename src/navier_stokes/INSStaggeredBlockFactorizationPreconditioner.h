@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/INSCoefs.h>
+#include <ibamr/INSProblemCoefs.h>
 
 // IBTK INCLUDES
 #include <ibtk/LinearSolver.h>
@@ -66,9 +66,9 @@ public:
      * \brief Class constructor
      */
     INSStaggeredBlockFactorizationPreconditioner(
-        const INSCoefs& problem_coefs,
+        const INSProblemCoefs& problem_coefs,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
-        const bool normalize_pressure,
+        bool normalize_pressure,
         SAMRAI::tbox::Pointer<IBTK::LinearSolver> velocity_helmholtz_solver,
         SAMRAI::tbox::Pointer<IBTK::LinearSolver> pressure_poisson_solver,
         SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > hier_cc_data_ops,
@@ -85,8 +85,8 @@ public:
      */
     void
     setTimeInterval(
-        const double current_time,
-        const double new_time);
+        double current_time,
+        double new_time);
 
     /*!
      * \name Linear solver functionality.
@@ -274,7 +274,7 @@ private:
     double d_current_time, d_new_time, d_dt;
 
     // Problem coefficients.
-    const INSCoefs& d_problem_coefs;
+    const INSProblemCoefs& d_problem_coefs;
     SAMRAI::solv::PoissonSpecifications d_pressure_helmholtz_spec;
 
     // Normalize the pressure when necessary.

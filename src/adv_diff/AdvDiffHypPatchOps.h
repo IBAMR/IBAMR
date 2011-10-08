@@ -110,8 +110,8 @@ public:
     void
     conservativeDifferenceOnPatch(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const double time,
-        const double dt,
+        double time,
+        double dt,
         bool at_synchronization);
 
     /*!

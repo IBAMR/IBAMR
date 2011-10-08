@@ -74,7 +74,7 @@ public:
         const std::string& object_name,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
-        const bool homogeneous_bc=true);
+        bool homogeneous_bc=true);
 
     /*!
      * \brief Destructor.
@@ -108,7 +108,7 @@ public:
      */
     void
     setHomogeneousBc(
-        const bool homogeneous_bc);
+        bool homogeneous_bc);
 
     /*!
      * \brief Set the hierarchy time, for use with the refinement schedules and
@@ -116,7 +116,7 @@ public:
      */
     void
     setTime(
-        const double time);
+        double time);
 
     /*!
      * \brief Set the HierarchyMathOps object used by the operator.

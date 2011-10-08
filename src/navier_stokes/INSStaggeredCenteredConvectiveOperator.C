@@ -50,6 +50,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/CartExtrapPhysBdryOp.h>
+#include <ibtk/CartSideDoubleSpecializedLinearRefine.h>
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
@@ -143,16 +144,8 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int GADVECTG = 1;
 
-// Type of coarsening to perform prior to setting coarse-fine boundary and
-// physical boundary ghost cell values.
-static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
-
 // Type of extrapolation to use at physical boundaries.
 static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
-
-// Whether to enforce consistent interpolated values at Type 2 coarse-fine
-// interface ghost cells.
-static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Timers.
 static Timer* t_apply_convective_operator;
@@ -164,11 +157,10 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
-    const ConvectiveDifferencingType& difference_form)
-    : d_is_initialized(false),
-      d_difference_form(difference_form),
+    const ConvectiveDifferencingType difference_form)
+    : ConvectiveOperator(difference_form),
+      d_is_initialized(false),
       d_refine_alg(NULL),
-      d_refine_op(NULL),
       d_refine_scheds(),
       d_hierarchy(NULL),
       d_coarsest_ln(-1),
@@ -225,20 +217,20 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
     const int N_idx)
 {
     IBAMR_TIMER_START(t_apply_convective_operator);
-
+#ifdef DEBUG_CHECK_ASSERTIONS
     if (!d_is_initialized)
     {
         TBOX_ERROR("INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator():\n"
                    << "  operator must be initialized prior to call to applyConvectiveOperator\n");
     }
+    TBOX_ASSERT(U_idx == d_u_idx);
+#endif
 
-    // Setup communications schedules.
+    // Setup communications algorithm.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
-    refine_alg->registerRefine(d_U_scratch_idx, // destination
-                               U_idx,           // source
-                               d_U_scratch_idx, // temporary work space
-                               d_refine_op);
+    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "SPECIALIZED_LINEAR_REFINE");
+    refine_alg->registerRefine(d_U_scratch_idx, U_idx, d_U_scratch_idx, refine_op);
 
     // Compute the convective derivative.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -261,8 +253,8 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
             Pointer<SideData<NDIM,double> > N_data = patch->getPatchData(N_idx);
             Pointer<SideData<NDIM,double> > U_data = patch->getPatchData(d_U_scratch_idx);
 
-            const IntVector<NDIM>& N_ghosts = N_data->getGhostCellWidth();
-            const IntVector<NDIM>& U_ghosts = U_data->getGhostCellWidth();
+            const IntVector<NDIM>& N_data_gcw = N_data->getGhostCellWidth();
+            const IntVector<NDIM>& U_data_gcw = U_data->getGhostCellWidth();
 
             switch (d_difference_form)
             {
@@ -272,18 +264,18 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
 #if (NDIM == 2)
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
-                        U_ghosts(0), U_ghosts(1),
+                        U_data_gcw(0), U_data_gcw(1),
                         U_data->getPointer(0), U_data->getPointer(1),
-                        N_ghosts(0), N_ghosts(1),
+                        N_data_gcw(0), N_data_gcw(1),
                         N_data->getPointer(0), N_data->getPointer(1)
 #endif
 #if (NDIM == 3)
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
                         patch_lower(2), patch_upper(2),
-                        U_ghosts(0), U_ghosts(1), U_ghosts(2),
+                        U_data_gcw(0), U_data_gcw(1), U_data_gcw(2),
                         U_data->getPointer(0), U_data->getPointer(1), U_data->getPointer(2),
-                        N_ghosts(0), N_ghosts(1), N_ghosts(2),
+                        N_data_gcw(0), N_data_gcw(1), N_data_gcw(2),
                         N_data->getPointer(0), N_data->getPointer(1), N_data->getPointer(2)
 #endif
                                                               );
@@ -294,18 +286,18 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
 #if (NDIM == 2)
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
-                        U_ghosts(0), U_ghosts(1),
+                        U_data_gcw(0), U_data_gcw(1),
                         U_data->getPointer(0), U_data->getPointer(1),
-                        N_ghosts(0), N_ghosts(1),
+                        N_data_gcw(0), N_data_gcw(1),
                         N_data->getPointer(0), N_data->getPointer(1)
 #endif
 #if (NDIM == 3)
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
                         patch_lower(2), patch_upper(2),
-                        U_ghosts(0), U_ghosts(1), U_ghosts(2),
+                        U_data_gcw(0), U_data_gcw(1), U_data_gcw(2),
                         U_data->getPointer(0), U_data->getPointer(1), U_data->getPointer(2),
-                        N_ghosts(0), N_ghosts(1), N_ghosts(2),
+                        N_data_gcw(0), N_data_gcw(1), N_data_gcw(2),
                         N_data->getPointer(0), N_data->getPointer(1), N_data->getPointer(2)
 #endif
                                                               );
@@ -316,18 +308,18 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
 #if (NDIM == 2)
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
-                        U_ghosts(0), U_ghosts(1),
+                        U_data_gcw(0), U_data_gcw(1),
                         U_data->getPointer(0), U_data->getPointer(1),
-                        N_ghosts(0), N_ghosts(1),
+                        N_data_gcw(0), N_data_gcw(1),
                         N_data->getPointer(0), N_data->getPointer(1)
 #endif
 #if (NDIM == 3)
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
                         patch_lower(2), patch_upper(2),
-                        U_ghosts(0), U_ghosts(1), U_ghosts(2),
+                        U_data_gcw(0), U_data_gcw(1), U_data_gcw(2),
                         U_data->getPointer(0), U_data->getPointer(1), U_data->getPointer(2),
-                        N_ghosts(0), N_ghosts(1), N_ghosts(2),
+                        N_data_gcw(0), N_data_gcw(1), N_data_gcw(2),
                         N_data->getPointer(0), N_data->getPointer(1), N_data->getPointer(2)
 #endif
                                                                    );
@@ -343,24 +335,6 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
     IBAMR_TIMER_STOP(t_apply_convective_operator);
     return;
 }// applyConvectiveOperator
-
-void
-INSStaggeredCenteredConvectiveOperator::apply(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y)
-{
-    IBAMR_TIMER_START(t_apply);
-
-    // Get the vector components.
-    const int U_idx = x.getComponentDescriptorIndex(0);
-    const int N_idx = y.getComponentDescriptorIndex(0);
-
-    // Compute the action of the operator.
-    applyConvectiveOperator(U_idx, N_idx);
-
-    IBAMR_TIMER_STOP(t_apply);
-    return;
-}// apply
 
 void
 INSStaggeredCenteredConvectiveOperator::initializeOperatorState(
@@ -384,12 +358,10 @@ INSStaggeredCenteredConvectiveOperator::initializeOperatorState(
 #endif
     // Setup the refine algorithm, operator, patch strategy, and schedules.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    d_refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
+    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "SPECIALIZED_LINEAR_REFINE");
     d_refine_alg = new RefineAlgorithm<NDIM>();
-    d_refine_alg->registerRefine(d_U_scratch_idx,                   // destination
-                                 in.getComponentDescriptorIndex(0), // source
-                                 d_U_scratch_idx,                   // temporary work space
-                                 d_refine_op);
+    d_refine_alg->registerRefine(d_U_scratch_idx, in.getComponentDescriptorIndex(0), d_U_scratch_idx, refine_op);
     d_refine_strategy = new CartExtrapPhysBdryOp(d_U_scratch_idx, BDRY_EXTRAP_TYPE);
     d_refine_scheds.resize(d_finest_ln+1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -431,7 +403,6 @@ INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()
     }
 
     // Deallocate the refine algorithm, operator, patch strategy, and schedules.
-    d_refine_op.setNull();
     d_refine_alg.setNull();
     d_refine_strategy.setNull();
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -461,10 +432,5 @@ INSStaggeredCenteredConvectiveOperator::enableLogging(
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBAMR
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBAMR::INSStaggeredCenteredConvectiveOperator>;
 
 //////////////////////////////////////////////////////////////////////////////

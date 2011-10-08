@@ -61,7 +61,7 @@ public:
     RefinePatchStrategySet(
         InputIterator first,
         InputIterator last,
-        const bool managed=true)
+        bool managed=true)
         : d_strategy_set(first,last),
           d_managed(managed)
         {
@@ -92,7 +92,7 @@ public:
     void
     setPhysicalBoundaryConditions(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const double fill_time,
+        double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!

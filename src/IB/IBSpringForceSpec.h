@@ -113,13 +113,13 @@ public:
      * \brief Default constructor.
      */
     IBSpringForceSpec(
-        const unsigned int num_springs=0);
+        unsigned int num_springs=0);
 
     /*!
      * \brief Alternative constructor.
      */
     IBSpringForceSpec(
-        const int master_idx,
+        int master_idx,
         const std::vector<int>& slave_idxs,
         const std::vector<int>& force_fcn_idxs,
         const std::vector<double>& stiffnesses,

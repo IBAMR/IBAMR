@@ -105,12 +105,12 @@ IBEulerianForceFunction::isTimeDependent() const
 }// isTimeDependent
 
 void
-IBEulerianForceFunction::registerBodyForceSpecification(
+IBEulerianForceFunction::registerBodyForceFunction(
     Pointer<CartGridFunction> F_fcn)
 {
     d_body_force_fcn = F_fcn;
     return;
-}// registerBodyForceSpecification
+}// registerBodyForceFunction
 
 void
 IBEulerianForceFunction::setDataOnPatch(
@@ -191,10 +191,5 @@ IBEulerianForceFunction::setDataOnPatch(
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 } // namespace IBAMR
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBAMR::IBEulerianForceFunction>;
 
 //////////////////////////////////////////////////////////////////////////////

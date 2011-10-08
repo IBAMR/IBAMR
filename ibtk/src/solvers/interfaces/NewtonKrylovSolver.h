@@ -75,6 +75,16 @@ public:
     //\{
 
     /*!
+     * \brief Set the current time interval (for a time-dependent solver).
+     *
+     * \note An empty default implementation is provided.
+     */
+    virtual void
+    setTimeInterval(
+        double current_time,
+        double new_time);
+
+    /*!
      * \brief Set the nonlinear operator \f$F[x]\f$ used by the solver.
      */
     virtual void

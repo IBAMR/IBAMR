@@ -82,7 +82,7 @@ public:
      * \param extrap_type       Type of extrapolation to perform: \p "CONSTANT" specifies constant extrapolation, \p "LINEAR" specifies linear extrapolation, and \p "QUADRATIC" specifies quadratic extrapolation.
      */
     CartExtrapPhysBdryOp(
-        const int patch_data_index,
+        int patch_data_index,
         const std::string& extrap_type="CONSTANT");
 
     /*!
@@ -115,7 +115,7 @@ public:
      */
     void
     setPatchDataIndex(
-        const int patch_data_index);
+        int patch_data_index);
 
     /*!
      * \brief Reset the patch data indices operated upon by this class.
@@ -159,7 +159,7 @@ public:
     void
     setPhysicalBoundaryConditions(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const double fill_time,
+        double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!

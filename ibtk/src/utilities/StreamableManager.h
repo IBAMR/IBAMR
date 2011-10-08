@@ -128,7 +128,7 @@ public:
      */
     size_t
     getDataStreamSize(
-        const SAMRAI::tbox::Pointer<Streamable>& data_item) const;
+        SAMRAI::tbox::Pointer<Streamable> data_item) const;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack a
@@ -144,7 +144,7 @@ public:
     void
     packStream(
         SAMRAI::tbox::AbstractStream& stream,
-        SAMRAI::tbox::Pointer<Streamable>& data_item);
+        SAMRAI::tbox::Pointer<Streamable> data_item);
 
     /*!
      * \brief Pack a vector of Streamable objects into the output stream.
@@ -157,11 +157,10 @@ public:
     /*!
      * \brief Unpack a Streamable object from the data stream.
      */
-    void
+    SAMRAI::tbox::Pointer<Streamable>
     unpackStream(
         SAMRAI::tbox::AbstractStream& stream,
-        const SAMRAI::hier::IntVector<NDIM>& offset,
-        SAMRAI::tbox::Pointer<Streamable>& data_item);
+        const SAMRAI::hier::IntVector<NDIM>& offset);
 
     /*!
      * \brief Unpack a vector of Streamable objects from the data stream.

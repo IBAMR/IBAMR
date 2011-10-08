@@ -46,6 +46,9 @@
 #include <PoissonSpecifications.h>
 #include <RefineSchedule.h>
 
+// BLITZ++ INCLUDES
+#include <blitz/tinyvec.h>
+
 // C++ STDLIB INCLUDES
 #include <vector>
 
@@ -117,7 +120,7 @@ public:
      */
     void
     setOptionsPrefix(
-        const std::string options_prefix);
+        const std::string& options_prefix);
 
     /*!
      * \name Functions for specifying the Poisson problem.
@@ -142,7 +145,7 @@ public:
      */
     void
     setPhysicalBcCoef(
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const bc_coef);
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
@@ -159,11 +162,25 @@ public:
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
+     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
+     * physical boundary conditions.
+     *
+     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
+     * homogeneous Dirichlet boundary conditions are employed for that data
+     * depth.
+     *
+     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
+     */
+    void
+    setPhysicalBcCoefs(
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
+
+    /*!
      * \brief Specify whether the boundary conditions are homogeneous.
      */
     void
     setHomogeneousBc(
-        const bool homogeneous_bc);
+        bool homogeneous_bc);
 
     /*!
      * \brief Set the hierarchy time, for use with the refinement schedules and
@@ -171,7 +188,7 @@ public:
      */
     void
     setTime(
-        const double time);
+        double time);
 
     //\}
 

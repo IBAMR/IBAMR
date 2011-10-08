@@ -50,6 +50,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/CartExtrapPhysBdryOp.h>
+#include <ibtk/CartSideDoubleSpecializedLinearRefine.h>
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
@@ -66,17 +67,19 @@
 #if (NDIM == 2)
 #define ADVECT_DERIVATIVE_FC FC_FUNC_(advect_derivative2d, ADVECT_DERIVATIVE2D)
 #define CONVECT_DERIVATIVE_FC FC_FUNC_(convect_derivative2d, CONVECT_DERIVATIVE2D)
-#define GODUNOV_PREDICT_FC FC_FUNC_(godunov_predict2d, GODUNOV_PREDICT2D)
+#define GODUNOV_EXTRAPOLATE_FC FC_FUNC_(godunov_extrapolate2d, GODUNOV_EXTRAPOLATE2D)
 #define NAVIER_STOKES_INTERP_COMPS_FC FC_FUNC_(navier_stokes_interp_comps2d, NAVIER_STOKES_INTERP_COMPS2D)
 #define NAVIER_STOKES_RESET_ADV_VELOCITY_FC FC_FUNC_(navier_stokes_reset_adv_velocity2d, NAVIER_STOKES_RESET_ADV_VELOCITY2D)
+#define SKEW_SYM_DERIVATIVE_FC FC_FUNC_(skew_sym_derivative2d, SKEW_SYM_DERIVATIVE2D)
 #endif
 
 #if (NDIM == 3)
 #define ADVECT_DERIVATIVE_FC FC_FUNC_(advect_derivative3d, ADVECT_DERIVATIVE3D)
 #define CONVECT_DERIVATIVE_FC FC_FUNC_(convect_derivative3d, CONVECT_DERIVATIVE3D)
-#define GODUNOV_PREDICT_FC FC_FUNC_(godunov_predict3d, GODUNOV_PREDICT3D)
+#define GODUNOV_EXTRAPOLATE_FC FC_FUNC_(godunov_extrapolate3d, GODUNOV_EXTRAPOLATE3D)
 #define NAVIER_STOKES_INTERP_COMPS_FC FC_FUNC_(navier_stokes_interp_comps3d, NAVIER_STOKES_INTERP_COMPS3D)
 #define NAVIER_STOKES_RESET_ADV_VELOCITY_FC FC_FUNC_(navier_stokes_reset_adv_velocity3d, NAVIER_STOKES_RESET_ADV_VELOCITY3D)
+#define SKEW_SYM_DERIVATIVE_FC FC_FUNC_(skew_sym_derivative3d, SKEW_SYM_DERIVATIVE3D)
 #endif
 
 extern "C"
@@ -128,11 +131,7 @@ extern "C"
                           );
 
     void
-    GODUNOV_PREDICT_FC(
-        const double* , const double& ,
-#if (NDIM == 3)
-        const unsigned int& ,
-#endif
+    GODUNOV_EXTRAPOLATE_FC(
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
         const int& , const int& ,
@@ -140,7 +139,6 @@ extern "C"
         const int& , const int& ,
         const int& , const int& ,
         const double* , const double* ,
-        double* , double* ,
         double* , double*
 #endif
 #if (NDIM == 3)
@@ -150,10 +148,9 @@ extern "C"
         const int& , const int& , const int& ,
         const int& , const int& , const int& ,
         const double* , const double* , const double* ,
-        double* , double* , double* ,
         double* , double* , double*
 #endif
-                       );
+                           );
 
     void
     NAVIER_STOKES_INTERP_COMPS_FC(
@@ -216,6 +213,29 @@ extern "C"
         const double* , const double* , const double*
 #endif
                                         );
+
+    void
+    SKEW_SYM_DERIVATIVE_FC(
+        const double*,
+#if (NDIM == 2)
+        const int& , const int& , const int& , const int& ,
+        const int& , const int& ,
+        const int& , const int& ,
+        const double* , const double* ,
+        const double* , const double* ,
+        const int& , const int& ,
+        double*
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double* ,
+        const double* , const double* , const double* ,
+        const int& , const int& , const int& ,
+        double*
+#endif
+                         );
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -245,11 +265,10 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(
-    const ConvectiveDifferencingType& difference_form)
-    : d_is_initialized(false),
-      d_difference_form(difference_form),
+    const ConvectiveDifferencingType difference_form)
+    : ConvectiveOperator(difference_form),
+      d_is_initialized(false),
       d_refine_alg(NULL),
-      d_refine_op(NULL),
       d_refine_scheds(),
       d_hierarchy(NULL),
       d_coarsest_ln(-1),
@@ -258,11 +277,12 @@ INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(
       d_U_scratch_idx(-1)
 {
     if (d_difference_form != ADVECTIVE &&
-        d_difference_form != CONSERVATIVE)
+        d_difference_form != CONSERVATIVE &&
+        d_difference_form != SKEW_SYMMETRIC)
     {
         TBOX_ERROR("INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator():\n"
                    << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
-                   << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
+                   << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -305,24 +325,20 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
     const int N_idx)
 {
     IBAMR_TIMER_START(t_apply_convective_operator);
-
+#ifdef DEBUG_CHECK_ASSERTIONS
     if (!d_is_initialized)
     {
         TBOX_ERROR("INSStaggeredPPMConvectiveOperator::applyConvectiveOperator():\n"
                    << "  operator must be initialized prior to call to applyConvectiveOperator\n");
     }
+    TBOX_ASSERT(U_idx == d_u_idx);
+#endif
 
-    // The timestep is set to equal zero since the data is already centered in
-    // time.
-    static const double dt = 0.0;
-
-    // Setup communications schedules.
+    // Setup communications algorithm.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
-    refine_alg->registerRefine(d_U_scratch_idx, // destination
-                               U_idx,           // source
-                               d_U_scratch_idx, // temporary work space
-                               d_refine_op);
+    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "SPECIALIZED_LINEAR_REFINE");
+    refine_alg->registerRefine(d_U_scratch_idx, U_idx, d_U_scratch_idx, refine_op);
 
     // Compute the convective derivative.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -345,7 +361,7 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
             Pointer<SideData<NDIM,double> > N_data = patch->getPatchData(N_idx);
             Pointer<SideData<NDIM,double> > U_data = patch->getPatchData(d_U_scratch_idx);
 
-            const IntVector<NDIM> ghosts = IntVector<NDIM>(GADVECTG);
+            const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
             blitz::TinyVector<Box<NDIM>,NDIM> side_boxes;
             blitz::TinyVector<Pointer<FaceData<NDIM,double> >,NDIM>  U_adv_data;
             blitz::TinyVector<Pointer<FaceData<NDIM,double> >,NDIM> U_half_data;
@@ -407,38 +423,30 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
                 Pointer<SideData<NDIM,double> > U_scratch2_data =
                     new SideData<NDIM,double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
 #endif
-                Pointer<FaceData<NDIM,double> > U_half_scratch_data =
-                    new FaceData<NDIM,double>( U_half_data[axis]->getBox(), U_half_data[axis]->getDepth(), U_half_data[axis]->getGhostCellWidth());
 #if (NDIM == 2)
-                GODUNOV_PREDICT_FC(
-                    dx, dt,
+                GODUNOV_EXTRAPOLATE_FC(
                     side_boxes[axis].lower(0), side_boxes[axis].upper(0),
                     side_boxes[axis].lower(1), side_boxes[axis].upper(1),
                     U_data->getGhostCellWidth()(0), U_data->getGhostCellWidth()(1),
                     U_data       ->getPointer(axis),       U_scratch1_data->getPointer(axis),
                     dU_data      ->getPointer(axis),       U_L_data       ->getPointer(axis),       U_R_data->getPointer(axis),
-                    U_adv_data [axis]  ->getGhostCellWidth()(0), U_adv_data [axis]    ->getGhostCellWidth()(1),
-                    U_half_data[axis]  ->getGhostCellWidth()(0), U_half_data[axis]    ->getGhostCellWidth()(1),
-                    U_adv_data [axis]  ->getPointer(0),          U_adv_data [axis]    ->getPointer(1),
-                    U_half_scratch_data->getPointer(0),          U_half_scratch_data  ->getPointer(1),
-                    U_half_data[axis]  ->getPointer(0),          U_half_data[axis]    ->getPointer(1));
+                    U_adv_data [axis]->getGhostCellWidth()(0), U_adv_data [axis]->getGhostCellWidth()(1),
+                    U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1),
+                    U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),
+                    U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1));
 #endif
 #if (NDIM == 3)
-                bool using_full_ctu = true;
-                GODUNOV_PREDICT_FC(
-                    dx, dt,
-                    static_cast<unsigned int>(using_full_ctu),
+                GODUNOV_EXTRAPOLATE_FC(
                     side_boxes[axis].lower(0), side_boxes[axis].upper(0),
                     side_boxes[axis].lower(1), side_boxes[axis].upper(1),
                     side_boxes[axis].lower(2), side_boxes[axis].upper(2),
                     U_data->getGhostCellWidth()(0), U_data->getGhostCellWidth()(1), U_data->getGhostCellWidth()(2),
                     U_data       ->getPointer(axis),       U_scratch1_data->getPointer(axis),       U_scratch2_data->getPointer(axis),
                     dU_data      ->getPointer(axis),       U_L_data       ->getPointer(axis),       U_R_data       ->getPointer(axis),
-                    U_adv_data [axis]  ->getGhostCellWidth()(0), U_adv_data [axis]    ->getGhostCellWidth()(1), U_adv_data [axis]    ->getGhostCellWidth()(2),
-                    U_half_data[axis]  ->getGhostCellWidth()(0), U_half_data[axis]    ->getGhostCellWidth()(1), U_half_data[axis]    ->getGhostCellWidth()(2),
-                    U_adv_data [axis]  ->getPointer(0),          U_adv_data [axis]    ->getPointer(1),          U_adv_data [axis]    ->getPointer(2),
-                    U_half_scratch_data->getPointer(0),          U_half_scratch_data  ->getPointer(1),          U_half_scratch_data  ->getPointer(2),
-                    U_half_data[axis]  ->getPointer(0),          U_half_data[axis]    ->getPointer(1),          U_half_data[axis]    ->getPointer(2));
+                    U_adv_data [axis]->getGhostCellWidth()(0), U_adv_data [axis]->getGhostCellWidth()(1), U_adv_data [axis]->getGhostCellWidth()(2),
+                    U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1), U_half_data[axis]->getGhostCellWidth()(2),
+                    U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),          U_adv_data [axis]->getPointer(2),
+                    U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),          U_half_data[axis]->getPointer(2));
 #endif
             }
 #if (NDIM == 2)
@@ -538,10 +546,37 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
                             N_data->getPointer(axis));
 #endif
                         break;
+                    case SKEW_SYMMETRIC:
+#if (NDIM == 2)
+                        SKEW_SYM_DERIVATIVE_FC(
+                            dx,
+                            side_boxes[axis].lower(0), side_boxes[axis].upper(0),
+                            side_boxes[axis].lower(1), side_boxes[axis].upper(1),
+                            U_adv_data [axis]->getGhostCellWidth()(0), U_adv_data [axis]->getGhostCellWidth()(1),
+                            U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1),
+                            U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),
+                            U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),
+                            N_data->getGhostCellWidth()(0), N_data->getGhostCellWidth()(1),
+                            N_data->getPointer(axis));
+#endif
+#if (NDIM == 3)
+                        SKEW_SYM_DERIVATIVE_FC(
+                            dx,
+                            side_boxes[axis].lower(0), side_boxes[axis].upper(0),
+                            side_boxes[axis].lower(1), side_boxes[axis].upper(1),
+                            side_boxes[axis].lower(2), side_boxes[axis].upper(2),
+                            U_adv_data [axis]->getGhostCellWidth()(0), U_adv_data [axis]->getGhostCellWidth()(1), U_adv_data [axis]->getGhostCellWidth()(2),
+                            U_half_data[axis]->getGhostCellWidth()(0), U_half_data[axis]->getGhostCellWidth()(1), U_half_data[axis]->getGhostCellWidth()(2),
+                            U_adv_data [axis]->getPointer(0),          U_adv_data [axis]->getPointer(1),          U_adv_data [axis]->getPointer(2),
+                            U_half_data[axis]->getPointer(0),          U_half_data[axis]->getPointer(1),          U_half_data[axis]->getPointer(2),
+                            N_data->getGhostCellWidth()(0), N_data->getGhostCellWidth()(1), N_data->getGhostCellWidth()(2),
+                            N_data->getPointer(axis));
+#endif
+                        break;
                     default:
                         TBOX_ERROR("INSStaggeredPPMConvectiveOperator::applyConvectiveOperator():\n"
                                    << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
-                                   << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
+                                   << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
                 }
             }
         }
@@ -550,24 +585,6 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(
     IBAMR_TIMER_STOP(t_apply_convective_operator);
     return;
 }// applyConvectiveOperator
-
-void
-INSStaggeredPPMConvectiveOperator::apply(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y)
-{
-    IBAMR_TIMER_START(t_apply);
-
-    // Get the vector components.
-    const int U_idx = x.getComponentDescriptorIndex(0);
-    const int N_idx = y.getComponentDescriptorIndex(0);
-
-    // Compute the action of the operator.
-    applyConvectiveOperator(U_idx, N_idx);
-
-    IBAMR_TIMER_STOP(t_apply);
-    return;
-}// apply
 
 void
 INSStaggeredPPMConvectiveOperator::initializeOperatorState(
@@ -591,12 +608,10 @@ INSStaggeredPPMConvectiveOperator::initializeOperatorState(
 #endif
     // Setup the refine algorithm, operator, patch strategy, and schedules.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    d_refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
+    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "SPECIALIZED_LINEAR_REFINE");
     d_refine_alg = new RefineAlgorithm<NDIM>();
-    d_refine_alg->registerRefine(d_U_scratch_idx,                   // destination
-                                 in.getComponentDescriptorIndex(0), // source
-                                 d_U_scratch_idx,                   // temporary work space
-                                 d_refine_op);
+    d_refine_alg->registerRefine(d_U_scratch_idx, in.getComponentDescriptorIndex(0), d_U_scratch_idx, refine_op);
     d_refine_strategy = new CartExtrapPhysBdryOp(d_U_scratch_idx, BDRY_EXTRAP_TYPE);
     d_refine_scheds.resize(d_finest_ln+1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -638,7 +653,6 @@ INSStaggeredPPMConvectiveOperator::deallocateOperatorState()
     }
 
     // Deallocate the refine algorithm, operator, patch strategy, and schedules.
-    d_refine_op.setNull();
     d_refine_alg.setNull();
     d_refine_strategy.setNull();
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -668,10 +682,5 @@ INSStaggeredPPMConvectiveOperator::enableLogging(
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBAMR
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBAMR::INSStaggeredPPMConvectiveOperator>;
 
 //////////////////////////////////////////////////////////////////////////////

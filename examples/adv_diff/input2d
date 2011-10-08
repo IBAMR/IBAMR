@@ -1,6 +1,3 @@
-// constants
-PI = 3.141592653589793e+00
-
 // grid spacing parameters
 MAX_LEVELS = 2   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
@@ -9,6 +6,7 @@ N = 64                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 GodunovAdvector {
+   // intentionally blank
 }
 
 AdvDiffHierarchyIntegrator {
@@ -20,7 +18,7 @@ AdvDiffHierarchyIntegrator {
    end_time              = 0.2      // final simulation time
    grow_dt               = 2.0e0    // growth factor for timesteps
    max_integrator_steps  = 10000    // max number of simulation timesteps
-   regrid_interval       = 10000    // disable regridding (fixed grid computation)
+   regrid_interval       = 10000    // effectively disable regridding
 
    AdvDiffHypPatchOps {
       compute_init_velocity  = TRUE
@@ -30,7 +28,6 @@ AdvDiffHierarchyIntegrator {
 
       Refinement_data {
          refine_criteria = "QVAL_GRADIENT"
-
          QVAL_GRADIENT {
             grad_tol = 25,25,0.1
          }
@@ -38,8 +35,8 @@ AdvDiffHierarchyIntegrator {
    }
 
    HyperbolicLevelIntegrator {
-      cfl                      = 0.9975e0  // max cfl factor used in problem
-      cfl_init                 = 0.9975e0  // initial cfl factor
+      cfl                      = 0.975e0  // max cfl factor used in problem
+      cfl_init                 = 0.975e0  // initial cfl factor
       lag_dt_computation       = TRUE
       use_ghosts_to_compute_dt = FALSE
    }
@@ -50,26 +47,15 @@ AdvDiffHierarchyIntegrator {
    using_FAC = TRUE
 
    FACOps {
-      fac_max_cycles = 1
-      fac_uses_presmoothing = FALSE
-      fac_initial_guess_nonzero = FALSE
-
-      skip_restrict_sol = TRUE
-      skip_restrict_residual = FALSE
-
-      ssor_iterations = 1
-
       coarse_solver_choice = "block_jacobi"
       coarse_solver_tolerance = 1.0e-6
       coarse_solver_max_iterations = 1
-      prolongation_method = "LINEAR_REFINE"
-      cf_discretization   = "LINEAR_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      prolongation_method = "CONSTANT_REFINE"
    }
 
    FACPreconditioners {
-      max_cycles = 1
-      residual_tol = 1.0e-12
-      num_pre_sweeps  = 0  // this should always be 0
+      num_pre_sweeps  = 0
       num_post_sweeps = 3
    }
 }
@@ -93,18 +79,18 @@ UFunction {
 
 Main {
 // log file parameters
-   log_file_name    = "adv_diff2d.log"
-   log_all_nodes    = FALSE
+   log_file_name               = "adv_diff2d.log"
+   log_all_nodes               = FALSE
 
 // visualization dump parameters
-   viz_writer            = "VisIt"
-   viz_dump_interval     = NFINEST/8   // zero to turn off
-   viz_dump_dirname      = "viz_adv_diff2d"
+   viz_writer                  = "VisIt"
+   viz_dump_interval           = NFINEST/8   // zero to turn off
+   viz_dump_dirname            = "viz_adv_diff2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_interval      = 0           // zero to turn off
-   restart_write_dirname = "restart_adv_diff2d"
+   restart_dump_interval       = 0           // zero to turn off
+   restart_dump_dirname        = "restart_adv_diff2d"
 }
 
 CartesianGeometry {
@@ -115,8 +101,6 @@ CartesianGeometry {
 }
 
 GriddingAlgorithm {
-   allow_patches_smaller_than_ghostwidth = TRUE
-
    max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level

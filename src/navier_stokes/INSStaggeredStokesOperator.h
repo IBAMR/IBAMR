@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/INSCoefs.h>
+#include <ibamr/INSProblemCoefs.h>
 #include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
 
 // IBTK INCLUDES
@@ -66,8 +66,8 @@ public:
      * \brief Class constructor.
      */
     INSStaggeredStokesOperator(
-        const INSCoefs& problem_coefs,
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs,
+        const INSProblemCoefs* problem_coefs,
+        blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> U_bc_coefs,
         SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops);
@@ -82,15 +82,15 @@ public:
      */
     void
     setHomogeneousBc(
-        const bool homogeneous_bc);
+        bool homogeneous_bc);
 
     /*!
      * \brief Set the current time interval.
      */
     void
     setTimeInterval(
-        const double current_time,
-        const double new_time);
+        double current_time,
+        double new_time);
 
     /*!
      * \brief Implementation of the apply method which supports either
@@ -98,7 +98,7 @@ public:
      */
     void
     apply(
-        const bool homogeneous_bc,
+        bool homogeneous_bc,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
 
@@ -258,7 +258,7 @@ private:
     double d_current_time, d_new_time, d_dt;
 
     // Problem coefficients.
-    const INSCoefs& d_problem_coefs;
+    const INSProblemCoefs* d_problem_coefs;
     SAMRAI::solv::PoissonSpecifications d_helmholtz_spec;
 
     // Math objects.
@@ -269,7 +269,7 @@ private:
     bool d_correcting_rhs;
     const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_bc_coefs;
     SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_U_bc_helper;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const d_P_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_P_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.

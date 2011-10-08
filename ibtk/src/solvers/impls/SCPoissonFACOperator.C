@@ -138,7 +138,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 SCPoissonFACOperator::SCPoissonFACOperator(
     const std::string& object_name,
-    const Pointer<Database>& input_db)
+    const Pointer<Database> input_db)
     : d_object_name(object_name),
       d_is_initialized(false),
       d_solution(NULL),
@@ -377,6 +377,7 @@ SCPoissonFACOperator::setCoarsestLevelSolverChoice(
     if (d_coarse_solver_choice == "hypre")
     {
         d_using_hypre = true;
+        d_hypre_solver = new SCPoissonHypreLevelSolver(d_object_name+"::hypre_solver", d_hypre_db);
         if (d_is_initialized)
         {
             initializeHypreLevelSolver();
@@ -806,12 +807,14 @@ SCPoissonFACOperator::solveCoarsestLevel(
                 TBOX_ERROR("SCPoissonFACOperator::solveCoarsestLevel()\n"
                            << "  hypre level solver does not support non-scalar-valued data" << std::endl);
             }
+            d_hypre_solver->setInitialGuessNonzero(true);
             d_hypre_solver->setMaxIterations(d_coarse_solver_max_its);
             d_hypre_solver->setRelativeTolerance(d_coarse_solver_tol);
             d_hypre_solver->solveSystem(error_level,residual_level);
         }
         else if (d_using_petsc)
         {
+            d_petsc_solver->setInitialGuessNonzero(true);
             d_petsc_solver->setMaxIterations(d_coarse_solver_max_its);
             d_petsc_solver->setRelativeTolerance(d_coarse_solver_tol);
             d_petsc_solver->solveSystem(error_level,residual_level);
@@ -831,63 +834,45 @@ SCPoissonFACOperator::computeResidual(
     SAMRAIVectorReal<NDIM,double>& residual,
     const SAMRAIVectorReal<NDIM,double>& solution,
     const SAMRAIVectorReal<NDIM,double>& rhs,
-    int level_num)
+    int coarsest_level_num,
+    int finest_level_num)
 {
     IBTK_TIMER_START(t_compute_residual);
 
-    if (!d_preconditioner.isNull() && d_preconditioner->getNumPreSmoothingSweeps() == 0)
+    const int res_idx = residual.getComponentDescriptorIndex(0);
+    const int sol_idx = solution.getComponentDescriptorIndex(0);
+    const int rhs_idx = rhs.getComponentDescriptorIndex(0);
+
+    const Pointer<SideVariable<NDIM,double> > res_var = residual.getComponentVariable(0);
+    const Pointer<SideVariable<NDIM,double> > sol_var = solution.getComponentVariable(0);
+    const Pointer<SideVariable<NDIM,double> > rhs_var = rhs.getComponentVariable(0);
+
+    // Fill ghost-cell values.
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    Pointer<SideNoCornersFillPattern> fill_pattern = new SideNoCornersFillPattern(SIDEG, false, false, true);
+    InterpolationTransactionComponent transaction_comp(sol_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, fill_pattern);
+    if (d_hier_bdry_fill_ops[finest_level_num].isNull())
     {
-        // Compute the residual, r = f - A*u = f - A*0.
-        residual.copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(const_cast<SAMRAIVectorReal<NDIM,double>*>(&rhs),false), false);
+        d_hier_bdry_fill_ops[finest_level_num] = new HierarchyGhostCellInterpolation();
+        d_hier_bdry_fill_ops[finest_level_num]->initializeOperatorState(transaction_comp, d_hierarchy, coarsest_level_num, finest_level_num);
     }
     else
     {
-        // Compute the residual, r = f - A*u.
-        const int res_idx = residual.getComponentDescriptorIndex(0);
-        const int sol_idx = solution.getComponentDescriptorIndex(0);
-        const int rhs_idx = rhs.getComponentDescriptorIndex(0);
-
-        const Pointer<SideVariable<NDIM,double> > res_var = residual.getComponentVariable(0);
-        const Pointer<SideVariable<NDIM,double> > sol_var = solution.getComponentVariable(0);
-        const Pointer<SideVariable<NDIM,double> > rhs_var = rhs.getComponentVariable(0);
-
-        // NOTE: Here, we assume that the residual is to be computed only during
-        // pre-sweeps and only for zero initial guesses, so that we need to
-        // compute A*u ONLY on levels level_num and level_num-1.
-
-        // Fill ghost-cell values.
-        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        Pointer<SideNoCornersFillPattern> fill_pattern = new SideNoCornersFillPattern(SIDEG, false, false, true);
-        InterpolationTransactionComponent transaction_comp(sol_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, fill_pattern);
-        if (d_hier_bdry_fill_ops[level_num].isNull())
-        {
-            d_hier_bdry_fill_ops[level_num] = new HierarchyGhostCellInterpolation();
-            d_hier_bdry_fill_ops[level_num]->initializeOperatorState(transaction_comp, d_hierarchy, level_num, level_num);
-        }
-        else
-        {
-            d_hier_bdry_fill_ops[level_num]->resetTransactionComponent(transaction_comp);
-        }
-        d_hier_bdry_fill_ops[level_num]->setHomogeneousBc(true);
-        d_hier_bdry_fill_ops[level_num]->fillData(d_apply_time);
-        if (level_num > d_coarsest_ln) xeqScheduleGhostFillNoCoarse(sol_idx, level_num-1);
-
-        // Compute the residual, r = f - A*u.  We assume that u=0 for all levels
-        // coarser than level_num, and therefore that A*u = 0 on all levels
-        // coarser than level_num-1.  (A*u may be non-zero on level_num-1
-        // because of coarse-grid corrections at coarse-fine interfaces.)
-        if (d_hier_math_ops[level_num].isNull())
-        {
-            std::ostringstream stream;
-            stream << d_object_name << "::hier_math_ops_" << level_num;
-            d_hier_math_ops[level_num] = new HierarchyMathOps(stream.str(), d_hierarchy, std::max(d_coarsest_ln,level_num-1), level_num);
-        }
-        d_hier_math_ops[level_num]->laplace(res_idx, res_var,
-                                            d_poisson_spec,
-                                            sol_idx, sol_var, NULL, d_apply_time);
-        HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(d_hierarchy, std::max(d_coarsest_ln,level_num-1), level_num);
-        hier_sc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
+        d_hier_bdry_fill_ops[finest_level_num]->resetTransactionComponent(transaction_comp);
     }
+    d_hier_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
+    d_hier_bdry_fill_ops[finest_level_num]->fillData(d_apply_time);
+
+    // Compute the residual, r = f - A*u.
+    if (d_hier_math_ops[finest_level_num].isNull())
+    {
+        std::ostringstream stream;
+        stream << d_object_name << "::hier_math_ops_" << finest_level_num;
+        d_hier_math_ops[finest_level_num] = new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
+    }
+    d_hier_math_ops[finest_level_num]->laplace(res_idx, res_var, d_poisson_spec, sol_idx, sol_var, NULL, d_apply_time);
+    HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
+    hier_sc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
 
     IBTK_TIMER_STOP(t_compute_residual);
     return;
@@ -1426,9 +1411,6 @@ SCPoissonFACOperator::xeqScheduleSideDataSynch(
 void
 SCPoissonFACOperator::initializeHypreLevelSolver()
 {
-    d_hypre_solver = new SCPoissonHypreLevelSolver(d_object_name+"::hypre_solver", d_hypre_db);
-    d_hypre_solver->setTime(d_apply_time);
-
     SAMRAIVectorReal<NDIM,double> solution_level(d_solution->getName()+"::level", d_solution->getPatchHierarchy(), d_coarsest_ln, d_coarsest_ln);
     for (int comp = 0; comp < d_solution->getNumberOfComponents(); ++comp)
     {
@@ -1445,6 +1427,7 @@ SCPoissonFACOperator::initializeHypreLevelSolver()
     // always employ homogeneous boundary conditions.
     d_hypre_solver->setPoissonSpecifications(d_poisson_spec);
     d_hypre_solver->setPhysicalBcCoefs(d_bc_coefs);
+    d_hypre_solver->setTime(d_apply_time);
     d_hypre_solver->setHomogeneousBc(true);
     d_hypre_solver->initializeSolverState(solution_level, rhs_level);
     return;
@@ -1484,7 +1467,7 @@ void
 SCPoissonFACOperator::buildPatchLaplaceOperator(
     Mat& A,
     const PoissonSpecifications& poisson_spec,
-    const Pointer<Patch<NDIM> >& patch,
+    const Pointer<Patch<NDIM> > patch,
     const int component_axis,
     const IntVector<NDIM>& ghost_cell_width)
 {
@@ -1656,10 +1639,5 @@ SCPoissonFACOperator::sanityCheck()
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBTK
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::SCPoissonFACOperator>;
 
 //////////////////////////////////////////////////////////////////////////////

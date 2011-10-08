@@ -78,7 +78,7 @@ public:
         inline
         LTransactionComponent(
             const typename LSet<T>::value_type& item=NULL,
-            blitz::TinyVector<double,NDIM> posn=0.0)
+            const blitz::TinyVector<double,NDIM>& posn=0.0)
             : item(item),
               posn(posn)
             {
@@ -139,15 +139,15 @@ public:
      * \brief Class constructor.
      */
     LTransaction(
-        const int src_proc,
-        const int dst_proc);
+        int src_proc,
+        int dst_proc);
 
     /*!
      * \brief Class constructor.
      */
     LTransaction(
-        const int src_proc,
-        const int dst_proc,
+        int src_proc,
+        int dst_proc,
         const std::vector<LTransactionComponent>& src_item_set);
 
     /*!

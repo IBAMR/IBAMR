@@ -59,7 +59,7 @@ public:
      * \brief Default constructor.
      */
     DiagonalScalingPreconditioner(
-        const double alpha=1.0);
+        double alpha=1.0);
 
     /*!
      * \brief Destructor.
@@ -71,7 +71,7 @@ public:
      */
     void
     setScalingFactor(
-        const double alpha);
+        double alpha);
 
     /*!
      * \name Linear solver functionality.

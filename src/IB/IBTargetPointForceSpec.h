@@ -95,12 +95,12 @@ public:
      * \brief Default constructor.
      */
     IBTargetPointForceSpec(
-        const int master_idx=-1,
-        const double& kappa_target=0.0,
-        const double& eta_target=0.0,
+        int master_idx=-1,
+        double kappa_target=0.0,
+        double eta_target=0.0,
         const blitz::TinyVector<double,NDIM>& X_target=0.0
 #if ENABLE_SUBDOMAIN_INDICES
-        ,const int subdomain_idx=-1
+        ,int subdomain_idx=-1
 #endif
                            );
 

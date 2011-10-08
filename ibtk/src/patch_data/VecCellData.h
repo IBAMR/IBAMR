@@ -109,7 +109,7 @@ public:
     static size_t
     getSizeOfData(
         const SAMRAI::hier::Box<NDIM>& box,
-        const unsigned int depth,
+        unsigned int depth,
         const SAMRAI::hier::IntVector<NDIM>& ghosts);
 
     /*!
@@ -126,7 +126,7 @@ public:
      */
     VecCellData(
         const SAMRAI::hier::Box<NDIM>& box,
-        const unsigned int depth,
+        unsigned int depth,
         const SAMRAI::hier::IntVector<NDIM>& ghosts);
 
     /*!
@@ -169,7 +169,7 @@ public:
     TYPE&
     operator()(
         const SAMRAI::pdat::CellIndex<NDIM>& i,
-        const unsigned int depth);
+        unsigned int depth);
 
     /*!
      * \brief Return a const reference to cell data entry corresponding to a
@@ -178,7 +178,7 @@ public:
     const TYPE&
     operator()(
         const SAMRAI::pdat::CellIndex<NDIM>& i,
-        const unsigned int depth) const;
+        unsigned int depth) const;
 
     /*!
      * \brief Return a reference to the Blitz++ array object for the cell
@@ -328,7 +328,7 @@ public:
     void
     fill(
         const TYPE& t,
-        const unsigned int d=0);
+        unsigned int d=0);
 
     /*!
      * \brief Fill all values at depth d within the box with the value t.
@@ -337,7 +337,7 @@ public:
     fill(
         const TYPE& t,
         const SAMRAI::hier::Box<NDIM>& box,
-        const unsigned int d=0);
+        unsigned int d=0);
 
     /*!
      * \brief Fill all depth components with value t.
@@ -372,7 +372,7 @@ public:
     print(
         const SAMRAI::hier::Box<NDIM>& box,
         std::ostream& os=SAMRAI::tbox::plog,
-        const int prec=12) const;
+        int prec=12) const;
 
     /*!
      * \brief Print all cell data values at the given array depth in the
@@ -394,9 +394,9 @@ public:
     void
     print(
         const SAMRAI::hier::Box<NDIM>& box,
-        const unsigned int depth,
+        unsigned int depth,
         std::ostream& os=SAMRAI::tbox::plog,
-        const int prec=12) const;
+        int prec=12) const;
 
     /*!
      * Check that class version and restart file version are equal.  If so, read

@@ -413,7 +413,7 @@ AdvectHypPatchOps::setIncompressibilityFixTerm(
 void
 AdvectHypPatchOps::setConvectiveDifferencingType(
     Pointer<CellVariable<NDIM,double> > Q_var,
-    const ConvectiveDifferencingType& difference_form)
+    const ConvectiveDifferencingType difference_form)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
@@ -1724,10 +1724,5 @@ AdvectHypPatchOps::getFromRestart()
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBAMR
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBAMR::AdvectHypPatchOps>;
 
 //////////////////////////////////////////////////////////////////////////////

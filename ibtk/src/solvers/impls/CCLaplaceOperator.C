@@ -192,6 +192,57 @@ CCLaplaceOperator::CCLaplaceOperator(
     return;
 }// CCLaplaceOperator()
 
+CCLaplaceOperator::CCLaplaceOperator(
+    const std::string& object_name,
+    const PoissonSpecifications& poisson_spec,
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+    const bool homogeneous_bc)
+    : LinearOperator(true),
+      d_object_name(object_name),
+      d_is_initialized(false),
+      d_ncomp(0),
+      d_apply_time(0.0),
+      d_hier_bdry_fill(NULL),
+      d_no_fill(NULL),
+      d_x(NULL),
+      d_b(NULL),
+      d_correcting_rhs(false),
+      d_poisson_spec(d_object_name+"::Poisson spec"),
+      d_default_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(
+                            d_object_name+"::default_bc_coef", Pointer<Database>(NULL))),
+      d_bc_coefs(),
+      d_homogeneous_bc(false),
+      d_hier_cc_data_ops(),
+      d_hier_math_ops(),
+      d_hier_math_ops_external(false),
+      d_hierarchy(),
+      d_coarsest_ln(-1),
+      d_finest_ln(-1)
+{
+    // Initialize the Poisson specifications.
+    setPoissonSpecifications(poisson_spec);
+
+    // Setup a default boundary condition object that specifies homogeneous
+    // Dirichlet boundary conditions.
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        d_default_bc_coef->setBoundaryValue(2*d  ,0.0);
+        d_default_bc_coef->setBoundaryValue(2*d+1,0.0);
+    }
+
+    // Initialize the boundary conditions objects.
+    setHomogeneousBc(homogeneous_bc);
+    setPhysicalBcCoefs(bc_coefs);
+
+    // Setup Timers.
+    IBTK_DO_ONCE(
+        t_apply                     = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::apply()");
+        t_initialize_operator_state = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::initializeOperatorState()");
+        t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBTK::CCLaplaceOperator::deallocateOperatorState()");
+                 );
+    return;
+}// CCLaplaceOperator()
+
 CCLaplaceOperator::~CCLaplaceOperator()
 {
     if (d_is_initialized) deallocateOperatorState();
@@ -231,6 +282,14 @@ CCLaplaceOperator::setPhysicalBcCoefs(
             d_bc_coefs[l] = d_default_bc_coef;
         }
     }
+    return;
+}// setPhysicalBcCoefs
+
+void
+CCLaplaceOperator::setPhysicalBcCoefs(
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
+{
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(&bc_coefs[0],&bc_coefs[0]+NDIM));
     return;
 }// setPhysicalBcCoefs
 
@@ -530,10 +589,5 @@ CCLaplaceOperator::enableLogging(
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBTK
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::CCLaplaceOperator>;
 
 //////////////////////////////////////////////////////////////////////////////

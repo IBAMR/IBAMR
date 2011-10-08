@@ -383,8 +383,8 @@ public:
      */
     bool
     getLevelHasLagrangianData(
-        const int level_number,
-        const bool can_be_refined) const;
+        int level_number,
+        bool can_be_refined) const;
 
     /*!
      * \brief Determine the number of local nodes on the specified patch level.
@@ -393,11 +393,11 @@ public:
      */
     unsigned int
     computeLocalNodeCountOnPatchLevel(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time);
 
     /*!
      * \brief Initialize the structure indexing information on the patch level.
@@ -406,11 +406,11 @@ public:
     initializeStructureIndexingOnPatchLevel(
         std::map<int,std::string>& strct_id_to_strct_name_map,
         std::map<int,std::pair<int,int> >& strct_id_to_lag_idx_range_map,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time,
-        IBTK::LDataManager* const l_data_manager);
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Initialize the LNode and LData data needed to specify the
@@ -420,17 +420,17 @@ public:
      */
     unsigned int
     initializeDataOnPatchLevel(
-        const int lag_node_index_idx,
-        const unsigned int global_index_offset,
-        const unsigned int local_index_offset,
-        SAMRAI::tbox::Pointer<IBTK::LData>& X_data,
-        SAMRAI::tbox::Pointer<IBTK::LData>& U_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time,
-        IBTK::LDataManager* const l_data_manager);
+        int lag_node_index_idx,
+        unsigned int global_index_offset,
+        unsigned int local_index_offset,
+        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> U_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Initialize the LData needed to specify the mass and spring
@@ -440,16 +440,16 @@ public:
      */
     unsigned int
     initializeMassDataOnPatchLevel(
-        const unsigned int global_index_offset,
-        const unsigned int local_index_offset,
-        SAMRAI::tbox::Pointer<IBTK::LData>& M_data,
-        SAMRAI::tbox::Pointer<IBTK::LData>& K_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time,
-        IBTK::LDataManager* const l_data_manager);
+        unsigned int global_index_offset,
+        unsigned int local_index_offset,
+        SAMRAI::tbox::Pointer<IBTK::LData> M_data,
+        SAMRAI::tbox::Pointer<IBTK::LData> K_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Initialize the LNode data needed to specify director vectors
@@ -459,15 +459,15 @@ public:
      */
     unsigned int
     initializeDirectorDataOnPatchLevel(
-        const unsigned int global_index_offset,
-        const unsigned int local_index_offset,
-        SAMRAI::tbox::Pointer<IBTK::LData>& D_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time,
-        IBTK::LDataManager* const l_data_manager);
+        unsigned int global_index_offset,
+        unsigned int local_index_offset,
+        SAMRAI::tbox::Pointer<IBTK::LData> D_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Tag cells for initial refinement.
@@ -480,10 +480,10 @@ public:
      */
     void
     tagCellsForInitialRefinement(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double error_data_time,
-        const int tag_index);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double error_data_time,
+        int tag_index);
 
 protected:
 
@@ -525,7 +525,7 @@ private:
      */
     void
     initializeLSiloDataWriter(
-        const int level_number);
+        int level_number);
 
     /*!
      * \brief Read the vertex data from one or more input files.
@@ -594,9 +594,9 @@ private:
     void
     getPatchVertices(
         std::vector<std::pair<int,int> >& point_indices,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const int level_number,
-        const bool can_be_refined) const;
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        int level_number,
+        bool can_be_refined) const;
 
     /*!
      * \return The canonical Lagrangian index of the specified vertex.
@@ -604,7 +604,7 @@ private:
     int
     getCanonicalLagrangianIndex(
         const std::pair<int,int>& point_index,
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \return The initial position of the specified vertex.
@@ -612,7 +612,7 @@ private:
     blitz::TinyVector<double,NDIM>
     getVertexPosn(
         const std::pair<int,int>& point_index,
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \return The target point specifications associated with a particular
@@ -622,7 +622,7 @@ private:
     const TargetSpec&
     getVertexTargetSpec(
         const std::pair<int,int>& point_index,
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \return The anchor point specifications associated with a particular
@@ -632,7 +632,7 @@ private:
     const AnchorSpec&
     getVertexAnchorSpec(
         const std::pair<int,int>& point_index,
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \return The massive boundary point specifications associated with a
@@ -642,7 +642,7 @@ private:
     const BdryMassSpec&
     getVertexBdryMassSpec(
         const std::pair<int,int>& point_index,
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \return The directors associated with a particular node.
@@ -650,7 +650,7 @@ private:
     const std::vector<double>&
     getVertexDirectors(
         const std::pair<int,int>& point_index,
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \return The instrumentation indices associated with a particular node (or
@@ -660,7 +660,7 @@ private:
     std::pair<int,int>
     getVertexInstrumentationIndices(
         const std::pair<int,int>& point_index,
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \return The source indices associated with a particular node (or -1 if
@@ -669,7 +669,7 @@ private:
     int
     getVertexSourceIndices(
         const std::pair<int,int>& point_index,
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \return The specification objects associated with the specified vertex.
@@ -677,8 +677,8 @@ private:
     std::vector<SAMRAI::tbox::Pointer<IBTK::Streamable> >
     initializeSpecs(
         const std::pair<int,int>& point_index,
-        const unsigned int global_index_offset,
-        const int level_number) const;
+        unsigned int global_index_offset,
+        int level_number) const;
 
     /*!
      * Read input values, indicated above, from given database.

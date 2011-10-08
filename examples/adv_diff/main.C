@@ -28,501 +28,232 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 // Config files
-#include <IBAMR_config.h>
+#include <IBAMR_prefix_config.h>
+#include <IBTK_prefix_config.h>
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
-#include <petsc.h>
+#include <petscsys.h>
 
 // Headers for basic SAMRAI objects
-#include <PatchLevel.h>
-#include <VariableDatabase.h>
-#include <tbox/Database.h>
-#include <tbox/InputDatabase.h>
-#include <tbox/InputManager.h>
-#include <tbox/MathUtilities.h>
-#include <tbox/PIO.h>
-#include <tbox/Pointer.h>
-#include <tbox/RestartManager.h>
-#include <tbox/SAMRAIManager.h>
-#include <tbox/SAMRAI_MPI.h>
-#include <tbox/TimerManager.h>
-#include <tbox/Utilities.h>
-
-// Headers for major algorithm/data structure objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
-#include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
-#include <PatchHierarchy.h>
 #include <StandardTagAndInitialize.h>
-#include <VisItDataWriter.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <LocationIndexRobinBcCoefs.h>
-
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
-#include <ibamr/GodunovAdvector.h>
-
+#include <ibamr/app_namespaces.h>
+#include <ibtk/AppInitializer.h>
+#include <LocationIndexRobinBcCoefs.h>
 #include "QInit.h"
 #include "UFunction.h"
 
-using namespace IBAMR;
-using namespace SAMRAI;
-using namespace std;
-
-/************************************************************************
- * For each run, the input filename and restart information (if         *
- * needed) must be given on the command line.  For non-restarted case,  *
- * command line is:                                                     *
- *                                                                      *
- *    executable <input file name>                                      *
- *                                                                      *
- * For restarted run, command line is:                                  *
- *                                                                      *
- *    executable <input file name> <restart directory> <restart number> *
- *                                                                      *
- ************************************************************************
- */
-
+/*******************************************************************************
+ * For each run, the input filename and restart information (if needed) must   *
+ * be given on the command line.  For non-restarted case, command line is:     *
+ *                                                                             *
+ *    executable <input file name>                                             *
+ *                                                                             *
+ * For restarted run, command line is:                                         *
+ *                                                                             *
+ *    executable <input file name> <restart directory> <restart number>        *
+ *                                                                             *
+ *******************************************************************************/
 int
 main(
     int argc,
     char* argv[])
 {
-    /*
-     * Initialize PETSc, MPI, and SAMRAI, enable logging, and process command
-     * line.
-     */
+    // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
-    tbox::SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    tbox::SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    tbox::SAMRAIManager::startup();
+    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
+    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
+    SAMRAIManager::startup();
 
-    string input_filename;
-    string restart_read_dirname;
-    int restore_num = 0;
+    {// cleanup dynamically allocated objects prior to shutdown
 
-    bool is_from_restart = false;
+        // Parse command line options, set some standard options from the input
+        // file, initialize the restart database (if this is a restarted run),
+        // and enable file logging.
+        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
+        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        Pointer<Database> main_db = app_initializer->getComponentDatabase("Main");
 
-    if (argc == 1)
-    {
-        tbox::pout << "USAGE:  " << argv[0] << " <input filename> "
-                   << "<restart dir> <restore number> [options]\n"
-                   << "  options:\n"
-                   << "  PETSc command line options; use -help for more information"
-                   << endl;
-        tbox::SAMRAI_MPI::abort();
-        return -1;
-    }
-    else
-    {
-        input_filename = argv[1];
-        if (argc >= 4)
-        {
-            FILE* fstream = NULL;
-            if (tbox::SAMRAI_MPI::getRank() == 0)
-            {
-                fstream = fopen(argv[2], "r");
-            }
-            int worked = (fstream ? 1 : 0);
-#ifdef HAVE_MPI
-            worked = tbox::SAMRAI_MPI::bcast(worked, 0);
-#endif
-            if (worked)
-            {
-                restart_read_dirname = argv[2];
-                restore_num = atoi(argv[3]);
-                is_from_restart = true;
-            }
-            if (fstream) fclose(fstream);
-        }
-    }
+        // Get various standard options set in the input file.
+        const bool dump_viz_data = app_initializer->dumpVizData();
+        const int viz_dump_interval = app_initializer->getVizDumpInterval();
+        const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
 
-    tbox::plog << "input_filename = " << input_filename << endl;
-    tbox::plog << "restart_read_dirname = " << restart_read_dirname << endl;
-    tbox::plog << "restore_num = " << restore_num << endl;
+        const bool dump_restart_data = app_initializer->dumpRestartData();
+        const int restart_dump_interval = app_initializer->getRestartDumpInterval();
+        const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
 
-    /*
-     * Create input database and parse all data in input file.
-     */
-    tbox::Pointer<tbox::Database> input_db = new tbox::InputDatabase("input_db");
-    tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
+        const bool dump_timer_data = app_initializer->dumpTimerData();
+        const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
-    /*
-     * Retrieve "Main" section of the input database.  First, read dump
-     * information, which is used for writing plot files.  Second, if proper
-     * restart information was given on command line, and the restart interval
-     * is non-zero, create a restart database.
-     */
-    tbox::Pointer<tbox::Database> main_db = input_db->getDatabase("Main");
+        // Create major algorithm and data objects that comprise the
+        // application.  These objects are configured from the input database
+        // and, if this is a restarted run, from the restart database.
+        Pointer<GodunovAdvector> predictor = new GodunovAdvector(
+            "GodunovAdvector", app_initializer->getComponentDatabase("GodunovAdvector"));
+        Pointer<AdvDiffHierarchyIntegrator> time_integrator = new AdvDiffHierarchyIntegrator(
+            "AdvDiffHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffHierarchyIntegrator"), predictor);
+        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
+            "PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+            "StandardTagAndInitialize", time_integrator, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>(
+            "LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>(
+            "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
-    string log_file_name = "adv_diff.log";
-    if (main_db->keyExists("log_file_name"))
-    {
-        log_file_name = main_db->getString("log_file_name");
-    }
-    bool log_all_nodes = false;
-    if (main_db->keyExists("log_all_nodes"))
-    {
-        log_all_nodes = main_db->getBool("log_all_nodes");
-    }
-    if (log_all_nodes)
-    {
-        tbox::PIO::logAllNodes(log_file_name);
-    }
-    else
-    {
-        tbox::PIO::logOnlyNodeZero(log_file_name);
-    }
+        // Setup the advection velocity.
+        Pointer<FaceVariable<NDIM,double> > u_var = new FaceVariable<NDIM,double>("u");
+        UFunction u_fcn("UFunction", grid_geometry, app_initializer->getComponentDatabase("UFunction"));
+        const bool u_is_div_free = true;
+        time_integrator->registerAdvectionVelocity(u_var);
+        time_integrator->setAdvectionVelocityIsDivergenceFree(u_var, u_is_div_free);
+        time_integrator->setAdvectionVelocityFunction(u_var, Pointer<CartGridFunction>(&u_fcn,false));
 
-    int viz_dump_interval = 0;
-    if (main_db->keyExists("viz_dump_interval"))
-    {
-        viz_dump_interval = main_db->getInteger("viz_dump_interval");
-    }
+        // Setup the advected and diffused quantity.
+        const ConvectiveDifferencingType difference_form =
+            IBAMR::string_to_enum<ConvectiveDifferencingType>(
+                main_db->getStringWithDefault(
+                    "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
+        pout << "solving the advection-diffusion equation in "
+             << IBAMR::enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
+        Pointer<CellVariable<NDIM,double> > Q_var = new CellVariable<NDIM,double>("Q");
+        QInit Q_init("QInit", grid_geometry, app_initializer->getComponentDatabase("QInit"));
+        LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
+            "physical_bc_coef", app_initializer->getComponentDatabase("LocationIndexRobinBcCoefs"));
+        const double kappa = app_initializer->getComponentDatabase("QInit")->getDouble("kappa");
+        time_integrator->registerTransportedQuantity(Q_var);
+        time_integrator->setAdvectionVelocity(Q_var, u_var);
+        time_integrator->setDiffusionCoefficient(Q_var, kappa);
+        time_integrator->setConvectiveDifferencingType(Q_var, difference_form);
+        time_integrator->setInitialConditions(Q_var, Pointer<CartGridFunction>(&Q_init,false));
+        time_integrator->setPhysicalBcCoefs(Q_var, &physical_bc_coef);
 
-    tbox::Array<string> viz_writer(1);
-    viz_writer[0] = "VisIt";
-    string viz_dump_filename;
-    string visit_dump_dirname;
-    bool uses_visit = false;
-    int visit_number_procs_per_file = 1;
-    if (viz_dump_interval > 0)
-    {
-        if (main_db->keyExists("viz_writer"))
-        {
-            viz_writer = main_db->getStringArray("viz_writer");
-        }
-        if (main_db->keyExists("viz_dump_filename"))
-        {
-            viz_dump_filename = main_db->getString("viz_dump_filename");
-        }
-        string viz_dump_dirname;
-        if (main_db->keyExists("viz_dump_dirname"))
-        {
-            viz_dump_dirname = main_db->getString("viz_dump_dirname");
-        }
-        for (int i = 0; i < viz_writer.getSize(); i++)
-        {
-            if (viz_writer[i] == "VisIt") uses_visit = true;
-        }
+        // Set up visualization plot file writer.
+        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
-            visit_dump_dirname = viz_dump_dirname;
+            time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        else
+
+        // Initialize hierarchy configuration and data on all patches.
+        time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
+
+        // Close the restart manager.
+        RestartManager::getManager()->closeRestartFile();
+
+        // Print the input database contents to the log file.
+        plog << "Input database:\n";
+        input_db->printClassData(plog);
+
+        // Write out initial visualization data.
+        int iteration_num = time_integrator->getIntegratorStep();
+        double loop_time = time_integrator->getIntegratorTime();
+        if (dump_viz_data && uses_visit)
         {
-            TBOX_ERROR("main(): "
-                       << "\nUnrecognized 'viz_writer' entry..."
-                       << "\nOptions are 'Vizamrai' and/or 'VisIt'"
-                       << endl);
+            pout << "\n\nWriting visualization files...\n\n";
+            time_integrator->setupPlotData();
+            visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
         }
-        if (uses_visit)
+
+        // Main time step loop.
+        double loop_time_end = time_integrator->getEndTime();
+        double dt = 0.0;
+        while (!MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
+               time_integrator->stepsRemaining())
         {
-            if (viz_dump_dirname.empty())
+            iteration_num = time_integrator->getIntegratorStep();
+            loop_time = time_integrator->getIntegratorTime();
+
+            pout <<                                                    "\n";
+            pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+            pout << "At beginning of timestep # " <<  iteration_num << "\n";
+            pout << "Simulation time is " << loop_time              << "\n";
+
+            dt = time_integrator->getTimeStepSize();
+            time_integrator->advanceHierarchy(dt);
+            loop_time += dt;
+
+            pout <<                                                    "\n";
+            pout << "At end       of timestep # " <<  iteration_num << "\n";
+            pout << "Simulation time is " << loop_time              << "\n";
+            pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+            pout <<                                                    "\n";
+
+            // At specified intervals, write visualization and restart files,
+            // and print out timer data.
+            iteration_num += 1;
+            const bool last_step = !time_integrator->stepsRemaining();
+            if (dump_viz_data && uses_visit && (iteration_num%viz_dump_interval == 0 || last_step))
             {
-                TBOX_ERROR("main(): "
-                           << "\nviz_dump_dirname is null ... "
-                           << "\nThis must be specified for use with VisIt"
-                           << endl);
+                pout << "\nWriting visualization files...\n\n";
+                time_integrator->setupPlotData();
+                visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
             }
-            if (main_db->keyExists("visit_number_procs_per_file"))
+            if (dump_restart_data && (iteration_num%restart_dump_interval == 0 || last_step))
             {
-                visit_number_procs_per_file =
-                    main_db->getInteger("visit_number_procs_per_file");
+                pout << "\nWriting restart files...\n\nn";
+                RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
+            }
+            if (dump_timer_data && (iteration_num%timer_dump_interval == 0 || last_step))
+            {
+                pout << "\nWriting timer data...\n\n";
+                TimerManager::getManager()->print(plog);
             }
         }
-    }
 
-    const bool viz_dump_data = (viz_dump_interval > 0);
+        // Determine the accuracy of the computed solution.
+        pout << "\n"
+             << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+             << "Computing error norms.\n\n";
 
-    int restart_interval = 0;
-    if (main_db->keyExists("restart_interval"))
-    {
-        restart_interval = main_db->getInteger("restart_interval");
-    }
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const Pointer<VariableContext> Q_ctx = time_integrator->getCurrentContext();
+        const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, Q_ctx);
+        const int Q_cloned_idx = var_db->registerClonedPatchDataIndex(Q_var, Q_idx);
 
-    string restart_write_dirname;
-    if (restart_interval > 0)
-    {
-        if (main_db->keyExists("restart_write_dirname"))
+        const int coarsest_ln = 0;
+        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            restart_write_dirname = main_db->getString("restart_write_dirname");
+            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(Q_cloned_idx, loop_time);
         }
-        else
-        {
-            TBOX_ERROR("restart_interval > 0, but key `restart_write_dirname'"
-                       << " not specified in input file");
-        }
-    }
+        Q_init.setDataOnPatchHierarchy(Q_cloned_idx, Q_var, patch_hierarchy, loop_time);
 
-    const bool write_restart = restart_interval > 0
-        && !restart_write_dirname.empty();
+        HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
+        hier_math_ops.setPatchHierarchy(patch_hierarchy);
+        hier_math_ops.resetLevels(coarsest_ln, finest_ln);
+        const int wgt_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
-    const ConvectiveDifferencingType difference_form = string_to_enum<ConvectiveDifferencingType>(main_db->getStringWithDefault("difference_form", enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
-    tbox::pout << "solving the advection-diffusion equation in " << enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
+        HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        hier_cc_data_ops.subtract(Q_idx, Q_idx, Q_cloned_idx);
+        pout << "Error in " << Q_var->getName() << " at time " << loop_time << ":\n"
+             << "  L1-norm:  " << hier_cc_data_ops.L1Norm(Q_idx,wgt_idx)  << "\n"
+             << "  L2-norm:  " << hier_cc_data_ops.L2Norm(Q_idx,wgt_idx)  << "\n"
+             << "  max-norm: " << hier_cc_data_ops.maxNorm(Q_idx,wgt_idx) << "\n"
+             << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 
-    int timer_dump_interval = 0;
-    if (main_db->keyExists("timer_dump_interval"))
-    {
-        timer_dump_interval = main_db->getInteger("timer_dump_interval");
-    }
-
-    const bool write_timer_data = (timer_dump_interval > 0);
-    if (write_timer_data)
-    {
-        tbox::TimerManager::createManager(input_db->getDatabase("TimerManager"));
-    }
-
-    /*
-     * Get the restart manager and root restart database.  If run is from
-     * restart, open the restart file.
-     */
-    tbox::RestartManager* restart_manager = tbox::RestartManager::getManager();
-    if (is_from_restart)
-    {
-        restart_manager->openRestartFile(
-            restart_read_dirname, restore_num, tbox::SAMRAI_MPI::getNodes());
-    }
-
-    /*
-     * Create major algorithm and data objects which comprise the application.
-     * Each object will be initialized either from input data or restart files,
-     * or a combination of both.  Refer to each class constructor for details.
-     * For more information on the composition of objects for this application,
-     * see comments at top of file.
-     */
-    tbox::Pointer<geom::CartesianGridGeometry<NDIM> > grid_geometry =
-        new geom::CartesianGridGeometry<NDIM>(
-            "CartesianGeometry",
-            input_db->getDatabase("CartesianGeometry"));
-
-    tbox::Pointer<hier::PatchHierarchy<NDIM> > patch_hierarchy =
-        new hier::PatchHierarchy<NDIM>(
-            "PatchHierarchy",
-            grid_geometry);
-
-    tbox::Pointer<GodunovAdvector> predictor =
-        new GodunovAdvector(
-            "GodunovAdvector",
-            input_db->getDatabase("GodunovAdvector"));
-
-    tbox::Pointer<AdvDiffHierarchyIntegrator> time_integrator =
-        new AdvDiffHierarchyIntegrator(
-            "AdvDiffHierarchyIntegrator",
-            input_db->getDatabase("AdvDiffHierarchyIntegrator"),
-            patch_hierarchy, predictor);
-
-    tbox::Pointer< pdat::FaceVariable<NDIM,double> > u_var = new pdat::FaceVariable<NDIM,double>("u");
-    UFunction u_fcn("UFunction", grid_geometry, input_db->getDatabase("UFunction"));
-    const bool u_is_div_free = true;
-    time_integrator->registerAdvectionVelocity(u_var);
-    time_integrator->setAdvectionVelocityIsDivergenceFree(u_var, u_is_div_free);
-    time_integrator->setAdvectionVelocityFunction(u_var, tbox::Pointer<CartGridFunction>(&u_fcn,false));
-
-    tbox::Pointer< pdat::CellVariable<NDIM,double> > Q_var = new pdat::CellVariable<NDIM,double>("Q");
-    QInit Q_init("QInit", grid_geometry, input_db->getDatabase("QInit"));
-    solv::LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
-        "physical_bc_coef",
-        input_db->getDatabase("LocationIndexRobinBcCoefs"));
-    const double kappa = input_db->getDatabase("QInit")->getDouble("kappa");
-    time_integrator->registerTransportedQuantity(Q_var);
-    time_integrator->setAdvectionVelocity(Q_var, u_var);
-    time_integrator->setDiffusionCoefficient(Q_var, kappa);
-    time_integrator->setConvectiveDifferencingType(Q_var, difference_form);
-    time_integrator->setInitialConditions(Q_var, tbox::Pointer<CartGridFunction>(&Q_init,false));
-    time_integrator->setPhysicalBcCoefs(Q_var, &physical_bc_coef);
-
-    tbox::Pointer<mesh::StandardTagAndInitialize<NDIM> > error_detector =
-        new mesh::StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize",
-            time_integrator,
-            input_db->getDatabase("StandardTagAndInitialize"));
-
-    tbox::Pointer<mesh::BergerRigoutsos<NDIM> > box_generator =
-        new mesh::BergerRigoutsos<NDIM>();
-
-    tbox::Pointer<mesh::LoadBalancer<NDIM> > load_balancer =
-        new mesh::LoadBalancer<NDIM>(
-            "LoadBalancer",
-            input_db->getDatabase("LoadBalancer"));
-
-    tbox::Pointer<mesh::GriddingAlgorithm<NDIM> > gridding_algorithm =
-        new mesh::GriddingAlgorithm<NDIM>(
-            "GriddingAlgorithm",
-            input_db->getDatabase("GriddingAlgorithm"),
-            error_detector, box_generator, load_balancer);
-
-    /*
-     * Set up visualization plot file writer.
-     */
-    tbox::Pointer<appu::VisItDataWriter<NDIM> > visit_data_writer =
-        new appu::VisItDataWriter<NDIM>(
-            "VisIt Writer",
-            visit_dump_dirname, visit_number_procs_per_file);
-
-    if (uses_visit)
-    {
-        time_integrator->registerVisItDataWriter(visit_data_writer);
-    }
-
-    /*
-     * Initialize hierarchy configuration and data on all patches.  Then, close
-     * restart file and write initial state for visualization.
-     */
-    time_integrator->initializeHierarchyIntegrator(gridding_algorithm);
-    double dt_now = time_integrator->initializeHierarchy();
-    tbox::RestartManager::getManager()->closeRestartFile();
-
-    /*
-     * After creating all objects and initializing their state, we print the
-     * input database contents to the log file.
-     */
-    tbox::plog << "\nCheck input data before simulation:" << endl;
-    tbox::plog << "Input database..." << endl;
-    input_db->printClassData(tbox::plog);
-
-    /*
-     * Write initial visualization files.
-     */
-    if (viz_dump_data)
-    {
-        if (uses_visit)
-        {
-            tbox::pout << "\nWriting visualization files...\n\n";
-            visit_data_writer->writePlotData(
-                patch_hierarchy,
-                time_integrator->getIntegratorStep(),
-                time_integrator->getIntegratorTime());
-        }
-    }
-
-    /*
-     * Time step loop.  Note that the step count and integration time are
-     * maintained by the time integrator object.
-     */
-    double loop_time = time_integrator->getIntegratorTime();
-    double loop_time_end = time_integrator->getEndTime();
-
-    int iteration_num = time_integrator->getIntegratorStep();
-
-    while (!tbox::MathUtilities<double>::equalEps(loop_time,loop_time_end) &&
-           time_integrator->stepsRemaining())
-    {
-        iteration_num = time_integrator->getIntegratorStep() + 1;
-
-        tbox::pout <<                                                        endl;
-        tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++"  << endl;
-        tbox::pout << "At beginning of timestep # " <<  iteration_num - 1 << endl;
-        tbox::pout << "Simulation time is " << loop_time                  << endl;
-
-        double dt_new = time_integrator->advanceHierarchy(dt_now);
-
-        loop_time += dt_now;
-        dt_now = dt_new;
-
-        tbox::pout <<                                                        endl;
-        tbox::pout << "At end       of timestep # " <<  iteration_num - 1 << endl;
-        tbox::pout << "Simulation time is " << loop_time                  << endl;
-        tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++++++"  << endl;
-        tbox::pout <<                                                        endl;
-
-        /*
-         * At specified intervals, output timer data and write visualization and
-         * restart and files.
-         */
-        if (write_timer_data && iteration_num%timer_dump_interval == 0)
-        {
-            tbox::pout << "\nWriting timer data...\n\n";
-            tbox::TimerManager::getManager()->print(tbox::plog);
-        }
-
-        if (write_restart && iteration_num%restart_interval == 0)
-        {
-            tbox::pout << "\nWriting restart files...\n\n";
-            tbox::RestartManager::getManager()->writeRestartFile(
-                restart_write_dirname, iteration_num);
-        }
-
-        if (viz_dump_data && iteration_num%viz_dump_interval == 0)
+        if (dump_viz_data)
         {
             if (uses_visit)
             {
-                tbox::pout << "\nWriting visualization files...\n\n";
-                visit_data_writer->writePlotData(
-                    patch_hierarchy, iteration_num, loop_time);
+                time_integrator->setupPlotData();
+                visit_data_writer->writePlotData(patch_hierarchy, iteration_num+1, loop_time);
             }
         }
-    }
 
-    /*
-     * Ensure the final timer data is written out.
-     */
-    if (write_timer_data && iteration_num%timer_dump_interval != 0)
-    {
-        tbox::pout << "\nWriting timer data...\n\n";
-        tbox::TimerManager::getManager()->print(tbox::plog);
-    }
+    }// cleanup dynamically allocated objects prior to shutdown
 
-    /*
-     * Ensure the last state is written out.
-     */
-    if (viz_dump_data && iteration_num%viz_dump_interval != 0)
-    {
-        if (uses_visit)
-        {
-            tbox::pout << "\nWriting visualization files...\n\n";
-            visit_data_writer->writePlotData(
-                patch_hierarchy, iteration_num, loop_time);
-        }
-    }
-
-    /*
-     * Determine the accuracy of the computed solution.
-     */
-    hier::VariableDatabase<NDIM>* var_db = hier::VariableDatabase<NDIM>::getDatabase();
-
-    const tbox::Pointer<hier::VariableContext> Q_ctx =
-        time_integrator->getCurrentContext();
-    const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, Q_ctx);
-    const int Q_cloned_idx = var_db->registerClonedPatchDataIndex(Q_var, Q_idx);
-
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        patch_hierarchy->getPatchLevel(ln)->allocatePatchData(Q_cloned_idx, loop_time);
-    }
-    Q_init.setDataOnPatchHierarchy(Q_cloned_idx, Q_var, patch_hierarchy, loop_time);
-
-    HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
-    hier_math_ops.setPatchHierarchy(patch_hierarchy);
-    hier_math_ops.resetLevels(coarsest_ln, finest_ln);
-    const int wgt_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
-
-    math::HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-    hier_cc_data_ops.subtract(Q_cloned_idx, Q_idx, Q_cloned_idx);
-    tbox::pout << "Error in " << Q_var->getName() << " at time " << loop_time << ":\n"
-               << "  L1-norm:  " << hier_cc_data_ops.L1Norm(Q_cloned_idx,wgt_idx)  << "\n"
-               << "  L2-norm:  " << hier_cc_data_ops.L2Norm(Q_cloned_idx,wgt_idx)  << "\n"
-               << "  max-norm: " << hier_cc_data_ops.maxNorm(Q_cloned_idx,wgt_idx) << "\n";
-
-    /*
-     * At conclusion of simulation, deallocate objects.
-     */
-    grid_geometry.setNull();
-    patch_hierarchy.setNull();
-    box_generator.setNull();
-    load_balancer.setNull();
-    predictor.setNull();
-    error_detector.setNull();
-    gridding_algorithm.setNull();
-    time_integrator.setNull();
-    visit_data_writer.setNull();
-
-    tbox::SAMRAIManager::shutdown();
+    SAMRAIManager::shutdown();
     PetscFinalize();
-
     return 0;
 }// main

@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/INSCoefs.h>
+#include <ibamr/INSProblemCoefs.h>
 
 // IBTK INCLUDES
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
@@ -53,10 +53,11 @@ namespace IBAMR
  * SAMRAI::solv::RobinBcCoefStrategy that is used to specify pressure boundary
  * conditions for the staggered grid incompressible Navier-Stokes solver.
  *
- * This class interprets pure Dirichlet boundary conditions on the velocity as
- * prescribed velocity boundary conditions, whereas pure Neumann boundary
- * conditions are interpreted as prescribed traction (stress) boundary
- * conditions.
+ * This class interprets pure Dirichlet boundary conditions as prescribed
+ * velocity boundary conditions, whereas pure Neumann boundary conditions are
+ * interpreted as prescribed traction (stress) boundary conditions.  These are
+ * translated into generalized Neumann and Dirichlet boundary conditions,
+ * respectively, for the pressure.
  */
 class INSStaggeredPressureBcCoef
     : public IBTK::ExtendedRobinBcCoefStrategy
@@ -66,16 +67,16 @@ public:
      * \brief Constructor.
      *
      * \param problem_coefs   Problem coefficients
-     * \param u_bc_coefs      Vector of boundary condition specification objects corresponding to the components of the velocity
+     * \param bc_coefs        Vector of boundary condition specification objects
      * \param homogeneous_bc  Whether to employ homogeneous (as opposed to inhomogeneous) boundary conditions
      *
      * \note Precisely NDIM boundary condition objects must be provided to the
      * class constructor.
      */
     INSStaggeredPressureBcCoef(
-        const INSCoefs& problem_coefs,
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
-        const bool homogeneous_bc=false);
+        const INSProblemCoefs* problem_coefs,
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+        bool homogeneous_bc=false);
 
     /*!
      * \brief Destructor.
@@ -87,32 +88,43 @@ public:
      */
     void
     setVelocityCurrentPatchDataIndex(
-        const int u_current_idx);
+        int u_current_idx);
 
     /*!
-     * \brief Set the patch data index corresponding to the new velocity.
+     * \brief Set the patch data index corresponding to the updated (new)
+     * velocity.
      */
     void
     setVelocityNewPatchDataIndex(
-        const int u_new_idx);
+        int u_new_idx);
+
+    /*!
+     * \brief Set the INSProblemCoefs object used by this boundary condition
+     * specification object.
+     *
+     * \param problem_coefs   Problem coefficients
+     */
+    void
+    setINSProblemCoefs(
+        const INSProblemCoefs* problem_coefs);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-     * physical boundary conditions for the velocity.
+     * physical boundary conditions.
      *
-     * \param u_bc_coefs  Vector of boundary condition specification objects corresponding to the components of the velocity
+     * \param bc_coefs  Vector of boundary condition specification objects
      */
     void
-    setVelocityPhysicalBcCoefs(
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs);
+    setPhysicalBoundaryConditions(
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
 
     /*!
      * \brief Set the current time interval.
      */
     void
     setTimeInterval(
-        const double current_time,
-        const double new_time);
+        double current_time,
+        double new_time);
 
     /*!
      * \name Implementation of IBTK::ExtendedRobinBcCoefStrategy interface.
@@ -124,7 +136,7 @@ public:
      */
     void
     setTargetPatchDataIndex(
-        const int target_idx);
+        int target_idx);
 
     /*!
      * \brief Set whether the class is filling homogeneous or inhomogeneous
@@ -132,7 +144,7 @@ public:
      */
     void
     setHomogeneousBc(
-        const bool homogeneous_bc);
+        bool homogeneous_bc);
 
     //\}
 
@@ -236,7 +248,7 @@ private:
     /*
      * Problem coefficients.
      */
-    const INSCoefs& d_problem_coefs;
+    const INSProblemCoefs* d_problem_coefs;
 
     /*
      * The current and new velocities.
@@ -246,7 +258,7 @@ private:
     /*
      * The boundary condition specification objects for the updated velocity.
      */
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_u_bc_coefs;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs;
 
     /*
      * The current time interval.

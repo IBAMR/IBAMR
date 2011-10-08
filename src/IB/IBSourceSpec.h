@@ -88,8 +88,8 @@ public:
      * \brief Default constructor.
      */
     IBSourceSpec(
-        const int master_idx=-1,
-        const int source_idx=-1);
+        int master_idx=-1,
+        int source_idx=-1);
 
     /*!
      * \brief Destructor.

@@ -160,7 +160,7 @@ struct IndexComp
 
 CCPoissonFACOperator::CCPoissonFACOperator(
     const std::string& object_name,
-    const Pointer<Database>& input_db)
+    const Pointer<Database> input_db)
     : d_object_name(object_name),
       d_is_initialized(false),
       d_solution(NULL),
@@ -326,6 +326,14 @@ CCPoissonFACOperator::setPhysicalBcCoefs(
 }// setPhysicalBcCoefs
 
 void
+CCPoissonFACOperator::setPhysicalBcCoefs(
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
+{
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(&bc_coefs[0],&bc_coefs[0]+NDIM));
+    return;
+}// setPhysicalBcCoefs
+
+void
 CCPoissonFACOperator::setTime(
     const double time)
 {
@@ -408,6 +416,14 @@ CCPoissonFACOperator::setCoarsestLevelSolverChoice(
     if (d_coarse_solver_choice == "hypre")
     {
         d_using_hypre = true;
+        d_hypre_solvers.resize(d_depth);
+        for (int depth = 0; depth < d_depth; ++depth)
+        {
+            std::ostringstream stream;
+            stream << depth;
+            d_hypre_solvers[depth] = new CCPoissonHypreLevelSolver(d_object_name+"::hypre_solver_"+stream.str(), d_hypre_db);
+            d_hypre_solvers[depth]->setDataDepth(depth);
+        }
         if (d_is_initialized)
         {
             initializeHypreLevelSolvers();
@@ -820,6 +836,7 @@ CCPoissonFACOperator::solveCoarsestLevel(
         {
             for (int depth = 0; depth < d_depth; ++depth)
             {
+                d_hypre_solvers[depth]->setInitialGuessNonzero(true);
                 d_hypre_solvers[depth]->setMaxIterations(d_coarse_solver_max_its);
                 d_hypre_solvers[depth]->setRelativeTolerance(d_coarse_solver_tol);
                 d_hypre_solvers[depth]->solveSystem(error_level,residual_level);
@@ -827,6 +844,7 @@ CCPoissonFACOperator::solveCoarsestLevel(
         }
         else if (d_using_petsc)
         {
+            d_petsc_solver->setInitialGuessNonzero(true);
             d_petsc_solver->setMaxIterations(d_coarse_solver_max_its);
             d_petsc_solver->setRelativeTolerance(d_coarse_solver_tol);
             d_petsc_solver->solveSystem(error_level,residual_level);
@@ -842,63 +860,45 @@ CCPoissonFACOperator::computeResidual(
     SAMRAIVectorReal<NDIM,double>& residual,
     const SAMRAIVectorReal<NDIM,double>& solution,
     const SAMRAIVectorReal<NDIM,double>& rhs,
-    int level_num)
+    int coarsest_level_num,
+    int finest_level_num)
 {
     IBTK_TIMER_START(t_compute_residual);
 
-    if (!d_preconditioner.isNull() && d_preconditioner->getNumPreSmoothingSweeps() == 0)
+    const int res_idx = residual.getComponentDescriptorIndex(0);
+    const int sol_idx = solution.getComponentDescriptorIndex(0);
+    const int rhs_idx = rhs.getComponentDescriptorIndex(0);
+
+    const Pointer<CellVariable<NDIM,double> > res_var = residual.getComponentVariable(0);
+    const Pointer<CellVariable<NDIM,double> > sol_var = solution.getComponentVariable(0);
+    const Pointer<CellVariable<NDIM,double> > rhs_var = rhs.getComponentVariable(0);
+
+    // Fill ghost-cell values.
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    Pointer<CellNoCornersFillPattern> fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
+    InterpolationTransactionComponent transaction_comp(sol_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, fill_pattern);
+    if (d_hier_bdry_fill_ops[finest_level_num].isNull())
     {
-        // Compute the residual, r = f - A*u = f - A*0.
-        residual.copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(const_cast<SAMRAIVectorReal<NDIM,double>*>(&rhs),false), false);
+        d_hier_bdry_fill_ops[finest_level_num] = new HierarchyGhostCellInterpolation();
+        d_hier_bdry_fill_ops[finest_level_num]->initializeOperatorState(transaction_comp, d_hierarchy, coarsest_level_num, finest_level_num);
     }
     else
     {
-        // Compute the residual, r = f - A*u.
-        const int res_idx = residual.getComponentDescriptorIndex(0);
-        const int sol_idx = solution.getComponentDescriptorIndex(0);
-        const int rhs_idx = rhs.getComponentDescriptorIndex(0);
-
-        const Pointer<CellVariable<NDIM,double> > res_var = residual.getComponentVariable(0);
-        const Pointer<CellVariable<NDIM,double> > sol_var = solution.getComponentVariable(0);
-        const Pointer<CellVariable<NDIM,double> > rhs_var = rhs.getComponentVariable(0);
-
-        // NOTE: Here, we assume that the residual is to be computed only during
-        // pre-sweeps and only for zero initial guesses, so that we need to
-        // compute A*u ONLY on levels level_num and level_num-1.
-
-        // Fill ghost-cell values.
-        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        Pointer<CellNoCornersFillPattern> fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
-        InterpolationTransactionComponent transaction_comp(sol_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_bc_coefs, fill_pattern);
-        if (d_hier_bdry_fill_ops[level_num].isNull())
-        {
-            d_hier_bdry_fill_ops[level_num] = new HierarchyGhostCellInterpolation();
-            d_hier_bdry_fill_ops[level_num]->initializeOperatorState(transaction_comp, d_hierarchy, level_num, level_num);
-        }
-        else
-        {
-            d_hier_bdry_fill_ops[level_num]->resetTransactionComponent(transaction_comp);
-        }
-        d_hier_bdry_fill_ops[level_num]->setHomogeneousBc(true);
-        d_hier_bdry_fill_ops[level_num]->fillData(d_apply_time);
-        if (level_num > d_coarsest_ln) xeqScheduleGhostFillNoCoarse(sol_idx, level_num-1);
-
-        // Compute the residual, r = f - A*u.  We assume that u=0 for all levels
-        // coarser than level_num, and therefore that A*u = 0 on all levels
-        // coarser than level_num-1.  (A*u may be non-zero on level_num-1
-        // because of coarse-grid corrections at coarse-fine interfaces.)
-        if (d_hier_math_ops[level_num].isNull())
-        {
-            std::ostringstream stream;
-            stream << d_object_name << "::hier_math_ops_" << level_num;
-            d_hier_math_ops[level_num] = new HierarchyMathOps(stream.str(), d_hierarchy, std::max(d_coarsest_ln,level_num-1), level_num);
-        }
-        d_hier_math_ops[level_num]->laplace(res_idx, res_var,
-                                            d_poisson_spec,
-                                            sol_idx, sol_var, NULL, d_apply_time);
-        HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(d_hierarchy, std::max(d_coarsest_ln,level_num-1), level_num);
-        hier_cc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
+        d_hier_bdry_fill_ops[finest_level_num]->resetTransactionComponent(transaction_comp);
     }
+    d_hier_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
+    d_hier_bdry_fill_ops[finest_level_num]->fillData(d_apply_time);
+
+    // Compute the residual, r = f - A*u.
+    if (d_hier_math_ops[finest_level_num].isNull())
+    {
+        std::ostringstream stream;
+        stream << d_object_name << "::hier_math_ops_" << finest_level_num;
+        d_hier_math_ops[finest_level_num] = new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
+    }
+    d_hier_math_ops[finest_level_num]->laplace(res_idx, res_var, d_poisson_spec, sol_idx, sol_var, NULL, d_apply_time);
+    HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
+    hier_cc_data_ops.axpy(res_idx, -1.0, res_idx, rhs_idx, false);
 
     IBTK_TIMER_STOP(t_compute_residual);
     return;
@@ -1378,16 +1378,6 @@ CCPoissonFACOperator::xeqScheduleGhostFillNoCoarse(
 void
 CCPoissonFACOperator::initializeHypreLevelSolvers()
 {
-    d_hypre_solvers.resize(d_depth);
-    for (int depth = 0; depth < d_depth; ++depth)
-    {
-        std::ostringstream stream;
-        stream << depth;
-        d_hypre_solvers[depth] = new CCPoissonHypreLevelSolver(d_object_name+"::hypre_solver_"+stream.str(), d_hypre_db);
-        d_hypre_solvers[depth]->setTime(d_apply_time);
-        d_hypre_solvers[depth]->setDataDepth(depth);
-    }
-
     SAMRAIVectorReal<NDIM,double> solution_level(d_solution->getName()+"::level", d_solution->getPatchHierarchy(), d_coarsest_ln, d_coarsest_ln);
     for (int comp = 0; comp < d_solution->getNumberOfComponents(); ++comp)
     {
@@ -1402,10 +1392,22 @@ CCPoissonFACOperator::initializeHypreLevelSolvers()
 
     // Note that since the bottom solver is solving for the error, it must
     // always employ homogeneous boundary conditions.
+    if (d_hypre_solvers.size() != static_cast<unsigned int>(d_depth))
+    {
+        d_hypre_solvers.resize(d_depth);
+        for (int depth = 0; depth < d_depth; ++depth)
+        {
+            std::ostringstream stream;
+            stream << depth;
+            d_hypre_solvers[depth] = new CCPoissonHypreLevelSolver(d_object_name+"::hypre_solver_"+stream.str(), d_hypre_db);
+            d_hypre_solvers[depth]->setDataDepth(depth);
+        }
+    }
     for (int depth = 0; depth < d_depth; ++depth)
     {
         d_hypre_solvers[depth]->setPoissonSpecifications(d_poisson_spec);
         d_hypre_solvers[depth]->setPhysicalBcCoef(d_bc_coefs[depth]);
+        d_hypre_solvers[depth]->setTime(d_apply_time);
         d_hypre_solvers[depth]->setHomogeneousBc(true);
         d_hypre_solvers[depth]->initializeSolverState(solution_level, rhs_level);
     }
@@ -1446,7 +1448,7 @@ void
 CCPoissonFACOperator::buildPatchLaplaceOperator(
     Mat& A,
     const PoissonSpecifications& poisson_spec,
-    const Pointer<Patch<NDIM> >& patch,
+    const Pointer<Patch<NDIM> > patch,
     const IntVector<NDIM>& ghost_cell_width)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1520,7 +1522,7 @@ CCPoissonFACOperator::buildPatchLaplaceOperator_aligned(
     Mat& A,
     const Pointer<CellData<NDIM,double> > C_data,
     const Pointer<SideData<NDIM,double> > D_data,
-    const Pointer<Patch<NDIM> >& patch,
+    const Pointer<Patch<NDIM> > patch,
     const IntVector<NDIM>& ghost_cell_width)
 {
     int ierr;
@@ -1644,7 +1646,7 @@ CCPoissonFACOperator::buildPatchLaplaceOperator_nonaligned(
     Mat& A,
     const Pointer<CellData<NDIM,double> > C_data,
     const Pointer<SideData<NDIM,double> > D_data,
-    const Pointer<Patch<NDIM> >& patch,
+    const Pointer<Patch<NDIM> > patch,
     const IntVector<NDIM>& ghost_cell_width)
 {
     int ierr;
@@ -1898,10 +1900,5 @@ CCPoissonFACOperator::sanityCheck()
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBTK
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::CCPoissonFACOperator>;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -39,7 +39,7 @@
 #include <petscksp.h>
 
 // IBAMR INCLUDES
-#include <ibamr/INSCoefs.h>
+#include <ibamr/INSProblemCoefs.h>
 
 // IBTK INCLUDES
 #include <ibtk/CartCellRobinPhysBdryOp.h>
@@ -94,7 +94,7 @@ public:
      */
     INSStaggeredBoxRelaxationFACOperator(
         const std::string& object_name,
-        const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db=NULL);
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
 
     /*!
      * \brief Destructor.
@@ -107,13 +107,12 @@ public:
     //\{
 
     /*!
-     * \brief Set the INSCoefs object and timestep size used to specify the
-     * coefficients for the time-dependent incompressible Stokes operator.
+     * \brief Set the INSProblemCoefs object and timestep size used to specify
+     * the coefficients for the time-dependent incompressible Stokes operator.
      */
     void
     setProblemCoefficients(
-        const INSCoefs& problem_coefs,
-        const double dt);
+        const INSProblemCoefs& problem_coefs);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -138,8 +137,8 @@ public:
      */
     void
     setTimeInterval(
-        const double current_time,
-        const double new_time);
+        double current_time,
+        double new_time);
 
     //\}
 
@@ -170,8 +169,8 @@ public:
      */
     void
     setResetLevels(
-        const int coarsest_ln,
-        const int finest_ln);
+        int coarsest_ln,
+        int finest_ln);
 
     /*!
      * \brief Specify the ghost cell width for \em both the solution and the
@@ -351,20 +350,16 @@ public:
         int coarsest_ln);
 
     /*!
-     * \brief Compute composite grid residual on a single level.
-     *
-     * \param residual residual vector
-     * \param solution solution vector
-     * \param rhs source (right hand side) vector
-     * \param level_num level number
-     * \param error_equation_indicator flag stating whether u is an error vector or a solution vector
+     * \brief Compute the composite-grid residual on the specified range of
+     * levels of the patch hierarchy.
      */
     void
     computeResidual(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs,
-        int level_num);
+        int coarsest_level_num,
+        int finest_level_num);
 
     /*!
      * \brief Compute hierarchy-dependent data.
@@ -439,7 +434,7 @@ private:
     xeqScheduleProlongation(
         const std::pair<int,int>& dst_idxs,
         const std::pair<int,int>& src_idxs,
-        const int dst_ln);
+        int dst_ln);
 
     /*!
      * \brief Execute schedule for restricting solution or residual to the
@@ -449,7 +444,7 @@ private:
     xeqScheduleRestriction(
         const std::pair<int,int>& dst_idxs,
         const std::pair<int,int>& src_idxs,
-        const int dst_ln);
+        int dst_ln);
 
     /*!
      * \brief Execute schedule for filling ghosts on the specified level.
@@ -457,15 +452,15 @@ private:
     void
     xeqScheduleGhostFillNoCoarse(
         const std::pair<int,int>& dst_idxs,
-        const int dst_ln);
+        int dst_ln);
 
     /*!
      * \brief Execute schedule for synchronizing data on the specified level.
      */
     void
     xeqScheduleSideDataSynch(
-        const int dst_idx,
-        const int dst_ln);
+        int dst_idx,
+        int dst_ln);
 
     //\}
 
@@ -546,7 +541,7 @@ private:
     /*
      * Problem coefficient specifications.
      */
-    INSCoefs d_problem_coefs;
+    INSProblemCoefs d_problem_coefs;
     double d_dt;
 
     /*

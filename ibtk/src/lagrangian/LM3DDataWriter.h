@@ -81,7 +81,7 @@ public:
         const std::string& object_name,
         const std::string& dump_directory_name,
         const std::string& experiment_name="amr",
-        const int& experiment_number=0);
+        int experiment_number=0);
 
     /*!
      * \brief Destructor.
@@ -105,8 +105,8 @@ public:
      */
     void
     resetLevels(
-        const int coarsest_ln,
-        const int finest_ln);
+        int coarsest_ln,
+        int finest_ln);
 
     //\}
 
@@ -116,7 +116,7 @@ public:
      */
     void
     registerLMarkerPatchDataIndex(
-        const int mark_idx);
+        int mark_idx);
 
     /*!
      * \brief Register a range of marker indices that are to be visualized as a
@@ -128,8 +128,8 @@ public:
     void
     registerMarkerCloud(
         const std::string& name,
-        const int nmarks,
-        const int first_marker_idx);
+        int nmarks,
+        int first_marker_idx);
 
     /*!
      * \brief Register a range of Lagrangian indices that are to be treated as a
@@ -143,8 +143,8 @@ public:
         const std::string& name,
         const SAMRAI::hier::IntVector<NDIM>& nelem,
         const SAMRAI::hier::IntVector<NDIM>& periodic,
-        const int first_lag_idx,
-        const int level_number);
+        int first_lag_idx,
+        int level_number);
 
     /*!
      * \brief Register the coordinates of the curvilinear mesh with the m3D data
@@ -153,7 +153,7 @@ public:
     void
     registerCoordsData(
         SAMRAI::tbox::Pointer<LData> coords_data,
-        const int level_number);
+        int level_number);
 
     /*!
      * \brief Register a single Lagrangian AO (application ordering) objects
@@ -167,7 +167,7 @@ public:
     void
     registerLagrangianAO(
         AO& ao,
-        const int level_number);
+        int level_number);
 
     /*!
      * \brief Register a collection of Lagrangian AO (application ordering)
@@ -181,16 +181,16 @@ public:
     void
     registerLagrangianAO(
         std::vector<AO>& ao,
-        const int coarsest_ln,
-        const int finest_ln);
+        int coarsest_ln,
+        int finest_ln);
 
     /*!
      * \brief Write the plot data to disk.
      */
     void
     writePlotData(
-        const int time_step_number,
-        const double simulation_time);
+        int time_step_number,
+        double simulation_time);
 
 protected:
 
@@ -232,7 +232,7 @@ private:
     void
     buildVecScatters(
         AO& ao,
-        const int level_number);
+        int level_number);
 
     /*!
      * \brief Return the base-name of the marker output file corresponding to
@@ -240,7 +240,7 @@ private:
      */
     std::string
     getMarkerFileName(
-        const int& time_step_number) const;
+        int time_step_number) const;
 
     /*!
      * \brief Return the base-name of the fiber output file corresponding to the
@@ -248,7 +248,7 @@ private:
      */
     std::string
     getFiberFileName(
-        const int& time_step_number) const;
+        int time_step_number) const;
 
     /*!
      * \brief Return the name of the menu file.

@@ -70,8 +70,8 @@ public:
      */
     LData(
         const std::string& name,
-        const unsigned int num_local_nodes,
-        const unsigned int depth,
+        unsigned int num_local_nodes,
+        unsigned int depth,
         const std::vector<int>& nonlocal_petsc_indices=std::vector<int>(0));
 
     /*!

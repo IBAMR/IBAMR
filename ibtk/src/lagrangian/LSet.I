@@ -247,9 +247,12 @@ template<class T>
 inline size_t
 LSet<T>::getDataStreamSize() const
 {
-    return std::accumulate(d_set.begin(),d_set.end(),
-                           SAMRAI::tbox::AbstractStream::sizeofInt(),
-                           LSetGetDataStreamSizeSum());
+    size_t size = SAMRAI::tbox::AbstractStream::sizeofInt();
+    for (unsigned int k = 0; k < d_set.size(); ++k)
+    {
+        size += d_set[k]->getDataStreamSize();
+    }
+    return size;
 }// getDataStreamSize
 
 template<class T>
@@ -259,7 +262,10 @@ LSet<T>::packStream(
 {
     int num_idx = d_set.size();
     stream.pack(&num_idx,1);
-    for_each(d_set.begin(),d_set.end(),LSetPackStream(&stream));
+    for (unsigned int k = 0; k < d_set.size(); ++k)
+    {
+        d_set[k]->packStream(stream);
+    }
     return;
 }// packStream
 
@@ -273,14 +279,18 @@ LSet<T>::unpackStream(
     int num_idx;
     stream.unpack(&num_idx,1);
     d_set.resize(num_idx);
-    generate(d_set.begin(),d_set.end(),LSetUnpackStream(&stream,offset));
+    for (unsigned int k = 0; k < d_set.size(); ++k)
+    {
+        d_set[k] = new T(stream,offset);
+    }
+    LSet<T>::DataSet(d_set).swap(d_set); // trim-to-fit
     return;
 }// unpackStream
 
 template<class T>
 inline void
 LSet<T>::putToDatabase(
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& database)
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database)
 {
     const size_t data_sz = getDataStreamSize();
     FixedSizedStream stream(data_sz);
@@ -294,7 +304,7 @@ LSet<T>::putToDatabase(
 template<class T>
 inline void
 LSet<T>::getFromDatabase(
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& database)
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database)
 {
     database->getIntegerArray("d_offset", d_offset, NDIM);
     const size_t data_sz = database->getInteger("data_sz");

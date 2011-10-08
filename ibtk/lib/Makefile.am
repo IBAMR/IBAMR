@@ -47,11 +47,15 @@ $(top_srcdir)/src/utilities/Interpolator.I \
 $(top_srcdir)/src/utilities/Interpolator.h \
 $(top_srcdir)/src/utilities/compiler_hints.h \
 $(top_srcdir)/src/utilities/efficient_add_or_update.h \
+$(top_srcdir)/src/utilities/ibtk_enums.h \
+$(top_srcdir)/src/utilities/ibtk_utilities.h \
+$(top_srcdir)/src/utilities/app_namespaces.h \
 $(top_srcdir)/src/utilities/namespaces.h
 
 ## Dimension-dependent libraries
 DIM_INDEPENDENT_SOURCES = \
 $(top_srcdir)/src/boundary/HierarchyGhostCellInterpolation.C \
+$(top_srcdir)/src/boundary/cf_interface/CartCellDoubleLinearCFInterpolation.C \
 $(top_srcdir)/src/boundary/cf_interface/CartCellDoubleQuadraticCFInterpolation.C \
 $(top_srcdir)/src/boundary/cf_interface/CartSideDoubleQuadraticCFInterpolation.C \
 $(top_srcdir)/src/boundary/cf_interface/CoarseFineBoundaryRefinePatchStrategy.C \
@@ -60,7 +64,6 @@ $(top_srcdir)/src/boundary/physical_boundary/CartExtrapPhysBdryOp.C \
 $(top_srcdir)/src/boundary/physical_boundary/CartSideRobinPhysBdryOp.C \
 $(top_srcdir)/src/boundary/physical_boundary/ExtendedRobinBcCoefStrategy.C \
 $(top_srcdir)/src/boundary/physical_boundary/PhysicalBoundaryUtilities.C \
-$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.C \
 $(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.C \
 $(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.C \
 $(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.C \
@@ -98,6 +101,7 @@ $(top_srcdir)/src/patch_data/VecCellVariable.C \
 $(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.C \
 $(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.C \
 $(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.C \
+$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedConstantRefine.C \
 $(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.C \
 $(top_srcdir)/src/refine_ops/VecCellRefineAdapter.C \
 $(top_srcdir)/src/refine_ops/LMarkerRefine.C \
@@ -132,6 +136,7 @@ $(top_srcdir)/src/solvers/wrappers/PETScPCLSWrapper.C \
 $(top_srcdir)/src/solvers/wrappers/PETScSAMRAIVectorReal.C \
 $(top_srcdir)/src/solvers/wrappers/PETScSNESFunctionGOWrapper.C \
 $(top_srcdir)/src/solvers/wrappers/PETScSNESJacobianJOWrapper.C \
+$(top_srcdir)/src/utilities/AppInitializer.C \
 $(top_srcdir)/src/utilities/CartGridFunction.C \
 $(top_srcdir)/src/utilities/CellNoCornersFillPattern.C \
 $(top_srcdir)/src/utilities/CoarsenPatchStrategySet.C \
@@ -170,6 +175,7 @@ endif
 
 pkg_include_HEADERS += \
 $(top_srcdir)/src/boundary/HierarchyGhostCellInterpolation.h \
+$(top_srcdir)/src/boundary/cf_interface/CartCellDoubleLinearCFInterpolation.h \
 $(top_srcdir)/src/boundary/cf_interface/CartCellDoubleQuadraticCFInterpolation.h \
 $(top_srcdir)/src/boundary/cf_interface/CartSideDoubleQuadraticCFInterpolation.h \
 $(top_srcdir)/src/boundary/cf_interface/CoarseFineBoundaryRefinePatchStrategy.h \
@@ -178,7 +184,6 @@ $(top_srcdir)/src/boundary/physical_boundary/CartExtrapPhysBdryOp.h \
 $(top_srcdir)/src/boundary/physical_boundary/CartSideRobinPhysBdryOp.h \
 $(top_srcdir)/src/boundary/physical_boundary/ExtendedRobinBcCoefStrategy.h \
 $(top_srcdir)/src/boundary/physical_boundary/PhysicalBoundaryUtilities.h \
-$(top_srcdir)/src/boundary/physical_boundary/TimeDependentLocationIndexRobinBcCoefs.h \
 $(top_srcdir)/src/boundary/physical_boundary/muParserRobinBcCoefs.h \
 $(top_srcdir)/src/coarsen_ops/CartCellDoubleCubicCoarsen.h \
 $(top_srcdir)/src/coarsen_ops/CartSideDoubleCubicCoarsen.h \
@@ -243,6 +248,7 @@ $(top_srcdir)/src/patch_data/VecCellVariable.h \
 $(top_srcdir)/src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.h \
 $(top_srcdir)/src/refine_ops/CartCellDoubleQuadraticRefine.h \
 $(top_srcdir)/src/refine_ops/CartSideDoubleDivPreservingRefine.h \
+$(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedConstantRefine.h \
 $(top_srcdir)/src/refine_ops/CartSideDoubleSpecializedLinearRefine.h \
 $(top_srcdir)/src/refine_ops/VecCellRefineAdapter.h \
 $(top_srcdir)/src/refine_ops/LMarkerRefine.h \
@@ -292,6 +298,7 @@ $(top_srcdir)/src/solvers/wrappers/PETScSNESFunctionGOWrapper.I \
 $(top_srcdir)/src/solvers/wrappers/PETScSNESFunctionGOWrapper.h \
 $(top_srcdir)/src/solvers/wrappers/PETScSNESJacobianJOWrapper.I \
 $(top_srcdir)/src/solvers/wrappers/PETScSNESJacobianJOWrapper.h \
+$(top_srcdir)/src/utilities/AppInitializer.h \
 $(top_srcdir)/src/utilities/CartGridFunction.h \
 $(top_srcdir)/src/utilities/CellNoCornersFillPattern.h \
 $(top_srcdir)/src/utilities/CoarsenPatchStrategySet.I \
@@ -335,12 +342,12 @@ $(top_srcdir)/src/utilities/muParserCartGridFunction.h
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
 $(top_srcdir)/src/lagrangian/FEDataManager.h \
-$(top_srcdir)/src/utilities/libmesh_utilities.h \
-$(top_srcdir)/src/utilities/ibtk_utilities.h
+$(top_srcdir)/src/utilities/libmesh_utilities.h
 endif
 
 libIBTK2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBTK2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
+$(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation2d.f \
 $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f \
 $(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop2d.f \
 $(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen2d.f \
@@ -360,6 +367,7 @@ $(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
 
 libIBTK3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 libIBTK3d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
+$(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation3d.f \
 $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.f \
 $(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop3d.f \
 $(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen3d.f \

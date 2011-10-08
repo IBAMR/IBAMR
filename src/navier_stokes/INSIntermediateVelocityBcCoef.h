@@ -1,5 +1,5 @@
 // Filename: INSIntermediateVelocityBcCoef.h
-// Created on 30 Aug 2007 by Boyce Griffith
+// Created on 24 Jul 2008 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -35,6 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// IBAMR INCLUDES
+#include <ibamr/INSProblemCoefs.h>
+
 // IBTK INCLUDES
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
 
@@ -48,7 +51,14 @@ namespace IBAMR
 /*!
  * \brief Class INSIntermediateVelocityBcCoef is a concrete
  * SAMRAI::solv::RobinBcCoefStrategy that is used to specify boundary conditions
- * for the intermediate velocity field that is computed in a projection method.
+ * for the intermediate velocity solve embedded in a projection method or in a
+ * block preconditioner for the incompressible Navier-Stokes equations.
+ *
+ * This class interprets pure Dirichlet boundary conditions as prescribed
+ * velocity boundary conditions, whereas pure Neumann boundary conditions are
+ * interpreted as prescribed traction (stress) boundary conditions.  These are
+ * translated into Dirichlet and Neumann boundary conditions, respectively, for
+ * the intermediate velocity.
  */
 class INSIntermediateVelocityBcCoef
     : public IBTK::ExtendedRobinBcCoefStrategy
@@ -58,18 +68,18 @@ public:
      * \brief Constructor.
      *
      * \param comp_idx        Component of the velocity which this boundary condition specification is to operate on
-     * \param Phi_idx         Patch data descriptor index for the cell-centered scalar function Phi
-     * \param u_bc_coefs      Vector of boundary condition specification objects corresponding to the components of the velocity.
+     * \param problem_coefs   Problem coefficients
+     * \param bc_coefs        Vector of boundary condition specification objects
      * \param homogeneous_bc  Whether to employ homogeneous (as opposed to inhomogeneous) boundary conditions
      *
      * \note Precisely NDIM boundary condition objects must be provided to the
      * class constructor.
      */
     INSIntermediateVelocityBcCoef(
-        const unsigned int comp_idx,
-        const int Phi_idx,
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
-        const bool homogeneous_bc=false);
+        int comp_idx,
+        const INSProblemCoefs* problem_coefs,
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+        bool homogeneous_bc=false);
 
     /*!
      * \brief Destructor.
@@ -77,42 +87,32 @@ public:
     ~INSIntermediateVelocityBcCoef();
 
     /*!
-     * \brief Reset the boundary condition specification object so that it
-     * specifies the "true" velocity boundary conditions.
-     */
-    void
-    useTrueVelocityBcCoefs();
-
-    /*!
-     * \brief Reset the boundary condition specification object so that it
-     * specifies the "intermediate" velocity boundary conditions.
-     */
-    void
-    useIntermediateVelocityBcCoefs(
-        const double current_time,
-        const double new_time,
-        const double rho,
-        const bool velocity_correction);
-
-    /*!
-     * \brief Reset the patch data descriptor index for the cell-centered scalar
-     * function Phi.
+     * \brief Set the INSProblemCoefs object used by this boundary condition
+     * specification object.
      *
-     * \param Phi_idx  Patch data descriptor index for the cell-centered scalar function Phi
+     * \param problem_coefs   Problem coefficients
      */
     void
-    setPhiPatchDataIndex(
-        const int Phi_idx);
+    setINSProblemCoefs(
+        const INSProblemCoefs* problem_coefs);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-     * physical boundary conditions for the velocity.
+     * physical boundary conditions.
      *
-     * \param u_bc_coefs  Vector of boundary condition specification objects corresponding to the components of the velocity.
+     * \param bc_coefs  Vector of boundary condition specification objects
      */
     void
-    setVelocityPhysicalBcCoefs(
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs);
+    setPhysicalBoundaryConditions(
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
+
+    /*!
+     * \brief Set the current time interval.
+     */
+    void
+    setTimeInterval(
+        double current_time,
+        double new_time);
 
     /*!
      * \name Implementation of IBTK::ExtendedRobinBcCoefStrategy interface.
@@ -124,7 +124,7 @@ public:
      */
     void
     setTargetPatchDataIndex(
-        const int target_idx);
+        int target_idx);
 
     /*!
      * \brief Set whether the class is filling homogeneous or inhomogeneous
@@ -132,7 +132,7 @@ public:
      */
     void
     setHomogeneousBc(
-        const bool homogeneous_bc);
+        bool homogeneous_bc);
 
     //\}
 
@@ -234,49 +234,25 @@ private:
         const INSIntermediateVelocityBcCoef& that);
 
     /*
-     * Component of the velocity which this boundary condition specification is to operate on.
+     * Component of the velocity which this boundary condition specification is
+     * to operate on.
      */
-    const unsigned int d_comp_idx;
-
-    /*
-     * The patch data index corresponding to the current value of U_star.
-     */
-    int d_target_idx;
-
-    /*
-     * The patch data index corresponding to the estimated value of Phi.
-     */
-    int d_Phi_idx;
+    const int d_comp_idx;
 
     /*
      * The boundary condition specification objects for the updated velocity.
      */
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_u_bc_coefs;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs;
+
+    /*
+     * The patch data index corresponding to the current value of P.
+     */
+    int d_target_idx;
 
     /*
      * Whether to use homogeneous boundary conditions.
      */
     bool d_homogeneous_bc;
-
-    /*
-     * Current time, new time, and timestep size.
-     */
-    double d_current_time, d_new_time;
-
-    /*
-     * Fluid density rho.
-     */
-    double d_rho;
-
-    /*
-     * Whether we are using the "true" or "intermediate" velocity bc coefs.
-     */
-    bool d_using_intermediate_velocity_bc_coefs;
-
-    /*
-     * Whether we are doing a velocity correction or not.
-     */
-    bool d_velocity_correction;
 };
 }// namespace IBAMR
 

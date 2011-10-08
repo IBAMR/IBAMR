@@ -37,6 +37,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/LinearSolver.h>
+#include <ibtk/ibtk_enums.h>
 
 /////////////////////////////// FORWARD DECLARATIONS /////////////////////////
 
@@ -77,7 +78,7 @@ public:
      */
     FACPreconditioner(
         const std::string& object_name,
-        FACPreconditionerStrategy& fac_strategy,
+        SAMRAI::tbox::Pointer<FACPreconditionerStrategy> fac_strategy,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
 
     /*!
@@ -89,6 +90,14 @@ public:
      * \name Linear solver functionality.
      */
     //\{
+
+    /*!
+     * \brief Set the current time interval (for a time-dependent solver).
+     */
+    void
+    setTimeInterval(
+        double current_time,
+        double new_time);
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -255,6 +264,19 @@ public:
     getRelativeTolerance() const;
 
     /*!
+     * \brief Set the multigrid algorithm cycle type.
+     */
+    void
+    setMGCycleType(
+        MGCycleType cycle_type);
+
+    /*!
+     * \brief Get the multigrid algorithm cycle type.
+     */
+    MGCycleType
+    getMGCycleType() const;
+
+    /*!
      * \brief Set the number of pre-smoothing sweeps to employ.
      */
     void
@@ -353,19 +375,39 @@ private:
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
    void
-   FACCycle(
+   FACVCycleNoPreSmoothing(
+       SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& u,
+       SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& f,
+       int level_num);
+
+   void
+   FACVCycle(
+       SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& u,
+       SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& f,
+       int level_num);
+
+   void
+   FACWCycle(
+       SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& u,
+       SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& f,
+       int level_num);
+
+   void
+   FACFCycle(
        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& u,
        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& f,
        int level_num);
 
     std::string d_object_name;
     bool d_is_initialized;
-    FACPreconditionerStrategy& d_fac_strategy;
+    SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln;
     int d_finest_ln;
+    MGCycleType d_cycle_type;
     int d_num_pre_sweeps, d_num_post_sweeps;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_f, d_r;
+    bool d_recompute_residual;
     bool d_do_log;
 };
 }// namespace IBTK

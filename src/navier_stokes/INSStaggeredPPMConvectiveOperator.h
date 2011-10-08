@@ -36,14 +36,10 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/ibamr_enums.h>
-
-// IBTK INCLUDES
-#include <ibtk/GeneralOperator.h>
+#include <ibamr/ConvectiveOperator.h>
 
 // SAMRAI INCLUDES
 #include <RefineAlgorithm.h>
-#include <RefineOperator.h>
 #include <SideVariable.h>
 
 // C++ STDLIB INCLUDES
@@ -55,8 +51,8 @@ namespace IBAMR
 {
 /*!
  * \brief Class INSStaggeredPPMConvectiveOperator is a concrete
- * IBTK::GeneralOperator which implements a upwind convective differencing
- * operator based on the piecewise parabolic method (PPM).
+ * ConvectiveOperator that implements a upwind convective differencing operator
+ * based on the piecewise parabolic method (PPM).
  *
  * Class INSStaggeredPPMConvectiveOperator computes the convective derivative of
  * a side-centered velocity field using the xsPPM7 method of Rider, Greenough,
@@ -65,14 +61,14 @@ namespace IBAMR
  * \see INSStaggeredHierarchyIntegrator
  */
 class INSStaggeredPPMConvectiveOperator
-    : public IBTK::GeneralOperator
+    : public ConvectiveOperator
 {
 public:
     /*!
      * \brief Class constructor.
      */
     INSStaggeredPPMConvectiveOperator(
-        const ConvectiveDifferencingType& difference_form);
+        ConvectiveDifferencingType difference_form);
 
     /*!
      * \brief Destructor.
@@ -84,39 +80,13 @@ public:
      */
     void
     applyConvectiveOperator(
-        const int U_idx,
-        const int N_idx);
+        int U_idx,
+        int N_idx);
 
     /*!
      * \name General operator functionality.
      */
     //\{
-
-    /*!
-     * \brief Compute \f$y=F[x]\f$.
-     *
-     * Before calling apply(), the form of the vectors \a x and \a y should be
-     * set properly by the user on all patch interiors on the specified range of
-     * levels in the patch hierarchy.  The user is responsible for all data
-     * management for the quantities associated with the vectors.  In
-     * particular, patch data in these vectors must be allocated prior to
-     * calling this method.
-     *
-     * \param x input vector
-     * \param y output vector, i.e., \f$y=F[x]\f$
-     *
-     * <b>Conditions on Parameters:</b>
-     * - vectors \a x and \a y must have same hierarchy
-     * - vectors \a x and \a y must have same structure, depth, etc.
-     *
-     * In general, the vectors \a x and \a y \em cannot be the same.
-     *
-     * \see initializeOperatorState
-     */
-    void
-    apply(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=F[x] and
@@ -217,12 +187,8 @@ private:
     // Whether the operator is initialized.
     bool d_is_initialized;
 
-    // Determines which form of differencing to use.
-    const ConvectiveDifferencingType d_difference_form;
-
     // Data communication algorithms, operators, and schedules.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_refine_alg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_refine_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_refine_strategy;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_refine_scheds;
 

@@ -180,6 +180,14 @@ public:
     //\{
 
     /*!
+     * \brief Set the current time interval (for a time-dependent solver).
+     */
+    void
+    setTimeInterval(
+        double current_time,
+        double new_time);
+
+    /*!
      * \brief Set the linear operator used when solving \f$Ax=b\f$.
      */
     void
@@ -216,7 +224,7 @@ public:
      */
     void
     setNullspace(
-        const bool contains_constant_vector,
+        bool contains_constant_vector,
         SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > nullspace_basis_vec);
 
     /*!
@@ -227,7 +235,7 @@ public:
      */
     void
     setNullspace(
-        const bool contains_constant_vector,
+        bool contains_constant_vector,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs);
 
     /*!

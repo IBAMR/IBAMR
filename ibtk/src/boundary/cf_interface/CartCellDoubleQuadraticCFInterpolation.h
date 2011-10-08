@@ -91,7 +91,7 @@ public:
     void
     setPhysicalBoundaryConditions(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const double fill_time,
+        double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!
@@ -162,14 +162,14 @@ public:
      */
     void
     setConsistentInterpolationScheme(
-        const bool consistent_type_2_bdry);
+        bool consistent_type_2_bdry);
 
     /*!
      * \brief Reset the patch data index operated upon by this class.
      */
     void
     setPatchDataIndex(
-        const int patch_data_index);
+        int patch_data_index);
 
     /*!
      * \brief Reset the patch data indices operated upon by this class.

@@ -38,6 +38,9 @@
 #include <cstring>
 #include <tbox/Utilities.h>
 
+namespace IBAMR
+{
+
 /*!
  * \brief Routine for converting strings to enums.
  */
@@ -56,10 +59,40 @@ string_to_enum(
 template<typename T>
 inline std::string
 enum_to_string(
-    const T& val)
+    T val)
 {
     TBOX_ERROR("UNSUPPORTED ENUM TYPE\n");
     return "UNKNOWN";
+}// enum_to_string
+
+/*!
+ * \brief Enumerated type for different convective operator types.
+ */
+enum ConvectiveOperatorType
+{
+    CENTERED,
+    PPM,
+    UNKNOWN_CONVECTIVE_OPERATOR_TYPE=-1
+};
+
+template<>
+inline ConvectiveOperatorType
+string_to_enum<ConvectiveOperatorType>(
+    const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "CENTERED") == 0) return CENTERED;
+    if (strcasecmp(val.c_str(), "PPM"     ) == 0) return PPM;
+    return UNKNOWN_CONVECTIVE_OPERATOR_TYPE;
+}// string_to_enum
+
+template<>
+inline std::string
+enum_to_string<ConvectiveOperatorType>(
+    ConvectiveOperatorType val)
+{
+    if (val == CENTERED) return "CENTERED";
+    if (val == PPM      ) return "PPM";
+    return "UNKNOWN_CONVECTIVE_OPERATOR_TYPE";
 }// enum_to_string
 
 /*!
@@ -90,12 +123,75 @@ string_to_enum<ConvectiveDifferencingType>(
 template<>
 inline std::string
 enum_to_string<ConvectiveDifferencingType>(
-    const ConvectiveDifferencingType& val)
+    ConvectiveDifferencingType val)
 {
     if (val == ADVECTIVE     ) return "ADVECTIVE";
     if (val == CONSERVATIVE  ) return "CONSERVATIVE";
     if (val == SKEW_SYMMETRIC) return "SKEW_SYMMETRIC";
     return "UNKNOWN_CONVECTIVE_DIFFERENCING_TYPE";
+}// enum_to_string
+
+/*!
+ * \brief Enumerated type for different basic time stepping schemes.
+ */
+enum TimesteppingType
+{
+    MIDPOINT_RULE,
+    TRAPEZOIDAL_RULE,
+    UNKNOWN_TIME_STEPPING_TYPE=-1
+};
+
+template<>
+inline TimesteppingType
+string_to_enum<TimesteppingType>(
+    const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "MIDPOINT_RULE"   ) == 0) return MIDPOINT_RULE;
+    if (strcasecmp(val.c_str(), "TRAPEZOIDAL_RULE") == 0) return TRAPEZOIDAL_RULE;
+    return UNKNOWN_TIME_STEPPING_TYPE;
+}// string_to_enum
+
+template<>
+inline std::string
+enum_to_string<TimesteppingType>(
+    TimesteppingType val)
+{
+    if (val == MIDPOINT_RULE   ) return "MIDPOINT_RULE";
+    if (val == TRAPEZOIDAL_RULE) return "TRAPEZOIDAL_RULE";
+    return "UNKNOWN_TIME_STEPPING_TYPE";
+}// enum_to_string
+
+/*!
+ * \brief Enumerated type for different standard data contexts.
+ */
+enum VariableContextType
+{
+    CURRENT_DATA,
+    NEW_DATA,
+    SCRATCH_DATA,
+    UNKNOWN_VARIABLE_CONTEXT_TYPE=-1
+};
+
+template<>
+inline VariableContextType
+string_to_enum<VariableContextType>(
+    const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "CURRENT_DATA") == 0) return CURRENT_DATA;
+    if (strcasecmp(val.c_str(), "NEW_DATA"    ) == 0) return NEW_DATA;
+    if (strcasecmp(val.c_str(), "SCRATCH_DATA") == 0) return SCRATCH_DATA;
+    return UNKNOWN_VARIABLE_CONTEXT_TYPE;
+}// string_to_enum
+
+template<>
+inline std::string
+enum_to_string<VariableContextType>(
+    VariableContextType val)
+{
+    if (val == CURRENT_DATA) return "CURRENT_DATA";
+    if (val == NEW_DATA    ) return "NEW_DATA";
+    if (val == SCRATCH_DATA) return "SCRATCH_DATA";
+    return "UNKNOWN_VARIABLE_CONTEXT_TYPE";
 }// enum_to_string
 
 /*!
@@ -115,14 +211,17 @@ string_to_enum<ProjectionMethodType>(
     const std::string& val)
 {
     if (strcasecmp(val.c_str(), "PRESSURE_UPDATE"   ) == 0) return PRESSURE_UPDATE;
+    if (strcasecmp(val.c_str(), "KIM_MOIN"          ) == 0) return PRESSURE_UPDATE;
     if (strcasecmp(val.c_str(), "PRESSURE_INCREMENT") == 0) return PRESSURE_INCREMENT;
+    if (strcasecmp(val.c_str(), "BCG"               ) == 0) return PRESSURE_INCREMENT;
+    if (strcasecmp(val.c_str(), "BELL_COLELLA_GLAZ" ) == 0) return PRESSURE_INCREMENT;
     return UNKNOWN_PROJECTION_METHOD_TYPE;
 }// string_to_enum
 
 template<>
 inline std::string
 enum_to_string<ProjectionMethodType>(
-    const ProjectionMethodType& val)
+    ProjectionMethodType val)
 {
     if (val == PRESSURE_UPDATE   ) return "PRESSURE_UPDATE";
     if (val == PRESSURE_INCREMENT) return "PRESSURE_INCREMENT";
@@ -152,7 +251,7 @@ string_to_enum<RegridMode>(
 template<>
 inline std::string
 enum_to_string<RegridMode>(
-    const RegridMode& val)
+    RegridMode val)
 {
     if (val == STANDARD  ) return "STANDARD";
     if (val == AGGRESSIVE) return "AGGRESSIVE";
@@ -186,7 +285,7 @@ string_to_enum<StokesPreconditionerType>(
 template<>
 inline std::string
 enum_to_string<StokesPreconditionerType>(
-    const StokesPreconditionerType& val)
+    StokesPreconditionerType val)
 {
     if (val == NONE               ) return "NONE";
     if (val == PROJECTION_METHOD  ) return "PROJECTION_METHOD";
@@ -218,12 +317,14 @@ string_to_enum<ViscousTimesteppingType>(
 template<>
 inline std::string
 enum_to_string<ViscousTimesteppingType>(
-    const ViscousTimesteppingType& val)
+    ViscousTimesteppingType val)
 {
     if (val == BACKWARD_EULER) return "BACKWARD_EULER";
     if (val == CRANK_NICOLSON) return "CRANK_NICOLSON";
     return "UNKNOWN_VISCOUS_TIMESTEPPING_METHOD";
 }// enum_to_string
+
+}// namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

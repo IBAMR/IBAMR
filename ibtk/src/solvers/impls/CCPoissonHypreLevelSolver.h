@@ -168,7 +168,7 @@ public:
      */
     void
     setHomogeneousBc(
-        const bool homogeneous_bc);
+        bool homogeneous_bc);
 
     /*!
      * \brief Set the hierarchy time, for use with the refinement schedules and
@@ -176,14 +176,14 @@ public:
      */
     void
     setTime(
-        const double time);
+        double time);
 
     /*!
      * \brief Set the data depth used for the solution and rhs data.
      */
     void
     setDataDepth(
-        const int depth);
+        int depth);
 
     //\}
 
@@ -427,16 +427,16 @@ private:
     setupHypreSolver();
     bool
     solveSystem(
-        const int x_idx,
-        const int b_idx);
+        int x_idx,
+        int b_idx);
     void
     copyToHypre(
         HYPRE_StructVector vector,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> >& src_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > src_data,
         const SAMRAI::hier::Box<NDIM>& box);
     void
     copyFromHypre(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> >& dst_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > dst_data,
         HYPRE_StructVector vector,
         const SAMRAI::hier::Box<NDIM>& box);
     void
@@ -450,11 +450,11 @@ private:
      */
     void
     adjustBoundaryRhsEntries_aligned(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> >& rhs_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::OutersideData<NDIM,double> >& D_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > rhs_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::OutersideData<NDIM,double> > D_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& surface_boxes,
-        const double* const dx);
+        const double* dx);
 
     /*!
      * \brief Adjust the rhs to account for inhomogeneous boundary conditions in
@@ -462,11 +462,11 @@ private:
      */
     void
     adjustBoundaryRhsEntries_nonaligned(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> >& rhs_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::OutersideData<NDIM,double> >& D_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > rhs_data,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::OutersideData<NDIM,double> > D_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& surface_boxes,
-        const double* const dx);
+        const double* dx);
 
     /*!
      * \brief Object name.

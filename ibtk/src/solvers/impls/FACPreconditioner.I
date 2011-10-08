@@ -105,14 +105,23 @@ FACPreconditioner::getRelativeTolerance() const
 }// getRelativeTolerance
 
 inline void
+FACPreconditioner::setMGCycleType(
+    MGCycleType cycle_type)
+{
+    d_cycle_type = cycle_type;
+    return;
+}// setMGCycleType
+
+inline MGCycleType
+FACPreconditioner::getMGCycleType() const
+{
+    return d_cycle_type;
+}// getMGCycleType
+
+inline void
 FACPreconditioner::setNumPreSmoothingSweeps(
     int num_pre_sweeps)
 {
-    if (d_is_initialized)
-    {
-        TBOX_ERROR(d_object_name << "::setNumPreSmoothingSweeps()\n"
-                   << "  cannot be called while solver state is initialized" << std::endl);
-    }
     d_num_pre_sweeps = num_pre_sweeps;
     return;
 }// setNumPreSmoothingSweeps

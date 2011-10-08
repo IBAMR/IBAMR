@@ -290,7 +290,7 @@ EdgeDataSynchronization::deallocateOperatorState()
 
 void
 EdgeDataSynchronization::synchronizeData(
-    const double& fill_time)
+    const double fill_time)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_is_initialized);
@@ -319,10 +319,5 @@ EdgeDataSynchronization::synchronizeData(
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 }// namespace IBTK
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::EdgeDataSynchronization>;
 
 //////////////////////////////////////////////////////////////////////////////

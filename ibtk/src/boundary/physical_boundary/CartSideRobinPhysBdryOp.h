@@ -100,9 +100,9 @@ public:
      * \param homogeneous_bc    Whether to employ the homogeneous form of the boundary conditions.
      */
     CartSideRobinPhysBdryOp(
-        const int patch_data_index,
+        int patch_data_index,
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
-        const bool homogeneous_bc=false);
+        bool homogeneous_bc=false);
 
     /*!
      * \brief Constructor to fill boundary conditions for vector-valued
@@ -116,7 +116,7 @@ public:
     CartSideRobinPhysBdryOp(
         const std::set<int>& patch_data_indices,
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
-        const bool homogeneous_bc=false);
+        bool homogeneous_bc=false);
 
     /*!
      * \brief Constructor to fill boundary conditions for vector-valued
@@ -130,7 +130,7 @@ public:
     CartSideRobinPhysBdryOp(
         const SAMRAI::hier::ComponentSelector& patch_data_indices,
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
-        const bool homogeneous_bc=false);
+        bool homogeneous_bc=false);
 
     /*!
      * \brief Destructor.
@@ -142,7 +142,7 @@ public:
      */
     void
     setPatchDataIndex(
-        const int patch_data_index);
+        int patch_data_index);
 
     /*!
      * \brief Reset the patch data indices operated upon by this class.
@@ -198,7 +198,7 @@ public:
     void
     setPhysicalBoundaryConditions(
         SAMRAI::hier::Patch<NDIM>& patch,
-        const double fill_time,
+        double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
 
     /*!
@@ -292,9 +292,9 @@ private:
      */
     void
     setCodimension1BdryValues(
-        const int patch_data_idx,
+        int patch_data_idx,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim1_boxes,
-        const double fill_time,
+        double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
         SAMRAI::hier::Patch<NDIM>& patch);
 
@@ -304,7 +304,7 @@ private:
      */
     void
     setCodimension2BdryValues(
-        const int patch_data_idx,
+        int patch_data_idx,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim2_boxes,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
         const SAMRAI::hier::Patch<NDIM>& patch);
@@ -314,7 +314,7 @@ private:
      */
     void
     setCodimension3BdryValues(
-        const int patch_data_idx,
+        int patch_data_idx,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim3_boxes,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
         const SAMRAI::hier::Patch<NDIM>& patch);

@@ -52,22 +52,11 @@
 #include <ibtk/PETScKrylovLinearSolver.h>
 
 // SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
-#include <CellDataFactory.h>
-#include <CoarsenOperator.h>
 #include <HierarchyDataOpsManager.h>
-#include <VariableDatabase.h>
-#include <tbox/MathUtilities.h>
 #include <tbox/NullDatabase.h>
-#include <tbox/RestartManager.h>
-#include <tbox/Timer.h>
-#include <tbox/TimerManager.h>
-#include <tbox/Utilities.h>
 
 // C++ STDLIB INCLUDES
-#include <iterator>
 #include <limits>
-#include <set>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -77,21 +66,6 @@ namespace IBAMR
 
 namespace
 {
-// Timers.
-static Timer* t_initialize_hierarchy_integrator;
-static Timer* t_initialize_hierarchy;
-static Timer* t_advance_hierarchy;
-static Timer* t_regrid_hierarchy;
-static Timer* t_integrate_hierarchy;
-static Timer* t_synchronize_hierarchy;
-static Timer* t_synchronize_new_levels;
-static Timer* t_reset_time_dependent_hier_data;
-static Timer* t_reset_hier_data_to_preadvance_state;
-static Timer* t_initialize_level_data;
-static Timer* t_reset_hierarchy_configuration;
-static Timer* t_apply_gradient_detector;
-static Timer* t_put_to_database;
-
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
@@ -107,7 +81,7 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Version of AdvDiffHierarchyIntegrator restart file data.
-static const int ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION = 1;
+static const int ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION = 2;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -115,10 +89,10 @@ static const int ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION = 1;
 AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     const std::string& object_name,
     Pointer<Database> input_db,
-    Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<GodunovAdvector> explicit_predictor,
     bool register_for_restart)
-    : d_viscous_timestepping_type(CRANK_NICOLSON),
+    : HierarchyIntegrator(object_name, input_db, register_for_restart),
+      d_viscous_timestepping_type(CRANK_NICOLSON),
       d_u_var(),
       d_manage_u_data(),
       d_u_is_div_free(),
@@ -141,34 +115,14 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_Q_damping_coef(),
       d_Q_init(),
       d_Q_bc_coef(),
-      d_object_name(object_name),
-      d_registered_for_restart(register_for_restart),
-      d_hierarchy(hierarchy),
-      d_gridding_alg(NULL),
       d_hyp_level_integrator(NULL),
+      d_hyp_level_integrator_db(NULL),
       d_hyp_patch_ops(NULL),
-      d_start_time(0.0),
-      d_end_time(std::numeric_limits<double>::max()),
-      d_grow_dt(2.0),
-      d_max_integrator_steps(std::numeric_limits<int>::max()),
-      d_regrid_interval(1),
-      d_regrid_mode(STANDARD),
-      d_using_default_tag_buffer(true),
-      d_tag_buffer(),
-      d_old_dt(-1.0),
-      d_integrator_time(std::numeric_limits<double>::quiet_NaN()),
-      d_integrator_step(std::numeric_limits<int>::max()),
-      d_is_initialized(false),
-      d_do_log(false),
+      d_hyp_patch_ops_db(NULL),
+      d_explicit_predictor(explicit_predictor),
+      d_integrator_is_initialized(false),
       d_hier_cc_data_ops(NULL),
-      d_hier_math_ops(NULL),
-      d_is_managing_hier_math_ops(true),
-      d_wgt_var(NULL),
-      d_wgt_idx(-1),
       d_temp_context(),
-      d_calgs(),
-      d_cstrategies(),
-      d_cscheds(),
       d_sol_vecs(),
       d_rhs_vecs(),
       d_max_iterations(25),
@@ -189,57 +143,30 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(!input_db.isNull());
-    TBOX_ASSERT(!hierarchy.isNull());
     TBOX_ASSERT(!explicit_predictor.isNull());
 #endif
-
-    if (d_registered_for_restart)
-    {
-        RestartManager::getManager()->registerRestartItem(d_object_name, this);
-    }
-
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     if (!input_db.isNull()) getFromInput(input_db, from_restart);
 
-    // Initialize the HyperbolicPatchStrategy and
-    // HyperbolicLevelIntegrator objects used to provide the
-    // numerical routines for explicitly integrating the advective terms.
-    Pointer<Database> hyp_patch_ops_input_db;
-    if (input_db->keyExists("AdvDiffHypPatchOps"))
-    {
-        hyp_patch_ops_input_db = input_db->getDatabase("AdvDiffHypPatchOps");
-    }
-    else
-    {
-        hyp_patch_ops_input_db = new NullDatabase();
-    }
-
-    d_hyp_patch_ops = new AdvDiffHypPatchOps(
-        object_name+"::AdvDiffHypPatchOps",
-        hyp_patch_ops_input_db,
-        explicit_predictor,
-        d_hierarchy->getGridGeometry(),
-        d_registered_for_restart);
-
-    Pointer<Database> hyp_level_integrator_input_db;
+    // Get initialization data for the hyperbolic patch strategy objects.
     if (input_db->keyExists("HyperbolicLevelIntegrator"))
     {
-        hyp_level_integrator_input_db = input_db->getDatabase("HyperbolicLevelIntegrator");
+        d_hyp_level_integrator_db = input_db->getDatabase("HyperbolicLevelIntegrator");
     }
     else
     {
-        hyp_level_integrator_input_db = new NullDatabase();
+        d_hyp_level_integrator_db = new NullDatabase();
     }
-
-    static const bool using_time_refinement = false;
-    d_hyp_level_integrator = new HyperbolicLevelIntegrator<NDIM>(
-        object_name+"::HyperbolicLevelIntegrator",
-        hyp_level_integrator_input_db,
-        d_hyp_patch_ops,
-        register_for_restart,
-        using_time_refinement);
+    if (input_db->keyExists("AdvDiffHypPatchOps"))
+    {
+        d_hyp_patch_ops_db = input_db->getDatabase("AdvDiffHypPatchOps");
+    }
+    else
+    {
+        d_hyp_patch_ops_db = new NullDatabase();
+    }
 
     // Get initialization data for the FAC ops and FAC preconditioners.
     if (d_using_FAC)
@@ -252,6 +179,10 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
         {
             d_fac_op_db = input_db->getDatabase("FACOps");
         }
+        else
+        {
+            d_fac_op_db = new NullDatabase();
+        }
 
         if (input_db->keyExists("FACPreconditioner"))
         {
@@ -261,45 +192,16 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
         {
             d_fac_pc_db = input_db->getDatabase("FACPreconditioners");
         }
+        else
+        {
+            d_fac_pc_db = new NullDatabase();
+        }
     }
-
-    // Obtain the Hierarchy data operations objects.
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<CellVariable<NDIM,double> > cc_var = new CellVariable<NDIM,double>("cc_var");
-    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy, true);
-
-    // Setup Timers.
-    IBAMR_DO_ONCE(
-        t_initialize_hierarchy_integrator     = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator()");
-        t_initialize_hierarchy                = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::initializeHierarchy()");
-        t_advance_hierarchy                   = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::advanceHierarchy()");
-        t_regrid_hierarchy                    = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::regridHierarchy()");
-        t_integrate_hierarchy                 = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::integrateHierarchy()");
-        t_synchronize_hierarchy               = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::synchronizeHierarchy()");
-        t_synchronize_new_levels              = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::synchronizeNewLevels()");
-        t_reset_time_dependent_hier_data      = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::resetTimeDependentHierData()");
-        t_reset_hier_data_to_preadvance_state = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::resetHierDataToPreadvanceState()");
-        t_initialize_level_data               = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::initializeLevelData()");
-        t_reset_hierarchy_configuration       = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::resetHierarchyConfiguration()");
-        t_apply_gradient_detector             = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::applyGradientDetector()");
-        t_put_to_database                     = TimerManager::getManager()->getTimer("IBAMR::AdvDiffHierarchyIntegrator::putToDatabase()");
-                  );
     return;
 }// AdvDiffHierarchyIntegrator
 
 AdvDiffHierarchyIntegrator::~AdvDiffHierarchyIntegrator()
 {
-    if (d_registered_for_restart)
-    {
-        RestartManager::getManager()->unregisterRestartItem(d_object_name);
-    }
-
-    for (CoarsenPatchStrategyMap::iterator it = d_cstrategies.begin();
-         it != d_cstrategies.end(); ++it)
-    {
-        delete it->second;
-    }
-
     // Deallocate all solver components.
     //
     // NOTE: The following code ensures that the solver components are
@@ -312,28 +214,11 @@ AdvDiffHierarchyIntegrator::~AdvDiffHierarchyIntegrator()
     return;
 }// ~AdvDiffHierarchyIntegrator
 
-const std::string&
-AdvDiffHierarchyIntegrator::getName() const
-{
-    return d_object_name;
-}// getName
-
-const ViscousTimesteppingType&
+ViscousTimesteppingType
 AdvDiffHierarchyIntegrator::getViscousTimesteppingType() const
 {
     return d_viscous_timestepping_type;
 }// getViscousTimesteppingType
-
-void
-AdvDiffHierarchyIntegrator::registerVisItDataWriter(
-    Pointer<VisItDataWriter<NDIM> > visit_writer)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!visit_writer.isNull());
-#endif
-    d_hyp_patch_ops->registerVisItDataWriter(visit_writer);
-    return;
-}// registerVisItDataWriter
 
 void
 AdvDiffHierarchyIntegrator::registerAdvectionVelocity(
@@ -489,7 +374,7 @@ AdvDiffHierarchyIntegrator::setIncompressibilityFixTerm(
 void
 AdvDiffHierarchyIntegrator::setConvectiveDifferencingType(
     Pointer<CellVariable<NDIM,double> > Q_var,
-    const ConvectiveDifferencingType& difference_form)
+    const ConvectiveDifferencingType difference_form)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
@@ -501,7 +386,7 @@ AdvDiffHierarchyIntegrator::setConvectiveDifferencingType(
 void
 AdvDiffHierarchyIntegrator::setDiffusionCoefficient(
     Pointer<CellVariable<NDIM,double> > Q_var,
-    const double& kappa)
+    const double kappa)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
@@ -513,7 +398,7 @@ AdvDiffHierarchyIntegrator::setDiffusionCoefficient(
 void
 AdvDiffHierarchyIntegrator::setDampingCoefficient(
     Pointer<CellVariable<NDIM,double> > Q_var,
-    const double& lambda)
+    const double lambda)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
@@ -564,102 +449,63 @@ AdvDiffHierarchyIntegrator::setPhysicalBcCoefs(
     return;
 }// setPhysicalBcCoefs
 
-///
-///  The following routines:
-///
-///      getHierarchyMathOps(),
-///      setHierarchyMathOps(),
-///      isManagingHierarchyMathOps()
-///
-///  allow for the sharing of a single HierarchyMathOps object between multiple
-///  HierarchyIntegrator objects.
-///
-
-Pointer<HierarchyMathOps>
-AdvDiffHierarchyIntegrator::getHierarchyMathOps() const
+Pointer<HyperbolicLevelIntegrator<NDIM> >
+AdvDiffHierarchyIntegrator::getHyperbolicLevelIntegrator() const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hier_math_ops.isNull());
-#endif
-    return d_hier_math_ops;
-}// getHierarchyMathOps
+    return d_hyp_level_integrator;
+}// getHyperbolicLevelIntegrator
 
-void
-AdvDiffHierarchyIntegrator::setHierarchyMathOps(
-    Pointer<HierarchyMathOps> hier_math_ops,
-    const bool manage_ops)
+Pointer<AdvDiffHypPatchOps>
+AdvDiffHierarchyIntegrator::getHyperbolicPatchStrategy() const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hier_math_ops.isNull());
-#endif
-    d_hier_math_ops = hier_math_ops;
-    d_is_managing_hier_math_ops = manage_ops;
-    return;
-}// setHierarchyMathOps
-
-bool
-AdvDiffHierarchyIntegrator::isManagingHierarchyMathOps() const
-{
-    return d_is_managing_hier_math_ops;
-}// isManagingHierarchyMathOps
-
-///
-///  The following routines:
-///
-///      initializeHierarchyIntegrator(),
-///      initializeHierarchy(),
-///      advanceHierarchy(),
-///      atRegridPoint(),
-///      getIntegratorTime(),
-///      getStartTime(),
-///      getEndTime(),
-///      getIntegratorStep(),
-///      getMaxIntegratorSteps(),
-///      stepsRemaining(),
-///      getPatchHierarchy(),
-///      getGriddingAlgorithm(),
-///      getHyperbolicLevelIntegrator(),
-///      getHyperbolicPatchStrategy()
-///
-///  allow the AdvDiffHierarchyIntegrator to be used as a hierarchy integrator.
-///
+    return d_hyp_patch_ops;
+}// getHyperbolicPatchStrategy
 
 void
 AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
+    Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
-    IBAMR_TIMER_START(t_initialize_hierarchy_integrator);
+    if (d_integrator_is_initialized) return;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!gridding_alg.isNull());
-#endif
+    d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
 
-    // Setup the tag buffer.
-    if (d_using_default_tag_buffer)
-    {
-        d_tag_buffer.resizeArray(d_gridding_alg->getMaxLevels());
-        for (int i = 0; i < d_gridding_alg->getMaxLevels(); ++i)
-        {
-            d_tag_buffer[i] = d_regrid_interval;
-        }
-    }
-    else
-    {
-        if (d_tag_buffer.getSize() < d_gridding_alg->getMaxLevels())
-        {
-            int tsize = d_tag_buffer.getSize();
-            d_tag_buffer.resizeArray(d_gridding_alg->getMaxLevels());
-            for (int i = tsize; i < d_gridding_alg->getMaxLevels(); ++i)
-            {
-                d_tag_buffer[i] = d_tag_buffer[tsize-1];
-            }
-        }
-    }
+    // Initialize the HyperbolicPatchStrategy and HyperbolicLevelIntegrator
+    // objects that provide numerical routines for explicitly integrating the
+    // advective terms.
+    d_hyp_patch_ops = new AdvDiffHypPatchOps(
+        d_object_name+"::AdvDiffHypPatchOps",
+        d_hyp_patch_ops_db,
+        d_explicit_predictor,
+        grid_geom,
+        d_registered_for_restart);
+    d_hyp_level_integrator = new HyperbolicLevelIntegrator<NDIM>(
+        d_object_name+"::HyperbolicLevelIntegrator",
+        d_hyp_level_integrator_db,
+        d_hyp_patch_ops,
+        d_registered_for_restart,
+        /*using_time_refinement*/ false);
 
-    // Setup an extra variable context.
+    // Setup variable contexts.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_temp_context = var_db->getContext(d_object_name+"::TEMP_CONTEXT");
+    d_current_context = d_hyp_level_integrator->getCurrentContext();
+    d_scratch_context = d_hyp_level_integrator->getScratchContext();
+    d_new_context = d_hyp_level_integrator->getNewContext();
+
+    // Register the VisIt data writer with the patch strategy object, which is
+    // the object that actually registers variables for plotting.
+    if (!d_visit_writer.isNull())
+    {
+        d_hyp_patch_ops->registerVisItDataWriter(d_visit_writer);
+    }
+
+    // Setup hierarchy data operations objects.
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    Pointer<CellVariable<NDIM,double> > cc_var = new CellVariable<NDIM,double>("cc_var");
+    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
 
     // Register variables with the hyperbolic level integrator.
     for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
@@ -719,27 +565,21 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Initialize the HyperbolicLevelIntegrator.
     //
-    // NOTE: This must be done AFTER all variables have been registered.
+    // NOTE: This must be done AFTER all variables have been registered with the
+    // level integrator.
     d_hyp_level_integrator->initializeLevelIntegrator(d_gridding_alg);
 
-    // Create coarsening communications algorithms, used in synchronizing
-    // refined regions of coarse data with the underlying fine data.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    d_calgs["SYNCH_NEW_STATE_DATA"] = new CoarsenAlgorithm<NDIM>();
+    // Setup coarsening communications algorithms, used in synchronizing refined
+    // regions of coarse data with the underlying fine data.
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
          cit != d_Q_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+        const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
         const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
         Pointer<CoarsenOperator<NDIM> > coarsen_operator = grid_geom->lookupCoarsenOperator(Q_var, "CONSERVATIVE_COARSEN");
-        d_calgs["SYNCH_NEW_STATE_DATA"]->registerCoarsen(Q_new_idx, Q_new_idx, coarsen_operator);
-    }
-
-    // Setup the Hierarchy math operations object.
-    if (d_hier_math_ops.isNull())
-    {
-        d_hier_math_ops = new HierarchyMathOps(d_object_name+"::HierarchyMathOps", d_hierarchy);
-        d_is_managing_hier_math_ops = true;
+        d_coarsen_algs[SYNCH_CURRENT_DATA_ALG]->registerCoarsen(Q_current_idx, Q_current_idx, coarsen_operator);
+        d_coarsen_algs[SYNCH_NEW_DATA_ALG]->registerCoarsen(Q_new_idx, Q_new_idx, coarsen_operator);
     }
 
     // Operators and solvers are maintained for each variable registered with the
@@ -767,7 +607,7 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
             d_helmholtz_fac_ops[l]->setPoissonSpecifications(d_helmholtz_specs[l]);
             d_helmholtz_fac_ops[l]->setPhysicalBcCoefs(d_Q_bc_coef[Q_var]);
             d_helmholtz_fac_pcs[l] = new FACPreconditioner(d_object_name+"::FAC Preconditioner::"+name,
-                                                           *d_helmholtz_fac_ops[l], d_fac_pc_db);
+                                                           d_helmholtz_fac_ops[l], d_fac_pc_db);
         }
 
         d_helmholtz_solvers[l] = new PETScKrylovLinearSolver(d_object_name+"::PETSc Krylov solver::"+name, "adv_diff_");
@@ -785,237 +625,29 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         d_helmholtz_solvers_need_init[l] = true;
     }
 
-    // Set the current integration time.
-    if (!RestartManager::getManager()->isFromRestart())
-    {
-        d_integrator_time = d_start_time;
-        d_integrator_step = 0;
-    }
-
     // Indicate that the integrator has been initialized.
-    d_is_initialized = true;
-
-    IBAMR_TIMER_STOP(t_initialize_hierarchy_integrator);
+    d_integrator_is_initialized = true;
     return;
 }// initializeHierarchyIntegrator
 
-double
-AdvDiffHierarchyIntegrator::initializeHierarchy()
-{
-    IBAMR_TIMER_START(t_initialize_hierarchy);
-
-    if (!d_is_initialized)
-    {
-        TBOX_ERROR(d_object_name << "::initializeHierarchy()\n" <<
-                   "  must initialize the integrator prior to call to initializeHierarchy()." << std::endl);
-    }
-
-    // Initialize the patch hierarchy.
-    const bool initial_time = !RestartManager::getManager()->isFromRestart();
-
-    if (!initial_time)
-    {
-        d_hierarchy->getFromRestart(d_gridding_alg->getMaxLevels());
-        const int coarsest_ln = 0;
-        const int finest_ln = d_hierarchy->getFinestLevelNumber();
-        d_gridding_alg->getTagAndInitializeStrategy()->resetHierarchyConfiguration(d_hierarchy, coarsest_ln, finest_ln);
-    }
-    else
-    {
-        d_gridding_alg->makeCoarsestLevel(d_hierarchy,d_start_time);
-        int level_number = 0;
-        bool done = false;
-        while (!done && (d_gridding_alg->levelCanBeRefined(level_number)))
-        {
-            d_gridding_alg->makeFinerLevel(d_hierarchy, d_integrator_time, initial_time, d_tag_buffer[level_number]);
-            done = !d_hierarchy->finerLevelExists(level_number);
-            ++level_number;
-        }
-
-        // After data on each level is initialized at simulation start time,
-        // coarser levels are synchronized with finer levels that didn't exist
-        // when the coarser level initial data was set.
-        const int coarsest_ln = 0;
-        const int finest_ln = d_hierarchy->getFinestLevelNumber();
-        if (finest_ln > 0)
-        {
-            synchronizeNewLevels(d_hierarchy, coarsest_ln, finest_ln, d_start_time, initial_time);
-        }
-    }
-
-    // The timestep is given by the minimum allowable timestep over all levels
-    // in the patch hierarchy.
-    double dt_next = std::numeric_limits<double>::max();
-    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        dt_next = std::min(dt_next, d_hyp_level_integrator->getLevelDt(level, d_integrator_time, initial_time));
-    }
-    if (d_integrator_time+dt_next > d_end_time)
-    {
-        dt_next = d_end_time - d_integrator_time;
-    }
-
-    IBAMR_TIMER_STOP(t_initialize_hierarchy);
-    return dt_next;
-}// initializeHierarchy
-
-double
-AdvDiffHierarchyIntegrator::advanceHierarchy(
-    const double dt)
-{
-    IBAMR_TIMER_START(t_advance_hierarchy);
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_end_time >= d_integrator_time+dt);
-#endif
-
-    // First: regrid (when appropriate).
-    const bool do_regrid = ((d_regrid_interval == 0)
-                            ? false
-                            : (d_integrator_step % d_regrid_interval == 0));
-    if (do_regrid) regridHierarchy();
-
-    // Second: integrate the data and synchronize the hierarchy.
-    const double dt_next = integrateHierarchy(d_integrator_time, d_integrator_time+dt);
-    synchronizeHierarchy();
-
-    // Third: reset all time dependent data.
-    resetTimeDependentHierData(d_integrator_time+dt);
-
-    IBAMR_TIMER_STOP(t_advance_hierarchy);
-    return dt_next;
-}// advanceHierarchy
-
-bool
-AdvDiffHierarchyIntegrator::atRegridPoint() const
-{
-    const int level_number = 0;
-    return ((d_integrator_step > 0)
-            && d_gridding_alg->levelCanBeRefined(level_number)
-            && (d_regrid_interval == 0
-                ? false
-                : (d_integrator_step % d_regrid_interval == 0)));
-}// atRegridPoint
-
-double
-AdvDiffHierarchyIntegrator::getIntegratorTime() const
-{
-    return d_integrator_time;
-}// getIntegratorTime
-
-double
-AdvDiffHierarchyIntegrator::getStartTime() const
-{
-    return d_start_time;
-}// getStartTime
-
-double
-AdvDiffHierarchyIntegrator::getEndTime() const
-{
-    return d_end_time;
-}// getEndTime
-
-int
-AdvDiffHierarchyIntegrator::getIntegratorStep() const
-{
-    return d_integrator_step;
-}// getIntegratorStep
-
-int
-AdvDiffHierarchyIntegrator::getMaxIntegratorSteps() const
-{
-    return d_max_integrator_steps;
-}// getMaxIntegratorSteps
-
-bool
-AdvDiffHierarchyIntegrator::stepsRemaining() const
-{
-    return (d_integrator_step < d_max_integrator_steps);
-}// stepsRemaining
-
-const Pointer<PatchHierarchy<NDIM> >
-AdvDiffHierarchyIntegrator::getPatchHierarchy() const
-{
-    return d_hierarchy;
-}// getPatchHierarchy
-
-Pointer<GriddingAlgorithm<NDIM> >
-AdvDiffHierarchyIntegrator::getGriddingAlgorithm() const
-{
-    return d_gridding_alg;
-}// getGriddingAlgorithm
-
-Pointer<HyperbolicLevelIntegrator<NDIM> >
-AdvDiffHierarchyIntegrator::getHyperbolicLevelIntegrator() const
-{
-    return d_hyp_level_integrator;
-}// getHyperbolicLevelIntegrator
-
-Pointer<AdvDiffHypPatchOps>
-AdvDiffHierarchyIntegrator::getHyperbolicPatchStrategy() const
-{
-    return d_hyp_patch_ops;
-}// getHyperbolicPatchStrategy
-
-///
-///  The following routines:
-///
-///      regridHierarchy(),
-///      integrateHierarchy(),
-///      synchronizeHierarchy(),
-///      synchronizeNewLevels(),
-///      resetTimeDependentHierData(),
-///      resetHierDataToPreadvanceState()
-///
-///  allow the AdvDiffHierarchyIntegrator to provide data management for a time
-///  integrator which making use of this class.
-///
-
 void
-AdvDiffHierarchyIntegrator::regridHierarchy()
-{
-    IBAMR_TIMER_START(t_regrid_hierarchy);
-
-    const int coarsest_ln = 0;
-    switch (d_regrid_mode)
-    {
-        case STANDARD:
-            d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
-            break;
-        case AGGRESSIVE:
-            for (int k = 0; k < std::max(1,d_hierarchy->getFinestLevelNumber()); ++k)
-            {
-                d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
-            }
-            break;
-        default:
-            TBOX_ERROR(d_object_name << "::regridHierarchy():\n"
-                       << "  unrecognized regrid mode: " << enum_to_string<RegridMode>(d_regrid_mode) << "." << std::endl);
-    }
-
-    IBAMR_TIMER_STOP(t_regrid_hierarchy);
-    return;
-}// regridHierarchy
-
-double
 AdvDiffHierarchyIntegrator::integrateHierarchy(
     const double current_time,
-    const double new_time)
+    const double new_time,
+    const int cycle_num)
 {
-    IBAMR_TIMER_START(t_integrate_hierarchy);
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(current_time <= new_time);
     TBOX_ASSERT(d_end_time > d_integrator_time);
     TBOX_ASSERT(MathUtilities<double>::equalEps(d_integrator_time,current_time));
+    TBOX_ASSERT(cycle_num == 0);
+#else
+    NULL_USE(cycle_num);
 #endif
-
     const double dt = new_time - current_time;
-
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
+    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     ////////////////////////////////////////////////////////////////////////////
@@ -1094,22 +726,12 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         }
     }
 
-    double dt_next = std::numeric_limits<double>::max();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        const bool first_step = true;
-        const bool last_step = false;
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        const double level_dt_next = d_hyp_level_integrator->advanceLevel(
-            level, d_hierarchy, current_time, new_time, first_step, last_step);
-        dt_next = std::min(dt_next,level_dt_next);
-    }
-
-    dt_next = std::min(dt_next,d_grow_dt*dt);
-
-    if (new_time+dt_next >= d_end_time)
-    {
-        dt_next = d_end_time - new_time;
+        static const bool first_step = true;
+        static const bool last_step = false;
+        d_hyp_level_integrator->advanceLevel(
+            d_hierarchy->getPatchLevel(ln), d_hierarchy, current_time, new_time, first_step, last_step);
     }
 
     if (finest_ln > 0)
@@ -1140,7 +762,7 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
 
     // Indicate that all solvers need to be reinitialized if the current
     // timestep size is different from the previous one.
-    if (!MathUtilities<double>::equalEps(dt,d_old_dt))
+    if (initial_time || !MathUtilities<double>::equalEps(dt,d_dt_previous[0]))
     {
         std::fill(d_helmholtz_solvers_need_init.begin(),d_helmholtz_solvers_need_init.end(), true);
         d_coarsest_reset_ln = 0;
@@ -1328,110 +950,66 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
             level->deallocatePatchData(Psi_temp_idx);
         }
     }
-
-    IBAMR_TIMER_STOP(t_integrate_hierarchy);
-    return dt_next;
+    return;
 }// integrateHierarchy
 
-void
-AdvDiffHierarchyIntegrator::synchronizeHierarchy()
-{
-    IBAMR_TIMER_START(t_synchronize_hierarchy);
+/////////////////////////////// PROTECTED ////////////////////////////////////
 
+double
+AdvDiffHierarchyIntegrator::getTimeStepSizeSpecialized()
+{
+    double dt = d_dt_max;
+    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        dt = std::min(dt, d_hyp_level_integrator->getLevelDt(level, d_integrator_time, initial_time));
+    }
+    if (!initial_time && d_dt_growth_factor >= 1.0)
+    {
+        dt = std::min(dt,d_dt_growth_factor*d_dt_previous[0]);
+    }
+    return dt;
+}// getTimeStepSizeSpecialized
+
+void
+AdvDiffHierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(
+    const double new_time)
+{
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    for (int ln = finest_ln; ln > coarsest_ln; --ln)
-    {
-        d_cscheds["SYNCH_NEW_STATE_DATA"][ln]->coarsenData();
-    }
-
-    IBAMR_TIMER_STOP(t_synchronize_hierarchy);
-    return;
-}// synchronizeHierarchy
-
-void
-AdvDiffHierarchyIntegrator::synchronizeNewLevels(
-    const Pointer<PatchHierarchy<NDIM> > hierarchy,
-    const int coarsest_level,
-    const int finest_level,
-    const double sync_time,
-    const bool initial_time)
-{
-    IBAMR_TIMER_START(t_synchronize_new_levels);
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
-    TBOX_ASSERT((coarsest_level >= 0)
-                && (coarsest_level < finest_level)
-                && (finest_level <= hierarchy->getFinestLevelNumber()));
-    for (int ln = coarsest_level; ln <= finest_level; ++ln)
-    {
-        TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
-    }
-#endif
-    // We use the HyperbolicLevelIntegrator to handle as much data management as
-    // possible.
-    d_hyp_level_integrator->synchronizeNewLevels(hierarchy, coarsest_level, finest_level, sync_time, initial_time);
-
-    IBAMR_TIMER_STOP(t_synchronize_new_levels);
-    return;
-}// synchronizeNewLevels
-
-void
-AdvDiffHierarchyIntegrator::resetTimeDependentHierData(
-    const double new_time)
-{
-    IBAMR_TIMER_START(t_reset_time_dependent_hier_data);
-
     // Advance the simulation time.
-    d_old_dt = new_time - d_integrator_time;
+    d_dt_previous.push_front(new_time - d_integrator_time);
+    static const unsigned int MAX_DT_PREVIOUS_SIZE = 31;
+    if (d_dt_previous.size() > MAX_DT_PREVIOUS_SIZE) d_dt_previous.pop_back();
     d_integrator_time = new_time;
     ++d_integrator_step;
 
     // Reset the time dependent data.
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        d_hyp_level_integrator->resetTimeDependentData(d_hierarchy->getPatchLevel(ln), d_integrator_time, d_gridding_alg->levelCanBeRefined(ln));
+        d_hyp_level_integrator->resetTimeDependentData(
+            d_hierarchy->getPatchLevel(ln), d_integrator_time, d_gridding_alg->levelCanBeRefined(ln));
     }
-
-    IBAMR_TIMER_STOP(t_reset_time_dependent_hier_data);
     return;
-}// resetTimeDependentHierData
+}// resetTimeDependentHierarchyDataSpecialized
 
 void
-AdvDiffHierarchyIntegrator::resetHierDataToPreadvanceState()
+AdvDiffHierarchyIntegrator::resetIntegratorToPreadvanceStateSpecialized()
 {
-    IBAMR_TIMER_START(t_reset_hier_data_to_preadvance_state);
-
-    // We use the HyperbolicLevelIntegrator to handle as much data management as
-    // possible.
+    // We use the HyperbolicLevelIntegrator to handle most data management.
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         d_hyp_level_integrator->resetDataToPreadvanceState(d_hierarchy->getPatchLevel(ln));
     }
-
-    IBAMR_TIMER_STOP(t_reset_hier_data_to_preadvance_state);
     return;
-}// resetHierDataToPreadvanceState
-
-///
-///  The following routines:
-///
-///      initializeLevelData(),
-///      resetHierarchyConfiguration(),
-///      applyGradientDetector()
-///
-///  are concrete implementations of functions declared in the
-///  StandardTagAndInitStrategy abstract base class.
-///
+}// resetIntegratorToPreadvanceStateSpecialized
 
 void
-AdvDiffHierarchyIntegrator::initializeLevelData(
+AdvDiffHierarchyIntegrator::initializeLevelDataSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int level_number,
     const double init_data_time,
@@ -1440,14 +1018,11 @@ AdvDiffHierarchyIntegrator::initializeLevelData(
     const Pointer<BasePatchLevel<NDIM> > base_old_level,
     const bool allocate_data)
 {
-    IBAMR_TIMER_START(t_initialize_level_data);
-
     const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
-    TBOX_ASSERT((level_number >= 0)
-                && (level_number <= hierarchy->getFinestLevelNumber()));
+    TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     if (!old_level.isNull())
     {
         TBOX_ASSERT(level_number == old_level->getLevelNumber());
@@ -1491,19 +1066,15 @@ AdvDiffHierarchyIntegrator::initializeLevelData(
             }
         }
     }
-
-    IBAMR_TIMER_STOP(t_initialize_level_data);
     return;
-}// initializeLevelData
+}// initializeLevelDataSpecialized
 
 void
-AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
+AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
-    IBAMR_TIMER_START(t_reset_hierarchy_configuration);
-
     const Pointer<BasePatchHierarchy<NDIM> > hierarchy = base_hierarchy;
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -1544,21 +1115,11 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
         d_hier_bdry_fill_ops[l]->initializeOperatorState(transaction_comp, d_hierarchy);
     }
 
-    // Reset the Hierarchy math operations for the new configuration.
-    if (d_is_managing_hier_math_ops)
-    {
-        d_hier_math_ops->setPatchHierarchy(hierarchy);
-        d_hier_math_ops->resetLevels(0, finest_hier_level);
-    }
-
-    // Get the cell weights data.
-    d_wgt_var = d_hier_math_ops->getCellWeightVariable();
-    d_wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-
     // Reset the solution and rhs vectors.
     d_sol_vecs.resize(d_Q_var.size());
     d_rhs_vecs.resize(d_Q_var.size());
     l = 0;
+    const int wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
          cit != d_Q_var.end(); ++cit, ++l)
     {
@@ -1567,43 +1128,23 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfiguration(
 
         const int Q_temp_idx = var_db->mapVariableAndContextToIndex(Q_var, d_temp_context);
         d_sol_vecs[l] = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::sol_vec::"+name, d_hierarchy, 0, finest_hier_level);
-        d_sol_vecs[l]->addComponent(Q_var,Q_temp_idx,d_wgt_idx,d_hier_cc_data_ops);
+        d_sol_vecs[l]->addComponent(Q_var,Q_temp_idx,wgt_idx,d_hier_cc_data_ops);
 
         Pointer<CellVariable<NDIM,double> > Psi_var = d_Q_Psi_map[Q_var];
         const int Psi_temp_idx = var_db->mapVariableAndContextToIndex(Psi_var, d_temp_context);
         d_rhs_vecs[l] = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::rhs_vec::"+name, d_hierarchy, 0, finest_hier_level);
-        d_rhs_vecs[l]->addComponent(Psi_var,Psi_temp_idx,d_wgt_idx,d_hier_cc_data_ops);
+        d_rhs_vecs[l]->addComponent(Psi_var,Psi_temp_idx,wgt_idx,d_hier_cc_data_ops);
     }
 
     // Indicate that all linear solvers must be re-initialized.
     std::fill(d_helmholtz_solvers_need_init.begin(), d_helmholtz_solvers_need_init.end(), true);
     d_coarsest_reset_ln = coarsest_level;
     d_finest_reset_ln = finest_level;
-
-    // If we have added or removed a level, resize the schedule vectors.
-    for (CoarsenAlgMap::const_iterator it = d_calgs.begin(); it != d_calgs.end(); ++it)
-    {
-        d_cscheds[it->first].resize(finest_hier_level+1);
-    }
-
-    // (Re)build coarsen communication schedules.  These are set only for levels
-    // >= 1.
-    for (CoarsenAlgMap::const_iterator it = d_calgs.begin(); it != d_calgs.end(); ++it)
-    {
-        for (int ln = std::max(coarsest_level,1); ln <= finest_hier_level; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevel<NDIM> > coarser_level = hierarchy->getPatchLevel(ln-1);
-            d_cscheds[it->first][ln] = it->second->createSchedule(coarser_level, level, d_cstrategies[it->first]);
-        }
-    }
-
-    IBAMR_TIMER_STOP(t_reset_hierarchy_configuration);
     return;
-}// resetHierarchyConfiguration
+}// resetHierarchyConfigurationSpecialized
 
 void
-AdvDiffHierarchyIntegrator::applyGradientDetector(
+AdvDiffHierarchyIntegrator::applyGradientDetectorSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     const int level_number,
     const double error_data_time,
@@ -1611,113 +1152,23 @@ AdvDiffHierarchyIntegrator::applyGradientDetector(
     const bool initial_time,
     const bool uses_richardson_extrapolation_too)
 {
-    IBAMR_TIMER_START(t_apply_gradient_detector);
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
-    TBOX_ASSERT((level_number >= 0)
-                && (level_number <= hierarchy->getFinestLevelNumber()));
-    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
-#endif
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-
-    // Due to tag buffers, it is necessary to untag all cells prior to tagging.
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        Pointer<CellData<NDIM,int> > tags_data = patch->getPatchData(tag_index);
-        tags_data->fillAll(0);
-    }
-
     // Tag cells for refinement according to the criteria specified by the
-    // criteria specified by the HyperbolicLevelIntegrator<NDIM>.
+    // criteria specified by the level integrator.
     d_hyp_level_integrator->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
-
-    IBAMR_TIMER_STOP(t_apply_gradient_detector);
     return;
-}// applyGradientDetector
-
-///
-///  The following routines:
-///
-///      getCurrentContext(),
-///      getNewContext(),
-///      getOldContext(),
-///      getScratchContext(),
-///      getPlotContext()
-///
-///  allow access to the various variable contexts maintained by the integrator.
-///
-
-///
-/// We simply reuse the VariableContext objects defined in the
-/// HyperbolicLevelIntegrator<NDIM> object.
-///
-
-Pointer<VariableContext>
-AdvDiffHierarchyIntegrator::getCurrentContext() const
-{
-    return d_hyp_level_integrator->getCurrentContext();
-}// getCurrentContext
-
-Pointer<VariableContext>
-AdvDiffHierarchyIntegrator::getNewContext() const
-{
-    return d_hyp_level_integrator->getNewContext();
-}// getNewContext
-
-Pointer<VariableContext>
-AdvDiffHierarchyIntegrator::getOldContext() const
-{
-    return d_hyp_level_integrator->getOldContext();
-}// getOldContext
-
-Pointer<VariableContext>
-AdvDiffHierarchyIntegrator::getScratchContext() const
-{
-    return d_hyp_level_integrator->getScratchContext();
-}// getScratchContext
-
-Pointer<VariableContext>
-AdvDiffHierarchyIntegrator::getPlotContext() const
-{
-    return d_hyp_level_integrator->getPlotContext();
-}// getPlotContext
-
-///
-///  The following routines:
-///
-///      putToDatabase()
-///
-///  are concrete implementations of functions declared in the
-///  Serializable abstract base class.
-///
+}// applyGradientDetectorSpecialized
 
 void
-AdvDiffHierarchyIntegrator::putToDatabase(
+AdvDiffHierarchyIntegrator::putToDatabaseSpecialized(
     Pointer<Database> db)
 {
-    IBAMR_TIMER_START(t_put_to_database);
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
 #endif
-
     db->putInteger("ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION", ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION);
     db->putString("d_viscous_timestepping_type", enum_to_string<ViscousTimesteppingType>(d_viscous_timestepping_type));
-    db->putDouble("d_start_time", d_start_time);
-    db->putDouble("d_end_time", d_end_time);
-    db->putDouble("d_grow_dt", d_grow_dt);
-    db->putInteger("d_max_integrator_steps", d_max_integrator_steps);
-    db->putInteger("d_regrid_interval", d_regrid_interval);
-    db->putBool("d_using_default_tag_buffer", d_using_default_tag_buffer);
-    db->putIntegerArray("d_tag_buffer", d_tag_buffer);
-    db->putDouble("d_integrator_time", d_integrator_time);
-    db->putInteger("d_integrator_step", d_integrator_step);
-
-    IBAMR_TIMER_STOP(t_put_to_database);
     return;
-}// putToDatabase
+}// putToDatabaseSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -1730,40 +1181,14 @@ AdvDiffHierarchyIntegrator::getFromInput(
     TBOX_ASSERT(!db.isNull());
 #endif
     // Read in data members from input database.
-    d_end_time = db->getDoubleWithDefault("end_time", d_end_time);
-    d_grow_dt = db->getDoubleWithDefault("grow_dt", d_grow_dt);
-
-    d_max_integrator_steps = db->getIntegerWithDefault("max_integrator_steps", d_max_integrator_steps);
-
-    d_regrid_interval = db->getIntegerWithDefault("regrid_interval", d_regrid_interval);
-    d_regrid_mode = string_to_enum<RegridMode>(db->getStringWithDefault("regrid_mode", enum_to_string<RegridMode>(d_regrid_mode)));
-
-    if (db->keyExists("tag_buffer"))
-    {
-        d_tag_buffer = db->getIntegerArray("tag_buffer");
-        d_using_default_tag_buffer = false;
-    }
-    else
-    {
-        d_using_default_tag_buffer = true;
-        TBOX_WARNING(d_object_name << ":  "
-                     << "Key data `tag_buffer' not found in input.  "
-                     << "Default values used.  See class header for details.");
-    }
-
-    d_do_log = db->getBoolWithDefault("enable_logging", d_do_log);
-
-    d_max_iterations = db->getIntegerWithDefault("max_iterations", d_max_iterations);
-    d_abs_residual_tol = db->getDoubleWithDefault("abs_residual_tol", d_abs_residual_tol);
-    d_rel_residual_tol = db->getDoubleWithDefault("rel_residual_tol", d_rel_residual_tol);
-    d_using_FAC = db->getBoolWithDefault("using_FAC", d_using_FAC);
-
     if (!is_from_restart)
     {
-        d_viscous_timestepping_type = string_to_enum<ViscousTimesteppingType>(
-            db->getStringWithDefault("viscous_timestepping_type", enum_to_string<ViscousTimesteppingType>(d_viscous_timestepping_type)));
-        d_start_time = db->getDoubleWithDefault("start_time", d_start_time);
+        if (db->keyExists("viscous_timestepping_type")) d_viscous_timestepping_type = string_to_enum<ViscousTimesteppingType>(db->getString("viscous_timestepping_type"));
     }
+    if (db->keyExists("max_iterations")) d_max_iterations = db->getInteger("max_iterations");
+    if (db->keyExists("abs_residual_tol")) d_abs_residual_tol = db->getDouble("abs_residual_tol");
+    if (db->keyExists("rel_residual_tol")) d_rel_residual_tol = db->getDouble("rel_residual_tol");
+    if (db->keyExists("using_FAC")) d_using_FAC = db->getBool("using_FAC");
     return;
 }// getFromInput
 
@@ -1771,7 +1196,6 @@ void
 AdvDiffHierarchyIntegrator::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-
     Pointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
@@ -1779,38 +1203,20 @@ AdvDiffHierarchyIntegrator::getFromRestart()
     }
     else
     {
-        TBOX_ERROR(d_object_name << ":  "
-                   << "Restart database corresponding to "
-                   << d_object_name << " not found in restart file.");
+        TBOX_ERROR(d_object_name << ":  Restart database corresponding to "
+                   << d_object_name << " not found in restart file." << std::endl);
     }
-
     int ver = db->getInteger("ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION");
     if (ver != ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION)
     {
-        TBOX_ERROR(d_object_name << ":  "
-                   << "Restart file version different than class version.");
+        TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
-
     d_viscous_timestepping_type = string_to_enum<ViscousTimesteppingType>(db->getString("d_viscous_timestepping_type"));
-    d_start_time = db->getDouble("d_start_time");
-    d_end_time = db->getDouble("d_end_time");
-    d_grow_dt = db->getDouble("d_grow_dt");
-    d_max_integrator_steps = db->getInteger("d_max_integrator_steps");
-    d_regrid_interval = db->getInteger("d_regrid_interval");
-    d_using_default_tag_buffer = db->getBool("d_using_default_tag_buffer");
-    d_tag_buffer = db->getIntegerArray("d_tag_buffer");
-    d_integrator_time = db->getDouble("d_integrator_time");
-    d_integrator_step = db->getInteger("d_integrator_step");
     return;
 }// getFromRestart
 
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBAMR
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBAMR::AdvDiffHierarchyIntegrator>;
 
 //////////////////////////////////////////////////////////////////////////////

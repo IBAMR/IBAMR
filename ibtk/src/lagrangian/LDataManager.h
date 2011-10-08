@@ -173,8 +173,8 @@ public:
      */
     void
     resetLevels(
-        const int coarsest_ln,
-        const int finest_ln);
+        int coarsest_ln,
+        int finest_ln);
 
     //\}
 
@@ -213,16 +213,16 @@ public:
      */
     void
     spread(
-        const int f_data_idx,
+        int f_data_idx,
         std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
         std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
         std::vector<SAMRAI::tbox::Pointer<LData> >& ds_data,
-        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-        const bool F_data_ghost_node_update=true,
-        const bool X_data_ghost_node_update=true,
-        const bool ds_data_ghost_node_update=true,
-        const int coarsest_ln=-1,
-        const int finest_ln=-1);
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        bool F_data_ghost_node_update=true,
+        bool X_data_ghost_node_update=true,
+        bool ds_data_ghost_node_update=true,
+        int coarsest_ln=-1,
+        int finest_ln=-1);
 
     /*!
      * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid.
@@ -238,14 +238,14 @@ public:
      */
     void
     spread(
-        const int f_data_idx,
+        int f_data_idx,
         std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
         std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
-        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-        const bool F_data_ghost_node_update=true,
-        const bool X_data_ghost_node_update=true,
-        const int coarsest_ln=-1,
-        const int finest_ln=-1);
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        bool F_data_ghost_node_update=true,
+        bool X_data_ghost_node_update=true,
+        int coarsest_ln=-1,
+        int finest_ln=-1);
 
     /*!
      * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
@@ -253,14 +253,14 @@ public:
      */
     void
     interp(
-        const int f_data_idx,
+        int f_data_idx,
         std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
         std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
-        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > f_synch_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
-        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_ghost_fill_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-        const double fill_data_time=0.0,
-        const int coarsest_ln=-1,
-        const int finest_ln=-1);
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& f_synch_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_ghost_fill_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        double fill_data_time=0.0,
+        int coarsest_ln=-1,
+        int finest_ln=-1);
 
     /*!
      * Register a concrete strategy object with the integrator that specifies
@@ -315,7 +315,7 @@ public:
      */
     bool
     levelContainsLagrangianData(
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \return The number of total nodes of the Lagrangian data for the
@@ -323,7 +323,7 @@ public:
      */
     unsigned int
     getNumberOfNodes(
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \return The number of local (i.e., on processor) nodes of the Lagrangian
@@ -334,7 +334,7 @@ public:
      */
     unsigned int
     getNumberOfLocalNodes(
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \return The number of nodes on all processors with MPI rank less than the
@@ -345,7 +345,7 @@ public:
      */
     unsigned int
     getGlobalNodeOffset(
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \brief Get the Lagrangian mesh associated with the given patch hierarchy
@@ -353,7 +353,7 @@ public:
      */
     SAMRAI::tbox::Pointer<LMesh>
     getLMesh(
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \brief Get the specified Lagrangian quantity data on the given patch
@@ -362,7 +362,7 @@ public:
     SAMRAI::tbox::Pointer<LData>
     getLData(
         const std::string& quantity_name,
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \brief Allocate new Lagrangian level data with the specified name and
@@ -375,9 +375,9 @@ public:
     SAMRAI::tbox::Pointer<LData>
     createLData(
         const std::string& quantity_name,
-        const int level_number,
-        const unsigned int depth=1,
-        const bool maintain_data=false);
+        int level_number,
+        unsigned int depth=1,
+        bool maintain_data=false);
 
     /*!
      * \brief Get the patch data descriptor index for the Lagrangian index data.
@@ -404,7 +404,7 @@ public:
      */
     std::vector<std::string>
     getLagrangianStructureNames(
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \brief Get a list of Lagrangian structure IDs for the specified level of
@@ -412,7 +412,7 @@ public:
      */
     std::vector<int>
     getLagrangianStructureIDs(
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \brief Get the ID of the Lagrangian structure associated with the
@@ -423,8 +423,8 @@ public:
      */
     int
     getLagrangianStructureID(
-        const int lagrangian_index,
-        const int level_number) const;
+        int lagrangian_index,
+        int level_number) const;
 
     /*!
      * \brief Get the ID of the Lagrangian structure with the specified name.
@@ -435,7 +435,7 @@ public:
     int
     getLagrangianStructureID(
         const std::string& structure_name,
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \brief Get the name of the Lagrangian structure with the specified ID.
@@ -445,8 +445,8 @@ public:
      */
     std::string
     getLagrangianStructureName(
-        const int structure_id,
-        const int level_number) const;
+        int structure_id,
+        int level_number) const;
 
     /*!
      * \brief Get the range of Lagrangian indices for the Lagrangian structure
@@ -461,8 +461,8 @@ public:
      */
     std::pair<int,int>
     getLagrangianStructureIndexRange(
-        const int structure_id,
-        const int level_number) const;
+        int structure_id,
+        int level_number) const;
 
     /*!
      * \brief Get the center of mass of the Lagrangian structure with the
@@ -479,8 +479,8 @@ public:
      */
     blitz::TinyVector<double,NDIM>
     computeLagrangianStructureCenterOfMass(
-        const int structure_id,
-        const int level_number);
+        int structure_id,
+        int level_number);
 
     /*!
      * \brief Get the bounding box of the Lagrangian structure with the
@@ -492,8 +492,8 @@ public:
      */
     std::pair<blitz::TinyVector<double,NDIM>,blitz::TinyVector<double,NDIM> >
     computeLagrangianStructureBoundingBox(
-        const int structure_id,
-        const int level_number);
+        int structure_id,
+        int level_number);
 
     /*!
      * \brief Reset the positions of the nodes of the Lagrangian structure with
@@ -506,8 +506,8 @@ public:
     void
     reinitLagrangianStructure(
         const blitz::TinyVector<double,NDIM>& X_center,
-        const int structure_id,
-        const int level_number);
+        int structure_id,
+        int level_number);
 
     /*!
      * \brief Shift the positions of the nodes of the Lagrangian structure with
@@ -522,8 +522,8 @@ public:
     void
     displaceLagrangianStructure(
         const blitz::TinyVector<double,NDIM>& dX,
-        const int structure_id,
-        const int level_number);
+        int structure_id,
+        int level_number);
 
     /*!
      * \brief Activate the Lagrangian structures with the specified ID numbers.
@@ -535,7 +535,7 @@ public:
     void
     activateLagrangianStructures(
         const std::vector<int>& structure_ids,
-        const int level_number);
+        int level_number);
 
     /*!
      * \brief Inactivate the Lagrangian structures with the specified ID
@@ -548,7 +548,7 @@ public:
     void
     inactivateLagrangianStructures(
         const std::vector<int>& structure_ids,
-        const int level_number);
+        int level_number);
 
     /*!
      * \brief Determine whether the Lagrangian structure with the specified ID
@@ -556,8 +556,8 @@ public:
      */
     bool
     getLagrangianStructureIsActivated(
-        const int structure_id,
-        const int level_number) const;
+        int structure_id,
+        int level_number) const;
 
     /*!
      * \brief Set the components of the supplied LData object to zero
@@ -566,7 +566,7 @@ public:
     void
     zeroInactivatedComponents(
         SAMRAI::tbox::Pointer<LData> lag_data,
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \brief Map the collection of Lagrangian indices to the corresponding
@@ -575,7 +575,7 @@ public:
     void
     mapLagrangianToPETSc(
         std::vector<int>& inds,
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \brief Map the collection of Lagrangian indices to the corresponding
@@ -584,7 +584,7 @@ public:
     void
     mapLagrangianToPETSc(
         blitz::Array<int,1>& inds,
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \brief Map the collection of global PETSc indices to the corresponding
@@ -593,7 +593,7 @@ public:
     void
     mapPETScToLagrangian(
         std::vector<int>& inds,
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \brief Map the collection of global PETSc indices to the corresponding
@@ -602,7 +602,7 @@ public:
     void
     mapPETScToLagrangian(
         blitz::Array<int,1>& inds,
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \brief Scatter data from the Lagrangian ordering to the global PETSc
@@ -614,7 +614,7 @@ public:
     scatterLagrangianToPETSc(
         Vec& lagrangian_vec,
         Vec& petsc_vec,
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \brief Scatter data from the global PETSc ordering to the Lagrangian
@@ -626,7 +626,7 @@ public:
     scatterPETScToLagrangian(
         Vec& petsc_vec,
         Vec& lagrangian_vec,
-        const int level_number) const;
+        int level_number) const;
 
     /*!
      * \brief Scatter data from a distributed PETSc vector to all processors.
@@ -663,8 +663,8 @@ public:
      */
     void
     beginDataRedistribution(
-        const int coarsest_ln=-1,
-        const int finest_ln=-1);
+        int coarsest_ln=-1,
+        int finest_ln=-1);
 
     /*!
      * \brief Finish the process of redistributing the Lagrangian data.
@@ -684,8 +684,8 @@ public:
      */
     void
     endDataRedistribution(
-        const int coarsest_ln=-1,
-        const int finest_ln=-1);
+        int coarsest_ln=-1,
+        int finest_ln=-1);
 
     /*!
      * \brief Update the workload and count of nodes per cell.
@@ -700,9 +700,9 @@ public:
      * in which alpha and beta are parameters that each default to the value 1.
      */
     void
-    updateWorkloadData(
-        const int coarsest_ln=-1,
-        const int finest_ln=-1);
+    updateWorkloadEstimates(
+        int coarsest_ln=-1,
+        int finest_ln=-1);
 
     ///
     ///  The following routines:
@@ -742,13 +742,13 @@ public:
      */
     void
     initializeLevelData(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level=SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
-        const bool allocate_data=true);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level=SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
+        bool allocate_data=true);
 
     /*!
      * Reset cached communication schedules after the hierarchy has changed (for
@@ -767,9 +767,9 @@ public:
      */
     void
     resetHierarchyConfiguration(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int coarsest_ln,
-        const int finest_ln);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int coarsest_ln,
+        int finest_ln);
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -791,12 +791,12 @@ public:
      */
     void
     applyGradientDetector(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double error_data_time,
-        const int tag_index,
-        const bool initial_time,
-        const bool uses_richardson_extrapolation_too);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double error_data_time,
+        int tag_index,
+        bool initial_time,
+        bool uses_richardson_extrapolation_too);
 
     ///
     ///  The following routines:
@@ -870,13 +870,13 @@ private:
      */
     void
     spread_specialized(
-        const int f_data_idx,
+        int f_data_idx,
         std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
         std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
-        const bool F_data_ghost_node_update,
-        const bool X_data_ghost_node_update,
-        const int coarsest_ln,
-        const int finest_ln);
+        bool F_data_ghost_node_update,
+        bool X_data_ghost_node_update,
+        int coarsest_ln,
+        int finest_ln);
 
     /*!
      * \brief Version of the interpolation routine specialized to the case in
@@ -884,13 +884,13 @@ private:
      */
     void
     interp_specialized(
-        const int f_data_idx,
+        int f_data_idx,
         std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
         std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
-        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_ghost_fill_scheds,
-        const double fill_data_time,
-        const int coarsest_ln,
-        const int finest_ln);
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_ghost_fill_scheds,
+        double fill_data_time,
+        int coarsest_ln,
+        int finest_ln);
 
     /*!
      * \brief Common implementation of scatterPETScToLagrangian() and
@@ -900,7 +900,7 @@ private:
     scatterData(
         Vec& lagrangian_vec,
         Vec& petsc_vec,
-        const int level_number,
+        int level_number,
         ScatterMode mode) const;
 
     /*!
@@ -912,8 +912,8 @@ private:
      */
     void
     beginNonlocalDataFill(
-        const int coarsest_ln=-1,
-        const int finest_ln=-1);
+        int coarsest_ln=-1,
+        int finest_ln=-1);
 
     /*!
      * \brief End the process of refilling nonlocal Lagrangian quantities over
@@ -924,8 +924,8 @@ private:
      */
     void
     endNonlocalDataFill(
-        const int coarsest_ln=-1,
-        const int finest_ln=-1);
+        int coarsest_ln=-1,
+        int finest_ln=-1);
 
     /*!
      * Determines the global Lagrangian and PETSc indices of the local and
@@ -958,7 +958,7 @@ private:
         std::vector<int>& nonlocal_petsc_indices,
         unsigned int& num_nodes,
         unsigned int& node_offset,
-        const int level_number);
+        int level_number);
 
     /*!
      * Determine the number of local Lagrangian nodes on all MPI processes with
@@ -968,7 +968,7 @@ private:
     computeNodeOffsets(
         unsigned int& num_nodes,
         unsigned int& node_offset,
-        const unsigned int& num_local_nodes);
+        unsigned int num_local_nodes);
 
     /*!
      * Read object state from the restart file and initialize class data

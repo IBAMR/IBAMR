@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // PETSC INCLUDES
-#include <petsc.h>
+#include <petscsys.h>
 
 // BLITZ INCLUDES
 #include <blitz/array.h>
@@ -142,7 +142,7 @@ public:
     registerInitialCoordinateMappingFunction(
         CoordinateMappingFcnPtr coordinate_mapping_fcn,
         void* coordinate_mapping_fcn_ctx=NULL,
-        const unsigned int part=0);
+        unsigned int part=0);
 
     /*!
      * Typedef specifying interface for PK1 stress tensor function.
@@ -154,10 +154,10 @@ public:
         const libMesh::TensorValue<double>& FF,
         const libMesh::Point& X,
         const libMesh::Point& s,
-        libMesh::Elem* const elem,
+        libMesh::Elem* elem,
         libMesh::NumericVector<double>& X_vec,
         const std::vector<libMesh::NumericVector<double>*>& system_data,
-        const double& time,
+        double time,
         void* ctx);
 
     /*!
@@ -169,7 +169,7 @@ public:
         PK1StressFcnPtr PK1_stress_fcn,
         std::vector<unsigned int> PK1_stress_fcn_systems=std::vector<unsigned int>(),
         void* PK1_stress_fcn_ctx=NULL,
-        const unsigned int part=0);
+        unsigned int part=0);
 
     /*!
      * Typedef specifying interface for Lagrangian body force distribution
@@ -182,10 +182,10 @@ public:
         const libMesh::TensorValue<double>& FF,
         const libMesh::Point& X,
         const libMesh::Point& s,
-        libMesh::Elem* const elem,
+        libMesh::Elem* elem,
         libMesh::NumericVector<double>& X_vec,
         const std::vector<libMesh::NumericVector<double>*>& system_data,
-        const double& time,
+        double time,
         void* ctx);
 
     /*!
@@ -197,7 +197,7 @@ public:
         LagBodyForceFcnPtr lag_body_force_fcn,
         std::vector<unsigned int> lag_body_force_fcn_systems=std::vector<unsigned int>(),
         void* lag_body_force_fcn_ctx=NULL,
-        const unsigned int part=0);
+        unsigned int part=0);
 
     /*!
      * Typedef specifying interface for Lagrangian pressure force distribution
@@ -210,11 +210,11 @@ public:
         const libMesh::TensorValue<double>& FF,
         const libMesh::Point& X,
         const libMesh::Point& s,
-        libMesh::Elem* const elem,
-        const unsigned short int side,
+        libMesh::Elem* elem,
+        unsigned short int side,
         libMesh::NumericVector<double>& X_vec,
         const std::vector<libMesh::NumericVector<double>*>& system_data,
-        const double& time,
+        double time,
         void* ctx);
 
     /*!
@@ -226,7 +226,7 @@ public:
         LagPressureFcnPtr lag_pressure_fcn,
         std::vector<unsigned int> lag_pressure_fcn_systems=std::vector<unsigned int>(),
         void* lag_pressure_fcn_ctx=NULL,
-        const unsigned int part=0);
+        unsigned int part=0);
 
     /*!
      * Typedef specifying interface for Lagrangian surface force distribution
@@ -239,11 +239,11 @@ public:
         const libMesh::TensorValue<double>& FF,
         const libMesh::Point& X,
         const libMesh::Point& s,
-        libMesh::Elem* const elem,
-        const unsigned short int side,
+        libMesh::Elem* elem,
+        unsigned short int side,
         libMesh::NumericVector<double>& X_vec,
         const std::vector<libMesh::NumericVector<double>*>& system_data,
-        const double& time,
+        double time,
         void* ctx);
 
     /*!
@@ -255,7 +255,7 @@ public:
         LagSurfaceForceFcnPtr lag_surface_force_fcn,
         std::vector<unsigned int> lag_surface_force_fcn_systems=std::vector<unsigned int>(),
         void* lag_surface_force_fcn_ctx=NULL,
-        const unsigned int part=0);
+        unsigned int part=0);
 
     /*!
      * Register the function used to compute the forces on the Lagrangian fiber
@@ -365,7 +365,7 @@ public:
      */
     double
     advanceHierarchy(
-        const double dt);
+        double dt);
 
     /*!
      * Return true if the current step count indicates that regridding should
@@ -415,7 +415,7 @@ public:
     /*!
      * Return a const pointer to the patch hierarchy managed by integrator.
      */
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
     getPatchHierarchy() const;
 
     /*!
@@ -472,18 +472,18 @@ public:
      */
     void
     synchronizeNewLevels(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        const int coarsest_level,
-        const int finest_level,
-        const double sync_time,
-        const bool initial_time);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int coarsest_level,
+        int finest_level,
+        double sync_time,
+        bool initial_time);
 
     /*!
      * Reset time dependent data.
      */
     void
     resetTimeDependentHierData(
-        const double new_time);
+        double new_time);
 
     /*!
      * Deallocate all new simulation data.
@@ -553,13 +553,13 @@ public:
      */
     void
     initializeLevelData(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level=SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
-        const bool allocate_data=true);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level=SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
+        bool allocate_data=true);
 
     /*!
      * Reset cached communication schedules after the hierarchy has changed (for
@@ -578,9 +578,9 @@ public:
      */
     void
     resetHierarchyConfiguration(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int coarsest_level,
-        const int finest_level);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int coarsest_level,
+        int finest_level);
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -604,12 +604,12 @@ public:
      */
     void
     applyGradientDetector(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double error_data_time,
-        const int tag_index,
-        const bool initial_time,
-        const bool uses_richardson_extrapolation_too);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double error_data_time,
+        int tag_index,
+        bool initial_time,
+        bool uses_richardson_extrapolation_too);
 
     ///
     ///  The following routines:
@@ -718,7 +718,7 @@ private:
     computeProjectedDilatationalStrain(
         libMesh::NumericVector<double>& J_bar_vec,
         libMesh::NumericVector<double>& X_vec,
-        const unsigned int part);
+        unsigned int part);
 
     /*
      * \brief Compute the interior elastic density, possibly splitting off the
@@ -730,8 +730,8 @@ private:
         libMesh::NumericVector<double>& G_vec,
         libMesh::NumericVector<double>& X_vec,
         libMesh::NumericVector<double>* J_bar_vec,
-        const double& time,
-        const unsigned int part);
+        double time,
+        unsigned int part);
 
     /*!
      * \brief Spread the transmission force density along the physical boundary
@@ -739,11 +739,11 @@ private:
      */
     void
     spreadTransmissionForceDensity(
-        const int f_data_idx,
+        int f_data_idx,
         libMesh::NumericVector<double>& X_ghost_vec,
         libMesh::NumericVector<double>* J_bar_ghost_vec,
-        const double& time,
-        const unsigned int part);
+        double time,
+        unsigned int part);
 
     /*!
      * \brief Impose jump conditions determined from the interior and
@@ -752,12 +752,12 @@ private:
      */
     void
     imposeJumpConditions(
-        const int f_data_idx,
+        int f_data_idx,
         libMesh::NumericVector<double>& F_ghost_vec,
         libMesh::NumericVector<double>& X_ghost_vec,
         libMesh::NumericVector<double>* J_bar_ghost_vec,
-        const double& time,
-        const unsigned int part);
+        double time,
+        unsigned int part);
 
     /*!
      * \brief Initialize the physical coordinates using the supplied coordinate
@@ -766,14 +766,14 @@ private:
      */
     void
     initializeCoordinates(
-        const unsigned int part);
+        unsigned int part);
 
     /*!
      * \brief Compute dX = X - s, useful mainly for visualization purposes.
      */
     void
     updateCoordinateMapping(
-        const unsigned int part);
+        unsigned int part);
 
     /*!
      * Read input values, indicated above, from given database.  The boolean

@@ -1014,7 +1014,7 @@ LSiloDataWriter::registerLogicallyCartesianMultiblock(
 void
 LSiloDataWriter::registerUnstructuredMesh(
     const std::string& name,
-    const std::multimap<int,std::pair<int,int> > edge_map,
+    const std::multimap<int,std::pair<int,int> >& edge_map,
     const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
@@ -2439,10 +2439,5 @@ LSiloDataWriter::getFromRestart()
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 } // namespace IBTK
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::LSiloDataWriter>;
 
 //////////////////////////////////////////////////////////////////////////////

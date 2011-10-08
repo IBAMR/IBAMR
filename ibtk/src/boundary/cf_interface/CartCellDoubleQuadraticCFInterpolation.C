@@ -876,9 +876,4 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_optimized(
 
 }// namespace IBTK
 
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::CartCellDoubleQuadraticCFInterpolation>;
-
 //////////////////////////////////////////////////////////////////////////////

@@ -128,7 +128,7 @@ public:
      */
     void
     setDefaultDepth(
-        const int depth);
+        int depth);
 
     /*!
      * Calculate the amount of memory needed to store the cell data object,

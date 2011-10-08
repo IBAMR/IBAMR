@@ -48,7 +48,7 @@
 #include <sparse_matrix.h>
 
 // PETSC INCLUDES
-#include <petsc.h>
+#include <petscsys.h>
 
 // IBTK INCLUDES
 #include <ibtk/libmesh_utilities.h>
@@ -108,7 +108,7 @@ public:
         const std::string& name,
         const std::string& interp_weighting_fcn,
         const std::string& spread_weighting_fcn,
-        const bool interp_uses_consistent_mass_matrix,
+        bool interp_uses_consistent_mass_matrix,
         libMesh::QBase* qrule,
         libMesh::QBase* qrule_face,
         bool register_for_restart=true);
@@ -149,8 +149,8 @@ public:
      */
     void
     resetLevels(
-        const int coarsest_ln,
-        const int finest_ln);
+        int coarsest_ln,
+        int finest_ln);
 
     //\}
 
@@ -161,8 +161,8 @@ public:
      */
     void
     setEquationSystems(
-        libMesh::EquationSystems* const equation_systems,
-        const int level_number);
+        libMesh::EquationSystems* equation_systems,
+        int level_number);
 
     /*!
      * \return A pointer to the equations systems object that is associated with
@@ -266,12 +266,12 @@ public:
      */
     void
     spread(
-        const int f_data_idx,
+        int f_data_idx,
         libMesh::NumericVector<double>& F,
         libMesh::NumericVector<double>& X,
         const std::string& system_name,
-        const bool close_F=true,
-        const bool close_X=true);
+        bool close_F=true,
+        bool close_X=true);
 
     /*!
      * \brief Prolong a value from the FE mesh to the Cartesian grid.
@@ -280,12 +280,12 @@ public:
      */
     void
     prolongValue(
-        const int f_data_idx,
+        int f_data_idx,
         libMesh::NumericVector<double>& F,
         libMesh::NumericVector<double>& X,
         const std::string& system_name,
-        const bool close_F=true,
-        const bool close_X=true);
+        bool close_F=true,
+        bool close_X=true);
 
     /*!
      * \brief Prolong a density from the FE mesh to the Cartesian grid.
@@ -295,36 +295,36 @@ public:
      */
     void
     prolongDensity(
-        const int f_data_idx,
+        int f_data_idx,
         libMesh::NumericVector<double>& F,
         libMesh::NumericVector<double>& X,
         const std::string& system_name,
-        const bool close_F=true,
-        const bool close_X=true);
+        bool close_F=true,
+        bool close_X=true);
 
     /*!
      * \brief Interpolate a value from the Cartesian grid to the FE mesh.
      */
     void
     interp(
-        const int f_data_idx,
+        int f_data_idx,
         libMesh::NumericVector<double>& F,
         libMesh::NumericVector<double>& X,
         const std::string& system_name,
-        std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > f_refine_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-        const double fill_data_time=0.0,
-        const bool close_X=true);
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds=std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+        double fill_data_time=0.0,
+        bool close_X=true);
 
     /*!
      * \brief Restrict a value from the Cartesian grid to the FE mesh.
      */
     void
     restrictValue(
-        const int f_data_idx,
+        int f_data_idx,
         libMesh::NumericVector<double>& F,
         libMesh::NumericVector<double>& X,
         const std::string& system_name,
-        const bool close_X=true);
+        bool close_X=true);
 
     /*!
      * \return Pointers to a linear solver and sparse matrix corresponding to a
@@ -333,8 +333,8 @@ public:
     std::pair<libMesh::LinearSolver<double>*,libMesh::SparseMatrix<double>*>
     buildL2ProjectionSolver(
         const std::string& system_name,
-        const libMeshEnums::QuadratureType quad_type=QGAUSS,
-        const libMeshEnums::Order quad_order=FIFTH);
+        libMeshEnums::QuadratureType quad_type=QGAUSS,
+        libMeshEnums::Order quad_order=FIFTH);
 
     /*!
      * \return Pointer to vector representation of diagonal (lumped) L2 mass
@@ -343,8 +343,8 @@ public:
     libMesh::NumericVector<double>*
     buildDiagonalL2MassMatrix(
         const std::string& system_name,
-        const libMeshEnums::QuadratureType quad_type=QGAUSS,
-        const libMeshEnums::Order quad_order=FIFTH);
+        libMeshEnums::QuadratureType quad_type=QGAUSS,
+        libMeshEnums::Order quad_order=FIFTH);
 
     /*!
      * \brief Set U to be the L2 projection of F.
@@ -354,19 +354,19 @@ public:
         libMesh::NumericVector<double>& U,
         libMesh::NumericVector<double>& F,
         const std::string& system_name,
-        const bool consistent_mass_matrix=true,
-        const libMeshEnums::QuadratureType quad_type=QGAUSS,
-        const libMeshEnums::Order quad_order=FIFTH,
-        const double tol=1.0e-6,
-        const unsigned int max_its=100);
+        bool consistent_mass_matrix=true,
+        libMeshEnums::QuadratureType quad_type=QGAUSS,
+        libMeshEnums::Order quad_order=FIFTH,
+        double tol=1.0e-6,
+        unsigned int max_its=100);
 
     /*!
      * \brief Update the cell workload estimate.
      */
     void
     updateWorkloadData(
-        const int coarsest_ln=-1,
-        const int finest_ln=-1);
+        int coarsest_ln=-1,
+        int finest_ln=-1);
 
     ///
     ///  The following routines:
@@ -406,13 +406,13 @@ public:
      */
     void
     initializeLevelData(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double init_data_time,
-        const bool can_be_refined,
-        const bool initial_time,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level=SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
-        const bool allocate_data=true);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level=SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
+        bool allocate_data=true);
 
     /*!
      * Reset cached communication schedules after the hierarchy has changed (for
@@ -431,9 +431,9 @@ public:
      */
     void
     resetHierarchyConfiguration(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int coarsest_ln,
-        const int finest_ln);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int coarsest_ln,
+        int finest_ln);
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -455,12 +455,12 @@ public:
      */
     void
     applyGradientDetector(
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        const int level_number,
-        const double error_data_time,
-        const int tag_index,
-        const bool initial_time,
-        const bool uses_richardson_extrapolation_too);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double error_data_time,
+        int tag_index,
+        bool initial_time,
+        bool uses_richardson_extrapolation_too);
 
     ///
     ///  The following routines:
@@ -488,7 +488,7 @@ protected:
         const std::string& object_name,
         const std::string& interp_weighting_fcn,
         const std::string& spread_weighting_fcn,
-        const bool interp_uses_consistent_mass_matrix,
+        bool interp_uses_consistent_mass_matrix,
         libMesh::QBase* qrule,
         libMesh::QBase* qrule_face,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width,
@@ -537,8 +537,8 @@ private:
      */
     void
     updateQuadPointCountData(
-        const int coarsest_ln,
-        const int finest_ln);
+        int coarsest_ln,
+        int finest_ln);
 
     /*!
      * Compute the bounding boxes of all active elements.
@@ -559,7 +559,7 @@ private:
     void
     collectActivePatchElements(
         blitz::Array<blitz::Array<libMesh::Elem*,1>,1>& active_patch_elems,
-        const int level_number,
+        int level_number,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width);
 
     /*!
@@ -685,7 +685,7 @@ private:
     void
     do_partition(
         libMesh::MeshBase& mesh,
-        const unsigned int n);
+        unsigned int n);
 
     class IBFEPartitioner : public libMesh::Partitioner
     {

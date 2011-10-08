@@ -42,6 +42,27 @@ namespace IBTK
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 inline SAMRAI::hier::Index<NDIM>
+IndexUtilities::coarsen(
+    const SAMRAI::hier::Index<NDIM>& i_fine,
+    const SAMRAI::hier::Index<NDIM>& ratio)
+{
+    SAMRAI::hier::Index<NDIM> i_coarse;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        i_coarse(d) = i_fine(d) < 0 ? (i_fine(d)+1)/ratio(d)-1 : i_fine(d)/ratio(d);
+    }
+    return i_coarse;
+}// coarsen
+
+inline SAMRAI::hier::Index<NDIM>
+IndexUtilities::refine(
+    const SAMRAI::hier::Index<NDIM>& i_coarse,
+    const SAMRAI::hier::Index<NDIM>& ratio)
+{
+    return i_coarse*ratio;
+}// refine
+
+inline SAMRAI::hier::Index<NDIM>
 IndexUtilities::getCellIndex(
     const double* const X,
     const double* const XLower,

@@ -70,8 +70,8 @@ public:
     PETScSNESFunctionGOWrapper(
         const std::string& object_name,
         const SNES& petsc_snes,
-        PetscErrorCode (* const petsc_snes_form_func)(SNES,Vec,Vec,void*),
-        void* const petsc_snes_func_ctx);
+        PetscErrorCode (*petsc_snes_form_func)(SNES,Vec,Vec,void*),
+        void* petsc_snes_func_ctx);
 
     /*!
      * \brief Destructor.

@@ -1,5 +1,5 @@
 // Filename: INSProjectionBcCoef.h
-// Created on 22 Feb 2007 by Boyce Griffith
+// Created on 23 Jul 2008 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/ibamr_enums.h>
+#include <ibamr/INSProblemCoefs.h>
 
 // IBTK INCLUDES
 #include <ibtk/ExtendedRobinBcCoefStrategy.h>
@@ -49,10 +49,16 @@
 namespace IBAMR
 {
 /*!
- * \brief Class INSProjectionBcCoef is a concrete
+ * \brief Class INSIntermediateVelocityBcCoef is a concrete
  * SAMRAI::solv::RobinBcCoefStrategy that is used to specify boundary conditions
- * for the solution of the discrete Poisson problem that must be solved in the
- * implementation of a projection method.
+ * for the projection Poisson problem embedded in a projection method or in a
+ * block preconditioner for the incompressible Navier-Stokes equations.
+ *
+ * This class interprets pure Dirichlet boundary conditions as prescribed
+ * velocity boundary conditions, whereas pure Neumann boundary conditions are
+ * interpreted as prescribed traction (stress) boundary conditions.  These are
+ * translated into Neumann and Dirichlet boundary conditions, respectively, for
+ * the projection Poisson problem.
  */
 class INSProjectionBcCoef
     : public IBTK::ExtendedRobinBcCoefStrategy
@@ -61,23 +67,17 @@ public:
     /*!
      * \brief Constructor.
      *
-     * \param P_idx            Patch data descriptor index for the cell-centered pressure field.
-     * \param P_bc_coef        Boundary condition specification object corresponding to the pressure.
-     * \param projection_type  The type of projection ("pressure_increment" or "pressure_update").
-     * \param u_idx            Patch data descriptor index for the face-centered intermediate velocity field.
-     * \param u_bc_coefs       Vector of boundary condition specification objects corresponding to the components of the velocity.
-     * \param homogeneous_bc   Whether to employ homogeneous (as opposed to inhomogeneous) boundary conditions
+     * \param problem_coefs   Problem coefficients
+     * \param bc_coefs        Vector of boundary condition specification objects
+     * \param homogeneous_bc  Whether to employ homogeneous (as opposed to inhomogeneous) boundary conditions
      *
      * \note Precisely NDIM boundary condition objects must be provided to the
      * class constructor.
      */
     INSProjectionBcCoef(
-        const int P_idx,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const P_bc_coef,
-        const ProjectionMethodType& projection_type,
-        const int u_idx,
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
-        const bool homogeneous_bc=false);
+        const INSProblemCoefs* problem_coefs,
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+        bool homogeneous_bc=false);
 
     /*!
      * \brief Destructor.
@@ -85,62 +85,32 @@ public:
     ~INSProjectionBcCoef();
 
     /*!
-     * \brief Reset the problem coefficients required to specify the boundary
-     * conditions for the scalar function phi.
-     */
-    void
-    setProblemCoefs(
-        const double rho,
-        const double dt);
-
-    /*!
-     * \brief Reset the patch data descriptor index for the cell-centered
-     * pressure.
+     * \brief Set the INSProblemCoefs object used by this boundary condition
+     * specification object.
      *
-     * \param P_idx  Patch data descriptor index for the cell-centered pressure field.
+     * \param problem_coefs   Problem coefficients
      */
     void
-    setCurrentPressurePatchDataIndex(
-        const int P_idx);
+    setINSProblemCoefs(
+        const INSProblemCoefs* problem_coefs);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-     * physical boundary conditions for the pressure.
+     * physical boundary conditions.
      *
-     * \param P_bc_coef  Boundary condition specification object corresponding to the pressure.
+     * \param bc_coefs  Vector of boundary condition specification objects
      */
     void
-    setPressurePhysicalBcCoef(
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const P_bc_coef);
+    setPhysicalBoundaryConditions(
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
 
     /*!
-     * \brief Set the type of projection to perform.
-     *
-     * \param projection_type  The type of projection (PRESSURE_INCREMENT or PRESSURE_UPDATE).
+     * \brief Set the current time interval.
      */
     void
-    setProjectionType(
-        const ProjectionMethodType& projection_type);
-
-    /*!
-     * \brief Reset the patch data descriptor index for the face-centered
-     * intermediate velocity.
-     *
-     * \param u_idx  Patch data descriptor index for the face-centered intermediate velocity field.
-     */
-    void
-    setIntermediateVelocityPatchDataIndex(
-        const int u_idx);
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-     * physical boundary conditions for the velocity.
-     *
-     * \param u_bc_coefs  Vector of boundary condition specification objects corresponding to the components of the velocity.
-     */
-    void
-    setVelocityPhysicalBcCoefs(
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs);
+    setTimeInterval(
+        double current_time,
+        double new_time);
 
     /*!
      * \name Implementation of IBTK::ExtendedRobinBcCoefStrategy interface.
@@ -152,7 +122,7 @@ public:
      */
     void
     setTargetPatchDataIndex(
-        const int target_idx);
+        int target_idx);
 
     /*!
      * \brief Set whether the class is filling homogeneous or inhomogeneous
@@ -160,7 +130,7 @@ public:
      */
     void
     setHomogeneousBc(
-        const bool homogeneous_bc);
+        bool homogeneous_bc);
 
     //\}
 
@@ -261,59 +231,20 @@ private:
     operator=(
         const INSProjectionBcCoef& that);
 
-    /*!
-     * \brief Implementation of boundary condition filling function.
-     */
-    void
-    setBcCoefs_private(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& acoef_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& bcoef_data,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> >& gcoef_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
-        const SAMRAI::hier::Patch<NDIM>& patch,
-        const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
-        double fill_time) const;
-
-    /*
-     * The patch data index corresponding to the current pressure.
-     */
-    int d_P_idx;
-
-    /*
-     * The physical boundary conditions for the pressure (only used at "open"
-     * boundaries where the pressure is specified).
-     */
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
-
-    /*
-     * The type of projection.
-     */
-    ProjectionMethodType d_projection_type;
-
-    /*
-     * The patch data index corresponding to the intermediate velocity.
-     */
-    int d_u_idx;
-
     /*
      * The boundary condition specification objects for the updated velocity.
      */
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_u_bc_coefs;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs;
+
+    /*
+     * The patch data index corresponding to the current value of P.
+     */
+    int d_target_idx;
 
     /*
      * Whether to use homogeneous boundary conditions.
      */
     bool d_homogeneous_bc;
-
-    /*
-     * Fluid density.
-     */
-    double d_rho;
-
-    /*
-     * Timestep size.
-     */
-    double d_dt;
 };
 }// namespace IBAMR
 

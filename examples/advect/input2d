@@ -1,6 +1,3 @@
-// constants
-PI = 3.141592653589793e+00
-
 // grid spacing parameters
 MAX_LEVELS = 4   // maximum number of levels in locally refined grid
 REF_RATIO  = 2   // refinement ratio between levels
@@ -9,12 +6,12 @@ N = 16                                    // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 
 GodunovAdvector {
+   // intentionally blank
 }
 
 AdvectHypPatchOps {
    Refinement_data {
       refine_criteria = "QVAL_GRADIENT"
-
       QVAL_GRADIENT {
          grad_tol = 5.0, 5.0, 5.0
       }
@@ -54,23 +51,23 @@ TimeRefinementIntegrator {
 
 Main {
 // log file parameters
-   log_file_name    = "advect2d.log"
-   log_all_nodes    = FALSE
+   log_file_name               = "advect2d.log"
+   log_all_nodes               = FALSE
 
 // visualization dump parameters
-   viz_writer            = "VisIt"
-   viz_dump_interval     = 2           // zero to turn off
-   viz_dump_dirname      = "viz_advect2d"
+   viz_writer                  = "VisIt"
+   viz_dump_interval           = 2           // zero to turn off
+   viz_dump_dirname            = "viz_advect2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_interval      = 0           // zero to turn off
-   restart_write_dirname = "restart_advect2d"
+   restart_dump_interval      = 0           // zero to turn off
+   restart_dump_dirname       = "restart_advect2d"
 
 // application parameters
-   timestepping = "REFINED"
-   u_is_div_free = TRUE
-   difference_form = "CONSERVATIVE"
+   timestepping               = "REFINED"
+   u_is_div_free              = TRUE
+   difference_form            = "CONSERVATIVE"
 }
 
 CartesianGeometry {
@@ -81,8 +78,6 @@ CartesianGeometry {
 }
 
 GriddingAlgorithm {
-   allow_patches_smaller_than_ghostwidth = TRUE
-
    max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level

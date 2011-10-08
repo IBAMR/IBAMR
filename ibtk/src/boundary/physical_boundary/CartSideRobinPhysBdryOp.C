@@ -919,9 +919,4 @@ CartSideRobinPhysBdryOp::setCodimension3BdryValues(
 
 }// namespace IBTK
 
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::CartSideRobinPhysBdryOp>;
-
 //////////////////////////////////////////////////////////////////////////////

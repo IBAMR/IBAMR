@@ -1132,6 +1132,14 @@ SCPoissonHypreLevelSolver::solveSystem(
     {
         HYPRE_SStructSysPFMGSetMaxIter(d_solver, d_max_iterations);
         HYPRE_SStructSysPFMGSetTol(d_solver, d_rel_residual_tol);
+        if (d_initial_guess_nonzero)
+        {
+            HYPRE_SStructSysPFMGSetNonZeroGuess(d_solver);
+        }
+        else
+        {
+            HYPRE_SStructSysPFMGSetZeroGuess(d_solver);
+        }
         HYPRE_SStructSysPFMGSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
         HYPRE_SStructSysPFMGGetNumIterations(d_solver, &d_current_its);
         HYPRE_SStructSysPFMGGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
@@ -1140,6 +1148,14 @@ SCPoissonHypreLevelSolver::solveSystem(
     {
         HYPRE_SStructSplitSetMaxIter(d_solver, d_max_iterations);
         HYPRE_SStructSplitSetTol(d_solver, d_rel_residual_tol);
+        if (d_initial_guess_nonzero)
+        {
+            HYPRE_SStructSplitSetNonZeroGuess(d_solver);
+        }
+        else
+        {
+            HYPRE_SStructSplitSetZeroGuess(d_solver);
+        }
         HYPRE_SStructSplitSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
         HYPRE_SStructSplitGetNumIterations(d_solver, &d_current_its);
         HYPRE_SStructSplitGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
@@ -1207,7 +1223,7 @@ SCPoissonHypreLevelSolver::solveSystem(
 void
 SCPoissonHypreLevelSolver::copyToHypre(
     HYPRE_SStructVector vector,
-    const Pointer<SideData<NDIM,double> >& src_data,
+    const Pointer<SideData<NDIM,double> > src_data,
     const Box<NDIM>& box)
 {
     const bool copy_data = src_data->getGhostBox() != box;
@@ -1229,7 +1245,7 @@ SCPoissonHypreLevelSolver::copyToHypre(
 
 void
 SCPoissonHypreLevelSolver::copyFromHypre(
-    Pointer<SideData<NDIM,double> >& dst_data,
+    Pointer<SideData<NDIM,double> > dst_data,
     HYPRE_SStructVector vector,
     const Box<NDIM>& box)
 {
@@ -1326,8 +1342,8 @@ SCPoissonHypreLevelSolver::deallocateHypreData()
 
 void
 SCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_constant_coefficients(
-    Pointer<SideData<NDIM,double> >& rhs_data,
-    const Pointer<Patch<NDIM> >& patch,
+    Pointer<SideData<NDIM,double> > rhs_data,
+    const Pointer<Patch<NDIM> > patch,
     const Array<BoundaryBox<NDIM> >& physical_codim1_boxes)
 {
     static const IntVector<NDIM> gcw_to_fill = 1;
@@ -1405,10 +1421,5 @@ SCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_constant_coefficients(
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 }// namespace IBTK
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::SCPoissonHypreLevelSolver>;
 
 //////////////////////////////////////////////////////////////////////////////

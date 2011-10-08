@@ -40,17 +40,12 @@
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
-#include <GridGeometry.h>
-#include <tbox/Array.h>
-#include <tbox/Database.h>
 
 // BLITZ++ INCLUDES
 #include <blitz/tinyvec.h>
 
-// NAMESPACE
-using namespace IBTK;
-using namespace SAMRAI;
-using namespace std;
+// C++ namespace delcarations
+#include <ibamr/app_namespaces.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -66,8 +61,8 @@ public:
      */
     QInit(
         const string& object_name,
-        tbox::Pointer<hier::GridGeometry<NDIM> > grid_geom,
-        tbox::Pointer<tbox::Database> input_db);
+        Pointer<GridGeometry<NDIM> > grid_geom,
+        Pointer<Database> input_db);
 
     /*!
      * \brief Destructor.
@@ -86,12 +81,12 @@ public:
      */
     void
     setDataOnPatch(
-        const int data_idx,
-        tbox::Pointer<hier::Variable<NDIM> > var,
-        tbox::Pointer<hier::Patch<NDIM> > patch,
-        const double data_time,
-        const bool initial_time=false,
-        tbox::Pointer<hier::PatchLevel<NDIM> > level=tbox::Pointer<hier::PatchLevel<NDIM> >(NULL));
+        int data_idx,
+        Pointer<Variable<NDIM> > var,
+        Pointer<Patch<NDIM> > patch,
+        double data_time,
+        bool initial_time=false,
+        Pointer<PatchLevel<NDIM> > level=Pointer<PatchLevel<NDIM> >(NULL));
 
 protected:
 
@@ -131,7 +126,7 @@ private:
      */
     void
     getFromInput(
-        tbox::Pointer<tbox::Database> db);
+        Pointer<Database> db);
 
     /*
      * The object name is used as a handle to databases stored in restart files
@@ -142,12 +137,12 @@ private:
     /*
      * The grid geometry.
      */
-    tbox::Pointer<geom::CartesianGridGeometry<NDIM> > d_grid_geom;
+    Pointer<CartesianGridGeometry<NDIM> > d_grid_geom;
 
     /*
      * The center of the initial data.
      */
-    blitz::TinyVector<double,NDIM> d_X;
+    TinyVector<double,NDIM> d_X;
 
     /*
      * The initialization type.

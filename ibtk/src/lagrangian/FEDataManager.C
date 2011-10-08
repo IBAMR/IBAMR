@@ -933,7 +933,7 @@ FEDataManager::interp(
     NumericVector<double>& F_vec,
     NumericVector<double>& X_vec,
     const std::string& system_name,
-    std::vector<Pointer<RefineSchedule<NDIM> > > f_refine_scheds,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& f_refine_scheds,
     const double fill_data_time,
     const bool close_X)
 {
@@ -2028,8 +2028,6 @@ FEDataManager::FEDataManager(
 
 FEDataManager::~FEDataManager()
 {
-    delete d_qrule;
-    delete d_qrule_face;
     for (std::map<std::string,NumericVector<double>*>::iterator it = d_system_ghost_vec.begin();
          it != d_system_ghost_vec.end(); ++it)
     {
@@ -2627,7 +2625,5 @@ FEDataManager::do_partition(
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 } // namespace IBTK
-
-/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
 //////////////////////////////////////////////////////////////////////////////

@@ -1357,6 +1357,14 @@ CCPoissonHypreLevelSolver::solveSystem(
     {
         HYPRE_StructPFMGSetMaxIter(d_solver, d_max_iterations);
         HYPRE_StructPFMGSetTol(d_solver, d_rel_residual_tol);
+        if (d_initial_guess_nonzero)
+        {
+            HYPRE_StructPFMGSetNonZeroGuess(d_solver);
+        }
+        else
+        {
+            HYPRE_StructPFMGSetZeroGuess(d_solver);
+        }
         HYPRE_StructPFMGSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
         HYPRE_StructPFMGGetNumIterations(d_solver, &d_current_its);
         HYPRE_StructPFMGGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
@@ -1365,6 +1373,14 @@ CCPoissonHypreLevelSolver::solveSystem(
     {
         HYPRE_StructSMGSetMaxIter(d_solver, d_max_iterations);
         HYPRE_StructSMGSetTol(d_solver, d_rel_residual_tol);
+        if (d_initial_guess_nonzero)
+        {
+            HYPRE_StructSMGSetNonZeroGuess(d_solver);
+        }
+        else
+        {
+            HYPRE_StructSMGSetZeroGuess(d_solver);
+        }
         HYPRE_StructSMGSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
         HYPRE_StructSMGGetNumIterations(d_solver, &d_current_its);
         HYPRE_StructSMGGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
@@ -1431,7 +1447,7 @@ CCPoissonHypreLevelSolver::solveSystem(
 void
 CCPoissonHypreLevelSolver::copyToHypre(
     HYPRE_StructVector vector,
-    const Pointer<CellData<NDIM,double> >& src_data,
+    const Pointer<CellData<NDIM,double> > src_data,
     const Box<NDIM>& box)
 {
     Index<NDIM> lower = box.lower();
@@ -1451,7 +1467,7 @@ CCPoissonHypreLevelSolver::copyToHypre(
 
 void
 CCPoissonHypreLevelSolver::copyFromHypre(
-    Pointer<CellData<NDIM,double> >& dst_data,
+    Pointer<CellData<NDIM,double> > dst_data,
     HYPRE_StructVector vector,
     const Box<NDIM>& box)
 {
@@ -1544,9 +1560,9 @@ CCPoissonHypreLevelSolver::deallocateHypreData()
 
 void
 CCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_aligned(
-    Pointer<CellData<NDIM,double> >& rhs_data,
-    const Pointer<OutersideData<NDIM,double> >& D_data,
-    const Pointer<Patch<NDIM> >& patch,
+    Pointer<CellData<NDIM,double> > rhs_data,
+    const Pointer<OutersideData<NDIM,double> > D_data,
+    const Pointer<Patch<NDIM> > patch,
     const Array<BoundaryBox<NDIM> >& codim1_boxes,
     const double* const dx)
 {
@@ -1623,9 +1639,9 @@ CCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_aligned(
 
 void
 CCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_nonaligned(
-    Pointer<CellData<NDIM,double> >& rhs_data,
-    const Pointer<OutersideData<NDIM,double> >& D_data,
-    const Pointer<Patch<NDIM> >& patch,
+    Pointer<CellData<NDIM,double> > rhs_data,
+    const Pointer<OutersideData<NDIM,double> > D_data,
+    const Pointer<Patch<NDIM> > patch,
     const Array<BoundaryBox<NDIM> >& codim1_boxes,
     const double* const dx)
 {
@@ -1703,10 +1719,5 @@ CCPoissonHypreLevelSolver::adjustBoundaryRhsEntries_nonaligned(
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 }// namespace IBTK
-
-/////////////////////// TEMPLATE INSTANTIATION ///////////////////////////////
-
-#include <tbox/Pointer.C>
-template class Pointer<IBTK::CCPoissonHypreLevelSolver>;
 
 //////////////////////////////////////////////////////////////////////////////
