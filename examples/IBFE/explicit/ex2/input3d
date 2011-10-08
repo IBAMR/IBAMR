@@ -8,10 +8,8 @@ REF_RATIO  = 2                            // refinement ratio between levels
 N = 16                                    // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
 M = 1                                     // Lagrangian mesh spacing
-DX_FINEST = 1.0/NFINEST
-
-smooth_case = FALSE
-elem_type = "TET4"
+DX = 1.0/NFINEST
+elem_type = "HEX8"
 
 // solver parameters
 USE_IB_DELTA_FUNCTIONS     = TRUE              // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction
@@ -30,7 +28,7 @@ CONVECTIVE_OP_TYPE         = "PPM"             // convective differencing discre
 CONVECTIVE_FORM            = "ADVECTIVE"       // how to compute the convective terms
 NORMALIZE_PRESSURE         = FALSE             // whether to explicitly force the pressure to have mean zero
 CFL_MAX                    = 0.3               // maximum CFL number
-DT_MAX                     = 0.25*DX_FINEST    // maximum timestep size
+DT                         = 0.25*DX           // maximum timestep size
 VORTICITY_TAGGING          = FALSE             // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                 // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL        = 0.5               // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
@@ -121,7 +119,7 @@ IBHierarchyIntegrator {
    grow_dt             = GROW_DT
    num_cycles          = NUM_CYCLES
    regrid_cfl_interval = REGRID_CFL_INTERVAL
-   dt_max              = DT_MAX
+   dt_max              = DT
    enable_logging      = ENABLE_LOGGING
 }
 
@@ -146,7 +144,7 @@ INSCollocatedHierarchyIntegrator {
    convective_difference_form = CONVECTIVE_FORM
    normalize_pressure         = NORMALIZE_PRESSURE
    cfl                        = CFL_MAX
-   dt_max                     = DT_MAX
+   dt_max                     = DT
    using_vorticity_tagging    = VORTICITY_TAGGING
    vorticity_rel_thresh       = 0.25 , 0.125
    tag_buffer                 = TAG_BUFFER
@@ -238,7 +236,7 @@ INSStaggeredHierarchyIntegrator {
    convective_difference_form = CONVECTIVE_FORM
    normalize_pressure         = NORMALIZE_PRESSURE
    cfl                        = CFL_MAX
-   dt_max                     = DT_MAX
+   dt_max                     = DT
    using_vorticity_tagging    = VORTICITY_TAGGING
    vorticity_rel_thresh       = 0.25 , 0.125
    tag_buffer                 = TAG_BUFFER

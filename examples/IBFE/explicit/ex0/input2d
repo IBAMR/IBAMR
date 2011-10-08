@@ -12,7 +12,7 @@ N = 128                                   // actual    number of grid cells on c
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
 MFAC = 1                                  // Lagrangian mesh spacing factor
 M = MFAC*NFINEST/64                       // Lagrangian mesh spacing
-DX_FINEST = 1.0/NFINEST
+DX = 1.0/NFINEST
 
 smooth_case = FALSE
 elem_type = "QUAD9"
@@ -54,7 +54,7 @@ CONVECTIVE_OP_TYPE         = "PPM"             // convective differencing discre
 CONVECTIVE_FORM            = "ADVECTIVE"       // how to compute the convective terms
 NORMALIZE_PRESSURE         = TRUE              // whether to explicitly force the pressure to have mean zero
 CFL_MAX                    = 0.3               // maximum CFL number
-DT_MAX                     = 0.25*DX_FINEST    // maximum timestep size
+DT                         = 0.25*DX           // maximum timestep size
 VORTICITY_TAGGING          = FALSE             // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                 // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL        = 0.5               // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
@@ -110,7 +110,7 @@ IBHierarchyIntegrator {
    grow_dt             = GROW_DT
    num_cycles          = NUM_CYCLES
    regrid_cfl_interval = REGRID_CFL_INTERVAL
-   dt_max              = DT_MAX
+   dt_max              = DT
    enable_logging      = ENABLE_LOGGING
 }
 
@@ -135,7 +135,7 @@ INSCollocatedHierarchyIntegrator {
    convective_difference_form = CONVECTIVE_FORM
    normalize_pressure         = NORMALIZE_PRESSURE
    cfl                        = CFL_MAX
-   dt_max                     = DT_MAX
+   dt_max                     = DT
    using_vorticity_tagging    = VORTICITY_TAGGING
    vorticity_rel_thresh       = 0.25 , 0.125
    tag_buffer                 = TAG_BUFFER
@@ -227,7 +227,7 @@ INSStaggeredHierarchyIntegrator {
    convective_difference_form = CONVECTIVE_FORM
    normalize_pressure         = NORMALIZE_PRESSURE
    cfl                        = CFL_MAX
-   dt_max                     = DT_MAX
+   dt_max                     = DT
    using_vorticity_tagging    = VORTICITY_TAGGING
    vorticity_rel_thresh       = 0.25 , 0.125
    tag_buffer                 = TAG_BUFFER
@@ -306,7 +306,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt" , "ExodusII"
-   viz_dump_interval           = int(END_TIME/(50*DT_MAX))  // zero to turn off
+   viz_dump_interval           = int(END_TIME/(50*DT))      // zero to turn off
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 

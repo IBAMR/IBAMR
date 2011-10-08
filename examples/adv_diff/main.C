@@ -95,14 +95,14 @@ main(
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
+        Pointer<GodunovAdvector> predictor = new GodunovAdvector(
+            "GodunovAdvector", app_initializer->getComponentDatabase("GodunovAdvector"));
         Pointer<AdvDiffHierarchyIntegrator> time_integrator = new AdvDiffHierarchyIntegrator(
             "AdvDiffHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffHierarchyIntegrator"), predictor);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
             "PatchHierarchy", grid_geometry);
-        Pointer<GodunovAdvector> predictor = new GodunovAdvector(
-            "GodunovAdvector", app_initializer->getComponentDatabase("GodunovAdvector"));
         Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
             "StandardTagAndInitialize", time_integrator, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
