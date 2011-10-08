@@ -122,12 +122,12 @@ main(
         // and, if this is a restarted run, from the restart database.
         Pointer<GodunovAdvector> advector = new GodunovAdvector(
             "GodunovAdvector", app_initializer->getComponentDatabase("GodunovAdvector"));
+        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<AdvectHypPatchOps> hyp_patch_ops = new AdvectHypPatchOps(
             "AdvectHypPatchOps", app_initializer->getComponentDatabase("AdvectHypPatchOps"), advector, grid_geometry);
         Pointer<HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator = new HyperbolicLevelIntegrator<NDIM>(
             "HyperbolicLevelIntegrator", app_initializer->getComponentDatabase("HyperbolicLevelIntegrator"), hyp_patch_ops, true, using_refined_timestepping);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
             "PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
