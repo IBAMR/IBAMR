@@ -96,8 +96,6 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
 
     // Set some default values.
     d_integrator_is_initialized = false;
-    d_num_cycles = 1;
-    d_regrid_interval = 1;
     d_regrid_cfl_interval = 0.0;
     d_regrid_cfl_estimate = 0.0;
 
