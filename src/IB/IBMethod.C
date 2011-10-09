@@ -1150,20 +1150,23 @@ IBMethod::initializeLevelData(
     Pointer<BasePatchLevel<NDIM> > old_level,
     bool allocate_data)
 {
+    const int finest_hier_level = hierarchy->getFinestLevelNumber();
+    d_l_data_manager->setPatchHierarchy(hierarchy);
+    d_l_data_manager->resetLevels(0, finest_hier_level);
     d_l_data_manager->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     return;
 }// initializeLevelData
 
 void
 IBMethod::resetHierarchyConfiguration(
-    Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+    Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     int coarsest_level,
     int finest_level)
 {
-    const int finest_hier_level = base_hierarchy->getFinestLevelNumber();
-    d_l_data_manager->setPatchHierarchy(base_hierarchy);
+    const int finest_hier_level = hierarchy->getFinestLevelNumber();
+    d_l_data_manager->setPatchHierarchy(hierarchy);
     d_l_data_manager->resetLevels(0, finest_hier_level);
-    d_l_data_manager->resetHierarchyConfiguration(base_hierarchy, coarsest_level, finest_level);
+    d_l_data_manager->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
 
     // If we have added or removed a level, resize the anchor point vectors.
     d_anchor_point_local_idxs.clear();

@@ -745,8 +745,11 @@ IBFEMethod::initializeLevelData(
     Pointer<BasePatchLevel<NDIM> > old_level,
     bool allocate_data)
 {
+    const int finest_hier_level = hierarchy->getFinestLevelNumber();
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
+        d_fe_data_managers[part]->setPatchHierarchy(hierarchy);
+        d_fe_data_managers[part]->resetLevels(0,hierarchy->getFinestLevelNumber());
         d_fe_data_managers[part]->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     }
     return;
