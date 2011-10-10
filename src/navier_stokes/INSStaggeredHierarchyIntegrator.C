@@ -1667,7 +1667,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     // Setup convective operator.
     if (!d_convective_op.isNull() &&d_convective_op_needs_init)
     {
-        if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): Initializing convective operator" << std::endl;
+        if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing convective operator" << std::endl;
         d_convective_op->setAdvectionVelocity(d_U_scratch_idx);
         d_convective_op->initializeOperatorState(*d_U_scratch_vec,*d_U_rhs_vec);
         d_convective_op_needs_init = false;
@@ -1725,7 +1725,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         }
         if (d_velocity_solver_needs_init)
         {
-            if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): Initializing velocity subdomain solver" << std::endl;
+            if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing velocity subdomain solver" << std::endl;
             d_velocity_solver->initializeSolverState(*d_U_scratch_vec,*d_U_rhs_vec);
             d_velocity_solver_needs_init = false;
         }
@@ -1763,7 +1763,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         if (!p_pressure_solver.isNull()) p_pressure_solver->setOperator(d_pressure_op);
         if (d_pressure_solver_needs_init)
         {
-            if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): Initializing pressure subdomain solver" << std::endl;
+            if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing pressure subdomain solver" << std::endl;
             d_pressure_solver->initializeSolverState(*d_P_scratch_vec,*d_P_rhs_vec);
             d_pressure_solver_needs_init = false;
         }
@@ -1775,7 +1775,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     d_stokes_solver->setTimeInterval(current_time,new_time);
     if (d_stokes_solver_needs_init)
     {
-        if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): Initializing incompressible Stokes solver" << std::endl;
+        if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver" << std::endl;
         d_stokes_solver->initializeSolverState(*d_sol_vec,*d_rhs_vec);
         if (d_normalize_pressure)
         {

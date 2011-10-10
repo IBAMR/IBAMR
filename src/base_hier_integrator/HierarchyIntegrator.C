@@ -1079,13 +1079,13 @@ HierarchyIntegrator::getFromRestart()
     }
     else
     {
-        TBOX_ERROR(d_object_name << ":  Restart database corresponding to "
+        TBOX_ERROR(d_object_name << ":  restart database corresponding to "
                    << d_object_name << " not found in restart file." << std::endl);
     }
     int ver = db->getInteger("HIERARCHY_INTEGRATOR_VERSION");
     if (ver != HIERARCHY_INTEGRATOR_VERSION)
     {
-        TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
+        TBOX_ERROR(d_object_name << ":  restart file version different than class version." << std::endl);
     }
     d_integrator_time = db->getDouble("d_integrator_time");
     d_start_time = db->getDouble("d_start_time");

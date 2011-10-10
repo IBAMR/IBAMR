@@ -8,7 +8,7 @@ REF_RATIO  = 2                            // refinement ratio between levels
 N = 32                                    // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
 RFAC = 1                                  // base Lagrangian mesh refinement factor
-R = RFAC + int(log(NFINEST)/log(2)) - 6   // Lagrangian mesh refinement factor
+R = RFAC + int(log(NFINEST)/log(2)) - 6   //      Lagrangian mesh refinement factor
 DX = 1.0/NFINEST
 
 // model parameters

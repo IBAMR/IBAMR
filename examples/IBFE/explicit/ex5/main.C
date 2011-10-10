@@ -47,6 +47,7 @@
 #include <exodusII_io.h>
 #include <mesh.h>
 #include <mesh_generation.h>
+#include <mesh_triangle_interface.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBHierarchyIntegrator.h>
@@ -61,30 +62,11 @@
 // Elasticity model data.
 namespace ModelData
 {
-// Coordinate mapping function.
-void
-coordinate_mapping_function(
-    Point& X,
-    const Point& s,
-    void* /*ctx*/)
-{
-    X(0) = s(0) + 0.6;
-    X(1) = s(1) + 0.5;
-#if (NDIM == 3)
-    X(2) = s(2) + 0.5;
-#endif
-    return;
-}// coordinate_mapping_function
-
 // Stress tensor function.
-static double C1 = 0.05;
-static double struct_mu = 2.0*C1;
-static double struct_lambda = 2.5e0;
-static bool use_div_penalization = false;
 void
 PK1_stress_function(
     TensorValue<double>& PP,
-    const TensorValue<double>& FF,
+    const TensorValue<double>& /*FF*/,
     const Point& /*X*/,
     const Point& /*s*/,
     Elem* const /*elem*/,
@@ -93,14 +75,27 @@ PK1_stress_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    PP = struct_mu*FF;
-    if (use_div_penalization)
-    {
-        const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
-        PP += (-struct_mu + struct_lambda*log(FF.det()))*FF_inv_trans;
-    }
+    PP.zero();
     return;
 }// PK1_stress_function
+
+// Tether (penalty) force function.
+double kappa = 1.0e6;
+void
+tether_force_function(
+    VectorValue<double>& F,
+    const TensorValue<double>& /*FF*/,
+    const Point& X,
+    const Point& s,
+    Elem* const /*elem*/,
+    NumericVector<double>& /*X_vec*/,
+    const vector<NumericVector<double>*>& /*system_data*/,
+    double /*time*/,
+    void* /*ctx*/)
+{
+    F = kappa*(s-X);
+    return;
+}// tether_force_function
 }
 using namespace ModelData;
 
@@ -169,15 +164,37 @@ main(
 
         // Create a simple FE mesh.
         Mesh mesh(NDIM);
+#if 0
         const int R = input_db->getIntegerWithDefault("R", 3);
         string elem_type = input_db->getStringWithDefault("elem_type", "QUAD4");
         MeshTools::Generation::build_sphere(mesh,
-                                            0.2,
+                                            0.5,
                                             R,
                                             Utility::string_to_enum<ElemType>(elem_type));
-        struct_mu = input_db->getDoubleWithDefault("struct_mu", struct_mu);
-        struct_lambda = input_db->getDoubleWithDefault("struct_lambda", struct_lambda);
-        use_div_penalization = input_db->getBoolWithDefault("use_div_penalization", use_div_penalization);
+#else
+        string elem_type = input_db->getStringWithDefault("elem_type", "TRI3");
+        const double R = 0.5;
+        const double dx = input_db->getDouble("DX");
+        const int num_radial_nodes = ceil(R / (2.0*dx));
+        for (int j = 1; j <= num_radial_nodes; ++j)
+        {
+            const double r = R*static_cast<double>(j)/static_cast<double>(num_radial_nodes);
+            const int num_circum_nodes = 2*ceil(2.0*M_PI*r / (2.0*dx) / 2.0);
+            for (int k = 0; k < num_circum_nodes; ++k)
+            {
+                const double theta = k*2.0*M_PI/static_cast<double>(num_circum_nodes);
+                mesh.add_point(Point(r*cos(theta), r*sin(theta)));
+            }
+        }
+        mesh.add_point(Point(0.0,0.0));
+        TriangleInterface triangle(mesh);
+        triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
+        triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
+        triangle.insert_extra_points() = true;
+        triangle.triangulate();
+        mesh.prepare_for_use();
+#endif
+        kappa = input_db->getDoubleWithDefault("KAPPA", kappa);
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -216,8 +233,8 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
-        ib_method_ops->registerInitialCoordinateMappingFunction(&coordinate_mapping_function);
         ib_method_ops->registerPK1StressTensorFunction(&PK1_stress_function);
+        ib_method_ops->registerLagBodyForceFunction(&tether_force_function);
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
         // Create Eulerian initial condition specification objects.
