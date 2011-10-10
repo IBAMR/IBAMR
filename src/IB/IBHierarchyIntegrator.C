@@ -338,6 +338,7 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(
     //
     // NOTE: The velocity should already have been interpolated to the
     // curvilinear mesh and should not need to be re-interpolated.
+    if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
     d_ib_method_ops->eulerStep(current_time, new_time);
     return;
 }// preprocessIntegrateHierarchy
@@ -359,8 +360,10 @@ IBHierarchyIntegrator::integrateHierarchy(
                                                                    d_ins_hier_integrator->getNewContext());
 
     // Compute the Lagrangian forces and spread them to the Eulerian grid.
+    if (d_do_log) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
     d_ib_method_ops->computeLagrangianForce(half_time);
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+    if (d_do_log) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
     d_ib_method_ops->spreadForce(d_f_idx, d_refine_scheds["NONE"], half_time);
 
     // Compute the Lagrangian source/sink strengths and spread them to the
@@ -373,15 +376,18 @@ IBHierarchyIntegrator::integrateHierarchy(
     }
 
     // Solve the incompressible Navier-Stokes equations.
+    if (d_do_log) plog << d_object_name << "::integrateHierarchy(): solving the incompressible Navier-Stokes equations\n";
     d_ins_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
 
     // Interpolate the Eulerian velocity to the curvilinear mesh.
     d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
     d_refine_scheds["u->u::S->S::GHOST_FILL"][finest_ln]->fillData(d_integrator_time);
+    if (d_do_log) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
     d_ib_method_ops->interpolateVelocity(d_u_idx, d_coarsen_scheds["NONE"], d_refine_scheds["NONE"], half_time);
 
     // Compute an updated prediction of the updated positions of the Lagrangian
     // structure.
+    if (d_do_log) plog << d_object_name << "::integrateHierarchy(): performing Lagrangian midpoint step\n";
     d_ib_method_ops->midpointStep(current_time, new_time);
 
     // Compute the pressure at the updated locations of any distributed internal
@@ -410,6 +416,7 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(
     // Interpolate the Eulerian velocity to the curvilinear mesh.
     d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
     d_refine_scheds["u->u::S->S::GHOST_FILL"][finest_ln]->fillData(d_integrator_time);
+    if (d_do_log) plog << d_object_name << "::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
     d_ib_method_ops->interpolateVelocity(d_u_idx, d_coarsen_scheds["NONE"], d_refine_scheds["NONE"], new_time);
 
     // Synchronize new state data.
