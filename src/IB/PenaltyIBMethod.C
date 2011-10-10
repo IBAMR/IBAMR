@@ -115,13 +115,11 @@ PenaltyIBMethod::preprocessIntegrateData(
         d_Y_new_data    [ln] = d_l_data_manager->createLData("Y_new",ln,NDIM);
         d_V_current_data[ln] = d_l_data_manager->getLData("V",ln);
         d_V_new_data    [ln] = d_l_data_manager->createLData("V_new",ln,NDIM);
-#ifdef DEBUG_CHECK_ASSERTIONS
-        // Initialize Y^{n+1} and V^{n+1} to cause floating-point exceptions if
-        // not initialized correctly.
+
+        // Initialize Y^{n+1} and V^{n+1} to equal Y^{n} and V^{n}.
         int ierr;
-        ierr = VecSet(d_Y_new_data [ln]->getVec(), std::numeric_limits<double>::max());  IBTK_CHKERRQ(ierr);
-        ierr = VecSet(d_V_new_data [ln]->getVec(), std::numeric_limits<double>::max());  IBTK_CHKERRQ(ierr);
-#endif
+        ierr = VecCopy(d_Y_current_data[ln]->getVec(), d_Y_new_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(d_V_current_data[ln]->getVec(), d_V_new_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
     }
     return;
 }// preprocessIntegrateData

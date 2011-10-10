@@ -333,13 +333,16 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(
     // Initialize IB data.
     d_ib_method_ops->preprocessIntegrateData(current_time, new_time, num_cycles);
 
-    // Compute an initial prediction of the updated positions of the Lagrangian
-    // structure.
-    //
-    // NOTE: The velocity should already have been interpolated to the
-    // curvilinear mesh and should not need to be re-interpolated.
-    if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
-    d_ib_method_ops->eulerStep(current_time, new_time);
+    if (num_cycles == 1)
+    {
+        // Compute an initial prediction of the updated positions of the
+        // Lagrangian structure.
+        //
+        // NOTE: The velocity should already have been interpolated to the
+        // curvilinear mesh and should not need to be re-interpolated.
+        if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
+        d_ib_method_ops->eulerStep(current_time, new_time);
+    }
     return;
 }// preprocessIntegrateHierarchy
 
@@ -387,8 +390,16 @@ IBHierarchyIntegrator::integrateHierarchy(
 
     // Compute an updated prediction of the updated positions of the Lagrangian
     // structure.
-    if (d_do_log) plog << d_object_name << "::integrateHierarchy(): performing Lagrangian midpoint step\n";
-    d_ib_method_ops->midpointStep(current_time, new_time);
+    if (d_current_num_cycles > 1 && d_current_cycle_num == 0)
+    {
+        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): performing Lagrangian forward Euler step\n";
+        d_ib_method_ops->eulerStep(current_time, new_time);
+    }
+    else
+    {
+        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): performing Lagrangian midpoint step\n";
+        d_ib_method_ops->midpointStep(current_time, new_time);
+    }
 
     // Compute the pressure at the updated locations of any distributed internal
     // fluid sources or sinks.

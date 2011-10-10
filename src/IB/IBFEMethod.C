@@ -258,30 +258,22 @@ IBFEMethod::preprocessIntegrateData(
         }
     }
 
-    // Initialize U^{n+1/2} and U^{n+1} to equal U^{n}.
+    // Initialize X^{n+1/2}, X^{n+1}, U^{n+1/2}, and U^{n+1} to equal U^{n}.
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
+        ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_half_vecs[part]->vec()); IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs [part]->vec()); IBTK_CHKERRQ(ierr);
         ierr = VecCopy(d_U_current_vecs[part]->vec(), d_U_half_vecs[part]->vec()); IBTK_CHKERRQ(ierr);
         ierr = VecCopy(d_U_current_vecs[part]->vec(), d_U_new_vecs [part]->vec()); IBTK_CHKERRQ(ierr);
     }
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-    // Initialize X^{n+1/2} and X^{n+1} to cause floating-point exceptions if
-    // not initialized correctly.
-    for (unsigned part = 0; part < d_num_parts; ++part)
-    {
-        ierr = VecSet(d_X_half_vecs[part]->vec(), std::numeric_limits<double>::max()); IBTK_CHKERRQ(ierr);
-        ierr = VecSet(d_X_new_vecs [part]->vec(), std::numeric_limits<double>::max()); IBTK_CHKERRQ(ierr);
-    }
-#endif
 
     // Indicate all ghost data are currently invalid, and that all intermediate
     // data need to be reinitialized.
     d_X_IB_ghost_time     = std::numeric_limits<double>::quiet_NaN();
     d_F_IB_ghost_time     = std::numeric_limits<double>::quiet_NaN();
     d_J_bar_IB_ghost_time = std::numeric_limits<double>::quiet_NaN();
-    d_X_half_needs_reinit = true;
-    d_U_half_needs_reinit = true;
+    d_X_half_needs_reinit = false;
+    d_U_half_needs_reinit = false;
     return;
 }// preprocessIntegrateData
 
@@ -749,7 +741,7 @@ IBFEMethod::initializeLevelData(
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_fe_data_managers[part]->setPatchHierarchy(hierarchy);
-        d_fe_data_managers[part]->resetLevels(0,hierarchy->getFinestLevelNumber());
+        d_fe_data_managers[part]->resetLevels(0,finest_hier_level);
         d_fe_data_managers[part]->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     }
     return;

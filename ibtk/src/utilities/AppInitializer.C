@@ -230,12 +230,6 @@ AppInitializer::AppInitializer(
         if (d_viz_writers[i] == "ExodusII")
         {
             d_exodus_filename = main_db->getStringWithDefault("exodus_filename", "output.ex2");
-            if (!d_exodus_filename.empty())
-            {
-                std::ostringstream exodus_filename_stream;
-                exodus_filename_stream << d_viz_dump_dirname << "/" << d_exodus_filename;
-                d_exodus_filename = exodus_filename_stream.str();
-            }
         }
     }
 
@@ -465,9 +459,17 @@ AppInitializer::getLSiloDataWriter() const
 }// getLSiloDataWriter
 
 std::string
-AppInitializer::getExodusIIFilename() const
+AppInitializer::getExodusIIFilename(
+    const std::string& prefix) const
 {
-    return d_exodus_filename;
+    std::string exodus_filename = "";
+    if (!d_exodus_filename.empty())
+    {
+        std::ostringstream exodus_filename_stream;
+        exodus_filename_stream << d_viz_dump_dirname << "/" << prefix << d_exodus_filename;
+        exodus_filename = exodus_filename_stream.str();
+    }
+    return exodus_filename;
 }// getExodusIIFilename
 
 bool

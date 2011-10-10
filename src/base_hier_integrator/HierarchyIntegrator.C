@@ -96,6 +96,8 @@ HierarchyIntegrator::HierarchyIntegrator(
     d_hierarchy_is_initialized = false;
     d_visit_writer = NULL;
     d_parent_integrator = NULL;
+    d_current_num_cycles = -1;
+    d_current_cycle_num = -1;
 
     // Set default values.
     d_integrator_time = std::numeric_limits<double>::quiet_NaN();
@@ -247,18 +249,20 @@ HierarchyIntegrator::advanceHierarchy(
     }
 
     // Integrate the time-dependent data.
-    const int num_cycles = getNumberOfCycles();
-    preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
+    d_current_num_cycles = getNumberOfCycles();
+    preprocessIntegrateHierarchy(current_time, new_time, d_current_num_cycles);
     plog << d_object_name << "::advanceHierarchy(): integrating hierarchy\n";
-    for (int cycle = 0; cycle < num_cycles; ++cycle)
+    for (d_current_cycle_num = 0; d_current_cycle_num < d_current_num_cycles; ++d_current_cycle_num)
     {
-        if (d_do_log && num_cycles != 1)
+        if (d_do_log && d_current_num_cycles != 1)
         {
-            plog << d_object_name << "::advanceHierarchy(): executing cycle " << cycle+1 << " of " << num_cycles << "\n";
+            plog << d_object_name << "::advanceHierarchy(): executing cycle " << d_current_cycle_num+1 << " of " << d_current_num_cycles << "\n";
         }
-        integrateHierarchy(current_time, new_time, cycle);
+        integrateHierarchy(current_time, new_time, d_current_cycle_num);
     }
-    postprocessIntegrateHierarchy(current_time, new_time, /*skip_synchronize_new_state_data*/ true, num_cycles);
+    postprocessIntegrateHierarchy(current_time, new_time, /*skip_synchronize_new_state_data*/ true, d_current_num_cycles);
+    d_current_num_cycles = -1;
+    d_current_cycle_num = -1;
 
     // Synchronize the updated data.
     if (d_do_log) plog << d_object_name << "::advanceHierarchy(): synchronizing updated data\n";

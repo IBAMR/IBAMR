@@ -309,24 +309,19 @@ IBMethod::preprocessIntegrateData(
 
         int ierr;
 
-        // Initialize U^{n+1} to equal U^{n}.
-        ierr = VecCopy(d_U_current_data[ln]->getVec(), d_U_new_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-        // Initialize X^{n+1/2}, X^{n+1}, and U^{n+1/2} to cause floating-point
-        // exceptions if not initialized correctly.
-        ierr = VecSet(d_X_half_data[ln]->getVec(), std::numeric_limits<double>::max());  IBTK_CHKERRQ(ierr);
-        ierr = VecSet(d_X_new_data [ln]->getVec(), std::numeric_limits<double>::max());  IBTK_CHKERRQ(ierr);
-        ierr = VecSet(d_U_half_data[ln]->getVec(), std::numeric_limits<double>::max());  IBTK_CHKERRQ(ierr);
-#endif
+        // Initialize X^{n+1/2}, X^{n+1}, U^{n+1/2}, and U^{n+1} to equal U^{n}.
+        ierr = VecCopy(d_X_current_data[ln]->getVec(), d_X_half_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(d_X_current_data[ln]->getVec(), d_X_new_data [ln]->getVec());  IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(d_U_current_data[ln]->getVec(), d_U_half_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(d_U_current_data[ln]->getVec(), d_U_new_data [ln]->getVec());  IBTK_CHKERRQ(ierr);
     }
 
     // Indicate all updated Lagrangian data need ghost values to be refilled,
     // and that all intermediate data need to be reinitialized.
     d_X_new_needs_ghost_fill  = true;
     d_X_half_needs_ghost_fill = true;
-    d_X_half_needs_reinit     = true;
-    d_U_half_needs_reinit     = true;
+    d_X_half_needs_reinit     = false;
+    d_U_half_needs_reinit     = false;
     return;
 }// preprocessIntegrateData
 

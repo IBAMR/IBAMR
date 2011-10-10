@@ -677,6 +677,12 @@ protected:
     int d_num_cycles;
 
     /*
+     * The number of cycles for the current time step and the current cycle
+     * number.
+     */
+    int d_current_num_cycles, d_current_cycle_num;
+
+    /*
      * The number of integration steps taken between invocations of the
      * regridding process.
      */

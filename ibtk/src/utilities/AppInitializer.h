@@ -146,7 +146,8 @@ public:
      * will be returned.
      */
     std::string
-    getExodusIIFilename() const;
+    getExodusIIFilename(
+        const std::string& prefix="") const;
 
     /*!
      * Return a boolean value indicating whether to write restart data.
