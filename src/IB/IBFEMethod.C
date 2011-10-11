@@ -211,8 +211,6 @@ IBFEMethod::preprocessIntegrateData(
     double new_time,
     int /*num_cycles*/)
 {
-    int ierr;
-
     d_current_time = current_time;
     d_new_time = new_time;
     d_half_time = current_time+0.5*(new_time-current_time);
@@ -256,24 +254,17 @@ IBFEMethod::preprocessIntegrateData(
             d_J_bar_half_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_J_bar_systems   [part]->solution.get());
             d_J_bar_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(J_BAR_SYSTEM_NAME));
         }
-    }
 
-    // Initialize X^{n+1/2}, X^{n+1}, U^{n+1/2}, and U^{n+1} to equal U^{n}.
-    for (unsigned part = 0; part < d_num_parts; ++part)
-    {
-        ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_half_vecs[part]->vec()); IBTK_CHKERRQ(ierr);
-        ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs [part]->vec()); IBTK_CHKERRQ(ierr);
-        ierr = VecCopy(d_U_current_vecs[part]->vec(), d_U_half_vecs[part]->vec()); IBTK_CHKERRQ(ierr);
-        ierr = VecCopy(d_U_current_vecs[part]->vec(), d_U_new_vecs [part]->vec()); IBTK_CHKERRQ(ierr);
+        // Initialize X^{n+1/2}, X^{n+1}, U^{n+1/2}, and U^{n+1} to equal U^{n}.
+        d_X_current_vecs[part]->localize(*d_X_half_vecs[part]);
+        d_X_half_vecs[part]->close();
+        d_X_current_vecs[part]->localize(*d_X_new_vecs[part]);
+        d_X_new_vecs[part]->close();
+        d_U_current_vecs[part]->localize(*d_U_half_vecs[part]);
+        d_U_half_vecs[part]->close();
+        d_U_current_vecs[part]->localize(*d_U_new_vecs[part]);
+        d_U_new_vecs[part]->close();
     }
-
-    // Indicate all ghost data are currently invalid, and that all intermediate
-    // data need to be reinitialized.
-    d_X_IB_ghost_time     = std::numeric_limits<double>::quiet_NaN();
-    d_F_IB_ghost_time     = std::numeric_limits<double>::quiet_NaN();
-    d_J_bar_IB_ghost_time = std::numeric_limits<double>::quiet_NaN();
-    d_X_half_needs_reinit = false;
-    d_U_half_needs_reinit = false;
     return;
 }// preprocessIntegrateData
 
@@ -283,24 +274,16 @@ IBFEMethod::postprocessIntegrateData(
     double /*new_time*/,
     int /*num_cycles*/)
 {
-    int ierr;
-
-    // Reset time-dependent Lagrangian data.
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
-        ierr = VecSwap(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec()); IBTK_CHKERRQ(ierr);
-        ierr = VecSwap(d_U_current_vecs[part]->vec(), d_U_new_vecs[part]->vec()); IBTK_CHKERRQ(ierr);
-    }
+        // Reset time-dependent Lagrangian data.
+        (*d_X_current_vecs[part]) = (*d_X_new_vecs[part]);
+        (*d_U_current_vecs[part]) = (*d_U_new_vecs[part]);
 
-    // Update the coordinate mapping dX = X - s.
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
+        // Update the coordinate mapping dX = X - s.
         updateCoordinateMapping(part);
-    }
 
-    // Deallocate Lagrangian scratch data.
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
+        // Deallocate Lagrangian scratch data.
         delete d_X_new_vecs[part];
         delete d_U_new_vecs[part];
     }
@@ -334,93 +317,36 @@ IBFEMethod::interpolateVelocity(
     const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
     const double data_time)
 {
-    int ierr;
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        if (!MathUtilities<double>::equalEps(d_X_IB_ghost_time, d_current_time))
+        NumericVector<double>* X_vec;
+        NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+        NumericVector<double>* U_vec;
+        if (MathUtilities<double>::equalEps(data_time, d_current_time))
         {
-            for (unsigned int part = 0; part < d_num_parts; ++part)
-            {
-                ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_IB_ghost_vecs[part]->vec()); IBTK_CHKERRQ(ierr);
-                d_X_IB_ghost_vecs[part]->close();
-            }
-            d_X_IB_ghost_time = data_time;
+            X_vec = d_X_current_vecs[part];
+            U_vec = d_U_current_vecs[part];
         }
-        for (unsigned int part = 0; part < d_num_parts; ++part)
+        else if (MathUtilities<double>::equalEps(data_time, d_half_time))
         {
-            NumericVector<double>& X_current = *d_X_IB_ghost_vecs[part];
-            NumericVector<double>& U_current = *d_U_current_vecs[part];
-            if (d_use_IB_interp_operator)
-            {
-                d_fe_data_managers[part]->interp(u_data_idx, U_current, X_current, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds, data_time, false);
-            }
-            else
-            {
-                d_fe_data_managers[part]->restrictValue(u_data_idx, U_current, X_current, VELOCITY_SYSTEM_NAME, false);
-            }
+            X_vec = d_X_half_vecs[part];
+            U_vec = d_U_half_vecs[part];
         }
-        d_U_half_needs_reinit = true;
-    }
-    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
-    {
-        if (d_X_half_needs_reinit)
+        else if (MathUtilities<double>::equalEps(data_time, d_new_time))
         {
-            for (unsigned int part = 0; part < d_num_parts; ++part)
-            {
-                ierr = VecAXPBYPCZ(d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());  IBTK_CHKERRQ(ierr);
-            }
-            d_X_half_needs_reinit = false;
-            d_X_IB_ghost_time = std::numeric_limits<double>::quiet_NaN();  // force reinit of X_IB_ghost
+            X_vec = d_X_new_vecs[part];
+            U_vec = d_U_new_vecs[part];
         }
-        if (!MathUtilities<double>::equalEps(d_X_IB_ghost_time, d_half_time))
+        X_vec->localize(*X_ghost_vec);
+        X_ghost_vec->close();
+        if (d_use_IB_interp_operator)
         {
-            for (unsigned int part = 0; part < d_num_parts; ++part)
-            {
-                ierr = VecCopy(d_X_half_vecs[part]->vec(), d_X_IB_ghost_vecs[part]->vec()); IBTK_CHKERRQ(ierr);
-                d_X_IB_ghost_vecs[part]->close();
-            }
-            d_X_IB_ghost_time = data_time;
+            d_fe_data_managers[part]->interp(u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds, data_time, false);
         }
-        for (unsigned int part = 0; part < d_num_parts; ++part)
+        else
         {
-            NumericVector<double>& X_half = *d_X_IB_ghost_vecs[part];
-            NumericVector<double>& U_half = *d_U_half_vecs[part];
-            if (d_use_IB_interp_operator)
-            {
-                d_fe_data_managers[part]->interp(u_data_idx, U_half, X_half, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds, data_time, false);
-            }
-            else
-            {
-                d_fe_data_managers[part]->restrictValue(u_data_idx, U_half, X_half, VELOCITY_SYSTEM_NAME, false);
-            }
+            d_fe_data_managers[part]->restrictValue(u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, false);
         }
-        d_U_half_needs_reinit = false;
-    }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
-    {
-        if (!MathUtilities<double>::equalEps(d_X_IB_ghost_time, d_new_time))
-        {
-            for (unsigned int part = 0; part < d_num_parts; ++part)
-            {
-                ierr = VecCopy(d_X_new_vecs[part]->vec(), d_X_IB_ghost_vecs[part]->vec()); IBTK_CHKERRQ(ierr);
-                d_X_IB_ghost_vecs[part]->close();
-            }
-            d_X_IB_ghost_time = data_time;
-        }
-        for (unsigned int part = 0; part < d_num_parts; ++part)
-        {
-            NumericVector<double>& X_new = *d_X_IB_ghost_vecs[part];
-            NumericVector<double>& U_new = *d_U_new_vecs[part];
-            if (d_use_IB_interp_operator)
-            {
-                d_fe_data_managers[part]->interp(u_data_idx, U_new, X_new, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds, data_time, false);
-            }
-            else
-            {
-                d_fe_data_managers[part]->restrictValue(u_data_idx, U_new, X_new, VELOCITY_SYSTEM_NAME, false);
-            }
-        }
-        d_U_half_needs_reinit = true;
     }
     return;
 }// interpolateVelocity
@@ -432,14 +358,13 @@ IBFEMethod::eulerStep(
 {
     const double dt = new_time-current_time;
     int ierr;
-
-    // Update the value of X^{n+1} using forward Euler.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec()); IBTK_CHKERRQ(ierr);
+        ierr = VecAXPBYPCZ(d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());  IBTK_CHKERRQ(ierr);
+        d_X_new_vecs [part]->close();
+        d_X_half_vecs[part]->close();
     }
-    if (!MathUtilities<double>::equalEps(d_X_IB_ghost_time, d_current_time)) d_X_IB_ghost_time = std::numeric_limits<double>::quiet_NaN();
-    d_X_half_needs_reinit = true;
     return;
 }// eulerStep
 
@@ -450,24 +375,13 @@ IBFEMethod::midpointStep(
 {
     const double dt = new_time-current_time;
     int ierr;
-
-    // Recompute U(n+1/2) when necessary.
-    if (d_U_half_needs_reinit)
-    {
-        for (unsigned int part = 0; part < d_num_parts; ++part)
-        {
-            ierr = VecAXPBYPCZ(d_U_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_U_current_vecs[part]->vec(), d_U_new_vecs[part]->vec());  IBTK_CHKERRQ(ierr);
-        }
-        d_U_half_needs_reinit = false;
-    }
-
-    // Update the value of X^{n+1} using the midpoint rule.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_half_vecs[part]->vec(), d_X_current_vecs[part]->vec()); IBTK_CHKERRQ(ierr);
+        ierr = VecAXPBYPCZ(d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());  IBTK_CHKERRQ(ierr);
+        d_X_new_vecs [part]->close();
+        d_X_half_vecs[part]->close();
     }
-    if (!MathUtilities<double>::equalEps(d_X_IB_ghost_time, d_current_time)) d_X_IB_ghost_time = std::numeric_limits<double>::quiet_NaN();
-    d_X_half_needs_reinit = true;
     return;
 }// midpointStep
 
@@ -478,36 +392,14 @@ IBFEMethod::computeLagrangianForce(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
-    int ierr;
-
-    // Recompute X(n+1/2) when necessary.
-    if (d_X_half_needs_reinit)
+    for (unsigned part = 0; part < d_num_parts; ++part)
     {
-        for (unsigned int part = 0; part < d_num_parts; ++part)
-        {
-            ierr = VecAXPBYPCZ(d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());  IBTK_CHKERRQ(ierr);
-            d_X_half_vecs[part]->close();
-        }
-        d_X_half_needs_reinit = false;
-        if (MathUtilities<double>::equalEps(d_X_IB_ghost_time, data_time)) d_X_IB_ghost_time = std::numeric_limits<double>::quiet_NaN(); // force reinit of X_IB_ghost
-    }
-
-    // Compute J_bar(n+1/2) = proj(FF(n+1/2)).
-    if (d_use_Fbar_projection)
-    {
-        for (unsigned part = 0; part < d_num_parts; ++part)
+        if (d_use_Fbar_projection)
         {
             computeProjectedDilatationalStrain(*d_J_bar_half_vecs[part], *d_X_half_vecs[part], part);
         }
-        d_J_bar_IB_ghost_time = std::numeric_limits<double>::quiet_NaN();  // force reinit of J_bar_IB_ghost
-    }
-
-    // Compute F(n+1/2) = F(X(n+1/2),t(n+1/2)).
-    for (unsigned part = 0; part < d_num_parts; ++part)
-    {
         computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_J_bar_half_vecs[part], data_time, part);
     }
-    d_F_IB_ghost_time = std::numeric_limits<double>::quiet_NaN();  // force reinit of F_IB_ghost
     return;
 }// computeLagrangianForce
 
@@ -520,74 +412,45 @@ IBFEMethod::spreadForce(
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
-    int ierr;
-
-    // Recompute X(n+1/2) when necessary.
-    if (d_X_half_needs_reinit)
-    {
-        for (unsigned int part = 0; part < d_num_parts; ++part)
-        {
-            ierr = VecAXPBYPCZ(d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());  IBTK_CHKERRQ(ierr);
-        }
-        d_X_half_needs_reinit = false;
-        d_X_IB_ghost_time = std::numeric_limits<double>::quiet_NaN();  // force reinit of X_IB_ghost
-    }
-
-    // Reset and refill ghost values when necessary.
-    if (!MathUtilities<double>::equalEps(d_X_IB_ghost_time, data_time))
-    {
-        for (unsigned int part = 0; part < d_num_parts; ++part)
-        {
-            ierr = VecCopy(d_X_half_vecs[part]->vec(), d_X_IB_ghost_vecs[part]->vec()); IBTK_CHKERRQ(ierr);
-            d_X_IB_ghost_vecs[part]->close();
-        }
-        d_X_IB_ghost_time = data_time;
-    }
-    if (!MathUtilities<double>::equalEps(d_F_IB_ghost_time, data_time))
-    {
-        for (unsigned int part = 0; part < d_num_parts; ++part)
-        {
-            ierr = VecCopy(d_F_half_vecs[part]->vec(), d_F_IB_ghost_vecs[part]->vec()); IBTK_CHKERRQ(ierr);
-            d_F_IB_ghost_vecs[part]->close();
-        }
-        d_F_IB_ghost_time = data_time;
-    }
-    if (d_use_Fbar_projection)
-    {
-        if (!MathUtilities<double>::equalEps(d_J_bar_IB_ghost_time, data_time))
-        {
-            for (unsigned int part = 0; part < d_num_parts; ++part)
-            {
-                ierr = VecCopy(d_J_bar_half_vecs[part]->vec(), d_J_bar_IB_ghost_vecs[part]->vec()); IBTK_CHKERRQ(ierr);
-                d_J_bar_IB_ghost_vecs[part]->close();
-            }
-            d_J_bar_IB_ghost_time = data_time;
-        }
-    }
-
-    // Spread the force onto the Cartesian grid.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        NumericVector<double>& X_IB_ghost = *d_X_IB_ghost_vecs[part];
-        NumericVector<double>& F_IB_ghost = *d_F_IB_ghost_vecs[part];
+        NumericVector<double>* X_vec = d_X_half_vecs[part];
+        NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+        NumericVector<double>* F_vec = d_F_half_vecs[part];
+        NumericVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
+        NumericVector<double>* J_bar_vec = NULL;
+        NumericVector<double>* J_bar_ghost_vec = NULL;
+        if (d_use_Fbar_projection)
+        {
+            J_bar_vec = d_J_bar_half_vecs[part];
+            J_bar_ghost_vec = d_J_bar_IB_ghost_vecs[part];
+        }
+        X_vec->localize(*X_ghost_vec);
+        X_ghost_vec->close();
+        F_vec->localize(*F_ghost_vec);
+        F_ghost_vec->close();
+        if (d_use_Fbar_projection)
+        {
+            J_bar_vec->localize(*J_bar_ghost_vec);
+            J_bar_ghost_vec->close();
+        }
         if (d_use_IB_spread_operator)
         {
-            d_fe_data_managers[part]->spread(f_data_idx, F_IB_ghost, X_IB_ghost, FORCE_SYSTEM_NAME, false, false);
+            d_fe_data_managers[part]->spread(f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, false, false);
         }
         else
         {
-            d_fe_data_managers[part]->prolongDensity(f_data_idx, F_IB_ghost, X_IB_ghost, FORCE_SYSTEM_NAME, false, false);
+            d_fe_data_managers[part]->prolongDensity(f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, false, false);
         }
         if (d_split_forces)
         {
-            NumericVector<double>* J_bar_IB_ghost = d_J_bar_IB_ghost_vecs[part];
             if (d_use_jump_conditions)
             {
-                imposeJumpConditions(f_data_idx, F_IB_ghost, X_IB_ghost, J_bar_IB_ghost, data_time, part);
+                imposeJumpConditions(f_data_idx, *F_ghost_vec, *X_ghost_vec, J_bar_ghost_vec, data_time, part);
             }
             else
             {
-                spreadTransmissionForceDensity(f_data_idx, X_IB_ghost, J_bar_IB_ghost, data_time, part);
+                spreadTransmissionForceDensity(f_data_idx, *X_ghost_vec, J_bar_ghost_vec, data_time, part);
             }
         }
     }
@@ -610,6 +473,14 @@ IBFEMethod::initializeFEData()
         X_system.assemble_before_solve = false;
         X_system.assemble();
 
+        System& U_system = equation_systems->get_system<System>(VELOCITY_SYSTEM_NAME);
+        U_system.assemble_before_solve = false;
+        U_system.assemble();
+
+        System& F_system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
+        F_system.assemble_before_solve = false;
+        F_system.assemble();
+
         System& X_mapping_system = equation_systems->get_system<System>(COORD_MAPPING_SYSTEM_NAME);
         X_mapping_system.assemble_before_solve = false;
         X_mapping_system.assemble();
@@ -617,8 +488,6 @@ IBFEMethod::initializeFEData()
         // Set up boundary conditions.  Specifically, add appropriate boundary
         // IDs to the BoundaryInfo object associated with the mesh, and add DOF
         // constraints for the nodal forces and velocities.
-        ExplicitSystem& F_system = equation_systems->get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
-        ExplicitSystem& U_system = equation_systems->get_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
         const MeshBase& mesh = equation_systems->get_mesh();
         DofMap& F_dof_map = F_system.get_dof_map();
         DofMap& U_dof_map = U_system.get_dof_map();
@@ -2098,14 +1967,6 @@ IBFEMethod::commonConstructor(
     d_current_time = std::numeric_limits<double>::quiet_NaN();
     d_new_time     = std::numeric_limits<double>::quiet_NaN();
     d_half_time    = std::numeric_limits<double>::quiet_NaN();
-
-    // Indicate all ghost data are currently invalid, and that all intermediate
-    // data need to be reinitialized.
-    d_X_IB_ghost_time     = std::numeric_limits<double>::quiet_NaN();
-    d_F_IB_ghost_time     = std::numeric_limits<double>::quiet_NaN();
-    d_J_bar_IB_ghost_time = std::numeric_limits<double>::quiet_NaN();
-    d_X_half_needs_reinit = true;
-    d_U_half_needs_reinit = true;
 
     d_is_initialized = false;
     return;

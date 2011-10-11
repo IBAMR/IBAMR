@@ -482,13 +482,6 @@ protected:
     double d_current_time, d_new_time, d_half_time;
 
     /*
-     * Boolean values tracking whether certain quantities need to be
-     * reinitialized.
-     */
-    double d_X_IB_ghost_time, d_F_IB_ghost_time, d_J_bar_IB_ghost_time;
-    bool d_X_half_needs_reinit, d_U_half_needs_reinit;
-
-    /*
      * FE data associated with this object.
      */
     std::vector<libMesh::Mesh*> d_meshes;
