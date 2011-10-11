@@ -752,7 +752,7 @@ IBFEMethod::computeProjectedDilatationalStrain(
             const double J = FF.det();
             for (unsigned int k = 0; k < n_basis; ++k)
             {
-                J_bar_rhs_e(k) += J_bar_phi[k][qp]*JxW[k]*J;
+                J_bar_rhs_e(k) += J_bar_phi[k][qp]*JxW[qp]*J;
             }
         }
 
@@ -952,7 +952,7 @@ IBFEMethod::computeInteriorForceDensity(
                 d_lag_body_force_fcns[part](F_b,FF,X_qp,s_qp,elem,X_vec,lag_body_force_fcn_data,time,d_lag_body_force_fcn_ctxs[part]);
                 for (unsigned int k = 0; k < n_basis; ++k)
                 {
-                    F_qp = phi[k][qp]*JxW[k]*F_b;
+                    F_qp = phi[k][qp]*JxW[qp]*F_b;
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
                         G_rhs_e[i](k) += F_qp(i);
