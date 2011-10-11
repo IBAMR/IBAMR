@@ -9,13 +9,12 @@ REF_RATIO  = 2                            // refinement ratio between levels
 N = 16                                    // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
 RFAC = 1                                  // base Lagrangian mesh refinement factor
-R = RFAC + int(log(NFINEST)/log(2)) - 6   //      Lagrangian mesh refinement factor
 L = 16.0                                  // width of computational domain
 DX = L/NFINEST
 
 // model parameters
 elem_type = "TRI6"
-KAPPA = 1.25e5
+KAPPA = 1.25e5*NFINEST/256.0
 
 // solver parameters
 USE_IB_DELTA_FUNCTIONS     = FALSE             // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction
@@ -298,7 +297,7 @@ Main {
    restart_dump_dirname        = "restart_IB2d"
 
 // hierarchy data dump parameters
-   data_dump_interval          = 0                          // zero to turn off
+   data_dump_interval          = 1                          // zero to turn off
    data_dump_dirname           = "hier_data_IB2d"
 
 // timer dump parameters

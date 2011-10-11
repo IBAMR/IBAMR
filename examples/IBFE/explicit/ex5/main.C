@@ -45,8 +45,8 @@
 #include <boundary_info.h>
 #include <dof_map.h>
 #include <exodusII_io.h>
+#include <fe.h>
 #include <mesh.h>
-#include <mesh_generation.h>
 #include <mesh_triangle_interface.h>
 
 // Headers for application-specific algorithm/data structure objects
@@ -100,8 +100,9 @@ tether_force_function(
 using namespace ModelData;
 
 // Function prototypes
+static ofstream drag_stream, lift_stream;
 void
-output_data(
+postprocess_data(
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
     Mesh& mesh,
@@ -164,36 +165,26 @@ main(
 
         // Create a simple FE mesh.
         Mesh mesh(NDIM);
-#if 0
-        const int R = input_db->getIntegerWithDefault("R", 3);
-        string elem_type = input_db->getStringWithDefault("elem_type", "QUAD4");
-        MeshTools::Generation::build_sphere(mesh,
-                                            0.5,
-                                            R,
-                                            Utility::string_to_enum<ElemType>(elem_type));
-#else
         string elem_type = input_db->getStringWithDefault("elem_type", "TRI3");
         const double R = 0.5;
         const double dx = input_db->getDouble("DX");
         const int num_radial_nodes = ceil(R / (2.0*dx));
-        for (int j = 1; j <= num_radial_nodes; ++j)
+        for (int j = 0; j <= num_radial_nodes; ++j)
         {
             const double r = R*static_cast<double>(j)/static_cast<double>(num_radial_nodes);
-            const int num_circum_nodes = 2*ceil(2.0*M_PI*r / (2.0*dx) / 2.0);
+            const int num_circum_nodes = max(1.0,2.0*ceil(2.0*M_PI*r / (2.0*dx) / 2.0));
             for (int k = 0; k < num_circum_nodes; ++k)
             {
                 const double theta = k*2.0*M_PI/static_cast<double>(num_circum_nodes);
                 mesh.add_point(Point(r*cos(theta), r*sin(theta)));
             }
         }
-        mesh.add_point(Point(0.0,0.0));
         TriangleInterface triangle(mesh);
         triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
         triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
         triangle.insert_extra_points() = true;
         triangle.triangulate();
         mesh.prepare_for_use();
-#endif
         kappa = input_db->getDoubleWithDefault("KAPPA", kappa);
 
         // Create major algorithm and data objects that comprise the
@@ -324,6 +315,10 @@ main(
             }
         }
 
+        // Open streams to save lift and drag coefficients.
+        drag_stream.open("C_D.log", ios_base::out | ios_base::trunc);
+        lift_stream.open("C_L.log", ios_base::out | ios_base::trunc);
+
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -378,12 +373,15 @@ main(
             }
             if (dump_postproc_data && (iteration_num%postproc_data_dump_interval == 0 || last_step))
             {
-                pout << "\nWriting state data...\n\n";
-                output_data(patch_hierarchy,
-                            navier_stokes_integrator, mesh, equation_systems,
-                            iteration_num, loop_time, postproc_data_dump_dirname);
+                postprocess_data(patch_hierarchy,
+                                 navier_stokes_integrator, mesh, equation_systems,
+                                 iteration_num, loop_time, postproc_data_dump_dirname);
             }
         }
+
+        // Close the logging streams.
+        drag_stream.close();
+        lift_stream.close();
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
@@ -396,43 +394,59 @@ main(
 }// main
 
 void
-output_data(
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-    Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+postprocess_data(
+    Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+    Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
     Mesh& mesh,
     EquationSystems* equation_systems,
-    const int iteration_num,
+    const int /*iteration_num*/,
     const double loop_time,
-    const string& data_dump_dirname)
+    const string& /*data_dump_dirname*/)
 {
-    plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
-    plog << "simulation time is " << loop_time << endl;
+    double F_integral[NDIM];
+    for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
 
-    // Write Cartesian data.
-    string file_name = data_dump_dirname + "/" + "hier_data.";
-    char temp_buf[128];
-    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
-    file_name += temp_buf;
-    Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
-    hier_db->create(file_name);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    ComponentSelector hier_data;
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(), navier_stokes_integrator->getCurrentContext()));
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(), navier_stokes_integrator->getCurrentContext()));
-    patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
-    hier_db->putDouble("loop_time", loop_time);
-    hier_db->putInteger("iteration_num", iteration_num);
-    hier_db->close();
-
-    // Write Lagrangian data.
-    file_name = data_dump_dirname + "/" + "fe_mesh.";
-    sprintf(temp_buf, "%05d", iteration_num);
-    file_name += temp_buf;
-    file_name += ".xda";
-    mesh.write(file_name);
-    file_name = data_dump_dirname + "/" + "fe_equation_systems.";
-    sprintf(temp_buf, "%05d", iteration_num);
-    file_name += temp_buf;
-    equation_systems->write(file_name, (EquationSystems::WRITE_DATA | EquationSystems::WRITE_ADDITIONAL_DATA));
+    System& F_system = equation_systems->get_system<System>(IBFEMethod::FORCE_SYSTEM_NAME);
+    NumericVector<double>* F_vec = F_system.solution.get();
+    NumericVector<double>* F_ghost_vec = F_system.current_local_solution.get();
+    F_vec->localize(*F_ghost_vec);
+    DofMap& F_dof_map = F_system.get_dof_map();
+    blitz::Array<std::vector<unsigned int>,1> F_dof_indices(NDIM);
+    AutoPtr<FEBase> fe(FEBase::build(NDIM, F_dof_map.variable_type(0)));
+    AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
+    fe->attach_quadrature_rule(qrule.get());
+    const std::vector<std::vector<double> >& phi = fe->get_phi();
+    const std::vector<double>& JxW = fe->get_JxW();
+    blitz::Array<double,2> F_node;
+    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+    const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
+    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    {
+        Elem* const elem = *el_it;
+        fe->reinit(elem);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            F_dof_map.dof_indices(elem, F_dof_indices(d), d);
+        }
+        const int n_qp = qrule->n_points();
+        const int n_basis = F_dof_indices(0).size();
+        get_values_for_interpolation(F_node, *F_ghost_vec, F_dof_indices);
+        for (int qp = 0; qp < n_qp; ++qp)
+        {
+            for (int k = 0; k < n_basis; ++k)
+            {
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    F_integral[d] += F_node(k,d)*phi[k][qp]*JxW[k];
+                }
+            }
+        }
+    }
+    SAMRAI_MPI::sumReduction(F_integral,NDIM);
+    static const double rho = 1.0;
+    static const double U_max = 1.0;
+    static const double D = 1.0;
+    drag_stream << loop_time << " " << -F_integral[0]/(0.5*rho*U_max*U_max*D) << endl;
+    lift_stream << loop_time << " " << -F_integral[1]/(0.5*rho*U_max*U_max*D) << endl;
     return;
-}// output_data
+}// postprocess_data
