@@ -316,8 +316,8 @@ main(
         }
 
         // Open streams to save lift and drag coefficients.
-        drag_stream.open("C_D.log", ios_base::out | ios_base::trunc);
-        lift_stream.open("C_L.log", ios_base::out | ios_base::trunc);
+        drag_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
+        lift_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
 
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();

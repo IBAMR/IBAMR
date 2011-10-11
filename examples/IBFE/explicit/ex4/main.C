@@ -45,6 +45,7 @@
 #include <boundary_info.h>
 #include <dof_map.h>
 #include <exodusII_io.h>
+#include <fe.h>
 #include <mesh.h>
 #include <mesh_generation.h>
 
@@ -105,8 +106,9 @@ PK1_stress_function(
 using namespace ModelData;
 
 // Function prototypes
+static ofstream volume_stream;
 void
-output_data(
+postprocess_data(
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
     Mesh& mesh,
@@ -307,6 +309,9 @@ main(
             }
         }
 
+        // Open streams to save volume of structure.
+        volume_stream.open("volume.curve", ios_base::out | ios_base::trunc);
+
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -361,12 +366,14 @@ main(
             }
             if (dump_postproc_data && (iteration_num%postproc_data_dump_interval == 0 || last_step))
             {
-                pout << "\nWriting state data...\n\n";
-                output_data(patch_hierarchy,
-                            navier_stokes_integrator, mesh, equation_systems,
-                            iteration_num, loop_time, postproc_data_dump_dirname);
+                postprocess_data(patch_hierarchy,
+                                 navier_stokes_integrator, mesh, equation_systems,
+                                 iteration_num, loop_time, postproc_data_dump_dirname);
             }
         }
+
+        // Close the logging streams.
+        volume_stream.close();
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
@@ -379,43 +386,49 @@ main(
 }// main
 
 void
-output_data(
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-    Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+postprocess_data(
+    Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+    Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
     Mesh& mesh,
     EquationSystems* equation_systems,
-    const int iteration_num,
+    const int /*iteration_num*/,
     const double loop_time,
-    const string& data_dump_dirname)
+    const string& /*data_dump_dirname*/)
 {
-    plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
-    plog << "simulation time is " << loop_time << endl;
+    double J_integral = 0.0;
 
-    // Write Cartesian data.
-    string file_name = data_dump_dirname + "/" + "hier_data.";
-    char temp_buf[128];
-    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
-    file_name += temp_buf;
-    Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
-    hier_db->create(file_name);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    ComponentSelector hier_data;
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(), navier_stokes_integrator->getCurrentContext()));
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(), navier_stokes_integrator->getCurrentContext()));
-    patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
-    hier_db->putDouble("loop_time", loop_time);
-    hier_db->putInteger("iteration_num", iteration_num);
-    hier_db->close();
-
-    // Write Lagrangian data.
-    file_name = data_dump_dirname + "/" + "fe_mesh.";
-    sprintf(temp_buf, "%05d", iteration_num);
-    file_name += temp_buf;
-    file_name += ".xda";
-    mesh.write(file_name);
-    file_name = data_dump_dirname + "/" + "fe_equation_systems.";
-    sprintf(temp_buf, "%05d", iteration_num);
-    file_name += temp_buf;
-    equation_systems->write(file_name, (EquationSystems::WRITE_DATA | EquationSystems::WRITE_ADDITIONAL_DATA));
+    System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
+    NumericVector<double>* X_vec = X_system.solution.get();
+    NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
+    X_vec->localize(*X_ghost_vec);
+    DofMap& X_dof_map = X_system.get_dof_map();
+    blitz::Array<std::vector<unsigned int>,1> X_dof_indices(NDIM);
+    AutoPtr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
+    AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
+    fe->attach_quadrature_rule(qrule.get());
+    const std::vector<double>& JxW = fe->get_JxW();
+    const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
+    TensorValue<double> FF;
+    blitz::Array<double,2> X_node;
+    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+    const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
+    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    {
+        Elem* const elem = *el_it;
+        fe->reinit(elem);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            X_dof_map.dof_indices(elem, X_dof_indices(d), d);
+        }
+        const int n_qp = qrule->n_points();
+        get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
+        for (int qp = 0; qp < n_qp; ++qp)
+        {
+            jacobian(FF,qp,X_node,dphi);
+            J_integral += abs(FF.det())*JxW[qp];
+        }
+    }
+    J_integral = SAMRAI_MPI::sumReduction(J_integral);
+    volume_stream << loop_time << " " << J_integral << endl;
     return;
-}// output_data
+}// postprocess_data
