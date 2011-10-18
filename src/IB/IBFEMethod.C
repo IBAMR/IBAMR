@@ -1540,11 +1540,11 @@ IBFEMethod::imposeJumpConditions(
 
                 // Loop over coordinate directions and look for intersections
                 // with the background fluid grid.
-                std::vector<Point> intersection_master_coords;
+                std::vector<Point> intersection_ref_points;
                 std::vector<int>   intersection_axes;
                 static const int estimated_max_size = (NDIM == 2 ? 64 : 512);
-                intersection_master_coords.reserve(estimated_max_size);
-                intersection_axes         .reserve(estimated_max_size);
+                intersection_ref_points.reserve(estimated_max_size);
+                intersection_axes      .reserve(estimated_max_size);
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     // Setup a unit vector pointing in the coordinate direction
@@ -1588,7 +1588,7 @@ IBFEMethod::imposeJumpConditions(
 #endif
                                 for (unsigned int k = 0; k < intersections.size(); ++k)
                                 {
-                                    intersection_master_coords.push_back(intersections[k].second);
+                                    intersection_ref_points.push_back(intersections[k].second);
                                     intersection_axes.push_back(axis);
                                 }
                             }
@@ -1606,11 +1606,11 @@ IBFEMethod::imposeJumpConditions(
 
                 // If there are no intersection points, then continue to the
                 // next side.
-                if (intersection_master_coords.empty()) continue;
+                if (intersection_ref_points.empty()) continue;
 
                 // Evaluate the jump conditions and apply them to the Eulerian
                 // grid.
-                fe_face->reinit(elem, side, TOLERANCE, &intersection_master_coords);
+                fe_face->reinit(elem, side, TOLERANCE, &intersection_ref_points);
 
                 if (!d_use_IB_spread_operator)
                 {
@@ -1620,12 +1620,12 @@ IBFEMethod::imposeJumpConditions(
 
                 if (J_bar_ghost_vec != NULL)
                 {
-                    J_bar_fe_face->reinit(elem, side, TOLERANCE, &intersection_master_coords);
+                    J_bar_fe_face->reinit(elem, side, TOLERANCE, &intersection_ref_points);
                     J_bar_dof_map->dof_indices(elem, J_bar_dof_indices);
                     get_values_for_interpolation(J_bar_node, *J_bar_ghost_vec, J_bar_dof_indices);
                 }
 
-                for (unsigned int qp = 0; qp < intersection_master_coords.size(); ++qp)
+                for (unsigned int qp = 0; qp < intersection_ref_points.size(); ++qp)
                 {
                     const unsigned int axis = intersection_axes[qp];
                     interpolate(X_qp,qp,X_node,phi_face);
