@@ -98,7 +98,7 @@ block_tether_force_function(
 }// block_tether_force_function
 
 // Stress tensor function for thin beam.
-double C1 = 1.25e2;
+double lambda_s, mu_s;
 void
 beam_PK1_stress_function(
     TensorValue<double>& PP,
@@ -111,8 +111,12 @@ beam_PK1_stress_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
-    PP = 2.0*C1*(FF - FF_inv_trans);
+    static const TensorValue<double> II(1.0,0.0,0.0,
+                                        0.0,1.0,0.0,
+                                        0.0,0.0,1.0);
+    TensorValue<double> EE = 0.5*(FF.transpose()*FF - II);
+    const TensorValue<double> SS = lambda_s*EE.tr()*II + 2.0*mu_s*EE;
+    PP = FF*SS;
     return;
 }// beam_PK1_stress_function
 }
@@ -184,22 +188,43 @@ main(
 
         // Create a simple FE mesh.
         const double dx = input_db->getDouble("DX");
-        string elem_type = input_db->getStringWithDefault("elem_type", "QUAD4");
+        const double ds = input_db->getDouble("MFAC")*dx;
+
         Mesh block_mesh(NDIM);
-        MeshTools::Generation::build_square(block_mesh,
-                                            ceil(1.0/(2.0*dx)), ceil(1.0/(2.0*dx)),
-                                            -0.5, 0.5, -0.5, 0.5,
-                                            Utility::string_to_enum<ElemType>(elem_type));
+        string block_elem_type = input_db->getStringWithDefault("block_elem_type", "TRI6");
+        const double R = 0.05;
+        const int num_radial_nodes = ceil(R / ds);
+        for (int j = 0; j <= num_radial_nodes; ++j)
+        {
+            const double r = R*static_cast<double>(j)/static_cast<double>(num_radial_nodes);
+            const int num_circum_nodes = max(1.0,4.0*ceil(2.0*M_PI*r / ds / 4.0));
+            for (int k = 0; k < num_circum_nodes; ++k)
+            {
+                const double theta = (k+0.5*(j%2))*2.0*M_PI/static_cast<double>(num_circum_nodes);
+                block_mesh.add_point(Point(r*cos(theta) + 0.2, r*sin(theta) + 0.2));
+            }
+        }
+        TriangleInterface triangle(block_mesh);
+//      triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
+        triangle.elem_type() = Utility::string_to_enum<ElemType>(block_elem_type);
+//      triangle.insert_extra_points() = true;
+        triangle.triangulate();
+        block_mesh.prepare_for_use();
+
         Mesh beam_mesh(NDIM);
+        string beam_elem_type = input_db->getStringWithDefault("beam_elem_type", "QUAD9");
         MeshTools::Generation::build_square(beam_mesh,
-                                            ceil(4.5/(2.0*dx)), max(2.0,ceil(0.06/(2.0*dx))),
-                                            0.0, 4.5, -0.03, 0.03,
-                                            Utility::string_to_enum<ElemType>(elem_type));
+                                            ceil(0.4/ds), max(2.0,ceil(0.02/ds)),
+                                            0.2, 0.6, 0.19, 0.21,
+                                            Utility::string_to_enum<ElemType>(beam_elem_type));
+        beam_mesh.prepare_for_use();
+
         vector<Mesh*> meshes(2);
         meshes[0] = &block_mesh;
         meshes[1] = & beam_mesh;
         kappa = input_db->getDoubleWithDefault("KAPPA", kappa);
-        C1 = input_db->getDoubleWithDefault("C1", C1);
+        lambda_s = input_db->getDouble("lambda_s");
+        mu_s = input_db->getDouble("mu_s");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database

@@ -1,19 +1,28 @@
 // physical parameters
-MU  = 1.82e-4   // g/(cm s)
-RHO = 1.18e-3   // g/(cm^3)
+RHO   = 1.0e3
+U_BAR = 2.0
+U_MAX = 4.0*U_BAR
+D     = 0.1
+RE    = 200.0
+MU    = U_BAR*D*RHO/RE
 
 // grid spacing parameters
-MAX_LEVELS = 6                            // maximum number of levels in locally refined grid
+MAX_LEVELS = 2                            // maximum number of levels in locally refined grid
 REF_RATIO  = 2                            // refinement ratio between levels
-N = 8                                     // actual    number of grid cells on coarsest grid level
+N = 41                                    // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
-L = 12.0                                  // width of computational domain (cm)
-DX = L/NFINEST
+L = 2.5                                   // width  of computational domain
+H = 0.41                                  // height of computational domain
+DX = H/NFINEST
+MFAC = 2.0
 
 // model parameters
-elem_type = "QUAD4"
-KAPPA = 1e8
-C1 = 1.25e6
+block_elem_type = "TRI3"
+beam_elem_type = "QUAD4"
+KAPPA = U_BAR*1.25e11*NFINEST/41.0
+mu_s = 2.0e6
+nu_s = 0.4
+lambda_s = -2.0*nu_s*mu_s/(2.0*nu_s - 1.0)
 
 // solver parameters
 USE_IB_DELTA_FUNCTIONS     = TRUE              // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction
@@ -25,14 +34,14 @@ USE_FBAR_PROJECTION        = FALSE             // whether to use the F-bar proje
 IB_POINT_DENSITY           = 2.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 SOLVER_TYPE                = "STAGGERED"       // the fluid solver to use (STAGGERED or COLLOCATED)
 START_TIME                 = 0.0e0             // initial simulation time
-END_TIME                   = 20.0*0.33         // final simulation time
+END_TIME                   = 20.0              // final simulation time
 GROW_DT                    = 2.0e0             // growth factor for timesteps
 NUM_CYCLES                 = 1                 // number of cycles of fixed-point iteration
 CONVECTIVE_OP_TYPE         = "PPM"             // convective differencing discretization type
 CONVECTIVE_FORM            = "ADVECTIVE"       // how to compute the convective terms
 NORMALIZE_PRESSURE         = FALSE             // whether to explicitly force the pressure to have mean zero
 CFL_MAX                    = 0.1               // maximum CFL number
-DT                         = 1.0e-4*DX         // maximum timestep size
+DT                         = CFL_MAX*DX/U_MAX  // maximum timestep size
 VORTICITY_TAGGING          = TRUE              // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                 // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL        = 0.5               // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
@@ -49,28 +58,7 @@ SECOND_ORDER_PRESSURE_UPDATE = TRUE
 USE_EXACT_PROJECTION_METHOD = FALSE
 
 VelocityBcCoefs_0 {
-   t_half = 512*DT
-   tau = t_half/4.0
-
-   acoef_function_0 = "1.0"
-   acoef_function_1 = "0.0"
-   acoef_function_2 = "0.0"
-   acoef_function_3 = "0.0"
-
-   bcoef_function_0 = "0.0"
-   bcoef_function_1 = "1.0"
-   bcoef_function_2 = "1.0"
-   bcoef_function_3 = "1.0"
-
-   gcoef_function_0 = "51.3*(tanh((t-t_half)/tau)+tanh(t_half/tau))/(1+tanh(t_half/tau))"
-   gcoef_function_1 = "0.0"
-   gcoef_function_2 = "0.0"
-   gcoef_function_3 = "0.0"
-}
-
-VelocityBcCoefs_1 {
-   t_half = 0.033
-   lambda = -log(0.5)/t_half
+   U_bar = U_BAR
 
    acoef_function_0 = "1.0"
    acoef_function_1 = "0.0"
@@ -82,7 +70,24 @@ VelocityBcCoefs_1 {
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = "51.3*cos(pi*X_1/12.0)*exp(-lambda*t)"
+   gcoef_function_0 = "1.5*U_bar*4.0*X1*(0.41-X1)/0.1681*if(t < 2.0 , 0.5*(1.0-cos(0.5*pi*t)) , 1.0)"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+VelocityBcCoefs_1 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
@@ -290,7 +295,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt" , "ExodusII"
-   viz_dump_interval           = int(80.0/CFL_MAX)          // zero to turn off
+   viz_dump_interval           = int(8.0/CFL_MAX)           // zero to turn off
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
@@ -307,9 +312,9 @@ Main {
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0) , (2*N - 1,N - 1) ]
-   x_lo         =        - 5, - 0.5*L      // lower end of computational domain.
-   x_up         =  2.0*L - 5,   0.5*L      // upper end of computational domain.
+   domain_boxes = [ (0,0) , (int((L/H)*N) - 1,N - 1) ]
+   x_lo         =  0 , 0      // lower end of computational domain.
+   x_up         =  L , H      // upper end of computational domain.
    periodic_dimension = 0, 0
 }
 
