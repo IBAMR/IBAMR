@@ -153,31 +153,31 @@ public:
             switch (type)
             {
                 case EDGE2:
-                    min_points = 1;
-                    break;
-                case EDGE3:
                     min_points = 2;
                     break;
-                case EDGE4:
+                case EDGE3:
                     min_points = 3;
+                    break;
+                case EDGE4:
+                    min_points = 4;
                     break;
                 case TRI3:
                 case QUAD4:
-                    min_points = 1;
+                    min_points = 2;
                     break;
                 case TRI6:
                 case QUAD8:
                 case QUAD9:
-                    min_points = 2;
+                    min_points = 3;
                     break;
                 case TET4:
                 case HEX8:
-                    min_points = 1;
+                    min_points = 2;
                     break;
                 case TET10:
                 case HEX20:
                 case HEX27:
-                    min_points = 2;
+                    min_points = 3;
                     break;
                 default:
                     min_points = 0;
