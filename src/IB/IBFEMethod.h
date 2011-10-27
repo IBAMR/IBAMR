@@ -487,7 +487,6 @@ protected:
     std::vector<libMesh::Mesh*> d_meshes;
     std::vector<libMesh::EquationSystems*> d_equation_systems;
 
-    IBTK::QAdaptiveGauss d_ib_qrule, d_ib_qrule_face;
     const unsigned int d_num_parts;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts;
@@ -514,6 +513,11 @@ protected:
     libMeshEnums::Order d_J_bar_fe_order;
     libMeshEnums::QuadratureType d_quad_type;
     libMeshEnums::Order d_quad_order;
+
+    std::string d_ib_qrule_type, d_ib_qrule_order;
+    double d_ib_qrule_point_density;  // NOTE: currently only affects QAdaptiveGauss
+    libMesh::QBase* d_ib_qrule;
+    libMesh::QBase* d_ib_qrule_face;
 
     /*
      * Function used to compute the initial coordinates of the Lagrangian mesh.

@@ -90,9 +90,9 @@ IBFEMethod::IBFEMethod(
     Mesh* mesh,
     int max_level_number,
     bool register_for_restart)
-    : d_ib_qrule(NDIM),
-      d_ib_qrule_face(NDIM-1),
-      d_num_parts(1)
+    : d_num_parts(1),
+      d_ib_qrule(NULL),
+      d_ib_qrule_face(NULL)
 {
     commonConstructor(object_name, input_db, std::vector<Mesh*>(1,mesh), max_level_number, register_for_restart);
     return;
@@ -104,9 +104,9 @@ IBFEMethod::IBFEMethod(
     const std::vector<Mesh*>& meshes,
     int max_level_number,
     bool register_for_restart)
-    : d_ib_qrule(NDIM),
-      d_ib_qrule_face(NDIM-1),
-      d_num_parts(meshes.size())
+    : d_num_parts(meshes.size()),
+      d_ib_qrule(NULL),
+      d_ib_qrule_face(NULL)
 {
     commonConstructor(object_name, input_db, meshes, max_level_number, register_for_restart);
     return;
@@ -114,6 +114,8 @@ IBFEMethod::IBFEMethod(
 
 IBFEMethod::~IBFEMethod()
 {
+    delete d_ib_qrule;
+    delete d_ib_qrule_face;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         delete d_equation_systems[part];
@@ -1824,6 +1826,9 @@ IBFEMethod::commonConstructor(
     d_spread_delta_fcn = "IB_4";
     d_use_IB_interp_operator = true;
     d_interp_delta_fcn = "IB_4";
+    d_ib_qrule_type = "ADAPTIVE";
+    d_ib_qrule_order = "INVALID_ORDER";
+    d_ib_qrule_point_density = 2.0;
     d_do_log = false;
     d_ghosts = 0;
     d_split_forces = false;
@@ -1902,19 +1907,34 @@ IBFEMethod::commonConstructor(
              << "         recommended usage is to employ the same delta functions for both interpolation and spreading.\n";
     }
 
+    // Setup the quadrature rules used to mediate Lagrangian-Eulerian
+    // interaction.
+    if (d_ib_qrule_type == "ADAPTIVE")
+    {
+        d_ib_qrule      = new QAdaptiveGauss(NDIM  ,d_ib_qrule_point_density);
+        d_ib_qrule_face = new QAdaptiveGauss(NDIM-1,d_ib_qrule_point_density);
+    }
+    else
+    {
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(d_ib_qrule_order != "INVALID_ORDER");
+#endif
+        d_ib_qrule      = QBase::build(d_ib_qrule_type, NDIM  , Utility::string_to_enum<Order>(d_ib_qrule_order)).release();
+        d_ib_qrule_face = QBase::build(d_ib_qrule_type, NDIM-1, Utility::string_to_enum<Order>(d_ib_qrule_order)).release();
+    }
+
     // Create the FE data managers that manage mappings between the FE mesh
     // parts and the Cartesian grid.
     d_meshes = meshes;
     d_equation_systems.resize(d_num_parts, NULL);
     d_fe_data_managers.resize(d_num_parts, NULL);
-    QAdaptiveGauss::POINT_DENSITY = 2.0;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Create FE data managers.
         std::ostringstream manager_stream;
         manager_stream << "IBFEMethod FEDataManager::" << part;
         const std::string& manager_name = manager_stream.str();
-        d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_delta_fcn, d_spread_delta_fcn, d_use_consistent_mass_matrix, &d_ib_qrule, &d_ib_qrule_face);
+        d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_delta_fcn, d_spread_delta_fcn, d_use_consistent_mass_matrix, d_ib_qrule, d_ib_qrule_face);
         d_ghosts = IntVector<NDIM>::max(d_ghosts,d_fe_data_managers[part]->getGhostCellWidth());
 
         // Create FE equation systems object.
@@ -2012,10 +2032,20 @@ IBFEMethod::getFromInput(
     if      (db->keyExists("do_log"        )) d_do_log = db->getBool("do_log"        );
     else if (db->keyExists("enable_logging")) d_do_log = db->getBool("enable_logging");
 
-    if      (db->isDouble( "point_density")) QAdaptiveGauss::POINT_DENSITY = db->getDouble("point_density");
-    else if (db->isInteger("point_density")) QAdaptiveGauss::POINT_DENSITY = static_cast<double>(db->getInteger("point_density"));
-    else if (db->isDouble( "IB_point_density")) QAdaptiveGauss::POINT_DENSITY = db->getDouble("IB_point_density");
-    else if (db->isInteger("IB_point_density")) QAdaptiveGauss::POINT_DENSITY = static_cast<double>(db->getInteger("IB_point_density"));
+    if      (db->keyExists("ib_qrule_type")) d_ib_qrule_type = db->getString("ib_qrule_type");
+    else if (db->keyExists("IB_qrule_type")) d_ib_qrule_type = db->getString("IB_qrule_type");
+
+    if      (db->keyExists("ib_qrule_order")) d_ib_qrule_order = db->getString("ib_qrule_order");
+    else if (db->keyExists("IB_qrule_order")) d_ib_qrule_order = db->getString("IB_qrule_order");
+
+    if      (db->isDouble( "ib_qrule_point_density")) d_ib_qrule_point_density = db->getDouble("ib_qrule_point_density");
+    else if (db->isInteger("ib_qrule_point_density")) d_ib_qrule_point_density = static_cast<double>(db->getInteger("ib_qrule_point_density"));
+    else if (db->isDouble( "IB_qrule_point_density")) d_ib_qrule_point_density = db->getDouble("IB_qrule_point_density");
+    else if (db->isInteger("IB_qrule_point_density")) d_ib_qrule_point_density = static_cast<double>(db->getInteger("IB_qrule_point_density"));
+    else if (db->isDouble( "ib_point_density")) d_ib_qrule_point_density = db->getDouble("ib_point_density");
+    else if (db->isInteger("ib_point_density")) d_ib_qrule_point_density = static_cast<double>(db->getInteger("ib_point_density"));
+    else if (db->isDouble( "IB_point_density")) d_ib_qrule_point_density = db->getDouble("IB_point_density");
+    else if (db->isInteger("IB_point_density")) d_ib_qrule_point_density = static_cast<double>(db->getInteger("IB_point_density"));
     return;
 }// getFromInput
 
