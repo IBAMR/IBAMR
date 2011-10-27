@@ -253,7 +253,7 @@ IBFEMethod::preprocessIntegrateData(
         if (d_use_Fbar_projection)
         {
             d_J_bar_systems      [part] = &d_equation_systems[part]->get_system(J_BAR_SYSTEM_NAME);
-            d_J_bar_half_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_J_bar_systems   [part]->solution.get());
+            d_J_bar_half_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_J_bar_systems   [part]->current_local_solution.get());
             d_J_bar_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(J_BAR_SYSTEM_NAME));
         }
 
@@ -281,6 +281,10 @@ IBFEMethod::postprocessIntegrateData(
         // Reset time-dependent Lagrangian data.
         (*d_X_current_vecs[part]) = (*d_X_new_vecs[part]);
         (*d_U_current_vecs[part]) = (*d_U_new_vecs[part]);
+        if (d_use_Fbar_projection)
+        {
+            (*d_J_bar_systems[part]->solution) = (*d_J_bar_systems[part]->current_local_solution);
+        }
 
         // Update the coordinate mapping dX = X - s.
         updateCoordinateMapping(part);
