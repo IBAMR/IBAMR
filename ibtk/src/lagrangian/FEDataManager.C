@@ -65,7 +65,6 @@
 #include <petsc_linear_solver.h>
 #include <petsc_matrix.h>
 #include <petsc_vector.h>
-#include <quadrature_gauss.h>
 using namespace libMesh;
 
 // SAMRAI INCLUDES
@@ -80,8 +79,6 @@ using namespace libMesh;
 namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
-
-double QAdaptiveGauss::POINT_DENSITY = 2.0;
 
 namespace
 {
@@ -1492,9 +1489,7 @@ FEDataManager::buildL2ProjectionSolver(
 
 NumericVector<double>*
 FEDataManager::buildDiagonalL2MassMatrix(
-    const std::string& system_name,
-    const QuadratureType quad_type,
-    const Order quad_order)
+    const std::string& system_name)
 {
     IBTK_TIMER_START(t_build_diagonal_l2_mass_matrix);
 
@@ -1502,63 +1497,80 @@ FEDataManager::buildDiagonalL2MassMatrix(
     {
         const MeshBase& mesh = d_es->get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
-        AutoPtr<QBase> qrule = QBase::build(quad_type, dim, quad_order);
+        AutoPtr<QBase> qrule_trap    = QBase::build(QTRAP   , dim, FIRST);
+        AutoPtr<QBase> qrule_simpson = QBase::build(QSIMPSON, dim, THIRD);
 
         System& system = d_es->get_system(system_name);
         const int sys_num = system.number();
         DofMap& dof_map = system.get_dof_map();
         std::vector<unsigned int> dof_indices;
-        AutoPtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
-        fe->attach_quadrature_rule(qrule.get());
-        const std::vector<double>& JxW = fe->get_JxW();
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
+
+        AutoPtr<FEBase> fe_trap(   FEBase::build(dim, dof_map.variable_type(0)));
+        AutoPtr<FEBase> fe_simpson(FEBase::build(dim, dof_map.variable_type(0)));
+        fe_trap   ->attach_quadrature_rule(qrule_trap   .get());
+        fe_simpson->attach_quadrature_rule(qrule_simpson.get());
 
         NumericVector<double>* M_vec = system.solution->zero_clone().release();
         DenseVector<double> M_diag_e;
 
         // Loop over the mesh to construct the (diagonal) system matrix.
         //
-        // We construct diagonal elemental mass matrices by taking the diagonal
-        // part of the consistent elemental mass matrix and rescaling it so that
-        // it has the correct total elemental mass.
-        //
-        // Ref: E. Hinton, T. Rock and O.C. Zienkiewicz.  A note on mass lumping
-        // and related processes in the finite element method.  Earthquake Eng
-        // Struct Dyn.  4:245--249 (1976).
+        // We construct diagonal elemental mass matrices by using low-order
+        // nodal quadrature rules.
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             const Elem* const elem = *el_it;
-            if (elem->default_order() != FIRST)
+            QBase* qrule = NULL;
+            FEBase* fe = NULL;
+            if (elem->default_order() == FIRST)
             {
-                IBTK_DO_ONCE(
-                        pout << "WARNING: use of diagonal mass matrices is not recommended for higher-order elements.\n"
-                             << "         suggest using consistent mass matrix instead.\n"
-                             );
+                qrule = qrule_trap.get();
+                fe = fe_trap.get();
             }
+            else
+            {
+                ElemType elem_type = elem->type();
+                if (elem_type == EDGE3   ||
+                    elem_type == TRI6    ||
+                    elem_type == QUAD9   ||
+                    elem_type == TET10   ||
+                    elem_type == PRISM18 ||
+                    elem_type == HEX27)
+                {
+                    qrule = qrule_simpson.get();
+                    fe = fe_simpson.get();
+                }
+                else
+                {
+                    TBOX_ERROR("FEDataManager::buildDiagonalL2MassMatrix():\n"
+                               << "  unsupported element type: " << Utility::enum_to_string<ElemType>(elem_type) << "\n");
+                }
+            }
+            const std::vector<double>& JxW = fe->get_JxW();
+            const std::vector<std::vector<double> >& phi = fe->get_phi();
             fe->reinit(elem);
-            const unsigned int n_qp = qrule->n_points();
-            double elem_mass = 0.0;
-            for (unsigned int qp = 0; qp < n_qp; ++qp)
-            {
-                elem_mass += JxW[qp];
-            }
             for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
             {
                 dof_map.dof_indices(elem, dof_indices, var_num);
                 M_diag_e.resize(dof_indices.size());
                 const unsigned int n_basis = dof_indices.size();
-                double diagonal_mass = 0.0;
+                const unsigned int n_qp = qrule->n_points();
                 for (unsigned int i = 0; i < n_basis; ++i)
                 {
-                    for (unsigned int qp = 0; qp < n_qp; ++qp)
+                    for (unsigned int j = 0; j < n_basis; ++j)
                     {
-                        M_diag_e(i) += (phi[i][qp]*phi[i][qp])*JxW[qp];
+                        for (unsigned int qp = 0; qp < n_qp; ++qp)
+                        {
+                            const double integrand = (phi[i][qp]*phi[j][qp])*JxW[qp];
+                            if (i == j) M_diag_e(i) += integrand;
+#ifdef DEBUG_CHECK_ASSERTIONS
+                            else TBOX_ASSERT(std::abs(integrand) < std::numeric_limits<double>::epsilon());
+#endif
+                        }
                     }
-                    diagonal_mass += M_diag_e(i);
                 }
-                M_diag_e *= elem_mass/diagonal_mass;
                 dof_map.constrain_element_vector(M_diag_e, dof_indices);
                 M_vec->add_vector(M_diag_e, dof_indices);
             }
@@ -1639,7 +1651,7 @@ FEDataManager::computeL2Projection(
     }
     else
     {
-        PetscVector<double>* M_diag_vec = dynamic_cast<PetscVector<double>*>(buildDiagonalL2MassMatrix(system_name,quad_type,quad_order));
+        PetscVector<double>* M_diag_vec = dynamic_cast<PetscVector<double>*>(buildDiagonalL2MassMatrix(system_name));
         Vec M_diag_petsc_vec = M_diag_vec->vec();
         Vec U_petsc_vec = dynamic_cast<PetscVector<double>*>(&U_vec)->vec();
         Vec F_petsc_vec = dynamic_cast<PetscVector<double>*>(&F_vec)->vec();

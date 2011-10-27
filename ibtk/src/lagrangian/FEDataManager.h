@@ -337,14 +337,11 @@ public:
         libMeshEnums::Order quad_order=FIFTH);
 
     /*!
-     * \return Pointer to vector representation of diagonal (lumped) L2 mass
-     * matrix.
+     * \return Pointer to vector representation of diagonal L2 mass matrix.
      */
     libMesh::NumericVector<double>*
     buildDiagonalL2MassMatrix(
-        const std::string& system_name,
-        libMeshEnums::QuadratureType quad_type=QGAUSS,
-        libMeshEnums::Order quad_order=FIFTH);
+        const std::string& system_name);
 
     /*!
      * \brief Set U to be the L2 projection of F.
