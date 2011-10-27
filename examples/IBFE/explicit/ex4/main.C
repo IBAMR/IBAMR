@@ -79,8 +79,6 @@ coordinate_mapping_function(
 
 // Stress tensor function.
 static double C1 = 0.05;
-static double struct_mu = 2.0*C1;
-static double struct_lambda = 2.5e0;
 static bool use_div_penalization = true;
 void
 PK1_stress_function(
@@ -95,10 +93,11 @@ PK1_stress_function(
     void* /*ctx*/)
 {
     const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
-    PP = struct_mu*(FF - FF_inv_trans);
+    PP = 2.0*C1*(FF - FF_inv_trans);
     if (use_div_penalization)
     {
-        PP += struct_lambda*log(FF.det())*FF_inv_trans;
+        const double I3 = FF.det()*FF.det();
+        PP += 1.0e3*C1*log(I3)*FF_inv_trans;
     }
     return;
 }// PK1_stress_function

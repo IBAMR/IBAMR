@@ -14,15 +14,15 @@ MFAC = 1                                  // Lagrangian mesh spacing factor
 M = MFAC*NFINEST/64                       // Lagrangian mesh spacing
 DX = 1.0/NFINEST
 
-smooth_case = FALSE
-elem_type = "TRI3"
+smooth_case = TRUE
+elem_type = "QUAD9"
 
 // solver parameters
-USE_IB_DELTA_FUNCTIONS     = FALSE             // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction
+USE_IB_DELTA_FUNCTIONS     = TRUE              // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction
 DELTA_FUNCTION             = "IB_4"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
 SPLIT_FORCES               = TRUE              // whether to split interior and boundary forces
-USE_JUMP_CONDITIONS        = TRUE              // whether to impose pressure jumps at fluid-structure interfaces
-USE_CONSISTENT_MASS_MATRIX = FALSE             // whether to use a consistent or lumped mass matrix
+USE_JUMP_CONDITIONS        = FALSE             // whether to impose pressure jumps at fluid-structure interfaces
+USE_CONSISTENT_MASS_MATRIX = TRUE              // whether to use a consistent or lumped mass matrix
 USE_FBAR_PROJECTION        = FALSE             // whether to use the F-bar projection method
 IB_POINT_DENSITY           = 2.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 SOLVER_TYPE                = "STAGGERED"       // the fluid solver to use (STAGGERED or COLLOCATED)
@@ -40,7 +40,7 @@ TAG_BUFFER                 = 1                 // size of tag buffer used by gri
 REGRID_CFL_INTERVAL        = 0.5               // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
 OUTPUT_U                   = TRUE
 OUTPUT_P                   = TRUE
-OUTPUT_F                   = FALSE
+OUTPUT_F                   = TRUE
 OUTPUT_OMEGA               = TRUE
 OUTPUT_DIV_U               = TRUE
 ENABLE_LOGGING             = TRUE
