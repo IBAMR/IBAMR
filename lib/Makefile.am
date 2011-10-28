@@ -85,7 +85,8 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredPhysicalBoundaryHelper.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C \
-$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C
+$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
+$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C
 
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
@@ -152,7 +153,8 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredPhysicalBoundaryHelper.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.h \
-$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h
+$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h \
+$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.h
 
 if LIBMESH_ENABLED
 pkg_include_HEADERS += \
