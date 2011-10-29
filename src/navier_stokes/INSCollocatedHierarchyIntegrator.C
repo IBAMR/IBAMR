@@ -194,10 +194,6 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(
     else if (input_db->keyExists("default_convective_op_type"))       d_default_convective_op_type = string_to_enum<ConvectiveOperatorType>(input_db->getString("default_convective_op_type"));
     else if (input_db->keyExists("default_convective_operator_type")) d_default_convective_op_type = string_to_enum<ConvectiveOperatorType>(input_db->getString("default_convective_operator_type"));
 
-    d_default_convective_bdry_extrap_type = "LINEAR";
-    if      (input_db->keyExists("convective_bdry_extrap_type"))         d_default_convective_bdry_extrap_type = input_db->getString("convective_bdry_extrap_type");
-    else if (input_db->keyExists("default_convective_bdry_extrap_type")) d_default_convective_bdry_extrap_type = input_db->getString("default_convective_bdry_extrap_type");
-
     // Check to see what kind of projection method to use.
     d_projection_method_type = PRESSURE_INCREMENT;
     if      (input_db->keyExists("proj_method_type"))       d_projection_method_type = string_to_enum<ProjectionMethodType>(input_db->getString("proj_method_type"));
