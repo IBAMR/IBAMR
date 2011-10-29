@@ -480,8 +480,8 @@ INSHierarchyIntegrator::getFromInput(
     else if (db->keyExists("default_convective_operator_type")) d_default_convective_op_type = string_to_enum<ConvectiveOperatorType>(db->getString("default_convective_operator_type"));
     if      (db->keyExists("convective_difference_form"))         d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("convective_difference_form"));
     else if (db->keyExists("default_convective_difference_form")) d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("default_convective_difference_form"));
-    if      (input_db->keyExists("convective_bdry_extrap_type"))         d_default_convective_bdry_extrap_type = input_db->getString("convective_bdry_extrap_type");
-    else if (input_db->keyExists("default_convective_bdry_extrap_type")) d_default_convective_bdry_extrap_type = input_db->getString("default_convective_bdry_extrap_type");
+    if      (db->keyExists("convective_bdry_extrap_type"))         d_default_convective_bdry_extrap_type = db->getString("convective_bdry_extrap_type");
+    else if (db->keyExists("default_convective_bdry_extrap_type")) d_default_convective_bdry_extrap_type = db->getString("default_convective_bdry_extrap_type");
     if (db->keyExists("creeping_flow")) d_creeping_flow = db->getBool("creeping_flow");
     if (db->keyExists("regrid_max_div_growth_factor")) d_regrid_max_div_growth_factor = db->getDouble("regrid_max_div_growth_factor");
     if (db->keyExists("U_scale")) d_U_scale = db->getDouble("U_scale");
