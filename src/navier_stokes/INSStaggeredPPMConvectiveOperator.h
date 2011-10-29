@@ -68,7 +68,8 @@ public:
      * \brief Class constructor.
      */
     INSStaggeredPPMConvectiveOperator(
-        ConvectiveDifferencingType difference_form);
+        ConvectiveDifferencingType difference_form,
+        const std::string& bdry_extrap_type);
 
     /*!
      * \brief Destructor.
@@ -191,6 +192,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_refine_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_refine_strategy;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_refine_scheds;
+    const std::string d_bdry_extrap_type;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;

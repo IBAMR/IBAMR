@@ -189,9 +189,6 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int GADVECTG = 1;
 
-// Type of extrapolation to use at physical boundaries.
-static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
-
 // Timers.
 static Timer* t_apply_convective_operator;
 static Timer* t_apply;
@@ -202,11 +199,13 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator(
-    const ConvectiveDifferencingType difference_form)
+    const ConvectiveDifferencingType difference_form,
+    const std::string& bdry_extrap_type)
     : ConvectiveOperator(difference_form),
       d_is_initialized(false),
       d_refine_alg(NULL),
       d_refine_scheds(),
+      d_bdry_extrap_type(bdry_extrap_type),
       d_hierarchy(NULL),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
@@ -553,7 +552,7 @@ INSCollocatedCenteredConvectiveOperator::initializeOperatorState(
     Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
     d_refine_alg = new RefineAlgorithm<NDIM>();
     d_refine_alg->registerRefine(d_U_scratch_idx, in.getComponentDescriptorIndex(0), d_U_scratch_idx, refine_op);
-    d_refine_strategy = new CartExtrapPhysBdryOp(d_U_scratch_idx, BDRY_EXTRAP_TYPE);
+    d_refine_strategy = new CartExtrapPhysBdryOp(d_U_scratch_idx, d_bdry_extrap_type);
     d_refine_scheds.resize(d_finest_ln+1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {

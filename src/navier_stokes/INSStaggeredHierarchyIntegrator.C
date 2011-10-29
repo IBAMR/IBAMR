@@ -330,10 +330,10 @@ INSStaggeredHierarchyIntegrator::getConvectiveOperator()
         switch (d_default_convective_op_type)
         {
             case CENTERED:
-                d_convective_op = new INSStaggeredCenteredConvectiveOperator(d_default_convective_difference_form);
+                d_convective_op = new INSStaggeredCenteredConvectiveOperator(d_default_convective_difference_form, d_default_convective_bdry_extrap_type);
                 break;
             case PPM:
-                d_convective_op = new INSStaggeredPPMConvectiveOperator(d_default_convective_difference_form);
+                d_convective_op = new INSStaggeredPPMConvectiveOperator(d_default_convective_difference_form, d_default_convective_bdry_extrap_type);
                 break;
             default:
                 TBOX_ERROR("INSStaggeredHierarchyIntegrator::getConvectiveOperator():\n"

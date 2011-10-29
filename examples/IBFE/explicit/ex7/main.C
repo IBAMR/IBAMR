@@ -57,6 +57,7 @@
 #include <ibamr/SpongeLayerForceFunction.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
+#include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
 // Elasticity model data.
@@ -296,6 +297,21 @@ main(
         ib_method_ops->registerLagBodyForceFunction(&upper_tether_force_function, std::vector<unsigned int>(), NULL, 1);
         EquationSystems* lower_equation_systems = ib_method_ops->getFEDataManager(0)->getEquationSystems();
         EquationSystems* upper_equation_systems = ib_method_ops->getFEDataManager(1)->getEquationSystems();
+
+        // Create Eulerian initial condition specification objects.
+        if (input_db->keyExists("VelocityInitialConditions"))
+        {
+            Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+                "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
+            navier_stokes_integrator->registerVelocityInitialConditions(u_init);
+        }
+
+        if (input_db->keyExists("PressureInitialConditions"))
+        {
+            Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
+                "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
+            navier_stokes_integrator->registerPressureInitialConditions(p_init);
+        }
 
         // Create Eulerian boundary condition specification objects.
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();

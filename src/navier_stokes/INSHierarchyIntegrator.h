@@ -397,6 +397,7 @@ protected:
 
     ConvectiveOperatorType d_default_convective_op_type;
     ConvectiveDifferencingType d_default_convective_difference_form;
+    std::string d_default_convective_bdry_extrap_type;
     SAMRAI::tbox::Pointer<ConvectiveOperator> d_convective_op;
     bool d_convective_op_needs_reinit_when_dt_changes;
 
