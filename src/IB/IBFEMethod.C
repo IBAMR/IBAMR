@@ -325,9 +325,9 @@ IBFEMethod::interpolateVelocity(
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        NumericVector<double>* X_vec;
+        NumericVector<double>* X_vec = NULL;
         NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-        NumericVector<double>* U_vec;
+        NumericVector<double>* U_vec = NULL;
         if (MathUtilities<double>::equalEps(data_time, d_current_time))
         {
             X_vec = d_X_current_vecs[part];

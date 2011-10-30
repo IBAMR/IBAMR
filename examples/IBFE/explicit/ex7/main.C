@@ -118,7 +118,7 @@ upper_tether_force_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    if (s(0) <= 0.05 || s(0) >= 0.1) F = kappa*(s-X);
+    if (s(0) <= 5.0 || s(0) >= 10.0) F = kappa*(s-X);
     else F.zero();
     return;
 }// upper_tether_force_function
@@ -193,9 +193,9 @@ main(
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC")*dx;
 
-        const double D = 0.01;   // channel height (m)
-        const double L = 40.0*D; // channel length (m)
-        const double w = 0.01*D; // wall thickness (m)
+        const double D = 1.0;    // channel height (cm)
+        const double L = 40.0*D; // channel length (cm)
+        const double w = 0.01*D; // wall thickness (cm)
 
         C1    = input_db->getDouble("C1");
         kappa = input_db->getDouble("KAPPA");

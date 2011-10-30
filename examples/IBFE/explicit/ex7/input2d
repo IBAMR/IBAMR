@@ -1,11 +1,11 @@
 // physical parameters
-RHO   = 1.0e3
-MU    = 0.001
-U_BAR = 0.02
+RHO   = 1.0
+MU    = 0.01
+U_BAR = 2.0
 U_MAX = 4.0*U_BAR
-P_E   = 0.85995
+P_E   = 8.5995
 
-E  = 17584.875
+E  = 175848.75
 NU = 0.5
 C1 = 0.5*E/(2.0*(1.0+NU))
 
@@ -14,12 +14,12 @@ MAX_LEVELS = 3                            // maximum number of levels in locally
 REF_RATIO  = 2                            // refinement ratio between levels
 N = 30                                    // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
-D = 0.01                                  // channel height
+D = 1.0                                   // channel height
 L = 40.0*D                                // channel length
 H = 3.0*D                                 // domain  height
 DX0 = H/N
 DX  = H/NFINEST
-MFAC = 4.0
+MFAC = 1.0
 
 // model parameters
 elem_type = "QUAD9"
@@ -52,7 +52,7 @@ OUTPUT_OMEGA               = TRUE
 OUTPUT_DIV_U               = TRUE
 ENABLE_LOGGING             = TRUE
 
-KAPPA = 2.5e4/(DT^2)
+KAPPA = 2.0e1/(DT^2)
 
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
@@ -88,12 +88,12 @@ VelocityBcCoefs_1 {
    P_e = P_E
 
    acoef_function_0 = "1.0"
-   acoef_function_1 = "0.0"
+   acoef_function_1 = "1.0"
    acoef_function_2 = "0.0"
    acoef_function_3 = "0.0"
 
    bcoef_function_0 = "0.0"
-   bcoef_function_1 = "1.0"
+   bcoef_function_1 = "0.0"
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
 
@@ -107,8 +107,8 @@ SpongeLayerForceFunction {
    kappa = 0.5*RHO/DT
    lower_forcing_0 = 1
    upper_forcing_0 = 1
-   lower_width_0 = 2.0*DX0
-   upper_width_0 = 2.0*DX0
+   lower_width_0 = DX0
+   upper_width_0 = DX0
 }
 
 IBHierarchyIntegrator {
