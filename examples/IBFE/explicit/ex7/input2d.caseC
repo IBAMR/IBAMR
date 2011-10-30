@@ -1,15 +1,15 @@
 // physical parameters
 RHO   = 1.0                                         // mass density of fluid (gm/cm^3)
 MU    = 0.01                                        // dynamic viscosity of fluid (gm/(cm s))
-U_BAR = 2.0                                         // mean inflow velocity (cm/s)
+U_BAR = 54.0                                        // mean inflow velocity (cm/s)
 U_MAX = 4.0*U_BAR                                   // approximate maximum velocity (cm/2)
-P_E   = 8.5995                                      // external pressure (dyne/cm^2)
-E_S  = 175848.75                                    // Young's modulus of material (dyne/cm^2)
+P_E   = 48.75                                       // external pressure (dyne/cm^2)
+E_S  = 4785000.0                                    // Young's modulus of material (dyne/cm^2)
 NU_S = 0.45                                         // Poisson's ratio of material
 MU_S = E_S/(2.0*(1.0 + NU_S))                       // Lame' parameters (mu_s and lambda_s)
 LAMBDA_S = (E_S*NU_S)/((1.0 + NU_S)*(1.0 - 2.0*NU_S))
 
-// grid spacing parameters
+// discretization parameters
 MAX_LEVELS = 4                                      // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                      // refinement ratio between levels
 N = 12                                              // actual    number of grid cells on coarsest grid level
@@ -20,7 +20,7 @@ H = 3.0*D                                           // domain  height (cm)
 DX0 = H/N                                           // mesh width on coarsest grid level (cm)
 DX  = H/NFINEST                                     // mesh width on finest   grid level (cm)
 MFAC = 1.0                                          // ratio of Lagrangian mesh width to Cartesian mesh width
-elem_type = "QUAD9"
+elem_type = "QUAD9"                                 // type of element to use for structure discretization
 
 // solver parameters
 USE_IB_DELTA_FUNCTIONS     = TRUE                   // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction
@@ -39,7 +39,7 @@ CONVECTIVE_OP_TYPE         = "PPM"                  // convective differencing d
 CONVECTIVE_FORM            = "ADVECTIVE"            // how to compute the convective terms
 NORMALIZE_PRESSURE         = FALSE                  // whether to explicitly force the pressure to have mean zero
 CFL_MAX                    = 0.1                    // maximum CFL number
-DT                         = 0.375*CFL_MAX*DX/U_MAX // maximum timestep size
+DT                         = 0.25*CFL_MAX*DX/U_MAX  // maximum timestep size
 VORTICITY_TAGGING          = TRUE                   // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                      // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL        = 0.5                    // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
@@ -51,7 +51,7 @@ OUTPUT_DIV_U               = TRUE
 ENABLE_LOGGING             = TRUE
 
 // Penalty parameter
-KAPPA = 9.5e2*DX/(DT^2)
+KAPPA = 2.5e1*DX/(DT^2)
 
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
@@ -62,8 +62,8 @@ VelocityBcCoefs_0 {
    U_bar = U_BAR
    D = D
    w = 0.01*D
-   X1_lower =     D + 0.5*w + DX
-   X1_upper = 2.0*D - 0.5*w - DX
+   X1_lower =     D + 0.5*w
+   X1_upper = 2.0*D - 0.5*w
    X1_mid   = 0.5*(X1_lower + X1_upper)
    tau = 1.0
 

@@ -39,7 +39,7 @@ CONVECTIVE_OP_TYPE         = "PPM"                  // convective differencing d
 CONVECTIVE_FORM            = "ADVECTIVE"            // how to compute the convective terms
 NORMALIZE_PRESSURE         = FALSE                  // whether to explicitly force the pressure to have mean zero
 CFL_MAX                    = 0.1                    // maximum CFL number
-DT                         = 0.375*CFL_MAX*DX/U_MAX // maximum timestep size
+DT                         = 0.25*CFL_MAX*DX/U_MAX  // maximum timestep size
 VORTICITY_TAGGING          = TRUE                   // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                      // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL        = 0.5                    // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
@@ -62,8 +62,8 @@ VelocityBcCoefs_0 {
    U_bar = U_BAR
    D = D
    w = 0.01*D
-   X1_lower =     D + 0.5*w + DX
-   X1_upper = 2.0*D - 0.5*w - DX
+   X1_lower =     D + 0.5*w
+   X1_upper = 2.0*D - 0.5*w
    X1_mid   = 0.5*(X1_lower + X1_upper)
    tau = 1.0
 
