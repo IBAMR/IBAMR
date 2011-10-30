@@ -32,7 +32,7 @@ USE_FBAR_PROJECTION        = TRUE                   // whether to use the F-bar 
 IB_POINT_DENSITY           = 2.0                    // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 SOLVER_TYPE                = "STAGGERED"            // the fluid solver to use (STAGGERED or COLLOCATED)
 START_TIME                 = 0.0e0                  // initial simulation time
-END_TIME                   = 20.0                   // final simulation time
+END_TIME                   = 100.0                  // final simulation time
 GROW_DT                    = 2.0e0                  // growth factor for timesteps
 NUM_CYCLES                 = 1                      // number of cycles of fixed-point iteration
 CONVECTIVE_OP_TYPE         = "PPM"                  // convective differencing discretization type
@@ -62,8 +62,8 @@ VelocityBcCoefs_0 {
    U_bar = U_BAR
    D = D
    w = 0.01*D
-   X1_lower =     D + 0.5*w
-   X1_upper = 2.0*D - 0.5*w
+   X1_lower =     D + 0.5*w + DX
+   X1_upper = 2.0*D - 0.5*w - DX
    X1_mid   = 0.5*(X1_lower + X1_upper)
    tau = 1.0
 
