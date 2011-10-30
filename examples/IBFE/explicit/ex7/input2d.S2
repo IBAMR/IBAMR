@@ -1,56 +1,57 @@
 // physical parameters
-RHO   = 1.0e3
-U_BAR = 2.0
-U_MAX = 4.0*U_BAR
-D     = 0.1
-RE    = 200.0
-MU    = U_BAR*D*RHO/RE
+RHO   = 1.0                                         // mass density of fluid (gm/cm^3)
+MU    = 0.01                                        // dynamic viscosity of fluid (gm/(cm s))
+U_BAR = 2.0                                         // mean inflow velocity (cm/s)
+U_MAX = 4.0*U_BAR                                   // approximate maximum velocity (cm/2)
+P_E   = 8.5995                                      // external pressure (dyne/cm^2)
+E_S  = 175848.75                                    // Young's modulus of material (dyne/cm^2)
+NU_S = 0.45                                         // Poisson's ratio of material
+MU_S = E_S/(2.0*(1.0 + NU_S))                       // Lame' parameters (mu_s and lambda_s)
+LAMBDA_S = (E_S*NU_S)/((1.0 + NU_S)*(1.0 - 2.0*NU_S))
 
-// grid spacing parameters
-MAX_LEVELS = 2                            // maximum number of levels in locally refined grid
-REF_RATIO  = 2                            // refinement ratio between levels
-N = 41                                    // actual    number of grid cells on coarsest grid level
-NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
-L = 2.5                                   // width  of computational domain
-H = 0.41                                  // height of computational domain
-DX = H/NFINEST
-MFAC = 2.0
-
-// model parameters
-block_elem_type = "TRI3"
-beam_elem_type = "QUAD4"
-KAPPA = U_BAR*1.25e11*NFINEST/41.0
-MU_S = 2.0e6
-NU_S = 0.4
-LAMBDA_S = 2.0*MU_S*NU_S/(1.0 - 2.0*NU_S)
+// discretization parameters
+MAX_LEVELS = 4                                      // maximum number of levels in locally refined grid
+REF_RATIO  = 2                                      // refinement ratio between levels
+N = 12                                              // actual    number of grid cells on coarsest grid level
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N            // effective number of grid cells on finest   grid level
+D = 1.0                                             // channel height (cm)
+L = 40.0*D                                          // channel length (cm)
+H = 3.0*D                                           // domain  height (cm)
+DX0 = H/N                                           // mesh width on coarsest grid level (cm)
+DX  = H/NFINEST                                     // mesh width on finest   grid level (cm)
+MFAC = 1.0                                          // ratio of Lagrangian mesh width to Cartesian mesh width
+elem_type = "QUAD9"                                 // type of element to use for structure discretization
 
 // solver parameters
-USE_IB_DELTA_FUNCTIONS     = TRUE              // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction
-DELTA_FUNCTION             = "IB_4"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
-SPLIT_FORCES               = FALSE             // whether to split interior and boundary forces
-USE_JUMP_CONDITIONS        = FALSE             // whether to impose pressure jumps at fluid-structure interfaces
-USE_CONSISTENT_MASS_MATRIX = FALSE             // whether to use a consistent or lumped mass matrix
-USE_FBAR_PROJECTION        = FALSE             // whether to use the F-bar projection method
-IB_POINT_DENSITY           = 2.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
-SOLVER_TYPE                = "STAGGERED"       // the fluid solver to use (STAGGERED or COLLOCATED)
-START_TIME                 = 0.0e0             // initial simulation time
-END_TIME                   = 20.0              // final simulation time
-GROW_DT                    = 2.0e0             // growth factor for timesteps
-NUM_CYCLES                 = 1                 // number of cycles of fixed-point iteration
-CONVECTIVE_OP_TYPE         = "PPM"             // convective differencing discretization type
-CONVECTIVE_FORM            = "ADVECTIVE"       // how to compute the convective terms
-NORMALIZE_PRESSURE         = FALSE             // whether to explicitly force the pressure to have mean zero
-CFL_MAX                    = 0.1               // maximum CFL number
-DT                         = CFL_MAX*DX/U_MAX  // maximum timestep size
-VORTICITY_TAGGING          = TRUE              // whether to tag cells for refinement based on vorticity thresholds
-TAG_BUFFER                 = 1                 // size of tag buffer used by grid generation algorithm
-REGRID_CFL_INTERVAL        = 0.5               // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
+USE_IB_DELTA_FUNCTIONS     = TRUE                   // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction
+DELTA_FUNCTION             = "IB_4"                 // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
+SPLIT_FORCES               = FALSE                  // whether to split interior and boundary forces
+USE_JUMP_CONDITIONS        = FALSE                  // whether to impose pressure jumps at fluid-structure interfaces
+USE_CONSISTENT_MASS_MATRIX = TRUE                   // whether to use a consistent or lumped mass matrix
+USE_FBAR_PROJECTION        = TRUE                   // whether to use the F-bar projection method
+IB_POINT_DENSITY           = 2.0                    // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
+SOLVER_TYPE                = "STAGGERED"            // the fluid solver to use (STAGGERED or COLLOCATED)
+START_TIME                 = 0.0e0                  // initial simulation time
+END_TIME                   = 20.0                   // final simulation time
+GROW_DT                    = 2.0e0                  // growth factor for timesteps
+NUM_CYCLES                 = 1                      // number of cycles of fixed-point iteration
+CONVECTIVE_OP_TYPE         = "PPM"                  // convective differencing discretization type
+CONVECTIVE_FORM            = "ADVECTIVE"            // how to compute the convective terms
+NORMALIZE_PRESSURE         = FALSE                  // whether to explicitly force the pressure to have mean zero
+CFL_MAX                    = 0.1                    // maximum CFL number
+DT                         = 0.375*CFL_MAX*DX/U_MAX // maximum timestep size
+VORTICITY_TAGGING          = TRUE                   // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER                 = 1                      // size of tag buffer used by grid generation algorithm
+REGRID_CFL_INTERVAL        = 0.5                    // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
 OUTPUT_U                   = TRUE
 OUTPUT_P                   = TRUE
 OUTPUT_F                   = TRUE
 OUTPUT_OMEGA               = TRUE
 OUTPUT_DIV_U               = TRUE
 ENABLE_LOGGING             = TRUE
+
+// Penalty parameter
+KAPPA = 2.5e2*DX/(DT^2)
 
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
@@ -59,38 +60,54 @@ USE_EXACT_PROJECTION_METHOD = FALSE
 
 VelocityBcCoefs_0 {
    U_bar = U_BAR
+   D = D
+   w = 0.01*D
+   X1_lower =     D + 0.5*w + DX
+   X1_upper = 2.0*D - 0.5*w - DX
+   X1_mid   = 0.5*(X1_lower + X1_upper)
+   tau = 1.0
 
    acoef_function_0 = "1.0"
-   acoef_function_1 = "0.0"
+   acoef_function_1 = "if( X1 < X1_lower , 1.0 , if( X1 > X1_upper, 1.0 , 0.0 ) )"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
 
    bcoef_function_0 = "0.0"
-   bcoef_function_1 = "1.0"
+   bcoef_function_1 = "if( X1 < X1_lower , 0.0 , if( X1 > X1_upper, 0.0 , 1.0 ) )"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = "1.5*U_bar*4.0*X1*(0.41-X1)/0.1681*if(t < 2.0 , 0.5*(1.0-cos(0.5*pi*t)) , 1.0)"
+   gcoef_function_0 = "if( X1 < X1_lower , 0.0 , if( X1 > X1_upper, 0.0 , 1.5*U_bar*(X1-X1_lower)*(X1-X1_upper)/((X1_mid-X1_lower)*(X1_mid-X1_upper))*if(t < tau , 0.5*(1.0-cos(pi*t/tau)) , 1.0) ) )"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
 }
 
 VelocityBcCoefs_1 {
+   P_e = P_E
+
    acoef_function_0 = "1.0"
-   acoef_function_1 = "0.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
 
    bcoef_function_0 = "0.0"
-   bcoef_function_1 = "1.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
-   gcoef_function_3 = "0.0"
+   gcoef_function_3 = "-P_e"
+}
+
+SpongeLayerForceFunction {
+   kappa = 0.5*RHO/DT
+   lower_forcing_0 = 1
+   upper_forcing_0 = 1
+   lower_width_0 = DX0
+   upper_width_0 = DX0
 }
 
 IBHierarchyIntegrator {
@@ -112,6 +129,8 @@ IBFEMethod {
    use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
    use_Fbar_projection        = USE_FBAR_PROJECTION
    IB_point_density           = IB_POINT_DENSITY
+// IB_qrule_type = "QGAUSS"
+// IB_qrule_order = "TWENTYTHIRD"
 }
 
 INSCollocatedHierarchyIntegrator {
@@ -295,7 +314,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt" , "ExodusII"
-   viz_dump_interval           = int(8.0/CFL_MAX)           // zero to turn off
+   viz_dump_interval           = int(32.0/CFL_MAX)          // zero to turn off
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 

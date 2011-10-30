@@ -64,8 +64,7 @@
 namespace ModelData
 {
 // Stress tensor function.
-static double C1;
-static bool use_div_penalization = false;
+static double mu_s, lambda_s;
 void
 PK1_stress_function(
     TensorValue<double>& PP,
@@ -78,13 +77,12 @@ PK1_stress_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
-    PP = 2.0*C1*FF*(FF - FF_inv_trans);
-    if (use_div_penalization)
-    {
-        const double I3 = FF.det()*FF.det();
-        PP += 1.0e3*C1*log(I3)*FF_inv_trans;
-    }
+    static const TensorValue<double> II(1.0,0.0,0.0,
+                                        0.0,1.0,0.0,
+                                        0.0,0.0,1.0);
+    TensorValue<double> EE = 0.5*(FF.transpose()*FF - II);
+    const TensorValue<double> SS = lambda_s*EE.tr()*II + 2.0*mu_s*EE;
+    PP = FF*SS;
     return;
 }// PK1_stress_function
 
@@ -197,8 +195,9 @@ main(
         const double L = 40.0*D; // channel length (cm)
         const double w = 0.01*D; // wall thickness (cm)
 
-        C1    = input_db->getDouble("C1");
-        kappa = input_db->getDouble("KAPPA");
+        mu_s     = input_db->getDouble("MU_S");
+        lambda_s = input_db->getDouble("LAMBDA_S");
+        kappa    = input_db->getDouble("KAPPA");
 
         string elem_type = input_db->getStringWithDefault("elem_type", "QUAD9");
 

@@ -223,8 +223,8 @@ main(
         meshes[0] = &block_mesh;
         meshes[1] = & beam_mesh;
         kappa = input_db->getDoubleWithDefault("KAPPA", kappa);
-        lambda_s = input_db->getDouble("lambda_s");
-        mu_s = input_db->getDouble("mu_s");
+        lambda_s = input_db->getDouble("LAMBDA_S");
+        mu_s = input_db->getDouble("MU_S");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
