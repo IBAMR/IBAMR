@@ -35,9 +35,8 @@ build_triplet = @build@
 host_triplet = @host@
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/Make-rules
-EXTRA_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2)
+EXTRA_PROGRAMS = $(am__EXEEXT_1)
 @LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d convergence_tester2d
-@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__append_2 = main3d convergence_tester3d
 subdir = examples/IBFE/explicit/ex4
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_blas.m4 \
@@ -60,9 +59,6 @@ CONFIG_CLEAN_VPATH_FILES =
 @LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 =  \
 @LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	main2d$(EXEEXT) \
 @LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	convergence_tester2d$(EXEEXT)
-@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_2 =  \
-@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@	main3d$(EXEEXT) \
-@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@	convergence_tester3d$(EXEEXT)
 am_convergence_tester2d_OBJECTS =  \
 	convergence_tester2d-convergence_tester.$(OBJEXT)
 convergence_tester2d_OBJECTS = $(am_convergence_tester2d_OBJECTS)
@@ -72,22 +68,10 @@ convergence_tester2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
 	$(am__DEPENDENCIES_1)
 convergence_tester2d_LINK = $(CXXLD) $(convergence_tester2d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am_convergence_tester3d_OBJECTS =  \
-	convergence_tester3d-convergence_tester.$(OBJEXT)
-convergence_tester3d_OBJECTS = $(am_convergence_tester3d_OBJECTS)
-convergence_tester3d_DEPENDENCIES = $(IBAMR3d_LIBS) \
-	$(am__DEPENDENCIES_1)
-convergence_tester3d_LINK = $(CXXLD) $(convergence_tester3d_CXXFLAGS) \
-	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_main2d_OBJECTS = main2d-main.$(OBJEXT)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(am__DEPENDENCIES_1)
 main2d_LINK = $(CXXLD) $(main2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
-am_main3d_OBJECTS = main3d-main.$(OBJEXT)
-main3d_OBJECTS = $(am_main3d_OBJECTS)
-main3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(am__DEPENDENCIES_1)
-main3d_LINK = $(CXXLD) $(main3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
@@ -98,12 +82,8 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-SOURCES = $(convergence_tester2d_SOURCES) \
-	$(convergence_tester3d_SOURCES) $(main2d_SOURCES) \
-	$(main3d_SOURCES)
-DIST_SOURCES = $(convergence_tester2d_SOURCES) \
-	$(convergence_tester3d_SOURCES) $(main2d_SOURCES) \
-	$(main3d_SOURCES)
+SOURCES = $(convergence_tester2d_SOURCES) $(main2d_SOURCES)
+DIST_SOURCES = $(convergence_tester2d_SOURCES) $(main2d_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -431,19 +411,13 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXTRA_DIST = input2d input3d
+EXTRA_DIST = input2d
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_SOURCES = main.C
 convergence_tester2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 convergence_tester2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 convergence_tester2d_SOURCES = convergence_tester.C
-main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-main3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-main3d_SOURCES = main.C
-convergence_tester3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-convergence_tester3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-convergence_tester3d_SOURCES = convergence_tester.C
 all: all-am
 
 .SUFFIXES:
@@ -481,15 +455,9 @@ $(am__aclocal_m4_deps):
 convergence_tester2d$(EXEEXT): $(convergence_tester2d_OBJECTS) $(convergence_tester2d_DEPENDENCIES) 
 	@rm -f convergence_tester2d$(EXEEXT)
 	$(convergence_tester2d_LINK) $(convergence_tester2d_OBJECTS) $(convergence_tester2d_LDADD) $(LIBS)
-convergence_tester3d$(EXEEXT): $(convergence_tester3d_OBJECTS) $(convergence_tester3d_DEPENDENCIES) 
-	@rm -f convergence_tester3d$(EXEEXT)
-	$(convergence_tester3d_LINK) $(convergence_tester3d_OBJECTS) $(convergence_tester3d_LDADD) $(LIBS)
 main2d$(EXEEXT): $(main2d_OBJECTS) $(main2d_DEPENDENCIES) 
 	@rm -f main2d$(EXEEXT)
 	$(main2d_LINK) $(main2d_OBJECTS) $(main2d_LDADD) $(LIBS)
-main3d$(EXEEXT): $(main3d_OBJECTS) $(main3d_DEPENDENCIES) 
-	@rm -f main3d$(EXEEXT)
-	$(main3d_LINK) $(main3d_OBJECTS) $(main3d_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -498,9 +466,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/convergence_tester2d-convergence_tester.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/convergence_tester3d-convergence_tester.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-main.Po@am__quote@
 
 .C.o:
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -530,20 +496,6 @@ convergence_tester2d-convergence_tester.obj: convergence_tester.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(convergence_tester2d_CXXFLAGS) $(CXXFLAGS) -c -o convergence_tester2d-convergence_tester.obj `if test -f 'convergence_tester.C'; then $(CYGPATH_W) 'convergence_tester.C'; else $(CYGPATH_W) '$(srcdir)/convergence_tester.C'; fi`
 
-convergence_tester3d-convergence_tester.o: convergence_tester.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(convergence_tester3d_CXXFLAGS) $(CXXFLAGS) -MT convergence_tester3d-convergence_tester.o -MD -MP -MF $(DEPDIR)/convergence_tester3d-convergence_tester.Tpo -c -o convergence_tester3d-convergence_tester.o `test -f 'convergence_tester.C' || echo '$(srcdir)/'`convergence_tester.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/convergence_tester3d-convergence_tester.Tpo $(DEPDIR)/convergence_tester3d-convergence_tester.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='convergence_tester.C' object='convergence_tester3d-convergence_tester.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(convergence_tester3d_CXXFLAGS) $(CXXFLAGS) -c -o convergence_tester3d-convergence_tester.o `test -f 'convergence_tester.C' || echo '$(srcdir)/'`convergence_tester.C
-
-convergence_tester3d-convergence_tester.obj: convergence_tester.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(convergence_tester3d_CXXFLAGS) $(CXXFLAGS) -MT convergence_tester3d-convergence_tester.obj -MD -MP -MF $(DEPDIR)/convergence_tester3d-convergence_tester.Tpo -c -o convergence_tester3d-convergence_tester.obj `if test -f 'convergence_tester.C'; then $(CYGPATH_W) 'convergence_tester.C'; else $(CYGPATH_W) '$(srcdir)/convergence_tester.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/convergence_tester3d-convergence_tester.Tpo $(DEPDIR)/convergence_tester3d-convergence_tester.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='convergence_tester.C' object='convergence_tester3d-convergence_tester.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(convergence_tester3d_CXXFLAGS) $(CXXFLAGS) -c -o convergence_tester3d-convergence_tester.obj `if test -f 'convergence_tester.C'; then $(CYGPATH_W) 'convergence_tester.C'; else $(CYGPATH_W) '$(srcdir)/convergence_tester.C'; fi`
-
 main2d-main.o: main.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-main.o -MD -MP -MF $(DEPDIR)/main2d-main.Tpo -c -o main2d-main.o `test -f 'main.C' || echo '$(srcdir)/'`main.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main2d-main.Tpo $(DEPDIR)/main2d-main.Po
@@ -557,20 +509,6 @@ main2d-main.obj: main.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='main.C' object='main2d-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-main.obj `if test -f 'main.C'; then $(CYGPATH_W) 'main.C'; else $(CYGPATH_W) '$(srcdir)/main.C'; fi`
-
-main3d-main.o: main.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-main.o -MD -MP -MF $(DEPDIR)/main3d-main.Tpo -c -o main3d-main.o `test -f 'main.C' || echo '$(srcdir)/'`main.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main3d-main.Tpo $(DEPDIR)/main3d-main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='main.C' object='main3d-main.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-main.o `test -f 'main.C' || echo '$(srcdir)/'`main.C
-
-main3d-main.obj: main.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-main.obj -MD -MP -MF $(DEPDIR)/main3d-main.Tpo -c -o main3d-main.obj `if test -f 'main.C'; then $(CYGPATH_W) 'main.C'; else $(CYGPATH_W) '$(srcdir)/main.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/main3d-main.Tpo $(DEPDIR)/main3d-main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='main.C' object='main3d-main.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-main.obj `if test -f 'main.C'; then $(CYGPATH_W) 'main.C'; else $(CYGPATH_W) '$(srcdir)/main.C'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -773,13 +711,13 @@ uninstall-am:
 
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input[23]d $(PWD) ; \
+	  cp -f $(srcdir)/input2d $(PWD) ; \
 	fi ;
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/input[23]d ; \
+	  rm -f $(builddir)/input2d ; \
 	fi ;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

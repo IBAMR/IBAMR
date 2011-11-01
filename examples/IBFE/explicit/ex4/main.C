@@ -71,16 +71,13 @@ coordinate_mapping_function(
 {
     X(0) = s(0) + 0.6;
     X(1) = s(1) + 0.5;
-#if (NDIM == 3)
-    X(2) = s(2) + 0.5;
-#endif
     return;
 }// coordinate_mapping_function
 
 // Stress tensor function.
-static double struct_mu = 0.1;
-static double struct_lambda = 0.0;
-static bool use_div_penalization = true;
+static double c1_s = 0.05;
+static double p0_s = 0.0;
+static double beta_s = 0.0;
 void
 PK1_stress_function(
     TensorValue<double>& PP,
@@ -89,16 +86,20 @@ PK1_stress_function(
     const Point& /*s*/,
     Elem* const /*elem*/,
     NumericVector<double>& /*X_vec*/,
-    const vector<NumericVector<double>*>& /*system_data*/,
+    const std::vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
 {
     const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
-    PP = struct_mu*(FF - FF_inv_trans);
-    if (use_div_penalization)
+    const TensorValue<double> CC = FF.transpose()*FF;
+    PP = 2.0*c1_s*FF;
+    if (!MathUtilities<double>::equalEps(p0_s, 0.0))
     {
-        const double I3 = FF.det()*FF.det();
-        PP += struct_lambda*log(I3)*FF_inv_trans;
+        PP += 2.0*p0_s*FF_inv_trans;
+    }
+    if (!MathUtilities<double>::equalEps(beta_s, 0.0))
+    {
+        PP += beta_s*log(CC.det())*FF_inv_trans;
     }
     return;
 }// PK1_stress_function
@@ -171,21 +172,33 @@ main(
 
         // Create a simple FE mesh.
         Mesh mesh(NDIM);
-        const int R = input_db->getIntegerWithDefault("R", 3);
-        string elem_type = input_db->getStringWithDefault("elem_type", "QUAD4");
-        MeshTools::Generation::build_sphere(mesh,
-                                            0.2,
-                                            R,
-                                            Utility::string_to_enum<ElemType>(elem_type));
-        struct_mu = input_db->getDoubleWithDefault("struct_mu", struct_mu);
-        struct_lambda = input_db->getDoubleWithDefault("struct_lambda", struct_lambda);
-        use_div_penalization = input_db->getBoolWithDefault("use_div_penalization", use_div_penalization);
+        const double dx = input_db->getDouble("DX");
+        const double ds = input_db->getDouble("MFAC")*dx;
+        string elem_type = input_db->getString("ELEM_TYPE");
+        const double R = 0.2;
+        const int num_circum_nodes = max(1.0,ceil(2.0*M_PI*R/ds));
+        for (int k = 0; k < num_circum_nodes; ++k)
+        {
+            const double theta = 2.0*M_PI*static_cast<double>(k)/static_cast<double>(num_circum_nodes);
+            mesh.add_point(Point(R*cos(theta), R*sin(theta)));
+        }
+        TriangleInterface triangle(mesh);
+        triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
+        triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
+        triangle.insert_extra_points() = false;
+        triangle.desired_area() = sqrt(3.0)/4.0*ds*ds;
+        triangle.smooth_after_generating() = true;
+        triangle.triangulate();
+        mesh.prepare_for_use();
+        c1_s   = input_db->getDouble("C1_S");
+        p0_s   = input_db->getDouble("P0_S");
+        beta_s = input_db->getDouble("BETA_S");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
         Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
-        const string solver_type = app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
+        const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
             navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
@@ -429,6 +442,8 @@ postprocess_data(
         }
     }
     J_integral = SAMRAI_MPI::sumReduction(J_integral);
+    volume_stream.precision(12);
+    volume_stream.setf(ios::fixed,ios::floatfield);
     volume_stream << loop_time << " " << J_integral << endl;
     return;
 }// postprocess_data

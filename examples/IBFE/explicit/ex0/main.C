@@ -175,10 +175,11 @@ main(
         Mesh mesh(NDIM);
         const double R = 0.25;
         const double w = 0.0625;
-        const int M = input_db->getIntegerWithDefault("M", 4);
-        string elem_type = input_db->getStringWithDefault("elem_type", "QUAD4");
+        const double dx = input_db->getDouble("DX");
+        const double ds = input_db->getDouble("MFAC")*dx;
+        string elem_type = input_db->getString("ELEM_TYPE");
         MeshTools::Generation::build_square(mesh,
-                                            28*M, M,
+                                            static_cast<int>(ceil(2.0*M_PI*(R+w)/ds)), static_cast<int>(ceil(w/ds)),
                                             0.0, 2.0*M_PI*R,
                                             0.0, w,
                                             Utility::string_to_enum<ElemType>(elem_type));
@@ -188,13 +189,13 @@ main(
         pbc.pairedboundary = 1;
 
         // Configure stress tensor options.
-        smooth_case = input_db->getBoolWithDefault("smooth_case", smooth_case);
+        smooth_case = input_db->getBool("SMOOTH_CASE");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
         Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
-        const string solver_type = app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
+        const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
             navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(

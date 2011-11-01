@@ -98,6 +98,8 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     d_integrator_is_initialized = false;
     d_regrid_cfl_interval = 0.0;
     d_regrid_cfl_estimate = 0.0;
+    d_error_on_dt_change = false;
+    d_warn_on_dt_change = true;
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -306,6 +308,24 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const double dt = new_time-current_time;
+    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
+
+    // Determine whether there has been a time step size change.
+    if ((d_error_on_dt_change || d_warn_on_dt_change) &&
+        (!initial_time && !MathUtilities<double>::equalEps(dt, d_dt_previous[0])))
+    {
+        if (d_error_on_dt_change)
+        {
+            TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():  Time step size change encountered.\n"
+                       << "Aborting." << std::endl);
+        }
+        if (d_warn_on_dt_change)
+        {
+            pout << d_object_name << "::preprocessIntegrateHierarchy():  WARNING: Time step size change encountered.\n"
+                 << "Suggest reducing maximum time step size in input file." << std::endl;
+        }
+    }
 
     // Setup the Eulerian body force and fluid source/sink functions.
     d_eulerian_force_fcn->registerBodyForceFunction(d_body_force_fcn);
@@ -612,6 +632,12 @@ IBHierarchyIntegrator::getFromInput(
     bool /*is_from_restart*/)
 {
     if (db->keyExists("regrid_cfl_interval")) d_regrid_cfl_interval = db->getDouble("regrid_cfl_interval");
+    if      (db->keyExists("error_on_dt_change")       ) d_error_on_dt_change = db->getBool("error_on_dt_change");
+    else if (db->keyExists("error_on_timestep_change") ) d_error_on_dt_change = db->getBool("error_on_timestep_change");
+    else if (db->keyExists("error_on_time_step_change")) d_error_on_dt_change = db->getBool("error_on_time_step_change");
+    if      (db->keyExists("warn_on_dt_change")       ) d_warn_on_dt_change = db->getBool("warn_on_dt_change");
+    else if (db->keyExists("warn_on_timestep_change") ) d_warn_on_dt_change = db->getBool("warn_on_timestep_change");
+    else if (db->keyExists("warn_on_time_step_change")) d_warn_on_dt_change = db->getBool("warn_on_time_step_change");
     return;
 }// getFromInput
 

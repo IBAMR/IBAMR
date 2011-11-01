@@ -151,19 +151,19 @@ main(
         // Note that boundary condition data must be registered with each FE
         // system before calling IBFEMethod::initializeFEData().
         Mesh mesh(NDIM);
-        const int M = input_db->getIntegerWithDefault("M", 4);
+        const double dx = input_db->getDouble("DX");
+        const double ds = input_db->getDouble("MFAC")*dx;
+        string elem_type = input_db->getString("ELEM_TYPE");
 #if (NDIM == 2)
-        string elem_type = input_db->getStringWithDefault("elem_type", "QUAD4");
         MeshTools::Generation::build_square(mesh,
-                                            M, 10*M,
+                                            static_cast<int>(ceil(0.1/ds)), static_cast<int>(ceil(1.0/ds)),
                                             0.95, 1.05,
                                             0.0, 1,
                                             Utility::string_to_enum<ElemType>(elem_type));
 #endif
 #if (NDIM == 3)
-        string elem_type = input_db->getStringWithDefault("elem_type", "HEX8");
         MeshTools::Generation::build_cube(mesh,
-                                          M, 10*M, 10*M,
+                                          static_cast<int>(ceil(0.1/ds)), static_cast<int>(ceil(1.0/ds)), static_cast<int>(ceil(1.0/ds)),
                                           0.95, 1.05,
                                           0.0, 1,
                                           0.0, 1,
@@ -199,7 +199,7 @@ main(
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
         Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
-        const string solver_type = app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
+        const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
             navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(

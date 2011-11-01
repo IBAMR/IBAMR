@@ -61,11 +61,10 @@
 // Elasticity model data.
 namespace ModelData
 {
-// Problem parameters.
-static const double C1 = 0.1;
-static const double mu = 2.0*C1;
-
 // Stress tensor function.
+static double c1_s = 0.05;
+static double p0_s = 0.0;
+static double beta_s = 0.0;
 void
 PK1_stress_function(
     TensorValue<double>& PP,
@@ -78,7 +77,17 @@ PK1_stress_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    PP = mu*FF;
+    const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
+    const TensorValue<double> CC = FF.transpose()*FF;
+    PP = 2.0*c1_s*FF;
+    if (!MathUtilities<double>::equalEps(p0_s, 0.0))
+    {
+        PP += 2.0*p0_s*FF_inv_trans;
+    }
+    if (!MathUtilities<double>::equalEps(beta_s, 0.0))
+    {
+        PP += beta_s*log(CC.det())*FF_inv_trans;
+    }
     return;
 }// PK1_stress_function
 }
@@ -152,10 +161,11 @@ main(
         // Note that boundary condition data must be registered with each FE
         // system before calling IBFEMethod::initializeFEData().
         Mesh mesh(NDIM);
-        const int M = input_db->getIntegerWithDefault("M", 4);
-        string elem_type = input_db->getStringWithDefault("elem_type", "QUAD4");
+        const double dx = input_db->getDouble("DX");
+        const double ds = input_db->getDouble("MFAC")*dx;
+        string elem_type = input_db->getString("ELEM_TYPE");
         MeshTools::Generation::build_square(mesh,
-                                            4*M, M,
+                                            static_cast<int>(ceil(2.0/ds)), static_cast<int>(ceil(0.5/ds)),
                                             0.0, 2.0,
                                             0.0, 0.5,
                                             Utility::string_to_enum<ElemType>(elem_type));
@@ -176,12 +186,15 @@ main(
                 }
             }
         }
+        c1_s   = input_db->getDouble("C1_S");
+        p0_s   = input_db->getDouble("P0_S");
+        beta_s = input_db->getDouble("BETA_S");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
         Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
-        const string solver_type = app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
+        const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
             navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(

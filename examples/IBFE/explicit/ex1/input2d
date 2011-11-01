@@ -6,16 +6,17 @@ RHO = 1.0
 PI = 3.14159265358979
 
 // grid spacing parameters
-MAX_LEVELS = 2                            // maximum number of levels in locally refined grid
+MAX_LEVELS = 1                            // maximum number of levels in locally refined grid
 REF_RATIO  = 2                            // refinement ratio between levels
-N = 64                                    // actual    number of grid cells on coarsest grid level
+N = 128                                   // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
-MFAC = 1                                  // Lagrangian mesh spacing factor
-M = MFAC*NFINEST/64                       // Lagrangian mesh spacing
-DX = 1.0/NFINEST
+DX0 = 1.0/N                               // mesh width on coarsest grid level
+DX  = 1.0/NFINEST                         // mesh width on finest   grid level
+MFAC = 2.0                                // ratio of Lagrangian mesh width to Cartesian mesh width
+ELEM_TYPE = "QUAD4"                       // type of element to use for structure discretization
 
-smooth_case = TRUE
-elem_type = "QUAD9"
+// problem parameters
+SMOOTH_CASE = FALSE
 
 // solver parameters
 USE_IB_DELTA_FUNCTIONS     = TRUE              // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction

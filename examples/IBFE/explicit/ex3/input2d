@@ -2,26 +2,29 @@
 MU = 0.2
 RHO = 1.0
 
-// model parameters
-L = 2.0                                   // width of computational domain
-U_MAX = 0.5
-elem_type = "QUAD4"
-
 // grid spacing parameters
-MAX_LEVELS = 2                            // maximum number of levels in locally refined grid
-REF_RATIO  = 2                            // refinement ratio between levels
-N = 32                                    // actual    number of grid cells on coarsest grid level
-NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
-MFAC = 1                                  // Lagrangian mesh spacing factor
-M = MFAC*NFINEST/64                       // Lagrangian mesh spacing
-DX = 1.0/NFINEST
+MAX_LEVELS = 2                                 // maximum number of levels in locally refined grid
+REF_RATIO  = 2                                 // refinement ratio between levels
+N = 32                                         // actual    number of grid cells on coarsest grid level
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
+L = 2.0                                        // width of computational domain
+DX0 = L/N                                      // mesh width on coarsest grid level
+DX  = L/NFINEST                                // mesh width on finest   grid level
+MFAC = 2.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
+ELEM_TYPE = "QUAD9"                            // type of element to use for structure discretization
+
+// model parameters
+U_MAX = 0.5
+C1_S = 0.1
+P0_S = -C1_S
+BETA_S = 0.0
 
 // solver parameters
 USE_IB_DELTA_FUNCTIONS     = TRUE              // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction
 DELTA_FUNCTION             = "IB_4"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
 SPLIT_FORCES               = TRUE              // whether to split interior and boundary forces
-USE_JUMP_CONDITIONS        = TRUE              // whether to impose pressure jumps at fluid-structure interfaces
-USE_CONSISTENT_MASS_MATRIX = FALSE             // whether to use a consistent or lumped mass matrix
+USE_JUMP_CONDITIONS        = FALSE             // whether to impose pressure jumps at fluid-structure interfaces
+USE_CONSISTENT_MASS_MATRIX = TRUE              // whether to use a consistent or lumped mass matrix
 USE_FBAR_PROJECTION        = FALSE             // whether to use the F-bar projection method
 IB_POINT_DENSITY           = 2.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 SOLVER_TYPE                = "STAGGERED"       // the fluid solver to use (STAGGERED or COLLOCATED)

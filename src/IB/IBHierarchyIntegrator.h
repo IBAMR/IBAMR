@@ -230,6 +230,12 @@ protected:
     putToDatabaseSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
+    /*!
+     * Flags to determine whether warnings or error messages should be emitted
+     * when time step size changes are encountered.
+     */
+    bool d_error_on_dt_change, d_warn_on_dt_change;
+
 private:
     /*!
      * \brief Default constructor.

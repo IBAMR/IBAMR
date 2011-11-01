@@ -203,7 +203,7 @@ main(
 
         Mesh lower_mesh(NDIM);
         MeshTools::Generation::build_square(lower_mesh,
-                                            static_cast<int>(ceil(L/ds)), max(1,static_cast<int>(ceil(w/ds))),
+                                            static_cast<int>(ceil(L/ds)), static_cast<int>(ceil(w/ds)),
                                             0.0, L, D - 0.5*w, D + 0.5*w,
                                             Utility::string_to_enum<ElemType>(elem_type));
         lower_mesh.prepare_for_use();
@@ -227,7 +227,7 @@ main(
 
         Mesh upper_mesh(NDIM);
         MeshTools::Generation::build_square(upper_mesh,
-                                            static_cast<int>(ceil(L/ds)), max(1,static_cast<int>(ceil(w/ds))),
+                                            static_cast<int>(ceil(L/ds)), static_cast<int>(ceil(w/ds)),
                                             0.0, L, 2.0*D - 0.5*w, 2.0*D + 0.5*w,
                                             Utility::string_to_enum<ElemType>(elem_type));
         upper_mesh.prepare_for_use();
