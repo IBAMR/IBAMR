@@ -3,7 +3,7 @@ include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
 SOURCES = main.C
-EXTRA_DIST = input2d.caseC input2d.caseSP input2d.caseS2
+EXTRA_DIST = input2d.caseC input2d.caseS2 input2d.caseSP
 
 EXTRA_PROGRAMS =
 if LIBMESH_ENABLED
@@ -18,11 +18,11 @@ main2d_SOURCES = $(SOURCES)
 
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input2d.case{C,SP,S2} $(PWD) ; \
+	  cp -f $(srcdir)/input2d.case{C,S2,SP} $(PWD) ; \
 	fi ;
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/input2d.case{C,SP,S2} ; \
+	  rm -f $(builddir)/input2d.case{C,S2,SP} ; \
 	fi ;

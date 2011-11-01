@@ -42,7 +42,6 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for basic libMesh objects
-#include <dof_map.h>
 #include <exodusII_io.h>
 #include <mesh.h>
 #include <mesh_generation.h>
@@ -344,6 +343,10 @@ main(
             }
         }
 
+        // Open streams to save volume of structure.
+        ofstream volume_stream;
+        volume_stream.open("volume.curve", ios_base::out | ios_base::trunc);
+
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -462,7 +465,14 @@ main(
                  << "  max-norm: " << hier_cc_data_ops.maxNorm(p_cloned_idx,wgt_cc_idx) << "\n"
                  << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 
+            // Compute the volume of the structure.
+            volume_stream.precision(12);
+            volume_stream.setf(ios::fixed,ios::floatfield);
+            volume_stream << loop_time << " " << compute_volume_of_mesh(mesh, equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME)) << endl;
         }
+
+        // Close the logging streams.
+        volume_stream.close();
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).

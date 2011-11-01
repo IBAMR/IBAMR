@@ -43,7 +43,6 @@
 
 // Headers for basic libMesh objects
 #include <boundary_info.h>
-#include <dof_map.h>
 #include <exodusII_io.h>
 #include <mesh.h>
 #include <mesh_generation.h>
@@ -80,7 +79,7 @@ block_PK1_stress_function(
 }// block_PK1_stress_function
 
 // Tether (penalty) force function for solid block.
-double kappa = 1.0e6;
+static double kappa_s = 1.0e6;
 void
 block_tether_force_function(
     VectorValue<double>& F,
@@ -93,12 +92,12 @@ block_tether_force_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    F = kappa*(s-X);
+    F = kappa_s*(s-X);
     return;
 }// block_tether_force_function
 
 // Stress tensor function for thin beam.
-double lambda_s, mu_s;
+static double mu_s, lambda_s;
 void
 beam_PK1_stress_function(
     TensorValue<double>& PP,
@@ -114,7 +113,8 @@ beam_PK1_stress_function(
     static const TensorValue<double> II(1.0,0.0,0.0,
                                         0.0,1.0,0.0,
                                         0.0,0.0,1.0);
-    TensorValue<double> EE = 0.5*(FF.transpose()*FF - II);
+    const TensorValue<double> CC = FF.transpose()*FF;
+    const TensorValue<double> EE = 0.5*(CC - II);
     const TensorValue<double> SS = lambda_s*EE.tr()*II + 2.0*mu_s*EE;
     PP = FF*SS;
     return;
@@ -191,30 +191,45 @@ main(
         const double ds = input_db->getDouble("MFAC")*dx;
 
         Mesh block_mesh(NDIM);
-        string block_elem_type = input_db->getStringWithDefault("block_elem_type", "TRI6");
+        string block_elem_type = input_db->getString("BLOCK_ELEM_TYPE");
         const double R = 0.05;
-        const int num_radial_nodes = ceil(R / ds);
-        for (int j = 0; j <= num_radial_nodes; ++j)
+        const int num_circum_nodes = ceil(2.0*M_PI*R/ds);
+        for (int k = 0; k < num_circum_nodes; ++k)
         {
-            const double r = R*static_cast<double>(j)/static_cast<double>(num_radial_nodes);
-            const int num_circum_nodes = max(1.0,4.0*ceil(2.0*M_PI*r / ds / 4.0));
-            for (int k = 0; k < num_circum_nodes; ++k)
-            {
-                const double theta = (k+0.5*(j%2))*2.0*M_PI/static_cast<double>(num_circum_nodes);
-                block_mesh.add_point(Point(r*cos(theta) + 0.2, r*sin(theta) + 0.2));
-            }
+            const double theta = 2.0*M_PI*static_cast<double>(k)/static_cast<double>(num_circum_nodes);
+            block_mesh.add_point(Point(R*cos(theta), R*sin(theta)));
         }
         TriangleInterface triangle(block_mesh);
-//      triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
+        triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
         triangle.elem_type() = Utility::string_to_enum<ElemType>(block_elem_type);
-//      triangle.insert_extra_points() = true;
+        triangle.desired_area() = sqrt(3.0)/4.0*ds*ds;
+        triangle.insert_extra_points() = true;
+        triangle.smooth_after_generating() = true;
         triangle.triangulate();
+        const MeshBase::const_element_iterator end_el = block_mesh.elements_end();
+        for (MeshBase::const_element_iterator el = block_mesh.elements_begin(); el != end_el; ++el)
+        {
+            Elem* const elem = *el;
+            for (unsigned int side = 0; side < elem->n_sides(); ++side)
+            {
+                const bool at_mesh_bdry = elem->neighbor(side) == NULL;
+                if (!at_mesh_bdry) continue;
+                for (unsigned int k = 0; k < elem->n_nodes(); ++k)
+                {
+                    if (elem->is_node_on_side(k,side))
+                    {
+                        Node* n = elem->get_node(k);
+                        (*n) = R*n->unit();
+                    }
+                }
+            }
+        }
         block_mesh.prepare_for_use();
 
         Mesh beam_mesh(NDIM);
-        string beam_elem_type = input_db->getStringWithDefault("beam_elem_type", "QUAD9");
+        string beam_elem_type = input_db->getString("BEAM_ELEM_TYPE");
         MeshTools::Generation::build_square(beam_mesh,
-                                            ceil(0.4/ds), max(2.0,ceil(0.02/ds)),
+                                            ceil(0.4/ds), ceil(0.02/ds),
                                             0.2, 0.6, 0.19, 0.21,
                                             Utility::string_to_enum<ElemType>(beam_elem_type));
         beam_mesh.prepare_for_use();
@@ -222,15 +237,16 @@ main(
         vector<Mesh*> meshes(2);
         meshes[0] = &block_mesh;
         meshes[1] = & beam_mesh;
-        kappa = input_db->getDoubleWithDefault("KAPPA", kappa);
+
+        mu_s     = input_db->getDouble("MU_S");
         lambda_s = input_db->getDouble("LAMBDA_S");
-        mu_s = input_db->getDouble("MU_S");
+        kappa_s  = input_db->getDouble("KAPPA_S");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
         Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
-        const string solver_type = app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
+        const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
             navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(

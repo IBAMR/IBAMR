@@ -3,11 +3,11 @@ MU = 0.2
 RHO = 1.0
 
 // grid spacing parameters
+L = 2.0                                        // width of computational domain
 MAX_LEVELS = 2                                 // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                 // refinement ratio between levels
 N = 32                                         // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
-L = 2.0                                        // width of computational domain
 DX0 = L/N                                      // mesh width on coarsest grid level
 DX  = L/NFINEST                                // mesh width on finest   grid level
 MFAC = 2.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
@@ -306,9 +306,9 @@ Main {
 
 CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
-   x_lo         = 0.0, 0.0         // lower end of computational domain.
-   x_up         = L  , L           // upper end of computational domain.
-   periodic_dimension = 0, 0
+   x_lo         = 0 , 0  // lower end of computational domain.
+   x_up         = L , L  // upper end of computational domain.
+   periodic_dimension = 0 , 0
 }
 
 GriddingAlgorithm {

@@ -21,7 +21,7 @@ H = 3.0*D                                           // domain  height (cm)
 DX0 = H/N                                           // mesh width on coarsest grid level (cm)
 DX  = H/NFINEST                                     // mesh width on finest   grid level (cm)
 MFAC = 1.0                                          // ratio of Lagrangian mesh width to Cartesian mesh width
-elem_type = "QUAD9"                                 // type of element to use for structure discretization
+ELEM_TYPE = "QUAD9"                                 // type of element to use for structure discretization
 
 // solver parameters
 USE_IB_DELTA_FUNCTIONS     = TRUE                   // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction
@@ -52,7 +52,7 @@ OUTPUT_DIV_U               = TRUE
 ENABLE_LOGGING             = TRUE
 
 // Penalty parameter
-KAPPA = 2.5e1*DX/(DT^2)
+KAPPA_S = 2.5e1*DX/(DT^2)
 
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"

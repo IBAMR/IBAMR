@@ -9,7 +9,7 @@ N = 16                                              // actual    number of grid 
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N            // effective number of grid cells on finest   grid level
 DX0 = 1.0/N                                         // mesh width on coarsest grid level
 DX  = 1.0/NFINEST                                   // mesh width on finest   grid level
-MFAC = 4.0                                          // ratio of Lagrangian mesh width to Cartesian mesh width
+MFAC = 2.0                                          // ratio of Lagrangian mesh width to Cartesian mesh width
 ELEM_TYPE = "TRI6"                                  // type of element to use for structure discretization
 
 // model parameters
@@ -305,9 +305,9 @@ Main {
 
 CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
-   x_lo         = 0.0, 0.0         // lower end of computational domain.
-   x_up         = 1.0, 1.0         // upper end of computational domain.
-   periodic_dimension = 0, 0
+   x_lo         = 0 , 0  // lower end of computational domain.
+   x_up         = 1 , 1  // upper end of computational domain.
+   periodic_dimension = 0 , 0
 }
 
 GriddingAlgorithm {

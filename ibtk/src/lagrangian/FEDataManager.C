@@ -53,13 +53,10 @@
 
 // LIBMESH INCLUDES
 #include <boundary_info.h>
-#include <fe.h>
 #include <fe_interface.h>
 #include <dense_matrix.h>
 #include <dense_vector.h>
-#include <dof_map.h>
 #include <explicit_system.h>
-#include <mesh.h>
 #include <numeric_vector.h>
 #include <parallel.h>
 #include <petsc_linear_solver.h>

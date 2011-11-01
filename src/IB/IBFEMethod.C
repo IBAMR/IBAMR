@@ -55,9 +55,7 @@
 // LIBMESH INCLUDES
 #include <boundary_info.h>
 #include <dense_vector.h>
-#include <dof_map.h>
 #include <explicit_system.h>
-#include <fe.h>
 #include <fe_interface.h>
 #include <mesh.h>
 #include <petsc_vector.h>

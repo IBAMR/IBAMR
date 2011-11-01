@@ -6,14 +6,14 @@ RHO = 1.0
 PI = 3.14159265358979
 
 // grid spacing parameters
-MAX_LEVELS = 1                            // maximum number of levels in locally refined grid
-REF_RATIO  = 2                            // refinement ratio between levels
-N = 128                                   // actual    number of grid cells on coarsest grid level
-NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
-DX0 = 1.0/N                               // mesh width on coarsest grid level
-DX  = 1.0/NFINEST                         // mesh width on finest   grid level
-MFAC = 2.0                                // ratio of Lagrangian mesh width to Cartesian mesh width
-ELEM_TYPE = "QUAD9"                       // type of element to use for structure discretization
+MAX_LEVELS = 1                                 // maximum number of levels in locally refined grid
+REF_RATIO  = 2                                 // refinement ratio between levels
+N = 128                                        // actual    number of grid cells on coarsest grid level
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
+DX0 = 1.0/N                                    // mesh width on coarsest grid level
+DX  = 1.0/NFINEST                              // mesh width on finest   grid level
+MFAC = 2.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
+ELEM_TYPE = "QUAD9"                            // type of element to use for structure discretization
 
 // problem parameters
 SMOOTH_CASE = FALSE
@@ -325,9 +325,9 @@ Main {
 
 CartesianGeometry {
    domain_boxes = [ (0,0) , (N - 1,N - 1) ]
-   x_lo         = 0.0, 0.0         // lower end of computational domain.
-   x_up         = 1.0, 1.0         // upper end of computational domain.
-   periodic_dimension = 1, 1
+   x_lo         = 0 , 0  // lower end of computational domain.
+   x_up         = 1 , 1  // upper end of computational domain.
+   periodic_dimension = 1 , 1
 }
 
 GriddingAlgorithm {

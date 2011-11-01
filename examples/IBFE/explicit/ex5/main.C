@@ -43,9 +43,7 @@
 
 // Headers for basic libMesh objects
 #include <boundary_info.h>
-#include <dof_map.h>
 #include <exodusII_io.h>
-#include <fe.h>
 #include <mesh.h>
 #include <mesh_triangle_interface.h>
 
@@ -80,7 +78,7 @@ PK1_stress_function(
 }// PK1_stress_function
 
 // Tether (penalty) force function.
-double kappa = 1.0e6;
+static double kappa_s = 1.0e6;
 void
 tether_force_function(
     VectorValue<double>& F,
@@ -93,7 +91,7 @@ tether_force_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    F = kappa*(s-X);
+    F = kappa_s*(s-X);
     return;
 }// tether_force_function
 }
@@ -165,33 +163,49 @@ main(
 
         // Create a simple FE mesh.
         Mesh mesh(NDIM);
-        string elem_type = input_db->getStringWithDefault("elem_type", "TRI3");
-        const double R = 0.5;
         const double dx = input_db->getDouble("DX");
-        const int num_radial_nodes = ceil(R / (2.0*dx));
-        for (int j = 0; j <= num_radial_nodes; ++j)
+        const double ds = input_db->getDouble("MFAC")*dx;
+        string elem_type = input_db->getString("ELEM_TYPE");
+        const double R = 0.5;
+        const int num_circum_nodes = ceil(2.0*M_PI*R/ds);
+        for (int k = 0; k < num_circum_nodes; ++k)
         {
-            const double r = R*static_cast<double>(j)/static_cast<double>(num_radial_nodes);
-            const int num_circum_nodes = max(1.0,2.0*ceil(2.0*M_PI*r / (2.0*dx) / 2.0));
-            for (int k = 0; k < num_circum_nodes; ++k)
-            {
-                const double theta = k*2.0*M_PI/static_cast<double>(num_circum_nodes);
-                mesh.add_point(Point(r*cos(theta), r*sin(theta)));
-            }
+            const double theta = 2.0*M_PI*static_cast<double>(k)/static_cast<double>(num_circum_nodes);
+            mesh.add_point(Point(R*cos(theta), R*sin(theta)));
         }
         TriangleInterface triangle(mesh);
         triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
         triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
+        triangle.desired_area() = sqrt(3.0)/4.0*ds*ds;
         triangle.insert_extra_points() = true;
+        triangle.smooth_after_generating() = true;
         triangle.triangulate();
+        const MeshBase::const_element_iterator end_el = mesh.elements_end();
+        for (MeshBase::const_element_iterator el = mesh.elements_begin(); el != end_el; ++el)
+        {
+            Elem* const elem = *el;
+            for (unsigned int side = 0; side < elem->n_sides(); ++side)
+            {
+                const bool at_mesh_bdry = elem->neighbor(side) == NULL;
+                if (!at_mesh_bdry) continue;
+                for (unsigned int k = 0; k < elem->n_nodes(); ++k)
+                {
+                    if (elem->is_node_on_side(k,side))
+                    {
+                        Node* n = elem->get_node(k);
+                        (*n) = R*n->unit();
+                    }
+                }
+            }
+        }
         mesh.prepare_for_use();
-        kappa = input_db->getDoubleWithDefault("KAPPA", kappa);
+        kappa_s = input_db->getDouble("KAPPA_S");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
         Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
-        const string solver_type = app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
+        const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
             navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(

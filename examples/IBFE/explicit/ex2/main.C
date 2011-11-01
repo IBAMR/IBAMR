@@ -43,7 +43,6 @@
 
 // Headers for basic libMesh objects
 #include <boundary_info.h>
-#include <dof_map.h>
 #include <exodusII_io.h>
 #include <mesh.h>
 #include <mesh_generation.h>

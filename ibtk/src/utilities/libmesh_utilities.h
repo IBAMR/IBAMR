@@ -40,9 +40,11 @@
 
 // LIBMESH INCLUDES
 #define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
+#include <dof_map.h>
 #include <dof_object.h>
 #include <edge.h>
 #include <face.h>
+#include <fe.h>
 #include <petsc_vector.h>
 #include <point.h>
 #include <quadrature_gauss.h>
@@ -52,6 +54,7 @@
 #include <vector_value.h>
 
 // SAMRAI INCLUDES
+#include <tbox/SAMRAI_MPI.h>
 #include <tbox/Utilities.h>
 
 /////////////////////////////// FUNCTION DEFINITIONS /////////////////////////
@@ -1199,6 +1202,45 @@ intersect_line_with_face(
     }
     return t_vals;
 }// intersect_line_with_face
+
+inline double
+compute_volume_of_mesh(
+    libMesh::MeshBase& mesh,
+    libMesh::System& X_system)
+{
+    libMesh::NumericVector<double>* X_vec = X_system.solution.get();
+    libMesh::NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
+    X_vec->localize(*X_ghost_vec);
+    libMesh::DofMap& X_dof_map = X_system.get_dof_map();
+    blitz::Array<std::vector<unsigned int>,1> X_dof_indices(NDIM);
+    libMesh::AutoPtr<libMesh::FEBase> fe(libMesh::FEBase::build(NDIM, X_dof_map.variable_type(0)));
+    libMesh::AutoPtr<libMesh::QBase> qrule = libMesh::QBase::build(QGAUSS, NDIM, FIFTH);
+    fe->attach_quadrature_rule(qrule.get());
+    const std::vector<double>& JxW = fe->get_JxW();
+    const std::vector<std::vector<libMesh::VectorValue<double> > >& dphi = fe->get_dphi();
+    libMesh::TensorValue<double> FF;
+    blitz::Array<double,2> X_node;
+    double local_volume = 0.0;
+    const libMesh::MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+    const libMesh::MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
+    for (libMesh::MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    {
+        libMesh::Elem* const elem = *el_it;
+        fe->reinit(elem);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            X_dof_map.dof_indices(elem, X_dof_indices(d), d);
+        }
+        const int n_qp = qrule->n_points();
+        get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
+        for (int qp = 0; qp < n_qp; ++qp)
+        {
+            jacobian(FF,qp,X_node,dphi);
+            local_volume += abs(FF.det())*JxW[qp];
+        }
+    }
+    return SAMRAI::tbox::SAMRAI_MPI::sumReduction(local_volume);
+}// compute_volume_of_mesh
 
 struct DofObjectComp
     : std::binary_function<const libMesh::DofObject* const,const libMesh::DofObject* const,bool>

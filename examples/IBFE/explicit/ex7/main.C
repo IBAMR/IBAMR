@@ -43,7 +43,6 @@
 
 // Headers for basic libMesh objects
 #include <boundary_info.h>
-#include <dof_map.h>
 #include <exodusII_io.h>
 #include <mesh.h>
 #include <mesh_generation.h>
@@ -80,14 +79,15 @@ PK1_stress_function(
     static const TensorValue<double> II(1.0,0.0,0.0,
                                         0.0,1.0,0.0,
                                         0.0,0.0,1.0);
-    TensorValue<double> EE = 0.5*(FF.transpose()*FF - II);
+    const TensorValue<double> CC = FF.transpose()*FF;
+    const TensorValue<double> EE = 0.5*(CC - II);
     const TensorValue<double> SS = lambda_s*EE.tr()*II + 2.0*mu_s*EE;
     PP = FF*SS;
     return;
 }// PK1_stress_function
 
-// Tether (penalty) force function for lower and upper blocks.
-static double kappa = 1.0e6;
+// Tether (penalty) force functions for lower and upper blocks.
+static double kappa_s = 1.0e6;
 void
 lower_tether_force_function(
     VectorValue<double>& F,
@@ -100,7 +100,7 @@ lower_tether_force_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    F = kappa*(s-X);
+    F = kappa_s*(s-X);
     return;
 }// lower_tether_force_function
 
@@ -116,7 +116,7 @@ upper_tether_force_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    if (s(0) <= 5.0 || s(0) >= 10.0) F = kappa*(s-X);
+    if (s(0) <= 5.0 || s(0) >= 10.0) F = kappa_s*(s-X);
     else F.zero();
     return;
 }// upper_tether_force_function
@@ -195,11 +195,7 @@ main(
         const double L = 40.0*D; // channel length (cm)
         const double w = 0.01*D; // wall thickness (cm)
 
-        mu_s     = input_db->getDouble("MU_S");
-        lambda_s = input_db->getDouble("LAMBDA_S");
-        kappa    = input_db->getDouble("KAPPA");
-
-        string elem_type = input_db->getStringWithDefault("elem_type", "QUAD9");
+        string elem_type = input_db->getString("ELEM_TYPE");
 
         Mesh lower_mesh(NDIM);
         MeshTools::Generation::build_square(lower_mesh,
@@ -253,11 +249,15 @@ main(
         meshes[0] = &lower_mesh;
         meshes[1] = &upper_mesh;
 
+        mu_s     = input_db->getDouble("MU_S");
+        lambda_s = input_db->getDouble("LAMBDA_S");
+        kappa_s  = input_db->getDouble("KAPPA_S");
+
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
         Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
-        const string solver_type = app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
+        const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
             navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
