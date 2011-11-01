@@ -422,9 +422,6 @@ main(
                 }
             }
             J_integral = SAMRAI_MPI::sumReduction(J_integral);
-
-            pout << J_integral - compute_volume_of_mesh(mesh, equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME)) << "\n";
-
             volume_stream.precision(12);
             volume_stream.setf(ios::fixed,ios::floatfield);
             volume_stream << loop_time << " " << J_integral << endl;
