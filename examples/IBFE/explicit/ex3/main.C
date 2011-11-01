@@ -81,7 +81,7 @@ PK1_stress_function(
     PP = 2.0*c1_s*FF;
     if (!MathUtilities<double>::equalEps(p0_s, 0.0))
     {
-        PP += 2.0*p0_s*FF_inv_trans;
+        PP -= 2.0*p0_s*FF_inv_trans;
     }
     if (!MathUtilities<double>::equalEps(beta_s, 0.0))
     {

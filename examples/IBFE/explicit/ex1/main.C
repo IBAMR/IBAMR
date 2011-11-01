@@ -389,9 +389,45 @@ main(
             }
 
             // Compute the volume of the structure.
+            double J_integral = 0.0;
+            System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
+            NumericVector<double>* X_vec = X_system.solution.get();
+            NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
+            X_vec->localize(*X_ghost_vec);
+            DofMap& X_dof_map = X_system.get_dof_map();
+            blitz::Array<std::vector<unsigned int>,1> X_dof_indices(NDIM);
+            AutoPtr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
+            AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
+            fe->attach_quadrature_rule(qrule.get());
+            const std::vector<double>& JxW = fe->get_JxW();
+            const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
+            TensorValue<double> FF;
+            blitz::Array<double,2> X_node;
+            const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+            const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
+            for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+            {
+                Elem* const elem = *el_it;
+                fe->reinit(elem);
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    X_dof_map.dof_indices(elem, X_dof_indices(d), d);
+                }
+                const int n_qp = qrule->n_points();
+                get_values_for_interpolation(X_node, *X_ghost_vec, X_dof_indices);
+                for (int qp = 0; qp < n_qp; ++qp)
+                {
+                    jacobian(FF,qp,X_node,dphi);
+                    J_integral += abs(FF.det())*JxW[qp];
+                }
+            }
+            J_integral = SAMRAI_MPI::sumReduction(J_integral);
+
+            pout << J_integral - compute_volume_of_mesh(mesh, equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME)) << "\n";
+
             volume_stream.precision(12);
             volume_stream.setf(ios::fixed,ios::floatfield);
-            volume_stream << loop_time << " " << compute_volume_of_mesh(mesh, equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME)) << endl;
+            volume_stream << loop_time << " " << J_integral << endl;
         }
 
         // Close the logging streams.

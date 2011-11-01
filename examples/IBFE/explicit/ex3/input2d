@@ -16,7 +16,7 @@ ELEM_TYPE = "QUAD9"                            // type of element to use for str
 // model parameters
 U_MAX = 0.5
 C1_S = 0.1
-P0_S = -C1_S
+P0_S = C1_S
 BETA_S = 0.0
 
 // solver parameters

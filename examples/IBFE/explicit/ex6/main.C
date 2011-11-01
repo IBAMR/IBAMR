@@ -206,6 +206,7 @@ main(
         triangle.insert_extra_points() = true;
         triangle.smooth_after_generating() = true;
         triangle.triangulate();
+#if 0
         const MeshBase::const_element_iterator end_el = block_mesh.elements_end();
         for (MeshBase::const_element_iterator el = block_mesh.elements_begin(); el != end_el; ++el)
         {
@@ -224,6 +225,7 @@ main(
                 }
             }
         }
+#endif
         block_mesh.prepare_for_use();
 
         Mesh beam_mesh(NDIM);

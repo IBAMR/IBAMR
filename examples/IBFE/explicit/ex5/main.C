@@ -180,6 +180,7 @@ main(
         triangle.insert_extra_points() = true;
         triangle.smooth_after_generating() = true;
         triangle.triangulate();
+#if 0
         const MeshBase::const_element_iterator end_el = mesh.elements_end();
         for (MeshBase::const_element_iterator el = mesh.elements_begin(); el != end_el; ++el)
         {
@@ -198,6 +199,7 @@ main(
                 }
             }
         }
+#endif
         mesh.prepare_for_use();
         kappa_s = input_db->getDouble("KAPPA_S");
 
