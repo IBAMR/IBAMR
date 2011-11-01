@@ -174,11 +174,12 @@ main(
         Mesh mesh(NDIM);
         const double R = 0.25;
         const double w = 0.0625;
+        const double dx0 = 1.0/64.0;
         const double dx = input_db->getDouble("DX");
-        const double ds = input_db->getDouble("MFAC")*dx;
+        const double ds0 = input_db->getDouble("MFAC")*dx0;
         string elem_type = input_db->getString("ELEM_TYPE");
         MeshTools::Generation::build_square(mesh,
-                                            static_cast<int>(ceil(2.0*M_PI*(R+w)/ds)), static_cast<int>(ceil(w/ds)),
+                                            4*static_cast<int>((dx0/dx)*ceil(2.0*M_PI*R/ds0/4.0)), static_cast<int>((dx0/dx)*ceil(w/ds0)),
                                             0.0, 2.0*M_PI*R,
                                             0.0, w,
                                             Utility::string_to_enum<ElemType>(elem_type));
