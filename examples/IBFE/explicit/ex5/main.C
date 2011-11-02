@@ -332,8 +332,11 @@ main(
         }
 
         // Open streams to save lift and drag coefficients.
-        drag_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
-        lift_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            drag_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
+            lift_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
+        }
 
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
@@ -396,8 +399,11 @@ main(
         }
 
         // Close the logging streams.
-        drag_stream.close();
-        lift_stream.close();
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            drag_stream.close();
+            lift_stream.close();
+        }
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
@@ -453,7 +459,7 @@ postprocess_data(
             {
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    F_integral[d] += F_node(k,d)*phi[k][qp]*JxW[k];
+                    F_integral[d] += F_node(k,d)*phi[k][qp]*JxW[qp];
                 }
             }
         }
@@ -462,7 +468,10 @@ postprocess_data(
     static const double rho = 1.0;
     static const double U_max = 1.0;
     static const double D = 1.0;
-    drag_stream << loop_time << " " << -F_integral[0]/(0.5*rho*U_max*U_max*D) << endl;
-    lift_stream << loop_time << " " << -F_integral[1]/(0.5*rho*U_max*U_max*D) << endl;
+    if (SAMRAI_MPI::getRank() == 0)
+    {
+        drag_stream << loop_time << " " << -F_integral[0]/(0.5*rho*U_max*U_max*D) << endl;
+        lift_stream << loop_time << " " << -F_integral[1]/(0.5*rho*U_max*U_max*D) << endl;
+    }
     return;
 }// postprocess_data

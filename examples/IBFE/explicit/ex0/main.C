@@ -346,7 +346,10 @@ main(
 
         // Open streams to save volume of structure.
         ofstream volume_stream;
-        volume_stream.open("volume.curve", ios_base::out | ios_base::trunc);
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            volume_stream.open("volume.curve", ios_base::out | ios_base::trunc);
+        }
 
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
@@ -500,13 +503,19 @@ main(
                 }
             }
             J_integral = SAMRAI_MPI::sumReduction(J_integral);
-            volume_stream.precision(12);
-            volume_stream.setf(ios::fixed,ios::floatfield);
-            volume_stream << loop_time << " " << J_integral << endl;
+            if (SAMRAI_MPI::getRank() == 0)
+            {
+                volume_stream.precision(12);
+                volume_stream.setf(ios::fixed,ios::floatfield);
+                volume_stream << loop_time << " " << J_integral << endl;
+            }
         }
 
         // Close the logging streams.
-        volume_stream.close();
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            volume_stream.close();
+        }
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).

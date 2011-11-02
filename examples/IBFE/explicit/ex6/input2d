@@ -305,7 +305,7 @@ Main {
    restart_dump_dirname        = "restart_IB2d"
 
 // hierarchy data dump parameters
-   data_dump_interval          = 0                          // zero to turn off
+   data_dump_interval          = 1                          // zero to turn off
    data_dump_dirname           = "hier_data_IB2d"
 
 // timer dump parameters
