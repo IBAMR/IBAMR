@@ -61,18 +61,6 @@
 // Elasticity model data.
 namespace ModelData
 {
-// Coordinate mapping function.
-void
-block_coordinate_mapping_function(
-    Point& X,
-    const Point& s,
-    void* /*ctx*/)
-{
-    X(0) = s(0) + 0.2;
-    X(1) = s(1) + 0.2;
-    return;
-}// block_coordinate_mapping_function
-
 // Stress tensor function for solid block.
 void
 block_PK1_stress_function(
@@ -232,6 +220,12 @@ main(
             const int r = log2(0.25*num_circum_segments);
             MeshTools::Generation::build_sphere(block_mesh, R, r, Utility::string_to_enum<ElemType>(block_elem_type));
         }
+        for (MeshBase::node_iterator n_it = block_mesh.nodes_begin(); n_it != block_mesh.nodes_end(); ++n_it)
+        {
+            Node& n = **n_it;
+            n(0) += 0.2;
+            n(1) += 0.2;
+        }
 
         Mesh beam_mesh(NDIM);
         string beam_elem_type = input_db->getString("BEAM_ELEM_TYPE");
@@ -286,7 +280,6 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
-        ib_method_ops->registerInitialCoordinateMappingFunction(&block_coordinate_mapping_function, 0);
         ib_method_ops->registerPK1StressTensorFunction(&block_PK1_stress_function, std::vector<unsigned int>(), NULL, 0);
         ib_method_ops->registerPK1StressTensorFunction(& beam_PK1_stress_function, std::vector<unsigned int>(), NULL, 1);
         ib_method_ops->registerLagBodyForceFunction(&block_tether_force_function, std::vector<unsigned int>(), NULL, 0);

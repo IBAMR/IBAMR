@@ -1,10 +1,10 @@
 // physical parameters
 RHO   = 1.0e3
+MU    = 1.0
 U_BAR = 2.0
 U_MAX = 4.0*U_BAR
 D     = 0.1
-RE    = 200.0
-MU    = U_BAR*D*RHO/RE
+RE    = U_BAR*D*RHO/MU
 
 // grid spacing parameters
 L = 2.5                                        // width  of computational domain
