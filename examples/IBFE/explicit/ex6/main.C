@@ -47,7 +47,6 @@
 #include <mesh.h>
 #include <mesh_function.h>
 #include <mesh_generation.h>
-#include <mesh_triangle_interface.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBHierarchyIntegrator.h>
@@ -62,6 +61,18 @@
 // Elasticity model data.
 namespace ModelData
 {
+// Coordinate mapping function.
+void
+block_coordinate_mapping_function(
+    Point& X,
+    const Point& s,
+    void* /*ctx*/)
+{
+    X(0) = s(0) + 0.2;
+    X(1) = s(1) + 0.2;
+    return;
+}// block_coordinate_mapping_function
+
 // Stress tensor function for solid block.
 void
 block_PK1_stress_function(
@@ -197,40 +208,30 @@ main(
         Mesh block_mesh(NDIM);
         string block_elem_type = input_db->getString("BLOCK_ELEM_TYPE");
         const double R = 0.05;
-        const int num_circum_nodes = ceil(2.0*M_PI*R/ds);
-        for (int k = 0; k < num_circum_nodes; ++k)
+        if (block_elem_type == "TRI3" || block_elem_type == "TRI6")
         {
-            const double theta = 2.0*M_PI*static_cast<double>(k)/static_cast<double>(num_circum_nodes);
-            block_mesh.add_point(Point(R*cos(theta), R*sin(theta)));
-        }
-        TriangleInterface triangle(block_mesh);
-        triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
-        triangle.elem_type() = Utility::string_to_enum<ElemType>(block_elem_type);
-        triangle.desired_area() = sqrt(3.0)/4.0*ds*ds;
-        triangle.insert_extra_points() = true;
-        triangle.smooth_after_generating() = true;
-        triangle.triangulate();
-#if 0
-        const MeshBase::const_element_iterator end_el = block_mesh.elements_end();
-        for (MeshBase::const_element_iterator el = block_mesh.elements_begin(); el != end_el; ++el)
-        {
-            Elem* const elem = *el;
-            for (unsigned int side = 0; side < elem->n_sides(); ++side)
+            const int num_circum_nodes = ceil(2.0*M_PI*R/ds);
+            for (int k = 0; k < num_circum_nodes; ++k)
             {
-                const bool at_mesh_bdry = elem->neighbor(side) == NULL;
-                if (!at_mesh_bdry) continue;
-                for (unsigned int k = 0; k < elem->n_nodes(); ++k)
-                {
-                    if (elem->is_node_on_side(k,side))
-                    {
-                        Node* n = elem->get_node(k);
-                        (*n) = R*n->unit();
-                    }
-                }
+                const double theta = 2.0*M_PI*static_cast<double>(k)/static_cast<double>(num_circum_nodes);
+                block_mesh.add_point(Point(R*cos(theta), R*sin(theta)));
             }
+            TriangleInterface triangle(block_mesh);
+            triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
+            triangle.elem_type() = Utility::string_to_enum<ElemType>(block_elem_type);
+            triangle.desired_area() = sqrt(3.0)/4.0*ds*ds;
+            triangle.insert_extra_points() = true;
+            triangle.smooth_after_generating() = true;
+            triangle.triangulate();
+            block_mesh.prepare_for_use();
         }
-#endif
-        block_mesh.prepare_for_use();
+        else
+        {
+            // NOTE: number of segments along boundary is 4*2^r.
+            const double num_circum_segments = 2.0*M_PI*R/ds;
+            const int r = log2(0.25*num_circum_segments);
+            MeshTools::Generation::build_sphere(block_mesh, R, r, Utility::string_to_enum<ElemType>(block_elem_type));
+        }
 
         Mesh beam_mesh(NDIM);
         string beam_elem_type = input_db->getString("BEAM_ELEM_TYPE");
@@ -285,6 +286,7 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
+        ib_method_ops->registerInitialCoordinateMappingFunction(&block_coordinate_mapping_function, 0);
         ib_method_ops->registerPK1StressTensorFunction(&block_PK1_stress_function, std::vector<unsigned int>(), NULL, 0);
         ib_method_ops->registerPK1StressTensorFunction(& beam_PK1_stress_function, std::vector<unsigned int>(), NULL, 1);
         ib_method_ops->registerLagBodyForceFunction(&block_tether_force_function, std::vector<unsigned int>(), NULL, 0);

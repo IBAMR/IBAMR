@@ -174,38 +174,48 @@ main(
         string elem_type = input_db->getString("ELEM_TYPE");
         const double R = 0.2;
 
-        const int num_circum_nodes = ceil(2.0*M_PI*R/ds);
-        for (int k = 0; k < num_circum_nodes; ++k)
+        if (elem_type == "TRI3" || elem_type == "TRI6")
         {
-            const double theta = 2.0*M_PI*static_cast<double>(k)/static_cast<double>(num_circum_nodes);
-            mesh.add_point(Point(R*cos(theta), R*sin(theta)));
-        }
-        TriangleInterface triangle(mesh);
-        triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
-        triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
-        triangle.desired_area() = sqrt(3.0)/4.0*ds*ds;
-        triangle.insert_extra_points() = true;
-        triangle.smooth_after_generating() = true;
-        triangle.triangulate();
-        const MeshBase::const_element_iterator end_el = mesh.elements_end();
-        for (MeshBase::const_element_iterator el = mesh.elements_begin(); el != end_el; ++el)
-        {
-            Elem* const elem = *el;
-            for (unsigned int side = 0; side < elem->n_sides(); ++side)
+            const int num_circum_nodes = ceil(2.0*M_PI*R/ds);
+            for (int k = 0; k < num_circum_nodes; ++k)
             {
-                const bool at_mesh_bdry = elem->neighbor(side) == NULL;
-                if (!at_mesh_bdry) continue;
-                for (unsigned int k = 0; k < elem->n_nodes(); ++k)
+                const double theta = 2.0*M_PI*static_cast<double>(k)/static_cast<double>(num_circum_nodes);
+                mesh.add_point(Point(R*cos(theta), R*sin(theta)));
+            }
+            TriangleInterface triangle(mesh);
+            triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
+            triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
+            triangle.desired_area() = sqrt(3.0)/4.0*ds*ds;
+            triangle.insert_extra_points() = true;
+            triangle.smooth_after_generating() = true;
+            triangle.triangulate();
+            const MeshBase::const_element_iterator end_el = mesh.elements_end();
+            for (MeshBase::const_element_iterator el = mesh.elements_begin(); el != end_el; ++el)
+            {
+                Elem* const elem = *el;
+                for (unsigned int side = 0; side < elem->n_sides(); ++side)
                 {
-                    if (elem->is_node_on_side(k,side))
+                    const bool at_mesh_bdry = elem->neighbor(side) == NULL;
+                    if (!at_mesh_bdry) continue;
+                    for (unsigned int k = 0; k < elem->n_nodes(); ++k)
                     {
-                        Node* n = elem->get_node(k);
-                        (*n) = R*n->unit();
+                        if (elem->is_node_on_side(k,side))
+                        {
+                            Node* n = elem->get_node(k);
+                            (*n) = R*n->unit();
+                        }
                     }
                 }
             }
+            mesh.prepare_for_use();
         }
-        mesh.prepare_for_use();
+        else
+        {
+            // NOTE: number of segments along boundary is 4*2^r.
+            const double num_circum_segments = 2.0*M_PI*R/ds;
+            const int r = log2(0.25*num_circum_segments);
+            MeshTools::Generation::build_sphere(mesh, R, r, Utility::string_to_enum<ElemType>(elem_type));
+        }
 
         c1_s   = input_db->getDouble("C1_S");
         p0_s   = input_db->getDouble("P0_S");

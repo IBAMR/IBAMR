@@ -45,7 +45,7 @@
 #include <boundary_info.h>
 #include <exodusII_io.h>
 #include <mesh.h>
-#include <mesh_triangle_interface.h>
+#include <mesh_generation.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBHierarchyIntegrator.h>
@@ -167,40 +167,30 @@ main(
         const double ds = input_db->getDouble("MFAC")*dx;
         string elem_type = input_db->getString("ELEM_TYPE");
         const double R = 0.5;
-        const int num_circum_nodes = ceil(2.0*M_PI*R/ds);
-        for (int k = 0; k < num_circum_nodes; ++k)
+        if (elem_type == "TRI3" || elem_type == "TRI6")
         {
-            const double theta = 2.0*M_PI*static_cast<double>(k)/static_cast<double>(num_circum_nodes);
-            mesh.add_point(Point(R*cos(theta), R*sin(theta)));
-        }
-        TriangleInterface triangle(mesh);
-        triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
-        triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
-        triangle.desired_area() = sqrt(3.0)/4.0*ds*ds;
-        triangle.insert_extra_points() = true;
-        triangle.smooth_after_generating() = true;
-        triangle.triangulate();
-#if 0
-        const MeshBase::const_element_iterator end_el = mesh.elements_end();
-        for (MeshBase::const_element_iterator el = mesh.elements_begin(); el != end_el; ++el)
-        {
-            Elem* const elem = *el;
-            for (unsigned int side = 0; side < elem->n_sides(); ++side)
+            const int num_circum_nodes = ceil(2.0*M_PI*R/ds);
+            for (int k = 0; k < num_circum_nodes; ++k)
             {
-                const bool at_mesh_bdry = elem->neighbor(side) == NULL;
-                if (!at_mesh_bdry) continue;
-                for (unsigned int k = 0; k < elem->n_nodes(); ++k)
-                {
-                    if (elem->is_node_on_side(k,side))
-                    {
-                        Node* n = elem->get_node(k);
-                        (*n) = R*n->unit();
-                    }
-                }
+                const double theta = 2.0*M_PI*static_cast<double>(k)/static_cast<double>(num_circum_nodes);
+                mesh.add_point(Point(R*cos(theta), R*sin(theta)));
             }
+            TriangleInterface triangle(mesh);
+            triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
+            triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
+            triangle.desired_area() = sqrt(3.0)/4.0*ds*ds;
+            triangle.insert_extra_points() = true;
+            triangle.smooth_after_generating() = true;
+            triangle.triangulate();
+            mesh.prepare_for_use();
         }
-#endif
-        mesh.prepare_for_use();
+        else
+        {
+            // NOTE: number of segments along boundary is 4*2^r.
+            const double num_circum_segments = 2.0*M_PI*R/ds;
+            const int r = log2(0.25*num_circum_segments);
+            MeshTools::Generation::build_sphere(mesh, R, r, Utility::string_to_enum<ElemType>(elem_type));
+        }
         kappa_s = input_db->getDouble("KAPPA_S");
 
         // Create major algorithm and data objects that comprise the
