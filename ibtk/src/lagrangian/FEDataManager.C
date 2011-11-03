@@ -1011,7 +1011,7 @@ FEDataManager::interp(
             n_qp_patch += d_qrule->n_points();
         }
         if (n_qp_patch == 0) continue;
-        std::vector<double> F_qp(n_vars*n_qp_patch);
+        std::vector<double> F_qp(n_vars*n_qp_patch,0.0);
         std::vector<double> X_qp(NDIM  *n_qp_patch);
 
         // Loop over the elements and compute the positions of the quadrature points.
