@@ -283,7 +283,7 @@ LSet<T>::unpackStream(
     {
         d_set[k] = new T(stream,offset);
     }
-    LSet<T>::DataSet(d_set).swap(d_set); // trim-to-fit
+    typename LSet<T>::DataSet(d_set).swap(d_set); // trim-to-fit
     return;
 }// unpackStream
 
