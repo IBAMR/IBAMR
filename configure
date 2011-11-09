@@ -970,20 +970,15 @@ LIBS
 FCLIBS
 CC
 CFLAGS
-LDFLAGS
-LIBS
 CPPFLAGS
 CXX
 CXXFLAGS
-LIBS
 CCC
 CXXCPP
 FC
 FCFLAGS
-LIBS
 F77
 FFLAGS
-LIBS
 MPICC
 MPICXX
 PETSC_DIR
@@ -7170,6 +7165,20 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 cat >>confdefs.h <<_ACEOF
 #define HAVE_BUILTIN_EXPECT $have_builtin_expect
+_ACEOF
+
+
+ac_fn_cxx_check_header_mongrel "$LINENO" "xmmintrin.h" "ac_cv_header_xmmintrin_h" "$ac_includes_default"
+if test "x$ac_cv_header_xmmintrin_h" = xyes; then :
+  have_xmmintrin_h=1
+else
+  have_xmmintrin_h=0
+fi
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_XMMINTRIN_H $have_xmmintrin_h
 _ACEOF
 
 

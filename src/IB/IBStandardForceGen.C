@@ -60,6 +60,10 @@
 // C++ STDLIB INCLUDES
 #include <algorithm>
 
+#if HAVE_XMMINTRIN_H
+#include <xmmintrin.h>
+#endif
+
 #define PREFETCH(a,t) do { _mm_prefetch((const char*)(a),(t)); } while (0)
 
 #define PREFETCH_BLOCK(a,n,t)                                           \
