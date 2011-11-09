@@ -60,6 +60,10 @@
 // C++ STDLIB INCLUDES
 #include <algorithm>
 
+#if HAVE_MMINTRIN_H
+#include <mmintrin.h>
+#endif
+
 #if HAVE_XMMINTRIN_H
 #include <xmmintrin.h>
 #endif
