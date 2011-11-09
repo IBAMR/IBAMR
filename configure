@@ -7185,7 +7185,7 @@ int
 main ()
 {
 
-_mm_prefetch((const char*)(a),(t));
+_mm_prefetch(0,_MM_HINT_NTA);
 return 0;
 
   ;

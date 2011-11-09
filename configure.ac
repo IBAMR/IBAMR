@@ -101,7 +101,7 @@ AC_DEFINE_UNQUOTED(HAVE_BUILTIN_EXPECT,$have_builtin_expect,[Boolean value indic
 
 AC_MSG_CHECKING([whether compiler supports _mm_prefetch keyword])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[
-_mm_prefetch((const char*)(a),(t));
+_mm_prefetch(0,_MM_HINT_NTA);
 return 0;
 ]])],[
 have_mm_prefetch=1
