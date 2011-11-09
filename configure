@@ -7182,7 +7182,7 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
-ac_fn_cxx_check_header_compile "$LINENO" "xmmintrin.h" "ac_cv_header_xmmintrin_h" "mmintrin.h
+ac_fn_cxx_check_header_compile "$LINENO" "xmmintrin.h" "ac_cv_header_xmmintrin_h" "#include <mmintrin.h>
 "
 if test "x$ac_cv_header_xmmintrin_h" = xyes; then :
   have_xmmintrin_h=1
