@@ -102,7 +102,7 @@ AC_DEFINE_UNQUOTED(HAVE_BUILTIN_EXPECT,$have_builtin_expect,[Boolean value indic
 AC_CHECK_HEADER([mmintrin.h],[have_mmintrin_h=1],[have_mmintrin_h=0])
 AC_DEFINE_UNQUOTED(HAVE_MMINTRIN_H,$have_mmintrin_h,[Boolean value indicating whether the header file mmintrin.h exists])
 
-AC_CHECK_HEADER([immintrin.h],[have_immintrin_h=1],[have_immintrin_h=0])
+AC_CHECK_HEADER([immintrin.h],[have_immintrin_h=1],[have_immintrin_h=0],[#include <mmintrin.h>])
 AC_DEFINE_UNQUOTED(HAVE_IMMINTRIN_H,$have_immintrin_h,[Boolean value indicating whether the header file immintrin.h exists])
 
 AC_CHECK_HEADER([xmmintrin.h],[have_xmmintrin_h=1],[have_xmmintrin_h=0],[#include <mmintrin.h>
