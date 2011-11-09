@@ -60,9 +60,7 @@
 // C++ STDLIB INCLUDES
 #include <algorithm>
 
-#if HAVE_INTEL64_XMMINTRIN_H
-#include <intel64/xmmintrin.h>
-#elif HAVE_XMMINTRIN_H
+#if HAVE_XMMINTRIN_H
 #include <xmmintrin.h>
 #endif
 

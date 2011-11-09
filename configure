@@ -7168,19 +7168,6 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
-ac_fn_cxx_check_header_mongrel "$LINENO" "intel64/xmmintrin.h" "ac_cv_header_intel64_xmmintrin_h" "$ac_includes_default"
-if test "x$ac_cv_header_intel64_xmmintrin_h" = xyes; then :
-  have_intel64_xmmintrin_h=1
-else
-  have_intel64_xmmintrin_h=0
-fi
-
-
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_INTEL64_XMMINTRIN_H $have_intel64_xmmintrin_h
-_ACEOF
-
 ac_fn_cxx_check_header_mongrel "$LINENO" "xmmintrin.h" "ac_cv_header_xmmintrin_h" "$ac_includes_default"
 if test "x$ac_cv_header_xmmintrin_h" = xyes; then :
   have_xmmintrin_h=1

@@ -99,8 +99,6 @@ have_builtin_expect=0
 AC_MSG_RESULT(no)])
 AC_DEFINE_UNQUOTED(HAVE_BUILTIN_EXPECT,$have_builtin_expect,[Boolean value indicating whether the C++ compiler supports the __builtin_expect keyword])
 
-AC_CHECK_HEADER([intel64/xmmintrin.h],[have_intel64_xmmintrin_h=1],[have_intel64_xmmintrin_h=0])
-AC_DEFINE_UNQUOTED(HAVE_INTEL64_XMMINTRIN_H,$have_intel64_xmmintrin_h,[Boolean value indicating whether the header file intel64/xmmintrin.h exists])
 AC_CHECK_HEADER([xmmintrin.h],[have_xmmintrin_h=1],[have_xmmintrin_h=0])
 AC_DEFINE_UNQUOTED(HAVE_XMMINTRIN_H,$have_xmmintrin_h,[Boolean value indicating whether the header file xmmintrin.h exists])
 
