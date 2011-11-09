@@ -9,18 +9,17 @@ RE    = U_BAR*D*RHO/MU
 // grid spacing parameters
 L = 2.5                                        // width  of computational domain
 H = 0.41                                       // height of computational domain
-MAX_LEVELS = 2                                 // maximum number of levels in locally refined grid
+MAX_LEVELS = 3                                 // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                 // refinement ratio between levels
 N = 41                                         // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
 DX0 = 1.0/N                                    // mesh width on coarsest grid level
 DX  = 1.0/NFINEST                              // mesh width on finest   grid level
 MFAC = 2.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
-BLOCK_ELEM_TYPE = "TRI3"                       // type of element to use for discretization of the circular block
+BLOCK_ELEM_TYPE = "QUAD4"                      // type of element to use for discretization of the circular block
 BEAM_ELEM_TYPE  = "QUAD4"                      // type of element to use for discretization of the thin beam
 
 // model parameters
-KAPPA_S = U_BAR*1.25e11*NFINEST/41.0
 MU_S = 2.0e6
 NU_S = 0.4
 LAMBDA_S = 2.0*MU_S*NU_S/(1.0 - 2.0*NU_S)
@@ -57,6 +56,9 @@ ENABLE_LOGGING             = TRUE
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
 SECOND_ORDER_PRESSURE_UPDATE = TRUE
 USE_EXACT_PROJECTION_METHOD = FALSE
+
+// penalty parameters
+KAPPA_S = 6.25e4 * DX / DT^2
 
 VelocityBcCoefs_0 {
    U_bar = U_BAR
@@ -102,6 +104,7 @@ IBHierarchyIntegrator {
    regrid_cfl_interval = REGRID_CFL_INTERVAL
    dt_max              = DT
    enable_logging      = ENABLE_LOGGING
+   error_on_dt_change  = TRUE
 }
 
 IBFEMethod {
