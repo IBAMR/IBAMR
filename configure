@@ -7182,7 +7182,22 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
+ac_fn_cxx_check_header_mongrel "$LINENO" "immintrin.h" "ac_cv_header_immintrin_h" "$ac_includes_default"
+if test "x$ac_cv_header_immintrin_h" = xyes; then :
+  have_immintrin_h=1
+else
+  have_immintrin_h=0
+fi
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_IMMINTRIN_H $have_immintrin_h
+_ACEOF
+
+
 ac_fn_cxx_check_header_compile "$LINENO" "xmmintrin.h" "ac_cv_header_xmmintrin_h" "#include <mmintrin.h>
+#include <immintrin.h>
 "
 if test "x$ac_cv_header_xmmintrin_h" = xyes; then :
   have_xmmintrin_h=1
