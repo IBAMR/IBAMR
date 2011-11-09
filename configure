@@ -7168,48 +7168,45 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
-ac_fn_cxx_check_header_mongrel "$LINENO" "mmintrin.h" "ac_cv_header_mmintrin_h" "$ac_includes_default"
-if test "x$ac_cv_header_mmintrin_h" = xyes; then :
-  have_mmintrin_h=1
-else
-  have_mmintrin_h=0
-fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether compiler supports _mm_prefetch keyword" >&5
+$as_echo_n "checking whether compiler supports _mm_prefetch keyword... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
+#endif
+int
+main ()
+{
 
+_mm_prefetch((const char*)(a),(t));
+return 0;
 
-cat >>confdefs.h <<_ACEOF
-#define HAVE_MMINTRIN_H $have_mmintrin_h
+  ;
+  return 0;
+}
 _ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
 
-
-ac_fn_cxx_check_header_compile "$LINENO" "immintrin.h" "ac_cv_header_immintrin_h" "#include <mmintrin.h>
-"
-if test "x$ac_cv_header_immintrin_h" = xyes; then :
-  have_immintrin_h=1
+have_mm_prefetch=1
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
 else
-  have_immintrin_h=0
+
+have_mm_prefetch=0
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 fi
-
-
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 cat >>confdefs.h <<_ACEOF
-#define HAVE_IMMINTRIN_H $have_immintrin_h
-_ACEOF
-
-
-ac_fn_cxx_check_header_compile "$LINENO" "xmmintrin.h" "ac_cv_header_xmmintrin_h" "#include <mmintrin.h>
-#include <immintrin.h>
-"
-if test "x$ac_cv_header_xmmintrin_h" = xyes; then :
-  have_xmmintrin_h=1
-else
-  have_xmmintrin_h=0
-fi
-
-
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_XMMINTRIN_H $have_xmmintrin_h
+#define HAVE_MM_PREFETCH $have_mm_prefetch
 _ACEOF
 
 
