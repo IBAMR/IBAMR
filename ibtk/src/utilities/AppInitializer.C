@@ -394,6 +394,12 @@ AppInitializer::getInputDatabase()
     return d_input_db;
 }// getInputDatabase
 
+bool
+AppInitializer::isFromRestart() const
+{
+    return d_is_from_restart;
+}// isFromRestart
+
 Pointer<Database>
 AppInitializer::getRestartDatabase(
     const bool suppress_warning)

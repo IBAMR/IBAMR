@@ -75,6 +75,12 @@ public:
     getInputDatabase();
 
     /*!
+     * Return a boolean value indicating whether this is a restarted run.
+     */
+    bool
+    isFromRestart() const;
+
+    /*!
      * Return a pointer to the restart database.  If there is no restart
      * database for the application, this method emits a warning message and
      * returns a NullDatabse.
