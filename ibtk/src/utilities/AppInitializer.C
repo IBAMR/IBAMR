@@ -246,10 +246,10 @@ AppInitializer::AppInitializer(
                 {
                     pout << "WARNING: AppInitializer::AppInitializer(): restart_interval > 0, but `restart_dirname' is empty\n";
                 }
-                else
-                {
-                    pout << "WARNING: AppInitializer::AppInitializer(): restart_interval > 0, but key `restart_dirname' not specifed in input file\n";
-                }
+            }
+            else
+            {
+                pout << "WARNING: AppInitializer::AppInitializer(): restart_interval > 0, but key `restart_dirname' not specifed in input file\n";
             }
         }
     }
