@@ -116,32 +116,21 @@ inline LSetDataIterator<T>&
 LSetDataIterator<T>::operator++()
 {
     if (d_node_set == NULL) return *this;
-    if (++d_node_it != d_node_set->end()) return *this;
+    ++d_node_it;
+    if (d_node_it != d_node_set->end()) return *this;
+    d_node_set = NULL;
     d_index_it++;
+    while (d_index_it && !d_box.contains(d_index_it.getIndex()))
+    {
+        d_index_it++;
+    }
     if (d_index_it)
     {
         d_node_set = &(*d_index_it);
-        while (d_index_it && !d_box.contains(d_index_it.getIndex()))
-        {
-            d_index_it++;
-        }
-
-        if (d_index_it && d_box.contains(d_index_it.getIndex()))
-        {
-            d_node_set = &(*d_index_it);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!d_node_set->empty());
+        TBOX_ASSERT(!d_node_set->empty());
 #endif
-            d_node_it = d_node_set->begin();
-        }
-        else
-        {
-            d_node_set = NULL;
-        }
-    }
-    else
-    {
-        d_node_set = NULL;
+        d_node_it = d_node_set->begin();
     }
     return *this;
 }// operator++
@@ -167,6 +156,9 @@ template<class T>
 inline typename LSet<T>::value_type&
 LSetDataIterator<T>::getDataItem() const
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_index_it && d_node_set != NULL);
+#endif
     return *d_node_it;
 }// getDataItem
 
