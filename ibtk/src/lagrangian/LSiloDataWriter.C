@@ -670,7 +670,7 @@ LSiloDataWriter::~LSiloDataWriter()
             Vec& v = it->second;
             if (v)
             {
-                ierr = VecDestroy(v);
+                ierr = VecDestroy(&v);
                 IBTK_CHKERRQ(ierr);
             }
         }
@@ -680,7 +680,7 @@ LSiloDataWriter::~LSiloDataWriter()
             VecScatter& vs = it->second;
             if (vs)
             {
-                ierr = VecScatterDestroy(vs);
+                ierr = VecScatterDestroy(&vs);
                 IBTK_CHKERRQ(ierr);
             }
         }
@@ -723,7 +723,7 @@ LSiloDataWriter::resetLevels(
             Vec& v = it->second;
             if (v != PETSC_NULL)
             {
-                ierr = VecDestroy(v);  IBTK_CHKERRQ(ierr);
+                ierr = VecDestroy(&v);  IBTK_CHKERRQ(ierr);
             }
         }
         for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
@@ -732,7 +732,7 @@ LSiloDataWriter::resetLevels(
             VecScatter& vs = it->second;
             if (vs != PETSC_NULL)
             {
-                ierr = VecScatterDestroy(vs);  IBTK_CHKERRQ(ierr);
+                ierr = VecScatterDestroy(&vs);  IBTK_CHKERRQ(ierr);
             }
         }
     }
@@ -745,7 +745,7 @@ LSiloDataWriter::resetLevels(
             Vec& v = it->second;
             if (v != PETSC_NULL)
             {
-                ierr = VecDestroy(v);  IBTK_CHKERRQ(ierr);
+                ierr = VecDestroy(&v);  IBTK_CHKERRQ(ierr);
             }
         }
         for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
@@ -754,7 +754,7 @@ LSiloDataWriter::resetLevels(
             VecScatter& vs = it->second;
             if (vs != PETSC_NULL)
             {
-                ierr = VecScatterDestroy(vs);  IBTK_CHKERRQ(ierr);
+                ierr = VecScatterDestroy(&vs);  IBTK_CHKERRQ(ierr);
             }
         }
     }
@@ -1452,13 +1452,13 @@ LSiloDataWriter::writePlotData(
             // Clean up allocated data.
             ierr = VecRestoreArray(local_X_vec, &local_X_arr);
             IBTK_CHKERRQ(ierr);
-            ierr = VecDestroy(local_X_vec);
+            ierr = VecDestroy(&local_X_vec);
             IBTK_CHKERRQ(ierr);
             for (int v = 0; v < d_nvars[ln]; ++v)
             {
                 ierr = VecRestoreArray(local_v_vecs[v], &local_v_arrs[v]);
                 IBTK_CHKERRQ(ierr);
-                ierr = VecDestroy(local_v_vecs[v]);
+                ierr = VecDestroy(&local_v_vecs[v]);
                 IBTK_CHKERRQ(ierr);
             }
         }
@@ -2205,10 +2205,7 @@ LSiloDataWriter::buildVecScatters(
     // Setup IS indices for all necessary data depths.
     std::map<int,std::vector<int> > src_is_idxs;
 
-    src_is_idxs[NDIM].resize(ref_is_idxs.size());
-    std::transform(ref_is_idxs.begin(), ref_is_idxs.end(),
-                   src_is_idxs[NDIM].begin(),
-                   std::bind2nd(std::multiplies<int>(),NDIM));
+    src_is_idxs[NDIM] = ref_is_idxs;
     d_src_vec[level_number][NDIM] = d_coords_data[level_number]->getVec();
 
     for (int v = 0; v < d_nvars[level_number]; ++v)
@@ -2216,10 +2213,7 @@ LSiloDataWriter::buildVecScatters(
         const int var_depth = d_var_depths[level_number][v];
         if (src_is_idxs.find(var_depth) == src_is_idxs.end())
         {
-            src_is_idxs[var_depth].resize(ref_is_idxs.size());
-            std::transform(ref_is_idxs.begin(), ref_is_idxs.end(),
-                           src_is_idxs[var_depth].begin(),
-                           std::bind2nd(std::multiplies<int>(),var_depth));
+            src_is_idxs[var_depth] = ref_is_idxs;
             d_src_vec[level_number][var_depth] = d_var_data[level_number][v]->getVec();
         }
     }
@@ -2235,14 +2229,15 @@ LSiloDataWriter::buildVecScatters(
 
         IS src_is;
         ierr = ISCreateBlock(PETSC_COMM_WORLD, depth, idxs.size(),
-                             (idxs.empty() ? PETSC_NULL : &idxs[0]), &src_is);
+                             (idxs.empty() ? PETSC_NULL : &idxs[0]),
+                             PETSC_COPY_VALUES, &src_is);
         IBTK_CHKERRQ(ierr);
 
         Vec& src_vec = d_src_vec[level_number][depth];
         Vec& dst_vec = d_dst_vec[level_number][depth];
         if (dst_vec)
         {
-            ierr = VecDestroy(dst_vec);
+            ierr = VecDestroy(&dst_vec);
             IBTK_CHKERRQ(ierr);
         }
         ierr = VecCreateMPI(PETSC_COMM_WORLD, depth*idxs.size(),
@@ -2255,14 +2250,14 @@ LSiloDataWriter::buildVecScatters(
         VecScatter& vec_scatter = d_vec_scatter[level_number][depth];
         if (vec_scatter)
         {
-            ierr = VecScatterDestroy(vec_scatter);
+            ierr = VecScatterDestroy(&vec_scatter);
             IBTK_CHKERRQ(ierr);
         }
         ierr = VecScatterCreate(src_vec, src_is, dst_vec, PETSC_NULL,
                                 &vec_scatter);
         IBTK_CHKERRQ(ierr);
 
-        ierr = ISDestroy(src_is);  IBTK_CHKERRQ(ierr);
+        ierr = ISDestroy(&src_is);  IBTK_CHKERRQ(ierr);
     }
     return;
 }// buildVecScatters

@@ -51,7 +51,6 @@
 
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/PETScVecOps.h>
 
 // SAMRAI INCLUDES
 #include <Box.h>
@@ -220,14 +219,14 @@ IBKirchhoffRodForceGen::~IBKirchhoffRodForceGen()
     {
         if (*it)
         {
-            ierr = MatDestroy(*it);  IBTK_CHKERRQ(ierr);
+            ierr = MatDestroy(&*it);  IBTK_CHKERRQ(ierr);
         }
     }
     for (std::vector<Mat>::iterator it = d_X_next_mats.begin(); it != d_X_next_mats.end(); ++it)
     {
         if (*it)
         {
-            ierr = MatDestroy(*it);  IBTK_CHKERRQ(ierr);
+            ierr = MatDestroy(&*it);  IBTK_CHKERRQ(ierr);
         }
     }
     return;
@@ -272,11 +271,11 @@ IBKirchhoffRodForceGen::initializeLevelData(
 
     if (D_next_mat)
     {
-        ierr = MatDestroy(D_next_mat);  IBTK_CHKERRQ(ierr);
+        ierr = MatDestroy(&D_next_mat);  IBTK_CHKERRQ(ierr);
     }
     if (X_next_mat)
     {
-        ierr = MatDestroy(X_next_mat);  IBTK_CHKERRQ(ierr);
+        ierr = MatDestroy(&X_next_mat);  IBTK_CHKERRQ(ierr);
     }
     petsc_curr_node_idxs.clear();
     petsc_next_node_idxs.clear();
@@ -531,41 +530,41 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     ierr = VecRestoreArray(D_vec, &D_vals);            IBTK_CHKERRQ(ierr);
 
     ierr = VecRestoreArray(D_next_vec, &D_next_vals);  IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(D_next_vec);                     IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&D_next_vec);                    IBTK_CHKERRQ(ierr);
 
     ierr = VecRestoreArray(X_vec, &X_vals);            IBTK_CHKERRQ(ierr);
 
     ierr = VecRestoreArray(X_next_vec, &X_next_vals);  IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(X_next_vec);                     IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&X_next_vec);                    IBTK_CHKERRQ(ierr);
 
     Vec F_vec = F_data->getVec();
-    ierr = PETScVecOps::VecSetValuesBlocked(F_vec,
-                                            petsc_curr_node_idxs.size(),
-                                            !petsc_curr_node_idxs.empty() ? &petsc_curr_node_idxs[0] : PETSC_NULL,
-                                            !petsc_curr_node_idxs.empty() ? &    F_curr_node_vals[0] : PETSC_NULL,
-                                            ADD_VALUES);  IBTK_CHKERRQ(ierr);
-    ierr = PETScVecOps::VecSetValuesBlocked(F_vec,
-                                            petsc_next_node_idxs.size(),
-                                            !petsc_next_node_idxs.empty() ? &petsc_next_node_idxs[0] : PETSC_NULL,
-                                            !petsc_next_node_idxs.empty() ? &    F_next_node_vals[0] : PETSC_NULL,
-                                            ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = VecSetValuesBlocked(F_vec,
+                               petsc_curr_node_idxs.size(),
+                               !petsc_curr_node_idxs.empty() ? &petsc_curr_node_idxs[0] : PETSC_NULL,
+                               !petsc_curr_node_idxs.empty() ? &    F_curr_node_vals[0] : PETSC_NULL,
+                               ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = VecSetValuesBlocked(F_vec,
+                               petsc_next_node_idxs.size(),
+                               !petsc_next_node_idxs.empty() ? &petsc_next_node_idxs[0] : PETSC_NULL,
+                               !petsc_next_node_idxs.empty() ? &    F_next_node_vals[0] : PETSC_NULL,
+                               ADD_VALUES);  IBTK_CHKERRQ(ierr);
 
     Vec N_vec = N_data->getVec();
-    ierr = PETScVecOps::VecSetValuesBlocked(N_vec,
-                                            petsc_curr_node_idxs.size(),
-                                            !petsc_curr_node_idxs.empty() ? &petsc_curr_node_idxs[0] : PETSC_NULL,
-                                            !petsc_curr_node_idxs.empty() ? &    N_curr_node_vals[0] : PETSC_NULL,
-                                            ADD_VALUES);  IBTK_CHKERRQ(ierr);
-    ierr = PETScVecOps::VecSetValuesBlocked(N_vec,
-                                            petsc_next_node_idxs.size(),
-                                            !petsc_next_node_idxs.empty() ? &petsc_next_node_idxs[0] : PETSC_NULL,
-                                            !petsc_next_node_idxs.empty() ? &    N_next_node_vals[0] : PETSC_NULL,
-                                            ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = VecSetValuesBlocked(N_vec,
+                               petsc_curr_node_idxs.size(),
+                               !petsc_curr_node_idxs.empty() ? &petsc_curr_node_idxs[0] : PETSC_NULL,
+                               !petsc_curr_node_idxs.empty() ? &    N_curr_node_vals[0] : PETSC_NULL,
+                               ADD_VALUES);  IBTK_CHKERRQ(ierr);
+    ierr = VecSetValuesBlocked(N_vec,
+                               petsc_next_node_idxs.size(),
+                               !petsc_next_node_idxs.empty() ? &petsc_next_node_idxs[0] : PETSC_NULL,
+                               !petsc_next_node_idxs.empty() ? &    N_next_node_vals[0] : PETSC_NULL,
+                               ADD_VALUES);  IBTK_CHKERRQ(ierr);
 
-    ierr = PETScVecOps::VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
-    ierr = PETScVecOps::VecAssemblyBegin(N_vec);  IBTK_CHKERRQ(ierr);
-    ierr = PETScVecOps::VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
-    ierr = PETScVecOps::VecAssemblyEnd(N_vec);    IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(F_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyBegin(N_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(F_vec);    IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(N_vec);    IBTK_CHKERRQ(ierr);
 
     IBAMR_TIMER_STOP(t_compute_lagrangian_force_and_torque);
     return;

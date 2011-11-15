@@ -132,7 +132,7 @@ PETScMatUtilities::constructPatchLaplaceOp(
     const double* const dx = pgeom->getDx();
     if (mat != PETSC_NULL)
     {
-        int ierr = MatDestroy(mat); IBTK_CHKERRQ(ierr);
+        int ierr = MatDestroy(&mat); IBTK_CHKERRQ(ierr);
     }
     const Box<NDIM>& dst_ghost_box = dst_data.getGhostBox();
     const Box<NDIM>& src_ghost_box = src_data.getGhostBox();
@@ -164,7 +164,7 @@ PETScMatUtilities::constructPatchLaplaceOps(
     {
         if (mats[component_axis] != PETSC_NULL)
         {
-            int ierr = MatDestroy(mats[component_axis]); IBTK_CHKERRQ(ierr);
+            int ierr = MatDestroy(&mats[component_axis]); IBTK_CHKERRQ(ierr);
         }
         const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, component_axis);
         const Box<NDIM> dst_ghost_box = SideGeometry<NDIM>::toSideBox(dst_data.getGhostBox(), component_axis);
@@ -193,7 +193,7 @@ PETScMatUtilities::constructPatchLevelLaplaceOp(
     int ierr;
     if (mat != PETSC_NULL)
     {
-        ierr = MatDestroy(mat); IBTK_CHKERRQ(ierr);
+        ierr = MatDestroy(&mat); IBTK_CHKERRQ(ierr);
     }
 
     static const int stencil_sz = 2*NDIM+1;
@@ -395,7 +395,7 @@ PETScMatUtilities::constructPatchLevelLaplaceOp(
     int ierr;
     if (mat != PETSC_NULL)
     {
-        ierr = MatDestroy(mat); IBTK_CHKERRQ(ierr);
+        ierr = MatDestroy(&mat); IBTK_CHKERRQ(ierr);
     }
 
     static const int stencil_sz = 2*NDIM+1;
@@ -631,7 +631,7 @@ PETScMatUtilities::constructPatchLevelInterpOp(
     int ierr;
     if (mat != PETSC_NULL)
     {
-        ierr = MatDestroy(mat); IBTK_CHKERRQ(ierr);
+        ierr = MatDestroy(&mat); IBTK_CHKERRQ(ierr);
     }
 
     // Create a clone of the DOF index data and fill ghost cell values using the

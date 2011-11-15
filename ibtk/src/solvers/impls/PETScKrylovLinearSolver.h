@@ -577,20 +577,11 @@ private:
     /*!
      * \brief Apply the preconditioner to \a x and store the result in \a y.
      */
-#if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 0)
-    static PetscErrorCode
-    PCApply_SAMRAI(
-        void* ctx,
-        Vec x,
-        Vec y);
-#endif
-#if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 1)
     static PetscErrorCode
     PCApply_SAMRAI(
         PC pc,
         Vec x,
         Vec y);
-#endif
 
     //\}
 

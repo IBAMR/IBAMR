@@ -154,7 +154,7 @@ LM3DDataWriter::~LM3DDataWriter()
             Vec& v = it->second;
             if (v)
             {
-                ierr = VecDestroy(v);
+                ierr = VecDestroy(&v);
                 IBTK_CHKERRQ(ierr);
             }
         }
@@ -164,7 +164,7 @@ LM3DDataWriter::~LM3DDataWriter()
             VecScatter& vs = it->second;
             if (vs)
             {
-                ierr = VecScatterDestroy(vs);
+                ierr = VecScatterDestroy(&vs);
                 IBTK_CHKERRQ(ierr);
             }
         }
@@ -207,7 +207,7 @@ LM3DDataWriter::resetLevels(
             Vec& v = it->second;
             if (v != PETSC_NULL)
             {
-                ierr = VecDestroy(v);  IBTK_CHKERRQ(ierr);
+                ierr = VecDestroy(&v);  IBTK_CHKERRQ(ierr);
             }
         }
         for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
@@ -216,7 +216,7 @@ LM3DDataWriter::resetLevels(
             VecScatter& vs = it->second;
             if (vs != PETSC_NULL)
             {
-                ierr = VecScatterDestroy(vs);  IBTK_CHKERRQ(ierr);
+                ierr = VecScatterDestroy(&vs);  IBTK_CHKERRQ(ierr);
             }
         }
     }
@@ -229,7 +229,7 @@ LM3DDataWriter::resetLevels(
             Vec& v = it->second;
             if (v != PETSC_NULL)
             {
-                ierr = VecDestroy(v);  IBTK_CHKERRQ(ierr);
+                ierr = VecDestroy(&v);  IBTK_CHKERRQ(ierr);
             }
         }
         for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
@@ -238,7 +238,7 @@ LM3DDataWriter::resetLevels(
             VecScatter& vs = it->second;
             if (vs != PETSC_NULL)
             {
-                ierr = VecScatterDestroy(vs);  IBTK_CHKERRQ(ierr);
+                ierr = VecScatterDestroy(&vs);  IBTK_CHKERRQ(ierr);
             }
         }
     }
@@ -1096,7 +1096,7 @@ LM3DDataWriter::writePlotData(
 
             // Clean up allocated data.
             ierr = VecRestoreArray(local_X_vec, &local_X_arr);  IBTK_CHKERRQ(ierr);
-            ierr = VecDestroy(local_X_vec);  IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(&local_X_vec);  IBTK_CHKERRQ(ierr);
         }
     }
     status = H5Gclose(fiber_group_id);
@@ -1144,11 +1144,7 @@ LM3DDataWriter::buildVecScatters(
 
     // Setup IS indices for all necessary data depths.
     std::map<int,std::vector<int> > src_is_idxs;
-
-    src_is_idxs[NDIM].resize(ref_is_idxs.size());
-    std::transform(ref_is_idxs.begin(), ref_is_idxs.end(),
-                   src_is_idxs[NDIM].begin(),
-                   std::bind2nd(std::multiplies<int>(),NDIM));
+    src_is_idxs[NDIM] = ref_is_idxs;
     d_src_vec[level_number][NDIM] = d_coords_data[level_number]->getVec();
 
     // Create the VecScatters to scatter data from the global PETSc Vec to
@@ -1161,14 +1157,14 @@ LM3DDataWriter::buildVecScatters(
         const std::vector<int>& idxs = it->second;
 
         IS src_is;
-        ierr = ISCreateBlock(PETSC_COMM_WORLD, depth, idxs.size(), (!idxs.empty() ? &idxs[0] : PETSC_NULL), &src_is);
+        ierr = ISCreateBlock(PETSC_COMM_WORLD, depth, idxs.size(), (!idxs.empty() ? &idxs[0] : PETSC_NULL), PETSC_COPY_VALUES, &src_is);
         IBTK_CHKERRQ(ierr);
 
         Vec& src_vec = d_src_vec[level_number][depth];
         Vec& dst_vec = d_dst_vec[level_number][depth];
         if (dst_vec)
         {
-            ierr = VecDestroy(dst_vec);
+            ierr = VecDestroy(&dst_vec);
             IBTK_CHKERRQ(ierr);
         }
         ierr = VecCreateMPI(PETSC_COMM_WORLD, depth*idxs.size(), PETSC_DETERMINE, &dst_vec);
@@ -1180,13 +1176,13 @@ LM3DDataWriter::buildVecScatters(
         VecScatter& vec_scatter = d_vec_scatter[level_number][depth];
         if (vec_scatter)
         {
-            ierr = VecScatterDestroy(vec_scatter);
+            ierr = VecScatterDestroy(&vec_scatter);
             IBTK_CHKERRQ(ierr);
         }
         ierr = VecScatterCreate(src_vec, src_is, dst_vec, PETSC_NULL, &vec_scatter);
         IBTK_CHKERRQ(ierr);
 
-        ierr = ISDestroy(src_is);  IBTK_CHKERRQ(ierr);
+        ierr = ISDestroy(&src_is);  IBTK_CHKERRQ(ierr);
     }
     return;
 }// buildVecScatters

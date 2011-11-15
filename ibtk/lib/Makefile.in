@@ -195,8 +195,6 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/utilities/NodeDataSynchronization.C \
 	$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C \
 	$(top_srcdir)/src/utilities/NormOps.C \
-	$(top_srcdir)/src/utilities/PETScMatOps.C \
-	$(top_srcdir)/src/utilities/PETScVecOps.C \
 	$(top_srcdir)/src/utilities/ParallelEdgeMap.C \
 	$(top_srcdir)/src/utilities/ParallelMap.C \
 	$(top_srcdir)/src/utilities/ParallelSet.C \
@@ -326,8 +324,6 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-NodeDataSynchronization.$(OBJEXT) \
 	libIBTK2d_a-NodeSynchCopyFillPattern.$(OBJEXT) \
 	libIBTK2d_a-NormOps.$(OBJEXT) \
-	libIBTK2d_a-PETScMatOps.$(OBJEXT) \
-	libIBTK2d_a-PETScVecOps.$(OBJEXT) \
 	libIBTK2d_a-ParallelEdgeMap.$(OBJEXT) \
 	libIBTK2d_a-ParallelMap.$(OBJEXT) \
 	libIBTK2d_a-ParallelSet.$(OBJEXT) \
@@ -453,8 +449,6 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/utilities/NodeDataSynchronization.C \
 	$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C \
 	$(top_srcdir)/src/utilities/NormOps.C \
-	$(top_srcdir)/src/utilities/PETScMatOps.C \
-	$(top_srcdir)/src/utilities/PETScVecOps.C \
 	$(top_srcdir)/src/utilities/ParallelEdgeMap.C \
 	$(top_srcdir)/src/utilities/ParallelMap.C \
 	$(top_srcdir)/src/utilities/ParallelSet.C \
@@ -583,8 +577,6 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-NodeDataSynchronization.$(OBJEXT) \
 	libIBTK3d_a-NodeSynchCopyFillPattern.$(OBJEXT) \
 	libIBTK3d_a-NormOps.$(OBJEXT) \
-	libIBTK3d_a-PETScMatOps.$(OBJEXT) \
-	libIBTK3d_a-PETScVecOps.$(OBJEXT) \
 	libIBTK3d_a-ParallelEdgeMap.$(OBJEXT) \
 	libIBTK3d_a-ParallelMap.$(OBJEXT) \
 	libIBTK3d_a-ParallelSet.$(OBJEXT) \
@@ -1133,8 +1125,6 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/utilities/NodeDataSynchronization.h \
 	$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.h \
 	$(top_srcdir)/src/utilities/NormOps.h \
-	$(top_srcdir)/src/utilities/PETScMatOps.h \
-	$(top_srcdir)/src/utilities/PETScVecOps.h \
 	$(top_srcdir)/src/utilities/ParallelEdgeMap.h \
 	$(top_srcdir)/src/utilities/ParallelMap.h \
 	$(top_srcdir)/src/utilities/ParallelSet.h \
@@ -1253,8 +1243,6 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/utilities/NodeDataSynchronization.C \
 	$(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C \
 	$(top_srcdir)/src/utilities/NormOps.C \
-	$(top_srcdir)/src/utilities/PETScMatOps.C \
-	$(top_srcdir)/src/utilities/PETScVecOps.C \
 	$(top_srcdir)/src/utilities/ParallelEdgeMap.C \
 	$(top_srcdir)/src/utilities/ParallelMap.C \
 	$(top_srcdir)/src/utilities/ParallelSet.C \
@@ -1471,7 +1459,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScKrylovLinearSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScMFFDJacobianOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScMatLOWrapper.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScMatOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScMatUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScMultiVec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScNewtonKrylovSolver.Po@am__quote@
@@ -1479,7 +1466,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScSAMRAIVectorReal.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScSNESFunctionGOWrapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScSNESJacobianJOWrapper.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScVecOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScVecUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-ParallelMap.Po@am__quote@
@@ -1585,7 +1571,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScKrylovLinearSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScMFFDJacobianOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScMatLOWrapper.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScMatOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScMatUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScMultiVec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScNewtonKrylovSolver.Po@am__quote@
@@ -1593,7 +1578,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScSAMRAIVectorReal.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScSNESFunctionGOWrapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScSNESJacobianJOWrapper.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScVecOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScVecUtilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-ParallelMap.Po@am__quote@
@@ -3125,34 +3109,6 @@ libIBTK2d_a-NormOps.obj: $(top_srcdir)/src/utilities/NormOps.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/NormOps.C' object='libIBTK2d_a-NormOps.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-NormOps.obj `if test -f '$(top_srcdir)/src/utilities/NormOps.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/NormOps.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/NormOps.C'; fi`
-
-libIBTK2d_a-PETScMatOps.o: $(top_srcdir)/src/utilities/PETScMatOps.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-PETScMatOps.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-PETScMatOps.Tpo -c -o libIBTK2d_a-PETScMatOps.o `test -f '$(top_srcdir)/src/utilities/PETScMatOps.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/PETScMatOps.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-PETScMatOps.Tpo $(DEPDIR)/libIBTK2d_a-PETScMatOps.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/PETScMatOps.C' object='libIBTK2d_a-PETScMatOps.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PETScMatOps.o `test -f '$(top_srcdir)/src/utilities/PETScMatOps.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/PETScMatOps.C
-
-libIBTK2d_a-PETScMatOps.obj: $(top_srcdir)/src/utilities/PETScMatOps.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-PETScMatOps.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-PETScMatOps.Tpo -c -o libIBTK2d_a-PETScMatOps.obj `if test -f '$(top_srcdir)/src/utilities/PETScMatOps.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/PETScMatOps.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/PETScMatOps.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-PETScMatOps.Tpo $(DEPDIR)/libIBTK2d_a-PETScMatOps.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/PETScMatOps.C' object='libIBTK2d_a-PETScMatOps.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PETScMatOps.obj `if test -f '$(top_srcdir)/src/utilities/PETScMatOps.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/PETScMatOps.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/PETScMatOps.C'; fi`
-
-libIBTK2d_a-PETScVecOps.o: $(top_srcdir)/src/utilities/PETScVecOps.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-PETScVecOps.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-PETScVecOps.Tpo -c -o libIBTK2d_a-PETScVecOps.o `test -f '$(top_srcdir)/src/utilities/PETScVecOps.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/PETScVecOps.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-PETScVecOps.Tpo $(DEPDIR)/libIBTK2d_a-PETScVecOps.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/PETScVecOps.C' object='libIBTK2d_a-PETScVecOps.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PETScVecOps.o `test -f '$(top_srcdir)/src/utilities/PETScVecOps.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/PETScVecOps.C
-
-libIBTK2d_a-PETScVecOps.obj: $(top_srcdir)/src/utilities/PETScVecOps.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-PETScVecOps.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-PETScVecOps.Tpo -c -o libIBTK2d_a-PETScVecOps.obj `if test -f '$(top_srcdir)/src/utilities/PETScVecOps.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/PETScVecOps.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/PETScVecOps.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-PETScVecOps.Tpo $(DEPDIR)/libIBTK2d_a-PETScVecOps.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/PETScVecOps.C' object='libIBTK2d_a-PETScVecOps.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PETScVecOps.obj `if test -f '$(top_srcdir)/src/utilities/PETScVecOps.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/PETScVecOps.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/PETScVecOps.C'; fi`
 
 libIBTK2d_a-ParallelEdgeMap.o: $(top_srcdir)/src/utilities/ParallelEdgeMap.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-ParallelEdgeMap.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Tpo -c -o libIBTK2d_a-ParallelEdgeMap.o `test -f '$(top_srcdir)/src/utilities/ParallelEdgeMap.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/ParallelEdgeMap.C
@@ -4721,34 +4677,6 @@ libIBTK3d_a-NormOps.obj: $(top_srcdir)/src/utilities/NormOps.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/NormOps.C' object='libIBTK3d_a-NormOps.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-NormOps.obj `if test -f '$(top_srcdir)/src/utilities/NormOps.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/NormOps.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/NormOps.C'; fi`
-
-libIBTK3d_a-PETScMatOps.o: $(top_srcdir)/src/utilities/PETScMatOps.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-PETScMatOps.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-PETScMatOps.Tpo -c -o libIBTK3d_a-PETScMatOps.o `test -f '$(top_srcdir)/src/utilities/PETScMatOps.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/PETScMatOps.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-PETScMatOps.Tpo $(DEPDIR)/libIBTK3d_a-PETScMatOps.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/PETScMatOps.C' object='libIBTK3d_a-PETScMatOps.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PETScMatOps.o `test -f '$(top_srcdir)/src/utilities/PETScMatOps.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/PETScMatOps.C
-
-libIBTK3d_a-PETScMatOps.obj: $(top_srcdir)/src/utilities/PETScMatOps.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-PETScMatOps.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-PETScMatOps.Tpo -c -o libIBTK3d_a-PETScMatOps.obj `if test -f '$(top_srcdir)/src/utilities/PETScMatOps.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/PETScMatOps.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/PETScMatOps.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-PETScMatOps.Tpo $(DEPDIR)/libIBTK3d_a-PETScMatOps.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/PETScMatOps.C' object='libIBTK3d_a-PETScMatOps.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PETScMatOps.obj `if test -f '$(top_srcdir)/src/utilities/PETScMatOps.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/PETScMatOps.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/PETScMatOps.C'; fi`
-
-libIBTK3d_a-PETScVecOps.o: $(top_srcdir)/src/utilities/PETScVecOps.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-PETScVecOps.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-PETScVecOps.Tpo -c -o libIBTK3d_a-PETScVecOps.o `test -f '$(top_srcdir)/src/utilities/PETScVecOps.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/PETScVecOps.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-PETScVecOps.Tpo $(DEPDIR)/libIBTK3d_a-PETScVecOps.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/PETScVecOps.C' object='libIBTK3d_a-PETScVecOps.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PETScVecOps.o `test -f '$(top_srcdir)/src/utilities/PETScVecOps.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/PETScVecOps.C
-
-libIBTK3d_a-PETScVecOps.obj: $(top_srcdir)/src/utilities/PETScVecOps.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-PETScVecOps.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-PETScVecOps.Tpo -c -o libIBTK3d_a-PETScVecOps.obj `if test -f '$(top_srcdir)/src/utilities/PETScVecOps.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/PETScVecOps.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/PETScVecOps.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-PETScVecOps.Tpo $(DEPDIR)/libIBTK3d_a-PETScVecOps.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/PETScVecOps.C' object='libIBTK3d_a-PETScVecOps.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PETScVecOps.obj `if test -f '$(top_srcdir)/src/utilities/PETScVecOps.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/PETScVecOps.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/PETScVecOps.C'; fi`
 
 libIBTK3d_a-ParallelEdgeMap.o: $(top_srcdir)/src/utilities/ParallelEdgeMap.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-ParallelEdgeMap.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Tpo -c -o libIBTK3d_a-ParallelEdgeMap.o `test -f '$(top_srcdir)/src/utilities/ParallelEdgeMap.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/ParallelEdgeMap.C

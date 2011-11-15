@@ -387,10 +387,10 @@ CCPoissonPETScLevelSolver::deallocateSolverState()
 
     // Deallocate PETSc objects.
     int ierr;
-    ierr = KSPDestroy(d_petsc_ksp); IBTK_CHKERRQ(ierr);
-    ierr = MatDestroy(d_petsc_mat); IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(d_petsc_x); IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(d_petsc_b); IBTK_CHKERRQ(ierr);
+    ierr = KSPDestroy(&d_petsc_ksp); IBTK_CHKERRQ(ierr);
+    ierr = MatDestroy(&d_petsc_mat); IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&d_petsc_x); IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&d_petsc_b); IBTK_CHKERRQ(ierr);
     d_dof_index_fill.setNull();
 
     d_petsc_ksp = PETSC_NULL;
