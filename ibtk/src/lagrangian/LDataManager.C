@@ -220,16 +220,14 @@ LDataManager::resetLevels(
     {
         if (d_ao[level_number])
         {
-            ierr = AODestroy(&d_ao[level_number]);
-            IBTK_CHKERRQ(ierr);
+            ierr = AODestroy(&d_ao[level_number]);  IBTK_CHKERRQ(ierr);
         }
     }
     for (int level_number = finest_ln+1; level_number <= d_finest_ln; ++level_number)
     {
         if (d_ao[level_number])
         {
-            ierr = AODestroy(&d_ao[level_number]);
-            IBTK_CHKERRQ(ierr);
+            ierr = AODestroy(&d_ao[level_number]);  IBTK_CHKERRQ(ierr);
         }
     }
 
@@ -292,7 +290,7 @@ LDataManager::spread(
         if (levelContainsLagrangianData(ln))
         {
             const int depth = F_data[ln]->getDepth();
-            F_ds_data[ln] = new LData("", getNumberOfLocalNodes(ln), depth, d_nonlocal_petsc_indices[ln][depth]);
+            F_ds_data[ln] = new LData("", getNumberOfLocalNodes(ln), depth, d_nonlocal_petsc_indices[ln]);
             blitz::Array<double,2>&       F_ds_arr = *F_ds_data[ln]->getGhostedLocalFormVecArray();
             const blitz::Array<double,2>&    F_arr = *   F_data[ln]->getGhostedLocalFormVecArray();
             const blitz::Array<double,1>&   ds_arr = *  ds_data[ln]->getGhostedLocalFormArray();
@@ -599,20 +597,7 @@ LDataManager::createLData(
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
     TBOX_ASSERT(depth > 0);
 #endif
-
-    if (d_nonlocal_petsc_indices[level_number].find(depth) == d_nonlocal_petsc_indices[level_number].end())
-    {
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(depth != 1);
-#endif
-        d_nonlocal_petsc_indices[level_number][depth].resize(d_nonlocal_petsc_indices[level_number][1].size());
-        std::transform(d_nonlocal_petsc_indices[level_number][    1].begin(),
-                       d_nonlocal_petsc_indices[level_number][    1].end(),
-                       d_nonlocal_petsc_indices[level_number][depth].begin(),
-                       std::bind2nd(std::multiplies<int>(),depth));
-    }
-
-    Pointer<LData> ret_val = new LData(quantity_name, getNumberOfLocalNodes(level_number), depth, d_nonlocal_petsc_indices[level_number][depth]);
+    Pointer<LData> ret_val = new LData(quantity_name, getNumberOfLocalNodes(level_number), depth, d_nonlocal_petsc_indices[level_number]);
     if (maintain_data)
     {
         d_lag_mesh_data[level_number][quantity_name] = ret_val;
@@ -754,12 +739,12 @@ LDataManager::reinitLagrangianStructure(
         shifted_bounding_box.second[d] += dX[d];
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
-    const double* const gridXLower = d_grid_geom->getXLower();
-    const double* const gridXUpper = d_grid_geom->getXUpper();
+    const double* const grid_x_lower = d_grid_geom->getXLower();
+    const double* const grid_x_upper = d_grid_geom->getXUpper();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(gridXLower[d] <= shifted_bounding_box.first [d]);
-        TBOX_ASSERT(gridXUpper[d] >= shifted_bounding_box.second[d]);
+        TBOX_ASSERT(grid_x_lower[d] <= shifted_bounding_box.first [d]);
+        TBOX_ASSERT(grid_x_upper[d] >= shifted_bounding_box.second[d]);
     }
 #endif
     d_displaced_strct_bounding_boxes[level_number].push_back(shifted_bounding_box);
@@ -836,12 +821,12 @@ LDataManager::displaceLagrangianStructure(
         shifted_bounding_box.second[d] += dX[d];
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
-    const double* const gridXLower = d_grid_geom->getXLower();
-    const double* const gridXUpper = d_grid_geom->getXUpper();
+    const double* const grid_x_lower = d_grid_geom->getXLower();
+    const double* const grid_x_upper = d_grid_geom->getXUpper();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        TBOX_ASSERT(gridXLower[d] <= shifted_bounding_box.first [d]);
-        TBOX_ASSERT(gridXUpper[d] >= shifted_bounding_box.second[d]);
+        TBOX_ASSERT(grid_x_lower[d] <= shifted_bounding_box.first [d]);
+        TBOX_ASSERT(grid_x_upper[d] >= shifted_bounding_box.second[d]);
     }
 #endif
     d_displaced_strct_bounding_boxes[level_number].push_back(shifted_bounding_box);
@@ -1152,12 +1137,12 @@ LDataManager::beginDataRedistribution(
                 finest_ln   <= d_finest_ln);
 #endif
 
-    const double* const gridXLower = d_grid_geom->getXLower();
-    const double* const gridXUpper = d_grid_geom->getXUpper();
-    blitz::TinyVector<double,NDIM> gridXLength;
+    const double* const grid_x_lower = d_grid_geom->getXLower();
+    const double* const grid_x_upper = d_grid_geom->getXUpper();
+    blitz::TinyVector<double,NDIM> grid_length;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        gridXLength[d] = gridXUpper[d] - gridXLower[d];
+        grid_length[d] = grid_x_upper[d] - grid_x_lower[d];
     }
     const IntVector<NDIM>& periodic_shift = d_grid_geom->getPeriodicShift();
 
@@ -1174,8 +1159,8 @@ LDataManager::beginDataRedistribution(
 
         // Ensure that no IB points manage to escape the computational domain.
         //
-        // NOTE: We cannot use the LMesh data structure here because it has not
-        // been initialized.
+        // NOTE: We cannot use LMesh data structures here because they have not
+        // been (re-)initialized yet.
         blitz::Array<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
         static const double edge_tol = sqrt(std::numeric_limits<double>::epsilon());
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
@@ -1194,8 +1179,8 @@ LDataManager::beginDataRedistribution(
                 {
                     if (periodic_shift[d] == 0)
                     {
-                        X[d] = std::max(X[d],gridXLower[d]+edge_tol);
-                        X[d] = std::min(X[d],gridXUpper[d]-edge_tol);
+                        X[d] = std::max(X[d],grid_x_lower[d]+edge_tol);
+                        X[d] = std::min(X[d],grid_x_upper[d]-edge_tol);
                     }
                 }
             }
@@ -1223,9 +1208,9 @@ LDataManager::beginDataRedistribution(
             const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
             const CellIndex<NDIM>& patch_lower = patch_box.lower();
             const CellIndex<NDIM>& patch_upper = patch_box.upper();
-            const double* const patchXLower = patch_geom->getXLower();
-            const double* const patchXUpper = patch_geom->getXUpper();
-            const double* const patchDx = patch_geom->getDx();
+            const double* const patch_x_lower = patch_geom->getXLower();
+            const double* const patch_x_upper = patch_geom->getXUpper();
+            const double* const patch_dx = patch_geom->getDx();
             const bool touches_periodic_bdry = patch_geom->getTouchesPeriodicBoundary();
 
             Pointer<LNodeSetData> current_idx_data = patch->getPatchData(d_lag_node_index_current_idx);
@@ -1255,15 +1240,15 @@ LDataManager::beginDataRedistribution(
                         double* const X = &X_data(local_idx,0);
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            X_shifted[d] = X[d] + static_cast<double>(periodic_offset(d))*patchDx[d];
+                            X_shifted[d] = X[d] + static_cast<double>(periodic_offset(d))*patch_dx[d];
                         }
 
                         const bool patch_owns_node_at_new_loc =
-                            ((  patchXLower[0] <= X_shifted[0])&&(X_shifted[0] < patchXUpper[0]))
+                            ((  patch_x_lower[0] <= X_shifted[0])&&(X_shifted[0] < patch_x_upper[0]))
 #if (NDIM > 1)
-                            &&((patchXLower[1] <= X_shifted[1])&&(X_shifted[1] < patchXUpper[1]))
+                            &&((patch_x_lower[1] <= X_shifted[1])&&(X_shifted[1] < patch_x_upper[1]))
 #if (NDIM > 2)
-                            &&((patchXLower[2] <= X_shifted[2])&&(X_shifted[2] < patchXUpper[2]))
+                            &&((patch_x_lower[2] <= X_shifted[2])&&(X_shifted[2] < patch_x_upper[2]))
 #endif
 #endif
                             ;
@@ -1275,12 +1260,12 @@ LDataManager::beginDataRedistribution(
                                 blitz::TinyVector<double,NDIM> displacement(0.0);
                                 for (unsigned int d = 0; d < NDIM; ++d)
                                 {
-                                    displacement[d] = static_cast<double>(periodic_offset(d))*patchDx[d];
+                                    displacement[d] = static_cast<double>(periodic_offset(d))*patch_dx[d];
                                 }
                                 node_idx->registerPeriodicShift(periodic_offset,displacement);
                             }
 
-                            const CellIndex<NDIM> new_cell_idx = IndexUtilities::getCellIndex(X_shifted, patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
+                            const CellIndex<NDIM> new_cell_idx = IndexUtilities::getCellIndex(X_shifted, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
                             if (!new_idx_data->isElement(new_cell_idx))
                             {
                                 new_idx_data->appendItemPointer(new_cell_idx, new LNodeSet());
@@ -1289,30 +1274,22 @@ LDataManager::beginDataRedistribution(
                             new_node_set->push_back(node_idx);
                         }
 
-                        // If a node leaves the patch via a periodic boundary,
-                        // we have to make sure that its location is properly
-                        // updated.
-                        //
-                        // IMPORTANT NOTE: The location of a node is itself a
-                        // *quantity* living on the Lagrangian mesh.  Until the
-                        // Lagrangian data are redistributed, the patch still
-                        // owns the LData associated with the old LNode
-                        // distribution.  Thus it is the responsibility of this
-                        // patch to update the location of the node if the node
-                        // leaves via a periodic boundary.
+                        // If a node enters or leaves the patch via a periodic
+                        // boundary, we have to make sure that its location is
+                        // properly updated.
                         if (touches_periodic_bdry && (patch_owns_node_at_old_loc || patch_owns_node_at_new_loc))
                         {
                             static const int lower = 0;
                             static const int upper = 1;
                             for (unsigned int d = 0; d < NDIM; ++d)
                             {
-                                if      (patch_geom->getTouchesPeriodicBoundary(d,lower) && X[d] < gridXLower[d])
+                                if      (patch_geom->getTouchesPeriodicBoundary(d,lower) && X[d] < grid_x_lower[d])
                                 {
-                                    X[d] += gridXLength[d];
+                                    X[d] += grid_length[d];
                                 }
-                                else if (patch_geom->getTouchesPeriodicBoundary(d,upper) && X[d] >= gridXUpper[d])
+                                else if (patch_geom->getTouchesPeriodicBoundary(d,upper) && X[d] >= grid_x_upper[d])
                                 {
-                                    X[d] -= gridXLength[d];
+                                    X[d] -= grid_length[d];
                                 }
                             }
                         }
@@ -1367,8 +1344,8 @@ LDataManager::endDataRedistribution(
 
     // Update parallel data structures to account for any displaced nodes.
     const double* const dx0 = d_grid_geom->getDx();
-    const double* const gridXLower = d_grid_geom->getXLower();
-    const double* const gridXUpper = d_grid_geom->getXUpper();
+    const double* const grid_x_lower = d_grid_geom->getXLower();
+    const double* const grid_x_upper = d_grid_geom->getXUpper();
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number] || d_displaced_strct_ids[level_number].empty()) continue;
@@ -1398,8 +1375,7 @@ LDataManager::endDataRedistribution(
         {
             LNodeSet::value_type& lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
             const blitz::TinyVector<double,NDIM>& posn = d_displaced_strct_lnode_posns[level_number][k];
-            const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(
-                posn, gridXLower, gridXUpper, dx.data(), domain_lower, domain_upper);
+            const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(posn, grid_x_lower, grid_x_upper, dx.data(), domain_lower, domain_upper);
 
             Array<int> indices;
             box_tree->findOverlapIndices(indices, Box<NDIM>(cell_idx,cell_idx));
@@ -1469,8 +1445,7 @@ LDataManager::endDataRedistribution(
         {
             const LNodeSet::value_type& lag_idx = d_displaced_strct_lnode_idxs[level_number][k];
             const blitz::TinyVector<double,NDIM>& posn = d_displaced_strct_lnode_posns[level_number][k];
-            const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(
-                posn, gridXLower, gridXUpper, dx.data(), domain_lower, domain_upper);
+            const CellIndex<NDIM> cell_idx = IndexUtilities::getCellIndex(posn, grid_x_lower, grid_x_upper, dx.data(), domain_lower, domain_upper);
 
             Array<int> indices;
             box_tree->findOverlapIndices(indices, Box<NDIM>(cell_idx,cell_idx));
@@ -1562,39 +1537,45 @@ LDataManager::endDataRedistribution(
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number]) continue;
-
-        // Reset the nonlocal PETSc indices.
-        d_nonlocal_petsc_indices[level_number].clear();
-
-        // The destination indices.
-        std::vector<int> dst_inds;
-        bool dst_inds_set = false;
-
-        // Compute the new data distribution and start scattering.
+        
         std::map<std::string,Pointer<LData> >& level_data = d_lag_mesh_data[level_number];
         const std::vector<int>::size_type num_data = level_data.size();
-
         src_vec[level_number].resize(num_data);
         dst_vec[level_number].resize(num_data);
         scatter[level_number].resize(num_data);
-
+        
         // Get the new distribution of nodes for the level.
-        //
-        // NOTE: This process updates the local PETSc indices of the LNodeSet
-        // objects contained in the current patch.
-        ierr = computeNodeDistribution(d_local_lag_indices   [level_number],
-                                       d_nonlocal_lag_indices[level_number],
-                                       new_ao[level_number],
-                                       d_local_petsc_indices   [level_number],
-                                       d_nonlocal_petsc_indices[level_number][1],
-                                       d_num_nodes[level_number],
-                                       d_node_offset[level_number],
-                                       level_number);
-        IBTK_CHKERRQ(ierr);
-
+        computeNodeDistribution(d_local_lag_indices   [level_number],
+                                d_nonlocal_lag_indices[level_number],
+                                new_ao[level_number],
+                                d_local_petsc_indices   [level_number],
+                                d_nonlocal_petsc_indices[level_number],
+                                d_num_nodes[level_number],
+                                d_node_offset[level_number],
+                                level_number);
         num_local_nodes   [level_number] = d_local_lag_indices   [level_number].size();
         num_nonlocal_nodes[level_number] = d_nonlocal_lag_indices[level_number].size();
 
+        // Setup src indices.
+        std::vector<int> src_inds(num_local_nodes[level_number]);
+        for (int k = 0; k < num_local_nodes[level_number]; ++k)
+        {
+            src_inds[k] = d_node_offset[level_number]+k;
+        }
+        
+        // Convert dst indices from the old ordering to the new ordering.
+        std::vector<int> dst_inds = d_local_petsc_indices[level_number];
+        ierr = AOPetscToApplication(
+            d_ao[level_number],    // the old AO
+            (num_local_nodes[level_number] > 0 ? num_local_nodes[level_number] : static_cast<int>(s_ao_dummy.size())),
+            (num_local_nodes[level_number] > 0 ? &dst_inds[0]                  : &s_ao_dummy[0]));  IBTK_CHKERRQ(ierr);
+        ierr = AOApplicationToPetsc(
+            new_ao[level_number],  // the new AO
+            (num_local_nodes[level_number] > 0 ? num_local_nodes[level_number] : static_cast<int>(s_ao_dummy.size())),
+            (num_local_nodes[level_number] > 0 ? &dst_inds[0]                  : &s_ao_dummy[0]));  IBTK_CHKERRQ(ierr);
+
+        // Setup VecScatter objects for each LData object and start scattering
+        // data.
         std::map<std::string, Pointer<LData> >::iterator it;
         int i;
         for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
@@ -1605,63 +1586,24 @@ LDataManager::endDataRedistribution(
 #endif
             const int depth = data->getDepth();
 
-            // Determine the PETSc indices of the ghost nodes required in the
-            // destination Vec.
-            //
-            // (This is only computed once for each data depth encountered,
-            // including depth==1.)
-            if (d_nonlocal_petsc_indices[level_number].find(depth) == d_nonlocal_petsc_indices[level_number].end())
-            {
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(depth != 1);
-#endif
-                d_nonlocal_petsc_indices[level_number][depth].resize(num_nonlocal_nodes[level_number]);
-
-                std::transform(d_nonlocal_petsc_indices[level_number][    1].begin(),
-                               d_nonlocal_petsc_indices[level_number][    1].end(),
-                               d_nonlocal_petsc_indices[level_number][depth].begin(),
-                               std::bind2nd(std::multiplies<int>(),depth));
-            }
-
             // Determine the PETSc indices of the source nodes for use when
             // scattering values from the old configuration to the new
-            // configuration.
-            //
-            // (This is only computed once for each data depth encountered,
-            // including depth==1.)
+            // configuration.  Notice that a different IS object must be used
+            // for each unique data depth.
             if (src_IS[level_number].find(depth) == src_IS[level_number].end())
             {
-                ierr = ISCreateStride(PETSC_COMM_WORLD,
-                                      depth*num_local_nodes[level_number],
-                                      depth*d_node_offset[level_number],
-                                      1, &src_IS[level_number][depth]);
-                IBTK_CHKERRQ(ierr);
+                ierr = ISCreateBlock(PETSC_COMM_WORLD,
+                                     depth,
+                                     num_local_nodes[level_number],
+                                     num_local_nodes[level_number] > 0 ? &src_inds[0] : NULL,
+                                     PETSC_COPY_VALUES,
+                                     &src_IS[level_number][depth]);  IBTK_CHKERRQ(ierr);
             }
 
             // Determine the PETSc indices of the destination nodes for use when
             // scattering values from the old configuration to the new
-            // configuration.
-            //
-            // (This is only computed once for each data depth encountered,
-            // including depth==1.)
-            if (!dst_inds_set)
-            {
-                dst_inds = d_local_petsc_indices[level_number];
-
-                ierr = AOPetscToApplication(
-                    d_ao[level_number], // the old AO
-                    (num_local_nodes[level_number] > 0 ? num_local_nodes[level_number] : static_cast<int>(s_ao_dummy.size())),
-                    (num_local_nodes[level_number] > 0 ? &dst_inds[0]                  : &s_ao_dummy[0]));
-                IBTK_CHKERRQ(ierr);
-                ierr = AOApplicationToPetsc(
-                    new_ao[level_number],
-                    (num_local_nodes[level_number] > 0 ? num_local_nodes[level_number] : static_cast<int>(s_ao_dummy.size())),
-                    (num_local_nodes[level_number] > 0 ? &dst_inds[0]                  : &s_ao_dummy[0]));
-                IBTK_CHKERRQ(ierr);
-
-                dst_inds_set = true;
-            }
-
+            // configuration.  Notice that a different IS object must be used
+            // for each unique data depth.
             if (dst_IS[level_number].find(depth) == dst_IS[level_number].end())
             {
                 ierr = ISCreateBlock(PETSC_COMM_WORLD,
@@ -1669,62 +1611,37 @@ LDataManager::endDataRedistribution(
                                      num_local_nodes[level_number],
                                      num_local_nodes[level_number] > 0 ? &dst_inds[0] : NULL,
                                      PETSC_COPY_VALUES,
-                                     &dst_IS[level_number][depth]);
-                IBTK_CHKERRQ(ierr);
+                                     &dst_IS[level_number][depth]);  IBTK_CHKERRQ(ierr);
             }
 
-            // Create the destination Vec and VecScatter contexts.
+            // Create the destination Vec.
             src_vec[level_number][i] = data->getVec();
+            ierr = VecCreateGhostBlock(PETSC_COMM_WORLD, depth,
+                                       depth*num_local_nodes[level_number], PETSC_DECIDE,
+                                       num_nonlocal_nodes[level_number],
+                                       num_nonlocal_nodes[level_number] > 0 ? &d_nonlocal_petsc_indices[level_number][0] : NULL,
+                                       &dst_vec[level_number][i]);  IBTK_CHKERRQ(ierr);
 
-            if (depth == 1)
-            {
-                ierr = VecCreateGhost(PETSC_COMM_WORLD,
-                                      num_local_nodes[level_number], PETSC_DECIDE,
-                                      num_nonlocal_nodes[level_number],
-                                      num_nonlocal_nodes[level_number] > 0 ? &d_nonlocal_petsc_indices[level_number][depth][0] : NULL,
-                                      &dst_vec[level_number][i]);
-                IBTK_CHKERRQ(ierr);
-            }
-            else
-            {
-                ierr = VecCreateGhostBlock(PETSC_COMM_WORLD, depth,
-                                           depth*num_local_nodes[level_number], PETSC_DECIDE,
-                                           num_nonlocal_nodes[level_number],
-                                           num_nonlocal_nodes[level_number] > 0 ? &d_nonlocal_petsc_indices[level_number][depth][0] : NULL,
-                                           &dst_vec[level_number][i]);
-                IBTK_CHKERRQ(ierr);
-            }
-            ierr = VecSetBlockSize(dst_vec[level_number][i], depth);
-            IBTK_CHKERRQ(ierr);
-
+            // Create the VecScatter.
             ierr = VecScatterCreate(src_vec[level_number][i], src_IS[level_number][depth],
                                     dst_vec[level_number][i], dst_IS[level_number][depth],
-                                    &scatter[level_number][i]);
-            IBTK_CHKERRQ(ierr);
+                                    &scatter[level_number][i]);  IBTK_CHKERRQ(ierr);
+
+            // Begin scattering data.
+            ierr = VecScatterBegin(scatter[level_number][i],
+                                   src_vec[level_number][i],
+                                   dst_vec[level_number][i],
+                                   INSERT_VALUES, SCATTER_FORWARD);  IBTK_CHKERRQ(ierr);
         }
     }
 
-    // Begin scattering data.
-    for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
-    {
-        if (!d_level_contains_lag_data[level_number]) continue;
-
-        std::map<std::string,Pointer<LData> >& level_data = d_lag_mesh_data[level_number];
-        std::map<std::string,Pointer<LData> >::iterator it;
-        int i;
-        for (it = level_data.begin(), i = 0; it != level_data.end(); ++it, ++i)
-        {
-            ierr = VecScatterBegin(scatter[level_number][i], src_vec[level_number][i], dst_vec[level_number][i], INSERT_VALUES, SCATTER_FORWARD); IBTK_CHKERRQ(ierr);
-        }
-    }
-
-    // Update cached indexing information on each grid patch and setup LMesh
+    // Update cached indexing information on each grid patch and setup new LMesh
     // data structures.
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number]) continue;
 
-        std::set<SAMRAI::tbox::Pointer<LNode>,LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
+        std::set<LNode*,LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
         const int num_local_nodes = getNumberOfLocalNodes(level_number);
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -1755,7 +1672,8 @@ LDataManager::endDataRedistribution(
         d_lag_mesh[level_number]->setGhostNodes(std::vector<LNode*>(ghost_nodes.begin(), ghost_nodes.end()), sorted);
     }
 
-    // End scattering data, reset data, and destroy the VecScatter contexts.
+    // End scattering data, reset LData objects, and destroy the VecScatter
+    // contexts.
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number]) continue;
@@ -1768,8 +1686,7 @@ LDataManager::endDataRedistribution(
             ierr = VecScatterEnd(scatter[level_number][i], src_vec[level_number][i], dst_vec[level_number][i], INSERT_VALUES, SCATTER_FORWARD); IBTK_CHKERRQ(ierr);
             ierr = VecScatterDestroy(&scatter[level_number][i]); IBTK_CHKERRQ(ierr);
             Pointer<LData> data = it->second;
-            const int depth = data->getDepth();
-            data->resetData(dst_vec[level_number][i], d_nonlocal_petsc_indices[level_number][depth]);
+            data->resetData(dst_vec[level_number][i], d_nonlocal_petsc_indices[level_number]);
         }
     }
 
@@ -1785,23 +1702,20 @@ LDataManager::endDataRedistribution(
 
         if (d_ao[level_number])
         {
-            ierr = AODestroy(&d_ao[level_number]);
-            IBTK_CHKERRQ(ierr);
+            ierr = AODestroy(&d_ao[level_number]);  IBTK_CHKERRQ(ierr);
         }
         d_ao[level_number] = new_ao[level_number];
 
         for (std::map<int,IS>::iterator it = src_IS[level_number].begin();
              it != src_IS[level_number].end(); ++it)
         {
-            ierr = ISDestroy(&it->second);
-            IBTK_CHKERRQ(ierr);
+            ierr = ISDestroy(&it->second);  IBTK_CHKERRQ(ierr);
         }
 
         for (std::map<int,IS>::iterator it = dst_IS[level_number].begin();
              it != dst_IS[level_number].end(); ++it)
         {
-            ierr = ISDestroy(&it->second);
-            IBTK_CHKERRQ(ierr);
+            ierr = ISDestroy(&it->second);  IBTK_CHKERRQ(ierr);
         }
     }
 
@@ -2012,9 +1926,8 @@ LDataManager::initializeLevelData(
         d_local_lag_indices  [level_number].resize(num_local_nodes,-1);
         d_local_petsc_indices[level_number].resize(num_local_nodes,-1);
 
-        d_nonlocal_lag_indices  [level_number]   .clear();
-        d_nonlocal_petsc_indices[level_number]   .clear();
-        d_nonlocal_petsc_indices[level_number][1].clear();
+        d_nonlocal_lag_indices  [level_number].clear();
+        d_nonlocal_petsc_indices[level_number].clear();
 
         computeNodeOffsets(d_num_nodes[level_number], d_node_offset[level_number], num_local_nodes);
 
@@ -2059,8 +1972,7 @@ LDataManager::initializeLevelData(
             init_data_time, can_be_refined, initial_time, this);
 
         ierr = VecCopy(d_lag_mesh_data[level_number][     POSN_DATA_NAME]->getVec(),
-                       d_lag_mesh_data[level_number][INIT_POSN_DATA_NAME]->getVec());
-        IBTK_CHKERRQ(ierr);
+                       d_lag_mesh_data[level_number][INIT_POSN_DATA_NAME]->getVec());  IBTK_CHKERRQ(ierr);
 
         if (num_local_nodes != num_initialized_local_nodes)
         {
@@ -2123,16 +2035,14 @@ LDataManager::initializeLevelData(
         //    the local Lagrangian indices.
         if (d_ao[level_number])
         {
-            ierr = AODestroy(&d_ao[level_number]);
-            IBTK_CHKERRQ(ierr);
+            ierr = AODestroy(&d_ao[level_number]);  IBTK_CHKERRQ(ierr);
         }
 
         ierr = AOCreateMapping(PETSC_COMM_WORLD,
                                num_local_nodes,
                                num_local_nodes > 0 ? &d_local_lag_indices  [level_number][0] : NULL,
                                num_local_nodes > 0 ? &d_local_petsc_indices[level_number][0] : NULL,
-                               &d_ao[level_number]);
-        IBTK_CHKERRQ(ierr);
+                               &d_ao[level_number]);  IBTK_CHKERRQ(ierr);
     }
 
     // Initialize workload data and setup the load balancer.
@@ -2334,9 +2244,9 @@ LDataManager::applyGradientDetector(
             const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
             const CellIndex<NDIM>& patch_lower = patch_box.lower();
             const CellIndex<NDIM>& patch_upper = patch_box.upper();
-            const double* const patchXLower = patch_geom->getXLower();
-            const double* const patchXUpper = patch_geom->getXUpper();
-            const double* const patchDx = patch_geom->getDx();
+            const double* const patch_x_lower = patch_geom->getXLower();
+            const double* const patch_x_upper = patch_geom->getXUpper();
+            const double* const patch_dx = patch_geom->getDx();
 
             Pointer<CellData<NDIM,int> > tag_data = patch->getPatchData(tag_index);
 
@@ -2350,8 +2260,8 @@ LDataManager::applyGradientDetector(
 
                     // Determine the region of index space covered by the
                     // displaced structure bounding box.
-                    const CellIndex<NDIM> bbox_lower = IndexUtilities::getCellIndex(bounding_box.first , patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
-                    const CellIndex<NDIM> bbox_upper = IndexUtilities::getCellIndex(bounding_box.second, patchXLower, patchXUpper, patchDx, patch_lower, patch_upper);
+                    const CellIndex<NDIM> bbox_lower = IndexUtilities::getCellIndex(bounding_box.first , patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
+                    const CellIndex<NDIM> bbox_upper = IndexUtilities::getCellIndex(bounding_box.second, patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper);
                     const Box<NDIM> tag_box(bbox_lower,bbox_upper);
                     tag_data->fillAll(1,tag_box);
                 }
@@ -2463,12 +2373,12 @@ LDataManager::putToDatabase(
         // depth to the nonlocal petsc indices for that particular depth.  We
         // only serialize the indices corresponding to a data depth of 1.
         level_db->putInteger("n_nonlocal_petsc_indices",
-                             d_nonlocal_petsc_indices[level_number][1].size());
-        if (!d_nonlocal_petsc_indices[level_number][1].empty())
+                             d_nonlocal_petsc_indices[level_number].size());
+        if (!d_nonlocal_petsc_indices[level_number].empty())
         {
             level_db->putIntegerArray("d_nonlocal_petsc_indices",
-                                      &d_nonlocal_petsc_indices[level_number][1][0],
-                                      d_nonlocal_petsc_indices [level_number][1].size());
+                                      &d_nonlocal_petsc_indices[level_number][0],
+                                      d_nonlocal_petsc_indices [level_number].size());
         }
     }
 
@@ -2627,8 +2537,7 @@ LDataManager::~LDataManager()
     {
         if (d_ao[level_number])
         {
-            ierr = AODestroy(&d_ao[level_number]);
-            IBTK_CHKERRQ(ierr);
+            ierr = AODestroy(&d_ao[level_number]);  IBTK_CHKERRQ(ierr);
         }
     }
     return;
@@ -2857,7 +2766,7 @@ LDataManager::endNonlocalDataFill(
     return;
 }// endNonlocalDataFill
 
-int
+void
 LDataManager::computeNodeDistribution(
     std::vector<int>& local_lag_indices,
     std::vector<int>& nonlocal_lag_indices,
@@ -3011,28 +2920,7 @@ LDataManager::computeNodeDistribution(
 
     if (ao)
     {
-        ierr = AODestroy(&ao);
-        IBTK_CHKERRQ(ierr);
-    }
-
-    for (int rank = 0; rank < SAMRAI_MPI::getNodes(); ++rank)
-    {
-        if (rank == SAMRAI_MPI::getRank())
-        {
-            std::cout << "rank = " << rank << std::endl;
-            std::cout << "num_local_nodes = " << num_local_nodes << std::endl;
-            for (unsigned int n = 0; n < num_local_nodes; ++n)
-            {
-                std::cout << node_indices[n] << " ";
-            }
-            std::cout << std::endl;
-            for (unsigned int n = 0; n < num_local_nodes; ++n)
-            {
-                std::cout << local_petsc_indices[n] << " ";
-            }
-            std::cout << std::endl;
-        }
-        SAMRAI_MPI::barrier();
+        ierr = AODestroy(&ao);  IBTK_CHKERRQ(ierr);
     }
 
     ierr = AOCreateMapping(PETSC_COMM_WORLD,
@@ -3046,10 +2934,8 @@ LDataManager::computeNodeDistribution(
     //
     // NOTE: After this operation, data stored in node_indices are in the global
     // PETSc ordering.
-    node_indices.insert(node_indices.end(),
-                        nonlocal_lag_indices.begin(),
-                        nonlocal_lag_indices.end());
-
+    node_indices.reserve(node_indices.size()+nonlocal_lag_indices.size());
+    node_indices.insert(node_indices.end(), nonlocal_lag_indices.begin(), nonlocal_lag_indices.end());
     ierr = AOApplicationToPetsc(
         ao,
         (num_proc_nodes > 0 ? num_proc_nodes   : static_cast<int>(s_ao_dummy.size())),
@@ -3059,10 +2945,7 @@ LDataManager::computeNodeDistribution(
     // Keep track of the global PETSc indices of the ghost nodes.
     nonlocal_petsc_indices.clear();
     nonlocal_petsc_indices.reserve(num_nonlocal_nodes);
-
-    nonlocal_petsc_indices.insert(nonlocal_petsc_indices.end(),
-                                  node_indices.begin()+num_local_nodes,
-                                  node_indices.end());
+    nonlocal_petsc_indices.insert(nonlocal_petsc_indices.end(), node_indices.begin()+num_local_nodes, node_indices.end());
 
     // Store the global PETSc index in the local LNode objects.
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -3079,7 +2962,7 @@ LDataManager::computeNodeDistribution(
     }
 
     IBTK_TIMER_STOP(t_compute_node_distribution);
-    return 0;
+    return;
 }// computeNodeDistribution
 
 void
@@ -3251,25 +3134,10 @@ LDataManager::getFromRestart()
         const int n_nonlocal_petsc_indices = level_db->getInteger("n_nonlocal_petsc_indices");
         if (n_nonlocal_petsc_indices > 0)
         {
-            d_nonlocal_petsc_indices[level_number][1].resize(n_nonlocal_petsc_indices);
+            d_nonlocal_petsc_indices[level_number].resize(n_nonlocal_petsc_indices);
             level_db->getIntegerArray("d_nonlocal_petsc_indices",
-                                      &d_nonlocal_petsc_indices[level_number][1][0],
+                                      &d_nonlocal_petsc_indices[level_number][0],
                                       n_nonlocal_petsc_indices);
-
-            // Rebuild the nonlocal PETSc indices for the other data depths.
-            for (std::set<int>::const_iterator it = data_depths.begin();
-                 it != data_depths.end(); ++it)
-            {
-                const int depth = *it;
-
-                d_nonlocal_petsc_indices[level_number][depth].
-                    resize(d_nonlocal_petsc_indices[level_number][1].size());
-
-                std::transform(d_nonlocal_petsc_indices[level_number][    1].begin(),
-                               d_nonlocal_petsc_indices[level_number][    1].end  (),
-                               d_nonlocal_petsc_indices[level_number][depth].begin(),
-                               std::bind2nd(std::multiplies<int>(),depth));
-            }
         }
 
         // Rebuild the application ordering.
@@ -3278,8 +3146,7 @@ LDataManager::getFromRestart()
                                n_local_lag_indices,
                                n_local_lag_indices > 0 ? &d_local_lag_indices  [level_number][0] : NULL,
                                n_local_lag_indices > 0 ? &d_local_petsc_indices[level_number][0] : NULL,
-                               &d_ao[level_number]);
-        IBTK_CHKERRQ(ierr);
+                               &d_ao[level_number]);  IBTK_CHKERRQ(ierr);
     }
     return;
 }// getFromRestart
