@@ -34,10 +34,10 @@ c     TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 c     THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 c     SUCH DAMAGE.
 c
-d     efine(NDIM,2)dnl
-d     efine(REAL,`double precision')dnl
-d     efine(INTEGER,`integer')dnl
-      include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
+define(NDIM,2)dnl
+define(REAL,`double precision')dnl
+define(INTEGER,`integer')dnl
+include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
