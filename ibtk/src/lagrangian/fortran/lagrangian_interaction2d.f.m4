@@ -6,19 +6,19 @@ c     Redistribution and use in source and binary forms, with or without
 c     modification, are permitted provided that the following conditions
 c     are met:
 c
-c        * Redistributions of source code must retain the above
-c          copyright notice, this list of conditions and the following
-c          disclaimer.
+c     * Redistributions of source code must retain the above
+c     copyright notice, this list of conditions and the following
+c     disclaimer.
 c
-c        * Redistributions in binary form must reproduce the above
-c          copyright notice, this list of conditions and the following
-c          disclaimer in the documentation and/or other materials
-c          provided with the distribution.
+c     * Redistributions in binary form must reproduce the above
+c     copyright notice, this list of conditions and the following
+c     disclaimer in the documentation and/or other materials
+c     provided with the distribution.
 c
-c        * Neither the name of New York University nor the names of its
-c          contributors may be used to endorse or promote products
-c          derived from this software without specific prior written
-c          permission.
+c     * Neither the name of New York University nor the names of its
+c     contributors may be used to endorse or promote products
+c     derived from this software without specific prior written
+c     permission.
 c
 c     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
 c     CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
@@ -34,10 +34,10 @@ c     TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 c     THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 c     SUCH DAMAGE.
 c
-define(NDIM,2)dnl
-define(REAL,`double precision')dnl
-define(INTEGER,`integer')dnl
-include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
+d     efine(NDIM,2)dnl
+d     efine(REAL,`double precision')dnl
+d     efine(INTEGER,`integer')dnl
+      include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -257,14 +257,14 @@ c
 c
 c     Compute the standard interpolation weights.
 c
-CDEC$ LOOP COUNT(2)
+C     DEC$ LOOP COUNT(2)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_piecewise_linear_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(2)
+C     DEC$ LOOP COUNT(2)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -276,9 +276,9 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-CDEC$ LOOP COUNT(2)
+C     DEC$ LOOP COUNT(2)
             do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(2)
+C     DEC$ LOOP COUNT(2)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -381,14 +381,14 @@ c
 c
 c     Compute the standard spreading weights.
 c
-CDEC$ LOOP COUNT(2)
+C     DEC$ LOOP COUNT(2)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_piecewise_linear_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(2)
+C     DEC$ LOOP COUNT(2)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -399,9 +399,9 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-CDEC$ LOOP COUNT(2)
+C     DEC$ LOOP COUNT(2)
             do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(2)
+C     DEC$ LOOP COUNT(2)
                do ic0 = ic_lower(0),ic_upper(0)
                   u(ic0,ic1,d) = u(ic0,ic1,d)+(
      &                 w0(ic0-ic_lower(0))*
@@ -504,14 +504,14 @@ c
 c
 c     Compute the standard interpolation weights.
 c
-CDEC$ LOOP COUNT(4)
+C     DEC$ LOOP COUNT(4)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_wide_piecewise_linear_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(4)
+C     DEC$ LOOP COUNT(4)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -523,9 +523,9 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-CDEC$ LOOP COUNT(4)
+C     DEC$ LOOP COUNT(4)
             do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(4)
+C     DEC$ LOOP COUNT(4)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -629,14 +629,14 @@ c
 c
 c     Compute the standard spreading weights.
 c
-CDEC$ LOOP COUNT(4)
+C     DEC$ LOOP COUNT(4)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_wide_piecewise_linear_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(4)
+C     DEC$ LOOP COUNT(4)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -647,9 +647,9 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-CDEC$ LOOP COUNT(4)
+C     DEC$ LOOP COUNT(4)
             do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(4)
+C     DEC$ LOOP COUNT(4)
                do ic0 = ic_lower(0),ic_upper(0)
                   u(ic0,ic1,d) = u(ic0,ic1,d)+(
      &                 w0(ic0-ic_lower(0))*
@@ -751,14 +751,14 @@ c
 c
 c     Compute the standard interpolation weights.
 c
-CDEC$ LOOP COUNT(4)
+C     DEC$ LOOP COUNT(4)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_piecewise_cubic_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(4)
+C     DEC$ LOOP COUNT(4)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -770,9 +770,9 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-CDEC$ LOOP COUNT(4)
+C     DEC$ LOOP COUNT(4)
             do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(4)
+C     DEC$ LOOP COUNT(4)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -875,14 +875,14 @@ c
 c
 c     Compute the standard spreading weights.
 c
-CDEC$ LOOP COUNT(4)
+C     DEC$ LOOP COUNT(4)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_piecewise_cubic_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(4)
+C     DEC$ LOOP COUNT(4)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -893,9 +893,9 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-CDEC$ LOOP COUNT(4)
+C     DEC$ LOOP COUNT(4)
             do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(4)
+C     DEC$ LOOP COUNT(4)
                do ic0 = ic_lower(0),ic_upper(0)
                   u(ic0,ic1,d) = u(ic0,ic1,d)+(
      &                 w0(ic0-ic_lower(0))*
@@ -998,14 +998,14 @@ c
 c
 c     Compute the standard interpolation weights.
 c
-CDEC$ LOOP COUNT(8)
+C     DEC$ LOOP COUNT(8)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_wide_piecewise_cubic_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(8)
+C     DEC$ LOOP COUNT(8)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -1017,9 +1017,9 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-CDEC$ LOOP COUNT(8)
+C     DEC$ LOOP COUNT(8)
             do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(8)
+C     DEC$ LOOP COUNT(8)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -1122,14 +1122,14 @@ c
 c
 c     Compute the standard spreading weights.
 c
-CDEC$ LOOP COUNT(8)
+C     DEC$ LOOP COUNT(8)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_wide_piecewise_cubic_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(8)
+C     DEC$ LOOP COUNT(8)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -1140,9 +1140,9 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-CDEC$ LOOP COUNT(8)
+C     DEC$ LOOP COUNT(8)
             do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(8)
+C     DEC$ LOOP COUNT(8)
                do ic0 = ic_lower(0),ic_upper(0)
                   u(ic0,ic1,d) = u(ic0,ic1,d)+(
      &                 w0(ic0-ic_lower(0))*
@@ -1239,14 +1239,14 @@ c
 c
 c     Compute the standard interpolation weights.
 c
-CDEC$ LOOP COUNT(3)
+C     DEC$ LOOP COUNT(3)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_ib_3_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(3)
+C     DEC$ LOOP COUNT(3)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -1258,9 +1258,9 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-CDEC$ LOOP COUNT(3)
+C     DEC$ LOOP COUNT(3)
             do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(3)
+C     DEC$ LOOP COUNT(3)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -1358,14 +1358,14 @@ c
 c
 c     Compute the standard spreading weights.
 c
-CDEC$ LOOP COUNT(3)
+C     DEC$ LOOP COUNT(3)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_ib_3_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(3)
+C     DEC$ LOOP COUNT(3)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -1376,9 +1376,9 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-CDEC$ LOOP COUNT(3)
+C     DEC$ LOOP COUNT(3)
             do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(3)
+C     DEC$ LOOP COUNT(3)
                do ic0 = ic_lower(0),ic_upper(0)
                   u(ic0,ic1,d) = u(ic0,ic1,d)+(
      &                 w0(ic0-ic_lower(0))*
@@ -1481,14 +1481,14 @@ c
 c
 c     Compute the standard interpolation weights.
 c
-CDEC$ LOOP COUNT(6)
+C     DEC$ LOOP COUNT(6)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_wide_ib_3_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(6)
+C     DEC$ LOOP COUNT(6)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -1500,9 +1500,9 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-CDEC$ LOOP COUNT(6)
+C     DEC$ LOOP COUNT(6)
             do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(6)
+C     DEC$ LOOP COUNT(6)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -1606,14 +1606,14 @@ c
 c
 c     Compute the standard spreading weights.
 c
-CDEC$ LOOP COUNT(6)
+C     DEC$ LOOP COUNT(6)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_wide_ib_3_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(6)
+C     DEC$ LOOP COUNT(6)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -1624,9 +1624,9 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-CDEC$ LOOP COUNT(6)
+C     DEC$ LOOP COUNT(6)
             do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(6)
+C     DEC$ LOOP COUNT(6)
                do ic0 = ic_lower(0),ic_upper(0)
                   u(ic0,ic1,d) = u(ic0,ic1,d)+(
      &                 w0(ic0-ic_lower(0))*
@@ -1711,44 +1711,41 @@ c
      &        (patch_touches_lower_physical_bdry(d).eq.1) .or.
      &        (patch_touches_upper_physical_bdry(d).eq.1)
       enddo
-
-      if ( account_for_phys_bdry ) then
-
 c
 c     Use the IB 4-point delta function to interpolate u onto V, but use
 c     a modified delta function near physical boundaries.
 c
-
-         do l = 0,nindices-1
-            s = indices(l)
+      do l = 0,nindices-1
+         s = indices(l)
 c
 c     Determine the standard interpolation stencil corresponding to the
 c     position of X(s) within the cell and compute the standard
 c     interpolation weights.
 c
-            X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
-            ic_lower(0) = NINT(X_o_dx)+ifirst0-2
-            ic_upper(0) = ic_lower(0) + 3
-            r0 = X_o_dx - ((ic_lower(0)+1-ifirst0)+0.5d0)
-            q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
-            w0(0) = 0.125d0*(3.d0-2.d0*r0-q0)
-            w0(1) = 0.125d0*(3.d0-2.d0*r0+q0)
-            w0(2) = 0.125d0*(1.d0+2.d0*r0+q0)
-            w0(3) = 0.125d0*(1.d0+2.d0*r0-q0)
+         X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
+         ic_lower(0) = NINT(X_o_dx)+ifirst0-2
+         ic_upper(0) = ic_lower(0) + 3
+         r0 = X_o_dx - ((ic_lower(0)+1-ifirst0)+0.5d0)
+         q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
+         w0(0) = 0.125d0*(3.d0-2.d0*r0-q0)
+         w0(1) = 0.125d0*(3.d0-2.d0*r0+q0)
+         w0(2) = 0.125d0*(1.d0+2.d0*r0+q0)
+         w0(3) = 0.125d0*(1.d0+2.d0*r0-q0)
 
-            X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
-            ic_lower(1) = NINT(X_o_dx)+ifirst1-2
-            ic_upper(1) = ic_lower(1) + 3
-            r1 = X_o_dx - ((ic_lower(1)+1-ifirst1)+0.5d0)
-            q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
-            w1(0) = 0.125d0*(3.d0-2.d0*r1-q1)
-            w1(1) = 0.125d0*(3.d0-2.d0*r1+q1)
-            w1(2) = 0.125d0*(1.d0+2.d0*r1+q1)
-            w1(3) = 0.125d0*(1.d0+2.d0*r1-q1)
+         X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
+         ic_lower(1) = NINT(X_o_dx)+ifirst1-2
+         ic_upper(1) = ic_lower(1) + 3
+         r1 = X_o_dx - ((ic_lower(1)+1-ifirst1)+0.5d0)
+         q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
+         w1(0) = 0.125d0*(3.d0-2.d0*r1-q1)
+         w1(1) = 0.125d0*(3.d0-2.d0*r1+q1)
+         w1(2) = 0.125d0*(1.d0+2.d0*r1+q1)
+         w1(3) = 0.125d0*(1.d0+2.d0*r1-q1)
 c
 c     When necessary, modify the interpolation stencil and weights near
 c     physical boundaries.
 c
+         if ( account_for_phys_bdry ) then
             do d = 0,NDIM-1
                touches_lower_bdry(d) =
      &              (patch_touches_lower_physical_bdry(d).eq.1) .and.
@@ -1787,132 +1784,52 @@ c
                   w1(3-k) = f(k)
                enddo
             endif
+         endif
 c
 c     Compute the tensor product of the interpolation weights.
 c
-            do i1 = 0,3
-               wy = w1(i1)
-               do i0 = 0,3
-                  w(i0,i1) = w0(i0)*wy
-               enddo
+         do i1 = 0,3
+            wy = w1(i1)
+            do i0 = 0,3
+               w(i0,i1) = w0(i0)*wy
             enddo
+         enddo
 c
 c     Interpolate u onto V.
 c
-            if ( ic_lower(0).lt.ig_lower(0) .or.
-     &           ic_lower(1).lt.ig_lower(1) .or.
-     &           ic_upper(0).gt.ig_upper(0) .or.
-     &           ic_upper(1).gt.ig_upper(1) ) then
-               istart0 =   max(ig_lower(0)-ic_lower(0),0)
-               istop0  = 3-max(ic_upper(0)-ig_upper(0),0)
-               istart1 =   max(ig_lower(1)-ic_lower(1),0)
-               istop1  = 3-max(ic_upper(1)-ig_upper(1),0)
-               do d = 0,depth-1
-                  V(d,s) = 0.d0
-                  do i1 = istart1,istop1
-                     ic1 = ic_lower(1)+i1
-                     do i0 = istart0,istop0
-                        ic0 = ic_lower(0)+i0
-                        V(d,s) = V(d,s) + w(i0,i1)*u(ic0,ic1,d)
-                     enddo
+         if ( ic_lower(0).lt.ig_lower(0) .or.
+     &        ic_lower(1).lt.ig_lower(1) .or.
+     &        ic_upper(0).gt.ig_upper(0) .or.
+     &        ic_upper(1).gt.ig_upper(1) ) then
+            istart0 =   max(ig_lower(0)-ic_lower(0),0)
+            istop0  = 3-max(ic_upper(0)-ig_upper(0),0)
+            istart1 =   max(ig_lower(1)-ic_lower(1),0)
+            istop1  = 3-max(ic_upper(1)-ig_upper(1),0)
+            do d = 0,depth-1
+               V(d,s) = 0.d0
+               do i1 = istart1,istop1
+                  ic1 = ic_lower(1)+i1
+                  do i0 = istart0,istop0
+                     ic0 = ic_lower(0)+i0
+                     V(d,s) = V(d,s) + w(i0,i1)*u(ic0,ic1,d)
                   enddo
-               enddo
-            else
-               ic0 = ic_lower(0)
-               ic1 = ic_lower(1)
-               do d = 0,depth-1
-                  V(d,s) = 0.d0
-                  do i1 = 0,3
-                     ic1 = ic_lower(1)+i1
-                     do i0 = 0,3
-                        ic0 = ic_lower(0)+i0
-                        V(d,s) = V(d,s) + w(i0,i1)*u(ic0,ic1,d)
-                     enddo
-                  enddo
-               enddo
-            endif
-         enddo
-
-      else                      ! if ( account_for_phys_bdry )
-
-c
-c     Use the IB 4-point delta function to interpolate u onto V, but DO
-c     NOT use a modified delta function near physical boundaries.
-c
-
-         do l = 0,nindices-1
-            s = indices(l)
-c
-c     Determine the standard interpolation stencil corresponding to the
-c     position of X(s) within the cell and compute the standard
-c     interpolation weights.
-c
-            X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
-            ic_lower(0) = NINT(X_o_dx)+ifirst0-2
-            ic_upper(0) = ic_lower(0) + 3
-            r0 = X_o_dx - ((ic_lower(0)+1-ifirst0)+0.5d0)
-            q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
-            w0(0) = 0.125d0*(3.d0-2.d0*r0-q0)
-            w0(1) = 0.125d0*(3.d0-2.d0*r0+q0)
-            w0(2) = 0.125d0*(1.d0+2.d0*r0+q0)
-            w0(3) = 0.125d0*(1.d0+2.d0*r0-q0)
-
-            X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
-            ic_lower(1) = NINT(X_o_dx)+ifirst1-2
-            ic_upper(1) = ic_lower(1) + 3
-            r1 = X_o_dx - ((ic_lower(1)+1-ifirst1)+0.5d0)
-            q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
-            w1(0) = 0.125d0*(3.d0-2.d0*r1-q1)
-            w1(1) = 0.125d0*(3.d0-2.d0*r1+q1)
-            w1(2) = 0.125d0*(1.d0+2.d0*r1+q1)
-            w1(3) = 0.125d0*(1.d0+2.d0*r1-q1)
-c
-c     Compute the tensor product of the interpolation weights.
-c
-            do i1 = 0,3
-               wy = w1(i1)
-               do i0 = 0,3
-                  w(i0,i1) = w0(i0)*wy
                enddo
             enddo
-c
-c     Interpolate u onto V.
-c
-            if ( ic_lower(0).lt.ig_lower(0) .or.
-     &           ic_lower(1).lt.ig_lower(1) .or.
-     &           ic_upper(0).gt.ig_upper(0) .or.
-     &           ic_upper(1).gt.ig_upper(1) ) then
-               istart0 =   max(ig_lower(0)-ic_lower(0),0)
-               istop0  = 3-max(ic_upper(0)-ig_upper(0),0)
-               istart1 =   max(ig_lower(1)-ic_lower(1),0)
-               istop1  = 3-max(ic_upper(1)-ig_upper(1),0)
-               do d = 0,depth-1
-                  V(d,s) = 0.d0
-                  do i1 = istart1,istop1
-                     ic1 = ic_lower(1)+i1
-                     do i0 = istart0,istop0
-                        ic0 = ic_lower(0)+i0
-                        V(d,s) = V(d,s) + w(i0,i1)*u(ic0,ic1,d)
-                     enddo
+         else
+            ic0 = ic_lower(0)
+            ic1 = ic_lower(1)
+            do d = 0,depth-1
+               V(d,s) = 0.d0
+               do i1 = 0,3
+                  ic1 = ic_lower(1)+i1
+                  do i0 = 0,3
+                     ic0 = ic_lower(0)+i0
+                     V(d,s) = V(d,s) + w(i0,i1)*u(ic0,ic1,d)
                   enddo
                enddo
-            else
-               ic0 = ic_lower(0)
-               ic1 = ic_lower(1)
-               do d = 0,depth-1
-                  V(d,s) = 0.d0
-                  do i1 = 0,3
-                     ic1 = ic_lower(1)+i1
-                     do i0 = 0,3
-                        ic0 = ic_lower(0)+i0
-                        V(d,s) = V(d,s) + w(i0,i1)*u(ic0,ic1,d)
-                     enddo
-                  enddo
-               enddo
-            endif
-         enddo
-
-      endif                     ! if ( account_for_phys_bdry )
+            enddo
+         endif
+      enddo
 c
       return
       end
@@ -1989,44 +1906,41 @@ c
      &        (patch_touches_lower_physical_bdry(d).eq.1) .or.
      &        (patch_touches_upper_physical_bdry(d).eq.1)
       enddo
-
-      if ( account_for_phys_bdry ) then
-
 c
 c     Use the IB 4-point delta function to spread V onto u, but use
 c     a modified delta function near physical boundaries.
 c
-
-         do l = 0,nindices-1
-            s = indices(l)
+      do l = 0,nindices-1
+         s = indices(l)
 c
 c     Determine the standard interpolation stencil corresponding to the
 c     position of X(s) within the cell and compute the standard
 c     interpolation weights.
 c
-            X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
-            ic_lower(0) = NINT(X_o_dx)+ifirst0-2
-            ic_upper(0) = ic_lower(0) + 3
-            r0 = X_o_dx - ((ic_lower(0)+1-ifirst0)+0.5d0)
-            q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
-            w0(0) = 0.125d0*(3.d0-2.d0*r0-q0)
-            w0(1) = 0.125d0*(3.d0-2.d0*r0+q0)
-            w0(2) = 0.125d0*(1.d0+2.d0*r0+q0)
-            w0(3) = 0.125d0*(1.d0+2.d0*r0-q0)
+         X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
+         ic_lower(0) = NINT(X_o_dx)+ifirst0-2
+         ic_upper(0) = ic_lower(0) + 3
+         r0 = X_o_dx - ((ic_lower(0)+1-ifirst0)+0.5d0)
+         q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
+         w0(0) = 0.125d0*(3.d0-2.d0*r0-q0)
+         w0(1) = 0.125d0*(3.d0-2.d0*r0+q0)
+         w0(2) = 0.125d0*(1.d0+2.d0*r0+q0)
+         w0(3) = 0.125d0*(1.d0+2.d0*r0-q0)
 
-            X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
-            ic_lower(1) = NINT(X_o_dx)+ifirst1-2
-            ic_upper(1) = ic_lower(1) + 3
-            r1 = X_o_dx - ((ic_lower(1)+1-ifirst1)+0.5d0)
-            q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
-            w1(0) = 0.125d0*(3.d0-2.d0*r1-q1)
-            w1(1) = 0.125d0*(3.d0-2.d0*r1+q1)
-            w1(2) = 0.125d0*(1.d0+2.d0*r1+q1)
-            w1(3) = 0.125d0*(1.d0+2.d0*r1-q1)
+         X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
+         ic_lower(1) = NINT(X_o_dx)+ifirst1-2
+         ic_upper(1) = ic_lower(1) + 3
+         r1 = X_o_dx - ((ic_lower(1)+1-ifirst1)+0.5d0)
+         q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
+         w1(0) = 0.125d0*(3.d0-2.d0*r1-q1)
+         w1(1) = 0.125d0*(3.d0-2.d0*r1+q1)
+         w1(2) = 0.125d0*(1.d0+2.d0*r1+q1)
+         w1(3) = 0.125d0*(1.d0+2.d0*r1-q1)
 c
 c     When necessary, modify the interpolation stencil and weights near
 c     physical boundaries.
 c
+         if ( account_for_phys_bdry ) then
             do d = 0,NDIM-1
                touches_lower_bdry(d) =
      &              (patch_touches_lower_physical_bdry(d).eq.1) .and.
@@ -2065,128 +1979,50 @@ c
                   w1(3-k) = f(k)
                enddo
             endif
+         endif
 c
 c     Compute the tensor product of the scaled interpolation weights.
 c
-            do i1 = 0,3
-               wy = w1(i1)/(dx(0)*dx(1))
-               do i0 = 0,3
-                  w(i0,i1) = w0(i0)*wy
-               enddo
+         do i1 = 0,3
+            wy = w1(i1)/(dx(0)*dx(1))
+            do i0 = 0,3
+               w(i0,i1) = w0(i0)*wy
             enddo
+         enddo
 c
 c     Spread V onto u.
 c
-            if ( ic_lower(0).lt.ig_lower(0) .or.
-     &           ic_lower(1).lt.ig_lower(1) .or.
-     &           ic_upper(0).gt.ig_upper(0) .or.
-     &           ic_upper(1).gt.ig_upper(1) ) then
-               istart0 =   max(ig_lower(0)-ic_lower(0),0)
-               istop0  = 3-max(ic_upper(0)-ig_upper(0),0)
-               istart1 =   max(ig_lower(1)-ic_lower(1),0)
-               istop1  = 3-max(ic_upper(1)-ig_upper(1),0)
-               do d = 0,depth-1
-                  do i1 = istart1,istop1
-                     ic1 = ic_lower(1)+i1
-                     do i0 = istart0,istop0
-                        ic0 = ic_lower(0)+i0
-                        u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
-                     enddo
+         if ( ic_lower(0).lt.ig_lower(0) .or.
+     &        ic_lower(1).lt.ig_lower(1) .or.
+     &        ic_upper(0).gt.ig_upper(0) .or.
+     &        ic_upper(1).gt.ig_upper(1) ) then
+            istart0 =   max(ig_lower(0)-ic_lower(0),0)
+            istop0  = 3-max(ic_upper(0)-ig_upper(0),0)
+            istart1 =   max(ig_lower(1)-ic_lower(1),0)
+            istop1  = 3-max(ic_upper(1)-ig_upper(1),0)
+            do d = 0,depth-1
+               do i1 = istart1,istop1
+                  ic1 = ic_lower(1)+i1
+                  do i0 = istart0,istop0
+                     ic0 = ic_lower(0)+i0
+                     u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
                   enddo
-               enddo
-            else
-               ic0 = ic_lower(0)
-               ic1 = ic_lower(1)
-               do d = 0,depth-1
-                  do i1 = 0,3
-                     ic1 = ic_lower(1)+i1
-                     do i0 = 0,3
-                        ic0 = ic_lower(0)+i0
-                        u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
-                     enddo
-                  enddo
-               enddo
-            endif
-         enddo
-
-      else                      ! if ( account_for_phys_bdry )
-
-c
-c     Use the IB 4-point delta function to spread V onto u, but DO NOT
-c     use a modified delta function near physical boundaries.
-c
-
-         do l = 0,nindices-1
-            s = indices(l)
-c
-c     Determine the standard interpolation stencil corresponding to the
-c     position of X(s) within the cell and compute the standard
-c     interpolation weights.
-c
-            X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
-            ic_lower(0) = NINT(X_o_dx)+ifirst0-2
-            ic_upper(0) = ic_lower(0) + 3
-            r0 = X_o_dx - ((ic_lower(0)+1-ifirst0)+0.5d0)
-            q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
-            w0(0) = 0.125d0*(3.d0-2.d0*r0-q0)
-            w0(1) = 0.125d0*(3.d0-2.d0*r0+q0)
-            w0(2) = 0.125d0*(1.d0+2.d0*r0+q0)
-            w0(3) = 0.125d0*(1.d0+2.d0*r0-q0)
-
-            X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
-            ic_lower(1) = NINT(X_o_dx)+ifirst1-2
-            ic_upper(1) = ic_lower(1) + 3
-            r1 = X_o_dx - ((ic_lower(1)+1-ifirst1)+0.5d0)
-            q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
-            w1(0) = 0.125d0*(3.d0-2.d0*r1-q1)
-            w1(1) = 0.125d0*(3.d0-2.d0*r1+q1)
-            w1(2) = 0.125d0*(1.d0+2.d0*r1+q1)
-            w1(3) = 0.125d0*(1.d0+2.d0*r1-q1)
-c
-c     Compute the tensor product of the scaled interpolation weights.
-c
-            do i1 = 0,3
-               wy = w1(i1)/(dx(0)*dx(1))
-               do i0 = 0,3
-                  w(i0,i1) = w0(i0)*wy
                enddo
             enddo
-c
-c     Spread V onto u.
-c
-            if ( ic_lower(0).lt.ig_lower(0) .or.
-     &           ic_lower(1).lt.ig_lower(1) .or.
-     &           ic_upper(0).gt.ig_upper(0) .or.
-     &           ic_upper(1).gt.ig_upper(1) ) then
-               istart0 =   max(ig_lower(0)-ic_lower(0),0)
-               istop0  = 3-max(ic_upper(0)-ig_upper(0),0)
-               istart1 =   max(ig_lower(1)-ic_lower(1),0)
-               istop1  = 3-max(ic_upper(1)-ig_upper(1),0)
-               do d = 0,depth-1
-                  do i1 = istart1,istop1
-                     ic1 = ic_lower(1)+i1
-                     do i0 = istart0,istop0
-                        ic0 = ic_lower(0)+i0
-                        u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
-                     enddo
+         else
+            ic0 = ic_lower(0)
+            ic1 = ic_lower(1)
+            do d = 0,depth-1
+               do i1 = 0,3
+                  ic1 = ic_lower(1)+i1
+                  do i0 = 0,3
+                     ic0 = ic_lower(0)+i0
+                     u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
                   enddo
                enddo
-            else
-               ic0 = ic_lower(0)
-               ic1 = ic_lower(1)
-               do d = 0,depth-1
-                  do i1 = 0,3
-                     ic1 = ic_lower(1)+i1
-                     do i0 = 0,3
-                        ic0 = ic_lower(0)+i0
-                        u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
-                     enddo
-                  enddo
-               enddo
-            endif
-         enddo
-
-      endif                     ! if ( account_for_phys_bdry )
+            enddo
+         endif
+      enddo
 c
       return
       end
@@ -2293,14 +2129,14 @@ c
 c
 c     Compute the standard spreading weights.
 c
-CDEC$ LOOP COUNT(4)
+C     DEC$ LOOP COUNT(4)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_ib_4_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(4)
+C     DEC$ LOOP COUNT(4)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -2363,9 +2199,9 @@ c     Spread V onto u.
 c
          call f_fpu_fix_start(old_cw)
          do d = 0,depth-1
-CDEC$ LOOP COUNT(4)
+C     DEC$ LOOP COUNT(4)
             do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(4)
+C     DEC$ LOOP COUNT(4)
                do ic0 = ic_lower(0),ic_upper(0)
                   u_work(ic0,ic1,d) = u_work(ic0,ic1,d)+(
      &                 w0(ic0-ic_lower(0))*
@@ -2482,14 +2318,14 @@ c
 c
 c     Compute the standard interpolation weights.
 c
-CDEC$ LOOP COUNT(8)
+C     DEC$ LOOP COUNT(8)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_wide_ib_4_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(8)
+C     DEC$ LOOP COUNT(8)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -2501,9 +2337,9 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-CDEC$ LOOP COUNT(8)
+C     DEC$ LOOP COUNT(8)
             do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(8)
+C     DEC$ LOOP COUNT(8)
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -2607,14 +2443,14 @@ c
 c
 c     Compute the standard spreading weights.
 c
-CDEC$ LOOP COUNT(8)
+C     DEC$ LOOP COUNT(8)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_wide_ib_4_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(8)
+C     DEC$ LOOP COUNT(8)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -2625,9 +2461,9 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-CDEC$ LOOP COUNT(8)
+C     DEC$ LOOP COUNT(8)
             do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(8)
+C     DEC$ LOOP COUNT(8)
                do ic0 = ic_lower(0),ic_upper(0)
                   u(ic0,ic1,d) = u(ic0,ic1,d)+(
      &                 w0(ic0-ic_lower(0))*
@@ -2737,14 +2573,14 @@ c
 c
 c     Compute the standard interpolation weights.
 c
-CDEC$ LOOP COUNT(6)
+C     DEC$ LOOP COUNT(6)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_ib_6_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(6)
+C     DEC$ LOOP COUNT(6)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -2807,10 +2643,10 @@ c     Interpolate u onto V.
 c
          do d = 0,depth-1
             V(d,s) = 0.d0
-CDEC$ LOOP COUNT(6)
+C     DEC$ LOOP COUNT(6)
             do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(6)
-CDEC$ NOVECTOR
+C     DEC$ LOOP COUNT(6)
+C     DEC$ NOVECTOR
                do ic0 = ic_lower(0),ic_upper(0)
                   V(d,s) = V(d,s)
      &                 +w0(ic0-ic_lower(0))
@@ -2921,14 +2757,14 @@ c
 c
 c     Compute the standard spreading weights.
 c
-CDEC$ LOOP COUNT(6)
+C     DEC$ LOOP COUNT(6)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_ib_6_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(6)
+C     DEC$ LOOP COUNT(6)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -2989,10 +2825,10 @@ c
 c     Spread V onto u.
 c
          do d = 0,depth-1
-CDEC$ LOOP COUNT(6)
+C     DEC$ LOOP COUNT(6)
             do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(6)
-CDEC$ NOVECTOR
+C     DEC$ LOOP COUNT(6)
+C     DEC$ NOVECTOR
                do ic0 = ic_lower(0),ic_upper(0)
                   u(ic0,ic1,d) = u(ic0,ic1,d)+(
      &                 w0(ic0-ic_lower(0))*
@@ -3120,14 +2956,14 @@ c
 c
 c     Compute the standard spreading weights.
 c
-CDEC$ LOOP COUNT(6)
+C     DEC$ LOOP COUNT(6)
          do ic0 = ic_lower(0),ic_upper(0)
             X_cell(0) = x_lower(0)+(dble(ic0-ifirst0)+0.5d0)*dx(0)
             w0(ic0-ic_lower(0)) =
      &           lagrangian_ib_6_delta(
      &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
          enddo
-CDEC$ LOOP COUNT(6)
+C     DEC$ LOOP COUNT(6)
          do ic1 = ic_lower(1),ic_upper(1)
             X_cell(1) = x_lower(1)+(dble(ic1-ifirst1)+0.5d0)*dx(1)
             w1(ic1-ic_lower(1)) =
@@ -3189,10 +3025,10 @@ c     Spread V onto u.
 c
          call f_fpu_fix_start(old_cw)
          do d = 0,depth-1
-CDEC$ LOOP COUNT(6)
+C     DEC$ LOOP COUNT(6)
             do ic1 = ic_lower(1),ic_upper(1)
-CDEC$ LOOP COUNT(6)
-CDEC$ NOVECTOR
+C     DEC$ LOOP COUNT(6)
+C     DEC$ NOVECTOR
                do ic0 = ic_lower(0),ic_upper(0)
                   u_work(ic0,ic1,d) = u_work(ic0,ic1,d)+(
      &                 w0(ic0-ic_lower(0))*
