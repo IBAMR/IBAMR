@@ -1187,7 +1187,7 @@ LDataManager::beginDataRedistribution(
             for (LNodeSetData::DataIterator it = lag_node_idx_data->data_begin(patch_box);
                  it != lag_node_idx_data->data_end(); ++it)
             {
-                LNodeSet::value_type& node_idx = *it;
+                const LNode* const node_idx = *it;
                 const int local_idx = node_idx->getLocalPETScIndex();
                 double* const X = &X_data(local_idx,0);
                 for (unsigned int d = 0; d < NDIM; ++d)
@@ -1739,7 +1739,7 @@ LDataManager::endDataRedistribution(
     {
         if (!d_level_contains_lag_data[level_number]) continue;
 
-        std::set<SAMRAI::tbox::Pointer<LNode>,LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
+        std::set<LNode*,LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
         const int num_local_nodes = getNumberOfLocalNodes(level_number);
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -1751,7 +1751,7 @@ LDataManager::endDataRedistribution(
             for (LNodeSetData::DataIterator it = lag_node_idx_data->data_begin(ghost_box);
                  it != lag_node_idx_data->data_end(); ++it)
             {
-                LNodeSet::value_type& node_idx = *it;
+                LNode* const node_idx = *it;
                 if (node_idx->getLocalPETScIndex() < num_local_nodes)
                 {
                     local_nodes.insert(node_idx);
@@ -2085,7 +2085,7 @@ LDataManager::initializeLevelData(
         }
 
         // 4. Compute the initial distribution (indexing) data.
-        std::set<SAMRAI::tbox::Pointer<LNode>,LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
+        std::set<LNode*,LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -2112,7 +2112,7 @@ LDataManager::initializeLevelData(
 
                 for (LNodeSet::iterator n = node_set.begin(); n != node_set.end(); ++n)
                 {
-                    LNodeSet::value_type& node_idx = *n;
+                    LNode* const node_idx = *n;
                     const int lag_idx   = node_idx->getLagrangianIndex();
                     const int local_idx = node_idx->getLocalPETScIndex();
                     if (!(0 <= local_idx && local_idx < static_cast<int>(num_local_nodes)))
@@ -2914,7 +2914,7 @@ LDataManager::computeNodeDistribution(
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
 
     // Collect the local nodes.
-    std::set<SAMRAI::tbox::Pointer<LNode>,LNodeIndexLagrangianIndexComp> local_node_idxs;
+    std::set<LNode*,LNodeIndexLagrangianIndexComp> local_node_idxs;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -2923,7 +2923,7 @@ LDataManager::computeNodeDistribution(
         for (LNodeSetData::DataIterator it = lag_node_index_data->data_begin(patch_box);
              it != lag_node_index_data->data_end(); ++it)
         {
-            LNodeSet::value_type& node_idx = *it;
+            LNode* const node_idx = *it;
             local_node_idxs.insert(node_idx);
         }
     }
@@ -2931,7 +2931,7 @@ LDataManager::computeNodeDistribution(
     // Assign local indices to the local nodes.
     unsigned int local_offset = 0;
     std::map<int,int> lag_idx_to_petsc_idx;
-    for (std::set<SAMRAI::tbox::Pointer<LNode>,LNodeIndexLagrangianIndexComp>::const_iterator cit = local_node_idxs.begin();
+    for (std::set<LNode*,LNodeIndexLagrangianIndexComp>::const_iterator cit = local_node_idxs.begin();
          cit != local_node_idxs.end(); ++cit)
     {
         LNode* const node_idx = *cit;
@@ -2958,7 +2958,7 @@ LDataManager::computeNodeDistribution(
         {
             if (patch_box.contains(it.getCellIndex())) continue;
 
-            LNodeSet::value_type& node_idx = *it;
+            const LNode* const node_idx = *it;
             const int lag_idx = node_idx->getLagrangianIndex();
             if (lag_idx_to_petsc_idx.find(lag_idx) == lag_idx_to_petsc_idx.end())
             {
@@ -2988,7 +2988,7 @@ LDataManager::computeNodeDistribution(
         {
             if (patch_box.contains(it.getCellIndex())) continue;
 
-            LNodeSet::value_type& node_idx = *it;
+            LNode* const node_idx = *it;
             const int lag_idx = node_idx->getLagrangianIndex();
             node_idx->setLocalPETScIndex(lag_idx_to_petsc_idx[lag_idx]);
         }
@@ -3071,7 +3071,7 @@ LDataManager::computeNodeDistribution(
         for (LNodeSetData::DataIterator it = lag_node_index_data->data_begin(ghost_box);
              it != lag_node_index_data->data_end(); ++it)
         {
-            LNodeSet::value_type& node_idx = *it;
+            LNode* const node_idx = *it;
             node_idx->setGlobalPETScIndex(node_indices[node_idx->getLocalPETScIndex()]);
         }
     }
