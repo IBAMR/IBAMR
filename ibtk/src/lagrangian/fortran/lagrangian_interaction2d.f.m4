@@ -1816,12 +1816,12 @@ c
             do d = 0,depth-1
                V(d,s) = 0.d0
                do i1 =
-     &              max(ig_lower(1)-ic_lower(1),0),
-     &              min(ic_upper(1)-ig_upper(1),3)
+     &              0+max(ig_lower(1)-ic_lower(1),0),
+     &              3-max(ic_upper(1)-ig_upper(1),0)
                   ic1 = ic_lower(1)+i1
                   do i0 =
-     &                 max(ig_lower(0)-ic_lower(0),0),
-     &                 min(ic_upper(0)-ig_upper(0),3)
+     &                 0+max(ig_lower(0)-ic_lower(0),0),
+     &                 3-max(ic_upper(0)-ig_upper(0),0)
                      ic0 = ic_lower(0)+i0
                      V(d,s) = V(d,s) + w(i0,i1)*u(ic0,ic1,d)
                   enddo
@@ -2008,12 +2008,12 @@ c
          else
             do d = 0,depth-1
                do i1 =
-     &              max(ig_lower(1)-ic_lower(1),0),
-     &              min(ic_upper(1)-ig_upper(1),3)
+     &              0+max(ig_lower(1)-ic_lower(1),0),
+     &              3-max(ic_upper(1)-ig_upper(1),0)
                   ic1 = ic_lower(1)+i1
                   do i0 =
-     &                 max(ig_lower(0)-ic_lower(0),0),
-     &                 min(ic_upper(0)-ig_upper(0),3)
+     &                 0+max(ig_lower(0)-ic_lower(0),0),
+     &                 3-max(ic_upper(0)-ig_upper(0),0)
                      ic0 = ic_lower(0)+i0
                      u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
                   enddo
