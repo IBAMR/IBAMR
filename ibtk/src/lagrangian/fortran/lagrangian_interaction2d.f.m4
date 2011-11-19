@@ -1688,6 +1688,7 @@ c
       INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,k,l,s
 
+      REAL X_o_dx
       REAL f(0:3),q0,q1,r0,r1,w0(0:3),w1(0:3),w(0:3,0:3),wy
 
       LOGICAL account_for_phys_bdry
@@ -1724,24 +1725,20 @@ c     Determine the standard interpolation stencil corresponding to the
 c     position of X(s) within the cell and compute the standard
 c     interpolation weights.
 c
-            ic_lower(0) =
-     &           NINT((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))+ifirst0-2
+            X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
+            ic_lower(0) = NINT(X_o_dx)+ifirst0-2
             ic_upper(0) = ic_lower(0) + 3
-            r0 = (X(0,s)+Xshift(0,l) -
-     &           (x_lower(0)+(dble(ic_lower(0)+1-ifirst0)+0.5d0)*dx(0)))
-     &           / dx(0)
+            r0 = X_o_dx - ((ic_lower(0)+1-ifirst0)+0.5d0)
             q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
             w0(0) = 0.125d0*(3.d0-2.d0*r0-q0)
             w0(1) = 0.125d0*(3.d0-2.d0*r0+q0)
             w0(2) = 0.125d0*(1.d0+2.d0*r0+q0)
             w0(3) = 0.125d0*(1.d0+2.d0*r0-q0)
 
-            ic_lower(1) =
-     &           NINT((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))+ifirst1-2
+            X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
+            ic_lower(1) = NINT(X_o_dx)+ifirst1-2
             ic_upper(1) = ic_lower(1) + 3
-            r1 = (X(1,s)+Xshift(1,l) -
-     &           (x_lower(1)+(dble(ic_lower(1)+1-ifirst1)+0.5d0)*dx(1)))
-     &           / dx(1)
+            r1 = X_o_dx - ((ic_lower(1)+1-ifirst1)+0.5d0)
             q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
             w1(0) = 0.125d0*(3.d0-2.d0*r1-q1)
             w1(1) = 0.125d0*(3.d0-2.d0*r1+q1)
@@ -1862,24 +1859,20 @@ c     Determine the standard interpolation stencil corresponding to the
 c     position of X(s) within the cell and compute the standard
 c     interpolation weights.
 c
-            ic_lower(0) =
-     &           NINT((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))+ifirst0-2
+            X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
+            ic_lower(0) = NINT(X_o_dx)+ifirst0-2
             ic_upper(0) = ic_lower(0) + 3
-            r0 = (X(0,s)+Xshift(0,l) -
-     &           (x_lower(0)+(dble(ic_lower(0)+1-ifirst0)+0.5d0)*dx(0)))
-     &           / dx(0)
+            r0 = X_o_dx - ((ic_lower(0)+1-ifirst0)+0.5d0)
             q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
             w0(0) = 0.125d0*(3.d0-2.d0*r0-q0)
             w0(1) = 0.125d0*(3.d0-2.d0*r0+q0)
             w0(2) = 0.125d0*(1.d0+2.d0*r0+q0)
             w0(3) = 0.125d0*(1.d0+2.d0*r0-q0)
 
-            ic_lower(1) =
-     &           NINT((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))+ifirst1-2
+            X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
+            ic_lower(1) = NINT(X_o_dx)+ifirst1-2
             ic_upper(1) = ic_lower(1) + 3
-            r1 = (X(1,s)+Xshift(1,l) -
-     &           (x_lower(1)+(dble(ic_lower(1)+1-ifirst1)+0.5d0)*dx(1)))
-     &           / dx(1)
+            r1 = X_o_dx - ((ic_lower(1)+1-ifirst1)+0.5d0)
             q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
             w1(0) = 0.125d0*(3.d0-2.d0*r1-q1)
             w1(1) = 0.125d0*(3.d0-2.d0*r1+q1)
@@ -1998,6 +1991,7 @@ c
       INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,k,l,s
 
+      REAL X_o_dx
       REAL f(0:3),q0,q1,r0,r1,w0(0:3),w1(0:3),w(0:3,0:3),wy
 
       LOGICAL account_for_phys_bdry
@@ -2034,29 +2028,25 @@ c     Determine the standard interpolation stencil corresponding to the
 c     position of X(s) within the cell and compute the standard
 c     interpolation weights.
 c
-            ic_lower(0) =
-     &           NINT((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))+ifirst0-2
+            X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
+            ic_lower(0) = NINT(X_o_dx)+ifirst0-2
             ic_upper(0) = ic_lower(0) + 3
-            r0 = (X(0,s)+Xshift(0,l) -
-     &           (x_lower(0)+(dble(ic_lower(0)+1-ifirst0)+0.5d0)*dx(0)))
-     &           / dx(0)
-            q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0));
-            w0(0) = 0.125d0*(3.d0-2.d0*r0-q0);
-            w0(1) = 0.125d0*(3.d0-2.d0*r0+q0);
-            w0(2) = 0.125d0*(1.d0+2.d0*r0+q0);
-            w0(3) = 0.125d0*(1.d0+2.d0*r0-q0);
+            r0 = X_o_dx - ((ic_lower(0)+1-ifirst0)+0.5d0)
+            q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
+            w0(0) = 0.125d0*(3.d0-2.d0*r0-q0)
+            w0(1) = 0.125d0*(3.d0-2.d0*r0+q0)
+            w0(2) = 0.125d0*(1.d0+2.d0*r0+q0)
+            w0(3) = 0.125d0*(1.d0+2.d0*r0-q0)
 
-            ic_lower(1) =
-     &           NINT((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))+ifirst1-2
+            X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
+            ic_lower(1) = NINT(X_o_dx)+ifirst1-2
             ic_upper(1) = ic_lower(1) + 3
-            r1 = (X(1,s)+Xshift(1,l) -
-     &           (x_lower(1)+(dble(ic_lower(1)+1-ifirst1)+0.5d0)*dx(1)))
-     &           / dx(1)
-            q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1));
-            w1(0) = 0.125d0*(3.d0-2.d0*r1-q1);
-            w1(1) = 0.125d0*(3.d0-2.d0*r1+q1);
-            w1(2) = 0.125d0*(1.d0+2.d0*r1+q1);
-            w1(3) = 0.125d0*(1.d0+2.d0*r1-q1);
+            r1 = X_o_dx - ((ic_lower(1)+1-ifirst1)+0.5d0)
+            q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
+            w1(0) = 0.125d0*(3.d0-2.d0*r1-q1)
+            w1(1) = 0.125d0*(3.d0-2.d0*r1+q1)
+            w1(2) = 0.125d0*(1.d0+2.d0*r1+q1)
+            w1(3) = 0.125d0*(1.d0+2.d0*r1-q1)
 c
 c     When necessary, modify the interpolation stencil and weights near
 c     physical boundaries.
@@ -2169,29 +2159,25 @@ c     Determine the standard interpolation stencil corresponding to the
 c     position of X(s) within the cell and compute the standard
 c     interpolation weights.
 c
-            ic_lower(0) =
-     &           NINT((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))+ifirst0-2
+            X_o_dx = (X(0,s)+Xshift(0,l)-x_lower(0))/dx(0)
+            ic_lower(0) = NINT(X_o_dx)+ifirst0-2
             ic_upper(0) = ic_lower(0) + 3
-            r0 = (X(0,s)+Xshift(0,l) -
-     &           (x_lower(0)+(dble(ic_lower(0)+1-ifirst0)+0.5d0)*dx(0)))
-     &           / dx(0)
-            q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0));
-            w0(0) = 0.125d0*(3.d0-2.d0*r0-q0);
-            w0(1) = 0.125d0*(3.d0-2.d0*r0+q0);
-            w0(2) = 0.125d0*(1.d0+2.d0*r0+q0);
-            w0(3) = 0.125d0*(1.d0+2.d0*r0-q0);
+            r0 = X_o_dx - ((ic_lower(0)+1-ifirst0)+0.5d0)
+            q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
+            w0(0) = 0.125d0*(3.d0-2.d0*r0-q0)
+            w0(1) = 0.125d0*(3.d0-2.d0*r0+q0)
+            w0(2) = 0.125d0*(1.d0+2.d0*r0+q0)
+            w0(3) = 0.125d0*(1.d0+2.d0*r0-q0)
 
-            ic_lower(1) =
-     &           NINT((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))+ifirst1-2
+            X_o_dx = (X(1,s)+Xshift(1,l)-x_lower(1))/dx(1)
+            ic_lower(1) = NINT(X_o_dx)+ifirst1-2
             ic_upper(1) = ic_lower(1) + 3
-            r1 = (X(1,s)+Xshift(1,l) -
-     &           (x_lower(1)+(dble(ic_lower(1)+1-ifirst1)+0.5d0)*dx(1)))
-     &           / dx(1)
-            q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1));
-            w1(0) = 0.125d0*(3.d0-2.d0*r1-q1);
-            w1(1) = 0.125d0*(3.d0-2.d0*r1+q1);
-            w1(2) = 0.125d0*(1.d0+2.d0*r1+q1);
-            w1(3) = 0.125d0*(1.d0+2.d0*r1-q1);
+            r1 = X_o_dx - ((ic_lower(1)+1-ifirst1)+0.5d0)
+            q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
+            w1(0) = 0.125d0*(3.d0-2.d0*r1-q1)
+            w1(1) = 0.125d0*(3.d0-2.d0*r1+q1)
+            w1(2) = 0.125d0*(1.d0+2.d0*r1+q1)
+            w1(3) = 0.125d0*(1.d0+2.d0*r1-q1)
 c
 c     Compute the tensor product of the scaled interpolation weights.
 c
