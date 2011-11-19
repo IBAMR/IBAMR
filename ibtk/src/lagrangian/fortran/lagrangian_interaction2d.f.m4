@@ -1694,6 +1694,13 @@ c
       LOGICAL touches_lower_bdry(0:NDIM-1)
       LOGICAL touches_upper_bdry(0:NDIM-1)
 c
+c     Compute the extents of the ghost box.
+c
+      ig_lower(0) = ifirst0-nugc0
+      ig_lower(1) = ifirst1-nugc1
+      ig_upper(0) = ilast0 +nugc0
+      ig_upper(1) = ilast1 +nugc1
+c
 c     Determine if we need to account for physical boundaries.
 c
       account_for_phys_bdry = .false.
@@ -1702,51 +1709,48 @@ c
      &        (patch_touches_lower_physical_bdry(d).eq.1) .or.
      &        (patch_touches_upper_physical_bdry(d).eq.1)
       enddo
+
+      if ( account_for_phys_bdry ) then
+
 c
-c     Compute the extents of the ghost box.
+c     Use the IB 4-point delta function to interpolate u onto V, but use
+c     a modified delta function near physical boundaries.
 c
-      ig_lower(0) = ifirst0-nugc0
-      ig_lower(1) = ifirst1-nugc1
-      ig_upper(0) = ilast0 +nugc0
-      ig_upper(1) = ilast1 +nugc1
-c
-c     Use the IB 4-point delta function to interpolate u onto V.
-c
-      do l = 0,nindices-1
-         s = indices(l)
+
+         do l = 0,nindices-1
+            s = indices(l)
 c
 c     Determine the standard interpolation stencil corresponding to the
 c     position of X(s) within the cell and compute the standard
 c     interpolation weights.
 c
-         ic_lower(0) =
-     &        NINT((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))+ifirst0-2
-         ic_upper(0) = ic_lower(0) + 3
-         r0 = (X(0,s)+Xshift(0,l) -
-     &        (x_lower(0)+(dble(ic_lower(0)+1-ifirst0)+0.5d0)*dx(0))) /
-     &        dx(0)
-         q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0));
-         w0(0) = 0.125d0*(3.d0-2.d0*r0-q0);
-         w0(1) = 0.125d0*(3.d0-2.d0*r0+q0);
-         w0(2) = 0.125d0*(1.d0+2.d0*r0+q0);
-         w0(3) = 0.125d0*(1.d0+2.d0*r0-q0);
+            ic_lower(0) =
+     &           NINT((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))+ifirst0-2
+            ic_upper(0) = ic_lower(0) + 3
+            r0 = (X(0,s)+Xshift(0,l) -
+     &           (x_lower(0)+(dble(ic_lower(0)+1-ifirst0)+0.5d0)*dx(0)))
+     &           / dx(0)
+            q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
+            w0(0) = 0.125d0*(3.d0-2.d0*r0-q0)
+            w0(1) = 0.125d0*(3.d0-2.d0*r0+q0)
+            w0(2) = 0.125d0*(1.d0+2.d0*r0+q0)
+            w0(3) = 0.125d0*(1.d0+2.d0*r0-q0)
 
-         ic_lower(1) =
-     &        NINT((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))+ifirst1-2
-         ic_upper(1) = ic_lower(1) + 3
-         r1 = (X(1,s)+Xshift(1,l) -
-     &        (x_lower(1)+(dble(ic_lower(1)+1-ifirst1)+0.5d0)*dx(1))) /
-     &        dx(1)
-         q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1));
-         w1(0) = 0.125d0*(3.d0-2.d0*r1-q1);
-         w1(1) = 0.125d0*(3.d0-2.d0*r1+q1);
-         w1(2) = 0.125d0*(1.d0+2.d0*r1+q1);
-         w1(3) = 0.125d0*(1.d0+2.d0*r1-q1);
+            ic_lower(1) =
+     &           NINT((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))+ifirst1-2
+            ic_upper(1) = ic_lower(1) + 3
+            r1 = (X(1,s)+Xshift(1,l) -
+     &           (x_lower(1)+(dble(ic_lower(1)+1-ifirst1)+0.5d0)*dx(1)))
+     &           / dx(1)
+            q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
+            w1(0) = 0.125d0*(3.d0-2.d0*r1-q1)
+            w1(1) = 0.125d0*(3.d0-2.d0*r1+q1)
+            w1(2) = 0.125d0*(1.d0+2.d0*r1+q1)
+            w1(3) = 0.125d0*(1.d0+2.d0*r1-q1)
 c
 c     When necessary, modify the interpolation stencil and weights near
 c     physical boundaries.
 c
-         if ( account_for_phys_bdry ) then
             do d = 0,NDIM-1
                touches_lower_bdry(d) =
      &              (patch_touches_lower_physical_bdry(d).eq.1) .and.
@@ -1785,50 +1789,162 @@ c
                   w1(3-k) = f(k)
                enddo
             endif
-         endif
 c
 c     Compute the tensor product of the interpolation weights.
 c
-         do i1 = 0,3
-            wy = w1(i1)
-            do i0 = 0,3
-               w(i0,i1) = w0(i0)*wy
+            do i1 = 0,3
+               wy = w1(i1)
+               do i0 = 0,3
+                  w(i0,i1) = w0(i0)*wy
+               enddo
             enddo
-         enddo
 c
 c     Interpolate u onto V.
 c
-         if ( ic_lower(0).ge.ig_lower(0) .and.
-     &        ic_lower(1).ge.ig_lower(1) .and.
-     &        ic_upper(0).le.ig_upper(0) .and.
-     &        ic_upper(1).le.ig_upper(1) ) then
-            do d = 0,depth-1
-               V(d,s) = 0.d0
-               do i1 = 0,3
-                  ic1 = ic_lower(1)+i1
-                  do i0 = 0,3
-                     ic0 = ic_lower(0)+i0
-                     V(d,s) = V(d,s) + w(i0,i1)*u(ic0,ic1,d)
+            if ( ic_lower(0).ge.ig_lower(0) .and.
+     &           ic_lower(1).ge.ig_lower(1) .and.
+     &           ic_upper(0).le.ig_upper(0) .and.
+     &           ic_upper(1).le.ig_upper(1) ) then
+               ic0 = ic_lower(0)
+               ic1 = ic_lower(1)
+               do d = 0,depth-1
+                  V(d,s) = 0.d0
+
+                  V(d,s) = V(d,s) + w(0,0)*u(ic0+0,ic1+0,d)
+                  V(d,s) = V(d,s) + w(1,0)*u(ic0+1,ic1+0,d)
+                  V(d,s) = V(d,s) + w(2,0)*u(ic0+2,ic1+0,d)
+                  V(d,s) = V(d,s) + w(3,0)*u(ic0+3,ic1+0,d)
+
+                  V(d,s) = V(d,s) + w(0,1)*u(ic0+0,ic1+1,d)
+                  V(d,s) = V(d,s) + w(1,1)*u(ic0+1,ic1+1,d)
+                  V(d,s) = V(d,s) + w(2,1)*u(ic0+2,ic1+1,d)
+                  V(d,s) = V(d,s) + w(3,1)*u(ic0+3,ic1+1,d)
+
+                  V(d,s) = V(d,s) + w(0,2)*u(ic0+0,ic1+2,d)
+                  V(d,s) = V(d,s) + w(1,2)*u(ic0+1,ic1+2,d)
+                  V(d,s) = V(d,s) + w(2,2)*u(ic0+2,ic1+2,d)
+                  V(d,s) = V(d,s) + w(3,2)*u(ic0+3,ic1+2,d)
+
+                  V(d,s) = V(d,s) + w(0,3)*u(ic0+0,ic1+3,d)
+                  V(d,s) = V(d,s) + w(1,3)*u(ic0+1,ic1+3,d)
+                  V(d,s) = V(d,s) + w(2,3)*u(ic0+2,ic1+3,d)
+                  V(d,s) = V(d,s) + w(3,3)*u(ic0+3,ic1+3,d)
+               enddo
+            else
+               do d = 0,depth-1
+                  V(d,s) = 0.d0
+                  do i1 =
+     &                 0+max(ig_lower(1)-ic_lower(1),0),
+     &                 3-max(ic_upper(1)-ig_upper(1),0)
+                     ic1 = ic_lower(1)+i1
+                     do i0 =
+     &                    0+max(ig_lower(0)-ic_lower(0),0),
+     &                    3-max(ic_upper(0)-ig_upper(0),0)
+                        ic0 = ic_lower(0)+i0
+                        V(d,s) = V(d,s) + w(i0,i1)*u(ic0,ic1,d)
+                     enddo
                   enddo
                enddo
-            enddo
-         else
-            do d = 0,depth-1
-               V(d,s) = 0.d0
-               do i1 =
-     &              0+max(ig_lower(1)-ic_lower(1),0),
-     &              3-max(ic_upper(1)-ig_upper(1),0)
-                  ic1 = ic_lower(1)+i1
-                  do i0 =
-     &                 0+max(ig_lower(0)-ic_lower(0),0),
-     &                 3-max(ic_upper(0)-ig_upper(0),0)
-                     ic0 = ic_lower(0)+i0
-                     V(d,s) = V(d,s) + w(i0,i1)*u(ic0,ic1,d)
-                  enddo
+            endif
+         enddo
+
+      else                      ! if ( account_for_phys_bdry )
+
+c
+c     Use the IB 4-point delta function to interpolate u onto V, but DO
+c     NOT use a modified delta function near physical boundaries.
+c
+
+         do l = 0,nindices-1
+            s = indices(l)
+c
+c     Determine the standard interpolation stencil corresponding to the
+c     position of X(s) within the cell and compute the standard
+c     interpolation weights.
+c
+            ic_lower(0) =
+     &           NINT((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))+ifirst0-2
+            ic_upper(0) = ic_lower(0) + 3
+            r0 = (X(0,s)+Xshift(0,l) -
+     &           (x_lower(0)+(dble(ic_lower(0)+1-ifirst0)+0.5d0)*dx(0)))
+     &           / dx(0)
+            q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0))
+            w0(0) = 0.125d0*(3.d0-2.d0*r0-q0)
+            w0(1) = 0.125d0*(3.d0-2.d0*r0+q0)
+            w0(2) = 0.125d0*(1.d0+2.d0*r0+q0)
+            w0(3) = 0.125d0*(1.d0+2.d0*r0-q0)
+
+            ic_lower(1) =
+     &           NINT((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))+ifirst1-2
+            ic_upper(1) = ic_lower(1) + 3
+            r1 = (X(1,s)+Xshift(1,l) -
+     &           (x_lower(1)+(dble(ic_lower(1)+1-ifirst1)+0.5d0)*dx(1)))
+     &           / dx(1)
+            q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
+            w1(0) = 0.125d0*(3.d0-2.d0*r1-q1)
+            w1(1) = 0.125d0*(3.d0-2.d0*r1+q1)
+            w1(2) = 0.125d0*(1.d0+2.d0*r1+q1)
+            w1(3) = 0.125d0*(1.d0+2.d0*r1-q1)
+c
+c     Compute the tensor product of the interpolation weights.
+c
+            do i1 = 0,3
+               wy = w1(i1)
+               do i0 = 0,3
+                  w(i0,i1) = w0(i0)*wy
                enddo
             enddo
-         endif
-      enddo
+c
+c     Interpolate u onto V.
+c
+            if ( ic_lower(0).ge.ig_lower(0) .and.
+     &           ic_lower(1).ge.ig_lower(1) .and.
+     &           ic_upper(0).le.ig_upper(0) .and.
+     &           ic_upper(1).le.ig_upper(1) ) then
+               ic0 = ic_lower(0)
+               ic1 = ic_lower(1)
+               do d = 0,depth-1
+                  V(d,s) = 0.d0
+
+                  V(d,s) = V(d,s) + w(0,0)*u(ic0+0,ic1+0,d)
+                  V(d,s) = V(d,s) + w(1,0)*u(ic0+1,ic1+0,d)
+                  V(d,s) = V(d,s) + w(2,0)*u(ic0+2,ic1+0,d)
+                  V(d,s) = V(d,s) + w(3,0)*u(ic0+3,ic1+0,d)
+
+                  V(d,s) = V(d,s) + w(0,1)*u(ic0+0,ic1+1,d)
+                  V(d,s) = V(d,s) + w(1,1)*u(ic0+1,ic1+1,d)
+                  V(d,s) = V(d,s) + w(2,1)*u(ic0+2,ic1+1,d)
+                  V(d,s) = V(d,s) + w(3,1)*u(ic0+3,ic1+1,d)
+
+                  V(d,s) = V(d,s) + w(0,2)*u(ic0+0,ic1+2,d)
+                  V(d,s) = V(d,s) + w(1,2)*u(ic0+1,ic1+2,d)
+                  V(d,s) = V(d,s) + w(2,2)*u(ic0+2,ic1+2,d)
+                  V(d,s) = V(d,s) + w(3,2)*u(ic0+3,ic1+2,d)
+
+                  V(d,s) = V(d,s) + w(0,3)*u(ic0+0,ic1+3,d)
+                  V(d,s) = V(d,s) + w(1,3)*u(ic0+1,ic1+3,d)
+                  V(d,s) = V(d,s) + w(2,3)*u(ic0+2,ic1+3,d)
+                  V(d,s) = V(d,s) + w(3,3)*u(ic0+3,ic1+3,d)
+               enddo
+            else
+               do d = 0,depth-1
+                  V(d,s) = 0.d0
+                  do i1 =
+     &                 0+max(ig_lower(1)-ic_lower(1),0),
+     &                 3-max(ic_upper(1)-ig_upper(1),0)
+                     ic1 = ic_lower(1)+i1
+                     do i0 =
+     &                    0+max(ig_lower(0)-ic_lower(0),0),
+     &                    3-max(ic_upper(0)-ig_upper(0),0)
+                        ic0 = ic_lower(0)+i0
+                        V(d,s) = V(d,s) + w(i0,i1)*u(ic0,ic1,d)
+                     enddo
+                  enddo
+               enddo
+            endif
+         enddo
+
+      endif                     ! if ( account_for_phys_bdry )
 c
       return
       end
@@ -1888,6 +2004,13 @@ c
       LOGICAL touches_lower_bdry(0:NDIM-1)
       LOGICAL touches_upper_bdry(0:NDIM-1)
 c
+c     Compute the extents of the ghost box.
+c
+      ig_lower(0) = ifirst0-nugc0
+      ig_lower(1) = ifirst1-nugc1
+      ig_upper(0) = ilast0 +nugc0
+      ig_upper(1) = ilast1 +nugc1
+c
 c     Determine if we need to account for physical boundaries.
 c
       account_for_phys_bdry = .false.
@@ -1896,51 +2019,48 @@ c
      &        (patch_touches_lower_physical_bdry(d).eq.1) .or.
      &        (patch_touches_upper_physical_bdry(d).eq.1)
       enddo
+
+      if ( account_for_phys_bdry ) then
+
 c
-c     Compute the extents of the ghost box.
+c     Use the IB 4-point delta function to spread V onto u, but use
+c     a modified delta function near physical boundaries.
 c
-      ig_lower(0) = ifirst0-nugc0
-      ig_lower(1) = ifirst1-nugc1
-      ig_upper(0) = ilast0 +nugc0
-      ig_upper(1) = ilast1 +nugc1
-c
-c     Use the IB 4-point delta function to spread V onto u.
-c
-      do l = 0,nindices-1
-         s = indices(l)
+
+         do l = 0,nindices-1
+            s = indices(l)
 c
 c     Determine the standard interpolation stencil corresponding to the
 c     position of X(s) within the cell and compute the standard
 c     interpolation weights.
 c
-         ic_lower(0) =
-     &        NINT((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))+ifirst0-2
-         ic_upper(0) = ic_lower(0) + 3
-         r0 = (X(0,s)+Xshift(0,l) -
-     &        (x_lower(0)+(dble(ic_lower(0)+1-ifirst0)+0.5d0)*dx(0))) /
-     &        dx(0)
-         q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0));
-         w0(0) = 0.125d0*(3.d0-2.d0*r0-q0);
-         w0(1) = 0.125d0*(3.d0-2.d0*r0+q0);
-         w0(2) = 0.125d0*(1.d0+2.d0*r0+q0);
-         w0(3) = 0.125d0*(1.d0+2.d0*r0-q0);
+            ic_lower(0) =
+     &           NINT((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))+ifirst0-2
+            ic_upper(0) = ic_lower(0) + 3
+            r0 = (X(0,s)+Xshift(0,l) -
+     &           (x_lower(0)+(dble(ic_lower(0)+1-ifirst0)+0.5d0)*dx(0)))
+     &           / dx(0)
+            q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0));
+            w0(0) = 0.125d0*(3.d0-2.d0*r0-q0);
+            w0(1) = 0.125d0*(3.d0-2.d0*r0+q0);
+            w0(2) = 0.125d0*(1.d0+2.d0*r0+q0);
+            w0(3) = 0.125d0*(1.d0+2.d0*r0-q0);
 
-         ic_lower(1) =
-     &        NINT((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))+ifirst1-2
-         ic_upper(1) = ic_lower(1) + 3
-         r1 = (X(1,s)+Xshift(1,l) -
-     &        (x_lower(1)+(dble(ic_lower(1)+1-ifirst1)+0.5d0)*dx(1))) /
-     &        dx(1)
-         q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1));
-         w1(0) = 0.125d0*(3.d0-2.d0*r1-q1);
-         w1(1) = 0.125d0*(3.d0-2.d0*r1+q1);
-         w1(2) = 0.125d0*(1.d0+2.d0*r1+q1);
-         w1(3) = 0.125d0*(1.d0+2.d0*r1-q1);
+            ic_lower(1) =
+     &           NINT((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))+ifirst1-2
+            ic_upper(1) = ic_lower(1) + 3
+            r1 = (X(1,s)+Xshift(1,l) -
+     &           (x_lower(1)+(dble(ic_lower(1)+1-ifirst1)+0.5d0)*dx(1)))
+     &           / dx(1)
+            q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1));
+            w1(0) = 0.125d0*(3.d0-2.d0*r1-q1);
+            w1(1) = 0.125d0*(3.d0-2.d0*r1+q1);
+            w1(2) = 0.125d0*(1.d0+2.d0*r1+q1);
+            w1(3) = 0.125d0*(1.d0+2.d0*r1-q1);
 c
 c     When necessary, modify the interpolation stencil and weights near
 c     physical boundaries.
 c
-         if ( account_for_phys_bdry ) then
             do d = 0,NDIM-1
                touches_lower_bdry(d) =
      &              (patch_touches_lower_physical_bdry(d).eq.1) .and.
@@ -1979,48 +2099,156 @@ c
                   w1(3-k) = f(k)
                enddo
             endif
-         endif
 c
 c     Compute the tensor product of the scaled interpolation weights.
 c
-         do i1 = 0,3
-            wy = w1(i1)/(dx(0)*dx(1))
-            do i0 = 0,3
-               w(i0,i1) = w0(i0)*wy
+            do i1 = 0,3
+               wy = w1(i1)/(dx(0)*dx(1))
+               do i0 = 0,3
+                  w(i0,i1) = w0(i0)*wy
+               enddo
             enddo
-         enddo
 c
 c     Spread V onto u.
 c
-         if ( ic_lower(0).ge.ig_lower(0) .and.
-     &        ic_lower(1).ge.ig_lower(1) .and.
-     &        ic_upper(0).le.ig_upper(0) .and.
-     &        ic_upper(1).le.ig_upper(1) ) then
-            do d = 0,depth-1
-               do i1 = 0,3
-                  ic1 = ic_lower(1)+i1
-                  do i0 = 0,3
-                     ic0 = ic_lower(0)+i0
-                     u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
+            if ( ic_lower(0).ge.ig_lower(0) .and.
+     &           ic_lower(1).ge.ig_lower(1) .and.
+     &           ic_upper(0).le.ig_upper(0) .and.
+     &           ic_upper(1).le.ig_upper(1) ) then
+               ic0 = ic_lower(0)
+               ic1 = ic_lower(1)
+               do d = 0,depth-1
+                  u(ic0+0,ic1+0,d) = u(ic0+0,ic1+0,d) + w(0,0)*V(d,s)
+                  u(ic0+1,ic1+0,d) = u(ic0+1,ic1+0,d) + w(1,0)*V(d,s)
+                  u(ic0+2,ic1+0,d) = u(ic0+2,ic1+0,d) + w(2,0)*V(d,s)
+                  u(ic0+3,ic1+0,d) = u(ic0+3,ic1+0,d) + w(3,0)*V(d,s)
+
+                  u(ic0+0,ic1+1,d) = u(ic0+0,ic1+1,d) + w(0,1)*V(d,s)
+                  u(ic0+1,ic1+1,d) = u(ic0+1,ic1+1,d) + w(1,1)*V(d,s)
+                  u(ic0+2,ic1+1,d) = u(ic0+2,ic1+1,d) + w(2,1)*V(d,s)
+                  u(ic0+3,ic1+1,d) = u(ic0+3,ic1+1,d) + w(3,1)*V(d,s)
+
+                  u(ic0+0,ic1+2,d) = u(ic0+0,ic1+2,d) + w(0,2)*V(d,s)
+                  u(ic0+1,ic1+2,d) = u(ic0+1,ic1+2,d) + w(1,2)*V(d,s)
+                  u(ic0+2,ic1+2,d) = u(ic0+2,ic1+2,d) + w(2,2)*V(d,s)
+                  u(ic0+3,ic1+2,d) = u(ic0+3,ic1+2,d) + w(3,2)*V(d,s)
+
+                  u(ic0+0,ic1+3,d) = u(ic0+0,ic1+3,d) + w(0,3)*V(d,s)
+                  u(ic0+1,ic1+3,d) = u(ic0+1,ic1+3,d) + w(1,3)*V(d,s)
+                  u(ic0+2,ic1+3,d) = u(ic0+2,ic1+3,d) + w(2,3)*V(d,s)
+                  u(ic0+3,ic1+3,d) = u(ic0+3,ic1+3,d) + w(3,3)*V(d,s)
+               enddo
+            else
+               do d = 0,depth-1
+                  do i1 =
+     &                 0+max(ig_lower(1)-ic_lower(1),0),
+     &                 3-max(ic_upper(1)-ig_upper(1),0)
+                     ic1 = ic_lower(1)+i1
+                     do i0 =
+     &                    0+max(ig_lower(0)-ic_lower(0),0),
+     &                    3-max(ic_upper(0)-ig_upper(0),0)
+                        ic0 = ic_lower(0)+i0
+                        u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
+                     enddo
                   enddo
                enddo
-            enddo
-         else
-            do d = 0,depth-1
-               do i1 =
-     &              0+max(ig_lower(1)-ic_lower(1),0),
-     &              3-max(ic_upper(1)-ig_upper(1),0)
-                  ic1 = ic_lower(1)+i1
-                  do i0 =
-     &                 0+max(ig_lower(0)-ic_lower(0),0),
-     &                 3-max(ic_upper(0)-ig_upper(0),0)
-                     ic0 = ic_lower(0)+i0
-                     u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
-                  enddo
+            endif
+         enddo
+
+      else                      ! if ( account_for_phys_bdry )
+
+c
+c     Use the IB 4-point delta function to spread V onto u, but DO NOT
+c     use a modified delta function near physical boundaries.
+c
+
+         do l = 0,nindices-1
+            s = indices(l)
+c
+c     Determine the standard interpolation stencil corresponding to the
+c     position of X(s) within the cell and compute the standard
+c     interpolation weights.
+c
+            ic_lower(0) =
+     &           NINT((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))+ifirst0-2
+            ic_upper(0) = ic_lower(0) + 3
+            r0 = (X(0,s)+Xshift(0,l) -
+     &           (x_lower(0)+(dble(ic_lower(0)+1-ifirst0)+0.5d0)*dx(0)))
+     &           / dx(0)
+            q0 = sqrt(1.d0+4.d0*r0*(1.d0-r0));
+            w0(0) = 0.125d0*(3.d0-2.d0*r0-q0);
+            w0(1) = 0.125d0*(3.d0-2.d0*r0+q0);
+            w0(2) = 0.125d0*(1.d0+2.d0*r0+q0);
+            w0(3) = 0.125d0*(1.d0+2.d0*r0-q0);
+
+            ic_lower(1) =
+     &           NINT((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))+ifirst1-2
+            ic_upper(1) = ic_lower(1) + 3
+            r1 = (X(1,s)+Xshift(1,l) -
+     &           (x_lower(1)+(dble(ic_lower(1)+1-ifirst1)+0.5d0)*dx(1)))
+     &           / dx(1)
+            q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1));
+            w1(0) = 0.125d0*(3.d0-2.d0*r1-q1);
+            w1(1) = 0.125d0*(3.d0-2.d0*r1+q1);
+            w1(2) = 0.125d0*(1.d0+2.d0*r1+q1);
+            w1(3) = 0.125d0*(1.d0+2.d0*r1-q1);
+c
+c     Compute the tensor product of the scaled interpolation weights.
+c
+            do i1 = 0,3
+               wy = w1(i1)/(dx(0)*dx(1))
+               do i0 = 0,3
+                  w(i0,i1) = w0(i0)*wy
                enddo
             enddo
-         endif
-      enddo
+c
+c     Spread V onto u.
+c
+            if ( ic_lower(0).ge.ig_lower(0) .and.
+     &           ic_lower(1).ge.ig_lower(1) .and.
+     &           ic_upper(0).le.ig_upper(0) .and.
+     &           ic_upper(1).le.ig_upper(1) ) then
+               ic0 = ic_lower(0)
+               ic1 = ic_lower(1)
+               do d = 0,depth-1
+                  u(ic0+0,ic1+0,d) = u(ic0+0,ic1+0,d) + w(0,0)*V(d,s)
+                  u(ic0+1,ic1+0,d) = u(ic0+1,ic1+0,d) + w(1,0)*V(d,s)
+                  u(ic0+2,ic1+0,d) = u(ic0+2,ic1+0,d) + w(2,0)*V(d,s)
+                  u(ic0+3,ic1+0,d) = u(ic0+3,ic1+0,d) + w(3,0)*V(d,s)
+
+                  u(ic0+0,ic1+1,d) = u(ic0+0,ic1+1,d) + w(0,1)*V(d,s)
+                  u(ic0+1,ic1+1,d) = u(ic0+1,ic1+1,d) + w(1,1)*V(d,s)
+                  u(ic0+2,ic1+1,d) = u(ic0+2,ic1+1,d) + w(2,1)*V(d,s)
+                  u(ic0+3,ic1+1,d) = u(ic0+3,ic1+1,d) + w(3,1)*V(d,s)
+
+                  u(ic0+0,ic1+2,d) = u(ic0+0,ic1+2,d) + w(0,2)*V(d,s)
+                  u(ic0+1,ic1+2,d) = u(ic0+1,ic1+2,d) + w(1,2)*V(d,s)
+                  u(ic0+2,ic1+2,d) = u(ic0+2,ic1+2,d) + w(2,2)*V(d,s)
+                  u(ic0+3,ic1+2,d) = u(ic0+3,ic1+2,d) + w(3,2)*V(d,s)
+
+                  u(ic0+0,ic1+3,d) = u(ic0+0,ic1+3,d) + w(0,3)*V(d,s)
+                  u(ic0+1,ic1+3,d) = u(ic0+1,ic1+3,d) + w(1,3)*V(d,s)
+                  u(ic0+2,ic1+3,d) = u(ic0+2,ic1+3,d) + w(2,3)*V(d,s)
+                  u(ic0+3,ic1+3,d) = u(ic0+3,ic1+3,d) + w(3,3)*V(d,s)
+               enddo
+            else
+               do d = 0,depth-1
+                  do i1 =
+     &                 0+max(ig_lower(1)-ic_lower(1),0),
+     &                 3-max(ic_upper(1)-ig_upper(1),0)
+                     ic1 = ic_lower(1)+i1
+                     do i0 =
+     &                    0+max(ig_lower(0)-ic_lower(0),0),
+     &                    3-max(ic_upper(0)-ig_upper(0),0)
+                        ic0 = ic_lower(0)+i0
+                        u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
+                     enddo
+                  enddo
+               enddo
+            endif
+         enddo
+
+      endif                     ! if ( account_for_phys_bdry )
 c
       return
       end
