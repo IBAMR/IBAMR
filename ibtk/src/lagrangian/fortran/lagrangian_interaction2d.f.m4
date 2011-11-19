@@ -1970,17 +1970,9 @@ c
       REAL X_o_dx
       REAL f(0:3),q0,q1,r0,r1,w0(0:3),w1(0:3),w(0:3,0:3),wy
 
-      LOGICAL depth_1,depth_2,depth_3
       LOGICAL account_for_phys_bdry
       LOGICAL touches_lower_bdry(0:NDIM-1)
       LOGICAL touches_upper_bdry(0:NDIM-1)
-c
-c     Check to see if we should use specialized routines for specific
-c     data depths.
-c
-      depth_1 = depth.eq.1
-      depth_2 = depth.eq.2
-      depth_3 = depth.eq.3
 c
 c     Compute the extents of the ghost box.
 c
@@ -2093,87 +2085,27 @@ c
                istop0  = 3-max(ic_upper(0)-ig_upper(0),0)
                istart1 =   max(ig_lower(1)-ic_lower(1),0)
                istop1  = 3-max(ic_upper(1)-ig_upper(1),0)
-               if     ( depth_1 ) then
+               do d = 0,depth-1
                   do i1 = istart1,istop1
                      ic1 = ic_lower(1)+i1
                      do i0 = istart0,istop0
                         ic0 = ic_lower(0)+i0
-                        u(ic0,ic1,0) = u(ic0,ic1,0) + w(i0,i1)*V(0,s)
+                        u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
                      enddo
                   enddo
-               else if (depth_2 ) then
-                  do d = 0,1
-                     do i1 = istart1,istop1
-                        ic1 = ic_lower(1)+i1
-                        do i0 = istart0,istop0
-                           ic0 = ic_lower(0)+i0
-                           u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
-                        enddo
-                     enddo
-                  enddo
-               else if (depth_3 ) then
-                  do d = 0,2
-                     do i1 = istart1,istop1
-                        ic1 = ic_lower(1)+i1
-                        do i0 = istart0,istop0
-                           ic0 = ic_lower(0)+i0
-                           u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
-                        enddo
-                     enddo
-                  enddo
-               else
-                  do d = 0,depth-1
-                     do i1 = istart1,istop1
-                        ic1 = ic_lower(1)+i1
-                        do i0 = istart0,istop0
-                           ic0 = ic_lower(0)+i0
-                           u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
-                        enddo
-                     enddo
-                  enddo
-               endif
+               enddo
             else
                ic0 = ic_lower(0)
                ic1 = ic_lower(1)
-               if     ( depth_1 ) then
+               do d = 0,depth-1
                   do i1 = 0,3
                      ic1 = ic_lower(1)+i1
                      do i0 = 0,3
                         ic0 = ic_lower(0)+i0
-                        u(ic0,ic1,0) = u(ic0,ic1,0) + w(i0,i1)*V(0,s)
+                        u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
                      enddo
                   enddo
-               else if (depth_2 ) then
-                  do d = 0,1
-                     do i1 = 0,3
-                        ic1 = ic_lower(1)+i1
-                        do i0 = 0,3
-                           ic0 = ic_lower(0)+i0
-                           u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
-                        enddo
-                     enddo
-                  enddo
-               else if (depth_3 ) then
-                  do d = 0,2
-                     do i1 = 0,3
-                        ic1 = ic_lower(1)+i1
-                        do i0 = 0,3
-                           ic0 = ic_lower(0)+i0
-                           u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
-                        enddo
-                     enddo
-                  enddo
-               else
-                  do d = 0,depth-1
-                     do i1 = 0,3
-                        ic1 = ic_lower(1)+i1
-                        do i0 = 0,3
-                           ic0 = ic_lower(0)+i0
-                           u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
-                        enddo
-                     enddo
-                  enddo
-               endif
+               enddo
             endif
          enddo
 
@@ -2230,87 +2162,27 @@ c
                istop0  = 3-max(ic_upper(0)-ig_upper(0),0)
                istart1 =   max(ig_lower(1)-ic_lower(1),0)
                istop1  = 3-max(ic_upper(1)-ig_upper(1),0)
-               if      ( depth_1 ) then
+               do d = 0,depth-1
                   do i1 = istart1,istop1
                      ic1 = ic_lower(1)+i1
                      do i0 = istart0,istop0
                         ic0 = ic_lower(0)+i0
-                        u(ic0,ic1,0) = u(ic0,ic1,0) + w(i0,i1)*V(0,s)
+                        u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
                      enddo
                   enddo
-               else if ( depth_2 ) then
-                  do d = 0,1
-                     do i1 = istart1,istop1
-                        ic1 = ic_lower(1)+i1
-                        do i0 = istart0,istop0
-                           ic0 = ic_lower(0)+i0
-                           u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
-                        enddo
-                     enddo
-                  enddo
-               else if ( depth_3 ) then
-                  do d = 0,2
-                     do i1 = istart1,istop1
-                        ic1 = ic_lower(1)+i1
-                        do i0 = istart0,istop0
-                           ic0 = ic_lower(0)+i0
-                           u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
-                        enddo
-                     enddo
-                  enddo
-               else
-                  do d = 0,depth-1
-                     do i1 = istart1,istop1
-                        ic1 = ic_lower(1)+i1
-                        do i0 = istart0,istop0
-                           ic0 = ic_lower(0)+i0
-                           u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
-                        enddo
-                     enddo
-                  enddo
-               endif
+               enddo
             else
                ic0 = ic_lower(0)
                ic1 = ic_lower(1)
-               if      ( depth_1 ) then
+               do d = 0,depth-1
                   do i1 = 0,3
                      ic1 = ic_lower(1)+i1
                      do i0 = 0,3
                         ic0 = ic_lower(0)+i0
-                        u(ic0,ic1,0) = u(ic0,ic1,0) + w(i0,i1)*V(0,s)
+                        u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
                      enddo
                   enddo
-               else if ( depth_2 ) then
-                  do d = 0,1
-                     do i1 = 0,3
-                        ic1 = ic_lower(1)+i1
-                        do i0 = 0,3
-                           ic0 = ic_lower(0)+i0
-                           u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
-                        enddo
-                     enddo
-                  enddo
-               else if ( depth_3 ) then
-                  do d = 0,2
-                     do i1 = 0,3
-                        ic1 = ic_lower(1)+i1
-                        do i0 = 0,3
-                           ic0 = ic_lower(0)+i0
-                           u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
-                        enddo
-                     enddo
-                  enddo
-               else
-                  do d = 0,depth-1
-                     do i1 = 0,3
-                        ic1 = ic_lower(1)+i1
-                        do i0 = 0,3
-                           ic0 = ic_lower(0)+i0
-                           u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
-                        enddo
-                     enddo
-                  enddo
-               endif
+               enddo
             endif
          enddo
 
