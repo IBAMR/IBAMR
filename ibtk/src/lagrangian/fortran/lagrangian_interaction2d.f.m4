@@ -1686,6 +1686,7 @@ c
       INTEGER i0,i1,ic0,ic1
       INTEGER ig_lower(0:NDIM-1),ig_upper(0:NDIM-1)
       INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER istart0,istop0,istart1,istop1
       INTEGER d,k,l,s
 
       REAL X_o_dx
@@ -1806,37 +1807,24 @@ c
                ic1 = ic_lower(1)
                do d = 0,depth-1
                   V(d,s) = 0.d0
-
-                  V(d,s) = V(d,s) + w(0,0)*u(ic0+0,ic1+0,d)
-                  V(d,s) = V(d,s) + w(1,0)*u(ic0+1,ic1+0,d)
-                  V(d,s) = V(d,s) + w(2,0)*u(ic0+2,ic1+0,d)
-                  V(d,s) = V(d,s) + w(3,0)*u(ic0+3,ic1+0,d)
-
-                  V(d,s) = V(d,s) + w(0,1)*u(ic0+0,ic1+1,d)
-                  V(d,s) = V(d,s) + w(1,1)*u(ic0+1,ic1+1,d)
-                  V(d,s) = V(d,s) + w(2,1)*u(ic0+2,ic1+1,d)
-                  V(d,s) = V(d,s) + w(3,1)*u(ic0+3,ic1+1,d)
-
-                  V(d,s) = V(d,s) + w(0,2)*u(ic0+0,ic1+2,d)
-                  V(d,s) = V(d,s) + w(1,2)*u(ic0+1,ic1+2,d)
-                  V(d,s) = V(d,s) + w(2,2)*u(ic0+2,ic1+2,d)
-                  V(d,s) = V(d,s) + w(3,2)*u(ic0+3,ic1+2,d)
-
-                  V(d,s) = V(d,s) + w(0,3)*u(ic0+0,ic1+3,d)
-                  V(d,s) = V(d,s) + w(1,3)*u(ic0+1,ic1+3,d)
-                  V(d,s) = V(d,s) + w(2,3)*u(ic0+2,ic1+3,d)
-                  V(d,s) = V(d,s) + w(3,3)*u(ic0+3,ic1+3,d)
+                  do i1 = 0,3
+                     ic1 = ic_lower(1)+i1
+                     do i0 = 0,3
+                        ic0 = ic_lower(0)+i0
+                        V(d,s) = V(d,s) + w(i0,i1)*u(ic0,ic1,d)
+                     enddo
+                  enddo
                enddo
             else
+               istart0 =   max(ig_lower(0)-ic_lower(0),0)
+               istop0  = 3-max(ic_upper(0)-ig_upper(0),0)
+               istart1 =   max(ig_lower(1)-ic_lower(1),0)
+               istop1  = 3-max(ic_upper(1)-ig_upper(1),0)
                do d = 0,depth-1
                   V(d,s) = 0.d0
-                  do i1 =
-     &                 0+max(ig_lower(1)-ic_lower(1),0),
-     &                 3-max(ic_upper(1)-ig_upper(1),0)
+                  do i1 = istart1,istop1
                      ic1 = ic_lower(1)+i1
-                     do i0 =
-     &                    0+max(ig_lower(0)-ic_lower(0),0),
-     &                    3-max(ic_upper(0)-ig_upper(0),0)
+                     do i0 = istart0,istop0
                         ic0 = ic_lower(0)+i0
                         V(d,s) = V(d,s) + w(i0,i1)*u(ic0,ic1,d)
                      enddo
@@ -1898,37 +1886,24 @@ c
                ic1 = ic_lower(1)
                do d = 0,depth-1
                   V(d,s) = 0.d0
-
-                  V(d,s) = V(d,s) + w(0,0)*u(ic0+0,ic1+0,d)
-                  V(d,s) = V(d,s) + w(1,0)*u(ic0+1,ic1+0,d)
-                  V(d,s) = V(d,s) + w(2,0)*u(ic0+2,ic1+0,d)
-                  V(d,s) = V(d,s) + w(3,0)*u(ic0+3,ic1+0,d)
-
-                  V(d,s) = V(d,s) + w(0,1)*u(ic0+0,ic1+1,d)
-                  V(d,s) = V(d,s) + w(1,1)*u(ic0+1,ic1+1,d)
-                  V(d,s) = V(d,s) + w(2,1)*u(ic0+2,ic1+1,d)
-                  V(d,s) = V(d,s) + w(3,1)*u(ic0+3,ic1+1,d)
-
-                  V(d,s) = V(d,s) + w(0,2)*u(ic0+0,ic1+2,d)
-                  V(d,s) = V(d,s) + w(1,2)*u(ic0+1,ic1+2,d)
-                  V(d,s) = V(d,s) + w(2,2)*u(ic0+2,ic1+2,d)
-                  V(d,s) = V(d,s) + w(3,2)*u(ic0+3,ic1+2,d)
-
-                  V(d,s) = V(d,s) + w(0,3)*u(ic0+0,ic1+3,d)
-                  V(d,s) = V(d,s) + w(1,3)*u(ic0+1,ic1+3,d)
-                  V(d,s) = V(d,s) + w(2,3)*u(ic0+2,ic1+3,d)
-                  V(d,s) = V(d,s) + w(3,3)*u(ic0+3,ic1+3,d)
+                  do i1 = 0,3
+                     ic1 = ic_lower(1)+i1
+                     do i0 = 0,3
+                        ic0 = ic_lower(0)+i0
+                        V(d,s) = V(d,s) + w(i0,i1)*u(ic0,ic1,d)
+                     enddo
+                  enddo
                enddo
             else
+               istart0 =   max(ig_lower(0)-ic_lower(0),0)
+               istop0  = 3-max(ic_upper(0)-ig_upper(0),0)
+               istart1 =   max(ig_lower(1)-ic_lower(1),0)
+               istop1  = 3-max(ic_upper(1)-ig_upper(1),0)
                do d = 0,depth-1
                   V(d,s) = 0.d0
-                  do i1 =
-     &                 0+max(ig_lower(1)-ic_lower(1),0),
-     &                 3-max(ic_upper(1)-ig_upper(1),0)
+                  do i1 = istart1,istop1
                      ic1 = ic_lower(1)+i1
-                     do i0 =
-     &                    0+max(ig_lower(0)-ic_lower(0),0),
-     &                    3-max(ic_upper(0)-ig_upper(0),0)
+                     do i0 = istart0,istop0
                         ic0 = ic_lower(0)+i0
                         V(d,s) = V(d,s) + w(i0,i1)*u(ic0,ic1,d)
                      enddo
@@ -1989,6 +1964,7 @@ c
       INTEGER i0,i1,ic0,ic1
       INTEGER ig_lower(0:NDIM-1),ig_upper(0:NDIM-1)
       INTEGER ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER istart0,istop0,istart1,istop1
       INTEGER d,k,l,s
 
       REAL X_o_dx
@@ -2108,35 +2084,23 @@ c
                ic0 = ic_lower(0)
                ic1 = ic_lower(1)
                do d = 0,depth-1
-                  u(ic0+0,ic1+0,d) = u(ic0+0,ic1+0,d) + w(0,0)*V(d,s)
-                  u(ic0+1,ic1+0,d) = u(ic0+1,ic1+0,d) + w(1,0)*V(d,s)
-                  u(ic0+2,ic1+0,d) = u(ic0+2,ic1+0,d) + w(2,0)*V(d,s)
-                  u(ic0+3,ic1+0,d) = u(ic0+3,ic1+0,d) + w(3,0)*V(d,s)
-
-                  u(ic0+0,ic1+1,d) = u(ic0+0,ic1+1,d) + w(0,1)*V(d,s)
-                  u(ic0+1,ic1+1,d) = u(ic0+1,ic1+1,d) + w(1,1)*V(d,s)
-                  u(ic0+2,ic1+1,d) = u(ic0+2,ic1+1,d) + w(2,1)*V(d,s)
-                  u(ic0+3,ic1+1,d) = u(ic0+3,ic1+1,d) + w(3,1)*V(d,s)
-
-                  u(ic0+0,ic1+2,d) = u(ic0+0,ic1+2,d) + w(0,2)*V(d,s)
-                  u(ic0+1,ic1+2,d) = u(ic0+1,ic1+2,d) + w(1,2)*V(d,s)
-                  u(ic0+2,ic1+2,d) = u(ic0+2,ic1+2,d) + w(2,2)*V(d,s)
-                  u(ic0+3,ic1+2,d) = u(ic0+3,ic1+2,d) + w(3,2)*V(d,s)
-
-                  u(ic0+0,ic1+3,d) = u(ic0+0,ic1+3,d) + w(0,3)*V(d,s)
-                  u(ic0+1,ic1+3,d) = u(ic0+1,ic1+3,d) + w(1,3)*V(d,s)
-                  u(ic0+2,ic1+3,d) = u(ic0+2,ic1+3,d) + w(2,3)*V(d,s)
-                  u(ic0+3,ic1+3,d) = u(ic0+3,ic1+3,d) + w(3,3)*V(d,s)
+                  do i1 = 0,3
+                     ic1 = ic_lower(1)+i1
+                     do i0 = 0,3
+                        ic0 = ic_lower(0)+i0
+                        u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
+                     enddo
+                  enddo
                enddo
             else
+               istart0 =   max(ig_lower(0)-ic_lower(0),0)
+               istop0  = 3-max(ic_upper(0)-ig_upper(0),0)
+               istart1 =   max(ig_lower(1)-ic_lower(1),0)
+               istop1  = 3-max(ic_upper(1)-ig_upper(1),0)
                do d = 0,depth-1
-                  do i1 =
-     &                 0+max(ig_lower(1)-ic_lower(1),0),
-     &                 3-max(ic_upper(1)-ig_upper(1),0)
+                  do i1 = istart1,istop1
                      ic1 = ic_lower(1)+i1
-                     do i0 =
-     &                    0+max(ig_lower(0)-ic_lower(0),0),
-     &                    3-max(ic_upper(0)-ig_upper(0),0)
+                     do i0 = istart0,istop0
                         ic0 = ic_lower(0)+i0
                         u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
                      enddo
@@ -2197,35 +2161,23 @@ c
                ic0 = ic_lower(0)
                ic1 = ic_lower(1)
                do d = 0,depth-1
-                  u(ic0+0,ic1+0,d) = u(ic0+0,ic1+0,d) + w(0,0)*V(d,s)
-                  u(ic0+1,ic1+0,d) = u(ic0+1,ic1+0,d) + w(1,0)*V(d,s)
-                  u(ic0+2,ic1+0,d) = u(ic0+2,ic1+0,d) + w(2,0)*V(d,s)
-                  u(ic0+3,ic1+0,d) = u(ic0+3,ic1+0,d) + w(3,0)*V(d,s)
-
-                  u(ic0+0,ic1+1,d) = u(ic0+0,ic1+1,d) + w(0,1)*V(d,s)
-                  u(ic0+1,ic1+1,d) = u(ic0+1,ic1+1,d) + w(1,1)*V(d,s)
-                  u(ic0+2,ic1+1,d) = u(ic0+2,ic1+1,d) + w(2,1)*V(d,s)
-                  u(ic0+3,ic1+1,d) = u(ic0+3,ic1+1,d) + w(3,1)*V(d,s)
-
-                  u(ic0+0,ic1+2,d) = u(ic0+0,ic1+2,d) + w(0,2)*V(d,s)
-                  u(ic0+1,ic1+2,d) = u(ic0+1,ic1+2,d) + w(1,2)*V(d,s)
-                  u(ic0+2,ic1+2,d) = u(ic0+2,ic1+2,d) + w(2,2)*V(d,s)
-                  u(ic0+3,ic1+2,d) = u(ic0+3,ic1+2,d) + w(3,2)*V(d,s)
-
-                  u(ic0+0,ic1+3,d) = u(ic0+0,ic1+3,d) + w(0,3)*V(d,s)
-                  u(ic0+1,ic1+3,d) = u(ic0+1,ic1+3,d) + w(1,3)*V(d,s)
-                  u(ic0+2,ic1+3,d) = u(ic0+2,ic1+3,d) + w(2,3)*V(d,s)
-                  u(ic0+3,ic1+3,d) = u(ic0+3,ic1+3,d) + w(3,3)*V(d,s)
+                  do i1 = 0,3
+                     ic1 = ic_lower(1)+i1
+                     do i0 = 0,3
+                        ic0 = ic_lower(0)+i0
+                        u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
+                     enddo
+                  enddo
                enddo
             else
+               istart0 =   max(ig_lower(0)-ic_lower(0),0)
+               istop0  = 3-max(ic_upper(0)-ig_upper(0),0)
+               istart1 =   max(ig_lower(1)-ic_lower(1),0)
+               istop1  = 3-max(ic_upper(1)-ig_upper(1),0)
                do d = 0,depth-1
-                  do i1 =
-     &                 0+max(ig_lower(1)-ic_lower(1),0),
-     &                 3-max(ic_upper(1)-ig_upper(1),0)
+                  do i1 = istart1,istop1
                      ic1 = ic_lower(1)+i1
-                     do i0 =
-     &                    0+max(ig_lower(0)-ic_lower(0),0),
-     &                    3-max(ic_upper(0)-ig_upper(0),0)
+                     do i0 = istart0,istop0
                         ic0 = ic_lower(0)+i0
                         u(ic0,ic1,d) = u(ic0,ic1,d) + w(i0,i1)*V(d,s)
                      enddo
