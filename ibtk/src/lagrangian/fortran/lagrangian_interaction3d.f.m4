@@ -182,9 +182,6 @@ c
       subroutine lagrangian_ib_3_interp3d(
      &     dx,x_lower,x_upper,depth,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
-     &     patch_touches_lower_physical_bdry,
-     &     patch_touches_upper_physical_bdry,
-     &     use_alt_one_sided_delta,
      &     nugc0,nugc1,nugc2,
      &     u,
      &     indices,Xshift,nindices,
@@ -205,10 +202,6 @@ c
       INTEGER nugc0,nugc1,nugc2
       INTEGER nindices
 
-      INTEGER patch_touches_lower_physical_bdry(0:NDIM-1)
-      INTEGER patch_touches_upper_physical_bdry(0:NDIM-1)
-      INTEGER use_alt_one_sided_delta(0:NDIM-1)
-
       INTEGER indices(0:nindices-1)
 
       REAL Xshift(0:NDIM-1,0:nindices-1)
@@ -228,9 +221,6 @@ c
       INTEGER d,l,s
 
       REAL X_cell(0:NDIM-1),w0(0:2),w1(0:2),w2(0:2)
-
-      LOGICAL touches_lower_bdry(0:NDIM-1)
-      LOGICAL touches_upper_bdry(0:NDIM-1)
 c
 c     Use the IB 3-point delta function to interpolate u onto V.
 c
@@ -294,62 +284,6 @@ CDEC$ LOOP COUNT(3)
      &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
          enddo
 c
-c     Determine whether special interpolation weights are needed to
-c     handle physical boundary conditions.
-c
-         do d = 0,NDIM-1
-
-            touches_lower_bdry(d) = .false.
-            if ( patch_touches_lower_physical_bdry(d).eq.1 ) then
-               if ( (use_alt_one_sided_delta(d).eq.0).and.
-     &              (X(d,s) - x_lower(d) .lt. 1.5d0*dx(d)) ) then
-                  touches_lower_bdry(d) = .true.
-               elseif ( (use_alt_one_sided_delta(d).eq.1).and.
-     &                 (X(d,s) - x_lower(d) .lt. 2.5d0*dx(d)) ) then
-                  touches_lower_bdry(d) = .true.
-               endif
-            endif
-
-            touches_upper_bdry(d) = .false.
-            if ( patch_touches_upper_physical_bdry(d).eq.1 ) then
-               if ( (use_alt_one_sided_delta(d).eq.0).and.
-     &              (x_upper(d) - X(d,s) .lt. 1.5d0*dx(d)) ) then
-                  touches_upper_bdry(d) = .true.
-               elseif ( (use_alt_one_sided_delta(d).eq.1).and.
-     &                 (x_upper(d) - X(d,s) .lt. 2.5d0*dx(d)) ) then
-                  touches_upper_bdry(d) = .true.
-               endif
-            endif
-
-         enddo
-c
-c     Modify the interpolation stencil and weights near physical
-c     boundaries.
-c
-         if (touches_lower_bdry(0)) then
-            print *,'error: not supported for IB_3 delta function...'
-            call abort
-         elseif (touches_upper_bdry(0)) then
-            print *,'error: not supported for IB_3 delta function...'
-            call abort
-         endif
-
-         if (touches_lower_bdry(1)) then
-            print *,'error: not supported for IB_3 delta function...'
-            call abort
-         elseif (touches_upper_bdry(1)) then
-            print *,'error: not supported for IB_3 delta function...'
-            call abort
-         endif
-
-         if (touches_lower_bdry(2)) then
-            print *,'error: not supported for IB_3 delta function...'
-            call abort
-         elseif (touches_upper_bdry(2)) then
-            print *,'error: not supported for IB_3 delta function...'
-            call abort
-         endif
-c
 c     Interpolate u onto V.
 c
          do d = 0,depth-1
@@ -387,9 +321,6 @@ c
      &     indices,Xshift,nindices,
      &     X,V,
      &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
-     &     patch_touches_lower_physical_bdry,
-     &     patch_touches_upper_physical_bdry,
-     &     use_alt_one_sided_delta,
      &     nugc0,nugc1,nugc2,
      &     u)
 c
@@ -410,10 +341,6 @@ c
 
       INTEGER indices(0:nindices-1)
 
-      INTEGER patch_touches_lower_physical_bdry(0:NDIM-1)
-      INTEGER patch_touches_upper_physical_bdry(0:NDIM-1)
-      INTEGER use_alt_one_sided_delta(0:NDIM-1)
-
       REAL Xshift(0:NDIM-1,0:nindices-1)
 
       REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
@@ -431,9 +358,6 @@ c
       INTEGER d,l,s
 
       REAL X_cell(0:NDIM-1),w0(0:2),w1(0:2),w2(0:2)
-
-      LOGICAL touches_lower_bdry(0:NDIM-1)
-      LOGICAL touches_upper_bdry(0:NDIM-1)
 c
 c     Use the IB 3-point delta function to spread V onto u.
 c
@@ -496,61 +420,6 @@ CDEC$ LOOP COUNT(3)
      &           lagrangian_ib_3_delta(
      &           (X(2,s)+Xshift(2,l)-X_cell(2))/dx(2))
          enddo
-c
-c     Determine whether special spreading weights are needed to handle
-c     physical boundary conditions.
-c
-         do d = 0,NDIM-1
-
-            touches_lower_bdry(d) = .false.
-            if ( patch_touches_lower_physical_bdry(d).eq.1 ) then
-               if ( (use_alt_one_sided_delta(d).eq.0).and.
-     &              (X(d,s) - x_lower(d) .lt. 1.5d0*dx(d)) ) then
-                  touches_lower_bdry(d) = .true.
-               elseif ( (use_alt_one_sided_delta(d).eq.1).and.
-     &                 (X(d,s) - x_lower(d) .lt. 2.5d0*dx(d)) ) then
-                  touches_lower_bdry(d) = .true.
-               endif
-            endif
-
-            touches_upper_bdry(d) = .false.
-            if ( patch_touches_upper_physical_bdry(d).eq.1 ) then
-               if ( (use_alt_one_sided_delta(d).eq.0).and.
-     &              (x_upper(d) - X(d,s) .lt. 1.5d0*dx(d)) ) then
-                  touches_upper_bdry(d) = .true.
-               elseif ( (use_alt_one_sided_delta(d).eq.1).and.
-     &                 (x_upper(d) - X(d,s) .lt. 2.5d0*dx(d)) ) then
-                  touches_upper_bdry(d) = .true.
-               endif
-            endif
-
-         enddo
-c
-c     Modify the spreading stencil and weights near physical boundaries.
-c
-         if (touches_lower_bdry(0)) then
-            print *,'error: not supported for IB_3 delta function...'
-            call abort
-         elseif (touches_upper_bdry(0)) then
-            print *,'error: not supported for IB_3 delta function...'
-            call abort
-         endif
-
-         if (touches_lower_bdry(1)) then
-            print *,'error: not supported for IB_3 delta function...'
-            call abort
-         elseif (touches_upper_bdry(1)) then
-            print *,'error: not supported for IB_3 delta function...'
-            call abort
-         endif
-
-         if (touches_lower_bdry(2)) then
-            print *,'error: not supported for IB_3 delta function...'
-            call abort
-         elseif (touches_upper_bdry(2)) then
-            print *,'error: not supported for IB_3 delta function...'
-            call abort
-         endif
 c
 c     Spread V onto u.
 c

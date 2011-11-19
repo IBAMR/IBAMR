@@ -638,7 +638,6 @@ private:
         const double* dx,
         const blitz::TinyVector<int,NDIM>& patch_touches_lower_physical_bdry,
         const blitz::TinyVector<int,NDIM>& patch_touches_upper_physical_bdry,
-        const blitz::TinyVector<int,NDIM>& use_alt_one_sided_delta,
         const std::vector<int>& local_indices,
         const std::vector<double>& periodic_offsets,
         const std::string& interp_fcn);
@@ -660,7 +659,6 @@ private:
         const double* dx,
         const blitz::TinyVector<int,NDIM>& patch_touches_lower_physical_bdry,
         const blitz::TinyVector<int,NDIM>& patch_touches_upper_physical_bdry,
-        const blitz::TinyVector<int,NDIM>& use_alt_one_sided_delta,
         const std::vector<int>& local_indices,
         const std::vector<double>& periodic_offsets,
         const std::string& spread_fcn);

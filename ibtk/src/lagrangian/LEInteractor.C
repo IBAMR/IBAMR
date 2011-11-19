@@ -156,12 +156,10 @@ extern "C"
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
-        const int* , const int* ,
         const int& , const int& ,
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* ,
         const int& , const int& , const int& ,
 #endif
         const double* ,
@@ -176,12 +174,10 @@ extern "C"
         const double* , const double* ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
-        const int* , const int* ,
         const int& , const int& ,
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* ,
         const int& , const int& , const int& ,
 #endif
         double*
@@ -192,12 +188,10 @@ extern "C"
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& ,
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& , const int& ,
 #endif
         const double* ,
@@ -212,12 +206,10 @@ extern "C"
         const double* , const double* ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& ,
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& , const int& ,
 #endif
         double*
@@ -227,12 +219,10 @@ extern "C"
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& ,
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& , const int& ,
 #endif
         const double* ,
@@ -247,12 +237,10 @@ extern "C"
         const double* , const double* ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& ,
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& , const int& ,
 #endif
         double*
@@ -263,12 +251,10 @@ extern "C"
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& ,
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& , const int& ,
 #endif
         const double* ,
@@ -283,12 +269,10 @@ extern "C"
         const double* , const double* ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& ,
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& , const int& ,
 #endif
         double*
@@ -299,12 +283,10 @@ extern "C"
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& ,
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& , const int& ,
 #endif
         const double* ,
@@ -319,12 +301,10 @@ extern "C"
         const double* , const double* ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& ,
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& , const int& ,
 #endif
         double*
@@ -335,12 +315,10 @@ extern "C"
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& ,
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& , const int& ,
 #endif
         const double* ,
@@ -355,12 +333,10 @@ extern "C"
         const double* , const double* ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& ,
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& , const int& ,
 #endif
         double*
@@ -371,12 +347,12 @@ extern "C"
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
+        const int* , const int* ,
         const int& , const int& ,
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
+        const int* , const int* ,
         const int& , const int& , const int& ,
 #endif
         const double* ,
@@ -391,12 +367,12 @@ extern "C"
         const double* , const double* ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
+        const int* , const int* ,
         const int& , const int& ,
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
+        const int* , const int* ,
         const int& , const int& , const int& ,
 #endif
         double*
@@ -409,12 +385,12 @@ extern "C"
         const double* , const double* ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
+        const int* , const int* ,
         const int& , const int& ,
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
+        const int* , const int* ,
         const int& , const int& , const int& ,
 #endif
         double*
@@ -425,12 +401,10 @@ extern "C"
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& ,
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& , const int& ,
 #endif
         const double* ,
@@ -445,12 +419,10 @@ extern "C"
         const double* , const double* ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& ,
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int* , const int* , const int* ,
         const int& , const int& , const int& ,
 #endif
         double*
@@ -806,7 +778,6 @@ LEInteractor::interpolate(
     const double* const dx = pgeom->getDx();
     blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
     blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
-    blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -827,7 +798,6 @@ LEInteractor::interpolate(
                     q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(),
                     x_lower, x_upper, dx,
                     patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-                    use_alt_one_sided_delta,
                     local_indices, periodic_offsets,
                     interp_fcn);
     }
@@ -892,12 +862,6 @@ LEInteractor::interpolate(
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
-            //use_alt_one_sided_delta[axis] = 1;
-            // NOTE: When the previous line is not commented, a shifted
-            // one-sided delta function is used for the normal component at
-            // physical boundaries, avoiding interpolating data from the exact
-            // physical boundary.
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 x_lower_axis[d] = x_lower[d];
@@ -909,7 +873,6 @@ LEInteractor::interpolate(
                         q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(), 1,
                         x_lower_axis.data(), x_upper_axis.data(), dx,
                         patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-                        use_alt_one_sided_delta,
                         local_indices, periodic_offsets,
                         interp_fcn);
             for (unsigned int k = 0; k < local_indices.size(); ++k)
@@ -967,7 +930,6 @@ LEInteractor::interpolate(
     const double* const dx = pgeom->getDx();
     blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
     blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
-    blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -989,7 +951,6 @@ LEInteractor::interpolate(
                     q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(),
                     x_lower, x_upper, dx,
                     patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-                    use_alt_one_sided_delta,
                     local_indices, periodic_offsets,
                     interp_fcn);
     }
@@ -1071,12 +1032,6 @@ LEInteractor::interpolate(
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
-            //use_alt_one_sided_delta[axis] = 1;
-            // NOTE: When the previous line is not commented, a shifted
-            // one-sided delta function is used for the normal component at
-            // physical boundaries, avoiding interpolating data from the exact
-            // physical boundary.
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 x_lower_axis[d] = x_lower[d];
@@ -1088,7 +1043,6 @@ LEInteractor::interpolate(
                         q_data->getPointer(axis), SideGeometry<NDIM>::toSideBox(q_data->getBox(), axis), q_data->getGhostCellWidth(), 1,
                         x_lower_axis.data(), x_upper_axis.data(), dx,
                         patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-                        use_alt_one_sided_delta,
                         local_indices, periodic_offsets,
                         interp_fcn);
             for (unsigned int k = 0; k < local_indices.size(); ++k)
@@ -1198,7 +1152,6 @@ LEInteractor::spread(
     const double* const dx = pgeom->getDx();
     blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
     blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
-    blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1219,7 +1172,6 @@ LEInteractor::spread(
                Q_data, Q_depth, X_data,
                x_lower, x_upper, dx,
                patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-               use_alt_one_sided_delta,
                local_indices, periodic_offsets,
                spread_fcn);
     }
@@ -1284,12 +1236,6 @@ LEInteractor::spread(
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
-            //use_alt_one_sided_delta[axis] = 1;
-            // NOTE: When the previous line is not commented, a shifted
-            // one-sided delta function is used for the normal component at
-            // physical boundaries, avoiding spreading data to the exact
-            // physical boundary.
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 x_lower_axis[d] = x_lower[d];
@@ -1305,7 +1251,6 @@ LEInteractor::spread(
                    &Q_data_axis[0], 1, X_data,
                    x_lower_axis.data(), x_upper_axis.data(), dx,
                    patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-                   use_alt_one_sided_delta,
                    local_indices, periodic_offsets,
                    spread_fcn);
         }
@@ -1378,7 +1323,6 @@ LEInteractor::spread(
     const double* const dx = pgeom->getDx();
     blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
     blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
-    blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         static const int lower = 0;
@@ -1400,7 +1344,6 @@ LEInteractor::spread(
                Q_data, Q_depth, X_data,
                x_lower, x_upper, dx,
                patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-               use_alt_one_sided_delta,
                local_indices, periodic_offsets,
                spread_fcn);
     }
@@ -1460,11 +1403,6 @@ LEInteractor::spread(
         std::vector<double> Q_data_axis(local_sz);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            blitz::TinyVector<int,NDIM> use_alt_one_sided_delta(0);
-            //use_alt_one_sided_delta[axis] = 1;
-            // NOTE: When the previous line is not commented, a shifted one-sided
-            // delta function is used for the normal component at physical
-            // boundaries, avoiding spreading data to the exact physical boundary.
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 x_lower_axis[d] = x_lower[d];
@@ -1480,7 +1418,6 @@ LEInteractor::spread(
                    &Q_data_axis[0], 1, X_data,
                    x_lower_axis.data(), x_upper_axis.data(), dx,
                    patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
-                   use_alt_one_sided_delta,
                    local_indices, periodic_offsets,
                    spread_fcn);
         }
@@ -1506,7 +1443,6 @@ LEInteractor::interpolate(
     const double* const dx,
     const blitz::TinyVector<int,NDIM>& patch_touches_lower_physical_bdry,
     const blitz::TinyVector<int,NDIM>& patch_touches_upper_physical_bdry,
-    const blitz::TinyVector<int,NDIM>& use_alt_one_sided_delta,
     const std::vector<int>& local_indices,
     const std::vector<double>& periodic_offsets,
     const std::string& interp_fcn)
@@ -1538,14 +1474,10 @@ LEInteractor::interpolate(
             dx,x_lower,x_upper,q_depth,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
             q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
@@ -1563,16 +1495,10 @@ LEInteractor::interpolate(
             dx,x_lower,x_upper,q_depth,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
-            &use_alt_one_sided_delta[0],
             q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
-            &use_alt_one_sided_delta[0],
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
@@ -1590,16 +1516,10 @@ LEInteractor::interpolate(
             dx,x_lower,x_upper,q_depth,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
-            &use_alt_one_sided_delta[0],
             q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
-            &use_alt_one_sided_delta[0],
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
@@ -1617,16 +1537,10 @@ LEInteractor::interpolate(
             dx,x_lower,x_upper,q_depth,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
-            &use_alt_one_sided_delta[0],
             q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
-            &use_alt_one_sided_delta[0],
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
@@ -1643,16 +1557,10 @@ LEInteractor::interpolate(
             dx,x_lower,x_upper,q_depth,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
-            &use_alt_one_sided_delta[0],
             q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
-            &use_alt_one_sided_delta[0],
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
@@ -1666,16 +1574,10 @@ LEInteractor::interpolate(
             dx,x_lower,x_upper,q_depth,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
-            &use_alt_one_sided_delta[0],
             q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
-            &use_alt_one_sided_delta[0],
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
@@ -1694,14 +1596,12 @@ LEInteractor::interpolate(
             ilower(0),iupper(0),ilower(1),iupper(1),
             &patch_touches_lower_physical_bdry[0],
             &patch_touches_upper_physical_bdry[0],
-            &use_alt_one_sided_delta[0],
             q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
             &patch_touches_lower_physical_bdry[0],
             &patch_touches_upper_physical_bdry[0],
-            &use_alt_one_sided_delta[0],
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
@@ -1715,16 +1615,10 @@ LEInteractor::interpolate(
             dx,x_lower,x_upper,q_depth,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
-            &use_alt_one_sided_delta[0],
             q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
             ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-            &patch_touches_lower_physical_bdry[0],
-            &patch_touches_upper_physical_bdry[0],
-            &use_alt_one_sided_delta[0],
             q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
             q_data,
@@ -1786,7 +1680,6 @@ LEInteractor::spread(
     const double* const dx,
     const blitz::TinyVector<int,NDIM>& patch_touches_lower_physical_bdry,
     const blitz::TinyVector<int,NDIM>& patch_touches_upper_physical_bdry,
-    const blitz::TinyVector<int,NDIM>& use_alt_one_sided_delta,
     const std::vector<int>& local_indices,
     const std::vector<double>& periodic_offsets,
     const std::string& spread_fcn)
@@ -1835,14 +1728,10 @@ LEInteractor::spread(
                 X_data, Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
-                &patch_touches_lower_physical_bdry[0],
-                &patch_touches_upper_physical_bdry[0],
                 q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
                 ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                &patch_touches_lower_physical_bdry[0],
-                &patch_touches_upper_physical_bdry[0],
                 q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
                 q_data);
@@ -1873,16 +1762,10 @@ LEInteractor::spread(
                 X_data, Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
-                &patch_touches_lower_physical_bdry[0],
-                &patch_touches_upper_physical_bdry[0],
-                &use_alt_one_sided_delta[0],
                 q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
                 ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                &patch_touches_lower_physical_bdry[0],
-                &patch_touches_upper_physical_bdry[0],
-                &use_alt_one_sided_delta[0],
                 q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
                 q_data);
@@ -1913,16 +1796,10 @@ LEInteractor::spread(
                 X_data, Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
-                &patch_touches_lower_physical_bdry[0],
-                &patch_touches_upper_physical_bdry[0],
-                &use_alt_one_sided_delta[0],
                 q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
                 ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                &patch_touches_lower_physical_bdry[0],
-                &patch_touches_upper_physical_bdry[0],
-                &use_alt_one_sided_delta[0],
                 q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
                 q_data);
@@ -1953,16 +1830,10 @@ LEInteractor::spread(
                 X_data, Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
-                &patch_touches_lower_physical_bdry[0],
-                &patch_touches_upper_physical_bdry[0],
-                &use_alt_one_sided_delta[0],
                 q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
                 ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                &patch_touches_lower_physical_bdry[0],
-                &patch_touches_upper_physical_bdry[0],
-                &use_alt_one_sided_delta[0],
                 q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
                 q_data);
@@ -1992,16 +1863,10 @@ LEInteractor::spread(
                 X_data, Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
-                &patch_touches_lower_physical_bdry[0],
-                &patch_touches_upper_physical_bdry[0],
-                &use_alt_one_sided_delta[0],
                 q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
                 ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                &patch_touches_lower_physical_bdry[0],
-                &patch_touches_upper_physical_bdry[0],
-                &use_alt_one_sided_delta[0],
                 q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
                 q_data);
@@ -2028,16 +1893,10 @@ LEInteractor::spread(
                 X_data, Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
-                &patch_touches_lower_physical_bdry[0],
-                &patch_touches_upper_physical_bdry[0],
-                &use_alt_one_sided_delta[0],
                 q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
                 ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                &patch_touches_lower_physical_bdry[0],
-                &patch_touches_upper_physical_bdry[0],
-                &use_alt_one_sided_delta[0],
                 q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
                 q_data);
@@ -2069,14 +1928,12 @@ LEInteractor::spread(
                 ilower(0),iupper(0),ilower(1),iupper(1),
                 &patch_touches_lower_physical_bdry[0],
                 &patch_touches_upper_physical_bdry[0],
-                &use_alt_one_sided_delta[0],
                 q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
                 ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
                 &patch_touches_lower_physical_bdry[0],
                 &patch_touches_upper_physical_bdry[0],
-                &use_alt_one_sided_delta[0],
                 q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
                 q_data);
@@ -2091,14 +1948,12 @@ LEInteractor::spread(
                 ilower(0),iupper(0),ilower(1),iupper(1),
                 &patch_touches_lower_physical_bdry[0],
                 &patch_touches_upper_physical_bdry[0],
-                &use_alt_one_sided_delta[0],
                 q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
                 ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
                 &patch_touches_lower_physical_bdry[0],
                 &patch_touches_upper_physical_bdry[0],
-                &use_alt_one_sided_delta[0],
                 q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
                 q_data);
@@ -2120,16 +1975,10 @@ LEInteractor::spread(
                 X_data, Q_data,
 #if (NDIM == 2)
                 ilower(0),iupper(0),ilower(1),iupper(1),
-                &patch_touches_lower_physical_bdry[0],
-                &patch_touches_upper_physical_bdry[0],
-                &use_alt_one_sided_delta[0],
                 q_gcw(0),q_gcw(1),
 #endif
 #if (NDIM == 3)
                 ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
-                &patch_touches_lower_physical_bdry[0],
-                &patch_touches_upper_physical_bdry[0],
-                &use_alt_one_sided_delta[0],
                 q_gcw(0),q_gcw(1),q_gcw(2),
 #endif
                 q_data);
