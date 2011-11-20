@@ -6,19 +6,19 @@ c     Redistribution and use in source and binary forms, with or without
 c     modification, are permitted provided that the following conditions
 c     are met:
 c
-c     * Redistributions of source code must retain the above
-c     copyright notice, this list of conditions and the following
-c     disclaimer.
+c        * Redistributions of source code must retain the above
+c          copyright notice, this list of conditions and the following
+c          disclaimer.
 c
-c     * Redistributions in binary form must reproduce the above
-c     copyright notice, this list of conditions and the following
-c     disclaimer in the documentation and/or other materials
-c     provided with the distribution.
+c        * Redistributions in binary form must reproduce the above
+c          copyright notice, this list of conditions and the following
+c          disclaimer in the documentation and/or other materials
+c          provided with the distribution.
 c
-c     * Neither the name of New York University nor the names of its
-c     contributors may be used to endorse or promote products
-c     derived from this software without specific prior written
-c     permission.
+c        * Neither the name of New York University nor the names of its
+c          contributors may be used to endorse or promote products
+c          derived from this software without specific prior written
+c          permission.
 c
 c     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
 c     CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
@@ -1689,8 +1689,9 @@ c
       INTEGER istart0,istop0,istart1,istop1
       INTEGER d,k,l,s
 
-      REAL X_o_dx
-      REAL f(0:3),q0,q1,r0,r1,w0(0:3),w1(0:3),w(0:3,0:3),wy
+      REAL X_o_dx,q0,q1,r0,r1
+      REAL w0(0:3),w1(0:3),f(0:3)
+      REAL w(0:3,0:3),wy
 
       LOGICAL account_for_phys_bdry
       LOGICAL touches_lower_bdry(0:NDIM-1)
@@ -1817,8 +1818,6 @@ c
                enddo
             enddo
          else
-            ic0 = ic_lower(0)
-            ic1 = ic_lower(1)
             do d = 0,depth-1
                V(d,s) = 0.d0
                do i1 = 0,3
@@ -1885,8 +1884,9 @@ c
       INTEGER istart0,istop0,istart1,istop1
       INTEGER d,k,l,s
 
-      REAL X_o_dx
-      REAL f(0:3),q0,q1,r0,r1,w0(0:3),w1(0:3),w(0:3,0:3),wy
+      REAL X_o_dx,q0,q1,r0,r1
+      REAL w0(0:3),w1(0:3),f(0:3)
+      REAL w(0:3,0:3),wy
 
       LOGICAL account_for_phys_bdry
       LOGICAL touches_lower_bdry(0:NDIM-1)
@@ -2011,8 +2011,6 @@ c
                enddo
             enddo
          else
-            ic0 = ic_lower(0)
-            ic1 = ic_lower(1)
             do d = 0,depth-1
                do i1 = 0,3
                   ic1 = ic_lower(1)+i1
