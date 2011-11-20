@@ -60,37 +60,6 @@
 // C++ STDLIB INCLUDES
 #include <algorithm>
 
-#if HAVE_MM_PREFETCH
-#include <xmmintrin.h>
-#define PREFETCH(a,t) do { _mm_prefetch((const char*)(a),(t)); } while (0)
-#else
-#define PREFETCH(a,t)
-#endif
-
-#define PREFETCH_BLOCK(a,n,t)                                           \
-    do {                                                                \
-        for (int k = 0; k < (n); ++k)                                   \
-        {                                                               \
-            PREFETCH((a)+k,(t));                                        \
-        }                                                               \
-    } while (0)
-
-#if (NDIM == 2)
-#define PREFETCH_NDIM_BLOCK(a,t)                                        \
-    do {                                                                \
-        PREFETCH((a)  ,(t));                                            \
-        PREFETCH((a)+1,(t));                                            \
-    } while (0)
-#endif
-#if (NDIM == 3)
-#define PREFETCH_NDIM_BLOCK(a,t)                                        \
-    do {                                                                \
-        PREFETCH((a)  ,(t));                                            \
-        PREFETCH((a)+1,(t));                                            \
-        PREFETCH((a)+2,(t));                                            \
-    } while (0)
-#endif
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -544,13 +513,13 @@ IBStandardForceGen::computeLagrangianSpringForce(
     {
         for ( ; kblock < (num_springs-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
         {
-            PREFETCH_BLOCK(  lag_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(  lag_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(petsc_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(           force_fcns+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(          stiffnesses+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(         rest_lengths+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_READ_NTA_BLOCK(  lag_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(  lag_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(petsc_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(           force_fcns+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(          stiffnesses+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(         rest_lengths+BLOCKSIZE*(kblock+1), BLOCKSIZE);
             for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
             {
                 k = kblock*BLOCKSIZE+kunroll;
@@ -559,10 +528,10 @@ IBStandardForceGen::computeLagrangianSpringForce(
 #ifdef DEBUG_CHECK_ASSERTIONS
                 TBOX_ASSERT(mastr_idx != slave_idx);
 #endif
-                PREFETCH_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH_NDIM_BLOCK(F_node+petsc_slave_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH_NDIM_BLOCK(X_node+petsc_slave_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1]);
+                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_slave_node_idxs[k+1]);
+                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1]);
+                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+petsc_slave_node_idxs[k+1]);
                 D[0] = X_node[slave_idx+0] - X_node[mastr_idx+0];
                 D[1] = X_node[slave_idx+1] - X_node[mastr_idx+1];
 #if (NDIM == 3)
@@ -610,13 +579,13 @@ IBStandardForceGen::computeLagrangianSpringForce(
     {
         for ( ; kblock < (num_springs-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
         {
-            PREFETCH_BLOCK(  lag_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(  lag_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(petsc_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(           force_fcns+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(  dynamic_stiffnesses+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK( dynamic_rest_lengths+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_READ_NTA_BLOCK(  lag_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(  lag_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(petsc_slave_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(           force_fcns+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(  dynamic_stiffnesses+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK( dynamic_rest_lengths+BLOCKSIZE*(kblock+1), BLOCKSIZE);
             for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
             {
                 k = kblock*BLOCKSIZE+kunroll;
@@ -625,12 +594,12 @@ IBStandardForceGen::computeLagrangianSpringForce(
 #ifdef DEBUG_CHECK_ASSERTIONS
                 TBOX_ASSERT(mastr_idx != slave_idx);
 #endif
-                PREFETCH_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH_NDIM_BLOCK(F_node+petsc_slave_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH_NDIM_BLOCK(X_node+petsc_slave_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH(                    dynamic_stiffnesses[k+1], _MM_HINT_NTA);
-                PREFETCH(                   dynamic_rest_lengths[k+1], _MM_HINT_NTA);
+                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1]);
+                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_slave_node_idxs[k+1]);
+                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1]);
+                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+petsc_slave_node_idxs[k+1]);
+                PREFETCH_READ_NTA(                    dynamic_stiffnesses[k+1]);
+                PREFETCH_READ_NTA(                   dynamic_rest_lengths[k+1]);
                 D[0] = X_node[slave_idx+0] - X_node[mastr_idx+0];
                 D[1] = X_node[slave_idx+1] - X_node[mastr_idx+1];
 #if (NDIM == 3)
@@ -828,11 +797,11 @@ IBStandardForceGen::computeLagrangianBeamForce(
     {
         for ( ; kblock < (num_beams-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
         {
-            PREFETCH_BLOCK(petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK( petsc_next_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK( petsc_prev_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(           rigidities+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(           curvatures+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_READ_NTA_BLOCK(petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK( petsc_next_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK( petsc_prev_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(           rigidities+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(           curvatures+BLOCKSIZE*(kblock+1), BLOCKSIZE);
             for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
             {
                 k = kblock*BLOCKSIZE+kunroll;
@@ -843,12 +812,12 @@ IBStandardForceGen::computeLagrangianBeamForce(
                 TBOX_ASSERT(mastr_idx != next_idx);
                 TBOX_ASSERT(mastr_idx != prev_idx);
 #endif
-                PREFETCH_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH_NDIM_BLOCK(F_node+ petsc_next_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH_NDIM_BLOCK(F_node+ petsc_prev_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH_NDIM_BLOCK(X_node+ petsc_next_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH_NDIM_BLOCK(X_node+ petsc_prev_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1]);
+                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+ petsc_next_node_idxs[k+1]);
+                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+ petsc_prev_node_idxs[k+1]);
+                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1]);
+                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+ petsc_next_node_idxs[k+1]);
+                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+ petsc_prev_node_idxs[k+1]);
                 K = rigidities[k];
                 D2X0 = curvatures[k].data();
                 F[0] = K*(X_node[next_idx+0]+X_node[prev_idx+0]-2.0*X_node[mastr_idx+0]-D2X0[0]);
@@ -910,11 +879,11 @@ IBStandardForceGen::computeLagrangianBeamForce(
     {
         for ( ; kblock < (num_beams-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
         {
-            PREFETCH_BLOCK(petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK( petsc_next_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK( petsc_prev_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(   dynamic_rigidities+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(   dynamic_curvatures+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_READ_NTA_BLOCK(petsc_mastr_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK( petsc_next_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK( petsc_prev_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(   dynamic_rigidities+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(   dynamic_curvatures+BLOCKSIZE*(kblock+1), BLOCKSIZE);
             for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
             {
                 k = kblock*BLOCKSIZE+kunroll;
@@ -925,14 +894,14 @@ IBStandardForceGen::computeLagrangianBeamForce(
                 TBOX_ASSERT(mastr_idx != next_idx);
                 TBOX_ASSERT(mastr_idx != prev_idx);
 #endif
-                PREFETCH_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH_NDIM_BLOCK(F_node+ petsc_next_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH_NDIM_BLOCK(F_node+ petsc_prev_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH_NDIM_BLOCK(X_node+ petsc_next_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH_NDIM_BLOCK(X_node+ petsc_prev_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH(                     dynamic_rigidities[k+1], _MM_HINT_NTA);
-                PREFETCH(                     dynamic_curvatures[k+1], _MM_HINT_NTA);
+                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_mastr_node_idxs[k+1]);
+                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+ petsc_next_node_idxs[k+1]);
+                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+ petsc_prev_node_idxs[k+1]);
+                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+petsc_mastr_node_idxs[k+1]);
+                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+ petsc_next_node_idxs[k+1]);
+                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+ petsc_prev_node_idxs[k+1]);
+                PREFETCH_READ_NTA(                     dynamic_rigidities[k+1]);
+                PREFETCH_READ_NTA(                     dynamic_curvatures[k+1]);
                 K = *dynamic_rigidities[k];
                 D2X0 = dynamic_curvatures[k]->data();
                 F[0] = K*(X_node[next_idx+0]+X_node[prev_idx+0]-2.0*X_node[mastr_idx+0]-D2X0[0]);
@@ -1096,16 +1065,16 @@ IBStandardForceGen::computeLagrangianTargetPointForce(
     {
         for ( ; kblock < (num_target_points-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
         {
-            PREFETCH_BLOCK(petsc_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(          kappa+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(            eta+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(             X0+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_READ_NTA_BLOCK(petsc_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(          kappa+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(            eta+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(             X0+BLOCKSIZE*(kblock+1), BLOCKSIZE);
             for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
             {
                 k = kblock*BLOCKSIZE+kunroll;
                 idx = petsc_node_idxs[k];
-                PREFETCH_NDIM_BLOCK(F_node+petsc_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH_NDIM_BLOCK(X_node+petsc_node_idxs[k+1], _MM_HINT_NTA);
+                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_node_idxs[k+1]);
+                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+petsc_node_idxs[k+1]);
                 K = kappa[k];
                 E = eta[k];
                 X_target = X0[k].data();
@@ -1133,19 +1102,19 @@ IBStandardForceGen::computeLagrangianTargetPointForce(
     {
         for ( ; kblock < (num_target_points-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
         {
-            PREFETCH_BLOCK(petsc_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(  dynamic_kappa+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(    dynamic_eta+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
-            PREFETCH_BLOCK(     dynamic_X0+BLOCKSIZE*(kblock+1), BLOCKSIZE, _MM_HINT_NTA);
+            PREFETCH_READ_NTA_BLOCK(petsc_node_idxs+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(  dynamic_kappa+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(    dynamic_eta+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            PREFETCH_READ_NTA_BLOCK(     dynamic_X0+BLOCKSIZE*(kblock+1), BLOCKSIZE);
             for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
             {
                 k = kblock*BLOCKSIZE+kunroll;
                 idx = petsc_node_idxs[k];
-                PREFETCH_NDIM_BLOCK(F_node+petsc_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH_NDIM_BLOCK(X_node+petsc_node_idxs[k+1], _MM_HINT_NTA);
-                PREFETCH(                    dynamic_kappa[k+1], _MM_HINT_NTA);
-                PREFETCH(                      dynamic_eta[k+1], _MM_HINT_NTA);
-                PREFETCH(                       dynamic_X0[k+1], _MM_HINT_NTA);
+                PREFETCH_READ_NTA_NDIM_BLOCK(F_node+petsc_node_idxs[k+1]);
+                PREFETCH_READ_NTA_NDIM_BLOCK(X_node+petsc_node_idxs[k+1]);
+                PREFETCH_READ_NTA(                    dynamic_kappa[k+1]);
+                PREFETCH_READ_NTA(                      dynamic_eta[k+1]);
+                PREFETCH_READ_NTA(                       dynamic_X0[k+1]);
                 K = *dynamic_kappa[k];
                 E = *dynamic_eta[k];
                 X_target = dynamic_X0[k]->data();

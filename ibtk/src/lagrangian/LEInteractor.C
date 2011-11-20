@@ -2085,46 +2085,45 @@ LEInteractor::buildLocalIndices(
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    local_indices.reserve(upper_bound);
+    blitz::TinyVector<int,NDIM> offset;
+    local_indices   .reserve(     upper_bound);
     periodic_offsets.reserve(NDIM*upper_bound);
     if (s_sort_mode == NO_SORT)
     {
-        for (typename LIndexSetData<T> ::SetIterator it(*idx_data); it; it++)
+        std::set<LNode*,
+        for (typename LIndexSetData<T>::SetIterator it(*idx_data); it; it++)
         {
             const Index<NDIM>& i = it.getIndex();
-            if (box.contains(i))
-            {
-                const LSet<T>& node_set = it.getItem();
-                const typename LSet<T>::size_type num_ids = node_set.size();
+            if (!box.contains(i)) continue;
 
-                blitz::TinyVector<int,NDIM> offset(0);
-                static const int lower = 0;
-                static const int upper = 1;
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                if      (patch_touches_lower_periodic_bdry[d] && i(d) < ilower(d))
+                {
+                    offset[d] = -periodic_shift(d);  // X is ABOVE the top    of the patch --- need to shift DOWN
+                }
+                else if (patch_touches_upper_periodic_bdry[d] && i(d) > iupper(d))
+                {
+                    offset[d] = +periodic_shift(d);  // X is BELOW the bottom of the patch --- need to shift UP
+                }
+                else
+                {
+                    offset[d] = 0;
+                }
+            }
+
+            const LSet<T>& node_set = it.getItem();
+            const typename LSet<T>::size_type num_ids = node_set.size();
+            const unsigned int old_size = local_indices.size();
+            const unsigned int new_size = old_size+num_ids;
+            local_indices   .resize(     new_size);
+            periodic_offsets.resize(NDIM*new_size);
+            for (typename LSet<T>::size_type n = 0; n < num_ids; ++n)
+            {
+                local_indices[old_size+n] = node_set[n]->getLocalPETScIndex();
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    if      (pgeom->getTouchesPeriodicBoundary(d,lower) && i(d) < ilower(d))
-                    {
-                        offset[d] = -periodic_shift(d);  // X is ABOVE the top    of the patch --- need to shift DOWN
-                    }
-                    else if (pgeom->getTouchesPeriodicBoundary(d,upper) && i(d) > iupper(d))
-                    {
-                        offset[d] = +periodic_shift(d);  // X is BELOW the bottom of the patch --- need to shift UP
-                    }
-                }
-                periodic_offsets.resize(periodic_offsets.size()+NDIM*num_ids);
-                for (typename LSet<T>::size_type n = 0; n < num_ids; ++n)
-                {
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        periodic_offsets[periodic_offsets.size()-NDIM*(num_ids-n)+d] = static_cast<double>(offset[d])*dx[d];
-                    }
-                }
-
-                unsigned int k_start = local_indices.size();
-                local_indices.resize(local_indices.size()+num_ids);
-                for (unsigned int k = 0; k < node_set.size(); ++k)
-                {
-                    local_indices[k+k_start] = node_set[k]->getLocalPETScIndex();
+                    periodic_offsets[NDIM*(old_size+n)+d] = static_cast<double>(offset[d])*dx[d];
                 }
             }
         }
