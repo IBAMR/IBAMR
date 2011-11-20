@@ -2914,6 +2914,24 @@ LDataManager::computeNodeDistribution(
     // Collect the local nodes and assign local indices to the local nodes.
     unsigned int local_offset = 0;
     std::map<int,int> lag_idx_to_petsc_idx;
+#if 1
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        const Pointer<LNodeSetData> lag_node_index_data = patch->getPatchData(d_lag_node_index_current_idx);
+        for (LNodeSetData::DataIterator it = lag_node_index_data->data_begin(patch_box);
+             it != lag_node_index_data->data_end(); ++it)
+        {
+            LNode* const node_idx = *it;
+            const int lag_idx = node_idx->getLagrangianIndex();
+            local_lag_indices.push_back(lag_idx);
+            const int petsc_idx = local_offset++;
+            node_idx->setLocalPETScIndex(petsc_idx);
+            lag_idx_to_petsc_idx[lag_idx] = petsc_idx;
+        }
+    }
+#else
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -2936,6 +2954,7 @@ LDataManager::computeNodeDistribution(
             }
         }
     }
+#endif
 
     // Determine the Lagrangian indices of the nonlocal nodes.
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
