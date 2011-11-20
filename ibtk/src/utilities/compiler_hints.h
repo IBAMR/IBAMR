@@ -54,7 +54,7 @@ namespace IBTK
 #endif
 
 #if IBTK_HAVE_BUILTIN_PREFETCH
-#define PREFETCH_READ_NTA(a) __builtin_prefectch((a),0,0)
+#define PREFETCH_READ_NTA(a) __builtin_prefetch((a),0,0)
 #define PREFETCH_READ_NTA_BLOCK(a,n)                                    \
     do {                                                                \
         for (int k = 0; k < (n); ++k)                                   \
@@ -77,7 +77,7 @@ namespace IBTK
         PREFETCH_READ_NTA((a)+2);                                       \
     } while (0)
 #endif
-#define PREFETCH_WRITE_NTA(a) __builtin_prefectch((a),1,0)
+#define PREFETCH_WRITE_NTA(a) __builtin_prefetch((a),1,0)
 #define PREFETCH_WRITE_NTA_BLOCK(a,n)                                   \
     do {                                                                \
         for (int k = 0; k < (n); ++k)                                   \

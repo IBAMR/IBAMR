@@ -25,6 +25,10 @@
    __builtin_expect keyword */
 #undef HAVE_BUILTIN_EXPECT
 
+/* Boolean value indicating whether the C++ compiler supports the
+   __builtin_prefetch keyword */
+#undef HAVE_BUILTIN_PREFETCH
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
