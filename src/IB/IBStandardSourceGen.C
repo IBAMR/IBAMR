@@ -184,7 +184,7 @@ IBStandardSourceGen::initializeLevelData(
 
     std::fill(d_num_perimeter_nodes[level_number].begin(),d_num_perimeter_nodes[level_number].end(),0);
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
-    const std::vector<LNode*>& local_nodes = mesh->getNodes();
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
          cit != local_nodes.end(); ++cit)
     {
@@ -237,7 +237,7 @@ IBStandardSourceGen::getSourceLocations(
     std::fill(X_src.begin(), X_src.end(), blitz::TinyVector<double,NDIM>(0.0));
     const double* const restrict X_node = X_data->getGhostedLocalFormVecArray()->data();
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
-    const std::vector<LNode*>& local_nodes = mesh->getNodes();
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
          cit != local_nodes.end(); ++cit)
     {

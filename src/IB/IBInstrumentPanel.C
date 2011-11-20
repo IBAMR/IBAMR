@@ -557,7 +557,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
         if (l_data_manager->levelContainsLagrangianData(ln))
         {
             const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
-            const std::vector<LNode*>& local_nodes = mesh->getNodes();
+            const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
             for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
                  cit != local_nodes.end(); ++cit)
             {
@@ -705,7 +705,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(
 
             // Store the local positions of the perimeter nodes.
             const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
-            const std::vector<LNode*>& local_nodes = mesh->getNodes();
+            const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
             for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
                  cit != local_nodes.end(); ++cit)
             {
@@ -1042,7 +1042,7 @@ IBInstrumentPanel::readInstrumentData(
 
             // Store the local velocities of the perimeter nodes.
             const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
-            const std::vector<LNode*>& local_nodes = mesh->getNodes();
+            const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
             for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
                  cit != local_nodes.end(); ++cit)
             {

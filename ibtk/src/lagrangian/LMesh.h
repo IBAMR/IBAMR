@@ -56,7 +56,9 @@ public:
      * \brief Constructor.
      */
     LMesh(
-        const std::string& object_name);
+        const std::string& object_name,
+        const std::vector<LNode*>& local_nodes,
+        const std::vector<LNode*>& ghost_nodes);
 
     /*!
      * \brief Destructor.
@@ -64,74 +66,16 @@ public:
     ~LMesh();
 
     /*!
-     * \brief Set the local LNode objects.
-     */
-    void
-    setNodes(
-        const std::vector<LNode*>& nodes,
-        bool sorted=false);
-
-    /*!
      * \brief Return a const reference to the set of local LNode objects.
      */
     const std::vector<LNode*>&
-    getNodes() const;
-
-    /*!
-     * \brief Return a const reference to the set of Lagrangian indices for the
-     * local LNode objects.
-     */
-    const std::vector<int>&
-    getLagrangianIndices() const;
-
-    /*!
-     * \brief Return a const reference to the set of global PETSc indices for
-     * the local LNode objects.
-     */
-    const std::vector<int>&
-    getGlobalPETScIndices() const;
-
-    /*!
-     * \brief Return a const reference to the set of local PETSc indices for the
-     * local LNode objects.
-     */
-    const std::vector<int>&
-    getLocalPETScIndices() const;
-
-    /*!
-     * \brief Set the local ghost LNode objects.
-     */
-    void
-    setGhostNodes(
-        const std::vector<LNode*>& ghost_nodes,
-        bool sorted=false);
+    getLocalNodes() const;
 
     /*!
      * \brief Return a const reference to the set of local ghost LNode objects.
      */
     const std::vector<LNode*>&
     getGhostNodes() const;
-
-    /*!
-     * \brief Return a const reference to the set of Lagrangian indices for the
-     * local ghost LNode objects.
-     */
-    const std::vector<int>&
-    getGhostLagrangianIndices() const;
-
-    /*!
-     * \brief Return a const reference to the set of global PETSc indices for
-     * the local ghost LNode objects.
-     */
-    const std::vector<int>&
-    getGhostGlobalPETScIndices() const;
-
-    /*!
-     * \brief Return a const reference to the set of local PETSc indices for the
-     * local ghost LNode objects.
-     */
-    const std::vector<int>&
-    getGhostLocalPETScIndices() const;
 
 private:
     /*!
@@ -158,10 +102,8 @@ private:
         const LMesh& that);
 
     const std::string& d_object_name;
-    std::vector<LNode*> d_nodes;
-    std::vector<int> d_lag_idxs, d_global_petsc_idxs, d_local_petsc_idxs;
-    std::vector<LNode*> d_ghost_nodes;
-    std::vector<int> d_ghost_lag_idxs, d_ghost_global_petsc_idxs, d_ghost_local_petsc_idxs;
+    const std::vector<LNode*> d_local_nodes;
+    const std::vector<LNode*> d_ghost_nodes;
 };
 
 }// namespace IBTK

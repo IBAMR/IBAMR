@@ -284,7 +284,7 @@ IBKirchhoffRodForceGen::initializeLevelData(
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_num);
-    const std::vector<LNode*>& local_nodes = mesh->getNodes();
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Determine the "next" node indices for all rods associated with the
     // present MPI process.

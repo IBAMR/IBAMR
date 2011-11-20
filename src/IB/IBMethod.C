@@ -1099,7 +1099,7 @@ IBMethod::endDataRedistribution(
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
-        const std::vector<LNode*>& local_nodes = mesh->getNodes();
+        const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
              cit != local_nodes.end(); ++cit)
         {

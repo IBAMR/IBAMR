@@ -59,16 +59,12 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LMesh::LMesh(
-    const std::string& object_name)
+    const std::string& object_name,
+    const std::vector<LNode*>& local_nodes,
+    const std::vector<LNode*>& ghost_nodes)
     : d_object_name(object_name),
-      d_nodes(),
-      d_lag_idxs(),
-      d_global_petsc_idxs(),
-      d_local_petsc_idxs(),
-      d_ghost_nodes(),
-      d_ghost_lag_idxs(),
-      d_ghost_global_petsc_idxs(),
-      d_ghost_local_petsc_idxs()
+      d_local_nodes(local_nodes),
+      d_ghost_nodes(ghost_nodes)
 {
     // intentionally blank
     return;
@@ -79,81 +75,6 @@ LMesh::~LMesh()
     // intentionally blank
     return;
 }// ~LMesh
-
-void
-LMesh::setNodes(
-    const std::vector<LNode*>& nodes,
-    const bool sorted)
-{
-    d_nodes = nodes;
-    if (!sorted) std::sort(d_nodes.begin(), d_nodes.end(), LNodeIndexLocalPETScIndexComp());
-
-    unsigned int node_counter = 0;
-    const unsigned int num_nodes = d_nodes.size();
-    d_lag_idxs.resize(num_nodes);
-    d_global_petsc_idxs.resize(num_nodes);
-    d_local_petsc_idxs.resize(num_nodes);
-    if (num_nodes > 0)
-    {
-        for (std::vector<LNode*>::iterator it = d_nodes.begin(); it != d_nodes.end();
-             ++it, ++node_counter)
-        {
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(static_cast<int>(node_counter) == (*it)->getLocalPETScIndex());
-#endif
-            d_lag_idxs         [node_counter] = (*it)->getLagrangianIndex();
-            d_global_petsc_idxs[node_counter] = (*it)->getGlobalPETScIndex();
-            d_local_petsc_idxs [node_counter] = (*it)->getLocalPETScIndex();
-        }
-    }
-
-    unsigned int ghost_node_counter = 0;
-    const unsigned int num_ghost_nodes = d_ghost_nodes.size();
-    if (num_ghost_nodes > 0)
-    {
-        for (std::vector<LNode*>::iterator it = d_ghost_nodes.begin(); it != d_ghost_nodes.end();
-             ++it, ++node_counter, ++ghost_node_counter)
-        {
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(static_cast<int>(node_counter) == (*it)->getLocalPETScIndex());
-#endif
-            d_ghost_lag_idxs         [ghost_node_counter] = (*it)->getLagrangianIndex();
-            d_ghost_global_petsc_idxs[ghost_node_counter] = (*it)->getGlobalPETScIndex();
-            d_ghost_local_petsc_idxs [ghost_node_counter] = (*it)->getLocalPETScIndex();
-        }
-    }
-    return;
-}// setNodes
-
-void
-LMesh::setGhostNodes(
-    const std::vector<LNode*>& ghost_nodes,
-    const bool sorted)
-{
-    d_ghost_nodes = ghost_nodes;
-    if (!sorted) std::sort(d_ghost_nodes.begin(), d_ghost_nodes.end(), LNodeIndexLocalPETScIndexComp());
-
-    unsigned int node_counter = d_nodes.size();
-    unsigned int ghost_node_counter = 0;
-    const unsigned int num_ghost_nodes = d_ghost_nodes.size();
-    d_ghost_lag_idxs.resize(num_ghost_nodes);
-    d_ghost_global_petsc_idxs.resize(num_ghost_nodes);
-    d_ghost_local_petsc_idxs.resize(num_ghost_nodes);
-    if (num_ghost_nodes > 0)
-    {
-        for (std::vector<LNode*>::iterator it = d_ghost_nodes.begin(); it != d_ghost_nodes.end();
-             ++it, ++node_counter, ++ghost_node_counter)
-        {
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(static_cast<int>(node_counter) == (*it)->getLocalPETScIndex());
-#endif
-            d_ghost_lag_idxs         [ghost_node_counter] = (*it)->getLagrangianIndex();
-            d_ghost_global_petsc_idxs[ghost_node_counter] = (*it)->getGlobalPETScIndex();
-            d_ghost_local_petsc_idxs [ghost_node_counter] = (*it)->getLocalPETScIndex();
-        }
-    }
-    return;
-}// setGhostNodes
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -418,7 +418,7 @@ IBStandardForceGen::initializeSpringLevelData(
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
-    const std::vector<LNode*>& local_nodes = mesh->getNodes();
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Determine how many springs are associated with the present MPI process.
     int num_springs = 0;
@@ -698,7 +698,7 @@ IBStandardForceGen::initializeBeamLevelData(
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
-    const std::vector<LNode*>& local_nodes = mesh->getNodes();
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Determine how many beams are associated with the present MPI process.
     int num_beams = 0;
@@ -1014,7 +1014,7 @@ IBStandardForceGen::initializeTargetPointLevelData(
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
-    const std::vector<LNode*>& local_nodes = mesh->getNodes();
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Determine how many beams are associated with the present MPI process.
     int num_target_points = 0;

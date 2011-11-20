@@ -635,7 +635,7 @@ LDataManager::computeLagrangianStructureCenterOfMass(
 
     const blitz::Array<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
     const Pointer<LMesh> mesh = getLMesh(level_number);
-    const std::vector<LNode*>& local_nodes = mesh->getNodes();
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
@@ -677,7 +677,7 @@ LDataManager::computeLagrangianStructureBoundingBox(
 
     const blitz::Array<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
     const Pointer<LMesh> mesh = getLMesh(level_number);
-    const std::vector<LNode*>& local_nodes = mesh->getNodes();
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
@@ -719,7 +719,7 @@ LDataManager::reinitLagrangianStructure(
     std::pair<int,int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
 
     const Pointer<LMesh> mesh = getLMesh(level_number);
-    const std::vector<LNode*>& local_nodes = mesh->getNodes();
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
@@ -1739,9 +1739,7 @@ LDataManager::endDataRedistribution(
     {
         if (!d_level_contains_lag_data[level_number]) continue;
 
-        std::vector<LNode*> local_nodes, ghost_nodes;
-        local_nodes.reserve(num_local_nodes   [level_number]);
-        ghost_nodes.reserve(num_nonlocal_nodes[level_number]);
+        std::set<LNode*> local_nodes, ghost_nodes;
         const int num_local_nodes = getNumberOfLocalNodes(level_number);
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -1756,21 +1754,19 @@ LDataManager::endDataRedistribution(
                 LNode* const node_idx = *it;
                 if (node_idx->getLocalPETScIndex() < num_local_nodes)
                 {
-                    local_nodes.push_back(node_idx);
+                    local_nodes.insert(node_idx);
                 }
                 else
                 {
-                    ghost_nodes.push_back(node_idx);
+                    ghost_nodes.insert(node_idx);
                 }
             }
         }
         std::ostringstream name_stream;
         name_stream << d_object_name << "::mesh::level_" << level_number;
-        d_lag_mesh[level_number] = new LMesh(name_stream.str());
-        std::sort(local_nodes.begin(),local_nodes.end());
-        d_lag_mesh[level_number]->setNodes(local_nodes, /* sorted */ true);
-        std::sort(ghost_nodes.begin(),ghost_nodes.end());
-        d_lag_mesh[level_number]->setGhostNodes(ghost_nodes, /* sorted */ true);
+        d_lag_mesh[level_number] = new LMesh(name_stream.str(),
+                                             std::vector<LNode*>(local_nodes.begin(), local_nodes.end()),
+                                             std::vector<LNode*>(ghost_nodes.begin(), ghost_nodes.end()));
     }
 
     // End scattering data, reset data, and destroy the VecScatter contexts.
@@ -2132,10 +2128,9 @@ LDataManager::initializeLevelData(
         }
         std::ostringstream name_stream;
         name_stream << d_object_name << "::mesh::level_" << level_number;
-        d_lag_mesh[level_number] = new LMesh(name_stream.str());
-        static const int sorted = true;
-        d_lag_mesh[level_number]->setNodes(std::vector<LNode*>(local_nodes.begin(), local_nodes.end()),sorted);
-        d_lag_mesh[level_number]->setGhostNodes(std::vector<LNode*>(ghost_nodes.begin(), ghost_nodes.end()),sorted);
+        d_lag_mesh[level_number] = new LMesh(name_stream.str(),
+                                             std::vector<LNode*>(local_nodes.begin(), local_nodes.end()),
+                                             std::vector<LNode*>(ghost_nodes.begin(), ghost_nodes.end()));
 
         // 5. The AO (application order) is determined by the initial values of
         //    the local Lagrangian indices.

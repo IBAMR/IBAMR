@@ -42,31 +42,10 @@ namespace IBTK
 
 inline
 const std::vector<LNode*>&
-LMesh::getNodes() const
+LMesh::getLocalNodes() const
 {
-    return d_nodes;
-}// getNodes
-
-inline
-const std::vector<int>&
-LMesh::getLagrangianIndices() const
-{
-    return d_lag_idxs;
-}// getLagrangianIndices
-
-inline
-const std::vector<int>&
-LMesh::getGlobalPETScIndices() const
-{
-    return d_global_petsc_idxs;
-}// getGlobalPETScIndices
-
-inline
-const std::vector<int>&
-LMesh::getLocalPETScIndices() const
-{
-    return d_local_petsc_idxs;
-}// getLocalPETScIndices
+    return d_local_nodes;
+}// getLocalNodes
 
 inline
 const std::vector<LNode*>&
@@ -74,27 +53,6 @@ LMesh::getGhostNodes() const
 {
     return d_ghost_nodes;
 }// getGhostNodes
-
-inline
-const std::vector<int>&
-LMesh::getGhostLagrangianIndices() const
-{
-    return d_ghost_lag_idxs;
-}// getGhostLagrangianIndices
-
-inline
-const std::vector<int>&
-LMesh::getGhostGlobalPETScIndices() const
-{
-    return d_ghost_global_petsc_idxs;
-}// getGhostGlobalPETScIndices
-
-inline
-const std::vector<int>&
-LMesh::getGhostLocalPETScIndices() const
-{
-    return d_ghost_local_petsc_idxs;
-}// getGhostLocalPETScIndices
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
