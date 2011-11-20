@@ -986,23 +986,44 @@ IBStandardForceGen::initializeTargetPointLevelData(
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
+    // Quick exit if local_nodes is empty.
+    if (local_nodes.empty())
+    {
+        static const int num_target_points = 0;
+        petsc_node_idxs  .resize(num_target_points);
+        if (d_constant_material_properties)
+        {
+            kappa        .resize(num_target_points);
+            eta          .resize(num_target_points);
+            X0           .resize(num_target_points);
+        }
+        else
+        {
+            dynamic_kappa.resize(num_target_points);
+            dynamic_eta  .resize(num_target_points);
+            dynamic_X0   .resize(num_target_points);
+        }
+        return;
+    }
+
     // Determine how many target points are associated with the present MPI
     // process.
-    static const unsigned int BLOCKSIZE = 128;  // This parameter needs to be tuned.
-    std::vector<LNode*>::const_iterator advance_cit = local_nodes.begin();
-    for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, advance_cit++)
+    static const unsigned int BLOCKSIZE = 512;  // This parameter needs to be tuned.
+    LNode* const * const local_nodes_end = &local_nodes.back()+1;
+    LNode* const * advance_cit = &local_nodes[0];
+    for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes_end; ++k, ++advance_cit)
     {
         PREFETCH_READ_NTA(*advance_cit);
     }
     int num_target_points = 0;
-    std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-    while (cit != local_nodes.end())
+    LNode* const * cit = &local_nodes[0];
+    while (cit != local_nodes_end)
     {
-        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, advance_cit++)
+        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes_end; ++k, ++advance_cit)
         {
             PREFETCH_READ_NTA(*advance_cit);
         }
-        for (unsigned int k = 0; k < BLOCKSIZE && cit != local_nodes.end(); ++k, cit++)
+        for (unsigned int k = 0; k < BLOCKSIZE && cit != local_nodes_end; ++k, ++cit)
         {
             const LNode* const node_idx = *cit;
             const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
@@ -1023,21 +1044,24 @@ IBStandardForceGen::initializeTargetPointLevelData(
         dynamic_X0   .resize(num_target_points);
     }
 
+    // Return early if there are no target points.
+    if (num_target_points == 0) return;
+
     // Setup the data structures used to compute target point forces.
-    advance_cit = local_nodes.begin();
-    for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, advance_cit++)
+    advance_cit = &local_nodes[0];
+    for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes_end; ++k, ++advance_cit)
     {
         PREFETCH_READ_NTA(*advance_cit);
     }
     int current_target_point = 0;
-    cit = local_nodes.begin();
-    while (cit != local_nodes.end())
+    cit = &local_nodes[0];
+    while (cit != local_nodes_end)
     {
-        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, advance_cit++)
+        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes_end; ++k, ++advance_cit)
         {
             PREFETCH_READ_NTA(*advance_cit);
         }
-        for (unsigned int k = 0; k < BLOCKSIZE && cit != local_nodes.end(); ++k, cit++)
+        for (unsigned int k = 0; k < BLOCKSIZE && cit != local_nodes_end; ++k, ++cit)
         {
             const LNode* const node_idx = *cit;
             const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
