@@ -1101,7 +1101,7 @@ IBStandardForceGen::initializeTargetPointLevelData(
     }
     int current_target_point = 0;
     cit = local_nodes.begin();
-    while (cit != local_nodes_end)
+    while (cit != local_nodes.end())
     {
         for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
         {
