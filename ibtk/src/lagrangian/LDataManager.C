@@ -1980,12 +1980,6 @@ LDataManager::initializeLevelData(
         level->allocatePatchData(d_scratch_data, init_data_time);
         d_lag_node_index_bdry_fill_alg->createSchedule(level, old_level)->fillData(init_data_time);
         level->deallocatePatchData(d_scratch_data);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            idx_data->reallocateLocalLSetData();
-        }
     }
 
     // Initialize the data on the level and, when appropriate, move data from

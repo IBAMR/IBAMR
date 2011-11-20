@@ -72,39 +72,6 @@ LSetData<T>::~LSetData()
     return;
 }// ~LSetData
 
-template<class T>
-void
-LSetData<T>::reallocateLocalLSetData()
-{
-    const Box<NDIM>& patch_box = LSetData<T>::getBox();
-
-    // Count the number of local data items and allocate contiguous storage.
-    unsigned int num_items = 0;
-    for (typename LSetData<T>::SetIterator it(*this); it; it++)
-    {
-        const CellIndex<NDIM>& i = it.getIndex();
-        const bool patch_owns_idx_set = patch_box.contains(i);
-        if (patch_owns_idx_set) num_items += it().size();
-    }
-    d_local_data_items.resize(num_items);
-
-    // Make copies of data items and swap data pointers.
-    unsigned int k = 0;
-    for (Box<NDIM>::Iterator b(patch_box); b; b++)
-    {
-        const Index<NDIM>& i = b();
-        if (!LSetData<T>::isElement(i)) continue;
-        LSet<T>* const node_set = LSetData<T>::getItem(i);
-        for (typename LSet<T>::iterator node_it = node_set->begin();
-             node_it != node_set->end(); ++node_it, ++k)
-        {
-            d_local_data_items[k] = **node_it;
-            *node_it = Pointer<T>(&d_local_data_items[k],false);
-        }
-    }
-    return;
-}// reallocateLocalLSetData
-
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////

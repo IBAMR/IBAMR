@@ -119,13 +119,6 @@ public:
     virtual
     ~LSetData();
 
-    /*!
-     * \brief Allocate contiguous storage for local data items and resets
-     * contents of local LSet objects.
-     */
-    void
-    reallocateLocalLSetData();
-
 private:
     /*!
      * \brief Default constructor.
@@ -156,8 +149,6 @@ private:
     LSetData&
     operator=(
         const LSetData<T>& that);
-
-    std::vector<T> d_local_data_items;
 };
 }// namespace IBTK
 
