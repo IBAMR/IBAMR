@@ -1980,6 +1980,22 @@ LDataManager::initializeLevelData(
         level->allocatePatchData(d_scratch_data, init_data_time);
         d_lag_node_index_bdry_fill_alg->createSchedule(level, old_level)->fillData(init_data_time);
         level->deallocatePatchData(d_scratch_data);
+
+        // Purge any ghost data and reorder the LNodeSetData.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const Pointer<LNodeSetData> old_idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+            Pointer<LNodeSetData> new_idx_data = new LNodeSetData(old_idx_data->getBox(), old_idx_data->getGhostCellWidth());
+            for (Box<NDIM>::Iterator b(patch_box); b; b++)
+            {
+                const Index<NDIM>& i = b();
+                if (!old_idx_data->isElement(i)) continue;
+                new_idx_data->addItem(i, *old_idx_data->getItem(i));
+            }
+            patch->setPatchData(d_lag_node_index_current_idx, new_idx_data);
+        }
     }
 
     // Initialize the data on the level and, when appropriate, move data from
