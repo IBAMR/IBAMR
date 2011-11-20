@@ -1739,7 +1739,9 @@ LDataManager::endDataRedistribution(
     {
         if (!d_level_contains_lag_data[level_number]) continue;
 
-        std::set<LNode*,LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
+        std::vector<LNode*> local_nodes, ghost_nodes;
+        local_nodes.reserve(num_local_nodes   [level_number]);
+        ghost_nodes.reserve(num_nonlocal_nodes[level_number]);
         const int num_local_nodes = getNumberOfLocalNodes(level_number);
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -1754,20 +1756,21 @@ LDataManager::endDataRedistribution(
                 LNode* const node_idx = *it;
                 if (node_idx->getLocalPETScIndex() < num_local_nodes)
                 {
-                    local_nodes.insert(node_idx);
+                    local_nodes.push_back(node_idx);
                 }
                 else
                 {
-                    ghost_nodes.insert(node_idx);
+                    ghost_nodes.push_back(node_idx);
                 }
             }
         }
         std::ostringstream name_stream;
         name_stream << d_object_name << "::mesh::level_" << level_number;
         d_lag_mesh[level_number] = new LMesh(name_stream.str());
-        static const int sorted = true;
-        d_lag_mesh[level_number]->setNodes(std::vector<LNode*>(local_nodes.begin(), local_nodes.end()), sorted);
-        d_lag_mesh[level_number]->setGhostNodes(std::vector<LNode*>(ghost_nodes.begin(), ghost_nodes.end()), sorted);
+        std::sort(local_nodes.begin(),local_nodes.end());
+        d_lag_mesh[level_number]->setNodes(local_nodes, /* sorted */ true);
+        std::sort(ghost_nodes.begin(),ghost_nodes.end());
+        d_lag_mesh[level_number]->setGhostNodes(ghost_nodes, /* sorted */ true);
     }
 
     // End scattering data, reset data, and destroy the VecScatter contexts.
@@ -2085,7 +2088,7 @@ LDataManager::initializeLevelData(
         }
 
         // 4. Compute the initial distribution (indexing) data.
-        std::set<LNode*,LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
+        std::set<LNode*> local_nodes, ghost_nodes;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());

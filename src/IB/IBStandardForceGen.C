@@ -452,15 +452,16 @@ IBStandardForceGen::initializeSpringLevelData(
         const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
         if (force_spec == NULL) continue;
 
-        const int& mastr_idx = node_idx->getLagrangianIndex();
-        const unsigned int num_springs = force_spec->getNumberOfSprings();
+        const int lag_idx = node_idx->getLagrangianIndex();
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
+        TBOX_ASSERT(lag_idx == force_spec->getMasterNodeIndex());
 #endif
+        const int petsc_idx = node_idx->getGlobalPETScIndex();
         const std::vector<int>& slv = force_spec->getSlaveNodeIndices();
         const std::vector<int>& fcn = force_spec->getForceFunctionIndices();
         const std::vector<double>& stf = force_spec->getStiffnesses();
         const std::vector<double>& rst = force_spec->getRestingLengths();
+        const unsigned int num_springs = force_spec->getNumberOfSprings();
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(num_springs == slv.size());
         TBOX_ASSERT(num_springs == fcn.size());
@@ -469,8 +470,9 @@ IBStandardForceGen::initializeSpringLevelData(
 #endif
         for (unsigned int k = 0; k < num_springs; ++k)
         {
-            lag_mastr_node_idxs     (current_spring) = mastr_idx;
+            lag_mastr_node_idxs     (current_spring) = lag_idx;
             lag_slave_node_idxs     (current_spring) = slv[k];
+            petsc_mastr_node_idxs   (current_spring) = petsc_idx;
             force_fcns              (current_spring) = d_spring_force_fcn_map[fcn[k]];
             if (d_constant_material_properties)
             {
@@ -486,11 +488,9 @@ IBStandardForceGen::initializeSpringLevelData(
         }
     }
 
-    // Map the Lagrangian master/slave node indices to the PETSc indices
-    // corresponding to the present data distribution.
-    petsc_mastr_node_idxs = lag_mastr_node_idxs;
+    // Map the Lagrangian slave node indices to the PETSc indices corresponding
+    // to the present data distribution.
     petsc_slave_node_idxs = lag_slave_node_idxs;
-    l_data_manager->mapLagrangianToPETSc(petsc_mastr_node_idxs, level_number);
     l_data_manager->mapLagrangianToPETSc(petsc_slave_node_idxs, level_number);
 
     // Determine the global node offset and the number of local nodes.
@@ -730,14 +730,15 @@ IBStandardForceGen::initializeBeamLevelData(
         const IBBeamForceSpec* const force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
         if (force_spec == NULL) continue;
 
-        const int& mastr_idx = node_idx->getLagrangianIndex();
-        const unsigned int num_beams = force_spec->getNumberOfBeams();
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(mastr_idx == force_spec->getMasterNodeIndex());
+        const int lag_idx = node_idx->getLagrangianIndex();
+        TBOX_ASSERT(lag_idx == force_spec->getMasterNodeIndex());
 #endif
+        const int petsc_idx = node_idx->getGlobalPETScIndex();
         const std::vector<std::pair<int,int> >& nghbrs = force_spec->getNeighborNodeIndices();
         const std::vector<double>& bend = force_spec->getBendingRigidities();
         const std::vector<blitz::TinyVector<double,NDIM> >& curv = force_spec->getMeshDependentCurvatures();
+        const unsigned int num_beams = force_spec->getNumberOfBeams();
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(num_beams == nghbrs.size());
         TBOX_ASSERT(num_beams == bend.size());
@@ -745,7 +746,7 @@ IBStandardForceGen::initializeBeamLevelData(
 #endif
         for (unsigned int k = 0; k < num_beams; ++k)
         {
-            petsc_mastr_node_idxs (current_beam) = mastr_idx;
+            petsc_mastr_node_idxs (current_beam) = petsc_idx;
             petsc_next_node_idxs  (current_beam) = nghbrs[k].first;
             petsc_prev_node_idxs  (current_beam) = nghbrs[k].second;
             if (d_constant_material_properties)
@@ -762,9 +763,8 @@ IBStandardForceGen::initializeBeamLevelData(
         }
     }
 
-    // Map the Lagrangian master/neighbor node indices to the PETSc indices
+    // Map the Lagrangian neighbor node indices to the PETSc indices
     // corresponding to the present data distribution.
-    l_data_manager->mapLagrangianToPETSc(petsc_mastr_node_idxs, level_number);
     l_data_manager->mapLagrangianToPETSc(petsc_next_node_idxs, level_number);
     l_data_manager->mapLagrangianToPETSc(petsc_prev_node_idxs, level_number);
 
@@ -1038,7 +1038,7 @@ IBStandardForceGen::initializeTargetPointLevelData(
         dynamic_X0   .resize(num_target_points);
     }
 
-    // Setup the data structures used to compute beam forces.
+    // Setup the data structures used to compute target point forces.
     int current_target_point = 0;
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
@@ -1046,7 +1046,7 @@ IBStandardForceGen::initializeTargetPointLevelData(
         const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
         if (force_spec == NULL) continue;
 
-        petsc_node_idxs  (current_target_point) = node_idx->getLagrangianIndex();
+        petsc_node_idxs  (current_target_point) = node_idx->getGlobalPETScIndex();
         if (d_constant_material_properties)
         {
             kappa        (current_target_point) = force_spec->getStiffness();
@@ -1061,10 +1061,6 @@ IBStandardForceGen::initializeTargetPointLevelData(
         }
         ++current_target_point;
     }
-
-    // Map the Lagrangian master/neighbor node indices to the PETSc indices
-    // corresponding to the present data distribution.
-    l_data_manager->mapLagrangianToPETSc(petsc_node_idxs, level_number);
     return;
 }// initializeTargetPointLevelData
 
