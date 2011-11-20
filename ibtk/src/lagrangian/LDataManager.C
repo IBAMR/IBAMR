@@ -1582,9 +1582,9 @@ LDataManager::endDataRedistribution(
         //
         // NOTE: This process updates the local PETSc indices of the LNodeSet
         // objects contained in the current patch.
-        ierr = computeNodeDistribution(d_local_lag_indices   [level_number],
-                                       d_nonlocal_lag_indices[level_number],
-                                       new_ao[level_number],
+        ierr = computeNodeDistribution(new_ao[level_number],
+                                       d_local_lag_indices     [level_number],
+                                       d_nonlocal_lag_indices  [level_number],
                                        d_local_petsc_indices   [level_number],
                                        d_nonlocal_petsc_indices[level_number][1],
                                        d_num_nodes[level_number],
@@ -2877,9 +2877,9 @@ LDataManager::endNonlocalDataFill(
 
 int
 LDataManager::computeNodeDistribution(
+    AO& ao,
     std::vector<int>& local_lag_indices,
     std::vector<int>& nonlocal_lag_indices,
-    AO& ao,
     std::vector<int>& local_petsc_indices,
     std::vector<int>& nonlocal_petsc_indices,
     unsigned int& num_nodes,

@@ -951,9 +951,9 @@ private:
      */
     int
     computeNodeDistribution(
+        AO& ao,
         std::vector<int>& local_lag_indices,
         std::vector<int>& nonlocal_lag_indices,
-        AO& ao,
         std::vector<int>& local_petsc_indices,
         std::vector<int>& nonlocal_petsc_indices,
         unsigned int& num_nodes,
