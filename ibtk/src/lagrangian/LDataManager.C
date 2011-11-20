@@ -1739,7 +1739,7 @@ LDataManager::endDataRedistribution(
     {
         if (!d_level_contains_lag_data[level_number]) continue;
 
-        std::set<LNode*> local_nodes, ghost_nodes;
+        std::set<LNode*,LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
         const int num_local_nodes = getNumberOfLocalNodes(level_number);
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -2084,7 +2084,7 @@ LDataManager::initializeLevelData(
         }
 
         // 4. Compute the initial distribution (indexing) data.
-        std::set<LNode*> local_nodes, ghost_nodes;
+        std::set<LNode*,LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -2919,15 +2919,21 @@ LDataManager::computeNodeDistribution(
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
         const Pointer<LNodeSetData> lag_node_index_data = patch->getPatchData(d_lag_node_index_current_idx);
-        for (LNodeSetData::DataIterator it = lag_node_index_data->data_begin(patch_box);
-             it != lag_node_index_data->data_end(); ++it)
+        for (Box<NDIM>::Iterator b(patch_box); b; b++)
         {
-            LNode* const node_idx = *it;
-            const int lag_idx = node_idx->getLagrangianIndex();
-            local_lag_indices.push_back(lag_idx);
-            const int petsc_idx = local_offset++;
-            node_idx->setLocalPETScIndex(petsc_idx);
-            lag_idx_to_petsc_idx[lag_idx] = petsc_idx;
+            const Index<NDIM>& i = b();
+            if (!lag_node_index_data->isElement(i)) continue;
+            const LNodeSet* const node_set = lag_node_index_data->getItem(i);
+            for (LNodeSet::const_iterator node_it = node_set->begin(); node_it != node_set->end();
+                 ++node_it)
+            {
+                LNode* const node_idx = *node_it;
+                const int lag_idx = node_idx->getLagrangianIndex();
+                local_lag_indices.push_back(lag_idx);
+                const int petsc_idx = local_offset++;
+                node_idx->setLocalPETScIndex(petsc_idx);
+                lag_idx_to_petsc_idx[lag_idx] = petsc_idx;
+            }
         }
     }
 
