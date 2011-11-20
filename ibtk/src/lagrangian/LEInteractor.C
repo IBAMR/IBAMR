@@ -2102,7 +2102,7 @@ LEInteractor::buildLocalIndices(
         for (unsigned int k = 0; k < BLOCKSIZE && advance_it; ++k, advance_it++)
         {
             PREFETCH_READ_NTA(&advance_it.getIndex());
-            PREFETCH_READ_NTA( advance_it.getItem ());
+            PREFETCH_READ_NTA(&advance_it.getItem ());
         }
         typename LIndexSetData<T>::SetIterator it(*idx_data);
         while (it)
@@ -2110,7 +2110,7 @@ LEInteractor::buildLocalIndices(
             for (unsigned int k = 0; k < BLOCKSIZE && advance_it; ++k, advance_it++)
             {
                 PREFETCH_READ_NTA(&advance_it.getIndex());
-                PREFETCH_READ_NTA( advance_it.getItem().getPointer());
+                PREFETCH_READ_NTA(&advance_it.getItem ());
             }
             for (unsigned int k = 0; k < BLOCKSIZE && it; ++k, it++)
             {
