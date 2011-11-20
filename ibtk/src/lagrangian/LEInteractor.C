@@ -2084,13 +2084,18 @@ LEInteractor::buildLocalIndices(
 
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
+    blitz::TinyVector<bool,NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        patch_touches_lower_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis,0);
+        patch_touches_upper_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis,1);
+    }
 
     blitz::TinyVector<int,NDIM> offset;
     local_indices   .reserve(     upper_bound);
     periodic_offsets.reserve(NDIM*upper_bound);
     if (s_sort_mode == NO_SORT)
     {
-        std::set<LNode*,
         for (typename LIndexSetData<T>::SetIterator it(*idx_data); it; it++)
         {
             const Index<NDIM>& i = it.getIndex();
