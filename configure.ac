@@ -100,7 +100,7 @@ AC_MSG_RESULT(no)])
 AC_DEFINE_UNQUOTED(HAVE_BUILTIN_EXPECT,$have_builtin_expect,[Boolean value indicating whether the compiler supports the __builtin_expect keyword])
 
 AC_MSG_CHECKING([whether compiler supports _mm_prefetch keyword])
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <xmmintrin.h>]], [[
 _mm_prefetch(0,_MM_HINT_NTA);
 return 0;
 ]])],[

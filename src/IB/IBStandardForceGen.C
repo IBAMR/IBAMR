@@ -61,6 +61,7 @@
 #include <algorithm>
 
 #if HAVE_MM_PREFETCH
+#include <xmmintrin.h>
 #define PREFETCH(a,t) do { _mm_prefetch((const char*)(a),(t)); } while (0)
 #else
 #define PREFETCH(a,t)

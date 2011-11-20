@@ -970,15 +970,20 @@ LIBS
 FCLIBS
 CC
 CFLAGS
+LDFLAGS
+LIBS
 CPPFLAGS
 CXX
 CXXFLAGS
+LIBS
 CCC
 CXXCPP
 FC
 FCFLAGS
+LIBS
 F77
 FFLAGS
+LIBS
 MPICC
 MPICXX
 PETSC_DIR
@@ -7172,7 +7177,7 @@ _ACEOF
 $as_echo_n "checking whether compiler supports _mm_prefetch keyword... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-
+#include <xmmintrin.h>
 #ifdef FC_DUMMY_MAIN
 #ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
