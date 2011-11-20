@@ -2902,9 +2902,9 @@ LDataManager::computeNodeDistribution(
     // specified level of the patch hierarchy.
     //
     // We differentiate between nodes that are local to the processor
-    // (i.e. nodes that live in the interior of a patch owned by the processor)
-    // and nodes that are non-local (i.e. nodes that live in the interior of a
-    // patch owned by a different processor).
+    // (i.e. nodes that live in the interior of some patch owned by the
+    // processor) and nodes that are non-local (i.e. nodes that live in the
+    // interior of a patch owned by a different processor).
     //
     // It is important to emphasize that while a local node by definition lives
     // on the interior of some patch on this processor, it may also live in the
@@ -2913,8 +2913,9 @@ LDataManager::computeNodeDistribution(
     // Non-local nodes ONLY appear in ghost cells for on processor patches.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
 
-    // Collect the local nodes.
-    std::set<LNode*,LNodeIndexLagrangianIndexComp> local_node_idxs;
+    // Collect the local nodes and assign local indices to the local nodes.
+    unsigned int local_offset = 0;
+    std::map<int,int> lag_idx_to_petsc_idx;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -2924,73 +2925,44 @@ LDataManager::computeNodeDistribution(
              it != lag_node_index_data->data_end(); ++it)
         {
             LNode* const node_idx = *it;
-            local_node_idxs.insert(node_idx);
+            const int lag_idx = node_idx->getLagrangianIndex();
+            local_lag_indices.push_back(lag_idx);
+            const int petsc_idx = local_offset++;
+            node_idx->setLocalPETScIndex(petsc_idx);
+            lag_idx_to_petsc_idx[lag_idx] = petsc_idx;
         }
-    }
-
-    // Assign local indices to the local nodes.
-    unsigned int local_offset = 0;
-    std::map<int,int> lag_idx_to_petsc_idx;
-    for (std::set<LNode*,LNodeIndexLagrangianIndexComp>::const_iterator cit = local_node_idxs.begin();
-         cit != local_node_idxs.end(); ++cit)
-    {
-        LNode* const node_idx = *cit;
-        const int lag_idx = node_idx->getLagrangianIndex();
-        const int petsc_idx = local_offset++;
-        node_idx->setLocalPETScIndex(petsc_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(lag_idx_to_petsc_idx.find(lag_idx) == lag_idx_to_petsc_idx.end());
-#endif
-        lag_idx_to_petsc_idx[lag_idx] = petsc_idx;
-        local_lag_indices.push_back(lag_idx);
     }
 
     // Determine the Lagrangian indices of the nonlocal nodes.
-    std::set<int> nonlocal_lag_idx_set;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         const Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
         const Pointer<LNodeSetData> lag_node_index_data = patch->getPatchData(d_lag_node_index_current_idx);
-        const Box<NDIM>& ghost_box = lag_node_index_data->getGhostBox();
-        for (LNodeSetData::DataIterator it = lag_node_index_data->data_begin(ghost_box);
-             it != lag_node_index_data->data_end(); ++it)
+        BoxList<NDIM> ghost_boxes = lag_node_index_data->getGhostBox();
+        ghost_boxes.removeIntersections(patch_box);
+        for (BoxList<NDIM>::Iterator bl(ghost_boxes); bl; bl++)
         {
-            if (patch_box.contains(it.getCellIndex())) continue;
-
-            const LNode* const node_idx = *it;
-            const int lag_idx = node_idx->getLagrangianIndex();
-            if (lag_idx_to_petsc_idx.find(lag_idx) == lag_idx_to_petsc_idx.end())
+            for (LNodeSetData::DataIterator it = lag_node_index_data->data_begin(bl());
+                 it != lag_node_index_data->data_end(); ++it)
             {
-                // If we have not already assigned a local index to this
-                // Lagrangian index, then it must be a nonlocal index.
-                nonlocal_lag_idx_set.insert(lag_idx);
+                LNode* const node_idx = *it;
+                const int lag_idx = node_idx->getLagrangianIndex();
+                std::map<int,int>::const_iterator idx_it = lag_idx_to_petsc_idx.find(lag_idx);
+                if (idx_it == lag_idx_to_petsc_idx.end())
+                {
+                    // This is the first time we have encountered this index; it
+                    // must be a nonlocal index.
+                    nonlocal_lag_indices.push_back(lag_idx);
+                    const int petsc_idx = local_offset++;
+                    node_idx->setLocalPETScIndex(petsc_idx);
+                    lag_idx_to_petsc_idx[lag_idx] = petsc_idx;
+                }
+                else
+                {
+                    node_idx->setLocalPETScIndex(idx_it->second);
+                }
             }
-        }
-    }
-
-    // Assign local indices to the nonlocal nodes.
-    for (std::set<int>::const_iterator cit = nonlocal_lag_idx_set.begin();
-         cit != nonlocal_lag_idx_set.end(); ++cit)
-    {
-        const int lag_idx = *cit;
-        lag_idx_to_petsc_idx[lag_idx] = local_offset++;
-        nonlocal_lag_indices.push_back(lag_idx);
-    }
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-    {
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<LNodeSetData> lag_node_index_data = patch->getPatchData(d_lag_node_index_current_idx);
-        const Box<NDIM>& ghost_box = lag_node_index_data->getGhostBox();
-        for (LNodeSetData::DataIterator it = lag_node_index_data->data_begin(ghost_box);
-             it != lag_node_index_data->data_end(); ++it)
-        {
-            if (patch_box.contains(it.getCellIndex())) continue;
-
-            LNode* const node_idx = *it;
-            const int lag_idx = node_idx->getLagrangianIndex();
-            node_idx->setLocalPETScIndex(lag_idx_to_petsc_idx[lag_idx]);
         }
     }
 
@@ -3017,9 +2989,7 @@ LDataManager::computeNodeDistribution(
 
     std::vector<int> node_indices;
     node_indices.reserve(num_proc_nodes);
-    node_indices.insert(node_indices.end(),
-                        local_lag_indices.begin(),
-                        local_lag_indices.end());
+    node_indices.insert(node_indices.end(), local_lag_indices.begin(), local_lag_indices.end());
 
     local_petsc_indices.resize(num_local_nodes);
     for (unsigned int k = 0; k < num_local_nodes; ++k)
