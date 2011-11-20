@@ -97,18 +97,11 @@ public:
         const LNode& that);
 
     /*!
-     * \return A constant reference to any additional data items associated with
-     * the node referenced by this LNode object.
+     * \return A vector containing pointers to any additional data items
+     * associated with the node referenced by this LNode object.
      */
-    const std::vector<SAMRAI::tbox::Pointer<Streamable> >&
+    std::vector<SAMRAI::tbox::Pointer<Streamable> >
     getNodeData() const;
-
-    /*!
-     * \return A non-constant reference to any additional data items associated
-     * with the node referenced by this LNode object.
-     */
-    std::vector<SAMRAI::tbox::Pointer<Streamable> >&
-    getNodeData();
 
     /*!
      * \brief Reset the collection of additional data items associated with the
@@ -133,22 +126,6 @@ public:
     template<typename T>
     T*
     getNodeDataItem() const;
-
-    /*!
-     * \return A vector of pointers to all data items of type T associated with
-     * the node referenced by the LNode object.
-     *
-     * If no object of the specified type is encountered, this method returns an
-     * empty vector.
-     *
-     * \note It is possible for multiple objects of the same type to be
-     * associated with each node.  This method returns a vector of \em all such
-     * objects encountered in the collection of data items associated with the
-     * node.
-     */
-    template<typename T>
-    std::vector<T*>
-    getNodeDataVector() const;
 
     /*!
      * \brief Indicate that the LNode object has been shifted across a periodic
@@ -202,7 +179,9 @@ private:
 
     // a (possibly empty) collection of data objects that are associated with
     // the node
-    std::vector<SAMRAI::tbox::Pointer<Streamable> > d_node_data;
+    int d_node_data_sz;
+    static const int MAX_SIZE = 8;
+    SAMRAI::tbox::Pointer<Streamable> d_node_data[MAX_SIZE];
 };
 
 }// namespace IBTK

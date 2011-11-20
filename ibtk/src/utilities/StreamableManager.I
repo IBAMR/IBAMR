@@ -52,6 +52,19 @@ StreamableManager::getDataStreamSize(
 
 inline size_t
 StreamableManager::getDataStreamSize(
+    const SAMRAI::tbox::Pointer<Streamable>* data_items,
+    const int num_data_items) const
+{
+    size_t size = 0;
+    for (int k = 0; k < num_data_items; ++k)
+    {
+        size += getDataStreamSize(data_items[k]);
+    }
+    return size;
+}// getDataStreamSize
+
+inline size_t
+StreamableManager::getDataStreamSize(
     const std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items) const
 {
     size_t size = SAMRAI::tbox::AbstractStream::sizeofInt();
@@ -73,6 +86,19 @@ StreamableManager::packStream(
     const int streamable_id = data_item->getStreamableClassID();
     stream.pack(&streamable_id,1);
     data_item->packStream(stream);
+    return;
+}// packStream
+
+inline void
+StreamableManager::packStream(
+    SAMRAI::tbox::AbstractStream& stream,
+    SAMRAI::tbox::Pointer<Streamable>* data_items,
+    const int num_data_items)
+{
+    for (int k = 0; k < num_data_items; ++k)
+    {
+        packStream(stream, data_items[k]);
+    }
     return;
 }// packStream
 
@@ -101,6 +127,20 @@ StreamableManager::unpackStream(
     TBOX_ASSERT(d_factory_map.count(streamable_id) == 1);
 #endif
     return d_factory_map[streamable_id]->unpackStream(stream,offset);
+}// unpackStream
+
+inline void
+StreamableManager::unpackStream(
+    SAMRAI::tbox::AbstractStream& stream,
+    const SAMRAI::hier::IntVector<NDIM>& offset,
+    SAMRAI::tbox::Pointer<Streamable>* data_items,
+    const int num_data_items)
+{
+    for (int k = 0; k < num_data_items; ++k)
+    {
+        data_items[k]= unpackStream(stream, offset);
+    }
+    return;
 }// unpackStream
 
 inline void
