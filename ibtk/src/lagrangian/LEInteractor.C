@@ -48,6 +48,7 @@
 #include <ibtk/LNodeIndex.h>
 #include <ibtk/LNodeIndexSet.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/compiler_hints.h>
 #include <ibtk/namespaces.h>
 
 // BLITZ++ INCLUDES
@@ -2096,39 +2097,55 @@ LEInteractor::buildLocalIndices(
     periodic_offsets.reserve(NDIM*upper_bound);
     if (s_sort_mode == NO_SORT)
     {
-        for (typename LIndexSetData<T>::SetIterator it(*idx_data); it; it++)
+        static const unsigned int BLOCKSIZE = 32;  // This parameter needs to be tuned.
+        typename LIndexSetData<T>::SetIterator advance_it(*idx_data);
+        for (unsigned int k = 0; k < BLOCKSIZE && advance_it; ++k, advance_it++)
         {
-            const Index<NDIM>& i = it.getIndex();
-            if (!box.contains(i)) continue;
-
-            for (unsigned int d = 0; d < NDIM; ++d)
+            PREFETCH_READ_NTA(&advance_it.getIndex());
+            PREFETCH_READ_NTA( advance_it.getItem ());
+        }
+        typename LIndexSetData<T>::SetIterator it(*idx_data);
+        while (it)
+        {
+            for (unsigned int k = 0; k < BLOCKSIZE && advance_it; ++k, advance_it++)
             {
-                if      (patch_touches_lower_periodic_bdry[d] && i(d) < ilower(d))
-                {
-                    offset[d] = -periodic_shift(d);  // X is ABOVE the top    of the patch --- need to shift DOWN
-                }
-                else if (patch_touches_upper_periodic_bdry[d] && i(d) > iupper(d))
-                {
-                    offset[d] = +periodic_shift(d);  // X is BELOW the bottom of the patch --- need to shift UP
-                }
-                else
-                {
-                    offset[d] = 0;
-                }
+                PREFETCH_READ_NTA(&advance_it.getIndex());
+                PREFETCH_READ_NTA( advance_it.getItem().getPointer());
             }
-
-            const LSet<T>& node_set = it.getItem();
-            const typename LSet<T>::size_type num_ids = node_set.size();
-            const unsigned int old_size = local_indices.size();
-            const unsigned int new_size = old_size+num_ids;
-            local_indices   .resize(     new_size);
-            periodic_offsets.resize(NDIM*new_size);
-            for (typename LSet<T>::size_type n = 0; n < num_ids; ++n)
+            for (unsigned int k = 0; k < BLOCKSIZE && it; ++k, it++)
             {
-                local_indices[old_size+n] = node_set[n]->getLocalPETScIndex();
+                const Index<NDIM>& i = it.getIndex();
+                if (!box.contains(i)) continue;
+
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    periodic_offsets[NDIM*(old_size+n)+d] = static_cast<double>(offset[d])*dx[d];
+                    if      (patch_touches_lower_periodic_bdry[d] && i(d) < ilower(d))
+                    {
+                        offset[d] = -periodic_shift(d);  // X is ABOVE the top    of the patch --- need to shift DOWN
+                    }
+                    else if (patch_touches_upper_periodic_bdry[d] && i(d) > iupper(d))
+                    {
+                        offset[d] = +periodic_shift(d);  // X is BELOW the bottom of the patch --- need to shift UP
+                    }
+                    else
+                    {
+                        offset[d] = 0;
+                    }
+                }
+
+                const LSet<T>& node_set = it.getItem();
+                const typename LSet<T>::size_type num_ids = node_set.size();
+                const unsigned int old_size = local_indices.size();
+                const unsigned int new_size = old_size+num_ids;
+                local_indices   .resize(     new_size);
+                periodic_offsets.resize(NDIM*new_size);
+                for (typename LSet<T>::size_type n = 0; n < num_ids; ++n)
+                {
+                    local_indices[old_size+n] = node_set[n]->getLocalPETScIndex();
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        periodic_offsets[NDIM*(old_size+n)+d] = static_cast<double>(offset[d])*dx[d];
+                    }
                 }
             }
         }
