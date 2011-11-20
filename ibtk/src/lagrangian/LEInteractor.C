@@ -2089,42 +2089,43 @@ LEInteractor::buildLocalIndices(
     periodic_offsets.reserve(NDIM*upper_bound);
     if (s_sort_mode == NO_SORT)
     {
-        for (typename LIndexSetData<T>::SetIterator it(*idx_data); it; it++)
+        for (typename LIndexSetData<T> ::SetIterator it(*idx_data); it; it++)
         {
             const Index<NDIM>& i = it.getIndex();
-            if (!box.contains(i)) continue;
-
-            const LSet<T>& node_set = it.getItem();
-            const typename LSet<T>::size_type num_ids = node_set.size();
-
-            blitz::TinyVector<int,NDIM> offset(0);
-            static const int lower = 0;
-            static const int upper = 1;
-            for (unsigned int d = 0; d < NDIM; ++d)
+            if (box.contains(i))
             {
-                if      (pgeom->getTouchesPeriodicBoundary(d,lower) && i(d) < ilower(d))
-                {
-                    offset[d] = -periodic_shift(d);  // X is ABOVE the top    of the patch --- need to shift DOWN
-                }
-                else if (pgeom->getTouchesPeriodicBoundary(d,upper) && i(d) > iupper(d))
-                {
-                    offset[d] = +periodic_shift(d);  // X is BELOW the bottom of the patch --- need to shift UP
-                }
-            }
-            periodic_offsets.resize(periodic_offsets.size()+NDIM*num_ids);
-            for (typename LSet<T>::size_type n = 0; n < num_ids; ++n)
-            {
+                const LSet<T>& node_set = it.getItem();
+                const typename LSet<T>::size_type num_ids = node_set.size();
+
+                blitz::TinyVector<int,NDIM> offset(0);
+                static const int lower = 0;
+                static const int upper = 1;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    periodic_offsets[periodic_offsets.size()-NDIM*(num_ids-n)+d] = static_cast<double>(offset[d])*dx[d];
+                    if      (pgeom->getTouchesPeriodicBoundary(d,lower) && i(d) < ilower(d))
+                    {
+                        offset[d] = -periodic_shift(d);  // X is ABOVE the top    of the patch --- need to shift DOWN
+                    }
+                    else if (pgeom->getTouchesPeriodicBoundary(d,upper) && i(d) > iupper(d))
+                    {
+                        offset[d] = +periodic_shift(d);  // X is BELOW the bottom of the patch --- need to shift UP
+                    }
                 }
-            }
+                periodic_offsets.resize(periodic_offsets.size()+NDIM*num_ids);
+                for (typename LSet<T>::size_type n = 0; n < num_ids; ++n)
+                {
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        periodic_offsets[periodic_offsets.size()-NDIM*(num_ids-n)+d] = static_cast<double>(offset[d])*dx[d];
+                    }
+                }
 
-            unsigned int k_start = local_indices.size();
-            local_indices.resize(local_indices.size()+num_ids);
-            for (unsigned int k = 0; k < node_set.size(); ++k)
-            {
-                local_indices[k+k_start] = node_set[k]->getLocalPETScIndex();
+                unsigned int k_start = local_indices.size();
+                local_indices.resize(local_indices.size()+num_ids);
+                for (unsigned int k = 0; k < node_set.size(); ++k)
+                {
+                    local_indices[k+k_start] = node_set[k]->getLocalPETScIndex();
+                }
             }
         }
     }
