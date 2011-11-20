@@ -2097,7 +2097,7 @@ LEInteractor::buildLocalIndices(
     periodic_offsets.reserve(NDIM*upper_bound);
     if (s_sort_mode == NO_SORT)
     {
-        static const unsigned int BLOCKSIZE = 32;  // This parameter needs to be tuned.
+        static const unsigned int BLOCKSIZE = 128;  // This parameter needs to be tuned.
         typename LIndexSetData<T>::SetIterator advance_it(*idx_data);
         for (unsigned int k = 0; k < BLOCKSIZE && advance_it; ++k, advance_it++)
         {

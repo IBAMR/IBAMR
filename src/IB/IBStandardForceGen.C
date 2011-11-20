@@ -986,13 +986,28 @@ IBStandardForceGen::initializeTargetPointLevelData(
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
-    // Determine how many beams are associated with the present MPI process.
-    int num_target_points = 0;
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    // Determine how many target points are associated with the present MPI
+    // process.
+    static const unsigned int BLOCKSIZE = 128;  // This parameter needs to be tuned.
+    std::vector<LNode*>::const_iterator advance_cit = local_nodes.begin();
+    for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, advance_cit++)
     {
-        const LNode* const node_idx = *cit;
-        const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
-        if (force_spec != NULL) num_target_points += 1;
+        PREFETCH_READ_NTA(*advance_cit);
+    }
+    int num_target_points = 0;
+    std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+    while (cit != local_nodes.end())
+    {
+        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, advance_cit++)
+        {
+            PREFETCH_READ_NTA(*advance_cit);
+        }
+        for (unsigned int k = 0; k < BLOCKSIZE && cit != local_nodes.end(); ++k, cit++)
+        {
+            const LNode* const node_idx = *cit;
+            const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
+            if (force_spec != NULL) num_target_points += 1;
+        }
     }
     petsc_node_idxs  .resize(num_target_points);
     if (d_constant_material_properties)
@@ -1009,27 +1024,40 @@ IBStandardForceGen::initializeTargetPointLevelData(
     }
 
     // Setup the data structures used to compute target point forces.
-    int current_target_point = 0;
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    advance_cit = local_nodes.begin();
+    for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, advance_cit++)
     {
-        const LNode* const node_idx = *cit;
-        const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
-        if (force_spec == NULL) continue;
+        PREFETCH_READ_NTA(*advance_cit);
+    }
+    int current_target_point = 0;
+    cit = local_nodes.begin();
+    while (cit != local_nodes.end())
+    {
+        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, advance_cit++)
+        {
+            PREFETCH_READ_NTA(*advance_cit);
+        }
+        for (unsigned int k = 0; k < BLOCKSIZE && cit != local_nodes.end(); ++k, cit++)
+        {
+            const LNode* const node_idx = *cit;
+            const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
+            if (force_spec == NULL) continue;
 
-        petsc_node_idxs  (current_target_point) = node_idx->getGlobalPETScIndex();
-        if (d_constant_material_properties)
-        {
-            kappa        (current_target_point) = force_spec->getStiffness();
-            eta          (current_target_point) = force_spec->getDamping();
-            X0           (current_target_point) = force_spec->getTargetPointPosition();
+            petsc_node_idxs  (current_target_point) = node_idx->getGlobalPETScIndex();
+            if (d_constant_material_properties)
+            {
+                kappa        (current_target_point) = force_spec->getStiffness();
+                eta          (current_target_point) = force_spec->getDamping();
+                X0           (current_target_point) = force_spec->getTargetPointPosition();
+            }
+            else
+            {
+                dynamic_kappa(current_target_point) = &force_spec->getStiffness();
+                dynamic_eta  (current_target_point) = &force_spec->getDamping();
+                dynamic_X0   (current_target_point) = &force_spec->getTargetPointPosition();
+            }
+            ++current_target_point;
         }
-        else
-        {
-            dynamic_kappa(current_target_point) = &force_spec->getStiffness();
-            dynamic_eta  (current_target_point) = &force_spec->getDamping();
-            dynamic_X0   (current_target_point) = &force_spec->getTargetPointPosition();
-        }
-        ++current_target_point;
     }
     return;
 }// initializeTargetPointLevelData
