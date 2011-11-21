@@ -635,15 +635,15 @@ LDataManager::computeLagrangianStructureCenterOfMass(
 
     const blitz::Array<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
     const Pointer<LMesh> mesh = getLMesh(level_number);
-    const std::vector<LNode>& local_nodes = mesh->getLocalNodes();
-    for (std::vector<LNode>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode& node_idx = *cit;
-        const int lag_idx = node_idx.getLagrangianIndex();
+        const LNode* const node_idx = *cit;
+        const int lag_idx = node_idx->getLagrangianIndex();
         if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
         {
             ++node_counter;
-            const int local_idx = node_idx.getLocalPETScIndex();
+            const int local_idx = node_idx->getLocalPETScIndex();
             const double* const X = &X_data(local_idx,0);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -677,14 +677,14 @@ LDataManager::computeLagrangianStructureBoundingBox(
 
     const blitz::Array<double,2>& X_data = *d_lag_mesh_data[level_number][POSN_DATA_NAME]->getLocalFormVecArray();
     const Pointer<LMesh> mesh = getLMesh(level_number);
-    const std::vector<LNode>& local_nodes = mesh->getLocalNodes();
-    for (std::vector<LNode>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode& node_idx = *cit;
-        const int lag_idx = node_idx.getLagrangianIndex();
+        const LNode* const node_idx = *cit;
+        const int lag_idx = node_idx->getLagrangianIndex();
         if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
         {
-            const int local_idx = node_idx.getLocalPETScIndex();
+            const int local_idx = node_idx->getLocalPETScIndex();
             const double* const X = &X_data(local_idx,0);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -719,14 +719,14 @@ LDataManager::reinitLagrangianStructure(
     std::pair<int,int> lag_idx_range = getLagrangianStructureIndexRange(structure_id, level_number);
 
     const Pointer<LMesh> mesh = getLMesh(level_number);
-    const std::vector<LNode>& local_nodes = mesh->getLocalNodes();
-    for (std::vector<LNode>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode& node_idx = *cit;
-        const int lag_idx = node_idx.getLagrangianIndex();
+        const LNode* const node_idx = *cit;
+        const int lag_idx = node_idx->getLagrangianIndex();
         if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
         {
-            const int local_idx = node_idx.getLocalPETScIndex();
+            const int local_idx = node_idx->getLocalPETScIndex();
             const double* const X0 = &X0_data(local_idx,0);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -1733,13 +1733,13 @@ LDataManager::endDataRedistribution(
         }
     }
 
-    // Update cached indexing information on each grid patch, setup LMesh data
-    // structures, and reset LNode pointers..
+    // Update cached indexing information on each grid patch and setup LMesh
+    // data structures.
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number]) continue;
 
-        std::set<LNode*,LNodeIndexLocalPETScIndexComp> local_node_set, ghost_node_sets;
+        std::set<LNode*,LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
         const int num_local_nodes = getNumberOfLocalNodes(level_number);
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -1754,59 +1754,19 @@ LDataManager::endDataRedistribution(
                 LNode* const node_idx = *it;
                 if (node_idx->getLocalPETScIndex() < num_local_nodes)
                 {
-                    local_node_set.insert(node_idx);
+                    local_nodes.insert(node_idx);
                 }
                 else
                 {
-                    ghost_node_sets.insert(node_idx);
+                    ghost_nodes.insert(node_idx);
                 }
             }
         }
-
-        // Create a new LMesh.
         std::ostringstream name_stream;
         name_stream << d_object_name << "::mesh::level_" << level_number;
-        Pointer<LMesh> new_l_mesh = new LMesh(name_stream.str(),
-                                              std::vector<LNode*>(local_node_set.begin(), local_node_set.end()),
-                                              std::vector<LNode*>(ghost_node_sets.begin(), ghost_node_sets.end()));
-
-        // Swap out LNode pointers to correspond to the nodes in the new LMesh.
-        std::vector<LNode>& local_nodes = new_l_mesh->getLocalNodes();
-        std::vector<LNode>& ghost_nodes = new_l_mesh->getGhostNodes();
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<LNodeSetData> lag_node_idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            for (LNodeSetData::SetIterator node_set_it(*lag_node_idx_data); node_set_it; node_set_it++)
-            {
-                LNodeSet& node_set = node_set_it.getItem();
-                for (unsigned int k = 0; k < node_set.size(); ++k)
-                {
-                    LNode* const node_idx = node_set[k];
-                    if (node_idx->getLocalPETScIndex() < num_local_nodes)
-                    {
-                        std::vector<LNode>::iterator node_it = std::lower_bound(local_nodes.begin(), local_nodes.end(), *node_idx, LNodeIndexLocalPETScIndexComp());
-#ifdef DEBUG_CHECK_ASSERTIONS
-                        TBOX_ASSERT(node_it != local_nodes.end());
-                        TBOX_ASSERT(node_it->getLocalPETScIndex() == node_idx->getLocalPETScIndex());
-#endif
-                        node_set[k] = Pointer<LNode>(&*node_it, false);
-                    }
-                    else
-                    {
-                        std::vector<LNode>::iterator node_it = std::lower_bound(ghost_nodes.begin(), ghost_nodes.end(), *node_idx, LNodeIndexLocalPETScIndexComp());
-#ifdef DEBUG_CHECK_ASSERTIONS
-                        TBOX_ASSERT(node_it != ghost_nodes.end());
-                        TBOX_ASSERT(node_it->getLocalPETScIndex() == node_idx->getLocalPETScIndex());
-#endif
-                        node_set[k] = Pointer<LNode>(&*node_it, false);
-                    }
-                }
-            }
-        }
-
-        // Swap out the LMesh objects.
-        d_lag_mesh[level_number] = new_l_mesh;
+        d_lag_mesh[level_number] = new LMesh(name_stream.str(),
+                                             std::vector<LNode*>(local_nodes.begin(), local_nodes.end()),
+                                             std::vector<LNode*>(ghost_nodes.begin(), ghost_nodes.end()));
     }
 
     // End scattering data, reset data, and destroy the VecScatter contexts.

@@ -1099,15 +1099,15 @@ IBMethod::endDataRedistribution(
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
-        const std::vector<LNode>& local_nodes = mesh->getLocalNodes();
-        for (std::vector<LNode>::const_iterator cit = local_nodes.begin();
+        const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
              cit != local_nodes.end(); ++cit)
         {
-            const LNode& node_idx = *cit;
-            const IBAnchorPointSpec* const anchor_point_spec = node_idx.getNodeDataItem<IBAnchorPointSpec>();
+            const LNode* const node_idx = *cit;
+            const IBAnchorPointSpec* const anchor_point_spec = node_idx->getNodeDataItem<IBAnchorPointSpec>();
             if (anchor_point_spec != NULL)
             {
-                d_anchor_point_local_idxs[ln].insert(node_idx.getLocalPETScIndex());
+                d_anchor_point_local_idxs[ln].insert(node_idx->getLocalPETScIndex());
             }
         }
 

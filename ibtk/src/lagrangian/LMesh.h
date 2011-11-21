@@ -68,14 +68,14 @@ public:
     /*!
      * \brief Return a const reference to the set of local LNode objects.
      */
-    std::vector<LNode>&
-    getLocalNodes();
+    const std::vector<LNode*>&
+    getLocalNodes() const;
 
     /*!
      * \brief Return a const reference to the set of local ghost LNode objects.
      */
-    std::vector<LNode>&
-    getGhostNodes();
+    const std::vector<LNode*>&
+    getGhostNodes() const;
 
 private:
     /*!
@@ -102,7 +102,8 @@ private:
         const LMesh& that);
 
     const std::string& d_object_name;
-    std::vector<LNode> d_local_nodes, d_ghost_nodes;
+    const std::vector<LNode*> d_local_nodes;
+    const std::vector<LNode*> d_ghost_nodes;
 };
 
 }// namespace IBTK

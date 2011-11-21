@@ -284,18 +284,18 @@ IBKirchhoffRodForceGen::initializeLevelData(
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_num);
-    const std::vector<LNode>& local_nodes = mesh->getLocalNodes();
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Determine the "next" node indices for all rods associated with the
     // present MPI process.
-    for (std::vector<LNode>::const_iterator cit = local_nodes.begin();
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
          cit != local_nodes.end(); ++cit)
     {
-        const LNode& node_idx = *cit;
-        const IBRodForceSpec* const force_spec = node_idx.getNodeDataItem<IBRodForceSpec>();
+        const LNode* const node_idx = *cit;
+        const IBRodForceSpec* const force_spec = node_idx->getNodeDataItem<IBRodForceSpec>();
         if (force_spec != NULL)
         {
-            const int& curr_idx = node_idx.getLagrangianIndex();
+            const int& curr_idx = node_idx->getLagrangianIndex();
             const unsigned int num_rods = force_spec->getNumberOfRods();
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(curr_idx == force_spec->getMasterNodeIndex());

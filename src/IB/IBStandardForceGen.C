@@ -388,7 +388,7 @@ IBStandardForceGen::initializeSpringLevelData(
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
-    const std::vector<LNode>& local_nodes = mesh->getLocalNodes();
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Quick return if local_nodes is empty.
     if (local_nodes.empty())
@@ -414,10 +414,10 @@ IBStandardForceGen::initializeSpringLevelData(
 
     // Determine how many springs are associated with the present MPI process.
     int num_springs = 0;
-    for (std::vector<LNode>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode& node_idx = *cit;
-        const IBSpringForceSpec* const force_spec = node_idx.getNodeDataItem<IBSpringForceSpec>();
+        const LNode* const node_idx = *cit;
+        const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
         if (force_spec != NULL) num_springs += force_spec->getNumberOfSprings();
     }
     lag_mastr_node_idxs     .resize(num_springs);
@@ -441,17 +441,17 @@ IBStandardForceGen::initializeSpringLevelData(
 
     // Setup the data structures used to compute spring forces.
     int current_spring = 0;
-    for (std::vector<LNode>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode& node_idx = *cit;
-        const IBSpringForceSpec* const force_spec = node_idx.getNodeDataItem<IBSpringForceSpec>();
+        const LNode* const node_idx = *cit;
+        const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
         if (force_spec == NULL) continue;
 
-        const int lag_idx = node_idx.getLagrangianIndex();
+        const int lag_idx = node_idx->getLagrangianIndex();
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(lag_idx == force_spec->getMasterNodeIndex());
 #endif
-        const int petsc_idx = node_idx.getGlobalPETScIndex();
+        const int petsc_idx = node_idx->getGlobalPETScIndex();
         const std::vector<int>& slv = force_spec->getSlaveNodeIndices();
         const std::vector<int>& fcn = force_spec->getForceFunctionIndices();
         const std::vector<double>& stf = force_spec->getStiffnesses();
@@ -693,7 +693,7 @@ IBStandardForceGen::initializeBeamLevelData(
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
-    const std::vector<LNode>& local_nodes = mesh->getLocalNodes();
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Quick return if local_nodes is empty.
     if (local_nodes.empty())
@@ -716,10 +716,10 @@ IBStandardForceGen::initializeBeamLevelData(
 
     // Determine how many beams are associated with the present MPI process.
     int num_beams = 0;
-    for (std::vector<LNode>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode& node_idx = *cit;
-        const IBBeamForceSpec* const force_spec = node_idx.getNodeDataItem<IBBeamForceSpec>();
+        const LNode* const node_idx = *cit;
+        const IBBeamForceSpec* const force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
         if (force_spec != NULL) num_beams += force_spec->getNumberOfBeams();
     }
     petsc_mastr_node_idxs. resize(num_beams);
@@ -741,17 +741,17 @@ IBStandardForceGen::initializeBeamLevelData(
 
     // Setup the data structures used to compute beam forces.
     int current_beam = 0;
-    for (std::vector<LNode>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode& node_idx = *cit;
-        const IBBeamForceSpec* const force_spec = node_idx.getNodeDataItem<IBBeamForceSpec>();
+        const LNode* const node_idx = *cit;
+        const IBBeamForceSpec* const force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
         if (force_spec == NULL) continue;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-        const int lag_idx = node_idx.getLagrangianIndex();
+        const int lag_idx = node_idx->getLagrangianIndex();
         TBOX_ASSERT(lag_idx == force_spec->getMasterNodeIndex());
 #endif
-        const int petsc_idx = node_idx.getGlobalPETScIndex();
+        const int petsc_idx = node_idx->getGlobalPETScIndex();
         const std::vector<std::pair<int,int> >& nghbrs = force_spec->getNeighborNodeIndices();
         const std::vector<double>& bend = force_spec->getBendingRigidities();
         const std::vector<blitz::TinyVector<double,NDIM> >& curv = force_spec->getMeshDependentCurvatures();
@@ -1031,7 +1031,7 @@ IBStandardForceGen::initializeTargetPointLevelData(
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
-    const std::vector<LNode>& local_nodes = mesh->getLocalNodes();
+    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Quick return if local_nodes is empty.
     if (local_nodes.empty())
@@ -1055,12 +1055,26 @@ IBStandardForceGen::initializeTargetPointLevelData(
 
     // Determine how many target points are associated with the present MPI
     // process.
-    int num_target_points = 0;
-    for (std::vector<LNode>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    static const unsigned int BLOCKSIZE = 128;  // This parameter needs to be tuned.
+    std::vector<LNode*>::const_iterator advance_cit = local_nodes.begin();
+    for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
     {
-        const LNode& node_idx = *cit;
-        const IBTargetPointForceSpec* const force_spec = node_idx.getNodeDataItem<IBTargetPointForceSpec>();
-        if (force_spec != NULL) num_target_points += 1;
+        PREFETCH_READ_NTA(*advance_cit);
+    }
+    int num_target_points = 0;
+    std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+    while (cit != local_nodes.end())
+    {
+        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
+        {
+            PREFETCH_READ_NTA(*advance_cit);
+        }
+        for (unsigned int k = 0; k < BLOCKSIZE && cit != local_nodes.end(); ++k, ++cit)
+        {
+            const LNode* const node_idx = *cit;
+            const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
+            if (force_spec != NULL) num_target_points += 1;
+        }
     }
     petsc_node_idxs  .resize(num_target_points);
     if (d_constant_material_properties)
@@ -1080,27 +1094,40 @@ IBStandardForceGen::initializeTargetPointLevelData(
     if (num_target_points == 0) return;
 
     // Setup the data structures used to compute target point forces.
-    int current_target_point = 0;
-    for (std::vector<LNode>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    advance_cit = local_nodes.begin();
+    for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
     {
-        const LNode& node_idx = *cit;
-        const IBTargetPointForceSpec* const force_spec = node_idx.getNodeDataItem<IBTargetPointForceSpec>();
-        if (force_spec == NULL) continue;
+        PREFETCH_READ_NTA(*advance_cit);
+    }
+    int current_target_point = 0;
+    cit = local_nodes.begin();
+    while (cit != local_nodes.end())
+    {
+        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
+        {
+            PREFETCH_READ_NTA(*advance_cit);
+        }
+        for (unsigned int k = 0; k < BLOCKSIZE && cit != local_nodes.end(); ++k, ++cit)
+        {
+            const LNode* const node_idx = *cit;
+            const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
+            if (force_spec == NULL) continue;
 
-        petsc_node_idxs  (current_target_point) = node_idx.getGlobalPETScIndex();
-        if (d_constant_material_properties)
-        {
-            kappa        (current_target_point) = force_spec->getStiffness();
-            eta          (current_target_point) = force_spec->getDamping();
-            X0           (current_target_point) = force_spec->getTargetPointPosition();
+            petsc_node_idxs  (current_target_point) = node_idx->getGlobalPETScIndex();
+            if (d_constant_material_properties)
+            {
+                kappa        (current_target_point) = force_spec->getStiffness();
+                eta          (current_target_point) = force_spec->getDamping();
+                X0           (current_target_point) = force_spec->getTargetPointPosition();
+            }
+            else
+            {
+                dynamic_kappa(current_target_point) = &force_spec->getStiffness();
+                dynamic_eta  (current_target_point) = &force_spec->getDamping();
+                dynamic_X0   (current_target_point) = &force_spec->getTargetPointPosition();
+            }
+            ++current_target_point;
         }
-        else
-        {
-            dynamic_kappa(current_target_point) = &force_spec->getStiffness();
-            dynamic_eta  (current_target_point) = &force_spec->getDamping();
-            dynamic_X0   (current_target_point) = &force_spec->getTargetPointPosition();
-        }
-        ++current_target_point;
     }
     return;
 }// initializeTargetPointLevelData
