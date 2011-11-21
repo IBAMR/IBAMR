@@ -146,12 +146,12 @@ template<typename T>
 inline T*
 LNode::getNodeDataItem() const
 {
+    const SAMRAI::tbox::Pointer<Streamable>* const restrict node_data = &d_node_data[0];
+    const unsigned int node_data_sz = d_node_data.size();
     T* ret_val = NULL;
-    for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::const_iterator cit = d_node_data.begin();
-         cit != d_node_data.end(); ++cit)
+    for (unsigned int k = 0; k < node_data_sz && ret_val == NULL; ++k)
     {
-        ret_val = dynamic_cast<T*>(cit->getPointer());
-        if (ret_val != NULL) break;
+        ret_val = dynamic_cast<T*>(node_data[k].getPointer());
     }
     return ret_val;
 }// getNodeDataItem
@@ -160,11 +160,13 @@ template<typename T>
 inline std::vector<T*>
 LNode::getNodeDataVector() const
 {
+    const SAMRAI::tbox::Pointer<Streamable>* const restrict node_data = &d_node_data[0];
+    const unsigned int node_data_sz = d_node_data.size();
     std::vector<T*> ret_val;
-    for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::const_iterator cit = d_node_data.begin();
-         cit != d_node_data.end(); ++cit)
+    ret_val.reserve(node_data_sz);
+    for (unsigned int k = 0; k < node_data_sz; ++k)
     {
-        T* it_val = dynamic_cast<T*>(cit->getPointer());
+        T* it_val = dynamic_cast<T*>(node_data[k].getPointer());
         if (it_val != NULL) ret_val.push_back(it_val);
     }
     return ret_val;
