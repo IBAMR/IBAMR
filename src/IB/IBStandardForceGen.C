@@ -1056,18 +1056,27 @@ IBStandardForceGen::initializeTargetPointLevelData(
     // Determine how many target points are associated with the present MPI
     // process.
     static const unsigned int BLOCKSIZE = 128;  // This parameter needs to be tuned.
-    std::vector<LNode*>::const_iterator advance_cit = local_nodes.begin();
-    for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
+    std::vector<LNode*>::const_iterator advance_cit1 = local_nodes.begin();
+    for (unsigned int k = 0; k < 2*BLOCKSIZE && advance_cit1 != local_nodes.end(); ++k, ++advance_cit1)
     {
-        PREFETCH_READ_NTA(*advance_cit);
+        PREFETCH_READ_NTA(*advance_cit1);
+    }
+    std::vector<LNode*>::const_iterator advance_cit2 = local_nodes.begin();
+    for (unsigned int k = 0; k < BLOCKSIZE && advance_cit2 != local_nodes.end(); ++k, ++advance_cit2)
+    {
+        PREFETCH_READ_NTA(&(*advance_cit2)->getNodeData()[0]);
     }
     int num_target_points = 0;
     std::vector<LNode*>::const_iterator cit = local_nodes.begin();
     while (cit != local_nodes.end())
     {
-        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
+        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit1 != local_nodes.end(); ++k, ++advance_cit1)
         {
-            PREFETCH_READ_NTA(*advance_cit);
+            PREFETCH_READ_NTA(*advance_cit1);
+        }
+        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit2 != local_nodes.end(); ++k, ++advance_cit2)
+        {
+            PREFETCH_READ_NTA(&(*advance_cit2)->getNodeData()[0]);
         }
         for (unsigned int k = 0; k < BLOCKSIZE && cit != local_nodes.end(); ++k, ++cit)
         {
@@ -1094,18 +1103,28 @@ IBStandardForceGen::initializeTargetPointLevelData(
     if (num_target_points == 0) return;
 
     // Setup the data structures used to compute target point forces.
-    advance_cit = local_nodes.begin();
-    for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
+    advance_cit1 = local_nodes.begin();
+    for (unsigned int k = 0; k < 2*BLOCKSIZE && advance_cit1 != local_nodes.end(); ++k, ++advance_cit1)
     {
-        PREFETCH_READ_NTA(*advance_cit);
+        PREFETCH_READ_NTA(*advance_cit1);
+    }
+    advance_cit2 = local_nodes.begin();
+    for (unsigned int k = 0; k < BLOCKSIZE && advance_cit2 != local_nodes.end(); ++k, ++advance_cit2)
+    {
+        PREFETCH_READ_NTA(&(*advance_cit2)->getNodeData()[0]);
     }
     int current_target_point = 0;
     cit = local_nodes.begin();
     while (cit != local_nodes.end())
     {
-        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
+        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit1 != local_nodes.end(); ++k, ++advance_cit1)
         {
-            PREFETCH_READ_NTA(*advance_cit);
+            PREFETCH_READ_NTA(*advance_cit1);
+        }
+        std::vector<LNode*>::const_iterator advance_cit2 = local_nodes.begin();
+        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit2 != local_nodes.end(); ++k, ++advance_cit2)
+        {
+            PREFETCH_READ_NTA(&(*advance_cit2)->getNodeData()[0]);
         }
         for (unsigned int k = 0; k < BLOCKSIZE && cit != local_nodes.end(); ++k, ++cit)
         {
