@@ -557,12 +557,12 @@ IBInstrumentPanel::initializeHierarchyIndependentData(
         if (l_data_manager->levelContainsLagrangianData(ln))
         {
             const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
-            const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+            const std::vector<LNode>& local_nodes = mesh->getLocalNodes();
+            for (std::vector<LNode>::const_iterator cit = local_nodes.begin();
                  cit != local_nodes.end(); ++cit)
             {
-                const LNode* const node_idx = *cit;
-                const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
+                const LNode& node_idx = *cit;
+                const IBInstrumentationSpec* const spec = node_idx.getNodeDataItem<IBInstrumentationSpec>();
                 if (spec != NULL)
                 {
                     const int m = spec->getMeterIndex();
@@ -705,15 +705,15 @@ IBInstrumentPanel::initializeHierarchyDependentData(
 
             // Store the local positions of the perimeter nodes.
             const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
-            const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+            const std::vector<LNode>& local_nodes = mesh->getLocalNodes();
+            for (std::vector<LNode>::const_iterator cit = local_nodes.begin();
                  cit != local_nodes.end(); ++cit)
             {
-                const LNode* const node_idx = *cit;
-                const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
+                const LNode& node_idx = *cit;
+                const IBInstrumentationSpec* const spec = node_idx.getNodeDataItem<IBInstrumentationSpec>();
                 if (spec != NULL)
                 {
-                    const int& petsc_idx = node_idx->getLocalPETScIndex();
+                    const int& petsc_idx = node_idx.getLocalPETScIndex();
                     const double* const X = &X_arr[NDIM*petsc_idx];
                     const int m = spec->getMeterIndex();
                     const int n = spec->getNodeIndex();
@@ -1042,15 +1042,15 @@ IBInstrumentPanel::readInstrumentData(
 
             // Store the local velocities of the perimeter nodes.
             const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
-            const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+            const std::vector<LNode>& local_nodes = mesh->getLocalNodes();
+            for (std::vector<LNode>::const_iterator cit = local_nodes.begin();
                  cit != local_nodes.end(); ++cit)
             {
-                const LNode* const node_idx = *cit;
-                const IBInstrumentationSpec* const spec = node_idx->getNodeDataItem<IBInstrumentationSpec>();
+                const LNode& node_idx = *cit;
+                const IBInstrumentationSpec* const spec = node_idx.getNodeDataItem<IBInstrumentationSpec>();
                 if (spec != NULL)
                 {
-                    const int& petsc_idx = node_idx->getLocalPETScIndex();
+                    const int& petsc_idx = node_idx.getLocalPETScIndex();
                     const double* const U = &U_arr[NDIM*petsc_idx];
                     const int m = spec->getMeterIndex();
                     const int n = spec->getNodeIndex();

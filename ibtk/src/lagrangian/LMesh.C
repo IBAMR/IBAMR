@@ -63,10 +63,17 @@ LMesh::LMesh(
     const std::vector<LNode*>& local_nodes,
     const std::vector<LNode*>& ghost_nodes)
     : d_object_name(object_name),
-      d_local_nodes(local_nodes),
-      d_ghost_nodes(ghost_nodes)
+      d_local_nodes(local_nodes.size()),
+      d_ghost_nodes(ghost_nodes.size())
 {
-    // intentionally blank
+    for (unsigned int k = 0; k < local_nodes.size(); ++k)
+    {
+        d_local_nodes[k] = *local_nodes[k];
+    }
+    for (unsigned int k = 0; k < ghost_nodes.size(); ++k)
+    {
+        d_ghost_nodes[k] = *ghost_nodes[k];
+    }
     return;
 }// LMesh
 
