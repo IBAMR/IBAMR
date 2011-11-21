@@ -1055,26 +1055,11 @@ IBStandardForceGen::initializeTargetPointLevelData(
 
     // Determine how many target points are associated with the present MPI
     // process.
-    static const unsigned int BLOCKSIZE = 128;  // This parameter needs to be tuned.
-    std::vector<LNode*>::const_iterator advance_cit = local_nodes.begin();
-    for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
-    {
-        (*advance_cit)->prefetchNodeDataItems();
-    }
     int num_target_points = 0;
     std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-    while (cit != local_nodes.end())
+    for ( ; cit != local_nodes.end(); ++cit)
     {
-        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
-        {
-            (*advance_cit)->prefetchNodeDataItems();
-        }
-        for (unsigned int k = 0; k < BLOCKSIZE && cit != local_nodes.end(); ++k, ++cit)
-        {
-            const LNode* const node_idx = *cit;
-            const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
-            if (force_spec != NULL) num_target_points += 1;
-        }
+        num_target_points += (*cit)->getNodeDataItem<IBTargetPointForceSpec>() != NULL;
     }
     petsc_node_idxs  .resize(num_target_points);
     if (d_constant_material_properties)
@@ -1094,12 +1079,17 @@ IBStandardForceGen::initializeTargetPointLevelData(
     if (num_target_points == 0) return;
 
     // Setup the data structures used to compute target point forces.
-    for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
-    {
-        (*advance_cit)->prefetchNodeDataItems();
-    }
-    int current_target_point = 0;
+    int*                                   const restrict petsc_node_idxs_arr = petsc_node_idxs.data();
+    double*                                const restrict           kappa_arr = kappa          .data();
+    double*                                const restrict             eta_arr = eta            .data();
+    blitz::TinyVector<double,NDIM>*        const restrict              X0_arr = X0             .data();
+    const double**                         const restrict   dynamic_kappa_arr = dynamic_kappa  .data();
+    const double**                         const restrict     dynamic_eta_arr = dynamic_eta    .data();
+    const blitz::TinyVector<double,NDIM>** const restrict      dynamic_X0_arr = dynamic_X0     .data();
+    static const unsigned int BLOCKSIZE = 256;
     cit = local_nodes.begin();
+    std::vector<LNode*>::const_iterator advance_cit = local_nodes.begin();
+    int current_target_point = 0;
     while (cit != local_nodes.end())
     {
         for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
@@ -1112,18 +1102,18 @@ IBStandardForceGen::initializeTargetPointLevelData(
             const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
             if (force_spec == NULL) continue;
 
-            petsc_node_idxs  (current_target_point) = node_idx->getGlobalPETScIndex();
+            petsc_node_idxs_arr  [current_target_point] =    node_idx->getGlobalPETScIndex();
             if (d_constant_material_properties)
             {
-                kappa        (current_target_point) = force_spec->getStiffness();
-                eta          (current_target_point) = force_spec->getDamping();
-                X0           (current_target_point) = force_spec->getTargetPointPosition();
+                kappa_arr        [current_target_point] =  force_spec->getStiffness();
+                eta_arr          [current_target_point] =  force_spec->getDamping();
+                X0_arr           [current_target_point] =  force_spec->getTargetPointPosition();
             }
             else
             {
-                dynamic_kappa(current_target_point) = &force_spec->getStiffness();
-                dynamic_eta  (current_target_point) = &force_spec->getDamping();
-                dynamic_X0   (current_target_point) = &force_spec->getTargetPointPosition();
+                dynamic_kappa_arr[current_target_point] = &force_spec->getStiffness();
+                dynamic_eta_arr  [current_target_point] = &force_spec->getDamping();
+                dynamic_X0_arr   [current_target_point] = &force_spec->getTargetPointPosition();
             }
             ++current_target_point;
         }
