@@ -185,6 +185,9 @@ public:
         SAMRAI::tbox::AbstractStream& stream,
         const SAMRAI::hier::IntVector<NDIM>& offset);
 
+    void
+    prefetchNodeDataItems() const;
+
 private:
     /*!
      * Assign that to this.

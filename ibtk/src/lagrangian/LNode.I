@@ -39,6 +39,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/StreamableManager.h>
+#include <ibtk/compiler_hints.h>
 #include <ibtk/ibtk_utilities.h>
 
 // SAMRAI INCLUDES
@@ -231,6 +232,13 @@ LNode::unpackStream(
     }
     return;
 }// unpackStream
+
+inline void
+LNode::prefetchNodeDataItems() const
+{
+    PREFETCH_READ_NTA_BLOCK(d_node_data_arr, MAX_SIZE);
+    return;
+}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
