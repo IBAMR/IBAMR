@@ -57,7 +57,7 @@ namespace IBTK
 #define PREFETCH_READ_NTA(a) __builtin_prefetch((a),0,0)
 #define PREFETCH_READ_NTA_BLOCK(a,n)                                    \
     do {                                                                \
-        for (int k = 0; k < (n); ++k)                                   \
+        for (int k = 0; k < static_cast<int>((n)); ++k)                 \
         {                                                               \
             PREFETCH_READ_NTA((a)+k);                                   \
         }                                                               \
@@ -80,7 +80,7 @@ namespace IBTK
 #define PREFETCH_WRITE_NTA(a) __builtin_prefetch((a),1,0)
 #define PREFETCH_WRITE_NTA_BLOCK(a,n)                                   \
     do {                                                                \
-        for (int k = 0; k < (n); ++k)                                   \
+        for (int k = 0; k < static_cast<int>((n)); ++k)                 \
         {                                                               \
             PREFETCH_WRITE_NTA((a)+k);                                  \
         }                                                               \

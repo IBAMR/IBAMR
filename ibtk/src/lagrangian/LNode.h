@@ -104,13 +104,6 @@ public:
     getNodeData() const;
 
     /*!
-     * \return A non-constant reference to any additional data items associated
-     * with the node referenced by this LNode object.
-     */
-    std::vector<SAMRAI::tbox::Pointer<Streamable> >&
-    getNodeData();
-
-    /*!
      * \brief Reset the collection of additional data items associated with the
      * node referenced by this LNode object.
      */
@@ -203,6 +196,8 @@ private:
     // a (possibly empty) collection of data objects that are associated with
     // the node
     std::vector<SAMRAI::tbox::Pointer<Streamable> > d_node_data;
+    static const unsigned int MAX_SIZE = 8;
+    Streamable* d_node_data_arr[MAX_SIZE];
 };
 
 }// namespace IBTK

@@ -64,7 +64,13 @@ LNode::LNode(
     : LNodeIndex(lagrangian_nidx, global_petsc_nidx, local_petsc_nidx, periodic_offset, periodic_displacement),
       d_node_data(node_data)
 {
-    // intentionally blank
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_node_data.size() <= MAX_SIZE);
+#endif
+    for (unsigned int k = 0; k < d_node_data.size(); ++k)
+    {
+        d_node_data_arr[k] = d_node_data[k];
+    }
     return;
 }// LNode
 
@@ -74,7 +80,13 @@ LNode::LNode(
     : LNodeIndex(from),
       d_node_data(from.d_node_data)
 {
-    // intentionally blank
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_node_data.size() <= MAX_SIZE);
+#endif
+    for (unsigned int k = 0; k < d_node_data.size(); ++k)
+    {
+        d_node_data_arr[k] = d_node_data[k];
+    }
     return;
 }// LNode
 
@@ -128,17 +140,18 @@ LNode::getNodeData() const
     return d_node_data;
 }// getNodeData
 
-inline std::vector<SAMRAI::tbox::Pointer<Streamable> >&
-LNode::getNodeData()
-{
-    return d_node_data;
-}// getNodeData
-
 inline void
 LNode::setNodeData(
     const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data)
 {
     d_node_data = node_data;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_node_data.size() <= MAX_SIZE);
+#endif
+    for (unsigned int k = 0; k < d_node_data.size(); ++k)
+    {
+        d_node_data_arr[k] = d_node_data[k];
+    }
     return;
 }// setNodeData
 
@@ -146,12 +159,11 @@ template<typename T>
 inline T*
 LNode::getNodeDataItem() const
 {
-    const SAMRAI::tbox::Pointer<Streamable>* const restrict node_data = &d_node_data[0];
     const unsigned int node_data_sz = d_node_data.size();
     T* ret_val = NULL;
     for (unsigned int k = 0; k < node_data_sz && ret_val == NULL; ++k)
     {
-        ret_val = dynamic_cast<T*>(node_data[k].getPointer());
+        ret_val = dynamic_cast<T*>(d_node_data_arr[k]);
     }
     return ret_val;
 }// getNodeDataItem
@@ -160,13 +172,13 @@ template<typename T>
 inline std::vector<T*>
 LNode::getNodeDataVector() const
 {
-    const SAMRAI::tbox::Pointer<Streamable>* const restrict node_data = &d_node_data[0];
     const unsigned int node_data_sz = d_node_data.size();
     std::vector<T*> ret_val;
     ret_val.reserve(node_data_sz);
+    T* it_val;
     for (unsigned int k = 0; k < node_data_sz; ++k)
     {
-        T* it_val = dynamic_cast<T*>(node_data[k].getPointer());
+        it_val = dynamic_cast<T*>(d_node_data_arr[k]);
         if (it_val != NULL) ret_val.push_back(it_val);
     }
     return ret_val;
@@ -210,6 +222,13 @@ LNode::unpackStream(
     LNodeIndex::unpackStream(stream, offset);
     d_node_data.clear();
     StreamableManager::getManager()->unpackStream(stream, offset, d_node_data);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_node_data.size() <= MAX_SIZE);
+#endif
+    for (unsigned int k = 0; k < d_node_data.size(); ++k)
+    {
+        d_node_data_arr[k] = d_node_data[k];
+    }
     return;
 }// unpackStream
 
@@ -220,6 +239,13 @@ LNode::assignThatToThis(
     const LNode& that)
 {
     d_node_data = that.d_node_data;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_node_data.size() <= MAX_SIZE);
+#endif
+    for (unsigned int k = 0; k < d_node_data.size(); ++k)
+    {
+        d_node_data_arr[k] = d_node_data[k];
+    }
     return;
 }// assignThatToThis
 
