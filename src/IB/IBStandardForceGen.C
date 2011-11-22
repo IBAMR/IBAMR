@@ -1066,8 +1066,8 @@ IBStandardForceGen::initializeTargetPointLevelData(
         static const unsigned int BLOCKSIZE = 512;
         for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
         {
-            PREFETCH_READ_NTA(*advance_cit);
-//          (*advance_cit)->prefetchNodeDataItems();
+//          PREFETCH_READ_NTA(*advance_cit);
+            (*advance_cit)->prefetchNodeDataItems();
         }
         for (unsigned int k = 0; k < BLOCKSIZE && cit != local_nodes.end(); ++k, ++cit)
         {
