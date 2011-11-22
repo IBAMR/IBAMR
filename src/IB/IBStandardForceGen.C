@@ -491,10 +491,8 @@ IBStandardForceGen::initializeSpringLevelData(
     else
     {
         const int num_local_nodes = local_nodes.size();
-        kblock = 0;
-        for (kunroll = 0; kunroll < BLOCKSIZE && kunroll < num_local_nodes; ++kunroll)
+        for (k = 0; k < BLOCKSIZE && k < num_local_nodes; ++k)
         {
-            k = kblock*BLOCKSIZE+kunroll;
             const LNode* const node_idx = local_nodes[k];
             const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
             if (force_spec == NULL) continue;
@@ -504,7 +502,8 @@ IBStandardForceGen::initializeSpringLevelData(
             PREFETCH_READ_NTA_BLOCK(&force_spec->getStiffnesses         ()[0], num_springs);
             PREFETCH_READ_NTA_BLOCK(&force_spec->getRestingLengths      ()[0], num_springs);
         }
-        for ( ; kblock < (num_local_nodes-2)/BLOCKSIZE; ++kblock)  // ensure that the last TWO blocks are NOT handled by this first loop
+        kblock = 0;
+        for ( ; kblock < (num_local_nodes-1)/BLOCKSIZE-1; ++kblock)  // ensure that the last TWO blocks are NOT handled by this first loop
         {
             for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
             {
@@ -553,7 +552,7 @@ IBStandardForceGen::initializeSpringLevelData(
                 }
             }
         }
-        for (k = kblock*BLOCKSIZE; k < num_springs; ++k)
+        for (k = kblock*BLOCKSIZE; k < num_local_nodes; ++k)
         {
             const LNode* const node_idx = local_nodes[k];
             const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
