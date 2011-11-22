@@ -417,39 +417,11 @@ IBStandardForceGen::initializeSpringLevelData(
         return;
     }
 
-    // Loop unrolling parameters.
-    static const int BLOCKSIZE = 128;  // This parameter needs to be tuned.
-    int k, kblock, kunroll;
-
     // Determine how many springs are associated with the present MPI process.
     int num_springs = 0;
-    for (k = 0; k < BLOCKSIZE && k < num_local_nodes; ++k)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
-        const LNode* const node_idx = local_nodes[k];
-        const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
-        PREFETCH_READ_NTA(force_spec);
-    }
-    kblock = 0;
-    for ( ; kblock < (num_local_nodes-1)/BLOCKSIZE-1; ++kblock)  // ensure that the last TWO blocks are NOT handled by this first loop
-    {
-        for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
-        {
-            k = (kblock+1)*BLOCKSIZE+kunroll;
-            const LNode* const node_idx = local_nodes[k];
-            const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
-            PREFETCH_READ_NTA(force_spec);
-        }
-        for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
-        {
-            k = kblock*BLOCKSIZE+kunroll;
-            const LNode* const node_idx = local_nodes[k];
-            const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
-            if (force_spec != NULL) num_springs += force_spec->getNumberOfSprings();
-        }
-    }
-    for (k = kblock*BLOCKSIZE; k < num_local_nodes; ++k)
-    {
-        const LNode* const node_idx = local_nodes[k];
+        const LNode* const node_idx = *cit;
         const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
         if (force_spec != NULL) num_springs += force_spec->getNumberOfSprings();
     }
