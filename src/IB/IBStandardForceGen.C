@@ -1032,20 +1032,19 @@ IBStandardForceGen::initializeTargetPointLevelData(
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
-    const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    const int num_local_nodes = local_nodes.size();
-    const LNode* const * const local_nodes_arr = &local_nodes[0];
+    const LNode* const * const local_nodes_arr = &mesh->getLocalNodes()[0];
+    const int num_local_nodes = mesh->getLocalNodes().size();
 
     // Quick return if local_nodes is empty.
-    if (local_nodes.empty())
+    if (num_local_nodes == 0)
     {
         static const int num_target_points = 0;
-        petsc_node_idxs  .resize(num_target_points);
+        petsc_node_idxs.resize(num_target_points);
         if (d_constant_material_properties)
         {
-            kappa        .resize(num_target_points);
-            eta          .resize(num_target_points);
-            X0           .resize(num_target_points);
+            kappa.resize(num_target_points);
+            eta  .resize(num_target_points);
+            X0   .resize(num_target_points);
         }
         else
         {
@@ -1057,41 +1056,19 @@ IBStandardForceGen::initializeTargetPointLevelData(
     }
 
     // Determine how many target points are associated with the present MPI
-    // process and cache copies of the target point force specs.
+    // process and cache copies of the target point force spec pointers.
     std::vector<int> local_target_point_node_idxs;
     local_target_point_node_idxs.reserve(num_local_nodes);
     std::vector<const IBTargetPointForceSpec*> local_force_specs;
     local_force_specs.reserve(num_local_nodes);
-    static const int BLOCKSIZE = 16;
     const LNode* node_idx;
     const IBTargetPointForceSpec* force_spec;
-    int k, kblock, kunroll;
-    for (k = 0; k < BLOCKSIZE && k < num_local_nodes; ++k)
+    int k;
+    for (k = 0; k < num_local_nodes; ++k)
     {
         local_nodes_arr[k]->prefetchNodeDataItems();
     }
-    for (kblock = 0; kblock < (num_local_nodes-2)/BLOCKSIZE; ++kblock)  // ensure that the last TWO blocks are NOT handled by this first loop
-    {
-        for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
-        {
-            k = (kblock+1)*BLOCKSIZE+kunroll;
-            local_nodes_arr[k]->prefetchNodeDataItems();
-        }
-        for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
-        {
-            k = kblock*BLOCKSIZE+kunroll;
-            node_idx = local_nodes_arr[k];
-            force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
-            if (force_spec == NULL) continue;
-            local_target_point_node_idxs.push_back(node_idx->getGlobalPETScIndex());
-            local_force_specs.push_back(force_spec);
-        }
-    }
-    for (k = (kblock+1)*BLOCKSIZE; k < num_local_nodes; ++k)
-    {
-        local_nodes_arr[k]->prefetchNodeDataItems();
-    }
-    for (k = kblock*BLOCKSIZE; k < num_local_nodes; ++k)
+    for (k = 0; k < num_local_nodes; ++k)
     {
         node_idx = local_nodes_arr[k];
         force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
@@ -1120,33 +1097,21 @@ IBStandardForceGen::initializeTargetPointLevelData(
     // Return early if there are no local target points.
     if (num_target_points == 0) return;
 
-    // Setup the data structures used to compute target point forces.
-    int* const restrict petsc_node_idxs_arr = petsc_node_idxs.data();
+    // Setup the data used to compute target point forces.
+    int*       const restrict              petsc_node_idxs_arr = petsc_node_idxs.data();
     const int* const restrict local_target_point_node_idxs_arr = &local_target_point_node_idxs[0];
     std::copy(local_target_point_node_idxs_arr, local_target_point_node_idxs_arr+num_target_points, petsc_node_idxs_arr);
 
     const IBTargetPointForceSpec**         const restrict local_force_specs_arr = &local_force_specs[0];
-    double*                                const restrict             kappa_arr = kappa          .data();
-    double*                                const restrict               eta_arr = eta            .data();
-    blitz::TinyVector<double,NDIM>*        const restrict                X0_arr = X0             .data();
-    const double**                         const restrict     dynamic_kappa_arr = dynamic_kappa  .data();
-    const double**                         const restrict       dynamic_eta_arr = dynamic_eta    .data();
-    const blitz::TinyVector<double,NDIM>** const restrict        dynamic_X0_arr = dynamic_X0     .data();
-    PREFETCH_READ_NTA_BLOCK(local_force_specs_arr, 2*BLOCKSIZE);
+    double*                                const restrict             kappa_arr = kappa        .data();
+    double*                                const restrict               eta_arr = eta          .data();
+    blitz::TinyVector<double,NDIM>*        const restrict                X0_arr = X0           .data();
+    const double**                         const restrict     dynamic_kappa_arr = dynamic_kappa.data();
+    const double**                         const restrict       dynamic_eta_arr = dynamic_eta  .data();
+    const blitz::TinyVector<double,NDIM>** const restrict        dynamic_X0_arr = dynamic_X0   .data();
     if (d_constant_material_properties)
     {
-        for (kblock = 0; kblock < (num_target_points-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
-        {
-            PREFETCH_READ_NTA_BLOCK(local_force_specs_arr+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
-            {
-                k = kblock*BLOCKSIZE+kunroll;
-                kappa_arr[k] = local_force_specs_arr[k]->getStiffness();
-                eta_arr  [k] = local_force_specs_arr[k]->getDamping();
-                X0_arr   [k] = local_force_specs_arr[k]->getTargetPointPosition();
-            }
-        }
-        for (k = kblock*BLOCKSIZE; k < num_target_points; ++k)
+        for (k = 0; k < num_target_points; ++k)
         {
             kappa_arr[k] = local_force_specs_arr[k]->getStiffness();
             eta_arr  [k] = local_force_specs_arr[k]->getDamping();
@@ -1155,18 +1120,7 @@ IBStandardForceGen::initializeTargetPointLevelData(
     }
     else
     {
-        for (kblock = 0; kblock < (num_target_points-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
-        {
-            PREFETCH_READ_NTA_BLOCK(local_force_specs_arr+BLOCKSIZE*(kblock+1), BLOCKSIZE);
-            for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
-            {
-                k = kblock*BLOCKSIZE+kunroll;
-                dynamic_kappa_arr[k] = &local_force_specs_arr[k]->getStiffness();
-                dynamic_eta_arr  [k] = &local_force_specs_arr[k]->getDamping();
-                dynamic_X0_arr   [k] = &local_force_specs_arr[k]->getTargetPointPosition();
-            }
-        }
-        for (k = kblock*BLOCKSIZE; k < num_target_points; ++k)
+        for (k = 0; k < num_target_points; ++k)
         {
             dynamic_kappa_arr[k] = &local_force_specs_arr[k]->getStiffness();
             dynamic_eta_arr  [k] = &local_force_specs_arr[k]->getDamping();
