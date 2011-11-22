@@ -185,9 +185,6 @@ public:
         SAMRAI::tbox::AbstractStream& stream,
         const SAMRAI::hier::IntVector<NDIM>& offset);
 
-    void
-    prefetchNodeDataItems() const;
-
 private:
     /*!
      * Assign that to this.
@@ -196,11 +193,17 @@ private:
     assignThatToThis(
         const LNode& that);
 
+    /*!
+     * Setup node data map.
+     */
+    void
+    setupNodeDataTypeArray();
+
     // a (possibly empty) collection of data objects that are associated with
     // the node
     std::vector<SAMRAI::tbox::Pointer<Streamable> > d_node_data;
-    static const unsigned int MAX_SIZE = 8;
-    Streamable* d_node_data_arr[MAX_SIZE];
+    static const int MAX_SIZE = 8;
+    Streamable* d_node_data_type_arr[MAX_SIZE];
 };
 
 }// namespace IBTK

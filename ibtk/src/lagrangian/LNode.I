@@ -65,13 +65,7 @@ LNode::LNode(
     : LNodeIndex(lagrangian_nidx, global_petsc_nidx, local_petsc_nidx, periodic_offset, periodic_displacement),
       d_node_data(node_data)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_node_data.size() <= MAX_SIZE);
-#endif
-    for (unsigned int k = 0; k < d_node_data.size(); ++k)
-    {
-        d_node_data_arr[k] = d_node_data[k];
-    }
+    setupNodeDataTypeArray();
     return;
 }// LNode
 
@@ -81,13 +75,7 @@ LNode::LNode(
     : LNodeIndex(from),
       d_node_data(from.d_node_data)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_node_data.size() <= MAX_SIZE);
-#endif
-    for (unsigned int k = 0; k < d_node_data.size(); ++k)
-    {
-        d_node_data_arr[k] = d_node_data[k];
-    }
+    setupNodeDataTypeArray();
     return;
 }// LNode
 
@@ -146,13 +134,7 @@ LNode::setNodeData(
     const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data)
 {
     d_node_data = node_data;
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_node_data.size() <= MAX_SIZE);
-#endif
-    for (unsigned int k = 0; k < d_node_data.size(); ++k)
-    {
-        d_node_data_arr[k] = d_node_data[k];
-    }
+    setupNodeDataTypeArray();
     return;
 }// setNodeData
 
@@ -160,18 +142,26 @@ template<typename T>
 inline T*
 LNode::getNodeDataItem() const
 {
-    const unsigned int node_data_sz = d_node_data.size();
-    T* ret_val = NULL;
-    Streamable* it_val;
-    for (unsigned int k = 0; k < node_data_sz && ret_val == NULL; ++k)
+    if (LIKELY(T::STREAMABLE_CLASS_ID < MAX_SIZE))
     {
-        it_val = d_node_data_arr[k];
-        if (it_val->getStreamableClassID() == T::STREAMABLE_CLASS_ID)
-        {
-            ret_val = static_cast<T*>(it_val);
-        }
+        return static_cast<T*>(d_node_data_type_arr[T::STREAMABLE_CLASS_ID]);
     }
-    return ret_val;
+    else
+    {
+        const unsigned int node_data_sz = d_node_data.size();
+        T* ret_val = NULL;
+        Streamable* it_val;
+        unsigned int k;
+        for (k = 0; k < node_data_sz && ret_val == NULL; ++k)
+        {
+            it_val = d_node_data[k];
+            if (it_val->getStreamableClassID() == T::STREAMABLE_CLASS_ID)
+            {
+                ret_val = static_cast<T*>(it_val);
+            }
+        }
+        return ret_val;
+    }
 }// getNodeDataItem
 
 template<typename T>
@@ -184,7 +174,7 @@ LNode::getNodeDataVector() const
     Streamable* it_val;
     for (unsigned int k = 0; k < node_data_sz; ++k)
     {
-        it_val = d_node_data_arr[k];
+        it_val = d_node_data_type_arr[k];
         if (it_val->getStreamableClassID() == T::STREAMABLE_CLASS_ID)
         {
             ret_val.push_back(static_cast<T*>(it_val));
@@ -231,22 +221,9 @@ LNode::unpackStream(
     LNodeIndex::unpackStream(stream, offset);
     d_node_data.clear();
     StreamableManager::getManager()->unpackStream(stream, offset, d_node_data);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_node_data.size() <= MAX_SIZE);
-#endif
-    for (unsigned int k = 0; k < d_node_data.size(); ++k)
-    {
-        d_node_data_arr[k] = d_node_data[k];
-    }
+    setupNodeDataTypeArray();
     return;
 }// unpackStream
-
-inline void
-LNode::prefetchNodeDataItems() const
-{
-    PREFETCH_READ_NTA_BLOCK(d_node_data_arr, MAX_SIZE);
-    return;
-}
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -255,15 +232,28 @@ LNode::assignThatToThis(
     const LNode& that)
 {
     d_node_data = that.d_node_data;
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_node_data.size() <= MAX_SIZE);
-#endif
-    for (unsigned int k = 0; k < d_node_data.size(); ++k)
-    {
-        d_node_data_arr[k] = d_node_data[k];
-    }
+    setupNodeDataTypeArray();
     return;
 }// assignThatToThis
+
+inline void
+LNode::setupNodeDataTypeArray()
+{
+    std::fill(d_node_data_type_arr,d_node_data_type_arr+MAX_SIZE,static_cast<Streamable*>(NULL));
+    Streamable* it_val;
+    int class_id;
+    for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::const_iterator cit = d_node_data.begin();
+         cit != d_node_data.end(); ++cit)
+    {
+        it_val = *cit;
+        class_id = it_val->getStreamableClassID();
+        if (LIKELY(class_id < MAX_SIZE && d_node_data_type_arr[class_id] == NULL))
+        {
+            d_node_data_type_arr[class_id] = it_val;
+        }
+    }
+    return;
+}// setupNodeDataTypeArray
 
 //////////////////////////////////////////////////////////////////////////////
 
