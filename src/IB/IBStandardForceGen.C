@@ -394,26 +394,29 @@ IBStandardForceGen::initializeSpringLevelData(
     if (local_nodes.empty())
     {
         static const int num_springs = 0;
-        lag_mastr_node_idxs     .resize(num_springs);
-        lag_slave_node_idxs     .resize(num_springs);
-        petsc_mastr_node_idxs   .resize(num_springs);
-        petsc_slave_node_idxs   .resize(num_springs);
-        force_fcns              .resize(num_springs);
+        lag_mastr_node_idxs  .resize(num_springs);
+        lag_slave_node_idxs  .resize(num_springs);
+        petsc_mastr_node_idxs.resize(num_springs);
+        petsc_slave_node_idxs.resize(num_springs);
+        force_fcns           .resize(num_springs);
         if (d_constant_material_properties)
         {
             stiffnesses         .resize(num_springs);
             rest_lengths        .resize(num_springs);
+            dynamic_stiffnesses .resize(0);
+            dynamic_rest_lengths.resize(0);
         }
         else
         {
+            stiffnesses         .resize(0);
+            rest_lengths        .resize(0);
             dynamic_stiffnesses .resize(num_springs);
             dynamic_rest_lengths.resize(num_springs);
         }
         return;
     }
 
-    // Determine how many springs are associated with the present MPI process
-    // and cache copies of the target point force specs.
+    // Determine how many springs are associated with the present MPI process.
     int num_springs = 0;
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
@@ -421,18 +424,24 @@ IBStandardForceGen::initializeSpringLevelData(
         const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
         if (force_spec != NULL) num_springs += force_spec->getNumberOfSprings();
     }
-    lag_mastr_node_idxs     .resize(num_springs);
-    lag_slave_node_idxs     .resize(num_springs);
-    petsc_mastr_node_idxs   .resize(num_springs);
-    petsc_slave_node_idxs   .resize(num_springs);
-    force_fcns              .resize(num_springs);
+
+    // Resize arrays for storing cached values used to compute spring forces.
+    lag_mastr_node_idxs  .resize(num_springs);
+    lag_slave_node_idxs  .resize(num_springs);
+    petsc_mastr_node_idxs.resize(num_springs);
+    petsc_slave_node_idxs.resize(num_springs);
+    force_fcns           .resize(num_springs);
     if (d_constant_material_properties)
     {
         stiffnesses         .resize(num_springs);
         rest_lengths        .resize(num_springs);
+        dynamic_stiffnesses .resize(0);
+        dynamic_rest_lengths.resize(0);
     }
     else
     {
+        stiffnesses         .resize(0);
+        rest_lengths        .resize(0);
         dynamic_stiffnesses .resize(num_springs);
         dynamic_rest_lengths.resize(num_springs);
     }
@@ -442,45 +451,75 @@ IBStandardForceGen::initializeSpringLevelData(
 
     // Setup the data structures used to compute spring forces.
     int current_spring = 0;
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    if (d_constant_material_properties)
     {
-        const LNode* const node_idx = *cit;
-        const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
-        if (force_spec == NULL) continue;
-
-        const int lag_idx = node_idx->getLagrangianIndex();
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(lag_idx == force_spec->getMasterNodeIndex());
-#endif
-        const int petsc_idx = node_idx->getGlobalPETScIndex();
-        const std::vector<int>& slv = force_spec->getSlaveNodeIndices();
-        const std::vector<int>& fcn = force_spec->getForceFunctionIndices();
-        const std::vector<double>& stf = force_spec->getStiffnesses();
-        const std::vector<double>& rst = force_spec->getRestingLengths();
-        const unsigned int num_springs = force_spec->getNumberOfSprings();
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(num_springs == slv.size());
-        TBOX_ASSERT(num_springs == fcn.size());
-        TBOX_ASSERT(num_springs == stf.size());
-        TBOX_ASSERT(num_springs == rst.size());
-#endif
-        for (unsigned int k = 0; k < num_springs; ++k)
+        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
-            lag_mastr_node_idxs     (current_spring) = lag_idx;
-            lag_slave_node_idxs     (current_spring) = slv[k];
-            petsc_mastr_node_idxs   (current_spring) = petsc_idx;
-            force_fcns              (current_spring) = d_spring_force_fcn_map[fcn[k]];
-            if (d_constant_material_properties)
+            const LNode* const node_idx = *cit;
+            const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
+            if (force_spec == NULL) continue;
+            const int lag_idx = node_idx->getLagrangianIndex();
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(lag_idx == force_spec->getMasterNodeIndex());
+#endif
+            const int petsc_idx = node_idx->getGlobalPETScIndex();
+            const std::vector<int>& slv = force_spec->getSlaveNodeIndices();
+            const std::vector<int>& fcn = force_spec->getForceFunctionIndices();
+            const std::vector<double>& stf = force_spec->getStiffnesses();
+            const std::vector<double>& rst = force_spec->getRestingLengths();
+            const unsigned int num_springs = force_spec->getNumberOfSprings();
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(num_springs == slv.size());
+            TBOX_ASSERT(num_springs == fcn.size());
+            TBOX_ASSERT(num_springs == stf.size());
+            TBOX_ASSERT(num_springs == rst.size());
+#endif
+            for (unsigned int k = 0; k < num_springs; ++k)
             {
-                stiffnesses         (current_spring) = stf[k];
-                rest_lengths        (current_spring) = rst[k];
+                lag_mastr_node_idxs  (current_spring) = lag_idx;
+                lag_slave_node_idxs  (current_spring) = slv[k];
+                petsc_mastr_node_idxs(current_spring) = petsc_idx;
+                force_fcns           (current_spring) = d_spring_force_fcn_map[fcn[k]];
+                stiffnesses          (current_spring) = stf[k];
+                rest_lengths         (current_spring) = rst[k];
+                ++current_spring;
             }
-            else
+        }
+    }
+    else
+    {
+        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        {
+            const LNode* const node_idx = *cit;
+            const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
+            if (force_spec == NULL) continue;
+
+            const int lag_idx = node_idx->getLagrangianIndex();
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(lag_idx == force_spec->getMasterNodeIndex());
+#endif
+            const int petsc_idx = node_idx->getGlobalPETScIndex();
+            const std::vector<int>& slv = force_spec->getSlaveNodeIndices();
+            const std::vector<int>& fcn = force_spec->getForceFunctionIndices();
+            const std::vector<double>& stf = force_spec->getStiffnesses();
+            const std::vector<double>& rst = force_spec->getRestingLengths();
+            const unsigned int num_springs = force_spec->getNumberOfSprings();
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(num_springs == slv.size());
+            TBOX_ASSERT(num_springs == fcn.size());
+            TBOX_ASSERT(num_springs == stf.size());
+            TBOX_ASSERT(num_springs == rst.size());
+#endif
+            for (unsigned int k = 0; k < num_springs; ++k)
             {
-                dynamic_stiffnesses (current_spring) = &stf[k];
-                dynamic_rest_lengths(current_spring) = &rst[k];
+                lag_mastr_node_idxs  (current_spring) = lag_idx;
+                lag_slave_node_idxs  (current_spring) = slv[k];
+                petsc_mastr_node_idxs(current_spring) = petsc_idx;
+                force_fcns           (current_spring) = d_spring_force_fcn_map[fcn[k]];
+                dynamic_stiffnesses  (current_spring) = &stf[k];
+                dynamic_rest_lengths (current_spring) = &rst[k];
+                ++current_spring;
             }
-            ++current_spring;
         }
     }
 
@@ -497,11 +536,10 @@ IBStandardForceGen::initializeSpringLevelData(
     //
     // NOTE: Only slave nodes can be "off processor".  Master nodes are
     // guaranteed to be "on processor".
-    for (blitz::Array<int,1>::const_iterator cit = petsc_slave_node_idxs.begin();
-         cit != petsc_slave_node_idxs.end(); ++cit)
+    for (int k = 0; k < petsc_slave_node_idxs.size(); ++k)
     {
-        const int idx = *cit;
-        if (idx < global_node_offset || idx >= global_node_offset+num_local_nodes)
+        const int idx = petsc_slave_node_idxs(k);
+        if (UNLIKELY(idx < global_node_offset || idx >= global_node_offset+num_local_nodes))
         {
             nonlocal_petsc_idx_set.insert(idx);
         }
