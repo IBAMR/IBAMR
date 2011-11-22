@@ -1055,18 +1055,28 @@ IBStandardForceGen::initializeTargetPointLevelData(
 
     // Determine how many target points are associated with the present MPI
     // process.
-    int num_target_points = 0;
     std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+    std::vector<int> local_target_point_node_idxs;
+    local_target_point_node_idxs.reserve(local_nodes.size());
+    std::vector<const IBTargetPointForceSpec*> local_force_specs;
+    local_force_specs.reserve(local_nodes.size());
     for ( ; cit != local_nodes.end(); ++cit)
     {
-        num_target_points += (*cit)->getNodeDataItem<IBTargetPointForceSpec>() != NULL;
+        const LNode* const node_idx = *cit;
+        const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
+        if (force_spec != NULL)
+        {
+            local_target_point_node_idxs.push_back(node_idx->getGlobalPETScIndex());
+            local_force_specs.push_back(force_spec);
+        }
     }
-    petsc_node_idxs  .resize(num_target_points);
+    const int num_target_points = local_force_specs.size();
+    petsc_node_idxs.resize(num_target_points);
     if (d_constant_material_properties)
     {
-        kappa        .resize(num_target_points);
-        eta          .resize(num_target_points);
-        X0           .resize(num_target_points);
+        kappa.resize(num_target_points);
+        eta  .resize(num_target_points);
+        X0   .resize(num_target_points);
     }
     else
     {
@@ -1086,36 +1096,21 @@ IBStandardForceGen::initializeTargetPointLevelData(
     const double**                         const restrict   dynamic_kappa_arr = dynamic_kappa  .data();
     const double**                         const restrict     dynamic_eta_arr = dynamic_eta    .data();
     const blitz::TinyVector<double,NDIM>** const restrict      dynamic_X0_arr = dynamic_X0     .data();
-    static const unsigned int BLOCKSIZE = 256;
-    cit = local_nodes.begin();
-    std::vector<LNode*>::const_iterator advance_cit = local_nodes.begin();
-    int current_target_point = 0;
-    while (cit != local_nodes.end())
+    for (int k = 0; k < num_target_points; ++k)
     {
-        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
+        petsc_node_idxs_arr[k] = local_target_point_node_idxs[k];
+        const IBTargetPointForceSpec* const force_spec = local_force_specs[k];
+        if (d_constant_material_properties)
         {
-            (*advance_cit)->prefetchNodeDataItems();
+            kappa_arr[k] = force_spec->getStiffness();
+            eta_arr  [k] = force_spec->getDamping();
+            X0_arr   [k] = force_spec->getTargetPointPosition();
         }
-        for (unsigned int k = 0; k < BLOCKSIZE && cit != local_nodes.end(); ++k, ++cit)
+        else
         {
-            const LNode* const node_idx = *cit;
-            const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
-            if (force_spec == NULL) continue;
-
-            petsc_node_idxs_arr  [current_target_point] =    node_idx->getGlobalPETScIndex();
-            if (d_constant_material_properties)
-            {
-                kappa_arr        [current_target_point] =  force_spec->getStiffness();
-                eta_arr          [current_target_point] =  force_spec->getDamping();
-                X0_arr           [current_target_point] =  force_spec->getTargetPointPosition();
-            }
-            else
-            {
-                dynamic_kappa_arr[current_target_point] = &force_spec->getStiffness();
-                dynamic_eta_arr  [current_target_point] = &force_spec->getDamping();
-                dynamic_X0_arr   [current_target_point] = &force_spec->getTargetPointPosition();
-            }
-            ++current_target_point;
+            dynamic_kappa_arr[k] = &force_spec->getStiffness();
+            dynamic_eta_arr  [k] = &force_spec->getDamping();
+            dynamic_X0_arr   [k] = &force_spec->getTargetPointPosition();
         }
     }
     return;
