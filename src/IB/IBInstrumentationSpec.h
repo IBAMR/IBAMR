@@ -85,6 +85,12 @@ public:
     getIsRegisteredWithStreamableManager();
 
     /*!
+     * The unique class ID for this object type assigned by the
+     * IBTK::StreamableManager.
+     */
+    static int STREAMABLE_CLASS_ID;
+
+    /*!
      * \brief Set the names of the flow meters and pressure gauges.
      */
     static void
@@ -195,18 +201,6 @@ private:
     IBInstrumentationSpec&
     operator=(
         const IBInstrumentationSpec& that);
-
-    /*!
-     * Indicates whether the factory has been registered with the
-     * IBTK::StreamableManager.
-     */
-    static bool s_registered_factory;
-
-    /*!
-     * The class ID for this object type assigned by the
-     * IBTK::StreamableManager.
-     */
-    static int s_class_id;
 
     /*!
      * The names of the instrument names.

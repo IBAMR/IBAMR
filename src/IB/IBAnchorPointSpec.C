@@ -60,8 +60,7 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-bool IBAnchorPointSpec::s_registered_factory = false;
-int  IBAnchorPointSpec::s_class_id = -1;
+int IBAnchorPointSpec::STREAMABLE_CLASS_ID = StreamableManager::getUnregisteredID();
 
 void
 IBAnchorPointSpec::registerWithStreamableManager()
@@ -70,13 +69,12 @@ IBAnchorPointSpec::registerWithStreamableManager()
     // register the factory class with the StreamableManager, and to ensure that
     // all processes employ the same class ID for the IBAnchorPointSpec object.
     SAMRAI_MPI::barrier();
-    if (!s_registered_factory)
+    if (!getIsRegisteredWithStreamableManager())
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(s_class_id == -1);
+        TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
 #endif
-        s_class_id = StreamableManager::getManager()->registerFactory(new IBAnchorPointSpecFactory());
-        s_registered_factory = true;
+        STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(new IBAnchorPointSpecFactory());
     }
     SAMRAI_MPI::barrier();
     return;

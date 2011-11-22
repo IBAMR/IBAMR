@@ -1063,18 +1063,28 @@ IBStandardForceGen::initializeTargetPointLevelData(
     local_force_specs.reserve(num_local_nodes);
     const LNode* node_idx;
     const IBTargetPointForceSpec* force_spec;
-    int k;
-    for (k = 0; k < num_local_nodes; ++k)
+    static const int BLOCKSIZE = 4096;
+    int k, kblock, kunroll;
+    for (k = 0; k < BLOCKSIZE && k < num_local_nodes; ++k)
     {
         local_nodes_arr[k]->prefetchNodeDataItems();
     }
-    for (k = 0; k < num_local_nodes; ++k)
+    for (kblock = 0; kblock < (num_local_nodes-2)/BLOCKSIZE; ++kblock)  // ensure that the last TWO blocks are NOT handled by this first loop
     {
-        node_idx = local_nodes_arr[k];
-        force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
-        if (force_spec == NULL) continue;
-        local_target_point_node_idxs.push_back(node_idx->getGlobalPETScIndex());
-        local_force_specs.push_back(force_spec);
+        for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
+        {
+            k = (kblock+1)*BLOCKSIZE+kunroll;
+            local_nodes_arr[k]->prefetchNodeDataItems();
+        }
+        for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
+        {
+            k = kblock*BLOCKSIZE+kunroll;
+            node_idx = local_nodes_arr[k];
+            force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
+            if (force_spec == NULL) continue;
+            local_target_point_node_idxs.push_back(node_idx->getGlobalPETScIndex());
+            local_force_specs.push_back(force_spec);
+        }
     }
 
     // Resize arrays for storing cached values used to compute target point

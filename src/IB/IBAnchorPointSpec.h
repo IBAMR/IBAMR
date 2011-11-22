@@ -93,6 +93,12 @@ public:
     getIsRegisteredWithStreamableManager();
 
     /*!
+     * The unique class ID for this object type assigned by the
+     * IBTK::StreamableManager.
+     */
+    static int STREAMABLE_CLASS_ID;
+
+    /*!
      * \brief Default constructor.
      */
     IBAnchorPointSpec(
@@ -180,18 +186,6 @@ private:
     IBAnchorPointSpec&
     operator=(
         const IBAnchorPointSpec& that);
-
-    /*!
-     * Indicates whether the factory has been registered with the
-     * IBTK::StreamableManager.
-     */
-    static bool s_registered_factory;
-
-    /*!
-     * The unique class ID for this object type assigned by the
-     * IBTK::StreamableManager.
-     */
-    static int s_class_id;
 
     /*!
      * The Lagrangian index of the anchored curvilinear mesh node.

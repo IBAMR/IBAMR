@@ -32,6 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// IBTK INCLUDES
+#include <ibtk/StreamableManager.h>
+
 // SAMRAI INCLUDES
 #include <tbox/PIO.h>
 #include <tbox/Utilities.h>
@@ -45,7 +48,7 @@ namespace IBAMR
 inline bool
 IBSourceSpec::getIsRegisteredWithStreamableManager()
 {
-    return s_registered_factory;
+    return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
 }// getIsRegisteredWithStreamableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -58,7 +61,7 @@ IBSourceSpec::IBSourceSpec(
       d_source_idx(source_idx)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    if (!s_registered_factory)
+    if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ERROR("IBSourceSpec::IBSourceSpec():\n"
                    << "  must call IBSourceSpec::registerWithStreamableManager() before\n"
@@ -102,7 +105,7 @@ IBSourceSpec::getSourceIndex()
 inline int
 IBSourceSpec::getStreamableClassID() const
 {
-    return s_class_id;
+    return STREAMABLE_CLASS_ID;
 }// getStreamableClassID
 
 inline size_t

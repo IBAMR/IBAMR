@@ -32,6 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// IBTK INCLUDES
+#include <ibtk/StreamableManager.h>
+
 // SAMRAI INCLUDES
 #include <tbox/PIO.h>
 #include <tbox/Utilities.h>
@@ -45,7 +48,7 @@ namespace IBAMR
 inline bool
 IBAnchorPointSpec::getIsRegisteredWithStreamableManager()
 {
-    return s_registered_factory;
+    return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
 }// getIsRegisteredWithStreamableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -63,7 +66,7 @@ IBAnchorPointSpec::IBAnchorPointSpec(
 #endif
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    if (!s_registered_factory)
+    if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ERROR("IBAnchorPointSpec::IBAnchorPointSpec():\n"
                    << "  must call IBAnchorPointSpec::registerWithStreamableManager() before\n"
@@ -109,7 +112,7 @@ IBAnchorPointSpec::getSubdomainIndex()
 inline int
 IBAnchorPointSpec::getStreamableClassID() const
 {
-    return s_class_id;
+    return STREAMABLE_CLASS_ID;
 }// getStreamableClassID
 
 inline size_t

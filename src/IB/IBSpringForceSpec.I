@@ -32,6 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// IBTK INCLUDES
+#include <ibtk/StreamableManager.h>
+
 // SAMRAI INCLUDES
 #include <tbox/PIO.h>
 #include <tbox/Utilities.h>
@@ -45,7 +48,7 @@ namespace IBAMR
 inline bool
 IBSpringForceSpec::getIsRegisteredWithStreamableManager()
 {
-    return s_registered_factory;
+    return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
 }// getIsRegisteredWithStreamableManager
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -63,7 +66,7 @@ IBSpringForceSpec::IBSpringForceSpec(
 #endif
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    if (!s_registered_factory)
+    if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ERROR("IBSpringForceSpec::IBSpringForceSpec():\n"
                    << "  must call IBSpringForceSpec::registerWithStreamableManager() before\n"
@@ -101,7 +104,7 @@ IBSpringForceSpec::IBSpringForceSpec(
 #if ENABLE_SUBDOMAIN_INDICES
     TBOX_ASSERT(num_springs == d_subdomain_idxs.size());
 #endif
-    if (!s_registered_factory)
+    if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ERROR("IBSpringForceSpec::IBSpringForceSpec():\n"
                    << "  must call IBSpringForceSpec::registerWithStreamableManager() before\n"
@@ -207,7 +210,7 @@ IBSpringForceSpec::getSubdomainIndices()
 inline int
 IBSpringForceSpec::getStreamableClassID() const
 {
-    return s_class_id;
+    return STREAMABLE_CLASS_ID;
 }// getStreamableClassID
 
 inline size_t

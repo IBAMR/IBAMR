@@ -57,7 +57,7 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-int IBInstrumentationSpecFactory::s_class_id = -1;
+int IBInstrumentationSpecFactory::s_class_id = StreamableManager::getUnregisteredID();
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

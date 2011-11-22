@@ -162,9 +162,14 @@ LNode::getNodeDataItem() const
 {
     const unsigned int node_data_sz = d_node_data.size();
     T* ret_val = NULL;
+    Streamable* it_val;
     for (unsigned int k = 0; k < node_data_sz && ret_val == NULL; ++k)
     {
-        ret_val = dynamic_cast<T*>(d_node_data_arr[k]);
+        it_val = d_node_data_arr[k];
+        if (it_val->getStreamableClassID() == T::STREAMABLE_CLASS_ID)
+        {
+            ret_val = static_cast<T*>(it_val);
+        }
     }
     return ret_val;
 }// getNodeDataItem
@@ -176,11 +181,14 @@ LNode::getNodeDataVector() const
     const unsigned int node_data_sz = d_node_data.size();
     std::vector<T*> ret_val;
     ret_val.reserve(node_data_sz);
-    T* it_val;
+    Streamable* it_val;
     for (unsigned int k = 0; k < node_data_sz; ++k)
     {
-        it_val = dynamic_cast<T*>(d_node_data_arr[k]);
-        if (it_val != NULL) ret_val.push_back(it_val);
+        it_val = d_node_data_arr[k];
+        if (it_val->getStreamableClassID() == T::STREAMABLE_CLASS_ID)
+        {
+            ret_val.push_back(static_cast<T*>(it_val));
+        }
     }
     return ret_val;
 }// getNodeDataVector

@@ -32,6 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// IBTK INCLUDES
+#include <ibtk/StreamableManager.h>
+
 // SAMRAI INCLUDES
 #include <tbox/PIO.h>
 #include <tbox/Utilities.h>
@@ -45,7 +48,7 @@ namespace IBAMR
 inline bool
 IBInstrumentationSpec::getIsRegisteredWithStreamableManager()
 {
-    return s_registered_factory;
+    return (STREAMABLE_CLASS_ID != IBTK::StreamableManager::getUnregisteredID());
 }// getIsRegisteredWithStreamableManager
 
 inline const std::vector<std::string>&
@@ -66,7 +69,7 @@ IBInstrumentationSpec::IBInstrumentationSpec(
       d_node_idx(node_idx)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-    if (!s_registered_factory)
+    if (!getIsRegisteredWithStreamableManager())
     {
         TBOX_ERROR("IBInstrumentationSpec::IBInstrumentationSpec():\n"
                    << "  must call IBInstrumentationSpec::registerWithStreamableManager() before\n"
@@ -122,7 +125,7 @@ IBInstrumentationSpec::getNodeIndex()
 inline int
 IBInstrumentationSpec::getStreamableClassID() const
 {
-    return s_class_id;
+    return STREAMABLE_CLASS_ID;
 }// getStreamableClassID
 
 inline size_t

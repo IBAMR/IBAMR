@@ -110,6 +110,12 @@ public:
     getIsRegisteredWithStreamableManager();
 
     /*!
+     * The unique class ID for this object type assigned by the
+     * IBTK::StreamableManager.
+     */
+    static int STREAMABLE_CLASS_ID;
+
+    /*!
      * \brief Default constructor.
      */
     IBSpringForceSpec(
@@ -269,18 +275,6 @@ private:
     IBSpringForceSpec&
     operator=(
         const IBSpringForceSpec& that);
-
-    /*!
-     * Indicates whether the factory has been registered with the
-     * IBTK::StreamableManager.
-     */
-    static bool s_registered_factory;
-
-    /*!
-     * The class ID for this object type assigned by the
-     * IBTK::StreamableManager.
-     */
-    static int s_class_id;
 
     /*!
      * Data required to define the spring forces.

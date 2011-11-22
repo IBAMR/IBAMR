@@ -57,7 +57,7 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-int IBTargetPointForceSpecFactory::s_class_id = -1;
+int IBTargetPointForceSpecFactory::s_class_id = StreamableManager::getUnregisteredID();
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

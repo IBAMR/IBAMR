@@ -60,8 +60,7 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-bool IBSpringForceSpec::s_registered_factory = false;
-int  IBSpringForceSpec::s_class_id = -1;
+int IBSpringForceSpec::STREAMABLE_CLASS_ID = StreamableManager::getUnregisteredID();
 
 void
 IBSpringForceSpec::registerWithStreamableManager()
@@ -70,13 +69,12 @@ IBSpringForceSpec::registerWithStreamableManager()
     // register the factory class with the StreamableManager, and to ensure that
     // all processes employ the same class ID for the IBSpringForceSpec object.
     SAMRAI_MPI::barrier();
-    if (!s_registered_factory)
+    if (!getIsRegisteredWithStreamableManager())
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(s_class_id == -1);
+        TBOX_ASSERT(STREAMABLE_CLASS_ID == StreamableManager::getUnregisteredID());
 #endif
-        s_class_id = StreamableManager::getManager()->registerFactory(new IBSpringForceSpecFactory());
-        s_registered_factory = true;
+        STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(new IBSpringForceSpecFactory());
     }
     SAMRAI_MPI::barrier();
     return;
