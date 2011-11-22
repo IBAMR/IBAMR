@@ -1032,6 +1032,8 @@ IBStandardForceGen::initializeTargetPointLevelData(
     // The LMesh object provides the set of local Lagrangian nodes.
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+    const int num_local_nodes = local_nodes.size();
+    const LNode* const * const local_nodes_arr = &local_nodes[0];
 
     // Quick return if local_nodes is empty.
     if (local_nodes.empty())
@@ -1054,36 +1056,53 @@ IBStandardForceGen::initializeTargetPointLevelData(
     }
 
     // Determine how many target points are associated with the present MPI
-    // process.
+    // process and cache copies of the target point force specs.
     std::vector<int> local_target_point_node_idxs;
     local_target_point_node_idxs.reserve(local_nodes.size());
     std::vector<const IBTargetPointForceSpec*> local_force_specs;
     local_force_specs.reserve(local_nodes.size());
-    static const int BLOCKSIZE = 128;
-    std::vector<LNode*>::const_iterator cit         = local_nodes.begin();
-    std::vector<LNode*>::const_iterator advance_cit = local_nodes.begin();
+    static const int BLOCKSIZE = 16;
     const LNode* node_idx;
     const IBTargetPointForceSpec* force_spec;
-    int k;
-    for (k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
+    int k, kblock, kunroll;
+    PREFETCH_READ_NTA_BLOCK(local_nodes_arr, 2*BLOCKSIZE);
+    for (k = 0; k < BLOCKSIZE && k < num_local_nodes; ++k)
     {
-        (*advance_cit)->prefetchNodeDataItems();
+        local_nodes_arr[k]->prefetchNodeDataItems();
     }
-    while (cit != local_nodes.end())
+    kblock = 0;
+    for ( ; kblock < (num_local_nodes-2)/BLOCKSIZE; ++kblock)  // ensure that the last TWO blocks are NOT handled by this first loop
     {
-        for (k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
+        PREFETCH_READ_NTA_BLOCK(local_nodes_arr+BLOCKSIZE*(kblock+2), BLOCKSIZE);
+        for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
         {
-            (*advance_cit)->prefetchNodeDataItems();
+            k = (kblock+1)*BLOCKSIZE+kunroll;
+            local_nodes_arr[k]->prefetchNodeDataItems();
         }
-        for (k = 0; k < BLOCKSIZE && cit != local_nodes.end(); ++k, ++cit)
+        for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
         {
-            node_idx = *cit;
+            k = kblock*BLOCKSIZE+kunroll;
+            node_idx = local_nodes_arr[k];
             force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
             if (force_spec == NULL) continue;
             local_target_point_node_idxs.push_back(node_idx->getGlobalPETScIndex());
             local_force_specs.push_back(force_spec);
         }
     }
+    for (k = (kblock+1)*BLOCKSIZE; k < num_local_nodes; ++k)
+    {
+        local_nodes_arr[k]->prefetchNodeDataItems();
+    }
+    for (k = kblock*BLOCKSIZE; k < num_local_nodes; ++k)
+    {
+        node_idx = local_nodes_arr[k];
+        force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
+        if (force_spec == NULL) continue;
+        local_target_point_node_idxs.push_back(node_idx->getGlobalPETScIndex());
+        local_force_specs.push_back(force_spec);
+    }
+
+    // Resize arrays of cached values.
     const int num_target_points = local_force_specs.size();
     petsc_node_idxs.resize(num_target_points);
     if (d_constant_material_properties)
@@ -1110,11 +1129,10 @@ IBStandardForceGen::initializeTargetPointLevelData(
     const double**                         const restrict   dynamic_kappa_arr = dynamic_kappa  .data();
     const double**                         const restrict     dynamic_eta_arr = dynamic_eta    .data();
     const blitz::TinyVector<double,NDIM>** const restrict      dynamic_X0_arr = dynamic_X0     .data();
-    int kblock, kunroll;
     kblock = 0;
     if (d_constant_material_properties)
     {
-        PREFETCH_READ_NTA_BLOCK(force_spec+BLOCKSIZE, BLOCKSIZE);
+        PREFETCH_READ_NTA_BLOCK(force_spec, BLOCKSIZE);
         for ( ; kblock < (num_target_points-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
         {
             PREFETCH_READ_NTA_BLOCK(force_spec+BLOCKSIZE*(kblock+1), BLOCKSIZE);
@@ -1139,7 +1157,7 @@ IBStandardForceGen::initializeTargetPointLevelData(
     }
     else
     {
-        PREFETCH_READ_NTA_BLOCK(force_spec+BLOCKSIZE, BLOCKSIZE);
+        PREFETCH_READ_NTA_BLOCK(force_spec, BLOCKSIZE);
         for ( ; kblock < (num_target_points-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
         {
             PREFETCH_READ_NTA_BLOCK(force_spec+BLOCKSIZE*(kblock+1), BLOCKSIZE);
