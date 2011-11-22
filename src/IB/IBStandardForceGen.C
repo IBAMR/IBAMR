@@ -1059,33 +1059,29 @@ IBStandardForceGen::initializeTargetPointLevelData(
     local_target_point_node_idxs.reserve(local_nodes.size());
     std::vector<const IBTargetPointForceSpec*> local_force_specs;
     local_force_specs.reserve(local_nodes.size());
-    static const unsigned int BLOCKSIZE = 512;
-    std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-    std::vector<LNode*>::const_iterator advance_cit1 = local_nodes.begin();
-    std::vector<LNode*>::const_iterator advance_cit2 = local_nodes.begin();
-    for (unsigned int k = 0; k < BLOCKSIZE && advance_cit1 != local_nodes.end(); ++k, ++advance_cit1)
+    static const int BLOCKSIZE = 128;
+    std::vector<LNode*>::const_iterator cit         = local_nodes.begin();
+    std::vector<LNode*>::const_iterator advance_cit = local_nodes.begin();
+    const LNode* node_idx;
+    const IBTargetPointForceSpec* force_spec;
+    int k;
+    for (k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
     {
-        PREFETCH_READ_NTA(*advance_cit1);
+        (*advance_cit)->prefetchNodeDataItems();
     }
     while (cit != local_nodes.end())
     {
-        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit1 != local_nodes.end(); ++k, ++advance_cit1)
+        for (k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
         {
-            PREFETCH_READ_NTA(*advance_cit1);
+            (*advance_cit)->prefetchNodeDataItems();
         }
-        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit2 != local_nodes.end(); ++k, ++advance_cit2)
+        for (k = 0; k < BLOCKSIZE && cit != local_nodes.end(); ++k, ++cit)
         {
-            (*advance_cit2)->prefetchNodeDataItems();
-        }
-        for (unsigned int k = 0; k < BLOCKSIZE && cit != local_nodes.end(); ++k, ++cit)
-        {
-            const LNode* const node_idx = *cit;
-            const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
-            if (force_spec != NULL)
-            {
-                local_target_point_node_idxs.push_back(node_idx->getGlobalPETScIndex());
-                local_force_specs.push_back(force_spec);
-            }
+            node_idx = *cit;
+            force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
+            if (force_spec == NULL) continue;
+            local_target_point_node_idxs.push_back(node_idx->getGlobalPETScIndex());
+            local_force_specs.push_back(force_spec);
         }
     }
     const int num_target_points = local_force_specs.size();
@@ -1114,12 +1110,28 @@ IBStandardForceGen::initializeTargetPointLevelData(
     const double**                         const restrict   dynamic_kappa_arr = dynamic_kappa  .data();
     const double**                         const restrict     dynamic_eta_arr = dynamic_eta    .data();
     const blitz::TinyVector<double,NDIM>** const restrict      dynamic_X0_arr = dynamic_X0     .data();
+    int kblock, kunroll;
+    kblock = 0;
     if (d_constant_material_properties)
     {
-        for (int k = 0; k < num_target_points; ++k)
+        PREFETCH_READ_NTA_BLOCK(force_spec+BLOCKSIZE, BLOCKSIZE);
+        for ( ; kblock < (num_target_points-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
+        {
+            PREFETCH_READ_NTA_BLOCK(force_spec+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
+            {
+                k = kblock*BLOCKSIZE+kunroll;
+                petsc_node_idxs_arr[k] = local_target_point_node_idxs[k];
+                force_spec = local_force_specs[k];
+                kappa_arr[k] = force_spec->getStiffness();
+                eta_arr  [k] = force_spec->getDamping();
+                X0_arr   [k] = force_spec->getTargetPointPosition();
+            }
+        }
+        for (k = kblock*BLOCKSIZE; k < num_target_points; ++k)
         {
             petsc_node_idxs_arr[k] = local_target_point_node_idxs[k];
-            const IBTargetPointForceSpec* const force_spec = local_force_specs[k];
+            force_spec = local_force_specs[k];
             kappa_arr[k] = force_spec->getStiffness();
             eta_arr  [k] = force_spec->getDamping();
             X0_arr   [k] = force_spec->getTargetPointPosition();
@@ -1127,10 +1139,24 @@ IBStandardForceGen::initializeTargetPointLevelData(
     }
     else
     {
-        for (int k = 0; k < num_target_points; ++k)
+        PREFETCH_READ_NTA_BLOCK(force_spec+BLOCKSIZE, BLOCKSIZE);
+        for ( ; kblock < (num_target_points-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
+        {
+            PREFETCH_READ_NTA_BLOCK(force_spec+BLOCKSIZE*(kblock+1), BLOCKSIZE);
+            for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
+            {
+                k = kblock*BLOCKSIZE+kunroll;
+                petsc_node_idxs_arr[k] = local_target_point_node_idxs[k];
+                force_spec = local_force_specs[k];
+                dynamic_kappa_arr[k] = &force_spec->getStiffness();
+                dynamic_eta_arr  [k] = &force_spec->getDamping();
+                dynamic_X0_arr   [k] = &force_spec->getTargetPointPosition();
+            }
+        }
+        for (k = kblock*BLOCKSIZE; k < num_target_points; ++k)
         {
             petsc_node_idxs_arr[k] = local_target_point_node_idxs[k];
-            const IBTargetPointForceSpec* const force_spec = local_force_specs[k];
+            force_spec = local_force_specs[k];
             dynamic_kappa_arr[k] = &force_spec->getStiffness();
             dynamic_eta_arr  [k] = &force_spec->getDamping();
             dynamic_X0_arr   [k] = &force_spec->getTargetPointPosition();
