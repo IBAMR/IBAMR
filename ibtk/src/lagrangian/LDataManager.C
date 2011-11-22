@@ -1735,6 +1735,7 @@ LDataManager::endDataRedistribution(
 
     // Update cached indexing information on each grid patch and setup LMesh
     // data structures.
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number]) continue;
@@ -1742,11 +1743,12 @@ LDataManager::endDataRedistribution(
         std::set<LNode*,LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
         const int num_local_nodes = getNumberOfLocalNodes(level_number);
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
+        const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<LNodeSetData> lag_node_idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            lag_node_idx_data->cacheLocalIndices();
+            lag_node_idx_data->cacheLocalIndices(patch, periodic_shift);
             const Box<NDIM>& ghost_box = lag_node_idx_data->getGhostBox();
             for (LNodeSetData::DataIterator it = lag_node_idx_data->data_begin(ghost_box);
                  it != lag_node_idx_data->data_end(); ++it)
@@ -2084,6 +2086,8 @@ LDataManager::initializeLevelData(
         }
 
         // 4. Compute the initial distribution (indexing) data.
+        Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+        const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
         std::set<LNode*,LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -2097,7 +2101,7 @@ LDataManager::initializeLevelData(
             node_count_data->fillAll(0.0);
             workload_data  ->fillAll(0.0);
 
-            idx_data->cacheLocalIndices();
+            idx_data->cacheLocalIndices(patch, periodic_shift);
             for (LNodeSetData::SetIterator it(*idx_data); it; it++)
             {
                 const CellIndex<NDIM>& i = it.getIndex();

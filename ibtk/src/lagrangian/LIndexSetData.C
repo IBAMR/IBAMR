@@ -47,6 +47,9 @@
 // IBTK INCLUDES
 #include <ibtk/namespaces.h>
 
+// SAMRAI INCLUDES
+#include <CartesianPatchGeometry.h>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK
@@ -65,7 +68,8 @@ LIndexSetData<T>::LIndexSetData(
       d_interior_global_petsc_indices(),
       d_ghost_global_petsc_indices(),
       d_interior_local_petsc_indices(),
-      d_ghost_local_petsc_indices()
+      d_ghost_local_petsc_indices(),
+      d_ghost_periodic_offsets()
 {
     // intentionally blank
     return;
@@ -80,7 +84,9 @@ LIndexSetData<T>::~LIndexSetData()
 
 template<class T>
 void
-LIndexSetData<T>::cacheLocalIndices()
+LIndexSetData<T>::cacheLocalIndices(
+    Pointer<Patch<NDIM> > patch,
+    const IntVector<NDIM>& periodic_shift)
 {
     d_interior_lag_indices         .clear();
     d_ghost_lag_indices            .clear();
@@ -88,10 +94,40 @@ LIndexSetData<T>::cacheLocalIndices()
     d_ghost_global_petsc_indices   .clear();
     d_interior_local_petsc_indices .clear();
     d_ghost_local_petsc_indices    .clear();
-    const Box<NDIM>& patch_box = LSetData<T>::getBox();
+    d_ghost_periodic_offsets       .clear();
+
+    const Box<NDIM>& patch_box = patch->getBox();
+    const Index<NDIM>& ilower = patch_box.lower();
+    const Index<NDIM>& iupper = patch_box.upper();
+
+    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+    blitz::TinyVector<bool,NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        patch_touches_lower_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis,0);
+        patch_touches_upper_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis,1);
+    }
+
+    blitz::TinyVector<int,NDIM> offset;
     for (typename LSetData<T>::SetIterator it(*this); it; it++)
     {
         const CellIndex<NDIM>& i = it.getIndex();
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            if      (patch_touches_lower_periodic_bdry[d] && i(d) < ilower(d))
+            {
+                offset[d] = -periodic_shift(d);  // X is ABOVE the top    of the patch --- need to shift DOWN
+            }
+            else if (patch_touches_upper_periodic_bdry[d] && i(d) > iupper(d))
+            {
+                offset[d] = +periodic_shift(d);  // X is BELOW the bottom of the patch --- need to shift UP
+            }
+            else
+            {
+                offset[d] = 0;
+            }
+        }
         const LSet<T>& idx_set = *it;
         const bool patch_owns_idx_set = patch_box.contains(i);
         for (typename LSet<T>::const_iterator n = idx_set.begin(); n != idx_set.end(); ++n)
@@ -111,6 +147,10 @@ LIndexSetData<T>::cacheLocalIndices()
                 d_ghost_lag_indices         .push_back(         lag_idx);
                 d_ghost_global_petsc_indices.push_back(global_petsc_idx);
                 d_ghost_local_petsc_indices .push_back( local_petsc_idx);
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    d_ghost_periodic_offsets.push_back(static_cast<double>(offset[d])*dx[d]);
+                }
             }
         }
     }

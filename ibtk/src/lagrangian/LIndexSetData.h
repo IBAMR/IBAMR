@@ -38,6 +38,9 @@
 // IBTK INCLUDES
 #include <ibtk/LSetData.h>
 
+// SAMRAI INCLUDES
+#include <Patch.h>
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
@@ -74,7 +77,9 @@ public:
      * \brief Update the cached indexing data.
      */
     void
-    cacheLocalIndices();
+    cacheLocalIndices(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        const SAMRAI::hier::IntVector<NDIM>& periodic_shift);
 
     /*!
      * \return A constant reference to the set of Lagrangian data indices that
@@ -118,6 +123,13 @@ public:
     const std::vector<int>&
     getGhostLocalPETScIndices() const;
 
+    /*!
+     * \return A constant reference to the periodic shifts for the indices that
+     * lie in the ghost cell region of the patch data object.
+     */
+    const std::vector<double>&
+    getGhostPeriodicOffsets() const;
+
 private:
     /*!
      * \brief Default constructor.
@@ -152,6 +164,7 @@ private:
     std::vector<int> d_interior_lag_indices, d_ghost_lag_indices;
     std::vector<int> d_interior_global_petsc_indices, d_ghost_global_petsc_indices;
     std::vector<int> d_interior_local_petsc_indices, d_ghost_local_petsc_indices;
+    std::vector<double> d_ghost_periodic_offsets;
 };
 }// namespace IBTK
 

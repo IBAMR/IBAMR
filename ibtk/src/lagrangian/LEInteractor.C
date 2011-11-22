@@ -133,7 +133,7 @@ extern "C"
         const double* ,
         const int* , const double* , const int& ,
         const double* , double*
-                                               );
+                                            );
 
     void
     LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC(
@@ -149,7 +149,7 @@ extern "C"
         const int& , const int& , const int& ,
 #endif
         double*
-                                          );
+                                            );
 
 #if (NDIM == 2)
     void
@@ -2074,15 +2074,17 @@ LEInteractor::buildLocalIndices(
     const IntVector<NDIM>& periodic_shift,
     const Pointer<LIndexSetData<T> > idx_data)
 {
-    local_indices.clear();
+    local_indices   .clear();
     periodic_offsets.clear();
     const unsigned int upper_bound = idx_data->getInteriorLocalPETScIndices().size() + idx_data->getGhostLocalPETScIndices().size();
     if (upper_bound == 0) return;
+    local_indices   .reserve(     upper_bound);
+    periodic_offsets.reserve(NDIM*upper_bound);
 
     const Box<NDIM>& patch_box = patch->getBox();
-    const Box<NDIM>& ghost_box = idx_data->getGhostBox();
     const Index<NDIM>& ilower = patch_box.lower();
     const Index<NDIM>& iupper = patch_box.upper();
+    const Box<NDIM>& ghost_box = idx_data->getGhostBox();
 
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
@@ -2093,9 +2095,8 @@ LEInteractor::buildLocalIndices(
         patch_touches_upper_periodic_bdry[axis] = pgeom->getTouchesPeriodicBoundary(axis,1);
     }
 
-    blitz::TinyVector<int,NDIM> offset;
-    local_indices   .reserve(     upper_bound);
-    periodic_offsets.reserve(NDIM*upper_bound);
+    blitz::TinyVector<int   ,NDIM>      offset;
+    blitz::TinyVector<double,NDIM> node_offset;
     if (s_sort_mode == NO_SORT)
     {
         if (box == patch_box)
@@ -2106,8 +2107,9 @@ LEInteractor::buildLocalIndices(
         else if (box == ghost_box)
         {
             local_indices = idx_data->getInteriorLocalPETScIndices();
-            local_indices.insert(local_indices.end(), idx_data->getGhostLocalPETScIndices().begin(), idx_data->getGhostLocalPETScIndices().end());
-            periodic_offsets.resize(NDIM*local_indices.size(),0.0);  // XXXX
+            periodic_offsets.resize(NDIM*local_indices.size(),0.0);
+            local_indices   .insert(local_indices   .end(), idx_data->getGhostLocalPETScIndices().begin(), idx_data->getGhostLocalPETScIndices().end());
+            periodic_offsets.insert(periodic_offsets.end(), idx_data->getGhostPeriodicOffsets  ().begin(), idx_data->getGhostPeriodicOffsets  ().end());
         }
         else
         {
@@ -2159,39 +2161,34 @@ LEInteractor::buildLocalIndices(
 
         std::vector<std::pair<const LNodeIndex*,blitz::TinyVector<double,NDIM> > > box_idxs_and_offsets;
         box_idxs_and_offsets.reserve(upper_bound);
-
         for (typename LIndexSetData<T> ::SetIterator it(*idx_data); it; it++)
         {
             const Index<NDIM>& i = it.getIndex();
-            if (box.contains(i))
+            if (!box.contains(i)) continue;
+
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
-                const LSet<T>& node_set = it.getItem();
-
-                blitz::TinyVector<int,NDIM> offset(0);
-                static const int lower = 0;
-                static const int upper = 1;
-                for (unsigned int d = 0; d < NDIM; ++d)
+                if      (patch_touches_lower_periodic_bdry[d] && i(d) < ilower(d))
                 {
-                    if      (pgeom->getTouchesPeriodicBoundary(d,lower) && i(d) < ilower(d))
-                    {
-                        offset[d] = -periodic_shift(d);  // X is ABOVE the top of the patch --- need to shift DOWN
-                    }
-                    else if (pgeom->getTouchesPeriodicBoundary(d,upper) && i(d) > iupper(d))
-                    {
-                        offset[d] = +periodic_shift(d);  // X is BELOW the bottom of the patch --- need to shift UP
-                    }
+                    offset[d] = -periodic_shift(d);  // X is ABOVE the top    of the patch --- need to shift DOWN
                 }
-                blitz::TinyVector<double,NDIM> node_offset;
-                for (unsigned int d = 0; d < NDIM; ++d)
+                else if (patch_touches_upper_periodic_bdry[d] && i(d) > iupper(d))
                 {
-                    node_offset[d] = static_cast<double>(offset[d])*dx[d];
+                    offset[d] = +periodic_shift(d);  // X is BELOW the bottom of the patch --- need to shift UP
                 }
-
-                for (typename LSet<T>::const_iterator cit = node_set.begin(); cit != node_set.end(); ++cit)
+                else
                 {
-                    box_idxs_and_offsets.push_back(std::make_pair(cit->getPointer(),node_offset));
+                    offset[d] = 0;
                 }
+                node_offset[d] = static_cast<double>(offset[d])*dx[d];
             }
+
+            const LSet<T>& node_set = it.getItem();
+            for (typename LSet<T>::const_iterator cit = node_set.begin(); cit != node_set.end(); ++cit)
+            {
+                box_idxs_and_offsets.push_back(std::make_pair(cit->getPointer(),node_offset));
+            }
+
         }
 
         std::sort(box_idxs_and_offsets.begin(),box_idxs_and_offsets.end(),SortModeComp());

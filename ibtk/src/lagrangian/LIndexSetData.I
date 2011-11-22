@@ -80,6 +80,13 @@ LIndexSetData<T>::getGhostLocalPETScIndices() const
     return d_ghost_local_petsc_indices;
 }// getGhostLocalPETScIndices
 
+template<class T>
+const std::vector<double>&
+LIndexSetData<T>::getGhostPeriodicOffsets() const
+{
+    return d_ghost_periodic_offsets;
+}// getGhostPeriodicOffsets
+
 //////////////////////////////////////////////////////////////////////////////
 
 }// namespace IBTK
