@@ -1055,19 +1055,27 @@ IBStandardForceGen::initializeTargetPointLevelData(
 
     // Determine how many target points are associated with the present MPI
     // process.
-    std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-    std::vector<LNode*>::const_iterator advance_cit = local_nodes.begin();
     std::vector<int> local_target_point_node_idxs;
     local_target_point_node_idxs.reserve(local_nodes.size());
     std::vector<const IBTargetPointForceSpec*> local_force_specs;
     local_force_specs.reserve(local_nodes.size());
+    static const unsigned int BLOCKSIZE = 512;
+    std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+    std::vector<LNode*>::const_iterator advance_cit1 = local_nodes.begin();
+    std::vector<LNode*>::const_iterator advance_cit2 = local_nodes.begin();
+    for (unsigned int k = 0; k < BLOCKSIZE && advance_cit1 != local_nodes.end(); ++k, ++advance_cit1)
+    {
+        PREFETCH_READ_NTA(*advance_cit1);
+    }
     while (cit != local_nodes.end())
     {
-        static const unsigned int BLOCKSIZE = 512;
-        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
+        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit1 != local_nodes.end(); ++k, ++advance_cit1)
         {
-//          PREFETCH_READ_NTA(*advance_cit);
-            (*advance_cit)->prefetchNodeDataItems();
+            PREFETCH_READ_NTA(*advance_cit1);
+        }
+        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit2 != local_nodes.end(); ++k, ++advance_cit2)
+        {
+            (*advance_cit2)->prefetchNodeDataItems();
         }
         for (unsigned int k = 0; k < BLOCKSIZE && cit != local_nodes.end(); ++k, ++cit)
         {
@@ -1106,18 +1114,23 @@ IBStandardForceGen::initializeTargetPointLevelData(
     const double**                         const restrict   dynamic_kappa_arr = dynamic_kappa  .data();
     const double**                         const restrict     dynamic_eta_arr = dynamic_eta    .data();
     const blitz::TinyVector<double,NDIM>** const restrict      dynamic_X0_arr = dynamic_X0     .data();
-    for (int k = 0; k < num_target_points; ++k)
+    if (d_constant_material_properties)
     {
-        petsc_node_idxs_arr[k] = local_target_point_node_idxs[k];
-        const IBTargetPointForceSpec* const force_spec = local_force_specs[k];
-        if (d_constant_material_properties)
+        for (int k = 0; k < num_target_points; ++k)
         {
+            petsc_node_idxs_arr[k] = local_target_point_node_idxs[k];
+            const IBTargetPointForceSpec* const force_spec = local_force_specs[k];
             kappa_arr[k] = force_spec->getStiffness();
             eta_arr  [k] = force_spec->getDamping();
             X0_arr   [k] = force_spec->getTargetPointPosition();
         }
-        else
+    }
+    else
+    {
+        for (int k = 0; k < num_target_points; ++k)
         {
+            petsc_node_idxs_arr[k] = local_target_point_node_idxs[k];
+            const IBTargetPointForceSpec* const force_spec = local_force_specs[k];
             dynamic_kappa_arr[k] = &force_spec->getStiffness();
             dynamic_eta_arr  [k] = &force_spec->getDamping();
             dynamic_X0_arr   [k] = &force_spec->getTargetPointPosition();
