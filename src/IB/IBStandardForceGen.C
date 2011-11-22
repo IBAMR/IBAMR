@@ -441,7 +441,7 @@ IBStandardForceGen::initializeSpringLevelData(
         }
         for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
         {
-            k = (kblock+1)*BLOCKSIZE+kunroll;
+            k = kblock*BLOCKSIZE+kunroll;
             const LNode* const node_idx = local_nodes[k];
             const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
             if (force_spec != NULL) num_springs += force_spec->getNumberOfSprings();
