@@ -194,12 +194,12 @@ PETScNewtonKrylovSolver::~PETScNewtonKrylovSolver()
     int ierr;
     if (d_petsc_jac != PETSC_NULL)
     {
-        ierr = MatDestroy(d_petsc_jac); IBTK_CHKERRQ(ierr);
+        ierr = MatDestroy(&d_petsc_jac); IBTK_CHKERRQ(ierr);
         d_petsc_jac = PETSC_NULL;
     }
     if (d_managing_petsc_snes && d_petsc_snes != PETSC_NULL)
     {
-        ierr = SNESDestroy(d_petsc_snes); IBTK_CHKERRQ(ierr);
+        ierr = SNESDestroy(&d_petsc_snes); IBTK_CHKERRQ(ierr);
         d_petsc_snes = PETSC_NULL;
     }
     return;
@@ -412,7 +412,7 @@ PETScNewtonKrylovSolver::deallocateSolverState()
     // Destroy the SNES solver.
     if (d_managing_petsc_snes)
     {
-        ierr = SNESDestroy(d_petsc_snes);  IBTK_CHKERRQ(ierr);
+        ierr = SNESDestroy(&d_petsc_snes);  IBTK_CHKERRQ(ierr);
         d_petsc_snes = PETSC_NULL;
     }
 
@@ -473,7 +473,7 @@ PETScNewtonKrylovSolver::reportSNESConvergedReason(
         case SNES_DIVERGED_MAX_IT:
             os << d_object_name << ": diverged: exceeded maximum number of iterations.\n";
             break;
-        case SNES_DIVERGED_LS_FAILURE:
+        case SNES_DIVERGED_LINE_SEARCH:
             os << d_object_name << ": diverged: line-search failure.\n";
             break;
         case SNES_DIVERGED_LOCAL_MIN:
@@ -525,7 +525,7 @@ PETScNewtonKrylovSolver::resetSNESJacobian()
         int ierr;
         if (d_petsc_jac != PETSC_NULL)
         {
-            ierr = MatDestroy(d_petsc_jac); IBTK_CHKERRQ(ierr);
+            ierr = MatDestroy(&d_petsc_jac); IBTK_CHKERRQ(ierr);
             d_petsc_jac = PETSC_NULL;
         }
         if (d_J.isNull() || !d_user_provided_jacobian)

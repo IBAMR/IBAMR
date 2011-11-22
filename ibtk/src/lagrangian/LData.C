@@ -230,7 +230,7 @@ LData::LData(
 LData::~LData()
 {
     restoreArrays();
-    const int ierr = VecDestroy(d_global_vec);  IBTK_CHKERRQ(ierr);
+    const int ierr = VecDestroy(&d_global_vec);  IBTK_CHKERRQ(ierr);
     return;
 }// ~LData
 
@@ -241,7 +241,7 @@ LData::resetData(
 {
     restoreArrays();
     int ierr;
-    ierr = VecDestroy(d_global_vec);  IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&d_global_vec);  IBTK_CHKERRQ(ierr);
     d_global_vec = vec;
     int depth;
     ierr = VecGetBlockSize(d_global_vec, &depth);  IBTK_CHKERRQ(ierr);

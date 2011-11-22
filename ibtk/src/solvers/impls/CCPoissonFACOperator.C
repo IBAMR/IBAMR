@@ -761,12 +761,8 @@ CCPoissonFACOperator::smoothError(
                     static const double shift = 0.0;
                     static const int its = 1;
                     Mat& A = d_patch_mat[level_num][patch_counter];
-#if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 0)
-                    ierr = MatRelax(A, f, omega, SOR_SYMMETRIC_SWEEP, shift, its, its, e);  IBTK_CHKERRQ(ierr);
-#endif
-#if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 1)
                     ierr = MatSOR(A, f, omega, SOR_SYMMETRIC_SWEEP, shift, its, its, e);  IBTK_CHKERRQ(ierr);
-#endif
+
                     // Reset the PETSc Vec wrappers.
                     ierr = VecResetArray(e);  IBTK_CHKERRQ(ierr);
                     ierr = VecResetArray(f);  IBTK_CHKERRQ(ierr);
@@ -1235,21 +1231,21 @@ CCPoissonFACOperator::deallocateOperatorState()
                      it != d_patch_vec_e[ln].end(); ++it)
                 {
                     Vec& e = *it;
-                    ierr = VecDestroy(e);  IBTK_CHKERRQ(ierr);
+                    ierr = VecDestroy(&e);  IBTK_CHKERRQ(ierr);
                 }
                 d_patch_vec_e[ln].clear();
                 for (std::vector<Vec>::iterator it = d_patch_vec_f[ln].begin();
                      it != d_patch_vec_f[ln].end(); ++it)
                 {
                     Vec& f = *it;
-                    ierr = VecDestroy(f);  IBTK_CHKERRQ(ierr);
+                    ierr = VecDestroy(&f);  IBTK_CHKERRQ(ierr);
                 }
                 d_patch_vec_f[ln].clear();
                 for (std::vector<Mat>::iterator it = d_patch_mat[ln].begin();
                      it != d_patch_mat[ln].end(); ++it)
                 {
                     Mat& A = *it;
-                    ierr = MatDestroy(A);  IBTK_CHKERRQ(ierr);
+                    ierr = MatDestroy(&A);  IBTK_CHKERRQ(ierr);
                 }
                 d_patch_mat[ln].clear();
             }

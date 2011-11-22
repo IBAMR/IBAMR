@@ -72,7 +72,7 @@ PETScMatLOWrapper::~PETScMatLOWrapper()
 inline bool
 PETScMatLOWrapper::isSymmetric() const
 {
-    PetscTruth set, is_symmetric;
+    PetscBool set, is_symmetric;
     int ierr = MatIsSymmetricKnown(d_petsc_mat,&set,&is_symmetric); IBTK_CHKERRQ(ierr);
     return (set && is_symmetric);
 }// isSymmetric

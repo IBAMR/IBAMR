@@ -949,7 +949,7 @@ private:
      * appearing in the ghost cell region of a patch may or may not be owned by
      * this processor.
      */
-    int
+    void
     computeNodeDistribution(
         AO& ao,
         std::vector<int>& local_lag_indices,
@@ -1175,13 +1175,8 @@ private:
      * processor that appear in the ghost region of some patch owned by this
      * processor) on each level of the hierarchy.  The indices are in the global
      * PETSc ordering corresponding to a depth of 1.
-     *
-     * \note These sets are used to create the VecScatter objects used to
-     * transfer data from the old PETSc ordering to the new PETSc ordering.
-     * Since the ordering is different for different depths of LData,
-     * we compute one set of indices for each depth that is being reordered.
      */
-    std::vector<std::map<unsigned int,std::vector<int> > > d_nonlocal_petsc_indices;
+    std::vector<std::vector<int> > d_nonlocal_petsc_indices;
 
     //\}
 };
