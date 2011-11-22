@@ -412,7 +412,8 @@ IBStandardForceGen::initializeSpringLevelData(
         return;
     }
 
-    // Determine how many springs are associated with the present MPI process.
+    // Determine how many springs are associated with the present MPI process
+    // and cache copies of the target point force specs.
     int num_springs = 0;
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
@@ -1058,14 +1059,13 @@ IBStandardForceGen::initializeTargetPointLevelData(
     // Determine how many target points are associated with the present MPI
     // process and cache copies of the target point force specs.
     std::vector<int> local_target_point_node_idxs;
-    local_target_point_node_idxs.reserve(local_nodes.size());
+    local_target_point_node_idxs.reserve(num_local_nodes);
     std::vector<const IBTargetPointForceSpec*> local_force_specs;
-    local_force_specs.reserve(local_nodes.size());
+    local_force_specs.reserve(num_local_nodes);
     static const int BLOCKSIZE = 16;
     const LNode* node_idx;
     const IBTargetPointForceSpec* force_spec;
     int k, kblock, kunroll;
-    PREFETCH_READ_NTA_BLOCK(local_nodes_arr, 2*BLOCKSIZE);
     for (k = 0; k < BLOCKSIZE && k < num_local_nodes; ++k)
     {
         local_nodes_arr[k]->prefetchNodeDataItems();
@@ -1073,7 +1073,6 @@ IBStandardForceGen::initializeTargetPointLevelData(
     kblock = 0;
     for ( ; kblock < (num_local_nodes-2)/BLOCKSIZE; ++kblock)  // ensure that the last TWO blocks are NOT handled by this first loop
     {
-        PREFETCH_READ_NTA_BLOCK(local_nodes_arr+BLOCKSIZE*(kblock+2), BLOCKSIZE);
         for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
         {
             k = (kblock+1)*BLOCKSIZE+kunroll;
@@ -1102,7 +1101,8 @@ IBStandardForceGen::initializeTargetPointLevelData(
         local_force_specs.push_back(force_spec);
     }
 
-    // Resize arrays of cached values.
+    // Resize arrays for storing cached values used to compute target point
+    // forces.
     const int num_target_points = local_force_specs.size();
     petsc_node_idxs.resize(num_target_points);
     if (d_constant_material_properties)
@@ -1132,10 +1132,8 @@ IBStandardForceGen::initializeTargetPointLevelData(
     kblock = 0;
     if (d_constant_material_properties)
     {
-        PREFETCH_READ_NTA_BLOCK(force_spec, BLOCKSIZE);
         for ( ; kblock < (num_target_points-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
         {
-            PREFETCH_READ_NTA_BLOCK(force_spec+BLOCKSIZE*(kblock+1), BLOCKSIZE);
             for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
             {
                 k = kblock*BLOCKSIZE+kunroll;
@@ -1157,10 +1155,8 @@ IBStandardForceGen::initializeTargetPointLevelData(
     }
     else
     {
-        PREFETCH_READ_NTA_BLOCK(force_spec, BLOCKSIZE);
         for ( ; kblock < (num_target_points-1)/BLOCKSIZE; ++kblock)  // ensure that the last block is NOT handled by this first loop
         {
-            PREFETCH_READ_NTA_BLOCK(force_spec+BLOCKSIZE*(kblock+1), BLOCKSIZE);
             for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
             {
                 k = kblock*BLOCKSIZE+kunroll;
