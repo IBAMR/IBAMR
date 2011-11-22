@@ -450,6 +450,8 @@ IBStandardForceGen::initializeSpringLevelData(
     if (num_springs == 0) return;
 
     // Setup the data structures used to compute spring forces.
+    static const int BLOCKSIZE = 16;  // This parameter needs to be tuned.
+    int k, kblock, kunroll, idx;
     int current_spring = 0;
     if (d_constant_material_properties)
     {
@@ -488,9 +490,72 @@ IBStandardForceGen::initializeSpringLevelData(
     }
     else
     {
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        const int num_local_nodes = local_nodes.size();
+        kblock = 0;
+        for (kunroll = 0; kunroll < BLOCKSIZE && kunroll < num_local_nodes; ++kunroll)
         {
-            const LNode* const node_idx = *cit;
+            k = kblock*BLOCKSIZE+kunroll;
+            const LNode* const node_idx = local_nodes[k];
+            const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
+            if (force_spec == NULL) continue;
+            const unsigned int num_springs = force_spec->getNumberOfSprings();
+            PREFETCH_READ_NTA_BLOCK(&force_spec->getSlaveNodeIndices    ()[0], num_springs);
+            PREFETCH_READ_NTA_BLOCK(&force_spec->getForceFunctionIndices()[0], num_springs);
+            PREFETCH_READ_NTA_BLOCK(&force_spec->getStiffnesses         ()[0], num_springs);
+            PREFETCH_READ_NTA_BLOCK(&force_spec->getRestingLengths      ()[0], num_springs);
+        }
+        for ( ; kblock < (num_local_nodes-2)/BLOCKSIZE; ++kblock)  // ensure that the last TWO blocks are NOT handled by this first loop
+        {
+            for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
+            {
+                k = (kblock+1)*BLOCKSIZE+kunroll;
+                const LNode* const node_idx = local_nodes[k];
+                const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
+                if (force_spec == NULL) continue;
+                const unsigned int num_springs = force_spec->getNumberOfSprings();
+                PREFETCH_READ_NTA_BLOCK(&force_spec->getSlaveNodeIndices    ()[0], num_springs);
+                PREFETCH_READ_NTA_BLOCK(&force_spec->getForceFunctionIndices()[0], num_springs);
+                PREFETCH_READ_NTA_BLOCK(&force_spec->getStiffnesses         ()[0], num_springs);
+                PREFETCH_READ_NTA_BLOCK(&force_spec->getRestingLengths      ()[0], num_springs);
+            }
+            for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
+            {
+                k = kblock*BLOCKSIZE+kunroll;
+                const LNode* const node_idx = local_nodes[k];
+                const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
+                if (force_spec == NULL) continue;
+
+                const int lag_idx = node_idx->getLagrangianIndex();
+#ifdef DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(lag_idx == force_spec->getMasterNodeIndex());
+#endif
+                const int petsc_idx = node_idx->getGlobalPETScIndex();
+                const std::vector<int>& slv = force_spec->getSlaveNodeIndices();
+                const std::vector<int>& fcn = force_spec->getForceFunctionIndices();
+                const std::vector<double>& stf = force_spec->getStiffnesses();
+                const std::vector<double>& rst = force_spec->getRestingLengths();
+                const unsigned int num_springs = force_spec->getNumberOfSprings();
+#ifdef DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(num_springs == slv.size());
+                TBOX_ASSERT(num_springs == fcn.size());
+                TBOX_ASSERT(num_springs == stf.size());
+                TBOX_ASSERT(num_springs == rst.size());
+#endif
+                for (unsigned int k = 0; k < num_springs; ++k)
+                {
+                    lag_mastr_node_idxs  (current_spring) = lag_idx;
+                    lag_slave_node_idxs  (current_spring) = slv[k];
+                    petsc_mastr_node_idxs(current_spring) = petsc_idx;
+                    force_fcns           (current_spring) = d_spring_force_fcn_map[fcn[k]];
+                    dynamic_stiffnesses  (current_spring) = &stf[k];
+                    dynamic_rest_lengths (current_spring) = &rst[k];
+                    ++current_spring;
+                }
+            }
+        }
+        for (k = kblock*BLOCKSIZE; k < num_springs; ++k)
+        {
+            const LNode* const node_idx = local_nodes[k];
             const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
             if (force_spec == NULL) continue;
 
