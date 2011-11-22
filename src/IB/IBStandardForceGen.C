@@ -1056,18 +1056,28 @@ IBStandardForceGen::initializeTargetPointLevelData(
     // Determine how many target points are associated with the present MPI
     // process.
     std::vector<LNode*>::const_iterator cit = local_nodes.begin();
+    std::vector<LNode*>::const_iterator advance_cit = local_nodes.begin();
     std::vector<int> local_target_point_node_idxs;
     local_target_point_node_idxs.reserve(local_nodes.size());
     std::vector<const IBTargetPointForceSpec*> local_force_specs;
     local_force_specs.reserve(local_nodes.size());
-    for ( ; cit != local_nodes.end(); ++cit)
+    while (cit != local_nodes.end())
     {
-        const LNode* const node_idx = *cit;
-        const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
-        if (force_spec != NULL)
+        static const unsigned int BLOCKSIZE = 512;
+        for (unsigned int k = 0; k < BLOCKSIZE && advance_cit != local_nodes.end(); ++k, ++advance_cit)
         {
-            local_target_point_node_idxs.push_back(node_idx->getGlobalPETScIndex());
-            local_force_specs.push_back(force_spec);
+            PREFETCH_READ_NTA(*advance_cit);
+//          (*advance_cit)->prefetchNodeDataItems();
+        }
+        for (unsigned int k = 0; k < BLOCKSIZE && cit != local_nodes.end(); ++k, ++cit)
+        {
+            const LNode* const node_idx = *cit;
+            const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
+            if (force_spec != NULL)
+            {
+                local_target_point_node_idxs.push_back(node_idx->getGlobalPETScIndex());
+                local_force_specs.push_back(force_spec);
+            }
         }
     }
     const int num_target_points = local_force_specs.size();
