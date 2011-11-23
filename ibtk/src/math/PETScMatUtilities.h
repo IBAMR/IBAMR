@@ -73,7 +73,7 @@ public:
      */
     static void
     constructPatchLaplaceOp(
-        Mat& mat,
+        Mat mat,
         double C,
         double D,
         SAMRAI::pdat::CellData<NDIM,double>& src_data,
@@ -112,7 +112,7 @@ public:
      */
     static void
     constructPatchLevelLaplaceOp(
-        Mat& mat,
+        Mat mat,
         double C,
         double D,
         int data_idx,
@@ -132,7 +132,7 @@ public:
      */
     static void
     constructPatchLevelLaplaceOp(
-        Mat& mat,
+        Mat mat,
         double C,
         double D,
         int data_idx,
@@ -152,8 +152,8 @@ public:
      */
     static void
     constructPatchLevelInterpOp(
-        Mat& mat,
-        Vec& X_vec,
+        Mat mat,
+        Vec X_vec,
         int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > data_var,
         int dof_index_idx,
@@ -202,7 +202,7 @@ private:
      */
     static void
     constructBoxLaplaceOp(
-        Mat& mat,
+        Mat mat,
         double C,
         double D,
         const SAMRAI::hier::Box<NDIM>& src_ghost_box,

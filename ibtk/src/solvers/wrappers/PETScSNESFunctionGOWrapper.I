@@ -43,7 +43,7 @@ namespace IBTK
 inline
 PETScSNESFunctionGOWrapper::PETScSNESFunctionGOWrapper(
     const std::string& object_name,
-    const SNES& petsc_snes,
+    const SNES petsc_snes,
     PetscErrorCode (* const petsc_snes_form_func)(SNES,Vec,Vec,void*),
     void* const petsc_snes_func_ctx)
     : d_object_name(object_name),
@@ -68,7 +68,7 @@ PETScSNESFunctionGOWrapper::~PETScSNESFunctionGOWrapper()
     return;
 }// ~PETScSNESFunctionGOWrapper()
 
-inline const SNES&
+inline SNES
 PETScSNESFunctionGOWrapper::getPETScSNES() const
 {
     return d_petsc_snes;

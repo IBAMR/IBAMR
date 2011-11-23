@@ -321,7 +321,7 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
 
 void
 IBStandardForceGen::computeLagrangianForceJacobian(
-    Mat& /*J_mat*/,
+    Mat /*J_mat*/,
     MatAssemblyType /*assembly_type*/,
     const double /*X_coef*/,
     Pointer<LData> /*X_data*/,

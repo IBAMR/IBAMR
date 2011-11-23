@@ -151,7 +151,7 @@ LM3DDataWriter::~LM3DDataWriter()
         for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
              it != d_dst_vec[ln].end(); ++it)
         {
-            Vec& v = it->second;
+            Vec v = it->second;
             if (v)
             {
                 ierr = VecDestroy(&v);
@@ -204,7 +204,7 @@ LM3DDataWriter::resetLevels(
         for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
              it != d_dst_vec[ln].end(); ++it)
         {
-            Vec& v = it->second;
+            Vec v = it->second;
             if (v != PETSC_NULL)
             {
                 ierr = VecDestroy(&v);  IBTK_CHKERRQ(ierr);
@@ -226,7 +226,7 @@ LM3DDataWriter::resetLevels(
         for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
              it != d_dst_vec[ln].end(); ++it)
         {
-            Vec& v = it->second;
+            Vec v = it->second;
             if (v != PETSC_NULL)
             {
                 ierr = VecDestroy(&v);  IBTK_CHKERRQ(ierr);
@@ -1160,8 +1160,8 @@ LM3DDataWriter::buildVecScatters(
         ierr = ISCreateBlock(PETSC_COMM_WORLD, depth, idxs.size(), (!idxs.empty() ? &idxs[0] : PETSC_NULL), PETSC_COPY_VALUES, &src_is);
         IBTK_CHKERRQ(ierr);
 
-        Vec& src_vec = d_src_vec[level_number][depth];
-        Vec& dst_vec = d_dst_vec[level_number][depth];
+        Vec src_vec = d_src_vec[level_number][depth];
+        Vec dst_vec = d_dst_vec[level_number][depth];
         if (dst_vec)
         {
             ierr = VecDestroy(&dst_vec);

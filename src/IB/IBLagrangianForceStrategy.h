@@ -176,7 +176,7 @@ public:
      */
     virtual void
     computeLagrangianForceJacobian(
-        Mat& J_mat,
+        Mat J_mat,
         MatAssemblyType assembly_type,
         double X_coef,
         SAMRAI::tbox::Pointer<IBTK::LData> X_data,

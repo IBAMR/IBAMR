@@ -667,7 +667,7 @@ LSiloDataWriter::~LSiloDataWriter()
         for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
              it != d_dst_vec[ln].end(); ++it)
         {
-            Vec& v = it->second;
+            Vec v = it->second;
             if (v)
             {
                 ierr = VecDestroy(&v);
@@ -720,7 +720,7 @@ LSiloDataWriter::resetLevels(
         for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
              it != d_dst_vec[ln].end(); ++it)
         {
-            Vec& v = it->second;
+            Vec v = it->second;
             if (v != PETSC_NULL)
             {
                 ierr = VecDestroy(&v);  IBTK_CHKERRQ(ierr);
@@ -742,7 +742,7 @@ LSiloDataWriter::resetLevels(
         for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
              it != d_dst_vec[ln].end(); ++it)
         {
-            Vec& v = it->second;
+            Vec v = it->second;
             if (v != PETSC_NULL)
             {
                 ierr = VecDestroy(&v);  IBTK_CHKERRQ(ierr);
@@ -2233,8 +2233,8 @@ LSiloDataWriter::buildVecScatters(
                              PETSC_COPY_VALUES, &src_is);
         IBTK_CHKERRQ(ierr);
 
-        Vec& src_vec = d_src_vec[level_number][depth];
-        Vec& dst_vec = d_dst_vec[level_number][depth];
+        Vec src_vec = d_src_vec[level_number][depth];
+        Vec dst_vec = d_dst_vec[level_number][depth];
         if (dst_vec)
         {
             ierr = VecDestroy(&dst_vec);

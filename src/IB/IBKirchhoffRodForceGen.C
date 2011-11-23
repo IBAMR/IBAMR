@@ -263,8 +263,8 @@ IBKirchhoffRodForceGen::initializeLevelData(
     d_material_params.resize(new_size);
     d_is_initialized.resize(new_size, false);
 
-    Mat& D_next_mat = d_D_next_mats[level_num];
-    Mat& X_next_mat = d_X_next_mats[level_num];
+    Mat D_next_mat = d_D_next_mats[level_num];
+    Mat X_next_mat = d_X_next_mats[level_num];
     std::vector<int>& petsc_curr_node_idxs = d_petsc_curr_node_idxs[level_num];
     std::vector<int>& petsc_next_node_idxs = d_petsc_next_node_idxs[level_num];
     std::vector<blitz::TinyVector<double,IBRodForceSpec::NUM_MATERIAL_PARAMS> >& material_params = d_material_params[level_num];

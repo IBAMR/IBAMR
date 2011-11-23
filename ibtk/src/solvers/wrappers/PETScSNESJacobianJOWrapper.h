@@ -68,7 +68,7 @@ public:
      */
     PETScSNESJacobianJOWrapper(
         const std::string& object_name,
-        const SNES& petsc_snes,
+        const SNES petsc_snes,
         PetscErrorCode (*petsc_snes_form_jac)(SNES,Vec,Mat*,Mat*,MatStructure*,void*),
         void* petsc_snes_jac_ctx);
 
@@ -85,7 +85,7 @@ public:
     /*!
      * \brief Get the PETSc SNES object "wrapped" by this object.
      */
-    const SNES&
+    SNES
     getPETScSNES() const;
 
     /*!

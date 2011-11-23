@@ -119,7 +119,7 @@ public:
      */
     PETScNewtonKrylovSolver(
         const std::string& object_name,
-        const SNES& petsc_snes,
+        const SNES petsc_snes,
         const std::string& options_prefix="");
 
     /*!
@@ -135,7 +135,7 @@ public:
     /*!
      * \brief Get the PETSc SNES object.
      */
-    const SNES&
+    SNES
     getPETScSNES() const;
 
     //\}

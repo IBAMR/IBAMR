@@ -524,7 +524,7 @@ private:
      */
     static void
     buildPatchLaplaceOperator(
-        Mat& A,
+        Mat A,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
@@ -535,7 +535,7 @@ private:
      */
     static void
     buildPatchLaplaceOperator_aligned(
-        Mat& A,
+        Mat A,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > C_data,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > D_data,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
@@ -547,7 +547,7 @@ private:
      */
     static void
     buildPatchLaplaceOperator_nonaligned(
-        Mat& A,
+        Mat A,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > C_data,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > D_data,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,

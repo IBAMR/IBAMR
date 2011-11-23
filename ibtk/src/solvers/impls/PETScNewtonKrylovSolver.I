@@ -47,7 +47,7 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline const SNES&
+inline SNES
 PETScNewtonKrylovSolver::getPETScSNES() const
 {
     return d_petsc_snes;

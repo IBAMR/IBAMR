@@ -69,7 +69,7 @@ public:
      */
     PETScSNESFunctionGOWrapper(
         const std::string& object_name,
-        const SNES& petsc_snes,
+        const SNES petsc_snes,
         PetscErrorCode (*petsc_snes_form_func)(SNES,Vec,Vec,void*),
         void* petsc_snes_func_ctx);
 
@@ -86,7 +86,7 @@ public:
     /*!
      * \brief Get the PETSc SNES object "wrapped" by this object.
      */
-    const SNES&
+    SNES
     getPETScSNES() const;
 
     /*!

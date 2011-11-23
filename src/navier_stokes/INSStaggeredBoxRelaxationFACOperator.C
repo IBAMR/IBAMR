@@ -137,7 +137,7 @@ compute_cell_index(
 
 void
 buildBoxOperator(
-    Mat& A,
+    Mat A,
     const INSProblemCoefs& problem_coefs,
     const double dt,
     const Box<NDIM>& box,
@@ -319,7 +319,7 @@ buildBoxOperator(
 
 void
 modifyRhsForBcs(
-    Vec& v,
+    Vec v,
     const SideData<NDIM,double>& U_data,
     const CellData<NDIM,double>& P_data,
     const INSProblemCoefs& problem_coefs,
@@ -377,7 +377,7 @@ modifyRhsForBcs(
 
 inline void
 copyToVec(
-    Vec& v,
+    Vec v,
     const SideData<NDIM,double>& U_data,
     const CellData<NDIM,double>& P_data,
     const Box<NDIM>& box,
@@ -411,7 +411,7 @@ copyToVec(
 
 inline void
 copyFromVec(
-    Vec& v,
+    Vec v,
     SideData<NDIM,double>& U_data,
     CellData<NDIM,double>& P_data,
     const Box<NDIM>& box,
@@ -1039,9 +1039,9 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
         }
 
         // Smooth the error on the patches.
-        Vec& e = d_box_e[level_num];
-        Vec& r = d_box_r[level_num];
-        KSP& ksp = d_box_ksp[level_num];
+        Vec e = d_box_e[level_num];
+        Vec r = d_box_r[level_num];
+        KSP ksp = d_box_ksp[level_num];
         int patch_counter = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
         {

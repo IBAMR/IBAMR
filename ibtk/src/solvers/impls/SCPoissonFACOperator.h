@@ -501,7 +501,7 @@ private:
      */
     static void
     buildPatchLaplaceOperator(
-        Mat& A,
+        Mat A,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         int component_axis,
