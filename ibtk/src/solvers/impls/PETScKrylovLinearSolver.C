@@ -123,7 +123,7 @@ PETScKrylovLinearSolver::PETScKrylovLinearSolver(
 
 PETScKrylovLinearSolver::PETScKrylovLinearSolver(
     const std::string& object_name,
-    const KSP petsc_ksp,
+    const KSP& petsc_ksp,
     const std::string& options_prefix)
     : d_object_name(object_name),
       d_ksp_type("none"),

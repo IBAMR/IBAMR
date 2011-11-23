@@ -127,7 +127,7 @@ public:
      */
     PETScKrylovLinearSolver(
         const std::string& object_name,
-        const KSP petsc_ksp,
+        const KSP& petsc_ksp,
         const std::string& options_prefix="");
 
     /*!
@@ -169,7 +169,7 @@ public:
     /*!
      * \brief Get the PETSc KSP object.
      */
-    KSP
+    const KSP&
     getPETScKSP() const;
 
     //\}

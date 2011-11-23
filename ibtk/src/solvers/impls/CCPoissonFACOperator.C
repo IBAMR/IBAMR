@@ -740,8 +740,8 @@ CCPoissonFACOperator::smoothError(
                     // data depth.
                     int ierr;
 
-                    Vec e = d_patch_vec_e[level_num][patch_counter];
-                    Vec f = d_patch_vec_f[level_num][patch_counter];
+                    Vec& e = d_patch_vec_e[level_num][patch_counter];
+                    Vec& f = d_patch_vec_f[level_num][patch_counter];
 
                     ierr = VecPlaceArray(e,    error_data->getPointer(depth));  IBTK_CHKERRQ(ierr);
                     ierr = VecPlaceArray(f, residual_data->getPointer(depth));  IBTK_CHKERRQ(ierr);
@@ -760,7 +760,7 @@ CCPoissonFACOperator::smoothError(
                     static const double omega = 1.0;
                     static const double shift = 0.0;
                     static const int its = 1;
-                    Mat A = d_patch_mat[level_num][patch_counter];
+                    Mat& A = d_patch_mat[level_num][patch_counter];
                     ierr = MatSOR(A, f, omega, SOR_SYMMETRIC_SWEEP, shift, its, its, e);  IBTK_CHKERRQ(ierr);
 
                     // Reset the PETSc Vec wrappers.
@@ -780,7 +780,7 @@ CCPoissonFACOperator::smoothError(
                     const double* const F = residual_data->getPointer(depth);
                     const int F_ghosts = (residual_data->getGhostCellWidth()).max();
                     static const int its = 1;
-                    RB_GS_SMOOTH_FC(
+                    GS_SMOOTH_FC(
                         U, U_ghosts,
                         alpha, beta,
                         F, F_ghosts,
@@ -1113,12 +1113,12 @@ CCPoissonFACOperator::initializeOperatorState(
 
                 int ierr;
 
-                Vec e = d_patch_vec_e[ln][patch_counter];
-                Vec f = d_patch_vec_f[ln][patch_counter];
+                Vec& e = d_patch_vec_e[ln][patch_counter];
+                Vec& f = d_patch_vec_f[ln][patch_counter];
                 ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, size, PETSC_NULL, &e);  IBTK_CHKERRQ(ierr);
                 ierr = VecCreateSeqWithArray(PETSC_COMM_SELF, size, PETSC_NULL, &f);  IBTK_CHKERRQ(ierr);
 
-                Mat A = d_patch_mat[ln][patch_counter];
+                Mat& A = d_patch_mat[ln][patch_counter];
                 buildPatchLaplaceOperator(A, d_poisson_spec, patch, d_gcw);
             }
         }
@@ -1230,21 +1230,21 @@ CCPoissonFACOperator::deallocateOperatorState()
                 for (std::vector<Vec>::iterator it = d_patch_vec_e[ln].begin();
                      it != d_patch_vec_e[ln].end(); ++it)
                 {
-                    Vec e = *it;
+                    Vec& e = *it;
                     ierr = VecDestroy(&e);  IBTK_CHKERRQ(ierr);
                 }
                 d_patch_vec_e[ln].clear();
                 for (std::vector<Vec>::iterator it = d_patch_vec_f[ln].begin();
                      it != d_patch_vec_f[ln].end(); ++it)
                 {
-                    Vec f = *it;
+                    Vec& f = *it;
                     ierr = VecDestroy(&f);  IBTK_CHKERRQ(ierr);
                 }
                 d_patch_vec_f[ln].clear();
                 for (std::vector<Mat>::iterator it = d_patch_mat[ln].begin();
                      it != d_patch_mat[ln].end(); ++it)
                 {
-                    Mat A = *it;
+                    Mat& A = *it;
                     ierr = MatDestroy(&A);  IBTK_CHKERRQ(ierr);
                 }
                 d_patch_mat[ln].clear();
@@ -1442,7 +1442,7 @@ CCPoissonFACOperator::initializePETScLevelSolver()
 
 void
 CCPoissonFACOperator::buildPatchLaplaceOperator(
-    Mat A,
+    Mat& A,
     const PoissonSpecifications& poisson_spec,
     const Pointer<Patch<NDIM> > patch,
     const IntVector<NDIM>& ghost_cell_width)
@@ -1515,7 +1515,7 @@ CCPoissonFACOperator::buildPatchLaplaceOperator(
 
 void
 CCPoissonFACOperator::buildPatchLaplaceOperator_aligned(
-    Mat A,
+    Mat& A,
     const Pointer<CellData<NDIM,double> > C_data,
     const Pointer<SideData<NDIM,double> > D_data,
     const Pointer<Patch<NDIM> > patch,
@@ -1639,7 +1639,7 @@ CCPoissonFACOperator::buildPatchLaplaceOperator_aligned(
 
 void
 CCPoissonFACOperator::buildPatchLaplaceOperator_nonaligned(
-    Mat A,
+    Mat& A,
     const Pointer<CellData<NDIM,double> > C_data,
     const Pointer<SideData<NDIM,double> > D_data,
     const Pointer<Patch<NDIM> > patch,

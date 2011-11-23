@@ -113,7 +113,7 @@ PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
 
 PETScNewtonKrylovSolver::PETScNewtonKrylovSolver(
     const std::string& name,
-    const SNES petsc_snes,
+    const SNES& petsc_snes,
     const std::string& options_prefix)
     : d_object_name(name),
       d_is_initialized(false),

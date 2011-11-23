@@ -1072,8 +1072,8 @@ LDataManager::mapPETScToLagrangian(
 
 void
 LDataManager::scatterLagrangianToPETSc(
-    Vec lagrangian_vec,
-    Vec petsc_vec,
+    Vec& lagrangian_vec,
+    Vec& petsc_vec,
     const int level_number) const
 {
     scatterData(lagrangian_vec,petsc_vec,level_number,SCATTER_REVERSE);
@@ -1082,8 +1082,8 @@ LDataManager::scatterLagrangianToPETSc(
 
 void
 LDataManager::scatterPETScToLagrangian(
-    Vec petsc_vec,
-    Vec lagrangian_vec,
+    Vec& petsc_vec,
+    Vec& lagrangian_vec,
     const int level_number) const
 {
     scatterData(lagrangian_vec,petsc_vec,level_number,SCATTER_FORWARD);
@@ -1092,8 +1092,8 @@ LDataManager::scatterPETScToLagrangian(
 
 void
 LDataManager::scatterToAll(
-    Vec parallel_vec,
-    Vec sequential_vec) const
+    Vec& parallel_vec,
+    Vec& sequential_vec) const
 {
     int ierr;
     const bool create_vout = sequential_vec != PETSC_NULL;
@@ -1107,8 +1107,8 @@ LDataManager::scatterToAll(
 
 void
 LDataManager::scatterToZero(
-    Vec parallel_vec,
-    Vec sequential_vec) const
+    Vec& parallel_vec,
+    Vec& sequential_vec) const
 {
     int ierr;
     const bool create_vout = sequential_vec != PETSC_NULL;
@@ -2647,8 +2647,8 @@ LDataManager::interp_specialized(
 
 void
 LDataManager::scatterData(
-    Vec lagrangian_vec,
-    Vec petsc_vec,
+    Vec& lagrangian_vec,
+    Vec& petsc_vec,
     const int level_number,
     ScatterMode mode) const
 {

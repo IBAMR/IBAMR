@@ -43,7 +43,7 @@ namespace IBTK
 inline
 PETScSNESJacobianJOWrapper::PETScSNESJacobianJOWrapper(
     const std::string& object_name,
-    const SNES petsc_snes,
+    const SNES& petsc_snes,
     PetscErrorCode (* const petsc_snes_form_jac)(SNES,Vec,Mat*,Mat*,MatStructure*,void*),
     void* const petsc_snes_jac_ctx)
     : d_object_name(object_name),
@@ -71,7 +71,7 @@ PETScSNESJacobianJOWrapper::~PETScSNESJacobianJOWrapper()
     return;
 }// ~PETScSNESJacobianJOWrapper()
 
-inline SNES
+inline const SNES&
 PETScSNESJacobianJOWrapper::getPETScSNES() const
 {
     return d_petsc_snes;

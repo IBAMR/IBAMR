@@ -704,8 +704,8 @@ SCPoissonFACOperator::smoothError(
                         // data, axis, and data depth.
                         int ierr;
 
-                        Vec e = d_patch_vec_e[level_num][patch_counter][axis];
-                        Vec f = d_patch_vec_f[level_num][patch_counter][axis];
+                        Vec& e = d_patch_vec_e[level_num][patch_counter][axis];
+                        Vec& f = d_patch_vec_f[level_num][patch_counter][axis];
 
                         ierr = VecPlaceArray(e,    error_data->getPointer(axis,depth));  IBTK_CHKERRQ(ierr);
                         ierr = VecPlaceArray(f, residual_data->getPointer(axis,depth));  IBTK_CHKERRQ(ierr);
@@ -724,7 +724,7 @@ SCPoissonFACOperator::smoothError(
                         static const double omega = 1.0;
                         static const double shift = 0.0;
                         static const int its = 1;
-                        Mat A = d_patch_mat[level_num][patch_counter][axis];
+                        Mat& A = d_patch_mat[level_num][patch_counter][axis];
                         ierr = MatSOR(A, f, omega, SOR_SYMMETRIC_SWEEP, shift, its, its, e);  IBTK_CHKERRQ(ierr);
 
                         // Reset the PETSc Vec wrappers.
@@ -744,7 +744,7 @@ SCPoissonFACOperator::smoothError(
                         const double* const F = residual_data->getPointer(axis,depth);
                         const int F_ghosts = (residual_data->getGhostCellWidth()).max();
                         static const int its = 1;
-                        RB_GS_SMOOTH_FC(
+                        GS_SMOOTH_FC(
                             U, U_ghosts,
                             alpha, beta,
                             F, F_ghosts,
@@ -1461,7 +1461,7 @@ SCPoissonFACOperator::initializePETScLevelSolver()
 
 void
 SCPoissonFACOperator::buildPatchLaplaceOperator(
-    Mat A,
+    Mat& A,
     const PoissonSpecifications& poisson_spec,
     const Pointer<Patch<NDIM> > patch,
     const int component_axis,

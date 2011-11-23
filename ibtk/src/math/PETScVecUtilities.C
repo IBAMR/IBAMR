@@ -57,7 +57,7 @@ namespace IBTK
 
 void
 PETScVecUtilities::constructPatchVecWrapper(
-    Vec vec,
+    Vec& vec,
     CellData<NDIM,double>& data)
 {
     int ierr;
@@ -145,7 +145,7 @@ PETScVecUtilities::constructPatchDOFIndices(
 
 void
 PETScVecUtilities::constructPatchLevelVec(
-    Vec vec,
+    Vec& vec,
     const int data_idx,
     Pointer<CellVariable<NDIM,double> > /*data_var*/,
     Pointer<PatchLevel<NDIM> > patch_level)
@@ -172,7 +172,7 @@ PETScVecUtilities::constructPatchLevelVec(
 
 void
 PETScVecUtilities::constructPatchLevelVec(
-    Vec vec,
+    Vec& vec,
     const int data_idx,
     Pointer<SideVariable<NDIM,double> > /*data_var*/,
     Pointer<PatchLevel<NDIM> > patch_level)
@@ -202,7 +202,7 @@ PETScVecUtilities::constructPatchLevelVec(
 
 void
 PETScVecUtilities::copyToPatchLevelVec(
-    Vec vec,
+    Vec& vec,
     const int data_idx,
     Pointer<CellVariable<NDIM,double> > /*data_var*/,
     Pointer<PatchLevel<NDIM> > patch_level)
@@ -234,7 +234,7 @@ PETScVecUtilities::copyToPatchLevelVec(
 
 void
 PETScVecUtilities::copyFromPatchLevelVec(
-    Vec vec,
+    Vec& vec,
     const int data_idx,
     Pointer<CellVariable<NDIM,double> > /*data_var*/,
     Pointer<PatchLevel<NDIM> > patch_level)
@@ -264,7 +264,7 @@ PETScVecUtilities::copyFromPatchLevelVec(
 
 void
 PETScVecUtilities::copyToPatchLevelVec(
-    Vec vec,
+    Vec& vec,
     const int data_idx,
     Pointer<SideVariable<NDIM,double> > /*data_var*/,
     Pointer<PatchLevel<NDIM> > patch_level)
@@ -299,7 +299,7 @@ PETScVecUtilities::copyToPatchLevelVec(
 
 void
 PETScVecUtilities::copyFromPatchLevelVec(
-    Vec vec,
+    Vec& vec,
     const int data_idx,
     Pointer<SideVariable<NDIM,double> > /*data_var*/,
     Pointer<PatchLevel<NDIM> > patch_level)
@@ -430,7 +430,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices(
 
 void
 PETScVecUtilities::constrainPatchLevelVec(
-    Vec vec,
+    Vec& vec,
     const int dof_index_idx,
     Pointer<CellVariable<NDIM,int> > dof_index_var,
     Pointer<PatchLevel<NDIM> > patch_level,
@@ -504,7 +504,7 @@ PETScVecUtilities::constrainPatchLevelVec(
 
 void
 PETScVecUtilities::constrainPatchLevelVec(
-    Vec vec,
+    Vec& vec,
     const int dof_index_idx,
     Pointer<SideVariable<NDIM,int> > dof_index_var,
     Pointer<PatchLevel<NDIM> > patch_level,

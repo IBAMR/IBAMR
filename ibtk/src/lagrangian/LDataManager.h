@@ -612,8 +612,8 @@ public:
      */
     void
     scatterLagrangianToPETSc(
-        Vec lagrangian_vec,
-        Vec petsc_vec,
+        Vec& lagrangian_vec,
+        Vec& petsc_vec,
         int level_number) const;
 
     /*!
@@ -624,8 +624,8 @@ public:
      */
     void
     scatterPETScToLagrangian(
-        Vec petsc_vec,
-        Vec lagrangian_vec,
+        Vec& petsc_vec,
+        Vec& lagrangian_vec,
         int level_number) const;
 
     /*!
@@ -635,8 +635,8 @@ public:
      */
     void
     scatterToAll(
-        Vec parallel_vec,
-        Vec sequential_vec) const;
+        Vec& parallel_vec,
+        Vec& sequential_vec) const;
 
     /*!
      * \brief Scatter data from a distributed PETSc vector to processor zero.
@@ -645,8 +645,8 @@ public:
      */
     void
     scatterToZero(
-        Vec parallel_vec,
-        Vec sequential_vec) const;
+        Vec& parallel_vec,
+        Vec& sequential_vec) const;
 
     /*!
      * \brief Start the process of redistributing the Lagrangian data.
@@ -898,8 +898,8 @@ private:
      */
     void
     scatterData(
-        Vec lagrangian_vec,
-        Vec petsc_vec,
+        Vec& lagrangian_vec,
+        Vec& petsc_vec,
         int level_number,
         ScatterMode mode) const;
 

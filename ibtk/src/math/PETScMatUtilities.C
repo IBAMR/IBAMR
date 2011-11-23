@@ -116,7 +116,7 @@ getIndexRange(
 
 void
 PETScMatUtilities::constructPatchLaplaceOp(
-    Mat mat,
+    Mat& mat,
     const double C,
     const double D,
     CellData<NDIM,double>& src_data,
@@ -180,7 +180,7 @@ PETScMatUtilities::constructPatchLaplaceOps(
 
 void
 PETScMatUtilities::constructPatchLevelLaplaceOp(
-    Mat mat,
+    Mat& mat,
     const double C,
     const double D,
     const int data_idx,
@@ -382,7 +382,7 @@ PETScMatUtilities::constructPatchLevelLaplaceOp(
 
 void
 PETScMatUtilities::constructPatchLevelLaplaceOp(
-    Mat mat,
+    Mat& mat,
     const double C,
     const double D,
     const int data_idx,
@@ -619,8 +619,8 @@ ib4_delta_fcn(
 
 void
 PETScMatUtilities::constructPatchLevelInterpOp(
-    Mat mat,
-    Vec X_vec,
+    Mat& mat,
+    Vec& X_vec,
     const int data_idx,
     Pointer<SideVariable<NDIM,double> > data_var,
     const int dof_index_idx,
@@ -815,7 +815,7 @@ PETScMatUtilities::constructPatchLevelInterpOp(
 
 void
 PETScMatUtilities::constructBoxLaplaceOp(
-    Mat mat,
+    Mat& mat,
     const double C,
     const double D,
     const Box<NDIM>& src_ghost_box,

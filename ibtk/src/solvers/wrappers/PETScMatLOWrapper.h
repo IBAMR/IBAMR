@@ -71,7 +71,7 @@ public:
      */
     PETScMatLOWrapper(
         const std::string& object_name,
-        const Mat petsc_mat);
+        const Mat& petsc_mat);
 
     /*!
      * \brief Destructor.
@@ -86,7 +86,7 @@ public:
     /*!
      * \brief Get the PETSc Mat object "wrapped" by this object.
      */
-    Mat
+    const Mat&
     getPETScMat() const;
 
     //\}

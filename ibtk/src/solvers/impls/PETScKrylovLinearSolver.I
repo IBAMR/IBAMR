@@ -52,7 +52,7 @@ PETScKrylovLinearSolver::setKSPType(
     return;
 }// setKSPType
 
-inline KSP
+inline const KSP&
 PETScKrylovLinearSolver::getPETScKSP() const
 {
     return d_petsc_ksp;

@@ -46,7 +46,7 @@ namespace IBTK
 inline
 PETScMatLOWrapper::PETScMatLOWrapper(
     const std::string& object_name,
-    const Mat petsc_mat)
+    const Mat& petsc_mat)
     : d_object_name(object_name),
       d_is_initialized(false),
       d_do_log(false),
@@ -77,7 +77,7 @@ PETScMatLOWrapper::isSymmetric() const
     return (set && is_symmetric);
 }// isSymmetric
 
-inline Mat
+inline const Mat&
 PETScMatLOWrapper::getPETScMat() const
 {
     return d_petsc_mat;
