@@ -533,15 +533,16 @@ postprocess_data(
 
     System& X_system = beam_equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
     NumericVector<double>* X_vec = X_system.solution.get();
-    NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
-    X_vec->localize(*X_ghost_vec);
+    AutoPtr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build();
+    X_serial_vec->init(X_vec->size(), true, SERIAL);
+    X_vec->localize(*X_serial_vec);
     DofMap& X_dof_map = X_system.get_dof_map();
     vector<unsigned int> vars(2);
     vars[0] = 0; vars[1] = 1;
-    MeshFunction X(*beam_equation_systems, *X_ghost_vec, X_dof_map, vars);
-    X.init();
+    MeshFunction X_fcn(*beam_equation_systems, *X_serial_vec, X_dof_map, vars);
+    X_fcn.init();
     DenseVector<double> X_A(2);
-    X(Point(0.6,0.2,0), 0.0, X_A);
+    X_fcn(Point(0.6,0.2,0), 0.0, X_A);
     if (SAMRAI_MPI::getRank() == 0)
     {
         A_x_posn_stream.precision(12);
