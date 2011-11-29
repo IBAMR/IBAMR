@@ -216,18 +216,18 @@ IBFEMethod::preprocessIntegrateData(
     d_half_time = current_time+0.5*(new_time-current_time);
 
     // Extract the FE data.
-    d_X_systems          .resize(d_num_parts);
-    d_X_current_vecs     .resize(d_num_parts);
-    d_X_new_vecs         .resize(d_num_parts);
-    d_X_half_vecs        .resize(d_num_parts);
-    d_X_IB_ghost_vecs    .resize(d_num_parts);
-    d_U_systems          .resize(d_num_parts);
-    d_U_current_vecs     .resize(d_num_parts);
-    d_U_new_vecs         .resize(d_num_parts);
-    d_U_half_vecs        .resize(d_num_parts);
-    d_F_systems          .resize(d_num_parts);
-    d_F_half_vecs        .resize(d_num_parts);
-    d_F_IB_ghost_vecs    .resize(d_num_parts);
+    d_X_systems      .resize(d_num_parts);
+    d_X_current_vecs .resize(d_num_parts);
+    d_X_new_vecs     .resize(d_num_parts);
+    d_X_half_vecs    .resize(d_num_parts);
+    d_X_IB_ghost_vecs.resize(d_num_parts);
+    d_U_systems      .resize(d_num_parts);
+    d_U_current_vecs .resize(d_num_parts);
+    d_U_new_vecs     .resize(d_num_parts);
+    d_U_half_vecs    .resize(d_num_parts);
+    d_F_systems      .resize(d_num_parts);
+    d_F_half_vecs    .resize(d_num_parts);
+    d_F_IB_ghost_vecs.resize(d_num_parts);
     d_F_dil_bar_systems      .resize(d_num_parts);
     d_F_dil_bar_half_vecs    .resize(d_num_parts);
     d_F_dil_bar_IB_ghost_vecs.resize(d_num_parts);
@@ -251,11 +251,12 @@ IBFEMethod::preprocessIntegrateData(
         if (d_use_Fbar_projection)
         {
             d_F_dil_bar_systems      [part] = &d_equation_systems[part]->get_system(J_BAR_SYSTEM_NAME);
-            d_F_dil_bar_half_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_F_dil_bar_systems   [part]->current_local_solution.get());
-            d_F_dil_bar_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(J_BAR_SYSTEM_NAME));
+            d_F_dil_bar_half_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_F_dil_bar_systems[part]->current_local_solution.get());
+            d_F_dil_bar_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(d_fe_data_managers [part]->buildGhostedSolutionVector(J_BAR_SYSTEM_NAME));
         }
 
-        // Initialize X^{n+1/2}, X^{n+1}, U^{n+1/2}, and U^{n+1} to equal U^{n}.
+        // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
+        // U^{n+1/2} and U^{n+1} to equal U^{n}.
         d_X_current_vecs[part]->localize(*d_X_half_vecs[part]);
         d_X_half_vecs[part]->close();
         d_X_current_vecs[part]->localize(*d_X_new_vecs[part]);
@@ -291,7 +292,7 @@ IBFEMethod::postprocessIntegrateData(
         {
             d_F_dil_bar_systems[part]->solution->localize(*d_F_dil_bar_systems[part]->current_local_solution);
         }
-        
+
         // Update the coordinate mapping dX = X - s.
         updateCoordinateMapping(part);
 
@@ -299,18 +300,18 @@ IBFEMethod::postprocessIntegrateData(
         delete d_X_new_vecs[part];
         delete d_U_new_vecs[part];
     }
-    d_X_systems          .clear();
-    d_X_current_vecs     .clear();
-    d_X_new_vecs         .clear();
-    d_X_half_vecs        .clear();
-    d_X_IB_ghost_vecs    .clear();
-    d_U_systems          .clear();
-    d_U_current_vecs     .clear();
-    d_U_new_vecs         .clear();
-    d_U_half_vecs        .clear();
-    d_F_systems          .clear();
-    d_F_half_vecs        .clear();
-    d_F_IB_ghost_vecs    .clear();
+    d_X_systems      .clear();
+    d_X_current_vecs .clear();
+    d_X_new_vecs     .clear();
+    d_X_half_vecs    .clear();
+    d_X_IB_ghost_vecs.clear();
+    d_U_systems      .clear();
+    d_U_current_vecs .clear();
+    d_U_new_vecs     .clear();
+    d_U_half_vecs    .clear();
+    d_F_systems      .clear();
+    d_F_half_vecs    .clear();
+    d_F_IB_ghost_vecs.clear();
     d_F_dil_bar_systems      .clear();
     d_F_dil_bar_half_vecs    .clear();
     d_F_dil_bar_IB_ghost_vecs.clear();
@@ -513,41 +514,36 @@ IBFEMethod::initializeFEData()
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
                 const bool at_mesh_bdry = elem->neighbor(side) == NULL;
-                if (at_mesh_bdry)
+                if (!at_mesh_bdry) continue;
+
+                const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
+                const bool at_dirichlet_bdry = std::find(bdry_ids.begin(), bdry_ids.end(), FEDataManager::DIRICHLET_BDRY_ID) != bdry_ids.end();
+                if (!at_dirichlet_bdry) continue;
+
+                for (unsigned int n = 0; n < elem->n_nodes(); ++n)
                 {
-                    const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
-                    const bool at_dirichlet_bdry = std::find(bdry_ids.begin(), bdry_ids.end(), FEDataManager::DIRICHLET_BDRY_ID) != bdry_ids.end();
-                    if (at_dirichlet_bdry)
+                    if (!elem->is_node_on_side(n, side)) continue;
+
+                    Node* node = elem->get_node(n);
+                    mesh.boundary_info->add_node(node, FEDataManager::DIRICHLET_BDRY_ID);
+                    if (node->n_dofs(F_sys_num) > 0)
                     {
-                        for (unsigned int n = 0; n < elem->n_nodes(); ++n)
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            if (elem->is_node_on_side(n, side))
-                            {
-                                Node* node = elem->get_node(n);
-                                mesh.boundary_info->add_node(node, FEDataManager::DIRICHLET_BDRY_ID);
-
-                                if (node->n_dofs(F_sys_num) > 0)
-                                {
-                                    for (unsigned int d = 0; d < NDIM; ++d)
-                                    {
-                                        const int F_dof_index = node->dof_number(F_sys_num,d,0);
-                                        DofConstraintRow F_constraint_row;
-                                        F_constraint_row[F_dof_index] = 1.0;
-                                        F_dof_map.add_constraint_row(F_dof_index, F_constraint_row, false);
-                                    }
-                                }
-
-                                if (node->n_dofs(U_sys_num) > 0)
-                                {
-                                    for (unsigned int d = 0; d < NDIM; ++d)
-                                    {
-                                        const int U_dof_index = node->dof_number(U_sys_num,d,0);
-                                        DofConstraintRow U_constraint_row;
-                                        U_constraint_row[U_dof_index] = 1.0;
-                                        U_dof_map.add_constraint_row(U_dof_index, U_constraint_row, false);
-                                    }
-                                }
-                            }
+                            const int F_dof_index = node->dof_number(F_sys_num,d,0);
+                            DofConstraintRow F_constraint_row;
+                            F_constraint_row[F_dof_index] = 1.0;
+                            F_dof_map.add_constraint_row(F_dof_index, F_constraint_row, false);
+                        }
+                    }
+                    if (node->n_dofs(U_sys_num) > 0)
+                    {
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            const int U_dof_index = node->dof_number(U_sys_num,d,0);
+                            DofConstraintRow U_constraint_row;
+                            U_constraint_row[U_dof_index] = 1.0;
+                            U_dof_map.add_constraint_row(U_dof_index, U_constraint_row, false);
                         }
                     }
                 }
