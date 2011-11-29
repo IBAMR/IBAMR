@@ -389,10 +389,13 @@ LDataManager::spread(
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
                     Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
                     Pointer<CellData<NDIM,double> > f_cc_data = f_data;
+                    Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
                     Pointer<SideData<NDIM,double> > f_sc_data = f_data;
                     const bool is_cc_data = !f_cc_data.isNull();
+                    const bool is_nc_data = !f_nc_data.isNull();
                     const bool is_sc_data = !f_sc_data.isNull();
                     if (is_cc_data) f_cc_data->fillAll(0.0);
+                    if (is_nc_data) f_nc_data->fillAll(0.0);
                     if (is_sc_data) f_sc_data->fillAll(0.0);
                 }
             }
@@ -408,12 +411,15 @@ LDataManager::spread(
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
                     Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
                     Pointer<CellData<NDIM,double> > f_cc_data = f_data;
+                    Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
                     Pointer<SideData<NDIM,double> > f_sc_data = f_data;
                     const bool is_cc_data = !f_cc_data.isNull();
+                    const bool is_nc_data = !f_nc_data.isNull();
                     const bool is_sc_data = !f_sc_data.isNull();
                     const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
                     const Box<NDIM>& box = idx_data->getGhostBox();
                     if (is_cc_data) LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
+                    if (is_nc_data) LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
                     if (is_sc_data) LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
                 }
             }
@@ -490,12 +496,15 @@ LDataManager::interp(
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
                     Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
                     Pointer<CellData<NDIM,double> > f_cc_data = f_data;
+                    Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
                     Pointer<SideData<NDIM,double> > f_sc_data = f_data;
                     const bool is_cc_data = !f_cc_data.isNull();
+                    const bool is_nc_data = !f_nc_data.isNull();
                     const bool is_sc_data = !f_sc_data.isNull();
                     const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
                     const Box<NDIM>& box = idx_data->getBox();
                     if (is_cc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
+                    if (is_nc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
                     if (is_sc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
                 }
             }
@@ -2586,12 +2595,15 @@ LDataManager::spread_specialized(
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
                 Pointer<CellData<NDIM,double> > f_cc_data = f_data;
+                Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
                 Pointer<SideData<NDIM,double> > f_sc_data = f_data;
                 const bool is_cc_data = !f_cc_data.isNull();
+                const bool is_nc_data = !f_nc_data.isNull();
                 const bool is_sc_data = !f_sc_data.isNull();
                 const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
                 const Box<NDIM>& box = idx_data->getGhostBox();
                 if (is_cc_data) LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
+                if (is_nc_data) LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
                 if (is_sc_data) LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
             }
         }
@@ -2626,12 +2638,15 @@ LDataManager::interp_specialized(
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
                 Pointer<CellData<NDIM,double> > f_cc_data = f_data;
+                Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
                 Pointer<SideData<NDIM,double> > f_sc_data = f_data;
                 const bool is_cc_data = !f_cc_data.isNull();
+                const bool is_nc_data = !f_nc_data.isNull();
                 const bool is_sc_data = !f_sc_data.isNull();
                 const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
                 const Box<NDIM>& box = idx_data->getBox();
                 if (is_cc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
+                if (is_nc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
                 if (is_sc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
             }
         }
