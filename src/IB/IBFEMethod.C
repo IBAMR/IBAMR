@@ -284,6 +284,14 @@ IBFEMethod::postprocessIntegrateData(
             (*d_F_dil_bar_systems[part]->solution) = (*d_F_dil_bar_systems[part]->current_local_solution);
         }
 
+        d_X_systems[part]->solution->localize(*d_X_systems[part]->current_local_solution);
+        d_U_systems[part]->solution->localize(*d_U_systems[part]->current_local_solution);
+        d_F_systems[part]->solution->localize(*d_F_systems[part]->current_local_solution);
+        if (d_use_Fbar_projection)
+        {
+            d_F_dil_bar_systems[part]->solution->localize(*d_F_dil_bar_systems[part]->current_local_solution);
+        }
+        
         // Update the coordinate mapping dX = X - s.
         updateCoordinateMapping(part);
 
