@@ -80,8 +80,7 @@ block_PK1_stress_function(
 }// block_PK1_stress_function
 
 // Tether (penalty) force function for the solid block.
-static double kappa_s = 1.0e6, c_s;
-static AutoPtr<MeshFunction> U_fcn;
+static double kappa_s = 1.0e6;
 void
 block_tether_force_function(
     VectorValue<double>& F,
@@ -94,12 +93,7 @@ block_tether_force_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    DenseVector<double> U(NDIM);
-    (*U_fcn)(s, 0.0, U);
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        F(d) = kappa_s*(s(d)-X(d)) - c_s*U(d);
-    }
+    F = kappa_s*(s-X);
     return;
 }// block_tether_force_function
 
@@ -252,9 +246,6 @@ main(
         mu_s     = input_db->getDouble("MU_S");
         lambda_s = input_db->getDouble("LAMBDA_S");
         kappa_s  = input_db->getDouble("KAPPA_S");
-
-        double rho = input_db->getDouble("RHO");
-        c_s = 2.0*rho*sqrt(kappa_s/rho);
         
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -367,15 +358,6 @@ main(
         
         // Deallocate initialization objects.
         app_initializer.setNull();
-
-        // Setup a mesh function to evaluate the velocity.
-        System& U_system = block_equation_systems->get_system<System>(IBFEMethod::VELOCITY_SYSTEM_NAME);
-        NumericVector<double>* U_vec = U_system.current_local_solution.get();
-        DofMap& U_dof_map = U_system.get_dof_map();
-        vector<unsigned int> vars(NDIM);
-        for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
-        U_fcn = AutoPtr<MeshFunction>(new MeshFunction(*block_equation_systems, *U_vec, U_dof_map, vars));
-        U_fcn->init();
         
         // Print the input database contents to the log file.
         plog << "Input database:\n";
