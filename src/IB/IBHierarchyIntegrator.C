@@ -399,8 +399,10 @@ IBHierarchyIntegrator::integrateHierarchy(
     }
 
     // Solve the incompressible Navier-Stokes equations.
+    d_ib_method_ops->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
     if (d_do_log) plog << d_object_name << "::integrateHierarchy(): solving the incompressible Navier-Stokes equations\n";
     d_ins_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
+    d_ib_method_ops->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
 
     // Interpolate the Eulerian velocity to the curvilinear mesh.
     d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
