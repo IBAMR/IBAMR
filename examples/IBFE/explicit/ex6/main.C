@@ -246,7 +246,7 @@ main(
         mu_s     = input_db->getDouble("MU_S");
         lambda_s = input_db->getDouble("LAMBDA_S");
         kappa_s  = input_db->getDouble("KAPPA_S");
-        
+
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
@@ -355,10 +355,10 @@ main(
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
-        
+
         // Deallocate initialization objects.
         app_initializer.setNull();
-        
+
         // Print the input database contents to the log file.
         plog << "Input database:\n";
         input_db->printClassData(plog);
@@ -385,7 +385,7 @@ main(
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         stress_diag_idx  = var_db->registerVariableAndContext(new CellVariable<NDIM,double>("stress_diag_var" ,2), navier_stokes_integrator->getScratchContext(), IntVector<NDIM>(3));  // specialized for NDIM == 2
         stress_odiag_idx = var_db->registerVariableAndContext(new NodeVariable<NDIM,double>("stress_odiag_var",1), navier_stokes_integrator->getScratchContext(), IntVector<NDIM>(3));
-        
+
         // Open streams to save lift and drag coefficients.
         if (SAMRAI_MPI::getRank() == 0)
         {
@@ -477,6 +477,21 @@ main(
     return 0;
 }// main
 
+bool
+block_bdry_selection_fcn(
+    const Point& s)
+{
+    return (s(0) < 0.2 || s(1) >= 0.21 || s(1) <= 0.19);
+}// block_bdry_selection_fcn
+
+bool
+beam_bdry_selection_fcn(
+    const Point& s)
+{
+    const Point r(s(0)-0.2,s(1)-0.2);
+    return (r.size() > 0.05);
+}// beam_bdry_selection_fcn
+
 void
 postprocess_data(
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
@@ -516,18 +531,18 @@ postprocess_data(
 
     // Compute the lift and drag coefficients.
     DenseVector<double> F(2);
-    
+
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    
+
     const Pointer<SideVariable<NDIM,double> > u_var = navier_stokes_integrator->getVelocityVariable();
     const Pointer<CellVariable<NDIM,double> > p_var = navier_stokes_integrator->getPressureVariable();
     const Pointer<VariableContext> current_ctx = navier_stokes_integrator->getCurrentContext();
     const Pointer<VariableContext> scratch_ctx = navier_stokes_integrator->getScratchContext();
-    
+
     const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, current_ctx);
     const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, scratch_ctx);
     const int p_current_idx = var_db->mapVariableAndContextToIndex(p_var, current_ctx);
-    
+
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -539,7 +554,7 @@ postprocess_data(
 
     HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
     hier_sc_data_ops.copyData(u_scratch_idx, u_current_idx);
-    
+
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     InterpolationTransactionComponent u_bc_component(u_scratch_idx);
     HierarchyGhostCellInterpolation u_bc_fill_op;
@@ -586,16 +601,19 @@ postprocess_data(
     stress_bc_fill_op.initializeOperatorState(stress_bc_components, patch_hierarchy, coarsest_ln, finest_ln);
     stress_bc_fill_op.fillData(loop_time);
 
+    // Integrate over the mesh boundaries.
     const int dim = NDIM;
     AutoPtr<QBase> qrule_face = QBase::build(QGAUSS, dim-1, FIFTH);
-    
-    // Integrate over the block boundary.
+    FEDataManager* fe_data_managers[2] = { block_fe_data_manager , beam_fe_data_manager };
+    EquationSystems* equation_systems[2] = { block_equation_systems , beam_equation_systems };
+    bool (*bdry_selection_fcns[2])(const Point&) = { &block_bdry_selection_fcn , &beam_bdry_selection_fcn };
+    for (unsigned int part = 0; part < 2; ++part)
     {
-        NumericVector<double>& X_ghost_vec = *block_fe_data_manager->buildGhostedCoordsVector();
-        System& system = block_equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+        NumericVector<double>& X_ghost_vec = *fe_data_managers[part]->buildGhostedCoordsVector();
+        System& system = equation_systems[part]->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
         const DofMap& dof_map = system.get_dof_map();
-        blitz::Array<std::vector<unsigned int>,1> side_dof_indices(NDIM);
-        for (unsigned int d = 0; d < NDIM; ++d) side_dof_indices(d).reserve(9);
+        blitz::Array<std::vector<unsigned int>,1> dof_indices(NDIM);
+        for (unsigned int d = 0; d < NDIM; ++d) dof_indices(d).reserve(27);
         AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
         fe_face->attach_quadrature_rule(qrule_face.get());
         const std::vector<Point>& q_point_face = fe_face->get_xyz();
@@ -603,14 +621,13 @@ postprocess_data(
         const std::vector<Point>& normal_face = fe_face->get_normals();
         const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
         const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
-        
-        const blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_element_map = block_fe_data_manager->getActivePatchElementMap();
-        const int level_num = block_fe_data_manager->getLevelNumber();
+
+        const blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_element_map = fe_data_managers[part]->getActivePatchElementMap();
+        const int level_num = fe_data_managers[part]->getLevelNumber();
         VectorValue<double> F_da;
         TensorValue<double> FF, FF_inv_trans, Stress;
         Point X_qp;
-        std::vector<Point> elem_X;
-        blitz::Array<double,2> X_node, X_node_side;
+        blitz::Array<double,2> X_node;
         Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(level_num);
         int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -619,13 +636,12 @@ postprocess_data(
             const blitz::Array<Elem*,1>& patch_elems = active_patch_element_map(local_patch_num);
             const int num_active_patch_elems = patch_elems.size();
             if (num_active_patch_elems == 0) continue;
-            
+
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            
-            // Setup vectors to store the values of the stress tensor and X at
-            // the quadrature points.  We compute a somewhat conservative upper
-            // bound on the number of quadrature points to try to avoid
-            // reallocations.
+
+            // Setup vectors to store sigma and X at the quadrature points.  We
+            // compute a somewhat conservative upper bound on the number of
+            // quadrature points to try to avoid reallocations.
             static const unsigned int n_qp_estimate = (NDIM == 2 ? 12 : 12*12);
             std::vector<double> stress_diag_bdry, stress_odiag_bdry;
             stress_diag_bdry .reserve(2*n_qp_estimate*num_active_patch_elems);
@@ -639,29 +655,27 @@ postprocess_data(
             for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems(e_idx);
-                                
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    dof_map.dof_indices(elem, dof_indices(d), d);
+                }
+                get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
+
                 // Loop over the element boundaries.
                 for (unsigned short int side = 0; side < elem->n_sides(); ++side)
                 {
                     // Skip non-physical boundaries.
                     bool at_physical_bdry = elem->neighbor(side) == NULL;
                     if (!at_physical_bdry) continue;
-                    
-                    AutoPtr<Elem> side_elem = elem->build_side(side);
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        dof_map.dof_indices(side_elem.get(), side_dof_indices(d), d);
-                    }
-                    get_values_for_interpolation(X_node_side, X_ghost_vec, side_dof_indices);
-                    
+
                     fe_face->reinit(elem, side);
-                    
                     const unsigned int n_qp = qrule_face->n_points();
                     stress_diag_bdry .resize( stress_diag_bdry.size()+2*n_qp,0.0);
                     stress_odiag_bdry.resize(stress_odiag_bdry.size()+  n_qp,0.0);
                     X_bdry.resize(X_bdry.size()+NDIM*n_qp);
                     for (unsigned int qp = 0; qp < n_qp; ++qp, ++qp_offset)
                     {
+                        interpolate(X_qp,qp,X_node,phi_face);
                         const int idx = NDIM*qp_offset;
                         for (unsigned int i = 0; i < NDIM; ++i)
                         {
@@ -670,14 +684,14 @@ postprocess_data(
                     }
                 }
             }
-            
+
             if (qp_offset == 0) continue;
-            
+
             // Interpolate the stresses from the grid.
-            const std::string& interp_weighting_fcn = block_fe_data_manager->getInterpWeightingFunction();
+            const std::string& interp_weighting_fcn = fe_data_managers[part]->getInterpWeightingFunction();
             const Box<NDIM> interp_box = patch->getBox();
             Pointer<CellData<NDIM,double> > stress_diag_data = patch->getPatchData(stress_diag_idx);
-            LEInteractor::interpolate( stress_diag_bdry, 2, X_bdry, NDIM, stress_diag_data, patch, interp_box, interp_weighting_fcn);
+            LEInteractor::interpolate( stress_diag_bdry, 2, X_bdry, NDIM,  stress_diag_data, patch, interp_box, interp_weighting_fcn);
             Pointer<NodeData<NDIM,double> > stress_odiag_data = patch->getPatchData(stress_odiag_idx);
             LEInteractor::interpolate(stress_odiag_bdry, 1, X_bdry, NDIM, stress_odiag_data, patch, interp_box, interp_weighting_fcn);
 
@@ -686,23 +700,20 @@ postprocess_data(
             for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems(e_idx);
-                                
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    dof_map.dof_indices(elem, dof_indices(d), d);
+                }
+                get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
+
                 // Loop over the element boundaries.
                 for (unsigned short int side = 0; side < elem->n_sides(); ++side)
                 {
                     // Skip non-physical boundaries.
                     bool at_physical_bdry = elem->neighbor(side) == NULL;
                     if (!at_physical_bdry) continue;
-                    
-                    AutoPtr<Elem> side_elem = elem->build_side(side);
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        dof_map.dof_indices(side_elem.get(), side_dof_indices(d), d);
-                    }
-                    get_values_for_interpolation(X_node_side, X_ghost_vec, side_dof_indices);
-                    
+
                     fe_face->reinit(elem, side);
-                    
                     const unsigned int n_qp = qrule_face->n_points();
                     for (unsigned int qp = 0; qp < n_qp; ++qp, ++qp_offset)
                     {
@@ -718,149 +729,9 @@ postprocess_data(
                         Stress(0,1) = stress_odiag_bdry[  qp_offset  ];
                         Stress(1,0) = stress_odiag_bdry[  qp_offset  ];
 
-                        F_da = Stress * J * JxW_face[qp] * FF_inv_trans * normal_face[qp];
+                        F_da = Stress * (J * FF_inv_trans * normal_face[qp] * JxW_face[qp]);  // Nanson's relation: n da = J FF^{-T} N dA
 
-                        if (s_qp(0) < 0.2 || !(s_qp(1) <= 0.21 && s_qp(1) >= 0.19)) for (unsigned int d = 0; d < 2; ++d) F(d) += F_da(d);
-                    }
-                }
-            }
-        }
-    }
-    
-    // Integrate over the beam boundary.
-    {
-        NumericVector<double>& X_ghost_vec = *beam_fe_data_manager->buildGhostedCoordsVector();
-        System& system = beam_equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
-        const DofMap& dof_map = system.get_dof_map();
-        blitz::Array<std::vector<unsigned int>,1> side_dof_indices(NDIM);
-        for (unsigned int d = 0; d < NDIM; ++d) side_dof_indices(d).reserve(9);
-        AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
-        fe_face->attach_quadrature_rule(qrule_face.get());
-        const std::vector<Point>& q_point_face = fe_face->get_xyz();
-        const std::vector<double>& JxW_face = fe_face->get_JxW();
-        const std::vector<Point>& normal_face = fe_face->get_normals();
-        const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
-        const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
-        
-        const blitz::Array<blitz::Array<Elem*,1>,1>& active_patch_element_map = beam_fe_data_manager->getActivePatchElementMap();
-        const int level_num = beam_fe_data_manager->getLevelNumber();
-        VectorValue<double> F_da;
-        TensorValue<double> FF, FF_inv_trans, Stress;
-        Point X_qp;
-        std::vector<Point> elem_X;
-        blitz::Array<double,2> X_node, X_node_side;
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(level_num);
-        int local_patch_num = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
-        {
-            // The relevant collection of elements.
-            const blitz::Array<Elem*,1>& patch_elems = active_patch_element_map(local_patch_num);
-            const int num_active_patch_elems = patch_elems.size();
-            if (num_active_patch_elems == 0) continue;
-            
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            
-            // Setup vectors to store the values of the stress tensor and X at
-            // the quadrature points.  We compute a somewhat conservative upper
-            // bound on the number of quadrature points to try to avoid
-            // reallocations.
-            static const unsigned int n_qp_estimate = (NDIM == 2 ? 12 : 12*12);
-            std::vector<double> stress_diag_bdry, stress_odiag_bdry;
-            stress_diag_bdry .reserve(2*n_qp_estimate*num_active_patch_elems);
-            stress_odiag_bdry.reserve(1*n_qp_estimate*num_active_patch_elems);
-            std::vector<double> X_bdry;
-            X_bdry.reserve(NDIM*n_qp_estimate*num_active_patch_elems);
-
-            // Loop over the elements and compute the values to be spread and
-            // the positions of the quadrature points.
-            int qp_offset = 0;
-            for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
-            {
-                Elem* const elem = patch_elems(e_idx);
-                                
-                // Loop over the element boundaries.
-                for (unsigned short int side = 0; side < elem->n_sides(); ++side)
-                {
-                    // Skip non-physical boundaries.
-                    bool at_physical_bdry = elem->neighbor(side) == NULL;
-                    if (!at_physical_bdry) continue;
-                    
-                    AutoPtr<Elem> side_elem = elem->build_side(side);
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        dof_map.dof_indices(side_elem.get(), side_dof_indices(d), d);
-                    }
-                    get_values_for_interpolation(X_node_side, X_ghost_vec, side_dof_indices);
-                    
-                    fe_face->reinit(elem, side);
-                    
-                    const unsigned int n_qp = qrule_face->n_points();
-                    stress_diag_bdry .resize( stress_diag_bdry.size()+2*n_qp,0.0);
-                    stress_odiag_bdry.resize(stress_odiag_bdry.size()+  n_qp,0.0);
-                    X_bdry.resize(X_bdry.size()+NDIM*n_qp);
-                    for (unsigned int qp = 0; qp < n_qp; ++qp, ++qp_offset)
-                    {
-                        const int idx = NDIM*qp_offset;
-                        for (unsigned int i = 0; i < NDIM; ++i)
-                        {
-                            X_bdry[idx+i] = X_qp(i);
-                        }
-                    }
-                }
-            }
-            
-            if (qp_offset == 0) continue;
-            
-            // Interpolate the stresses from the grid.
-            const std::string& interp_weighting_fcn = beam_fe_data_manager->getInterpWeightingFunction();
-            const Box<NDIM> interp_box = patch->getBox();
-            Pointer<CellData<NDIM,double> > stress_diag_data = patch->getPatchData(stress_diag_idx);
-            LEInteractor::interpolate( stress_diag_bdry, 2, X_bdry, NDIM, stress_diag_data, patch, interp_box, interp_weighting_fcn);
-            Pointer<NodeData<NDIM,double> > stress_odiag_data = patch->getPatchData(stress_odiag_idx);
-            LEInteractor::interpolate(stress_odiag_bdry, 1, X_bdry, NDIM, stress_odiag_data, patch, interp_box, interp_weighting_fcn);
-
-            // Accumulate values.
-            qp_offset = 0;
-            for (int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
-            {
-                Elem* const elem = patch_elems(e_idx);
-                                
-                // Loop over the element boundaries.
-                for (unsigned short int side = 0; side < elem->n_sides(); ++side)
-                {
-                    // Skip non-physical boundaries.
-                    bool at_physical_bdry = elem->neighbor(side) == NULL;
-                    if (!at_physical_bdry) continue;
-                    
-                    AutoPtr<Elem> side_elem = elem->build_side(side);
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        dof_map.dof_indices(side_elem.get(), side_dof_indices(d), d);
-                    }
-                    get_values_for_interpolation(X_node_side, X_ghost_vec, side_dof_indices);
-                    
-                    fe_face->reinit(elem, side);
-                    
-                    const unsigned int n_qp = qrule_face->n_points();
-                    for (unsigned int qp = 0; qp < n_qp; ++qp, ++qp_offset)
-                    {
-                        const Point& s_qp = q_point_face[qp];
-                        interpolate(X_qp,qp,X_node,phi_face);
-                        jacobian(FF,qp,X_node,dphi_face);
-                        const double J = std::abs(FF.det());
-                        tensor_inverse_transpose(FF_inv_trans,FF,NDIM);
-
-                        Stress.zero();
-                        Stress(0,0) =  stress_diag_bdry[2*qp_offset  ];
-                        Stress(1,1) =  stress_diag_bdry[2*qp_offset+1];
-                        Stress(0,1) = stress_odiag_bdry[  qp_offset  ];
-                        Stress(1,0) = stress_odiag_bdry[  qp_offset  ];
-
-                        F_da = Stress * J * JxW_face[qp] * FF_inv_trans * normal_face[qp];
-
-                        Point r(0.2,0.2);
-                        r = r - s_qp;
-                        if (r.size() > 0.05) for (unsigned int d = 0; d < 2; ++d) F(d) += F_da(d);
+                        if ((bdry_selection_fcns[part])(s_qp)) for (unsigned int d = 0; d < 2; ++d) F(d) += F_da(d);
                     }
                 }
             }
@@ -882,6 +753,6 @@ postprocess_data(
         lift_stream.precision(12);
         lift_stream.setf(ios::fixed,ios::floatfield);
         lift_stream << loop_time << " " << F(1) << endl;
-    }    
+    }
     return;
-}// postprocess_data 
+}// postprocess_data
