@@ -61,7 +61,7 @@ public:
     static const std::string COORD_MAPPING_SYSTEM_NAME;
     static const std::string         FORCE_SYSTEM_NAME;
     static const std::string      VELOCITY_SYSTEM_NAME;
-    static const std::string         J_BAR_SYSTEM_NAME;
+    static const std::string     F_DIL_BAR_SYSTEM_NAME;
 
     /*!
      * \brief Constructor.

@@ -78,7 +78,7 @@ const std::string IBFEMethod::       COORDS_SYSTEM_NAME = "IB coordinates system
 const std::string IBFEMethod::COORD_MAPPING_SYSTEM_NAME = "IB coordinate mapping system";
 const std::string IBFEMethod::        FORCE_SYSTEM_NAME = "IB force system";
 const std::string IBFEMethod::     VELOCITY_SYSTEM_NAME = "IB velocity system";
-const std::string IBFEMethod::        J_BAR_SYSTEM_NAME = "IB F_dil_bar system";
+const std::string IBFEMethod::    F_DIL_BAR_SYSTEM_NAME = "IB F_dil_bar system";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -250,9 +250,9 @@ IBFEMethod::preprocessIntegrateData(
         d_F_dil_bar_IB_ghost_vecs[part] = NULL;
         if (d_use_Fbar_projection)
         {
-            d_F_dil_bar_systems      [part] = &d_equation_systems[part]->get_system(J_BAR_SYSTEM_NAME);
+            d_F_dil_bar_systems      [part] = &d_equation_systems[part]->get_system(F_DIL_BAR_SYSTEM_NAME);
             d_F_dil_bar_half_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_F_dil_bar_systems[part]->current_local_solution.get());
-            d_F_dil_bar_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(d_fe_data_managers [part]->buildGhostedSolutionVector(J_BAR_SYSTEM_NAME));
+            d_F_dil_bar_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(d_fe_data_managers [part]->buildGhostedSolutionVector(F_DIL_BAR_SYSTEM_NAME));
         }
 
         // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
@@ -712,7 +712,7 @@ IBFEMethod::computeProjectedDilatationalStrain(
     const std::vector<double>& JxW = fe->get_JxW();
     const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
 
-    System& F_dil_bar_system = equation_systems->get_system(J_BAR_SYSTEM_NAME);
+    System& F_dil_bar_system = equation_systems->get_system(F_DIL_BAR_SYSTEM_NAME);
     const DofMap& F_dil_bar_dof_map = F_dil_bar_system.get_dof_map();
     std::vector<unsigned int> F_dil_bar_dof_indices;
     F_dil_bar_dof_indices.reserve(27);
@@ -774,7 +774,7 @@ IBFEMethod::computeProjectedDilatationalStrain(
     // Solve for F_dil_bar.
     F_dil_bar_rhs_vec->close();
     static const bool use_consistent_mass_matrix = true;
-    d_fe_data_managers[part]->computeL2Projection(F_dil_bar_vec, *F_dil_bar_rhs_vec, J_BAR_SYSTEM_NAME, use_consistent_mass_matrix);
+    d_fe_data_managers[part]->computeL2Projection(F_dil_bar_vec, *F_dil_bar_rhs_vec, F_DIL_BAR_SYSTEM_NAME, use_consistent_mass_matrix);
     return;
 }// computeProjectedDilatationalStrain
 
@@ -831,7 +831,7 @@ IBFEMethod::computeInteriorForceDensity(
     const std::vector<std::vector<double> >* F_dil_bar_phi_face = NULL;
     if (F_dil_bar_vec != NULL)
     {
-        F_dil_bar_system = &equation_systems->get_system(J_BAR_SYSTEM_NAME);
+        F_dil_bar_system = &equation_systems->get_system(F_DIL_BAR_SYSTEM_NAME);
         F_dil_bar_dof_map = &F_dil_bar_system->get_dof_map();
         F_dil_bar_fe = FEBase::build(dim, F_dil_bar_dof_map->variable_type(0));
         F_dil_bar_fe->attach_quadrature_rule(qrule.get());
@@ -1095,11 +1095,8 @@ IBFEMethod::spreadTransmissionForceDensity(
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
     const int dim = mesh.mesh_dimension();
-    QBase* ib_qrule = d_fe_data_managers[part]->getQuadratureRule();
     QBase* ib_qrule_face = d_fe_data_managers[part]->getQuadratureRuleFace();
-    QAdaptiveGauss* ib_adaptive_qrule = dynamic_cast<QAdaptiveGauss*>(ib_qrule);
     QAdaptiveGauss* ib_adaptive_qrule_face = dynamic_cast<QAdaptiveGauss*>(ib_qrule_face);
-    const bool using_adaptive_qrule = (ib_adaptive_qrule != NULL);
     const bool using_adaptive_qrule_face = (ib_adaptive_qrule_face != NULL);
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
@@ -1112,9 +1109,6 @@ IBFEMethod::spreadTransmissionForceDensity(
     for (unsigned int d = 0; d < NDIM; ++d) dof_indices(d).reserve(27);
     blitz::Array<std::vector<unsigned int>,1> side_dof_indices(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) side_dof_indices(d).reserve(9);
-    AutoPtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
-    fe->attach_quadrature_rule(ib_qrule);
-    fe->get_xyz();  // prevents FE::reinit() from rebuilding all FE data items...
     AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
     fe_face->attach_quadrature_rule(ib_qrule_face);
     const std::vector<Point>& q_point_face = fe_face->get_xyz();
@@ -1133,16 +1127,12 @@ IBFEMethod::spreadTransmissionForceDensity(
     const DofMap* F_dil_bar_dof_map = NULL;
     std::vector<unsigned int> F_dil_bar_dof_indices;
     F_dil_bar_dof_indices.reserve(27);
-    AutoPtr<FEBase> F_dil_bar_fe;
     AutoPtr<FEBase> F_dil_bar_fe_face;
     const std::vector<std::vector<double> >* F_dil_bar_phi_face = NULL;
     if (F_dil_bar_ghost_vec != NULL)
     {
-        F_dil_bar_system = &equation_systems->get_system(J_BAR_SYSTEM_NAME);
+        F_dil_bar_system = &equation_systems->get_system(F_DIL_BAR_SYSTEM_NAME);
         F_dil_bar_dof_map = &F_dil_bar_system->get_dof_map();
-        F_dil_bar_fe = FEBase::build(dim, F_dil_bar_dof_map->variable_type(0));
-        F_dil_bar_fe->attach_quadrature_rule(ib_qrule);
-        F_dil_bar_fe->get_xyz();  // prevents FE::reinit() from rebuilding all FE data items...
         F_dil_bar_fe_face = FEBase::build(dim, F_dil_bar_dof_map->variable_type(0));
         F_dil_bar_fe_face->attach_quadrature_rule(ib_qrule_face);
         F_dil_bar_phi_face = &F_dil_bar_fe_face->get_phi();
@@ -1238,10 +1228,6 @@ IBFEMethod::spreadTransmissionForceDensity(
                 F_dil_bar_dof_map->dof_indices(elem, F_dil_bar_dof_indices);
                 get_values_for_interpolation(F_dil_bar_node, *F_dil_bar_ghost_vec, F_dil_bar_dof_indices);
             }
-
-            if (using_adaptive_qrule) ib_adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
-            fe->reinit(elem);
-            if (F_dil_bar_ghost_vec != NULL) F_dil_bar_fe->reinit(elem);
 
             // Loop over the element boundaries.
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
@@ -1373,7 +1359,6 @@ IBFEMethod::imposeJumpConditions(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
 #endif
-    FEType fe_type = dof_map.variable_type(0);
     blitz::Array<std::vector<unsigned int>,1> dof_indices(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) dof_indices(d).reserve(27);
     blitz::Array<std::vector<unsigned int>,1> side_dof_indices(NDIM);
@@ -1390,7 +1375,7 @@ IBFEMethod::imposeJumpConditions(
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
 #endif
 
-    System* F_dil_bar_system;
+    System* F_dil_bar_system = NULL;
     const DofMap* F_dil_bar_dof_map = NULL;
     std::vector<unsigned int> F_dil_bar_dof_indices;
     F_dil_bar_dof_indices.reserve(27);
@@ -1398,7 +1383,7 @@ IBFEMethod::imposeJumpConditions(
     const std::vector<std::vector<double> >* F_dil_bar_phi_face = NULL;
     if (F_dil_bar_ghost_vec != NULL)
     {
-        F_dil_bar_system = &equation_systems->get_system(J_BAR_SYSTEM_NAME);
+        F_dil_bar_system = &equation_systems->get_system(F_DIL_BAR_SYSTEM_NAME);
         F_dil_bar_dof_map = &F_dil_bar_system->get_dof_map();
         F_dil_bar_fe_face = FEBase::build(dim, F_dil_bar_dof_map->variable_type(0));
         F_dil_bar_phi_face = &F_dil_bar_fe_face->get_phi();
@@ -1701,7 +1686,7 @@ IBFEMethod::imposeJumpConditions(
                         F += F_s;
                     }
 
-                    // Use Nanson's formula (n da = J F^{-T} N dA) to convert
+                    // Use Nanson's formula (n da = J FF^{-T} N dA) to convert
                     // force per unit area in the reference configuration into
                     // force per unit area in the current configuration.  This
                     // value determines the discontinuity in the pressure at the
@@ -1985,7 +1970,7 @@ IBFEMethod::commonConstructor(
 
         if (d_use_Fbar_projection)
         {
-            ExplicitSystem& F_dil_bar_system = equation_systems->add_system<ExplicitSystem>(J_BAR_SYSTEM_NAME);
+            ExplicitSystem& F_dil_bar_system = equation_systems->add_system<ExplicitSystem>(F_DIL_BAR_SYSTEM_NAME);
             F_dil_bar_system.add_variable("F_dil_bar", d_F_dil_bar_fe_order, d_F_dil_bar_fe_family);
         }
     }
