@@ -2848,6 +2848,16 @@ template void IBTK::LEInteractor::interpolate(
     SAMRAI::tbox::Pointer<LData> Q_data,
     const SAMRAI::tbox::Pointer<LData> X_data,
     const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM,double> > q_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    const SAMRAI::hier::Box<NDIM>& interp_box,
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const std::string& interp_fcn);
+
+template void IBTK::LEInteractor::interpolate(
+    SAMRAI::tbox::Pointer<LData> Q_data,
+    const SAMRAI::tbox::Pointer<LData> X_data,
+    const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
     const SAMRAI::hier::Box<NDIM>& interp_box,
@@ -2872,6 +2882,18 @@ template void IBTK::LEInteractor::interpolate(
     const double* const X_data,
     const int X_depth,
     const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM,double> > q_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    const SAMRAI::hier::Box<NDIM>& interp_box,
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const std::string& interp_fcn);
+
+template void IBTK::LEInteractor::interpolate(
+    double* const Q_data,
+    const int Q_depth,
+    const double* const X_data,
+    const int X_depth,
+    const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
     const SAMRAI::hier::Box<NDIM>& interp_box,
@@ -2880,6 +2902,16 @@ template void IBTK::LEInteractor::interpolate(
 
 template void IBTK::LEInteractor::spread(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
+    const SAMRAI::tbox::Pointer<LData> Q_data,
+    const SAMRAI::tbox::Pointer<LData> X_data,
+    const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    const SAMRAI::hier::Box<NDIM>& spread_box,
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const std::string& spread_fcn);
+
+template void IBTK::LEInteractor::spread(
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM,double> > q_data,
     const SAMRAI::tbox::Pointer<LData> Q_data,
     const SAMRAI::tbox::Pointer<LData> X_data,
     const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
@@ -2900,6 +2932,18 @@ template void IBTK::LEInteractor::spread(
 
 template void IBTK::LEInteractor::spread(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
+    const double* const Q_data,
+    const int Q_depth,
+    const double* const X_data,
+    const int X_depth,
+    const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    const SAMRAI::hier::Box<NDIM>& spread_box,
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const std::string& spread_fcn);
+
+template void IBTK::LEInteractor::spread(
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM,double> > q_data,
     const double* const Q_data,
     const int Q_depth,
     const double* const X_data,
