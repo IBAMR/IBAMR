@@ -531,6 +531,7 @@ postprocess_data(
 
     // Compute the lift and drag coefficients.
     DenseVector<double> F(2);
+    F.zero();
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
@@ -737,6 +738,7 @@ postprocess_data(
             }
         }
     }
+    SAMRAI_MPI::sumReduction(&F(0),2);
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
