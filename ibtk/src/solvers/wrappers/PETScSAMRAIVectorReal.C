@@ -846,17 +846,14 @@ PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(
     d_petsc_vector->ops->norm_local              = VecNorm_local_SAMRAI;
     d_petsc_vector->ops->mdot_local              = VecMDot_local_SAMRAI;
     d_petsc_vector->ops->mtdot_local             = VecMTDot_local_SAMRAI;
-    d_petsc_vector->ops->loadintovector          = PETSC_NULL;
-    d_petsc_vector->ops->loadintovectornative    = PETSC_NULL;
+    d_petsc_vector->ops->load                    = PETSC_NULL;
     d_petsc_vector->ops->reciprocal              = PETSC_NULL;
-    d_petsc_vector->ops->viewnative              = PETSC_NULL;
     d_petsc_vector->ops->conjugate               = PETSC_NULL;
     d_petsc_vector->ops->setlocaltoglobalmapping = PETSC_NULL;
     d_petsc_vector->ops->setvalueslocal          = PETSC_NULL;
     d_petsc_vector->ops->resetarray              = PETSC_NULL;
     d_petsc_vector->ops->setfromoptions          = PETSC_NULL;
     d_petsc_vector->ops->maxpointwisedivide      = VecMaxPointwiseDivide_SAMRAI;
-    d_petsc_vector->ops->load                    = PETSC_NULL;
     d_petsc_vector->ops->pointwisemax            = PETSC_NULL;
     d_petsc_vector->ops->pointwisemaxabs         = PETSC_NULL;
     d_petsc_vector->ops->pointwisemin            = PETSC_NULL;
@@ -867,9 +864,11 @@ PETScSAMRAIVectorReal::PETScSAMRAIVectorReal(
     d_petsc_vector->ops->log                     = PETSC_NULL;
     d_petsc_vector->ops->shift                   = PETSC_NULL;
     d_petsc_vector->ops->create                  = PETSC_NULL;
-#if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 1)
+    d_petsc_vector->ops->stridegather            = PETSC_NULL;
+    d_petsc_vector->ops->stridescatter           = PETSC_NULL;
     d_petsc_vector->ops->dotnorm2                = VecDotNorm2_SAMRAI;
-#endif
+    d_petsc_vector->ops->getsubvector            = PETSC_NULL;
+    d_petsc_vector->ops->restoresubvector        = PETSC_NULL;
 
     ierr = PetscObjectChangeTypeName(reinterpret_cast<PetscObject>(d_petsc_vector),"Vec_SAMRAI");  IBTK_CHKERRQ(ierr);
 
@@ -882,7 +881,7 @@ PETScSAMRAIVectorReal::~PETScSAMRAIVectorReal()
     if (!d_vector_created_via_duplicate)
     {
         d_petsc_vector->ops->destroy = 0;
-        int ierr = VecDestroy(d_petsc_vector); IBTK_CHKERRQ(ierr);
+        int ierr = VecDestroy(&d_petsc_vector); IBTK_CHKERRQ(ierr);
     }
     return;
 }// ~PETScSAMRAIVectorReal

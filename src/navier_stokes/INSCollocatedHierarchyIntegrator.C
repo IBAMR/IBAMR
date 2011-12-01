@@ -323,7 +323,7 @@ INSCollocatedHierarchyIntegrator::getVelocitySubdomainSolver()
         p_velocity_solver->setOperator(d_velocity_op);
         static const size_t len = 255;
         char velocity_pc_type_str[len];
-        PetscTruth flg;
+        PetscBool flg;
         int ierr = PetscOptionsGetString("velocity_", "-pc_type", velocity_pc_type_str, len, &flg);  IBTK_CHKERRQ(ierr);
         std::string velocity_pc_type = "shell";
         if (flg)
@@ -372,7 +372,7 @@ INSCollocatedHierarchyIntegrator::getPressureSubdomainSolver()
         if (d_normalize_pressure) p_pressure_solver->setNullspace(d_normalize_pressure, NULL);
         static const size_t len = 255;
         char pressure_pc_type_str[len];
-        PetscTruth flg;
+        PetscBool flg;
         int ierr = PetscOptionsGetString("pressure_", "-pc_type", pressure_pc_type_str, len, &flg);  IBTK_CHKERRQ(ierr);
         std::string pressure_pc_type = "shell";
         if (flg)
@@ -448,7 +448,7 @@ INSCollocatedHierarchyIntegrator::getExactProjectionSolver()
         if (d_normalize_pressure) p_exact_projection_solver->setNullspace(d_normalize_pressure, NULL);
         static const size_t len = 255;
         char exact_projection_pc_type_str[len];
-        PetscTruth flg;
+        PetscBool flg;
         int ierr = PetscOptionsGetString("exact_projection_", "-pc_type", exact_projection_pc_type_str, len, &flg);  IBTK_CHKERRQ(ierr);
         std::string exact_projection_pc_type = "shell";
         if (flg)

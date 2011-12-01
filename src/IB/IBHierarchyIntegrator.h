@@ -308,6 +308,7 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM,double> > d_hier_velocity_data_ops;
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_pressure_cc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
 
     /*
      * Eulerian variables.
@@ -330,6 +331,13 @@ private:
      * IB method implementation object.
      */
     SAMRAI::tbox::Pointer<IBStrategy> d_ib_method_ops;
+
+    /*
+     * Nonuniform load balancing data structures.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_workload_var;
+    int d_workload_idx;
 };
 }// namespace IBAMR
 

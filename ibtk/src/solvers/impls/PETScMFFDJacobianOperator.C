@@ -214,7 +214,7 @@ PETScMFFDJacobianOperator::deallocateOperatorState()
     d_op_y->freeVectorComponents();
     d_op_y.setNull();
 
-    int ierr = MatDestroy(d_petsc_jac); IBTK_CHKERRQ(ierr);
+    int ierr = MatDestroy(&d_petsc_jac); IBTK_CHKERRQ(ierr);
     d_petsc_jac = PETSC_NULL;
 
     d_is_initialized = false;

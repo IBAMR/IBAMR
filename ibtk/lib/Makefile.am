@@ -153,8 +153,6 @@ $(top_srcdir)/src/utilities/LMarkerUtilities.C \
 $(top_srcdir)/src/utilities/NodeDataSynchronization.C \
 $(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.C \
 $(top_srcdir)/src/utilities/NormOps.C \
-$(top_srcdir)/src/utilities/PETScMatOps.C \
-$(top_srcdir)/src/utilities/PETScVecOps.C \
 $(top_srcdir)/src/utilities/ParallelEdgeMap.C \
 $(top_srcdir)/src/utilities/ParallelMap.C \
 $(top_srcdir)/src/utilities/ParallelSet.C \
@@ -318,8 +316,6 @@ $(top_srcdir)/src/utilities/LMarkerUtilities.h \
 $(top_srcdir)/src/utilities/NodeDataSynchronization.h \
 $(top_srcdir)/src/utilities/NodeSynchCopyFillPattern.h \
 $(top_srcdir)/src/utilities/NormOps.h \
-$(top_srcdir)/src/utilities/PETScMatOps.h \
-$(top_srcdir)/src/utilities/PETScVecOps.h \
 $(top_srcdir)/src/utilities/ParallelEdgeMap.h \
 $(top_srcdir)/src/utilities/ParallelMap.h \
 $(top_srcdir)/src/utilities/ParallelSet.h \

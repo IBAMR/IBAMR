@@ -205,6 +205,28 @@ public:
         double data_time);
 
     /*!
+     * Execute user-defined routines just before solving the fluid equations.
+     *
+     * An empty default implementation is provided.
+     */
+    virtual void
+    preprocessSolveFluidEquations(
+        double current_time,
+        double new_time,
+        int cycle_num);
+ 
+    /*!
+     * Execute user-defined routines just after solving the fluid equations.
+     *
+     * An empty default implementation is provided.
+     */
+    virtual void
+    postprocessSolveFluidEquations(
+        double current_time,
+        double new_time,
+        int cycle_num);
+   
+    /*!
      * Execute user-defined post-processing operations.
      *
      * An empty default implementation is provided.

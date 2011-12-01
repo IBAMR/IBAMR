@@ -725,12 +725,8 @@ SCPoissonFACOperator::smoothError(
                         static const double shift = 0.0;
                         static const int its = 1;
                         Mat& A = d_patch_mat[level_num][patch_counter][axis];
-#if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 0)
-                        ierr = MatRelax(A, f, omega, SOR_SYMMETRIC_SWEEP, shift, its, its, e);  IBTK_CHKERRQ(ierr);
-#endif
-#if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 1)
                         ierr = MatSOR(A, f, omega, SOR_SYMMETRIC_SWEEP, shift, its, its, e);  IBTK_CHKERRQ(ierr);
-#endif
+
                         // Reset the PETSc Vec wrappers.
                         ierr = VecResetArray(e);  IBTK_CHKERRQ(ierr);
                         ierr = VecResetArray(f);  IBTK_CHKERRQ(ierr);
@@ -748,7 +744,7 @@ SCPoissonFACOperator::smoothError(
                         const double* const F = residual_data->getPointer(axis,depth);
                         const int F_ghosts = (residual_data->getGhostCellWidth()).max();
                         static const int its = 1;
-                        RB_GS_SMOOTH_FC(
+                        GS_SMOOTH_FC(
                             U, U_ghosts,
                             alpha, beta,
                             F, F_ghosts,
@@ -1247,7 +1243,7 @@ SCPoissonFACOperator::deallocateOperatorState()
                     blitz::TinyVector<Vec,NDIM>& e = *it;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        ierr = VecDestroy(e[d]);  IBTK_CHKERRQ(ierr);
+                        ierr = VecDestroy(&e[d]);  IBTK_CHKERRQ(ierr);
                     }
                 }
                 d_patch_vec_e[ln].clear();
@@ -1257,7 +1253,7 @@ SCPoissonFACOperator::deallocateOperatorState()
                     blitz::TinyVector<Vec,NDIM>& f = *it;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        ierr = VecDestroy(f[d]);  IBTK_CHKERRQ(ierr);
+                        ierr = VecDestroy(&f[d]);  IBTK_CHKERRQ(ierr);
                     }
                 }
                 d_patch_vec_f[ln].clear();
@@ -1267,7 +1263,7 @@ SCPoissonFACOperator::deallocateOperatorState()
                     blitz::TinyVector<Mat,NDIM>& A = *it;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        ierr = MatDestroy(A[d]);  IBTK_CHKERRQ(ierr);
+                        ierr = MatDestroy(&A[d]);  IBTK_CHKERRQ(ierr);
                     }
                 }
                 d_patch_mat[ln].clear();

@@ -1045,12 +1045,14 @@ IBMethod::initializePatchHierarchy(
 void
 IBMethod::registerLoadBalancer(
     Pointer<LoadBalancer<NDIM> > load_balancer,
-    int /*workload_data_idx*/)
+    int workload_data_idx)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!load_balancer.isNull());
 #endif
-    d_l_data_manager->registerLoadBalancer(load_balancer);
+    d_load_balancer = load_balancer;
+    d_workload_idx = workload_data_idx;
+    d_l_data_manager->registerLoadBalancer(load_balancer, workload_data_idx);
     return;
 }// registerLoadBalancer
 
@@ -1149,6 +1151,11 @@ IBMethod::initializeLevelData(
     d_l_data_manager->setPatchHierarchy(hierarchy);
     d_l_data_manager->resetLevels(0, finest_hier_level);
     d_l_data_manager->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
+    if (!d_load_balancer.isNull() && d_l_data_manager->levelContainsLagrangianData(level_number))
+    {
+        d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx, level_number);
+        d_l_data_manager->updateWorkloadEstimates(level_number, level_number);
+    }
     return;
 }// initializeLevelData
 

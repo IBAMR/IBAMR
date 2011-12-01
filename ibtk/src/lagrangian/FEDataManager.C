@@ -90,7 +90,7 @@ static Timer* t_restrict_value;
 static Timer* t_build_l2_projection_solver;
 static Timer* t_build_diagonal_l2_mass_matrix;
 static Timer* t_compute_l2_projection;
-static Timer* t_update_workload_data;
+static Timer* t_update_workload_estimates;
 static Timer* t_initialize_level_data;
 static Timer* t_reset_hierarchy_configuration;
 static Timer* t_apply_gradient_detector;
@@ -170,12 +170,14 @@ FEDataManager::freeAllManagers()
 
 void
 FEDataManager::registerLoadBalancer(
-    Pointer<LoadBalancer<NDIM> > load_balancer)
+    Pointer<LoadBalancer<NDIM> > load_balancer,
+    int workload_data_idx)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!load_balancer.isNull());
 #endif
     d_load_balancer = load_balancer;
+    d_workload_idx = workload_data_idx;
     return;
 }// return
 
@@ -1662,11 +1664,13 @@ FEDataManager::computeL2Projection(
 }// computeL2Projection
 
 void
-FEDataManager::updateWorkloadData(
+FEDataManager::updateWorkloadEstimates(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
-    IBTK_TIMER_START(t_update_workload_data);
+    if (d_load_balancer.isNull()) return;
+
+    IBTK_TIMER_START(t_update_workload_estimates);
 
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
@@ -1678,23 +1682,17 @@ FEDataManager::updateWorkloadData(
 
     // Workload estimates are computed only on the level to which the FE mesh
     // has been assigned.
-    if (!d_load_balancer.isNull())
+    const int ln = d_level_number;
+    if (coarsest_ln <= ln && ln <= finest_ln)
     {
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (ln == d_level_number)
-            {
-                updateQuadPointCountData(ln,ln);
-                HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(d_hierarchy,ln,ln);
-                hier_cc_data_ops.setToScalar(d_workload_idx, 1.0);
-                hier_cc_data_ops.add(d_workload_idx, d_qp_count_idx, d_workload_idx);
-            }
-        }
+        updateQuadPointCountData(ln,ln);
+        HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(d_hierarchy,ln,ln);
+        hier_cc_data_ops.add(d_workload_idx, d_qp_count_idx, d_workload_idx);
     }
 
-    IBTK_TIMER_STOP(t_update_workload_data);
+    IBTK_TIMER_STOP(t_update_workload_estimates);
     return;
-}// updateWorkloadData
+}// updateWorkloadEstimates
 
 ///
 ///  The following routines:
@@ -1711,11 +1709,11 @@ void
 FEDataManager::initializeLevelData(
     const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     const int level_number,
-    const double init_data_time,
+    const double /*init_data_time*/,
     const bool /*can_be_refined*/,
     const bool /*initial_time*/,
     const Pointer<BasePatchLevel<NDIM> > old_level,
-    const bool allocate_data)
+    const bool /*allocate_data*/)
 {
     IBTK_TIMER_START(t_initialize_level_data);
 
@@ -1729,43 +1727,6 @@ FEDataManager::initializeLevelData(
     }
     TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
-
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-
-    // Allocate storage needed to initialize the level.
-    //
-    // Since time gets set when we allocate data, re-stamp it to current time if
-    // we don't need to allocate.
-    if (allocate_data)
-    {
-        level->allocatePatchData(d_workload_idx, init_data_time);
-    }
-    else
-    {
-        level->setTime(d_workload_idx, init_data_time);
-    }
-
-    // Initialize workload data and setup the load balancer.
-    if (!d_load_balancer.isNull())
-    {
-        HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(hierarchy,level_number,level_number);
-        hier_cc_data_ops.setToScalar(d_workload_idx, 1.0);
-        if (!old_level.isNull() && level_number == d_level_number)
-        {
-            Pointer<RefineOperator<NDIM> > regrid_fill_op = Pointer<RefineOperator<NDIM> >(NULL);
-            Pointer<RefineAlgorithm<NDIM> > regrid_fill_alg = new RefineAlgorithm<NDIM>();
-            regrid_fill_alg->registerRefine(d_workload_idx, d_workload_idx, d_workload_idx, regrid_fill_op);
-            regrid_fill_alg->createSchedule(level, old_level)->fillData(init_data_time);
-        }
-        if (level_number == d_level_number)
-        {
-            d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx, level_number);
-        }
-        else
-        {
-            d_load_balancer->setUniformWorkload(level_number);
-        }
-    }
 
     IBTK_TIMER_STOP(t_initialize_level_data);
     return;
@@ -2007,12 +1968,9 @@ FEDataManager::FEDataManager(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_context = var_db->getContext(d_object_name+"::CONTEXT");
 
-    // Register the node count and workload variables with the VariableDatabase.
+    // Register the node count variable with the VariableDatabase.
     d_qp_count_var = new CellVariable<NDIM,double>(d_object_name+"::qp_count");
     d_qp_count_idx = var_db->registerVariableAndContext(d_qp_count_var, d_context, 0);
-
-    d_workload_var = new CellVariable<NDIM,double>(d_object_name+"::workload");
-    d_workload_idx = var_db->registerVariableAndContext(d_workload_var, d_context, 0);
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -2026,7 +1984,7 @@ FEDataManager::FEDataManager(
         t_build_l2_projection_solver = TimerManager::getManager()->getTimer("IBTK::FEDataManager::buildL2ProjectionSolver()");
         t_build_diagonal_l2_mass_matrix = TimerManager::getManager()->getTimer("IBTK::FEDataManager::buildDiagonalL2MassMatrix()");
         t_compute_l2_projection = TimerManager::getManager()->getTimer("IBTK::FEDataManager::computeL2Projection()");
-        t_update_workload_data = TimerManager::getManager()->getTimer("IBTK::FEDataManager::updateWorkloadData()");
+        t_update_workload_estimates = TimerManager::getManager()->getTimer("IBTK::FEDataManager::updateWorkloadEstimates()");
         t_initialize_level_data = TimerManager::getManager()->getTimer("IBTK::FEDataManager::initializeLevelData()");
         t_reset_hierarchy_configuration = TimerManager::getManager()->getTimer("IBTK::FEDataManager::resetHierarchyConfiguration()");
         t_apply_gradient_detector = TimerManager::getManager()->getTimer("IBTK::FEDataManager::applyGradientDetector()");

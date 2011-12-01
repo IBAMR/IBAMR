@@ -227,13 +227,6 @@ IBStandardForceGen::initializeLevelData(
     resetLocalOrNonlocalPETScIndices(d_beam_data        [level_number].petsc_next_node_idxs , global_node_offset, num_local_nodes, nonlocal_petsc_idxs);
     resetLocalOrNonlocalPETScIndices(d_beam_data        [level_number].petsc_prev_node_idxs , global_node_offset, num_local_nodes, nonlocal_petsc_idxs);
 
-    // Create an LData object with the ghost indices that are needed to compute
-    // the local forces.
-    //
-    // NOTE: LData requires the nonlocal indices to be scaled by the data depth.
-    std::transform(nonlocal_petsc_idxs.begin(), nonlocal_petsc_idxs.end(),
-                   nonlocal_petsc_idxs.begin(), std::bind2nd(std::multiplies<int>(),NDIM));
-
     std::ostringstream X_name_stream;
     X_name_stream << "IBStandardForceGen::X_ghost_" << level_number;
     d_X_ghost_data[level_number] = new LData(X_name_stream.str(), num_local_nodes, NDIM, nonlocal_petsc_idxs);

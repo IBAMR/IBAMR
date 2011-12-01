@@ -1620,10 +1620,10 @@ INSStaggeredBoxRelaxationFACOperator::deallocateOperatorState()
             }
 
             int ierr;
-            ierr = MatDestroy(d_box_op [ln]);  IBTK_CHKERRQ(ierr);
-            ierr = VecDestroy(d_box_e  [ln]);  IBTK_CHKERRQ(ierr);
-            ierr = VecDestroy(d_box_r  [ln]);  IBTK_CHKERRQ(ierr);
-            ierr = KSPDestroy(d_box_ksp[ln]);  IBTK_CHKERRQ(ierr);
+            ierr = MatDestroy(&d_box_op [ln]);  IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(&d_box_e  [ln]);  IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(&d_box_r  [ln]);  IBTK_CHKERRQ(ierr);
+            ierr = KSPDestroy(&d_box_ksp[ln]);  IBTK_CHKERRQ(ierr);
         }
 
         // Delete the solution and rhs vectors.

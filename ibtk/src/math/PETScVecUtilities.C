@@ -63,7 +63,7 @@ PETScVecUtilities::constructPatchVecWrapper(
     int ierr;
     if (vec != PETSC_NULL)
     {
-        ierr = VecDestroy(vec); IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&vec); IBTK_CHKERRQ(ierr);
     }
     const int nvals = data.getDepth()*CellGeometry<NDIM>::toCellBox(data.getGhostBox()).size();
     double* data_ptr = data.getPointer();
@@ -81,7 +81,7 @@ PETScVecUtilities::constructPatchVecWrappers(
     {
         if (vecs[component_axis] != PETSC_NULL)
         {
-            ierr = VecDestroy(vecs[component_axis]); IBTK_CHKERRQ(ierr);
+            ierr = VecDestroy(&vecs[component_axis]); IBTK_CHKERRQ(ierr);
         }
         const int nvals = data.getDepth()*SideGeometry<NDIM>::toSideBox(data.getGhostBox(),component_axis).size();
         double* data_ptr = data.getPointer(component_axis);
@@ -153,7 +153,7 @@ PETScVecUtilities::constructPatchLevelVec(
     int ierr;
     if (vec != PETSC_NULL)
     {
-        ierr = VecDestroy(vec); IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&vec); IBTK_CHKERRQ(ierr);
     }
 
     int nvals_local = 0;
@@ -180,7 +180,7 @@ PETScVecUtilities::constructPatchLevelVec(
     int ierr;
     if (vec != PETSC_NULL)
     {
-        ierr = VecDestroy(vec); IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&vec); IBTK_CHKERRQ(ierr);
     }
 
     int nvals_local = 0;

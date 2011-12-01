@@ -718,6 +718,37 @@ LEInteractor::interpolate(
     Pointer<LData> Q_data,
     const Pointer<LData> X_data,
     const Pointer<LIndexSetData<T> > idx_data,
+    const Pointer<NodeData<NDIM,double> > q_data,
+    const Pointer<Patch<NDIM> > patch,
+    const Box<NDIM>& interp_box,
+    const IntVector<NDIM>& periodic_shift,
+    const std::string& interp_fcn)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!Q_data.isNull());
+    TBOX_ASSERT(!q_data.isNull());
+    TBOX_ASSERT(!X_data.isNull());
+    TBOX_ASSERT(!idx_data.isNull());
+    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
+    TBOX_ASSERT(X_data->getDepth() == NDIM);
+#endif
+    interpolate(Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
+                X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(),
+                idx_data,
+                q_data,
+                patch, interp_box, periodic_shift, interp_fcn);
+    Q_data->restoreArrays();
+    X_data->restoreArrays();
+    return;
+}// interpolate
+
+template<class T>
+void
+LEInteractor::interpolate(
+    Pointer<LData> Q_data,
+    const Pointer<LData> X_data,
+    const Pointer<LIndexSetData<T> > idx_data,
     const Pointer<SideData<NDIM,double> > q_data,
     const Pointer<Patch<NDIM> > patch,
     const Box<NDIM>& interp_box,
@@ -813,6 +844,68 @@ LEInteractor::interpolate(
     const double* const X_data,
     const int X_depth,
     const Pointer<LIndexSetData<T> > idx_data,
+    const Pointer<NodeData<NDIM,double> > q_data,
+    const Pointer<Patch<NDIM> > patch,
+    const Box<NDIM>& interp_box,
+    const IntVector<NDIM>& periodic_shift,
+    const std::string& interp_fcn)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!q_data.isNull());
+    TBOX_ASSERT(!idx_data.isNull());
+    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(Q_depth == q_data->getDepth());
+    TBOX_ASSERT(X_depth == NDIM);
+#else
+    NULL_USE(X_depth);
+#endif
+    // Determine the patch geometry.
+    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const x_lower = pgeom->getXLower();
+    const double* const x_upper = pgeom->getXUpper();
+    const double* const dx = pgeom->getDx();
+    blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
+    blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        static const int lower = 0;
+        patch_touches_lower_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis,lower);
+        static const int upper = 1;
+        patch_touches_upper_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis,upper);
+    }
+
+    // Generate a list of local indices which lie in the specified box.
+    std::vector<int> local_indices;
+    std::vector<double> periodic_offsets;
+    buildLocalIndices(local_indices, periodic_offsets, interp_box, patch, periodic_shift, idx_data);
+
+    // Interpolate.
+    if (!local_indices.empty())
+    {
+        blitz::TinyVector<double,NDIM> x_lower_node, x_upper_node;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            x_lower_node[d] = x_lower[d]-0.5*dx[d];
+            x_upper_node[d] = x_upper[d]+0.5*dx[d];
+        }
+        interpolate(Q_data, Q_depth, X_data,
+                    q_data->getPointer(), NodeGeometry<NDIM>::toNodeBox(q_data->getBox()), q_data->getGhostCellWidth(), q_data->getDepth(),
+                    x_lower_node.data(), x_upper_node.data(), dx,
+                    patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
+                    local_indices, periodic_offsets,
+                    interp_fcn);
+    }
+    return;
+}// interpolate
+
+template<class T>
+void
+LEInteractor::interpolate(
+    double* const Q_data,
+    const int Q_depth,
+    const double* const X_data,
+    const int X_depth,
+    const Pointer<LIndexSetData<T> > idx_data,
     const Pointer<SideData<NDIM,double> > q_data,
     const Pointer<Patch<NDIM> > patch,
     const Box<NDIM>& interp_box,
@@ -904,6 +997,40 @@ LEInteractor::interpolate(
 
 void
 LEInteractor::interpolate(
+    std::vector<double>& Q_data,
+    const int Q_depth,
+    const std::vector<double>& X_data,
+    const int X_depth,
+    const Pointer<NodeData<NDIM,double> > q_data,
+    const Pointer<Patch<NDIM> > patch,
+    const Box<NDIM>& interp_box,
+    const std::string& interp_fcn)
+{
+    if (Q_data.size() == 0) return;
+    interpolate(&Q_data[0], Q_data.size(), Q_depth,
+                &X_data[0], X_data.size(), X_depth,
+                q_data, patch, interp_box, interp_fcn);
+}// interpolate
+
+void
+LEInteractor::interpolate(
+    std::vector<double>& Q_data,
+    const int Q_depth,
+    const std::vector<double>& X_data,
+    const int X_depth,
+    const Pointer<SideData<NDIM,double> > q_data,
+    const Pointer<Patch<NDIM> > patch,
+    const Box<NDIM>& interp_box,
+    const std::string& interp_fcn)
+{
+    if (Q_data.size() == 0) return;
+    interpolate(&Q_data[0], Q_data.size(), Q_depth,
+                &X_data[0], X_data.size(), X_depth,
+                q_data, patch, interp_box, interp_fcn);
+}// interpolate
+
+void
+LEInteractor::interpolate(
     double* const Q_data,
     const int Q_size,
     const int Q_depth,
@@ -960,19 +1087,64 @@ LEInteractor::interpolate(
 
 void
 LEInteractor::interpolate(
-    std::vector<double>& Q_data,
+    double* const Q_data,
+    const int Q_size,
     const int Q_depth,
-    const std::vector<double>& X_data,
+    const double* const X_data,
+    const int X_size,
     const int X_depth,
-    const Pointer<SideData<NDIM,double> > q_data,
+    const Pointer<NodeData<NDIM,double> > q_data,
     const Pointer<Patch<NDIM> > patch,
     const Box<NDIM>& interp_box,
     const std::string& interp_fcn)
 {
-    if (Q_data.size() == 0) return;
-    interpolate(&Q_data[0], Q_data.size(), Q_depth,
-                &X_data[0], X_data.size(), X_depth,
-                q_data, patch, interp_box, interp_fcn);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!q_data.isNull());
+    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(Q_depth == q_data->getDepth());
+    TBOX_ASSERT(X_depth == NDIM);
+    TBOX_ASSERT(Q_size/Q_depth == X_size/X_depth);
+#else
+    NULL_USE(Q_size);
+#endif
+    // Determine the patch geometry.
+    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const x_lower = pgeom->getXLower();
+    const double* const x_upper = pgeom->getXUpper();
+    const double* const dx = pgeom->getDx();
+    blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
+    blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        static const int lower = 0;
+        patch_touches_lower_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis,lower);
+        static const int upper = 1;
+        patch_touches_upper_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis,upper);
+    }
+
+    // Generate a list of local indices which lie in the specified box and set
+    // all periodic offsets to zero.
+    std::vector<int> local_indices;
+    buildLocalIndices(local_indices, interp_box, patch, X_data, X_size, X_depth);
+    std::vector<double> periodic_offsets(NDIM*local_indices.size());
+
+    // Interpolate.
+    if (!local_indices.empty())
+    {
+        blitz::TinyVector<double,NDIM> x_lower_node, x_upper_node;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            x_lower_node[d] = x_lower[d]-0.5*dx[d];
+            x_upper_node[d] = x_upper[d]+0.5*dx[d];
+        }
+        interpolate(Q_data, Q_depth, X_data,
+                    q_data->getPointer(), NodeGeometry<NDIM>::toNodeBox(q_data->getBox()), q_data->getGhostCellWidth(), q_data->getDepth(),
+                    x_lower_node.data(), x_upper_node.data(), dx,
+                    patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
+                    local_indices, periodic_offsets,
+                    interp_fcn);
+    }
+    return;
 }// interpolate
 
 void
@@ -1059,6 +1231,37 @@ template<class T>
 void
 LEInteractor::spread(
     Pointer<CellData<NDIM,double> > q_data,
+    const Pointer<LData> Q_data,
+    const Pointer<LData> X_data,
+    const Pointer<LIndexSetData<T> > idx_data,
+    const Pointer<Patch<NDIM> > patch,
+    const Box<NDIM>& spread_box,
+    const IntVector<NDIM>& periodic_shift,
+    const std::string& spread_fcn)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!Q_data.isNull());
+    TBOX_ASSERT(!q_data.isNull());
+    TBOX_ASSERT(!X_data.isNull());
+    TBOX_ASSERT(!idx_data.isNull());
+    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(Q_data->getDepth() == static_cast<unsigned int>(q_data->getDepth()));
+    TBOX_ASSERT(X_data->getDepth() == NDIM);
+#endif
+    spread(q_data,
+           Q_data->getGhostedLocalFormVecArray()->data(), Q_data->getDepth(),
+           X_data->getGhostedLocalFormVecArray()->data(), X_data->getDepth(),
+           idx_data,
+           patch, spread_box, periodic_shift, spread_fcn);
+    Q_data->restoreArrays();
+    X_data->restoreArrays();
+    return;
+}// spread
+
+template<class T>
+void
+LEInteractor::spread(
+    Pointer<NodeData<NDIM,double> > q_data,
     const Pointer<LData> Q_data,
     const Pointer<LData> X_data,
     const Pointer<LIndexSetData<T> > idx_data,
@@ -1182,6 +1385,68 @@ LEInteractor::spread(
 template<class T>
 void
 LEInteractor::spread(
+    Pointer<NodeData<NDIM,double> > q_data,
+    const double* const Q_data,
+    const int Q_depth,
+    const double* const X_data,
+    const int X_depth,
+    const Pointer<LIndexSetData<T> > idx_data,
+    const Pointer<Patch<NDIM> > patch,
+    const Box<NDIM>& spread_box,
+    const IntVector<NDIM>& periodic_shift,
+    const std::string& spread_fcn)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!q_data.isNull());
+    TBOX_ASSERT(!idx_data.isNull());
+    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(Q_depth == q_data->getDepth());
+    TBOX_ASSERT(X_depth == NDIM);
+#else
+    NULL_USE(X_depth);
+#endif
+    // Determine the patch geometry.
+    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const x_lower = pgeom->getXLower();
+    const double* const x_upper = pgeom->getXUpper();
+    const double* const dx = pgeom->getDx();
+    blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
+    blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        static const int lower = 0;
+        patch_touches_lower_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis,lower);
+        static const int upper = 1;
+        patch_touches_upper_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis,upper);
+    }
+
+    // Generate a list of local indices which lie in the specified box.
+    std::vector<int> local_indices;
+    std::vector<double> periodic_offsets;
+    buildLocalIndices(local_indices, periodic_offsets, spread_box, patch, periodic_shift, idx_data);
+
+    // Spread.
+    if (!local_indices.empty())
+    {
+        blitz::TinyVector<double,NDIM> x_lower_node, x_upper_node;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            x_lower_node[d] = x_lower[d]-0.5*dx[d];
+            x_upper_node[d] = x_upper[d]+0.5*dx[d];
+        }
+        spread(q_data->getPointer(), NodeGeometry<NDIM>::toNodeBox(q_data->getBox()), q_data->getGhostCellWidth(), q_data->getDepth(),
+               Q_data, Q_depth, X_data,
+               x_lower_node.data(), x_upper_node.data(), dx,
+               patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
+               local_indices, periodic_offsets,
+               spread_fcn);
+    }
+    return;
+}// spread
+
+template<class T>
+void
+LEInteractor::spread(
     Pointer<SideData<NDIM,double> > q_data,
     const double* const Q_data,
     const int Q_depth,
@@ -1279,6 +1544,24 @@ LEInteractor::spread(
 
 void
 LEInteractor::spread(
+    Pointer<NodeData<NDIM,double> > q_data,
+    const std::vector<double>& Q_data,
+    const int Q_depth,
+    const std::vector<double>& X_data,
+    const int X_depth,
+    const Pointer<Patch<NDIM> > patch,
+    const Box<NDIM>& spread_box,
+    const std::string& interp_fcn)
+{
+    if (Q_data.size() == 0) return;
+    spread(q_data,
+           &Q_data[0], Q_data.size(), Q_depth,
+           &X_data[0], X_data.size(), X_depth,
+           patch, spread_box, interp_fcn);
+}// spread
+
+void
+LEInteractor::spread(
     Pointer<SideData<NDIM,double> > q_data,
     const std::vector<double>& Q_data,
     const int Q_depth,
@@ -1344,6 +1627,68 @@ LEInteractor::spread(
         spread(q_data->getPointer(), q_data->getBox(), q_data->getGhostCellWidth(), q_data->getDepth(),
                Q_data, Q_depth, X_data,
                x_lower, x_upper, dx,
+               patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
+               local_indices, periodic_offsets,
+               spread_fcn);
+    }
+    return;
+}// spread
+
+void
+LEInteractor::spread(
+    Pointer<NodeData<NDIM,double> > q_data,
+    const double* const Q_data,
+    const int Q_size,
+    const int Q_depth,
+    const double* const X_data,
+    const int X_size,
+    const int X_depth,
+    const Pointer<Patch<NDIM> > patch,
+    const Box<NDIM>& spread_box,
+    const std::string& spread_fcn)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!q_data.isNull());
+    TBOX_ASSERT(!patch.isNull());
+    TBOX_ASSERT(Q_depth == q_data->getDepth());
+    TBOX_ASSERT(X_depth == NDIM);
+    TBOX_ASSERT(Q_size/Q_depth == X_size/X_depth);
+#else
+    NULL_USE(Q_size);
+#endif
+    // Determine the patch geometry.
+    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const x_lower = pgeom->getXLower();
+    const double* const x_upper = pgeom->getXUpper();
+    const double* const dx = pgeom->getDx();
+    blitz::TinyVector<int,NDIM> patch_touches_lower_physical_bdry(0);
+    blitz::TinyVector<int,NDIM> patch_touches_upper_physical_bdry(0);
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+        static const int lower = 0;
+        patch_touches_lower_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis,lower);
+        static const int upper = 1;
+        patch_touches_upper_physical_bdry[axis] = pgeom->getTouchesRegularBoundary(axis,upper);
+    }
+
+    // Generate a list of local indices which lie in the specified box and set
+    // all periodic offsets to zero.
+    std::vector<int> local_indices;
+    buildLocalIndices(local_indices, spread_box, patch, X_data, X_size, X_depth);
+    std::vector<double> periodic_offsets(NDIM*local_indices.size());
+
+    // Spread.
+    if (!local_indices.empty())
+    {
+        blitz::TinyVector<double,NDIM> x_lower_node, x_upper_node;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            x_lower_node[d] = x_lower[d]-0.5*dx[d];
+            x_upper_node[d] = x_upper[d]+0.5*dx[d];
+        }
+        spread(q_data->getPointer(), NodeGeometry<NDIM>::toNodeBox(q_data->getBox()), q_data->getGhostCellWidth(), q_data->getDepth(),
+               Q_data, Q_depth, X_data,
+               x_lower_node.data(), x_upper_node.data(), dx,
                patch_touches_lower_physical_bdry, patch_touches_upper_physical_bdry,
                local_indices, periodic_offsets,
                spread_fcn);
@@ -2503,6 +2848,16 @@ template void IBTK::LEInteractor::interpolate(
     SAMRAI::tbox::Pointer<LData> Q_data,
     const SAMRAI::tbox::Pointer<LData> X_data,
     const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM,double> > q_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    const SAMRAI::hier::Box<NDIM>& interp_box,
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const std::string& interp_fcn);
+
+template void IBTK::LEInteractor::interpolate(
+    SAMRAI::tbox::Pointer<LData> Q_data,
+    const SAMRAI::tbox::Pointer<LData> X_data,
+    const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
     const SAMRAI::hier::Box<NDIM>& interp_box,
@@ -2527,6 +2882,18 @@ template void IBTK::LEInteractor::interpolate(
     const double* const X_data,
     const int X_depth,
     const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM,double> > q_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    const SAMRAI::hier::Box<NDIM>& interp_box,
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const std::string& interp_fcn);
+
+template void IBTK::LEInteractor::interpolate(
+    double* const Q_data,
+    const int Q_depth,
+    const double* const X_data,
+    const int X_depth,
+    const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
     const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > q_data,
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
     const SAMRAI::hier::Box<NDIM>& interp_box,
@@ -2535,6 +2902,16 @@ template void IBTK::LEInteractor::interpolate(
 
 template void IBTK::LEInteractor::spread(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
+    const SAMRAI::tbox::Pointer<LData> Q_data,
+    const SAMRAI::tbox::Pointer<LData> X_data,
+    const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    const SAMRAI::hier::Box<NDIM>& spread_box,
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const std::string& spread_fcn);
+
+template void IBTK::LEInteractor::spread(
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM,double> > q_data,
     const SAMRAI::tbox::Pointer<LData> Q_data,
     const SAMRAI::tbox::Pointer<LData> X_data,
     const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
@@ -2555,6 +2932,18 @@ template void IBTK::LEInteractor::spread(
 
 template void IBTK::LEInteractor::spread(
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM,double> > q_data,
+    const double* const Q_data,
+    const int Q_depth,
+    const double* const X_data,
+    const int X_depth,
+    const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    const SAMRAI::hier::Box<NDIM>& spread_box,
+    const SAMRAI::hier::IntVector<NDIM>& periodic_shift,
+    const std::string& spread_fcn);
+
+template void IBTK::LEInteractor::spread(
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM,double> > q_data,
     const double* const Q_data,
     const int Q_depth,
     const double* const X_data,

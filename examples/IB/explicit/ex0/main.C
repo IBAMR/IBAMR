@@ -420,7 +420,7 @@ output_data(
     PetscViewer viewer;
     PetscViewerASCIIOpen(PETSC_COMM_WORLD, file_name.c_str(), &viewer);
     VecView(X_lag_vec, viewer);
-    PetscViewerDestroy(viewer);
-    VecDestroy(X_lag_vec);
+    PetscViewerDestroy(&viewer);
+    VecDestroy(&X_lag_vec);
     return;
 }// output_data

@@ -181,7 +181,7 @@ VecNorm_MultiVec(
     }
     else if (type == NORM_INFINITY)
     {
-        *val = PETSC_MIN;
+        *val = PETSC_MIN_REAL;
         for (PetscInt k = 0; k < mx->n; ++k)
         {
             PetscScalar component_val;
@@ -661,7 +661,7 @@ VecMax_MultiVec(
 #endif
     PetscErrorCode ierr;
     *p = -1;
-    *val = PETSC_MIN;
+    *val = PETSC_MIN_REAL;
     for (PetscInt k = 0; k < mx->n; ++k)
     {
         PetscInt component_p;
@@ -689,7 +689,7 @@ VecMin_MultiVec(
 #endif
     PetscErrorCode ierr;
     *p = -1;
-    *val = PETSC_MAX;
+    *val = PETSC_MAX_REAL;
     for (PetscInt k = 0; k < mx->n; ++k)
     {
         PetscInt component_p;
@@ -744,7 +744,7 @@ VecDestroy_MultiVec(
 #endif
         for (PetscInt k = 0; k < mv->n; ++k)
         {
-            ierr = VecDestroy(mv->array_allocated[k]); CHKERRQ(ierr);
+            ierr = VecDestroy(&mv->array_allocated[k]); CHKERRQ(ierr);
         }
         ierr = PetscFree(mv->array_allocated); CHKERRQ(ierr);
     }
@@ -865,7 +865,7 @@ VecNorm_local_MultiVec(
     }
     else if (type == NORM_INFINITY)
     {
-        *val = PETSC_MIN;
+        *val = PETSC_MIN_REAL;
         for (PetscInt k = 0; k < mx->n; ++k)
         {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -952,7 +952,7 @@ VecMaxPointwiseDivide_MultiVec(
     TBOX_ASSERT(mx->n == my->n);
 #endif
     PetscErrorCode ierr;
-    *max = PETSC_MIN;
+    *max = PETSC_MIN_REAL;
     for (PetscInt k = 0; k < mx->n; ++k)
     {
         PetscScalar component_max;
@@ -1037,16 +1037,14 @@ VecCreateMultiVec(
         DvOps.norm_local = VecNorm_local_MultiVec;
         DvOps.mdot_local = VecMDot_local_MultiVec;
         DvOps.mtdot_local = VecMTDot_local_MultiVec;
-        DvOps.loadintovector = 0;
+        DvOps.load = 0;
         DvOps.reciprocal = 0;
-        DvOps.viewnative = 0;
         DvOps.conjugate = 0;
         DvOps.setlocaltoglobalmapping = 0;
         DvOps.setvalueslocal = 0;
         DvOps.resetarray = 0;
         DvOps.setfromoptions = 0;
         DvOps.maxpointwisedivide = VecMaxPointwiseDivide_MultiVec;
-        DvOps.load = 0;
         DvOps.pointwisemax = 0;
         DvOps.pointwisemaxabs = 0;
         DvOps.pointwisemin = 0;
@@ -1057,12 +1055,12 @@ VecCreateMultiVec(
         DvOps.log = 0;
         DvOps.shift = 0;
         DvOps.create = 0;
-                 );
-#if (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR == 1)
-    IBTK_DO_ONCE(
+        DvOps.stridegather = 0;
+        DvOps.stridescatter = 0;
         DvOps.dotnorm2 = VecDotNorm2_MultiVec;
+        DvOps.getsubvector = 0;
+        DvOps.restoresubvector = 0;
                  );
-#endif
     ierr = PetscMemcpy((*vv)->ops,&DvOps,sizeof(DvOps)); CHKERRQ(ierr);
 
     // Initialize the data structures where the component vectors are stored.

@@ -131,6 +131,26 @@ IBStrategy::interpolatePressure(
 }// interpolatePressure
 
 void
+IBStrategy::preprocessSolveFluidEquations(
+    double /*current_time*/,
+    double /*new_time*/,
+    int /*cycle_num*/)
+{
+    // intentionally blank
+    return;
+}// preprocessSolveFluidEquations
+
+void
+IBStrategy::postprocessSolveFluidEquations(
+    double /*current_time*/,
+    double /*new_time*/,
+    int /*cycle_num*/)
+{
+    // intentionally blank
+    return;
+}// postprocessSolveFluidEquations
+    
+void
 IBStrategy::postprocessData(
     Pointer<PatchHierarchy<NDIM> > /*hierarchy*/)
 {

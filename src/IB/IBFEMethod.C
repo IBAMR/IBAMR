@@ -78,7 +78,7 @@ const std::string IBFEMethod::       COORDS_SYSTEM_NAME = "IB coordinates system
 const std::string IBFEMethod::COORD_MAPPING_SYSTEM_NAME = "IB coordinate mapping system";
 const std::string IBFEMethod::        FORCE_SYSTEM_NAME = "IB force system";
 const std::string IBFEMethod::     VELOCITY_SYSTEM_NAME = "IB velocity system";
-const std::string IBFEMethod::        J_BAR_SYSTEM_NAME = "IB F_dil_bar system";
+const std::string IBFEMethod::    F_DIL_BAR_SYSTEM_NAME = "IB F_dil_bar system";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -216,18 +216,18 @@ IBFEMethod::preprocessIntegrateData(
     d_half_time = current_time+0.5*(new_time-current_time);
 
     // Extract the FE data.
-    d_X_systems          .resize(d_num_parts);
-    d_X_current_vecs     .resize(d_num_parts);
-    d_X_new_vecs         .resize(d_num_parts);
-    d_X_half_vecs        .resize(d_num_parts);
-    d_X_IB_ghost_vecs    .resize(d_num_parts);
-    d_U_systems          .resize(d_num_parts);
-    d_U_current_vecs     .resize(d_num_parts);
-    d_U_new_vecs         .resize(d_num_parts);
-    d_U_half_vecs        .resize(d_num_parts);
-    d_F_systems          .resize(d_num_parts);
-    d_F_half_vecs        .resize(d_num_parts);
-    d_F_IB_ghost_vecs    .resize(d_num_parts);
+    d_X_systems      .resize(d_num_parts);
+    d_X_current_vecs .resize(d_num_parts);
+    d_X_new_vecs     .resize(d_num_parts);
+    d_X_half_vecs    .resize(d_num_parts);
+    d_X_IB_ghost_vecs.resize(d_num_parts);
+    d_U_systems      .resize(d_num_parts);
+    d_U_current_vecs .resize(d_num_parts);
+    d_U_new_vecs     .resize(d_num_parts);
+    d_U_half_vecs    .resize(d_num_parts);
+    d_F_systems      .resize(d_num_parts);
+    d_F_half_vecs    .resize(d_num_parts);
+    d_F_IB_ghost_vecs.resize(d_num_parts);
     d_F_dil_bar_systems      .resize(d_num_parts);
     d_F_dil_bar_half_vecs    .resize(d_num_parts);
     d_F_dil_bar_IB_ghost_vecs.resize(d_num_parts);
@@ -250,12 +250,13 @@ IBFEMethod::preprocessIntegrateData(
         d_F_dil_bar_IB_ghost_vecs[part] = NULL;
         if (d_use_Fbar_projection)
         {
-            d_F_dil_bar_systems      [part] = &d_equation_systems[part]->get_system(J_BAR_SYSTEM_NAME);
-            d_F_dil_bar_half_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_F_dil_bar_systems   [part]->current_local_solution.get());
-            d_F_dil_bar_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(J_BAR_SYSTEM_NAME));
+            d_F_dil_bar_systems      [part] = &d_equation_systems[part]->get_system(F_DIL_BAR_SYSTEM_NAME);
+            d_F_dil_bar_half_vecs    [part] = dynamic_cast<PetscVector<double>*>(d_F_dil_bar_systems[part]->current_local_solution.get());
+            d_F_dil_bar_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(d_fe_data_managers [part]->buildGhostedSolutionVector(F_DIL_BAR_SYSTEM_NAME));
         }
 
-        // Initialize X^{n+1/2}, X^{n+1}, U^{n+1/2}, and U^{n+1} to equal U^{n}.
+        // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
+        // U^{n+1/2} and U^{n+1} to equal U^{n}.
         d_X_current_vecs[part]->localize(*d_X_half_vecs[part]);
         d_X_half_vecs[part]->close();
         d_X_current_vecs[part]->localize(*d_X_new_vecs[part]);
@@ -284,6 +285,14 @@ IBFEMethod::postprocessIntegrateData(
             (*d_F_dil_bar_systems[part]->solution) = (*d_F_dil_bar_systems[part]->current_local_solution);
         }
 
+        d_X_systems[part]->solution->localize(*d_X_systems[part]->current_local_solution);
+        d_U_systems[part]->solution->localize(*d_U_systems[part]->current_local_solution);
+        d_F_systems[part]->solution->localize(*d_F_systems[part]->current_local_solution);
+        if (d_use_Fbar_projection)
+        {
+            d_F_dil_bar_systems[part]->solution->localize(*d_F_dil_bar_systems[part]->current_local_solution);
+        }
+
         // Update the coordinate mapping dX = X - s.
         updateCoordinateMapping(part);
 
@@ -291,18 +300,18 @@ IBFEMethod::postprocessIntegrateData(
         delete d_X_new_vecs[part];
         delete d_U_new_vecs[part];
     }
-    d_X_systems          .clear();
-    d_X_current_vecs     .clear();
-    d_X_new_vecs         .clear();
-    d_X_half_vecs        .clear();
-    d_X_IB_ghost_vecs    .clear();
-    d_U_systems          .clear();
-    d_U_current_vecs     .clear();
-    d_U_new_vecs         .clear();
-    d_U_half_vecs        .clear();
-    d_F_systems          .clear();
-    d_F_half_vecs        .clear();
-    d_F_IB_ghost_vecs    .clear();
+    d_X_systems      .clear();
+    d_X_current_vecs .clear();
+    d_X_new_vecs     .clear();
+    d_X_half_vecs    .clear();
+    d_X_IB_ghost_vecs.clear();
+    d_U_systems      .clear();
+    d_U_current_vecs .clear();
+    d_U_new_vecs     .clear();
+    d_U_half_vecs    .clear();
+    d_F_systems      .clear();
+    d_F_half_vecs    .clear();
+    d_F_IB_ghost_vecs.clear();
     d_F_dil_bar_systems      .clear();
     d_F_dil_bar_half_vecs    .clear();
     d_F_dil_bar_IB_ghost_vecs.clear();
@@ -505,41 +514,36 @@ IBFEMethod::initializeFEData()
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
                 const bool at_mesh_bdry = elem->neighbor(side) == NULL;
-                if (at_mesh_bdry)
+                if (!at_mesh_bdry) continue;
+
+                const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
+                const bool at_dirichlet_bdry = std::find(bdry_ids.begin(), bdry_ids.end(), FEDataManager::DIRICHLET_BDRY_ID) != bdry_ids.end();
+                if (!at_dirichlet_bdry) continue;
+
+                for (unsigned int n = 0; n < elem->n_nodes(); ++n)
                 {
-                    const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
-                    const bool at_dirichlet_bdry = std::find(bdry_ids.begin(), bdry_ids.end(), FEDataManager::DIRICHLET_BDRY_ID) != bdry_ids.end();
-                    if (at_dirichlet_bdry)
+                    if (!elem->is_node_on_side(n, side)) continue;
+
+                    Node* node = elem->get_node(n);
+                    mesh.boundary_info->add_node(node, FEDataManager::DIRICHLET_BDRY_ID);
+                    if (node->n_dofs(F_sys_num) > 0)
                     {
-                        for (unsigned int n = 0; n < elem->n_nodes(); ++n)
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            if (elem->is_node_on_side(n, side))
-                            {
-                                Node* node = elem->get_node(n);
-                                mesh.boundary_info->add_node(node, FEDataManager::DIRICHLET_BDRY_ID);
-
-                                if (node->n_dofs(F_sys_num) > 0)
-                                {
-                                    for (unsigned int d = 0; d < NDIM; ++d)
-                                    {
-                                        const int F_dof_index = node->dof_number(F_sys_num,d,0);
-                                        DofConstraintRow F_constraint_row;
-                                        F_constraint_row[F_dof_index] = 1.0;
-                                        F_dof_map.add_constraint_row(F_dof_index, F_constraint_row, false);
-                                    }
-                                }
-
-                                if (node->n_dofs(U_sys_num) > 0)
-                                {
-                                    for (unsigned int d = 0; d < NDIM; ++d)
-                                    {
-                                        const int U_dof_index = node->dof_number(U_sys_num,d,0);
-                                        DofConstraintRow U_constraint_row;
-                                        U_constraint_row[U_dof_index] = 1.0;
-                                        U_dof_map.add_constraint_row(U_dof_index, U_constraint_row, false);
-                                    }
-                                }
-                            }
+                            const int F_dof_index = node->dof_number(F_sys_num,d,0);
+                            DofConstraintRow F_constraint_row;
+                            F_constraint_row[F_dof_index] = 1.0;
+                            F_dof_map.add_constraint_row(F_dof_index, F_constraint_row, false);
+                        }
+                    }
+                    if (node->n_dofs(U_sys_num) > 0)
+                    {
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            const int U_dof_index = node->dof_number(U_sys_num,d,0);
+                            DofConstraintRow U_constraint_row;
+                            U_constraint_row[U_dof_index] = 1.0;
+                            U_dof_map.add_constraint_row(U_dof_index, U_constraint_row, false);
                         }
                     }
                 }
@@ -575,6 +579,36 @@ IBFEMethod::initializePatchHierarchy(
     d_is_initialized = true;
     return;
 }// initializePatchHierarchy
+
+void
+IBFEMethod::registerLoadBalancer(
+    Pointer<LoadBalancer<NDIM> > load_balancer,
+    int workload_data_idx)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!load_balancer.isNull());
+#endif
+    d_load_balancer = load_balancer;
+    d_workload_idx = workload_data_idx;
+
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        d_fe_data_managers[part]->registerLoadBalancer(load_balancer, workload_data_idx);
+    }
+    return;
+}// registerLoadBalancer
+
+void
+IBFEMethod::updateWorkloadEstimates(
+    Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+    int /*workload_data_idx*/)
+{
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        d_fe_data_managers[part]->updateWorkloadEstimates();
+    }
+    return;
+}// updateWorkloadEstimates
 
 void
 IBFEMethod::beginDataRedistribution(
@@ -616,6 +650,11 @@ IBFEMethod::initializeLevelData(
         d_fe_data_managers[part]->setPatchHierarchy(hierarchy);
         d_fe_data_managers[part]->resetLevels(0,finest_hier_level);
         d_fe_data_managers[part]->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
+        if (!d_load_balancer.isNull() && level_number == d_fe_data_managers[part]->getLevelNumber())
+        {
+            d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx, level_number);
+            d_fe_data_managers[part]->updateWorkloadEstimates(level_number, level_number);
+        }
     }
     return;
 }// initializeLevelData
@@ -708,7 +747,7 @@ IBFEMethod::computeProjectedDilatationalStrain(
     const std::vector<double>& JxW = fe->get_JxW();
     const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
 
-    System& F_dil_bar_system = equation_systems->get_system(J_BAR_SYSTEM_NAME);
+    System& F_dil_bar_system = equation_systems->get_system(F_DIL_BAR_SYSTEM_NAME);
     const DofMap& F_dil_bar_dof_map = F_dil_bar_system.get_dof_map();
     std::vector<unsigned int> F_dil_bar_dof_indices;
     F_dil_bar_dof_indices.reserve(27);
@@ -770,7 +809,7 @@ IBFEMethod::computeProjectedDilatationalStrain(
     // Solve for F_dil_bar.
     F_dil_bar_rhs_vec->close();
     static const bool use_consistent_mass_matrix = true;
-    d_fe_data_managers[part]->computeL2Projection(F_dil_bar_vec, *F_dil_bar_rhs_vec, J_BAR_SYSTEM_NAME, use_consistent_mass_matrix);
+    d_fe_data_managers[part]->computeL2Projection(F_dil_bar_vec, *F_dil_bar_rhs_vec, F_DIL_BAR_SYSTEM_NAME, use_consistent_mass_matrix);
     return;
 }// computeProjectedDilatationalStrain
 
@@ -827,7 +866,7 @@ IBFEMethod::computeInteriorForceDensity(
     const std::vector<std::vector<double> >* F_dil_bar_phi_face = NULL;
     if (F_dil_bar_vec != NULL)
     {
-        F_dil_bar_system = &equation_systems->get_system(J_BAR_SYSTEM_NAME);
+        F_dil_bar_system = &equation_systems->get_system(F_DIL_BAR_SYSTEM_NAME);
         F_dil_bar_dof_map = &F_dil_bar_system->get_dof_map();
         F_dil_bar_fe = FEBase::build(dim, F_dil_bar_dof_map->variable_type(0));
         F_dil_bar_fe->attach_quadrature_rule(qrule.get());
@@ -1091,11 +1130,8 @@ IBFEMethod::spreadTransmissionForceDensity(
     EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems->get_mesh();
     const int dim = mesh.mesh_dimension();
-    QBase* ib_qrule = d_fe_data_managers[part]->getQuadratureRule();
     QBase* ib_qrule_face = d_fe_data_managers[part]->getQuadratureRuleFace();
-    QAdaptiveGauss* ib_adaptive_qrule = dynamic_cast<QAdaptiveGauss*>(ib_qrule);
     QAdaptiveGauss* ib_adaptive_qrule_face = dynamic_cast<QAdaptiveGauss*>(ib_qrule_face);
-    const bool using_adaptive_qrule = (ib_adaptive_qrule != NULL);
     const bool using_adaptive_qrule_face = (ib_adaptive_qrule_face != NULL);
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
@@ -1108,9 +1144,6 @@ IBFEMethod::spreadTransmissionForceDensity(
     for (unsigned int d = 0; d < NDIM; ++d) dof_indices(d).reserve(27);
     blitz::Array<std::vector<unsigned int>,1> side_dof_indices(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) side_dof_indices(d).reserve(9);
-    AutoPtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
-    fe->attach_quadrature_rule(ib_qrule);
-    fe->get_xyz();  // prevents FE::reinit() from rebuilding all FE data items...
     AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
     fe_face->attach_quadrature_rule(ib_qrule_face);
     const std::vector<Point>& q_point_face = fe_face->get_xyz();
@@ -1129,16 +1162,12 @@ IBFEMethod::spreadTransmissionForceDensity(
     const DofMap* F_dil_bar_dof_map = NULL;
     std::vector<unsigned int> F_dil_bar_dof_indices;
     F_dil_bar_dof_indices.reserve(27);
-    AutoPtr<FEBase> F_dil_bar_fe;
     AutoPtr<FEBase> F_dil_bar_fe_face;
     const std::vector<std::vector<double> >* F_dil_bar_phi_face = NULL;
     if (F_dil_bar_ghost_vec != NULL)
     {
-        F_dil_bar_system = &equation_systems->get_system(J_BAR_SYSTEM_NAME);
+        F_dil_bar_system = &equation_systems->get_system(F_DIL_BAR_SYSTEM_NAME);
         F_dil_bar_dof_map = &F_dil_bar_system->get_dof_map();
-        F_dil_bar_fe = FEBase::build(dim, F_dil_bar_dof_map->variable_type(0));
-        F_dil_bar_fe->attach_quadrature_rule(ib_qrule);
-        F_dil_bar_fe->get_xyz();  // prevents FE::reinit() from rebuilding all FE data items...
         F_dil_bar_fe_face = FEBase::build(dim, F_dil_bar_dof_map->variable_type(0));
         F_dil_bar_fe_face->attach_quadrature_rule(ib_qrule_face);
         F_dil_bar_phi_face = &F_dil_bar_fe_face->get_phi();
@@ -1234,10 +1263,6 @@ IBFEMethod::spreadTransmissionForceDensity(
                 F_dil_bar_dof_map->dof_indices(elem, F_dil_bar_dof_indices);
                 get_values_for_interpolation(F_dil_bar_node, *F_dil_bar_ghost_vec, F_dil_bar_dof_indices);
             }
-
-            if (using_adaptive_qrule) ib_adaptive_qrule->set_elem_data(elem->type(), X_node, patch_dx);
-            fe->reinit(elem);
-            if (F_dil_bar_ghost_vec != NULL) F_dil_bar_fe->reinit(elem);
 
             // Loop over the element boundaries.
             for (unsigned short int side = 0; side < elem->n_sides(); ++side)
@@ -1369,7 +1394,6 @@ IBFEMethod::imposeJumpConditions(
 #ifdef DEBUG_CHECK_ASSERTIONS
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == dof_map.variable_type(0));
 #endif
-    FEType fe_type = dof_map.variable_type(0);
     blitz::Array<std::vector<unsigned int>,1> dof_indices(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) dof_indices(d).reserve(27);
     blitz::Array<std::vector<unsigned int>,1> side_dof_indices(NDIM);
@@ -1386,7 +1410,7 @@ IBFEMethod::imposeJumpConditions(
     for (unsigned int d = 0; d < NDIM; ++d) TBOX_ASSERT(dof_map.variable_type(d) == X_dof_map.variable_type(d));
 #endif
 
-    System* F_dil_bar_system;
+    System* F_dil_bar_system = NULL;
     const DofMap* F_dil_bar_dof_map = NULL;
     std::vector<unsigned int> F_dil_bar_dof_indices;
     F_dil_bar_dof_indices.reserve(27);
@@ -1394,7 +1418,7 @@ IBFEMethod::imposeJumpConditions(
     const std::vector<std::vector<double> >* F_dil_bar_phi_face = NULL;
     if (F_dil_bar_ghost_vec != NULL)
     {
-        F_dil_bar_system = &equation_systems->get_system(J_BAR_SYSTEM_NAME);
+        F_dil_bar_system = &equation_systems->get_system(F_DIL_BAR_SYSTEM_NAME);
         F_dil_bar_dof_map = &F_dil_bar_system->get_dof_map();
         F_dil_bar_fe_face = FEBase::build(dim, F_dil_bar_dof_map->variable_type(0));
         F_dil_bar_phi_face = &F_dil_bar_fe_face->get_phi();
@@ -1697,7 +1721,7 @@ IBFEMethod::imposeJumpConditions(
                         F += F_s;
                     }
 
-                    // Use Nanson's formula (n da = J F^{-T} N dA) to convert
+                    // Use Nanson's formula (n da = J FF^{-T} N dA) to convert
                     // force per unit area in the reference configuration into
                     // force per unit area in the current configuration.  This
                     // value determines the discontinuity in the pressure at the
@@ -1981,7 +2005,7 @@ IBFEMethod::commonConstructor(
 
         if (d_use_Fbar_projection)
         {
-            ExplicitSystem& F_dil_bar_system = equation_systems->add_system<ExplicitSystem>(J_BAR_SYSTEM_NAME);
+            ExplicitSystem& F_dil_bar_system = equation_systems->add_system<ExplicitSystem>(F_DIL_BAR_SYSTEM_NAME);
             F_dil_bar_system.add_variable("F_dil_bar", d_F_dil_bar_fe_order, d_F_dil_bar_fe_family);
         }
     }

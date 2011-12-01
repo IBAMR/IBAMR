@@ -61,7 +61,7 @@ public:
     static const std::string COORD_MAPPING_SYSTEM_NAME;
     static const std::string         FORCE_SYSTEM_NAME;
     static const std::string      VELOCITY_SYSTEM_NAME;
-    static const std::string         J_BAR_SYSTEM_NAME;
+    static const std::string     F_DIL_BAR_SYSTEM_NAME;
 
     /*!
      * \brief Constructor.
@@ -332,6 +332,23 @@ public:
         bool initial_time);
 
     /*!
+     * Register a load balancer and work load patch data index with the IB
+     * strategy object.
+     */
+    void
+    registerLoadBalancer(
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
+        int workload_data_idx);
+
+    /*!
+     * Update work load estimates on each level of the patch hierarchy.
+     */
+    void
+    updateWorkloadEstimates(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int workload_data_idx);
+
+    /*!
      * Begin redistributing Lagrangian data prior to regridding the patch
      * hierarchy.
      */
@@ -547,6 +564,12 @@ protected:
     std::vector<LagSurfaceForceFcnPtr> d_lag_surface_force_fcns;
     std::vector<std::vector<unsigned int> > d_lag_surface_force_fcn_systems;
     std::vector<void*> d_lag_surface_force_fcn_ctxs;
+
+    /*
+     * Nonuniform load balancing data structures.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
+    int d_workload_idx;
 
     /*
      * The object name is used as a handle to databases stored in restart files

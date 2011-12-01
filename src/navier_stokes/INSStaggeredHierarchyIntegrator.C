@@ -363,7 +363,7 @@ INSStaggeredHierarchyIntegrator::getVelocitySubdomainSolver()
         p_velocity_solver->setOperator(d_velocity_op);
         static const size_t len = 255;
         char velocity_pc_type_str[len];
-        PetscTruth flg;
+        PetscBool flg;
         int ierr = PetscOptionsGetString("velocity_", "-pc_type", velocity_pc_type_str, len, &flg);  IBTK_CHKERRQ(ierr);
         std::string velocity_pc_type = "shell";
         if (flg)
@@ -438,7 +438,7 @@ INSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
         if (d_normalize_pressure) p_pressure_solver->setNullspace(d_normalize_pressure, NULL);
         static const size_t len = 255;
         char pressure_pc_type_str[len];
-        PetscTruth flg;
+        PetscBool flg;
         int ierr = PetscOptionsGetString("pressure_", "-pc_type", pressure_pc_type_str, len, &flg);  IBTK_CHKERRQ(ierr);
         std::string pressure_pc_type = "shell";
         if (flg)
@@ -554,7 +554,7 @@ INSStaggeredHierarchyIntegrator::getStokesPreconditioner()
     {
         static const size_t len = 255;
         char stokes_pc_type_str[len];
-        PetscTruth flg;
+        PetscBool flg;
         int ierr = PetscOptionsGetString("stokes_", "-pc_type", stokes_pc_type_str, len, &flg);  IBTK_CHKERRQ(ierr);
         std::string stokes_pc_type = "shell";
         if (flg)
