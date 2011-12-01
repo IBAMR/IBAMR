@@ -581,6 +581,36 @@ IBFEMethod::initializePatchHierarchy(
 }// initializePatchHierarchy
 
 void
+IBFEMethod::registerLoadBalancer(
+    Pointer<LoadBalancer<NDIM> > load_balancer,
+    int workload_data_idx)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!load_balancer.isNull());
+#endif
+    d_load_balancer = load_balancer;
+    d_workload_idx = workload_data_idx;
+
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        d_fe_data_managers[part]->registerLoadBalancer(load_balancer, workload_data_idx);
+    }
+    return;
+}// registerLoadBalancer
+
+void
+IBFEMethod::updateWorkloadEstimates(
+    Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+    int /*workload_data_idx*/)
+{
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        d_fe_data_managers[part]->updateWorkloadEstimates();
+    }
+    return;
+}// updateWorkloadEstimates
+
+void
 IBFEMethod::beginDataRedistribution(
     Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
@@ -620,6 +650,11 @@ IBFEMethod::initializeLevelData(
         d_fe_data_managers[part]->setPatchHierarchy(hierarchy);
         d_fe_data_managers[part]->resetLevels(0,finest_hier_level);
         d_fe_data_managers[part]->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
+        if (!d_load_balancer.isNull() && level_number == d_fe_data_managers[part]->getLevelNumber())
+        {
+            d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx, level_number);
+            d_fe_data_managers[part]->updateWorkloadEstimates(level_number, level_number);
+        }
     }
     return;
 }// initializeLevelData

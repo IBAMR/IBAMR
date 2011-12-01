@@ -127,7 +127,8 @@ public:
      */
     void
     registerLoadBalancer(
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer);
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
+        int workload_data_idx);
 
     /*!
      * \name Methods to set the hierarchy and range of levels.
@@ -361,7 +362,7 @@ public:
      * \brief Update the cell workload estimate.
      */
     void
-    updateWorkloadData(
+    updateWorkloadEstimates(
         int coarsest_ln=-1,
         int finest_ln=-1);
 

@@ -216,7 +216,7 @@ main(
         else
         {
             // NOTE: number of segments along boundary is 4*2^r.
-            const double num_circum_segments = 2.0*M_PI*R/ds;
+            const double num_circum_segments = ceil(2.0*M_PI*R/ds);
             const int r = log2(0.25*num_circum_segments);
             MeshTools::Generation::build_sphere(block_mesh, R, r, Utility::string_to_enum<ElemType>(block_elem_type));
         }

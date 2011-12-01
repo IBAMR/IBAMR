@@ -104,6 +104,7 @@ static Timer* t_map_petsc_to_lagrangian;
 static Timer* t_begin_data_redistribution;
 static Timer* t_end_data_redistribution;
 static Timer* t_update_workload_estimates;
+static Timer* t_update_node_count_data;
 static Timer* t_initialize_level_data;
 static Timer* t_reset_hierarchy_configuration;
 static Timer* t_apply_gradient_detector;
@@ -584,12 +585,20 @@ LDataManager::registerLM3DDataWriter(
 
 void
 LDataManager::registerLoadBalancer(
-    Pointer<LoadBalancer<NDIM> > load_balancer)
+    Pointer<LoadBalancer<NDIM> > load_balancer,
+    int workload_idx)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!load_balancer.isNull());
 #endif
     d_load_balancer = load_balancer;
+    d_workload_idx = workload_idx;
+    Pointer<Variable<NDIM> > workload_var;
+    VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(d_workload_idx, workload_var);
+    d_workload_var = workload_var;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!d_workload_var.isNull());
+#endif
     return;
 }// return
 
@@ -1546,13 +1555,13 @@ LDataManager::endDataRedistribution(
     for (int level_number = coarsest_ln; level_number <= finest_ln; ++level_number)
     {
         if (!d_level_contains_lag_data[level_number]) continue;
-        
+
         std::map<std::string,Pointer<LData> >& level_data = d_lag_mesh_data[level_number];
         const std::vector<int>::size_type num_data = level_data.size();
         src_vec[level_number].resize(num_data);
         dst_vec[level_number].resize(num_data);
         scatter[level_number].resize(num_data);
-        
+
         // Get the new distribution of nodes for the level.
         //
         // NOTE: This process updates the local PETSc indices of the LNodeSet
@@ -1574,7 +1583,7 @@ LDataManager::endDataRedistribution(
         {
             src_inds[k] = d_node_offset[level_number]+k;
         }
-        
+
         // Convert dst indices from the old ordering to the new ordering.
         std::vector<int> dst_inds = d_local_petsc_indices[level_number];
         ierr = AOPetscToApplication(
@@ -1755,7 +1764,32 @@ LDataManager::updateWorkloadEstimates(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
+    if (d_load_balancer.isNull()) return;
+
     IBTK_TIMER_START(t_update_workload_estimates);
+
+    const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
+    const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
+    TBOX_ASSERT(finest_ln   >= d_coarsest_ln && finest_ln   <= d_finest_ln);
+#endif
+
+    updateNodeCountData(coarsest_ln, finest_ln);
+    HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(d_hierarchy,coarsest_ln,finest_ln);
+    hier_cc_data_ops.axpy(d_workload_idx, d_beta_work, d_node_count_idx, d_workload_idx);
+
+    IBTK_TIMER_STOP(t_update_workload_estimates);
+    return;
+}// updateWorkloadEstimates
+
+void
+LDataManager::updateNodeCountData(
+    const int coarsest_ln_in,
+    const int finest_ln_in)
+{
+    IBTK_TIMER_START(t_update_node_count_data);
 
     const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
     const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
@@ -1773,9 +1807,7 @@ LDataManager::updateWorkloadEstimates(
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            Pointer<CellData<NDIM,double> > workload_data = patch->getPatchData(d_workload_idx);
             Pointer<CellData<NDIM,double> > node_count_data = patch->getPatchData(d_node_count_idx);
-            workload_data->fillAll(d_alpha_work);
             node_count_data->fillAll(0.0);
             for (LNodeSetData::SetIterator it(*idx_data); it; it++)
             {
@@ -1784,15 +1816,14 @@ LDataManager::updateWorkloadEstimates(
                 {
                     const LNodeSet& node_set = *it;
                     (*node_count_data)(i) = node_set.size();
-                    (*workload_data)(i) += d_beta_work*(*node_count_data)(i);
                 }
             }
         }
     }
 
-    IBTK_TIMER_STOP(t_update_workload_estimates);
+    IBTK_TIMER_STOP(t_update_node_count_data);
     return;
-}// updateWorkloadEstimates
+}// updateNodeCountData
 
 ///
 ///  The following routines:
@@ -2005,10 +2036,8 @@ LDataManager::initializeLevelData(
 
             Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
             Pointer<CellData<NDIM,double> > node_count_data = patch->getPatchData(d_node_count_idx);
-            Pointer<CellData<NDIM,double> >   workload_data = patch->getPatchData(  d_workload_idx);
 
             node_count_data->fillAll(0.0);
-            workload_data  ->fillAll(0.0);
 
             idx_data->cacheLocalIndices(patch, periodic_shift);
             for (LNodeSetData::SetIterator it(*idx_data); it; it++)
@@ -2019,7 +2048,6 @@ LDataManager::initializeLevelData(
                 if (patch_owns_idx_set)
                 {
                     (*node_count_data)(i) = node_set.size();
-                    (*  workload_data)(i) = d_alpha_work + d_beta_work*(*node_count_data)(i);
                 }
 
                 for (LNodeSet::iterator n = node_set.begin(); n != node_set.end(); ++n)
@@ -2057,36 +2085,6 @@ LDataManager::initializeLevelData(
                                num_local_nodes > 0 ? &d_local_lag_indices  [level_number][0] : NULL,
                                num_local_nodes > 0 ? &d_local_petsc_indices[level_number][0] : NULL,
                                &d_ao[level_number]);  IBTK_CHKERRQ(ierr);
-    }
-
-    // Initialize workload data and setup the load balancer.
-    if (!d_load_balancer.isNull())
-    {
-        HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(hierarchy,level_number,level_number);
-        hier_cc_data_ops.setToScalar(d_workload_idx, d_alpha_work);
-        if (!old_level.isNull() && d_level_contains_lag_data[level_number])
-        {
-            Pointer<RefineOperator<NDIM> > regrid_fill_op = Pointer<RefineOperator<NDIM> >(NULL);
-            Pointer<RefineAlgorithm<NDIM> > regrid_fill_alg = new RefineAlgorithm<NDIM>();
-            regrid_fill_alg->registerRefine(d_workload_idx, d_workload_idx, d_workload_idx, regrid_fill_op);
-            regrid_fill_alg->createSchedule(level, old_level)->fillData(init_data_time);
-        }
-        if (d_level_contains_lag_data[level_number])
-        {
-            d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx, level_number);
-        }
-        else
-        {
-            d_load_balancer->setUniformWorkload(level_number);
-        }
-
-        // Ensure that workload and related data are allocated.
-        for (int ln = 0; ln <= level_number; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            if (!level->checkAllocated(d_workload_idx)) level->allocatePatchData(d_workload_idx, init_data_time);
-            if (!level->checkAllocated(d_node_count_idx)) level->allocatePatchData(d_node_count_idx, init_data_time);
-        }
     }
 
     // If a Silo data writer is registered with the manager, give it access to
@@ -2221,9 +2219,9 @@ LDataManager::applyGradientDetector(
             node_count_data->fillAll(0.0);
         }
 
-        // Compute the workload and node count data on the next finer level of
-        // the patch hierarchy.
-        updateWorkloadEstimates(level_number+1);
+        // Compute the node count data on the next finer level of the patch
+        // hierarchy.
+        updateNodeCountData(level_number+1,level_number+1);
 
         // Coarsen the node count data from the next finer level of the patch
         // hierarchy.
@@ -2282,9 +2280,9 @@ LDataManager::applyGradientDetector(
             }
         }
 
-        // Compute the workload and node count data on the present level of the
-        // patch hierarchy (since it was invalidated above).
-        updateWorkloadEstimates(level_number);
+        // Re-compute the node count data on the present level of the patch
+        // hierarchy (since it was invalidated above).
+        updateNodeCountData(level_number, level_number);
     }
 
     IBTK_TIMER_STOP(t_apply_gradient_detector);
@@ -2304,7 +2302,6 @@ LDataManager::putToDatabase(
 
     db->putInteger("d_coarsest_ln", d_coarsest_ln);
     db->putInteger("d_finest_ln"  , d_finest_ln  );
-    db->putDouble ("d_alpha_work" , d_alpha_work );
     db->putDouble ("d_beta_work"  , d_beta_work  );
 
     // Write out data that is stored on a level-by-level basis.
@@ -2425,7 +2422,6 @@ LDataManager::LDataManager(
       d_lag_node_index_var(NULL),
       d_lag_node_index_current_idx(-1),
       d_lag_node_index_scratch_idx(-1),
-      d_alpha_work(1.0),
       d_beta_work(1.0),
       d_workload_var(NULL),
       d_workload_idx(-1),
@@ -2498,16 +2494,6 @@ LDataManager::LDataManager(
     d_lag_node_index_bdry_fill_alg = new RefineAlgorithm<NDIM>();
     d_lag_node_index_bdry_fill_alg->registerRefine(d_lag_node_index_current_idx, d_lag_node_index_current_idx, d_lag_node_index_scratch_idx, lag_node_index_bdry_fill_op);
 
-    // Register the workload variable with the VariableDatabase.
-    d_workload_var = new CellVariable<NDIM,double>(d_object_name+"::workload");
-    d_workload_idx = var_db->registerVariableAndContext(d_workload_var, d_current_context, 0);
-    d_current_data.setFlag(d_workload_idx);
-
-    if (d_registered_for_restart)
-    {
-        var_db->registerPatchDataForRestart(d_workload_idx);
-    }
-
     // Register the node count variable with the VariableDatabase.
     d_node_count_var = new CellVariable<NDIM,double>(d_object_name+"::node_count");
     d_node_count_idx = var_db->registerVariableAndContext(d_node_count_var, d_current_context, 0);
@@ -2531,6 +2517,7 @@ LDataManager::LDataManager(
         t_begin_data_redistribution = TimerManager::getManager()->getTimer("IBTK::LDataManager::beginDataRedistribution()");
         t_end_data_redistribution = TimerManager::getManager()->getTimer("IBTK::LDataManager::endDataRedistribution()");
         t_update_workload_estimates = TimerManager::getManager()->getTimer("IBTK::LDataManager::updateWorkloadEstimates()");
+        t_update_node_count_data = TimerManager::getManager()->getTimer("IBTK::LDataManager::updateNodeCountData()");
         t_initialize_level_data = TimerManager::getManager()->getTimer("IBTK::LDataManager::initializeLevelData()");
         t_reset_hierarchy_configuration = TimerManager::getManager()->getTimer("IBTK::LDataManager::resetHierarchyConfiguration()");
         t_apply_gradient_detector = TimerManager::getManager()->getTimer("IBTK::LDataManager::applyGradientDetector()");
@@ -3030,7 +3017,6 @@ LDataManager::getFromRestart()
 
     d_coarsest_ln = db->getInteger("d_coarsest_ln");
     d_finest_ln   = db->getInteger("d_finest_ln"  );
-    d_alpha_work  = db->getDouble ("d_alpha_work" );
     d_beta_work   = db->getDouble ("d_beta_work"  );
 
     // Resize some arrays.

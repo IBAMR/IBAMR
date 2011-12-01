@@ -101,6 +101,10 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     d_error_on_dt_change = false;
     d_warn_on_dt_change = true;
 
+    // Do not allocate a workload variable by default.
+    d_workload_var.setNull();
+    d_workload_idx = -1;
+
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
@@ -126,7 +130,16 @@ void
 IBHierarchyIntegrator::registerLoadBalancer(
     Pointer<LoadBalancer<NDIM> > load_balancer)
 {
-    d_ib_method_ops->registerLoadBalancer(load_balancer, -1); // XXXX
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!load_balancer.isNull());
+#endif
+    d_load_balancer = load_balancer;
+    if (d_workload_idx == -1)
+    {
+        d_workload_var = new CellVariable<NDIM,double>(d_object_name+"::workload");
+        registerVariable(d_workload_idx, d_workload_var, 0, getCurrentContext());
+    }
+    d_ib_method_ops->registerLoadBalancer(load_balancer, d_workload_idx);
     return;
 }// registerLoadBalancer
 
@@ -144,6 +157,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
     d_hier_velocity_data_ops    = hier_ops_manager->getOperationsDouble(d_ins_hier_integrator->getVelocityVariable(), hierarchy, true);
     d_hier_pressure_cc_data_ops = hier_ops_manager->getOperationsDouble(d_ins_hier_integrator->getPressureVariable(), hierarchy, true);
+    d_hier_cc_data_ops          = hier_ops_manager->getOperationsDouble(new CellVariable<NDIM,double>("cc_var"), hierarchy, true);
 
     // Initialize all variables.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -510,8 +524,12 @@ void
 IBHierarchyIntegrator::regridHierarchy()
 {
     // Update the workload pre-regridding.
-    if (d_do_log) plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
-    d_ib_method_ops->updateWorkloadEstimates(d_hierarchy, -1); // XXXX
+    if (!d_load_balancer.isNull())
+    {
+        if (d_do_log) plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
+        d_hier_cc_data_ops->setToScalar(d_workload_idx, 1.0);
+        d_ib_method_ops->updateWorkloadEstimates(d_hierarchy, d_workload_idx);
+    }
 
     // Before regridding, begin Lagrangian data movement.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement.\n";
@@ -569,6 +587,14 @@ IBHierarchyIntegrator::initializeLevelDataSpecialized(
     }
     TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
 #endif
+
+    // Initialize workload data.
+    if (d_workload_idx != -1)
+    {
+        HierarchyCellDataOpsReal<NDIM,double> level_cc_data_ops(hierarchy,level_number,level_number);
+        level_cc_data_ops.setToScalar(d_workload_idx, 1.0);
+    }
+
     // Initialize IB data.
     d_ib_method_ops->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     return;
@@ -597,8 +623,10 @@ IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     // Reset the Hierarchy data operations for the new hierarchy configuration.
     d_hier_velocity_data_ops   ->setPatchHierarchy(hierarchy);
     d_hier_pressure_cc_data_ops->setPatchHierarchy(hierarchy);
+    d_hier_cc_data_ops         ->setPatchHierarchy(hierarchy);
     d_hier_velocity_data_ops   ->resetLevels(0, finest_hier_level);
     d_hier_pressure_cc_data_ops->resetLevels(0, finest_hier_level);
+    d_hier_cc_data_ops         ->resetLevels(0, finest_hier_level);
     return;
 }// resetHierarchyConfigurationSpecialized
 

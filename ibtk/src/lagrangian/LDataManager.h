@@ -307,7 +307,8 @@ public:
      */
     void
     registerLoadBalancer(
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer);
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
+        int workload_data_idx);
 
     /*!
      * \brief Indicates whether there is Lagrangian data on the given patch
@@ -695,12 +696,25 @@ public:
      * node count data is used to tag cells for refinement, and to specify
      * non-uniform load balancing.  The workload per cell is defined by
      *
-     *    workload(i) = alpha_work + beta_work*node_count(i)
+     *    workload(i) = 1 + beta_work*node_count(i)
      *
      * in which alpha and beta are parameters that each default to the value 1.
      */
     void
     updateWorkloadEstimates(
+        int coarsest_ln=-1,
+        int finest_ln=-1);
+
+    /*!
+     * \brief Update the count of nodes per cell.
+     *
+     * This routine updates cell data that is maintained on the patch hierarchy
+     * to track the number of nodes in each cell of the AMR index space.  The
+     * node count data is used to tag cells for refinement, and to specify
+     * non-uniform load balancing.
+     */
+    void
+    updateNodeCountData(
         int coarsest_ln=-1,
         int finest_ln=-1);
 
@@ -1043,7 +1057,7 @@ private:
      * cell variable used to determine the workload for nonuniform load
      * balancing.
      */
-    double d_alpha_work, d_beta_work;
+    double d_beta_work;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_workload_var;
     int d_workload_idx;
     bool d_output_workload;
