@@ -288,24 +288,23 @@ LDataManager::spread(
     std::vector<Pointer<LData> > F_ds_data(F_data.size());
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (levelContainsLagrangianData(ln))
+        if (!levelContainsLagrangianData(ln)) continue;
+
+        const int depth = F_data[ln]->getDepth();
+        F_ds_data[ln] = new LData("", getNumberOfLocalNodes(ln), depth, d_nonlocal_petsc_indices[ln]);
+        blitz::Array<double,2>&       F_ds_arr = *F_ds_data[ln]->getGhostedLocalFormVecArray();
+        const blitz::Array<double,2>&    F_arr = *   F_data[ln]->getGhostedLocalFormVecArray();
+        const blitz::Array<double,1>&   ds_arr = *  ds_data[ln]->getGhostedLocalFormArray();
+        for (int k = 0; k < static_cast<int>(F_data[ln]->getLocalNodeCount() + F_data[ln]->getGhostNodeCount()); ++k)
         {
-            const int depth = F_data[ln]->getDepth();
-            F_ds_data[ln] = new LData("", getNumberOfLocalNodes(ln), depth, d_nonlocal_petsc_indices[ln]);
-            blitz::Array<double,2>&       F_ds_arr = *F_ds_data[ln]->getGhostedLocalFormVecArray();
-            const blitz::Array<double,2>&    F_arr = *   F_data[ln]->getGhostedLocalFormVecArray();
-            const blitz::Array<double,1>&   ds_arr = *  ds_data[ln]->getGhostedLocalFormArray();
-            for (int k = 0; k < static_cast<int>(F_data[ln]->getLocalNodeCount() + F_data[ln]->getGhostNodeCount()); ++k)
+            for (int d = 0; d < depth; ++d)
             {
-                for (int d = 0; d < depth; ++d)
-                {
-                    F_ds_arr(k,d) = F_arr(k,d)*ds_arr(k);
-                }
+                F_ds_arr(k,d) = F_arr(k,d)*ds_arr(k);
             }
-            F_ds_data[ln]->restoreArrays();
-            F_data   [ln]->restoreArrays();
-            ds_data  [ln]->restoreArrays();
         }
+        F_ds_data[ln]->restoreArrays();
+        F_data   [ln]->restoreArrays();
+        ds_data  [ln]->restoreArrays();
     }
 
     IBTK_TIMER_STOP(t_spread);
@@ -360,19 +359,16 @@ LDataManager::spread(
         // Start filling Lagrangian ghost node values.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            if (levelContainsLagrangianData(ln))
-            {
-                if (F_data_ghost_node_update) F_data[ln]->beginGhostUpdate();
-                if (X_data_ghost_node_update) X_data[ln]->beginGhostUpdate();
-            }
+            if (!levelContainsLagrangianData(ln)) continue;
+
+            if (F_data_ghost_node_update) F_data[ln]->beginGhostUpdate();
+            if (X_data_ghost_node_update) X_data[ln]->beginGhostUpdate();
         }
 
         // Spread data from the Lagrangian mesh to the Eulerian grid.
         Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-
             // On the coarsest level of the patch hierarchy, initialize the
             // Eulerian data to equal zero before spreading.
             //
@@ -385,44 +381,29 @@ LDataManager::spread(
             }
             else
             {
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
-                    Pointer<CellData<NDIM,double> > f_cc_data = f_data;
-                    Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
-                    Pointer<SideData<NDIM,double> > f_sc_data = f_data;
-                    const bool is_cc_data = !f_cc_data.isNull();
-                    const bool is_nc_data = !f_nc_data.isNull();
-                    const bool is_sc_data = !f_sc_data.isNull();
-                    if (is_cc_data) f_cc_data->fillAll(0.0);
-                    if (is_nc_data) f_nc_data->fillAll(0.0);
-                    if (is_sc_data) f_sc_data->fillAll(0.0);
-                }
+                f_data_ops->resetLevels(ln,ln);
+                f_data_ops->setToScalar(f_data_idx, 0.0);
             }
 
+            if (!levelContainsLagrangianData(ln)) continue;
+
             // Spread data onto the grid.
-            if (levelContainsLagrangianData(ln))
+            if (F_data_ghost_node_update) F_data[ln]->endGhostUpdate();
+            if (X_data_ghost_node_update) X_data[ln]->endGhostUpdate();
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                if (F_data_ghost_node_update) F_data[ln]->endGhostUpdate();
-                if (X_data_ghost_node_update) X_data[ln]->endGhostUpdate();
-                const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
-                    Pointer<CellData<NDIM,double> > f_cc_data = f_data;
-                    Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
-                    Pointer<SideData<NDIM,double> > f_sc_data = f_data;
-                    const bool is_cc_data = !f_cc_data.isNull();
-                    const bool is_nc_data = !f_nc_data.isNull();
-                    const bool is_sc_data = !f_sc_data.isNull();
-                    const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-                    const Box<NDIM>& box = idx_data->getGhostBox();
-                    if (is_cc_data) LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
-                    if (is_nc_data) LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
-                    if (is_sc_data) LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
-                }
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
+                Pointer<CellData<NDIM,double> > f_cc_data = f_data;
+                Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
+                Pointer<SideData<NDIM,double> > f_sc_data = f_data;
+                Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+                const Box<NDIM>& box = idx_data->getGhostBox();
+                if (!f_cc_data.isNull()) LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
+                if (!f_nc_data.isNull()) LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
+                if (!f_sc_data.isNull()) LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
             }
         }
 
@@ -484,30 +465,26 @@ LDataManager::interp(
         Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
+            if (!levelContainsLagrangianData(ln)) continue;
+
+            if (ln < static_cast<int>(f_ghost_fill_scheds.size()) && !f_ghost_fill_scheds[ln].isNull())
+            {
+                f_ghost_fill_scheds[ln]->fillData(fill_data_time);
+            }
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
             const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
-            if (levelContainsLagrangianData(ln))
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                if (ln < static_cast<int>(f_ghost_fill_scheds.size()) && !f_ghost_fill_scheds[ln].isNull())
-                {
-                    f_ghost_fill_scheds[ln]->fillData(fill_data_time);
-                }
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
-                    Pointer<CellData<NDIM,double> > f_cc_data = f_data;
-                    Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
-                    Pointer<SideData<NDIM,double> > f_sc_data = f_data;
-                    const bool is_cc_data = !f_cc_data.isNull();
-                    const bool is_nc_data = !f_nc_data.isNull();
-                    const bool is_sc_data = !f_sc_data.isNull();
-                    const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-                    const Box<NDIM>& box = idx_data->getBox();
-                    if (is_cc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
-                    if (is_nc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
-                    if (is_sc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
-                }
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
+                Pointer<CellData<NDIM,double> > f_cc_data = f_data;
+                Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
+                Pointer<SideData<NDIM,double> > f_sc_data = f_data;
+                Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+                const Box<NDIM>& box = idx_data->getBox();
+                if (!f_cc_data.isNull()) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
+                if (!f_nc_data.isNull()) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
+                if (!f_sc_data.isNull()) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
             }
         }
 
@@ -2566,33 +2543,28 @@ LDataManager::spread_specialized(
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        if (levelContainsLagrangianData(ln))
-        {
+        if (!levelContainsLagrangianData(ln)) continue;
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(ln == finest_ln);
+        TBOX_ASSERT(ln == finest_ln);
 #endif
-            if (F_data_ghost_node_update) F_data[ln]->beginGhostUpdate();
-            if (X_data_ghost_node_update) X_data[ln]->beginGhostUpdate();
-            if (F_data_ghost_node_update) F_data[ln]->endGhostUpdate();
-            if (X_data_ghost_node_update) X_data[ln]->endGhostUpdate();
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
-                Pointer<CellData<NDIM,double> > f_cc_data = f_data;
-                Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
-                Pointer<SideData<NDIM,double> > f_sc_data = f_data;
-                const bool is_cc_data = !f_cc_data.isNull();
-                const bool is_nc_data = !f_nc_data.isNull();
-                const bool is_sc_data = !f_sc_data.isNull();
-                const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-                const Box<NDIM>& box = idx_data->getGhostBox();
-                if (is_cc_data) LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
-                if (is_nc_data) LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
-                if (is_sc_data) LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
-            }
+        if (F_data_ghost_node_update) F_data[ln]->beginGhostUpdate();
+        if (X_data_ghost_node_update) X_data[ln]->beginGhostUpdate();
+        if (F_data_ghost_node_update) F_data[ln]->endGhostUpdate();
+        if (X_data_ghost_node_update) X_data[ln]->endGhostUpdate();
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
+            Pointer<CellData<NDIM,double> > f_cc_data = f_data;
+            Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
+            Pointer<SideData<NDIM,double> > f_sc_data = f_data;
+            Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+            const Box<NDIM>& box = idx_data->getGhostBox();
+            if (!f_cc_data.isNull()) LEInteractor::spread(f_cc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
+            if (!f_nc_data.isNull()) LEInteractor::spread(f_nc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
+            if (!f_sc_data.isNull()) LEInteractor::spread(f_sc_data, F_data[ln], X_data[ln], idx_data, patch, box, periodic_shift, d_spread_weighting_fcn);
         }
     }
     return;
@@ -2612,30 +2584,25 @@ LDataManager::interp_specialized(
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
+        if (!levelContainsLagrangianData(ln)) continue;
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(ln == finest_ln);
+#endif
+        if (ln < static_cast<int>(f_ghost_fill_scheds.size()) && !f_ghost_fill_scheds[ln].isNull()) f_ghost_fill_scheds[ln]->fillData(fill_data_time);
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
-        if (levelContainsLagrangianData(ln))
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(ln == finest_ln);
-#endif
-            if (ln < static_cast<int>(f_ghost_fill_scheds.size()) && !f_ghost_fill_scheds[ln].isNull()) f_ghost_fill_scheds[ln]->fillData(fill_data_time);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
-                Pointer<CellData<NDIM,double> > f_cc_data = f_data;
-                Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
-                Pointer<SideData<NDIM,double> > f_sc_data = f_data;
-                const bool is_cc_data = !f_cc_data.isNull();
-                const bool is_nc_data = !f_nc_data.isNull();
-                const bool is_sc_data = !f_sc_data.isNull();
-                const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-                const Box<NDIM>& box = idx_data->getBox();
-                if (is_cc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
-                if (is_nc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
-                if (is_sc_data) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
-            }
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
+            Pointer<CellData<NDIM,double> > f_cc_data = f_data;
+            Pointer<NodeData<NDIM,double> > f_nc_data = f_data;
+            Pointer<SideData<NDIM,double> > f_sc_data = f_data;
+            Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+            const Box<NDIM>& box = idx_data->getBox();
+            if (!f_cc_data.isNull()) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_cc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
+            if (!f_nc_data.isNull()) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_nc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
+            if (!f_sc_data.isNull()) LEInteractor::interpolate(F_data[ln], X_data[ln], idx_data, f_sc_data, patch, box, periodic_shift, d_interp_weighting_fcn);
         }
     }
 

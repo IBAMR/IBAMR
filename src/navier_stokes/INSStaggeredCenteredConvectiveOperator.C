@@ -158,8 +158,8 @@ INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
     const std::string& bdry_extrap_type)
     : ConvectiveOperator(difference_form),
       d_is_initialized(false),
-      d_refine_alg(NULL),
-      d_refine_scheds(),
+      d_ghostfill_alg(NULL),
+      d_ghostfill_scheds(),
       d_bdry_extrap_type(bdry_extrap_type),
       d_hierarchy(NULL),
       d_coarsest_ln(-1),
@@ -234,9 +234,9 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(
     // Compute the convective derivative.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        refine_alg->resetSchedule(d_refine_scheds[ln]);
-        d_refine_scheds[ln]->fillData(0.0);
-        d_refine_alg->resetSchedule(d_refine_scheds[ln]);
+        refine_alg->resetSchedule(d_ghostfill_scheds[ln]);
+        d_ghostfill_scheds[ln]->fillData(0.0);
+        d_ghostfill_alg->resetSchedule(d_ghostfill_scheds[ln]);
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -359,14 +359,14 @@ INSStaggeredCenteredConvectiveOperator::initializeOperatorState(
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     grid_geom->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
     Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "SPECIALIZED_LINEAR_REFINE");
-    d_refine_alg = new RefineAlgorithm<NDIM>();
-    d_refine_alg->registerRefine(d_U_scratch_idx, in.getComponentDescriptorIndex(0), d_U_scratch_idx, refine_op);
-    d_refine_strategy = new CartExtrapPhysBdryOp(d_U_scratch_idx, d_bdry_extrap_type);
-    d_refine_scheds.resize(d_finest_ln+1);
+    d_ghostfill_alg = new RefineAlgorithm<NDIM>();
+    d_ghostfill_alg->registerRefine(d_U_scratch_idx, in.getComponentDescriptorIndex(0), d_U_scratch_idx, refine_op);
+    d_ghostfill_strategy = new CartExtrapPhysBdryOp(d_U_scratch_idx, d_bdry_extrap_type);
+    d_ghostfill_scheds.resize(d_finest_ln+1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        d_refine_scheds[ln] = d_refine_alg->createSchedule(level, ln-1, d_hierarchy, d_refine_strategy);
+        d_ghostfill_scheds[ln] = d_ghostfill_alg->createSchedule(level, ln-1, d_hierarchy, d_ghostfill_strategy);
     }
 
     // Allocate scratch data.
@@ -402,13 +402,13 @@ INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()
     }
 
     // Deallocate the refine algorithm, operator, patch strategy, and schedules.
-    d_refine_alg.setNull();
-    d_refine_strategy.setNull();
+    d_ghostfill_alg.setNull();
+    d_ghostfill_strategy.setNull();
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        d_refine_scheds[ln].setNull();
+        d_ghostfill_scheds[ln].setNull();
     }
-    d_refine_scheds.clear();
+    d_ghostfill_scheds.clear();
 
     d_is_initialized = false;
 
