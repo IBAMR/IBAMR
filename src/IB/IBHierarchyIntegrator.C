@@ -223,49 +223,59 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     // Create several communications algorithms, used in filling ghost cell data
     // and synchronizing data on the patch hierarchy.
     Pointer<Geometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    Pointer<RefineOperator<NDIM> > refine_operator;
-    Pointer<CoarsenOperator<NDIM> > coarsen_operator;
+    Pointer<RefineAlgorithm<NDIM> > refine_alg;
+    Pointer<RefineOperator<NDIM> > refine_op;
+    RefinePatchStrategy<NDIM>* refine_patch_strategy;
+    Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg;
+    Pointer<CoarsenOperator<NDIM> > coarsen_op;
 
     const int u_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getNewContext());
     const int u_scratch_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getScratchContext());
     const int p_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVariable(), d_ins_hier_integrator->getNewContext());
     const int p_scratch_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVariable(), d_ins_hier_integrator->getScratchContext());
 
-    d_ghostfill_algs["u"] = new RefineAlgorithm<NDIM>();
-    refine_operator = NULL;
-    d_ghostfill_algs["u"]->registerRefine(d_u_idx, d_u_idx, d_u_idx, refine_operator);
+    refine_alg = new RefineAlgorithm<NDIM>();
+    refine_op = NULL;
+    refine_alg->registerRefine(d_u_idx, d_u_idx, d_u_idx, refine_op);
+    registerGhostfillRefineAlgorithm(d_object_name+"::u", refine_alg);
 
-    d_coarsen_algs["u::CONSERVATIVE_COARSEN"] = new CoarsenAlgorithm<NDIM>();
-    coarsen_operator = grid_geom->lookupCoarsenOperator(d_u_var, "CONSERVATIVE_COARSEN");
-    d_coarsen_algs["u::CONSERVATIVE_COARSEN"]->registerCoarsen(d_u_idx, d_u_idx, coarsen_operator);
+    coarsen_alg = new CoarsenAlgorithm<NDIM>();
+    coarsen_op = grid_geom->lookupCoarsenOperator(d_u_var, "CONSERVATIVE_COARSEN");
+    coarsen_alg->registerCoarsen(d_u_idx, d_u_idx, coarsen_op);
+    registerCoarsenAlgorithm(d_object_name+"::u::CONSERVATIVE_COARSEN", coarsen_alg);
 
-    d_prolong_algs["f"] = new RefineAlgorithm<NDIM>();
-    refine_operator = grid_geom->lookupRefineOperator(d_f_var, "CONSERVATIVE_LINEAR_REFINE");
-    d_prolong_algs["f"]->registerRefine(d_f_idx, d_f_idx, d_f_idx, refine_operator);
+    refine_alg = new RefineAlgorithm<NDIM>();
+    refine_op = grid_geom->lookupRefineOperator(d_f_var, "CONSERVATIVE_LINEAR_REFINE");
+    refine_alg->registerRefine(d_f_idx, d_f_idx, d_f_idx, refine_op);
+    registerProlongRefineAlgorithm(d_object_name+"::f", refine_alg);
 
-    d_ghostfill_algs["INSTRUMENTATION_DATA_FILL"] = new RefineAlgorithm<NDIM>();
-    refine_operator = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getVelocityVariable(), "CONSERVATIVE_LINEAR_REFINE");
-    d_ghostfill_algs["INSTRUMENTATION_DATA_FILL"]->registerRefine(u_scratch_idx, u_new_idx, u_scratch_idx, refine_operator);
-    refine_operator = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getPressureVariable(), "LINEAR_REFINE");
-    d_ghostfill_algs["INSTRUMENTATION_DATA_FILL"]->registerRefine(p_scratch_idx, p_new_idx, p_scratch_idx, refine_operator);
+    refine_alg = new RefineAlgorithm<NDIM>();
+    refine_op = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getVelocityVariable(), "CONSERVATIVE_LINEAR_REFINE");
+    refine_alg->registerRefine(u_scratch_idx, u_new_idx, u_scratch_idx, refine_op);
+    refine_op = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getPressureVariable(), "LINEAR_REFINE");
+    refine_alg->registerRefine(p_scratch_idx, p_new_idx, p_scratch_idx, refine_op);
     ComponentSelector instrumentation_data_fill_bc_idxs;
     instrumentation_data_fill_bc_idxs.setFlag(u_scratch_idx);
     instrumentation_data_fill_bc_idxs.setFlag(p_scratch_idx);
-    d_ghostfill_strategies["INSTRUMENTATION_DATA_FILL"] = new CartExtrapPhysBdryOp(instrumentation_data_fill_bc_idxs, "LINEAR");
+    refine_patch_strategy = new CartExtrapPhysBdryOp(instrumentation_data_fill_bc_idxs, "LINEAR");
+    registerGhostfillRefineAlgorithm(d_object_name+"::INSTRUMENTATION_DATA_FILL", refine_alg, refine_patch_strategy);
 
     if (d_ib_method_ops->hasFluidSources())
     {
-        d_ghostfill_algs["p"] = new RefineAlgorithm<NDIM>();
-        refine_operator = NULL;
-        d_ghostfill_algs["p"]->registerRefine(p_new_idx, p_new_idx, p_new_idx, refine_operator);
+        refine_alg = new RefineAlgorithm<NDIM>();
+        refine_op = NULL;
+        refine_alg->registerRefine(d_p_idx, d_p_idx, d_p_idx, refine_op);
+        registerGhostfillRefineAlgorithm(d_object_name+"::p", refine_alg);
 
-        d_coarsen_algs["p::CONSERVATIVE_COARSEN"] = new CoarsenAlgorithm<NDIM>();
-        coarsen_operator = grid_geom->lookupCoarsenOperator(d_p_var, "CONSERVATIVE_COARSEN");
-        d_coarsen_algs["p::CONSERVATIVE_COARSEN"]->registerCoarsen(p_new_idx, p_new_idx, coarsen_operator);
+        coarsen_alg = new CoarsenAlgorithm<NDIM>();
+        coarsen_op = grid_geom->lookupCoarsenOperator(d_p_var, "CONSERVATIVE_COARSEN");
+        coarsen_alg->registerCoarsen(d_p_idx, d_p_idx, coarsen_op);
+        registerCoarsenAlgorithm(d_object_name+"::p::CONSERVATIVE_COARSEN", coarsen_alg);
 
-        d_prolong_algs["q"] = new RefineAlgorithm<NDIM>();
-        refine_operator = grid_geom->lookupRefineOperator(d_q_var, "CONSERVATIVE_LINEAR_REFINE");
-        d_prolong_algs["q"]->registerRefine(d_q_idx, d_q_idx, d_q_idx, refine_operator);
+        refine_alg = new RefineAlgorithm<NDIM>();
+        refine_op = grid_geom->lookupRefineOperator(d_q_var, "CONSERVATIVE_LINEAR_REFINE");
+        refine_alg->registerRefine(d_q_idx, d_q_idx, d_q_idx, refine_op);
+        registerProlongRefineAlgorithm(d_object_name+"::q", refine_alg);
     }
 
     // Set the current integration time.
@@ -309,7 +319,7 @@ IBHierarchyIntegrator::initializePatchHierarchy(
                                                                    d_ins_hier_integrator->getCurrentContext());
     d_hier_velocity_data_ops->copyData(d_u_idx, u_current_idx);
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
-    d_ib_method_ops->initializePatchHierarchy(hierarchy, gridding_alg, d_u_idx, d_coarsen_scheds["u::CONSERVATIVE_COARSEN"], d_ghostfill_scheds["u"], d_integrator_step, d_integrator_time, initial_time);
+    d_ib_method_ops->initializePatchHierarchy(hierarchy, gridding_alg, d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), d_integrator_step, d_integrator_time, initial_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -413,7 +423,7 @@ IBHierarchyIntegrator::integrateHierarchy(
     d_ib_method_ops->computeLagrangianForce(half_time);
     if (d_do_log) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
-    d_ib_method_ops->spreadForce(d_f_idx, d_prolong_scheds["f"], half_time);
+    d_ib_method_ops->spreadForce(d_f_idx, getProlongRefineSchedules(d_object_name+"::f"), half_time);
 
     // Compute the Lagrangian source/sink strengths and spread them to the
     // Eulerian grid.
@@ -421,7 +431,7 @@ IBHierarchyIntegrator::integrateHierarchy(
     {
         d_ib_method_ops->computeLagrangianFluidSource(half_time);
         d_hier_pressure_cc_data_ops->setToScalar(d_q_idx, 0.0);
-        d_ib_method_ops->spreadFluidSource(d_q_idx, d_prolong_scheds["q"], half_time);
+        d_ib_method_ops->spreadFluidSource(d_q_idx, getProlongRefineSchedules(d_object_name+"::q"), half_time);
     }
 
     // Solve the incompressible Navier-Stokes equations.
@@ -433,7 +443,7 @@ IBHierarchyIntegrator::integrateHierarchy(
     // Interpolate the Eulerian velocity to the curvilinear mesh.
     d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
     if (d_do_log) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
-    d_ib_method_ops->interpolateVelocity(d_u_idx, d_coarsen_scheds["u::CONSERVATIVE_COARSEN"], d_ghostfill_scheds["u"], half_time);
+    d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), half_time);
 
     // Compute an updated prediction of the updated positions of the Lagrangian
     // structure.
@@ -453,7 +463,7 @@ IBHierarchyIntegrator::integrateHierarchy(
     if (d_ib_method_ops->hasFluidSources())
     {
         d_hier_pressure_cc_data_ops->copyData(d_p_idx, p_new_idx);
-        d_ib_method_ops->interpolatePressure(d_p_idx, d_coarsen_scheds["p::CONSERVATIVE_COARSEN"], d_ghostfill_scheds["p"], half_time);
+        d_ib_method_ops->interpolatePressure(d_p_idx, getCoarsenSchedules(d_object_name+"::p::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::p"), half_time);
     }
     return;
 }// integrateHierarchy
@@ -475,7 +485,7 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(
     // Interpolate the Eulerian velocity to the curvilinear mesh.
     d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
     if (d_do_log) plog << d_object_name << "::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
-    d_ib_method_ops->interpolateVelocity(d_u_idx, d_coarsen_scheds["u::CONSERVATIVE_COARSEN"], d_ghostfill_scheds["u"], new_time);
+    d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), new_time);
 
     // Synchronize new state data.
     if (!skip_synchronize_new_state_data)

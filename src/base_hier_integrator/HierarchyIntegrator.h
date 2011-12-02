@@ -425,6 +425,83 @@ public:
     getScratchContext() const;
 
     ///
+    ///  Routines to setup user-defined refine/coarsen algorithms.
+    ///
+
+    /*!
+     * Register a ghost cell-filling refine algorithm.
+     */
+    void
+    registerGhostfillRefineAlgorithm(
+        const std::string& name,
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > ghostfill_alg,
+        SAMRAI::xfer::RefinePatchStrategy<NDIM>* ghostfill_patch_strategy=NULL);
+
+    /*!
+     * Register a data-prolonging refine algorithm.
+     */
+    void
+    registerProlongRefineAlgorithm(
+        const std::string& name,
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > prolong_alg,
+        SAMRAI::xfer::RefinePatchStrategy<NDIM>* prolong_patch_strategy=NULL);
+
+    /*!
+     * Register a coarsen algorithm.
+     */
+    void
+    registerCoarsenAlgorithm(
+        const std::string& name,
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > coarsen_alg,
+        SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy=NULL);
+
+    /*!
+     * Get ghost cell-filling refine algorithm.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >
+    getGhostfillRefineAlgorithm(
+        const std::string& name) const;
+
+    /*!
+     * Get data-prolonging refine algorithm.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >
+    getProlongRefineAlgorithm(
+        const std::string& name) const;
+
+    /*!
+     * Get coarsen algorithm.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> >
+    getCoarsenAlgorithm(
+        const std::string& name) const;
+
+    /*!
+     * Get ghost cell-filling refine schedules.
+     */
+    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+    getGhostfillRefineSchedules(
+        const std::string& name) const;
+
+    /*!
+     * Get data-prolonging refine schedules.
+     *
+     * \note These schedules are allocated only for level numbers >= 1.
+     */
+    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+    getProlongRefineSchedules(
+        const std::string& name) const;
+
+    /*!
+     * Get coarsen schedules.
+     *
+     * \note These schedules are allocated only for level numbers >= 1.
+     */
+    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >&
+    getCoarsenSchedules(
+        const std::string& name) const;
+
+    ///
     ///  Implementations of functions declared in the SAMRAI::tbox::Serializable
     ///  abstract base class.
     ///
@@ -725,35 +802,6 @@ protected:
     bool d_manage_hier_math_ops;
 
     /*
-     * Cached communications algorithms, strategies, and schedules.
-     */
-    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > > RefineAlgorithmMap;
-    typedef std::map<std::string,SAMRAI::xfer::RefinePatchStrategy<NDIM>* > RefinePatchStrategyMap;
-    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > > RefineScheduleMap;
-
-    RefineAlgorithmMap     d_ghostfill_algs;
-    RefinePatchStrategyMap d_ghostfill_strategies;
-    RefineScheduleMap      d_ghostfill_scheds;
-
-    RefineAlgorithmMap     d_prolong_algs;
-    RefinePatchStrategyMap d_prolong_strategies;
-    RefineScheduleMap      d_prolong_scheds;
-
-    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > > CoarsenAlgorithmMap;
-    typedef std::map<std::string,SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* > CoarsenPatchStrategyMap;
-    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > > CoarsenScheduleMap;
-
-    CoarsenAlgorithmMap     d_coarsen_algs;
-    CoarsenPatchStrategyMap d_coarsen_strategies;
-    CoarsenScheduleMap      d_coarsen_scheds;
-
-    static const std::string SYNCH_CURRENT_DATA_ALG, SYNCH_NEW_DATA_ALG;
-
-    SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
-    SAMRAI::xfer::RefineAlgorithm<NDIM> d_fill_after_regrid_prolong_alg;
-    SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_fill_after_regrid_phys_bdry_bc_op;
-
-    /*
      * SAMRAI::hier::Variable lists and SAMRAI::hier::ComponentSelector objects
      * are used for data management.
      */
@@ -771,6 +819,18 @@ protected:
      * Variable contexts.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current_context, d_new_context, d_scratch_context;
+
+    /*!
+     * Names of special coarsen algorithms/schedules.
+     */
+    static const std::string SYNCH_CURRENT_DATA_ALG, SYNCH_NEW_DATA_ALG;
+
+    /*!
+     * Regridding-related communications algorithms and other data structures.
+     */
+    SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
+    SAMRAI::xfer::RefineAlgorithm<NDIM> d_fill_after_regrid_prolong_alg;
+    SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_fill_after_regrid_phys_bdry_bc_op;
 
 private:
     /*!
@@ -817,6 +877,29 @@ private:
      */
     void
     getFromRestart();
+
+    /*
+     * Cached communications algorithms, strategies, and schedules.
+     */
+    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > > RefineAlgorithmMap;
+    typedef std::map<std::string,SAMRAI::xfer::RefinePatchStrategy<NDIM>* > RefinePatchStrategyMap;
+    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > > RefineScheduleMap;
+
+    RefineAlgorithmMap     d_ghostfill_algs;
+    RefinePatchStrategyMap d_ghostfill_strategies;
+    RefineScheduleMap      d_ghostfill_scheds;
+
+    RefineAlgorithmMap     d_prolong_algs;
+    RefinePatchStrategyMap d_prolong_strategies;
+    RefineScheduleMap      d_prolong_scheds;
+
+    typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > > CoarsenAlgorithmMap;
+    typedef std::map<std::string,SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* > CoarsenPatchStrategyMap;
+    typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > > CoarsenScheduleMap;
+
+    CoarsenAlgorithmMap     d_coarsen_algs;
+    CoarsenPatchStrategyMap d_coarsen_strategies;
+    CoarsenScheduleMap      d_coarsen_scheds;
 };
 }// namespace IBAMR
 
