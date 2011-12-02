@@ -731,9 +731,13 @@ protected:
     typedef std::map<std::string,SAMRAI::xfer::RefinePatchStrategy<NDIM>* > RefinePatchStrategyMap;
     typedef std::map<std::string,std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > > RefineScheduleMap;
 
-    RefineAlgorithmMap     d_refine_algs;
-    RefinePatchStrategyMap d_refine_strategies;
-    RefineScheduleMap      d_refine_scheds;
+    RefineAlgorithmMap     d_ghostfill_algs;
+    RefinePatchStrategyMap d_ghostfill_strategies;
+    RefineScheduleMap      d_ghostfill_scheds;
+
+    RefineAlgorithmMap     d_prolong_algs;
+    RefinePatchStrategyMap d_prolong_strategies;
+    RefineScheduleMap      d_prolong_scheds;
 
     typedef std::map<std::string,SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > > CoarsenAlgorithmMap;
     typedef std::map<std::string,SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* > CoarsenPatchStrategyMap;
@@ -746,7 +750,7 @@ protected:
     static const std::string SYNCH_CURRENT_DATA_ALG, SYNCH_NEW_DATA_ALG;
 
     SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
-    SAMRAI::xfer::RefineAlgorithm<NDIM> d_fill_after_regrid_refine_alg;
+    SAMRAI::xfer::RefineAlgorithm<NDIM> d_fill_after_regrid_prolong_alg;
     SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_fill_after_regrid_phys_bdry_bc_op;
 
     /*

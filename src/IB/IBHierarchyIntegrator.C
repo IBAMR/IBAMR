@@ -162,8 +162,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     // Initialize all variables.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    const IntVector<NDIM>    ghosts = d_ib_method_ops->getMinimumGhostCellWidth();
-    const IntVector<NDIM> no_ghosts = 0;
+    const IntVector<NDIM> ib_ghosts = d_ib_method_ops->getMinimumGhostCellWidth();
+    const IntVector<NDIM>    ghosts = 1;
 
     Pointer<CellVariable<NDIM,double> > u_cc_var = d_ins_hier_integrator->getVelocityVariable();
     Pointer<SideVariable<NDIM,double> > u_sc_var = d_ins_hier_integrator->getVelocityVariable();
@@ -182,14 +182,15 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
         TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n"
                    << "  unsupported velocity data centering" << std::endl);
     }
-    d_u_idx = var_db->registerVariableAndContext(d_u_var, getScratchContext(),    ghosts);
-    d_f_idx = var_db->registerVariableAndContext(d_f_var, getScratchContext(), no_ghosts);
+    d_u_idx = var_db->registerVariableAndContext(d_u_var, getScratchContext(), ib_ghosts);
+    d_f_idx = var_db->registerVariableAndContext(d_f_var, getScratchContext(),    ghosts);
 
     if (d_ib_method_ops->hasFluidSources())
     {
         Pointer<CellVariable<NDIM,double> > p_cc_var = d_ins_hier_integrator->getPressureVariable();
         if (!p_cc_var.isNull())
         {
+            d_p_var = new CellVariable<NDIM,double>(d_object_name+"::p");
             d_q_var = new CellVariable<NDIM,double>(d_object_name+"::q");
         }
         else
@@ -197,7 +198,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
             TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n"
                        << "  unsupported pressure data centering" << std::endl);
         }
-        d_q_idx = var_db->registerVariableAndContext(d_q_var, getScratchContext(), no_ghosts);
+        d_p_idx = var_db->registerVariableAndContext(d_p_var, getScratchContext(), ib_ghosts);
+        d_q_idx = var_db->registerVariableAndContext(d_q_var, getScratchContext(),    ghosts);
     }
     else
     {
@@ -229,23 +231,42 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     const int p_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVariable(), d_ins_hier_integrator->getNewContext());
     const int p_scratch_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVariable(), d_ins_hier_integrator->getScratchContext());
 
-    d_refine_algs["u->u::S->S::GHOST_FILL"] = new RefineAlgorithm<NDIM>();
+    d_ghostfill_algs["u"] = new RefineAlgorithm<NDIM>();
     refine_operator = NULL;
-    d_refine_algs["u->u::S->S::GHOST_FILL"]->registerRefine(d_u_idx, d_u_idx, d_u_idx, refine_operator);
+    d_ghostfill_algs["u"]->registerRefine(d_u_idx, d_u_idx, d_u_idx, refine_operator);
 
-    d_coarsen_algs["u->u::S->S::CONSERVATIVE_COARSEN"] = new CoarsenAlgorithm<NDIM>();
+    d_coarsen_algs["u::CONSERVATIVE_COARSEN"] = new CoarsenAlgorithm<NDIM>();
     coarsen_operator = grid_geom->lookupCoarsenOperator(d_u_var, "CONSERVATIVE_COARSEN");
-    d_coarsen_algs["u->u::S->S::CONSERVATIVE_COARSEN"]->registerCoarsen(d_u_idx, d_u_idx, coarsen_operator);
+    d_coarsen_algs["u::CONSERVATIVE_COARSEN"]->registerCoarsen(d_u_idx, d_u_idx, coarsen_operator);
 
-    d_refine_algs["INSTRUMENTATION_DATA_FILL"] = new RefineAlgorithm<NDIM>();
+    d_prolong_algs["f"] = new RefineAlgorithm<NDIM>();
+    refine_operator = grid_geom->lookupRefineOperator(d_f_var, "CONSERVATIVE_LINEAR_REFINE");
+    d_prolong_algs["f"]->registerRefine(d_f_idx, d_f_idx, d_f_idx, refine_operator);
+
+    d_ghostfill_algs["INSTRUMENTATION_DATA_FILL"] = new RefineAlgorithm<NDIM>();
     refine_operator = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getVelocityVariable(), "CONSERVATIVE_LINEAR_REFINE");
-    d_refine_algs["INSTRUMENTATION_DATA_FILL"]->registerRefine(u_scratch_idx, u_new_idx, u_scratch_idx, refine_operator);
+    d_ghostfill_algs["INSTRUMENTATION_DATA_FILL"]->registerRefine(u_scratch_idx, u_new_idx, u_scratch_idx, refine_operator);
     refine_operator = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getPressureVariable(), "LINEAR_REFINE");
-    d_refine_algs["INSTRUMENTATION_DATA_FILL"]->registerRefine(p_scratch_idx, p_new_idx, p_scratch_idx, refine_operator);
+    d_ghostfill_algs["INSTRUMENTATION_DATA_FILL"]->registerRefine(p_scratch_idx, p_new_idx, p_scratch_idx, refine_operator);
     ComponentSelector instrumentation_data_fill_bc_idxs;
     instrumentation_data_fill_bc_idxs.setFlag(u_scratch_idx);
     instrumentation_data_fill_bc_idxs.setFlag(p_scratch_idx);
-    d_refine_strategies["INSTRUMENTATION_DATA_FILL"] = new CartExtrapPhysBdryOp(instrumentation_data_fill_bc_idxs, "LINEAR");
+    d_ghostfill_strategies["INSTRUMENTATION_DATA_FILL"] = new CartExtrapPhysBdryOp(instrumentation_data_fill_bc_idxs, "LINEAR");
+
+    if (d_ib_method_ops->hasFluidSources())
+    {
+        d_ghostfill_algs["p"] = new RefineAlgorithm<NDIM>();
+        refine_operator = NULL;
+        d_ghostfill_algs["p"]->registerRefine(p_new_idx, p_new_idx, p_new_idx, refine_operator);
+
+        d_coarsen_algs["p::CONSERVATIVE_COARSEN"] = new CoarsenAlgorithm<NDIM>();
+        coarsen_operator = grid_geom->lookupCoarsenOperator(d_p_var, "CONSERVATIVE_COARSEN");
+        d_coarsen_algs["p::CONSERVATIVE_COARSEN"]->registerCoarsen(p_new_idx, p_new_idx, coarsen_operator);
+
+        d_prolong_algs["q"] = new RefineAlgorithm<NDIM>();
+        refine_operator = grid_geom->lookupRefineOperator(d_q_var, "CONSERVATIVE_LINEAR_REFINE");
+        d_prolong_algs["q"]->registerRefine(d_q_idx, d_q_idx, d_q_idx, refine_operator);
+    }
 
     // Set the current integration time.
     if (!RestartManager::getManager()->isFromRestart())
@@ -288,15 +309,7 @@ IBHierarchyIntegrator::initializePatchHierarchy(
                                                                    d_ins_hier_integrator->getCurrentContext());
     d_hier_velocity_data_ops->copyData(d_u_idx, u_current_idx);
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
-    for (int ln = finest_ln; ln > coarsest_ln; --ln)
-    {
-        d_coarsen_scheds["u->u::S->S::CONSERVATIVE_COARSEN"][ln]->coarsenData();
-    }
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        d_refine_scheds["u->u::S->S::GHOST_FILL"][ln]->fillData(d_integrator_time);
-    }
-    d_ib_method_ops->initializePatchHierarchy(hierarchy, gridding_alg, d_u_idx, d_coarsen_scheds["NONE"], d_refine_scheds["NONE"], d_integrator_step, d_integrator_time, initial_time);
+    d_ib_method_ops->initializePatchHierarchy(hierarchy, gridding_alg, d_u_idx, d_coarsen_scheds["u::CONSERVATIVE_COARSEN"], d_ghostfill_scheds["u"], d_integrator_step, d_integrator_time, initial_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -387,7 +400,6 @@ IBHierarchyIntegrator::integrateHierarchy(
     const int cycle_num)
 {
     const double half_time = current_time+0.5*(new_time-current_time);
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                    d_ins_hier_integrator->getCurrentContext());
@@ -399,9 +411,9 @@ IBHierarchyIntegrator::integrateHierarchy(
     // Compute the Lagrangian forces and spread them to the Eulerian grid.
     if (d_do_log) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
     d_ib_method_ops->computeLagrangianForce(half_time);
-    d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
     if (d_do_log) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
-    d_ib_method_ops->spreadForce(d_f_idx, d_refine_scheds["NONE"], half_time);
+    d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+    d_ib_method_ops->spreadForce(d_f_idx, d_prolong_scheds["f"], half_time);
 
     // Compute the Lagrangian source/sink strengths and spread them to the
     // Eulerian grid.
@@ -409,7 +421,7 @@ IBHierarchyIntegrator::integrateHierarchy(
     {
         d_ib_method_ops->computeLagrangianFluidSource(half_time);
         d_hier_pressure_cc_data_ops->setToScalar(d_q_idx, 0.0);
-        d_ib_method_ops->spreadFluidSource(d_q_idx, d_refine_scheds["NONE"], half_time);
+        d_ib_method_ops->spreadFluidSource(d_q_idx, d_prolong_scheds["q"], half_time);
     }
 
     // Solve the incompressible Navier-Stokes equations.
@@ -420,9 +432,8 @@ IBHierarchyIntegrator::integrateHierarchy(
 
     // Interpolate the Eulerian velocity to the curvilinear mesh.
     d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
-    d_refine_scheds["u->u::S->S::GHOST_FILL"][finest_ln]->fillData(d_integrator_time);
     if (d_do_log) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
-    d_ib_method_ops->interpolateVelocity(d_u_idx, d_coarsen_scheds["NONE"], d_refine_scheds["NONE"], half_time);
+    d_ib_method_ops->interpolateVelocity(d_u_idx, d_coarsen_scheds["u::CONSERVATIVE_COARSEN"], d_ghostfill_scheds["u"], half_time);
 
     // Compute an updated prediction of the updated positions of the Lagrangian
     // structure.
@@ -441,7 +452,8 @@ IBHierarchyIntegrator::integrateHierarchy(
     // fluid sources or sinks.
     if (d_ib_method_ops->hasFluidSources())
     {
-        d_ib_method_ops->interpolatePressure(p_new_idx, d_coarsen_scheds["NONE"], d_refine_scheds["NONE"], half_time);
+        d_hier_pressure_cc_data_ops->copyData(d_p_idx, p_new_idx);
+        d_ib_method_ops->interpolatePressure(d_p_idx, d_coarsen_scheds["p::CONSERVATIVE_COARSEN"], d_ghostfill_scheds["p"], half_time);
     }
     return;
 }// integrateHierarchy
@@ -462,9 +474,8 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(
 
     // Interpolate the Eulerian velocity to the curvilinear mesh.
     d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
-    d_refine_scheds["u->u::S->S::GHOST_FILL"][finest_ln]->fillData(d_integrator_time);
     if (d_do_log) plog << d_object_name << "::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
-    d_ib_method_ops->interpolateVelocity(d_u_idx, d_coarsen_scheds["NONE"], d_refine_scheds["NONE"], new_time);
+    d_ib_method_ops->interpolateVelocity(d_u_idx, d_coarsen_scheds["u::CONSERVATIVE_COARSEN"], d_ghostfill_scheds["u"], new_time);
 
     // Synchronize new state data.
     if (!skip_synchronize_new_state_data)

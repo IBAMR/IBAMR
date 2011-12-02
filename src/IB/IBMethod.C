@@ -1387,7 +1387,7 @@ IBMethod::updateIBInstrumentationData(
             deallocate_p_scratch_data[ln] = true;
             level->allocatePatchData(p_scratch_idx, data_time);
         }
-        d_ib_solver->d_refine_scheds["INSTRUMENTATION_DATA_FILL"][ln]->fillData(data_time);  // KLUDGE
+        d_ib_solver->d_ghostfill_scheds["INSTRUMENTATION_DATA_FILL"][ln]->fillData(data_time);
     }
 
     d_instrument_panel->readInstrumentData(u_scratch_idx, p_scratch_idx, d_hierarchy, d_l_data_manager, timestep_num, data_time);

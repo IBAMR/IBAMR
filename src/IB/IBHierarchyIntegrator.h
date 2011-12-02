@@ -313,8 +313,8 @@ private:
     /*
      * Eulerian variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_u_var, d_f_var, d_q_var;
-    int d_u_idx, d_f_idx, d_q_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_u_var, d_p_var, d_f_var, d_q_var;
+    int d_u_idx, d_p_idx, d_f_idx, d_q_idx;
 
     /*
      * Body force functions.

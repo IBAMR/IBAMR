@@ -148,8 +148,14 @@ HierarchyIntegrator::~HierarchyIntegrator()
         d_registered_for_restart = false;
     }
 
-    for (RefinePatchStrategyMap::iterator it = d_refine_strategies.begin();
-         it != d_refine_strategies.end(); ++it)
+    for (RefinePatchStrategyMap::iterator it = d_ghostfill_strategies.begin();
+         it != d_ghostfill_strategies.end(); ++it)
+    {
+        if (it->second != NULL) delete it->second;
+    }
+
+    for (RefinePatchStrategyMap::iterator it = d_prolong_strategies.begin();
+         it != d_prolong_strategies.end(); ++it)
     {
         if (it->second != NULL) delete it->second;
     }
@@ -505,15 +511,15 @@ HierarchyIntegrator::initializeLevelData(
     if (!initial_time && (level_number > 0 || !old_level.isNull()))
     {
         level->allocatePatchData(d_scratch_data, init_data_time);
-        std::vector<RefinePatchStrategy<NDIM>*> fill_after_regrid_refine_patch_strategies;
+        std::vector<RefinePatchStrategy<NDIM>*> fill_after_regrid_prolong_patch_strategies;
         CartExtrapPhysBdryOp fill_after_regrid_extrap_bc_op(d_fill_after_regrid_bc_idxs, d_bdry_extrap_type);
-        fill_after_regrid_refine_patch_strategies.push_back(&fill_after_regrid_extrap_bc_op);
+        fill_after_regrid_prolong_patch_strategies.push_back(&fill_after_regrid_extrap_bc_op);
         if (d_fill_after_regrid_phys_bdry_bc_op != NULL)
         {
-            fill_after_regrid_refine_patch_strategies.push_back(d_fill_after_regrid_phys_bdry_bc_op);
+            fill_after_regrid_prolong_patch_strategies.push_back(d_fill_after_regrid_phys_bdry_bc_op);
         }
-        RefinePatchStrategySet fill_after_regrid_patch_strategy_set(fill_after_regrid_refine_patch_strategies.begin(), fill_after_regrid_refine_patch_strategies.end(), false);
-        d_fill_after_regrid_refine_alg.createSchedule(level, old_level, level_number-1, hierarchy, &fill_after_regrid_patch_strategy_set)->fillData(init_data_time);
+        RefinePatchStrategySet fill_after_regrid_patch_strategy_set(fill_after_regrid_prolong_patch_strategies.begin(), fill_after_regrid_prolong_patch_strategies.end(), false);
+        d_fill_after_regrid_prolong_alg.createSchedule(level, old_level, level_number-1, hierarchy, &fill_after_regrid_patch_strategy_set)->fillData(init_data_time);
         level->deallocatePatchData(d_scratch_data);
     }
 
@@ -590,10 +596,16 @@ HierarchyIntegrator::resetHierarchyConfiguration(
 
     // If we have added or removed a level, resize the communication schedule
     // vectors.
-    for (RefineAlgorithmMap::const_iterator it = d_refine_algs.begin();
-         it != d_refine_algs.end(); ++it)
+    for (RefineAlgorithmMap::const_iterator it = d_ghostfill_algs.begin();
+         it != d_ghostfill_algs.end(); ++it)
     {
-        d_refine_scheds[it->first].resize(finest_hier_level+1);
+        d_ghostfill_scheds[it->first].resize(finest_hier_level+1);
+    }
+
+    for (RefineAlgorithmMap::const_iterator it = d_prolong_algs.begin();
+         it != d_prolong_algs.end(); ++it)
+    {
+        d_prolong_scheds[it->first].resize(finest_hier_level+1);
     }
 
     for (CoarsenAlgorithmMap::const_iterator it = d_coarsen_algs.begin();
@@ -602,15 +614,27 @@ HierarchyIntegrator::resetHierarchyConfiguration(
         d_coarsen_scheds[it->first].resize(finest_hier_level+1);
     }
 
-    // (Re)build refine communication schedules.  These are created for all
-    // levels in the hierarchy.
-    for (RefineAlgorithmMap::const_iterator it = d_refine_algs.begin();
-         it != d_refine_algs.end(); ++it)
+    // (Re)build ghost cell filling communication schedules.  These are created
+    // for all levels in the hierarchy.
+    for (RefineAlgorithmMap::const_iterator it = d_ghostfill_algs.begin();
+         it != d_ghostfill_algs.end(); ++it)
     {
         for (int ln = coarsest_level; ln <= std::min(finest_level+1,finest_hier_level); ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            d_refine_scheds[it->first][ln] = it->second->createSchedule(level, ln-1, hierarchy, d_refine_strategies[it->first]);
+            d_ghostfill_scheds[it->first][ln] = it->second->createSchedule(level, ln-1, hierarchy, d_ghostfill_strategies[it->first]);
+        }
+    }
+
+    // (Re)build data prolongation communication schedules.  These are set only for levels
+    // >= 1.
+    for (RefineAlgorithmMap::const_iterator it = d_prolong_algs.begin();
+         it != d_prolong_algs.end(); ++it)
+    {
+        for (int ln = std::max(coarsest_level,1); ln <= std::min(finest_level+1,finest_level); ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+            d_prolong_scheds[it->first][ln] = it->second->createSchedule(level, Pointer<PatchLevel<NDIM> >(), ln-1, hierarchy, d_prolong_strategies[it->first]);
         }
     }
 
@@ -940,7 +964,7 @@ HierarchyIntegrator::registerVariable(
     if (!refine_operator.isNull())
     {
         d_fill_after_regrid_bc_idxs.setFlag(scratch_idx);
-        d_fill_after_regrid_refine_alg.registerRefine(current_idx, current_idx, scratch_idx, refine_operator);
+        d_fill_after_regrid_prolong_alg.registerRefine(current_idx, current_idx, scratch_idx, refine_operator);
     }
 
     // Setup the SYNCH_CURRENT_DATA and SYNCH_NEW_DATA algorithms, used to
