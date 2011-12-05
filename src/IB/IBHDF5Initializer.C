@@ -267,8 +267,8 @@ IBHDF5Initializer::initializeDataOnPatchLevel(
 
     // Loop over all vertices in the specified level and initialize the data in
     // the appropriate Cartesian grid patches.
-    blitz::Array<double,2>& X_array = *X_data->getGhostedLocalFormVecArray();
-    blitz::Array<double,2>& U_array = *U_data->getGhostedLocalFormVecArray();
+    blitz::Array<double,2>& X_array = *X_data->getLocalFormVecArray();
+    blitz::Array<double,2>& U_array = *U_data->getLocalFormVecArray();
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
     const int num_filenames = d_filenames[level_number].size();
     int local_idx = -1;

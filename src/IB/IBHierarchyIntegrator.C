@@ -380,6 +380,7 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(
         level->allocatePatchData(d_f_idx, current_time);
         if (d_ib_method_ops->hasFluidSources())
         {
+            level->allocatePatchData(d_p_idx, current_time);
             level->allocatePatchData(d_q_idx, current_time);
         }
     }
@@ -429,7 +430,9 @@ IBHierarchyIntegrator::integrateHierarchy(
     // Eulerian grid.
     if (d_ib_method_ops->hasFluidSources())
     {
+        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian fluid source strength\n";
         d_ib_method_ops->computeLagrangianFluidSource(half_time);
+        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid\n";
         d_hier_pressure_cc_data_ops->setToScalar(d_q_idx, 0.0);
         d_ib_method_ops->spreadFluidSource(d_q_idx, getProlongRefineSchedules(d_object_name+"::q"), half_time);
     }
@@ -462,6 +465,7 @@ IBHierarchyIntegrator::integrateHierarchy(
     // fluid sources or sinks.
     if (d_ib_method_ops->hasFluidSources())
     {
+        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh\n";
         d_hier_pressure_cc_data_ops->copyData(d_p_idx, p_new_idx);
         d_ib_method_ops->interpolatePressure(d_p_idx, getCoarsenSchedules(d_object_name+"::p::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::p"), half_time);
     }
@@ -535,6 +539,7 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(
         level->deallocatePatchData(d_f_idx);
         if (d_ib_method_ops->hasFluidSources())
         {
+            level->deallocatePatchData(d_p_idx);
             level->deallocatePatchData(d_q_idx);
         }
     }
@@ -547,21 +552,21 @@ IBHierarchyIntegrator::regridHierarchy()
     // Update the workload pre-regridding.
     if (!d_load_balancer.isNull())
     {
-        if (d_do_log) plog << d_object_name << "::regridHierarchy(): updating workload estimates.\n";
+        if (d_do_log) plog << d_object_name << "::regridHierarchy(): updating workload estimates\n";
         d_hier_cc_data_ops->setToScalar(d_workload_idx, 1.0);
         d_ib_method_ops->updateWorkloadEstimates(d_hierarchy, d_workload_idx);
     }
 
     // Before regridding, begin Lagrangian data movement.
-    if (d_do_log) plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement.\n";
+    if (d_do_log) plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement\n";
     d_ib_method_ops->beginDataRedistribution(d_hierarchy, d_gridding_alg);
 
     // Use the INSHierarchyIntegrator to handle Eulerian data management.
-    if (d_do_log) plog << d_object_name << "::regridHierarchy(): calling " << d_ins_hier_integrator->getName() << "::regridHierarchy().\n";
+    if (d_do_log) plog << d_object_name << "::regridHierarchy(): calling " << d_ins_hier_integrator->getName() << "::regridHierarchy()\n";
     d_ins_hier_integrator->regridHierarchy();
 
     // After regridding, finish Lagrangian data movement.
-    if (d_do_log) plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement.\n";
+    if (d_do_log) plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement\n";
     d_ib_method_ops->endDataRedistribution(d_hierarchy, d_gridding_alg);
 
     // Reset the regrid CFL estimate.

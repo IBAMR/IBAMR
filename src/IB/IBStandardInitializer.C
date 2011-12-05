@@ -360,8 +360,8 @@ IBStandardInitializer::initializeDataOnPatchLevel(
 
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
-    blitz::Array<double,2>& X_array = *X_data->getGhostedLocalFormVecArray();
-    blitz::Array<double,2>& U_array = *U_data->getGhostedLocalFormVecArray();
+    blitz::Array<double,2>& X_array = *X_data->getLocalFormVecArray();
+    blitz::Array<double,2>& U_array = *U_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -467,8 +467,8 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
 {
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
-    blitz::Array<double,2>& M_array = *M_data->getGhostedLocalFormVecArray();
-    blitz::Array<double,2>& K_array = *K_data->getGhostedLocalFormVecArray();
+    blitz::Array<double,2>& M_array = *M_data->getLocalFormVecArray();
+    blitz::Array<double,2>& K_array = *K_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -525,7 +525,7 @@ IBStandardInitializer::initializeDirectorDataOnPatchLevel(
 {
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
-    blitz::Array<double,2>& D_array = *D_data->getGhostedLocalFormVecArray();
+    blitz::Array<double,2>& D_array = *D_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);

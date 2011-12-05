@@ -557,7 +557,7 @@ IBStandardForceGen::computeLagrangianSpringForce(
     const double*            const restrict          rest_lengths = d_spring_data[level_number].rest_lengths         .data();
     const double**           const restrict   dynamic_stiffnesses = d_spring_data[level_number].dynamic_stiffnesses  .data();
     const double**           const restrict  dynamic_rest_lengths = d_spring_data[level_number].dynamic_rest_lengths .data();
-    double*                  const restrict                F_node = F_data->getGhostedLocalFormVecArray()->data();
+    double*                  const restrict                F_node = F_data->getLocalFormVecArray()       ->data();
     const double*            const restrict                X_node = X_data->getGhostedLocalFormVecArray()->data();
 
     static const int BLOCKSIZE = 16;  // This parameter needs to be tuned.
@@ -861,7 +861,7 @@ IBStandardForceGen::computeLagrangianBeamForce(
     const blitz::TinyVector<double,NDIM>*  const restrict            curvatures = d_beam_data[level_number].curvatures           .data();
     const double**                         const restrict    dynamic_rigidities = d_beam_data[level_number].dynamic_rigidities   .data();
     const blitz::TinyVector<double,NDIM>** const restrict    dynamic_curvatures = d_beam_data[level_number].dynamic_curvatures   .data();
-    double*                                const restrict                F_node = F_data->getGhostedLocalFormVecArray()->data();
+    double*                                const restrict                F_node = F_data->getLocalFormVecArray()       ->data();
     const double*                          const restrict                X_node = X_data->getGhostedLocalFormVecArray()->data();
 
     static const int BLOCKSIZE = 16;  // This parameter needs to be tuned.
@@ -1175,9 +1175,9 @@ IBStandardForceGen::computeLagrangianTargetPointForce(
     const double**                         const restrict   dynamic_kappa = d_target_point_data[level_number].dynamic_kappa  .data();
     const double**                         const restrict     dynamic_eta = d_target_point_data[level_number].dynamic_eta    .data();
     const blitz::TinyVector<double,NDIM>** const restrict      dynamic_X0 = d_target_point_data[level_number].dynamic_X0     .data();
-    double*                                const restrict          F_node = F_data->getGhostedLocalFormVecArray()->data();
-    const double*                          const restrict          X_node = X_data->getGhostedLocalFormVecArray()->data();
-    const double*                          const restrict          U_node = U_data->getGhostedLocalFormVecArray()->data();
+    double*                                const restrict          F_node = F_data->getLocalFormVecArray()->data();
+    const double*                          const restrict          X_node = X_data->getLocalFormVecArray()->data();
+    const double*                          const restrict          U_node = U_data->getLocalFormVecArray()->data();
 
     static const int BLOCKSIZE = 16;  // This parameter needs to be tuned.
     int k, kblock, kunroll, idx;
