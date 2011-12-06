@@ -766,7 +766,7 @@ IBMethod::spreadFluidSource(
             }
         }
         const double integral_q = d_ib_solver->d_hier_pressure_cc_data_ops->integral(q_data_idx, wgt_idx);
-        if (std::abs(integral_q) > 1.0e-12)
+        if (std::abs(integral_q) > std::numeric_limits<double>::epsilon()*std::max(1.0,d_ib_solver->d_hier_pressure_cc_data_ops->maxNorm(q_data_idx, wgt_idx)))
         {
             TBOX_ERROR(d_object_name << "::spreadFluidSource():\n"
                        << "  ``external'' source/sink does not correctly offset net inflow/outflow into domain.\n"
