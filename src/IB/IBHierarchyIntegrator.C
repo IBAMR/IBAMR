@@ -562,8 +562,8 @@ IBHierarchyIntegrator::regridHierarchy()
     d_ib_method_ops->beginDataRedistribution(d_hierarchy, d_gridding_alg);
 
     // Use the INSHierarchyIntegrator to handle Eulerian data management.
-    if (d_do_log) plog << d_object_name << "::regridHierarchy(): calling " << d_ins_hier_integrator->getName() << "::regridHierarchy()\n";
-    d_ins_hier_integrator->regridHierarchy();
+    if (d_do_log) plog << d_object_name << "::regridHierarchy(): regridding the patch hierarchy\n";
+    HierarchyIntegrator::regridHierarchy();
 
     // After regridding, finish Lagrangian data movement.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement\n";
@@ -619,6 +619,7 @@ IBHierarchyIntegrator::initializeLevelDataSpecialized(
     {
         HierarchyCellDataOpsReal<NDIM,double> level_cc_data_ops(hierarchy,level_number,level_number);
         level_cc_data_ops.setToScalar(d_workload_idx, 1.0);
+        d_load_balancer->setUniformWorkload(level_number);
     }
 
     // Initialize IB data.
