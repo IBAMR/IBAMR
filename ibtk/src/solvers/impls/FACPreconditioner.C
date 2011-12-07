@@ -146,6 +146,8 @@ FACPreconditioner::initializeSolverState(
     const SAMRAIVectorReal<NDIM,double>& solution,
     const SAMRAIVectorReal<NDIM,double>& rhs)
 {
+    pout << d_object_name << "::initializeSolverState()\n";
+
     // Deallocate the solver state if the solver is already initialized.
     if (d_is_initialized)
     {
