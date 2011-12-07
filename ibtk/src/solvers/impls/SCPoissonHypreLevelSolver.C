@@ -315,8 +315,6 @@ SCPoissonHypreLevelSolver::initializeSolverState(
 {
     IBTK_TIMER_START(t_initialize_solver_state);
 
-    pout << d_object_name << "::initializeSolverState()\n";
-
     // Rudimentary error checking.
 #ifdef DEBUG_CHECK_ASSERTIONS
     if (x.getNumberOfComponents() != b.getNumberOfComponents())

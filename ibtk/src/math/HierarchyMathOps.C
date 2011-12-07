@@ -538,11 +538,6 @@ HierarchyMathOps::resetLevels(
     if (!MathUtilities<double>::equalEps(volume_cc,volume_fc) ||
         !MathUtilities<double>::equalEps(volume_cc,volume_sc))
     {
-        TBOX_WARNING("HierarchyMathOps::resetLevels():\n"
-                     << "  cell-centered, face-centered, and side-centered weights give different total volumes of the computational domain:\n"
-                     << "      volume (cell-centered): " << volume_cc << "\n"
-                     << "      volume (face-centered): " << volume_fc << "\n"
-                     << "      volume (side-centered): " << volume_sc << std::endl);
         pout << "WARNING:\n"
              << "HierarchyMathOps::resetLevels():\n"
              << "  cell-centered, face-centered, and side-centered weights give different total volumes of the computational domain:\n"

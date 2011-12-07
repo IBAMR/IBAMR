@@ -169,8 +169,6 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
 {
     IBTK_TIMER_START(t_initialize_operator_state);
 
-    pout << "HierarchyGhostCellInterpolation::initializeOperatorState()\n";
-
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
 
