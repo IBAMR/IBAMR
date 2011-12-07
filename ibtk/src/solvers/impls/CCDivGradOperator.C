@@ -148,32 +148,27 @@ CCDivGradOperator::apply(
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_is_initialized);
+    TBOX_ASSERT(x.getNumberOfComponents() == 1);
+    TBOX_ASSERT(y.getNumberOfComponents() == 1);
 #endif
 
     static const int comp = 0;
 
-    const Pointer<Variable<NDIM> >& x_var = x.getComponentVariable(comp);
-    const Pointer<Variable<NDIM> >& y_var = y.getComponentVariable(comp);
-
-    Pointer<CellVariable<NDIM,double> > x_cc_var = x_var;
-    Pointer<CellVariable<NDIM,double> > y_cc_var = y_var;
-
-    if (x_cc_var.isNull() || y_cc_var.isNull())
-    {
-        TBOX_ERROR(d_object_name << "::apply()\n"
-                   << "  encountered non-cell centered vector components" << std::endl);
-    }
+    Pointer<CellVariable<NDIM,double> > x_cc_var = x.getComponentVariable(comp);
+    Pointer<CellVariable<NDIM,double> > y_cc_var = y.getComponentVariable(comp);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-    Pointer<CellDataFactory<NDIM,double> > x_factory = x_cc_var->getPatchDataFactory();
-    Pointer<CellDataFactory<NDIM,double> > y_factory = y_cc_var->getPatchDataFactory();
+    TBOX_ASSERT(!x_cc_var.isNull());
+    TBOX_ASSERT(!y_cc_var.isNull());
 
+    Pointer<CellDataFactory<NDIM,double> > x_factory = x_cc_var->getPatchDataFactory();
     TBOX_ASSERT(!x_factory.isNull());
+
+    Pointer<CellDataFactory<NDIM,double> > y_factory = y_cc_var->getPatchDataFactory();
     TBOX_ASSERT(!y_factory.isNull());
 
     const unsigned int x_depth = x_factory->getDefaultDepth();
     const unsigned int y_depth = y_factory->getDefaultDepth();
-
     TBOX_ASSERT(x_depth == 1);
     TBOX_ASSERT(y_depth == 1);
 #endif

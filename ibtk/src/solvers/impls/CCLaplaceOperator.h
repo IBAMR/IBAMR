@@ -328,19 +328,20 @@ private:
     double d_apply_time;
 
     // Cached communications operators.
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_fill_pattern;
+    std::vector<HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
     SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
 
     // Scratch data.
-    std::vector<int> d_scratch_idxs;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_b;
-    bool d_correcting_rhs;
 
-    // Problem specification and mathematical operators.
+    // Problem specification.
     SAMRAI::solv::PoissonSpecifications d_poisson_spec;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_bc_coef;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
-    bool d_homogeneous_bc;
+    bool d_homogeneous_bc, d_correcting_rhs;
 
+    // Mathematical operators.
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
     SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
     bool d_hier_math_ops_external;

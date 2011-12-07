@@ -515,7 +515,7 @@ INSStaggeredHierarchyIntegrator::getStokesSolver()
     if (d_stokes_solver.isNull())
     {
         const std::string stokes_prefix = "stokes_";
-        d_stokes_op = new INSStaggeredStokesOperator(&d_problem_coefs, d_U_bc_coefs, d_U_bc_helper, d_P_bc_coef, d_hier_math_ops);
+        d_stokes_op = new INSStaggeredStokesOperator(&d_problem_coefs, d_U_bc_coefs, d_P_bc_coef, d_hier_math_ops);
         d_stokes_solver = new PETScKrylovLinearSolver(d_object_name+"::stokes_solver", stokes_prefix);
         d_stokes_solver->setInitialGuessNonzero(true);
         Pointer<PETScKrylovLinearSolver> p_stokes_solver = d_stokes_solver;

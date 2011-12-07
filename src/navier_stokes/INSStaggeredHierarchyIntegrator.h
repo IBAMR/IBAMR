@@ -40,6 +40,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/INSHierarchyIntegrator.h>
+#include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
 #include <ibamr/INSStaggeredStokesOperator.h>
 
 // IBTK INCLUDES
