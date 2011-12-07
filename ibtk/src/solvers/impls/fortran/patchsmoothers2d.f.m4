@@ -153,9 +153,6 @@ c
 
       do l = 1,sweeps
          do m = 0,1
-!$OMP  PARALLEL DO
-!$OMP& DEFAULT(SHARED) PRIVATE(i0,i1)
-!$OMP& SCHEDULE(STATIC)
             do i1 = ilower1,iupper1
                do i0 = ilower0,iupper0
                   if ( mod(i0+i1,2) .eq. m ) then
@@ -166,7 +163,6 @@ c
                   endif
                enddo
             enddo
-!$OMP END PARALLEL DO
          enddo
       enddo
 c
