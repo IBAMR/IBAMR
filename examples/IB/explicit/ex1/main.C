@@ -98,6 +98,7 @@ main(
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
         const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
 
+        const bool is_from_restart = app_initializer->isFromRestart();
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
         const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
@@ -228,6 +229,13 @@ main(
         // Print the input database contents to the log file.
         plog << "Input database:\n";
         input_db->printClassData(plog);
+
+        // Write restart data before starting main time integration loop.
+        if (dump_restart_data && !is_from_restart)
+        {
+            pout << "\nWriting restart files...\n\n";
+            RestartManager::getManager()->writeRestartFile(restart_dump_dirname, 0);
+        }
 
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();

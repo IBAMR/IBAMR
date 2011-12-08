@@ -830,8 +830,11 @@ HierarchyIntegrator::putToDatabase(
     db->putDouble("d_end_time",d_end_time);
     const int dt_previous_size = d_dt_previous.size();
     db->putInteger("d_dt_previous_size",dt_previous_size);
-    const std::vector<double> dt_previous_vec(d_dt_previous.begin(),d_dt_previous.end());
-    db->putDoubleArray("d_dt_previous_vec",&dt_previous_vec[0],dt_previous_vec.size());
+    if (dt_previous_size > 0)
+    {
+        const std::vector<double> dt_previous_vec(d_dt_previous.begin(),d_dt_previous.end());
+        db->putDoubleArray("d_dt_previous_vec",&dt_previous_vec[0],dt_previous_vec.size());
+    }
     db->putDouble("d_dt_max",d_dt_max);
     db->putDouble("d_dt_growth_factor",d_dt_growth_factor);
     db->putInteger("d_integrator_step",d_integrator_step);
@@ -1227,9 +1230,16 @@ HierarchyIntegrator::getFromRestart()
     d_start_time = db->getDouble("d_start_time");
     d_end_time = db->getDouble("d_end_time");
     const int dt_previous_size = db->getInteger("d_dt_previous_size");
-    std::vector<double> dt_previous_vec(dt_previous_size);
-    db->getDoubleArray("d_dt_previous_vec",&dt_previous_vec[0],dt_previous_vec.size());
-    d_dt_previous = std::deque<double>(dt_previous_vec.begin(),dt_previous_vec.end());
+    if (dt_previous_size > 0)
+    {
+        std::vector<double> dt_previous_vec(dt_previous_size);
+        db->getDoubleArray("d_dt_previous_vec",&dt_previous_vec[0],dt_previous_vec.size());
+        d_dt_previous = std::deque<double>(dt_previous_vec.begin(),dt_previous_vec.end());
+    }
+    else
+    {
+        d_dt_previous.clear();
+    }
     d_dt_max = db->getDouble("d_dt_max");
     d_dt_growth_factor = db->getDouble("d_dt_growth_factor");
     d_integrator_step = db->getInteger("d_integrator_step");
