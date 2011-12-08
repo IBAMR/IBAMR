@@ -1050,10 +1050,6 @@ HierarchyIntegrator::registerVariable(
     // Setup the new context.
     new_idx = var_db->registerVariableAndContext(variable, getNewContext(), no_ghosts);
     d_new_data.setFlag(new_idx);
-    if (d_registered_for_restart)
-    {
-        var_db->registerPatchDataForRestart(new_idx);
-    }
 
     // Setup the scratch context.
     scratch_idx = var_db->registerVariableAndContext(variable, getScratchContext(), scratch_ghosts);
@@ -1102,7 +1098,14 @@ HierarchyIntegrator::registerVariable(
 
     // Setup the scratch context.
     idx = var_db->registerVariableAndContext(variable, ctx, ghosts);
-    if (ctx == getCurrentContext()) d_current_data.setFlag(idx);
+    if (ctx == getCurrentContext())
+    {
+        d_current_data.setFlag(idx);
+        if (d_registered_for_restart)
+        {
+            var_db->registerPatchDataForRestart(idx);
+        }
+    }
     if (ctx == getScratchContext()) d_scratch_data.setFlag(idx);
     if (ctx == getNewContext()    ) d_new_data    .setFlag(idx);
     return;

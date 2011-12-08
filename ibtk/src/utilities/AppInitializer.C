@@ -384,7 +384,6 @@ AppInitializer::AppInitializer(
 AppInitializer::~AppInitializer()
 {
     InputManager::freeManager();
-    RestartManager::freeManager();
     return;
 }// ~AppInitializer
 

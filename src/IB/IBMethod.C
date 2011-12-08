@@ -1263,6 +1263,7 @@ IBMethod::putToDatabase(
     db->putInteger("IB_METHOD_VERSION", IB_METHOD_VERSION);
     db->putString("d_interp_delta_fcn", d_interp_delta_fcn);
     db->putString("d_spread_delta_fcn", d_spread_delta_fcn);
+    db->putIntegerArray("d_ghosts", d_ghosts, NDIM);
     const std::vector<std::string>& instrument_names = IBInstrumentationSpec::getInstrumentNames();
     if (!instrument_names.empty())
     {
@@ -1487,21 +1488,8 @@ IBMethod::getFromRestart()
     {
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
-    if (db->isString("d_interp_delta_fcn") && db->isString("d_spread_delta_fcn"))
-    {
-        d_interp_delta_fcn = db->getString("d_interp_delta_fcn");
-        d_spread_delta_fcn = db->getString("d_spread_delta_fcn");
-    }
-    else if (db->isString("d_delta_fcn"))
-    {
-        d_interp_delta_fcn = db->getString("d_delta_fcn");
-        d_spread_delta_fcn = db->getString("d_delta_fcn");
-    }
-    else
-    {
-        TBOX_ERROR("Restart database corresponding to "
-                   << d_object_name << " does not contain keys ``d_interp_delta_fcn'', ``d_spread_delta_fcn'', or ``d_delta_fcn''.");
-    }
+    d_interp_delta_fcn = db->getString("d_interp_delta_fcn");
+    d_spread_delta_fcn = db->getString("d_spread_delta_fcn");
     db->getIntegerArray("d_ghosts", d_ghosts, NDIM);
     if (db->keyExists("instrument_names"))
     {
