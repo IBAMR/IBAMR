@@ -158,16 +158,16 @@ compute_force_and_torque(
 
     interpolate_directors(D_half, D, D_next);
 
-    const double ds = material_params[0];
-    const double a1 = material_params[1];
-    const double a2 = material_params[2];
-    const double a3 = material_params[3];
-    const double b1 = material_params[4];
-    const double b2 = material_params[5];
-    const double b3 = material_params[6];
+    const double ds     = material_params[0];
+    const double a1     = material_params[1];
+    const double a2     = material_params[2];
+    const double a3     = material_params[3];
+    const double b1     = material_params[4];
+    const double b2     = material_params[5];
+    const double b3     = material_params[6];
     const double kappa1 = material_params[7];
     const double kappa2 = material_params[8];
-    const double tau = material_params[9];
+    const double tau    = material_params[9];
 
     const blitz::Array<double,1> dX_ds((X_next-X)/ds);
     const double F1 = b1* dot(D1_half, dX_ds);

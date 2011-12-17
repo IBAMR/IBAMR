@@ -89,23 +89,6 @@ IBLagrangianForceStrategy::initializeLevelData(
 }// initializeLevelData
 
 void
-IBLagrangianForceStrategy::computeLagrangianForceAndTorque(
-    Pointer<LData> /*F_data*/,
-    Pointer<LData> /*N_data*/,
-    Pointer<LData> /*X_data*/,
-    Pointer<LData> /*D_data*/,
-    Pointer<LData> /*U_data*/,
-    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-    const int /*level_number*/,
-    const double /*data_time*/,
-    LDataManager* const /*l_data_manager*/)
-{
-    TBOX_ERROR("IBLagrangianForceStrategy::computeLagrangianForceAndTorque():\n"
-               << "  not implemented for this IBLagrangianForceStrategy." << std::endl);
-    return;
-}// computeLagrangianForceAndTorque
-
-void
 IBLagrangianForceStrategy::computeLagrangianForce(
     Pointer<LData> /*F_data*/,
     Pointer<LData> /*X_data*/,
