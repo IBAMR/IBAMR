@@ -215,10 +215,6 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
         d_q_idx = -1;
     }
 
-    // Have the IB method ops object register any additional Eulerian variables
-    // and communications algorithms that it requires.
-    d_ib_method_ops->registerEulerianVariables();
-    d_ib_method_ops->registerEulerianCommunicationAlgorithms();
 
     // Initialize the objects used to manage Lagrangian-Eulerian interaction.
     d_eulerian_force_fcn = new IBEulerianForceFunction(d_object_name+"::IBEulerianForceFunction", d_f_idx, d_f_idx, d_f_idx);
@@ -232,6 +228,11 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     // Initialize the fluid solver.  It is necessary to do this after
     // registering a body force function or fluid source distribution function.
     d_ins_hier_integrator->initializeHierarchyIntegrator(hierarchy, gridding_alg);
+
+    // Have the IB method ops object register any additional Eulerian variables
+    // and communications algorithms that it requires.
+    d_ib_method_ops->registerEulerianVariables();
+    d_ib_method_ops->registerEulerianCommunicationAlgorithms();
 
     // Create several communications algorithms, used in filling ghost cell data
     // and synchronizing data on the patch hierarchy.
@@ -812,7 +813,7 @@ IBHierarchyIntegrator::getFromRestart()
     {
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
-    d_timestepping_type = string_to_enum<TimesteppingType>(db->getString("timestepping_type"));
+    d_timestepping_type = string_to_enum<TimesteppingType>(db->getString("d_timestepping_type"));
     d_regrid_cfl_interval = db->getDouble("d_regrid_cfl_interval");
     d_regrid_cfl_estimate = db->getDouble("d_regrid_cfl_estimate");
     return;
