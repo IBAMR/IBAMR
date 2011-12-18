@@ -47,13 +47,6 @@
 // IBTK INCLUDES
 #include <ibtk/LDataManager.h>
 
-/////////////////////////////// FORWARD DECLARATION //////////////////////////
-
-namespace IBAMR
-{
-class IBMethod;
-}
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -66,7 +59,7 @@ class IBHierarchyIntegrator
     : public HierarchyIntegrator
 {
 public:
-    friend class IBMethod;
+    friend class IBStrategy;
 
     /*!
      * The constructor for class IBHierarchyIntegrator sets some default values,
@@ -174,10 +167,11 @@ public:
     regridHierarchy();
 
     /*!
-     * Execute user-defined post-processing operations.
+     * Return a pointer to the INSHierarchyIntegrator used by this class to
+     * solve the incompressible Navier-Stokes equations.
      */
-    void
-    postProcessData();
+    SAMRAI::tbox::Pointer<INSHierarchyIntegrator>
+    getINSHierarchyIntegrator() const;
 
 protected:
     /*!
@@ -307,7 +301,7 @@ private:
      * Hierarchy operations objects.
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM,double> > d_hier_velocity_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_pressure_cc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM,double> > d_hier_pressure_data_ops;
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
 
     /*

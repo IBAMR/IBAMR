@@ -155,9 +155,9 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    d_hier_velocity_data_ops    = hier_ops_manager->getOperationsDouble(d_ins_hier_integrator->getVelocityVariable(), hierarchy, true);
-    d_hier_pressure_cc_data_ops = hier_ops_manager->getOperationsDouble(d_ins_hier_integrator->getPressureVariable(), hierarchy, true);
-    d_hier_cc_data_ops          = hier_ops_manager->getOperationsDouble(new CellVariable<NDIM,double>("cc_var"), hierarchy, true);
+    d_hier_velocity_data_ops = hier_ops_manager->getOperationsDouble(d_ins_hier_integrator->getVelocityVariable(), hierarchy, true);
+    d_hier_pressure_data_ops = hier_ops_manager->getOperationsDouble(d_ins_hier_integrator->getPressureVariable(), hierarchy, true);
+    d_hier_cc_data_ops       = hier_ops_manager->getOperationsDouble(new CellVariable<NDIM,double>("cc_var"), hierarchy, true);
 
     // Initialize all variables.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -206,6 +206,10 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
         d_q_var = NULL;
         d_q_idx = -1;
     }
+
+    // Have the IB method ops object register any additional Eulerian variables
+    // that it requires.
+    d_ib_method_ops->registerEulerianVariables();
 
     // Initialize the objects used to manage Lagrangian-Eulerian interaction.
     d_eulerian_force_fcn = new IBEulerianForceFunction(d_object_name+"::IBEulerianForceFunction", d_f_idx, d_f_idx, d_f_idx);
@@ -433,7 +437,7 @@ IBHierarchyIntegrator::integrateHierarchy(
         if (d_do_log) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian fluid source strength\n";
         d_ib_method_ops->computeLagrangianFluidSource(half_time);
         if (d_do_log) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid\n";
-        d_hier_pressure_cc_data_ops->setToScalar(d_q_idx, 0.0);
+        d_hier_pressure_data_ops->setToScalar(d_q_idx, 0.0);
         d_ib_method_ops->spreadFluidSource(d_q_idx, getProlongRefineSchedules(d_object_name+"::q"), half_time);
     }
 
@@ -466,7 +470,7 @@ IBHierarchyIntegrator::integrateHierarchy(
     if (d_ib_method_ops->hasFluidSources())
     {
         if (d_do_log) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh\n";
-        d_hier_pressure_cc_data_ops->copyData(d_p_idx, p_new_idx);
+        d_hier_pressure_data_ops->copyData(d_p_idx, p_new_idx);
         d_ib_method_ops->interpolatePressure(d_p_idx, getCoarsenSchedules(d_object_name+"::p::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::p"), half_time);
     }
     return;
@@ -574,6 +578,8 @@ IBHierarchyIntegrator::regridHierarchy()
     return;
 }// regridHierarchy
 
+
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 bool
@@ -648,12 +654,12 @@ IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_ib_method_ops->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
 
     // Reset the Hierarchy data operations for the new hierarchy configuration.
-    d_hier_velocity_data_ops   ->setPatchHierarchy(hierarchy);
-    d_hier_pressure_cc_data_ops->setPatchHierarchy(hierarchy);
-    d_hier_cc_data_ops         ->setPatchHierarchy(hierarchy);
-    d_hier_velocity_data_ops   ->resetLevels(0, finest_hier_level);
-    d_hier_pressure_cc_data_ops->resetLevels(0, finest_hier_level);
-    d_hier_cc_data_ops         ->resetLevels(0, finest_hier_level);
+    d_hier_velocity_data_ops->setPatchHierarchy(hierarchy);
+    d_hier_pressure_data_ops->setPatchHierarchy(hierarchy);
+    d_hier_cc_data_ops      ->setPatchHierarchy(hierarchy);
+    d_hier_velocity_data_ops->resetLevels(0, finest_hier_level);
+    d_hier_pressure_data_ops->resetLevels(0, finest_hier_level);
+    d_hier_cc_data_ops      ->resetLevels(0, finest_hier_level);
     return;
 }// resetHierarchyConfigurationSpecialized
 
@@ -680,6 +686,12 @@ IBHierarchyIntegrator::putToDatabaseSpecialized(
     db->putDouble("d_regrid_cfl_estimate", d_regrid_cfl_estimate);
     return;
 }// putToDatabaseSpecialized
+
+Pointer<INSHierarchyIntegrator>
+IBHierarchyIntegrator::getINSHierarchyIntegrator() const
+{
+    return d_ins_hier_integrator;
+}// getINSHierarchyIntegrator
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
