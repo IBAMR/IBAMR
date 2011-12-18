@@ -225,6 +225,11 @@ protected:
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /*!
+     * Enum indicating the time integration employed for the IB equations.
+     */
+    TimesteppingType d_timestepping_type;
+
+    /*!
      * Flags to determine whether warnings or error messages should be emitted
      * when time step size changes are encountered.
      */
@@ -308,7 +313,7 @@ private:
      * Eulerian variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_u_var, d_p_var, d_f_var, d_q_var;
-    int d_u_idx, d_p_idx, d_f_idx, d_q_idx;
+    int d_u_idx, d_p_idx, d_f_idx, d_f_current_idx, d_q_idx;
 
     /*
      * Body force functions.

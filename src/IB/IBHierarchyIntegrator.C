@@ -184,6 +184,14 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     }
     d_u_idx = var_db->registerVariableAndContext(d_u_var, getScratchContext(), ib_ghosts);
     d_f_idx = var_db->registerVariableAndContext(d_f_var, getScratchContext(),    ghosts);
+    if (d_timestepping_type == TRAPEZOIDAL_RULE)
+    {
+        d_f_current_idx = var_db->registerClonedPatchDataIndex(d_f_var, d_f_idx);
+    }
+    else
+    {
+        d_f_current_idx = -1;
+    }
 
     if (d_ib_method_ops->hasFluidSources())
     {
@@ -382,6 +390,7 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_u_idx, current_time);
         level->allocatePatchData(d_f_idx, current_time);
+        if (d_f_current_idx != -1) level->allocatePatchData(d_f_current_idx, current_time);
         if (d_ib_method_ops->hasFluidSources())
         {
             level->allocatePatchData(d_p_idx, current_time);
@@ -405,6 +414,18 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(
         if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
         d_ib_method_ops->eulerStep(current_time, new_time);
     }
+
+    if (d_timestepping_type == TRAPEZOIDAL_RULE)
+    {
+        // Compute the Lagrangian force at the beginning of the time interval
+        // and spread it to the Eulerian grid.
+        if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): computing Lagrangian force\n";
+        d_ib_method_ops->computeLagrangianForce(current_time);
+        if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
+        d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+        d_ib_method_ops->spreadForce(d_f_idx, getProlongRefineSchedules(d_object_name+"::f"), current_time);
+        d_hier_velocity_data_ops->copyData(d_f_current_idx, d_f_idx);
+    }
     return;
 }// preprocessIntegrateHierarchy
 
@@ -424,11 +445,35 @@ IBHierarchyIntegrator::integrateHierarchy(
                                                                    d_ins_hier_integrator->getNewContext());
 
     // Compute the Lagrangian forces and spread them to the Eulerian grid.
-    if (d_do_log) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
-    d_ib_method_ops->computeLagrangianForce(half_time);
-    if (d_do_log) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
-    d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
-    d_ib_method_ops->spreadForce(d_f_idx, getProlongRefineSchedules(d_object_name+"::f"), half_time);
+    switch (d_timestepping_type)
+    {
+        case MIDPOINT_RULE:
+            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
+            d_ib_method_ops->computeLagrangianForce(half_time);
+            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
+            d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+            d_ib_method_ops->spreadForce(d_f_idx, getProlongRefineSchedules(d_object_name+"::f"), half_time);
+            break;
+        case TRAPEZOIDAL_RULE:
+            if (d_current_num_cycles == 1 || cycle_num > 0)
+            {
+                // NOTE: If (current_num_cycles > 1 && cycle_num == 0), the
+                // force computed here would be the same as that computed above
+                // in preprocessIntegrateHierarchy(), so we don't bother to
+                // compute it.
+                if (d_do_log) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
+                d_ib_method_ops->computeLagrangianForce(new_time);
+                if (d_do_log) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
+                d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
+                d_ib_method_ops->spreadForce(d_f_idx, getProlongRefineSchedules(d_object_name+"::f"), new_time);
+                d_hier_velocity_data_ops->linearSum(d_f_idx, 0.5, d_f_current_idx, 0.5, d_f_idx);
+            }
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                       << "  unsupported timestepping type: " << enum_to_string<TimesteppingType>(d_timestepping_type) << "\n"
+                       << "  supported timestepping types are: MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+    }
 
     // Compute the Lagrangian source/sink strengths and spread them to the
     // Eulerian grid.
@@ -448,21 +493,48 @@ IBHierarchyIntegrator::integrateHierarchy(
     d_ib_method_ops->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
 
     // Interpolate the Eulerian velocity to the curvilinear mesh.
-    d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
-    if (d_do_log) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
-    d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), half_time);
+    switch (d_timestepping_type)
+    {
+        case MIDPOINT_RULE:
+            d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
+            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
+            d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), half_time);
+            break;
+        case TRAPEZOIDAL_RULE:
+            d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
+            if (d_do_log) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
+            d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), new_time);
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                       << "  unsupported timestepping type: " << enum_to_string<TimesteppingType>(d_timestepping_type) << "\n"
+                       << "  supported timestepping types are: MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+    }
 
     // Compute an updated prediction of the updated positions of the Lagrangian
     // structure.
     if (d_current_num_cycles > 1 && d_current_cycle_num == 0)
     {
-        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): performing Lagrangian forward Euler step\n";
+        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): performing Lagrangian forward-Euler step\n";
         d_ib_method_ops->eulerStep(current_time, new_time);
     }
     else
     {
-        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): performing Lagrangian midpoint step\n";
-        d_ib_method_ops->midpointStep(current_time, new_time);
+        switch (d_timestepping_type)
+        {
+            case MIDPOINT_RULE:
+                if (d_do_log) plog << d_object_name << "::integrateHierarchy(): performing Lagrangian midpoint-rule step\n";
+                d_ib_method_ops->midpointStep(current_time, new_time);
+                break;
+            case TRAPEZOIDAL_RULE:
+                if (d_do_log) plog << d_object_name << "::integrateHierarchy(): performing Lagrangian trapezoidal-rule step\n";
+                d_ib_method_ops->trapezoidalStep(current_time, new_time);
+                break;
+            default:
+                TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                           << "  unsupported timestepping type: " << enum_to_string<TimesteppingType>(d_timestepping_type) << "\n"
+                           << "  supported timestepping types are: MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+        }
     }
 
     // Compute the pressure at the updated locations of any distributed internal
@@ -541,6 +613,7 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_f_idx);
+        if (d_f_current_idx != -1) level->deallocatePatchData(d_f_current_idx);
         if (d_ib_method_ops->hasFluidSources())
         {
             level->deallocatePatchData(d_p_idx);
@@ -682,6 +755,7 @@ IBHierarchyIntegrator::putToDatabaseSpecialized(
     Pointer<Database> db)
 {
     db->putInteger("IB_HIERARCHY_INTEGRATOR_VERSION",IB_HIERARCHY_INTEGRATOR_VERSION);
+    db->putString("d_timestepping_type", enum_to_string<TimesteppingType>(d_timestepping_type));
     db->putDouble("d_regrid_cfl_interval", d_regrid_cfl_interval);
     db->putDouble("d_regrid_cfl_estimate", d_regrid_cfl_estimate);
     return;
@@ -707,6 +781,8 @@ IBHierarchyIntegrator::getFromInput(
     if      (db->keyExists("warn_on_dt_change")       ) d_warn_on_dt_change = db->getBool("warn_on_dt_change");
     else if (db->keyExists("warn_on_timestep_change") ) d_warn_on_dt_change = db->getBool("warn_on_timestep_change");
     else if (db->keyExists("warn_on_time_step_change")) d_warn_on_dt_change = db->getBool("warn_on_time_step_change");
+    if      (db->keyExists("timestepping_type") ) d_timestepping_type = string_to_enum<TimesteppingType>(db->getString("timestepping_type"));
+    else if (db->keyExists("time_stepping_type")) d_timestepping_type = string_to_enum<TimesteppingType>(db->getString("time_stepping_type"));
     return;
 }// getFromInput
 
@@ -729,6 +805,7 @@ IBHierarchyIntegrator::getFromRestart()
     {
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
+    d_timestepping_type = string_to_enum<TimesteppingType>(db->getString("timestepping_type"));
     d_regrid_cfl_interval = db->getDouble("d_regrid_cfl_interval");
     d_regrid_cfl_estimate = db->getDouble("d_regrid_cfl_estimate");
     return;
