@@ -180,7 +180,7 @@ main(
                        "Valid options are: COLLOCATED, STAGGERED");
         }
         Pointer<GeneralizedIBMethod> ib_method_ops = new GeneralizedIBMethod(
-            "GeneralizedIBMethod", app_initializer->getComponentDatabase("GenerelizedIBMethod"));
+            "GeneralizedIBMethod", app_initializer->getComponentDatabase("GeneralizedIBMethod"));
         Pointer<IBHierarchyIntegrator> time_integrator = new IBHierarchyIntegrator(
             "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops, navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(

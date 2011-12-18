@@ -216,8 +216,9 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     }
 
     // Have the IB method ops object register any additional Eulerian variables
-    // that it requires.
+    // and communications algorithms that it requires.
     d_ib_method_ops->registerEulerianVariables();
+    d_ib_method_ops->registerEulerianCommunicationAlgorithms();
 
     // Initialize the objects used to manage Lagrangian-Eulerian interaction.
     d_eulerian_force_fcn = new IBEulerianForceFunction(d_object_name+"::IBEulerianForceFunction", d_f_idx, d_f_idx, d_f_idx);
@@ -325,6 +326,7 @@ IBHierarchyIntegrator::initializePatchHierarchy(
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_u_idx, d_integrator_time);
+        level->allocatePatchData(d_scratch_data, d_integrator_time);
     }
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
@@ -336,6 +338,7 @@ IBHierarchyIntegrator::initializePatchHierarchy(
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_u_idx);
+        level->deallocatePatchData(d_scratch_data);
     }
 
     // Indicate that the hierarchy is initialized.
@@ -396,6 +399,8 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(
             level->allocatePatchData(d_p_idx, current_time);
             level->allocatePatchData(d_q_idx, current_time);
         }
+        level->allocatePatchData(d_scratch_data, current_time);
+        level->allocatePatchData(d_new_data    ,     new_time);
     }
 
     // Initialize the fluid solver.
@@ -619,6 +624,8 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(
             level->deallocatePatchData(d_p_idx);
             level->deallocatePatchData(d_q_idx);
         }
+        level->deallocatePatchData(d_scratch_data);
+        level->deallocatePatchData(d_new_data    );
     }
     return;
 }// postprocessIntegrateHierarchy

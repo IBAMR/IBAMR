@@ -169,6 +169,7 @@ GeneralizedIBMethod::preprocessIntegrateData(
     double new_time,
     int num_cycles)
 {
+    d_ib_force_fcn_needs_init = d_ib_force_fcn_needs_init || d_ib_force_fcn_needs_init;
     IBMethod::preprocessIntegrateData(current_time, new_time, num_cycles);
 
     const int coarsest_ln = 0;
@@ -470,7 +471,7 @@ GeneralizedIBMethod::computeLagrangianForce(
         d_ib_force_and_torque_fcn->computeLagrangianForceAndTorque((*F_data)[ln], (*N_data)[ln], (*X_data)[ln], (*D_data)[ln], d_hierarchy, ln, data_time, d_l_data_manager);
     }
     resetAnchorPointValues(*F_data, coarsest_ln, finest_ln);
-    resetAnchorPointValues(*D_data, coarsest_ln, finest_ln);
+    resetAnchorPointValues(*N_data, coarsest_ln, finest_ln);
     return;
 }// computeLagrangianForce
 
@@ -591,6 +592,7 @@ GeneralizedIBMethod::initializePatchHierarchy(
         std::vector<Pointer<LData> > W_data(finest_ln+1);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
+            d_hierarchy->getPatchLevel(ln)->allocatePatchData(d_w_idx);
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
             X_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
             W_data[ln] = d_l_data_manager->getLData("W",ln);
@@ -617,6 +619,10 @@ GeneralizedIBMethod::initializePatchHierarchy(
         d_l_data_manager->interp(d_w_idx, W_data, X_data, std::vector<Pointer<CoarsenSchedule<NDIM> > >(), getGhostfillRefineSchedules(d_object_name+"::w"), init_data_time);
         resetAnchorPointValues(W_data, coarsest_ln, finest_ln);
     }
+
+    // Indicate that the force-and-torque strategy_needs
+    // to be re-initialized.
+    d_ib_force_and_torque_fcn_needs_init = true;
     return;
 }// initializePatchHierarchy
 

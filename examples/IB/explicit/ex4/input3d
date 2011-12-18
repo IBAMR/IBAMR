@@ -4,10 +4,10 @@ RHO = 1.0                                 // fluid density (g/cm^3)
 MU = 0.01                                 // fluid viscosity (g/cm*s)
 
 // grid spacing parameters
-NUM_LEVELS = 3                            // number of levels in locally refined grid
+MAX_LEVELS = 3                            // number of levels in locally refined grid
 REF_RATIO  = 4                            // refinement ratio between levels
 NFINEST = 256                             // finest   grid spacing
-N = NFINEST/(REF_RATIO^(NUM_LEVELS - 1))  // coarsest grid spacing
+N = NFINEST/(REF_RATIO^(MAX_LEVELS - 1))  // coarsest grid spacing
 DT = 1.0e-1*64.0/NFINEST                  // timestep size (s)    --- 1.0e-1 s at NFINEST = 64
 W = 4.0 * NFINEST / 64.0                  // delta function width --- 4        at NFINEST = 64
 
@@ -92,6 +92,7 @@ IBHierarchyIntegrator {
    grow_dt               = 2.0e0    // growth factor for timesteps
    regrid_cfl_interval   = 0.5
    dt_max = DT
+   timestepping_type = "TRAPEZOIDAL_RULE"
    enable_logging = TRUE
 }
 
@@ -104,7 +105,7 @@ IBStandardInitializer {
    max_levels = MAX_LEVELS
    structure_names = "curve3d_64"
    curve3d_64 {
-      level_number = NUM_LEVELS - 1  // assign the structure to the finest level of the AMR patch hierarchy
+      level_number = MAX_LEVELS - 1  // assign the structure to the finest level of the AMR patch hierarchy
    }
 }
 
