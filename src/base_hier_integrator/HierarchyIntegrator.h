@@ -425,83 +425,6 @@ public:
     getScratchContext() const;
 
     ///
-    ///  Routines to setup user-defined refine/coarsen algorithms.
-    ///
-
-    /*!
-     * Register a ghost cell-filling refine algorithm.
-     */
-    void
-    registerGhostfillRefineAlgorithm(
-        const std::string& name,
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > ghostfill_alg,
-        SAMRAI::xfer::RefinePatchStrategy<NDIM>* ghostfill_patch_strategy=NULL);
-
-    /*!
-     * Register a data-prolonging refine algorithm.
-     */
-    void
-    registerProlongRefineAlgorithm(
-        const std::string& name,
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > prolong_alg,
-        SAMRAI::xfer::RefinePatchStrategy<NDIM>* prolong_patch_strategy=NULL);
-
-    /*!
-     * Register a coarsen algorithm.
-     */
-    void
-    registerCoarsenAlgorithm(
-        const std::string& name,
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > coarsen_alg,
-        SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy=NULL);
-
-    /*!
-     * Get ghost cell-filling refine algorithm.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >
-    getGhostfillRefineAlgorithm(
-        const std::string& name) const;
-
-    /*!
-     * Get data-prolonging refine algorithm.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >
-    getProlongRefineAlgorithm(
-        const std::string& name) const;
-
-    /*!
-     * Get coarsen algorithm.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> >
-    getCoarsenAlgorithm(
-        const std::string& name) const;
-
-    /*!
-     * Get ghost cell-filling refine schedules.
-     */
-    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
-    getGhostfillRefineSchedules(
-        const std::string& name) const;
-
-    /*!
-     * Get data-prolonging refine schedules.
-     *
-     * \note These schedules are allocated only for level numbers >= 1.
-     */
-    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
-    getProlongRefineSchedules(
-        const std::string& name) const;
-
-    /*!
-     * Get coarsen schedules.
-     *
-     * \note These schedules are allocated only for level numbers >= 1.
-     */
-    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >&
-    getCoarsenSchedules(
-        const std::string& name) const;
-
-    ///
     ///  Implementations of functions declared in the SAMRAI::tbox::Serializable
     ///  abstract base class.
     ///
@@ -669,6 +592,79 @@ protected:
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
         const SAMRAI::hier::IntVector<NDIM>& ghosts=SAMRAI::hier::IntVector<NDIM>(0),
         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx=SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>(NULL));
+
+    /*!
+     * Register a ghost cell-filling refine algorithm.
+     */
+    void
+    registerGhostfillRefineAlgorithm(
+        const std::string& name,
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > ghostfill_alg,
+        SAMRAI::xfer::RefinePatchStrategy<NDIM>* ghostfill_patch_strategy=NULL);
+
+    /*!
+     * Register a data-prolonging refine algorithm.
+     */
+    void
+    registerProlongRefineAlgorithm(
+        const std::string& name,
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > prolong_alg,
+        SAMRAI::xfer::RefinePatchStrategy<NDIM>* prolong_patch_strategy=NULL);
+
+    /*!
+     * Register a coarsen algorithm.
+     */
+    void
+    registerCoarsenAlgorithm(
+        const std::string& name,
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > coarsen_alg,
+        SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy=NULL);
+
+    /*!
+     * Get ghost cell-filling refine algorithm.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >
+    getGhostfillRefineAlgorithm(
+        const std::string& name) const;
+
+    /*!
+     * Get data-prolonging refine algorithm.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >
+    getProlongRefineAlgorithm(
+        const std::string& name) const;
+
+    /*!
+     * Get coarsen algorithm.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> >
+    getCoarsenAlgorithm(
+        const std::string& name) const;
+
+    /*!
+     * Get ghost cell-filling refine schedules.
+     */
+    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+    getGhostfillRefineSchedules(
+        const std::string& name) const;
+
+    /*!
+     * Get data-prolonging refine schedules.
+     *
+     * \note These schedules are allocated only for level numbers >= 1.
+     */
+    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+    getProlongRefineSchedules(
+        const std::string& name) const;
+
+    /*!
+     * Get coarsen schedules.
+     *
+     * \note These schedules are allocated only for level numbers >= 1.
+     */
+    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >&
+    getCoarsenSchedules(
+        const std::string& name) const;
 
     /*!
      * Register a "child" integrator object with this integrator object.

@@ -716,111 +716,6 @@ HierarchyIntegrator::getScratchContext() const
 }// getScratchContext
 
 void
-HierarchyIntegrator::registerGhostfillRefineAlgorithm(
-    const std::string& name,
-    Pointer<RefineAlgorithm<NDIM> > ghostfill_alg,
-    RefinePatchStrategy<NDIM>* ghostfill_patch_strategy)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_ghostfill_algs.find(name) == d_ghostfill_algs.end());
-#endif
-    d_ghostfill_algs[name] = ghostfill_alg;
-    d_ghostfill_strategies[name] = ghostfill_patch_strategy;
-}// registerGhostfillRefineAlgorithm
-
-void
-HierarchyIntegrator::registerProlongRefineAlgorithm(
-    const std::string& name,
-    Pointer<RefineAlgorithm<NDIM> > prolong_alg,
-    RefinePatchStrategy<NDIM>* prolong_patch_strategy)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_prolong_algs.find(name) == d_prolong_algs.end());
-#endif
-    d_prolong_algs[name] = prolong_alg;
-    d_prolong_strategies[name] = prolong_patch_strategy;
-}// registerProlongRefineAlgorithm
-
-void
-HierarchyIntegrator::registerCoarsenAlgorithm(
-    const std::string& name,
-    Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg,
-    CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_coarsen_algs.find(name) == d_coarsen_algs.end());
-#endif
-    d_coarsen_algs[name] = coarsen_alg;
-    d_coarsen_strategies[name] = coarsen_patch_strategy;
-}// registerCoarsenAlgorithm
-
-Pointer<RefineAlgorithm<NDIM> >
-HierarchyIntegrator::getGhostfillRefineAlgorithm(
-    const std::string& name) const
-{
-    RefineAlgorithmMap::const_iterator alg_it = d_ghostfill_algs.find(name);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(alg_it != d_ghostfill_algs.end());
-#endif
-    return alg_it->second;
-}// getGhostfillRefineAlgorithm
-
-Pointer<RefineAlgorithm<NDIM> >
-HierarchyIntegrator::getProlongRefineAlgorithm(
-    const std::string& name) const
-{
-    RefineAlgorithmMap::const_iterator alg_it = d_prolong_algs.find(name);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(alg_it != d_prolong_algs.end());
-#endif
-    return alg_it->second;
-}// getProlongRefineAlgorithm
-
-Pointer<CoarsenAlgorithm<NDIM> >
-HierarchyIntegrator::getCoarsenAlgorithm(
-    const std::string& name) const
-{
-    CoarsenAlgorithmMap::const_iterator alg_it = d_coarsen_algs.find(name);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(alg_it != d_coarsen_algs.end());
-#endif
-    return alg_it->second;
-}// getCoarsenAlgorithm
-
-const std::vector<Pointer<RefineSchedule<NDIM> > >&
-HierarchyIntegrator::getGhostfillRefineSchedules(
-    const std::string& name) const
-{
-    RefineScheduleMap::const_iterator sched_it = d_ghostfill_scheds.find(name);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(sched_it != d_ghostfill_scheds.end());
-#endif
-    return sched_it->second;
-}// getGhostfillRefineSchedules
-
-const std::vector<Pointer<RefineSchedule<NDIM> > >&
-HierarchyIntegrator::getProlongRefineSchedules(
-    const std::string& name) const
-{
-    RefineScheduleMap::const_iterator sched_it = d_prolong_scheds.find(name);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(sched_it != d_prolong_scheds.end());
-#endif
-    return sched_it->second;
-}// getProlongRefineSchedules
-
-const std::vector<Pointer<CoarsenSchedule<NDIM> > >&
-HierarchyIntegrator::getCoarsenSchedules(
-    const std::string& name) const
-{
-    CoarsenScheduleMap::const_iterator sched_it = d_coarsen_scheds.find(name);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(sched_it != d_coarsen_scheds.end());
-#endif
-    return sched_it->second;
-}// getCoarsenSchedules
-
-void
 HierarchyIntegrator::putToDatabase(
     Pointer<Database> db)
 {
@@ -1109,10 +1004,122 @@ HierarchyIntegrator::registerVariable(
             var_db->registerPatchDataForRestart(idx);
         }
     }
-    if (ctx == getScratchContext()) d_scratch_data.setFlag(idx);
-    if (ctx == getNewContext()    ) d_new_data    .setFlag(idx);
+    else if (ctx == getScratchContext()) d_scratch_data.setFlag(idx);
+    else if (ctx == getNewContext()    ) d_new_data    .setFlag(idx);
+    else
+    {
+        TBOX_ERROR(d_object_name << "::registerVariable():\n"
+                   << "  unrecognized variable context: " << ctx->getName() << "\n"
+                   << "  variable context should be one of:\n"
+                   << "    " << getCurrentContext()->getName() << ", " << getNewContext()->getName() << ", or " << getCurrentContext()->getName() << std::endl);
+    }
     return;
 }// registerVariable
+
+void
+HierarchyIntegrator::registerGhostfillRefineAlgorithm(
+    const std::string& name,
+    Pointer<RefineAlgorithm<NDIM> > ghostfill_alg,
+    RefinePatchStrategy<NDIM>* ghostfill_patch_strategy)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_ghostfill_algs.find(name) == d_ghostfill_algs.end());
+#endif
+    d_ghostfill_algs[name] = ghostfill_alg;
+    d_ghostfill_strategies[name] = ghostfill_patch_strategy;
+}// registerGhostfillRefineAlgorithm
+
+void
+HierarchyIntegrator::registerProlongRefineAlgorithm(
+    const std::string& name,
+    Pointer<RefineAlgorithm<NDIM> > prolong_alg,
+    RefinePatchStrategy<NDIM>* prolong_patch_strategy)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_prolong_algs.find(name) == d_prolong_algs.end());
+#endif
+    d_prolong_algs[name] = prolong_alg;
+    d_prolong_strategies[name] = prolong_patch_strategy;
+}// registerProlongRefineAlgorithm
+
+void
+HierarchyIntegrator::registerCoarsenAlgorithm(
+    const std::string& name,
+    Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg,
+    CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_coarsen_algs.find(name) == d_coarsen_algs.end());
+#endif
+    d_coarsen_algs[name] = coarsen_alg;
+    d_coarsen_strategies[name] = coarsen_patch_strategy;
+}// registerCoarsenAlgorithm
+
+Pointer<RefineAlgorithm<NDIM> >
+HierarchyIntegrator::getGhostfillRefineAlgorithm(
+    const std::string& name) const
+{
+    RefineAlgorithmMap::const_iterator alg_it = d_ghostfill_algs.find(name);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(alg_it != d_ghostfill_algs.end());
+#endif
+    return alg_it->second;
+}// getGhostfillRefineAlgorithm
+
+Pointer<RefineAlgorithm<NDIM> >
+HierarchyIntegrator::getProlongRefineAlgorithm(
+    const std::string& name) const
+{
+    RefineAlgorithmMap::const_iterator alg_it = d_prolong_algs.find(name);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(alg_it != d_prolong_algs.end());
+#endif
+    return alg_it->second;
+}// getProlongRefineAlgorithm
+
+Pointer<CoarsenAlgorithm<NDIM> >
+HierarchyIntegrator::getCoarsenAlgorithm(
+    const std::string& name) const
+{
+    CoarsenAlgorithmMap::const_iterator alg_it = d_coarsen_algs.find(name);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(alg_it != d_coarsen_algs.end());
+#endif
+    return alg_it->second;
+}// getCoarsenAlgorithm
+
+const std::vector<Pointer<RefineSchedule<NDIM> > >&
+HierarchyIntegrator::getGhostfillRefineSchedules(
+    const std::string& name) const
+{
+    RefineScheduleMap::const_iterator sched_it = d_ghostfill_scheds.find(name);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(sched_it != d_ghostfill_scheds.end());
+#endif
+    return sched_it->second;
+}// getGhostfillRefineSchedules
+
+const std::vector<Pointer<RefineSchedule<NDIM> > >&
+HierarchyIntegrator::getProlongRefineSchedules(
+    const std::string& name) const
+{
+    RefineScheduleMap::const_iterator sched_it = d_prolong_scheds.find(name);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(sched_it != d_prolong_scheds.end());
+#endif
+    return sched_it->second;
+}// getProlongRefineSchedules
+
+const std::vector<Pointer<CoarsenSchedule<NDIM> > >&
+HierarchyIntegrator::getCoarsenSchedules(
+    const std::string& name) const
+{
+    CoarsenScheduleMap::const_iterator sched_it = d_coarsen_scheds.find(name);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(sched_it != d_coarsen_scheds.end());
+#endif
+    return sched_it->second;
+}// getCoarsenSchedules
 
 void
 HierarchyIntegrator::registerChildHierarchyIntegrator(
