@@ -34,6 +34,7 @@ $(top_srcdir)/src/utilities/namespaces.h
 
 ## Dimension-dependent libraries
 DIM_INDEPENDENT_SOURCES = \
+$(top_srcdir)/src/IB/GeneralizedIBMethod.C \
 $(top_srcdir)/src/IB/IBAnchorPointSpec.C \
 $(top_srcdir)/src/IB/IBAnchorPointSpecFactory.C \
 $(top_srcdir)/src/IB/IBBeamForceSpec.C \
@@ -94,6 +95,7 @@ $(top_srcdir)/src/IB/IBFEMethod.C
 endif
 
 pkg_include_HEADERS += \
+$(top_srcdir)/src/IB/GeneralizedIBMethod.h \
 $(top_srcdir)/src/IB/IBAnchorPointSpec.I \
 $(top_srcdir)/src/IB/IBAnchorPointSpec.h \
 $(top_srcdir)/src/IB/IBAnchorPointSpecFactory.h \
