@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
+#include <ibamr/IBKirchhoffRodForceGen.h>
 #include <ibamr/IBMethod.h>
 
 // BLITZ++ INCLUDES
@@ -66,6 +67,13 @@ public:
      * \brief Destructor.
      */
     ~GeneralizedIBMethod();
+
+    /*!
+     * Supply a Lagrangian force object.
+     */
+    void
+    registerIBKirchhoffRodForceGen(
+        SAMRAI::tbox::Pointer<IBKirchhoffRodForceGen> ib_force_and_torque_fcn);
 
     /*!
      * Register Eulerian variables with the parent IBHierarchyIntegrator.
@@ -99,7 +107,19 @@ public:
         int num_cycles);
 
     /*!
-     * Advance the positions of the Lagrangian structure using forward Euler.
+     * Interpolate the Eulerian velocity to the curvilinear mesh at the
+     * specified time within the current time interval.
+     */
+    void
+    interpolateVelocity(
+        int u_data_idx,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+        double data_time);
+
+    /*!
+     * Advance the positions of the Lagrangian structure using the forward Euler
+     * method.
      */
     void
     eulerStep(
@@ -107,11 +127,20 @@ public:
         double new_time);
 
     /*!
-     * Advance the positions of the Lagrangian structure using the midpoint
-     * rule.
+     * Advance the positions of the Lagrangian structure using the (explicit)
+     * midpoint rule.
      */
     void
     midpointStep(
+        double current_time,
+        double new_time);
+
+    /*!
+     * Advance the positions of the Lagrangian structure using the (explicit)
+     * trapezoidal rule.
+     */
+    void
+    trapezoidalStep(
         double current_time,
         double new_time);
 
@@ -121,6 +150,16 @@ public:
      */
     void
     computeLagrangianForce(
+        double data_time);
+
+    /*!
+     * Spread the Lagrangian force to the Cartesian grid at the specified time
+     * within the current time interval.
+     */
+    void
+    spreadForce(
+        int f_data_idx,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
         double data_time);
 
     /*!
@@ -154,8 +193,14 @@ protected:
     /*
      * Eulerian variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_w_var, d_n_var;
-    int d_w_idx, d_n_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_f_var, d_w_var, d_n_var;
+    int d_f_idx, d_w_idx, d_n_idx;
+
+    /*
+     * Boolean values tracking whether certain quantities need to be
+     * reinitialized.
+     */
+    bool d_N_current_needs_ghost_fill, d_N_new_needs_ghost_fill;
 
     /*
      * Lagrangian variables.
@@ -163,6 +208,12 @@ protected:
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_D_current_data, d_D_new_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_N_current_data, d_N_new_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_W_current_data, d_W_new_data;
+
+    /*
+     * The force and torque generator.
+     */
+    SAMRAI::tbox::Pointer<IBKirchhoffRodForceGen> d_ib_force_and_torque_fcn;
+    bool d_ib_force_and_torque_fcn_needs_init;
 
 private:
     /*!
@@ -194,6 +245,14 @@ private:
     GeneralizedIBMethod&
     operator=(
         const GeneralizedIBMethod& that);
+
+    /*!
+     * Reset the Lagrangian force function object.
+     */
+    void
+    resetLagrangianForceAndTorqueFunction(
+        double init_data_time,
+        bool initial_time);
 
     /*!
      * Read input values from a given database.

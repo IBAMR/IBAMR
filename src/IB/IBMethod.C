@@ -462,6 +462,29 @@ IBMethod::midpointStep(
     return;
 }// midpointStep
 
+void
+IBMethod::trapezoidalStep(
+    const double current_time,
+    const double new_time)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const double dt = new_time-current_time;
+
+    // Update the value of X^{n+1} using the trapezoidal rule.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+        int ierr;
+        ierr = VecWAXPY(d_X_new_data[ln]->getVec(), 0.5*dt, d_U_current_data[ln]->getVec(), d_X_current_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
+        ierr = VecAXPY(d_X_new_data[ln]->getVec(), 0.5*dt, d_U_new_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
+    }
+    d_X_new_needs_ghost_fill  = true;
+    d_X_half_needs_ghost_fill = true;
+    d_X_half_needs_reinit     = true;
+    return;
+}// trapezoidalStep
+
 bool
 IBMethod::hasFluidSources() const
 {
@@ -1314,6 +1337,37 @@ IBMethod::reinitMidpointData(
     return;
 }// reinitMidpointData
 
+void
+IBMethod::resetAnchorPointValues(
+    std::vector<Pointer<LData> > U_data,
+    const int coarsest_ln,
+    const int finest_ln)
+{
+    PetscErrorCode ierr;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+        const int depth = U_data[ln]->getDepth();
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(depth == NDIM);
+#endif
+        Vec U_vec = U_data[ln]->getVec();
+        double* U_arr;
+        ierr = VecGetArray(U_vec, &U_arr);  IBTK_CHKERRQ(ierr);
+        for (std::set<int>::const_iterator cit = d_anchor_point_local_idxs[ln].begin();
+             cit != d_anchor_point_local_idxs[ln].end(); ++cit)
+        {
+            const int& i = *cit;
+            for (int d = 0; d < depth; ++d)
+            {
+                U_arr[depth*i+d] = 0.0;
+            }
+        }
+        ierr = VecRestoreArray(U_vec, &U_arr);  IBTK_CHKERRQ(ierr);
+    }
+    return;
+}// resetAnchorPointValues
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
@@ -1405,37 +1459,6 @@ IBMethod::updateIBInstrumentationData(
     }
     return;
 }// updateIBInstrumentationData
-
-void
-IBMethod::resetAnchorPointValues(
-    std::vector<Pointer<LData> > U_data,
-    const int coarsest_ln,
-    const int finest_ln)
-{
-    PetscErrorCode ierr;
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        const int depth = U_data[ln]->getDepth();
-#ifdef DEBUG_CHECK_ASSERTIONS
-        TBOX_ASSERT(depth == NDIM);
-#endif
-        Vec U_vec = U_data[ln]->getVec();
-        double* U_arr;
-        ierr = VecGetArray(U_vec, &U_arr);  IBTK_CHKERRQ(ierr);
-        for (std::set<int>::const_iterator cit = d_anchor_point_local_idxs[ln].begin();
-             cit != d_anchor_point_local_idxs[ln].end(); ++cit)
-        {
-            const int& i = *cit;
-            for (int d = 0; d < depth; ++d)
-            {
-                U_arr[depth*i+d] = 0.0;
-            }
-        }
-        ierr = VecRestoreArray(U_vec, &U_arr);  IBTK_CHKERRQ(ierr);
-    }
-    return;
-}// resetAnchorPointValues
 
 void
 IBMethod::getFromInput(

@@ -77,6 +77,11 @@ GeneralizedIBMethod::GeneralizedIBMethod(
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     if (!input_db.isNull()) getFromInput(input_db, from_restart);
+
+    // Indicate all Lagrangian data needs ghost values to be refilled, and that
+    // all intermediate data needs to be initialized.
+    d_N_current_needs_ghost_fill = true;
+    d_N_new_needs_ghost_fill     = true;
     return;
 }// GeneralizedIBMethod
 
@@ -98,17 +103,20 @@ GeneralizedIBMethod::registerEulerianVariables()
 
     const IntVector<NDIM> ib_ghosts = getMinimumGhostCellWidth();
     const IntVector<NDIM>    ghosts = 1;
+    const IntVector<NDIM> no_ghosts = 0;
 
     Pointer<Variable<NDIM> > u_var = d_ib_solver->getINSHierarchyIntegrator()->getVelocityVariable();
     Pointer<CellVariable<NDIM,double> > u_cc_var = u_var;
     Pointer<SideVariable<NDIM,double> > u_sc_var = u_var;
     if (!u_cc_var.isNull())
     {
+        d_f_var = new CellVariable<NDIM,double>(d_object_name+"::f", NDIM);
         d_w_var = new CellVariable<NDIM,double>(d_object_name+"::w", NDIM);
         d_n_var = new CellVariable<NDIM,double>(d_object_name+"::n", NDIM);
     }
     else if (!u_sc_var.isNull())
     {
+        d_f_var = new SideVariable<NDIM,double>(d_object_name+"::f");
         d_w_var = new SideVariable<NDIM,double>(d_object_name+"::w");
         d_n_var = new SideVariable<NDIM,double>(d_object_name+"::n");
     }
@@ -117,6 +125,7 @@ GeneralizedIBMethod::registerEulerianVariables()
         TBOX_ERROR(d_object_name << "::registerEulerianVariables():\n"
                    << "  unsupported velocity data centering" << std::endl);
     }
+    d_f_idx = var_db->registerVariableAndContext(d_f_var, d_ib_solver->getScratchContext(), no_ghosts);
     d_w_idx = var_db->registerVariableAndContext(d_w_var, d_ib_solver->getScratchContext(), ib_ghosts);
     d_n_idx = var_db->registerVariableAndContext(d_n_var, d_ib_solver->getScratchContext(),    ghosts);
     return;
@@ -153,6 +162,17 @@ GeneralizedIBMethod::preprocessIntegrateData(
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const double start_time = d_ib_solver->getStartTime();
+
+    if (!d_ib_force_and_torque_fcn.isNull())
+    {
+        if (d_ib_force_and_torque_fcn_needs_init)
+        {
+            const bool initial_time = MathUtilities<double>::equalEps(current_time, start_time);
+            resetLagrangianForceAndTorqueFunction(current_time, initial_time);
+            d_ib_force_and_torque_fcn_needs_init = false;
+        }
+    }
 
     // Look-up or allocate Lagangian data.
     d_D_current_data.resize(finest_ln+1);
@@ -211,6 +231,58 @@ GeneralizedIBMethod::postprocessIntegrateData(
 }// postprocessIntegrateData
 
 void
+GeneralizedIBMethod::interpolateVelocity(
+    const int u_data_idx,
+    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+    const double data_time)
+{
+    IBMethod::interpolateVelocity(u_data_idx, u_synch_scheds, u_ghost_fill_scheds, data_time);
+
+    std::vector<Pointer<LData> >* X_data = NULL;
+    std::vector<Pointer<LData> >* W_data = NULL;
+    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    {
+        X_data = &d_X_current_data;
+        W_data = &d_W_current_data;
+    }
+    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+    {
+        TBOX_ERROR(d_object_name << "::interpolateVelocity():\n"
+                   << "  time-stepping type MIDPOINT_RULE not supported by class GeneralizedIBMethod;\n"
+                   << "  use TRAPEZOIDAL_RULE instead.\n");
+    }
+    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    {
+        X_data = &d_X_new_data;
+        W_data = &d_W_new_data;
+    }
+
+    Pointer<Variable<NDIM> > u_var = d_ib_solver->getINSHierarchyIntegrator()->getVelocityVariable();
+    Pointer<CellVariable<NDIM,double> > u_cc_var = u_var;
+    Pointer<SideVariable<NDIM,double> > u_sc_var = u_var;
+    if (!u_cc_var.isNull())
+    {
+        Pointer<CellVariable<NDIM,double> > w_cc_var = d_w_var;
+        getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, NULL, data_time);
+    }
+    else if (!u_sc_var.isNull())
+    {
+        Pointer<SideVariable<NDIM,double> > w_sc_var = d_w_var;
+        getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, NULL, data_time);
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << "::spreadForce():\n"
+                   << "  unsupported velocity data centering" << std::endl);
+    }
+    getVelocityHierarchyDataOps()->scale(d_w_idx, 0.5, d_w_idx);
+    d_l_data_manager->interp(d_w_idx, *W_data, *X_data, std::vector<Pointer<CoarsenSchedule<NDIM> > >(), getGhostfillRefineSchedules(d_object_name+"::w"), data_time);
+    resetAnchorPointValues(*W_data, /*coarsest_ln*/ 0, /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
+    return;
+}// interpolateVelocity
+
+void
 GeneralizedIBMethod::eulerStep(
     const double current_time,
     const double new_time)
@@ -219,34 +291,128 @@ GeneralizedIBMethod::eulerStep(
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-//  const double dt = new_time-current_time;
+    const double dt = new_time-current_time;
 
-    // XXXX.
+    // Update the value of D^{n+1} using forward Euler.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+        blitz::Array<double,2>& D_current_data = *d_D_current_data[ln]->getLocalFormVecArray();
+        blitz::Array<double,2>& W_current_data = *d_W_current_data[ln]->getLocalFormVecArray();
+        blitz::Array<double,2>&     D_new_data = *    d_D_new_data[ln]->getLocalFormVecArray();
+        const int n_local = d_l_data_manager->getNumberOfLocalNodes(ln);
+        blitz::Array<double,1> e(3);
+        for (int l = 0; l < n_local; ++l)
+        {
+            for (int d = 0; d < NDIM; ++d)
+            {
+                e(d) = W_current_data(l,d);
+            }
+            const double norm_e = sqrt(e(0)*e(0) + e(1)*e(1) + e(2)*e(2));
+            if (norm_e > std::numeric_limits<double>::epsilon())
+            {
+                const double theta = norm_e*dt;
+                e /= norm_e;
+                const double c_t = cos(theta);
+                const double s_t = sin(theta);
+                blitz::Array<double,2> R(3,3);
+                R(0,0) = c_t + (1.0-c_t)*e(0)*e(0)           ;  R(0,1) =       (1.0-c_t)*e(0)*e(1) - s_t*e(2);  R(0,2) =       (1.0-c_t)*e(0)*e(2) + s_t*e(1);
+                R(1,0) =       (1.0-c_t)*e(1)*e(0) + s_t*e(2);  R(1,1) = c_t + (1.0-c_t)*e(1)*e(1)           ;  R(1,2) =       (1.0-c_t)*e(1)*e(2) - s_t*e(0);
+                R(2,0) =       (1.0-c_t)*e(2)*e(0) - s_t*e(1);  R(2,1) =       (1.0-c_t)*e(2)*e(1) + s_t*e(0);  R(2,2) = c_t + (1.0-c_t)*e(2)*e(2)           ;
+                for (int alpha = 0; alpha < 3; ++alpha)
+                {
+                    blitz::Array<double,1> D_current_alpha(&D_current_data(l,3*alpha), blitz::shape(3), blitz::neverDeleteData);
+                    blitz::Array<double,1>     D_new_alpha(&    D_new_data(l,3*alpha), blitz::shape(3), blitz::neverDeleteData);
+                    blitz:: firstIndex i;
+                    blitz::secondIndex j;
+                    D_new_alpha = blitz::sum(R(i,j)*D_current_alpha(j),j);
+                }
+            }
+            else
+            {
+                for (int alpha = 0; alpha < 3; ++alpha)
+                {
+                    blitz::Array<double,1> D_current_alpha(&D_current_data(l,3*alpha), blitz::shape(3), blitz::neverDeleteData);
+                    blitz::Array<double,1>     D_new_alpha(&    D_new_data(l,3*alpha), blitz::shape(3), blitz::neverDeleteData);
+                    D_new_alpha = D_current_alpha;
+                }
+            }
+        }
     }
     return;
 }// eulerStep
 
 void
 GeneralizedIBMethod::midpointStep(
+    const double /*current_time*/,
+    const double /*new_time*/)
+{
+    TBOX_ERROR(d_object_name << "::midpointStep():\n"
+               << "  time-stepping type MIDPOINT_RULE not supported by class GeneralizedIBMethod;\n"
+               << "  use TRAPEZOIDAL_RULE instead.\n");
+    return;
+}// midpointStep
+
+void
+GeneralizedIBMethod::trapezoidalStep(
     const double current_time,
     const double new_time)
 {
-    IBMethod::midpointStep(current_time, new_time);
+    IBMethod::trapezoidalStep(current_time, new_time);
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-//  const double dt = new_time-current_time;
+    const double dt = new_time-current_time;
 
-    // XXXX.
+    // Update the value of D^{n+1} using the trapezoidal rule.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+        blitz::Array<double,2>& D_current_data = *d_D_current_data[ln]->getLocalFormVecArray();
+        blitz::Array<double,2>& W_current_data = *d_W_current_data[ln]->getLocalFormVecArray();
+        blitz::Array<double,2>&     D_new_data = *    d_D_new_data[ln]->getLocalFormVecArray();
+        blitz::Array<double,2>&     W_new_data = *    d_W_new_data[ln]->getLocalFormVecArray();
+        const int n_local = d_l_data_manager->getNumberOfLocalNodes(ln);
+        blitz::Array<double,1> e(3);
+        for (int l = 0; l < n_local; ++l)
+        {
+            for (int d = 0; d < NDIM; ++d)
+            {
+                e(d) = 0.5*(W_current_data(l,d)+W_new_data(l,d));
+            }
+            const double norm_e = sqrt(e(0)*e(0) + e(1)*e(1) + e(2)*e(2));
+            if (norm_e > std::numeric_limits<double>::epsilon())
+            {
+                const double theta = norm_e*dt;
+                e /= norm_e;
+                const double c_t = cos(theta);
+                const double s_t = sin(theta);
+                blitz::Array<double,2> R(3,3);
+                R(0,0) = c_t + (1.0-c_t)*e(0)*e(0)           ;  R(0,1) =       (1.0-c_t)*e(0)*e(1) - s_t*e(2);  R(0,2) =       (1.0-c_t)*e(0)*e(2) + s_t*e(1);
+                R(1,0) =       (1.0-c_t)*e(1)*e(0) + s_t*e(2);  R(1,1) = c_t + (1.0-c_t)*e(1)*e(1)           ;  R(1,2) =       (1.0-c_t)*e(1)*e(2) - s_t*e(0);
+                R(2,0) =       (1.0-c_t)*e(2)*e(0) - s_t*e(1);  R(2,1) =       (1.0-c_t)*e(2)*e(1) + s_t*e(0);  R(2,2) = c_t + (1.0-c_t)*e(2)*e(2)           ;
+                for (int alpha = 0; alpha < 3; ++alpha)
+                {
+                    blitz::Array<double,1> D_current_alpha(&D_current_data(l,3*alpha), blitz::shape(3), blitz::neverDeleteData);
+                    blitz::Array<double,1>     D_new_alpha(&    D_new_data(l,3*alpha), blitz::shape(3), blitz::neverDeleteData);
+                    blitz:: firstIndex i;
+                    blitz::secondIndex j;
+                    D_new_alpha = blitz::sum(R(i,j)*D_current_alpha(j),j);
+                }
+            }
+            else
+            {
+                for (int alpha = 0; alpha < 3; ++alpha)
+                {
+                    blitz::Array<double,1> D_current_alpha(&D_current_data(l,3*alpha), blitz::shape(3), blitz::neverDeleteData);
+                    blitz::Array<double,1>     D_new_alpha(&    D_new_data(l,3*alpha), blitz::shape(3), blitz::neverDeleteData);
+                    D_new_alpha = D_current_alpha;
+                }
+            }
+        }
     }
     return;
-}// midpointStep
+}// trapezoidalStep
 
 void
 GeneralizedIBMethod::computeLagrangianForce(
@@ -256,30 +422,116 @@ GeneralizedIBMethod::computeLagrangianForce(
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
+    int ierr;
+    std::vector<Pointer<LData> >* F_data = NULL;
+    std::vector<Pointer<LData> >* N_data = NULL;
+    std::vector<Pointer<LData> >* X_data = NULL;
+    std::vector<Pointer<LData> >* D_data = NULL;
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        }
+        d_F_current_needs_ghost_fill = true;
+        d_N_current_needs_ghost_fill = true;
+        F_data = &d_F_current_data;
+        N_data = &d_N_current_data;
+        X_data = &d_X_current_data;
+        D_data = &d_D_current_data;
     }
     else if (MathUtilities<double>::equalEps(data_time, d_half_time))
     {
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        }
+        TBOX_ERROR(d_object_name << "::computeLagrangianForce():\n"
+                   << "  time-stepping type MIDPOINT_RULE not supported by class GeneralizedIBMethod;\n"
+                   << "  use TRAPEZOIDAL_RULE instead.\n");
     }
     else if (MathUtilities<double>::equalEps(data_time, d_new_time))
     {
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        }
+        d_F_new_needs_ghost_fill = true;
+        d_N_new_needs_ghost_fill = true;
+        F_data = &d_F_new_data;
+        N_data = &d_N_new_data;
+        X_data = &d_X_new_data;
+        D_data = &d_D_new_data;
     }
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+        ierr = VecSet((*N_data)[ln]->getVec(), 0.0);  IBTK_CHKERRQ(ierr);
+        if (d_ib_force_and_torque_fcn.isNull()) continue;
+        d_ib_force_and_torque_fcn->computeLagrangianForceAndTorque((*F_data)[ln], (*N_data)[ln], (*X_data)[ln], (*D_data)[ln], d_hierarchy, ln, data_time, d_l_data_manager);
+    }
+    resetAnchorPointValues(*F_data, coarsest_ln, finest_ln);
+    resetAnchorPointValues(*D_data, coarsest_ln, finest_ln);
     return;
 }// computeLagrangianForce
+
+void
+GeneralizedIBMethod::spreadForce(
+    const int f_data_idx,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+    const double data_time)
+{
+    IBMethod::spreadForce(f_data_idx, f_prolongation_scheds, data_time);
+
+    std::vector<Pointer<LData> >* N_data = NULL;
+    std::vector<Pointer<LData> >* X_data = NULL;
+    bool* N_needs_ghost_fill = NULL;
+    bool* X_needs_ghost_fill = NULL;
+    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    {
+        N_data = &d_N_current_data;
+        X_data = &d_X_current_data;
+        N_needs_ghost_fill = &d_N_current_needs_ghost_fill;
+        X_needs_ghost_fill = &d_X_current_needs_ghost_fill;
+    }
+    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+    {
+        TBOX_ERROR(d_object_name << "::spreadForce():\n"
+                   << "  time-stepping type MIDPOINT_RULE not supported by class GeneralizedIBMethod;\n"
+                   << "  use TRAPEZOIDAL_RULE instead.\n");
+    }
+    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    {
+        N_data = &d_N_new_data;
+        X_data = &d_X_new_data;
+        N_needs_ghost_fill = &d_N_new_needs_ghost_fill;
+        X_needs_ghost_fill = &d_X_new_needs_ghost_fill;
+    }
+
+    getVelocityHierarchyDataOps()->setToScalar(d_n_idx, 0.0, false);
+    d_l_data_manager->spread(d_n_idx, *N_data, *X_data, std::vector<Pointer<RefineSchedule<NDIM> > >(), *N_needs_ghost_fill, *X_needs_ghost_fill);
+    *N_needs_ghost_fill = false;
+    *X_needs_ghost_fill = false;
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& n_ghostfill_scheds = getGhostfillRefineSchedules(d_object_name+"::n");
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        n_ghostfill_scheds[ln]->fillData(data_time);
+    }
+    Pointer<Variable<NDIM> > u_var = d_ib_solver->getINSHierarchyIntegrator()->getVelocityVariable();
+    Pointer<CellVariable<NDIM,double> > u_cc_var = u_var;
+    Pointer<SideVariable<NDIM,double> > u_sc_var = u_var;
+    if (!u_cc_var.isNull())
+    {
+        Pointer<CellVariable<NDIM,double> > f_cc_var = d_f_var;
+        Pointer<CellVariable<NDIM,double> > n_cc_var = d_n_var;
+        getHierarchyMathOps()->curl(d_f_idx, f_cc_var, d_n_idx, n_cc_var, NULL, data_time);
+    }
+    else if (!u_sc_var.isNull())
+    {
+        Pointer<SideVariable<NDIM,double> > f_sc_var = d_f_var;
+        Pointer<SideVariable<NDIM,double> > n_sc_var = d_n_var;
+        getHierarchyMathOps()->curl(d_f_idx, f_sc_var, d_n_idx, n_sc_var, NULL, data_time);
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << "::spreadForce():\n"
+                   << "  unsupported velocity data centering" << std::endl);
+    }
+    getVelocityHierarchyDataOps()->scale(d_f_idx, 0.5, d_f_idx);
+    getVelocityHierarchyDataOps()->add(f_data_idx, f_data_idx, d_f_idx);
+    return;
+}// spreadForce
 
 void
 GeneralizedIBMethod::initializePatchHierarchy(
@@ -323,7 +575,36 @@ GeneralizedIBMethod::initializePatchHierarchy(
             }
         }
 
-        TBOX_ERROR("need to initialize W\n");
+        // Initialize the interpolated velocity field.
+        std::vector<Pointer<LData> > X_data(finest_ln+1);
+        std::vector<Pointer<LData> > W_data(finest_ln+1);
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+            X_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
+            W_data[ln] = d_l_data_manager->getLData("W",ln);
+        }
+        Pointer<Variable<NDIM> > u_var = d_ib_solver->getINSHierarchyIntegrator()->getVelocityVariable();
+        Pointer<CellVariable<NDIM,double> > u_cc_var = u_var;
+        Pointer<SideVariable<NDIM,double> > u_sc_var = u_var;
+        if (!u_cc_var.isNull())
+        {
+            Pointer<CellVariable<NDIM,double> > w_cc_var = d_w_var;
+            getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, NULL, init_data_time);
+        }
+        else if (!u_sc_var.isNull())
+        {
+            Pointer<SideVariable<NDIM,double> > w_sc_var = d_w_var;
+            getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, NULL, init_data_time);
+        }
+        else
+        {
+            TBOX_ERROR(d_object_name << "::spreadForce():\n"
+                       << "  unsupported velocity data centering" << std::endl);
+        }
+        getVelocityHierarchyDataOps()->scale(d_w_idx, 0.5, d_w_idx);
+        d_l_data_manager->interp(d_w_idx, W_data, X_data, std::vector<Pointer<CoarsenSchedule<NDIM> > >(), getGhostfillRefineSchedules(d_object_name+"::w"), init_data_time);
+        resetAnchorPointValues(W_data, coarsest_ln, finest_ln);
     }
     return;
 }// initializePatchHierarchy

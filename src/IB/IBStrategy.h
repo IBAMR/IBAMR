@@ -161,7 +161,8 @@ public:
         double data_time) = 0;
 
     /*!
-     * Advance the positions of the Lagrangian structure using forward Euler.
+     * Advance the positions of the Lagrangian structure using the forward Euler
+     * method.
      */
     virtual void
     eulerStep(
@@ -169,11 +170,20 @@ public:
         double new_time) = 0;
 
     /*!
-     * Advance the positions of the Lagrangian structure using the midpoint
-     * rule.
+     * Advance the positions of the Lagrangian structure using the (explicit)
+     * midpoint rule.
      */
     virtual void
     midpointStep(
+        double current_time,
+        double new_time) = 0;
+
+    /*!
+     * Advance the positions of the Lagrangian structure using the (explicit)
+     * trapezoidal rule.
+     */
+    virtual void
+    trapezoidalStep(
         double current_time,
         double new_time) = 0;
 

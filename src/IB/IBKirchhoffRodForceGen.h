@@ -101,7 +101,6 @@ public:
         SAMRAI::tbox::Pointer<IBTK::LData> N_data,
         SAMRAI::tbox::Pointer<IBTK::LData> X_data,
         SAMRAI::tbox::Pointer<IBTK::LData> D_data,
-        SAMRAI::tbox::Pointer<IBTK::LData> U_data,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         int level_number,
         double data_time,

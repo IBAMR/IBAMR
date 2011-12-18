@@ -232,6 +232,47 @@ PenaltyIBMethod::midpointStep(
 }// midpointStep
 
 void
+PenaltyIBMethod::trapezoidalStep(
+    const double current_time,
+    const double new_time)
+{
+    IBMethod::trapezoidalStep(current_time, new_time);
+
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const double dt = new_time-current_time;
+
+    // Update the values of Y^{n+1} and V^{n+1} using the trapezoidal rule.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+        const double* const restrict      K =         d_K_data[ln]->getLocalFormArray()   ->data();
+        const double* const restrict      M =         d_M_data[ln]->getLocalFormArray()   ->data();
+        const double* const restrict      X = d_X_current_data[ln]->getLocalFormVecArray()->data();
+        const double* const restrict      Y = d_Y_current_data[ln]->getLocalFormVecArray()->data();
+        const double* const restrict      V = d_V_current_data[ln]->getLocalFormVecArray()->data();
+        const double* const restrict  X_new =     d_X_new_data[ln]->getLocalFormVecArray()->data();
+        double* const restrict        Y_new =     d_Y_new_data[ln]->getLocalFormVecArray()->data();
+        double* const restrict        V_new =     d_V_new_data[ln]->getLocalFormVecArray()->data();
+        const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
+        unsigned int i, d;
+        double X_half, Y_half, V_half;
+        for (i = 0; i < n_local; ++i)
+        {
+            for (d = 0; d < NDIM; ++d)
+            {
+                X_half = 0.5*(X[NDIM*i+d]+X_new[NDIM*i+d]);
+                Y_half = 0.5*(Y[NDIM*i+d]+Y_new[NDIM*i+d]);
+                V_half = 0.5*(V[NDIM*i+d]+V_new[NDIM*i+d]);
+                Y_new[NDIM*i+d] = Y[NDIM*i+d] + dt*V_half;
+                V_new[NDIM*i+d] = V[NDIM*i+d] + dt*(-K[i]*(Y_half-X_half)/M[i] + d_gravitational_acceleration[d]);
+            }
+        }
+    }
+    return;
+}// trapezoidalStep
+
+void
 PenaltyIBMethod::computeLagrangianForce(
     const double data_time)
 {

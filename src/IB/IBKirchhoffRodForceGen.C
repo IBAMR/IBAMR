@@ -425,7 +425,6 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     Pointer<LData> N_data,
     Pointer<LData> X_data,
     Pointer<LData> D_data,
-    Pointer<LData> /*U_data*/,
     const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     const int level_number,
     const double /*data_time*/,
