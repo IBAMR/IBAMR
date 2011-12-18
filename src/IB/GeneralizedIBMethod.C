@@ -110,8 +110,6 @@ GeneralizedIBMethod::registerEulerianVariables()
 {
     IBMethod::registerEulerianVariables();
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-
     const IntVector<NDIM> ib_ghosts = getMinimumGhostCellWidth();
     const IntVector<NDIM>    ghosts = 1;
     const IntVector<NDIM> no_ghosts = 0;
@@ -136,9 +134,9 @@ GeneralizedIBMethod::registerEulerianVariables()
         TBOX_ERROR(d_object_name << "::registerEulerianVariables():\n"
                    << "  unsupported velocity data centering" << std::endl);
     }
-    d_f_idx = var_db->registerVariableAndContext(d_f_var, d_ib_solver->getScratchContext(), no_ghosts);
-    d_w_idx = var_db->registerVariableAndContext(d_w_var, d_ib_solver->getScratchContext(), ib_ghosts);
-    d_n_idx = var_db->registerVariableAndContext(d_n_var, d_ib_solver->getScratchContext(),    ghosts);
+    registerVariable(d_f_idx, d_f_var, no_ghosts, d_ib_solver->getScratchContext());
+    registerVariable(d_w_idx, d_w_var, ib_ghosts, d_ib_solver->getScratchContext());
+    registerVariable(d_n_idx, d_n_var,    ghosts, d_ib_solver->getScratchContext());
     return;
 }// registerEulerianVariables
 
@@ -592,7 +590,6 @@ GeneralizedIBMethod::initializePatchHierarchy(
         std::vector<Pointer<LData> > W_data(finest_ln+1);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            d_hierarchy->getPatchLevel(ln)->allocatePatchData(d_w_idx);
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
             X_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
             W_data[ln] = d_l_data_manager->getLData("W",ln);

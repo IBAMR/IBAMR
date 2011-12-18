@@ -996,7 +996,7 @@ HierarchyIntegrator::registerVariable(
 
     // Setup the scratch context.
     idx = var_db->registerVariableAndContext(variable, ctx, ghosts);
-    if (ctx == getCurrentContext())
+    if (*ctx == *getCurrentContext())
     {
         d_current_data.setFlag(idx);
         if (d_registered_for_restart)
@@ -1004,14 +1004,14 @@ HierarchyIntegrator::registerVariable(
             var_db->registerPatchDataForRestart(idx);
         }
     }
-    else if (ctx == getScratchContext()) d_scratch_data.setFlag(idx);
-    else if (ctx == getNewContext()    ) d_new_data    .setFlag(idx);
+    else if (*ctx == *getScratchContext()) d_scratch_data.setFlag(idx);
+    else if (*ctx == *getNewContext()    ) d_new_data    .setFlag(idx);
     else
     {
         TBOX_ERROR(d_object_name << "::registerVariable():\n"
                    << "  unrecognized variable context: " << ctx->getName() << "\n"
                    << "  variable context should be one of:\n"
-                   << "    " << getCurrentContext()->getName() << ", " << getNewContext()->getName() << ", or " << getCurrentContext()->getName() << std::endl);
+                   << "    " << getCurrentContext()->getName() << ", " << getNewContext()->getName() << ", or " << getScratchContext()->getName() << std::endl);
     }
     return;
 }// registerVariable
