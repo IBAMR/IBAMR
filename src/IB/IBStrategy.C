@@ -45,6 +45,7 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/IBHierarchyIntegrator.h>
 #include <ibamr/namespaces.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -74,6 +75,20 @@ IBStrategy::registerIBHierarchyIntegrator(
     d_ib_solver = ib_solver;
     return;
 }// registerIBHierarchyIntegrator
+
+void
+IBStrategy::registerEulerianVariables()
+{
+    // intentionally blank
+    return;
+}// registerEulerianVariables
+
+void
+IBStrategy::registerEulerianCommunicationAlgorithms()
+{
+    // intentionally blank
+    return;
+}// registerEulerianCommunicationAlgorithms
 
 void
 IBStrategy::preprocessIntegrateData(
@@ -149,7 +164,7 @@ IBStrategy::postprocessSolveFluidEquations(
     // intentionally blank
     return;
 }// postprocessSolveFluidEquations
-    
+
 void
 IBStrategy::postprocessData(
     Pointer<PatchHierarchy<NDIM> > /*hierarchy*/)
@@ -255,6 +270,134 @@ IBStrategy::putToDatabase(
 }// putToDatabase
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
+
+Pointer<HierarchyDataOpsReal<NDIM,double> >
+IBStrategy::getVelocityHierarchyDataOps() const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_ib_solver != NULL);
+#endif
+    return d_ib_solver->d_hier_velocity_data_ops;
+}// getVelocityHierarchyDataOps
+
+Pointer<HierarchyDataOpsReal<NDIM,double> >
+IBStrategy::getPressureHierarchyDataOps() const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_ib_solver != NULL);
+#endif
+    return d_ib_solver->d_hier_pressure_data_ops;
+}// getPressureHierarchyDataOps
+
+Pointer<HierarchyMathOps>
+IBStrategy::getHierarchyMathOps() const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_ib_solver != NULL);
+#endif
+    return d_ib_solver->d_hier_math_ops;
+}// getHierarchyMathOps
+
+void
+IBStrategy::registerVariable(
+    int& current_idx,
+    int& new_idx,
+    int& scratch_idx,
+    Pointer<Variable<NDIM> > variable,
+    const IntVector<NDIM>& scratch_ghosts,
+    const std::string& coarsen_name,
+    const std::string& refine_name,
+    Pointer<CartGridFunction> init_fcn)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_ib_solver != NULL);
+#endif
+    d_ib_solver->registerVariable(current_idx, new_idx, scratch_idx, variable, scratch_ghosts, coarsen_name, refine_name, init_fcn);
+    return;
+}// registerVariable
+
+void
+IBStrategy::registerVariable(
+    int& idx,
+    Pointer<Variable<NDIM> > variable,
+    const IntVector<NDIM>& ghosts,
+    Pointer<VariableContext> ctx)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_ib_solver != NULL);
+#endif
+    d_ib_solver->registerVariable(idx, variable, ghosts, ctx);
+    return;
+}// registerVariable
+
+void
+IBStrategy::registerGhostfillRefineAlgorithm(
+    const std::string& name,
+    Pointer<RefineAlgorithm<NDIM> > ghostfill_alg,
+    RefinePatchStrategy<NDIM>* ghostfill_patch_strategy)
+{
+    d_ib_solver->registerGhostfillRefineAlgorithm(name, ghostfill_alg, ghostfill_patch_strategy);
+}// registerGhostfillRefineAlgorithm
+
+void
+IBStrategy::registerProlongRefineAlgorithm(
+    const std::string& name,
+    Pointer<RefineAlgorithm<NDIM> > prolong_alg,
+    RefinePatchStrategy<NDIM>* prolong_patch_strategy)
+{
+    d_ib_solver->registerProlongRefineAlgorithm(name, prolong_alg, prolong_patch_strategy);
+}// registerProlongRefineAlgorithm
+
+void
+IBStrategy::registerCoarsenAlgorithm(
+    const std::string& name,
+    Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg,
+    CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy)
+{
+    d_ib_solver->registerCoarsenAlgorithm(name, coarsen_alg, coarsen_patch_strategy);
+}// registerCoarsenAlgorithm
+
+Pointer<RefineAlgorithm<NDIM> >
+IBStrategy::getGhostfillRefineAlgorithm(
+    const std::string& name) const
+{
+    return d_ib_solver->getGhostfillRefineAlgorithm(name);
+}// getGhostfillRefineAlgorithm
+
+Pointer<RefineAlgorithm<NDIM> >
+IBStrategy::getProlongRefineAlgorithm(
+    const std::string& name) const
+{
+    return d_ib_solver->getProlongRefineAlgorithm(name);
+}// getProlongRefineAlgorithm
+
+Pointer<CoarsenAlgorithm<NDIM> >
+IBStrategy::getCoarsenAlgorithm(
+    const std::string& name) const
+{
+    return d_ib_solver->getCoarsenAlgorithm(name);
+}// getCoarsenAlgorithm
+
+const std::vector<Pointer<RefineSchedule<NDIM> > >&
+IBStrategy::getGhostfillRefineSchedules(
+    const std::string& name) const
+{
+    return d_ib_solver->getGhostfillRefineSchedules(name);
+}// getGhostfillRefineSchedules
+
+const std::vector<Pointer<RefineSchedule<NDIM> > >&
+IBStrategy::getProlongRefineSchedules(
+    const std::string& name) const
+{
+    return d_ib_solver->getProlongRefineSchedules(name);
+}// getProlongRefineSchedules
+
+const std::vector<Pointer<CoarsenSchedule<NDIM> > >&
+IBStrategy::getCoarsenSchedules(
+    const std::string& name) const
+{
+    return d_ib_solver->getCoarsenSchedules(name);
+}// getCoarsenSchedules
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -264,7 +264,7 @@ IBMethod::preprocessIntegrateData(
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double start_time = d_ib_solver->d_start_time;
+    const double start_time = d_ib_solver->getStartTime();
 
     if (!d_ib_force_fcn.isNull())
     {
@@ -641,7 +641,7 @@ IBMethod::spreadFluidSource(
     }
 
     // Spread the sources/sinks onto the Cartesian grid.
-    d_ib_solver->d_hier_pressure_cc_data_ops->setToScalar(q_data_idx, 0.0);
+    getPressureHierarchyDataOps()->setToScalar(q_data_idx, 0.0);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_n_src[ln] == 0) continue;
@@ -695,7 +695,7 @@ IBMethod::spreadFluidSource(
     }
 
     // Compute the net inflow into the computational domain.
-    const int wgt_idx = d_ib_solver->d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+    const int wgt_idx = getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
     PatchCellDataOpsReal<NDIM,double> patch_cc_data_ops;
     double Q_sum = 0.0;
     double Q_max = 0.0;
@@ -707,7 +707,7 @@ IBMethod::spreadFluidSource(
             Q_max = std::max(Q_max,std::abs(d_Q_src[ln][k]));
         }
     }
-    const double q_total = d_ib_solver->d_hier_pressure_cc_data_ops->integral(q_data_idx, wgt_idx);
+    const double q_total = getPressureHierarchyDataOps()->integral(q_data_idx, wgt_idx);
     if (std::abs(q_total-Q_sum)                     > 1.0e-12 &&
         std::abs(q_total-Q_sum)/std::max(Q_max,1.0) > 1.0e-12)
     {
@@ -765,8 +765,8 @@ IBMethod::spreadFluidSource(
                 }
             }
         }
-        const double integral_q = d_ib_solver->d_hier_pressure_cc_data_ops->integral(q_data_idx, wgt_idx);
-        if (std::abs(integral_q) > 1.0e-10*std::max(1.0,d_ib_solver->d_hier_pressure_cc_data_ops->maxNorm(q_data_idx, wgt_idx)))
+        const double integral_q = getPressureHierarchyDataOps()->integral(q_data_idx, wgt_idx);
+        if (std::abs(integral_q) > 1.0e-10*std::max(1.0,getPressureHierarchyDataOps()->maxNorm(q_data_idx, wgt_idx)))
         {
             TBOX_ERROR(d_object_name << "::spreadFluidSource():\n"
                        << "  ``external'' source/sink does not correctly offset net inflow/outflow into domain.\n"
@@ -818,7 +818,7 @@ IBMethod::interpolatePressure(
     double p_norm = 0.0;
     if (d_normalize_source_strength)
     {
-        const int wgt_idx = d_ib_solver->d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+        const int wgt_idx = getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
         Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
@@ -930,13 +930,13 @@ IBMethod::postprocessData(
 {
     if (d_post_processor.isNull()) return;
 
-    INSHierarchyIntegrator* ins_hier_integrator = d_ib_solver->d_ins_hier_integrator;
+    INSHierarchyIntegrator* ins_hier_integrator = d_ib_solver->getINSHierarchyIntegrator();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(ins_hier_integrator-> getVelocityVariable(), ins_hier_integrator->getCurrentContext());
     const int p_current_idx = var_db->mapVariableAndContextToIndex(ins_hier_integrator-> getPressureVariable(), ins_hier_integrator->getCurrentContext());
     const int f_current_idx = var_db->mapVariableAndContextToIndex(ins_hier_integrator->getBodyForceVariable(), ins_hier_integrator->getCurrentContext());
 
-    const double current_time = d_ib_solver->d_integrator_time;
+    const double current_time = d_ib_solver->getIntegratorTime();
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
@@ -957,7 +957,7 @@ IBMethod::postprocessData(
     // configuration X(n) and velocity U(n) at time t_{n}.
     if (d_ib_force_fcn_needs_init)
     {
-        const bool initial_time = MathUtilities<double>::equalEps(current_time,d_ib_solver->d_start_time);
+        const bool initial_time = MathUtilities<double>::equalEps(current_time,d_ib_solver->getStartTime());
         resetLagrangianForceFunction(current_time, initial_time);
         d_ib_force_fcn_needs_init = false;
     }
@@ -1372,7 +1372,7 @@ IBMethod::updateIBInstrumentationData(
     d_instrument_panel->initializeHierarchyDependentData(d_hierarchy, d_l_data_manager, timestep_num, data_time);
 
     // Compute the flow rates and pressures.
-    INSHierarchyIntegrator* ins_hier_integrator = d_ib_solver->d_ins_hier_integrator;
+    INSHierarchyIntegrator* ins_hier_integrator = d_ib_solver->getINSHierarchyIntegrator();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_scratch_idx = var_db->mapVariableAndContextToIndex(ins_hier_integrator->getVelocityVariable(), ins_hier_integrator->getScratchContext());
     const int p_scratch_idx = var_db->mapVariableAndContextToIndex(ins_hier_integrator->getPressureVariable(), ins_hier_integrator->getScratchContext());
@@ -1392,7 +1392,7 @@ IBMethod::updateIBInstrumentationData(
             deallocate_p_scratch_data[ln] = true;
             level->allocatePatchData(p_scratch_idx, data_time);
         }
-        d_ib_solver->getGhostfillRefineSchedules(d_ib_solver->getName()+"::INSTRUMENTATION_DATA_FILL")[ln]->fillData(data_time);
+        getGhostfillRefineSchedules(d_ib_solver->getName()+"::INSTRUMENTATION_DATA_FILL")[ln]->fillData(data_time);
     }
 
     d_instrument_panel->readInstrumentData(u_scratch_idx, p_scratch_idx, d_hierarchy, d_l_data_manager, timestep_num, data_time);

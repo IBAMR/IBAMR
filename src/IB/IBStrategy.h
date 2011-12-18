@@ -35,9 +35,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// PETSC INCLUDES
+#include <petscsys.h>
+
+// IBTK INCLUDES
+#include <ibtk/CartGridFunction.h>
+#include <ibtk/HierarchyMathOps.h>
+
 // SAMRAI INCLUDES
 #include <CoarsenSchedule.h>
 #include <GriddingAlgorithm.h>
+#include <HierarchyDataOpsReal.h>
 #include <LoadBalancer.h>
 #include <RefineSchedule.h>
 #include <StandardTagAndInitStrategy.h>
@@ -80,14 +88,40 @@ public:
     /*!
      * Register the IBHierarchyIntegrator object that is using this strategy
      * class.
+     *
+     * An empty default implementation is provided.
      */
     void
     registerIBHierarchyIntegrator(
         IBHierarchyIntegrator* ib_solver);
 
     /*!
+     * Register Eulerian variables with the parent IBHierarchyIntegrator with
+     * the VariableDatabase, or via the various versions of the protected method
+     * IBStrategy::registerVariable().
+     *
+     * An empty default implementation is provided.
+     */
+    virtual void
+    registerEulerianVariables();
+
+    /*!
+     * Register Eulerian refinement or coarsening algorithms with the parent
+     * IBHierarchyIntegrator using the two versions of the protected methods
+     * IBStrategy::registerGhostfillRefineAlgorithm(),
+     * IBStrategy::registerProlongRefineAlgorithm(), and
+     * IBStrategy::registerCoarsenAlgorithm().
+     *
+     * An empty default implementation is provided.
+     */
+    virtual void
+    registerEulerianCommunicationAlgorithms();
+
+    /*!
      * Return the number of ghost cells required by the Lagrangian-Eulerian
      * interaction routines.
+     *
+     * An empty default implementation is provided.
      */
     virtual const SAMRAI::hier::IntVector<NDIM>&
     getMinimumGhostCellWidth() const = 0;
@@ -214,7 +248,7 @@ public:
         double current_time,
         double new_time,
         int cycle_num);
- 
+
     /*!
      * Execute user-defined routines just after solving the fluid equations.
      *
@@ -225,7 +259,7 @@ public:
         double current_time,
         double new_time,
         int cycle_num);
-   
+
     /*!
      * Execute user-defined post-processing operations.
      *
@@ -358,6 +392,134 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
 protected:
+    /*!
+     * Return a pointer to the HierarchyDataOpsReal object associated with
+     * velocity-like variables.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM,double> >
+    getVelocityHierarchyDataOps() const;
+
+    /*!
+     * Return a pointer to the HierarchyDataOpsReal object associated with
+     * pressure-like variables.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM,double> >
+    getPressureHierarchyDataOps() const;
+
+    /*!
+     * Return a pointer to a HierarchyMathOps object.
+     */
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps>
+    getHierarchyMathOps() const;
+
+    /*!
+     * Register a state variable with the integrator.  When a refine operator is
+     * specified, the data for the variable are automatically maintained as the
+     * patch hierarchy evolves.
+     *
+     * All state variables are registered with three contexts: current, new, and
+     * scratch.  The current context of a state variable is maintained from time
+     * step to time step and, if the necessary coarsen and refine operators are
+     * specified, as the patch hierarchy evolves.
+     */
+    void
+    registerVariable(
+        int& current_idx,
+        int& new_idx,
+        int& scratch_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
+        const SAMRAI::hier::IntVector<NDIM>& scratch_ghosts=SAMRAI::hier::IntVector<NDIM>(0),
+        const std::string& coarsen_name="NO_COARSEN",
+        const std::string& refine_name="NO_REFINE",
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> init_fcn=SAMRAI::tbox::Pointer<IBTK::CartGridFunction>(NULL));
+
+    /*!
+     * Register a variable with the integrator that may not be maintained from
+     * time step to time step.
+     *
+     * By default, variables are registered with the scratch context, which is
+     * deallocated after each time step.
+     */
+    void
+    registerVariable(
+        int& idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
+        const SAMRAI::hier::IntVector<NDIM>& ghosts=SAMRAI::hier::IntVector<NDIM>(0),
+        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx=SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>(NULL));
+
+    /*!
+     * Register a ghost cell-filling refine algorithm.
+     */
+    void
+    registerGhostfillRefineAlgorithm(
+        const std::string& name,
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > ghostfill_alg,
+        SAMRAI::xfer::RefinePatchStrategy<NDIM>* ghostfill_patch_strategy=NULL);
+
+    /*!
+     * Register a data-prolonging refine algorithm.
+     */
+    void
+    registerProlongRefineAlgorithm(
+        const std::string& name,
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > prolong_alg,
+        SAMRAI::xfer::RefinePatchStrategy<NDIM>* prolong_patch_strategy=NULL);
+
+    /*!
+     * Register a coarsen algorithm.
+     */
+    void
+    registerCoarsenAlgorithm(
+        const std::string& name,
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > coarsen_alg,
+        SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy=NULL);
+
+    /*!
+     * Get ghost cell-filling refine algorithm.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >
+    getGhostfillRefineAlgorithm(
+        const std::string& name) const;
+
+    /*!
+     * Get data-prolonging refine algorithm.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >
+    getProlongRefineAlgorithm(
+        const std::string& name) const;
+
+    /*!
+     * Get coarsen algorithm.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> >
+    getCoarsenAlgorithm(
+        const std::string& name) const;
+
+    /*!
+     * Get ghost cell-filling refine schedules.
+     */
+    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+    getGhostfillRefineSchedules(
+        const std::string& name) const;
+
+    /*!
+     * Get data-prolonging refine schedules.
+     *
+     * \note These schedules are allocated only for level numbers >= 1.
+     */
+    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+    getProlongRefineSchedules(
+        const std::string& name) const;
+
+    /*!
+     * Get coarsen schedules.
+     *
+     * \note These schedules are allocated only for level numbers >= 1.
+     */
+    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >&
+    getCoarsenSchedules(
+        const std::string& name) const;
+
     /*!
      * The IBHierarchyIntegrator object that is using this strategy class.
      */
