@@ -95,6 +95,17 @@ GeneralizedIBMethod::~GeneralizedIBMethod()
 }// ~GeneralizedIBMethod
 
 void
+GeneralizedIBMethod::registerIBKirchhoffRodForceGen(
+    Pointer<IBKirchhoffRodForceGen> ib_force_and_torque_fcn)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!ib_force_and_torque_fcn.isNull());
+#endif
+    d_ib_force_and_torque_fcn = ib_force_and_torque_fcn;
+    return;
+}// registerIBKirchhoffRodForceGen
+
+void
 GeneralizedIBMethod::registerEulerianVariables()
 {
     IBMethod::registerEulerianVariables();
@@ -621,6 +632,20 @@ GeneralizedIBMethod::putToDatabase(
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+GeneralizedIBMethod::resetLagrangianForceAndTorqueFunction(
+    const double init_data_time,
+    const bool initial_time)
+{
+    if (d_ib_force_and_torque_fcn.isNull()) return;
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+        d_ib_force_and_torque_fcn->initializeLevelData(d_hierarchy, ln, init_data_time, initial_time, d_l_data_manager);
+    }
+    return;
+}// resetLagrangianForceAndTorqueFunction
 
 void
 GeneralizedIBMethod::getFromInput(
