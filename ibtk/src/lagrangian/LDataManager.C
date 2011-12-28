@@ -383,6 +383,7 @@ LDataManager::spread(
             {
                 f_data_ops->resetLevels(ln,ln);
                 f_data_ops->setToScalar(f_data_idx, 0.0);
+                f_data_ops->resetLevels(coarsest_ln, finest_ln);
             }
 
             if (!levelContainsLagrangianData(ln)) continue;
