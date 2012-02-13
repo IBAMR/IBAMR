@@ -1447,7 +1447,7 @@ IBStandardInitializer::readRodFiles()
                     // Initialize the map data corresponding to the present rod.
                     //
                     // Note that in the rod property map, each edge is
-                    // associated with only the "cur1rent" vertex.
+                    // associated with only the "current" vertex.
                     RodSpec& rod_spec = d_rod_spec_data[ln][j][e];
                     rod_spec.properties = properties;
 #if ENABLE_SUBDOMAIN_INDICES
