@@ -131,7 +131,6 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.C \
 	$(top_srcdir)/src/advect/AdvectHypPatchOps.C \
 	$(top_srcdir)/src/advect/GodunovAdvector.C \
-	$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C \
 	$(top_srcdir)/src/navier_stokes/ConvectiveOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.C \
@@ -199,7 +198,6 @@ am__objects_2 = libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR2d_a-AdvDiffHypPatchOps.$(OBJEXT) \
 	libIBAMR2d_a-AdvectHypPatchOps.$(OBJEXT) \
 	libIBAMR2d_a-GodunovAdvector.$(OBJEXT) \
-	libIBAMR2d_a-HierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-ConvectiveOperator.$(OBJEXT) \
 	libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.$(OBJEXT) \
 	libIBAMR2d_a-INSCollocatedHierarchyIntegrator.$(OBJEXT) \
@@ -268,7 +266,6 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.C \
 	$(top_srcdir)/src/advect/AdvectHypPatchOps.C \
 	$(top_srcdir)/src/advect/GodunovAdvector.C \
-	$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C \
 	$(top_srcdir)/src/navier_stokes/ConvectiveOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.C \
@@ -336,7 +333,6 @@ am__objects_4 = libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR3d_a-AdvDiffHypPatchOps.$(OBJEXT) \
 	libIBAMR3d_a-AdvectHypPatchOps.$(OBJEXT) \
 	libIBAMR3d_a-GodunovAdvector.$(OBJEXT) \
-	libIBAMR3d_a-HierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-ConvectiveOperator.$(OBJEXT) \
 	libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.$(OBJEXT) \
 	libIBAMR3d_a-INSCollocatedHierarchyIntegrator.$(OBJEXT) \
@@ -433,7 +429,6 @@ am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.h \
 	$(top_srcdir)/src/advect/AdvectHypPatchOps.h \
 	$(top_srcdir)/src/advect/GodunovAdvector.h \
-	$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.h \
 	$(top_srcdir)/src/navier_stokes/ConvectiveOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.h \
@@ -836,7 +831,6 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.h \
 	$(top_srcdir)/src/advect/AdvectHypPatchOps.h \
 	$(top_srcdir)/src/advect/GodunovAdvector.h \
-	$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.h \
 	$(top_srcdir)/src/navier_stokes/ConvectiveOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.h \
@@ -891,7 +885,6 @@ DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/IB/GeneralizedIBMethod.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.C \
 	$(top_srcdir)/src/advect/AdvectHypPatchOps.C \
 	$(top_srcdir)/src/advect/GodunovAdvector.C \
-	$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C \
 	$(top_srcdir)/src/navier_stokes/ConvectiveOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.C \
@@ -1031,7 +1024,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-GeneralizedIBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-GodunovAdvector.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-HierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBBeamForceSpec.Po@am__quote@
@@ -1086,7 +1078,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-GodunovAdvector.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-HierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBBeamForceSpec.Po@am__quote@
@@ -1653,20 +1644,6 @@ libIBAMR2d_a-GodunovAdvector.obj: $(top_srcdir)/src/advect/GodunovAdvector.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/advect/GodunovAdvector.C' object='libIBAMR2d_a-GodunovAdvector.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-GodunovAdvector.obj `if test -f '$(top_srcdir)/src/advect/GodunovAdvector.C'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/GodunovAdvector.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/GodunovAdvector.C'; fi`
-
-libIBAMR2d_a-HierarchyIntegrator.o: $(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-HierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-HierarchyIntegrator.Tpo -c -o libIBAMR2d_a-HierarchyIntegrator.o `test -f '$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-HierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR2d_a-HierarchyIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C' object='libIBAMR2d_a-HierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-HierarchyIntegrator.o `test -f '$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C
-
-libIBAMR2d_a-HierarchyIntegrator.obj: $(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-HierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-HierarchyIntegrator.Tpo -c -o libIBAMR2d_a-HierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-HierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR2d_a-HierarchyIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C' object='libIBAMR2d_a-HierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-HierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C'; fi`
 
 libIBAMR2d_a-ConvectiveOperator.o: $(top_srcdir)/src/navier_stokes/ConvectiveOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-ConvectiveOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Tpo -c -o libIBAMR2d_a-ConvectiveOperator.o `test -f '$(top_srcdir)/src/navier_stokes/ConvectiveOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/ConvectiveOperator.C
@@ -2423,20 +2400,6 @@ libIBAMR3d_a-GodunovAdvector.obj: $(top_srcdir)/src/advect/GodunovAdvector.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/advect/GodunovAdvector.C' object='libIBAMR3d_a-GodunovAdvector.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-GodunovAdvector.obj `if test -f '$(top_srcdir)/src/advect/GodunovAdvector.C'; then $(CYGPATH_W) '$(top_srcdir)/src/advect/GodunovAdvector.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/advect/GodunovAdvector.C'; fi`
-
-libIBAMR3d_a-HierarchyIntegrator.o: $(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-HierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-HierarchyIntegrator.Tpo -c -o libIBAMR3d_a-HierarchyIntegrator.o `test -f '$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-HierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR3d_a-HierarchyIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C' object='libIBAMR3d_a-HierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-HierarchyIntegrator.o `test -f '$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C
-
-libIBAMR3d_a-HierarchyIntegrator.obj: $(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-HierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-HierarchyIntegrator.Tpo -c -o libIBAMR3d_a-HierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-HierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR3d_a-HierarchyIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C' object='libIBAMR3d_a-HierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-HierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/base_hier_integrator/HierarchyIntegrator.C'; fi`
 
 libIBAMR3d_a-ConvectiveOperator.o: $(top_srcdir)/src/navier_stokes/ConvectiveOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-ConvectiveOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Tpo -c -o libIBAMR3d_a-ConvectiveOperator.o `test -f '$(top_srcdir)/src/navier_stokes/ConvectiveOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/ConvectiveOperator.C

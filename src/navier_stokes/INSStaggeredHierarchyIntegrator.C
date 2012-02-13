@@ -1050,7 +1050,7 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
             break;
         default:
             TBOX_ERROR(d_object_name << "::regridHierarchy():\n"
-                       << "  unrecognized regrid mode: " << enum_to_string<RegridMode>(d_regrid_mode) << "." << std::endl);
+                       << "  unrecognized regrid mode: " << IBTK::enum_to_string<RegridMode>(d_regrid_mode) << "." << std::endl);
     }
 
     // Determine the divergence of the velocity field after regridding.

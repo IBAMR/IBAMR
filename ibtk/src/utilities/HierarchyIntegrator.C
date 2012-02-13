@@ -34,9 +34,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#ifndef included_IBAMR_config
-#include <IBAMR_config.h>
-#define included_IBAMR_config
+#ifndef included_IBTK_config
+#include <IBTK_config.h>
+#define included_IBTK_config
 #endif
 
 #ifndef included_SAMRAI_config
@@ -44,8 +44,8 @@
 #define included_SAMRAI_config
 #endif
 
-// IBAMR INCLUDES
-#include <ibamr/namespaces.h>
+// IBTK INCLUDES
+#include <ibtk/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/CartExtrapPhysBdryOp.h>
@@ -59,7 +59,7 @@
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-namespace IBAMR
+namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
@@ -1262,6 +1262,6 @@ HierarchyIntegrator::getFromRestart()
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBAMR
+}// namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

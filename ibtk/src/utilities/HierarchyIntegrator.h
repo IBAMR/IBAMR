@@ -35,8 +35,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
-#include <ibamr/ibamr_enums.h>
+// IBTK INCLUDES
+#include <ibtk/ibtk_enums.h>
 
 // IBTK INCLUDES
 #include <ibtk/CartGridFunction.h>
@@ -57,7 +57,7 @@
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
-namespace IBAMR
+namespace IBTK
 {
 /*!
  * \brief Class HierarchyIntegrator provides an abstract interface for a time
@@ -897,11 +897,11 @@ private:
     CoarsenPatchStrategyMap d_coarsen_strategies;
     CoarsenScheduleMap      d_coarsen_scheds;
 };
-}// namespace IBAMR
+}// namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/HierarchyIntegrator.I>
+//#include <ibtk/HierarchyIntegrator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 

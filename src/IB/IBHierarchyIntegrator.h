@@ -56,7 +56,7 @@ namespace IBAMR
  * second-order accurate, semi-implicit version of the immersed boundary method.
  */
 class IBHierarchyIntegrator
-    : public HierarchyIntegrator
+    : public IBTK::HierarchyIntegrator
 {
 public:
     friend class IBStrategy;

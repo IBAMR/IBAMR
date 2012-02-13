@@ -8,7 +8,7 @@ MAX_LEVELS = 3                            // number of levels in locally refined
 REF_RATIO  = 4                            // refinement ratio between levels
 NFINEST = 256                             // finest   grid spacing
 N = NFINEST/(REF_RATIO^(MAX_LEVELS - 1))  // coarsest grid spacing
-DT = 1.0e-1*64.0/NFINEST                  // timestep size (s)    --- 1.0e-1 s at NFINEST = 64
+DT = 5.0e-2*64.0/NFINEST                  // timestep size (s)    --- 1.0e-1 s at NFINEST = 64
 W = 4.0 * NFINEST / 64.0                  // delta function width --- 4        at NFINEST = 64
 
 VelocityInitialConditions {
