@@ -100,12 +100,11 @@ interpolate_directors(
     blitz::Array<double,2> sqrt_A(3,3,blitz::ColumnMajorArray<2>());
     DSQRTM_FC(sqrt_A.data(), A.data());
 
-    for (int alpha = 0; alpha < 3; ++alpha)
-    {
-        blitz::firstIndex i;
-        blitz::secondIndex j;
-        *D_half(alpha) = blitz::sum(sqrt_A(i,j)*(*D(alpha))(j),j);
-    }
+    blitz::firstIndex i;
+    blitz::secondIndex j;
+    *D_half(0) = blitz::sum(sqrt_A(i,j)*(*D(0))(j),j);
+    *D_half(1) = blitz::sum(sqrt_A(i,j)*(*D(1))(j),j);
+    *D_half(2) = blitz::sum(sqrt_A(i,j)*(*D(2))(j),j);
     return;
 }// interpolate_directors
 

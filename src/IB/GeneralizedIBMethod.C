@@ -283,7 +283,7 @@ GeneralizedIBMethod::interpolateVelocity(
     }
     else
     {
-        TBOX_ERROR(d_object_name << "::spreadForce():\n"
+        TBOX_ERROR(d_object_name << "::interpolateVelocity():\n"
                    << "  unsupported velocity data centering" << std::endl);
     }
     getVelocityHierarchyDataOps()->scale(d_w_idx, 0.5, d_w_idx);
@@ -297,6 +297,8 @@ GeneralizedIBMethod::eulerStep(
     const double current_time,
     const double new_time)
 {
+    return;  // XXXX
+
     IBMethod::eulerStep(current_time, new_time);
 
     const int coarsest_ln = 0;
@@ -368,6 +370,8 @@ GeneralizedIBMethod::trapezoidalStep(
     const double current_time,
     const double new_time)
 {
+    return;  // XXXX
+
     IBMethod::trapezoidalStep(current_time, new_time);
 
     const int coarsest_ln = 0;
@@ -586,13 +590,13 @@ GeneralizedIBMethod::initializePatchHierarchy(
         }
 
         // Initialize the interpolated velocity field.
-        std::vector<Pointer<LData> > X_data(finest_ln+1);
         std::vector<Pointer<LData> > W_data(finest_ln+1);
+        std::vector<Pointer<LData> > X_data(finest_ln+1);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            X_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
             W_data[ln] = d_l_data_manager->getLData("W",ln);
+            X_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
         }
         Pointer<Variable<NDIM> > u_var = d_ib_solver->getINSHierarchyIntegrator()->getVelocityVariable();
         Pointer<CellVariable<NDIM,double> > u_cc_var = u_var;
