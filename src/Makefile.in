@@ -421,7 +421,7 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = IB fortran adv_diff advect base_hier_integrator navier_stokes utilities . tools
+SUBDIRS = IB fortran adv_diff advect navier_stokes utilities . tools
 all: all-recursive
 
 .SUFFIXES:
