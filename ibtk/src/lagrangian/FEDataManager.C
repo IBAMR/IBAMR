@@ -1643,7 +1643,14 @@ FEDataManager::computeL2Projection(
         std::pair<libMesh::LinearSolver<double>*,SparseMatrix<double>*> proj_solver_components = buildL2ProjectionSolver(system_name, quad_type, quad_order);
         PetscLinearSolver<double>* solver = dynamic_cast<PetscLinearSolver<double>*>(proj_solver_components.first);
         PetscMatrix<double>* M_mat = dynamic_cast<PetscMatrix<double>*>(proj_solver_components.second);
-        solver->solve(*M_mat, *M_mat, U_vec, F_vec, tol, max_its);
+        PetscBool rtol_set;
+        double runtime_rtol;
+        ierr = PetscOptionsGetReal("","-ksp_rtol",&runtime_rtol,&rtol_set); IBTK_CHKERRQ(ierr);
+        PetscBool max_it_set;
+        int runtime_max_it;
+        ierr = PetscOptionsGetInt("","-ksp_max_it",&runtime_max_it,&max_it_set); IBTK_CHKERRQ(ierr);
+        ierr = KSPSetFromOptions(solver->ksp()); IBTK_CHKERRQ(ierr);
+        solver->solve(*M_mat, *M_mat, U_vec, F_vec, rtol_set ? runtime_rtol : tol, max_it_set ? runtime_max_it : max_its);
         KSPConvergedReason reason;
         ierr = KSPGetConvergedReason(solver->ksp(), &reason); IBTK_CHKERRQ(ierr);
         converged = reason > 0;
