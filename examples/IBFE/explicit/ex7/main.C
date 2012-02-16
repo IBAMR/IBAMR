@@ -65,9 +65,9 @@ namespace ModelData
 // Stress tensor function.
 static double mu_s, lambda_s;
 void
-PK1_stress_function(
+lower_PK1_stress_function(
     TensorValue<double>& PP,
-    const TensorValue<double>& FF,
+    const TensorValue<double>& /*FF*/,
     const Point& /*X*/,
     const Point& /*s*/,
     Elem* const /*elem*/,
@@ -76,15 +76,38 @@ PK1_stress_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    static const TensorValue<double> II(1.0,0.0,0.0,
-                                        0.0,1.0,0.0,
-                                        0.0,0.0,1.0);
-    const TensorValue<double> CC = FF.transpose()*FF;
-    const TensorValue<double> EE = 0.5*(CC - II);
-    const TensorValue<double> SS = lambda_s*EE.tr()*II + 2.0*mu_s*EE;
-    PP = FF*SS;
+    PP.zero();
     return;
-}// PK1_stress_function
+}// lower_PK1_stress_function
+
+void
+upper_PK1_stress_function(
+    TensorValue<double>& PP,
+    const TensorValue<double>& FF,
+    const Point& /*X*/,
+    const Point& s,
+    Elem* const /*elem*/,
+    NumericVector<double>& /*X_vec*/,
+    const vector<NumericVector<double>*>& /*system_data*/,
+    double /*time*/,
+    void* /*ctx*/)
+{
+    if (s(0) > 5.0 && s(0) < 10.0)
+    {
+        static const TensorValue<double> II(1.0,0.0,0.0,
+                                            0.0,1.0,0.0,
+                                            0.0,0.0,1.0);
+        const TensorValue<double> CC = FF.transpose()*FF;
+        const TensorValue<double> EE = 0.5*(CC - II);
+        const TensorValue<double> SS = lambda_s*EE.tr()*II + 2.0*mu_s*EE;
+        PP = FF*SS;
+    }
+    else
+    {
+        PP.zero();
+    }
+    return;
+}// upper_PK1_stress_function
 
 // Tether (penalty) force functions for lower and upper blocks.
 static double kappa_s = 1.0e6;
@@ -116,8 +139,14 @@ upper_tether_force_function(
     double /*time*/,
     void* /*ctx*/)
 {
-    if (s(0) <= 5.0 || s(0) >= 10.0) F = kappa_s*(s-X);
-    else F.zero();
+    if (s(0) > 5.0 && s(0) < 10.0)
+    {
+        F.zero();
+    }
+    else
+    {
+        F = kappa_s*(s-X);                                                                                                                         
+    }
     return;
 }// upper_tether_force_function
 }
@@ -203,6 +232,7 @@ main(
                                             0.0, L, D - 0.5*w, D + 0.5*w,
                                             Utility::string_to_enum<ElemType>(elem_type));
         lower_mesh.prepare_for_use();
+#if 0
         MeshBase::const_element_iterator el_end = lower_mesh.elements_end();
         for (MeshBase::const_element_iterator el = lower_mesh.elements_begin(); el != el_end; ++el)
         {
@@ -220,13 +250,14 @@ main(
                 }
             }
         }
-
+#endif
         Mesh upper_mesh(NDIM);
         MeshTools::Generation::build_square(upper_mesh,
                                             static_cast<int>(ceil(L/ds)), static_cast<int>(ceil(w/ds)),
                                             0.0, L, 2.0*D - 0.5*w, 2.0*D + 0.5*w,
                                             Utility::string_to_enum<ElemType>(elem_type));
         upper_mesh.prepare_for_use();
+#if 0
         el_end = upper_mesh.elements_end();
         for (MeshBase::const_element_iterator el = upper_mesh.elements_begin(); el != el_end; ++el)
         {
@@ -244,7 +275,7 @@ main(
                 }
             }
         }
-
+#endif
         vector<Mesh*> meshes(2);
         meshes[0] = &lower_mesh;
         meshes[1] = &upper_mesh;
@@ -290,8 +321,8 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
-        ib_method_ops->registerPK1StressTensorFunction(&PK1_stress_function, std::vector<unsigned int>(), NULL, 0);
-        ib_method_ops->registerPK1StressTensorFunction(&PK1_stress_function, std::vector<unsigned int>(), NULL, 1);
+        ib_method_ops->registerPK1StressTensorFunction(&lower_PK1_stress_function, std::vector<unsigned int>(), NULL, 0);
+        ib_method_ops->registerPK1StressTensorFunction(&upper_PK1_stress_function, std::vector<unsigned int>(), NULL, 1);
         ib_method_ops->registerLagBodyForceFunction(&lower_tether_force_function, std::vector<unsigned int>(), NULL, 0);
         ib_method_ops->registerLagBodyForceFunction(&upper_tether_force_function, std::vector<unsigned int>(), NULL, 1);
         EquationSystems* lower_equation_systems = ib_method_ops->getFEDataManager(0)->getEquationSystems();
