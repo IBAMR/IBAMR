@@ -103,20 +103,28 @@ beam_PK1_stress_function(
     TensorValue<double>& PP,
     const TensorValue<double>& FF,
     const Point& /*X*/,
-    const Point& /*s*/,
+    const Point& s,
     Elem* const /*elem*/,
     NumericVector<double>& /*X_vec*/,
     const vector<NumericVector<double>*>& /*system_data*/,
     double /*time*/,
     void* /*ctx*/)
 {
-    static const TensorValue<double> II(1.0,0.0,0.0,
-                                        0.0,1.0,0.0,
-                                        0.0,0.0,1.0);
-    const TensorValue<double> CC = FF.transpose()*FF;
-    const TensorValue<double> EE = 0.5*(CC - II);
-    const TensorValue<double> SS = lambda_s*EE.tr()*II + 2.0*mu_s*EE;
-    PP = FF*SS;
+    const double r = sqrt((s(0) - 0.2)*(s(0) - 0.2) + (s(1) - 0.2)*(s(1) - 0.2));
+    if (r > 0.05)
+    {
+        static const TensorValue<double> II(1.0,0.0,0.0,
+                                            0.0,1.0,0.0,
+                                            0.0,0.0,1.0);
+        const TensorValue<double> CC = FF.transpose()*FF;
+        const TensorValue<double> EE = 0.5*(CC - II);
+        const TensorValue<double> SS = lambda_s*EE.tr()*II + 2.0*mu_s*EE;
+        PP = FF*SS;
+    }
+    else
+    {
+        PP.zero();
+    }
     return;
 }// beam_PK1_stress_function
 }
