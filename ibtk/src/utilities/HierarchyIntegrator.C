@@ -715,6 +715,12 @@ HierarchyIntegrator::getScratchContext() const
     return d_scratch_context;
 }// getScratchContext
 
+Pointer<HierarchyMathOps>
+HierarchyIntegrator::getHierarchyMathOps() const
+{
+    return d_hier_math_ops;
+}// HierarchyMathOps
+
 void
 HierarchyIntegrator::putToDatabase(
     Pointer<Database> db)

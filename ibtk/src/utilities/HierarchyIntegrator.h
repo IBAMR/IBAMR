@@ -425,6 +425,13 @@ public:
     getScratchContext() const;
 
     ///
+    ///  Routines to access utility classeses managed by the integrator.
+    ///
+
+    SAMRAI::tbox::Pointer<HierarchyMathOps>
+    getHierarchyMathOps() const;
+
+    ///
     ///  Implementations of functions declared in the SAMRAI::tbox::Serializable
     ///  abstract base class.
     ///
@@ -577,7 +584,7 @@ protected:
         const SAMRAI::hier::IntVector<NDIM>& scratch_ghosts=SAMRAI::hier::IntVector<NDIM>(0),
         const std::string& coarsen_name="NO_COARSEN",
         const std::string& refine_name="NO_REFINE",
-        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> init_fcn=SAMRAI::tbox::Pointer<IBTK::CartGridFunction>(NULL));
+        SAMRAI::tbox::Pointer<CartGridFunction> init_fcn=SAMRAI::tbox::Pointer<CartGridFunction>(NULL));
 
     /*!
      * Register a variable with the integrator that may not be maintained from
@@ -689,7 +696,7 @@ protected:
     /*!
      * Build the HierarchyMathOps object.
      */
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps>
+    SAMRAI::tbox::Pointer<HierarchyMathOps>
     buildHierarchyMathOps(
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
@@ -794,7 +801,7 @@ protected:
     /*
      * Hierarchy operations objects.
      */
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
+    SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
     bool d_manage_hier_math_ops;
 
     /*
@@ -809,7 +816,7 @@ protected:
 
     SAMRAI::hier::ComponentSelector d_current_data, d_new_data, d_scratch_data;
 
-    std::map<SAMRAI::hier::Variable<NDIM>*,SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_state_var_init_fcns;
+    std::map<SAMRAI::hier::Variable<NDIM>*,SAMRAI::tbox::Pointer<CartGridFunction> > d_state_var_init_fcns;
 
     /*!
      * Variable contexts.
