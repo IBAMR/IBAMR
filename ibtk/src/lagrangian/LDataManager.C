@@ -1984,7 +1984,7 @@ LDataManager::initializeLevelData(
         // particular the code where the data related to the implementation of
         // the penalty IB method are initialized.
         static const unsigned int global_index_offset = 0;
-        static const unsigned int local_index_offset = 0;
+        static const unsigned int  local_index_offset = 0;
         const unsigned int num_initialized_local_nodes = d_lag_init->initializeDataOnPatchLevel(
             d_lag_node_index_current_idx,
             global_index_offset, local_index_offset,
