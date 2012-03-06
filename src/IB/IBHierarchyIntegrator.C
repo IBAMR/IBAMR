@@ -99,8 +99,8 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     d_timestepping_type = MIDPOINT_RULE;
     d_regrid_cfl_interval = 0.0;
     d_regrid_cfl_estimate = 0.0;
-    d_error_on_dt_change = false;
-    d_warn_on_dt_change = true;
+    d_error_on_dt_change = true;
+    d_warn_on_dt_change = false;
 
     // Do not allocate a workload variable by default.
     d_workload_var.setNull();
