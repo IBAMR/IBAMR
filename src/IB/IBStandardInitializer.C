@@ -548,7 +548,7 @@ IBStandardInitializer::initializeDirectorDataOnPatchLevel(
             const std::vector<double>& D = getVertexDirectors(point_idx, level_number);
             for (int d = 0; d < 3*3; ++d)
             {
-                D_array(local_petsc_idx,d)= D[d];
+                D_array(local_petsc_idx,d) = D[d];
             }
         }
     }
