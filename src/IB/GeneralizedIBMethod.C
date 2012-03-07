@@ -167,7 +167,7 @@ GeneralizedIBMethod::preprocessIntegrateData(
     double new_time,
     int num_cycles)
 {
-    d_ib_force_fcn_needs_init = d_ib_force_fcn_needs_init || d_ib_force_fcn_needs_init;
+    d_ib_force_and_torque_fcn_needs_init = d_ib_force_fcn_needs_init || d_ib_force_and_torque_fcn_needs_init;
     IBMethod::preprocessIntegrateData(current_time, new_time, num_cycles);
 
     const int coarsest_ln = 0;
@@ -247,8 +247,10 @@ GeneralizedIBMethod::interpolateVelocity(
     const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
     const double data_time)
 {
+    // Interpolate the linear velocities.
     IBMethod::interpolateVelocity(u_data_idx, u_synch_scheds, u_ghost_fill_scheds, data_time);
 
+    // Interpolate the angular velocities.
     std::vector<Pointer<LData> >* X_data = NULL;
     std::vector<Pointer<LData> >* W_data = NULL;
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
@@ -297,8 +299,6 @@ GeneralizedIBMethod::eulerStep(
     const double current_time,
     const double new_time)
 {
-    return;  // XXXX
-
     IBMethod::eulerStep(current_time, new_time);
 
     const int coarsest_ln = 0;
@@ -370,8 +370,6 @@ GeneralizedIBMethod::trapezoidalStep(
     const double current_time,
     const double new_time)
 {
-    return;  // XXXX
-
     IBMethod::trapezoidalStep(current_time, new_time);
 
     const int coarsest_ln = 0;
@@ -542,8 +540,7 @@ GeneralizedIBMethod::spreadForce(
         TBOX_ERROR(d_object_name << "::spreadForce():\n"
                    << "  unsupported velocity data centering" << std::endl);
     }
-    getVelocityHierarchyDataOps()->scale(d_f_idx, 0.5, d_f_idx);
-    getVelocityHierarchyDataOps()->add(f_data_idx, f_data_idx, d_f_idx);
+    getVelocityHierarchyDataOps()->axpy(f_data_idx, 0.5, d_f_idx, f_data_idx);
     return;
 }// spreadForce
 
@@ -558,45 +555,25 @@ GeneralizedIBMethod::initializePatchHierarchy(
     double init_data_time,
     bool initial_time)
 {
+    // Initialize various Lagrangian data objects required by the conventional
+    // IB method.
     IBMethod::initializePatchHierarchy(hierarchy, gridding_alg, u_data_idx, u_synch_scheds, u_ghost_fill_scheds, integrator_step, init_data_time, initial_time);
 
-    // Initialize various Lagrangian data objects.
+    // Initialize various Lagrangian data objects required by the gIB method.
     if (initial_time)
     {
+        // Lookup the range of hierarchy levels.
         const int coarsest_ln = 0;
         const int finest_ln = d_hierarchy->getFinestLevelNumber();
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
-            const bool can_be_refined = ln < finest_ln || d_gridding_alg->levelCanBeRefined(ln);
-
-            Pointer<LData> D_data = d_l_data_manager->createLData("D",ln,NDIM*NDIM,/*manage_data*/ true);
-            Pointer<LData> W_data = d_l_data_manager->createLData("W",ln,NDIM     ,/*manage_data*/ true);
-            static const int global_index_offset = 0;
-            static const int local_index_offset = 0;
-            d_l_initializer->initializeDirectorDataOnPatchLevel(
-                global_index_offset, local_index_offset,
-                D_data,
-                hierarchy, ln,
-                init_data_time, can_be_refined, initial_time, d_l_data_manager);
-            if (!d_silo_writer.isNull())
-            {
-                d_silo_writer->registerVariableData("D1", D_data, 0, 3, ln);
-                d_silo_writer->registerVariableData("D2", D_data, 3, 3, ln);
-                d_silo_writer->registerVariableData("D3", D_data, 6, 3, ln);
-                d_silo_writer->registerVariableData("W", W_data, ln);
-            }
-        }
-
-        // Initialize the interpolated velocity field.
+        // Initialize the interpolated angular velocity field.
         std::vector<Pointer<LData> > W_data(finest_ln+1);
         std::vector<Pointer<LData> > X_data(finest_ln+1);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            W_data[ln] = d_l_data_manager->getLData("W",ln);
             X_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
+            W_data[ln] = d_l_data_manager->getLData("W",ln);
         }
         Pointer<Variable<NDIM> > u_var = d_ib_solver->getINSHierarchyIntegrator()->getVelocityVariable();
         Pointer<CellVariable<NDIM,double> > u_cc_var = u_var;
@@ -613,7 +590,7 @@ GeneralizedIBMethod::initializePatchHierarchy(
         }
         else
         {
-            TBOX_ERROR(d_object_name << "::spreadForce():\n"
+            TBOX_ERROR(d_object_name << "::initializePatchHierarchy():\n"
                        << "  unsupported velocity data centering" << std::endl);
         }
         getVelocityHierarchyDataOps()->scale(d_w_idx, 0.5, d_w_idx);
@@ -626,6 +603,45 @@ GeneralizedIBMethod::initializePatchHierarchy(
     d_ib_force_and_torque_fcn_needs_init = true;
     return;
 }// initializePatchHierarchy
+
+void
+GeneralizedIBMethod::initializeLevelData(
+    Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+    int level_number,
+    double init_data_time,
+    bool can_be_refined,
+    bool initial_time,
+    Pointer<BasePatchLevel<NDIM> > old_level,
+    bool allocate_data)
+{
+    IBMethod::initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
+    if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
+    {
+        // 1. Allocate LData corresponding to the curvilinear mesh node
+        //    directors and angular velocities.
+        Pointer<LData> D_data = d_l_data_manager->createLData("D",level_number,NDIM*NDIM,/*manage_data*/ true);
+        Pointer<LData> W_data = d_l_data_manager->createLData("W",level_number,NDIM     ,/*manage_data*/ true);
+
+        // 2. Initialize the Lagrangian data.
+        static const int global_index_offset = 0;
+        static const int  local_index_offset = 0;
+        d_l_initializer->initializeDirectorDataOnPatchLevel(
+            global_index_offset, local_index_offset,
+            D_data,
+            hierarchy, level_number,
+            init_data_time, can_be_refined, initial_time, d_l_data_manager);
+
+        // 3. Register data with any registered data writer.
+        if (!d_silo_writer.isNull())
+        {
+            d_silo_writer->registerVariableData("D1", D_data, 0, 3, level_number);
+            d_silo_writer->registerVariableData("D2", D_data, 3, 3, level_number);
+            d_silo_writer->registerVariableData("D3", D_data, 6, 3, level_number);
+            d_silo_writer->registerVariableData("W" , W_data,       level_number);
+        }
+    }
+    return;
+}// initializeLevelData
 
 void
 GeneralizedIBMethod::putToDatabase(

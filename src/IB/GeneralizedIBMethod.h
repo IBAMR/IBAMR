@@ -183,6 +183,22 @@ public:
         bool initial_time);
 
     /*!
+     * Initialize data on a new level after it is inserted into an AMR patch
+     * hierarchy by the gridding algorithm.
+     *
+     * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
+     */
+    void
+    initializeLevelData(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
+        bool allocate_data);
+
+    /*!
      * Write out object state to the given database.
      */
     void
