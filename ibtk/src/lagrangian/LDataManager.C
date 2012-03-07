@@ -156,13 +156,13 @@ LDataManager::getManager(
     const std::string& name,
     const std::string& interp_weighting_fcn,
     const std::string& spread_weighting_fcn,
-    const IntVector<NDIM>& ghost_cell_width,
+    const IntVector<NDIM>& min_ghost_cell_width,
     bool register_for_restart)
 {
     if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
     {
-        const int stencil_size = std::max(LEInteractor::getStencilSize(interp_weighting_fcn),LEInteractor::getStencilSize(interp_weighting_fcn));
-        const IntVector<NDIM> gcw = IntVector<NDIM>::max(IntVector<NDIM>(static_cast<int>(floor(0.5*static_cast<double>(stencil_size)))+1),ghost_cell_width);
+        const int stencil_size = std::max(LEInteractor::getStencilSize(interp_weighting_fcn),LEInteractor::getStencilSize(spread_weighting_fcn));
+        const IntVector<NDIM> gcw = IntVector<NDIM>::max(IntVector<NDIM>(static_cast<int>(floor(0.5*static_cast<double>(stencil_size)))+1),min_ghost_cell_width);
         s_data_manager_instances[name] = new LDataManager(name, interp_weighting_fcn, spread_weighting_fcn, gcw, register_for_restart);
     }
     if (!s_registered_callback)
