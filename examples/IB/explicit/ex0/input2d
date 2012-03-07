@@ -92,6 +92,7 @@ IBHierarchyIntegrator {
    num_cycles          = NUM_CYCLES
    regrid_cfl_interval = REGRID_CFL_INTERVAL
    dt_max              = DT_MAX
+   tag_buffer          = TAG_BUFFER
    enable_logging      = ENABLE_LOGGING
 }
 
