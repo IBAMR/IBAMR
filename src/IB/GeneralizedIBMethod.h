@@ -1,5 +1,5 @@
-// Filename: PenaltyIBMethod.h
-// Created on 28 Sep 2011 by Boyce Griffith
+// Filename: GeneralizedIBMethod.h
+// Created on 12 Dec 2011 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,12 +30,13 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_PenaltyIBMethod
-#define included_PenaltyIBMethod
+#ifndef included_GeneralizedIBMethod
+#define included_GeneralizedIBMethod
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
+#include <ibamr/IBKirchhoffRodForceGen.h>
 #include <ibamr/IBMethod.h>
 
 // BLITZ++ INCLUDES
@@ -46,18 +47,18 @@
 namespace IBAMR
 {
 /*!
- * \brief Class PenaltyIBMethod is an implementation of the abstract base class
- * IBStrategy that provides functionality required by the penalty IB (pIB)
- * method.
+ * \brief Class GeneralizedIBMethod is an implementation of the abstract base
+ * class IBStrategy that provides functionality required by the generalized IB
+ * (gIB) method.
  */
-class PenaltyIBMethod
+class GeneralizedIBMethod
     : public IBMethod
 {
 public:
     /*!
      * \brief Constructor.
      */
-    PenaltyIBMethod(
+    GeneralizedIBMethod(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         bool register_for_restart=true);
@@ -65,7 +66,27 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~PenaltyIBMethod();
+    ~GeneralizedIBMethod();
+
+    /*!
+     * Supply a Lagrangian force object.
+     */
+    void
+    registerIBKirchhoffRodForceGen(
+        SAMRAI::tbox::Pointer<IBKirchhoffRodForceGen> ib_force_and_torque_fcn);
+
+    /*!
+     * Register Eulerian variables with the parent IBHierarchyIntegrator.
+     */
+    void
+    registerEulerianVariables();
+
+    /*!
+     * Register Eulerian refinement or coarsening algorithms with the parent
+     * IBHierarchyIntegrator.
+     */
+    void
+    registerEulerianCommunicationAlgorithms();
 
     /*!
      * Method to prepare to advance data from current_time to new_time.
@@ -84,6 +105,17 @@ public:
         double current_time,
         double new_time,
         int num_cycles);
+
+    /*!
+     * Interpolate the Eulerian velocity to the curvilinear mesh at the
+     * specified time within the current time interval.
+     */
+    void
+    interpolateVelocity(
+        int u_data_idx,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+        double data_time);
 
     /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
@@ -121,6 +153,16 @@ public:
         double data_time);
 
     /*!
+     * Spread the Lagrangian force to the Cartesian grid at the specified time
+     * within the current time interval.
+     */
+    void
+    spreadForce(
+        int f_data_idx,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
+        double data_time);
+
+    /*!
      * Initialize Lagrangian data corresponding to the given AMR patch hierarchy
      * at the start of a computation.  If the computation is begun from a
      * restart file, data may be read from the restart databases.
@@ -141,6 +183,22 @@ public:
         bool initial_time);
 
     /*!
+     * Initialize data on a new level after it is inserted into an AMR patch
+     * hierarchy by the gridding algorithm.
+     *
+     * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
+     */
+    void
+    initializeLevelData(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
+        bool allocate_data);
+
+    /*!
      * Write out object state to the given database.
      */
     void
@@ -149,16 +207,29 @@ public:
 
 protected:
     /*
-     * Lagrangian variables.
+     * Eulerian variables.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_K_data, d_M_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_Y_current_data, d_Y_new_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_V_current_data, d_V_new_data;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_f_var, d_w_var, d_n_var;
+    int d_f_idx, d_w_idx, d_n_idx;
 
     /*
-     * Gravitational acceleration.
+     * Boolean values tracking whether certain quantities need to be
+     * reinitialized.
      */
-    blitz::TinyVector<double,NDIM> d_gravitational_acceleration;
+    bool d_N_current_needs_ghost_fill, d_N_new_needs_ghost_fill;
+
+    /*
+     * Lagrangian variables.
+     */
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_D_current_data, d_D_new_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_N_current_data, d_N_new_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_W_current_data, d_W_new_data;
+
+    /*
+     * The force and torque generator.
+     */
+    SAMRAI::tbox::Pointer<IBKirchhoffRodForceGen> d_ib_force_and_torque_fcn;
+    bool d_ib_force_and_torque_fcn_needs_init;
 
 private:
     /*!
@@ -166,7 +237,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PenaltyIBMethod();
+    GeneralizedIBMethod();
 
     /*!
      * \brief Copy constructor.
@@ -175,8 +246,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PenaltyIBMethod(
-        const PenaltyIBMethod& from);
+    GeneralizedIBMethod(
+        const GeneralizedIBMethod& from);
 
     /*!
      * \brief Assignment operator.
@@ -187,9 +258,17 @@ private:
      *
      * \return A reference to this object.
      */
-    PenaltyIBMethod&
+    GeneralizedIBMethod&
     operator=(
-        const PenaltyIBMethod& that);
+        const GeneralizedIBMethod& that);
+
+    /*!
+     * Reset the Lagrangian force function object.
+     */
+    void
+    resetLagrangianForceAndTorqueFunction(
+        double init_data_time,
+        bool initial_time);
 
     /*!
      * Read input values from a given database.
@@ -210,8 +289,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/PenaltyIBMethod.I>
+//#include <ibamr/GeneralizedIBMethod.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_PenaltyIBMethod
+#endif //#ifndef included_GeneralizedIBMethod

@@ -449,6 +449,7 @@ AC_CONFIG_FILES([
   examples/IB/explicit/ex1/Makefile
   examples/IB/explicit/ex2/Makefile
   examples/IB/explicit/ex3/Makefile
+  examples/IB/explicit/ex4/Makefile
   examples/IBFE/Makefile
   examples/IBFE/explicit/Makefile
   examples/IBFE/explicit/ex0/Makefile
@@ -474,7 +475,6 @@ AC_CONFIG_FILES([
   src/adv_diff/fortran/Makefile
   src/advect/Makefile
   src/advect/fortran/Makefile
-  src/base_hier_integrator/Makefile
   src/navier_stokes/Makefile
   src/navier_stokes/fortran/Makefile
   src/utilities/Makefile

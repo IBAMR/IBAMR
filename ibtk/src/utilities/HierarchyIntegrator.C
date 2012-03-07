@@ -34,9 +34,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#ifndef included_IBAMR_config
-#include <IBAMR_config.h>
-#define included_IBAMR_config
+#ifndef included_IBTK_config
+#include <IBTK_config.h>
+#define included_IBTK_config
 #endif
 
 #ifndef included_SAMRAI_config
@@ -44,8 +44,8 @@
 #define included_SAMRAI_config
 #endif
 
-// IBAMR INCLUDES
-#include <ibamr/namespaces.h>
+// IBTK INCLUDES
+#include <ibtk/namespaces.h>
 
 // IBTK INCLUDES
 #include <ibtk/CartExtrapPhysBdryOp.h>
@@ -59,7 +59,7 @@
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-namespace IBAMR
+namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
@@ -715,6 +715,12 @@ HierarchyIntegrator::getScratchContext() const
     return d_scratch_context;
 }// getScratchContext
 
+Pointer<HierarchyMathOps>
+HierarchyIntegrator::getHierarchyMathOps() const
+{
+    return d_hier_math_ops;
+}// HierarchyMathOps
+
 void
 HierarchyIntegrator::putToDatabase(
     Pointer<Database> db)
@@ -725,8 +731,11 @@ HierarchyIntegrator::putToDatabase(
     db->putDouble("d_end_time",d_end_time);
     const int dt_previous_size = d_dt_previous.size();
     db->putInteger("d_dt_previous_size",dt_previous_size);
-    const std::vector<double> dt_previous_vec(d_dt_previous.begin(),d_dt_previous.end());
-    db->putDoubleArray("d_dt_previous_vec",&dt_previous_vec[0],dt_previous_vec.size());
+    if (dt_previous_size > 0)
+    {
+        const std::vector<double> dt_previous_vec(d_dt_previous.begin(),d_dt_previous.end());
+        db->putDoubleArray("d_dt_previous_vec",&dt_previous_vec[0],dt_previous_vec.size());
+    }
     db->putDouble("d_dt_max",d_dt_max);
     db->putDouble("d_dt_growth_factor",d_dt_growth_factor);
     db->putInteger("d_integrator_step",d_integrator_step);
@@ -945,10 +954,6 @@ HierarchyIntegrator::registerVariable(
     // Setup the new context.
     new_idx = var_db->registerVariableAndContext(variable, getNewContext(), no_ghosts);
     d_new_data.setFlag(new_idx);
-    if (d_registered_for_restart)
-    {
-        var_db->registerPatchDataForRestart(new_idx);
-    }
 
     // Setup the scratch context.
     scratch_idx = var_db->registerVariableAndContext(variable, getScratchContext(), scratch_ghosts);
@@ -997,11 +1002,130 @@ HierarchyIntegrator::registerVariable(
 
     // Setup the scratch context.
     idx = var_db->registerVariableAndContext(variable, ctx, ghosts);
-    if (ctx == getCurrentContext()) d_current_data.setFlag(idx);
-    if (ctx == getScratchContext()) d_scratch_data.setFlag(idx);
-    if (ctx == getNewContext()    ) d_new_data    .setFlag(idx);
+    if (*ctx == *getCurrentContext())
+    {
+        d_current_data.setFlag(idx);
+        if (d_registered_for_restart)
+        {
+            var_db->registerPatchDataForRestart(idx);
+        }
+    }
+    else if (*ctx == *getScratchContext()) d_scratch_data.setFlag(idx);
+    else if (*ctx == *getNewContext()    ) d_new_data    .setFlag(idx);
+    else
+    {
+        TBOX_ERROR(d_object_name << "::registerVariable():\n"
+                   << "  unrecognized variable context: " << ctx->getName() << "\n"
+                   << "  variable context should be one of:\n"
+                   << "    " << getCurrentContext()->getName() << ", " << getNewContext()->getName() << ", or " << getScratchContext()->getName() << std::endl);
+    }
     return;
 }// registerVariable
+
+void
+HierarchyIntegrator::registerGhostfillRefineAlgorithm(
+    const std::string& name,
+    Pointer<RefineAlgorithm<NDIM> > ghostfill_alg,
+    RefinePatchStrategy<NDIM>* ghostfill_patch_strategy)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_ghostfill_algs.find(name) == d_ghostfill_algs.end());
+#endif
+    d_ghostfill_algs[name] = ghostfill_alg;
+    d_ghostfill_strategies[name] = ghostfill_patch_strategy;
+}// registerGhostfillRefineAlgorithm
+
+void
+HierarchyIntegrator::registerProlongRefineAlgorithm(
+    const std::string& name,
+    Pointer<RefineAlgorithm<NDIM> > prolong_alg,
+    RefinePatchStrategy<NDIM>* prolong_patch_strategy)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_prolong_algs.find(name) == d_prolong_algs.end());
+#endif
+    d_prolong_algs[name] = prolong_alg;
+    d_prolong_strategies[name] = prolong_patch_strategy;
+}// registerProlongRefineAlgorithm
+
+void
+HierarchyIntegrator::registerCoarsenAlgorithm(
+    const std::string& name,
+    Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg,
+    CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_coarsen_algs.find(name) == d_coarsen_algs.end());
+#endif
+    d_coarsen_algs[name] = coarsen_alg;
+    d_coarsen_strategies[name] = coarsen_patch_strategy;
+}// registerCoarsenAlgorithm
+
+Pointer<RefineAlgorithm<NDIM> >
+HierarchyIntegrator::getGhostfillRefineAlgorithm(
+    const std::string& name) const
+{
+    RefineAlgorithmMap::const_iterator alg_it = d_ghostfill_algs.find(name);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(alg_it != d_ghostfill_algs.end());
+#endif
+    return alg_it->second;
+}// getGhostfillRefineAlgorithm
+
+Pointer<RefineAlgorithm<NDIM> >
+HierarchyIntegrator::getProlongRefineAlgorithm(
+    const std::string& name) const
+{
+    RefineAlgorithmMap::const_iterator alg_it = d_prolong_algs.find(name);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(alg_it != d_prolong_algs.end());
+#endif
+    return alg_it->second;
+}// getProlongRefineAlgorithm
+
+Pointer<CoarsenAlgorithm<NDIM> >
+HierarchyIntegrator::getCoarsenAlgorithm(
+    const std::string& name) const
+{
+    CoarsenAlgorithmMap::const_iterator alg_it = d_coarsen_algs.find(name);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(alg_it != d_coarsen_algs.end());
+#endif
+    return alg_it->second;
+}// getCoarsenAlgorithm
+
+const std::vector<Pointer<RefineSchedule<NDIM> > >&
+HierarchyIntegrator::getGhostfillRefineSchedules(
+    const std::string& name) const
+{
+    RefineScheduleMap::const_iterator sched_it = d_ghostfill_scheds.find(name);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(sched_it != d_ghostfill_scheds.end());
+#endif
+    return sched_it->second;
+}// getGhostfillRefineSchedules
+
+const std::vector<Pointer<RefineSchedule<NDIM> > >&
+HierarchyIntegrator::getProlongRefineSchedules(
+    const std::string& name) const
+{
+    RefineScheduleMap::const_iterator sched_it = d_prolong_scheds.find(name);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(sched_it != d_prolong_scheds.end());
+#endif
+    return sched_it->second;
+}// getProlongRefineSchedules
+
+const std::vector<Pointer<CoarsenSchedule<NDIM> > >&
+HierarchyIntegrator::getCoarsenSchedules(
+    const std::string& name) const
+{
+    CoarsenScheduleMap::const_iterator sched_it = d_coarsen_scheds.find(name);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(sched_it != d_coarsen_scheds.end());
+#endif
+    return sched_it->second;
+}// getCoarsenSchedules
 
 void
 HierarchyIntegrator::registerChildHierarchyIntegrator(
@@ -1119,9 +1243,16 @@ HierarchyIntegrator::getFromRestart()
     d_start_time = db->getDouble("d_start_time");
     d_end_time = db->getDouble("d_end_time");
     const int dt_previous_size = db->getInteger("d_dt_previous_size");
-    std::vector<double> dt_previous_vec(dt_previous_size);
-    db->getDoubleArray("d_dt_previous_vec",&dt_previous_vec[0],dt_previous_vec.size());
-    d_dt_previous = std::deque<double>(dt_previous_vec.begin(),dt_previous_vec.end());
+    if (dt_previous_size > 0)
+    {
+        std::vector<double> dt_previous_vec(dt_previous_size);
+        db->getDoubleArray("d_dt_previous_vec",&dt_previous_vec[0],dt_previous_vec.size());
+        d_dt_previous = std::deque<double>(dt_previous_vec.begin(),dt_previous_vec.end());
+    }
+    else
+    {
+        d_dt_previous.clear();
+    }
     d_dt_max = db->getDouble("d_dt_max");
     d_dt_growth_factor = db->getDouble("d_dt_growth_factor");
     d_integrator_step = db->getInteger("d_integrator_step");
@@ -1137,6 +1268,6 @@ HierarchyIntegrator::getFromRestart()
 
 //////////////////////////////////////////////////////////////////////////////
 
-}// namespace IBAMR
+}// namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

@@ -100,12 +100,11 @@ interpolate_directors(
     blitz::Array<double,2> sqrt_A(3,3,blitz::ColumnMajorArray<2>());
     DSQRTM_FC(sqrt_A.data(), A.data());
 
-    for (int alpha = 0; alpha < 3; ++alpha)
-    {
-        blitz::firstIndex i;
-        blitz::secondIndex j;
-        *D_half(alpha) = blitz::sum(sqrt_A(i,j)*(*D(alpha))(j),j);
-    }
+    blitz::firstIndex i;
+    blitz::secondIndex j;
+    *D_half(0) = blitz::sum(sqrt_A(i,j)*(*D(0))(j),j);
+    *D_half(1) = blitz::sum(sqrt_A(i,j)*(*D(1))(j),j);
+    *D_half(2) = blitz::sum(sqrt_A(i,j)*(*D(2))(j),j);
     return;
 }// interpolate_directors
 
@@ -158,16 +157,16 @@ compute_force_and_torque(
 
     interpolate_directors(D_half, D, D_next);
 
-    const double ds = material_params[0];
-    const double a1 = material_params[1];
-    const double a2 = material_params[2];
-    const double a3 = material_params[3];
-    const double b1 = material_params[4];
-    const double b2 = material_params[5];
-    const double b3 = material_params[6];
+    const double ds     = material_params[0];
+    const double a1     = material_params[1];
+    const double a2     = material_params[2];
+    const double a3     = material_params[3];
+    const double b1     = material_params[4];
+    const double b2     = material_params[5];
+    const double b3     = material_params[6];
     const double kappa1 = material_params[7];
     const double kappa2 = material_params[8];
-    const double tau = material_params[9];
+    const double tau    = material_params[9];
 
     const blitz::Array<double,1> dX_ds((X_next-X)/ds);
     const double F1 = b1* dot(D1_half, dX_ds);
@@ -425,7 +424,6 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     Pointer<LData> N_data,
     Pointer<LData> X_data,
     Pointer<LData> D_data,
-    Pointer<LData> /*U_data*/,
     const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     const int level_number,
     const double /*data_time*/,
@@ -466,8 +464,8 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     ierr = VecSetBlockSize(X_next_vec, NDIM);                                          IBTK_CHKERRQ(ierr);
 
     // Compute the node displacements.
-    ierr = MatMult(d_D_next_mats[level_number], D_data->getVec(), D_next_vec);  IBTK_CHKERRQ(ierr);
-    ierr = MatMult(d_X_next_mats[level_number], X_data->getVec(), X_next_vec);  IBTK_CHKERRQ(ierr);
+    ierr = MatMult(d_D_next_mats[level_number], D_vec, D_next_vec);  IBTK_CHKERRQ(ierr);
+    ierr = MatMult(d_X_next_mats[level_number], X_vec, X_next_vec);  IBTK_CHKERRQ(ierr);
 
     // Compute the rod forces acting on the nodes of the Lagrangian mesh.
     double* D_vals;

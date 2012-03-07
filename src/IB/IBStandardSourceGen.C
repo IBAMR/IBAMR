@@ -190,11 +190,9 @@ IBStandardSourceGen::initializeLevelData(
     {
         const LNode* const node_idx = *cit;
         const IBSourceSpec* const spec = node_idx->getNodeDataItem<IBSourceSpec>();
-        if (spec != NULL)
-        {
-            const int source_idx = spec->getSourceIndex();
-            ++d_num_perimeter_nodes[level_number][source_idx];
-        }
+        if (spec == NULL) continue;
+        const int source_idx = spec->getSourceIndex();
+        ++d_num_perimeter_nodes[level_number][source_idx];
     }
     SAMRAI_MPI::sumReduction(&d_num_perimeter_nodes[level_number][0],d_num_perimeter_nodes[level_number].size());
     return;
@@ -235,7 +233,7 @@ IBStandardSourceGen::getSourceLocations(
 
     // Determine the positions of the sources.
     std::fill(X_src.begin(), X_src.end(), blitz::TinyVector<double,NDIM>(0.0));
-    const double* const restrict X_node = X_data->getGhostedLocalFormVecArray()->data();
+    const double* const restrict X_node = X_data->getLocalFormVecArray()->data();
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
@@ -243,15 +241,13 @@ IBStandardSourceGen::getSourceLocations(
     {
         const LNode* const node_idx = *cit;
         const IBSourceSpec* const spec = node_idx->getNodeDataItem<IBSourceSpec>();
-        if (spec != NULL)
+        if (spec == NULL) continue;
+        const int& petsc_idx = node_idx->getLocalPETScIndex();
+        const double* const X = &X_node[NDIM*petsc_idx];
+        const int source_idx = spec->getSourceIndex();
+        for (unsigned int d = 0; d < NDIM; ++d)
         {
-            const int& petsc_idx = node_idx->getLocalPETScIndex();
-            const double* const X = &X_node[NDIM*petsc_idx];
-            const int source_idx = spec->getSourceIndex();
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                X_src[source_idx][d] += X[d]/static_cast<double>(d_num_perimeter_nodes[level_number][source_idx]);
-            }
+            X_src[source_idx][d] += X[d]/static_cast<double>(d_num_perimeter_nodes[level_number][source_idx]);
         }
     }
     X_data->restoreArrays();
@@ -285,7 +281,7 @@ IBStandardSourceGen::setSourcePressures(
 {
     d_P_src[level_number] = P_src;
     return;
-}// computeSourceStrengths
+}// setSourcePressures
 
 void
 IBStandardSourceGen::computeSourceStrengths(

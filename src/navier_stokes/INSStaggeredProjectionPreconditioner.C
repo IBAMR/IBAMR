@@ -246,9 +246,6 @@ INSStaggeredProjectionPreconditioner::solveSystem(
     F_scratch_vec = new SAMRAIVectorReal<NDIM,double>("INSStaggeredProjectionPreconditioner::F_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
     F_scratch_vec->addComponent(d_F_var, d_F_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
 
-    Pointer<PatchHierarchy<NDIM> > hierarchy = x.getPatchHierarchy();
-    TBOX_ASSERT(hierarchy == b.getPatchHierarchy());
-
     // Solve for u^{*}.
     d_velocity_helmholtz_solver->solveSystem(*U_out_vec,*U_in_vec);
 

@@ -81,10 +81,13 @@ inline MGCycleType
 string_to_enum<MGCycleType>(
     const std::string& val)
 {
+    if (strcasecmp(val.c_str(), "V"      ) == 0) return V_CYCLE;
     if (strcasecmp(val.c_str(), "V_CYCLE") == 0) return V_CYCLE;
     if (strcasecmp(val.c_str(), "V-CYCLE") == 0) return V_CYCLE;
+    if (strcasecmp(val.c_str(), "W"      ) == 0) return W_CYCLE;
     if (strcasecmp(val.c_str(), "W_CYCLE") == 0) return W_CYCLE;
     if (strcasecmp(val.c_str(), "W-CYCLE") == 0) return W_CYCLE;
+    if (strcasecmp(val.c_str(), "F"      ) == 0) return F_CYCLE;
     if (strcasecmp(val.c_str(), "F_CYCLE") == 0) return F_CYCLE;
     if (strcasecmp(val.c_str(), "F-CYCLE") == 0) return F_CYCLE;
     return UNKNOWN_MG_CYCLE_TYPE;
@@ -99,6 +102,69 @@ enum_to_string<MGCycleType>(
     if (val == W_CYCLE) return "W_CYCLE";
     if (val == F_CYCLE) return "F_CYCLE";
     return "UNKNOWN_MG_CYCLE_TYPE";
+}// enum_to_string
+
+/*!
+ * \brief Enumerated type for different regridding modes.
+ */
+enum RegridMode
+{
+    STANDARD,
+    AGGRESSIVE,
+    UNKNOWN_REGRID_MODE=-1
+};
+
+template<>
+inline RegridMode
+string_to_enum<RegridMode>(
+    const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "STANDARD"  ) == 0) return STANDARD;
+    if (strcasecmp(val.c_str(), "AGGRESSIVE") == 0) return AGGRESSIVE;
+    return UNKNOWN_REGRID_MODE;
+}// string_to_enum
+
+template<>
+inline std::string
+enum_to_string<RegridMode>(
+    RegridMode val)
+{
+    if (val == STANDARD  ) return "STANDARD";
+    if (val == AGGRESSIVE) return "AGGRESSIVE";
+    return "UNKNOWN_REGRID_MODE";
+}// enum_to_string
+
+/*!
+ * \brief Enumerated type for different standard data contexts.
+ */
+enum VariableContextType
+{
+    CURRENT_DATA,
+    NEW_DATA,
+    SCRATCH_DATA,
+    UNKNOWN_VARIABLE_CONTEXT_TYPE=-1
+};
+
+template<>
+inline VariableContextType
+string_to_enum<VariableContextType>(
+    const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "CURRENT_DATA") == 0) return CURRENT_DATA;
+    if (strcasecmp(val.c_str(), "NEW_DATA"    ) == 0) return NEW_DATA;
+    if (strcasecmp(val.c_str(), "SCRATCH_DATA") == 0) return SCRATCH_DATA;
+    return UNKNOWN_VARIABLE_CONTEXT_TYPE;
+}// string_to_enum
+
+template<>
+inline std::string
+enum_to_string<VariableContextType>(
+    VariableContextType val)
+{
+    if (val == CURRENT_DATA) return "CURRENT_DATA";
+    if (val == NEW_DATA    ) return "NEW_DATA";
+    if (val == SCRATCH_DATA) return "SCRATCH_DATA";
+    return "UNKNOWN_VARIABLE_CONTEXT_TYPE";
 }// enum_to_string
 
 }// namespace IBTK

@@ -770,7 +770,7 @@ CCPoissonFACOperator::smoothError(
             }
             else
             {
-                // Smooth the error via red-black Gauss-Seidel.
+                // Smooth the error via Gauss-Seidel.
                 const double& alpha = d_poisson_spec.getDConstant();
                 const double& beta = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
                 for (int depth = 0; depth < d_depth; ++depth)

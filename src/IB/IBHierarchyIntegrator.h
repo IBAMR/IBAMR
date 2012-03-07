@@ -47,13 +47,6 @@
 // IBTK INCLUDES
 #include <ibtk/LDataManager.h>
 
-/////////////////////////////// FORWARD DECLARATION //////////////////////////
-
-namespace IBAMR
-{
-class IBMethod;
-}
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -63,10 +56,10 @@ namespace IBAMR
  * second-order accurate, semi-implicit version of the immersed boundary method.
  */
 class IBHierarchyIntegrator
-    : public HierarchyIntegrator
+    : public IBTK::HierarchyIntegrator
 {
 public:
-    friend class IBMethod;
+    friend class IBStrategy;
 
     /*!
      * The constructor for class IBHierarchyIntegrator sets some default values,
@@ -174,10 +167,11 @@ public:
     regridHierarchy();
 
     /*!
-     * Execute user-defined post-processing operations.
+     * Return a pointer to the INSHierarchyIntegrator used by this class to
+     * solve the incompressible Navier-Stokes equations.
      */
-    void
-    postProcessData();
+    SAMRAI::tbox::Pointer<INSHierarchyIntegrator>
+    getINSHierarchyIntegrator() const;
 
 protected:
     /*!
@@ -229,6 +223,11 @@ protected:
     void
     putToDatabaseSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
+    /*!
+     * Enum indicating the time integration employed for the IB equations.
+     */
+    TimesteppingType d_timestepping_type;
 
     /*!
      * Flags to determine whether warnings or error messages should be emitted
@@ -307,14 +306,14 @@ private:
      * Hierarchy operations objects.
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM,double> > d_hier_velocity_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_pressure_cc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM,double> > d_hier_pressure_data_ops;
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
 
     /*
      * Eulerian variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_u_var, d_p_var, d_f_var, d_q_var;
-    int d_u_idx, d_p_idx, d_f_idx, d_q_idx;
+    int d_u_idx, d_p_idx, d_f_idx, d_f_current_idx, d_q_idx;
 
     /*
      * Body force functions.

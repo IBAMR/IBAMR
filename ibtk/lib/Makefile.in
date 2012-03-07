@@ -190,6 +190,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/utilities/FaceDataSynchronization.C \
 	$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C \
 	$(top_srcdir)/src/utilities/FixedSizedStream.C \
+	$(top_srcdir)/src/utilities/HierarchyIntegrator.C \
 	$(top_srcdir)/src/utilities/IndexUtilities.C \
 	$(top_srcdir)/src/utilities/LMarkerUtilities.C \
 	$(top_srcdir)/src/utilities/NodeDataSynchronization.C \
@@ -319,6 +320,7 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-FaceDataSynchronization.$(OBJEXT) \
 	libIBTK2d_a-FaceSynchCopyFillPattern.$(OBJEXT) \
 	libIBTK2d_a-FixedSizedStream.$(OBJEXT) \
+	libIBTK2d_a-HierarchyIntegrator.$(OBJEXT) \
 	libIBTK2d_a-IndexUtilities.$(OBJEXT) \
 	libIBTK2d_a-LMarkerUtilities.$(OBJEXT) \
 	libIBTK2d_a-NodeDataSynchronization.$(OBJEXT) \
@@ -444,6 +446,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/utilities/FaceDataSynchronization.C \
 	$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C \
 	$(top_srcdir)/src/utilities/FixedSizedStream.C \
+	$(top_srcdir)/src/utilities/HierarchyIntegrator.C \
 	$(top_srcdir)/src/utilities/IndexUtilities.C \
 	$(top_srcdir)/src/utilities/LMarkerUtilities.C \
 	$(top_srcdir)/src/utilities/NodeDataSynchronization.C \
@@ -572,6 +575,7 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-FaceDataSynchronization.$(OBJEXT) \
 	libIBTK3d_a-FaceSynchCopyFillPattern.$(OBJEXT) \
 	libIBTK3d_a-FixedSizedStream.$(OBJEXT) \
+	libIBTK3d_a-HierarchyIntegrator.$(OBJEXT) \
 	libIBTK3d_a-IndexUtilities.$(OBJEXT) \
 	libIBTK3d_a-LMarkerUtilities.$(OBJEXT) \
 	libIBTK3d_a-NodeDataSynchronization.$(OBJEXT) \
@@ -1119,6 +1123,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.h \
 	$(top_srcdir)/src/utilities/FixedSizedStream.I \
 	$(top_srcdir)/src/utilities/FixedSizedStream.h \
+	$(top_srcdir)/src/utilities/HierarchyIntegrator.h \
 	$(top_srcdir)/src/utilities/IndexUtilities.I \
 	$(top_srcdir)/src/utilities/IndexUtilities.h \
 	$(top_srcdir)/src/utilities/LMarkerUtilities.h \
@@ -1238,6 +1243,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/utilities/FaceDataSynchronization.C \
 	$(top_srcdir)/src/utilities/FaceSynchCopyFillPattern.C \
 	$(top_srcdir)/src/utilities/FixedSizedStream.C \
+	$(top_srcdir)/src/utilities/HierarchyIntegrator.C \
 	$(top_srcdir)/src/utilities/IndexUtilities.C \
 	$(top_srcdir)/src/utilities/LMarkerUtilities.C \
 	$(top_srcdir)/src/utilities/NodeDataSynchronization.C \
@@ -1423,6 +1429,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-GeneralOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellInterpolation.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-HierarchyMathOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-HierarchyVecCellDataOpsReal.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po@am__quote@
@@ -1535,6 +1542,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-GeneralOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-HierarchyMathOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-HierarchyVecCellDataOpsReal.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po@am__quote@
@@ -3039,6 +3047,20 @@ libIBTK2d_a-FixedSizedStream.obj: $(top_srcdir)/src/utilities/FixedSizedStream.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/FixedSizedStream.C' object='libIBTK2d_a-FixedSizedStream.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-FixedSizedStream.obj `if test -f '$(top_srcdir)/src/utilities/FixedSizedStream.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/FixedSizedStream.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/FixedSizedStream.C'; fi`
+
+libIBTK2d_a-HierarchyIntegrator.o: $(top_srcdir)/src/utilities/HierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-HierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Tpo -c -o libIBTK2d_a-HierarchyIntegrator.o `test -f '$(top_srcdir)/src/utilities/HierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/HierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Tpo $(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/HierarchyIntegrator.C' object='libIBTK2d_a-HierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-HierarchyIntegrator.o `test -f '$(top_srcdir)/src/utilities/HierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/HierarchyIntegrator.C
+
+libIBTK2d_a-HierarchyIntegrator.obj: $(top_srcdir)/src/utilities/HierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-HierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Tpo -c -o libIBTK2d_a-HierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/utilities/HierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/HierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/HierarchyIntegrator.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Tpo $(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/HierarchyIntegrator.C' object='libIBTK2d_a-HierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-HierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/utilities/HierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/HierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/HierarchyIntegrator.C'; fi`
 
 libIBTK2d_a-IndexUtilities.o: $(top_srcdir)/src/utilities/IndexUtilities.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-IndexUtilities.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-IndexUtilities.Tpo -c -o libIBTK2d_a-IndexUtilities.o `test -f '$(top_srcdir)/src/utilities/IndexUtilities.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/IndexUtilities.C
@@ -4607,6 +4629,20 @@ libIBTK3d_a-FixedSizedStream.obj: $(top_srcdir)/src/utilities/FixedSizedStream.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/FixedSizedStream.C' object='libIBTK3d_a-FixedSizedStream.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-FixedSizedStream.obj `if test -f '$(top_srcdir)/src/utilities/FixedSizedStream.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/FixedSizedStream.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/FixedSizedStream.C'; fi`
+
+libIBTK3d_a-HierarchyIntegrator.o: $(top_srcdir)/src/utilities/HierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-HierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Tpo -c -o libIBTK3d_a-HierarchyIntegrator.o `test -f '$(top_srcdir)/src/utilities/HierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/HierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Tpo $(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/HierarchyIntegrator.C' object='libIBTK3d_a-HierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-HierarchyIntegrator.o `test -f '$(top_srcdir)/src/utilities/HierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/HierarchyIntegrator.C
+
+libIBTK3d_a-HierarchyIntegrator.obj: $(top_srcdir)/src/utilities/HierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-HierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Tpo -c -o libIBTK3d_a-HierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/utilities/HierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/HierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/HierarchyIntegrator.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Tpo $(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/utilities/HierarchyIntegrator.C' object='libIBTK3d_a-HierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-HierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/utilities/HierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/utilities/HierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/utilities/HierarchyIntegrator.C'; fi`
 
 libIBTK3d_a-IndexUtilities.o: $(top_srcdir)/src/utilities/IndexUtilities.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-IndexUtilities.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-IndexUtilities.Tpo -c -o libIBTK3d_a-IndexUtilities.o `test -f '$(top_srcdir)/src/utilities/IndexUtilities.C' || echo '$(srcdir)/'`$(top_srcdir)/src/utilities/IndexUtilities.C

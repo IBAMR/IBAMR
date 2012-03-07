@@ -96,11 +96,6 @@ c
 c
 c     Coarsen the fine data via cubic interpolation.
 c
-!$OMP  PARALLEL
-!$OMP$ DEFAULT(SHARED)
-!$OMP$ PRIVATE(i,i_f,i_c,j,j_f,j_c,k,k_f,k_c)
-
-!$OMP DO SCHEDULE(STATIC)
       do k_c = coarse_box_lower(2),coarse_box_upper(2)
          do j_c = coarse_box_lower(1),coarse_box_upper(1)
             do i_c = coarse_box_lower(0),coarse_box_upper(0)
@@ -108,8 +103,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do k_c = coarse_box_lower(2),coarse_box_upper(2)
          k_f = k_c*ratio_to_coarser(2)
          do k = -2,1
@@ -130,8 +123,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO
-!$OMP END PARALLEL
 c
       return
       end
@@ -203,11 +194,6 @@ c
 c
 c     Coarsen the fine data via cubic interpolation.
 c
-!$OMP  PARALLEL
-!$OMP$ DEFAULT(SHARED)
-!$OMP$ PRIVATE(i,i_f,i_c,j,j_f,j_c,k,k_f,k_c)
-
-!$OMP DO SCHEDULE(STATIC)
       do k_c = coarse_box_lower(2),coarse_box_upper(2)
          do j_c = coarse_box_lower(1),coarse_box_upper(1)
             do i_c = coarse_box_lower(0),coarse_box_upper(0)+1
@@ -215,8 +201,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do k_c = coarse_box_lower(2),coarse_box_upper(2)
          k_f = k_c*ratio_to_coarser(2)
          do k = -2,1
@@ -235,8 +219,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do k_c = coarse_box_lower(2),coarse_box_upper(2)
          do j_c = coarse_box_lower(1),coarse_box_upper(1)+1
             do i_c = coarse_box_lower(0),coarse_box_upper(0)
@@ -244,8 +226,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do k_c = coarse_box_lower(2),coarse_box_upper(2)
          k_f = k_c*ratio_to_coarser(2)
          do k = -2,1
@@ -264,8 +244,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do k_c = coarse_box_lower(2),coarse_box_upper(2)+1
          do j_c = coarse_box_lower(1),coarse_box_upper(1)
             do i_c = coarse_box_lower(0),coarse_box_upper(0)
@@ -273,8 +251,6 @@ c
                enddo
             enddo
          enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do k_c = coarse_box_lower(2),coarse_box_upper(2)+1
          k_f = k_c*ratio_to_coarser(2)
          do j_c = coarse_box_lower(1),coarse_box_upper(1)
@@ -293,8 +269,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO
-!$OMP END PARALLEL
 c
       return
       end

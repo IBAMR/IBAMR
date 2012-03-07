@@ -704,13 +704,14 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
     }
 
     // Setup a specialized coarsen algorithm.
-    d_coarsen_algs["CONVECTIVE_OP"] = new CoarsenAlgorithm<NDIM>();
+    Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     Pointer<CoarsenOperator<NDIM> > coarsen_op;
     coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
-    d_coarsen_algs["CONVECTIVE_OP"]->registerCoarsen(d_U_scratch_idx, d_U_scratch_idx, coarsen_op);
+    coarsen_alg->registerCoarsen(d_U_scratch_idx, d_U_scratch_idx, coarsen_op);
     coarsen_op = grid_geom->lookupCoarsenOperator(d_u_ADV_var, "CONSERVATIVE_COARSEN");
-    d_coarsen_algs["CONVECTIVE_OP"]->registerCoarsen(d_u_ADV_scratch_idx, d_u_ADV_scratch_idx, coarsen_op);
+    coarsen_alg->registerCoarsen(d_u_ADV_scratch_idx, d_u_ADV_scratch_idx, coarsen_op);
+    registerCoarsenAlgorithm(d_object_name+"::CONVECTIVE_OP", coarsen_alg);
 
     // Set the current integration time.
     if (!RestartManager::getManager()->isFromRestart())
@@ -894,9 +895,9 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
             coarsen_alg->registerCoarsen(U_half_idx, U_half_idx, coarsen_op);
             coarsen_op = grid_geom->lookupCoarsenOperator(d_u_ADV_var, "CONSERVATIVE_COARSEN");
             coarsen_alg->registerCoarsen(d_u_ADV_scratch_idx, d_u_ADV_scratch_idx, coarsen_op);
-            coarsen_alg->resetSchedule(d_coarsen_scheds["CONVECTIVE_OP"][ln]);
-            d_coarsen_scheds["CONVECTIVE_OP"][ln]->coarsenData();
-            d_coarsen_algs  ["CONVECTIVE_OP"]->resetSchedule(d_coarsen_scheds["CONVECTIVE_OP"][ln]);
+            coarsen_alg->resetSchedule(getCoarsenSchedules(d_object_name+"::CONVECTIVE_OP")[ln]);
+            getCoarsenSchedules(d_object_name+"::CONVECTIVE_OP")[ln]->coarsenData();
+            getCoarsenAlgorithm(d_object_name+"::CONVECTIVE_OP")->resetSchedule(getCoarsenSchedules(d_object_name+"::CONVECTIVE_OP")[ln]);
         }
         d_convective_op->setAdvectionVelocity(d_u_ADV_scratch_idx);
         d_convective_op->apply(*d_U_half_vec, *d_N_vec);
@@ -1083,7 +1084,7 @@ INSCollocatedHierarchyIntegrator::regridHierarchy()
             break;
         default:
             TBOX_ERROR(d_object_name << "::regridHierarchy():\n"
-                       << "  unrecognized regrid mode: " << enum_to_string<RegridMode>(d_regrid_mode) << "." << std::endl);
+                       << "  unrecognized regrid mode: " << IBTK::enum_to_string<RegridMode>(d_regrid_mode) << "." << std::endl);
     }
 
     // Project the interpolated velocity.

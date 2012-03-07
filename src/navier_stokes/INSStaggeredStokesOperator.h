@@ -37,7 +37,6 @@
 
 // IBAMR INCLUDES
 #include <ibamr/INSProblemCoefs.h>
-#include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
 
 // IBTK INCLUDES
 #include <ibtk/LinearOperator.h>
@@ -68,7 +67,6 @@ public:
     INSStaggeredStokesOperator(
         const INSProblemCoefs* problem_coefs,
         blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> U_bc_coefs,
-        SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops);
 
@@ -251,29 +249,25 @@ private:
     operator=(
         const INSStaggeredStokesOperator& that);
 
-    // Whether the operator is initialized.
+    // Operator parameters.
     bool d_is_initialized;
-
-    // The simulation time.
     double d_current_time, d_new_time, d_dt;
 
-    // Problem coefficients.
-    const INSProblemCoefs* d_problem_coefs;
-    SAMRAI::solv::PoissonSpecifications d_helmholtz_spec;
-
-    // Math objects.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
-
-    // Boundary condition objects.
-    bool d_homogeneous_bc;
-    bool d_correcting_rhs;
-    const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_bc_coefs;
-    SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_U_bc_helper;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const d_P_bc_coef;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_P_bdry_fill_op, d_no_fill_op;
+    // Cached communications operators.
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_U_fill_pattern, d_P_fill_pattern;
+    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x_scratch;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_b;
+
+    // Problem specification and mathematical operators.
+    const INSProblemCoefs* d_problem_coefs;
+    SAMRAI::solv::PoissonSpecifications d_helmholtz_spec;
+    const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_bc_coefs;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const d_P_bc_coef;
+    bool d_homogeneous_bc, d_correcting_rhs;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
 };
 }// namespace IBAMR
 

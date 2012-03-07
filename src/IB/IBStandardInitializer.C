@@ -360,8 +360,8 @@ IBStandardInitializer::initializeDataOnPatchLevel(
 
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
-    blitz::Array<double,2>& X_array = *X_data->getGhostedLocalFormVecArray();
-    blitz::Array<double,2>& U_array = *U_data->getGhostedLocalFormVecArray();
+    blitz::Array<double,2>& X_array = *X_data->getLocalFormVecArray();
+    blitz::Array<double,2>& U_array = *U_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -467,8 +467,8 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
 {
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
-    blitz::Array<double,2>& M_array = *M_data->getGhostedLocalFormVecArray();
-    blitz::Array<double,2>& K_array = *K_data->getGhostedLocalFormVecArray();
+    blitz::Array<double,2>& M_array = *M_data->getLocalFormVecArray();
+    blitz::Array<double,2>& K_array = *K_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -525,7 +525,7 @@ IBStandardInitializer::initializeDirectorDataOnPatchLevel(
 {
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
-    blitz::Array<double,2>& D_array = *D_data->getGhostedLocalFormVecArray();
+    blitz::Array<double,2>& D_array = *D_data->getLocalFormVecArray();
     int local_idx = -1;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -548,7 +548,7 @@ IBStandardInitializer::initializeDirectorDataOnPatchLevel(
             const std::vector<double>& D = getVertexDirectors(point_idx, level_number);
             for (int d = 0; d < 3*3; ++d)
             {
-                D_array(local_petsc_idx,d)= D[d];
+                D_array(local_petsc_idx,d) = D[d];
             }
         }
     }
@@ -1447,7 +1447,7 @@ IBStandardInitializer::readRodFiles()
                     // Initialize the map data corresponding to the present rod.
                     //
                     // Note that in the rod property map, each edge is
-                    // associated with only the "cur1rent" vertex.
+                    // associated with only the "current" vertex.
                     RodSpec& rod_spec = d_rod_spec_data[ln][j][e];
                     rod_spec.properties = properties;
 #if ENABLE_SUBDOMAIN_INDICES

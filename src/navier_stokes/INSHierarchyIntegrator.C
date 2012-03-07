@@ -397,11 +397,10 @@ INSHierarchyIntegrator::putToDatabaseSpecialized(
     db->putDouble("d_rho",d_problem_coefs.getRho());
     db->putDouble("d_mu",d_problem_coefs.getMu());
     db->putDouble("d_lambda",d_problem_coefs.getLambda());
-    db->putInteger("d_num_cycles",d_num_cycles);
     db->putDouble("d_cfl_max",d_cfl_max);
     db->putBool("d_using_vorticity_tagging",d_using_vorticity_tagging);
-    db->putDoubleArray("d_Omega_rel_thresh",d_Omega_rel_thresh);
-    db->putDoubleArray("d_Omega_abs_thresh",d_Omega_abs_thresh);
+    if (d_Omega_rel_thresh.size() > 0) db->putDoubleArray("d_Omega_rel_thresh",d_Omega_rel_thresh);
+    if (d_Omega_abs_thresh.size() > 0) db->putDoubleArray("d_Omega_abs_thresh",d_Omega_abs_thresh);
     db->putDouble("d_Omega_max",d_Omega_max);
     db->putBool("d_normalize_pressure",d_normalize_pressure);
     db->putString("d_default_convective_op_type",enum_to_string<ConvectiveOperatorType>(d_default_convective_op_type));
@@ -546,8 +545,10 @@ INSHierarchyIntegrator::getFromRestart()
     d_num_cycles = db->getInteger("d_num_cycles");
     d_cfl_max = db->getDouble("d_cfl_max");
     d_using_vorticity_tagging = db->getBool("d_using_vorticity_tagging");
-    d_Omega_rel_thresh = db->getDoubleArray("d_Omega_rel_thresh");
-    d_Omega_abs_thresh = db->getDoubleArray("d_Omega_abs_thresh");
+    if (db->keyExists("d_Omega_rel_thresh")) d_Omega_rel_thresh = db->getDoubleArray("d_Omega_rel_thresh");
+    else d_Omega_rel_thresh.resizeArray(0);
+    if (db->keyExists("d_Omega_abs_thresh")) d_Omega_abs_thresh = db->getDoubleArray("d_Omega_abs_thresh");
+    else d_Omega_abs_thresh.resizeArray(0);
     d_Omega_max = db->getDouble("d_Omega_max");
     d_normalize_pressure = db->getBool("d_normalize_pressure");
     d_default_convective_op_type = string_to_enum<ConvectiveOperatorType>(db->getString("d_default_convective_op_type"));

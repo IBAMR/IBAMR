@@ -169,7 +169,8 @@ public:
         double data_time);
 
     /*!
-     * Advance the positions of the Lagrangian structure using forward Euler.
+     * Advance the positions of the Lagrangian structure using the forward Euler
+     * method.
      */
     void
     eulerStep(
@@ -177,11 +178,20 @@ public:
         double new_time);
 
     /*!
-     * Advance the positions of the Lagrangian structure using the midpoint
-     * rule.
+     * Advance the positions of the Lagrangian structure using the (explicit)
+     * midpoint rule.
      */
     void
     midpointStep(
+        double current_time,
+        double new_time);
+
+    /*!
+     * Advance the positions of the Lagrangian structure using the (explicit)
+     * trapezoidal rule.
+     */
+    void
+    trapezoidalStep(
         double current_time,
         double new_time);
 
@@ -366,6 +376,16 @@ protected:
         const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& new_data,
         const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& half_data);
 
+    /*!
+     * Set the elements of the Lagrangian vector to zero at anchored nodes of
+     * the curvilinear mesh.
+     */
+    void
+    resetAnchorPointValues(
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > U_data,
+        int coarsest_ln,
+        int finest_ln);
+
     /*
      * Indicates whether the integrator should output logging messages.
      */
@@ -538,16 +558,6 @@ private:
     updateIBInstrumentationData(
         int timestep_num,
         double data_time);
-
-    /*!
-     * Set the elements of the Lagrangian vector to zero at anchored nodes of
-     * the curvilinear mesh.
-     */
-    void
-    resetAnchorPointValues(
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > U_data,
-        int coarsest_ln,
-        int finest_ln);
 
     /*!
      * Read input values from a given database.

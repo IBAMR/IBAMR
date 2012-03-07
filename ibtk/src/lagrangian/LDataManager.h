@@ -141,7 +141,7 @@ public:
         const std::string& name,
         const std::string& interp_weighting_fcn,
         const std::string& spread_weighting_fcn,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width=SAMRAI::hier::IntVector<NDIM>(-1),
+        const SAMRAI::hier::IntVector<NDIM>& min_ghost_cell_width=SAMRAI::hier::IntVector<NDIM>(0),
         bool register_for_restart=true);
 
     /*!

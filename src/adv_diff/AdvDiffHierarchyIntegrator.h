@@ -40,11 +40,11 @@
 
 // IBAMR INCLUDES
 #include <ibamr/AdvDiffHypPatchOps.h>
-#include <ibamr/HierarchyIntegrator.h>
 
 // IBTK INCLUDES
 #include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/CCPoissonFACOperator.h>
+#include <ibtk/HierarchyIntegrator.h>
 #include <ibtk/KrylovLinearSolver.h>
 
 // SAMRAI INCLUDES
@@ -83,7 +83,7 @@ namespace IBAMR
  * \see SAMRAI::algs::TimeRefinementLevelStrategy
  */
 class AdvDiffHierarchyIntegrator
-    : public HierarchyIntegrator
+    : public IBTK::HierarchyIntegrator
 {
 public:
     /*!

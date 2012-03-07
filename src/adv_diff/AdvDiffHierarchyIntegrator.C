@@ -578,8 +578,8 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
         const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
         Pointer<CoarsenOperator<NDIM> > coarsen_operator = grid_geom->lookupCoarsenOperator(Q_var, "CONSERVATIVE_COARSEN");
-        d_coarsen_algs[SYNCH_CURRENT_DATA_ALG]->registerCoarsen(Q_current_idx, Q_current_idx, coarsen_operator);
-        d_coarsen_algs[SYNCH_NEW_DATA_ALG]->registerCoarsen(Q_new_idx, Q_new_idx, coarsen_operator);
+        getCoarsenAlgorithm(SYNCH_CURRENT_DATA_ALG)->registerCoarsen(Q_current_idx, Q_current_idx, coarsen_operator);
+        getCoarsenAlgorithm(SYNCH_NEW_DATA_ALG    )->registerCoarsen(Q_new_idx    , Q_new_idx    , coarsen_operator);
     }
 
     // Operators and solvers are maintained for each variable registered with the

@@ -515,7 +515,7 @@ INSStaggeredHierarchyIntegrator::getStokesSolver()
     if (d_stokes_solver.isNull())
     {
         const std::string stokes_prefix = "stokes_";
-        d_stokes_op = new INSStaggeredStokesOperator(&d_problem_coefs, d_U_bc_coefs, d_U_bc_helper, d_P_bc_coef, d_hier_math_ops);
+        d_stokes_op = new INSStaggeredStokesOperator(&d_problem_coefs, d_U_bc_coefs, d_P_bc_coef, d_hier_math_ops);
         d_stokes_solver = new PETScKrylovLinearSolver(d_object_name+"::stokes_solver", stokes_prefix);
         d_stokes_solver->setInitialGuessNonzero(true);
         Pointer<PETScKrylovLinearSolver> p_stokes_solver = d_stokes_solver;
@@ -747,9 +747,10 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     }
 
     // Setup a specialized coarsen algorithm.
-    d_coarsen_algs["CONVECTIVE_OP"] = new CoarsenAlgorithm<NDIM>();
+    Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
     Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
-    d_coarsen_algs["CONVECTIVE_OP"]->registerCoarsen(d_U_scratch_idx, d_U_scratch_idx, coarsen_op);
+    coarsen_alg->registerCoarsen(d_U_scratch_idx, d_U_scratch_idx, coarsen_op);
+    registerCoarsenAlgorithm(d_object_name+"::CONVECTIVE_OP", coarsen_alg);
 
     // Set the current integration time.
     if (!RestartManager::getManager()->isFromRestart())
@@ -892,9 +893,9 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
             Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
             Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
             coarsen_alg->registerCoarsen(U_half_idx, U_half_idx, coarsen_op);
-            coarsen_alg->resetSchedule(d_coarsen_scheds["CONVECTIVE_OP"][ln]);
-            d_coarsen_scheds["CONVECTIVE_OP"][ln]->coarsenData();
-            d_coarsen_algs  ["CONVECTIVE_OP"]->resetSchedule(d_coarsen_scheds["CONVECTIVE_OP"][ln]);
+            coarsen_alg->resetSchedule(getCoarsenSchedules(d_object_name+"::CONVECTIVE_OP")[ln]);
+            getCoarsenSchedules(d_object_name+"::CONVECTIVE_OP")[ln]->coarsenData();
+            getCoarsenAlgorithm(d_object_name+"::CONVECTIVE_OP")->resetSchedule(getCoarsenSchedules(d_object_name+"::CONVECTIVE_OP")[ln]);
         }
         d_convective_op->setAdvectionVelocity(d_U_half_vec->getComponentDescriptorIndex(0));
         d_convective_op->apply(*d_U_half_vec, *d_N_vec);
@@ -1049,7 +1050,7 @@ INSStaggeredHierarchyIntegrator::regridHierarchy()
             break;
         default:
             TBOX_ERROR(d_object_name << "::regridHierarchy():\n"
-                       << "  unrecognized regrid mode: " << enum_to_string<RegridMode>(d_regrid_mode) << "." << std::endl);
+                       << "  unrecognized regrid mode: " << IBTK::enum_to_string<RegridMode>(d_regrid_mode) << "." << std::endl);
     }
 
     // Determine the divergence of the velocity field after regridding.

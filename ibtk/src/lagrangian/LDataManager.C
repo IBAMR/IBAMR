@@ -156,13 +156,13 @@ LDataManager::getManager(
     const std::string& name,
     const std::string& interp_weighting_fcn,
     const std::string& spread_weighting_fcn,
-    const IntVector<NDIM>& ghost_cell_width,
+    const IntVector<NDIM>& min_ghost_cell_width,
     bool register_for_restart)
 {
     if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
     {
-        const int stencil_size = std::max(LEInteractor::getStencilSize(interp_weighting_fcn),LEInteractor::getStencilSize(interp_weighting_fcn));
-        const IntVector<NDIM> gcw = IntVector<NDIM>::max(IntVector<NDIM>(static_cast<int>(floor(0.5*static_cast<double>(stencil_size)))+1),ghost_cell_width);
+        const int stencil_size = std::max(LEInteractor::getStencilSize(interp_weighting_fcn),LEInteractor::getStencilSize(spread_weighting_fcn));
+        const IntVector<NDIM> gcw = IntVector<NDIM>::max(IntVector<NDIM>(static_cast<int>(floor(0.5*static_cast<double>(stencil_size)))+1),min_ghost_cell_width);
         s_data_manager_instances[name] = new LDataManager(name, interp_weighting_fcn, spread_weighting_fcn, gcw, register_for_restart);
     }
     if (!s_registered_callback)
@@ -383,6 +383,7 @@ LDataManager::spread(
             {
                 f_data_ops->resetLevels(ln,ln);
                 f_data_ops->setToScalar(f_data_idx, 0.0);
+                f_data_ops->resetLevels(coarsest_ln, finest_ln);
             }
 
             if (!levelContainsLagrangianData(ln)) continue;
@@ -1983,7 +1984,7 @@ LDataManager::initializeLevelData(
         // particular the code where the data related to the implementation of
         // the penalty IB method are initialized.
         static const unsigned int global_index_offset = 0;
-        static const unsigned int local_index_offset = 0;
+        static const unsigned int  local_index_offset = 0;
         const unsigned int num_initialized_local_nodes = d_lag_init->initializeDataOnPatchLevel(
             d_lag_node_index_current_idx,
             global_index_offset, local_index_offset,

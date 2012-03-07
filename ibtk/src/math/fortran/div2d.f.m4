@@ -88,9 +88,6 @@ c
       fac0 = alpha/(2.d0*dx(0))
       fac1 = alpha/(2.d0*dx(1))
 
-!$OMP  PARALLEL DO
-!$OMP& DEFAULT(SHARED) PRIVATE(i0,i1)
-!$OMP& SCHEDULE(STATIC)
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
             D(i0,i1) =
@@ -98,7 +95,6 @@ c
      &           fac1*(U(i0,i1+1,1)-U(i0,i1-1,1))
          enddo
       enddo
-!$OMP END PARALLEL DO
 c
       return
       end
@@ -154,9 +150,6 @@ c
       fac0 = alpha/(2.d0*dx(0))
       fac1 = alpha/(2.d0*dx(1))
 
-!$OMP  PARALLEL DO
-!$OMP& DEFAULT(SHARED) PRIVATE(i0,i1)
-!$OMP& SCHEDULE(STATIC)
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
             D(i0,i1) =
@@ -165,7 +158,6 @@ c
      &           beta*V(i0,i1)
          enddo
       enddo
-!$OMP END PARALLEL DO
 c
       return
       end
@@ -216,9 +208,6 @@ c
       fac0 = alpha/dx(0)
       fac1 = alpha/dx(1)
 
-!$OMP  PARALLEL DO
-!$OMP& DEFAULT(SHARED) PRIVATE(i0,i1)
-!$OMP& SCHEDULE(STATIC)
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
             D(i0,i1) =
@@ -226,7 +215,6 @@ c
      &           fac1*(u1(i1+1,i0)-u1(i1,i0))
          enddo
       enddo
-!$OMP END PARALLEL DO
 c
       return
       end
@@ -283,9 +271,6 @@ c
       fac0 = alpha/dx(0)
       fac1 = alpha/dx(1)
 
-!$OMP  PARALLEL DO
-!$OMP& DEFAULT(SHARED) PRIVATE(i0,i1)
-!$OMP& SCHEDULE(STATIC)
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
             D(i0,i1) =
@@ -294,7 +279,6 @@ c
      &           beta*V(i0,i1)
          enddo
       enddo
-!$OMP END PARALLEL DO
 c
       return
       end
@@ -345,9 +329,6 @@ c
       fac0 = alpha/dx(0)
       fac1 = alpha/dx(1)
 
-!$OMP  PARALLEL DO
-!$OMP& DEFAULT(SHARED) PRIVATE(i0,i1)
-!$OMP& SCHEDULE(STATIC)
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
             D(i0,i1) =
@@ -355,7 +336,6 @@ c
      &        fac1*(u1(i0,i1+1)-u1(i0,i1))
          enddo
       enddo
-!$OMP END PARALLEL DO
 c
       return
       end
@@ -412,9 +392,6 @@ c
       fac0 = alpha/dx(0)
       fac1 = alpha/dx(1)
 
-!$OMP  PARALLEL DO
-!$OMP& DEFAULT(SHARED) PRIVATE(i0,i1)
-!$OMP& SCHEDULE(STATIC)
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
             D(i0,i1) =
@@ -423,7 +400,6 @@ c
      &           beta*V(i0,i1)
          enddo
       enddo
-!$OMP END PARALLEL DO
 c
       return
       end

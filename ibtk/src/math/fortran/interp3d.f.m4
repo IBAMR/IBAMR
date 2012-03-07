@@ -83,8 +83,6 @@ c
 c     Compute the face centered vector field (u0,u1,u2) from the cell
 c     centered vector field V.
 c
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i0,i1,i2)
-!$OMP DO SCHEDULE(STATIC)
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0+1
@@ -92,8 +90,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do i0 = ilower0,iupper0
          do i2 = ilower2,iupper2
             do i1 = ilower1,iupper1+1
@@ -101,8 +97,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
             do i2 = ilower2,iupper2+1
@@ -110,8 +104,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO
-!$OMP END PARALLEL
 c
       return
       end
@@ -155,8 +147,6 @@ c
 c     Compute the face centered vector field (u0,u1,u2) from the cell
 c     centered scalar field V.
 c
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i0,i1,i2)
-!$OMP DO SCHEDULE(STATIC)
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0+1
@@ -164,8 +154,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do i0 = ilower0,iupper0
          do i2 = ilower2,iupper2
             do i1 = ilower1,iupper1+1
@@ -173,8 +161,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
             do i2 = ilower2,iupper2+1
@@ -182,8 +168,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO
-!$OMP END PARALLEL
 c
       return
       end
@@ -227,8 +211,6 @@ c
 c     Compute the side centered vector field (u0,u1,u2) from the cell
 c     centered vector field V.
 c
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i0,i1,i2)
-!$OMP DO SCHEDULE(STATIC)
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0+1
@@ -236,8 +218,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1+1
             do i0 = ilower0,iupper0
@@ -245,8 +225,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do i2 = ilower2,iupper2+1
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
@@ -254,8 +232,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO
-!$OMP END PARALLEL
 c
       return
       end
@@ -299,8 +275,6 @@ c
 c     Compute the side centered vector field (u0,u1,u2) from the cell
 c     centered scalar field V.
 c
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i0,i1,i2)
-!$OMP DO SCHEDULE(STATIC)
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0+1
@@ -308,8 +282,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1+1
             do i0 = ilower0,iupper0
@@ -317,8 +289,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do i2 = ilower2,iupper2+1
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
@@ -326,8 +296,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO
-!$OMP END PARALLEL
 c
       return
       end
@@ -371,8 +339,6 @@ c
 c     Compute the cell centered vector field U from the face centered
 c     vector field (v0,v1,v2).
 c
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i0,i1,i2)
-!$OMP DO SCHEDULE(STATIC)
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
@@ -380,8 +346,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
@@ -389,8 +353,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
@@ -398,8 +360,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO
-!$OMP END PARALLEL
 c
       return
       end
@@ -443,8 +403,6 @@ c
 c     Compute the cell centered vector field U from the side centered
 c     vector field (v0,v1,v2).
 c
-!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(i0,i1,i2)
-!$OMP DO SCHEDULE(STATIC)
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
@@ -452,8 +410,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
@@ -461,8 +417,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO NOWAIT
-!$OMP DO SCHEDULE(STATIC)
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
@@ -470,8 +424,6 @@ c
             enddo
          enddo
       enddo
-!$OMP END DO
-!$OMP END PARALLEL
 c
       return
       end
@@ -528,9 +480,6 @@ c     Compute the cell centered vector field U from the side centered
 c     vector field (v0,v1,v2).
 c
       if ( direction.eq.0 ) then
-!$OMP  PARALLEL DO
-!$OMP$ DEFAULT(SHARED) PRIVATE(i0,i1,i2)
-!$OMP$ SCHEDULE(STATIC)
          do i2 = ilower2,iupper2
             do i1 = ilower1,iupper1
                do i0 = ilower0,iupper0
@@ -539,11 +488,7 @@ c
                enddo
             enddo
          enddo
-!$OMP END PARALLEL DO
       elseif ( direction.eq.1 ) then
-!$OMP  PARALLEL DO
-!$OMP$ DEFAULT(SHARED) PRIVATE(i0,i1,i2)
-!$OMP$ SCHEDULE(STATIC)
          do i2 = ilower2,iupper2
             do i1 = ilower1,iupper1
                do i0 = ilower0,iupper0
@@ -552,11 +497,7 @@ c
                enddo
             enddo
          enddo
-!$OMP END PARALLEL DO
       else
-!$OMP  PARALLEL DO
-!$OMP$ DEFAULT(SHARED) PRIVATE(i0,i1,i2)
-!$OMP$ SCHEDULE(STATIC)
          do i2 = ilower2,iupper2
             do i1 = ilower1,iupper1
                do i0 = ilower0,iupper0
@@ -565,7 +506,6 @@ c
                enddo
             enddo
          enddo
-!$OMP END PARALLEL DO
       endif
 c
       return

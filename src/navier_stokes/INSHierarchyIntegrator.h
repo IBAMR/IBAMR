@@ -37,10 +37,10 @@
 
 // IBAMR INCLUDES
 #include <ibamr/ConvectiveOperator.h>
-#include <ibamr/HierarchyIntegrator.h>
 #include <ibamr/INSProblemCoefs.h>
 
 // IBTK INCLUDES
+#include <ibtk/HierarchyIntegrator.h>
 #include <ibtk/LinearSolver.h>
 
 // SAMRAI INCLUDES
@@ -60,7 +60,7 @@ namespace IBAMR
  * hierarchy.
  */
 class INSHierarchyIntegrator
-    : public HierarchyIntegrator
+    : public IBTK::HierarchyIntegrator
 {
 public:
     /*!
