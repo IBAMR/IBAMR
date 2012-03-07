@@ -52,6 +52,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/IndexUtilities.h>
+#include <ibtk/LEInteractor.h>
 #include <ibtk/LSiloDataWriter.h>
 #if (NDIM == 3)
 #include <ibtk/LM3DDataWriter.h>
@@ -117,6 +118,8 @@ IBMethod::IBMethod(
     // Set some default values.
     d_interp_delta_fcn = "IB_4";
     d_spread_delta_fcn = "IB_4";
+    const int stencil_size = std::max(LEInteractor::getStencilSize(d_interp_delta_fcn),LEInteractor::getStencilSize(d_spread_delta_fcn));
+    d_ghosts = static_cast<int>(floor(0.5*static_cast<double>(stencil_size)))+1;
     d_do_log = false;
 
     // Initialize object with data read from the input and restart databases.
