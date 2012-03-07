@@ -464,8 +464,8 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(
     ierr = VecSetBlockSize(X_next_vec, NDIM);                                          IBTK_CHKERRQ(ierr);
 
     // Compute the node displacements.
-    ierr = MatMult(d_D_next_mats[level_number], D_data->getVec(), D_next_vec);  IBTK_CHKERRQ(ierr);
-    ierr = MatMult(d_X_next_mats[level_number], X_data->getVec(), X_next_vec);  IBTK_CHKERRQ(ierr);
+    ierr = MatMult(d_D_next_mats[level_number], D_vec, D_next_vec);  IBTK_CHKERRQ(ierr);
+    ierr = MatMult(d_X_next_mats[level_number], X_vec, X_next_vec);  IBTK_CHKERRQ(ierr);
 
     // Compute the rod forces acting on the nodes of the Lagrangian mesh.
     double* D_vals;
