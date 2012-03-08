@@ -63,6 +63,17 @@ IBStrategySet::~IBStrategySet()
 }// ~IBStrategySet
 
 void
+IBStrategySet::registerIBHierarchyIntegrator(
+    IBHierarchyIntegrator* ib_solver)
+{
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    {
+        (*cit)->registerIBHierarchyIntegrator(ib_solver);
+    }
+    return;
+}// registerIBHierarchyIntegrator
+
+void
 IBStrategySet::registerEulerianVariables()
 {
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)

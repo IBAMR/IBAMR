@@ -70,6 +70,14 @@ public:
     ~IBStrategySet();
 
     /*!
+     * Register the IBHierarchyIntegrator object that is using this strategy
+     * class.
+     */
+    void
+    registerIBHierarchyIntegrator(
+        IBHierarchyIntegrator* ib_solver);
+
+    /*!
      * Register Eulerian variables with the parent IBHierarchyIntegrator with
      * the VariableDatabase, or via the various versions of the protected method
      * IBStrategy::registerVariable().
