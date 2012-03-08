@@ -127,7 +127,7 @@ public:
     getMinimumGhostCellWidth() const = 0;
 
     /*!
-     * Virtual method to prepare to advance data from current_time to new_time.
+     * Method to prepare to advance data from current_time to new_time.
      *
      * An empty default implementation is provided.
      */
@@ -138,8 +138,7 @@ public:
         int num_cycles);
 
     /*!
-     * Virtual method to clean up data following call(s) to
-     * integrateHierarchy().
+     * Method to clean up data following call(s) to integrateHierarchy().
      *
      * An empty default implementation is provided.
      */
