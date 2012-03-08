@@ -91,7 +91,7 @@ public:
      *
      * An empty default implementation is provided.
      */
-    void
+    virtual void
     registerIBHierarchyIntegrator(
         IBHierarchyIntegrator* ib_solver);
 
