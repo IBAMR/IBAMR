@@ -667,7 +667,6 @@ IBMethod::spreadFluidSource(
     }
 
     // Spread the sources/sinks onto the Cartesian grid.
-    getPressureHierarchyDataOps()->setToScalar(q_data_idx, 0.0);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_n_src[ln] == 0) continue;
