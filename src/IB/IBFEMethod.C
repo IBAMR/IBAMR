@@ -551,7 +551,7 @@ IBFEMethod::initializeFEData()
                             const int F_dof_index = node->dof_number(F_sys_num,d,0);
                             DofConstraintRow F_constraint_row;
                             F_constraint_row[F_dof_index] = 1.0;
-                            F_dof_map.add_constraint_row(F_dof_index, F_constraint_row, false);
+                            F_dof_map.add_constraint_row(F_dof_index, F_constraint_row, 0.0, false);
                         }
                     }
                     if (node->n_dofs(U_sys_num) > 0)
@@ -561,7 +561,7 @@ IBFEMethod::initializeFEData()
                             const int U_dof_index = node->dof_number(U_sys_num,d,0);
                             DofConstraintRow U_constraint_row;
                             U_constraint_row[U_dof_index] = 1.0;
-                            U_dof_map.add_constraint_row(U_dof_index, U_constraint_row, false);
+                            U_dof_map.add_constraint_row(U_dof_index, U_constraint_row, 0.0, false);
                         }
                     }
                 }
