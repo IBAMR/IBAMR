@@ -2410,7 +2410,7 @@ FEDataManager::collectGhostDOFIndices(
         const unsigned int constrained_dof = i->first;
         if (constrained_dof >= first_local_dof && constrained_dof < end_local_dof)
         {
-            const DofConstraintRow& constraint_row = i->second;
+            const DofConstraintRow& constraint_row = i->second.first;
             for (DofConstraintRow::const_iterator j = constraint_row.begin();
                  j != constraint_row.end(); ++j)
             {

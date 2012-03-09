@@ -62,6 +62,7 @@ $(top_srcdir)/src/IB/IBStandardForceGen.C \
 $(top_srcdir)/src/IB/IBStandardSourceGen.C \
 $(top_srcdir)/src/IB/IBStandardInitializer.C \
 $(top_srcdir)/src/IB/IBStrategy.C \
+$(top_srcdir)/src/IB/IBStrategySet.C \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.C \
 $(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C \
 $(top_srcdir)/src/IB/PenaltyIBMethod.C \
@@ -129,6 +130,7 @@ $(top_srcdir)/src/IB/IBStandardForceGen.h \
 $(top_srcdir)/src/IB/IBStandardSourceGen.h \
 $(top_srcdir)/src/IB/IBStandardInitializer.h \
 $(top_srcdir)/src/IB/IBStrategy.h \
+$(top_srcdir)/src/IB/IBStrategySet.h \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.I \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.h \
 $(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.h \
