@@ -493,7 +493,7 @@ protected:
 
     /*!
      * Virtual method to provide implementation-specific function to determine
-     * whether to regridding should occur at the current time step.
+     * whether regridding should occur at the current time step.
      *
      * A default implementation is provided that indicates that the hierarchy
      * should be regridded at a fixed integer interval of time steps unless a
