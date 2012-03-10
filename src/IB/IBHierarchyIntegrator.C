@@ -119,6 +119,18 @@ IBHierarchyIntegrator::~IBHierarchyIntegrator()
     return;
 }// ~IBHierarchyIntegrator
 
+Pointer<IBStrategy>
+IBHierarchyIntegrator::getIBStrategy() const
+{
+    return d_ib_method_ops;
+}// getIBStrategy
+
+Pointer<INSHierarchyIntegrator>
+IBHierarchyIntegrator::getINSHierarchyIntegrator() const
+{
+    return d_ins_hier_integrator;
+}// getINSHierarchyIntegrator
+
 void
 IBHierarchyIntegrator::registerBodyForceFunction(
     Pointer<CartGridFunction> f_fcn)
@@ -215,7 +227,6 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
         d_q_var = NULL;
         d_q_idx = -1;
     }
-
 
     // Initialize the objects used to manage Lagrangian-Eulerian interaction.
     d_eulerian_force_fcn = new IBEulerianForceFunction(d_object_name+"::IBEulerianForceFunction", d_f_idx, d_f_idx, d_f_idx);
@@ -663,8 +674,6 @@ IBHierarchyIntegrator::regridHierarchy()
     return;
 }// regridHierarchy
 
-
-
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 bool
@@ -772,12 +781,6 @@ IBHierarchyIntegrator::putToDatabaseSpecialized(
     db->putDouble("d_regrid_cfl_estimate", d_regrid_cfl_estimate);
     return;
 }// putToDatabaseSpecialized
-
-Pointer<INSHierarchyIntegrator>
-IBHierarchyIntegrator::getINSHierarchyIntegrator() const
-{
-    return d_ins_hier_integrator;
-}// getINSHierarchyIntegrator
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

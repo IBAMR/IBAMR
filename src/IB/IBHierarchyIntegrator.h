@@ -80,6 +80,20 @@ public:
     ~IBHierarchyIntegrator();
 
     /*!
+     * Return a pointer to the IBStrategy object registered with this
+     * integrator.
+     */
+    SAMRAI::tbox::Pointer<IBStrategy>
+    getIBStrategy() const;
+
+    /*!
+     * Return a pointer to the INSHierarchyIntegrator registered with this
+     * integrator.
+     */
+    SAMRAI::tbox::Pointer<INSHierarchyIntegrator>
+    getINSHierarchyIntegrator() const;
+
+    /*!
      * Supply a body force (optional).
      */
     void
@@ -166,17 +180,10 @@ public:
     void
     regridHierarchy();
 
-    /*!
-     * Return a pointer to the INSHierarchyIntegrator used by this class to
-     * solve the incompressible Navier-Stokes equations.
-     */
-    SAMRAI::tbox::Pointer<INSHierarchyIntegrator>
-    getINSHierarchyIntegrator() const;
-
 protected:
     /*!
-     * Function to determine whether to regridding should occur at the current
-     * time step.
+     * Function to determine whether regridding should occur at the current time
+     * step.
      */
     bool
     atRegridPointSpecialized() const;
