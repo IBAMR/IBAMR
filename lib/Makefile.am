@@ -23,10 +23,12 @@ clean-local:
 libIBAMR_a_SOURCES = \
 $(top_builddir)/src/advect/fortran/godunov_helpers.f \
 $(top_builddir)/src/fortran/sqrtm.f \
-$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C
+$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C \
+$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C
 
 pkg_include_HEADERS = \
 $(top_srcdir)/src/navier_stokes/INSProblemCoefs.h \
+$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.h \
 $(top_srcdir)/src/utilities/ibamr_enums.h \
 $(top_srcdir)/src/utilities/ibamr_utilities.h \
 $(top_srcdir)/src/utilities/app_namespaces.h \
