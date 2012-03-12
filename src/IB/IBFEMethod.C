@@ -55,7 +55,6 @@
 // LIBMESH INCLUDES
 #include <boundary_info.h>
 #include <dense_vector.h>
-#include <explicit_system.h>
 #include <fe_interface.h>
 #include <mesh.h>
 #include <petsc_vector.h>
@@ -993,16 +992,19 @@ IBFEMethod::computeInteriorForceDensity(
                 FF_bar = FF;
             }
 
-            // Compute the value of the first Piola-Kirchhoff stress tensor at
-            // the quadrature point and add the corresponding forces to the
-            // right-hand-side vector.
-            d_PK1_stress_fcns[part](PP,FF_bar,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
-            for (unsigned int k = 0; k < n_basis; ++k)
+            if (d_PK1_stress_fcns[part] != NULL)
             {
-                F_qp = -PP*dphi[k][qp]*JxW[qp];
-                for (unsigned int i = 0; i < NDIM; ++i)
+                // Compute the value of the first Piola-Kirchhoff stress tensor
+                // at the quadrature point and add the corresponding forces to
+                // the right-hand-side vector.
+                d_PK1_stress_fcns[part](PP,FF_bar,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
+                for (unsigned int k = 0; k < n_basis; ++k)
                 {
-                    G_rhs_e[i](k) += F_qp(i);
+                    F_qp = -PP*dphi[k][qp]*JxW[qp];
+                    for (unsigned int i = 0; i < NDIM; ++i)
+                    {
+                        G_rhs_e[i](k) += F_qp(i);
+                    }
                 }
             }
 
@@ -1043,10 +1045,10 @@ IBFEMethod::computeInteriorForceDensity(
 
             // Determine whether we need to compute surface forces along this
             // part of the physical boundary; if not, skip the present side.
-            const bool compute_transmission_force = (( d_split_forces && !at_dirichlet_bdry) ||
-                                                     (!d_split_forces &&  at_dirichlet_bdry));
-            const bool compute_pressure = (!d_split_forces && d_lag_pressure_fcns[part] != NULL && !at_dirichlet_bdry);
-            const bool compute_surface_force = (!d_split_forces && d_lag_surface_force_fcns[part] != NULL && !at_dirichlet_bdry);
+            const bool compute_transmission_force = d_PK1_stress_fcns       [part] != NULL && (( d_split_forces && !at_dirichlet_bdry) ||
+                                                                                               (!d_split_forces &&  at_dirichlet_bdry));
+            const bool compute_pressure           = d_lag_pressure_fcns     [part] != NULL && ( !d_split_forces && !at_dirichlet_bdry );
+            const bool compute_surface_force      = d_lag_surface_force_fcns[part] != NULL && ( !d_split_forces && !at_dirichlet_bdry );
             if (!(compute_transmission_force || compute_pressure || compute_surface_force)) continue;
 
             fe_face->reinit(elem, side);
@@ -1081,7 +1083,7 @@ IBFEMethod::computeInteriorForceDensity(
                     d_PK1_stress_fcns[part](PP,FF_bar,X_qp,s_qp,elem,X_vec,PK1_stress_fcn_data,time,d_PK1_stress_fcn_ctxs[part]);
                     F += PP*normal_face[qp];
                 }
-                if (compute_pressure)
+                if (compute_pressure && d_lag_pressure_fcns[part] != NULL)
                 {
                     // Compute the value of the pressure at the quadrature point
                     // and add the corresponding force to the right-hand-side
@@ -1303,9 +1305,9 @@ IBFEMethod::spreadTransmissionForceDensity(
                 // Determine whether we need to compute surface forces along
                 // this part of the physical boundary; if not, skip the present
                 // side.
-                const bool compute_transmission_force = d_split_forces && !at_dirichlet_bdry;
-                const bool compute_pressure = (d_split_forces && d_lag_pressure_fcns[part] != NULL);
-                const bool compute_surface_force = (d_split_forces && d_lag_surface_force_fcns[part] != NULL);
+                const bool compute_transmission_force = d_PK1_stress_fcns       [part] != NULL && !at_dirichlet_bdry;
+                const bool compute_pressure           = d_lag_pressure_fcns     [part] != NULL && !at_dirichlet_bdry;
+                const bool compute_surface_force      = d_lag_surface_force_fcns[part] != NULL && !at_dirichlet_bdry;
                 if (!(compute_transmission_force || compute_pressure || compute_surface_force)) continue;
 
                 AutoPtr<Elem> side_elem = elem->build_side(side);
@@ -1551,9 +1553,10 @@ IBFEMethod::imposeJumpConditions(
                 // Determine whether we need to compute surface forces along
                 // this part of the physical boundary; if not, skip the present
                 // side.
-                const bool compute_transmission_force = d_split_forces && !at_dirichlet_bdry;
-                const bool compute_pressure = (d_split_forces && d_lag_pressure_fcns[part] != NULL);
-                const bool compute_surface_force = (d_split_forces && d_lag_surface_force_fcns[part] != NULL);
+                const bool compute_transmission_force = d_PK1_stress_fcns       [part] != NULL && (( d_split_forces && !at_dirichlet_bdry) ||
+                                                                                                   (!d_split_forces &&  at_dirichlet_bdry));
+                const bool compute_pressure           = d_lag_pressure_fcns     [part] != NULL && ( !d_split_forces && !at_dirichlet_bdry );
+                const bool compute_surface_force      = d_lag_surface_force_fcns[part] != NULL && ( !d_split_forces && !at_dirichlet_bdry );
                 if (!(compute_transmission_force || compute_pressure || compute_surface_force)) continue;
 
                 // Construct a side element.
@@ -1874,7 +1877,6 @@ IBFEMethod::commonConstructor(
     d_ib_qrule_type = "ADAPTIVE";
     d_ib_qrule_order = "INVALID_ORDER";
     d_ib_qrule_point_density = 2.0;
-    d_do_log = false;
     d_ghosts = 0;
     d_split_forces = false;
     d_use_jump_conditions = false;
@@ -1989,7 +1991,7 @@ IBFEMethod::commonConstructor(
 
         // Create FE systems and corresponding variables.
         d_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
-        ExplicitSystem& X_system = equation_systems->add_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+        System& X_system = equation_systems->add_system<System>(COORDS_SYSTEM_NAME);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             std::ostringstream os;
@@ -1997,7 +1999,7 @@ IBFEMethod::commonConstructor(
             X_system.add_variable(os.str(), d_fe_order, d_fe_family);
         }
 
-        ExplicitSystem& X_mapping_system = equation_systems->add_system<ExplicitSystem>(COORD_MAPPING_SYSTEM_NAME);
+        System& X_mapping_system = equation_systems->add_system<System>(COORD_MAPPING_SYSTEM_NAME);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             std::ostringstream os;
@@ -2005,7 +2007,7 @@ IBFEMethod::commonConstructor(
             X_mapping_system.add_variable(os.str(), d_fe_order, d_fe_family);
         }
 
-        ExplicitSystem& F_system = equation_systems->add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
+        System& F_system = equation_systems->add_system<System>(FORCE_SYSTEM_NAME);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             std::ostringstream os;
@@ -2013,7 +2015,7 @@ IBFEMethod::commonConstructor(
             F_system.add_variable(os.str(), d_fe_order, d_fe_family);
         }
 
-        ExplicitSystem& U_system = equation_systems->add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
+        System& U_system = equation_systems->add_system<System>(VELOCITY_SYSTEM_NAME);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             std::ostringstream os;
@@ -2023,7 +2025,7 @@ IBFEMethod::commonConstructor(
 
         if (d_use_Fbar_projection)
         {
-            ExplicitSystem& F_dil_bar_system = equation_systems->add_system<ExplicitSystem>(F_DIL_BAR_SYSTEM_NAME);
+            System& F_dil_bar_system = equation_systems->add_system<System>(F_DIL_BAR_SYSTEM_NAME);
             F_dil_bar_system.add_variable("F_dil_bar", d_F_dil_bar_fe_order, d_F_dil_bar_fe_family);
         }
     }

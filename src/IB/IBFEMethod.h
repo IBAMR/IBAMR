@@ -137,8 +137,9 @@ public:
         void* ctx);
 
     /*!
-     * Register the function to compute the first Piola-Kirchhoff stress tensor,
-     * used to compute the forces on the Lagrangian finite element mesh.
+     * Register the (optional) function to compute the first Piola-Kirchhoff
+     * stress tensor, used to compute the forces on the Lagrangian finite
+     * element mesh.
      */
     void
     registerPK1StressTensorFunction(
@@ -547,21 +548,21 @@ protected:
     libMesh::QBase* d_ib_qrule_face;
 
     /*
-     * Function used to compute the initial coordinates of the Lagrangian mesh.
+     * Functions used to compute the initial coordinates of the Lagrangian mesh.
      */
     std::vector<CoordinateMappingFcnPtr> d_coordinate_mapping_fcns;
     std::vector<void*> d_coordinate_mapping_fcn_ctxs;
 
     /*
-     * Function used to compute the first Piola-Kirchhoff stress tensor.
+     * Functions used to compute the first Piola-Kirchhoff stress tensor.
      */
     std::vector<PK1StressFcnPtr> d_PK1_stress_fcns;
     std::vector<std::vector<unsigned int> > d_PK1_stress_fcn_systems;
     std::vector<void*> d_PK1_stress_fcn_ctxs;
 
     /*
-     * Optional function use to compute additional body and surface forces on
-     * the Lagrangian mesh.
+     * Functions used to compute additional body and surface forces on the
+     * Lagrangian mesh.
      */
     std::vector<LagBodyForceFcnPtr> d_lag_body_force_fcns;
     std::vector<std::vector<unsigned int> > d_lag_body_force_fcn_systems;
