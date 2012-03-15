@@ -179,6 +179,13 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
 
+        if (u_var.isNull())
+        {
+            Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+            Q_data->fillAll(0.0);
+            continue;
+        }
+
         const bool conservation_form = d_Q_difference_form[Q_var] == CONSERVATIVE;
         const bool u_is_div_free = d_u_is_div_free[u_var];
 
