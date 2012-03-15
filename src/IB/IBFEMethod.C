@@ -1110,6 +1110,7 @@ IBFEMethod::computeInteriorForceDensity(
                     F = (F*n)*n;
                 }
 
+                // Add the boundary forces to the right-hand-side vector.
                 for (unsigned int k = 0; k < n_basis; ++k)
                 {
                     F_qp = phi_face[k][qp]*JxW_face[qp]*F;
