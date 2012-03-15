@@ -511,8 +511,19 @@ ExplicitFEMechanicsSolver::computeProjectedDilatationalStrain(
     AutoPtr<NumericVector<double> > F_dil_bar_rhs_vec = F_dil_bar_vec.zero_clone();
     DenseVector<double> F_dil_bar_rhs_e;
 
-    // F_dil_bar is the projection of F_dil = J^(1/d) II onto a (lower-order) FE
-    // space.
+    // The deformation gradient F can be decomposed as
+    //
+    //   F = F_dev F_dil
+    //
+    // with F_dil = J^(1/d) I and F_dev = J^(-1/d) F.
+    //
+    // F_dil_bar is the projection of F_dil onto a (lower-order) FE space.  It
+    // is used to compute
+    //
+    //   F_bar = F_dev F_dil_bar
+    //
+    // which is intended to aleviate volumetric locking for nearly
+    // incompressible elasticity.
     TensorValue<double> FF;
     blitz::Array<double,2> X_node;
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
@@ -597,6 +608,7 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
     AutoPtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
     fe_face->attach_quadrature_rule(qrule_face.get());
     const std::vector<Point>& q_point_face = fe_face->get_xyz();
+    const std::vector<double>& JxW_face = fe_face->get_JxW();
     const std::vector<Point>& normal_face = fe_face->get_normals();
     const std::vector<std::vector<double> >& phi_face = fe_face->get_phi();
     const std::vector<std::vector<VectorValue<double> > >& dphi_face = fe_face->get_dphi();
@@ -613,8 +625,6 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
     F_dil_bar_dof_indices.reserve(27);
     AutoPtr<FEBase> F_dil_bar_fe;
     const std::vector<std::vector<double> >* F_dil_bar_phi = NULL;
-    AutoPtr<FEBase> F_dil_bar_fe_face;
-    const std::vector<std::vector<double> >* F_dil_bar_phi_face = NULL;
     if (F_dil_bar_vec != NULL)
     {
         F_dil_bar_system = &equation_systems->get_system(F_DIL_BAR_SYSTEM_NAME);
@@ -622,9 +632,6 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
         F_dil_bar_fe = FEBase::build(dim, F_dil_bar_dof_map->variable_type(0));
         F_dil_bar_fe->attach_quadrature_rule(qrule.get());
         F_dil_bar_phi = &F_dil_bar_fe->get_phi();
-        F_dil_bar_fe_face = FEBase::build(dim, F_dil_bar_dof_map->variable_type(0));
-        F_dil_bar_fe_face->attach_quadrature_rule(qrule_face.get());
-        F_dil_bar_phi_face = &F_dil_bar_fe_face->get_phi();
     }
 
     // Setup extra data needed to compute stresses/forces.
@@ -668,10 +675,7 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
     AutoPtr<NumericVector<double> > G_rhs_vec = G_vec.zero_clone();
     DenseVector<double> G_rhs_e[LIBMESH_DIM];
 
-    // Loop over the elements to compute the right-hand side vector.  This is
-    // computed via
-    //
-    //    rhs_k = -int{PP(s,t) grad phi_k(s)}ds + int{PP(s,t) N(s,t) phi_k(s)}dA(s)
+    // Loop over the elements to compute the right-hand side vector.
     //
     // This right-hand side vector is used to solve for the nodal values of the
     // interior elastic force density.
@@ -774,22 +778,21 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
                 at_dirichlet_bdry = at_dirichlet_bdry || (bdry_id == DIRICHLET_BDRY_ID);
             }
 
-            // Skip non-physical boundaries.
-            if (!at_physical_bdry) continue;
+            // If we are not at a physical boundary or if we are at a Dirichlet
+            // boundary, skip the present side.
+            if (!at_physical_bdry || at_dirichlet_bdry) continue;
 
             // Determine whether we need to compute surface forces along this
             // part of the physical boundary; if not, skip the present side.
-            const bool compute_pressure           = d_lag_pressure_fcns     [part] != NULL && !at_dirichlet_bdry;
-            const bool compute_surface_force      = d_lag_surface_force_fcns[part] != NULL && !at_dirichlet_bdry;
+            const bool compute_pressure      = d_lag_pressure_fcns     [part] != NULL;
+            const bool compute_surface_force = d_lag_surface_force_fcns[part] != NULL;
             if (!(compute_pressure || compute_surface_force)) continue;
 
             fe_face->reinit(elem, side);
-            if (F_dil_bar_vec != NULL) F_dil_bar_fe_face->reinit(elem, side);
 
             const unsigned int n_qp = qrule_face->n_points();
 
             get_values_for_interpolation(X_node, X_vec, dof_indices);
-            if (F_dil_bar_vec != NULL) get_values_for_interpolation(F_dil_bar_node, *F_dil_bar_vec, F_dil_bar_dof_indices);
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const Point& s_qp = q_point_face[qp];
@@ -798,7 +801,7 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
                 const double J = std::abs(FF.det());
                 tensor_inverse_transpose(FF_inv_trans,FF,dim);
                 F.zero();
-                if (compute_pressure && d_lag_pressure_fcns[part] != NULL)
+                if (compute_pressure)
                 {
                     // Compute the value of the pressure at the quadrature point
                     // and add the corresponding force to the right-hand-side
@@ -813,6 +816,16 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
                     // right-hand-side vector.
                     d_lag_surface_force_fcns[part](F_s,FF,X_qp,s_qp,elem,side,X_vec,lag_surface_force_fcn_data,time,d_lag_surface_force_fcn_ctxs[part]);
                     F += F_s;
+                }
+
+                // Add the boundary forces to the right-hand-side vector.
+                for (unsigned int k = 0; k < n_basis; ++k)
+                {
+                    F_qp = phi_face[k][qp]*JxW_face[qp]*F;
+                    for (unsigned int i = 0; i < dim; ++i)
+                    {
+                        G_rhs_e[i](k) += F_qp(i);
+                    }
                 }
             }
         }
