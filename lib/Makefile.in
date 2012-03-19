@@ -43,6 +43,12 @@ DIST_COMMON = $(am__pkg_include_HEADERS_DIST) $(srcdir)/Makefile.am \
 @LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/IBFEMethod.C
 
 @LIBMESH_ENABLED_TRUE@am__append_4 = \
+@LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.h
+
+@LIBMESH_ENABLED_TRUE@am__append_5 = \
+@LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/IBFEMethod.C
+
+@LIBMESH_ENABLED_TRUE@am__append_6 = \
 @LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/IB/IBFEMethod.h
 
 subdir = lib
@@ -90,8 +96,14 @@ LIBRARIES = $(lib_LIBRARIES)
 ARFLAGS = cru
 libIBAMR_a_AR = $(AR) $(ARFLAGS)
 libIBAMR_a_LIBADD =
+am__libIBAMR_a_SOURCES_DIST =  \
+	$(top_builddir)/src/advect/fortran/godunov_helpers.f \
+	$(top_builddir)/src/fortran/sqrtm.f \
+	$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C \
+	$(top_srcdir)/src/IB/IBFEMethod.C
+@LIBMESH_ENABLED_TRUE@am__objects_1 = IBFEMethod.$(OBJEXT)
 am_libIBAMR_a_OBJECTS = godunov_helpers.$(OBJEXT) sqrtm.$(OBJEXT) \
-	INSProblemCoefs.$(OBJEXT) ExplicitFEMechanicsSolver.$(OBJEXT)
+	INSProblemCoefs.$(OBJEXT) $(am__objects_1)
 libIBAMR_a_OBJECTS = $(am_libIBAMR_a_OBJECTS)
 libIBAMR2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR2d_a_LIBADD =
@@ -162,9 +174,9 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f
-@LIBMESH_ENABLED_TRUE@am__objects_1 =  \
+@LIBMESH_ENABLED_TRUE@am__objects_2 =  \
 @LIBMESH_ENABLED_TRUE@	libIBAMR2d_a-IBFEMethod.$(OBJEXT)
-am__objects_2 = libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
+am__objects_3 = libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR2d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBAnchorPointSpecFactory.$(OBJEXT) \
 	libIBAMR2d_a-IBBeamForceSpec.$(OBJEXT) \
@@ -218,8 +230,8 @@ am__objects_2 = libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredStokesOperator.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredVelocityBcCoef.$(OBJEXT) \
 	libIBAMR2d_a-SpongeLayerForceFunction.$(OBJEXT) \
-	$(am__objects_1)
-am_libIBAMR2d_a_OBJECTS = $(am__objects_2) \
+	$(am__objects_2)
+am_libIBAMR2d_a_OBJECTS = $(am__objects_3) \
 	adv_diff_consdiff2d.$(OBJEXT) \
 	advect_centered_derivatives2d.$(OBJEXT) \
 	advect_detect2d.$(OBJEXT) advect_diff2d.$(OBJEXT) \
@@ -299,9 +311,9 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f
-@LIBMESH_ENABLED_TRUE@am__objects_3 =  \
+@LIBMESH_ENABLED_TRUE@am__objects_4 =  \
 @LIBMESH_ENABLED_TRUE@	libIBAMR3d_a-IBFEMethod.$(OBJEXT)
-am__objects_4 = libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
+am__objects_5 = libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR3d_a-IBAnchorPointSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBAnchorPointSpecFactory.$(OBJEXT) \
 	libIBAMR3d_a-IBBeamForceSpec.$(OBJEXT) \
@@ -355,8 +367,8 @@ am__objects_4 = libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredStokesOperator.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredVelocityBcCoef.$(OBJEXT) \
 	libIBAMR3d_a-SpongeLayerForceFunction.$(OBJEXT) \
-	$(am__objects_3)
-am_libIBAMR3d_a_OBJECTS = $(am__objects_4) \
+	$(am__objects_4)
+am_libIBAMR3d_a_OBJECTS = $(am__objects_5) \
 	adv_diff_consdiff3d.$(OBJEXT) \
 	advect_centered_derivatives3d.$(OBJEXT) \
 	advect_detect3d.$(OBJEXT) advect_diff3d.$(OBJEXT) \
@@ -382,15 +394,16 @@ F77LINK = $(F77LD) $(AM_FFLAGS) $(FFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o \
 	$@
 SOURCES = $(libIBAMR_a_SOURCES) $(libIBAMR2d_a_SOURCES) \
 	$(libIBAMR3d_a_SOURCES)
-DIST_SOURCES = $(libIBAMR_a_SOURCES) $(am__libIBAMR2d_a_SOURCES_DIST) \
+DIST_SOURCES = $(am__libIBAMR_a_SOURCES_DIST) \
+	$(am__libIBAMR2d_a_SOURCES_DIST) \
 	$(am__libIBAMR3d_a_SOURCES_DIST)
 am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/navier_stokes/INSProblemCoefs.h \
-	$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.h \
 	$(top_srcdir)/src/utilities/ibamr_enums.h \
 	$(top_srcdir)/src/utilities/ibamr_utilities.h \
 	$(top_srcdir)/src/utilities/app_namespaces.h \
 	$(top_srcdir)/src/utilities/namespaces.h \
+	$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.h \
 	$(top_srcdir)/src/IB/GeneralizedIBMethod.h \
 	$(top_srcdir)/src/IB/IBAnchorPointSpec.I \
 	$(top_srcdir)/src/IB/IBAnchorPointSpec.h \
@@ -774,19 +787,17 @@ IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 lib_LIBRARIES = libIBAMR.a $(am__append_1) $(am__append_2)
-libIBAMR_a_SOURCES = \
-$(top_builddir)/src/advect/fortran/godunov_helpers.f \
-$(top_builddir)/src/fortran/sqrtm.f \
-$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C \
-$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C
-
+libIBAMR_a_SOURCES =  \
+	$(top_builddir)/src/advect/fortran/godunov_helpers.f \
+	$(top_builddir)/src/fortran/sqrtm.f \
+	$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C \
+	$(am__append_3)
 pkg_include_HEADERS =  \
 	$(top_srcdir)/src/navier_stokes/INSProblemCoefs.h \
-	$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.h \
 	$(top_srcdir)/src/utilities/ibamr_enums.h \
 	$(top_srcdir)/src/utilities/ibamr_utilities.h \
 	$(top_srcdir)/src/utilities/app_namespaces.h \
-	$(top_srcdir)/src/utilities/namespaces.h \
+	$(top_srcdir)/src/utilities/namespaces.h $(am__append_4) \
 	$(top_srcdir)/src/IB/GeneralizedIBMethod.h \
 	$(top_srcdir)/src/IB/IBAnchorPointSpec.I \
 	$(top_srcdir)/src/IB/IBAnchorPointSpec.h \
@@ -840,7 +851,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h \
 	$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.h \
-	$(am__append_4)
+	$(am__append_6)
 DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/IB/GeneralizedIBMethod.C \
 	$(top_srcdir)/src/IB/IBAnchorPointSpec.C \
 	$(top_srcdir)/src/IB/IBAnchorPointSpecFactory.C \
@@ -895,7 +906,7 @@ DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/IB/GeneralizedIBMethod.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
 	$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C \
-	$(am__append_3)
+	$(am__append_5)
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
@@ -1009,7 +1020,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ExplicitFEMechanicsSolver.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/IBFEMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/INSProblemCoefs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffHypPatchOps.Po@am__quote@
@@ -1150,19 +1161,19 @@ INSProblemCoefs.obj: $(top_srcdir)/src/navier_stokes/INSProblemCoefs.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o INSProblemCoefs.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C'; fi`
 
-ExplicitFEMechanicsSolver.o: $(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ExplicitFEMechanicsSolver.o -MD -MP -MF $(DEPDIR)/ExplicitFEMechanicsSolver.Tpo -c -o ExplicitFEMechanicsSolver.o `test -f '$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ExplicitFEMechanicsSolver.Tpo $(DEPDIR)/ExplicitFEMechanicsSolver.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C' object='ExplicitFEMechanicsSolver.o' libtool=no @AMDEPBACKSLASH@
+IBFEMethod.o: $(top_srcdir)/src/IB/IBFEMethod.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT IBFEMethod.o -MD -MP -MF $(DEPDIR)/IBFEMethod.Tpo -c -o IBFEMethod.o `test -f '$(top_srcdir)/src/IB/IBFEMethod.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBFEMethod.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/IBFEMethod.Tpo $(DEPDIR)/IBFEMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBFEMethod.C' object='IBFEMethod.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ExplicitFEMechanicsSolver.o `test -f '$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o IBFEMethod.o `test -f '$(top_srcdir)/src/IB/IBFEMethod.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBFEMethod.C
 
-ExplicitFEMechanicsSolver.obj: $(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ExplicitFEMechanicsSolver.obj -MD -MP -MF $(DEPDIR)/ExplicitFEMechanicsSolver.Tpo -c -o ExplicitFEMechanicsSolver.obj `if test -f '$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ExplicitFEMechanicsSolver.Tpo $(DEPDIR)/ExplicitFEMechanicsSolver.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C' object='ExplicitFEMechanicsSolver.obj' libtool=no @AMDEPBACKSLASH@
+IBFEMethod.obj: $(top_srcdir)/src/IB/IBFEMethod.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT IBFEMethod.obj -MD -MP -MF $(DEPDIR)/IBFEMethod.Tpo -c -o IBFEMethod.obj `if test -f '$(top_srcdir)/src/IB/IBFEMethod.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBFEMethod.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBFEMethod.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/IBFEMethod.Tpo $(DEPDIR)/IBFEMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBFEMethod.C' object='IBFEMethod.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ExplicitFEMechanicsSolver.obj `if test -f '$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o IBFEMethod.obj `if test -f '$(top_srcdir)/src/IB/IBFEMethod.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBFEMethod.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBFEMethod.C'; fi`
 
 libIBAMR2d_a-GeneralizedIBMethod.o: $(top_srcdir)/src/IB/GeneralizedIBMethod.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-GeneralizedIBMethod.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-GeneralizedIBMethod.Tpo -c -o libIBAMR2d_a-GeneralizedIBMethod.o `test -f '$(top_srcdir)/src/IB/GeneralizedIBMethod.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/GeneralizedIBMethod.C
