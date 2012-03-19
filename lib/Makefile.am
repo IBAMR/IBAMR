@@ -23,16 +23,24 @@ clean-local:
 libIBAMR_a_SOURCES = \
 $(top_builddir)/src/advect/fortran/godunov_helpers.f \
 $(top_builddir)/src/fortran/sqrtm.f \
-$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C \
-$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C
+$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C
+
+if LIBMESH_ENABLED
+libIBAMR_a_SOURCES += \
+$(top_srcdir)/src/IB/IBFEMethod.C
+endif
 
 pkg_include_HEADERS = \
 $(top_srcdir)/src/navier_stokes/INSProblemCoefs.h \
-$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.h \
 $(top_srcdir)/src/utilities/ibamr_enums.h \
 $(top_srcdir)/src/utilities/ibamr_utilities.h \
 $(top_srcdir)/src/utilities/app_namespaces.h \
 $(top_srcdir)/src/utilities/namespaces.h
+
+if LIBMESH_ENABLED
+pkg_include_HEADERS += \
+$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.h
+endif
 
 ## Dimension-dependent libraries
 DIM_INDEPENDENT_SOURCES = \
