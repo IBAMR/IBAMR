@@ -45,7 +45,6 @@
 #endif
 
 // IBAMR INCLUDES
-#include <ibamr/IBSpringForceSpecFactory.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES

@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "IBTargetPointForceSpecFactory.h"
+#include "IBTargetPointForceSpec.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -45,7 +45,6 @@
 #endif
 
 // IBAMR INCLUDES
-#include <ibamr/IBTargetPointForceSpec.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
@@ -55,40 +54,36 @@
 
 namespace IBAMR
 {
-/////////////////////////////// STATIC ///////////////////////////////////////
-
-int IBTargetPointForceSpecFactory::s_class_id = StreamableManager::getUnregisteredID();
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBTargetPointForceSpecFactory::IBTargetPointForceSpecFactory()
+IBTargetPointForceSpec::Factory::Factory()
 {
     setStreamableClassID(StreamableManager::getUnregisteredID());
     return;
-}// IBTargetPointForceSpecFactory
+}// Factory
 
-IBTargetPointForceSpecFactory::~IBTargetPointForceSpecFactory()
+IBTargetPointForceSpec::Factory::~Factory()
 {
     // intentionally blank
     return;
-}// ~IBTargetPointForceSpecFactory
+}// ~Factory
 
 int
-IBTargetPointForceSpecFactory::getStreamableClassID() const
+IBTargetPointForceSpec::Factory::getStreamableClassID() const
 {
-    return s_class_id;
+    return STREAMABLE_CLASS_ID;
 }// getStreamableClassID
 
 void
-IBTargetPointForceSpecFactory::setStreamableClassID(
+IBTargetPointForceSpec::Factory::setStreamableClassID(
     const int class_id)
 {
-    s_class_id = class_id;
+    STREAMABLE_CLASS_ID = class_id;
     return;
 }// setStreamableClassID
 
 Pointer<Streamable>
-IBTargetPointForceSpecFactory::unpackStream(
+IBTargetPointForceSpec::Factory::unpackStream(
     AbstractStream& stream,
     const IntVector<NDIM>& /*offset*/)
 {

@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "IBInstrumentationSpecFactory.h"
+#include "IBInstrumentationSpec.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -45,7 +45,6 @@
 #endif
 
 // IBAMR INCLUDES
-#include <ibamr/IBInstrumentationSpec.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
@@ -55,40 +54,36 @@
 
 namespace IBAMR
 {
-/////////////////////////////// STATIC ///////////////////////////////////////
-
-int IBInstrumentationSpecFactory::s_class_id = StreamableManager::getUnregisteredID();
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBInstrumentationSpecFactory::IBInstrumentationSpecFactory()
+IBInstrumentationSpec::Factory::Factory()
 {
     setStreamableClassID(StreamableManager::getUnregisteredID());
     return;
-}// IBInstrumentationSpecFactory
+}// Factory
 
-IBInstrumentationSpecFactory::~IBInstrumentationSpecFactory()
+IBInstrumentationSpec::Factory::~Factory()
 {
     // intentionally blank
     return;
-}// ~IBInstrumentationSpecFactory
+}// ~Factory
 
 int
-IBInstrumentationSpecFactory::getStreamableClassID() const
+IBInstrumentationSpec::Factory::getStreamableClassID() const
 {
-    return s_class_id;
+    return STREAMABLE_CLASS_ID;
 }// getStreamableClassID
 
 void
-IBInstrumentationSpecFactory::setStreamableClassID(
+IBInstrumentationSpec::Factory::setStreamableClassID(
     const int class_id)
 {
-    s_class_id = class_id;
+    STREAMABLE_CLASS_ID = class_id;
     return;
 }// setStreamableClassID
 
 Pointer<Streamable>
-IBInstrumentationSpecFactory::unpackStream(
+IBInstrumentationSpec::Factory::unpackStream(
     AbstractStream& stream,
     const IntVector<NDIM>& /*offset*/)
 {

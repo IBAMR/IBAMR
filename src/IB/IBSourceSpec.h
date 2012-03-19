@@ -37,19 +37,13 @@
 
 // IBTK INCLUDES
 #include <ibtk/Streamable.h>
+#include <ibtk/StreamableFactory.h>
 
 // SAMRAI INCLUDES
 #include <tbox/AbstractStream.h>
 
 // C++ STDLIB INCLUDES
 #include <vector>
-
-/////////////////////////////// FORWARD DECLARATION //////////////////////////
-
-namespace IBAMR
-{
-class IBSourceSpecFactory;
-}
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -63,8 +57,6 @@ class IBSourceSpec
     : public IBTK::Streamable
 {
 public:
-    friend class IBSourceSpecFactory;
-
     /*!
      * \brief Register this class and its factory class with the singleton
      * IBTK::StreamableManager object.  This method must be called before any
@@ -178,6 +170,78 @@ private:
      * Data required to define the source.
      */
     int d_master_idx, d_source_idx;
+
+    /*!
+     * \brief A factory class to rebuild IBSourceSpec objects from
+     * SAMRAI::tbox::AbstractStream data streams.
+     */
+    class Factory
+        : public IBTK::StreamableFactory
+    {
+    public:
+        /*!
+         * \brief Destructor.
+         */
+        ~Factory();
+
+        /*!
+         * \brief Return the unique identifier used to specify the
+         * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
+         * extract IBSourceSpec objects from data streams.
+         */
+        int
+        getStreamableClassID() const;
+
+        /*!
+         * \brief Set the unique identifier used to specify the
+         * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
+         * extract IBSourceSpec objects from data streams.
+         */
+        void
+        setStreamableClassID(
+            int class_id);
+
+        /*!
+         * \brief Build an IBSourceSpec object by unpacking data from the
+         * data stream.
+         */
+        SAMRAI::tbox::Pointer<IBTK::Streamable>
+        unpackStream(
+            SAMRAI::tbox::AbstractStream& stream,
+            const SAMRAI::hier::IntVector<NDIM>& offset);
+
+    private:
+        /*!
+         * \brief Default constructor.
+         */
+        Factory();
+
+        /*!
+         * \brief Copy constructor.
+         *
+         * \note This constructor is not implemented and should not be used.
+         *
+         * \param from The value to copy to this object.
+         */
+        Factory(
+            const Factory& from);
+
+        /*!
+         * \brief Assignment operator.
+         *
+         * \note This operator is not implemented and should not be used.
+         *
+         * \param that The value to assign to this object.
+         *
+         * \return A reference to this object.
+         */
+        Factory&
+        operator=(
+            const Factory& that);
+
+        friend class IBSourceSpec;
+    };
+    typedef IBSourceSpec::Factory IBSourceSpecFactory;
 };
 }// namespace IBAMR
 
