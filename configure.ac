@@ -477,6 +477,7 @@ AC_CONFIG_FILES([
   src/advect/fortran/Makefile
   src/navier_stokes/Makefile
   src/navier_stokes/fortran/Makefile
+  src/solid_mechanics/Makefile
   src/utilities/Makefile
   src/tools/Makefile
 ])

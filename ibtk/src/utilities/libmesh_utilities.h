@@ -142,15 +142,16 @@ public:
             }
 
             libMesh::Point elem_X[8];
+            const int dim = X_node.extent(blitz::secondDim);
             for (int k = 0; k < n_nodes; ++k)
             {
-                for (int d = 0; d < NDIM; ++d)
+                for (int d = 0; d < dim; ++d)
                 {
                     elem_X[k](d) = X_node(k,d);
                 }
             }
 
-            const double dx_min = *std::min_element(dx,dx+NDIM);
+            const double dx_min = *std::min_element(dx,dx+dim);
 
             int min_points;
             switch (type)

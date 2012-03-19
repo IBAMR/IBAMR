@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "IBAnchorPointSpecFactory.h"
+#include "IBAnchorPointSpec.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -45,7 +45,6 @@
 #endif
 
 // IBAMR INCLUDES
-#include <ibamr/IBAnchorPointSpec.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
@@ -55,40 +54,37 @@
 
 namespace IBAMR
 {
-/////////////////////////////// STATIC ///////////////////////////////////////
-
-int IBAnchorPointSpecFactory::s_class_id = StreamableManager::getUnregisteredID();
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBAnchorPointSpecFactory::IBAnchorPointSpecFactory()
+IBAnchorPointSpec::Factory::Factory()
 {
     setStreamableClassID(StreamableManager::getUnregisteredID());
     return;
-}// IBAnchorPointSpecFactory
+}// Factory
 
-IBAnchorPointSpecFactory::~IBAnchorPointSpecFactory()
+IBAnchorPointSpec::Factory::~Factory()
 {
     // intentionally blank
     return;
-}// ~IBAnchorPointSpecFactory
+}// ~Factory
 
 int
-IBAnchorPointSpecFactory::getStreamableClassID() const
+IBAnchorPointSpec::Factory::getStreamableClassID() const
 {
-    return s_class_id;
+    return STREAMABLE_CLASS_ID;
 }// getStreamableClassID
 
 void
-IBAnchorPointSpecFactory::setStreamableClassID(
+IBAnchorPointSpec::Factory::setStreamableClassID(
     const int class_id)
 {
-    s_class_id = class_id;
+    STREAMABLE_CLASS_ID = class_id;
     return;
 }// setStreamableClassID
 
 Pointer<Streamable>
-IBAnchorPointSpecFactory::unpackStream(
+IBAnchorPointSpec::Factory::unpackStream(
     AbstractStream& stream,
     const IntVector<NDIM>& /*offset*/)
 {

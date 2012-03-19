@@ -23,10 +23,12 @@ clean-local:
 libIBAMR_a_SOURCES = \
 $(top_builddir)/src/advect/fortran/godunov_helpers.f \
 $(top_builddir)/src/fortran/sqrtm.f \
-$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C
+$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C \
+$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C
 
 pkg_include_HEADERS = \
 $(top_srcdir)/src/navier_stokes/INSProblemCoefs.h \
+$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.h \
 $(top_srcdir)/src/utilities/ibamr_enums.h \
 $(top_srcdir)/src/utilities/ibamr_utilities.h \
 $(top_srcdir)/src/utilities/app_namespaces.h \
@@ -51,7 +53,7 @@ $(top_srcdir)/src/IB/IBLagrangianForceStrategy.C \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategySet.C \
 $(top_srcdir)/src/IB/IBLagrangianSourceStrategy.C \
 $(top_srcdir)/src/IB/IBMethod.C \
-$(top_srcdir)/src/IB/IBPostProcessStrategy.C \
+$(top_srcdir)/src/IB/IBMethodPostProcessStrategy.C \
 $(top_srcdir)/src/IB/IBRodForceSpec.C \
 $(top_srcdir)/src/IB/IBRodForceSpecFactory.C \
 $(top_srcdir)/src/IB/IBSourceSpec.C \
@@ -98,34 +100,26 @@ pkg_include_HEADERS += \
 $(top_srcdir)/src/IB/GeneralizedIBMethod.h \
 $(top_srcdir)/src/IB/IBAnchorPointSpec.I \
 $(top_srcdir)/src/IB/IBAnchorPointSpec.h \
-$(top_srcdir)/src/IB/IBAnchorPointSpecFactory.h \
 $(top_srcdir)/src/IB/IBBeamForceSpec.I \
 $(top_srcdir)/src/IB/IBBeamForceSpec.h \
-$(top_srcdir)/src/IB/IBBeamForceSpecFactory.h \
-$(top_srcdir)/src/IB/IBEulerianForceFunction.h \
-$(top_srcdir)/src/IB/IBEulerianSourceFunction.h \
 $(top_srcdir)/src/IB/IBHDF5Initializer.h \
 $(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
 $(top_srcdir)/src/IB/IBInstrumentPanel.h \
 $(top_srcdir)/src/IB/IBInstrumentationSpec.I \
 $(top_srcdir)/src/IB/IBInstrumentationSpec.h \
-$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.h \
 $(top_srcdir)/src/IB/IBKirchhoffRodForceGen.h \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategy.h \
 $(top_srcdir)/src/IB/IBLagrangianForceStrategySet.h \
 $(top_srcdir)/src/IB/IBLagrangianSourceStrategy.h \
 $(top_srcdir)/src/IB/IBMethod.h \
-$(top_srcdir)/src/IB/IBPostProcessStrategy.h \
+$(top_srcdir)/src/IB/IBMethodPostProcessStrategy.h \
 $(top_srcdir)/src/IB/IBRodForceSpec.I \
 $(top_srcdir)/src/IB/IBRodForceSpec.h \
-$(top_srcdir)/src/IB/IBRodForceSpecFactory.h \
 $(top_srcdir)/src/IB/IBSourceSpec.I \
 $(top_srcdir)/src/IB/IBSourceSpec.h \
-$(top_srcdir)/src/IB/IBSourceSpecFactory.h \
 $(top_srcdir)/src/IB/IBSpringForceFunctions.h \
 $(top_srcdir)/src/IB/IBSpringForceSpec.I \
 $(top_srcdir)/src/IB/IBSpringForceSpec.h \
-$(top_srcdir)/src/IB/IBSpringForceSpecFactory.h \
 $(top_srcdir)/src/IB/IBStandardForceGen.h \
 $(top_srcdir)/src/IB/IBStandardSourceGen.h \
 $(top_srcdir)/src/IB/IBStandardInitializer.h \
@@ -133,7 +127,6 @@ $(top_srcdir)/src/IB/IBStrategy.h \
 $(top_srcdir)/src/IB/IBStrategySet.h \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.I \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.h \
-$(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.h \
 $(top_srcdir)/src/IB/PenaltyIBMethod.h \
 $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.h \
 $(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.h \

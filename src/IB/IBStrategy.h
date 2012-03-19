@@ -275,8 +275,7 @@ public:
      * An empty default implementation is provided.
      */
     virtual void
-    postprocessData(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    postprocessData();
 
     /*!
      * Initialize Lagrangian data corresponding to the given AMR patch hierarchy

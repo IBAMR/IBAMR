@@ -1,4 +1,4 @@
-// Filename: IBPostProcessStrategy.C
+// Filename: IBMethodPostProcessStrategy.C
 // Created on 24 Sep 2008 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "IBPostProcessStrategy.h"
+#include "IBMethodPostProcessStrategy.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -55,29 +55,17 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBPostProcessStrategy::IBPostProcessStrategy()
+IBMethodPostProcessStrategy::IBMethodPostProcessStrategy()
 {
     // intentionally blank
     return;
-}// IBPostProcessStrategy
+}// IBMethodPostProcessStrategy
 
-IBPostProcessStrategy::~IBPostProcessStrategy()
+IBMethodPostProcessStrategy::~IBMethodPostProcessStrategy()
 {
     // intentionally blank
     return;
-}// ~IBPostProcessStrategy
-
-void
-IBPostProcessStrategy::initializeLevelData(
-    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-    const int /*level_number*/,
-    const double /*init_data_time*/,
-    const bool /*initial_time*/,
-    LDataManager* const /*l_data_manager*/)
-{
-    // intentionally blank
-    return;
-}// initializeLevelData
+}// ~IBMethodPostProcessStrategy
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

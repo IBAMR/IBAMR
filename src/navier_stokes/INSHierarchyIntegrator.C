@@ -66,76 +66,6 @@ static const int INS_HIERARCHY_INTEGRATOR_VERSION = 2;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSHierarchyIntegrator::INSHierarchyIntegrator(
-    const std::string& object_name,
-    Pointer<Database> input_db,
-    Pointer<Variable<NDIM> > U_var,
-    Pointer<Variable<NDIM> > P_var,
-    Pointer<Variable<NDIM> > F_var,
-    Pointer<Variable<NDIM> > Q_var,
-    bool register_for_restart)
-    : HierarchyIntegrator(object_name, input_db, register_for_restart),
-      d_U_var(U_var),
-      d_P_var(P_var),
-      d_F_var(F_var),
-      d_Q_var(Q_var),
-      d_U_init(NULL),
-      d_P_init(NULL),
-      d_default_bc_coefs(d_object_name+"::default_bc_coefs", Pointer<Database>(NULL)),
-      d_bc_coefs(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
-      d_F_fcn(NULL),
-      d_Q_fcn(NULL)
-{
-    // Set some default values.
-    d_integrator_is_initialized = false;
-    d_num_cycles = 1;
-    d_cfl_max = 1.0;
-    d_using_vorticity_tagging = false;
-    d_Omega_max = 0.0;
-    d_normalize_pressure = false;
-    d_default_convective_op_type = UNKNOWN_CONVECTIVE_OPERATOR_TYPE;
-    d_default_convective_difference_form = ADVECTIVE;
-    d_default_convective_bdry_extrap_type = "LINEAR";
-    d_creeping_flow = false;
-    d_regrid_max_div_growth_factor = 1.1;
-    d_U_scale = 1.0;
-    d_P_scale = 1.0;
-    d_F_scale = 1.0;
-    d_Q_scale = 1.0;
-    d_Omega_scale = 1.0;
-    d_Div_U_scale = 1.0;
-    d_output_U = true;
-    d_output_P = true;
-    d_output_F = false;
-    d_output_Q = false;
-    d_output_Omega = true;
-    d_output_Div_U = true;
-    d_velocity_solver = NULL;
-    d_pressure_solver = NULL;
-
-    // Setup default boundary condition objects that specify homogeneous
-    // Dirichlet (solid-wall) boundary conditions for the velocity.
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        d_default_bc_coefs.setBoundaryValue(2*d  ,0.0);
-        d_default_bc_coefs.setBoundaryValue(2*d+1,0.0);
-    }
-    registerPhysicalBoundaryConditions(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(&d_default_bc_coefs));
-
-    // Setup physical boundary conditions objects.
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        d_U_star_bc_coefs[d] = new INSIntermediateVelocityBcCoef(d,&d_problem_coefs,d_bc_coefs);
-    }
-    d_Phi_bc_coef = new INSProjectionBcCoef(&d_problem_coefs,d_bc_coefs);
-
-    // Initialize object with data read from the input and restart databases.
-    bool from_restart = RestartManager::getManager()->isFromRestart();
-    if (from_restart) getFromRestart();
-    if (!input_db.isNull()) getFromInput(input_db, from_restart);
-    return;
-}// INSHierarchyIntegrator
-
 INSHierarchyIntegrator::~INSHierarchyIntegrator()
 {
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -147,6 +77,20 @@ INSHierarchyIntegrator::~INSHierarchyIntegrator()
     d_Phi_bc_coef = NULL;
     return;
 }// ~INSHierarchyIntegrator
+
+void
+INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(
+    Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!adv_diff_hier_integrator.isNull());
+#endif
+    d_adv_diff_hier_integrator = adv_diff_hier_integrator;
+    registerChildHierarchyIntegrator(d_adv_diff_hier_integrator);
+    d_adv_diff_hier_integrator->registerAdvectionVelocity(d_U_adv_diff_var);
+    d_adv_diff_hier_integrator->setAdvectionVelocityIsDivergenceFree(d_U_adv_diff_var, d_Q_fcn.isNull());
+    return;
+}// registerAdvDiffHierarchyIntegrator
 
 void
 INSHierarchyIntegrator::setINSProblemCoefs(
@@ -217,6 +161,11 @@ INSHierarchyIntegrator::registerFluidSourceFunction(
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     d_Q_fcn = Q_fcn;
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        Pointer<FaceVariable<NDIM,double> > u_var = getAdvectionVelocityVariable();
+        d_adv_diff_hier_integrator->setAdvectionVelocityIsDivergenceFree(u_var, d_Q_fcn.isNull());
+    }
     return;
 }// registerFluidSourceFunction
 
@@ -243,6 +192,12 @@ INSHierarchyIntegrator::getFluidSourceVariable() const
 {
     return d_Q_var;
 }// getFluidSourceVariable
+
+Pointer<FaceVariable<NDIM,double> >
+INSHierarchyIntegrator::getAdvectionVelocityVariable() const
+{
+    return d_U_adv_diff_var;
+}// getAdvectionVelocityVariable
 
 blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>
 INSHierarchyIntegrator::getIntermediateVelocityBoundaryConditions() const
@@ -357,6 +312,81 @@ INSHierarchyIntegrator::setPressureSubdomainSolver(
 }// setPressureSubdomainSolver
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
+
+INSHierarchyIntegrator::INSHierarchyIntegrator(
+    const std::string& object_name,
+    Pointer<Database> input_db,
+    Pointer<Variable<NDIM> > U_var,
+    Pointer<Variable<NDIM> > P_var,
+    Pointer<Variable<NDIM> > F_var,
+    Pointer<Variable<NDIM> > Q_var,
+    bool register_for_restart)
+    : HierarchyIntegrator(object_name, input_db, register_for_restart),
+      d_U_var(U_var),
+      d_P_var(P_var),
+      d_F_var(F_var),
+      d_Q_var(Q_var),
+      d_U_init(NULL),
+      d_P_init(NULL),
+      d_default_bc_coefs(d_object_name+"::default_bc_coefs", Pointer<Database>(NULL)),
+      d_bc_coefs(static_cast<RobinBcCoefStrategy<NDIM>*>(NULL)),
+      d_F_fcn(NULL),
+      d_Q_fcn(NULL)
+{
+    // Set some default values.
+    d_integrator_is_initialized = false;
+    d_num_cycles = 1;
+    d_cfl_max = 1.0;
+    d_using_vorticity_tagging = false;
+    d_Omega_max = 0.0;
+    d_normalize_pressure = false;
+    d_default_convective_op_type = UNKNOWN_CONVECTIVE_OPERATOR_TYPE;
+    d_default_convective_difference_form = ADVECTIVE;
+    d_default_convective_bdry_extrap_type = "LINEAR";
+    d_creeping_flow = false;
+    d_regrid_max_div_growth_factor = 1.1;
+    d_U_scale = 1.0;
+    d_P_scale = 1.0;
+    d_F_scale = 1.0;
+    d_Q_scale = 1.0;
+    d_Omega_scale = 1.0;
+    d_Div_U_scale = 1.0;
+    d_output_U = true;
+    d_output_P = true;
+    d_output_F = false;
+    d_output_Q = false;
+    d_output_Omega = true;
+    d_output_Div_U = true;
+    d_velocity_solver = NULL;
+    d_pressure_solver = NULL;
+
+    // Setup default boundary condition objects that specify homogeneous
+    // Dirichlet (solid-wall) boundary conditions for the velocity.
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        d_default_bc_coefs.setBoundaryValue(2*d  ,0.0);
+        d_default_bc_coefs.setBoundaryValue(2*d+1,0.0);
+    }
+    registerPhysicalBoundaryConditions(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(&d_default_bc_coefs));
+
+    // Setup physical boundary conditions objects.
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        d_U_star_bc_coefs[d] = new INSIntermediateVelocityBcCoef(d,&d_problem_coefs,d_bc_coefs);
+    }
+    d_Phi_bc_coef = new INSProjectionBcCoef(&d_problem_coefs,d_bc_coefs);
+
+    // Initialize object with data read from the input and restart databases.
+    bool from_restart = RestartManager::getManager()->isFromRestart();
+    if (from_restart) getFromRestart();
+    if (!input_db.isNull()) getFromInput(input_db, from_restart);
+
+    // Initialize an advection velocity variable.  NOTE: Patch data are
+    // allocated for this variable only when an advection-diffusion solver is
+    // registered with the INSHierarchyIntegrator.
+    d_U_adv_diff_var = new FaceVariable<NDIM,double>(d_object_name+"::U_adv_diff");
+    return;
+}// INSHierarchyIntegrator
 
 double
 INSHierarchyIntegrator::getTimeStepSizeSpecialized()

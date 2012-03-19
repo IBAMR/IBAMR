@@ -1,5 +1,5 @@
-// Filename: IBAnchorPointSpecFactory.h
-// Created on 18 Aug 2008 by Boyce Griffith
+// Filename: IBMethodPostProcessStrategy.h
+// Created on 24 Sep 2008 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,67 +30,63 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBAnchorPointSpecFactory
-#define included_IBAnchorPointSpecFactory
+#ifndef included_IBMethodPostProcessStrategy
+#define included_IBMethodPostProcessStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/Streamable.h>
-#include <ibtk/StreamableFactory.h>
+#include <ibtk/LData.h>
 
 // SAMRAI INCLUDES
-#include <IntVector.h>
-#include <tbox/AbstractStream.h>
-#include <tbox/Pointer.h>
+#include <PatchHierarchy.h>
+
+/////////////////////////////// FORWARD DECLARATION //////////////////////////
+
+namespace IBAMR
+{
+class IBMethod;
+}
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
 {
 /*!
- * \brief Class IBAnchorPointSpecFactory is a factory class to rebuild
- * IBAnchorPointSpec objects from SAMRAI::tbox::AbstractStream data streams.
+ * \brief Class IBMethodPostProcessStrategy provides a generic interface for
+ * specifying post-processing code for use in an IB computation.
  */
-class IBAnchorPointSpecFactory
-    : public IBTK::StreamableFactory
+class IBMethodPostProcessStrategy
+    : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
      * \brief Default constructor.
      */
-    IBAnchorPointSpecFactory();
+    IBMethodPostProcessStrategy();
 
     /*!
-     * \brief Destructor.
+     * \brief Virtual destructor.
      */
-    ~IBAnchorPointSpecFactory();
+    virtual
+    ~IBMethodPostProcessStrategy();
 
     /*!
-     * \brief Return the unique identifier used to specify the
-     * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
-     * extract IBAnchorPointSpec objects from data streams.
+     * \brief Post-process data on the patch hierarchy.
      */
-    int
-    getStreamableClassID() const;
-
-    /*!
-     * \brief Set the unique identifier used to specify the
-     * IBTK::StreamableFactory object used by the IBTK::StreamableManager to
-     * extract IBAnchorPointSpec objects from data streams.
-     */
-    void
-    setStreamableClassID(
-        int class_id);
-
-    /*!
-     * \brief Build an IBAnchorPointSpec object by unpacking data from the data
-     * stream.
-     */
-    SAMRAI::tbox::Pointer<IBTK::Streamable>
-    unpackStream(
-        SAMRAI::tbox::AbstractStream& stream,
-        const SAMRAI::hier::IntVector<NDIM>& offset);
+    virtual void
+    postprocessData(
+        int u_idx,
+        int p_idx,
+        int f_idx,
+        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& F_data,
+        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data,
+        const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& U_data,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int coarsest_level_number,
+        int finest_level_number,
+        double data_time,
+        SAMRAI::tbox::Pointer<IBMethod> ib_method) = 0;
 
 private:
     /*!
@@ -100,8 +96,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBAnchorPointSpecFactory(
-        const IBAnchorPointSpecFactory& from);
+    IBMethodPostProcessStrategy(
+        const IBMethodPostProcessStrategy& from);
 
     /*!
      * \brief Assignment operator.
@@ -112,22 +108,16 @@ private:
      *
      * \return A reference to this object.
      */
-    IBAnchorPointSpecFactory&
+    IBMethodPostProcessStrategy&
     operator=(
-        const IBAnchorPointSpecFactory& that);
-
-    /*
-     * The class ID for this object type assigned by the
-     * IBTK::StreamableManager.
-     */
-    static int s_class_id;
+        const IBMethodPostProcessStrategy& that);
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/IBAnchorPointSpecFactory.I>
+//#include <ibamr/IBMethodPostProcessStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAnchorPointSpecFactory
+#endif //#ifndef included_IBMethodPostProcessStrategy

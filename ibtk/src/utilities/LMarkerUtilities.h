@@ -41,11 +41,14 @@
 // C++ STDLIB INCLUDES
 #include <vector>
 
+// IBTK INCLUDES
+#include <ibtk/LMarkerSetData.h>
+
 // PETSC INCLUDES
 #include <petscsys.h>
 
 // SAMRAI INCLUDES
-#include <PatchHierarchy.h>
+#include <CartesianGridGeometry.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -58,26 +61,61 @@ namespace IBTK
 class LMarkerUtilities
 {
 public:
-
     /*!
-     * Read the initial positions of the markers from a file.  Returns the
-     * number of markers read.
+     * Read the initial positions of a collection of Lagrangian markers from a
+     * text file.  Returns the number of markers read.
      */
-    static int
+    static unsigned int
     readMarkerPositions(
         std::vector<blitz::TinyVector<double,NDIM> >& mark_init_posns,
         const std::string& mark_input_file_name,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom);
 
     /*!
-     * Advect all markers by the specified advection velocity.  Uses a
-     * single-step explicit midpoint rule.
+     * Advect all markers by the specified advection velocity using forward
+     * Euler.
      */
     static void
-    advectMarkers(
+    eulerStep(
         int mark_current_idx,
         int mark_new_idx,
-        int u_idx,
+        int u_current_idx,
+        double dt,
+        const std::string& weighting_fcn,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int coarsest_ln=-1,
+        int finest_ln=-1);
+
+    /*!
+     * Advect all markers by the specified advection velocity using the explicit
+     * midpoint rule.
+     *
+     * \note This function requires an initial call to eulerStep to compute the
+     * predicted marker positions.
+     */
+    static void
+    midpointStep(
+        int mark_current_idx,
+        int mark_new_idx,
+        int u_half_idx,
+        double dt,
+        const std::string& weighting_fcn,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        int coarsest_ln=-1,
+        int finest_ln=-1);
+
+    /*!
+     * Advect all markers by the specified advection velocity using the explicit
+     * trapezoidal rule.
+     *
+     * \note This function requires an initial call to eulerStep to compute the
+     * current marker velocities and the predicted marker positions.
+     */
+    static void
+    trapezoidalStep(
+        int mark_current_idx,
+        int mark_new_idx,
+        int u_new_idx,
         double dt,
         const std::string& weighting_fcn,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -112,7 +150,7 @@ public:
      * hierarchy.
      */
     static void
-    pruneDuplicateMarkers(
+    pruneInvalidMarkers(
         int mark_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
         int coarsest_ln=-1,
@@ -121,7 +159,7 @@ public:
     /*!
      * Count the markers.
      */
-    static int
+    static unsigned int
     countMarkers(
         int mark_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -164,6 +202,54 @@ private:
      */
     LMarkerUtilities& operator=(
         const LMarkerUtilities& that);
+
+    /*!
+     * Determine the number of markers in a patch.
+     */
+    static unsigned int
+    countMarkersOnPatch(
+        SAMRAI::tbox::Pointer<LMarkerSetData> mark_data);
+
+    /*!
+     * Collect marker positions into a single vector.
+     */
+    static void
+    collectMarkerPositionsOnPatch(
+        std::vector<double>& X_mark,
+        SAMRAI::tbox::Pointer<LMarkerSetData> mark_data);
+
+    /*!
+     * Reset marker positions from a single vector.
+     */
+    static void
+    resetMarkerPositionsOnPatch(
+        const std::vector<double>& X_mark,
+        SAMRAI::tbox::Pointer<LMarkerSetData> mark_data);
+
+    /*!
+     * Collect marker velocities into a single vector.
+     */
+    static void
+    collectMarkerVelocitiesOnPatch(
+        std::vector<double>& U_mark,
+        SAMRAI::tbox::Pointer<LMarkerSetData> mark_data);
+
+    /*!
+     * Reset marker velocities from a single vector.
+     */
+    static void
+    resetMarkerVelocitiesOnPatch(
+        const std::vector<double>& U_mark,
+        SAMRAI::tbox::Pointer<LMarkerSetData> mark_data);
+
+    /*!
+     * Prevent markers from leaving the computational domain through physical
+     * boundaries.
+     */
+    static void
+    preventMarkerEscape(
+        std::vector<double>& X_mark,
+        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom);
 };
 }// namespace IBTK
 

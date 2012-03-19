@@ -47,9 +47,8 @@
 namespace IBAMR
 {
 /*!
- * \brief Class GeneralizedIBMethod is an implementation of the abstract base
- * class IBStrategy that provides functionality required by the generalized IB
- * (gIB) method.
+ * \brief Class GeneralizedIBMethod is an extension of class IBMethod that
+ * provides functionality required by the generalized IB (gIB) method.
  */
 class GeneralizedIBMethod
     : public IBMethod

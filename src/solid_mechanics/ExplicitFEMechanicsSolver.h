@@ -1,5 +1,5 @@
-// Filename: IBFEMethod.h
-// Created on 5 Oct 2011 by Boyce Griffith
+// Filename: ExplicitFEMechanicsSolver.h
+// Created on 12 Mar 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,31 +30,40 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBFEMethod
-#define included_IBFEMethod
+#ifndef included_ExplicitFEMechanicsSolver
+#define included_ExplicitFEMechanicsSolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+// LIBMESH INCLUDES
+#define LIBMESH_REQUIRE_SEPARATE_NAMESPACE
+#include <../base/variable.h>
+#include <enum_order.h>
+#include <enum_quadrature_type.h>
+#include <equation_systems.h>
+#include <linear_solver.h>
+#include <mesh.h>
+#include <petsc_vector.h>
+#include <sparse_matrix.h>
 
 // PETSC INCLUDES
 #include <petscsys.h>
 
-// IBAMR INCLUDES
-#include <ibamr/IBStrategy.h>
-
-// IBTK INCLUDES
-#include <ibtk/FEDataManager.h>
+// SAMRAI INCLUDES
+#include <tbox/Serializable.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
 {
 /*!
- * \brief Class IBFEMethod is an implementation of the abstract base class
- * IBStrategy that provides functionality required by the IB method with finite
- * element elasticity.
+ * \brief Class ExplicitFEMechanicsSolver is a simple explicit mechanics solver
+ * using a purely displacement-based formulation.  Multi-part models are
+ * supported, but we do not attempt to handle contact between structures.
  */
-class IBFEMethod
-    : public IBStrategy
+class ExplicitFEMechanicsSolver
+    : public SAMRAI::tbox::Serializable
+
 {
 public:
     static const std::string        COORDS_SYSTEM_NAME;
@@ -64,36 +73,43 @@ public:
     static const std::string     F_DIL_BAR_SYSTEM_NAME;
 
     /*!
+     * \brief The libMesh boundary IDs to use for specifying essential boundary
+     * conditions.
+     *
+     * \todo Move these to a common header file.
+     */
+//  static const short int     NORMAL_DIRICHLET_BDRY_ID = 256;
+//  static const short int TANGENTIAL_DIRICHLET_BDRY_ID = 512;
+    static const short int            DIRICHLET_BDRY_ID = 256 | 512;
+
+    /*!
      * \brief Constructor.
      */
-    IBFEMethod(
+    ExplicitFEMechanicsSolver(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         libMesh::Mesh* mesh,
-        int max_level_number,
         bool register_for_restart=true);
 
     /*!
      * \brief Constructor.
      */
-    IBFEMethod(
+    ExplicitFEMechanicsSolver(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         const std::vector<libMesh::Mesh*>& meshes,
-        int max_level_number,
         bool register_for_restart=true);
 
     /*!
      * \brief Destructor.
      */
-    ~IBFEMethod();
+    ~ExplicitFEMechanicsSolver();
 
     /*!
-     * Return a pointer to the finite element data manager object for the
-     * specified part.
+     * Return a pointer to the EquationSystems object for the specified part.
      */
-    IBTK::FEDataManager*
-    getFEDataManager(
+    libMesh::EquationSystems*
+    getEquationSystems(
         unsigned int part=0) const;
 
     /*!
@@ -235,20 +251,20 @@ public:
         unsigned int part=0);
 
     /*!
-     * Return the number of ghost cells required by the Lagrangian-Eulerian
-     * interaction routines.
-     */
-    const SAMRAI::hier::IntVector<NDIM>&
-    getMinimumGhostCellWidth() const;
-
-    /*!
      * Method to prepare to advance data from current_time to new_time.
      */
     void
     preprocessIntegrateData(
         double current_time,
-        double new_time,
-        int num_cycles);
+        double new_time);
+
+    /*!
+     * Method to advance data from current_time to new_time.
+     */
+    void
+    integrateData(
+        double current_time,
+        double new_time);
 
     /*!
      * Method to clean up data following call(s) to integrateHierarchy().
@@ -256,168 +272,13 @@ public:
     void
     postprocessIntegrateData(
         double current_time,
-        double new_time,
-        int num_cycles);
-
-    /*!
-     * Interpolate the Eulerian velocity to the curvilinear mesh at the
-     * specified time within the current time interval.
-     */
-    void
-    interpolateVelocity(
-        int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-        double data_time);
-
-    /*!
-     * Advance the positions of the Lagrangian structure using the forward Euler
-     * method.
-     */
-    void
-    eulerStep(
-        double current_time,
         double new_time);
 
     /*!
-     * Advance the positions of the Lagrangian structure using the (explicit)
-     * midpoint rule.
-     */
-    void
-    midpointStep(
-        double current_time,
-        double new_time);
-
-    /*!
-     * Advance the positions of the Lagrangian structure using the (explicit)
-     * trapezoidal rule.
-     */
-    void
-    trapezoidalStep(
-        double current_time,
-        double new_time);
-
-    /*!
-     * Compute the Lagrangian force at the specified time within the current
-     * time interval.
-     */
-    void
-    computeLagrangianForce(
-        double data_time);
-
-    /*!
-     * Spread the Lagrangian force to the Cartesian grid at the specified time
-     * within the current time interval.
-     */
-    void
-    spreadForce(
-        int f_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
-        double data_time);
-
-    /*!
-     * Initialize FE data.  This method must be called prior to calling
-     * IBHierarchyIntegrator::initializePatchHierarchy().
+     * Initialize FE data.
      */
     void
     initializeFEData();
-
-    /*!
-     * Initialize Lagrangian data corresponding to the given AMR patch hierarchy
-     * at the start of a computation.  If the computation is begun from a
-     * restart file, data may be read from the restart databases.
-     *
-     * A patch data descriptor is provided for the Eulerian velocity in case
-     * initialization requires interpolating Eulerian data.  Ghost cells for
-     * Eulerian data will be filled upon entry to this function.
-     */
-    void
-    initializePatchHierarchy(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg,
-        int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-        int integrator_step,
-        double init_data_time,
-        bool initial_time);
-
-    /*!
-     * Register a load balancer and work load patch data index with the IB
-     * strategy object.
-     */
-    void
-    registerLoadBalancer(
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
-        int workload_data_idx);
-
-    /*!
-     * Update work load estimates on each level of the patch hierarchy.
-     */
-    void
-    updateWorkloadEstimates(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        int workload_data_idx);
-
-    /*!
-     * Begin redistributing Lagrangian data prior to regridding the patch
-     * hierarchy.
-     */
-    void
-    beginDataRedistribution(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
-
-    /*!
-     * Complete redistributing Lagrangian data following regridding the patch
-     * hierarchy.
-     */
-    void
-    endDataRedistribution(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
-
-    /*!
-     * Initialize data on a new level after it is inserted into an AMR patch
-     * hierarchy by the gridding algorithm.
-     *
-     * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
-     */
-    void
-    initializeLevelData(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double init_data_time,
-        bool can_be_refined,
-        bool initial_time,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-        bool allocate_data);
-
-    /*!
-     * Reset cached hierarchy dependent data.
-     *
-     * \see SAMRAI::mesh::StandardTagAndInitStrategy::resetHierarchyConfiguration
-     */
-    void
-    resetHierarchyConfiguration(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int coarsest_level,
-        int finest_level);
-
-    /*!
-     * Set integer tags to "one" in cells where refinement of the given level
-     * should occur according to user-supplied feature detection criteria.
-     *
-     * \see SAMRAI::mesh::StandardTagAndInitStrategy::applyGradientDetector
-     */
-    void
-    applyGradientDetector(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double error_data_time,
-        int tag_index,
-        bool initial_time,
-        bool uses_richardson_extrapolation_too);
 
     /*!
      * Write out object state to the given database.
@@ -450,32 +311,6 @@ protected:
         unsigned int part);
 
     /*!
-     * \brief Spread the transmission force density along the physical boundary
-     * of the Lagrangian structure.
-     */
-    void
-    spreadTransmissionForceDensity(
-        int f_data_idx,
-        libMesh::NumericVector<double>& X_ghost_vec,
-        libMesh::NumericVector<double>* F_dil_bar_ghost_vec,
-        double time,
-        unsigned int part);
-
-    /*!
-     * \brief Impose jump conditions determined from the interior and
-     * transmission force densities along the physical boundary of the
-     * Lagrangian structure.
-     */
-    void
-    imposeJumpConditions(
-        int f_data_idx,
-        libMesh::NumericVector<double>& F_ghost_vec,
-        libMesh::NumericVector<double>& X_ghost_vec,
-        libMesh::NumericVector<double>* F_dil_bar_ghost_vec,
-        double time,
-        unsigned int part);
-
-    /*!
      * \brief Initialize the physical coordinates using the supplied coordinate
      * mapping function.  If no function is provided, the initial coordinates
      * are taken to be the Lagrangian coordinates.
@@ -491,17 +326,48 @@ protected:
     updateCoordinateMapping(
         unsigned int part);
 
+    /*!
+     * \return Pointers to a linear solver and sparse matrix corresponding to a
+     * L2 projection operator.
+     */
+    std::pair<libMesh::LinearSolver<double>*,libMesh::SparseMatrix<double>*>
+    buildL2ProjectionSolver(
+        const std::string& system_name,
+        unsigned int part=0,
+        libMeshEnums::QuadratureType quad_type=QGAUSS,
+        libMeshEnums::Order quad_order=FIFTH);
+
+    /*!
+     * \return Pointer to vector representation of diagonal L2 mass matrix.
+     */
+    libMesh::NumericVector<double>*
+    buildDiagonalL2MassMatrix(
+        const std::string& system_name,
+        unsigned int part=0);
+
+    /*!
+     * \brief Set U to be the L2 projection of F.
+     */
+    bool
+    computeL2Projection(
+        libMesh::NumericVector<double>& U,
+        libMesh::NumericVector<double>& F,
+        const std::string& system_name,
+        unsigned int part=0,
+        bool consistent_mass_matrix=true,
+        libMeshEnums::QuadratureType quad_type=QGAUSS,
+        libMeshEnums::Order quad_order=FIFTH,
+        double tol=1.0e-6,
+        unsigned int max_its=100);
+
     /*
      * Indicates whether the integrator should output logging messages.
      */
     bool d_do_log;
 
     /*
-     * Pointers to the patch hierarchy and gridding algorithm objects associated
-     * with this object.
+     * Indicates whether the FE data have been initialized.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
     bool d_is_initialized;
 
     /*
@@ -516,23 +382,15 @@ protected:
     std::vector<libMesh::EquationSystems*> d_equation_systems;
 
     const unsigned int d_num_parts;
-    std::vector<IBTK::FEDataManager*> d_fe_data_managers;
-    SAMRAI::hier::IntVector<NDIM> d_ghosts;
     std::vector<libMesh::System*> d_X_systems, d_U_systems, d_F_systems, d_F_dil_bar_systems;
-    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_F_dil_bar_half_vecs, d_F_dil_bar_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_F_half_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_F_dil_bar_half_vecs;
 
     /*
      * Method paramters.
      */
-    bool d_use_IB_spread_operator;
-    std::string d_spread_delta_fcn;
-    bool d_use_IB_interp_operator;
-    std::string d_interp_delta_fcn;
-    bool d_split_forces;
-    bool d_use_jump_conditions;
     bool d_use_consistent_mass_matrix;
     bool d_use_Fbar_projection;
     libMeshEnums::FEFamily d_fe_family;
@@ -541,11 +399,6 @@ protected:
     libMeshEnums::Order d_F_dil_bar_fe_order;
     libMeshEnums::QuadratureType d_quad_type;
     libMeshEnums::Order d_quad_order;
-
-    std::string d_ib_qrule_type, d_ib_qrule_order;
-    double d_ib_qrule_point_density;  // NOTE: currently only affects QAdaptiveGauss
-    libMesh::QBase* d_ib_qrule;
-    libMesh::QBase* d_ib_qrule_face;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
@@ -577,10 +430,19 @@ protected:
     std::vector<void*> d_lag_surface_force_fcn_ctxs;
 
     /*
-     * Nonuniform load balancing data structures.
+     * The (uniform) mass density of the structure in the reference
+     * configuration.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
-    int d_workload_idx;
+    double d_rho0;
+
+    /*
+     * Linear solvers and related data.
+     */
+    std::vector<std::map<std::string,libMesh::LinearSolver<double>*> > d_L2_proj_solver;
+    std::vector<std::map<std::string,libMesh::SparseMatrix<double>*> > d_L2_proj_matrix;
+    std::vector<std::map<std::string,libMesh::NumericVector<double>*> > d_L2_proj_matrix_diag;
+    std::vector<std::map<std::string,libMeshEnums::QuadratureType> > d_L2_proj_quad_type;
+    std::vector<std::map<std::string,libMeshEnums::Order> > d_L2_proj_quad_order;
 
     /*
      * The object name is used as a handle to databases stored in restart files
@@ -600,7 +462,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBFEMethod();
+    ExplicitFEMechanicsSolver();
 
     /*!
      * \brief Copy constructor.
@@ -609,8 +471,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBFEMethod(
-        const IBFEMethod& from);
+    ExplicitFEMechanicsSolver(
+        const ExplicitFEMechanicsSolver& from);
 
     /*!
      * \brief Assignment operator.
@@ -621,9 +483,9 @@ private:
      *
      * \return A reference to this object.
      */
-    IBFEMethod&
+    ExplicitFEMechanicsSolver&
     operator=(
-        const IBFEMethod& that);
+        const ExplicitFEMechanicsSolver& that);
 
     /*!
      * Implementation of class constructor.
@@ -633,7 +495,6 @@ private:
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         const std::vector<libMesh::Mesh*>& meshes,
-        int max_level_number,
         bool register_for_restart);
 
     /*!
@@ -655,8 +516,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/IBFEMethod.I>
+//#include <ibamr/ExplicitFEMechanicsSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBFEMethod
+#endif //#ifndef included_ExplicitFEMechanicsSolver

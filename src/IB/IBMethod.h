@@ -39,7 +39,7 @@
 #include <ibamr/IBInstrumentPanel.h>
 #include <ibamr/IBLagrangianForceStrategy.h>
 #include <ibamr/IBLagrangianSourceStrategy.h>
-#include <ibamr/IBPostProcessStrategy.h>
+#include <ibamr/IBMethodPostProcessStrategy.h>
 #include <ibamr/IBStrategy.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -98,8 +98,8 @@ public:
      * Supply a postprocessor object.
      */
     void
-    registerIBPostProcessor(
-        SAMRAI::tbox::Pointer<IBPostProcessStrategy> ib_postprocessor);
+    registerIBMethodPostProcessor(
+        SAMRAI::tbox::Pointer<IBMethodPostProcessStrategy> ib_postprocessor);
 
     /*!
      * Return a pointer to the Lagrangian data manager object.
@@ -258,8 +258,7 @@ public:
      * Execute user-defined post-processing operations.
      */
     void
-    postprocessData(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    postprocessData();
 
     /*!
      * Initialize Lagrangian data corresponding to the given AMR patch hierarchy
@@ -466,8 +465,7 @@ protected:
     /*
      * Post-processor object.
      */
-    SAMRAI::tbox::Pointer<IBPostProcessStrategy> d_post_processor;
-    bool d_post_processor_needs_init;
+    SAMRAI::tbox::Pointer<IBMethodPostProcessStrategy> d_post_processor;
 
     /*
      * Visualization data writers.
@@ -539,14 +537,6 @@ private:
      */
     void
     resetLagrangianSourceFunction(
-        double init_data_time,
-        bool initial_time);
-
-    /*!
-     * Reset the post-processor object.
-     */
-    void
-    resetPostProcessor(
         double init_data_time,
         bool initial_time);
 

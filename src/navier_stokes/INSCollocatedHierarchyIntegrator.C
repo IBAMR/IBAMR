@@ -231,8 +231,8 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(
     d_pressure_fac_pc   = NULL;
 
     // Initialize all variables.  The velocity, pressure, body force, and fluid
-    // source variables were created above when calling the constructor for base
-    // class INSHierarchyIntegrator.
+    // source variables were created above in the constructor for the
+    // INSHierarchyIntegrator base class.
     d_U_var           = INSHierarchyIntegrator::d_U_var;
     d_u_ADV_var       = new FaceVariable<NDIM,double>(d_object_name+"::u_ADV"           );
     d_P_var           = INSHierarchyIntegrator::d_P_var;
@@ -751,6 +751,14 @@ INSCollocatedHierarchyIntegrator::initializePatchHierarchy(
         regridProjection();
         synchronizeHierarchyData(CURRENT_DATA);
     }
+
+    // When necessary, initialize the value of U_adv.
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const int U_adv_diff_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
+        d_hier_fc_data_ops->copyData(U_adv_diff_idx, d_u_ADV_current_idx);
+    }
     return;
 }// initializePatchHierarhcy
 
@@ -831,6 +839,12 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(
     d_velocity_op->setHomogeneousBc(false);
     d_velocity_op->modifyRhsForInhomogeneousBc(*d_U_rhs_vec);
     d_velocity_op->setHomogeneousBc(true);
+
+    // Initialize any registered advection-diffusion solver.
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        d_adv_diff_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
+    }
     return;
 }// preprocessIntegrateHierarchy
 
@@ -856,6 +870,16 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
     const int U_half_idx = d_U_half_vec->getComponentDescriptorIndex(0);
     d_hier_cc_data_ops->linearSum(         U_half_idx, 0.5,     d_U_current_idx, 0.5,     d_U_new_idx);
     d_hier_fc_data_ops->linearSum(d_u_ADV_scratch_idx, 0.5, d_u_ADV_current_idx, 0.5, d_u_ADV_new_idx);
+
+    // When there is a coupled advection-diffusion solver, advance those
+    // variables forward in time using U_half as the advection velocity.
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const int U_adv_diff_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
+        d_hier_fc_data_ops->copyData(U_adv_diff_idx, d_u_ADV_scratch_idx);
+        d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
+    }
 
     // Compute the current approximation to the pressure gradient.
     if (cycle_num == 0)
@@ -1024,10 +1048,10 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
 
 void
 INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(
-    const double /*current_time*/,
+    const double current_time,
     const double new_time,
     const bool skip_synchronize_new_state_data,
-    const int /*num_cycles*/)
+    const int num_cycles)
 {
     // Synchronize new state data.
     if (!skip_synchronize_new_state_data)
@@ -1062,6 +1086,12 @@ INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(
     d_U_half_vec ->deallocateVectorData();
     d_N_vec      ->deallocateVectorData();
     d_Phi_rhs_vec->deallocateVectorData();
+
+    // Deallocate any registered advection-diffusion solver.
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        d_adv_diff_hier_integrator->postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+    }
     return;
 }// postprocessIntegrateHierarchy
 

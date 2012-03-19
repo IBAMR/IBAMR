@@ -39,13 +39,12 @@
 #include <petscsys.h>
 
 // IBAMR INCLUDES
-#include <ibamr/IBEulerianForceFunction.h>
-#include <ibamr/IBEulerianSourceFunction.h>
 #include <ibamr/IBStrategy.h>
 #include <ibamr/INSHierarchyIntegrator.h>
 
 // IBTK INCLUDES
 #include <ibtk/LDataManager.h>
+#include <ibtk/LMarkerSetVariable.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -78,6 +77,20 @@ public:
      * object with the restart manager when the object is so registered.
      */
     ~IBHierarchyIntegrator();
+
+    /*!
+     * Return a pointer to the IBStrategy object registered with this
+     * integrator.
+     */
+    SAMRAI::tbox::Pointer<IBStrategy>
+    getIBStrategy() const;
+
+    /*!
+     * Return a pointer to the INSHierarchyIntegrator registered with this
+     * integrator.
+     */
+    SAMRAI::tbox::Pointer<INSHierarchyIntegrator>
+    getINSHierarchyIntegrator() const;
 
     /*!
      * Supply a body force (optional).
@@ -166,17 +179,10 @@ public:
     void
     regridHierarchy();
 
-    /*!
-     * Return a pointer to the INSHierarchyIntegrator used by this class to
-     * solve the incompressible Navier-Stokes equations.
-     */
-    SAMRAI::tbox::Pointer<INSHierarchyIntegrator>
-    getINSHierarchyIntegrator() const;
-
 protected:
     /*!
-     * Function to determine whether to regridding should occur at the current
-     * time step.
+     * Function to determine whether regridding should occur at the current time
+     * step.
      */
     bool
     atRegridPointSpecialized() const;
@@ -319,11 +325,13 @@ private:
      * Body force functions.
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_body_force_fcn;
+    class IBEulerianForceFunction;
     SAMRAI::tbox::Pointer<IBEulerianForceFunction> d_eulerian_force_fcn;
 
     /*
      * The source/sink distribution functions.
      */
+    class IBEulerianSourceFunction;
     SAMRAI::tbox::Pointer<IBEulerianSourceFunction> d_eulerian_source_fcn;
 
     /*
@@ -337,6 +345,173 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_workload_var;
     int d_workload_idx;
+
+    /*
+     * Lagrangian marker data structures.
+     */
+    SAMRAI::tbox::Pointer<IBTK::LMarkerSetVariable> d_mark_var;
+    int d_mark_current_idx, d_mark_new_idx, d_mark_scratch_idx;
+    std::vector<blitz::TinyVector<double,NDIM> > d_mark_init_posns;
+    std::string d_mark_file_name;
+
+    /*!
+     * \brief A class to communicate the Eulerian body force computed by class
+     * IBHierarchyIntegrator to the incompressible Navier-Stokes solver.
+     */
+    class IBEulerianForceFunction
+        : public IBTK::CartGridFunction
+    {
+    public:
+        /*!
+         * \brief Destructor.
+         */
+        ~IBEulerianForceFunction();
+
+        /*!
+         * \name Methods to set the data.
+         */
+        //\{
+
+        /*!
+         * \note This concrete IBTK::CartGridFunction is time-dependent.
+         */
+        bool
+        isTimeDependent() const;
+
+        /*!
+         * Set the data on the patch interior.
+         */
+        void
+        setDataOnPatch(
+            int data_idx,
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+            double data_time,
+            bool initial_time=false,
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level=SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+
+        //\}
+
+    private:
+        /*!
+         * \brief Constructor.
+         */
+        IBEulerianForceFunction(
+            const IBHierarchyIntegrator* ib_solver);
+
+        /*!
+         * \brief Default constructor.
+         *
+         * \note This constructor is not implemented and should not be used.
+         */
+        IBEulerianForceFunction();
+
+        /*!
+         * \brief Copy constructor.
+         *
+         * \note This constructor is not implemented and should not be used.
+         *
+         * \param from The value to copy to this object.
+         */
+        IBEulerianForceFunction(
+            const IBEulerianForceFunction& from);
+
+        /*!
+         * \brief Assignment operator.
+         *
+         * \note This operator is not implemented and should not be used.
+         *
+         * \param that The value to assign to this object.
+         *
+         * \return A reference to this object.
+         */
+        IBEulerianForceFunction&
+        operator=(
+            const IBEulerianForceFunction& that);
+
+        const IBHierarchyIntegrator* const d_ib_solver;
+        friend class IBHierarchyIntegrator;
+    };
+
+    /*!
+     * \brief A class to communicate the Eulerian fluid source-sink distribution
+     * computed by class IBHierarchyIntegrator to the incompressible
+     * Navier-Stokes solver.
+     */
+    class IBEulerianSourceFunction
+        : public IBTK::CartGridFunction
+    {
+    public:
+        /*!
+         * \brief Destructor.
+         */
+        ~IBEulerianSourceFunction();
+
+        /*!
+         * \name Methods to set the data.
+         */
+        //\{
+
+        /*!
+         * \note This concrete IBTK::CartGridFunction is time-dependent.
+         */
+        bool
+        isTimeDependent() const;
+
+        /*!
+         * Set the data on the patch interior.
+         */
+        void
+        setDataOnPatch(
+            int data_idx,
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+            double data_time,
+            bool initial_time=false,
+            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level=SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+
+        //\}
+
+    private:
+        /*!
+         * \brief Constructor.
+         */
+        IBEulerianSourceFunction(
+            const IBHierarchyIntegrator* ib_solver);
+
+        /*!
+         * \brief Default constructor.
+         *
+         * \note This constructor is not implemented and should not be used.
+         */
+        IBEulerianSourceFunction();
+
+        /*!
+         * \brief Copy constructor.
+         *
+         * \note This constructor is not implemented and should not be used.
+         *
+         * \param from The value to copy to this object.
+         */
+        IBEulerianSourceFunction(
+            const IBEulerianSourceFunction& from);
+
+        /*!
+         * \brief Assignment operator.
+         *
+         * \note This operator is not implemented and should not be used.
+         *
+         * \param that The value to assign to this object.
+         *
+         * \return A reference to this object.
+         */
+        IBEulerianSourceFunction&
+        operator=(
+            const IBEulerianSourceFunction& that);
+
+        const IBHierarchyIntegrator* const d_ib_solver;
+        friend class IBHierarchyIntegrator;
+    };
 };
 }// namespace IBAMR
 

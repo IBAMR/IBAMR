@@ -45,17 +45,11 @@
 #endif
 
 // IBAMR INCLUDES
-#include <ibamr/IBAnchorPointSpec.h>
-#include <ibamr/IBInstrumentationSpec.h>
 #include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
-#include <ibtk/IndexUtilities.h>
-#if (NDIM == 3)
-#include <ibtk/LM3DDataWriter.h>
-#endif
-#include <ibtk/LSiloDataWriter.h>
+#include <ibtk/LMarkerUtilities.h>
 
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
@@ -118,6 +112,18 @@ IBHierarchyIntegrator::~IBHierarchyIntegrator()
     // intentionally blank.
     return;
 }// ~IBHierarchyIntegrator
+
+Pointer<IBStrategy>
+IBHierarchyIntegrator::getIBStrategy() const
+{
+    return d_ib_method_ops;
+}// getIBStrategy
+
+Pointer<INSHierarchyIntegrator>
+IBHierarchyIntegrator::getINSHierarchyIntegrator() const
+{
+    return d_ins_hier_integrator;
+}// getINSHierarchyIntegrator
 
 void
 IBHierarchyIntegrator::registerBodyForceFunction(
@@ -216,13 +222,19 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
         d_q_idx = -1;
     }
 
+    if (!d_mark_file_name.empty())
+    {
+        d_mark_var = new LMarkerSetVariable(d_object_name+"::markers");
+        registerVariable(d_mark_current_idx, d_mark_new_idx, d_mark_scratch_idx,
+                         d_mark_var, /* ghosts */ IntVector<NDIM>(1));
+    }
 
     // Initialize the objects used to manage Lagrangian-Eulerian interaction.
-    d_eulerian_force_fcn = new IBEulerianForceFunction(d_object_name+"::IBEulerianForceFunction", d_f_idx, d_f_idx, d_f_idx);
+    d_eulerian_force_fcn = new IBEulerianForceFunction(this);
     d_ins_hier_integrator->registerBodyForceFunction(d_eulerian_force_fcn);
     if (d_ib_method_ops->hasFluidSources())
     {
-        d_eulerian_source_fcn = new IBEulerianSourceFunction(d_object_name+"::IBEulerianSourceFunction", d_q_idx, d_q_idx, d_q_idx);
+        d_eulerian_source_fcn = new IBEulerianSourceFunction(this);
         d_ins_hier_integrator->registerFluidSourceFunction(d_eulerian_source_fcn);
     }
 
@@ -291,6 +303,12 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
         refine_op = grid_geom->lookupRefineOperator(d_q_var, "CONSERVATIVE_LINEAR_REFINE");
         refine_alg->registerRefine(d_q_idx, d_q_idx, d_q_idx, refine_op);
         registerProlongRefineAlgorithm(d_object_name+"::q", refine_alg);
+    }
+
+    // Read in initial marker positions.
+    if (!d_mark_file_name.empty())
+    {
+        LMarkerUtilities::readMarkerPositions(d_mark_init_posns, d_mark_file_name, hierarchy->getGridGeometry());
     }
 
     // Set the current integration time.
@@ -383,14 +401,6 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(
         }
     }
     skip_check_for_dt_change = false;
-
-    // Setup the Eulerian body force and fluid source/sink functions.
-    d_eulerian_force_fcn->registerBodyForceFunction(d_body_force_fcn);
-    d_eulerian_force_fcn ->setTimeInterval(current_time, new_time);
-    if (d_ib_method_ops->hasFluidSources())
-    {
-        d_eulerian_source_fcn->setTimeInterval(current_time, new_time);
-    }
 
     // Allocate Eulerian scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -646,6 +656,12 @@ IBHierarchyIntegrator::regridHierarchy()
         d_ib_method_ops->updateWorkloadEstimates(d_hierarchy, d_workload_idx);
     }
 
+    // Collect the marker particles to level 0 of the patch hierarchy.
+    if (!d_mark_var.isNull())
+    {
+        LMarkerUtilities::collectMarkersOnPatchHierarchy(d_mark_current_idx, d_hierarchy);
+    }
+
     // Before regridding, begin Lagrangian data movement.
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement\n";
     d_ib_method_ops->beginDataRedistribution(d_hierarchy, d_gridding_alg);
@@ -658,12 +674,17 @@ IBHierarchyIntegrator::regridHierarchy()
     if (d_do_log) plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement\n";
     d_ib_method_ops->endDataRedistribution(d_hierarchy, d_gridding_alg);
 
+    // Prune any duplicated markers located in the "invalid" regions of coarser
+    // levels of the patch hierarchy.
+    if (!d_mark_var.isNull())
+    {
+        LMarkerUtilities::pruneInvalidMarkers(d_mark_current_idx, d_hierarchy);
+    }
+
     // Reset the regrid CFL estimate.
     d_regrid_cfl_estimate = 0.0;
     return;
 }// regridHierarchy
-
-
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -711,6 +732,12 @@ IBHierarchyIntegrator::initializeLevelDataSpecialized(
         HierarchyCellDataOpsReal<NDIM,double> level_cc_data_ops(hierarchy,level_number,level_number);
         level_cc_data_ops.setToScalar(d_workload_idx, 1.0);
         d_load_balancer->setUniformWorkload(level_number);
+    }
+
+    // Initialize marker data
+    if (!d_mark_var.isNull())
+    {
+        LMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, d_mark_init_posns, hierarchy, level_number, initial_time, old_level);
     }
 
     // Initialize IB data.
@@ -773,12 +800,6 @@ IBHierarchyIntegrator::putToDatabaseSpecialized(
     return;
 }// putToDatabaseSpecialized
 
-Pointer<INSHierarchyIntegrator>
-IBHierarchyIntegrator::getINSHierarchyIntegrator() const
-{
-    return d_ins_hier_integrator;
-}// getINSHierarchyIntegrator
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
@@ -795,6 +816,7 @@ IBHierarchyIntegrator::getFromInput(
     else if (db->keyExists("warn_on_time_step_change")) d_warn_on_dt_change = db->getBool("warn_on_time_step_change");
     if      (db->keyExists("timestepping_type") ) d_timestepping_type = string_to_enum<TimesteppingType>(db->getString("timestepping_type"));
     else if (db->keyExists("time_stepping_type")) d_timestepping_type = string_to_enum<TimesteppingType>(db->getString("time_stepping_type"));
+    if      (db->keyExists("marker_file_name")) d_mark_file_name = db->getString("marker_file_name");
     return;
 }// getFromInput
 

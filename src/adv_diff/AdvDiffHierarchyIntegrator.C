@@ -94,20 +94,13 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     : HierarchyIntegrator(object_name, input_db, register_for_restart),
       d_viscous_timestepping_type(CRANK_NICOLSON),
       d_u_var(),
-      d_manage_u_data(),
       d_u_is_div_free(),
       d_u_fcn(),
       d_F_var(),
-      d_manage_F_data(),
       d_F_fcn(),
-      d_grad_Phi_var(),
-      d_manage_grad_Phi_data(),
-      d_grad_Phi_fcn(),
       d_Q_var(),
       d_Psi_var(),
-      d_manage_Q_data(),
       d_Q_u_map(),
-      d_Q_grad_Phi_map(),
       d_Q_F_map(),
       d_Q_Psi_map(),
       d_Q_difference_form(),
@@ -222,14 +215,12 @@ AdvDiffHierarchyIntegrator::getViscousTimesteppingType() const
 
 void
 AdvDiffHierarchyIntegrator::registerAdvectionVelocity(
-    Pointer<FaceVariable<NDIM,double> > u_var,
-    const bool manage_data)
+    Pointer<FaceVariable<NDIM,double> > u_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!u_var.isNull());
 #endif
     d_u_var.insert(u_var);
-    d_manage_u_data[u_var] = manage_data;
     d_u_is_div_free[u_var] = true;
     return;
 }// registerAdvectionVelocity
@@ -260,14 +251,12 @@ AdvDiffHierarchyIntegrator::setAdvectionVelocityFunction(
 
 void
 AdvDiffHierarchyIntegrator::registerSourceTerm(
-    Pointer<CellVariable<NDIM,double> > F_var,
-    const bool manage_data)
+    Pointer<CellVariable<NDIM,double> > F_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!F_var.isNull());
 #endif
     d_F_var.insert(F_var);
-    d_manage_F_data[F_var] = manage_data;
     return;
 }// registerSourceTerm
 
@@ -284,40 +273,13 @@ AdvDiffHierarchyIntegrator::setSourceTermFunction(
 }// setSourceTermFunction
 
 void
-AdvDiffHierarchyIntegrator::registerIncompressibilityFixTerm(
-    Pointer<FaceVariable<NDIM,double> > grad_Phi_var,
-    const bool manage_data)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!grad_Phi_var.isNull());
-#endif
-    d_grad_Phi_var.insert(grad_Phi_var);
-    d_manage_grad_Phi_data[grad_Phi_var] = manage_data;
-    return;
-}// registerIncompressibilityFixTerm
-
-void
-AdvDiffHierarchyIntegrator::setIncompressibilityFixTermFunction(
-    Pointer<FaceVariable<NDIM,double> > grad_Phi_var,
-    Pointer<IBTK::CartGridFunction> grad_Phi_fcn)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_grad_Phi_var.find(grad_Phi_var) != d_grad_Phi_var.end());
-#endif
-    d_grad_Phi_fcn[grad_Phi_var] = grad_Phi_fcn;
-    return;
-}// setIncompressibilityFixTermFunction
-
-void
 AdvDiffHierarchyIntegrator::registerTransportedQuantity(
-    Pointer<CellVariable<NDIM,double> > Q_var,
-    const bool manage_data)
+    Pointer<CellVariable<NDIM,double> > Q_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!Q_var.isNull());
 #endif
     d_Q_var.insert(Q_var);
-    d_manage_Q_data[Q_var] = manage_data;
     d_Q_difference_form[Q_var] = CONSERVATIVE;
     d_Q_diffusion_coef[Q_var] = 0.0;
     d_Q_damping_coef[Q_var] = 0.0;
@@ -357,19 +319,6 @@ AdvDiffHierarchyIntegrator::setSourceTerm(
     d_Q_F_map[Q_var] = F_var;
     return;
 }// setSourceTerm
-
-void
-AdvDiffHierarchyIntegrator::setIncompressibilityFixTerm(
-    Pointer<CellVariable<NDIM,double> > Q_var,
-    Pointer<FaceVariable<NDIM,double> > grad_Phi_var)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
-    TBOX_ASSERT(d_grad_Phi_var.find(grad_Phi_var) != d_grad_Phi_var.end());
-#endif
-    d_Q_grad_Phi_map[Q_var] = grad_Phi_var;
-    return;
-}// setIncompressibilityFixTerm
 
 void
 AdvDiffHierarchyIntegrator::setConvectiveDifferencingType(
@@ -512,17 +461,9 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
          cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
-        d_hyp_patch_ops->registerAdvectionVelocity(u_var,d_manage_u_data[u_var]);
+        d_hyp_patch_ops->registerAdvectionVelocity(u_var);
         d_hyp_patch_ops->setAdvectionVelocityIsDivergenceFree(u_var,d_u_is_div_free[u_var]);
         if (!d_u_fcn[u_var].isNull()) d_hyp_patch_ops->setAdvectionVelocityFunction(u_var,d_u_fcn[u_var]);
-    }
-
-    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_grad_Phi_var.begin();
-         cit != d_grad_Phi_var.end(); ++cit)
-    {
-        Pointer<FaceVariable<NDIM,double> > grad_Phi_var = *cit;
-        d_hyp_patch_ops->registerIncompressibilityFixTerm(grad_Phi_var,d_manage_grad_Phi_data[grad_Phi_var]);
-        if (!d_grad_Phi_fcn[grad_Phi_var].isNull()) d_hyp_patch_ops->setIncompressibilityFixTermFunction(grad_Phi_var,d_grad_Phi_fcn[grad_Phi_var]);
     }
 
     const IntVector<NDIM> cell_ghosts = CELLG;
@@ -530,22 +471,19 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
          cit != d_F_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > F_var = *cit;
-        if (d_manage_F_data[F_var])
-        {
-            d_hyp_level_integrator->registerVariable(
-                F_var, cell_ghosts,
-                HyperbolicLevelIntegrator<NDIM>::TIME_DEP,
-                d_hierarchy->getGridGeometry(),
-                "CONSERVATIVE_COARSEN",
-                "CONSERVATIVE_LINEAR_REFINE");
-        }
+        d_hyp_level_integrator->registerVariable(
+            F_var, cell_ghosts,
+            HyperbolicLevelIntegrator<NDIM>::TIME_DEP,
+            d_hierarchy->getGridGeometry(),
+            "CONSERVATIVE_COARSEN",
+            "CONSERVATIVE_LINEAR_REFINE");
     }
 
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Psi_var.begin();
          cit != d_Psi_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > Psi_var = *cit;
-        d_hyp_patch_ops->registerSourceTerm(Psi_var,true);
+        d_hyp_patch_ops->registerSourceTerm(Psi_var);
         var_db->registerVariableAndContext(Psi_var, d_temp_context, CELLG);
     }
 
@@ -553,10 +491,9 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
          cit != d_Q_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
-        d_hyp_patch_ops->registerTransportedQuantity(Q_var,d_manage_Q_data[Q_var]);
-        d_hyp_patch_ops->setAdvectionVelocity(Q_var,d_Q_u_map[Q_var]);
+        d_hyp_patch_ops->registerTransportedQuantity(Q_var);
+        if (!d_Q_u_map[Q_var].isNull()) d_hyp_patch_ops->setAdvectionVelocity(Q_var,d_Q_u_map[Q_var]);
         d_hyp_patch_ops->setSourceTerm(Q_var,d_Q_Psi_map[Q_var]);
-        if (!d_Q_grad_Phi_map[Q_var].isNull()) d_hyp_patch_ops->setIncompressibilityFixTerm(Q_var,d_Q_grad_Phi_map[Q_var]);
         d_hyp_patch_ops->setConvectiveDifferencingType(Q_var,d_Q_difference_form[Q_var]);
         if (!d_Q_init[Q_var].isNull()) d_hyp_patch_ops->setInitialConditions(Q_var,d_Q_init[Q_var]);
         if (!d_Q_bc_coef[Q_var].empty()) d_hyp_patch_ops->setPhysicalBcCoefs(Q_var,d_Q_bc_coef[Q_var]);
@@ -640,15 +577,24 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
     TBOX_ASSERT(current_time <= new_time);
     TBOX_ASSERT(d_end_time > d_integrator_time);
     TBOX_ASSERT(MathUtilities<double>::equalEps(d_integrator_time,current_time));
-    TBOX_ASSERT(cycle_num == 0);
-#else
-    NULL_USE(cycle_num);
 #endif
     const double dt = new_time - current_time;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Reset time-dependent data when necessary.
+    ////////////////////////////////////////////////////////////////////////////
+
+    if (cycle_num > 0)
+    {
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            d_hyp_level_integrator->resetDataToPreadvanceState(d_hierarchy->getPatchLevel(ln));
+        }
+    }
 
     ////////////////////////////////////////////////////////////////////////////
     // Compute any time-dependent source terms at time-level n.
@@ -1043,25 +989,22 @@ AdvDiffHierarchyIntegrator::initializeLevelDataSpecialized(
              cit != d_F_var.end(); ++cit)
         {
             Pointer<CellVariable<NDIM,double> > F_var = *cit;
-            if (d_manage_F_data[F_var])
+            const int F_idx = var_db->mapVariableAndContextToIndex(F_var, getCurrentContext());
+            Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
+            if (!F_fcn.isNull())
             {
-                const int F_idx = var_db->mapVariableAndContextToIndex(F_var, getCurrentContext());
-                Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
-                if (!F_fcn.isNull())
+                F_fcn->setDataOnPatchLevel(F_idx, F_var, level, init_data_time, initial_time);
+            }
+            else
+            {
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
-                    F_fcn->setDataOnPatchLevel(F_idx, F_var, level, init_data_time, initial_time);
-                }
-                else
-                {
-                    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-                    {
-                        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                        Pointer<CellData<NDIM,double> > F_data = patch->getPatchData(F_idx);
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<CellData<NDIM,double> > F_data = patch->getPatchData(F_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-                        TBOX_ASSERT(!F_data.isNull());
+                    TBOX_ASSERT(!F_data.isNull());
 #endif
-                        F_data->fillAll(0.0);
-                    }
+                    F_data->fillAll(0.0);
                 }
             }
         }

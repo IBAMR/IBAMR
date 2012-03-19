@@ -45,7 +45,6 @@
 #endif
 
 // IBAMR INCLUDES
-#include <ibamr/IBAnchorPointSpecFactory.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES

@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "IBEulerianSourceFunction.h"
+#include "IBHierarchyIntegrator.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -62,99 +62,47 @@ namespace IBAMR
 
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBEulerianSourceFunction::IBEulerianSourceFunction(
-    const std::string& object_name,
-    const int Q_current_idx,
-    const int Q_new_idx,
-    const int Q_half_idx)
-    : CartGridFunction(object_name),
-      d_current_time(std::numeric_limits<double>::quiet_NaN()),
-      d_new_time(std::numeric_limits<double>::quiet_NaN()),
-      d_Q_current_idx(Q_current_idx),
-      d_Q_new_idx(Q_new_idx),
-      d_Q_half_idx(Q_half_idx)
+IBHierarchyIntegrator::IBEulerianSourceFunction::IBEulerianSourceFunction(
+    const IBHierarchyIntegrator* const ib_solver)
+    : CartGridFunction(ib_solver->getName()+"::IBEulerianSourceFunction"),
+      d_ib_solver(ib_solver)
 {
     // intentionally blank
     return;
 }// IBEulerianSourceFunction
 
-IBEulerianSourceFunction::~IBEulerianSourceFunction()
+IBHierarchyIntegrator::IBEulerianSourceFunction::~IBEulerianSourceFunction()
 {
     // intentionally blank
     return;
 }// ~IBEulerianSourceFunction
 
-void
-IBEulerianSourceFunction::setTimeInterval(
-    const double current_time,
-    const double new_time)
-{
-    d_current_time = current_time;
-    d_new_time = new_time;
-    return;
-}// setTimeInterval
-
 bool
-IBEulerianSourceFunction::isTimeDependent() const
+IBHierarchyIntegrator::IBEulerianSourceFunction::isTimeDependent() const
 {
     return true;
 }// isTimeDependent
 
 void
-IBEulerianSourceFunction::setDataOnPatch(
+IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatch(
     const int data_idx,
     Pointer<Variable<NDIM> > /*var*/,
     Pointer<Patch<NDIM> > patch,
-    const double data_time,
+    const double /*data_time*/,
     const bool initial_time,
     Pointer<PatchLevel<NDIM> > /*level*/)
 {
-    Pointer<CellData<NDIM,double> > q_data = patch->getPatchData(data_idx);
+    Pointer<CellData<NDIM,double> > q_cc_data = patch->getPatchData(data_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!q_data.isNull());
+    TBOX_ASSERT(!q_cc_data.isNull());
 #endif
-    if (initial_time)
-    {
-        q_data->fillAll(0.0);
-    }
-    else if (MathUtilities<double>::equalEps(data_time, d_current_time))
-    {
-        if (d_Q_current_idx != -1)
-        {
-            Pointer<CellData<NDIM,double> > q_current_data = patch->getPatchData(d_Q_current_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!q_current_data.isNull());
-#endif
-            q_data->copy(*q_current_data);
-        }
-    }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
-    {
-        if (d_Q_new_idx != -1)
-        {
-            Pointer<CellData<NDIM,double> > q_new_data = patch->getPatchData(d_Q_new_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!q_new_data.isNull());
-#endif
-            q_data->copy(*q_new_data);
-        }
-    }
-    else if (MathUtilities<double>::equalEps(data_time, 0.5*(d_current_time+d_new_time)))
-    {
-        if (d_Q_half_idx != -1)
-        {
-            Pointer<CellData<NDIM,double> > q_half_data = patch->getPatchData(d_Q_half_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(!q_half_data.isNull());
-#endif
-            q_data->copy(*q_half_data);
-        }
-    }
-    else
-    {
-        TBOX_ERROR(d_object_name << "::setDataOnPatch():\n"
-                   << "  data time " << data_time << " is not the current, new, or half time." << std::endl);
-    }
+    q_cc_data->fillAll(0.0);
+
+    if (initial_time) return;
+
+    Pointer<CellData<NDIM,double> > q_ib_cc_data = patch->getPatchData(d_ib_solver->d_q_idx);
+    PatchCellDataBasicOps<NDIM,double> patch_ops;
+    patch_ops.add(q_cc_data, q_cc_data, q_ib_cc_data, patch->getBox());
     return;
 }// setDataOnPatch
 
