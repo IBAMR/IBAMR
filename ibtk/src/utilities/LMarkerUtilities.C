@@ -102,11 +102,11 @@ discard_comments(
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-int
+unsigned int
 LMarkerUtilities::readMarkerPositions(
     std::vector<blitz::TinyVector<double,NDIM> >& mark_init_posns,
     const std::string& mark_input_file_name,
-    Pointer<PatchHierarchy<NDIM> > hierarchy)
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom)
 {
     if (mark_input_file_name.empty()) return 0;
 
@@ -114,7 +114,6 @@ LMarkerUtilities::readMarkerPositions(
     const int mpi_rank = SAMRAI_MPI::getRank();
     const int mpi_size = SAMRAI_MPI::getNodes();
 
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
     const double* const grid_xLower = grid_geom->getXLower();
     const double* const grid_xUpper = grid_geom->getXUpper();
 
@@ -206,10 +205,10 @@ LMarkerUtilities::readMarkerPositions(
 }// readMarkerPositions
 
 void
-LMarkerUtilities::advectMarkers(
+LMarkerUtilities::eulerStep(
     const int mark_current_idx,
     const int mark_new_idx,
-    const int u_idx,
+    const int u_current_idx,
     const double dt,
     const std::string& weighting_fcn,
     Pointer<PatchHierarchy<NDIM> > hierarchy,
@@ -225,115 +224,188 @@ LMarkerUtilities::advectMarkers(
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<PatchData<NDIM> > v_data = patch->getPatchData(u_idx);
-            Pointer<CellData<NDIM,double> > v_cc_data = v_data;
-            Pointer<SideData<NDIM,double> > v_sc_data = v_data;
-            const bool is_cc_data = !v_cc_data.isNull();
-            const bool is_sc_data = !v_sc_data.isNull();
+            Pointer<PatchData<NDIM> > u_current_data = patch->getPatchData(u_current_idx);
+            Pointer<CellData<NDIM,double> > u_cc_current_data = u_current_data;
+            Pointer<SideData<NDIM,double> > u_sc_current_data = u_current_data;
+            const bool is_cc_data = !u_cc_current_data.isNull();
+            const bool is_sc_data = !u_sc_current_data.isNull();
             Pointer<LMarkerSetData> mark_current_data = patch->getPatchData(mark_current_idx);
             Pointer<LMarkerSetData> mark_new_data     = patch->getPatchData(mark_new_idx);
 
-            // Collect the current positions of all markers in the patch into a
-            // vector.
-            std::vector<double> X_mark;
+            const unsigned int num_patch_marks = countMarkersOnPatch(mark_current_data);
 #ifdef DEBUG_CHECK_ASSERTIONS
-            std::vector<int> idx_mark;
+            TBOX_ASSERT(num_patch_marks == countMarkersOnPatch(mark_new_data));
 #endif
-            for (LMarkerSetData::DataIterator it = mark_current_data->data_begin(patch_box);
-                 it != mark_current_data->data_end(); ++it)
-            {
-                const LMarkerSet::value_type& mark = *it;
-                const blitz::TinyVector<double,NDIM>& X = mark->getPosition();
-                X_mark.insert(X_mark.end(), X.begin(), X.end());
-#ifdef DEBUG_CHECK_ASSERTIONS
-                const int& idx = mark->getIndex();
-                idx_mark.push_back(idx);
-#endif
-            }
+            // Collect the local marker positions at time n.
+            std::vector<double> X_mark_current;
+            collectMarkerPositionsOnPatch(X_mark_current, mark_current_data);
 
-            // Collect the predicted new positions of all markers in the patch
-            // into a vector.
-            std::vector<double> X_mark_new;
-#ifdef DEBUG_CHECK_ASSERTIONS
-            std::vector<int> idx_mark_new;
-#endif
-            for (LMarkerSetData::DataIterator it = mark_new_data->data_begin(patch_box);
-                 it != mark_new_data->data_end(); ++it)
-            {
-                const LMarkerSet::value_type& mark = *it;
-                const blitz::TinyVector<double,NDIM>& X = mark->getPosition();
-                X_mark_new.insert(X_mark_new.end(), X.begin(), X.end());
-#ifdef DEBUG_CHECK_ASSERTIONS
-                const int& idx = mark->getIndex();
-                idx_mark_new.push_back(idx);
-#endif
-            }
+            // Compute U_mark(n) = u(X_mark(n),n).
+            std::vector<double> U_mark_current(X_mark_current.size());
+            if (is_cc_data) LEInteractor::interpolate(U_mark_current, NDIM, X_mark_current, NDIM, u_cc_current_data, patch, patch_box, weighting_fcn);
+            if (is_sc_data) LEInteractor::interpolate(U_mark_current, NDIM, X_mark_current, NDIM, u_sc_current_data, patch, patch_box, weighting_fcn);
 
-            // Compute X_mark(n+1/2) = 0.5*(X_mark(n+1) + X_mark(n)).
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(X_mark.size() == X_mark_new.size());
-            TBOX_ASSERT(idx_mark.size() == idx_mark_new.size());
-            for (unsigned int k = 0; k < idx_mark.size(); ++k)
+            // Compute X_mark(n+1) = X_mark(n) + dt*U_mark(n).
+            std::vector<double> X_mark_new(X_mark_current.size());
+            for (unsigned int k = 0; k < NDIM*num_patch_marks; ++k)
             {
-                TBOX_ASSERT(idx_mark[k] == idx_mark_new[k]);
-            }
-#endif
-            std::vector<double> X_mark_half(X_mark.size());
-            for (unsigned int k = 0; k < X_mark.size(); ++k)
-            {
-                X_mark_half[k] = 0.5*(X_mark_new[k]+X_mark[k]);
-            }
-
-            // Compute U_mark(n+1/2) = u(X_mark(n+1/2),n+1/2).
-            std::vector<double> U_mark_half(X_mark.size());
-            if (is_cc_data) LEInteractor::interpolate(U_mark_half, NDIM, X_mark_half, NDIM, v_cc_data, patch, patch_box, weighting_fcn);
-            if (is_sc_data) LEInteractor::interpolate(U_mark_half, NDIM, X_mark_half, NDIM, v_sc_data, patch, patch_box, weighting_fcn);
-
-            // Compute X_mark(n+1) = X_mark(n) + dt*U_mark(n+1/2).
-            for (unsigned int k = 0; k < X_mark.size(); ++k)
-            {
-                X_mark_new[k] = X_mark[k] + dt*U_mark_half[k];
+                X_mark_new[k] = X_mark_current[k] + dt*U_mark_current[k];
             }
 
             // Prevent markers from leaving the computational domain through
             // physical boundaries (but *not* through periodic boundaries).
-            static const double edge_tol = sqrt(std::numeric_limits<double>::epsilon());
-            Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
-            const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
-            if (periodic_shift.min() == 0)
-            {
-                const double* const xLower = grid_geom->getXLower();
-                const double* const xUpper = grid_geom->getXUpper();
-                for (unsigned int k = 0; k < X_mark_new.size()/NDIM; ++k)
-                {
-                    double* const X = &X_mark_new[NDIM*k];
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        if (periodic_shift[d] == 0)
-                        {
-                            X[d] = std::max(X[d],xLower[d]+edge_tol);
-                            X[d] = std::min(X[d],xUpper[d]-edge_tol);
-                        }
-                    }
-                }
-            }
+            preventMarkerEscape(X_mark_new, hierarchy->getGridGeometry());
 
-            // Store the updated marker positions.
-            int marker_offset = 0;
-            for (LMarkerSetData::DataIterator it = mark_new_data->data_begin(patch_box);
-                 it != mark_new_data->data_end(); ++it, ++marker_offset)
-            {
-                LMarkerSet::value_type& mark = *it;
-                blitz::TinyVector<double,NDIM>& X = mark->getPosition();
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    X[d] = X_mark_new[NDIM*marker_offset+d];
-                }
-            }
+            // Store the local marker velocities at at time n, and the marker
+            // positions at time n+1.
+            resetMarkerVelocitiesOnPatch(U_mark_current, mark_current_data);
+            resetMarkerPositionsOnPatch(X_mark_new, mark_new_data);
         }
     }
     return;
-}// advectMarkers
+}// eulerStep
+
+void
+LMarkerUtilities::midpointStep(
+    const int mark_current_idx,
+    const int mark_new_idx,
+    const int u_half_idx,
+    const double dt,
+    const std::string& weighting_fcn,
+    Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const int coarsest_ln_in,
+    const int finest_ln_in)
+{
+    const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
+    const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<PatchData<NDIM> > u_half_data = patch->getPatchData(u_half_idx);
+            Pointer<CellData<NDIM,double> > u_cc_half_data = u_half_data;
+            Pointer<SideData<NDIM,double> > u_sc_half_data = u_half_data;
+            const bool is_cc_data = !u_cc_half_data.isNull();
+            const bool is_sc_data = !u_sc_half_data.isNull();
+            Pointer<LMarkerSetData> mark_current_data = patch->getPatchData(mark_current_idx);
+            Pointer<LMarkerSetData> mark_new_data     = patch->getPatchData(mark_new_idx);
+
+            const unsigned int num_patch_marks = countMarkersOnPatch(mark_current_data);
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(num_patch_marks == countMarkersOnPatch(mark_new_data));
+#endif
+            // Collect the local marker positions at time n and predicted marker
+            // positions at time n+1.
+            std::vector<double> X_mark_current;
+            collectMarkerPositionsOnPatch(X_mark_current, mark_current_data);
+            std::vector<double> X_mark_new;
+            collectMarkerPositionsOnPatch(X_mark_new, mark_new_data);
+
+            // Set X(n+1/2) = 0.5*(X(n)+X(n+1)).
+            std::vector<double> X_mark_half(NDIM*num_patch_marks);
+            for (unsigned int k = 0; k < NDIM*num_patch_marks; ++k)
+            {
+                X_mark_half[k] = 0.5*(X_mark_current[k]+X_mark_new[k]);
+            }
+
+            // Compute U_mark(n+1/) = u(X_mark(n+1/2),n+1/2).
+            std::vector<double> U_mark_half(X_mark_half.size());
+            if (is_cc_data) LEInteractor::interpolate(U_mark_half, NDIM, X_mark_half, NDIM, u_cc_half_data, patch, patch_box, weighting_fcn);
+            if (is_sc_data) LEInteractor::interpolate(U_mark_half, NDIM, X_mark_half, NDIM, u_sc_half_data, patch, patch_box, weighting_fcn);
+
+            // Compute X_mark(n+1) = X_mark(n) + dt*U_mark(n+1/2).
+            for (unsigned int k = 0; k < NDIM*num_patch_marks; ++k)
+            {
+                X_mark_new[k] = X_mark_current[k] + dt*U_mark_half[k];
+            }
+
+            // Prevent markers from leaving the computational domain through
+            // physical boundaries (but *not* through periodic boundaries).
+            preventMarkerEscape(X_mark_new, hierarchy->getGridGeometry());
+
+            // Store the local marker positions at time n+1.
+            resetMarkerPositionsOnPatch(X_mark_new, mark_new_data);
+        }
+    }
+    return;
+}// midpointStep
+
+void
+LMarkerUtilities::trapezoidalStep(
+    const int mark_current_idx,
+    const int mark_new_idx,
+    const int u_new_idx,
+    const double dt,
+    const std::string& weighting_fcn,
+    Pointer<PatchHierarchy<NDIM> > hierarchy,
+    const int coarsest_ln_in,
+    const int finest_ln_in)
+{
+    const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
+    const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<PatchData<NDIM> > u_new_data = patch->getPatchData(u_new_idx);
+            Pointer<CellData<NDIM,double> > u_cc_new_data = u_new_data;
+            Pointer<SideData<NDIM,double> > u_sc_new_data = u_new_data;
+            const bool is_cc_data = !u_cc_new_data.isNull();
+            const bool is_sc_data = !u_sc_new_data.isNull();
+            Pointer<LMarkerSetData> mark_current_data = patch->getPatchData(mark_current_idx);
+            Pointer<LMarkerSetData> mark_new_data     = patch->getPatchData(mark_new_idx);
+
+            const unsigned int num_patch_marks = countMarkersOnPatch(mark_current_data);
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(num_patch_marks == countMarkersOnPatch(mark_new_data));
+#endif
+            // Collect the local marker positions at time n and predicted marker
+            // positions at time n+1.
+            std::vector<double> X_mark_current;
+            collectMarkerPositionsOnPatch(X_mark_current, mark_current_data);
+            std::vector<double> X_mark_new;
+            collectMarkerPositionsOnPatch(X_mark_new, mark_new_data);
+
+            // Collect the local marker velocities at time n.
+            std::vector<double> U_mark_current;
+            collectMarkerVelocitiesOnPatch(U_mark_current, mark_current_data);
+
+            // Compute U_mark(n+1/) = u(X_mark(n+1/2),n+1/2).
+            std::vector<double> U_mark_new(X_mark_new.size());
+            if (is_cc_data) LEInteractor::interpolate(U_mark_new, NDIM, X_mark_new, NDIM, u_cc_new_data, patch, patch_box, weighting_fcn);
+            if (is_sc_data) LEInteractor::interpolate(U_mark_new, NDIM, X_mark_new, NDIM, u_sc_new_data, patch, patch_box, weighting_fcn);
+
+            // Set U(n+1/2) = 0.5*(U(n)+U(n+1)).
+            std::vector<double> U_mark_half(NDIM*num_patch_marks);
+            for (unsigned int k = 0; k < NDIM*num_patch_marks; ++k)
+            {
+                U_mark_half[k] = 0.5*(U_mark_current[k]+U_mark_new[k]);
+            }
+
+            // Compute X_mark(n+1) = X_mark(n) + dt*U_mark(n+1/2).
+            for (unsigned int k = 0; k < NDIM*num_patch_marks; ++k)
+            {
+                X_mark_new[k] = X_mark_current[k] + dt*U_mark_half[k];
+            }
+
+            // Prevent markers from leaving the computational domain through
+            // physical boundaries (but *not* through periodic boundaries).
+            preventMarkerEscape(X_mark_new, hierarchy->getGridGeometry());
+
+            // Store the local marker velocities at at time n, and the marker
+            // positions at time n+1.
+            resetMarkerVelocitiesOnPatch(U_mark_new, mark_new_data);
+            resetMarkerPositionsOnPatch(X_mark_new, mark_new_data);
+        }
+    }
+    return;
+}// trapezoidalStep
 
 void
 LMarkerUtilities::collectMarkersOnPatchHierarchy(
@@ -343,8 +415,8 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
-    const int num_marks_before_coarsening = countMarkers(mark_idx,hierarchy);
-    const int num_marks_before_coarsening_level_0 = countMarkers(mark_idx,hierarchy,0,0);
+    const unsigned int num_marks_before_coarsening = countMarkers(mark_idx,hierarchy);
+    const unsigned int num_marks_before_coarsening_level_0 = countMarkers(mark_idx,hierarchy,0,0);
 
     // Collect all marker data on the patch hierarchy.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -399,8 +471,8 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(
     mark_scratch_idx = -1;
 
     // Ensure that the total number of markers is correct.
-    const int num_marks_after_coarsening = countMarkers(mark_idx,hierarchy);
-    const int num_marks_after_coarsening_level_0 = countMarkers(mark_idx,hierarchy,0,0);
+    const unsigned int num_marks_after_coarsening = countMarkers(mark_idx,hierarchy);
+    const unsigned int num_marks_after_coarsening_level_0 = countMarkers(mark_idx,hierarchy,0,0);
     if (num_marks_before_coarsening != num_marks_after_coarsening || num_marks_before_coarsening != num_marks_after_coarsening_level_0)
     {
         TBOX_ERROR("LMarkerUtilities::collectMarkersOnPatchHierarchy()\n"
@@ -415,8 +487,8 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(
     // level of the patch hierarchy.
     //
     // NOTE: It is important to do this only *after* collecting markers on the
-    // patch hierarchy, because markers which have left a fine level through the
-    // coarse-fine interface would otherwise be discarded by this procedure.
+    // patch hierarchy.  Otherwise, markers that have left a fine level through
+    // the coarse-fine interface would be discarded by this procedure.
     Pointer<RefineAlgorithm<NDIM> > mark_level_fill_alg = new RefineAlgorithm<NDIM>();
     mark_level_fill_alg->registerRefine(mark_idx, mark_idx, mark_idx, NULL);
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(coarsest_ln);
@@ -472,8 +544,8 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(
     }
 
     // Ensure that the total number of markers is correct.
-    const int num_marks_after_posn_reset = countMarkers(mark_idx,hierarchy);
-    const int num_marks_after_posn_reset_level_0 = countMarkers(mark_idx,hierarchy,0,0);
+    const unsigned int num_marks_after_posn_reset = countMarkers(mark_idx,hierarchy);
+    const unsigned int num_marks_after_posn_reset_level_0 = countMarkers(mark_idx,hierarchy,0,0);
     if (num_marks_before_coarsening != num_marks_after_posn_reset || num_marks_before_coarsening != num_marks_after_posn_reset_level_0)
     {
         TBOX_ERROR("LMarkerUtilities::collectMarkersOnPatchHierarchy()\n"
@@ -539,31 +611,34 @@ LMarkerUtilities::initializeMarkersOnLevel(
             }
         }
     }
-    else if (!old_level.isNull() && level_number == 0)
+    else
     {
-        Pointer<RefineAlgorithm<NDIM> > copy_mark_alg = new RefineAlgorithm<NDIM>();
-        copy_mark_alg->registerRefine(mark_idx, mark_idx, mark_idx, NULL);
-        Pointer<PatchLevel<NDIM> > dst_level = level;
-        Pointer<PatchLevel<NDIM> > src_level = old_level;
-        RefinePatchStrategy<NDIM>* refine_mark_op = NULL;
-        copy_mark_alg->createSchedule(dst_level, src_level, refine_mark_op)->fillData(0.0);
-    }
-    else if (level_number > 0)
-    {
-        Pointer<RefineAlgorithm<NDIM> > refine_mark_alg = new RefineAlgorithm<NDIM>();
-        refine_mark_alg->registerRefine(mark_idx, mark_idx, mark_idx, new LMarkerRefine());
-        RefinePatchStrategy<NDIM>* refine_mark_op = NULL;
-        for (int ln = 1; ln <= level_number; ++ln)
+        if (!old_level.isNull() && level_number == 0)
         {
-            Pointer<PatchLevel<NDIM> > dst_level = hierarchy->getPatchLevel(ln);
-            refine_mark_alg->createSchedule(dst_level, NULL, ln-1, hierarchy, refine_mark_op)->fillData(0.0);
+            Pointer<RefineAlgorithm<NDIM> > copy_mark_alg = new RefineAlgorithm<NDIM>();
+            copy_mark_alg->registerRefine(mark_idx, mark_idx, mark_idx, NULL);
+            Pointer<PatchLevel<NDIM> > dst_level = level;
+            Pointer<PatchLevel<NDIM> > src_level = old_level;
+            RefinePatchStrategy<NDIM>* refine_mark_op = NULL;
+            copy_mark_alg->createSchedule(dst_level, src_level, refine_mark_op)->fillData(0.0);
+        }
+        else if (level_number > 0)
+        {
+            Pointer<RefineAlgorithm<NDIM> > refine_mark_alg = new RefineAlgorithm<NDIM>();
+            refine_mark_alg->registerRefine(mark_idx, mark_idx, mark_idx, new LMarkerRefine());
+            RefinePatchStrategy<NDIM>* refine_mark_op = NULL;
+            for (int ln = 1; ln <= level_number; ++ln)
+            {
+                Pointer<PatchLevel<NDIM> > dst_level = hierarchy->getPatchLevel(ln);
+                refine_mark_alg->createSchedule(dst_level, NULL, ln-1, hierarchy, refine_mark_op)->fillData(0.0);
+            }
         }
     }
     return;
 }// initializeMarkersOnLevel
 
 void
-LMarkerUtilities::pruneDuplicateMarkers(
+LMarkerUtilities::pruneInvalidMarkers(
     const int mark_idx,
     Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int coarsest_ln_in,
@@ -596,9 +671,9 @@ LMarkerUtilities::pruneDuplicateMarkers(
         }
     }
     return;
-}// pruneDuplicateMarkers
+}// pruneInvalidMarkers
 
-int
+unsigned int
 LMarkerUtilities::countMarkers(
     const int mark_idx,
     Pointer<PatchHierarchy<NDIM> > hierarchy,
@@ -607,30 +682,140 @@ LMarkerUtilities::countMarkers(
 {
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
-    int num_marks = 0;
+    unsigned int num_marks = 0;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
             Pointer<LMarkerSetData> mark_data = patch->getPatchData(mark_idx);
-            for (LMarkerSetData::SetIterator it(*mark_data); it; it++)
-            {
-                if (patch_box.contains(it.getIndex()))
-                {
-                    num_marks += it.getItem().size();
-                }
-            }
+            num_marks += countMarkersOnPatch(mark_data);
         }
     }
-    return SAMRAI_MPI::sumReduction(num_marks);
+    return static_cast<unsigned int>(SAMRAI_MPI::sumReduction(static_cast<int>(num_marks)));
 }// countMarkers
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+
+unsigned int
+LMarkerUtilities::countMarkersOnPatch(
+    Pointer<LMarkerSetData> mark_data)
+{
+    const Box<NDIM> patch_box = mark_data->getBox();
+    unsigned int num_marks = 0;
+    for (LMarkerSetData::SetIterator it(*mark_data); it; it++)
+    {
+        if (patch_box.contains(it.getIndex()))
+        {
+            num_marks += it.getItem().size();
+        }
+    }
+    return num_marks;
+}// countMarkersOnPatch
+
+void
+LMarkerUtilities::collectMarkerPositionsOnPatch(
+    std::vector<double>& X_mark,
+    Pointer<LMarkerSetData> mark_data)
+{
+    X_mark.resize(NDIM*countMarkersOnPatch(mark_data));
+    unsigned int k = 0;
+    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox());
+         it != mark_data->data_end(); ++it, ++k)
+    {
+        const LMarkerSet::value_type& mark = *it;
+        const blitz::TinyVector<double,NDIM>& X = mark->getPosition();
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            X_mark[NDIM*k+d] = X[d];
+        }
+    }
+    return;
+}// collectMarkerPositionsOnPatch
+
+void
+LMarkerUtilities::resetMarkerPositionsOnPatch(
+    const std::vector<double>& X_mark,
+    Pointer<LMarkerSetData> mark_data)
+{
+    unsigned int k = 0;
+    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox());
+         it != mark_data->data_end(); ++it, ++k)
+    {
+        const LMarkerSet::value_type& mark = *it;
+        blitz::TinyVector<double,NDIM>& X = mark->getPosition();
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            X[d] = X_mark[NDIM*k+d];
+        }
+    }
+    return;
+}// resetMarkerPositionsOnPatch
+
+void
+LMarkerUtilities::collectMarkerVelocitiesOnPatch(
+    std::vector<double>& U_mark,
+    Pointer<LMarkerSetData> mark_data)
+{
+    U_mark.resize(NDIM*countMarkersOnPatch(mark_data));
+    unsigned int k = 0;
+    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox());
+         it != mark_data->data_end(); ++it, ++k)
+    {
+        const LMarkerSet::value_type& mark = *it;
+        const blitz::TinyVector<double,NDIM>& U = mark->getVelocity();
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            U_mark[NDIM*k+d] = U[d];
+        }
+    }
+    return;
+}// collectMarkerVelocitiesOnPatch
+
+void
+LMarkerUtilities::resetMarkerVelocitiesOnPatch(
+    const std::vector<double>& U_mark,
+    Pointer<LMarkerSetData> mark_data)
+{
+    unsigned int k = 0;
+    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox());
+         it != mark_data->data_end(); ++it, ++k)
+    {
+        const LMarkerSet::value_type& mark = *it;
+        blitz::TinyVector<double,NDIM>& U = mark->getVelocity();
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            U[d] = U_mark[NDIM*k+d];
+        }
+    }
+    return;
+}// resetMarkerVelocitiesOnPatch
+
+void
+LMarkerUtilities::preventMarkerEscape(
+    std::vector<double>& X_mark,
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom)
+{
+    const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
+    if (periodic_shift.min() > 0) return;
+    static const double edge_tol = sqrt(std::numeric_limits<double>::epsilon());
+    const double* const x_lower = grid_geom->getXLower();
+    const double* const x_upper = grid_geom->getXUpper();
+    for (unsigned int k = 0; k < X_mark.size()/NDIM; ++k)
+    {
+        double* const X = &X_mark[NDIM*k];
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            if (periodic_shift[d] != 0) continue;
+            X[d] = std::max(X[d],x_lower[d]+edge_tol);
+            X[d] = std::min(X[d],x_upper[d]-edge_tol);
+        }
+    }
+    return;
+}// preventMarkerEscape
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
