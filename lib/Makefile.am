@@ -27,7 +27,7 @@ $(top_srcdir)/src/navier_stokes/INSProblemCoefs.C
 
 if LIBMESH_ENABLED
 libIBAMR_a_SOURCES += \
-$(top_srcdir)/src/IB/IBFEMethod.C
+$(top_srcdir)/src/olid_mechanics/ExplicitFEMechanicsSolver.C
 endif
 
 pkg_include_HEADERS = \
