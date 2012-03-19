@@ -187,16 +187,12 @@ AdvectHypPatchOps::AdvectHypPatchOps(
     : d_integrator(NULL),
       d_godunov_advector(godunov_advector),
       d_u_var(),
-      d_u_data_idx(),
-      d_manage_u_data(),
       d_u_is_div_free(),
       d_u_fcn(),
       d_compute_init_velocity(true),
       d_compute_half_velocity(true),
       d_compute_final_velocity(true),
       d_F_var(),
-      d_F_data_idx(),
-      d_manage_F_data(),
       d_F_fcn(),
       d_Q_var(),
       d_Q_u_map(),
@@ -274,24 +270,6 @@ AdvectHypPatchOps::registerAdvectionVelocity(
     TBOX_ASSERT(!u_var.isNull());
 #endif
     d_u_var.insert(u_var);
-    d_u_data_idx[u_var] = -1;
-    d_manage_u_data[u_var] = true;
-    d_u_is_div_free[u_var] = true;
-    return;
-}// registerAdvectionVelocity
-
-void
-AdvectHypPatchOps::registerAdvectionVelocity(
-    Pointer<FaceVariable<NDIM,double> > u_var,
-    const int u_data_idx)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!u_var.isNull());
-    TBOX_ASSERT(u_data_idx >= 0);
-#endif
-    d_u_var.insert(u_var);
-    d_u_data_idx[u_var] = u_data_idx;
-    d_manage_u_data[u_var] = false;
     d_u_is_div_free[u_var] = true;
     return;
 }// registerAdvectionVelocity
@@ -315,7 +293,6 @@ AdvectHypPatchOps::setAdvectionVelocityFunction(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_u_var.find(u_var) != d_u_var.end());
-    TBOX_ASSERT(d_manage_u_data[u_var]);
 #endif
     d_u_fcn[u_var] = u_fcn;
     return;
@@ -329,23 +306,6 @@ AdvectHypPatchOps::registerSourceTerm(
     TBOX_ASSERT(!F_var.isNull());
 #endif
     d_F_var.insert(F_var);
-    d_F_data_idx[F_var] = -1;
-    d_manage_F_data[F_var] = true;
-    return;
-}// registerSourceTerm
-
-void
-AdvectHypPatchOps::registerSourceTerm(
-    Pointer<CellVariable<NDIM,double> > F_var,
-    const int F_data_idx)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!F_var.isNull());
-    TBOX_ASSERT(F_data_idx >= 0);
-#endif
-    d_F_var.insert(F_var);
-    d_F_data_idx[F_var] = F_data_idx;
-    d_manage_F_data[F_var] = false;
     return;
 }// registerSourceTerm
 
@@ -356,7 +316,6 @@ AdvectHypPatchOps::setSourceTermFunction(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(d_F_var.find(F_var) != d_F_var.end());
-    TBOX_ASSERT(d_manage_F_data[F_var]);
 #endif
     d_F_fcn[F_var] = F_fcn;
     return;
@@ -483,7 +442,6 @@ AdvectHypPatchOps::registerModelVariables(
          cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
-        if (!d_manage_u_data[u_var]) continue;
         d_integrator->registerVariable(
             u_var, d_ghosts,
             HyperbolicLevelIntegrator<NDIM>::TIME_DEP,
@@ -496,7 +454,6 @@ AdvectHypPatchOps::registerModelVariables(
          cit != d_F_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > F_var = *cit;
-        if (!d_manage_F_data[F_var]) continue;
         d_integrator->registerVariable(
             F_var, d_ghosts,
             HyperbolicLevelIntegrator<NDIM>::TIME_DEP,
@@ -596,7 +553,6 @@ AdvectHypPatchOps::initializeDataOnPatch(
              cit != d_u_var.end(); ++cit)
         {
             Pointer<FaceVariable<NDIM,double> > u_var = *cit;
-            if (!d_manage_u_data[u_var]) continue;
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, getDataContext());
             if (d_u_fcn[u_var].isNull())
             {
@@ -613,7 +569,6 @@ AdvectHypPatchOps::initializeDataOnPatch(
              cit != d_F_var.end(); ++cit)
         {
             Pointer<CellVariable<NDIM,double> > F_var = *cit;
-            if (!d_manage_F_data[F_var]) continue;
             const int F_idx = var_db->mapVariableAndContextToIndex(F_var, getDataContext());
             if (d_F_fcn[F_var].isNull())
             {
@@ -656,15 +611,7 @@ AdvectHypPatchOps::computeStableDtOnPatch(
          cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
-        Pointer<FaceData<NDIM,double> > u_data;
-        if (d_manage_u_data[u_var])
-        {
-            u_data = patch.getPatchData(u_var, getDataContext());
-        }
-        else
-        {
-            u_data = patch.getPatchData(d_u_data_idx[u_var]);
-        }
+        Pointer<FaceData<NDIM,double> > u_data = patch.getPatchData(u_var, getDataContext());
         stable_dt = std::min(stable_dt,d_godunov_advector->computeStableDtOnPatch(*u_data,patch));
     }
     return stable_dt;
@@ -695,27 +642,11 @@ AdvectHypPatchOps::computeFluxesOnPatch(
 
         // Predict time- and face-centered values.
         Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
-        Pointer<FaceData<NDIM,double> > u_data;
-        if (d_manage_u_data[u_var])
-        {
-            u_data = patch.getPatchData(u_var, getDataContext());
-        }
-        else
-        {
-            u_data = patch.getPatchData(d_u_data_idx[u_var]);
-        }
+        Pointer<FaceData<NDIM,double> > u_data = patch.getPatchData(u_var, getDataContext());
         Pointer<CellVariable<NDIM,double> > F_var = d_Q_F_map[Q_var];
         if (!F_var.isNull())
         {
-            Pointer<CellData<NDIM,double> > F_data;
-            if (d_manage_F_data[F_var])
-            {
-                F_data = patch.getPatchData(F_var, getDataContext());
-            }
-            else
-            {
-                F_data = patch.getPatchData(d_F_data_idx[F_var]);
-            }
+            Pointer<CellData<NDIM,double> > F_data = patch.getPatchData(F_var, getDataContext());
             d_godunov_advector->predictValueWithSourceTerm(*q_integral_data, *u_data, *Q_data, *F_data, patch, dt);
         }
         else
@@ -739,7 +670,7 @@ AdvectHypPatchOps::computeFluxesOnPatch(
              cit != d_u_var.end(); ++cit)
         {
             Pointer<FaceVariable<NDIM,double> > u_var = *cit;
-            if (d_manage_u_data[u_var] && !d_u_fcn[u_var].isNull() && d_u_fcn[u_var]->isTimeDependent())
+            if (!d_u_fcn[u_var].isNull() && d_u_fcn[u_var]->isTimeDependent())
             {
                 const int u_idx = var_db->mapVariableAndContextToIndex(u_var, getDataContext());
                 d_u_fcn[u_var]->setDataOnPatch(u_idx, u_var, Pointer<Patch<NDIM> >(&patch,false), time+0.5*dt);
@@ -756,16 +687,7 @@ AdvectHypPatchOps::computeFluxesOnPatch(
 
         if (u_var.isNull()) continue;
 
-        Pointer<FaceData<NDIM,double> > u_data;
-        if (d_manage_u_data[u_var])
-        {
-            u_data = patch.getPatchData(u_var, getDataContext());
-        }
-        else
-        {
-            u_data = patch.getPatchData(d_u_data_idx[u_var]);
-        }
-
+        Pointer<FaceData<NDIM,double> > u_data = patch.getPatchData(u_var, getDataContext());
         const bool conservation_form = d_Q_difference_form[Q_var] == CONSERVATIVE;
         const bool u_is_div_free = d_u_is_div_free[u_var];
 
@@ -937,7 +859,7 @@ AdvectHypPatchOps::preprocessAdvanceLevelState(
          cit != d_F_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > F_var = *cit;
-        if (d_manage_F_data[F_var] && !d_F_fcn[F_var].isNull() && d_F_fcn[F_var]->isTimeDependent())
+        if (!d_F_fcn[F_var].isNull() && d_F_fcn[F_var]->isTimeDependent())
         {
             const int F_idx = var_db->mapVariableAndContextToIndex(F_var, d_integrator->getScratchContext());
             d_F_fcn[F_var]->setDataOnPatchLevel(F_idx, F_var, level, current_time);
@@ -951,7 +873,7 @@ AdvectHypPatchOps::preprocessAdvanceLevelState(
          cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
-        if (d_manage_u_data[u_var] && !d_u_fcn[u_var].isNull() && d_u_fcn[u_var]->isTimeDependent())
+        if (!d_u_fcn[u_var].isNull() && d_u_fcn[u_var]->isTimeDependent())
         {
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
             d_u_fcn[u_var]->setDataOnPatchLevel(u_idx, u_var, level, current_time);
@@ -991,7 +913,7 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
             const Box<NDIM>& patch_box = patch->getBox();
 
             Pointer<CellData<NDIM,double> > Q_data = patch->getPatchData(Q_var, new_context);
-            if (d_manage_F_data[F_var] && !F_fcn.isNull())
+            if (!F_fcn.isNull())
             {
                 const int F_scratch_idx = var_db->mapVariableAndContextToIndex(F_var, scratch_context);
                 const int F_new_idx     = var_db->mapVariableAndContextToIndex(F_var, new_context    );
@@ -1003,8 +925,9 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
             }
             else
             {
-                Pointer<CellData<NDIM,double> > F_data = patch->getPatchData(d_F_data_idx[F_var]);
-                patch_cc_data_ops.axpy(Q_data, dt, F_data, Q_data, patch_box);
+                const int F_scratch_idx = var_db->mapVariableAndContextToIndex(F_var, scratch_context);
+                Pointer<CellData<NDIM,double> > F_scratch_data = patch->getPatchData(F_scratch_idx);
+                patch_cc_data_ops.axpy(Q_data, dt, F_scratch_data, Q_data, patch_box);
             }
         }
     }
@@ -1016,7 +939,7 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
          cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
-        if (d_manage_u_data[u_var] && !d_u_fcn[u_var].isNull() && d_u_fcn[u_var]->isTimeDependent())
+        if (!d_u_fcn[u_var].isNull() && d_u_fcn[u_var]->isTimeDependent())
         {
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getNewContext());
             d_u_fcn[u_var]->setDataOnPatchLevel(u_idx, u_var, level, current_time+dt);
@@ -1194,9 +1117,7 @@ AdvectHypPatchOps::setPhysicalBoundaryConditions(
          cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
-        int u_data_idx = -1;
-        if (d_manage_u_data[u_var]) u_data_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
-        else                        u_data_idx = d_u_data_idx[u_var];
+        const int u_data_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
         u_patch_data_indices.setFlag(u_data_idx);
     }
     d_extrap_bc_helper.setExtrapolationType(d_extrap_type);
@@ -1208,9 +1129,7 @@ AdvectHypPatchOps::setPhysicalBoundaryConditions(
          cit != d_F_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > F_var = *cit;
-        int F_data_idx = -1;
-        if (d_manage_F_data[F_var]) F_data_idx = var_db->mapVariableAndContextToIndex(F_var, d_integrator->getScratchContext());
-        else                        F_data_idx = d_F_data_idx[F_var];
+        const int F_data_idx = var_db->mapVariableAndContextToIndex(F_var, d_integrator->getScratchContext());
         patch_data_indices.setFlag(F_data_idx);
     }
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
@@ -1367,15 +1286,7 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
 
         const int Q_data_idx = var_db->mapVariableAndContextToIndex(Q_var, d_integrator->getScratchContext());
 
-        Pointer<FaceData<NDIM,double> > u_data;
-        if (d_manage_u_data[u_var])
-        {
-            u_data = patch.getPatchData(u_var, getDataContext());
-        }
-        else
-        {
-            u_data = patch.getPatchData(d_u_data_idx[u_var]);
-        }
+        Pointer<FaceData<NDIM,double> > u_data = patch.getPatchData(u_var, getDataContext());
         Pointer<FaceData<NDIM,double> > q_integral_data = getQIntegralData(Q_var, patch, getDataContext());
 
         // Setup any extended Robin BC coef objects.
@@ -1392,10 +1303,10 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
         // Set the boundary conditions.
         for (int n = 0; n < physical_codim1_boxes.size(); ++n)
         {
-            const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+            const BoundaryBox<NDIM>& bdry_box   = physical_codim1_boxes[n];
             const unsigned int location_index   = bdry_box.getLocationIndex();
             const unsigned int bdry_normal_axis = location_index/2;
-            const bool is_lower        = location_index%2 == 0;
+            const bool is_lower                 = location_index%2 == 0;
 
             static const IntVector<NDIM> gcw_to_fill = 1;
             const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);

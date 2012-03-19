@@ -159,28 +159,12 @@ public:
      * Register a face-centered advection velocity to be used to advect
      * cell-centered quantities by the hierarchy integrator.
      *
-     * Data management for the registered advection velocity will be handled by
-     * the hierarchy integrator.
-     *
      * \note By default, each registered advection velocity is assumed to be
      * divergence free.
      */
     void
     registerAdvectionVelocity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var);
-
-    /*!
-     * Register a face-centered advection velocity to be used to advect
-     * cell-centered quantities by the hierarchy integrator for which data
-     * management will not be handled by the hierarchy integrator.
-     *
-     * \note By default, each registered advection velocity is assumed to be
-     * divergence free.
-     */
-    void
-    registerAdvectionVelocity(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
-        int u_data_idx);
 
     /*!
      * Indicate whether a particular advection velocity is discretely divergence
@@ -194,11 +178,6 @@ public:
     /*!
      * Set an IBTK::CartGridFunction object that specifies the value of a
      * particular advection velocity.
-     *
-     * \note Advection velocity functions may be used only with advection
-     * velocities that are managed by the hierarchy integrator.  If data
-     * management is not handled by the hierarchy integrator, it is not possible
-     * to provide an advection velocity function.
      */
     void
     setAdvectionVelocityFunction(
@@ -207,31 +186,14 @@ public:
 
     /*!
      * Register a cell-centered source term.
-     *
-     * Data management for the registered source term will be handled by the
-     * hierarchy integrator.
      */
     void
     registerSourceTerm(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var);
 
     /*!
-     * Register a cell-centered source term for which data management will not
-     * be handled by the hierarchy integrator.
-     */
-    void
-    registerSourceTerm(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
-        int F_data_idx);
-
-    /*!
      * Set an IBTK::CartGridFunction object that specifies the value of a
      * particular source term.
-     *
-     * \note source term functions may be used only with source terms that are
-     * managed by the hierarchy integrator.  If data management is not handled
-     * by the hierarchy integrator, it is not possible to provide an source term
-     * function.
      */
     void
     setSourceTermFunction(
@@ -240,9 +202,6 @@ public:
 
     /*!
      * Register a cell-centered quantity to be advected and diffused by the
-     * hierarchy integrator.
-     *
-     * Data management for the registered quantity will be handled by the
      * hierarchy integrator.
      */
     void
@@ -522,8 +481,7 @@ protected:
      * Advection velocity data.
      */
     std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_u_var;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >,int> d_u_data_idx;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >,bool> d_manage_u_data, d_u_is_div_free;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >,bool> d_u_is_div_free;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >,SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_u_fcn;
     bool d_compute_init_velocity, d_compute_half_velocity, d_compute_final_velocity;
 
@@ -531,8 +489,6 @@ protected:
      * Source term data.
      */
     std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_F_var;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,int> d_F_data_idx;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,bool> d_manage_F_data;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_F_fcn;
 
     /*

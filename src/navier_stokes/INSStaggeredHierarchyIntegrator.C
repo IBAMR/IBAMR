@@ -251,8 +251,8 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
     d_P_bc_coef = new INSStaggeredPressureBcCoef(&d_problem_coefs,d_bc_coefs);
 
     // Initialize all variables.  The velocity, pressure, body force, and fluid
-    // source variables were created above when calling the constructor for base
-    // class INSHierarchyIntegrator.
+    // source variables were created above in the constructor for the
+    // INSHierarchyIntegrator base class.
     d_U_var          = INSHierarchyIntegrator::d_U_var;
     d_P_var          = INSHierarchyIntegrator::d_P_var;
     d_F_var          = INSHierarchyIntegrator::d_F_var;
@@ -660,7 +660,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Register plot variables that are maintained by the
     // INSCollocatedHierarchyIntegrator.
-    registerVariable( d_U_cc_idx, d_U_cc_var, no_ghosts, getCurrentContext());
+    registerVariable(d_U_cc_idx, d_U_cc_var, no_ghosts, getCurrentContext());
     if (!d_F_fcn.isNull())
     {
         registerVariable(d_F_cc_idx, d_F_cc_var, no_ghosts, getCurrentContext());
@@ -787,6 +787,52 @@ INSStaggeredHierarchyIntegrator::initializePatchHierarchy(
         regridProjection();
         synchronizeHierarchyData(CURRENT_DATA);
     }
+
+    // When necessary, initialize the value of U_adv.
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const int U_adv_diff_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
+
+        const int coarsest_ln = 0;
+        const int finest_ln = hierarchy->getFinestLevelNumber();
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Index<NDIM>& ilower = patch->getBox().lower();
+                const Index<NDIM>& iupper = patch->getBox().upper();
+                Pointer<SideData<NDIM,double> > U_current_sc_data = patch->getPatchData(d_U_current_idx);
+                Pointer<FaceData<NDIM,double> > U_current_fc_data = patch->getPatchData(U_adv_diff_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(U_current_sc_data->getGhostCellWidth().min() == U_current_sc_data->getGhostCellWidth().max());
+                TBOX_ASSERT(U_current_fc_data->getGhostCellWidth().min() == U_current_fc_data->getGhostCellWidth().max());
+#endif
+                const int U_current_sc_gcw = U_current_sc_data->getGhostCellWidth().max();
+                const int U_current_fc_gcw = U_current_fc_data->getGhostCellWidth().max();
+                NAVIER_STOKES_SIDE_TO_FACE_FC(
+                    ilower(0), iupper(0),
+                    ilower(1), iupper(1),
+#if (NDIM == 3)
+                    ilower(2), iupper(2),
+#endif
+                    U_current_sc_data->getPointer(0),
+                    U_current_sc_data->getPointer(1),
+#if (NDIM == 3)
+                    U_current_sc_data->getPointer(2),
+#endif
+                    U_current_sc_gcw,
+                    U_current_fc_data->getPointer(0),
+                    U_current_fc_data->getPointer(1),
+#if (NDIM == 3)
+                    U_current_fc_data->getPointer(2),
+#endif
+                    U_current_fc_gcw);
+            }
+        }
+    }
     return;
 }// initializePatchHierarhcy
 
@@ -863,6 +909,12 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     d_stokes_op->setHomogeneousBc(false);
     d_stokes_op->modifyRhsForInhomogeneousBc(*d_rhs_vec);
     d_stokes_op->setHomogeneousBc(true);
+
+    // Initialize any registered advection-diffusion solver.
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        d_adv_diff_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
+    }
     return;
 }// preprocessIntegrateHierarchy
 
@@ -883,6 +935,52 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     // Compute U_half := 0.5*(u(n)+u(n+1)).
     const int U_half_idx = d_U_half_vec->getComponentDescriptorIndex(0);
     d_hier_sc_data_ops->linearSum(U_half_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
+
+    // When there is a coupled advection-diffusion solver, advance those
+    // variables forward in time using U_half as the advection velocity.
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const int U_adv_diff_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
+
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Index<NDIM>& ilower = patch->getBox().lower();
+                const Index<NDIM>& iupper = patch->getBox().upper();
+                Pointer<SideData<NDIM,double> > U_half_sc_data = patch->getPatchData(U_half_idx);
+                Pointer<FaceData<NDIM,double> > U_half_fc_data = patch->getPatchData(U_adv_diff_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(U_half_sc_data->getGhostCellWidth().min() == U_half_sc_data->getGhostCellWidth().max());
+                TBOX_ASSERT(U_half_fc_data->getGhostCellWidth().min() == U_half_fc_data->getGhostCellWidth().max());
+#endif
+                const int U_half_sc_gcw = U_half_sc_data->getGhostCellWidth().max();
+                const int U_half_fc_gcw = U_half_fc_data->getGhostCellWidth().max();
+                NAVIER_STOKES_SIDE_TO_FACE_FC(
+                    ilower(0), iupper(0),
+                    ilower(1), iupper(1),
+#if (NDIM == 3)
+                    ilower(2), iupper(2),
+#endif
+                    U_half_sc_data->getPointer(0),
+                    U_half_sc_data->getPointer(1),
+#if (NDIM == 3)
+                    U_half_sc_data->getPointer(2),
+#endif
+                    U_half_sc_gcw,
+                    U_half_fc_data->getPointer(0),
+                    U_half_fc_data->getPointer(1),
+#if (NDIM == 3)
+                    U_half_fc_data->getPointer(2),
+#endif
+                    U_half_fc_gcw);
+            }
+        }
+        d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
+    }
 
     // Setup the right-hand side vector.
     if (!d_creeping_flow)
@@ -980,10 +1078,10 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
 
 void
 INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(
-    const double /*current_time*/,
+    const double current_time,
     const double new_time,
     const bool skip_synchronize_new_state_data,
-    const int /*num_cycles*/)
+    const int num_cycles)
 {
     // Synchronize new state data.
     if (!skip_synchronize_new_state_data)
@@ -1018,6 +1116,12 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(
     d_U_half_vec->deallocateVectorData();
     d_N_vec     ->deallocateVectorData();
     d_P_rhs_vec ->deallocateVectorData();
+
+    // Deallocate any registered advection-diffusion solver.
+    if (!d_adv_diff_hier_integrator.isNull())
+    {
+        d_adv_diff_hier_integrator->postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+    }
     return;
 }// postprocessIntegrateHierarchy
 

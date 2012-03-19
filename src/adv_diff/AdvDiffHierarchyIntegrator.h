@@ -135,19 +135,6 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var);
 
     /*!
-     * Register a face-centered advection velocity to be used to advect
-     * cell-centered quantities by the hierarchy integrator for which data
-     * management will not be handled by the hierarchy integrator.
-     *
-     * \note By default, each registered advection velocity is assumed to be
-     * divergence free.
-     */
-    void
-    registerAdvectionVelocity(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var,
-        int u_data_idx);
-
-    /*!
      * Indicate whether a particular advection velocity is discretely divergence
      * free.
      */
@@ -159,11 +146,6 @@ public:
     /*!
      * Supply an IBTK::CartGridFunction object to specify the value of a
      * particular advection velocity.
-     *
-     * \note Advection velocity functions may be used only with advection
-     * velocities that are managed by the hierarchy integrator.  If data
-     * management is not handled by the hierarchy integrator, it is not possible
-     * to provide an advection velocity function.
      */
     void
     setAdvectionVelocityFunction(
@@ -179,15 +161,6 @@ public:
     void
     registerSourceTerm(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var);
-
-    /*!
-     * Register a cell-centered source term for which data management will not
-     * be handled by the hierarchy integrator.
-     */
-    void
-    registerSourceTerm(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var,
-        int F_data_idx);
 
     /*!
      * Supply an IBTK::CartGridFunction object to specify the value of a
@@ -402,16 +375,13 @@ protected:
      * Advection velocity data.
      */
     std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_u_var;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >,int> d_u_data_idx;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >,bool> d_manage_u_data, d_u_is_div_free;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >,bool> d_u_is_div_free;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >,SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_u_fcn;
 
     /*!
      * Source term data.
      */
     std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_F_var;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,int> d_F_data_idx;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,bool> d_manage_F_data;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_F_fcn;
 
     /*!

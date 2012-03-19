@@ -36,12 +36,9 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
+#include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/ConvectiveOperator.h>
 #include <ibamr/INSProblemCoefs.h>
-
-// IBTK INCLUDES
-#include <ibtk/HierarchyIntegrator.h>
-#include <ibtk/LinearSolver.h>
 
 // SAMRAI INCLUDES
 #include <LocationIndexRobinBcCoefs.h>
@@ -64,26 +61,19 @@ class INSHierarchyIntegrator
 {
 public:
     /*!
-     * The constructor for class INSHierarchyIntegrator sets some default
-     * values, reads in configuration information from input and restart
-     * databases, and registers the integrator object with the restart manager
-     * when requested.
-     */
-    INSHierarchyIntegrator(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > U_var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > P_var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > F_var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > Q_var,
-        bool register_for_restart);
-
-    /*!
      * The destructor for class INSHierarchyIntegrator unregisters the
      * integrator object with the restart manager when the object is so
      * registered.
      */
     ~INSHierarchyIntegrator();
+
+    /*!
+     * Register an advection-diffusion solver with this incompressible
+     * Navier-Stokes solver.
+     */
+    void
+    registerAdvDiffHierarchyIntegrator(
+        SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator);
 
     /*!
      * Set the problem coefficients used by the solver.
@@ -162,6 +152,17 @@ public:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >
     getFluidSourceVariable() const;
+
+    /*!
+     * Return a pointer to a fluid velocity variable that can be used to advect
+     * quantities registered with an advection-diffusion solver.
+     *
+     * Data are allocated for this variable using the current context.  Patch
+     * data for this variable are allocated only when an advection-diffusion
+     * solver is registered with the Navier-Stokes solver.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >
+    getAdvectionVelocityVariable() const;
 
     /*!
      * Get a vector of pointers to the intermediate velocity boundary condition
@@ -296,6 +297,21 @@ public:
 
 protected:
     /*!
+     * The constructor for class INSHierarchyIntegrator sets some default
+     * values, reads in configuration information from input and restart
+     * databases, and registers the integrator object with the restart manager
+     * when requested.
+     */
+    INSHierarchyIntegrator(
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > U_var,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > P_var,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > F_var,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > Q_var,
+        bool register_for_restart);
+
+    /*!
      * Return the maximum stable time step size.
      */
     double
@@ -331,6 +347,13 @@ protected:
      * Problem coeficients.
      */
     INSProblemCoefs d_problem_coefs;
+
+    /*
+     * The AdvDiffHierarchyIntegrator is used to provide time integration
+     * capability for quantities transported by the fluid velocity field.
+     */
+    SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_U_adv_diff_var;
 
     /*!
      * The maximum CFL number.
