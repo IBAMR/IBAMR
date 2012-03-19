@@ -109,7 +109,6 @@ IBMethod::IBMethod(
     d_ib_source_fcn_needs_init = true;
     d_normalize_source_strength = false;
     d_post_processor = NULL;
-    d_post_processor_needs_init = true;
     d_silo_writer = NULL;
 #if (NDIM == 3)
     d_m3D_writer = NULL;
@@ -950,8 +949,7 @@ IBMethod::interpolatePressure(
 }// interpolatePressure
 
 void
-IBMethod::postprocessData(
-    Pointer<PatchHierarchy<NDIM> > hierarchy)
+IBMethod::postprocessData()
 {
     if (d_post_processor.isNull()) return;
 
@@ -963,8 +961,8 @@ IBMethod::postprocessData(
 
     const double current_time = d_ib_solver->getIntegratorTime();
     const int coarsest_ln = 0;
-    const int finest_ln = hierarchy->getFinestLevelNumber();
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
 
     // Initialize data on each level of the patch hierarchy.
     std::vector<Pointer<LData> > X_data(finest_ln+1);
@@ -992,13 +990,13 @@ IBMethod::postprocessData(
         int ierr = VecSet(F_data[ln]->getVec(), 0.0);  IBTK_CHKERRQ(ierr);
         if (!d_ib_force_fcn.isNull())
         {
-            d_ib_force_fcn->computeLagrangianForce(F_data[ln], X_data[ln], U_data[ln], hierarchy, ln, current_time, d_l_data_manager);
+            d_ib_force_fcn->computeLagrangianForce(F_data[ln], X_data[ln], U_data[ln], d_hierarchy, ln, current_time, d_l_data_manager);
         }
     }
     resetAnchorPointValues(F_data, coarsest_ln, finest_ln);
 
     // Perform the user-defined post-processing.
-    d_post_processor->postprocessData(u_current_idx, p_current_idx, f_current_idx, F_data, X_data, U_data, hierarchy, coarsest_ln, finest_ln, current_time, d_l_data_manager);
+    d_post_processor->postprocessData(u_current_idx, p_current_idx, f_current_idx, F_data, X_data, U_data, d_hierarchy, coarsest_ln, finest_ln, current_time, this);
     return;
 }// postprocessData
 
@@ -1063,11 +1061,9 @@ IBMethod::initializePatchHierarchy(
         }
     }
 
-    // Indicate that the force and source strategies and the post processor need
-    // to be re-initialized.
-    d_ib_force_fcn_needs_init   = true;
-    d_ib_source_fcn_needs_init  = true;
-    d_post_processor_needs_init = true;
+    // Indicate that the force and source strategies need to be re-initialized.
+    d_ib_force_fcn_needs_init  = true;
+    d_ib_source_fcn_needs_init = true;
     return;
 }// initializePatchHierarchy
 
@@ -1158,11 +1154,9 @@ IBMethod::endDataRedistribution(
         X_data[ln]->restoreArrays();
     }
 
-    // Indicate that the force and source strategies and the post processor need
-    // to be re-initialized.
-    d_ib_force_fcn_needs_init   = true;
-    d_ib_source_fcn_needs_init  = true;
-    d_post_processor_needs_init = true;
+    // Indicate that the force and source strategies need to be re-initialized.
+    d_ib_force_fcn_needs_init  = true;
+    d_ib_source_fcn_needs_init = true;
     return;
 }// endDataRedistribution
 
@@ -1399,20 +1393,6 @@ IBMethod::resetLagrangianSourceFunction(
     }
     return;
 }// resetLagrangianSourceFunction
-
-void
-IBMethod::resetPostProcessor(
-    const double init_data_time,
-    const bool initial_time)
-{
-    if (d_post_processor.isNull()) return;
-    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
-    {
-        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        d_post_processor->initializeLevelData(d_hierarchy, ln, init_data_time, initial_time, d_l_data_manager);
-    }
-    return;
-}// resetPostProcessor
 
 void
 IBMethod::updateIBInstrumentationData(

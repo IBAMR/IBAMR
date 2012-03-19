@@ -166,8 +166,7 @@ IBStrategy::postprocessSolveFluidEquations(
 }// postprocessSolveFluidEquations
 
 void
-IBStrategy::postprocessData(
-    Pointer<PatchHierarchy<NDIM> > /*hierarchy*/)
+IBStrategy::postprocessData()
 {
     // intentionally blank
     return;

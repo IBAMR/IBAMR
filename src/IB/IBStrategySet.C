@@ -280,12 +280,11 @@ IBStrategySet::postprocessSolveFluidEquations(
 }// postprocessSolveFluidEquations
 
 void
-IBStrategySet::postprocessData(
-    Pointer<PatchHierarchy<NDIM> > hierarchy)
+IBStrategySet::postprocessData()
 {
     for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
     {
-        (*cit)->postprocessData(hierarchy);
+        (*cit)->postprocessData();
     }
     return;
 }// postprocessData
