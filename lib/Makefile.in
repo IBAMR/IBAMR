@@ -40,7 +40,7 @@ DIST_COMMON = $(am__pkg_include_HEADERS_DIST) $(srcdir)/Makefile.am \
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = libIBAMR2d.a
 @SAMRAI3D_ENABLED_TRUE@am__append_2 = libIBAMR3d.a
 @LIBMESH_ENABLED_TRUE@am__append_3 = \
-@LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/olid_mechanics/ExplicitFEMechanicsSolver.C
+@LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C
 
 @LIBMESH_ENABLED_TRUE@am__append_4 = \
 @LIBMESH_ENABLED_TRUE@$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.h
@@ -100,7 +100,7 @@ am__libIBAMR_a_SOURCES_DIST =  \
 	$(top_builddir)/src/advect/fortran/godunov_helpers.f \
 	$(top_builddir)/src/fortran/sqrtm.f \
 	$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C \
-	$(top_srcdir)/src/olid_mechanics/ExplicitFEMechanicsSolver.C
+	$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C
 @LIBMESH_ENABLED_TRUE@am__objects_1 =  \
 @LIBMESH_ENABLED_TRUE@	ExplicitFEMechanicsSolver.$(OBJEXT)
 am_libIBAMR_a_OBJECTS = godunov_helpers.$(OBJEXT) sqrtm.$(OBJEXT) \
@@ -1162,19 +1162,19 @@ INSProblemCoefs.obj: $(top_srcdir)/src/navier_stokes/INSProblemCoefs.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o INSProblemCoefs.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C'; fi`
 
-ExplicitFEMechanicsSolver.o: $(top_srcdir)/src/olid_mechanics/ExplicitFEMechanicsSolver.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ExplicitFEMechanicsSolver.o -MD -MP -MF $(DEPDIR)/ExplicitFEMechanicsSolver.Tpo -c -o ExplicitFEMechanicsSolver.o `test -f '$(top_srcdir)/src/olid_mechanics/ExplicitFEMechanicsSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/olid_mechanics/ExplicitFEMechanicsSolver.C
+ExplicitFEMechanicsSolver.o: $(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ExplicitFEMechanicsSolver.o -MD -MP -MF $(DEPDIR)/ExplicitFEMechanicsSolver.Tpo -c -o ExplicitFEMechanicsSolver.o `test -f '$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ExplicitFEMechanicsSolver.Tpo $(DEPDIR)/ExplicitFEMechanicsSolver.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/olid_mechanics/ExplicitFEMechanicsSolver.C' object='ExplicitFEMechanicsSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C' object='ExplicitFEMechanicsSolver.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ExplicitFEMechanicsSolver.o `test -f '$(top_srcdir)/src/olid_mechanics/ExplicitFEMechanicsSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/olid_mechanics/ExplicitFEMechanicsSolver.C
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ExplicitFEMechanicsSolver.o `test -f '$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C
 
-ExplicitFEMechanicsSolver.obj: $(top_srcdir)/src/olid_mechanics/ExplicitFEMechanicsSolver.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ExplicitFEMechanicsSolver.obj -MD -MP -MF $(DEPDIR)/ExplicitFEMechanicsSolver.Tpo -c -o ExplicitFEMechanicsSolver.obj `if test -f '$(top_srcdir)/src/olid_mechanics/ExplicitFEMechanicsSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/olid_mechanics/ExplicitFEMechanicsSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/olid_mechanics/ExplicitFEMechanicsSolver.C'; fi`
+ExplicitFEMechanicsSolver.obj: $(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ExplicitFEMechanicsSolver.obj -MD -MP -MF $(DEPDIR)/ExplicitFEMechanicsSolver.Tpo -c -o ExplicitFEMechanicsSolver.obj `if test -f '$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C'; fi`
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/ExplicitFEMechanicsSolver.Tpo $(DEPDIR)/ExplicitFEMechanicsSolver.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/olid_mechanics/ExplicitFEMechanicsSolver.C' object='ExplicitFEMechanicsSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C' object='ExplicitFEMechanicsSolver.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ExplicitFEMechanicsSolver.obj `if test -f '$(top_srcdir)/src/olid_mechanics/ExplicitFEMechanicsSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/olid_mechanics/ExplicitFEMechanicsSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/olid_mechanics/ExplicitFEMechanicsSolver.C'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ExplicitFEMechanicsSolver.obj `if test -f '$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solid_mechanics/ExplicitFEMechanicsSolver.C'; fi`
 
 libIBAMR2d_a-GeneralizedIBMethod.o: $(top_srcdir)/src/IB/GeneralizedIBMethod.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-GeneralizedIBMethod.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-GeneralizedIBMethod.Tpo -c -o libIBAMR2d_a-GeneralizedIBMethod.o `test -f '$(top_srcdir)/src/IB/GeneralizedIBMethod.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/GeneralizedIBMethod.C
