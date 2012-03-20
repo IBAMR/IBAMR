@@ -2,6 +2,7 @@
 MU = 1.0e-2
 RHO = 1.0
 K = 1.0
+KAPPA = 1.0e-3       // diffusion coefficient for transported quantity
 
 // constants
 PI = 3.14159265358979
@@ -84,6 +85,44 @@ VelocityBcCoefs_1 {
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
 }
+
+ScalarInitialConditions {
+
+   // circular region parameters.
+   XCOM = 0.0
+   YCOM = -0.05
+   RADIUS = 0.05
+   EPS    = 0.00
+
+  // Rectangular region parameters
+   xrec_cm      = 0.0
+   yrec_cm      = 0.0
+   l            = 0.2  // length/4
+   b            = 0.125  // breadth/4
+   
+   function =    "if( rint(  abs( abs(X0 - xrec_cm)  - l) / l - 0.5 ) +  rint(  abs( abs(X1 -yrec_cm) - b) / b - 0.5 )  == 0    , 1, 0)"  //rectangle
+
+   // boyce ----> function = "if(sqrt((X0 - 1)^2 + (X1-0.5)^2) < 0.25, 1, 0)"
+}
+
+ScalarBoundaryConditions {
+
+   acoef_function_0 = "0.0" // Q_acoef_0
+   acoef_function_1 = "0.0" // Q_acoef_1
+   acoef_function_2 = "0.0" // Q_acoef_2
+   acoef_function_3 = "0.0" // Q_acoef_3
+
+   bcoef_function_0 = "1.0" // Q_bcoef_0
+   bcoef_function_1 = "1.0" // Q_bcoef_1
+   bcoef_function_2 = "1.0" // Q_bcoef_2
+   bcoef_function_3 = "1.0" // Q_bcoef_3
+
+   gcoef_function_0 = "0.0" // Q_gcoef_0
+   gcoef_function_1 = "0.0" // Q_gcoef_1
+   gcoef_function_2 = "0.0" // Q_gcoef_2
+   gcoef_function_3 = "0.0" // Q_gcoef_3
+}
+
 
 IBHierarchyIntegrator {
    start_time          = START_TIME
@@ -294,6 +333,57 @@ INSStaggeredHierarchyIntegrator {
       }
    }
 }
+
+
+GodunovAdvector {
+   // intentionally blank
+}
+
+AdvDiffHierarchyIntegrator {
+   start_time      = START_TIME
+   end_time        = END_TIME
+   grow_dt         = GROW_DT
+   tag_buffer      = TAG_BUFFER
+   enable_logging  = ENABLE_LOGGING
+   regrid_interval = 0  // regrid interval is determined by the fluid solver
+
+   AdvDiffHypPatchOps {
+      extrap_type = "LINEAR"
+      Refinement_data {
+         refine_criteria = "QVAL_GRADIENT"
+         QVAL_GRADIENT {
+            grad_tol = 15.0
+         }
+      }
+   }
+
+   HyperbolicLevelIntegrator {
+      cfl                      = 0.975e0  // max cfl factor used in problem
+      cfl_init                 = 0.975e0  // initial cfl factor
+      lag_dt_computation       = TRUE
+      use_ghosts_to_compute_dt = FALSE
+   }
+
+   max_iterations = 50
+   abs_residual_tol = 1.0e-30
+   rel_residual_tol = 1.0e-10
+   using_FAC = TRUE
+
+   FACOps {
+      coarse_solver_choice = "block_jacobi"
+      coarse_solver_tolerance = 1.0e-6
+      coarse_solver_max_iterations = 1
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      prolongation_method = "CONSTANT_REFINE"
+   }
+
+   FACPreconditioners {
+      num_pre_sweeps  = 0
+      num_post_sweeps = 3
+   }
+}
+
+
 
 Main {
    solver_type = SOLVER_TYPE
