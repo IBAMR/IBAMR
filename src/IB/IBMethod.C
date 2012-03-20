@@ -210,6 +210,14 @@ IBMethod::freeLInitStrategy()
     return;
 }// freeLInitStrategy
 
+void
+IBMethod::registerIBMethodPostProcessor(
+    Pointer<IBMethodPostProcessStrategy> post_processor)
+{
+    d_post_processor = post_processor;
+    return;
+}// registerIBMethodPostProcessor
+
 LDataManager*
 IBMethod::getLDataManager() const
 {
@@ -360,6 +368,14 @@ IBMethod::postprocessIntegrateData(
         int ierr;
         ierr = VecSwap(d_X_current_data[ln]->getVec(), d_X_new_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
         ierr = VecSwap(d_U_current_data[ln]->getVec(), d_U_new_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
+        if (!d_F_new_data[ln].isNull())
+        {
+            ierr = VecSwap(d_l_data_manager->getLData("F",ln)->getVec(), d_F_new_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
+        }
+        else if (!d_F_half_data[ln].isNull())
+        {
+            ierr = VecSwap(d_l_data_manager->getLData("F",ln)->getVec(), d_F_half_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
+        }
     }
     d_X_current_needs_ghost_fill = true;
 
@@ -508,7 +524,7 @@ IBMethod::computeLagrangianForce(
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            if (d_F_current_data[ln].isNull()) d_F_current_data[ln] = d_l_data_manager->createLData("F",ln,NDIM);
+            if (d_F_current_data[ln].isNull()) d_F_current_data[ln] = d_l_data_manager->getLData("F",ln);
         }
         d_F_current_needs_ghost_fill = true;
         F_data = &d_F_current_data;
@@ -793,7 +809,7 @@ IBMethod::spreadFluidSource(
         if (std::abs(integral_q) > 1.0e-10*std::max(1.0,getPressureHierarchyDataOps()->maxNorm(q_data_idx, wgt_idx)))
         {
             TBOX_ERROR(d_object_name << "::spreadFluidSource():\n"
-                       << "  ``external'' source/sink does not correctly offset net inflow/outflow into domain.\n"
+                       << "  ``external' source/sink does not correctly offset net inflow/outflow into domain.\n"
                        << "  integral{q} = " << integral_q << " != 0.\n");
         }
     }
@@ -973,27 +989,8 @@ IBMethod::postprocessData()
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
         X_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
         U_data[ln] = d_l_data_manager->getLData(LDataManager:: VEL_DATA_NAME,ln);
-        F_data[ln] = d_l_data_manager->createLData("F",ln,NDIM);
+        F_data[ln] = d_l_data_manager->getLData("F",ln);
     }
-
-    // Compute F(n) = F(X(n),U(n),n), the Lagrangian force corresponding to
-    // configuration X(n) and velocity U(n) at time t_{n}.
-    if (d_ib_force_fcn_needs_init)
-    {
-        const bool initial_time = MathUtilities<double>::equalEps(current_time,d_ib_solver->getStartTime());
-        resetLagrangianForceFunction(current_time, initial_time);
-        d_ib_force_fcn_needs_init = false;
-    }
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        int ierr = VecSet(F_data[ln]->getVec(), 0.0);  IBTK_CHKERRQ(ierr);
-        if (!d_ib_force_fcn.isNull())
-        {
-            d_ib_force_fcn->computeLagrangianForce(F_data[ln], X_data[ln], U_data[ln], d_hierarchy, ln, current_time, d_l_data_manager);
-        }
-    }
-    resetAnchorPointValues(F_data, coarsest_ln, finest_ln);
 
     // Perform the user-defined post-processing.
     d_post_processor->postprocessData(u_current_idx, p_current_idx, f_current_idx, F_data, X_data, U_data, d_hierarchy, coarsest_ln, finest_ln, current_time, this);
@@ -1174,6 +1171,10 @@ IBMethod::initializeLevelData(
     d_l_data_manager->setPatchHierarchy(hierarchy);
     d_l_data_manager->resetLevels(0, finest_hier_level);
     d_l_data_manager->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
+    if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
+    {
+        Pointer<LData> F_data = d_l_data_manager->createLData("F",level_number,NDIM,/*manage_data*/ true);
+    }
     if (!d_load_balancer.isNull() && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
         d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx, level_number);
