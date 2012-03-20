@@ -239,7 +239,9 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     }
 
     // Initialize the fluid solver.  It is necessary to do this after
-    // registering a body force function or fluid source distribution function.
+    // registering a body force function or fluid source distribution function,
+    // but before setting up communications schedules (because we need class
+    // INSHierarchyIntegrator to register its variables).
     d_ins_hier_integrator->initializeHierarchyIntegrator(hierarchy, gridding_alg);
 
     // Have the IB method ops object register any additional Eulerian variables
