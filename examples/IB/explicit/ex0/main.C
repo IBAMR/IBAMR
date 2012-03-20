@@ -133,10 +133,6 @@ main(
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n" <<
                        "Valid options are: COLLOCATED, STAGGERED");
         }
-        Pointer<GodunovAdvector> predictor = new GodunovAdvector(
-            "GodunovAdvector", app_initializer->getComponentDatabase("GodunovAdvector"));
-        Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = new AdvDiffHierarchyIntegrator(
-            "AdvDiffHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffHierarchyIntegrator"), predictor);
         Pointer<IBMethod> ib_method_ops = new IBMethod(
             "IBMethod", app_initializer->getComponentDatabase("IBMethod"));
         Pointer<IBHierarchyIntegrator> time_integrator = new IBHierarchyIntegrator(
@@ -207,30 +203,6 @@ main(
             time_integrator->registerBodyForceFunction(f_fcn);
         }
 
-       // Setup the advected and diffused quantity.
-        navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
-
-        const ConvectiveDifferencingType difference_form = ADVECTIVE;
-        Pointer<CellVariable<NDIM,double> > Q_var = new CellVariable<NDIM,double>("Q");
-        const double kappa = input_db->getDouble("KAPPA");
-        adv_diff_integrator->registerTransportedQuantity(Q_var);
-        adv_diff_integrator->setAdvectionVelocity(Q_var, navier_stokes_integrator->getAdvectionVelocityVariable());
-        adv_diff_integrator->setDiffusionCoefficient(Q_var, kappa);
-        adv_diff_integrator->setConvectiveDifferencingType(Q_var, difference_form);
-        if (input_db->keyExists("ScalarInitialConditions"))
-        {
-            Pointer<CartGridFunction> Q_init = new muParserCartGridFunction(
-                "Q_init", app_initializer->getComponentDatabase("ScalarInitialConditions"), grid_geometry);
-            adv_diff_integrator->setInitialConditions(Q_var, Q_init);
-        }
-        RobinBcCoefStrategy<NDIM>* Q_bc_coef = NULL;
-        if (periodic_shift.min() == 0)
-        {
-            Q_bc_coef = new muParserRobinBcCoefs(
-                "Q_bc_coef", app_initializer->getComponentDatabase("ScalarBoundaryConditions"), grid_geometry);
-            adv_diff_integrator->setPhysicalBcCoefs(Q_var, Q_bc_coef);
-        }
-
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
         Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
@@ -241,7 +213,6 @@ main(
             ib_method_ops->registerLSiloDataWriter(silo_data_writer);
         }
 
-        
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
