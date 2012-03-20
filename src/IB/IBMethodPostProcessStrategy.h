@@ -86,7 +86,7 @@ public:
         int coarsest_level_number,
         int finest_level_number,
         double data_time,
-        SAMRAI::tbox::Pointer<IBMethod> ib_method) = 0;
+        SAMRAI::tbox::IBMethod* ib_method) = 0;
 
 private:
     /*!
