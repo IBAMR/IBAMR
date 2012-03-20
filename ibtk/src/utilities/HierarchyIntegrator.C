@@ -179,7 +179,7 @@ HierarchyIntegrator::initializePatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
-    if (d_hierarchy_is_initialized) return;
+    if (d_hierarchy_is_initialized || d_parent_integrator != NULL) return;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!hierarchy.isNull());
@@ -190,19 +190,16 @@ HierarchyIntegrator::initializePatchHierarchy(
 
     // Initialize the hierarchy integrator and any child hierarchy integrators
     // prior to initializing the patch hierarchy.
-    initializeHierarchyIntegrator(d_hierarchy, d_gridding_alg);
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin();
-         it != d_child_integrators.end(); ++it)
+    std::deque<HierarchyIntegrator*> hier_integrators(1,this);
+    while (!hier_integrators.empty())
     {
-        (*it)->initializeHierarchyIntegrator(d_hierarchy, d_gridding_alg);
-    }
-
-    // Setup the tag buffer.
-    setupTagBuffer(d_gridding_alg);
-    for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin();
-         it != d_child_integrators.end(); ++it)
-    {
-        (*it)->setupTagBuffer(d_gridding_alg);
+        HierarchyIntegrator* integrator = hier_integrators.front();
+        integrator->initializeHierarchyIntegrator(d_hierarchy, d_gridding_alg);
+        integrator->setupTagBuffer(d_gridding_alg);
+        hier_integrators.pop_front();
+        hier_integrators.insert(hier_integrators.end(),
+                                integrator->d_child_integrators.begin(),
+                                integrator->d_child_integrators.end());
     }
 
     // Initialize the patch hierarchy.
@@ -230,6 +227,17 @@ HierarchyIntegrator::initializePatchHierarchy(
     }
 
     // Indicate that the hierarchy is initialized.
+    hier_integrators.push_back(this);
+    while (!hier_integrators.empty())
+    {
+        HierarchyIntegrator* integrator = hier_integrators.front();
+        integrator->initializeHierarchyIntegrator(d_hierarchy, d_gridding_alg);
+        integrator->setupTagBuffer(d_gridding_alg);
+        hier_integrators.pop_front();
+        hier_integrators.insert(hier_integrators.end(),
+                                integrator->d_child_integrators.begin(),
+                                integrator->d_child_integrators.end());
+    }
     d_hierarchy_is_initialized = true;
     return;
 }// initializePatchHierarchy
@@ -680,11 +688,14 @@ HierarchyIntegrator::applyGradientDetector(
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
 
     // First untag all cells.
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    if (d_parent_integrator == NULL)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        Pointer<CellData<NDIM,int> > tags_data = patch->getPatchData(tag_index);
-        tags_data->fillAll(0);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<CellData<NDIM,int> > tags_data = patch->getPatchData(tag_index);
+            tags_data->fillAll(0);
+        }
     }
 
     // Tag cells.
@@ -692,7 +703,7 @@ HierarchyIntegrator::applyGradientDetector(
     for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin();
          it != d_child_integrators.end(); ++it)
     {
-        (*it)->applyGradientDetectorSpecialized(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
+        (*it)->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     }
     return;
 }// applyGradientDetector
