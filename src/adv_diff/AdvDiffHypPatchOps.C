@@ -133,7 +133,7 @@ AdvDiffHypPatchOps::AdvDiffHypPatchOps(
     bool register_for_restart)
     : AdvectHypPatchOps(object_name, input_db, godunov_advector, grid_geom, register_for_restart)
 {
-    // intentionally blank
+    d_overwrite_tags = false;
     return;
 }// AdvDiffHypPatchOps
 

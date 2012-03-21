@@ -200,6 +200,7 @@ AdvectHypPatchOps::AdvectHypPatchOps(
       d_Q_difference_form(),
       d_Q_init(),
       d_Q_bc_coef(),
+      d_overwrite_tags(true),
       d_object_name(object_name),
       d_registered_for_restart(register_for_restart),
       d_grid_geometry(grid_geom),
@@ -1086,9 +1087,19 @@ AdvectHypPatchOps::tagGradientDetectorCells(
     } // loop over criteria
 
     // Update tags.
-    for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+    if (d_overwrite_tags)
     {
-        (*tags)(ic(),0) = temp_tags(ic(),0);
+        for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+        {
+            (*tags)(ic(),0) = temp_tags(ic(),0);
+        }
+    }
+    else
+    {
+        for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+        {
+            (*tags)(ic(),0) = (*tags)(ic(),0) || temp_tags(ic(),0);
+        }
     }
     return;
 }// tagGradientDetectorCells
