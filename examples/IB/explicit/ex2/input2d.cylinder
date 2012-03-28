@@ -23,7 +23,8 @@ CONVECTIVE_OP_TYPE  = "PPM"                      // convective differencing disc
 CONVECTIVE_FORM     = "ADVECTIVE"                // how to compute the convective terms
 NORMALIZE_PRESSURE  = FALSE                      // whether to explicitly force the pressure to have mean zero
 CFL_MAX             = 0.3                        // maximum CFL number
-DT_MAX              = 6.25e-2*DX_FINEST          // maximum timestep size
+DT                  = 6.25e-2*DX_FINEST          // maximum timestep size
+ERROR_ON_DT_CHANGE  = TRUE                       // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING   = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = 2                          // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL = 0.5                        // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
@@ -82,7 +83,8 @@ IBHierarchyIntegrator {
    grow_dt             = GROW_DT
    num_cycles          = NUM_CYCLES
    regrid_cfl_interval = REGRID_CFL_INTERVAL
-   dt_max              = DT_MAX
+   dt_max              = DT
+   error_on_dt_change  = ERROR_ON_DT_CHANGE
    tag_buffer          = TAG_BUFFER
    enable_logging      = ENABLE_LOGGING
 }
@@ -97,7 +99,7 @@ C_IB_6 = 67.0/128.0                      // corresponds to IB_6 delta function
 C = C_IB_4
 
 M_s = RHO/((C/DX_FINEST)^2)              // effective particle mass
-tau_s = 4.0*DT_MAX                       // decay half-life  for critically damped Kelvin-Voigt element
+tau_s = 4.0*DT                       // decay half-life  for critically damped Kelvin-Voigt element
 K_s = M_s*(log(0.5)/tau_s)^2             // spring  constant for critically damped Kelvin-Voigt element
 E_s = 2.0*sqrt(K_s*M_s)                  // damping constant for critically damped Kelvin-Voigt element
 
@@ -121,7 +123,7 @@ INSCollocatedHierarchyIntegrator {
    convective_difference_form = CONVECTIVE_FORM
    normalize_pressure         = NORMALIZE_PRESSURE
    cfl                        = CFL_MAX
-   dt_max                     = DT_MAX
+   dt_max                     = DT
    using_vorticity_tagging    = VORTICITY_TAGGING
    vorticity_abs_thresh       = 0.25 , 0.5 , 1 , 2
    tag_buffer                 = TAG_BUFFER
@@ -201,7 +203,7 @@ INSStaggeredHierarchyIntegrator {
    convective_difference_form = CONVECTIVE_FORM
    normalize_pressure         = NORMALIZE_PRESSURE
    cfl                        = CFL_MAX
-   dt_max                     = DT_MAX
+   dt_max                     = DT
    using_vorticity_tagging    = VORTICITY_TAGGING
    vorticity_abs_thresh       = 0.25 , 0.5 , 1 , 2
    tag_buffer                 = TAG_BUFFER

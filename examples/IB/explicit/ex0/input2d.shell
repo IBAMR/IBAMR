@@ -39,7 +39,8 @@ CONVECTIVE_OP_TYPE  = "PPM"                      // convective differencing disc
 CONVECTIVE_FORM     = "ADVECTIVE"                // how to compute the convective terms
 NORMALIZE_PRESSURE  = TRUE                       // whether to explicitly force the pressure to have mean zero
 CFL_MAX             = 0.3                        // maximum CFL number
-DT_MAX              = (1.0/K)*0.25*DX_FINEST     // maximum timestep size
+DT                  = (1.0/K)*0.25*DX_FINEST     // maximum timestep size
+ERROR_ON_DT_CHANGE  = TRUE                       // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING   = FALSE                      // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = 1                          // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL = 0.5                        // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
@@ -95,7 +96,8 @@ IBHierarchyIntegrator {
    grow_dt             = GROW_DT
    num_cycles          = NUM_CYCLES
    regrid_cfl_interval = REGRID_CFL_INTERVAL
-   dt_max              = DT_MAX
+   dt_max              = DT
+   error_on_dt_change  = ERROR_ON_DT_CHANGE
    tag_buffer          = TAG_BUFFER
    enable_logging      = ENABLE_LOGGING
 }
@@ -145,7 +147,7 @@ INSCollocatedHierarchyIntegrator {
    convective_difference_form = CONVECTIVE_FORM
    normalize_pressure         = NORMALIZE_PRESSURE
    cfl                        = CFL_MAX
-   dt_max                     = DT_MAX
+   dt_max                     = DT
    using_vorticity_tagging    = VORTICITY_TAGGING
    vorticity_rel_thresh       = 0.25 , 0.125
    tag_buffer                 = TAG_BUFFER
@@ -237,7 +239,7 @@ INSStaggeredHierarchyIntegrator {
    convective_difference_form = CONVECTIVE_FORM
    normalize_pressure         = NORMALIZE_PRESSURE
    cfl                        = CFL_MAX
-   dt_max                     = DT_MAX
+   dt_max                     = DT
    using_vorticity_tagging    = VORTICITY_TAGGING
    vorticity_rel_thresh       = 0.25 , 0.125
    tag_buffer                 = TAG_BUFFER
@@ -316,7 +318,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = int(END_TIME/(50*DT_MAX))  // zero to turn off
+   viz_dump_interval           = int(END_TIME/(50*DT))      // zero to turn off
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
@@ -325,7 +327,7 @@ Main {
    restart_dump_dirname        = "restart_IB2d"
 
 // hierarchy data dump parameters
-   data_dump_interval          = int(END_TIME/(100*DT_MAX)) // zero to turn off
+   data_dump_interval          = int(END_TIME/(100*DT))     // zero to turn off
    data_dump_dirname           = "hier_data_IB2d"
 
 // timer dump parameters

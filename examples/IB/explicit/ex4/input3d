@@ -22,6 +22,7 @@ CONVECTIVE_FORM     = "ADVECTIVE"                // how to compute the convectiv
 NORMALIZE_PRESSURE  = TRUE                       // whether to explicitly force the pressure to have mean zero
 CFL_MAX             = 0.25                       // maximum CFL number
 DT                  = 1.0e-2*64.0/NFINEST        // maximum timestep size (s)
+ERROR_ON_DT_CHANGE  = TRUE                       // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING   = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = int(ceil(W/2/REF_RATIO))+1 // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL = 0.5                        // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
@@ -119,6 +120,7 @@ IBHierarchyIntegrator {
    num_cycles          = NUM_CYCLES
    regrid_cfl_interval = REGRID_CFL_INTERVAL
    dt_max              = DT
+   error_on_dt_change  = ERROR_ON_DT_CHANGE
    tag_buffer          = TAG_BUFFER
    enable_logging      = ENABLE_LOGGING
    timestepping_type   = "TRAPEZOIDAL_RULE"
