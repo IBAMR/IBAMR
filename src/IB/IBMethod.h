@@ -95,11 +95,11 @@ public:
     freeLInitStrategy();
 
     /*!
-     * Supply a postprocessor object.
+     * Supply a post processor object.
      */
     void
     registerIBMethodPostProcessor(
-        SAMRAI::tbox::Pointer<IBMethodPostProcessStrategy> ib_postprocessor);
+        SAMRAI::tbox::Pointer<IBMethodPostProcessStrategy> post_processor);
 
     /*!
      * Return a pointer to the Lagrangian data manager object.

@@ -518,6 +518,12 @@ protected:
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_q_integral_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_u_integral_var;
 
+    /*
+     * Boolean indicating whether or not to overwrite tag data (default is
+     * true).
+     */
+    bool d_overwrite_tags;
+
 private:
     /*!
      * \brief Default constructor.
