@@ -95,10 +95,12 @@ main(
         Pointer<CellVariable<NDIM,double> > u_cc_var = new CellVariable<NDIM,double>("u_cc");
         Pointer<CellVariable<NDIM,double> > f_cc_var = new CellVariable<NDIM,double>("f_cc");
         Pointer<CellVariable<NDIM,double> > e_cc_var = new CellVariable<NDIM,double>("e_cc");
+        Pointer<CellVariable<NDIM,double> > r_cc_var = new CellVariable<NDIM,double>("r_cc");
 
         const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVector<NDIM>(1));
         const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVector<NDIM>(1));
         const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, IntVector<NDIM>(1));
+        const int r_cc_idx = var_db->registerVariableAndContext(r_cc_var, ctx, IntVector<NDIM>(1));
 
         // Register variables for plotting.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
@@ -107,6 +109,7 @@ main(
         visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "SCALAR", u_cc_idx);
         visit_data_writer->registerPlotQuantity(f_cc_var->getName(), "SCALAR", f_cc_idx);
         visit_data_writer->registerPlotQuantity(e_cc_var->getName(), "SCALAR", e_cc_idx);
+        visit_data_writer->registerPlotQuantity(r_cc_var->getName(), "SCALAR", r_cc_idx);
 
         // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
@@ -127,6 +130,7 @@ main(
             level->allocatePatchData(u_cc_idx, 0.0);
             level->allocatePatchData(f_cc_idx, 0.0);
             level->allocatePatchData(e_cc_idx, 0.0);
+            level->allocatePatchData(r_cc_idx, 0.0);
         }
 
         // Setup vector objects.
@@ -136,14 +140,17 @@ main(
         SAMRAIVectorReal<NDIM,double> u_vec("u", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
         SAMRAIVectorReal<NDIM,double> f_vec("f", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
         SAMRAIVectorReal<NDIM,double> e_vec("e", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorReal<NDIM,double> r_vec("r", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
 
         u_vec.addComponent(u_cc_var, u_cc_idx, h_cc_idx);
         f_vec.addComponent(f_cc_var, f_cc_idx, h_cc_idx);
         e_vec.addComponent(e_cc_var, e_cc_idx, h_cc_idx);
+        r_vec.addComponent(r_cc_var, r_cc_idx, h_cc_idx);
 
         u_vec.setToScalar(0.0);
         f_vec.setToScalar(0.0);
         e_vec.setToScalar(0.0);
+        r_vec.setToScalar(1.0);
 
         // Setup exact solutions.
         muParserCartGridFunction u_fcn("u", app_initializer->getComponentDatabase("u"), grid_geometry);
@@ -151,6 +158,11 @@ main(
 
         u_fcn.setDataOnPatchHierarchy(e_cc_idx, e_cc_var, patch_hierarchy, 0.0);
         f_fcn.setDataOnPatchHierarchy(f_cc_idx, f_cc_var, patch_hierarchy, 0.0);
+
+        // Ensure that the right-hand-side vector has no components in the
+        // nullspace of the operator.
+        f_vec.addScalar(Pointer<SAMRAIVectorReal<NDIM,double> >(&f_vec,false),
+                        -f_vec.dot(Pointer<SAMRAIVectorReal<NDIM,double> >(&r_vec,false))/r_vec.dot(Pointer<SAMRAIVectorReal<NDIM,double> >(&r_vec,false)));
 
         // Setup the Poisson solver.
         PoissonSpecifications poisson_spec("poisson_spec");
@@ -161,14 +173,14 @@ main(
         PETScKrylovLinearSolver poisson_solver("poisson solver");
         poisson_solver.setOperator(laplace_op);
         poisson_solver.setNullspace(true, NULL);
-        if (gridding_algorithm->getMaxLevels() == 1)
+
+        string solver_choice = input_db->getString("SOLVER_CHOICE");
+        if (gridding_algorithm->getMaxLevels() != 1)
         {
-            Pointer<CCPoissonHypreLevelSolver> poisson_hypre_pc = new CCPoissonHypreLevelSolver(
-                "CCPoissonHypreLevelSolver", app_initializer->getComponentDatabase("HyprePoissonSolver"));
-            poisson_hypre_pc->setPoissonSpecifications(poisson_spec);
-            poisson_solver.setPreconditioner(poisson_hypre_pc);
+            if (solver_choice != "FAC" && solver_choice != "none") TBOX_ERROR("number of grid levels > 1; this requires solver_choice = ``FAC'' or ``none''");
         }
-        else
+
+        if (solver_choice == "FAC")
         {
             Pointer<CCPoissonFACOperator> poisson_fac_op = new CCPoissonFACOperator(
                 "CCPoissonFACOperator", app_initializer->getComponentDatabase("FACPoissonSolver"));
@@ -177,6 +189,26 @@ main(
                 "FACPreconditioner", poisson_fac_op, app_initializer->getComponentDatabase("FACPoissonSolver"));
             poisson_solver.setPreconditioner(poisson_fac_pc);
         }
+        else if (solver_choice == "hypre")
+        {
+            Pointer<CCPoissonHypreLevelSolver> poisson_hypre_pc = new CCPoissonHypreLevelSolver(
+                "CCPoissonHypreLevelSolver", app_initializer->getComponentDatabase("HyprePoissonSolver"));
+            poisson_hypre_pc->setPoissonSpecifications(poisson_spec);
+            poisson_solver.setPreconditioner(poisson_hypre_pc);
+        }
+        else if (solver_choice == "petsc")
+        {
+            Pointer<CCPoissonPETScLevelSolver> poisson_petsc_pc = new CCPoissonPETScLevelSolver(
+                "CCPoissonPETScLevelSolver", app_initializer->getComponentDatabase("PETScPoissonSolver"));
+            poisson_petsc_pc->setPoissonSpecifications(poisson_spec);
+            poisson_solver.setPreconditioner(poisson_petsc_pc);
+        }
+        else if (solver_choice != "none")
+        {
+            TBOX_ERROR("unknown solver_choice: " << solver_choice << "\n"
+                       << "choices are: FAC, hypre, petsc, none\n");
+        }
+
         poisson_solver.initializeSolverState(u_vec,f_vec);
 
         // Solve -L*u = f.
@@ -189,6 +221,14 @@ main(
         pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
         pout << "|e|_2  = " << e_vec. L2Norm() << "\n";
         pout << "|e|_1  = " << e_vec. L1Norm() << "\n";
+
+        // Compute the residual and print residual norms.
+        laplace_op->apply(u_vec,r_vec);
+        r_vec.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&f_vec,false),
+                       Pointer<SAMRAIVectorReal<NDIM,double> >(&r_vec,false));
+        pout << "|r|_oo = " << r_vec.maxNorm() << "\n";
+        pout << "|r|_2  = " << r_vec. L2Norm() << "\n";
+        pout << "|r|_1  = " << r_vec. L1Norm() << "\n";
 
         // Set invalid values on coarse levels (i.e., coarse-grid values that
         // are covered by finer grid patches) to equal zero.
@@ -204,6 +244,7 @@ main(
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
                 Pointer<CellData<NDIM,double> > e_cc_data = patch->getPatchData(e_cc_idx);
+                Pointer<CellData<NDIM,double> > r_cc_data = patch->getPatchData(r_cc_idx);
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                 {
                     const Box<NDIM> refined_box = refined_region_boxes[i];
@@ -211,6 +252,7 @@ main(
                     if (!intersection.empty())
                     {
                         e_cc_data->fillAll(0.0, intersection);
+                        r_cc_data->fillAll(0.0, intersection);
                     }
                 }
             }
