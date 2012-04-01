@@ -95,6 +95,7 @@ $(top_srcdir)/src/math/PETScVecUtilities.C \
 $(top_srcdir)/src/math/PatchMathOps.C \
 $(top_srcdir)/src/math/PatchVecCellDataBasicOps.C \
 $(top_srcdir)/src/math/PatchVecCellDataOpsReal.C \
+$(top_srcdir)/src/math/PoissonUtilities.C \
 $(top_srcdir)/src/patch_data/VecCellData.C \
 $(top_srcdir)/src/patch_data/VecCellDataFactory.C \
 $(top_srcdir)/src/patch_data/VecCellVariable.C \
@@ -239,6 +240,7 @@ $(top_srcdir)/src/math/PETScVecUtilities.h \
 $(top_srcdir)/src/math/PatchMathOps.h \
 $(top_srcdir)/src/math/PatchVecCellDataBasicOps.h \
 $(top_srcdir)/src/math/PatchVecCellDataOpsReal.h \
+$(top_srcdir)/src/math/PoissonUtilities.h \
 $(top_srcdir)/src/patch_data/VecCellData.I \
 $(top_srcdir)/src/patch_data/VecCellData.h \
 $(top_srcdir)/src/patch_data/VecCellDataFactory.I \

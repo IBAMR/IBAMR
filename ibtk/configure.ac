@@ -91,7 +91,7 @@ fi
 
 AC_MSG_CHECKING([whether compiler supports __builtin_expect keyword])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[
-    if (__builtin_expect(true,1)) 
+    if (__builtin_expect(true,1))
     {
         return 0;
     }
@@ -432,6 +432,7 @@ AC_CONFIG_FILES([
   examples/CCPoisson/Makefile
   examples/PhysBdryOps/Makefile
   examples/SCLaplace/Makefile
+  examples/SCPoisson/Makefile
   examples/VCLaplace/Makefile
   lib/Makefile
   scripts/Makefile
