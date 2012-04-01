@@ -1,4 +1,4 @@
-// Filename: PETScMatUtilities.h
+// Filename: PoissonUtilities.h
 // Created on 24 Aug 2010 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,18 +30,17 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_PETScMatUtilities
-#define included_PETScMatUtilities
+#ifndef included_PoissonUtilities
+#define included_PoissonUtilities
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscmat.h>
-
 // SAMRAI INCLUDES
-#include <PatchLevel.h>
+#include <CellData.h>
+#include <OutersideData.h>
 #include <PoissonSpecifications.h>
 #include <RobinBcCoefStrategy.h>
+#include <SideData.h>
 
 // C++ STDLIB INCLUDES
 #include <vector>
@@ -54,64 +53,89 @@
 namespace IBTK
 {
 /*!
- * \brief Class PETScMatUtilities provides utility functions for <A
- * HREF="http://www-unix.mcs.anl.gov/petsc">PETSc</A> Mat objects.
+ * \brief Class PoissonUtilities provides utility functions for constructing
+ * Poisson solvers.
  */
-class PETScMatUtilities
+class PoissonUtilities
 {
 public:
     /*!
-     * \name Methods acting on SAMRAI::hier::PatchLevel and
-     * SAMRAI::hier::Variable objects.
-     */
-    //\{
-
-    /*!
-     * \brief Construct a parallel PETSc Mat object corresponding to the
-     * cell-centered Laplacian of a cell-centered variable restricted to a
-     * single SAMRAI::hier::PatchLevel.
+     * Compute the diagonal and off-diagonal matrix coefficients corresponding
+     * to a cell-centered discretization of the Laplacian.
      */
     static void
-    constructPatchLevelCCLaplaceOp(
-        Mat& mat,
+    computeCCMatrixCoefficients(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        SAMRAI::pdat::CellData<NDIM,double>& diagonal,
+        SAMRAI::pdat::SideData<NDIM,double>& off_diagonal,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
-        double data_time,
-        const std::vector<int>& num_dofs_per_proc,
-        int dof_index_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+        double data_time);
 
     /*!
-     * \brief Construct a parallel PETSc Mat object corresponding to the
-     * cell-centered Laplacian of a cell-centered variable restricted to a
-     * single SAMRAI::hier::PatchLevel.
+     * Compute the diagonal and off-diagonal matrix coefficients corresponding
+     * to a cell-centered discretization of the Laplacian.
      */
     static void
-    constructPatchLevelCCLaplaceOp(
-        Mat& mat,
+    computeCCMatrixCoefficients(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        SAMRAI::pdat::CellData<NDIM,double>& diagonal,
+        SAMRAI::pdat::SideData<NDIM,double>& off_diagonal,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
-        double data_time,
-        const std::vector<int>& num_dofs_per_proc,
-        int dof_index_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+        double data_time);
 
     /*!
-     * \brief Construct a parallel PETSc Mat object corresponding to the
-     * cell-centered Laplacian of a cell-centered variable restricted to a
-     * single SAMRAI::hier::PatchLevel.
+     * Compute the diagonal and off-diagonal matrix coefficients corresponding
+     * to a cell-centered discretization of the Laplacian.
      */
     static void
-    constructPatchLevelCCLaplaceOp(
-        Mat& mat,
+    computeCCMatrixCoefficients(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        SAMRAI::pdat::CellData<NDIM,double>& diagonal,
+        SAMRAI::pdat::SideData<NDIM,double>& off_diagonal,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        double data_time,
-        const std::vector<int>& num_dofs_per_proc,
-        int dof_index_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+        double data_time);
 
-    //\}
+    /*!
+     * Modify the right-hand side entries to account for physical boundary
+     * conditions corresponding to a cell-centered discretization of the
+     * Laplacian.
+     */
+    static void
+    adjustCCBoundaryRhsEntries(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        SAMRAI::pdat::CellData<NDIM,double>& rhs_data,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
+        double data_time);
+
+    /*!
+     * Modify the right-hand side entries to account for physical boundary
+     * conditions corresponding to a cell-centered discretization of the
+     * Laplacian.
+     */
+    static void
+    adjustCCBoundaryRhsEntries(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        SAMRAI::pdat::CellData<NDIM,double>& rhs_data,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+        double data_time);
+
+    /*!
+     * Modify the right-hand side entries to account for physical boundary
+     * conditions corresponding to a cell-centered discretization of the
+     * Laplacian.
+     */
+    static void
+    adjustCCBoundaryRhsEntries(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        SAMRAI::pdat::CellData<NDIM,double>& rhs_data,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        double data_time);
 
 protected:
 
@@ -121,7 +145,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    PETScMatUtilities();
+    PoissonUtilities();
 
     /*!
      * \brief Copy constructor.
@@ -130,8 +154,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    PETScMatUtilities(
-        const PETScMatUtilities& from);
+    PoissonUtilities(
+        const PoissonUtilities& from);
 
     /*!
      * \brief Assignment operator.
@@ -142,16 +166,16 @@ private:
      *
      * \return A reference to this object.
      */
-    PETScMatUtilities&
+    PoissonUtilities&
     operator=(
-        const PETScMatUtilities& that);
+        const PoissonUtilities& that);
 };
 }// namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include "PETScMatUtilities.I"
+//#include "PoissonUtilities.I"
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_PETScMatUtilities
+#endif //#ifndef included_PoissonUtilities

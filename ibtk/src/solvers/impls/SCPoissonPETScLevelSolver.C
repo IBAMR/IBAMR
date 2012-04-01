@@ -235,10 +235,9 @@ SCPoissonPETScLevelSolver::solveSystem(
     const int b_idx = b.getComponentDescriptorIndex(0);
     Pointer<SideVariable<NDIM,double> > b_var = b.getComponentVariable(0);
     if (d_initial_guess_nonzero) PETScVecUtilities::copyToPatchLevelVec(d_petsc_x, x_idx, x_var, patch_level);
-    PETScVecUtilities::copyToPatchLevelVec(d_petsc_b, b_idx, b_var, patch_level);
-    PETScVecUtilities::constrainPatchLevelVec(d_petsc_b, d_dof_index_idx, d_dof_index_var, patch_level, d_dof_index_fill);
+//  PETScVecUtilities::copyToPatchLevelVec(d_petsc_b, b_idx, b_var, patch_level);
     ierr = KSPSolve(d_petsc_ksp, d_petsc_b, d_petsc_x); IBTK_CHKERRQ(ierr);
-    PETScVecUtilities::copyFromPatchLevelVec(d_petsc_x, x_idx, x_var, patch_level);
+//  PETScVecUtilities::copyFromPatchLevelVec(d_petsc_x, x_idx, x_var, patch_level);
 
     // Log solver info.
     KSPConvergedReason reason;
@@ -346,12 +345,12 @@ SCPoissonPETScLevelSolver::initializeSolverState(
     if (!level->checkAllocated(d_dof_index_idx)) level->allocatePatchData(d_dof_index_idx);
 
     // Setup PETSc objects.
-    PETScVecUtilities::constructPatchLevelVec(d_petsc_x, x_idx, x_var, level);
-    PETScVecUtilities::constructPatchLevelVec(d_petsc_b, b_idx, b_var, level);
-    PETScVecUtilities::constructPatchLevelDOFIndices(d_dof_index_idx, d_dof_index_var, x_idx, x_var, level);
-    const double C = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
-    const double D = d_poisson_spec.getDConstant();
-    PETScMatUtilities::constructPatchLevelLaplaceOp(d_petsc_mat, C, D, x_idx, x_var, d_dof_index_idx, d_dof_index_var, level, d_dof_index_fill);
+//  PETScVecUtilities::constructPatchLevelVec(d_petsc_x, x_idx, x_var, level);
+//  PETScVecUtilities::constructPatchLevelVec(d_petsc_b, b_idx, b_var, level);
+//  PETScVecUtilities::constructPatchLevelDOFIndices(d_dof_index_idx, d_dof_index_var, x_idx, x_var, level);
+//  const double C = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
+//  const double D = d_poisson_spec.getDConstant();
+//  PETScMatUtilities::constructPatchLevelLaplaceOp(d_petsc_mat, C, D, x_idx, x_var, d_dof_index_idx, d_dof_index_var, level, d_dof_index_fill);
 
     int ierr;
     ierr = KSPCreate(PETSC_COMM_WORLD, &d_petsc_ksp); IBTK_CHKERRQ(ierr);

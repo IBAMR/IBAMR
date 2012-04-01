@@ -48,6 +48,7 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScVecUtilities.h>
+#include <ibtk/PoissonUtilities.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h>
 
@@ -177,6 +178,14 @@ CCPoissonPETScLevelSolver::setPhysicalBcCoef(
 
 void
 CCPoissonPETScLevelSolver::setPhysicalBcCoefs(
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
+{
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(&bc_coefs[0],&bc_coefs[0]+NDIM));
+    return;
+}// setPhysicalBcCoefs
+
+void
+CCPoissonPETScLevelSolver::setPhysicalBcCoefs(
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
     d_bc_coefs.resize(bc_coefs.size());
@@ -191,14 +200,6 @@ CCPoissonPETScLevelSolver::setPhysicalBcCoefs(
             d_bc_coefs[l] = d_default_bc_coef;
         }
     }
-    return;
-}// setPhysicalBcCoefs
-
-void
-CCPoissonPETScLevelSolver::setPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
-{
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(&bc_coefs[0],&bc_coefs[0]+NDIM));
     return;
 }// setPhysicalBcCoefs
 
@@ -243,11 +244,31 @@ CCPoissonPETScLevelSolver::solveSystem(
     Pointer<CellVariable<NDIM,double> > x_var = x.getComponentVariable(0);
     const int b_idx = b.getComponentDescriptorIndex(0);
     Pointer<CellVariable<NDIM,double> > b_var = b.getComponentVariable(0);
-    if (d_initial_guess_nonzero) PETScVecUtilities::copyToPatchLevelVec(d_petsc_x, x_idx, x_var, patch_level);
-    PETScVecUtilities::copyToPatchLevelVec(d_petsc_b, b_idx, b_var, patch_level);
-    PETScVecUtilities::constrainPatchLevelVec(d_petsc_b, d_dof_index_idx, d_dof_index_var, patch_level, d_dof_index_fill);
+    if (d_initial_guess_nonzero) PETScVecUtilities::copyToPatchLevelVec(d_petsc_x, x_idx, d_dof_index_idx, patch_level);
+    if (d_homogeneous_bc)
+    {
+        PETScVecUtilities::copyToPatchLevelVec(d_petsc_b, b_idx, d_dof_index_idx, patch_level);
+    }
+    else
+    {
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        int b_adj_idx = var_db->registerClonedPatchDataIndex(b_var, b_idx);
+        patch_level->allocatePatchData(b_adj_idx);
+        for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+            Pointer<CellData<NDIM,double> > b_data = patch->getPatchData(b_idx);
+            Pointer<CellData<NDIM,double> > b_adj_data = patch->getPatchData(b_adj_idx);
+            b_adj_data->copy(*b_data);
+            if (!patch->getPatchGeometry()->intersectsPhysicalBoundary()) continue;
+            PoissonUtilities::adjustCCBoundaryRhsEntries(patch, *b_adj_data, d_poisson_spec, d_bc_coefs, d_apply_time);
+        }
+        PETScVecUtilities::copyToPatchLevelVec(d_petsc_b, b_adj_idx, d_dof_index_idx, patch_level);
+        patch_level->deallocatePatchData(b_adj_idx);
+        var_db->removePatchDataIndex(b_adj_idx);
+    }
     ierr = KSPSolve(d_petsc_ksp, d_petsc_b, d_petsc_x); IBTK_CHKERRQ(ierr);
-    PETScVecUtilities::copyFromPatchLevelVec(d_petsc_x, x_idx, x_var, patch_level);
+    PETScVecUtilities::copyFromPatchLevelVec(d_petsc_x, x_idx, d_dof_index_idx, patch_level, d_ghost_fill_sched);
 
     // Log solver info.
     KSPConvergedReason reason;
@@ -338,31 +359,23 @@ CCPoissonPETScLevelSolver::initializeSolverState(
     TBOX_ASSERT(d_level_num == x.getFinestLevelNumber());
 #endif
 
-    const int x_idx = x.getComponentDescriptorIndex(0);
-    Pointer<CellVariable<NDIM,double> > x_var = x.getComponentVariable(0);
-    const int b_idx = b.getComponentDescriptorIndex(0);
-    Pointer<CellVariable<NDIM,double> > b_var = b.getComponentVariable(0);
-
     // Allocate DOF index data.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<CellDataFactory<NDIM,double> > x_fac =
-        var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
+    const int x_idx = x.getComponentDescriptorIndex(0);
+    Pointer<CellDataFactory<NDIM,double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
     const int depth = x_fac->getDefaultDepth();
-    Pointer<CellDataFactory<NDIM,int> > dof_index_fac =
-        var_db->getPatchDescriptor()->getPatchDataFactory(d_dof_index_idx);
+    Pointer<CellDataFactory<NDIM,int> > dof_index_fac = var_db->getPatchDescriptor()->getPatchDataFactory(d_dof_index_idx);
     dof_index_fac->setDefaultDepth(depth);
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
     if (!level->checkAllocated(d_dof_index_idx)) level->allocatePatchData(d_dof_index_idx);
 
     // Setup PETSc objects.
-    PETScVecUtilities::constructPatchLevelVec(d_petsc_x, x_idx, x_var, level);
-    PETScVecUtilities::constructPatchLevelVec(d_petsc_b, b_idx, b_var, level);
-    PETScVecUtilities::constructPatchLevelDOFIndices(d_dof_index_idx, d_dof_index_var, x_idx, x_var, level);
-    const double C = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
-    const double D = d_poisson_spec.getDConstant();
-    PETScMatUtilities::constructPatchLevelLaplaceOp(d_petsc_mat, C, D, x_idx, x_var, d_dof_index_idx, d_dof_index_var, level, d_dof_index_fill);
-
     int ierr;
+    PETScVecUtilities::constructPatchLevelDOFIndices(d_num_dofs_per_proc, d_dof_index_idx, level);
+    const int mpi_rank = SAMRAI_MPI::getRank();
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x); IBTK_CHKERRQ(ierr);
+    ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b); IBTK_CHKERRQ(ierr);
+    PETScMatUtilities::constructPatchLevelCCLaplaceOp(d_petsc_mat, d_poisson_spec, d_bc_coefs, d_apply_time, d_num_dofs_per_proc, d_dof_index_idx, level);
     ierr = KSPCreate(PETSC_COMM_WORLD, &d_petsc_ksp); IBTK_CHKERRQ(ierr);
     ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat, SAME_PRECONDITIONER); IBTK_CHKERRQ(ierr);
     if (!d_options_prefix.empty())
@@ -370,6 +383,7 @@ CCPoissonPETScLevelSolver::initializeSolverState(
         ierr = KSPSetOptionsPrefix(d_petsc_ksp, d_options_prefix.c_str()); IBTK_CHKERRQ(ierr);
     }
     ierr = KSPSetFromOptions(d_petsc_ksp); IBTK_CHKERRQ(ierr);
+    d_ghost_fill_sched = PETScVecUtilities::constructGhostFillSchedule(x_idx, level);
 
     // Indicate that the solver is initialized.
     d_is_initialized = true;

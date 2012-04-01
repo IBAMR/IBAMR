@@ -159,7 +159,7 @@ public:
      */
     void
     setPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
@@ -173,7 +173,7 @@ public:
      */
     void
     setPhysicalBcCoefs(
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
     /*!
      * \brief Specify whether the boundary conditions are homogeneous.
@@ -472,9 +472,11 @@ private:
     double d_current_residual_norm;
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
+    std::vector<int> d_num_dofs_per_proc;
     int d_dof_index_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,int> > d_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_dof_index_fill;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_ghost_fill_sched;
 
     //\}
 
