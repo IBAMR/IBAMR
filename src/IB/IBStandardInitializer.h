@@ -72,21 +72,21 @@ namespace IBAMR
  * Vertex input files end with the extension <TT>".vertex"</TT> and have the
  * following format for two-dimensional models:
  \verbatim
- N                   # number of vertices in the file
- x_0       y_0       # (x,y)-coordinates of vertex 0
- x_1       y_1       # (x,y)-coordinates of vertex 1
+ N           # number of vertices in the file
+ x_0   y_0   # (x,y)-coordinates of vertex 0
+ x_1   y_1   # (x,y)-coordinates of vertex 1
+ x_2   y_2   # (x,y)-coordinates of vertex 2
  ...
- x_{N-1}   y_{N-1}   # (x,y)-coordinates of vertex N-1
  \endverbatim
  *
  * Vertex input files end with the extension <TT>".vertex"</TT> and have the
  * following format for three-dimensional models:
  \verbatim
- N                             # number of vertices in the file
- x_0       y_0       z_0       # (x,y,z)-coordinates of vertex 0
- x_1       y_1       z_1       # (x,y,z)-coordinates of vertex 1
+ N                 # number of vertices in the file
+ x_0   y_0   z_0   # (x,y,z)-coordinates of vertex 0
+ x_1   y_1   z_1   # (x,y,z)-coordinates of vertex 1
+ x_2   y_2   z_2   # (x,y,z)-coordinates of vertex 2
  ...
- x_{N-1}   y_{N-1}   z_{N-1}   # (x,y,z)-coordinates of vertex N-1
  \endverbatim
  *
  * <HR>
@@ -132,8 +132,8 @@ namespace IBAMR
  \verbatim
  M                           # number of beams in the file
  i_0   j_0   k_0   kappa_0   # first vertex index, second vertex index, third vertex index, bending rigidity
- i_1   j_1   k_1   kappa_1   # first vertex index, second vertex index, third vertex index, bending rigidity
- i_2   j_2   k_2   kappa_2   # first vertex index, second vertex index, third vertex index, bending rigidity
+ i_1   j_1   k_1   kappa_1
+ i_2   j_2   k_2   kappa_2
  ...
  \endverbatim
  *
@@ -158,9 +158,9 @@ namespace IBAMR
  * format:
  \verbatim
  M                                                                                          # number of rods in the file
- i_0   j_0   ds_0   a1_0   a2_0   a3_0   b1_0   b2_0   b3_0   kappa1_0   kappa2_0   tau_0   # first  vertex index, second vertex index, material parameters
- i_1   j_1   ds_1   a1_1   a2_1   a3_1   b1_1   b2_1   b3_1   kappa1_1   kappa2_1   tau_1   # second vertex index, second vertex index, material parameters
- i_2   j_2   ds_2   a1_2   a2_2   a3_2   b1_2   b2_2   b3_2   kappa1_2   kappa2_2   tau_2   # third  vertex index, second vertex index, material parameters
+ i_0   j_0   ds_0   a1_0   a2_0   a3_0   b1_0   b2_0   b3_0   kappa1_0   kappa2_0   tau_0   # first vertex index, second vertex index, material parameters
+ i_1   j_1   ds_1   a1_1   a2_1   a3_1   b1_1   b2_1   b3_1   kappa1_1   kappa2_1   tau_1
+ i_2   j_2   ds_2   a1_2   a2_2   a3_2   b1_2   b2_2   b3_2   kappa1_2   kappa2_2   tau_2
  ...
  \endverbatim
  *
