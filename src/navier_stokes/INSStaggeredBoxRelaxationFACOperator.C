@@ -373,7 +373,7 @@ modifyRhsForBcs(
     ierr = VecAssemblyBegin(v);  IBTK_CHKERRQ(ierr);
     ierr = VecAssemblyEnd(v);  IBTK_CHKERRQ(ierr);
     return;
-}// buildBoxOperator
+}// modifyRhsForBcs
 
 inline void
 copyToVec(
