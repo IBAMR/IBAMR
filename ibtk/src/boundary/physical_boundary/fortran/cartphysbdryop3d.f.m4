@@ -870,9 +870,6 @@ c     Robin boundary conditions
                      u1(i,j_b+sgn*j,k) = u_i+
      &                    (2.d0*dble(j)*dx(1)*(g-a*u_b))/b
                   enddo
-               else
-                  print *,'error: invalid robin coefficients'
-                  call abort
                endif
             enddo
          enddo
@@ -970,9 +967,6 @@ c     Robin boundary conditions
                      u2(i,j,k_b+sgn*k) = u_i+
      &                    (2.d0*dble(k)*dx(2)*(g-a*u_b))/b
                   enddo
-               else
-                  print *,'error: invalid robin coefficients'
-                  call abort
                endif
             enddo
          enddo
