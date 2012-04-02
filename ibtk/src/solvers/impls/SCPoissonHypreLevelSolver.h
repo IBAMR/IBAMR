@@ -403,7 +403,7 @@ private:
     void
     allocateHypreData();
     void
-    setMatrixCoefficients_constant_coefficients();
+    setMatrixCoefficients();
     void
     setupHypreSolver();
     bool
@@ -424,16 +424,6 @@ private:
     destroyHypreSolver();
     void
     deallocateHypreData();
-
-    /*!
-     * \brief Adjust the rhs to account for inhomogeneous boundary conditions in
-     * the case of constant coefficient problems.
-     */
-    void
-    adjustBoundaryRhsEntries_constant_coefficients(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM,double> > rhs_data,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim1_boxes);
 
     /*!
      * \brief Object name.
@@ -462,7 +452,6 @@ private:
      */
     //\{
     SAMRAI::solv::PoissonSpecifications d_poisson_spec;
-    bool d_constant_coefficients;
 
     /*!
      * \brief Robin boundary coefficient object for physical boundaries and
@@ -492,6 +481,7 @@ private:
     HYPRE_SStructMatrix  d_matrix;
     HYPRE_SStructVector  d_rhs_vec, d_sol_vec;
     HYPRE_SStructSolver  d_solver, d_precond;
+    std::vector<SAMRAI::hier::Index<NDIM> > d_stencil_offsets;
 
     std::string d_solver_type, d_precond_type, d_split_solver_type;
     int d_max_iterations;

@@ -37,7 +37,6 @@
 
 // SAMRAI INCLUDES
 #include <CellData.h>
-#include <OutersideData.h>
 #include <PoissonSpecifications.h>
 #include <RobinBcCoefStrategy.h>
 #include <SideData.h>
@@ -60,66 +59,53 @@ class PoissonUtilities
 {
 public:
     /*!
-     * Compute the diagonal and off-diagonal matrix coefficients corresponding
-     * to a cell-centered discretization of the Laplacian.
+     * Compute the matrix coefficients corresponding to a cell-centered
+     * discretization of the Laplacian.
      */
     static void
     computeCCMatrixCoefficients(
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        SAMRAI::pdat::CellData<NDIM,double>& diagonal,
-        SAMRAI::pdat::SideData<NDIM,double>& off_diagonal,
+        SAMRAI::pdat::CellData<NDIM,double>& matrix_coefficients,
+        const std::vector<SAMRAI::hier::Index<NDIM> >& stencil,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
         double data_time);
 
     /*!
-     * Compute the diagonal and off-diagonal matrix coefficients corresponding
-     * to a cell-centered discretization of the Laplacian.
+     * Compute the matrix coefficients corresponding to a cell-centered
+     * discretization of the Laplacian.
      */
     static void
     computeCCMatrixCoefficients(
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        SAMRAI::pdat::CellData<NDIM,double>& diagonal,
-        SAMRAI::pdat::SideData<NDIM,double>& off_diagonal,
+        SAMRAI::pdat::CellData<NDIM,double>& matrix_coefficients,
+        const std::vector<SAMRAI::hier::Index<NDIM> >& stencil,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
         double data_time);
 
     /*!
-     * Compute the diagonal and off-diagonal matrix coefficients corresponding
-     * to a cell-centered discretization of the Laplacian.
+     * Compute the matrix coefficients corresponding to a cell-centered
+     * discretization of the Laplacian.
      */
     static void
     computeCCMatrixCoefficients(
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        SAMRAI::pdat::CellData<NDIM,double>& diagonal,
-        SAMRAI::pdat::SideData<NDIM,double>& off_diagonal,
+        SAMRAI::pdat::CellData<NDIM,double>& matrix_coefficients,
+        const std::vector<SAMRAI::hier::Index<NDIM> >& stencil,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         double data_time);
 
     /*!
-     * Modify the right-hand side entries to account for physical boundary
-     * conditions corresponding to a cell-centered discretization of the
-     * Laplacian.
+     * Compute the matrix coefficients corresponding to a side-centered
+     * discretization of the Laplacian.
      */
     static void
-    adjustCCBoundaryRhsEntries(
+    computeSCMatrixCoefficients(
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        SAMRAI::pdat::CellData<NDIM,double>& rhs_data,
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
-        double data_time);
-
-    /*!
-     * Modify the right-hand side entries to account for physical boundary
-     * conditions corresponding to a cell-centered discretization of the
-     * Laplacian.
-     */
-    static void
-    adjustCCBoundaryRhsEntries(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        SAMRAI::pdat::CellData<NDIM,double>& rhs_data,
+        SAMRAI::pdat::SideData<NDIM,double>& matrix_coefficients,
+        const std::vector<SAMRAI::hier::Index<NDIM> >& stencil,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
         double data_time);
@@ -134,8 +120,51 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         SAMRAI::pdat::CellData<NDIM,double>& rhs_data,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
+        double data_time,
+        bool homogeneous_bc);
+
+    /*!
+     * Modify the right-hand side entries to account for physical boundary
+     * conditions corresponding to a cell-centered discretization of the
+     * Laplacian.
+     */
+    static void
+    adjustCCBoundaryRhsEntries(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        SAMRAI::pdat::CellData<NDIM,double>& rhs_data,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+        double data_time,
+        bool homogeneous_bc);
+
+    /*!
+     * Modify the right-hand side entries to account for physical boundary
+     * conditions corresponding to a cell-centered discretization of the
+     * Laplacian.
+     */
+    static void
+    adjustCCBoundaryRhsEntries(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        SAMRAI::pdat::CellData<NDIM,double>& rhs_data,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        double data_time);
+        double data_time,
+        bool homogeneous_bc);
+
+    /*!
+     * Modify the right-hand side entries to account for physical boundary
+     * conditions corresponding to a side-centered discretization of the
+     * Laplacian.
+     */
+    static void
+    adjustSCBoundaryRhsEntries(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        SAMRAI::pdat::SideData<NDIM,double>& rhs_data,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+        double data_time,
+        bool homogeneous_bc);
 
 protected:
 

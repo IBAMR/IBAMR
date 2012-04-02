@@ -765,16 +765,14 @@ c     Dirichlet boundary conditions
                      u_i = u0(i_b-sgn*i,j,k)
                      u0(i_b+sgn*i,j,k) = 2.d0*u_b-u_i
                   enddo
-               elseif (abs(a) .lt. 1.d-12) then
-c     Neumann boundary conditions
+               else
+c     Robin boundary conditions
                   u_b = u0(i_b,j,k)
                   do i = 1,u_gcw
                      u_i = u0(i_b-sgn*i,j,k)
-                     u0(i_b+sgn*i,j,k) = (2.d0*g*dble(i)*dx(0)+u_i*b)/b
+                     u0(i_b+sgn*i,j,k) = u_i+
+     &                    (2.d0*dble(i)*dx(0)*(g-a*u_b))/b
                   enddo
-               else
-                  print *,'error: invalid robin coefficients'
-                  call abort
                endif
             enddo
          enddo
@@ -864,12 +862,13 @@ c     Dirichlet boundary conditions
                      u_i = u1(i,j_b-sgn*j,k)
                      u1(i,j_b+sgn*j,k) = 2.d0*u_b-u_i
                   enddo
-               elseif (abs(a) .lt. 1.d-12) then
-c     Neumann boundary conditions
+               else
+c     Robin boundary conditions
                   u_b = u1(i,j_b,k)
                   do j = 1,u_gcw
                      u_i = u1(i,j_b-sgn*j,k)
-                     u1(i,j_b+sgn*j,k) = (2.d0*g*dble(j)*dx(1)+u_i*b)/b
+                     u1(i,j_b+sgn*j,k) = u_i+
+     &                    (2.d0*dble(j)*dx(1)*(g-a*u_b))/b
                   enddo
                else
                   print *,'error: invalid robin coefficients'
@@ -963,12 +962,13 @@ c     Dirichlet boundary conditions
                      u_i = u2(i,j,k_b-sgn*k)
                      u2(i,j,k_b+sgn*k) = 2.d0*u_b-u_i
                   enddo
-               elseif (abs(a) .lt. 1.d-12) then
-c     Neumann boundary conditions
+               else
+c     Robin boundary conditions
                   u_b = u2(i,j,k_b)
                   do k = 1,u_gcw
                      u_i = u2(i,j,k_b-sgn*k)
-                     u2(i,j,k_b+sgn*k) = (2.d0*g*dble(k)*dx(2)+u_i*b)/b
+                     u2(i,j,k_b+sgn*k) = u_i+
+     &                    (2.d0*dble(k)*dx(2)*(g-a*u_b))/b
                   enddo
                else
                   print *,'error: invalid robin coefficients'

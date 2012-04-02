@@ -483,31 +483,26 @@ CCPoissonHypreLevelSolver::allocateHypreData()
     if (d_grid_aligned_anisotropy)
     {
         static const int stencil_sz = 2*NDIM+1;
-#if (NDIM == 2)
-        int stencil_offsets[stencil_sz][2] = {
-            {  0,  0 } ,
-            { -1,  0 } , { +1,  0 } ,
-            {  0, -1 } , {  0, +1 }
-        };
-#endif
-#if (NDIM == 3)
-        int stencil_offsets[stencil_sz][3] = {
-            {  0,   0,   0 } ,
-            { -1,   0,   0 } , { +1,   0,   0 } ,
-            {  0,  -1,   0 } , {  0,  +1,   0 } ,
-            {  0,   0,  -1 } , {  0,   0,  +1 }
-        };
-#endif
+        d_stencil_offsets.resize(stencil_sz);
+        std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), Index<NDIM>(0));
+        for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
+        {
+            for (int side = 0; side <= 1; ++side, ++stencil_index)
+            {
+                d_stencil_offsets[stencil_index](axis) = (side == 0 ? -1 : +1);
+            }
+        }
         HYPRE_StructStencilCreate(NDIM, stencil_sz, &d_stencil);
         for (int s = 0; s < stencil_sz; ++s)
         {
-            HYPRE_StructStencilSetElement(d_stencil, s, stencil_offsets[s]);
+            HYPRE_StructStencilSetElement(d_stencil, s, d_stencil_offsets[s]);
         }
     }
     else
     {
         static const int stencil_sz = (NDIM == 2) ? 9 : 19;
-        int stencil_offsets[stencil_sz][NDIM];
+        d_stencil_offsets.resize(stencil_sz);
+        std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), Index<NDIM>(0));
         int stencil_index = 0;
 #if (NDIM == 3)
         for (int z_offset = -1; z_offset <= 1; ++z_offset)
@@ -522,10 +517,10 @@ CCPoissonHypreLevelSolver::allocateHypreData()
                     if (x_offset == 0 || y_offset == 0 || z_offset == 0)
                     {
 #endif
-                        stencil_offsets[stencil_index][0] = x_offset;
-                        stencil_offsets[stencil_index][1] = y_offset;
+                        d_stencil_offsets[stencil_index](0) = x_offset;
+                        d_stencil_offsets[stencil_index](1) = y_offset;
 #if (NDIM == 3)
-                        stencil_offsets[stencil_index][2] = z_offset;
+                        d_stencil_offsets[stencil_index](2) = z_offset;
 #endif
                         ++stencil_index;
 #if (NDIM == 3)
@@ -538,7 +533,7 @@ CCPoissonHypreLevelSolver::allocateHypreData()
         HYPRE_StructStencilCreate(NDIM, stencil_sz, &d_stencil);
         for (int s = 0; s < stencil_sz; ++s)
         {
-            HYPRE_StructStencilSetElement(d_stencil, s, stencil_offsets[s]);
+            HYPRE_StructStencilSetElement(d_stencil, s, d_stencil_offsets[s]);
         }
     }
 
@@ -570,38 +565,30 @@ CCPoissonHypreLevelSolver::allocateHypreData()
 void
 CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
 {
-    ArrayDataBasicOps<NDIM,double> array_ops;
-    static const IntVector<NDIM> no_ghosts = 0;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        CellData<NDIM,double>     diagonal(patch_box, 1, no_ghosts);
-        SideData<NDIM,double> off_diagonal(patch_box, 1, no_ghosts);
-        PoissonUtilities::computeCCMatrixCoefficients(patch, diagonal, off_diagonal, d_poisson_spec, d_bc_coef, d_apply_time);
+        const int stencil_sz = d_stencil_offsets.size();
+        CellData<NDIM,double> matrix_coefs(patch_box, stencil_sz, IntVector<NDIM>(0));
+        PoissonUtilities::computeCCMatrixCoefficients(patch, matrix_coefs, d_stencil_offsets, d_poisson_spec, d_bc_coef, d_apply_time);
 
         // Copy matrix entries to the hypre matrix structure.
-        const int stencil_sz = 2*NDIM+1;
-        int stencil_indices[stencil_sz];
+        std::vector<int> stencil_indices(stencil_sz);
         for (int i = 0; i < stencil_sz; ++i)
         {
             stencil_indices[i] = i;
         }
-
         std::vector<double> mat_vals(stencil_sz,0.0);
         for (Box<NDIM>::Iterator b(patch_box); b; b++)
         {
             Index<NDIM> i = b();
-            mat_vals[0] = diagonal(i);
-            for (unsigned int axis = 0, k = 1; axis < NDIM; ++axis)
+            for (int k = 0; k < stencil_sz; ++k)
             {
-                for (int side = 0; side <= 1; ++side, ++k)
-                {
-                    mat_vals[k] = off_diagonal(SideIndex<NDIM>(i, axis, side));
-                }
+                mat_vals[k] = matrix_coefs(i,k);
             }
-            HYPRE_StructMatrixSetValues(d_matrix, i, stencil_sz, stencil_indices, &mat_vals[0]);
+            HYPRE_StructMatrixSetValues(d_matrix, i, stencil_sz, &stencil_indices[0], &mat_vals[0]);
         }
     }
 
@@ -1161,24 +1148,18 @@ CCPoissonHypreLevelSolver::solveSystem(
         // boundary conditions and copy the right-hand-side into the hypre
         // vector.
         Pointer<CellData<NDIM,double> > b_data = patch->getPatchData(b_idx);
-        if (!d_homogeneous_bc && pgeom->intersectsPhysicalBoundary())
+        if (pgeom->intersectsPhysicalBoundary())
         {
-            CellData<NDIM,double> b_adj_data(
-                b_data->getBox(), b_data->getDepth(),
-                b_data->getGhostCellWidth());
-            b_adj_data.copy(*(patch->getPatchData(b_idx)));
-
-            const Array<BoundaryBox<NDIM> > physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
-
+            CellData<NDIM,double> b_adj_data(b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
+            b_adj_data.copy(*b_data);
             if (d_grid_aligned_anisotropy)
             {
-                PoissonUtilities::adjustCCBoundaryRhsEntries(patch, b_adj_data, d_poisson_spec, d_bc_coef, d_apply_time);
+                PoissonUtilities::adjustCCBoundaryRhsEntries(patch, b_adj_data, d_poisson_spec, d_bc_coef, d_apply_time, d_homogeneous_bc);
             }
             else
             {
                 adjustBoundaryRhsEntries_nonaligned(patch, b_adj_data, d_poisson_spec, d_bc_coef, d_apply_time);
             }
-
             copyToHypre(d_rhs_vec, Pointer<CellData<NDIM,double> >(&b_adj_data,false), patch_box);
         }
         else

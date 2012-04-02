@@ -92,7 +92,7 @@ namespace IBTK
  options_prefix = "petsc_"      // see setOptionsPrefix()
  \endverbatim
  *
- * PETSc is developed ate the Argonne National Laboratory Mathematics and
+ * PETSc is developed at the Argonne National Laboratory Mathematics and
  * Computer Science Division.  For more information about \em PETSc, see <A
  * HREF="http://www.mcs.anl.gov/petsc/petsc-as">http://www.mcs.anl.gov/petsc/petsc-as</A>.
  */
@@ -475,7 +475,6 @@ private:
     std::vector<int> d_num_dofs_per_proc;
     int d_dof_index_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,int> > d_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_dof_index_fill;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_ghost_fill_sched;
 
     //\}

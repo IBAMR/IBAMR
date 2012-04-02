@@ -102,7 +102,7 @@ CCPoissonPETScLevelSolver::CCPoissonPETScLevelSolver(
       d_context(NULL),
       d_dof_index_idx(-1),
       d_dof_index_var(NULL),
-      d_dof_index_fill(NULL),
+      d_ghost_fill_sched(NULL),
       d_enable_logging(false)
 {
     // Get values from the input database.
@@ -244,29 +244,22 @@ CCPoissonPETScLevelSolver::solveSystem(
     Pointer<CellVariable<NDIM,double> > x_var = x.getComponentVariable(0);
     const int b_idx = b.getComponentDescriptorIndex(0);
     Pointer<CellVariable<NDIM,double> > b_var = b.getComponentVariable(0);
-    if (d_initial_guess_nonzero) PETScVecUtilities::copyToPatchLevelVec(d_petsc_x, x_idx, d_dof_index_idx, patch_level);
-    if (d_homogeneous_bc)
+    if (!d_initial_guess_nonzero) PETScVecUtilities::copyToPatchLevelVec(d_petsc_x, x_idx, d_dof_index_idx, patch_level);
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    int b_adj_idx = var_db->registerClonedPatchDataIndex(b_var, b_idx);
+    patch_level->allocatePatchData(b_adj_idx);
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
-        PETScVecUtilities::copyToPatchLevelVec(d_petsc_b, b_idx, d_dof_index_idx, patch_level);
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<CellData<NDIM,double> > b_data = patch->getPatchData(b_idx);
+        Pointer<CellData<NDIM,double> > b_adj_data = patch->getPatchData(b_adj_idx);
+        b_adj_data->copy(*b_data);
+        if (!patch->getPatchGeometry()->intersectsPhysicalBoundary()) continue;
+        PoissonUtilities::adjustCCBoundaryRhsEntries(patch, *b_adj_data, d_poisson_spec, d_bc_coefs, d_apply_time, d_homogeneous_bc);
     }
-    else
-    {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        int b_adj_idx = var_db->registerClonedPatchDataIndex(b_var, b_idx);
-        patch_level->allocatePatchData(b_adj_idx);
-        for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-            Pointer<CellData<NDIM,double> > b_data = patch->getPatchData(b_idx);
-            Pointer<CellData<NDIM,double> > b_adj_data = patch->getPatchData(b_adj_idx);
-            b_adj_data->copy(*b_data);
-            if (!patch->getPatchGeometry()->intersectsPhysicalBoundary()) continue;
-            PoissonUtilities::adjustCCBoundaryRhsEntries(patch, *b_adj_data, d_poisson_spec, d_bc_coefs, d_apply_time);
-        }
-        PETScVecUtilities::copyToPatchLevelVec(d_petsc_b, b_adj_idx, d_dof_index_idx, patch_level);
-        patch_level->deallocatePatchData(b_adj_idx);
-        var_db->removePatchDataIndex(b_adj_idx);
-    }
+    PETScVecUtilities::copyToPatchLevelVec(d_petsc_b, b_adj_idx, d_dof_index_idx, patch_level);
+    patch_level->deallocatePatchData(b_adj_idx);
+    var_db->removePatchDataIndex(b_adj_idx);
     ierr = KSPSolve(d_petsc_ksp, d_petsc_b, d_petsc_x); IBTK_CHKERRQ(ierr);
     PETScVecUtilities::copyFromPatchLevelVec(d_petsc_x, x_idx, d_dof_index_idx, patch_level, d_ghost_fill_sched);
 
@@ -405,7 +398,7 @@ CCPoissonPETScLevelSolver::deallocateSolverState()
     ierr = MatDestroy(&d_petsc_mat); IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&d_petsc_x); IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&d_petsc_b); IBTK_CHKERRQ(ierr);
-    d_dof_index_fill.setNull();
+    d_ghost_fill_sched.setNull();
 
     d_petsc_ksp = PETSC_NULL;
     d_petsc_mat = PETSC_NULL;

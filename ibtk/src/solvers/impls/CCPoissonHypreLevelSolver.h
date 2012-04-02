@@ -506,6 +506,7 @@ private:
     HYPRE_StructMatrix  d_matrix;
     HYPRE_StructVector  d_rhs_vec, d_sol_vec;
     HYPRE_StructSolver  d_solver, d_precond;
+    std::vector<SAMRAI::hier::Index<NDIM> > d_stencil_offsets;
 
     std::string d_solver_type, d_precond_type;
     int d_max_iterations;

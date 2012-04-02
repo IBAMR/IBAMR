@@ -49,6 +49,9 @@
 // BLITZ++ INCLUDES
 #include <blitz/tinyvec.h>
 
+// C++ STDLIB INCLUDES
+#include <vector>
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
@@ -89,7 +92,7 @@ namespace IBTK
  options_prefix = "petsc_"      // see setOptionsPrefix()
  \endverbatim
  *
- * PETSc is developed ate the Argonne National Laboratory Mathematics and
+ * PETSc is developed at the Argonne National Laboratory Mathematics and
  * Computer Science Division.  For more information about \em PETSc, see <A
  * HREF="http://www.mcs.anl.gov/petsc/petsc-as">http://www.mcs.anl.gov/petsc/petsc-as</A>.
  */
@@ -130,19 +133,6 @@ public:
     void
     setPoissonSpecifications(
         const SAMRAI::solv::PoissonSpecifications& poisson_spec);
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
-     * physical boundary conditions.
-     *
-     * \note \a bc_coef may be NULL.  In this case, homogeneous Dirichlet
-     * boundary conditions are employed.
-     *
-     * \param bc_coef  Pointer to an object that can set the Robin boundary condition coefficients
-     */
-    void
-    setPhysicalBcCoef(
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
@@ -455,9 +445,10 @@ private:
     double d_current_residual_norm;
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
+    std::vector<int> d_num_dofs_per_proc;
     int d_dof_index_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,int> > d_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_dof_index_fill;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_ghost_fill_sched;
 
     //\}
 

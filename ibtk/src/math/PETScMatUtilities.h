@@ -111,6 +111,21 @@ public:
         int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
+    /*!
+     * \brief Construct a parallel PETSc Mat object corresponding to the
+     * side-centered Laplacian of a side-centered variable restricted to a
+     * single SAMRAI::hier::PatchLevel.
+     */
+    static void
+    constructPatchLevelSCLaplaceOp(
+        Mat& mat,
+        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
+        double data_time,
+        const std::vector<int>& num_dofs_per_proc,
+        int dof_index_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+
     //\}
 
 protected:
