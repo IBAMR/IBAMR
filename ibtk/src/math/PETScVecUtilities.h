@@ -189,8 +189,7 @@ private:
         Vec& vec,
         int data_idx,
         int dof_index_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > ghost_fill_sched);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
      * \brief Implementation of copyFromPatchLevelVec() for side-centered data.
@@ -200,8 +199,7 @@ private:
         Vec& vec,
         int data_idx,
         int dof_index_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > ghost_fill_sched);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
      * \brief Implementation of constructPatchLevelDOFIndices() for

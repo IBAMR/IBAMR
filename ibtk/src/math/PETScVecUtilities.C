@@ -69,13 +69,12 @@ PETScVecUtilities::copyToPatchLevelVec(
     var_db->mapIndexToVariable(data_idx, data_var);
     Pointer<CellVariable<NDIM,double> > data_cc_var = data_var;
     Pointer<SideVariable<NDIM,double> > data_sc_var = data_var;
-    Pointer<Variable<NDIM> > dof_index_var;
-    var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-    Pointer<CellVariable<NDIM,int> > dof_index_cc_var = dof_index_var;
-    Pointer<SideVariable<NDIM,int> > dof_index_sc_var = dof_index_var;
     if (!data_cc_var.isNull())
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
+        Pointer<Variable<NDIM> > dof_index_var;
+        var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
+        Pointer<CellVariable<NDIM,int> > dof_index_cc_var = dof_index_var;
         TBOX_ASSERT(!dof_index_cc_var.isNull());
 #endif
         copyToPatchLevelVec_cell(vec, data_idx, dof_index_idx, patch_level);
@@ -83,6 +82,9 @@ PETScVecUtilities::copyToPatchLevelVec(
     else if (!data_sc_var.isNull())
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
+        Pointer<Variable<NDIM> > dof_index_var;
+        var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
+        Pointer<SideVariable<NDIM,int> > dof_index_sc_var = dof_index_var;
         TBOX_ASSERT(!dof_index_sc_var.isNull());
 #endif
         copyToPatchLevelVec_side(vec, data_idx, dof_index_idx, patch_level);
@@ -104,85 +106,52 @@ PETScVecUtilities::copyFromPatchLevelVec(
     Pointer<RefineSchedule<NDIM> > data_synch_sched,
     Pointer<RefineSchedule<NDIM> > ghost_fill_sched)
 {
-    Pointer<RefineClasses<NDIM> > data_synch_config;
-    if (!data_synch_sched.isNull())
-    {
-        data_synch_config = data_synch_sched->getEquivalenceClasses();
-    }
-
-    Pointer<RefineClasses<NDIM> > ghost_fill_config;
-    if (!ghost_fill_sched.isNull())
-    {
-        ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
-    }
-
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > data_var;
     var_db->mapIndexToVariable(data_idx, data_var);
     Pointer<CellVariable<NDIM,double> > data_cc_var = data_var;
     Pointer<SideVariable<NDIM,double> > data_sc_var = data_var;
-    Pointer<Variable<NDIM> > dof_index_var;
-    var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
-    Pointer<CellVariable<NDIM,int> > dof_index_cc_var = dof_index_var;
-    Pointer<SideVariable<NDIM,int> > dof_index_sc_var = dof_index_var;
-    RefineAlgorithm<NDIM> data_synch_alg, ghost_fill_alg;
     if (!data_cc_var.isNull())
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
+        Pointer<Variable<NDIM> > dof_index_var;
+        var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
+        Pointer<CellVariable<NDIM,int> > dof_index_cc_var = dof_index_var;
         TBOX_ASSERT(!dof_index_cc_var.isNull());
 #endif
-        if (!ghost_fill_sched.isNull())
-        {
-            ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
-            ghost_fill_alg.resetSchedule(ghost_fill_sched);
-        }
-        else
-        {
-            ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
-            ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
-        }
-        copyFromPatchLevelVec_cell(vec, data_idx, dof_index_idx, patch_level, ghost_fill_sched);
+        copyFromPatchLevelVec_cell(vec, data_idx, dof_index_idx, patch_level);
     }
     else if (!data_sc_var.isNull())
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
+        Pointer<Variable<NDIM> > dof_index_var;
+        var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
+        Pointer<SideVariable<NDIM,int> > dof_index_sc_var = dof_index_var;
         TBOX_ASSERT(!dof_index_sc_var.isNull());
 #endif
+        copyFromPatchLevelVec_side(vec, data_idx, dof_index_idx, patch_level);
         if (!data_synch_sched.isNull())
         {
+            Pointer<RefineClasses<NDIM> > data_synch_config = data_synch_sched->getEquivalenceClasses();
+            RefineAlgorithm<NDIM> data_synch_alg;
             data_synch_alg.registerRefine(data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
             data_synch_alg.resetSchedule(data_synch_sched);
+            data_synch_sched->fillData(0.0);
+            data_synch_sched->reset(data_synch_config);
         }
-        else
-        {
-            data_synch_alg.registerRefine(data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
-            data_synch_alg.createSchedule(patch_level)->fillData(0.0);
-        }
-        if (!ghost_fill_sched.isNull())
-        {
-            ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
-            ghost_fill_alg.resetSchedule(ghost_fill_sched);
-        }
-        else
-        {
-            ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
-            ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
-        }
-        copyFromPatchLevelVec_side(vec, data_idx, dof_index_idx, patch_level, ghost_fill_sched);
     }
     else
     {
         TBOX_ERROR("PETScVecUtilities::copyFromPatchLevelVec():\n"
                    << "  unsupported data centering type for variable " << data_var->getName() << "\n");
     }
-
-    if (!data_synch_sched.isNull())
-    {
-        data_synch_sched->reset(data_synch_config);
-    }
-
     if (!ghost_fill_sched.isNull())
     {
+        Pointer<RefineClasses<NDIM> > ghost_fill_config = ghost_fill_sched->getEquivalenceClasses();
+        RefineAlgorithm<NDIM> ghost_fill_alg;
+        ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
+        ghost_fill_alg.resetSchedule(ghost_fill_sched);
+        ghost_fill_sched->fillData(0.0);
         ghost_fill_sched->reset(ghost_fill_config);
     }
     return;
@@ -202,6 +171,9 @@ PETScVecUtilities::constructDataSynchSchedule(
     if (!data_cc_var.isNull())
     {
         // intentionally blank
+        //
+        // NOTE: This is the only standard SAMRAI data centering that does not
+        // require synchronization.
     }
     else if (!data_sc_var.isNull())
     {
@@ -222,25 +194,8 @@ PETScVecUtilities::constructGhostFillSchedule(
     const int data_idx,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > data_var;
-    var_db->mapIndexToVariable(data_idx, data_var);
-    Pointer<CellVariable<NDIM,double> > data_cc_var = data_var;
-    Pointer<SideVariable<NDIM,double> > data_sc_var = data_var;
     RefineAlgorithm<NDIM> ghost_fill_alg;
-    if (!data_cc_var.isNull())
-    {
-        ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
-    }
-    else if (!data_sc_var.isNull())
-    {
-        ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
-    }
-    else
-    {
-        TBOX_ERROR("PETScVecUtilities::constructGhostFillSchedule():\n"
-                   << "  unsupported data centering type for variable " << data_var->getName() << "\n");
-    }
+    ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
     return ghost_fill_alg.createSchedule(patch_level);
 }// constructGhostFillSchedule
 
@@ -255,7 +210,10 @@ PETScVecUtilities::constructPatchLevelDOFIndices(
     var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
     Pointer<CellVariable<NDIM,int> > dof_index_cc_var = dof_index_var;
     Pointer<SideVariable<NDIM,int> > dof_index_sc_var = dof_index_var;
-    if      (!dof_index_cc_var.isNull()) constructPatchLevelDOFIndices_cell(num_dofs_per_proc, dof_index_idx, patch_level);
+    if (!dof_index_cc_var.isNull())
+    {
+        constructPatchLevelDOFIndices_cell(num_dofs_per_proc, dof_index_idx, patch_level);
+    }
     else if (!dof_index_sc_var.isNull()) constructPatchLevelDOFIndices_side(num_dofs_per_proc, dof_index_idx, patch_level);
     else
     {
@@ -289,8 +247,7 @@ PETScVecUtilities::copyToPatchLevelVec_cell(
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(depth == dof_index_data->getDepth());
 #endif
-        const Box<NDIM> data_box = CellGeometry<NDIM>::toCellBox(patch_box);
-        for (Box<NDIM>::Iterator b(data_box); b; b++)
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
         {
             const CellIndex<NDIM>& i = b();
             for (int d = 0; d < depth; ++d)
@@ -330,8 +287,7 @@ PETScVecUtilities::copyToPatchLevelVec_side(
 #endif
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            const Box<NDIM>& data_box = SideGeometry<NDIM>::toSideBox(patch_box, component_axis);
-            for (Box<NDIM>::Iterator b(data_box); b; b++)
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
             {
                 const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
                 for (int d = 0; d < depth; ++d)
@@ -355,8 +311,7 @@ PETScVecUtilities::copyFromPatchLevelVec_cell(
     Vec& vec,
     const int data_idx,
     const int dof_index_idx,
-    Pointer<PatchLevel<NDIM> > patch_level,
-    Pointer<RefineSchedule<NDIM> > ghost_fill_sched)
+    Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
     int ilower, iupper;
@@ -371,8 +326,7 @@ PETScVecUtilities::copyFromPatchLevelVec_cell(
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(depth == dof_index_data->getDepth());
 #endif
-        const Box<NDIM> data_box = CellGeometry<NDIM>::toCellBox(patch_box);
-        for (Box<NDIM>::Iterator b(data_box); b; b++)
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
         {
             const CellIndex<NDIM>& i = b();
             for (int d = 0; d < depth; ++d)
@@ -385,7 +339,6 @@ PETScVecUtilities::copyFromPatchLevelVec_cell(
             }
         }
     }
-    if (!ghost_fill_sched.isNull()) ghost_fill_sched->fillData(0.0);
     return;
 }// copyFromPatchLevelVec_cell
 
@@ -394,8 +347,7 @@ PETScVecUtilities::copyFromPatchLevelVec_side(
     Vec& vec,
     const int data_idx,
     const int dof_index_idx,
-    Pointer<PatchLevel<NDIM> > patch_level,
-    Pointer<RefineSchedule<NDIM> > ghost_fill_sched)
+    Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
     int ilower, iupper;
@@ -412,8 +364,7 @@ PETScVecUtilities::copyFromPatchLevelVec_side(
 #endif
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            const Box<NDIM>& data_box = SideGeometry<NDIM>::toSideBox(patch_box, component_axis);
-            for (Box<NDIM>::Iterator b(data_box); b; b++)
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
             {
                 const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
                 for (int d = 0; d < depth; ++d)
@@ -427,7 +378,6 @@ PETScVecUtilities::copyFromPatchLevelVec_side(
             }
         }
     }
-    if (!ghost_fill_sched.isNull()) ghost_fill_sched->fillData(0.0);
     return;
 }// copyFromPatchLevelVec_side
 
@@ -466,8 +416,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices_cell(
         Pointer<CellData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
         dof_index_data->fillAll(-1);
         const int depth = dof_index_data->getDepth();
-        const Box<NDIM> data_box = CellGeometry<NDIM>::toCellBox(patch_box);
-        for (Box<NDIM>::Iterator b(data_box); b; b++)
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
         {
             const CellIndex<NDIM>& i = b();
             for (int d = 0; d < depth; ++d)
@@ -513,8 +462,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(
         mastr_loc_data->fillAll(false);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            const Box<NDIM>& data_box = SideGeometry<NDIM>::toSideBox(patch_box, component_axis);
-            for (Box<NDIM>::Iterator b(data_box); b; b++)
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
             {
                 const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
                 for (int d = 0; d < depth; ++d)
@@ -547,8 +495,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(
         Pointer<SideData<NDIM,bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
-            const Box<NDIM>& data_box = SideGeometry<NDIM>::toSideBox(patch_box, component_axis);
-            for (Box<NDIM>::Iterator b(data_box); b; b++)
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
             {
                 const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
                 bool mastr_loc = (*patch_num_data)(i) == patch_num;
@@ -593,9 +540,9 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(
         {
             for (Box<NDIM>::Iterator b(bl()); b; b++)
             {
+                const Index<NDIM>& ic = b();
                 for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
                 {
-                    const Index<NDIM>& ic = b();
                     if (UNLIKELY(!data_boxes[component_axis].contains(ic))) continue;
                     const SideIndex<NDIM> is(ic, component_axis, SideIndex<NDIM>::Lower);
                     if (UNLIKELY(!(*mastr_loc_data)(is))) continue;
@@ -608,7 +555,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(
         }
     }
 
-    // Deallocate patch_num variable data.
+    // Deallocate temporary variable data.
     patch_level->deallocatePatchData(patch_num_idx);
     patch_level->deallocatePatchData(mastr_loc_idx);
     var_db->removePatchDataIndex(patch_num_idx);

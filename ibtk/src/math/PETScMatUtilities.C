@@ -124,8 +124,7 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(depth == dof_index_data->getDepth());
 #endif
-        const Box<NDIM>& data_box = CellGeometry<NDIM>::toCellBox(patch_box);
-        for (Box<NDIM>::Iterator b(data_box); b; b++)
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
         {
             const CellIndex<NDIM>& i = b();
             for (int d = 0; d < depth; ++d)
@@ -182,12 +181,11 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(
         CellData<NDIM,double> matrix_coefs(patch_box, stencil_sz*depth, no_ghosts);
         PoissonUtilities::computeCCMatrixCoefficients(patch, matrix_coefs, stencil, poisson_spec, bc_coefs, data_time);
         Pointer<CellData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
-        const Box<NDIM>& data_box = CellGeometry<NDIM>::toCellBox(patch_box);
 
         // Copy matrix entries to the PETSc matrix structure.
         std::vector<double> mat_vals(stencil_sz);
         std::vector<int>    mat_cols(stencil_sz);
-        for (Box<NDIM>::Iterator b(data_box); b; b++)
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
         {
             const CellIndex<NDIM>& i = b();
             for (int d = 0; d < depth; ++d)
@@ -266,8 +264,7 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(
 #endif
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            const Box<NDIM>& data_box = SideGeometry<NDIM>::toSideBox(patch_box,axis);
-            for (Box<NDIM>::Iterator b(data_box); b; b++)
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box,axis)); b; b++)
             {
                 const SideIndex<NDIM> i(b(),axis,SideIndex<NDIM>::Lower);
                 const int dof_index = (*dof_index_data)(i);
@@ -323,12 +320,10 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(
         Pointer<SideData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            const Box<NDIM>& data_box = SideGeometry<NDIM>::toSideBox(patch_box,axis);
-
             // Copy matrix entries to the PETSc matrix structure.
             std::vector<double> mat_vals(stencil_sz);
             std::vector<int>    mat_cols(stencil_sz);
-            for (Box<NDIM>::Iterator b(data_box); b; b++)
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box,axis)); b; b++)
             {
                 const SideIndex<NDIM> i(b(),axis,SideIndex<NDIM>::Lower);
                 const int dof_index = (*dof_index_data)(i);
