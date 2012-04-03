@@ -92,6 +92,9 @@ public:
     /*!
      * \brief Construct a RefineSchedule to synchronize shared values that can
      * be used in conjunction with copyFromPatchLevelVec().
+     *
+     * \note Synchronization is not required for all data centerings.  For cases
+     * in which it is not needed, this method will return a NULL pointer.
      */
     static SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> >
     constructDataSynchSchedule(
