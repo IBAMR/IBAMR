@@ -86,6 +86,8 @@ $(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.C \
 $(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.C \
 $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.C \
 $(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.C \
+$(top_srcdir)/src/navier_stokes/INSPETScMatUtilities.C \
+$(top_srcdir)/src/navier_stokes/INSPETScVecUtilities.C \
 $(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C \
@@ -146,6 +148,8 @@ $(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.h \
 $(top_srcdir)/src/navier_stokes/INSHierarchyIntegrator.h \
 $(top_srcdir)/src/navier_stokes/INSIntermediateVelocityBcCoef.h \
+$(top_srcdir)/src/navier_stokes/INSPETScMatUtilities.h \
+$(top_srcdir)/src/navier_stokes/INSPETScVecUtilities.h \
 $(top_srcdir)/src/navier_stokes/INSProjectionBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredBlockFactorizationPreconditioner.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.h \
