@@ -475,7 +475,7 @@ private:
     std::vector<int> d_num_dofs_per_proc;
     int d_dof_index_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,int> > d_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_ghost_fill_sched;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_data_synch_sched, d_ghost_fill_sched;
 
     //\}
 

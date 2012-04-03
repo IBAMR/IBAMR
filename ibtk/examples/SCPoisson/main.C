@@ -202,7 +202,7 @@ main(
 
         // Setup the Poisson solver.
         PoissonSpecifications poisson_spec("poisson_spec");
-        poisson_spec.setCConstant(+1.0);
+        poisson_spec.setCConstant( 0.0);
         poisson_spec.setDConstant(-1.0);
         RobinBcCoefStrategy<NDIM>* bc_coef = NULL;
         Pointer<SCLaplaceOperator> laplace_op = new SCLaplaceOperator("laplace op", poisson_spec, bc_coef);

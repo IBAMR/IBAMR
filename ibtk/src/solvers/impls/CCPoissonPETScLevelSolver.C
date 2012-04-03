@@ -261,7 +261,7 @@ CCPoissonPETScLevelSolver::solveSystem(
     patch_level->deallocatePatchData(b_adj_idx);
     var_db->removePatchDataIndex(b_adj_idx);
     ierr = KSPSolve(d_petsc_ksp, d_petsc_b, d_petsc_x); IBTK_CHKERRQ(ierr);
-    PETScVecUtilities::copyFromPatchLevelVec(d_petsc_x, x_idx, d_dof_index_idx, patch_level, d_ghost_fill_sched);
+    PETScVecUtilities::copyFromPatchLevelVec(d_petsc_x, x_idx, d_dof_index_idx, patch_level, d_data_synch_sched, d_ghost_fill_sched);
 
     // Log solver info.
     KSPConvergedReason reason;
@@ -376,6 +376,7 @@ CCPoissonPETScLevelSolver::initializeSolverState(
         ierr = KSPSetOptionsPrefix(d_petsc_ksp, d_options_prefix.c_str()); IBTK_CHKERRQ(ierr);
     }
     ierr = KSPSetFromOptions(d_petsc_ksp); IBTK_CHKERRQ(ierr);
+    d_data_synch_sched = PETScVecUtilities::constructDataSynchSchedule(x_idx, level);
     d_ghost_fill_sched = PETScVecUtilities::constructGhostFillSchedule(x_idx, level);
 
     // Indicate that the solver is initialized.

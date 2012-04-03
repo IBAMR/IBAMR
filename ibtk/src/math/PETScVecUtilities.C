@@ -101,8 +101,15 @@ PETScVecUtilities::copyFromPatchLevelVec(
     const int data_idx,
     const int dof_index_idx,
     Pointer<PatchLevel<NDIM> > patch_level,
+    Pointer<RefineSchedule<NDIM> > data_synch_sched,
     Pointer<RefineSchedule<NDIM> > ghost_fill_sched)
 {
+    Pointer<RefineClasses<NDIM> > data_synch_config;
+    if (!data_synch_sched.isNull())
+    {
+        data_synch_config = data_synch_sched->getEquivalenceClasses();
+    }
+
     Pointer<RefineClasses<NDIM> > ghost_fill_config;
     if (!ghost_fill_sched.isNull())
     {
@@ -118,7 +125,7 @@ PETScVecUtilities::copyFromPatchLevelVec(
     var_db->mapIndexToVariable(dof_index_idx, dof_index_var);
     Pointer<CellVariable<NDIM,int> > dof_index_cc_var = dof_index_var;
     Pointer<SideVariable<NDIM,int> > dof_index_sc_var = dof_index_var;
-    RefineAlgorithm<NDIM> ghost_fill_alg;
+    RefineAlgorithm<NDIM> data_synch_alg, ghost_fill_alg;
     if (!data_cc_var.isNull())
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -129,6 +136,11 @@ PETScVecUtilities::copyFromPatchLevelVec(
             ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
             ghost_fill_alg.resetSchedule(ghost_fill_sched);
         }
+        else
+        {
+            ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
+            ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
+        }
         copyFromPatchLevelVec_cell(vec, data_idx, dof_index_idx, patch_level, ghost_fill_sched);
     }
     else if (!data_sc_var.isNull())
@@ -136,10 +148,25 @@ PETScVecUtilities::copyFromPatchLevelVec(
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(!dof_index_sc_var.isNull());
 #endif
+        if (!data_synch_sched.isNull())
+        {
+            data_synch_alg.registerRefine(data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
+            data_synch_alg.resetSchedule(data_synch_sched);
+        }
+        else
+        {
+            data_synch_alg.registerRefine(data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
+            data_synch_alg.createSchedule(patch_level)->fillData(0.0);
+        }
         if (!ghost_fill_sched.isNull())
         {
-            ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
+            ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
             ghost_fill_alg.resetSchedule(ghost_fill_sched);
+        }
+        else
+        {
+            ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
+            ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
         }
         copyFromPatchLevelVec_side(vec, data_idx, dof_index_idx, patch_level, ghost_fill_sched);
     }
@@ -149,12 +176,46 @@ PETScVecUtilities::copyFromPatchLevelVec(
                    << "  unsupported data centering type for variable " << data_var->getName() << "\n");
     }
 
+    if (!data_synch_sched.isNull())
+    {
+        data_synch_sched->reset(data_synch_config);
+    }
+
     if (!ghost_fill_sched.isNull())
     {
         ghost_fill_sched->reset(ghost_fill_config);
     }
     return;
 }// copyFromPatchLevelVec
+
+Pointer<RefineSchedule<NDIM> >
+PETScVecUtilities::constructDataSynchSchedule(
+    const int data_idx,
+    Pointer<PatchLevel<NDIM> > patch_level)
+{
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<Variable<NDIM> > data_var;
+    var_db->mapIndexToVariable(data_idx, data_var);
+    Pointer<CellVariable<NDIM,double> > data_cc_var = data_var;
+    Pointer<SideVariable<NDIM,double> > data_sc_var = data_var;
+    Pointer<RefineSchedule<NDIM> > data_synch_sched;
+    if (!data_cc_var.isNull())
+    {
+        // intentionally blank
+    }
+    else if (!data_sc_var.isNull())
+    {
+        RefineAlgorithm<NDIM> data_synch_alg;
+        data_synch_alg.registerRefine(data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
+        data_synch_sched = data_synch_alg.createSchedule(patch_level);
+    }
+    else
+    {
+        TBOX_ERROR("PETScVecUtilities::constructDataSynchSchedule():\n"
+                   << "  unsupported data centering type for variable " << data_var->getName() << "\n");
+    }
+    return data_synch_sched;
+}// constructDataSynchSchedule
 
 Pointer<RefineSchedule<NDIM> >
 PETScVecUtilities::constructGhostFillSchedule(
@@ -173,7 +234,7 @@ PETScVecUtilities::constructGhostFillSchedule(
     }
     else if (!data_sc_var.isNull())
     {
-        ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL, new SideSynchCopyFillPattern());
+        ghost_fill_alg.registerRefine(data_idx, data_idx, data_idx, NULL);
     }
     else
     {
@@ -429,42 +490,74 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(
     const int dof_index_idx,
     Pointer<PatchLevel<NDIM> > patch_level)
 {
-    // Create a variable to fill with the patch number.
+    // Create variables to keep track of whether a particular location is the
+    // "master" location.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<SideVariable<NDIM,int> > patch_num_var = new SideVariable<NDIM,int>("PETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_num_var");
+    Pointer<SideVariable<NDIM,int > > patch_num_var = new SideVariable<NDIM,int >("PETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_num_var");
     const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
     patch_level->allocatePatchData(patch_num_idx);
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        const int patch_num = patch->getPatchNumber();
-        Pointer<SideData<NDIM,int> > patch_num_data = patch->getPatchData(patch_num_idx);
-        patch_num_data->fillAll(patch_num);
-    }
-
-    // Synchronize the patch number at patch boundaries to determine which patch
-    // owns a given DOF along patch boundaries.
-    RefineAlgorithm<NDIM> patch_num_synch_alg;
-    patch_num_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, NULL, new SideSynchCopyFillPattern());
-    patch_num_synch_alg.createSchedule(patch_level)->fillData(0.0);
-
-    // Determine the number of local DOFs.
-    int local_dof_count = 0;
+    Pointer<SideVariable<NDIM,bool> > mastr_loc_var = new SideVariable<NDIM,bool>("PETScVecUtilities::constructPatchLevelDOFIndices_side()::mastr_loc_var");
+    const int mastr_loc_idx = var_db->registerPatchDataIndex(mastr_loc_var);
+    patch_level->allocatePatchData(mastr_loc_idx);
+    int counter = 0;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
         const int patch_num = patch->getPatchNumber();
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        Pointer<SideData<NDIM,int > > dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
-        Pointer<SideData<NDIM,int> > patch_num_data = patch->getPatchData(patch_num_idx);
+        Pointer<SideData<NDIM,int > > patch_num_data = patch->getPatchData(patch_num_idx);
+        patch_num_data->fillAll(patch_num);
+        Pointer<SideData<NDIM,bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
+        mastr_loc_data->fillAll(false);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             const Box<NDIM>& data_box = SideGeometry<NDIM>::toSideBox(patch_box, component_axis);
             for (Box<NDIM>::Iterator b(data_box); b; b++)
             {
                 const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
-                if (LIKELY((*patch_num_data)(i) == patch_num)) local_dof_count += depth;
+                for (int d = 0; d < depth; ++d)
+                {
+                    (*dof_index_data)(i,d) = counter++;
+                }
+            }
+        }
+    }
+
+    // Synchronize the patch number and preliminary DOF index data at patch
+    // boundaries to determine which patch owns a given DOF along patch
+    // boundaries.
+    RefineAlgorithm<NDIM> bdry_synch_alg;
+    bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, NULL, new SideSynchCopyFillPattern());
+    bdry_synch_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL, new SideSynchCopyFillPattern());
+    bdry_synch_alg.createSchedule(patch_level)->fillData(0.0);
+
+    // Determine the number of local DOFs.
+    int local_dof_count = 0;
+    counter = 0;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const int patch_num = patch->getPatchNumber();
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<SideData<NDIM,int > > dof_index_data = patch->getPatchData(dof_index_idx);
+        const int depth = dof_index_data->getDepth();
+        Pointer<SideData<NDIM,int > > patch_num_data = patch->getPatchData(patch_num_idx);
+        Pointer<SideData<NDIM,bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
+        for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
+        {
+            const Box<NDIM>& data_box = SideGeometry<NDIM>::toSideBox(patch_box, component_axis);
+            for (Box<NDIM>::Iterator b(data_box); b; b++)
+            {
+                const SideIndex<NDIM> i(b(), component_axis, SideIndex<NDIM>::Lower);
+                bool mastr_loc = (*patch_num_data)(i) == patch_num;
+                for (int d = 0; d < depth; ++d)
+                {
+                    mastr_loc = ((*dof_index_data)(i,d) == counter++) && mastr_loc;
+                }
+                (*mastr_loc_data)(i) = mastr_loc;
+                if (LIKELY(mastr_loc)) local_dof_count += depth;
             }
         }
     }
@@ -479,16 +572,15 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(
     const int local_dof_offset = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin()+mpi_rank, 0);
 
     // Assign local DOF indices.
-    int counter = local_dof_offset;
+    counter = local_dof_offset;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        const int patch_num = patch->getPatchNumber();
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        Pointer<SideData<NDIM,int > > dof_index_data = patch->getPatchData(dof_index_idx);
         const int depth = dof_index_data->getDepth();
         dof_index_data->fillAll(-1);
-        Pointer<SideData<NDIM,int> > patch_num_data = patch->getPatchData(patch_num_idx);
+        Pointer<SideData<NDIM,bool> > mastr_loc_data = patch->getPatchData(mastr_loc_idx);
         blitz::TinyVector<Box<NDIM>,NDIM> data_boxes;
         BoxList<NDIM> data_box_union(patch_box);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
@@ -506,12 +598,10 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(
                     const Index<NDIM>& ic = b();
                     if (UNLIKELY(!data_boxes[component_axis].contains(ic))) continue;
                     const SideIndex<NDIM> is(ic, component_axis, SideIndex<NDIM>::Lower);
-                    if (LIKELY((*patch_num_data)(is) == patch_num))
+                    if (UNLIKELY(!(*mastr_loc_data)(is))) continue;
+                    for (int d = 0; d < depth; ++d)
                     {
-                        for (int d = 0; d < depth; ++d)
-                        {
-                            (*dof_index_data)(is,d) = counter++;
-                        }
+                        (*dof_index_data)(is,d) = counter++;
                     }
                 }
             }
@@ -520,11 +610,16 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(
 
     // Deallocate patch_num variable data.
     patch_level->deallocatePatchData(patch_num_idx);
+    patch_level->deallocatePatchData(mastr_loc_idx);
     var_db->removePatchDataIndex(patch_num_idx);
+    var_db->removePatchDataIndex(mastr_loc_idx);
 
     // Communicate ghost DOF indices.
+    RefineAlgorithm<NDIM> dof_synch_alg;
+    dof_synch_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL, new SideSynchCopyFillPattern());
+    dof_synch_alg.createSchedule(patch_level)->fillData(0.0);
     RefineAlgorithm<NDIM> ghost_fill_alg;
-    ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL, new SideSynchCopyFillPattern());
+    ghost_fill_alg.registerRefine(dof_index_idx, dof_index_idx, dof_index_idx, NULL);
     ghost_fill_alg.createSchedule(patch_level)->fillData(0.0);
     return;
 }// constructPatchLevelDOFIndices_side

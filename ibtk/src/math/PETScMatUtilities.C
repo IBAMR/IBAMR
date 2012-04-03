@@ -112,6 +112,7 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(
     const int nlocal = num_dofs_per_proc[mpi_rank];
     const int ilower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin()+mpi_rank, 0);
     const int iupper = ilower+nlocal;
+    const int ntotal = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
 
     // Determine the non-zero structure of the matrix.
     std::vector<int> d_nnz(nlocal,0), o_nnz(nlocal,0);
@@ -150,6 +151,8 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(
                         }
                     }
                 }
+                d_nnz[local_idx] = std::min(nlocal       ,d_nnz[local_idx]);
+                o_nnz[local_idx] = std::min(ntotal-nlocal,o_nnz[local_idx]);
             }
         }
     }
@@ -206,7 +209,7 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(
                         mat_cols[stencil_index] = (*dof_index_data)(i+stencil[stencil_index],d);
                     }
                 }
-                ierr = MatSetValues(mat, 1, &mat_cols[0], stencil_sz, &mat_cols[0], &mat_vals[0], INSERT_VALUES); IBTK_CHKERRQ(ierr);
+                ierr = MatSetValues(mat, 1, &dof_index, stencil_sz, &mat_cols[0], &mat_vals[0], INSERT_VALUES); IBTK_CHKERRQ(ierr);
             }
         }
     }
@@ -215,7 +218,7 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(
     ierr = MatAssemblyBegin(mat, MAT_FINAL_ASSEMBLY); IBTK_CHKERRQ(ierr);
     ierr = MatAssemblyEnd(  mat, MAT_FINAL_ASSEMBLY); IBTK_CHKERRQ(ierr);
     return;
-}// constructPatchLevelLaplaceOp
+}// constructPatchLevelCCLaplaceOp
 
 void
 PETScMatUtilities::constructPatchLevelSCLaplaceOp(
@@ -249,6 +252,7 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(
     const int nlocal = num_dofs_per_proc[mpi_rank];
     const int ilower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin()+mpi_rank, 0);
     const int iupper = ilower+nlocal;
+    const int ntotal = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
 
     // Determine the non-zero structure of the matrix.
     std::vector<int> d_nnz(nlocal,0), o_nnz(nlocal,0);
@@ -287,6 +291,8 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(
                         }
                     }
                 }
+                d_nnz[local_idx] = std::min(nlocal       ,d_nnz[local_idx]);
+                o_nnz[local_idx] = std::min(ntotal-nlocal,o_nnz[local_idx]);
             }
         }
     }
@@ -341,7 +347,7 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(
                         mat_cols[stencil_index] = (*dof_index_data)(i+stencil[stencil_index]);
                     }
                 }
-                ierr = MatSetValues(mat, 1, &mat_cols[0], stencil_sz, &mat_cols[0], &mat_vals[0], INSERT_VALUES); IBTK_CHKERRQ(ierr);
+                ierr = MatSetValues(mat, 1, &dof_index, stencil_sz, &mat_cols[0], &mat_vals[0], INSERT_VALUES); IBTK_CHKERRQ(ierr);
             }
         }
     }
@@ -350,7 +356,7 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(
     ierr = MatAssemblyBegin(mat, MAT_FINAL_ASSEMBLY); IBTK_CHKERRQ(ierr);
     ierr = MatAssemblyEnd(  mat, MAT_FINAL_ASSEMBLY); IBTK_CHKERRQ(ierr);
     return;
-}// constructPatchLevelLaplaceOp
+}// constructPatchLevelSCLaplaceOp
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

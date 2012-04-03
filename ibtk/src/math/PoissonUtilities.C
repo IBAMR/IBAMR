@@ -383,13 +383,11 @@ PoissonUtilities::computeSCMatrixCoefficients(
         }
     }
 
+    // Compute all matrix coefficients, including those on the physical
+    // boundary; however, do not yet take physical boundary conditions into
+    // account.  Boundary conditions are handled subsequently.
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
-
-        // Compute all matrix coefficients, including those on the physical
-        // boundary; however, do not yet take physical boundary conditions into
-        // account.  Boundary conditions are handled subsequently.
         std::vector<double> mat_vals(stencil_sz,0.0);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -405,14 +403,17 @@ PoissonUtilities::computeSCMatrixCoefficients(
         {
             matrix_coefficients.fill(mat_vals[stencil_index],stencil_index);
         }
+    }
 
-        // Modify matrix coefficients to account for physical boundary
-        // conditions along boundaries which ARE NOT aligned with the data axis.
-        //
-        // NOTE: It important to set these values first to avoid problems at
-        // corners in the physical domain.  In particular, since Dirichlet
-        // boundary conditions for values located on the physical boundary
-        // override all other boundary conditions, we set those values last.
+    // Modify matrix coefficients to account for physical boundary conditions
+    // along boundaries which ARE NOT aligned with the data axis.
+    //
+    // NOTE: It important to set these values first to avoid problems at corners
+    // in the physical domain.  In particular, since Dirichlet boundary
+    // conditions for values located on the physical boundary override all other
+    // boundary conditions, we set those values last.
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
         for (int n = 0; n < n_physical_codim1_boxes; ++n)
         {
             const BoundaryBox<NDIM>& bdry_box   = physical_codim1_boxes[n];
@@ -497,24 +498,27 @@ PoissonUtilities::computeSCMatrixCoefficients(
 
                 if (is_lower)
                 {
-                    matrix_coefficients(i_s,stencil_index_diag       ) += matrix_coefficients(i_s,stencil_index_lower[axis])*(-(a*h-2.0*b)/(a*h+2.0*b));
-                    matrix_coefficients(i_s,stencil_index_lower[axis])  = 0.0;
+                    matrix_coefficients(i_s,stencil_index_diag                   ) += matrix_coefficients(i_s,stencil_index_lower[bdry_normal_axis])*(-(a*h-2.0*b)/(a*h+2.0*b));
+                    matrix_coefficients(i_s,stencil_index_lower[bdry_normal_axis])  = 0.0;
                 }
                 else
                 {
-                    matrix_coefficients(i_s,stencil_index_diag       ) += matrix_coefficients(i_s,stencil_index_upper[axis])*(-(a*h-2.0*b)/(a*h+2.0*b));
-                    matrix_coefficients(i_s,stencil_index_upper[axis])  = 0.0;
+                    matrix_coefficients(i_s,stencil_index_diag                   ) += matrix_coefficients(i_s,stencil_index_upper[bdry_normal_axis])*(-(a*h-2.0*b)/(a*h+2.0*b));
+                    matrix_coefficients(i_s,stencil_index_upper[bdry_normal_axis])  = 0.0;
                 }
             }
         }
+    }
 
-        // Modify matrix coefficients to account for physical boundary
-        // conditions along boundaries which ARE aligned with the data axis.
-        //
-        // NOTE: It important to set these values last to avoid problems at
-        // corners in the physical domain.  In particular, since Dirichlet
-        // boundary conditions for values located on the physical boundary
-        // override all other boundary conditions, we set those values last.
+    // Modify matrix coefficients to account for physical boundary
+    // conditions along boundaries which ARE aligned with the data axis.
+    //
+    // NOTE: It important to set these values last to avoid problems at corners
+    // in the physical domain.  In particular, since Dirichlet boundary
+    // conditions for values located on the physical boundary override all other
+    // boundary conditions, we set those values last.
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
         for (int n = 0; n < n_physical_codim1_boxes; ++n)
         {
             const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
@@ -766,15 +770,15 @@ PoissonUtilities::adjustSCBoundaryRhsEntries(
         }
     }
 
+    // Modify the rhs entries to account for inhomogeneous boundary conditions
+    // along boundaries which ARE NOT aligned with the data axis.
+    //
+    // NOTE: It important to set these values first to avoid problems at corners
+    // in the physical domain.  In particular, since Dirichlet boundary
+    // conditions for values located on the physical boundary override all other
+    // boundary conditions, we set those values last.
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        // Modify the rhs entries to account for inhomogeneous boundary
-        // conditions along boundaries which ARE NOT aligned with the data axis.
-        //
-        // NOTE: It important to set these values first to avoid problems at
-        // corners in the physical domain.  In particular, since Dirichlet
-        // boundary conditions for values located on the physical boundary
-        // override all other boundary conditions, we set those values last.
         for (int n = 0; n < n_physical_codim1_boxes; ++n)
         {
             const BoundaryBox<NDIM>& bdry_box   = physical_codim1_boxes[n];
@@ -863,14 +867,17 @@ PoissonUtilities::adjustSCBoundaryRhsEntries(
                 rhs_data(i_s) += (D/h)*(-2.0*g)/(2.0*b+h*a);
             }
         }
+    }
 
-        // Modify the rhs entries to account for inhomogeneous boundary
-        // conditions along boundaries which ARE aligned with the data axis.
-        //
-        // NOTE: It important to set these values last to avoid problems at
-        // corners in the physical domain.  In particular, since Dirichlet
-        // boundary conditions for values located on the physical boundary
-        // override all other boundary conditions, we set those values last.
+    // Modify the rhs entries to account for inhomogeneous boundary conditions
+    // along boundaries which ARE aligned with the data axis.
+    //
+    // NOTE: It important to set these values last to avoid problems at corners
+    // in the physical domain.  In particular, since Dirichlet boundary
+    // conditions for values located on the physical boundary override all other
+    // boundary conditions, we set those values last.
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
         for (int n = 0; n < n_physical_codim1_boxes; ++n)
         {
             const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];

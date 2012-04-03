@@ -34,6 +34,13 @@ HyprePoissonSolver {
    enable_logging        = FALSE
 }
 
+PETScPoissonSolver {
+   max_iterations = 100
+   absolute_residual_tol = 0.0
+   relative_residual_tol = 1.0e-10
+   options_prefix = "poisson0_"
+}
+
 FACPoissonSolver {
    num_pre_sweeps  = 0
    num_post_sweeps = 3

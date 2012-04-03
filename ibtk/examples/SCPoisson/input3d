@@ -1,3 +1,5 @@
+SOLVER_CHOICE = "FAC"
+
 u {
    function = "sin(2*PI*(X_0-0.1234))*sin(2*PI*(X_1-0.1234))*sin(2*PI*(X_2-0.1234))"
 }
@@ -43,6 +45,13 @@ HyprePoissonSolver {
    relative_residual_tol = 1.0e-2
    max_iterations        = 100
    enable_logging        = FALSE
+}
+
+PETScPoissonSolver {
+   max_iterations = 100
+   absolute_residual_tol = 0.0
+   relative_residual_tol = 1.0e-10
+   options_prefix = "poisson0_"
 }
 
 FACPoissonSolver {
