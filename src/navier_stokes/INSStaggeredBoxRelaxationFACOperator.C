@@ -884,7 +884,6 @@ INSStaggeredBoxRelaxationFACOperator::prolongErrorAndCorrect(
 
     const int U_dst_idx = dst.getComponentDescriptorIndex(0);
     const int P_dst_idx = dst.getComponentDescriptorIndex(1);
-    const std::pair<int,int> dst_idxs = std::make_pair(U_dst_idx,P_dst_idx);
 
     const std::pair<int,int> scratch_idxs = std::make_pair(d_side_scratch_idx,d_cell_scratch_idx);
 
