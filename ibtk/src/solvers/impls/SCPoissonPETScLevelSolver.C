@@ -102,6 +102,7 @@ SCPoissonPETScLevelSolver::SCPoissonPETScLevelSolver(
       d_context(NULL),
       d_dof_index_idx(-1),
       d_dof_index_var(NULL),
+      d_data_synch_sched(NULL),
       d_ghost_fill_sched(NULL),
       d_enable_logging(false)
 {
@@ -382,6 +383,7 @@ SCPoissonPETScLevelSolver::deallocateSolverState()
     ierr = MatDestroy(&d_petsc_mat); IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&d_petsc_x); IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&d_petsc_b); IBTK_CHKERRQ(ierr);
+    d_data_synch_sched.setNull();
     d_ghost_fill_sched.setNull();
 
     d_petsc_ksp = PETSC_NULL;
