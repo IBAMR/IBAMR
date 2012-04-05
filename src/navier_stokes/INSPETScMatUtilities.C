@@ -492,7 +492,7 @@ INSPETScMatUtilities::constructPatchLevelMACStokesOp(
                 }
             }
             p_mat_vals[pu_stencil_sz] = 0.0;
-            p_mat_vals[pu_stencil_sz] = p_dof_index;
+            p_mat_cols[pu_stencil_sz] = p_dof_index;
 
             ierr = MatSetValues(mat, 1, &p_dof_index, p_stencil_sz, &p_mat_cols[0], &p_mat_vals[0], INSERT_VALUES); IBTK_CHKERRQ(ierr);
         }

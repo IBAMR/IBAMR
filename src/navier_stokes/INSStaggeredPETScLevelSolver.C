@@ -45,6 +45,8 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/INSPETScMatUtilities.h>
+#include <ibamr/INSPETScVecUtilities.h>
 #include <ibamr/namespaces.h>
 #include <ibamr/ibamr_utilities.h>
 
@@ -69,6 +71,7 @@ static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
 
 // Number of ghosts cells used for each variable quantity.
+static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 }
 
@@ -76,17 +79,20 @@ static const int SIDEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
 
 INSStaggeredPETScLevelSolver::INSStaggeredPETScLevelSolver(
     const std::string& object_name,
+    const INSProblemCoefs& problem_coefs,
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
     Pointer<Database> input_db)
     : d_object_name(object_name),
       d_is_initialized(false),
       d_hierarchy(),
       d_level_num(-1),
-      d_poisson_spec(d_object_name+"::Poisson specs"),
-      d_default_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(
-                            d_object_name+"::default_bc_coef", Pointer<Database>(NULL))),
-      d_bc_coefs(),
+      d_problem_coefs(problem_coefs),
+      d_default_u_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(
+                              d_object_name+"::default_u_bc_coef", Pointer<Database>(NULL))),
+      d_u_bc_coefs(),
       d_homogeneous_bc(true),
-      d_apply_time(0.0),
+      d_current_time(0.0),
+      d_new_time(0.0),
       d_options_prefix(""),
       d_petsc_ksp(PETSC_NULL),
       d_petsc_mat(PETSC_NULL),
@@ -99,8 +105,11 @@ INSStaggeredPETScLevelSolver::INSStaggeredPETScLevelSolver(
       d_current_its(-1),
       d_current_residual_norm(-1.0),
       d_context(NULL),
-      d_dof_index_idx(-1),
-      d_dof_index_var(NULL),
+      d_u_dof_index_idx(-1),
+      d_p_dof_index_idx(-1),
+      d_u_dof_index_var(NULL),
+      d_p_dof_index_var(NULL),
+      d_data_synch_sched(NULL),
       d_ghost_fill_sched(NULL),
       d_enable_logging(false)
 {
@@ -115,33 +124,47 @@ INSStaggeredPETScLevelSolver::INSStaggeredPETScLevelSolver(
         d_enable_logging = input_db->getBoolWithDefault("enable_logging", d_enable_logging);
     }
 
-    // Initialize the Poisson specifications.
-    d_poisson_spec.setCZero();
-    d_poisson_spec.setDConstant(-1.0);
-
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_default_bc_coef->setBoundaryValue(2*d  ,0.0);
-        d_default_bc_coef->setBoundaryValue(2*d+1,0.0);
+        d_default_u_bc_coef->setBoundaryValue(2*d  ,0.0);
+        d_default_u_bc_coef->setBoundaryValue(2*d+1,0.0);
     }
 
     // Initialize the boundary conditions objects.
     setHomogeneousBc(d_homogeneous_bc);
-    setPhysicalBcCoefs(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(d_default_bc_coef));
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        if (u_bc_coefs[d] != NULL)
+        {
+            d_u_bc_coefs[d] = u_bc_coefs[d];
+        }
+        else
+        {
+            d_u_bc_coefs[d] = d_default_u_bc_coef;
+        }
+    }
 
     // Construct the DOF index variable/context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
-    d_dof_index_var = new SideVariable<NDIM,int>(d_object_name + "::dof_index");
-    if (var_db->checkVariableExists(d_dof_index_var->getName()))
+    d_u_dof_index_var = new SideVariable<NDIM,int>(d_object_name + "::u_dof_index");
+    if (var_db->checkVariableExists(d_u_dof_index_var->getName()))
     {
-        d_dof_index_var = var_db->getVariable(d_dof_index_var->getName());
-        d_dof_index_idx = var_db->mapVariableAndContextToIndex(d_dof_index_var, d_context);
-        var_db->removePatchDataIndex(d_dof_index_idx);
+        d_u_dof_index_var = var_db->getVariable(d_u_dof_index_var->getName());
+        d_u_dof_index_idx = var_db->mapVariableAndContextToIndex(d_u_dof_index_var, d_context);
+        var_db->removePatchDataIndex(d_u_dof_index_idx);
     }
-    d_dof_index_idx = var_db->registerVariableAndContext(d_dof_index_var, d_context, SIDEG);
+    d_u_dof_index_idx = var_db->registerVariableAndContext(d_u_dof_index_var, d_context, SIDEG);
+    d_p_dof_index_var = new CellVariable<NDIM,int>(d_object_name + "::p_dof_index");
+    if (var_db->checkVariableExists(d_p_dof_index_var->getName()))
+    {
+        d_p_dof_index_var = var_db->getVariable(d_p_dof_index_var->getName());
+        d_p_dof_index_idx = var_db->mapVariableAndContextToIndex(d_p_dof_index_var, d_context);
+        var_db->removePatchDataIndex(d_p_dof_index_idx);
+    }
+    d_p_dof_index_idx = var_db->registerVariableAndContext(d_p_dof_index_var, d_context, CELLG);
 
     // Setup Timers.
     IBAMR_DO_ONCE(
@@ -155,35 +178,20 @@ INSStaggeredPETScLevelSolver::INSStaggeredPETScLevelSolver(
 INSStaggeredPETScLevelSolver::~INSStaggeredPETScLevelSolver()
 {
     if (d_is_initialized) deallocateSolverState();
-    delete d_default_bc_coef;
+    delete d_default_u_bc_coef;
     return;
 }// ~INSStaggeredPETScLevelSolver
 
 void
-INSStaggeredPETScLevelSolver::setPoissonSpecifications(
-    const SAMRAI::solv::PoissonSpecifications& poisson_spec)
+INSStaggeredPETScLevelSolver::setTimeInterval(
+    const double current_time,
+    const double new_time)
 {
-    d_poisson_spec = poisson_spec;
+    d_current_time = current_time;
+    d_new_time = new_time;
+    d_dt = d_new_time-d_current_time;
     return;
-}// setPoissonSpecifications
-
-void
-INSStaggeredPETScLevelSolver::setPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
-{
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        if (bc_coefs[d] != NULL)
-        {
-            d_bc_coefs[d] = bc_coefs[d];
-        }
-        else
-        {
-            d_bc_coefs[d] = d_default_bc_coef;
-        }
-    }
-    return;
-}// setPhysicalBcCoefs
+}// setTimeInterval
 
 void
 INSStaggeredPETScLevelSolver::setHomogeneousBc(
@@ -192,14 +200,6 @@ INSStaggeredPETScLevelSolver::setHomogeneousBc(
     d_homogeneous_bc = homogeneous_bc;
     return;
 }// setHomogeneousBc
-
-void
-INSStaggeredPETScLevelSolver::setTime(
-    const double time)
-{
-    d_apply_time = time;
-    return;
-}// setTime
 
 bool
 INSStaggeredPETScLevelSolver::solveSystem(
@@ -222,28 +222,14 @@ INSStaggeredPETScLevelSolver::solveSystem(
 
     // Solve the system.
     Pointer<PatchLevel<NDIM> > patch_level = d_hierarchy->getPatchLevel(d_level_num);
-    const int x_idx = x.getComponentDescriptorIndex(0);
-    Pointer<SideVariable<NDIM,double> > x_var = x.getComponentVariable(0);
-    const int b_idx = b.getComponentDescriptorIndex(0);
-    Pointer<SideVariable<NDIM,double> > b_var = b.getComponentVariable(0);
-    if (!d_initial_guess_nonzero) PETScVecUtilities::copyToPatchLevelVec(d_petsc_x, x_idx, d_dof_index_idx, patch_level);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    int b_adj_idx = var_db->registerClonedPatchDataIndex(b_var, b_idx);
-    patch_level->allocatePatchData(b_adj_idx);
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        Pointer<SideData<NDIM,double> > b_data = patch->getPatchData(b_idx);
-        Pointer<SideData<NDIM,double> > b_adj_data = patch->getPatchData(b_adj_idx);
-        b_adj_data->copy(*b_data);
-        if (!patch->getPatchGeometry()->intersectsPhysicalBoundary()) continue;
-        PoissonUtilities::adjustSCBoundaryRhsEntries(patch, *b_adj_data, d_poisson_spec, d_bc_coefs, d_apply_time, d_homogeneous_bc);
-    }
-    PETScVecUtilities::copyToPatchLevelVec(d_petsc_b, b_adj_idx, d_dof_index_idx, patch_level);
-    patch_level->deallocatePatchData(b_adj_idx);
-    var_db->removePatchDataIndex(b_adj_idx);
+    const int u_idx = x.getComponentDescriptorIndex(0);
+    const int p_idx = x.getComponentDescriptorIndex(1);
+    if (!d_initial_guess_nonzero) INSPETScVecUtilities::copyToPatchLevelVec(d_petsc_x, u_idx, d_u_dof_index_idx, p_idx, d_p_dof_index_idx, patch_level);
+    const int f_u_idx = b.getComponentDescriptorIndex(0);
+    const int f_p_idx = b.getComponentDescriptorIndex(1);
+    INSPETScVecUtilities::copyToPatchLevelVec(d_petsc_b, f_u_idx, d_u_dof_index_idx, f_p_idx, d_p_dof_index_idx, patch_level);
     ierr = KSPSolve(d_petsc_ksp, d_petsc_b, d_petsc_x); IBTK_CHKERRQ(ierr);
-    PETScVecUtilities::copyFromPatchLevelVec(d_petsc_x, x_idx, d_dof_index_idx, patch_level, d_data_synch_sched, d_ghost_fill_sched);
+    INSPETScVecUtilities::copyFromPatchLevelVec(d_petsc_x, u_idx, d_u_dof_index_idx, p_idx, d_p_dof_index_idx, patch_level, d_data_synch_sched, d_ghost_fill_sched);
 
     // Log solver info.
     KSPConvergedReason reason;
@@ -335,22 +321,17 @@ INSStaggeredPETScLevelSolver::initializeSolverState(
 #endif
 
     // Allocate DOF index data.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int x_idx = x.getComponentDescriptorIndex(0);
-    Pointer<SideDataFactory<NDIM,double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
-    const int depth = x_fac->getDefaultDepth();
-    Pointer<SideDataFactory<NDIM,int> > dof_index_fac = var_db->getPatchDescriptor()->getPatchDataFactory(d_dof_index_idx);
-    dof_index_fac->setDefaultDepth(depth);
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
-    if (!level->checkAllocated(d_dof_index_idx)) level->allocatePatchData(d_dof_index_idx);
+    if (!level->checkAllocated(d_u_dof_index_idx)) level->allocatePatchData(d_u_dof_index_idx);
+    if (!level->checkAllocated(d_p_dof_index_idx)) level->allocatePatchData(d_p_dof_index_idx);
 
     // Setup PETSc objects.
     int ierr;
-    PETScVecUtilities::constructPatchLevelDOFIndices(d_num_dofs_per_proc, d_dof_index_idx, level);
+    INSPETScVecUtilities::constructPatchLevelDOFIndices(d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, level);
     const int mpi_rank = SAMRAI_MPI::getRank();
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x); IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b); IBTK_CHKERRQ(ierr);
-    PETScMatUtilities::constructPatchLevelSCLaplaceOp(d_petsc_mat, d_poisson_spec, d_bc_coefs, d_apply_time, d_num_dofs_per_proc, d_dof_index_idx, level);
+    INSPETScMatUtilities::constructPatchLevelMACStokesOp(d_petsc_mat, &d_problem_coefs, d_u_bc_coefs, d_new_time, d_dt, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, level);
     ierr = KSPCreate(PETSC_COMM_WORLD, &d_petsc_ksp); IBTK_CHKERRQ(ierr);
     ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat, SAME_PRECONDITIONER); IBTK_CHKERRQ(ierr);
     if (!d_options_prefix.empty())
@@ -358,8 +339,10 @@ INSStaggeredPETScLevelSolver::initializeSolverState(
         ierr = KSPSetOptionsPrefix(d_petsc_ksp, d_options_prefix.c_str()); IBTK_CHKERRQ(ierr);
     }
     ierr = KSPSetFromOptions(d_petsc_ksp); IBTK_CHKERRQ(ierr);
-    d_data_synch_sched = PETScVecUtilities::constructDataSynchSchedule(x_idx, level);
-    d_ghost_fill_sched = PETScVecUtilities::constructGhostFillSchedule(x_idx, level);
+    const int u_idx = x.getComponentDescriptorIndex(0);
+    const int p_idx = x.getComponentDescriptorIndex(1);
+    d_data_synch_sched = INSPETScVecUtilities::constructDataSynchSchedule(u_idx, p_idx, level);
+    d_ghost_fill_sched = INSPETScVecUtilities::constructGhostFillSchedule(u_idx, p_idx, level);
 
     // Indicate that the solver is initialized.
     d_is_initialized = true;
@@ -381,6 +364,7 @@ INSStaggeredPETScLevelSolver::deallocateSolverState()
     ierr = MatDestroy(&d_petsc_mat); IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&d_petsc_x); IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&d_petsc_b); IBTK_CHKERRQ(ierr);
+    d_data_synch_sched.setNull();
     d_ghost_fill_sched.setNull();
 
     d_petsc_ksp = PETSC_NULL;
@@ -390,7 +374,8 @@ INSStaggeredPETScLevelSolver::deallocateSolverState()
 
     // Deallocate DOF index data.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
-    if (level->checkAllocated(d_dof_index_idx)) level->deallocatePatchData(d_dof_index_idx);
+    if (level->checkAllocated(d_u_dof_index_idx)) level->deallocatePatchData(d_u_dof_index_idx);
+    if (level->checkAllocated(d_p_dof_index_idx)) level->deallocatePatchData(d_p_dof_index_idx);
 
     // Indicate that the solver is NOT initialized.
     d_is_initialized = false;

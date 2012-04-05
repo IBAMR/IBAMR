@@ -47,7 +47,9 @@
 // IBAMR INCLUDES
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
 #include <ibamr/INSProjectionBcCoef.h>
+#include <ibamr/INSStaggeredBlockFactorizationPreconditioner.h>
 #include <ibamr/INSStaggeredCenteredConvectiveOperator.h>
+#include <ibamr/INSStaggeredPETScLevelSolver.h>
 #include <ibamr/INSStaggeredPPMConvectiveOperator.h>
 #include <ibamr/INSStaggeredProjectionPreconditioner.h>
 #include <ibamr/INSStaggeredPressureBcCoef.h>
@@ -567,12 +569,36 @@ INSStaggeredHierarchyIntegrator::getStokesPreconditioner()
                        "  invalid stokes preconditioner type: " << stokes_pc_type << "\n"
                        "  valid stokes preconditioner types: shell, none" << std::endl);
         }
-        if (stokes_pc_type != "none")
+        if (stokes_pc_type == "shell")
         {
-            d_stokes_pc = new INSStaggeredProjectionPreconditioner(
-                d_problem_coefs, d_Phi_bc_coef, d_normalize_pressure,
-                getVelocitySubdomainSolver(), getPressureSubdomainSolver(),
-                d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
+            static const size_t len = 255;
+            char stokes_pc_shell_type_str[len];
+            PetscBool flg;
+            int ierr = PetscOptionsGetString("stokes_", "-pc_shell_type", stokes_pc_shell_type_str, len, &flg);  IBTK_CHKERRQ(ierr);
+            std::string stokes_pc_shell_type = "projection";
+            if (flg)
+            {
+                stokes_pc_shell_type = std::string(stokes_pc_shell_type_str);
+            }
+            if (stokes_pc_shell_type == "projection")
+            {
+                d_stokes_pc = new INSStaggeredProjectionPreconditioner(
+                    d_problem_coefs, d_Phi_bc_coef, d_normalize_pressure,
+                    getVelocitySubdomainSolver(), getPressureSubdomainSolver(),
+                    d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
+            }
+            else if (stokes_pc_shell_type == "block_factorization")
+            {
+                d_stokes_pc = new INSStaggeredBlockFactorizationPreconditioner(
+                    d_problem_coefs, d_Phi_bc_coef, d_normalize_pressure,
+                    getVelocitySubdomainSolver(), getPressureSubdomainSolver(),
+                    d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
+            }
+            else if (stokes_pc_shell_type == "petsc")
+            {
+                d_stokes_pc = new INSStaggeredPETScLevelSolver(
+                    "INSStaggeredPETScLevelSolver", d_problem_coefs, d_U_bc_coefs);
+            }
         }
         d_stokes_solver_needs_reinit_when_dt_changes = false;
         d_stokes_solver_needs_init = true;

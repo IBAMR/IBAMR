@@ -38,12 +38,14 @@
 // PETSc INCLUDES
 #include <petscksp.h>
 
+// IBAMR INCLUDES
+#include <ibamr/INSProblemCoefs.h>
+
 // IBTK INCLUDES
 #include <ibtk/LinearSolver.h>
 
 // SAMRAI INCLUDES
 #include <LocationIndexRobinBcCoefs.h>
-#include <PoissonSpecifications.h>
 #include <RefineSchedule.h>
 
 // BLITZ++ INCLUDES
@@ -63,19 +65,16 @@ namespace IBAMR
  * \see INSStaggeredHierarchyIntegrator
  */
 class INSStaggeredPETScLevelSolver
-    : public LinearSolver
+    : public IBTK::LinearSolver
 {
 public:
     /*!
      * \brief Constructor.
-     *
-     * \param object_name  Name of object.
-     * \param input_db     Optional SAMRAI::tbox::Database for input.
      */
     INSStaggeredPETScLevelSolver(
         const std::string& object_name,
-        const INSProblemCoefs* problem_coefs,
-        blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> u_bc_coefs,
+        const INSProblemCoefs& problem_coefs,
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
 
     /*!
@@ -91,23 +90,13 @@ public:
         const std::string& options_prefix);
 
     /*!
-     * \name Functions for specifying the problem.
-     */
-    //\{
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
-     * physical boundary conditions.
-     *
-     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
-     * homogeneous Dirichlet boundary conditions are employed for that data
-     * depth.
-     *
-     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
+     * \brief Set the current time interval, for use with the refinement
+     * schedules and boundary condition routines employed by the object.
      */
     void
-    setPhysicalBcCoefs(
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
+    setTimeInterval(
+        double current_time,
+        double new_time);
 
     /*!
      * \brief Specify whether the boundary conditions are homogeneous.
@@ -115,23 +104,6 @@ public:
     void
     setHomogeneousBc(
         bool homogeneous_bc);
-
-    /*!
-     * \brief Set the hierarchy time, for use with the refinement schedules and
-     * boundary condition routines employed by the object.
-     */
-    void
-    setTime(
-        double time);
-
-    /*!
-     * \brief Set the current time step size.
-     */
-    void
-    setTimeStepSize(
-        double dt);
-
-    //\}
 
     /*!
      * \name Linear solver functionality.
@@ -383,16 +355,21 @@ private:
      * \name Problem specification and boundary condition handling.
      */
     //\{
-    SAMRAI::solv::PoissonSpecifications d_poisson_spec;
+
+    /*
+     * Problem coefficient specifications.
+     */
+    INSProblemCoefs d_problem_coefs;
+    double d_dt;
 
     /*!
-     * \brief Robin boundary coefficient object for physical boundaries and
-     * related data.
+     * \brief Boundary coefficient object for physical boundaries and related
+     * data.
      */
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_bc_coef;
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs;
+    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_u_bc_coef;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_u_bc_coefs;
     bool d_homogeneous_bc;
-    double d_apply_time;
+    double d_current_time, d_new_time;
 
     //\}
 

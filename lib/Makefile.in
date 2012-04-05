@@ -164,6 +164,7 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPhysicalBoundaryHelper.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C \
@@ -234,6 +235,7 @@ am__objects_3 = libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredCenteredConvectiveOperator.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredHierarchyIntegrator.$(OBJEXT) \
+	libIBAMR2d_a-INSStaggeredPETScLevelSolver.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredPPMConvectiveOperator.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredPhysicalBoundaryHelper.$(OBJEXT) \
 	libIBAMR2d_a-INSStaggeredPressureBcCoef.$(OBJEXT) \
@@ -305,6 +307,7 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPhysicalBoundaryHelper.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C \
@@ -375,6 +378,7 @@ am__objects_5 = libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredCenteredConvectiveOperator.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredHierarchyIntegrator.$(OBJEXT) \
+	libIBAMR3d_a-INSStaggeredPETScLevelSolver.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredPPMConvectiveOperator.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredPhysicalBoundaryHelper.$(OBJEXT) \
 	libIBAMR3d_a-INSStaggeredPressureBcCoef.$(OBJEXT) \
@@ -467,6 +471,7 @@ am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.h \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPhysicalBoundaryHelper.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.h \
@@ -863,6 +868,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.h \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPhysicalBoundaryHelper.h \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.h \
@@ -920,6 +926,7 @@ DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/IB/GeneralizedIBMethod.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredBoxRelaxationFACOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredCenteredConvectiveOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C \
+	$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPhysicalBoundaryHelper.C \
 	$(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C \
@@ -1091,6 +1098,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredBoxRelaxationFACOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredCenteredConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredHierarchyIntegrator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredPETScLevelSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredPPMConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredPhysicalBoundaryHelper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredPressureBcCoef.Po@am__quote@
@@ -1148,6 +1156,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredBoxRelaxationFACOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredCenteredConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredHierarchyIntegrator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredPETScLevelSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredPPMConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredPhysicalBoundaryHelper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-INSStaggeredPressureBcCoef.Po@am__quote@
@@ -1884,6 +1893,20 @@ libIBAMR2d_a-INSStaggeredHierarchyIntegrator.obj: $(top_srcdir)/src/navier_stoke
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C' object='libIBAMR2d_a-INSStaggeredHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; fi`
+
+libIBAMR2d_a-INSStaggeredPETScLevelSolver.o: $(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredPETScLevelSolver.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredPETScLevelSolver.Tpo -c -o libIBAMR2d_a-INSStaggeredPETScLevelSolver.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSStaggeredPETScLevelSolver.Tpo $(DEPDIR)/libIBAMR2d_a-INSStaggeredPETScLevelSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C' object='libIBAMR2d_a-INSStaggeredPETScLevelSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredPETScLevelSolver.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C
+
+libIBAMR2d_a-INSStaggeredPETScLevelSolver.obj: $(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredPETScLevelSolver.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredPETScLevelSolver.Tpo -c -o libIBAMR2d_a-INSStaggeredPETScLevelSolver.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-INSStaggeredPETScLevelSolver.Tpo $(DEPDIR)/libIBAMR2d_a-INSStaggeredPETScLevelSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C' object='libIBAMR2d_a-INSStaggeredPETScLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-INSStaggeredPETScLevelSolver.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C'; fi`
 
 libIBAMR2d_a-INSStaggeredPPMConvectiveOperator.o: $(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-INSStaggeredPPMConvectiveOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-INSStaggeredPPMConvectiveOperator.Tpo -c -o libIBAMR2d_a-INSStaggeredPPMConvectiveOperator.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C
@@ -2682,6 +2705,20 @@ libIBAMR3d_a-INSStaggeredHierarchyIntegrator.obj: $(top_srcdir)/src/navier_stoke
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C' object='libIBAMR3d_a-INSStaggeredHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredHierarchyIntegrator.C'; fi`
+
+libIBAMR3d_a-INSStaggeredPETScLevelSolver.o: $(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredPETScLevelSolver.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredPETScLevelSolver.Tpo -c -o libIBAMR3d_a-INSStaggeredPETScLevelSolver.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSStaggeredPETScLevelSolver.Tpo $(DEPDIR)/libIBAMR3d_a-INSStaggeredPETScLevelSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C' object='libIBAMR3d_a-INSStaggeredPETScLevelSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredPETScLevelSolver.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C
+
+libIBAMR3d_a-INSStaggeredPETScLevelSolver.obj: $(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredPETScLevelSolver.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredPETScLevelSolver.Tpo -c -o libIBAMR3d_a-INSStaggeredPETScLevelSolver.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-INSStaggeredPETScLevelSolver.Tpo $(DEPDIR)/libIBAMR3d_a-INSStaggeredPETScLevelSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C' object='libIBAMR3d_a-INSStaggeredPETScLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-INSStaggeredPETScLevelSolver.obj `if test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/navier_stokes/INSStaggeredPETScLevelSolver.C'; fi`
 
 libIBAMR3d_a-INSStaggeredPPMConvectiveOperator.o: $(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-INSStaggeredPPMConvectiveOperator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-INSStaggeredPPMConvectiveOperator.Tpo -c -o libIBAMR3d_a-INSStaggeredPPMConvectiveOperator.o `test -f '$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C
