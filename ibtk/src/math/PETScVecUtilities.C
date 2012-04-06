@@ -235,8 +235,8 @@ PETScVecUtilities::copyToPatchLevelVec_cell(
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
-    int ilower, iupper;
-    ierr = VecGetOwnershipRange(vec, &ilower, &iupper); IBTK_CHKERRQ(ierr);
+    int i_lower, i_upper;
+    ierr = VecGetOwnershipRange(vec, &i_lower, &i_upper); IBTK_CHKERRQ(ierr);
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
@@ -253,7 +253,7 @@ PETScVecUtilities::copyToPatchLevelVec_cell(
             for (int d = 0; d < depth; ++d)
             {
                 const int dof_index = (*dof_index_data)(i,d);
-                if (LIKELY(ilower <= dof_index && dof_index < iupper))
+                if (LIKELY(i_lower <= dof_index && dof_index < i_upper))
                 {
                     ierr = VecSetValues(vec, 1, &dof_index, &(*data)(i,d), INSERT_VALUES); IBTK_CHKERRQ(ierr);
                 }
@@ -273,8 +273,8 @@ PETScVecUtilities::copyToPatchLevelVec_side(
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
-    int ilower, iupper;
-    ierr = VecGetOwnershipRange(vec, &ilower, &iupper); IBTK_CHKERRQ(ierr);
+    int i_lower, i_upper;
+    ierr = VecGetOwnershipRange(vec, &i_lower, &i_upper); IBTK_CHKERRQ(ierr);
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
@@ -293,7 +293,7 @@ PETScVecUtilities::copyToPatchLevelVec_side(
                 for (int d = 0; d < depth; ++d)
                 {
                     const int dof_index = (*dof_index_data)(i,d);
-                    if (LIKELY(ilower <= dof_index && dof_index < iupper))
+                    if (LIKELY(i_lower <= dof_index && dof_index < i_upper))
                     {
                         ierr = VecSetValues(vec, 1, &dof_index, &(*data)(i,d), INSERT_VALUES); IBTK_CHKERRQ(ierr);
                     }
@@ -314,8 +314,8 @@ PETScVecUtilities::copyFromPatchLevelVec_cell(
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
-    int ilower, iupper;
-    ierr = VecGetOwnershipRange(vec, &ilower, &iupper); IBTK_CHKERRQ(ierr);
+    int i_lower, i_upper;
+    ierr = VecGetOwnershipRange(vec, &i_lower, &i_upper); IBTK_CHKERRQ(ierr);
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
@@ -332,7 +332,7 @@ PETScVecUtilities::copyFromPatchLevelVec_cell(
             for (int d = 0; d < depth; ++d)
             {
                 const int dof_index = (*dof_index_data)(i,d);
-                if (LIKELY(ilower <= dof_index && dof_index < iupper))
+                if (LIKELY(i_lower <= dof_index && dof_index < i_upper))
                 {
                     ierr = VecGetValues(vec, 1, &dof_index, &(*data)(i,d)); IBTK_CHKERRQ(ierr);
                 }
@@ -350,8 +350,8 @@ PETScVecUtilities::copyFromPatchLevelVec_side(
     Pointer<PatchLevel<NDIM> > patch_level)
 {
     int ierr;
-    int ilower, iupper;
-    ierr = VecGetOwnershipRange(vec, &ilower, &iupper); IBTK_CHKERRQ(ierr);
+    int i_lower, i_upper;
+    ierr = VecGetOwnershipRange(vec, &i_lower, &i_upper); IBTK_CHKERRQ(ierr);
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
@@ -370,7 +370,7 @@ PETScVecUtilities::copyFromPatchLevelVec_side(
                 for (int d = 0; d < depth; ++d)
                 {
                     const int dof_index = (*dof_index_data)(i,d);
-                    if (LIKELY(ilower <= dof_index && dof_index < iupper))
+                    if (LIKELY(i_lower <= dof_index && dof_index < i_upper))
                     {
                         ierr = VecGetValues(vec, 1, &dof_index, &(*data)(i,d)); IBTK_CHKERRQ(ierr);
                     }

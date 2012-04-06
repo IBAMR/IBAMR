@@ -126,6 +126,24 @@ public:
         int dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
+    /*!
+     * \brief Construct a parallel PETSc Mat object corresponding to the
+     * side-centered IB interpolation operator for the provided kernel function.
+     *
+     * \warning This routine does not properly handle delta functions for which
+     * interp_stencil is odd, nor does it properly handle physical boundary
+     * conditions.
+     */
+    static void
+    constructPatchLevelSCInterpOp(
+        Mat& mat,
+        void (*interp_fcn)(double r_lower,double* w),
+        int interp_stencil,
+        Vec& X_vec,
+        const std::vector<int>& num_dofs_per_proc,
+        int dof_index_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+
     //\}
 
 protected:
