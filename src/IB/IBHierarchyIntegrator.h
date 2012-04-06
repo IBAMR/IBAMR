@@ -256,19 +256,12 @@ protected:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_u_var, d_p_var, d_f_var, d_q_var;
     int d_u_idx, d_p_idx, d_f_idx, d_f_current_idx, d_q_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_ib_context;
 
     /*
      * Body force functions.
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_body_force_fcn;
-    class IBEulerianForceFunction;
-    SAMRAI::tbox::Pointer<IBEulerianForceFunction> d_eulerian_force_fcn;
-
-    /*
-     * The source/sink distribution functions.
-     */
-    class IBEulerianSourceFunction;
-    SAMRAI::tbox::Pointer<IBEulerianSourceFunction> d_eulerian_source_fcn;
 
     /*
      * IB method implementation object.

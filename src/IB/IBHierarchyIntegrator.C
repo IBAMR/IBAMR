@@ -108,25 +108,25 @@ IBHierarchyIntegrator::registerLoadBalancer(
 Pointer<Variable<NDIM> >
 IBHierarchyIntegrator::getVelocityVariable() const
 {
-    return d_ins_hier_integrator->getVelocityVariable();
+    return d_u_var;
 }// getVelocityVariable
 
 Pointer<Variable<NDIM> >
 IBHierarchyIntegrator::getPressureVariable() const
 {
-    return d_ins_hier_integrator->getPressureVariable();
+    return d_p_var;
 }// getPressureVariable
 
 Pointer<Variable<NDIM> >
 IBHierarchyIntegrator::getBodyForceVariable() const
 {
-    return d_ins_hier_integrator->getBodyForceVariable();
+    return d_f_var;
 }// getBodyForceVariable
 
 Pointer<Variable<NDIM> >
 IBHierarchyIntegrator::getFluidSourceVariable() const
 {
-    return d_ins_hier_integrator->getFluidSourceVariable();
+    return d_q_var;
 }// getFluidSourceVariable
 
 void
@@ -141,8 +141,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    d_hier_velocity_data_ops = hier_ops_manager->getOperationsDouble(d_ins_hier_integrator->getVelocityVariable(), hierarchy, true);
-    d_hier_pressure_data_ops = hier_ops_manager->getOperationsDouble(d_ins_hier_integrator->getPressureVariable(), hierarchy, true);
+    d_hier_velocity_data_ops = hier_ops_manager->getOperationsDouble(getVelocityVariable(), hierarchy, true);
+    d_hier_pressure_data_ops = hier_ops_manager->getOperationsDouble(getPressureVariable(), hierarchy, true);
     d_hier_cc_data_ops       = hier_ops_manager->getOperationsDouble(new CellVariable<NDIM,double>("cc_var"), hierarchy, true);
 
     // Initialize all variables.
@@ -151,25 +151,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     const IntVector<NDIM> ib_ghosts = d_ib_method_ops->getMinimumGhostCellWidth();
     const IntVector<NDIM>    ghosts = 1;
 
-    Pointer<CellVariable<NDIM,double> > u_cc_var = d_ins_hier_integrator->getVelocityVariable();
-    Pointer<SideVariable<NDIM,double> > u_sc_var = d_ins_hier_integrator->getVelocityVariable();
-    if (!u_cc_var.isNull())
-    {
-        d_u_var = new CellVariable<NDIM,double>(d_object_name+"::u", NDIM);
-        d_f_var = new CellVariable<NDIM,double>(d_object_name+"::f", NDIM);
-    }
-    else if (!u_sc_var.isNull())
-    {
-        d_u_var = new SideVariable<NDIM,double>(d_object_name+"::u");
-        d_f_var = new SideVariable<NDIM,double>(d_object_name+"::f");
-    }
-    else
-    {
-        TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n"
-                   << "  unsupported velocity data centering" << std::endl);
-    }
-    d_u_idx = var_db->registerVariableAndContext(d_u_var, getScratchContext(), ib_ghosts);
-    d_f_idx = var_db->registerVariableAndContext(d_f_var, getScratchContext(),    ghosts);
+    d_u_idx = var_db->registerVariableAndContext(d_u_var, d_ib_context, ib_ghosts);
+    d_f_idx = var_db->registerVariableAndContext(d_f_var, d_ib_context,    ghosts);
     if (d_timestepping_type == TRAPEZOIDAL_RULE)
     {
         d_f_current_idx = var_db->registerClonedPatchDataIndex(d_f_var, d_f_idx);
@@ -181,19 +164,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
 
     if (d_ib_method_ops->hasFluidSources())
     {
-        Pointer<CellVariable<NDIM,double> > p_cc_var = d_ins_hier_integrator->getPressureVariable();
-        if (!p_cc_var.isNull())
-        {
-            d_p_var = new CellVariable<NDIM,double>(d_object_name+"::p");
-            d_q_var = new CellVariable<NDIM,double>(d_object_name+"::q");
-        }
-        else
-        {
-            TBOX_ERROR(d_object_name << "::initializeHierarchyIntegrator():\n"
-                       << "  unsupported pressure data centering" << std::endl);
-        }
-        d_p_idx = var_db->registerVariableAndContext(d_p_var, getScratchContext(), ib_ghosts);
-        d_q_idx = var_db->registerVariableAndContext(d_q_var, getScratchContext(),    ghosts);
+        d_p_idx = var_db->registerVariableAndContext(d_p_var, d_ib_context, ib_ghosts);
+        d_q_idx = var_db->registerVariableAndContext(d_q_var, d_ib_context,    ghosts);
     }
     else
     {
@@ -209,19 +181,20 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     }
 
     // Initialize the objects used to manage Lagrangian-Eulerian interaction.
-    d_eulerian_force_fcn = new IBEulerianForceFunction(this);
-    d_ins_hier_integrator->registerBodyForceFunction(d_eulerian_force_fcn);
-    if (d_ib_method_ops->hasFluidSources())
+    if (!d_ins_hier_integrator.isNull())
     {
-        d_eulerian_source_fcn = new IBEulerianSourceFunction(this);
-        d_ins_hier_integrator->registerFluidSourceFunction(d_eulerian_source_fcn);
+        d_ins_hier_integrator->registerBodyForceFunction(new IBEulerianForceFunction(this));
+        if (d_ib_method_ops->hasFluidSources())
+        {
+            if (!d_ins_hier_integrator.isNull()) d_ins_hier_integrator->registerFluidSourceFunction(new IBEulerianSourceFunction(this));
+        }
     }
 
     // Initialize the fluid solver.  It is necessary to do this after
     // registering a body force function or fluid source distribution function,
     // but before setting up communications schedules (because we need class
     // INSHierarchyIntegrator to register its variables).
-    d_ins_hier_integrator->initializeHierarchyIntegrator(hierarchy, gridding_alg);
+    if (!d_ins_hier_integrator.isNull()) d_ins_hier_integrator->initializeHierarchyIntegrator(hierarchy, gridding_alg);
 
     // Have the IB method ops object register any additional Eulerian variables
     // and communications algorithms that it requires.
@@ -237,10 +210,10 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg;
     Pointer<CoarsenOperator<NDIM> > coarsen_op;
 
-    const int u_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getNewContext());
-    const int u_scratch_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getScratchContext());
-    const int p_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVariable(), d_ins_hier_integrator->getNewContext());
-    const int p_scratch_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVariable(), d_ins_hier_integrator->getScratchContext());
+    const int u_new_idx     = var_db->mapVariableAndContextToIndex(getVelocityVariable(), getNewContext());
+    const int u_scratch_idx = var_db->mapVariableAndContextToIndex(getVelocityVariable(), getScratchContext());
+    const int p_new_idx     = var_db->mapVariableAndContextToIndex(getPressureVariable(), getNewContext());
+    const int p_scratch_idx = var_db->mapVariableAndContextToIndex(getPressureVariable(), getScratchContext());
 
     refine_alg = new RefineAlgorithm<NDIM>();
     refine_op = NULL;
@@ -258,9 +231,9 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     registerProlongRefineAlgorithm(d_object_name+"::f", refine_alg);
 
     refine_alg = new RefineAlgorithm<NDIM>();
-    refine_op = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getVelocityVariable(), "CONSERVATIVE_LINEAR_REFINE");
+    refine_op = grid_geom->lookupRefineOperator(getVelocityVariable(), "CONSERVATIVE_LINEAR_REFINE");
     refine_alg->registerRefine(u_scratch_idx, u_new_idx, u_scratch_idx, refine_op);
-    refine_op = grid_geom->lookupRefineOperator(d_ins_hier_integrator->getPressureVariable(), "LINEAR_REFINE");
+    refine_op = grid_geom->lookupRefineOperator(getPressureVariable(), "LINEAR_REFINE");
     refine_alg->registerRefine(p_scratch_idx, p_new_idx, p_scratch_idx, refine_op);
     ComponentSelector instrumentation_data_fill_bc_idxs;
     instrumentation_data_fill_bc_idxs.setFlag(u_scratch_idx);
@@ -330,8 +303,8 @@ IBHierarchyIntegrator::initializePatchHierarchy(
         level->allocatePatchData(d_scratch_data, d_integrator_time);
     }
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
-                                                                   d_ins_hier_integrator->getCurrentContext());
+    const int u_current_idx = var_db->mapVariableAndContextToIndex(getVelocityVariable(),
+                                                                   getCurrentContext());
     d_hier_velocity_data_ops->copyData(d_u_idx, u_current_idx);
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time,d_start_time);
     d_ib_method_ops->initializePatchHierarchy(hierarchy, gridding_alg, d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), d_integrator_step, d_integrator_time, initial_time);
@@ -402,22 +375,23 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     d_ib_method_ops = ib_method_ops;
     d_ib_method_ops->registerIBHierarchyIntegrator(this);
 
-    // Register the fluid solver as a child integrator of this integrator
-    // object.
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!ins_hier_integrator.isNull());
-#endif
+    // Register the fluid solver as a child integrator of this integrator object
+    // and reuse the variables and variable contexts of the INS solver when the
+    // solver is non-null.
     d_ins_hier_integrator = ins_hier_integrator;
-    registerChildHierarchyIntegrator(d_ins_hier_integrator);
-
-    // Reuse the variable contexts of the INS solver when the solver is
-    // non-null.
     if (!d_ins_hier_integrator.isNull())
     {
+        registerChildHierarchyIntegrator(d_ins_hier_integrator);
+        d_u_var = d_ins_hier_integrator->getVelocityVariable();
+        d_p_var = d_ins_hier_integrator->getPressureVariable();
+        d_f_var = d_ins_hier_integrator->getBodyForceVariable();
+        d_q_var = d_ins_hier_integrator->getFluidSourceVariable();
         d_current_context = d_ins_hier_integrator->getCurrentContext();
         d_scratch_context = d_ins_hier_integrator->getScratchContext();
         d_new_context = d_ins_hier_integrator->getNewContext();
     }
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    d_ib_context = var_db->getContext(d_object_name+"::IB");
 
     // Set some default values.
     d_integrator_is_initialized = false;
