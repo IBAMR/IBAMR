@@ -476,6 +476,28 @@ GeneralizedIBMethod::computeLagrangianForce(
 }// computeLagrangianForce
 
 void
+GeneralizedIBMethod::computeLagrangianForceJacobianNonzeroStructure(
+    std::vector<int>& /*d_nnz*/,
+    std::vector<int>& /*o_nnz*/,
+    double /*data_time*/)
+{
+    TBOX_ERROR("GeneralizedIBMethod::computeLagrangianForceJacobianNonzeroStructure(): unimplemented\n");
+    return;
+}// computeLagrangianForceJacobianNonzeroStructure
+
+void
+GeneralizedIBMethod::computeLagrangianForceJacobian(
+    Mat& /*J_mat*/,
+    MatAssemblyType /*assembly_type*/,
+    double /*X_coef*/,
+    double /*U_coef*/,
+    double /*data_time*/)
+{
+    TBOX_ERROR("GeneralizedIBMethod::computeLagrangianForceJacobian(): unimplemented\n");
+    return;
+}// computeLagrangianForceJacobian
+
+void
 GeneralizedIBMethod::spreadForce(
     const int f_data_idx,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,

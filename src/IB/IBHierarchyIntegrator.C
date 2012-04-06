@@ -404,7 +404,7 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(
     }
     skip_check_for_dt_change = false;
 
-    // Allocate Eulerian scratch data.
+    // Allocate Eulerian scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);

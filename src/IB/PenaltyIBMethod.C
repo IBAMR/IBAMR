@@ -353,6 +353,28 @@ PenaltyIBMethod::computeLagrangianForce(
 }// computeLagrangianForce
 
 void
+PenaltyIBMethod::computeLagrangianForceJacobianNonzeroStructure(
+    std::vector<int>& /*d_nnz*/,
+    std::vector<int>& /*o_nnz*/,
+    double /*data_time*/)
+{
+    TBOX_ERROR("PenaltyIBMethod::computeLagrangianForceJacobianNonzeroStructure(): unimplemented\n");
+    return;
+}// computeLagrangianForceJacobianNonzeroStructure
+
+void
+PenaltyIBMethod::computeLagrangianForceJacobian(
+    Mat& /*J_mat*/,
+    MatAssemblyType /*assembly_type*/,
+    double /*X_coef*/,
+    double /*U_coef*/,
+    double /*data_time*/)
+{
+    TBOX_ERROR("PenaltyIBMethod::computeLagrangianForceJacobian(): unimplemented\n");
+    return;
+}// computeLagrangianForceJacobian
+
+void
 PenaltyIBMethod::initializePatchHierarchy(
     Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg,

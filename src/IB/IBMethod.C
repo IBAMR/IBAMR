@@ -578,6 +578,74 @@ IBMethod::computeLagrangianForce(
 }// computeLagrangianForce
 
 void
+IBMethod::computeLagrangianForceJacobianNonzeroStructure(
+    std::vector<int>& d_nnz,
+    std::vector<int>& o_nnz,
+    double data_time)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln < finest_ln; ++ln)
+    {
+        if (!d_l_data_manager->levelContainsLagrangianData(ln))
+        {
+            TBOX_ERROR("IBMethod::computeLagrangianForceJacobianNonzeroStructure(): currently require structure to be contained in the finest level of the patch hierarchy\n");
+        }
+    }
+    d_ib_force_fcn->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz, d_hierarchy, finest_ln, data_time, d_l_data_manager);
+    return;
+}// computeLagrangianForceJacobianNonzeroStructure
+
+void
+IBMethod::computeLagrangianForceJacobian(
+    Mat& J_mat,
+    MatAssemblyType assembly_type,
+    double X_coef,
+    double U_coef,
+    double data_time)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln < finest_ln; ++ln)
+    {
+        if (!d_l_data_manager->levelContainsLagrangianData(ln))
+        {
+            TBOX_ERROR("IBMethod::computeLagrangianForceJacobian(): currently require structure to be contained in the finest level of the patch hierarchy\n");
+        }
+    }
+    Pointer<LData> X_data = NULL;
+    Pointer<LData> U_data = NULL;
+    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    {
+        X_data = d_X_current_data[finest_ln];
+        U_data = d_U_current_data[finest_ln];
+    }
+    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+    {
+        if (d_X_half_needs_reinit)
+        {
+            reinitMidpointData(d_X_current_data, d_X_new_data, d_X_half_data);
+            d_X_half_needs_reinit = false;
+            d_X_half_needs_ghost_fill = true;
+        }
+        if (d_U_half_needs_reinit)
+        {
+            reinitMidpointData(d_U_current_data, d_U_new_data, d_U_half_data);
+            d_U_half_needs_reinit = false;
+        }
+        X_data = d_X_half_data[finest_ln];
+        U_data = d_U_half_data[finest_ln];
+    }
+    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    {
+        X_data = d_X_new_data[finest_ln];
+        U_data = d_U_new_data[finest_ln];
+    }
+    d_ib_force_fcn->computeLagrangianForceJacobian(J_mat, assembly_type, X_coef, X_data, U_coef, U_data, d_hierarchy, finest_ln, data_time, d_l_data_manager);
+    return;
+}// computeLagrangianForceJacobian
+
+void
 IBMethod::spreadForce(
     const int f_data_idx,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
