@@ -122,6 +122,7 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/IB/IBBeamForceSpecFactory.C \
 	$(top_srcdir)/src/IB/IBEulerianForceFunction.C \
 	$(top_srcdir)/src/IB/IBEulerianSourceFunction.C \
+	$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C \
 	$(top_srcdir)/src/IB/IBHDF5Initializer.C \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.C \
@@ -193,6 +194,7 @@ am__objects_3 = libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR2d_a-IBBeamForceSpecFactory.$(OBJEXT) \
 	libIBAMR2d_a-IBEulerianForceFunction.$(OBJEXT) \
 	libIBAMR2d_a-IBEulerianSourceFunction.$(OBJEXT) \
+	libIBAMR2d_a-IBExplicitHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-IBHDF5Initializer.$(OBJEXT) \
 	libIBAMR2d_a-IBHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-IBInstrumentPanel.$(OBJEXT) \
@@ -265,6 +267,7 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/IB/IBBeamForceSpecFactory.C \
 	$(top_srcdir)/src/IB/IBEulerianForceFunction.C \
 	$(top_srcdir)/src/IB/IBEulerianSourceFunction.C \
+	$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C \
 	$(top_srcdir)/src/IB/IBHDF5Initializer.C \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.C \
@@ -336,6 +339,7 @@ am__objects_5 = libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR3d_a-IBBeamForceSpecFactory.$(OBJEXT) \
 	libIBAMR3d_a-IBEulerianForceFunction.$(OBJEXT) \
 	libIBAMR3d_a-IBEulerianSourceFunction.$(OBJEXT) \
+	libIBAMR3d_a-IBExplicitHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-IBHDF5Initializer.$(OBJEXT) \
 	libIBAMR3d_a-IBHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-IBInstrumentPanel.$(OBJEXT) \
@@ -428,6 +432,7 @@ am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/IB/IBAnchorPointSpec.h \
 	$(top_srcdir)/src/IB/IBBeamForceSpec.I \
 	$(top_srcdir)/src/IB/IBBeamForceSpec.h \
+	$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.h \
 	$(top_srcdir)/src/IB/IBHDF5Initializer.h \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.h \
@@ -825,6 +830,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/IB/IBAnchorPointSpec.h \
 	$(top_srcdir)/src/IB/IBBeamForceSpec.I \
 	$(top_srcdir)/src/IB/IBBeamForceSpec.h \
+	$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.h \
 	$(top_srcdir)/src/IB/IBHDF5Initializer.h \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.h \
@@ -884,6 +890,7 @@ DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/IB/GeneralizedIBMethod.C \
 	$(top_srcdir)/src/IB/IBBeamForceSpecFactory.C \
 	$(top_srcdir)/src/IB/IBEulerianForceFunction.C \
 	$(top_srcdir)/src/IB/IBEulerianSourceFunction.C \
+	$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C \
 	$(top_srcdir)/src/IB/IBHDF5Initializer.C \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.C \
@@ -1061,6 +1068,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBBeamForceSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBEulerianForceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBEulerianSourceFunction.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBExplicitHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBFEMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBHDF5Initializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBHierarchyIntegrator.Po@am__quote@
@@ -1119,6 +1127,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBBeamForceSpecFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBEulerianForceFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBEulerianSourceFunction.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBExplicitHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBFEMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBHDF5Initializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBHierarchyIntegrator.Po@am__quote@
@@ -1305,6 +1314,20 @@ libIBAMR2d_a-IBEulerianSourceFunction.obj: $(top_srcdir)/src/IB/IBEulerianSource
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBEulerianSourceFunction.C' object='libIBAMR2d_a-IBEulerianSourceFunction.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBEulerianSourceFunction.obj `if test -f '$(top_srcdir)/src/IB/IBEulerianSourceFunction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBEulerianSourceFunction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBEulerianSourceFunction.C'; fi`
+
+libIBAMR2d_a-IBExplicitHierarchyIntegrator.o: $(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBExplicitHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBExplicitHierarchyIntegrator.Tpo -c -o libIBAMR2d_a-IBExplicitHierarchyIntegrator.o `test -f '$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBExplicitHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR2d_a-IBExplicitHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C' object='libIBAMR2d_a-IBExplicitHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBExplicitHierarchyIntegrator.o `test -f '$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C
+
+libIBAMR2d_a-IBExplicitHierarchyIntegrator.obj: $(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBExplicitHierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBExplicitHierarchyIntegrator.Tpo -c -o libIBAMR2d_a-IBExplicitHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBExplicitHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR2d_a-IBExplicitHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C' object='libIBAMR2d_a-IBExplicitHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBExplicitHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C'; fi`
 
 libIBAMR2d_a-IBHDF5Initializer.o: $(top_srcdir)/src/IB/IBHDF5Initializer.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBHDF5Initializer.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBHDF5Initializer.Tpo -c -o libIBAMR2d_a-IBHDF5Initializer.o `test -f '$(top_srcdir)/src/IB/IBHDF5Initializer.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBHDF5Initializer.C
@@ -2117,6 +2140,20 @@ libIBAMR3d_a-IBEulerianSourceFunction.obj: $(top_srcdir)/src/IB/IBEulerianSource
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBEulerianSourceFunction.C' object='libIBAMR3d_a-IBEulerianSourceFunction.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBEulerianSourceFunction.obj `if test -f '$(top_srcdir)/src/IB/IBEulerianSourceFunction.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBEulerianSourceFunction.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBEulerianSourceFunction.C'; fi`
+
+libIBAMR3d_a-IBExplicitHierarchyIntegrator.o: $(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBExplicitHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBExplicitHierarchyIntegrator.Tpo -c -o libIBAMR3d_a-IBExplicitHierarchyIntegrator.o `test -f '$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBExplicitHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR3d_a-IBExplicitHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C' object='libIBAMR3d_a-IBExplicitHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBExplicitHierarchyIntegrator.o `test -f '$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C
+
+libIBAMR3d_a-IBExplicitHierarchyIntegrator.obj: $(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBExplicitHierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBExplicitHierarchyIntegrator.Tpo -c -o libIBAMR3d_a-IBExplicitHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBExplicitHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR3d_a-IBExplicitHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C' object='libIBAMR3d_a-IBExplicitHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBExplicitHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C'; fi`
 
 libIBAMR3d_a-IBHDF5Initializer.o: $(top_srcdir)/src/IB/IBHDF5Initializer.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBHDF5Initializer.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBHDF5Initializer.Tpo -c -o libIBAMR3d_a-IBHDF5Initializer.o `test -f '$(top_srcdir)/src/IB/IBHDF5Initializer.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBHDF5Initializer.C

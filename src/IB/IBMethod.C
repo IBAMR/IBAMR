@@ -1037,11 +1037,10 @@ IBMethod::postprocessData()
 {
     if (d_post_processor.isNull()) return;
 
-    INSHierarchyIntegrator* ins_hier_integrator = d_ib_solver->getINSHierarchyIntegrator();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int u_current_idx = var_db->mapVariableAndContextToIndex(ins_hier_integrator-> getVelocityVariable(), ins_hier_integrator->getCurrentContext());
-    const int p_current_idx = var_db->mapVariableAndContextToIndex(ins_hier_integrator-> getPressureVariable(), ins_hier_integrator->getCurrentContext());
-    const int f_current_idx = var_db->mapVariableAndContextToIndex(ins_hier_integrator->getBodyForceVariable(), ins_hier_integrator->getCurrentContext());
+    const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ib_solver-> getVelocityVariable(), d_ib_solver->getCurrentContext());
+    const int p_current_idx = var_db->mapVariableAndContextToIndex(d_ib_solver-> getPressureVariable(), d_ib_solver->getCurrentContext());
+    const int f_current_idx = var_db->mapVariableAndContextToIndex(d_ib_solver->getBodyForceVariable(), d_ib_solver->getCurrentContext());
 
     const double current_time = d_ib_solver->getIntegratorTime();
     const int coarsest_ln = 0;
@@ -1477,10 +1476,9 @@ IBMethod::updateIBInstrumentationData(
     d_instrument_panel->initializeHierarchyDependentData(d_hierarchy, d_l_data_manager, timestep_num, data_time);
 
     // Compute the flow rates and pressures.
-    INSHierarchyIntegrator* ins_hier_integrator = d_ib_solver->getINSHierarchyIntegrator();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int u_scratch_idx = var_db->mapVariableAndContextToIndex(ins_hier_integrator->getVelocityVariable(), ins_hier_integrator->getScratchContext());
-    const int p_scratch_idx = var_db->mapVariableAndContextToIndex(ins_hier_integrator->getPressureVariable(), ins_hier_integrator->getScratchContext());
+    const int u_scratch_idx = var_db->mapVariableAndContextToIndex(d_ib_solver->getVelocityVariable(), d_ib_solver->getScratchContext());
+    const int p_scratch_idx = var_db->mapVariableAndContextToIndex(d_ib_solver->getPressureVariable(), d_ib_solver->getScratchContext());
 
     std::vector<bool> deallocate_u_scratch_data(finest_ln+1,false);
     std::vector<bool> deallocate_p_scratch_data(finest_ln+1,false);

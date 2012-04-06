@@ -43,7 +43,6 @@
 #include <ibamr/INSHierarchyIntegrator.h>
 
 // IBTK INCLUDES
-#include <ibtk/LDataManager.h>
 #include <ibtk/LMarkerSetVariable.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -61,18 +60,6 @@ public:
     friend class IBStrategy;
 
     /*!
-     * The constructor for class IBHierarchyIntegrator sets some default values,
-     * reads in configuration information from input and restart databases, and
-     * registers the integrator object with the restart manager when requested.
-     */
-    IBHierarchyIntegrator(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<IBStrategy> ib_method_ops,
-        SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,
-        bool register_for_restart=true);
-
-    /*!
      * The destructor for class IBHierarchyIntegrator unregisters the integrator
      * object with the restart manager when the object is so registered.
      */
@@ -84,13 +71,6 @@ public:
      */
     SAMRAI::tbox::Pointer<IBStrategy>
     getIBStrategy() const;
-
-    /*!
-     * Return a pointer to the INSHierarchyIntegrator registered with this
-     * integrator.
-     */
-    SAMRAI::tbox::Pointer<INSHierarchyIntegrator>
-    getINSHierarchyIntegrator() const;
 
     /*!
      * Supply a body force (optional).
@@ -105,6 +85,30 @@ public:
     void
     registerLoadBalancer(
         SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer);
+
+    /*!
+     * Return a pointer to the fluid velocity variable.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >
+    getVelocityVariable() const;
+
+    /*!
+     * Return a pointer to the fluid pressure state variable.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >
+    getPressureVariable() const;
+
+    /*!
+     * Return a pointer to the body force variable.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >
+    getBodyForceVariable() const;
+
+    /*!
+     * Return a pointer to the source strength variable.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >
+    getFluidSourceVariable() const;
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -139,47 +143,24 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
-     * Returns the number of cycles to perform for the present time step.
-     */
-    int
-    getNumberOfCycles();
-
-    /*!
-     * Prepare to advance the data from current_time to new_time.
-     */
-    void
-    preprocessIntegrateHierarchy(
-        double current_time,
-        double new_time,
-        int num_cycles=1);
-
-    /*!
-     * Synchronously advance each level in the hierarchy over the given time
-     * increment.
-     */
-    void
-    integrateHierarchy(
-        double current_time,
-        double new_time,
-        int cycle_num=0);
-
-    /*!
-     * Clean up data following call(s) to integrateHierarchy().
-     */
-    void
-    postprocessIntegrateHierarchy(
-        double current_time,
-        double new_time,
-        bool skip_synchronize_new_state_data,
-        int num_cycles=1);
-
-    /*!
      * Regrid the hierarchy.
      */
     void
     regridHierarchy();
 
 protected:
+    /*!
+     * The constructor for class IBHierarchyIntegrator sets some default values,
+     * reads in configuration information from input and restart databases, and
+     * registers the integrator object with the restart manager when requested.
+     */
+    IBHierarchyIntegrator(
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        SAMRAI::tbox::Pointer<IBStrategy> ib_method_ops,
+        SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,
+        bool register_for_restart=true);
+
     /*!
      * Function to determine whether regridding should occur at the current time
      * step.
@@ -230,6 +211,11 @@ protected:
     putToDatabaseSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
+    /*
+     * Boolean value that indicates whether the integrator has been initialized.
+     */
+    bool d_integrator_is_initialized;
+
     /*!
      * Enum indicating the time integration employed for the IB equations.
      */
@@ -241,60 +227,10 @@ protected:
      */
     bool d_error_on_dt_change, d_warn_on_dt_change;
 
-private:
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    IBHierarchyIntegrator();
-
-    /*!
-     * \brief Copy constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     *
-     * \param from The value to copy to this object.
-     */
-    IBHierarchyIntegrator(
-        const IBHierarchyIntegrator& from);
-
-    /*!
-     * \brief Assignment operator.
-     *
-     * \note This operator is not implemented and should not be used.
-     *
-     * \param that The value to assign to this object.
-     *
-     * \return A reference to this object.
-     */
-    IBHierarchyIntegrator&
-    operator=(
-        const IBHierarchyIntegrator& that);
-
-    /*!
-     * Read input values from a given database.
-     */
-    void
-    getFromInput(
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
-        bool is_from_restart);
-
-    /*!
-     * Read object state from the restart file and initialize class data
-     * members.
-     */
-    void
-    getFromRestart();
-
     /*
-     * Boolean value that indicates whether the integrator has been initialized.
-     */
-    bool d_integrator_is_initialized;
-
-    /*
-     * The INSHierarchyIntegrator is used to provide time integration
-     * capability for the incompressible Navier-Stokes equations.
+     * The (optional) INSHierarchyIntegrator is used to provide time integration
+     * capability for the incompressible Navier-Stokes equations in explicit IB
+     * methods.
      */
     SAMRAI::tbox::Pointer<INSHierarchyIntegrator> d_ins_hier_integrator;
 
@@ -512,6 +448,52 @@ private:
         const IBHierarchyIntegrator* const d_ib_solver;
         friend class IBHierarchyIntegrator;
     };
+
+private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    IBHierarchyIntegrator();
+
+    /*!
+     * \brief Copy constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     *
+     * \param from The value to copy to this object.
+     */
+    IBHierarchyIntegrator(
+        const IBHierarchyIntegrator& from);
+
+    /*!
+     * \brief Assignment operator.
+     *
+     * \note This operator is not implemented and should not be used.
+     *
+     * \param that The value to assign to this object.
+     *
+     * \return A reference to this object.
+     */
+    IBHierarchyIntegrator&
+    operator=(
+        const IBHierarchyIntegrator& that);
+
+    /*!
+     * Read input values from a given database.
+     */
+    void
+    getFromInput(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
+        bool is_from_restart);
+
+    /*!
+     * Read object state from the restart file and initialize class data
+     * members.
+     */
+    void
+    getFromRestart();
 };
 }// namespace IBAMR
 

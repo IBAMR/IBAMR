@@ -114,7 +114,7 @@ GeneralizedIBMethod::registerEulerianVariables()
     const IntVector<NDIM>    ghosts = 1;
     const IntVector<NDIM> no_ghosts = 0;
 
-    Pointer<Variable<NDIM> > u_var = d_ib_solver->getINSHierarchyIntegrator()->getVelocityVariable();
+    Pointer<Variable<NDIM> > u_var = d_ib_solver->getVelocityVariable();
     Pointer<CellVariable<NDIM,double> > u_cc_var = u_var;
     Pointer<SideVariable<NDIM,double> > u_sc_var = u_var;
     if (!u_cc_var.isNull())
@@ -270,7 +270,7 @@ GeneralizedIBMethod::interpolateVelocity(
         W_data = &d_W_new_data;
     }
 
-    Pointer<Variable<NDIM> > u_var = d_ib_solver->getINSHierarchyIntegrator()->getVelocityVariable();
+    Pointer<Variable<NDIM> > u_var = d_ib_solver->getVelocityVariable();
     Pointer<CellVariable<NDIM,double> > u_cc_var = u_var;
     Pointer<SideVariable<NDIM,double> > u_sc_var = u_var;
     if (!u_cc_var.isNull())
@@ -542,7 +542,7 @@ GeneralizedIBMethod::spreadForce(
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         n_ghostfill_scheds[ln]->fillData(data_time);
     }
-    Pointer<Variable<NDIM> > u_var = d_ib_solver->getINSHierarchyIntegrator()->getVelocityVariable();
+    Pointer<Variable<NDIM> > u_var = d_ib_solver->getVelocityVariable();
     Pointer<CellVariable<NDIM,double> > u_cc_var = u_var;
     Pointer<SideVariable<NDIM,double> > u_sc_var = u_var;
     if (!u_cc_var.isNull())
@@ -597,7 +597,7 @@ GeneralizedIBMethod::initializePatchHierarchy(
             X_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
             W_data[ln] = d_l_data_manager->getLData("W",ln);
         }
-        Pointer<Variable<NDIM> > u_var = d_ib_solver->getINSHierarchyIntegrator()->getVelocityVariable();
+        Pointer<Variable<NDIM> > u_var = d_ib_solver->getVelocityVariable();
         Pointer<CellVariable<NDIM,double> > u_cc_var = u_var;
         Pointer<SideVariable<NDIM,double> > u_sc_var = u_var;
         if (!u_cc_var.isNull())

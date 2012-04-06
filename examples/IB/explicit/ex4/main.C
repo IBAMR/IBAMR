@@ -43,7 +43,7 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/GeneralizedIBMethod.h>
-#include <ibamr/IBHierarchyIntegrator.h>
+#include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBKirchhoffRodForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
@@ -181,7 +181,7 @@ main(
         }
         Pointer<GeneralizedIBMethod> ib_method_ops = new GeneralizedIBMethod(
             "GeneralizedIBMethod", app_initializer->getComponentDatabase("GeneralizedIBMethod"));
-        Pointer<IBHierarchyIntegrator> time_integrator = new IBHierarchyIntegrator(
+        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
             "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops, navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));

@@ -49,7 +49,7 @@
 #include <mesh_triangle_interface.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/IBHierarchyIntegrator.h>
+#include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
@@ -145,7 +145,7 @@ upper_tether_force_function(
     }
     else
     {
-        F = kappa_s*(s-X);                                                                                                                         
+        F = kappa_s*(s-X);
     }
     return;
 }// upper_tether_force_function
@@ -306,7 +306,7 @@ main(
         }
         Pointer<IBFEMethod> ib_method_ops = new IBFEMethod(
             "IBFEMethod", app_initializer->getComponentDatabase("IBFEMethod"), meshes, app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        Pointer<IBHierarchyIntegrator> time_integrator = new IBHierarchyIntegrator(
+        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
             "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops, navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));

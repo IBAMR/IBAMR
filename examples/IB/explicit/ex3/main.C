@@ -42,7 +42,7 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/IBHierarchyIntegrator.h>
+#include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
@@ -165,7 +165,7 @@ main(
         }
         Pointer<PenaltyIBMethod> ib_method_ops = new PenaltyIBMethod(
             "PenaltyIBMethod", app_initializer->getComponentDatabase("PenaltyIBMethod"));
-        Pointer<IBHierarchyIntegrator> time_integrator = new IBHierarchyIntegrator(
+        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
             "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops, navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
