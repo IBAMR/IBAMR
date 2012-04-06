@@ -110,6 +110,28 @@ IBStrategy::postprocessIntegrateData(
     return;
 }// postprocessIntegrateData
 
+void
+IBStrategy::computeLagrangianForceJacobianNonzeroStructure(
+    std::vector<int>& /*d_nnz*/,
+    std::vector<int>& /*o_nnz*/,
+    double /*data_time*/)
+{
+    TBOX_ERROR("IBStrategy::computeLagrangianForceJacobianNonzeroStructure(): unimplemented\n");
+    return;
+}// computeLagrangianForceJacobianNonzeroStructure
+
+void
+IBStrategy::computeLagrangianForceJacobian(
+    Mat& /*J_mat*/,
+    MatAssemblyType /*assembly_type*/,
+    double /*X_coef*/,
+    double /*U_coef*/,
+    double /*data_time*/)
+{
+    TBOX_ERROR("IBStrategy::computeLagrangianForceJacobian(): unimplemented\n");
+    return;
+}// computeLagrangianForceJacobian
+
 bool
 IBStrategy::hasFluidSources() const
 {

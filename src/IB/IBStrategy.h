@@ -36,7 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // PETSC INCLUDES
-#include <petscsys.h>
+#include <petscmat.h>
 
 // IBTK INCLUDES
 #include <ibtk/CartGridFunction.h>
@@ -193,6 +193,30 @@ public:
     virtual void
     computeLagrangianForce(
         double data_time) = 0;
+
+    /*!
+     * \brief Compute the non-zero structure of the force Jacobian matrix.
+     */
+    virtual void
+    computeLagrangianForceJacobianNonzeroStructure(
+        std::vector<int>& d_nnz,
+        std::vector<int>& o_nnz,
+        double data_time);
+
+    /*!
+     * \brief Compute the Jacobian of the force with respect to the present
+     * structure configuration.
+     *
+     * \note The elements of the Jacobian should be accumulated in the provided
+     * matrix.
+     */
+    virtual void
+    computeLagrangianForceJacobian(
+        Mat& J_mat,
+        MatAssemblyType assembly_type,
+        double X_coef,
+        double U_coef,
+        double data_time);
 
     /*!
      * Spread the Lagrangian force to the Cartesian grid at the specified time

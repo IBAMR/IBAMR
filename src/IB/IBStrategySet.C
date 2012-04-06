@@ -192,6 +192,34 @@ IBStrategySet::computeLagrangianForce(
 }// computeLagrangianForce
 
 void
+IBStrategySet::computeLagrangianForceJacobianNonzeroStructure(
+    std::vector<int>& d_nnz,
+    std::vector<int>& o_nnz,
+    double data_time)
+{
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    {
+        (*cit)->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz, data_time);
+    }
+    return;
+}// computeLagrangianForceJacobianNonzeroStructure
+
+void
+IBStrategySet::computeLagrangianForceJacobian(
+    Mat& J_mat,
+    MatAssemblyType assembly_type,
+    double X_coef,
+    double U_coef,
+    double data_time)
+{
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    {
+        (*cit)->computeLagrangianForceJacobian(J_mat, assembly_type, X_coef, U_coef, data_time);
+    }
+    return;
+}// computeLagrangianForceJacobian
+
+void
 IBStrategySet::spreadForce(
     int f_data_idx,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
