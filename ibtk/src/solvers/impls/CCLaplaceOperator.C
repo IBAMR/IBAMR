@@ -96,7 +96,7 @@ CCLaplaceOperator::CCLaplaceOperator(
     const bool homogeneous_bc)
     : LaplaceOperator(
         poisson_spec,
-        new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_bc_coef", Pointer<Database>(NULL)),
+        new LocationIndexRobinBcCoefs<NDIM>(object_name+"::default_bc_coef", Pointer<Database>(NULL)),
         std::vector<RobinBcCoefStrategy<NDIM>*>(1,bc_coef),
         true,
         homogeneous_bc),
@@ -139,7 +139,7 @@ CCLaplaceOperator::CCLaplaceOperator(
     const bool homogeneous_bc)
     : LaplaceOperator(
         poisson_spec,
-        new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_bc_coef", Pointer<Database>(NULL)),
+        new LocationIndexRobinBcCoefs<NDIM>(object_name+"::default_bc_coef", Pointer<Database>(NULL)),
         bc_coefs,
         true,
         homogeneous_bc),
@@ -182,7 +182,7 @@ CCLaplaceOperator::CCLaplaceOperator(
     const bool homogeneous_bc)
     : LaplaceOperator(
         poisson_spec,
-        new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_bc_coef", Pointer<Database>(NULL)),
+        new LocationIndexRobinBcCoefs<NDIM>(object_name+"::default_bc_coef", Pointer<Database>(NULL)),
         std::vector<RobinBcCoefStrategy<NDIM>*>(bc_coefs.data(),bc_coefs.data()+NDIM),
         true, homogeneous_bc),
       d_object_name(object_name),
