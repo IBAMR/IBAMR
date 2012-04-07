@@ -128,6 +128,7 @@ $(top_srcdir)/src/solvers/impls/SCPoissonHypreLevelSolver.C \
 $(top_srcdir)/src/solvers/impls/SCPoissonPETScLevelSolver.C \
 $(top_srcdir)/src/solvers/interfaces/FACPreconditionerStrategy.C \
 $(top_srcdir)/src/solvers/interfaces/GeneralOperator.C \
+$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C \
 $(top_srcdir)/src/solvers/interfaces/JacobianOperator.C \
 $(top_srcdir)/src/solvers/interfaces/KrylovLinearSolver.C \
 $(top_srcdir)/src/solvers/interfaces/LinearOperator.C \
@@ -286,6 +287,7 @@ $(top_srcdir)/src/solvers/impls/SCPoissonPETScLevelSolver.I \
 $(top_srcdir)/src/solvers/impls/SCPoissonPETScLevelSolver.h \
 $(top_srcdir)/src/solvers/interfaces/FACPreconditionerStrategy.h \
 $(top_srcdir)/src/solvers/interfaces/GeneralOperator.h \
+$(top_srcdir)/src/solvers/interfaces/GeneralSolver.h \
 $(top_srcdir)/src/solvers/interfaces/JacobianOperator.h \
 $(top_srcdir)/src/solvers/interfaces/KrylovLinearSolver.h \
 $(top_srcdir)/src/solvers/interfaces/LinearOperator.h \

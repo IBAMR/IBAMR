@@ -1,5 +1,5 @@
-// Filename: NewtonKrylovSolver.C
-// Created on 18 Nov 2003 by Boyce Griffith
+// Filename: GeneralSolver.C
+// Created on 07 Apr 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "NewtonKrylovSolver.h"
+#include "GeneralSolver.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -55,17 +55,42 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-NewtonKrylovSolver::NewtonKrylovSolver()
+GeneralSolver::GeneralSolver()
 {
     // intentionally blank
     return;
-}// NewtonKrylovSolver()
+}// GeneralSolver()
 
-NewtonKrylovSolver::~NewtonKrylovSolver()
+GeneralSolver::~GeneralSolver()
 {
     // intentionally blank
     return;
-}// ~NewtonKrylovSolver()
+}// ~GeneralSolver()
+
+void
+GeneralSolver::setTimeInterval(
+    double /*current_time*/,
+    double /*new_time*/)
+{
+    // intentionally blank
+    return;
+}// setTimeInterval
+
+void
+GeneralSolver::initializeSolverState(
+    const SAMRAIVectorReal<NDIM,double>& /*u*/,
+    const SAMRAIVectorReal<NDIM,double>& /*r*/)
+{
+    // intentionally blank
+    return;
+}// initializeSolverState
+
+void
+GeneralSolver::deallocateSolverState()
+{
+    // intentionally blank
+    return;
+}// deallocateSolverState
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

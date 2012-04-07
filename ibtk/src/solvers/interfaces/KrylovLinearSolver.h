@@ -39,13 +39,6 @@
 #include <ibtk/LinearOperator.h>
 #include <ibtk/LinearSolver.h>
 
-// SAMRAI INCLUDES
-#include <SAMRAIVectorReal.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
-#include <ostream>
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK

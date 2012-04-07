@@ -176,6 +176,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/impls/SCPoissonPETScLevelSolver.C \
 	$(top_srcdir)/src/solvers/interfaces/FACPreconditionerStrategy.C \
 	$(top_srcdir)/src/solvers/interfaces/GeneralOperator.C \
+	$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C \
 	$(top_srcdir)/src/solvers/interfaces/JacobianOperator.C \
 	$(top_srcdir)/src/solvers/interfaces/KrylovLinearSolver.C \
 	$(top_srcdir)/src/solvers/interfaces/LinearOperator.C \
@@ -308,6 +309,7 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-SCPoissonPETScLevelSolver.$(OBJEXT) \
 	libIBTK2d_a-FACPreconditionerStrategy.$(OBJEXT) \
 	libIBTK2d_a-GeneralOperator.$(OBJEXT) \
+	libIBTK2d_a-GeneralSolver.$(OBJEXT) \
 	libIBTK2d_a-JacobianOperator.$(OBJEXT) \
 	libIBTK2d_a-KrylovLinearSolver.$(OBJEXT) \
 	libIBTK2d_a-LinearOperator.$(OBJEXT) \
@@ -436,6 +438,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/impls/SCPoissonPETScLevelSolver.C \
 	$(top_srcdir)/src/solvers/interfaces/FACPreconditionerStrategy.C \
 	$(top_srcdir)/src/solvers/interfaces/GeneralOperator.C \
+	$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C \
 	$(top_srcdir)/src/solvers/interfaces/JacobianOperator.C \
 	$(top_srcdir)/src/solvers/interfaces/KrylovLinearSolver.C \
 	$(top_srcdir)/src/solvers/interfaces/LinearOperator.C \
@@ -567,6 +570,7 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-SCPoissonPETScLevelSolver.$(OBJEXT) \
 	libIBTK3d_a-FACPreconditionerStrategy.$(OBJEXT) \
 	libIBTK3d_a-GeneralOperator.$(OBJEXT) \
+	libIBTK3d_a-GeneralSolver.$(OBJEXT) \
 	libIBTK3d_a-JacobianOperator.$(OBJEXT) \
 	libIBTK3d_a-KrylovLinearSolver.$(OBJEXT) \
 	libIBTK3d_a-LinearOperator.$(OBJEXT) \
@@ -1110,6 +1114,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/solvers/impls/SCPoissonPETScLevelSolver.h \
 	$(top_srcdir)/src/solvers/interfaces/FACPreconditionerStrategy.h \
 	$(top_srcdir)/src/solvers/interfaces/GeneralOperator.h \
+	$(top_srcdir)/src/solvers/interfaces/GeneralSolver.h \
 	$(top_srcdir)/src/solvers/interfaces/JacobianOperator.h \
 	$(top_srcdir)/src/solvers/interfaces/KrylovLinearSolver.h \
 	$(top_srcdir)/src/solvers/interfaces/LinearOperator.h \
@@ -1239,6 +1244,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/solvers/impls/SCPoissonPETScLevelSolver.C \
 	$(top_srcdir)/src/solvers/interfaces/FACPreconditionerStrategy.C \
 	$(top_srcdir)/src/solvers/interfaces/GeneralOperator.C \
+	$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C \
 	$(top_srcdir)/src/solvers/interfaces/JacobianOperator.C \
 	$(top_srcdir)/src/solvers/interfaces/KrylovLinearSolver.C \
 	$(top_srcdir)/src/solvers/interfaces/LinearOperator.C \
@@ -1445,6 +1451,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-GeneralOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-GeneralSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellInterpolation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-HierarchyMathOps.Po@am__quote@
@@ -1560,6 +1567,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-GeneralOperator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-GeneralSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-HierarchyMathOps.Po@am__quote@
@@ -2788,6 +2796,20 @@ libIBTK2d_a-GeneralOperator.obj: $(top_srcdir)/src/solvers/interfaces/GeneralOpe
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/interfaces/GeneralOperator.C' object='libIBTK2d_a-GeneralOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-GeneralOperator.obj `if test -f '$(top_srcdir)/src/solvers/interfaces/GeneralOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/interfaces/GeneralOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/interfaces/GeneralOperator.C'; fi`
+
+libIBTK2d_a-GeneralSolver.o: $(top_srcdir)/src/solvers/interfaces/GeneralSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-GeneralSolver.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-GeneralSolver.Tpo -c -o libIBTK2d_a-GeneralSolver.o `test -f '$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-GeneralSolver.Tpo $(DEPDIR)/libIBTK2d_a-GeneralSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C' object='libIBTK2d_a-GeneralSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-GeneralSolver.o `test -f '$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C
+
+libIBTK2d_a-GeneralSolver.obj: $(top_srcdir)/src/solvers/interfaces/GeneralSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-GeneralSolver.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-GeneralSolver.Tpo -c -o libIBTK2d_a-GeneralSolver.obj `if test -f '$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-GeneralSolver.Tpo $(DEPDIR)/libIBTK2d_a-GeneralSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C' object='libIBTK2d_a-GeneralSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-GeneralSolver.obj `if test -f '$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C'; fi`
 
 libIBTK2d_a-JacobianOperator.o: $(top_srcdir)/src/solvers/interfaces/JacobianOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-JacobianOperator.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-JacobianOperator.Tpo -c -o libIBTK2d_a-JacobianOperator.o `test -f '$(top_srcdir)/src/solvers/interfaces/JacobianOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/interfaces/JacobianOperator.C
@@ -4398,6 +4420,20 @@ libIBTK3d_a-GeneralOperator.obj: $(top_srcdir)/src/solvers/interfaces/GeneralOpe
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/interfaces/GeneralOperator.C' object='libIBTK3d_a-GeneralOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-GeneralOperator.obj `if test -f '$(top_srcdir)/src/solvers/interfaces/GeneralOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/interfaces/GeneralOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/interfaces/GeneralOperator.C'; fi`
+
+libIBTK3d_a-GeneralSolver.o: $(top_srcdir)/src/solvers/interfaces/GeneralSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-GeneralSolver.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-GeneralSolver.Tpo -c -o libIBTK3d_a-GeneralSolver.o `test -f '$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-GeneralSolver.Tpo $(DEPDIR)/libIBTK3d_a-GeneralSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C' object='libIBTK3d_a-GeneralSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-GeneralSolver.o `test -f '$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C
+
+libIBTK3d_a-GeneralSolver.obj: $(top_srcdir)/src/solvers/interfaces/GeneralSolver.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-GeneralSolver.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-GeneralSolver.Tpo -c -o libIBTK3d_a-GeneralSolver.obj `if test -f '$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-GeneralSolver.Tpo $(DEPDIR)/libIBTK3d_a-GeneralSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C' object='libIBTK3d_a-GeneralSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-GeneralSolver.obj `if test -f '$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/interfaces/GeneralSolver.C'; fi`
 
 libIBTK3d_a-JacobianOperator.o: $(top_srcdir)/src/solvers/interfaces/JacobianOperator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-JacobianOperator.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-JacobianOperator.Tpo -c -o libIBTK3d_a-JacobianOperator.o `test -f '$(top_srcdir)/src/solvers/interfaces/JacobianOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/interfaces/JacobianOperator.C
