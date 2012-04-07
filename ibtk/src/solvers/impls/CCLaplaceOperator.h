@@ -36,34 +36,24 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/HierarchyMathOps.h>
-#include <ibtk/LinearOperator.h>
+#include <ibtk/LaplaceOperator.h>
 
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsReal.h>
 #include <LocationIndexRobinBcCoefs.h>
-#include <PatchHierarchy.h>
-#include <PoissonSpecifications.h>
-#include <RobinBcCoefStrategy.h>
-#include <SAMRAIVectorReal.h>
-#include <tbox/Pointer.h>
-
-// C++ STDLIB INCLUDES
-#include <string>
-#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
 {
 /*!
- * \brief Class CCLaplaceOperator is a concrete LinearOperator which implements
+ * \brief Class CCLaplaceOperator is a concrete LaplaceOperator which implements
  * a globally second-order accurate cell-centered finite difference
  * discretization of a scalar elliptic operator of the form \f$ L = C I + \nabla
  * \cdot D \nabla\f$.
  */
 class CCLaplaceOperator
-    : public LinearOperator
+    : public LaplaceOperator
 {
 public:
     /*!
@@ -115,77 +105,6 @@ public:
      * \brief Destructor.
      */
     ~CCLaplaceOperator();
-
-    /*!
-     * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify
-     * the coefficients for the scalar-valued or vector-valued Laplace operator.
-     */
-    void
-    setPoissonSpecifications(
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec);
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
-     * physical boundary conditions.
-     *
-     * \note \a bc_coef may be NULL.  In this case, homogeneous Dirichlet
-     * boundary conditions are employed.
-     *
-     * \param bc_coef  Pointer to an object that can set the Robin boundary condition coefficients
-     */
-    void
-    setPhysicalBcCoef(
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-     * physical boundary conditions.
-     *
-     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
-     * homogeneous Dirichlet boundary conditions are employed for that data
-     * depth.
-     *
-     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
-     */
-    void
-    setPhysicalBcCoefs(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-     * physical boundary conditions.
-     *
-     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
-     * homogeneous Dirichlet boundary conditions are employed for that data
-     * depth.
-     *
-     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
-     */
-    void
-    setPhysicalBcCoefs(
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
-
-    /*!
-     * \brief Specify whether the boundary conditions are homogeneous.
-     */
-    void
-    setHomogeneousBc(
-        bool homogeneous_bc);
-
-    /*!
-     * \brief Set the hierarchy time, for use with the refinement schedules and
-     * boundary condition routines employed by the object.
-     */
-    void
-    setTime(
-        double time);
-
-    /*!
-     * \brief Set the HierarchyMathOps object used by the operator.
-     */
-    void
-    setHierarchyMathOps(
-        SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
 
     /*!
      * \name Linear operator functionality.
@@ -325,7 +244,6 @@ private:
     // Operator parameters.
     bool d_is_initialized;
     int d_ncomp;
-    double d_apply_time;
 
     // Cached communications operators.
     SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_fill_pattern;
@@ -335,16 +253,8 @@ private:
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x, d_b;
 
-    // Problem specification.
-    SAMRAI::solv::PoissonSpecifications d_poisson_spec;
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_bc_coef;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
-    bool d_homogeneous_bc, d_correcting_rhs;
-
     // Mathematical operators.
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
-    SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
-    bool d_hier_math_ops_external;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;

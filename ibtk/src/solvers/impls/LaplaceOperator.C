@@ -1,5 +1,5 @@
-// Filename: LinearOperator.C
-// Created on 14 Sep 2003 by Boyce Griffith
+// Filename: LaplaceOperator.C
+// Created on 07 Apr 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "LinearOperator.h"
+#include "LaplaceOperator.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -55,84 +55,81 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LinearOperator::LinearOperator(
+LaplaceOperator::LaplaceOperator(
+    PoissonSpecifications poisson_spec,
+    RobinBcCoefStrategy<NDIM>* default_bc_coef,
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     bool is_symmetric,
     bool homogeneous_bc)
-    : d_is_symmetric(is_symmetric),
-      d_homogeneous_bc(homogeneous_bc),
-      d_correcting_rhs(false)
+    : LinearOperator(is_symmetric, homogeneous_bc),
+      d_apply_time(0.0),
+      d_poisson_spec("LaplaceOperator::poisson_spec"),
+      d_default_bc_coef(default_bc_coef),
+      d_bc_coefs()
 {
-    // intentionally blank
+    setPoissonSpecifications(poisson_spec);
+    setPhysicalBcCoefs(bc_coefs);
     return;
-}// LinearOperator()
+}// LaplaceOperator()
 
-LinearOperator::~LinearOperator()
+LaplaceOperator::~LaplaceOperator()
 {
     deallocateOperatorState();
+    if (d_default_bc_coef != NULL) delete d_default_bc_coef;
+    d_default_bc_coef = NULL;
     return;
-}// ~LinearOperator()
-
-bool
-LinearOperator::isSymmetric() const
-{
-    return d_is_symmetric;
-}// isSymmetric
+}// ~LaplaceOperator()
 
 void
-LinearOperator::setHomogeneousBc(
-    const bool homogeneous_bc)
+LaplaceOperator::setPoissonSpecifications(
+    const PoissonSpecifications& poisson_spec)
 {
-    d_homogeneous_bc = homogeneous_bc;
+    d_poisson_spec = poisson_spec;
     return;
-}// setHomogeneousBc
-
-bool
-LinearOperator::getHomogeneousBc()
-{
-    return d_homogeneous_bc;
-}// getHomogeneousBc
+}// setPoissonSpecifications
 
 void
-LinearOperator::modifyRhsForInhomogeneousBc(
-    SAMRAIVectorReal<NDIM,double>& /*y*/)
+LaplaceOperator::setPhysicalBcCoef(
+    RobinBcCoefStrategy<NDIM>* const bc_coef)
 {
-    TBOX_WARNING("LinearOperator::modifyRhsForInhomogeneousBc() not implemented for this operator" << std::endl);
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(1,bc_coef));
     return;
-}// modifyRhsForInhomogeneousBc
+}// setPhysicalBcCoef
 
 void
-LinearOperator::applyAdjoint(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y)
+LaplaceOperator::setPhysicalBcCoefs(
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
-    if (isSymmetric())
+    d_bc_coefs.resize(bc_coefs.size());
+    for (unsigned int l = 0; l < bc_coefs.size(); ++l)
     {
-        apply(x,y);
-    }
-    else
-    {
-        TBOX_ERROR("LinearOperator::applyAdjoint():\n"
-                   << "  no adjoint operation defined for this linear operator" << std::endl);
+        if (bc_coefs[l] != NULL)
+        {
+            d_bc_coefs[l] = bc_coefs[l];
+        }
+        else
+        {
+            d_bc_coefs[l] = d_default_bc_coef;
+        }
     }
     return;
-}// applyAdjoint
+}// setPhysicalBcCoefs
 
 void
-LinearOperator::applyAdjointAdd(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y,
-    SAMRAIVectorReal<NDIM,double>& z)
+LaplaceOperator::setPhysicalBcCoefs(
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
 {
-    // Guard against the case that y == z.
-    Pointer<SAMRAIVectorReal<NDIM,double> > zz = z.cloneVector(z.getName());
-    zz->allocateVectorData();
-    zz->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&z,false));
-    applyAdjoint(x,*zz);
-    z.add(Pointer<SAMRAIVectorReal<NDIM,double> >(&y,false),zz);
-    zz->freeVectorComponents();
-    zz.setNull();
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(&bc_coefs[0],&bc_coefs[0]+NDIM));
     return;
-}// applyAdjointAdd
+}// setPhysicalBcCoefs
+
+void
+LaplaceOperator::setTime(
+    const double time)
+{
+    d_apply_time = time;
+    return;
+}// setTime
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

@@ -35,6 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+// IBTK INCLUDES
+#include <ibtk/HierarchyMathOps.h>
+
 // SAMRAI INCLUDES
 #include <SAMRAIVectorReal.h>
 #include <tbox/DescribedClass.h>
@@ -62,6 +65,13 @@ public:
      */
     virtual
     ~GeneralOperator();
+
+    /*!
+     * \brief Set the HierarchyMathOps object used by the operator.
+     */
+    void
+    setHierarchyMathOps(
+        SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
 
     /*!
      * \name General operator functionality.
@@ -200,6 +210,11 @@ public:
         bool enabled=true) = 0;
 
     //\}
+
+protected:
+    // Mathematical operators.
+    SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
+    bool d_hier_math_ops_external;
 
 private:
     /*!

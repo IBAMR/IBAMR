@@ -91,44 +91,34 @@ SCLaplaceOperator::SCLaplaceOperator(
     const PoissonSpecifications& poisson_spec,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
-    : LinearOperator(true),
+    : LaplaceOperator(
+        poisson_spec,
+        new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_bc_coef", Pointer<Database>(NULL)),
+        std::vector<RobinBcCoefStrategy<NDIM>*>(bc_coefs.data(),bc_coefs.data()+NDIM),
+        true,
+        homogeneous_bc),
       d_object_name(object_name),
       d_is_initialized(false),
       d_ncomp(0),
-      d_apply_time(0.0),
       d_fill_pattern(NULL),
       d_transaction_comps(),
       d_hier_bdry_fill(NULL),
       d_no_fill(NULL),
       d_x(NULL),
       d_b(NULL),
-      d_poisson_spec(d_object_name+"::Poisson spec"),
-      d_default_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(
-                            d_object_name+"::default_bc_coef", Pointer<Database>(NULL))),
-      d_bc_coefs(),
-      d_homogeneous_bc(false),
-      d_correcting_rhs(false),
       d_hier_sc_data_ops(),
-      d_hier_math_ops(),
-      d_hier_math_ops_external(false),
       d_hierarchy(),
       d_coarsest_ln(-1),
       d_finest_ln(-1)
 {
-    // Initialize the Poisson specifications.
-    setPoissonSpecifications(poisson_spec);
-
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions.
+    LocationIndexRobinBcCoefs<NDIM>* p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_default_bc_coef->setBoundaryValue(2*d  ,0.0);
-        d_default_bc_coef->setBoundaryValue(2*d+1,0.0);
+        p_default_bc_coef->setBoundaryValue(2*d  ,0.0);
+        p_default_bc_coef->setBoundaryValue(2*d+1,0.0);
     }
-
-    // Initialize the boundary conditions objects.
-    setHomogeneousBc(homogeneous_bc);
-    setPhysicalBcCoefs(bc_coefs);
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -142,60 +132,10 @@ SCLaplaceOperator::SCLaplaceOperator(
 SCLaplaceOperator::~SCLaplaceOperator()
 {
     if (d_is_initialized) deallocateOperatorState();
-    delete d_default_bc_coef;
+    if (d_default_bc_coef != NULL) delete d_default_bc_coef;
+    d_default_bc_coef = NULL;
     return;
 }// ~SCLaplaceOperator()
-
-void
-SCLaplaceOperator::setPoissonSpecifications(
-    const PoissonSpecifications& poisson_spec)
-{
-    d_poisson_spec = poisson_spec;
-    return;
-}// setPoissonSpecifications
-
-void
-SCLaplaceOperator::setPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
-{
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        if (bc_coefs[d] != NULL)
-        {
-            d_bc_coefs[d] = bc_coefs[d];
-        }
-        else
-        {
-            d_bc_coefs[d] = d_default_bc_coef;
-        }
-    }
-    return;
-}// setPhysicalBcCoefs
-
-void
-SCLaplaceOperator::setHomogeneousBc(
-    const bool homogeneous_bc)
-{
-    d_homogeneous_bc = homogeneous_bc;
-    return;
-}// setHomogeneousBc
-
-void
-SCLaplaceOperator::setTime(
-    const double time)
-{
-    d_apply_time = time;
-    return;
-}// setTime
-
-void
-SCLaplaceOperator::setHierarchyMathOps(
-    Pointer<HierarchyMathOps> hier_math_ops)
-{
-    d_hier_math_ops = hier_math_ops;
-    d_hier_math_ops_external = !d_hier_math_ops.isNull();
-    return;
-}// setHierarchyMathOps
 
 void
 SCLaplaceOperator::modifyRhsForInhomogeneousBc(

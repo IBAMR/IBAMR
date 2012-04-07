@@ -68,6 +68,15 @@ NewtonKrylovSolver::~NewtonKrylovSolver()
 }// ~NewtonKrylovSolver()
 
 void
+NewtonKrylovSolver::setTimeInterval(
+    double /*current_time*/,
+    double /*new_time*/)
+{
+    // intentionally blank
+    return;
+}// setTimeInterval
+
+void
 NewtonKrylovSolver::initializeSolverState(
     const SAMRAIVectorReal<NDIM,double>& /*u*/,
     const SAMRAIVectorReal<NDIM,double>& /*r*/)

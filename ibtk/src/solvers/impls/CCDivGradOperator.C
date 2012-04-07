@@ -101,8 +101,6 @@ CCDivGradOperator::CCDivGradOperator(
       d_scalar_scratch_var(),
       d_vector_scratch_var(),
       d_hier_cc_data_ops(),
-      d_hier_math_ops(),
-      d_hier_math_ops_external(false),
       d_hierarchy(),
       d_coarsest_ln(-1),
       d_finest_ln(-1)
@@ -121,23 +119,6 @@ CCDivGradOperator::~CCDivGradOperator()
     if (d_is_initialized) deallocateOperatorState();
     return;
 }// ~CCDivGradOperator()
-
-void
-CCDivGradOperator::setHierarchyMathOps(
-    Pointer<HierarchyMathOps> hier_math_ops)
-{
-    d_hier_math_ops = hier_math_ops;
-    d_hier_math_ops_external = !d_hier_math_ops.isNull();
-    return;
-}// setHierarchyMathOps
-
-void
-CCDivGradOperator::modifyRhsForInhomogeneousBc(
-    SAMRAIVectorReal<NDIM,double>& /*y*/)
-{
-    // intentionally blank
-    return;
-}// modifyRhsForInhomogeneousBc
 
 void
 CCDivGradOperator::apply(

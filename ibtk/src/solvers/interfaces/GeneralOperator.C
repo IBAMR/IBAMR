@@ -56,6 +56,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 GeneralOperator::GeneralOperator()
+    : d_hier_math_ops(NULL),
+      d_hier_math_ops_external(false)
 {
     // intentionally blank
     return;
@@ -63,9 +65,18 @@ GeneralOperator::GeneralOperator()
 
 GeneralOperator::~GeneralOperator()
 {
-    // intentionally blank
+    deallocateOperatorState();
     return;
 }// ~GeneralOperator()
+
+void
+GeneralOperator::setHierarchyMathOps(
+    Pointer<HierarchyMathOps> hier_math_ops)
+{
+    d_hier_math_ops = hier_math_ops;
+    d_hier_math_ops_external = !d_hier_math_ops.isNull();
+    return;
+}// setHierarchyMathOps
 
 void
 GeneralOperator::applyAdd(

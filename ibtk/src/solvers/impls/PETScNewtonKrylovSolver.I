@@ -54,6 +54,15 @@ PETScNewtonKrylovSolver::getPETScSNES() const
 }// getPETScSNES
 
 inline void
+PETScNewtonKrylovSolver::setTimeInterval(
+    double current_time,
+    double new_time)
+{
+    if (!d_krylov_solver.isNull()) d_krylov_solver->setTimeInterval(current_time, new_time);
+    return;
+}// setTimeInterval
+
+inline void
 PETScNewtonKrylovSolver::setOperator(
     SAMRAI::tbox::Pointer<GeneralOperator> F)
 {

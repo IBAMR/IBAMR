@@ -36,7 +36,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBTK INCLUDES
-#include <ibtk/HierarchyMathOps.h>
 #include <ibtk/LinearOperator.h>
 
 // SAMRAI INCLUDES
@@ -84,35 +83,9 @@ public:
     ~CCDivGradOperator();
 
     /*!
-     * \brief Set the HierarchyMathOps object used by the operator.
-     */
-    void
-    setHierarchyMathOps(
-        SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
-
-    /*!
      * \name Linear operator functionality.
      */
     //\{
-
-    /*!
-     * \brief Modify y to account for inhomogeneous boundary conditions.
-     *
-     * Before calling this function, the form of the vector y should be set
-     * properly by the user on all patch interiors on the range of levels
-     * covered by the operator.  All data in this vector should be allocated.
-     * The user is responsible for managing the storage for the vectors.
-     *
-     * \note The operator MUST be initialized prior to calling
-     * modifyRhsForInhomogeneousBc.
-     *
-     * \see initializeOperatorState
-     *
-     * \param y output: y=Ax
-     */
-    void
-    modifyRhsForInhomogeneousBc(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
 
     /*!
      * \brief Compute y=Ax.
@@ -237,8 +210,6 @@ private:
 
     // Mathematical operators.
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
-    SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
-    bool d_hier_math_ops_external;
 
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;

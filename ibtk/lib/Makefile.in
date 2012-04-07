@@ -165,6 +165,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C \
 	$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/FACPreconditioner.C \
+	$(top_srcdir)/src/solvers/impls/LaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C \
 	$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C \
 	$(top_srcdir)/src/solvers/impls/PETScMultiVec.C \
@@ -296,6 +297,7 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-DiagonalScalingOperator.$(OBJEXT) \
 	libIBTK2d_a-DiagonalScalingPreconditioner.$(OBJEXT) \
 	libIBTK2d_a-FACPreconditioner.$(OBJEXT) \
+	libIBTK2d_a-LaplaceOperator.$(OBJEXT) \
 	libIBTK2d_a-PETScKrylovLinearSolver.$(OBJEXT) \
 	libIBTK2d_a-PETScMFFDJacobianOperator.$(OBJEXT) \
 	libIBTK2d_a-PETScMultiVec.$(OBJEXT) \
@@ -423,6 +425,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C \
 	$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/FACPreconditioner.C \
+	$(top_srcdir)/src/solvers/impls/LaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C \
 	$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C \
 	$(top_srcdir)/src/solvers/impls/PETScMultiVec.C \
@@ -553,6 +556,7 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-DiagonalScalingOperator.$(OBJEXT) \
 	libIBTK3d_a-DiagonalScalingPreconditioner.$(OBJEXT) \
 	libIBTK3d_a-FACPreconditioner.$(OBJEXT) \
+	libIBTK3d_a-LaplaceOperator.$(OBJEXT) \
 	libIBTK3d_a-PETScKrylovLinearSolver.$(OBJEXT) \
 	libIBTK3d_a-PETScMFFDJacobianOperator.$(OBJEXT) \
 	libIBTK3d_a-PETScMultiVec.$(OBJEXT) \
@@ -1091,6 +1095,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.h \
 	$(top_srcdir)/src/solvers/impls/FACPreconditioner.I \
 	$(top_srcdir)/src/solvers/impls/FACPreconditioner.h \
+	$(top_srcdir)/src/solvers/impls/LaplaceOperator.h \
 	$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.I \
 	$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.h \
 	$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.h \
@@ -1223,6 +1228,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C \
 	$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/FACPreconditioner.C \
+	$(top_srcdir)/src/solvers/impls/LaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C \
 	$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C \
 	$(top_srcdir)/src/solvers/impls/PETScMultiVec.C \
@@ -1468,6 +1474,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LSetVariable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LSiloDataWriter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LTransaction.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LaplaceOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LinearOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-LinearSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-NewtonKrylovSolver.Po@am__quote@
@@ -1582,6 +1589,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LSetVariable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LSiloDataWriter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LTransaction.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LaplaceOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LinearOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-LinearSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-NewtonKrylovSolver.Po@am__quote@
@@ -2626,6 +2634,20 @@ libIBTK2d_a-FACPreconditioner.obj: $(top_srcdir)/src/solvers/impls/FACPreconditi
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/FACPreconditioner.C' object='libIBTK2d_a-FACPreconditioner.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-FACPreconditioner.obj `if test -f '$(top_srcdir)/src/solvers/impls/FACPreconditioner.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/FACPreconditioner.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/FACPreconditioner.C'; fi`
+
+libIBTK2d_a-LaplaceOperator.o: $(top_srcdir)/src/solvers/impls/LaplaceOperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LaplaceOperator.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LaplaceOperator.Tpo -c -o libIBTK2d_a-LaplaceOperator.o `test -f '$(top_srcdir)/src/solvers/impls/LaplaceOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/LaplaceOperator.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LaplaceOperator.Tpo $(DEPDIR)/libIBTK2d_a-LaplaceOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/LaplaceOperator.C' object='libIBTK2d_a-LaplaceOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LaplaceOperator.o `test -f '$(top_srcdir)/src/solvers/impls/LaplaceOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/LaplaceOperator.C
+
+libIBTK2d_a-LaplaceOperator.obj: $(top_srcdir)/src/solvers/impls/LaplaceOperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-LaplaceOperator.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-LaplaceOperator.Tpo -c -o libIBTK2d_a-LaplaceOperator.obj `if test -f '$(top_srcdir)/src/solvers/impls/LaplaceOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/LaplaceOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/LaplaceOperator.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-LaplaceOperator.Tpo $(DEPDIR)/libIBTK2d_a-LaplaceOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/LaplaceOperator.C' object='libIBTK2d_a-LaplaceOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-LaplaceOperator.obj `if test -f '$(top_srcdir)/src/solvers/impls/LaplaceOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/LaplaceOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/LaplaceOperator.C'; fi`
 
 libIBTK2d_a-PETScKrylovLinearSolver.o: $(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-PETScKrylovLinearSolver.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-PETScKrylovLinearSolver.Tpo -c -o libIBTK2d_a-PETScKrylovLinearSolver.o `test -f '$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C
@@ -4222,6 +4244,20 @@ libIBTK3d_a-FACPreconditioner.obj: $(top_srcdir)/src/solvers/impls/FACPreconditi
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/FACPreconditioner.C' object='libIBTK3d_a-FACPreconditioner.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-FACPreconditioner.obj `if test -f '$(top_srcdir)/src/solvers/impls/FACPreconditioner.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/FACPreconditioner.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/FACPreconditioner.C'; fi`
+
+libIBTK3d_a-LaplaceOperator.o: $(top_srcdir)/src/solvers/impls/LaplaceOperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LaplaceOperator.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LaplaceOperator.Tpo -c -o libIBTK3d_a-LaplaceOperator.o `test -f '$(top_srcdir)/src/solvers/impls/LaplaceOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/LaplaceOperator.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LaplaceOperator.Tpo $(DEPDIR)/libIBTK3d_a-LaplaceOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/LaplaceOperator.C' object='libIBTK3d_a-LaplaceOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LaplaceOperator.o `test -f '$(top_srcdir)/src/solvers/impls/LaplaceOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/LaplaceOperator.C
+
+libIBTK3d_a-LaplaceOperator.obj: $(top_srcdir)/src/solvers/impls/LaplaceOperator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-LaplaceOperator.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-LaplaceOperator.Tpo -c -o libIBTK3d_a-LaplaceOperator.obj `if test -f '$(top_srcdir)/src/solvers/impls/LaplaceOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/LaplaceOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/LaplaceOperator.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-LaplaceOperator.Tpo $(DEPDIR)/libIBTK3d_a-LaplaceOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/LaplaceOperator.C' object='libIBTK3d_a-LaplaceOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-LaplaceOperator.obj `if test -f '$(top_srcdir)/src/solvers/impls/LaplaceOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/LaplaceOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/LaplaceOperator.C'; fi`
 
 libIBTK3d_a-PETScKrylovLinearSolver.o: $(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-PETScKrylovLinearSolver.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-PETScKrylovLinearSolver.Tpo -c -o libIBTK3d_a-PETScKrylovLinearSolver.o `test -f '$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C

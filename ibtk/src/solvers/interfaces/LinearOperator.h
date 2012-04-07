@@ -57,10 +57,12 @@ public:
     /*!
      * \brief Default constructor.
      *
-     * \param is_symmetric  Boolean that indicates whether the operator is symmetric.
+     * \param is_symmetric    Boolean that indicates whether the operator is symmetric.
+     * \param homogeneous_bc  Boolean that indicates whether the operator should use homogeneous boundary conditions.
      */
     LinearOperator(
-        bool is_symmetric=false);
+        bool is_symmetric=false,
+        bool homogeneous_bc=false);
 
     /*!
      * \brief Empty destructor.
@@ -77,6 +79,19 @@ public:
      */
     bool
     isSymmetric() const;
+
+    /*!
+     * \brief Specify whether the boundary conditions are homogeneous.
+     */
+    void
+    setHomogeneousBc(
+        bool homogeneous_bc);
+
+    /*!
+     * \brief Determine whether the boundary conditions are homogeneous.
+     */
+    bool
+    getHomogeneousBc();
 
     /*!
      * \brief Modify y to account for inhomogeneous boundary conditions.
@@ -165,6 +180,19 @@ public:
 
     //\}
 
+protected:
+    /*!
+     * Indicates whether the linear operator is symmetric.
+     */
+    const bool d_is_symmetric;
+
+    /*
+     * Boolean flags indicating whether the boundary conditions are homogeneous,
+     * and whether the operator is currently correcting a right-hand side vector
+     * to account for inhomogeneous boundary conditions.
+     */
+    bool d_homogeneous_bc, d_correcting_rhs;
+
 private:
     /*!
      * \brief Copy constructor.
@@ -188,11 +216,6 @@ private:
     LinearOperator&
     operator=(
         const LinearOperator& that);
-
-    /*!
-     * Indicates whether the linear operator is symmetric.
-     */
-    bool d_is_symmetric;
 };
 }// namespace IBTK
 

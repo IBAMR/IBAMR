@@ -146,6 +146,14 @@ public:
     //\{
 
     /*!
+     * \brief Set the current time interval (for a time-dependent solver).
+     */
+    void
+    setTimeInterval(
+        double current_time,
+        double new_time);
+
+    /*!
      * \brief Set the nonlinear operator \f$F[x]\f$ used by the solver.
      */
     void
