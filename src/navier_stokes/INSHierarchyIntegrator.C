@@ -285,13 +285,16 @@ INSHierarchyIntegrator::setConvectiveOperator(
 
 void
 INSHierarchyIntegrator::setVelocitySubdomainSolver(
+    Pointer<LaplaceOperator> velocity_op,
     Pointer<LinearSolver> velocity_solver,
     const bool needs_reinit_when_dt_changes)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_integrator_is_initialized);
+    TBOX_ASSERT(d_velocity_op.isNull());
     TBOX_ASSERT(d_velocity_solver.isNull());
 #endif
+    d_velocity_op = velocity_op;
     d_velocity_solver = velocity_solver;
     d_velocity_solver_needs_reinit_when_dt_changes = needs_reinit_when_dt_changes;
     return;
@@ -299,13 +302,16 @@ INSHierarchyIntegrator::setVelocitySubdomainSolver(
 
 void
 INSHierarchyIntegrator::setPressureSubdomainSolver(
+    Pointer<LaplaceOperator> pressure_op,
     Pointer<LinearSolver> pressure_solver,
     const bool needs_reinit_when_dt_changes)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_integrator_is_initialized);
+    TBOX_ASSERT(d_pressure_op.isNull());
     TBOX_ASSERT(d_pressure_solver.isNull());
 #endif
+    d_pressure_op = pressure_op;
     d_pressure_solver = pressure_solver;
     d_pressure_solver_needs_reinit_when_dt_changes = needs_reinit_when_dt_changes;
     return;

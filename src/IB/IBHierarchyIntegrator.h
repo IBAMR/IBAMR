@@ -50,8 +50,10 @@
 namespace IBAMR
 {
 /*!
- * \brief Class IBHierarchyIntegrator is an implementation of a formally
- * second-order accurate, semi-implicit version of the immersed boundary method.
+ * \brief Class IBHierarchyIntegrator provides an abstract interface for a time
+ * integrator for various versions of the immersed boundary method on an AMR
+ * grid hierarchy, along with basic data management for variables defined on
+ * that hierarchy.
  */
 class IBHierarchyIntegrator
     : public IBTK::HierarchyIntegrator
@@ -229,8 +231,7 @@ protected:
 
     /*
      * The (optional) INSHierarchyIntegrator is used to provide time integration
-     * capability for the incompressible Navier-Stokes equations in explicit IB
-     * methods.
+     * capability for the incompressible Navier-Stokes equations.
      */
     SAMRAI::tbox::Pointer<INSHierarchyIntegrator> d_ins_hier_integrator;
 
@@ -240,9 +241,14 @@ protected:
      * process.
      *
      * NOTE: Currently, when the CFL-based regrid interval is specified, it is
-     * used instead of the fixed regrid interval.
+     * always used instead of the fixed-step regrid interval.
      */
     double d_regrid_cfl_interval, d_regrid_cfl_estimate;
+
+    /*
+     * IB method implementation object.
+     */
+    SAMRAI::tbox::Pointer<IBStrategy> d_ib_method_ops;
 
     /*
      * Hierarchy operations objects.
@@ -262,11 +268,6 @@ protected:
      * Body force functions.
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_body_force_fcn;
-
-    /*
-     * IB method implementation object.
-     */
-    SAMRAI::tbox::Pointer<IBStrategy> d_ib_method_ops;
 
     /*
      * Nonuniform load balancing data structures.
@@ -291,6 +292,12 @@ protected:
         : public IBTK::CartGridFunction
     {
     public:
+        /*!
+         * \brief Constructor.
+         */
+        IBEulerianForceFunction(
+            const IBHierarchyIntegrator* ib_solver);
+
         /*!
          * \brief Destructor.
          */
@@ -322,12 +329,6 @@ protected:
         //\}
 
     private:
-        /*!
-         * \brief Constructor.
-         */
-        IBEulerianForceFunction(
-            const IBHierarchyIntegrator* ib_solver);
-
         /*!
          * \brief Default constructor.
          *
@@ -372,6 +373,12 @@ protected:
     {
     public:
         /*!
+         * \brief Constructor.
+         */
+        IBEulerianSourceFunction(
+            const IBHierarchyIntegrator* ib_solver);
+
+        /*!
          * \brief Destructor.
          */
         ~IBEulerianSourceFunction();
@@ -402,12 +409,6 @@ protected:
         //\}
 
     private:
-        /*!
-         * \brief Constructor.
-         */
-        IBEulerianSourceFunction(
-            const IBHierarchyIntegrator* ib_solver);
-
         /*!
          * \brief Default constructor.
          *

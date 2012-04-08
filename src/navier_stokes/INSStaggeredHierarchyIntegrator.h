@@ -137,7 +137,8 @@ public:
      */
     void
     setStokesSolver(
-        SAMRAI::tbox::Pointer<IBTK::LinearSolver> stokes_pc,
+        SAMRAI::tbox::Pointer<IBTK::GeneralOperator> stokes_op,
+        SAMRAI::tbox::Pointer<IBTK::GeneralSolver> stokes_solver,
         bool needs_reinit_when_dt_changes);
 
     /*!
@@ -151,7 +152,7 @@ public:
      * already been registered with the integrator, that preconditioner is used
      * in place of the default preconditioner.
      */
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>
+    SAMRAI::tbox::Pointer<IBTK::GeneralSolver>
     getStokesSolver();
 
     /*!
@@ -395,22 +396,20 @@ private:
 
     bool d_convective_op_needs_init;
 
-    SAMRAI::tbox::Pointer<IBTK::SCLaplaceOperator>         d_velocity_op;
     SAMRAI::solv::PoissonSpecifications*                   d_velocity_spec;
     SAMRAI::tbox::Pointer<IBTK::SCPoissonHypreLevelSolver> d_velocity_hypre_pc;
     SAMRAI::tbox::Pointer<IBTK::SCPoissonFACOperator>      d_velocity_fac_op;
     SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>         d_velocity_fac_pc;
     bool d_velocity_solver_needs_init;
 
-    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>         d_pressure_op;
     SAMRAI::solv::PoissonSpecifications*                   d_pressure_spec;
     SAMRAI::tbox::Pointer<IBTK::CCPoissonHypreLevelSolver> d_pressure_hypre_pc;
     SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>      d_pressure_fac_op;
     SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>         d_pressure_fac_pc;
     bool d_pressure_solver_needs_init;
 
-    SAMRAI::tbox::Pointer<INSStaggeredStokesOperator>      d_stokes_op;
-    SAMRAI::tbox::Pointer<IBTK::LinearSolver>              d_stokes_solver;
+    SAMRAI::tbox::Pointer<IBTK::GeneralOperator>           d_stokes_op;
+    SAMRAI::tbox::Pointer<IBTK::GeneralSolver>             d_stokes_solver;
     SAMRAI::tbox::Pointer<IBTK::LinearSolver>              d_stokes_pc;
     bool d_stokes_solver_needs_reinit_when_dt_changes, d_stokes_solver_needs_init;
 

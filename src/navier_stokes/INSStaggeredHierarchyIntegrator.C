@@ -47,9 +47,7 @@
 // IBAMR INCLUDES
 #include <ibamr/INSIntermediateVelocityBcCoef.h>
 #include <ibamr/INSProjectionBcCoef.h>
-#include <ibamr/INSStaggeredBlockFactorizationPreconditioner.h>
 #include <ibamr/INSStaggeredCenteredConvectiveOperator.h>
-#include <ibamr/INSStaggeredPETScLevelSolver.h>
 #include <ibamr/INSStaggeredPPMConvectiveOperator.h>
 #include <ibamr/INSStaggeredProjectionPreconditioner.h>
 #include <ibamr/INSStaggeredPressureBcCoef.h>
@@ -499,19 +497,22 @@ INSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
 
 void
 INSStaggeredHierarchyIntegrator::setStokesSolver(
-    Pointer<LinearSolver> stokes_solver,
+    Pointer<GeneralOperator> stokes_op,
+    Pointer<GeneralSolver> stokes_solver,
     const bool needs_reinit_when_dt_changes)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_stokes_op.isNull());
     TBOX_ASSERT(d_stokes_solver.isNull());
 #endif
+    d_stokes_op = stokes_op;
     d_stokes_solver = stokes_solver;
     d_stokes_solver_needs_reinit_when_dt_changes = needs_reinit_when_dt_changes;
     d_stokes_solver_needs_init = true;
     return;
 }// setStokesSolver
 
-Pointer<LinearSolver>
+Pointer<GeneralSolver>
 INSStaggeredHierarchyIntegrator::getStokesSolver()
 {
     if (d_stokes_solver.isNull())
@@ -519,8 +520,8 @@ INSStaggeredHierarchyIntegrator::getStokesSolver()
         const std::string stokes_prefix = "stokes_";
         d_stokes_op = new INSStaggeredStokesOperator(&d_problem_coefs, d_U_bc_coefs, d_P_bc_coef, d_hier_math_ops);
         d_stokes_solver = new PETScKrylovLinearSolver(d_object_name+"::stokes_solver", stokes_prefix);
-        d_stokes_solver->setInitialGuessNonzero(true);
         Pointer<PETScKrylovLinearSolver> p_stokes_solver = d_stokes_solver;
+        p_stokes_solver->setInitialGuessNonzero(true);
         p_stokes_solver->setOperator(d_stokes_op);
         p_stokes_solver->setPreconditioner(getStokesPreconditioner());
         p_stokes_solver->setKSPType("fgmres");
@@ -569,37 +570,10 @@ INSStaggeredHierarchyIntegrator::getStokesPreconditioner()
                        "  invalid stokes preconditioner type: " << stokes_pc_type << "\n"
                        "  valid stokes preconditioner types: shell, none" << std::endl);
         }
-        if (stokes_pc_type == "shell")
-        {
-            static const size_t len = 255;
-            char stokes_pc_shell_type_str[len];
-            PetscBool flg;
-            int ierr = PetscOptionsGetString("stokes_", "-pc_shell_type", stokes_pc_shell_type_str, len, &flg);  IBTK_CHKERRQ(ierr);
-            std::string stokes_pc_shell_type = "projection";
-            if (flg)
-            {
-                stokes_pc_shell_type = std::string(stokes_pc_shell_type_str);
-            }
-            if (stokes_pc_shell_type == "projection")
-            {
-                d_stokes_pc = new INSStaggeredProjectionPreconditioner(
-                    d_problem_coefs, d_Phi_bc_coef, d_normalize_pressure,
-                    getVelocitySubdomainSolver(), getPressureSubdomainSolver(),
-                    d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
-            }
-            else if (stokes_pc_shell_type == "block_factorization")
-            {
-                d_stokes_pc = new INSStaggeredBlockFactorizationPreconditioner(
-                    d_problem_coefs, d_Phi_bc_coef, d_normalize_pressure,
-                    getVelocitySubdomainSolver(), getPressureSubdomainSolver(),
-                    d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
-            }
-            else if (stokes_pc_shell_type == "petsc")
-            {
-                d_stokes_pc = new INSStaggeredPETScLevelSolver(
-                    "INSStaggeredPETScLevelSolver", d_problem_coefs, d_U_bc_coefs);
-            }
-        }
+        d_stokes_pc = new INSStaggeredProjectionPreconditioner(
+            d_problem_coefs, d_Phi_bc_coef, d_normalize_pressure,
+            getVelocitySubdomainSolver(), getPressureSubdomainSolver(),
+            d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
         d_stokes_solver_needs_reinit_when_dt_changes = false;
         d_stokes_solver_needs_init = true;
     }
@@ -618,13 +592,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-
-    Pointer<CellVariable<NDIM,double> > cc_var = new CellVariable<NDIM,double>("cc_var");
-    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy, true);
-
-    Pointer<SideVariable<NDIM,double> > sc_var = new SideVariable<NDIM,double>("sc_var");
-    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, hierarchy, true);
-
+    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(new CellVariable<NDIM,double>("cc_var"), hierarchy, true);
+    d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(new SideVariable<NDIM,double>("sc_var"), hierarchy, true);
     d_hier_math_ops = buildHierarchyMathOps(d_hierarchy);
 
     // Register state variables that are maintained by the
@@ -778,13 +747,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     coarsen_alg->registerCoarsen(d_U_scratch_idx, d_U_scratch_idx, coarsen_op);
     registerCoarsenAlgorithm(d_object_name+"::CONVECTIVE_OP", coarsen_alg);
 
-    // Set the current integration time.
-    if (!RestartManager::getManager()->isFromRestart())
-    {
-        d_integrator_time = d_start_time;
-        d_integrator_step = 0;
-    }
-
     // Setup the Stokes solver.
     d_stokes_solver = getStokesSolver();
 
@@ -885,14 +847,10 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
 
     // Keep track of the number of cycles to be used for the present integration
     // step.
     d_num_cycles_step = num_cycles;
-
-    // Zero-out the initial pressure (if any).
-    if (initial_time) d_hier_cc_data_ops->setToScalar(d_P_current_idx, 0.0);
 
     // Allocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -932,9 +890,13 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     // Setup inhomogeneous boundary conditions.
     d_U_bc_helper->clearBcCoefData();
     d_U_bc_helper->cacheBcCoefData(d_U_scratch_idx, d_U_var, d_U_bc_coefs, new_time, IntVector<NDIM>(SIDEG), d_hierarchy);
-    d_stokes_op->setHomogeneousBc(false);
-    d_stokes_op->modifyRhsForInhomogeneousBc(*d_rhs_vec);
-    d_stokes_op->setHomogeneousBc(true);
+    Pointer<LinearOperator> p_stokes_op = d_stokes_op;
+    if (!p_stokes_op.isNull())
+    {
+        p_stokes_op->setHomogeneousBc(false);
+        p_stokes_op->modifyRhsForInhomogeneousBc(*d_rhs_vec);
+        p_stokes_op->setHomogeneousBc(true);
+    }
 
     // Initialize any registered advection-diffusion solver.
     if (!d_adv_diff_hier_integrator.isNull())
@@ -1796,7 +1758,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     Phi_bc_coef->setTimeInterval(current_time,new_time);
 
     // Setup convective operator.
-    if (!d_convective_op.isNull() &&d_convective_op_needs_init)
+    if (!d_convective_op.isNull() && d_convective_op_needs_init)
     {
         if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing convective operator" << std::endl;
         d_convective_op->setAdvectionVelocity(d_U_scratch_idx);
@@ -1901,7 +1863,8 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     }
 
     // Setup Stokes solver.
-    if (!d_stokes_op.isNull()) d_stokes_op->setTimeInterval(current_time,new_time);
+    Pointer<INSStaggeredStokesOperator> p_stokes_op = d_stokes_op;
+    if (!p_stokes_op.isNull()) p_stokes_op->setTimeInterval(current_time,new_time);
     if (!d_stokes_pc.isNull()) d_stokes_pc->setTimeInterval(current_time,new_time);
     d_stokes_solver->setTimeInterval(current_time,new_time);
     if (d_stokes_solver_needs_init)
@@ -1913,7 +1876,8 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
             d_nul_vec->allocateVectorData(current_time);
             d_hier_sc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(0), 0.0);
             d_hier_cc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(1), 1.0);
-            d_stokes_solver->setNullspace(false, d_nul_vec);
+            Pointer<LinearSolver> p_stokes_solver = d_stokes_solver;
+            if (!p_stokes_solver.isNull()) p_stokes_solver->setNullspace(false, d_nul_vec);
         }
         d_stokes_solver_needs_init = false;
     }

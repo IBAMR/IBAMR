@@ -419,13 +419,16 @@ INSCollocatedHierarchyIntegrator::getPressureSubdomainSolver()
 
 void
 INSCollocatedHierarchyIntegrator::setExactProjectionSolver(
+    Pointer<LinearOperator> exact_projection_op,
     Pointer<LinearSolver> exact_projection_solver,
     const bool needs_reinit_when_dt_changes)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!d_integrator_is_initialized);
+    TBOX_ASSERT(d_exact_projection_op.isNull());
     TBOX_ASSERT(d_exact_projection_solver.isNull());
 #endif
+    d_exact_projection_op = exact_projection_op;
     d_exact_projection_solver = exact_projection_solver;
     d_exact_projection_solver_needs_reinit_when_dt_changes = needs_reinit_when_dt_changes;
     return;
@@ -554,13 +557,8 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
 
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-
-    Pointer<CellVariable<NDIM,double> > cc_var = new CellVariable<NDIM,double>("cc_var");
-    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, hierarchy, true);
-
-    Pointer<FaceVariable<NDIM,double> > fc_var = new FaceVariable<NDIM,double>("fc_var");
-    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(fc_var, hierarchy, true);
-
+    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(new CellVariable<NDIM,double>("cc_var"), hierarchy, true);
+    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(new FaceVariable<NDIM,double>("fc_var"), hierarchy, true);
     d_hier_math_ops = buildHierarchyMathOps(d_hierarchy);
 
     // Register state variables that are maintained by the
@@ -713,13 +711,6 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(
     coarsen_alg->registerCoarsen(d_u_ADV_scratch_idx, d_u_ADV_scratch_idx, coarsen_op);
     registerCoarsenAlgorithm(d_object_name+"::CONVECTIVE_OP", coarsen_alg);
 
-    // Set the current integration time.
-    if (!RestartManager::getManager()->isFromRestart())
-    {
-        d_integrator_time = d_start_time;
-        d_integrator_step = 0;
-    }
-
     // Setup the component solvers.
     d_velocity_solver = getVelocitySubdomainSolver();
     d_pressure_solver = getPressureSubdomainSolver();
@@ -785,14 +776,10 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time-current_time;
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
 
     // Keep track of the number of cycles to be used for the present integration
     // step.
     d_num_cycles_step = num_cycles;
-
-    // Zero-out the initial pressure (if any).
-    if (initial_time) d_hier_cc_data_ops->setToScalar(d_P_current_idx, 0.0);
 
     // Allocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1614,7 +1601,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     Phi_bc_coef->setTimeInterval(current_time,new_time);
 
     // Setup convective operator.
-    if (!d_convective_op.isNull() &&d_convective_op_needs_init)
+    if (!d_convective_op.isNull() && d_convective_op_needs_init)
     {
         if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): Initializing convective operator" << std::endl;
         d_convective_op->setAdvectionVelocity(d_U_scratch_idx);

@@ -70,7 +70,7 @@ static const int IB_HIERARCHY_INTEGRATOR_VERSION = 2;
 
 IBHierarchyIntegrator::~IBHierarchyIntegrator()
 {
-    // intentionally blank.
+    // intentionally blank
     return;
 }// ~IBHierarchyIntegrator
 
@@ -176,25 +176,15 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     if (!d_mark_file_name.empty())
     {
         d_mark_var = new LMarkerSetVariable(d_object_name+"::markers");
-        registerVariable(d_mark_current_idx, d_mark_new_idx, d_mark_scratch_idx,
-                         d_mark_var, /* ghosts */ IntVector<NDIM>(1));
+        registerVariable(d_mark_current_idx, d_mark_new_idx, d_mark_scratch_idx, d_mark_var, ghosts);
     }
 
-    // Initialize the objects used to manage Lagrangian-Eulerian interaction.
-    if (!d_ins_hier_integrator.isNull())
+    // Initialize the fluid solver.
+    if (d_ib_method_ops->hasFluidSources())
     {
-        d_ins_hier_integrator->registerBodyForceFunction(new IBEulerianForceFunction(this));
-        if (d_ib_method_ops->hasFluidSources())
-        {
-            if (!d_ins_hier_integrator.isNull()) d_ins_hier_integrator->registerFluidSourceFunction(new IBEulerianSourceFunction(this));
-        }
+        d_ins_hier_integrator->registerFluidSourceFunction(new IBEulerianSourceFunction(this));
     }
-
-    // Initialize the fluid solver.  It is necessary to do this after
-    // registering a body force function or fluid source distribution function,
-    // but before setting up communications schedules (because we need class
-    // INSHierarchyIntegrator to register its variables).
-    if (!d_ins_hier_integrator.isNull()) d_ins_hier_integrator->initializeHierarchyIntegrator(hierarchy, gridding_alg);
+    d_ins_hier_integrator->initializeHierarchyIntegrator(hierarchy, gridding_alg);
 
     // Have the IB method ops object register any additional Eulerian variables
     // and communications algorithms that it requires.
@@ -263,13 +253,6 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     if (!d_mark_file_name.empty())
     {
         LMarkerUtilities::readMarkerPositions(d_mark_init_posns, d_mark_file_name, hierarchy->getGridGeometry());
-    }
-
-    // Set the current integration time.
-    if (!RestartManager::getManager()->isFromRestart())
-    {
-        d_integrator_time = d_start_time;
-        d_integrator_step = 0;
     }
 
     // Indicate that the integrator has been initialized.
@@ -371,25 +354,26 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
     bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart)
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!ib_method_ops.isNull());
+    TBOX_ASSERT(!ins_hier_integrator.isNull());
+#endif
+
     // Set the IB method operations objects.
     d_ib_method_ops = ib_method_ops;
     d_ib_method_ops->registerIBHierarchyIntegrator(this);
 
     // Register the fluid solver as a child integrator of this integrator object
-    // and reuse the variables and variable contexts of the INS solver when the
-    // solver is non-null.
+    // and reuse the variables and variable contexts of the INS solver.
     d_ins_hier_integrator = ins_hier_integrator;
-    if (!d_ins_hier_integrator.isNull())
-    {
-        registerChildHierarchyIntegrator(d_ins_hier_integrator);
-        d_u_var = d_ins_hier_integrator->getVelocityVariable();
-        d_p_var = d_ins_hier_integrator->getPressureVariable();
-        d_f_var = d_ins_hier_integrator->getBodyForceVariable();
-        d_q_var = d_ins_hier_integrator->getFluidSourceVariable();
-        d_current_context = d_ins_hier_integrator->getCurrentContext();
-        d_scratch_context = d_ins_hier_integrator->getScratchContext();
-        d_new_context = d_ins_hier_integrator->getNewContext();
-    }
+    registerChildHierarchyIntegrator(d_ins_hier_integrator);
+    d_u_var = d_ins_hier_integrator->getVelocityVariable();
+    d_p_var = d_ins_hier_integrator->getPressureVariable();
+    d_f_var = d_ins_hier_integrator->getBodyForceVariable();
+    d_q_var = d_ins_hier_integrator->getFluidSourceVariable();
+    d_current_context = d_ins_hier_integrator->getCurrentContext();
+    d_scratch_context = d_ins_hier_integrator->getScratchContext();
+    d_new_context = d_ins_hier_integrator->getNewContext();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_ib_context = var_db->getContext(d_object_name+"::IB");
 

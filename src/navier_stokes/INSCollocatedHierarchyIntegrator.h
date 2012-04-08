@@ -121,6 +121,7 @@ public:
      */
     void
     setExactProjectionSolver(
+        SAMRAI::tbox::Pointer<IBTK::LinearOperator> exact_projection_op,
         SAMRAI::tbox::Pointer<IBTK::LinearSolver> exact_projection_solver,
         bool needs_reinit_when_dt_changes);
 
@@ -356,13 +357,11 @@ private:
 
     bool d_convective_op_needs_init;
 
-    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>         d_velocity_op;
     SAMRAI::solv::PoissonSpecifications*                   d_velocity_spec;
     SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>      d_velocity_fac_op;
     SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>         d_velocity_fac_pc;
     bool d_velocity_solver_needs_init;
 
-    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator>         d_pressure_op;
     SAMRAI::solv::PoissonSpecifications*                   d_pressure_spec;
     SAMRAI::tbox::Pointer<IBTK::CCPoissonHypreLevelSolver> d_pressure_hypre_pc;
     SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>      d_pressure_fac_op;
@@ -371,7 +370,7 @@ private:
 
     SAMRAI::tbox::Pointer<IBTK::LinearSolver>              d_exact_projection_solver;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>          d_exact_projection_hypre_pc_db;
-    SAMRAI::tbox::Pointer<IBTK::CCDivGradOperator>         d_exact_projection_op;
+    SAMRAI::tbox::Pointer<IBTK::LinearOperator>            d_exact_projection_op;
     SAMRAI::tbox::Pointer<IBTK::CCDivGradHypreLevelSolver> d_exact_projection_hypre_pc;
     bool d_exact_projection_solver_needs_reinit_when_dt_changes, d_exact_projection_solver_needs_init;
 

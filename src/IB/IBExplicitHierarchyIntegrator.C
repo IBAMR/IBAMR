@@ -80,7 +80,7 @@ IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(
 
 IBExplicitHierarchyIntegrator::~IBExplicitHierarchyIntegrator()
 {
-    // intentionally blank.
+    // intentionally blank
     return;
 }// ~IBExplicitHierarchyIntegrator
 
@@ -362,6 +362,20 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
     }
     return;
 }// postprocessIntegrateHierarchy
+
+void
+IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(
+    Pointer<PatchHierarchy<NDIM> > hierarchy,
+    Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+{
+    if (d_integrator_is_initialized) return;
+
+    // Setup the fluid solver for explicit coupling.
+    d_ins_hier_integrator->registerBodyForceFunction(new IBEulerianForceFunction(this));
+
+    // Finish initializing the hierarchy integrator.
+    IBHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
+}// initializeHierarchyIntegrator
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

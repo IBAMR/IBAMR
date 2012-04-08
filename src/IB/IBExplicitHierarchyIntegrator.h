@@ -106,6 +106,20 @@ public:
         bool skip_synchronize_new_state_data,
         int num_cycles=1);
 
+    /*!
+     * Initialize the variables, basic communications algorithms, solvers, and
+     * other data structures used by this time integrator object.
+     *
+     * This method is called automatically by initializePatchHierarchy() prior
+     * to the construction of the patch hierarchy.  It is also possible for
+     * users to make an explicit call to initializeHierarchyIntegrator() prior
+     * to calling initializePatchHierarchy().
+     */
+    void
+    initializeHierarchyIntegrator(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+
 protected:
     /*!
      * Write out specialized object state to the given database.

@@ -40,6 +40,9 @@
 #include <ibamr/ConvectiveOperator.h>
 #include <ibamr/INSProblemCoefs.h>
 
+// IBTK INCLUDES
+#include <ibtk/LaplaceOperator.h>
+
 // SAMRAI INCLUDES
 #include <LocationIndexRobinBcCoefs.h>
 
@@ -260,6 +263,7 @@ public:
      */
     void
     setVelocitySubdomainSolver(
+        SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> velocity_op,
         SAMRAI::tbox::Pointer<IBTK::LinearSolver> velocity_solver,
         bool needs_reinit_when_dt_changes);
 
@@ -282,6 +286,7 @@ public:
      */
     void
     setPressureSubdomainSolver(
+        SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> pressure_op,
         SAMRAI::tbox::Pointer<IBTK::LinearSolver> pressure_solver,
         bool needs_reinit_when_dt_changes);
 
@@ -424,10 +429,12 @@ protected:
     SAMRAI::tbox::Pointer<ConvectiveOperator> d_convective_op;
     bool d_convective_op_needs_reinit_when_dt_changes;
 
+    SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> d_velocity_op;
     SAMRAI::tbox::Pointer<IBTK::LinearSolver> d_velocity_solver;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_velocity_hypre_pc_db, d_velocity_fac_pc_db;
     bool d_velocity_solver_needs_reinit_when_dt_changes;
 
+    SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> d_pressure_op;
     SAMRAI::tbox::Pointer<IBTK::LinearSolver> d_pressure_solver;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_pressure_hypre_pc_db, d_pressure_fac_pc_db;
     bool d_pressure_solver_needs_reinit_when_dt_changes;
