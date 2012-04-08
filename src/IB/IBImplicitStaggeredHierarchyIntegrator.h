@@ -1,5 +1,5 @@
-// Filename: IBExplicitHierarchyIntegrator.h
-// Created on 12 Jul 2004 by Boyce Griffith
+// Filename: IBImplicitStaggeredHierarchyIntegrator.h
+// Created on 07 Apr 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_IBExplicitHierarchyIntegrator
-#define included_IBExplicitHierarchyIntegrator
+#ifndef included_IBImplicitStaggeredHierarchyIntegrator
+#define included_IBImplicitStaggeredHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -40,38 +40,43 @@
 
 // IBAMR INCLUDES
 #include <ibamr/IBHierarchyIntegrator.h>
+#include <ibamr/INSStaggeredHierarchyIntegrator.h>
+
+// IBTK INCLUDES
+#include <ibtk/NewtonKrylovSolver.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
 {
 /*!
- * \brief Class IBExplicitHierarchyIntegrator is an implementation of a formally
- * second-order accurate, semi-implicit version of the immersed boundary method.
+ * \brief Class IBImplicitStaggeredHierarchyIntegrator is an implementation of a
+ * formally second-order accurate, nonlinearly-implicit version of the immersed
+ * boundary method.
  */
-class IBExplicitHierarchyIntegrator
+class IBImplicitStaggeredHierarchyIntegrator
     : public IBHierarchyIntegrator
 {
 public:
     /*!
-     * The constructor for class IBExplicitHierarchyIntegrator sets some default
-     * values, reads in configuration information from input and restart
-     * databases, and registers the integrator object with the restart manager
-     * when requested.
+     * The constructor for class IBImplicitStaggeredHierarchyIntegrator sets
+     * some default values, reads in configuration information from input and
+     * restart databases, and registers the integrator object with the restart
+     * manager when requested.
      */
-    IBExplicitHierarchyIntegrator(
+    IBImplicitStaggeredHierarchyIntegrator(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<IBStrategy> ib_method_ops,
-        SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,
+        SAMRAI::tbox::Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
         bool register_for_restart=true);
 
     /*!
-     * The destructor for class IBExplicitHierarchyIntegrator unregisters the
-     * integrator object with the restart manager when the object is so
-     * registered.
+     * The destructor for class IBImplicitStaggeredHierarchyIntegrator
+     * unregisters the integrator object with the restart manager when the
+     * object is so registered.
      */
-    ~IBExplicitHierarchyIntegrator();
+    ~IBImplicitStaggeredHierarchyIntegrator();
 
     /*!
      * Returns the number of cycles to perform for the present time step.
@@ -136,7 +141,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    IBExplicitHierarchyIntegrator();
+    IBImplicitStaggeredHierarchyIntegrator();
 
     /*!
      * \brief Copy constructor.
@@ -145,8 +150,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    IBExplicitHierarchyIntegrator(
-        const IBExplicitHierarchyIntegrator& from);
+    IBImplicitStaggeredHierarchyIntegrator(
+        const IBImplicitStaggeredHierarchyIntegrator& from);
 
     /*!
      * \brief Assignment operator.
@@ -157,9 +162,9 @@ private:
      *
      * \return A reference to this object.
      */
-    IBExplicitHierarchyIntegrator&
+    IBImplicitStaggeredHierarchyIntegrator&
     operator=(
-        const IBExplicitHierarchyIntegrator& that);
+        const IBImplicitStaggeredHierarchyIntegrator& that);
 
     /*!
      * Read object state from the restart file and initialize class data
@@ -167,13 +172,17 @@ private:
      */
     void
     getFromRestart();
+
+    SAMRAI::tbox::Pointer<IBTK::GeneralOperator>    d_stokes_op;
+    SAMRAI::tbox::Pointer<IBTK::NewtonKrylovSolver> d_stokes_solver;
+    bool d_stokes_solver_needs_reinit_when_dt_changes;
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/IBExplicitHierarchyIntegrator.I>
+//#include <ibamr/IBImplicitStaggeredHierarchyIntegrator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBExplicitHierarchyIntegrator
+#endif //#ifndef included_IBImplicitStaggeredHierarchyIntegrator

@@ -1,0 +1,350 @@
+// Filename: IBImplicitStaggeredHierarchyIntegrator.C
+// Created on 07 Apr 2012 by Boyce Griffith
+//
+// Copyright (c) 2002-2010, Boyce Griffith
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
+//
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of New York University nor the names of its
+//      contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+
+#include "IBImplicitStaggeredHierarchyIntegrator.h"
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+#ifndef included_IBAMR_config
+#include <IBAMR_config.h>
+#define included_IBAMR_config
+#endif
+
+#ifndef included_SAMRAI_config
+#include <SAMRAI_config.h>
+#define included_SAMRAI_config
+#endif
+
+// IBAMR INCLUDES
+#include <ibamr/namespaces.h>
+
+// IBTK INCLUDES
+#include <ibtk/PETScNewtonKrylovSolver.h>
+
+// C++ STDLIB INCLUDES
+#include <algorithm>
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+namespace IBAMR
+{
+/////////////////////////////// STATIC ///////////////////////////////////////
+
+namespace
+{
+// Version of IBImplicitStaggeredHierarchyIntegrator restart file data.
+static const int IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
+}
+
+/////////////////////////////// PUBLIC ///////////////////////////////////////
+
+IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
+    const std::string& object_name,
+    Pointer<Database> input_db,
+    Pointer<IBStrategy> ib_method_ops,
+    Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
+    bool register_for_restart)
+    : IBHierarchyIntegrator(object_name, input_db, ib_method_ops, ins_hier_integrator, register_for_restart)
+{
+    // Initialize object with data read from the input and restart databases.
+    bool from_restart = RestartManager::getManager()->isFromRestart();
+    if (from_restart) getFromRestart();
+    return;
+}// IBImplicitStaggeredHierarchyIntegrator
+
+IBImplicitStaggeredHierarchyIntegrator::~IBImplicitStaggeredHierarchyIntegrator()
+{
+    // intentionally blank
+    return;
+}// ~IBImplicitStaggeredHierarchyIntegrator
+
+int
+IBImplicitStaggeredHierarchyIntegrator::getNumberOfCycles()
+{
+    return std::max(d_num_cycles,d_ins_hier_integrator->getNumberOfCycles());
+}// getNumberOfCycles
+
+void
+IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
+    const double current_time,
+    const double new_time,
+    const int num_cycles)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    TBOX_ASSERT(d_timestepping_type == MIDPOINT_RULE);
+
+    // Allocate Eulerian scratch and new data.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(d_u_idx, current_time);
+        level->allocatePatchData(d_f_idx, current_time);
+        if (d_ib_method_ops->hasFluidSources())
+        {
+            level->allocatePatchData(d_p_idx, current_time);
+            level->allocatePatchData(d_q_idx, current_time);
+        }
+        level->allocatePatchData(d_scratch_data, current_time);
+        level->allocatePatchData(d_new_data    ,     new_time);
+    }
+
+    // Initialize the fluid solver.
+    d_ins_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
+#if 0
+    IBAMR_DO_ONCE(
+        // XXXX
+        Pointer<INSStaggeredHierarchyIntegrator> p_ins_hier_integrator = d_ins_hier_integrator;
+        Pointer<PETScKrylovLinearSolver> p_stokes_linear_solver = d_stokes_solver->getLinearSolver();
+        Pointer<LinearSolver> stokes_pc = p_ins_hier_integrator->getStokesPreconditioner();
+        stokes_pc->setTimeInterval(current_time, new_time);
+        p_stokes_linear_solver->setPreconditioner(stokes_pc);
+                  );
+#endif
+
+    // Initialize IB data.
+    d_ib_method_ops->preprocessIntegrateData(current_time, new_time, num_cycles);
+
+    // Compute an initial prediction of the updated positions of the Lagrangian
+    // structure.
+    //
+    // NOTE: The velocity should already have been interpolated to the
+    // curvilinear mesh and should not need to be re-interpolated.
+    if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
+    d_ib_method_ops->eulerStep(current_time, new_time);
+    return;
+}// preprocessIntegrateHierarchy
+
+void
+IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(
+    const double current_time,
+    const double new_time,
+    const int cycle_num)
+{
+    const double half_time = current_time+0.5*(new_time-current_time);
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
+                                                                   d_ins_hier_integrator->getCurrentContext());
+    const int u_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
+                                                                   d_ins_hier_integrator->getNewContext());
+    const int p_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVariable(),
+                                                                   d_ins_hier_integrator->getNewContext());
+
+    // Compute the Lagrangian source/sink strengths and spread them to the
+    // Eulerian grid.
+    if (d_ib_method_ops->hasFluidSources())
+    {
+        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian fluid source strength\n";
+        d_ib_method_ops->computeLagrangianFluidSource(half_time);
+        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid\n";
+        d_hier_pressure_data_ops->setToScalar(d_q_idx, 0.0);
+        d_ib_method_ops->spreadFluidSource(d_q_idx, getProlongRefineSchedules(d_object_name+"::q"), half_time);
+    }
+
+    // Solve the incompressible Navier-Stokes equations.
+    d_ib_method_ops->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
+    if (d_do_log) plog << d_object_name << "::integrateHierarchy(): solving the incompressible Navier-Stokes equations\n";
+    d_ins_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
+    d_ib_method_ops->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
+
+    // Interpolate the Eulerian velocity to the curvilinear mesh.
+    d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
+    if (d_do_log) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
+    d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), half_time);
+
+    // Compute an updated prediction of the updated positions of the Lagrangian
+    // structure.
+    d_ib_method_ops->midpointStep(current_time, new_time);
+
+    // Compute the pressure at the updated locations of any distributed internal
+    // fluid sources or sinks.
+    if (d_ib_method_ops->hasFluidSources())
+    {
+        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh\n";
+        d_hier_pressure_data_ops->copyData(d_p_idx, p_new_idx);
+        d_ib_method_ops->interpolatePressure(d_p_idx, getCoarsenSchedules(d_object_name+"::p::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::p"), half_time);
+    }
+    return;
+}// integrateHierarchy
+
+void
+IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(
+    const double current_time,
+    const double new_time,
+    const bool skip_synchronize_new_state_data,
+    const int num_cycles)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const double dt = new_time-current_time;
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
+                                                               d_ins_hier_integrator->getNewContext());
+
+    // Interpolate the Eulerian velocity to the curvilinear mesh.
+    d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
+    if (d_do_log) plog << d_object_name << "::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh\n";
+    d_ib_method_ops->interpolateVelocity(d_u_idx, getCoarsenSchedules(d_object_name+"::u::CONSERVATIVE_COARSEN"), getGhostfillRefineSchedules(d_object_name+"::u"), new_time);
+
+    // Synchronize new state data.
+    if (!skip_synchronize_new_state_data)
+    {
+        if (d_do_log) plog << d_object_name << "::postprocessIntegrateHierarchy(): synchronizing updated data\n";
+        synchronizeHierarchyData(NEW_DATA);
+    }
+
+    // Determine the CFL number.
+    double cfl_max = 0.0;
+    PatchCellDataOpsReal<NDIM,double> patch_cc_ops;
+    PatchSideDataOpsReal<NDIM,double> patch_sc_ops;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const double* const dx = pgeom->getDx();
+            const double dx_min = *(std::min_element(dx,dx+NDIM));
+            Pointer<CellData<NDIM,double> > u_cc_new_data = patch->getPatchData(u_new_idx);
+            Pointer<SideData<NDIM,double> > u_sc_new_data = patch->getPatchData(u_new_idx);
+            double u_max = 0.0;
+            if (!u_cc_new_data.isNull()) u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
+            if (!u_sc_new_data.isNull()) u_max = patch_sc_ops.maxNorm(u_sc_new_data, patch_box);
+            cfl_max = std::max(cfl_max, u_max*dt/dx_min);
+        }
+    }
+    cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
+    d_regrid_cfl_estimate += cfl_max;
+    if (d_do_log) plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
+    if (d_do_log) plog << d_object_name << "::postprocessIntegrateHierarchy(): estimated upper bound on IB point displacement since last regrid = " << d_regrid_cfl_estimate << "\n";
+
+    // Deallocate the fluid solver.
+    d_ins_hier_integrator->postprocessIntegrateHierarchy(current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+
+    // Deallocate IB data.
+    d_ib_method_ops->postprocessIntegrateData(current_time, new_time, num_cycles);
+
+    // Deallocate Eulerian scratch data.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(d_u_idx);
+        level->deallocatePatchData(d_f_idx);
+        if (d_ib_method_ops->hasFluidSources())
+        {
+            level->deallocatePatchData(d_p_idx);
+            level->deallocatePatchData(d_q_idx);
+        }
+        level->deallocatePatchData(d_scratch_data);
+        level->deallocatePatchData(d_new_data    );
+    }
+    return;
+}// postprocessIntegrateHierarchy
+
+void
+IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
+    Pointer<PatchHierarchy<NDIM> > hierarchy,
+    Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+{
+    if (d_integrator_is_initialized) return;
+
+    // Setup the fluid solver for implicit coupling.
+    if (!d_body_force_fcn.isNull())
+    {
+        d_ins_hier_integrator->registerBodyForceFunction(d_body_force_fcn);
+    }
+    const std::string stokes_prefix = "stokes_";
+    Pointer<INSStaggeredHierarchyIntegrator> p_ins_hier_integrator = d_ins_hier_integrator;
+    const INSProblemCoefs* const problem_coefs = p_ins_hier_integrator->getINSProblemCoefs();
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs = p_ins_hier_integrator->getVelocityBoundaryConditions();
+    RobinBcCoefStrategy<NDIM>* const P_bc_coef = p_ins_hier_integrator->getPressureBoundaryConditions();
+    d_stokes_op = new INSStaggeredStokesOperator(problem_coefs, U_bc_coefs, P_bc_coef, buildHierarchyMathOps(hierarchy));
+#if 0
+    d_stokes_solver = new PETScNewtonKrylovSolver(d_object_name+"::stokes_solver", stokes_prefix);
+    d_stokes_solver->setOperator(d_stokes_op);
+#endif
+    Pointer<PETScKrylovLinearSolver> stokes_linear_solver = new PETScKrylovLinearSolver(d_object_name+"::stokes_solver", stokes_prefix);
+    stokes_linear_solver->setOperator(d_stokes_op);
+    d_stokes_solver_needs_reinit_when_dt_changes = false;
+    p_ins_hier_integrator->setStokesSolver(d_stokes_op, stokes_linear_solver, d_stokes_solver_needs_reinit_when_dt_changes);
+
+    // Finish initializing the hierarchy integrator.
+    IBHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
+
+    // Setup solvers.
+    Pointer<LinearSolver> stokes_pc = p_ins_hier_integrator->getStokesPreconditioner();
+    stokes_linear_solver->setPreconditioner(stokes_pc);
+}// initializeHierarchyIntegrator
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+void
+IBImplicitStaggeredHierarchyIntegrator::putToDatabaseSpecialized(
+    Pointer<Database> db)
+{
+    IBHierarchyIntegrator::putToDatabaseSpecialized(db);
+    db->putInteger("IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION",IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION);
+    return;
+}// putToDatabaseSpecialized
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
+
+void
+IBImplicitStaggeredHierarchyIntegrator::getFromRestart()
+{
+    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    Pointer<Database> db;
+    if (restart_db->isDatabase(d_object_name))
+    {
+        db = restart_db->getDatabase(d_object_name);
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << ":  Restart database corresponding to "
+                   << d_object_name << " not found in restart file." << std::endl);
+    }
+    int ver = db->getInteger("IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION");
+    if (ver != IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION)
+    {
+        TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
+    }
+    return;
+}// getFromRestart
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
+} // namespace IBAMR
+
+//////////////////////////////////////////////////////////////////////////////

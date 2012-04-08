@@ -125,6 +125,7 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C \
 	$(top_srcdir)/src/IB/IBHDF5Initializer.C \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
+	$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
@@ -197,6 +198,7 @@ am__objects_3 = libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR2d_a-IBExplicitHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-IBHDF5Initializer.$(OBJEXT) \
 	libIBAMR2d_a-IBHierarchyIntegrator.$(OBJEXT) \
+	libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-IBInstrumentPanel.$(OBJEXT) \
 	libIBAMR2d_a-IBInstrumentationSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBInstrumentationSpecFactory.$(OBJEXT) \
@@ -270,6 +272,7 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C \
 	$(top_srcdir)/src/IB/IBHDF5Initializer.C \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
+	$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
@@ -342,6 +345,7 @@ am__objects_5 = libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR3d_a-IBExplicitHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-IBHDF5Initializer.$(OBJEXT) \
 	libIBAMR3d_a-IBHierarchyIntegrator.$(OBJEXT) \
+	libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-IBInstrumentPanel.$(OBJEXT) \
 	libIBAMR3d_a-IBInstrumentationSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBInstrumentationSpecFactory.$(OBJEXT) \
@@ -435,6 +439,7 @@ am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.h \
 	$(top_srcdir)/src/IB/IBHDF5Initializer.h \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
+	$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.h \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.h \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.I \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.h \
@@ -833,6 +838,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.h \
 	$(top_srcdir)/src/IB/IBHDF5Initializer.h \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.h \
+	$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.h \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.h \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.I \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.h \
@@ -893,6 +899,7 @@ DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/IB/GeneralizedIBMethod.C \
 	$(top_srcdir)/src/IB/IBExplicitHierarchyIntegrator.C \
 	$(top_srcdir)/src/IB/IBHDF5Initializer.C \
 	$(top_srcdir)/src/IB/IBHierarchyIntegrator.C \
+	$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C \
 	$(top_srcdir)/src/IB/IBInstrumentPanel.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpec.C \
 	$(top_srcdir)/src/IB/IBInstrumentationSpecFactory.C \
@@ -1072,6 +1079,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBFEMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBHDF5Initializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBHierarchyIntegrator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBInstrumentPanel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-IBInstrumentationSpecFactory.Po@am__quote@
@@ -1131,6 +1139,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBFEMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBHDF5Initializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBHierarchyIntegrator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBInstrumentPanel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-IBInstrumentationSpecFactory.Po@am__quote@
@@ -1356,6 +1365,20 @@ libIBAMR2d_a-IBHierarchyIntegrator.obj: $(top_srcdir)/src/IB/IBHierarchyIntegrat
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBHierarchyIntegrator.C' object='libIBAMR2d_a-IBHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/IB/IBHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBHierarchyIntegrator.C'; fi`
+
+libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.o: $(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.Tpo -c -o libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.o `test -f '$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C' object='libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.o `test -f '$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C
+
+libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.obj: $(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.Tpo -c -o libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C' object='libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-IBImplicitStaggeredHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C'; fi`
 
 libIBAMR2d_a-IBInstrumentPanel.o: $(top_srcdir)/src/IB/IBInstrumentPanel.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-IBInstrumentPanel.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-IBInstrumentPanel.Tpo -c -o libIBAMR2d_a-IBInstrumentPanel.o `test -f '$(top_srcdir)/src/IB/IBInstrumentPanel.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBInstrumentPanel.C
@@ -2182,6 +2205,20 @@ libIBAMR3d_a-IBHierarchyIntegrator.obj: $(top_srcdir)/src/IB/IBHierarchyIntegrat
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBHierarchyIntegrator.C' object='libIBAMR3d_a-IBHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/IB/IBHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBHierarchyIntegrator.C'; fi`
+
+libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.o: $(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.Tpo -c -o libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.o `test -f '$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C' object='libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.o `test -f '$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C
+
+libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.obj: $(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.Tpo -c -o libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C' object='libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-IBImplicitStaggeredHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/IBImplicitStaggeredHierarchyIntegrator.C'; fi`
 
 libIBAMR3d_a-IBInstrumentPanel.o: $(top_srcdir)/src/IB/IBInstrumentPanel.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-IBInstrumentPanel.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-IBInstrumentPanel.Tpo -c -o libIBAMR3d_a-IBInstrumentPanel.o `test -f '$(top_srcdir)/src/IB/IBInstrumentPanel.C' || echo '$(srcdir)/'`$(top_srcdir)/src/IB/IBInstrumentPanel.C
