@@ -59,6 +59,7 @@
 #include <ibtk/CartSideDoubleSpecializedConstantRefine.h>
 #include <ibtk/CartSideDoubleSpecializedLinearRefine.h>
 #include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/NewtonKrylovSolver.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/RefinePatchStrategySet.h>
 
@@ -351,6 +352,9 @@ INSStaggeredHierarchyIntegrator::getVelocitySubdomainSolver()
 {
     if (d_velocity_solver.isNull())
     {
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(!d_gridding_alg.isNull());
+#endif
         static const std::string velocity_prefix = "velocity_";
         d_velocity_spec = new PoissonSpecifications(d_object_name+"::velocity_spec");
         d_velocity_op = new SCLaplaceOperator(d_object_name+"::Velocity Subdomain Operator", *d_velocity_spec, d_U_star_bc_coefs, true);
@@ -425,6 +429,9 @@ INSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
 {
     if (d_pressure_solver.isNull())
     {
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(!d_gridding_alg.isNull());
+#endif
         static const std::string pressure_prefix = "pressure_";
         d_pressure_spec = new PoissonSpecifications(d_object_name+"::pressure_spec");
         d_pressure_op = new CCLaplaceOperator(d_object_name+"::Pressure Subdomain Operator", *d_pressure_spec, d_Phi_bc_coef, true);
@@ -1876,8 +1883,10 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
             d_nul_vec->allocateVectorData(current_time);
             d_hier_sc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(0), 0.0);
             d_hier_cc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(1), 1.0);
-            Pointer<LinearSolver> p_stokes_solver = d_stokes_solver;
-            if (!p_stokes_solver.isNull()) p_stokes_solver->setNullspace(false, d_nul_vec);
+            Pointer<LinearSolver> p_stokes_linear_solver = d_stokes_solver;
+            if (!p_stokes_linear_solver.isNull()) p_stokes_linear_solver->setNullspace(false, d_nul_vec);
+            Pointer<NewtonKrylovSolver> p_stokes_newton_solver = d_stokes_solver;
+            if (!p_stokes_newton_solver.isNull()) p_stokes_newton_solver->getLinearSolver()->setNullspace(false, d_nul_vec);
         }
         d_stokes_solver_needs_init = false;
     }

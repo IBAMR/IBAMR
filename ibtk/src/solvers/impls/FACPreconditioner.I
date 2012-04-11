@@ -42,9 +42,13 @@ namespace IBTK
 
 inline void
 FACPreconditioner::setInitialGuessNonzero(
-    bool /*initial_guess_nonzero*/)
+    bool initial_guess_nonzero)
 {
-    // intentionally blank
+    if (initial_guess_nonzero)
+    {
+        TBOX_ERROR(d_object_name << "::setInitialGuessNonzero()\n"
+                   << "  class IBTK::FACPreconditioner requires a zero initial guess" << std::endl);
+    }
     return;
 }// setInitialGuessNonzero
 
@@ -59,7 +63,7 @@ inline void
 FACPreconditioner::setMaxIterations(
     int max_iterations)
 {
-    if (max_iterations > 1)
+    if (max_iterations != 1)
     {
         TBOX_ERROR(d_object_name << "::setMaxIterations()\n"
                    << "  class IBTK::FACPreconditioner only performs a single iteration" << std::endl);

@@ -162,8 +162,6 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/impls/CCPoissonFACOperator.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.C \
-	$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C \
-	$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/FACPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/LaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C \
@@ -295,8 +293,6 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-CCPoissonFACOperator.$(OBJEXT) \
 	libIBTK2d_a-CCPoissonHypreLevelSolver.$(OBJEXT) \
 	libIBTK2d_a-CCPoissonPETScLevelSolver.$(OBJEXT) \
-	libIBTK2d_a-DiagonalScalingOperator.$(OBJEXT) \
-	libIBTK2d_a-DiagonalScalingPreconditioner.$(OBJEXT) \
 	libIBTK2d_a-FACPreconditioner.$(OBJEXT) \
 	libIBTK2d_a-LaplaceOperator.$(OBJEXT) \
 	libIBTK2d_a-PETScKrylovLinearSolver.$(OBJEXT) \
@@ -424,8 +420,6 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/impls/CCPoissonFACOperator.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.C \
-	$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C \
-	$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/FACPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/LaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C \
@@ -556,8 +550,6 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-CCPoissonFACOperator.$(OBJEXT) \
 	libIBTK3d_a-CCPoissonHypreLevelSolver.$(OBJEXT) \
 	libIBTK3d_a-CCPoissonPETScLevelSolver.$(OBJEXT) \
-	libIBTK3d_a-DiagonalScalingOperator.$(OBJEXT) \
-	libIBTK3d_a-DiagonalScalingPreconditioner.$(OBJEXT) \
 	libIBTK3d_a-FACPreconditioner.$(OBJEXT) \
 	libIBTK3d_a-LaplaceOperator.$(OBJEXT) \
 	libIBTK3d_a-PETScKrylovLinearSolver.$(OBJEXT) \
@@ -1094,9 +1086,6 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.I \
 	$(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.h \
 	$(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.h \
-	$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.h \
-	$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.I \
-	$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.h \
 	$(top_srcdir)/src/solvers/impls/FACPreconditioner.I \
 	$(top_srcdir)/src/solvers/impls/FACPreconditioner.h \
 	$(top_srcdir)/src/solvers/impls/LaplaceOperator.h \
@@ -1230,8 +1219,6 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/solvers/impls/CCPoissonFACOperator.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.C \
-	$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C \
-	$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/FACPreconditioner.C \
 	$(top_srcdir)/src/solvers/impls/LaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C \
@@ -1439,8 +1426,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CopyToRootSchedule.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-CopyToRootTransaction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-DebuggingUtilities.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-DiagonalScalingOperator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-DiagonalScalingPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-EdgeDataSynchronization.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-EdgeSynchCopyFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-ExtendedRobinBcCoefStrategy.Po@am__quote@
@@ -1555,8 +1540,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CopyToRootSchedule.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-CopyToRootTransaction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-DebuggingUtilities.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-DiagonalScalingOperator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-DiagonalScalingPreconditioner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-EdgeDataSynchronization.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-EdgeSynchCopyFillPattern.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-ExtendedRobinBcCoefStrategy.Po@am__quote@
@@ -2600,34 +2583,6 @@ libIBTK2d_a-CCPoissonPETScLevelSolver.obj: $(top_srcdir)/src/solvers/impls/CCPoi
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.C' object='libIBTK2d_a-CCPoissonPETScLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-CCPoissonPETScLevelSolver.obj `if test -f '$(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.C'; fi`
-
-libIBTK2d_a-DiagonalScalingOperator.o: $(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-DiagonalScalingOperator.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-DiagonalScalingOperator.Tpo -c -o libIBTK2d_a-DiagonalScalingOperator.o `test -f '$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-DiagonalScalingOperator.Tpo $(DEPDIR)/libIBTK2d_a-DiagonalScalingOperator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C' object='libIBTK2d_a-DiagonalScalingOperator.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-DiagonalScalingOperator.o `test -f '$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C
-
-libIBTK2d_a-DiagonalScalingOperator.obj: $(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-DiagonalScalingOperator.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-DiagonalScalingOperator.Tpo -c -o libIBTK2d_a-DiagonalScalingOperator.obj `if test -f '$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-DiagonalScalingOperator.Tpo $(DEPDIR)/libIBTK2d_a-DiagonalScalingOperator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C' object='libIBTK2d_a-DiagonalScalingOperator.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-DiagonalScalingOperator.obj `if test -f '$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C'; fi`
-
-libIBTK2d_a-DiagonalScalingPreconditioner.o: $(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-DiagonalScalingPreconditioner.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-DiagonalScalingPreconditioner.Tpo -c -o libIBTK2d_a-DiagonalScalingPreconditioner.o `test -f '$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-DiagonalScalingPreconditioner.Tpo $(DEPDIR)/libIBTK2d_a-DiagonalScalingPreconditioner.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C' object='libIBTK2d_a-DiagonalScalingPreconditioner.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-DiagonalScalingPreconditioner.o `test -f '$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C
-
-libIBTK2d_a-DiagonalScalingPreconditioner.obj: $(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-DiagonalScalingPreconditioner.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-DiagonalScalingPreconditioner.Tpo -c -o libIBTK2d_a-DiagonalScalingPreconditioner.obj `if test -f '$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-DiagonalScalingPreconditioner.Tpo $(DEPDIR)/libIBTK2d_a-DiagonalScalingPreconditioner.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C' object='libIBTK2d_a-DiagonalScalingPreconditioner.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-DiagonalScalingPreconditioner.obj `if test -f '$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C'; fi`
 
 libIBTK2d_a-FACPreconditioner.o: $(top_srcdir)/src/solvers/impls/FACPreconditioner.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-FACPreconditioner.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-FACPreconditioner.Tpo -c -o libIBTK2d_a-FACPreconditioner.o `test -f '$(top_srcdir)/src/solvers/impls/FACPreconditioner.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/FACPreconditioner.C
@@ -4224,34 +4179,6 @@ libIBTK3d_a-CCPoissonPETScLevelSolver.obj: $(top_srcdir)/src/solvers/impls/CCPoi
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.C' object='libIBTK3d_a-CCPoissonPETScLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-CCPoissonPETScLevelSolver.obj `if test -f '$(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.C'; fi`
-
-libIBTK3d_a-DiagonalScalingOperator.o: $(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-DiagonalScalingOperator.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-DiagonalScalingOperator.Tpo -c -o libIBTK3d_a-DiagonalScalingOperator.o `test -f '$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-DiagonalScalingOperator.Tpo $(DEPDIR)/libIBTK3d_a-DiagonalScalingOperator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C' object='libIBTK3d_a-DiagonalScalingOperator.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-DiagonalScalingOperator.o `test -f '$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C
-
-libIBTK3d_a-DiagonalScalingOperator.obj: $(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-DiagonalScalingOperator.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-DiagonalScalingOperator.Tpo -c -o libIBTK3d_a-DiagonalScalingOperator.obj `if test -f '$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-DiagonalScalingOperator.Tpo $(DEPDIR)/libIBTK3d_a-DiagonalScalingOperator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C' object='libIBTK3d_a-DiagonalScalingOperator.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-DiagonalScalingOperator.obj `if test -f '$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C'; fi`
-
-libIBTK3d_a-DiagonalScalingPreconditioner.o: $(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-DiagonalScalingPreconditioner.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-DiagonalScalingPreconditioner.Tpo -c -o libIBTK3d_a-DiagonalScalingPreconditioner.o `test -f '$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-DiagonalScalingPreconditioner.Tpo $(DEPDIR)/libIBTK3d_a-DiagonalScalingPreconditioner.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C' object='libIBTK3d_a-DiagonalScalingPreconditioner.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-DiagonalScalingPreconditioner.o `test -f '$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C
-
-libIBTK3d_a-DiagonalScalingPreconditioner.obj: $(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-DiagonalScalingPreconditioner.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-DiagonalScalingPreconditioner.Tpo -c -o libIBTK3d_a-DiagonalScalingPreconditioner.obj `if test -f '$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-DiagonalScalingPreconditioner.Tpo $(DEPDIR)/libIBTK3d_a-DiagonalScalingPreconditioner.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C' object='libIBTK3d_a-DiagonalScalingPreconditioner.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-DiagonalScalingPreconditioner.obj `if test -f '$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C'; fi`
 
 libIBTK3d_a-FACPreconditioner.o: $(top_srcdir)/src/solvers/impls/FACPreconditioner.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-FACPreconditioner.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-FACPreconditioner.Tpo -c -o libIBTK3d_a-FACPreconditioner.o `test -f '$(top_srcdir)/src/solvers/impls/FACPreconditioner.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/FACPreconditioner.C

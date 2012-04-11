@@ -52,6 +52,13 @@
 #include <string>
 #include <vector>
 
+/////////////////////////////// FORWARD DECLARATION //////////////////////////
+
+namespace IBTK
+{
+class PETScNewtonKrylovSolver;
+}
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
@@ -97,6 +104,8 @@ class PETScKrylovLinearSolver
     : public KrylovLinearSolver
 {
 public:
+    friend class PETScNewtonKrylovSolver;
+
     /*!
      * \brief Constructor for a concrete KrylovLinearSolver that employs the
      * PETSc KSP solver framework.
@@ -482,6 +491,13 @@ private:
         std::ostream& os) const;
 
     /*!
+     * \brief Reset the KSP wrapped by this solver class.
+     */
+    void
+    resetWrappedKSP(
+        KSP& petsc_ksp);
+
+    /*!
      * \brief Reset the values of the convergence tolerances for the PETSc KSP
      * object.
      */
@@ -585,7 +601,7 @@ private:
 
     //\}
 
-    std::string d_object_name;
+    const std::string d_object_name;
 
     std::string d_ksp_type;
 
@@ -598,7 +614,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_solver_x, d_solver_b;
     Vec d_petsc_x, d_petsc_b;
 
-    std::string d_options_prefix;
+    const std::string d_options_prefix;
 
     MPI_Comm     d_petsc_comm;
     KSP          d_petsc_ksp;

@@ -197,6 +197,9 @@ INSStaggeredBlockFactorizationPreconditioner::solveSystem(
     const bool deallocate_at_completion = !d_is_initialized;
     if (!d_is_initialized) initializeSolverState(x,b);
 
+    // Set the initial guess to equal zero.
+    x.setToScalar(0.0,false);
+
     // Get the vector components.
     const int U_in_idx = b.getComponentDescriptorIndex(0);
     const int P_in_idx = b.getComponentDescriptorIndex(1);
@@ -218,28 +221,23 @@ INSStaggeredBlockFactorizationPreconditioner::solveSystem(
 
     // Setup the component solver vectors.
     Pointer<SAMRAIVectorReal<NDIM,double> > U_scratch_vec;
-    U_scratch_vec = new SAMRAIVectorReal<NDIM,double>(
-        "INSStaggeredBlockFactorizationPreconditioner::U_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    U_scratch_vec = new SAMRAIVectorReal<NDIM,double>("INSStaggeredBlockFactorizationPreconditioner::U_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
     U_scratch_vec->addComponent(d_U_var, d_U_scratch_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
 
     Pointer<SAMRAIVectorReal<NDIM,double> > P_scratch_vec;
-    P_scratch_vec = new SAMRAIVectorReal<NDIM,double>(
-        "INSStaggeredBlockFactorizationPreconditioner::P_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    P_scratch_vec = new SAMRAIVectorReal<NDIM,double>("INSStaggeredBlockFactorizationPreconditioner::P_scratch", d_hierarchy, d_coarsest_ln, d_finest_ln);
     P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
 
     Pointer<SAMRAIVectorReal<NDIM,double> > U_out_vec;
-    U_out_vec = new SAMRAIVectorReal<NDIM,double>(
-        "INSStaggeredBlockFactorizationPreconditioner::U_out", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    U_out_vec = new SAMRAIVectorReal<NDIM,double>("INSStaggeredBlockFactorizationPreconditioner::U_out", d_hierarchy, d_coarsest_ln, d_finest_ln);
     U_out_vec->addComponent(U_out_sc_var, U_out_idx, d_wgt_sc_idx, d_hier_sc_data_ops);
 
     Pointer<SAMRAIVectorReal<NDIM,double> > P_in_vec;
-    P_in_vec = new SAMRAIVectorReal<NDIM,double>(
-        "INSStaggeredBlockFactorizationPreconditioner::P_in", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    P_in_vec = new SAMRAIVectorReal<NDIM,double>("INSStaggeredBlockFactorizationPreconditioner::P_in", d_hierarchy, d_coarsest_ln, d_finest_ln);
     P_in_vec->addComponent(P_in_cc_var, P_in_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
 
     Pointer<SAMRAIVectorReal<NDIM,double> > P_out_vec;
-    P_out_vec = new SAMRAIVectorReal<NDIM,double>(
-        "INSStaggeredBlockFactorizationPreconditioner::P_out", d_hierarchy, d_coarsest_ln, d_finest_ln);
+    P_out_vec = new SAMRAIVectorReal<NDIM,double>("INSStaggeredBlockFactorizationPreconditioner::P_out", d_hierarchy, d_coarsest_ln, d_finest_ln);
     P_out_vec->addComponent(P_out_cc_var, P_out_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
 
     // Setup the interpolation transaction information.
@@ -370,9 +368,13 @@ INSStaggeredBlockFactorizationPreconditioner::deallocateSolverState()
 
 void
 INSStaggeredBlockFactorizationPreconditioner::setInitialGuessNonzero(
-    bool /*initial_guess_nonzero*/)
+    bool initial_guess_nonzero)
 {
-    // intentionally blank
+    if (initial_guess_nonzero)
+    {
+        TBOX_ERROR("INSStaggeredBlockFactorizationPreconditioner::setInitialGuessNonzero()\n"
+                   << "  class IBAMR::INSStaggeredBlockFactorizationPreconditioner requires a zero initial guess" << std::endl);
+    }
     return;
 }// setInitialGuessNonzero
 
@@ -380,14 +382,18 @@ bool
 INSStaggeredBlockFactorizationPreconditioner::getInitialGuessNonzero() const
 {
     // intentionally blank
-    return true;
+    return false;
 }// getInitialGuessNonzero
 
 void
 INSStaggeredBlockFactorizationPreconditioner::setMaxIterations(
-    int /*max_iterations*/)
+    int max_iterations)
 {
-    // intentionally blank
+    if (max_iterations != 1)
+    {
+        TBOX_ERROR("INSStaggeredBlockFactorizationPreconditioner::setMaxIterations()\n"
+                   << "  class IBAMR::INSStaggeredBlockFactorizationPreconditioner only performs a single iteration" << std::endl);
+    }
     return;
 }// setMaxIterations
 

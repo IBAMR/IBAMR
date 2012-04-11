@@ -291,21 +291,16 @@ IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs = p_ins_hier_integrator->getVelocityBoundaryConditions();
     RobinBcCoefStrategy<NDIM>* const P_bc_coef = p_ins_hier_integrator->getPressureBoundaryConditions();
     d_stokes_op = new INSStaggeredStokesOperator(problem_coefs, U_bc_coefs, P_bc_coef, buildHierarchyMathOps(hierarchy));
-#if 0
     d_stokes_solver = new PETScNewtonKrylovSolver(d_object_name+"::stokes_solver", stokes_prefix);
     d_stokes_solver->setOperator(d_stokes_op);
-#endif
-    Pointer<PETScKrylovLinearSolver> stokes_linear_solver = new PETScKrylovLinearSolver(d_object_name+"::stokes_solver", stokes_prefix);
-    stokes_linear_solver->setOperator(d_stokes_op);
     d_stokes_solver_needs_reinit_when_dt_changes = false;
-    p_ins_hier_integrator->setStokesSolver(d_stokes_op, stokes_linear_solver, d_stokes_solver_needs_reinit_when_dt_changes);
+    p_ins_hier_integrator->setStokesSolver(d_stokes_op, d_stokes_solver, d_stokes_solver_needs_reinit_when_dt_changes);
 
     // Finish initializing the hierarchy integrator.
     IBHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
 
-    // Setup solvers.
-    Pointer<LinearSolver> stokes_pc = p_ins_hier_integrator->getStokesPreconditioner();
-    stokes_linear_solver->setPreconditioner(stokes_pc);
+    // Setup the preconditioner after initializing the solver state.
+    d_stokes_solver->getLinearSolver()->setPreconditioner(p_ins_hier_integrator->getStokesPreconditioner());
 }// initializeHierarchyIntegrator
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

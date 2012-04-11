@@ -106,8 +106,6 @@ INSStaggeredStokesOperator::INSStaggeredStokesOperator(
       d_helmholtz_spec("INSStaggeredStokesOperator::helmholtz_spec"),
       d_U_bc_coefs(U_bc_coefs),
       d_P_bc_coef(P_bc_coef),
-      d_homogeneous_bc(false),
-      d_correcting_rhs(false),
       d_hier_math_ops(hier_math_ops)
 {
     // Setup Timers.
@@ -124,14 +122,6 @@ INSStaggeredStokesOperator::~INSStaggeredStokesOperator()
     deallocateOperatorState();
     return;
 }// ~INSStaggeredStokesOperator
-
-void
-INSStaggeredStokesOperator::setHomogeneousBc(
-    const bool homogeneous_bc)
-{
-    d_homogeneous_bc = homogeneous_bc;
-    return;
-}// setHomogeneousBc
 
 void
 INSStaggeredStokesOperator::setTimeInterval(
@@ -153,15 +143,14 @@ void
 INSStaggeredStokesOperator::modifyRhsForInhomogeneousBc(
     SAMRAIVectorReal<NDIM,double>& y)
 {
+    if (d_homogeneous_bc) return;
+
     // Set y := y - A*0, i.e., shift the right-hand-side vector to account for
     // inhomogeneous boundary conditions.
-    if (!d_homogeneous_bc)
-    {
-        d_correcting_rhs = true;
-        apply(*d_x,*d_b);
-        y.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&y, false), d_b);
-        d_correcting_rhs = false;
-    }
+    d_correcting_rhs = true;
+    apply(*d_x,*d_b);
+    y.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&y, false), d_b);
+    d_correcting_rhs = false;
     return;
 }// modifyRhsForInhomogeneousBc
 

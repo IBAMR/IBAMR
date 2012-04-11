@@ -114,8 +114,6 @@ $(top_srcdir)/src/solvers/impls/CCLaplaceOperator.C \
 $(top_srcdir)/src/solvers/impls/CCPoissonFACOperator.C \
 $(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.C \
 $(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.C \
-$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.C \
-$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.C \
 $(top_srcdir)/src/solvers/impls/FACPreconditioner.C \
 $(top_srcdir)/src/solvers/impls/LaplaceOperator.C \
 $(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C \
@@ -267,9 +265,6 @@ $(top_srcdir)/src/solvers/impls/CCPoissonFACOperator.h \
 $(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.I \
 $(top_srcdir)/src/solvers/impls/CCPoissonHypreLevelSolver.h \
 $(top_srcdir)/src/solvers/impls/CCPoissonPETScLevelSolver.h \
-$(top_srcdir)/src/solvers/impls/DiagonalScalingOperator.h \
-$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.I \
-$(top_srcdir)/src/solvers/impls/DiagonalScalingPreconditioner.h \
 $(top_srcdir)/src/solvers/impls/FACPreconditioner.I \
 $(top_srcdir)/src/solvers/impls/FACPreconditioner.h \
 $(top_srcdir)/src/solvers/impls/LaplaceOperator.h \

@@ -47,6 +47,11 @@ inline void
 BJacobiPreconditioner::setInitialGuessNonzero(
     bool initial_guess_nonzero)
 {
+    if (initial_guess_nonzero)
+    {
+        TBOX_ERROR("BJacobiPreconditioner::setInitialGuessNonzero()\n"
+                   << "  class IBTK::BJacobiPreconditioner requires a zero initial guess" << std::endl);
+    }
     d_initial_guess_nonzero = initial_guess_nonzero;
     return;
 }// setInitialGuessNonzero
@@ -61,6 +66,11 @@ inline void
 BJacobiPreconditioner::setMaxIterations(
     int max_iterations)
 {
+    if (max_iterations > 1)
+    {
+        TBOX_ERROR("BJacobiPreconditioner::setMaxIterations()\n"
+                   << "  class IBTK::BJacobiPreconditioner requires max_iterations == 1" << std::endl);
+    }
     d_max_iterations = max_iterations;
     return;
 }// setMaxIterations

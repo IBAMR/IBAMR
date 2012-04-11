@@ -229,15 +229,14 @@ void
 CCLaplaceOperator::modifyRhsForInhomogeneousBc(
     SAMRAIVectorReal<NDIM,double>& y)
 {
+    if (d_homogeneous_bc) return;
+
     // Set y := y - A*0, i.e., shift the right-hand-side vector to account for
     // inhomogeneous boundary conditions.
-    if (!d_homogeneous_bc)
-    {
-        d_correcting_rhs = true;
-        apply(*d_x,*d_b);
-        y.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&y, false), d_b);
-        d_correcting_rhs = false;
-    }
+    d_correcting_rhs = true;
+    apply(*d_x,*d_b);
+    y.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&y, false), d_b);
+    d_correcting_rhs = false;
     return;
 }// modifyRhsForInhomogeneousBc
 

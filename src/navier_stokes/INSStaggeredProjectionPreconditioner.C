@@ -377,9 +377,13 @@ INSStaggeredProjectionPreconditioner::deallocateSolverState()
 
 void
 INSStaggeredProjectionPreconditioner::setInitialGuessNonzero(
-    bool /*initial_guess_nonzero*/)
+    bool initial_guess_nonzero)
 {
-    // intentionally blank
+    if (initial_guess_nonzero)
+    {
+        TBOX_ERROR("INSStaggeredProjectionPreconditioner::setInitialGuessNonzero()\n"
+                   << "  class IBAMR::INSStaggeredProjectionPreconditioner requires a zero initial guess" << std::endl);
+    }
     return;
 }// setInitialGuessNonzero
 
@@ -387,14 +391,18 @@ bool
 INSStaggeredProjectionPreconditioner::getInitialGuessNonzero() const
 {
     // intentionally blank
-    return true;
+    return false;
 }// getInitialGuessNonzero
 
 void
 INSStaggeredProjectionPreconditioner::setMaxIterations(
-    int /*max_iterations*/)
+    int max_iterations)
 {
-    // intentionally blank
+    if (max_iterations != 1)
+    {
+        TBOX_ERROR("INSStaggeredProjectionPreconditioner::setMaxIterations()\n"
+                   << "  class IBAMR::INSStaggeredProjectionPreconditioner only performs a single iteration" << std::endl);
+    }
     return;
 }// setMaxIterations
 

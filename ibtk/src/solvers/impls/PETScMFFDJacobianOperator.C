@@ -159,14 +159,12 @@ PETScMFFDJacobianOperator::initializeOperatorState(
 {
     if (d_is_initialized) deallocateOperatorState();
 
+    int ierr;
     MPI_Comm comm = PETSC_COMM_WORLD;
 
     // Setup the matrix-free matrix.
-    int ierr;
     ierr = MatCreateMFFD(comm, 0, 0, 0, 0, &d_petsc_jac); IBTK_CHKERRQ(ierr);
-    ierr = MatMFFDSetFunction(d_petsc_jac,
-                              reinterpret_cast<PetscErrorCode(*)(void*, Vec, Vec)>(FormFunction_SAMRAI),
-                              this); IBTK_CHKERRQ(ierr);
+    ierr = MatMFFDSetFunction(d_petsc_jac, reinterpret_cast<PetscErrorCode(*)(void*, Vec, Vec)>(FormFunction_SAMRAI), this); IBTK_CHKERRQ(ierr);
     if (!d_options_prefix.empty())
     {
         ierr = MatSetOptionsPrefix(d_petsc_jac, d_options_prefix.c_str()); IBTK_CHKERRQ(ierr);
@@ -174,8 +172,6 @@ PETScMFFDJacobianOperator::initializeOperatorState(
     ierr = MatSetFromOptions(d_petsc_jac); IBTK_CHKERRQ(ierr);
 
     // Setup solution and rhs vectors.
-    //
-    // NOTE: Vector data are allocated only for u.
     d_op_u = in.cloneVector(in.getName());
     d_op_u->allocateVectorData();
     d_petsc_u = PETScSAMRAIVectorReal::createPETScVector(d_op_u, comm);
@@ -243,8 +239,7 @@ PETScMFFDJacobianOperator::FormFunction_SAMRAI(
     TBOX_ASSERT(!jac_op->d_F.isNull());
 #endif
     int ierr;
-    jac_op->d_F->apply(*PETScSAMRAIVectorReal::getSAMRAIVector(x),
-                       *PETScSAMRAIVectorReal::getSAMRAIVector(f));
+    jac_op->d_F->apply(*PETScSAMRAIVectorReal::getSAMRAIVector(x), *PETScSAMRAIVectorReal::getSAMRAIVector(f));
     if (!jac_op->d_nonlinear_solver.isNull())
     {
         SNES snes = jac_op->d_nonlinear_solver->getPETScSNES();

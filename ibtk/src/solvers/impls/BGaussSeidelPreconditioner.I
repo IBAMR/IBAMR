@@ -47,6 +47,11 @@ inline void
 BGaussSeidelPreconditioner::setInitialGuessNonzero(
     bool initial_guess_nonzero)
 {
+    if (initial_guess_nonzero)
+    {
+        TBOX_ERROR("BGaussSeidelPreconditioner::setInitialGuessNonzero()\n"
+                   << "  class IBTK::BGaussSeidelPreconditioner requires a zero initial guess" << std::endl);
+    }
     d_initial_guess_nonzero = initial_guess_nonzero;
     return;
 }// setInitialGuessNonzero
@@ -61,6 +66,11 @@ inline void
 BGaussSeidelPreconditioner::setMaxIterations(
     int max_iterations)
 {
+    if (max_iterations > 1)
+    {
+        TBOX_ERROR("BGaussSeidelPreconditioner::setMaxIterations()\n"
+                   << "  class IBTK::BGaussSeidelPreconditioner requires max_iterations == 1" << std::endl);
+    }
     d_max_iterations = max_iterations;
     return;
 }// setMaxIterations

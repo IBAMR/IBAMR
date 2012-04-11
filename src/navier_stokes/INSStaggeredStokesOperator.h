@@ -76,13 +76,6 @@ public:
     ~INSStaggeredStokesOperator();
 
     /*!
-     * \brief Specify whether the boundary conditions are homogeneous.
-     */
-    void
-    setHomogeneousBc(
-        bool homogeneous_bc);
-
-    /*!
      * \brief Set the current time interval.
      */
     void
@@ -266,7 +259,6 @@ private:
     SAMRAI::solv::PoissonSpecifications d_helmholtz_spec;
     const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const d_P_bc_coef;
-    bool d_homogeneous_bc, d_correcting_rhs;
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
 };
 }// namespace IBAMR

@@ -471,6 +471,13 @@ private:
         std::ostream& os) const;
 
     /*!
+     * \brief Reset the SNES wrapped by this solver class.
+     */
+    void
+    resetWrappedSNES(
+        SNES& petsc_snes);
+
+    /*!
      * \brief Reset the values of the convergence tolerances for the PETSc SNES
      * object.
      */
@@ -536,25 +543,6 @@ private:
         Vec z);
 
     /*!
-     * \brief Compute the matrix-transpose vector product y = A'x.
-     */
-    static PetscErrorCode
-    MatVecMultTranspose_SAMRAI(
-        Mat A,
-        Vec x,
-        Vec y);
-
-    /*!
-     * \brief Compute the matrix-transpose vector product y = A'x + z.
-     */
-    static PetscErrorCode
-    MatVecMultTransposeAdd_SAMRAI(
-        Mat A,
-        Vec x,
-        Vec y,
-        Vec z);
-
-    /*!
      * \brief Get vector(s) compatible with the matrix, i.e., with the same
      * parallel layout.
      */
@@ -575,7 +563,7 @@ private:
 
     //\}
 
-    std::string d_object_name;
+    const std::string d_object_name;
 
     bool d_is_initialized, d_reinitializing_solver;
     bool d_do_log;
@@ -583,7 +571,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_solver_x, d_solver_b, d_solver_r;
     Vec d_petsc_x, d_petsc_b, d_petsc_r;
 
-    std::string d_options_prefix;
+    const std::string d_options_prefix;
 
     MPI_Comm d_petsc_comm;
     SNES     d_petsc_snes;

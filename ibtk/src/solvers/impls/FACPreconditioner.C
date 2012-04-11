@@ -63,14 +63,10 @@ FACPreconditioner::FACPreconditioner(
       d_r(),
       d_do_log(false)
 {
-    /*
-     * Register this class with the FACPreconditionerStrategy object.
-     */
+    // Register this class with the FACPreconditionerStrategy object.
     d_fac_strategy->setFACPreconditioner(Pointer<FACPreconditioner>(this,false));
 
-    /*
-     * Initialize object with data read from input database.
-     */
+    // Initialize object with data read from input database.
     if (!input_db.isNull())
     {
         getFromInput(input_db);
@@ -102,9 +98,13 @@ FACPreconditioner::solveSystem(
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(u,f);
 
-    // Keep track of whether we need to (re-)compute the residual.  u is
-    // required to be zero upon entry to this function, so as long as u is
-    // unmodified, the residual is simply equal to the right-hand-side vector f.
+    // Set the initial guess to equal zero.
+    u.setToScalar(0.0,false);
+
+    // Keep track of whether we need to (re-)compute the residual.  Because u is
+    // initialized to equal zero, the initial residual is precisely the
+    // right-hand-side vector f.  We only need to recompute the residual once we
+    // start modifying the solution vector u.
     d_recompute_residual = false;
 
     // Apply a single FAC cycle.
