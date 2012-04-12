@@ -52,6 +52,7 @@
 
 // C++ STDLIB INCLUDES
 #include <algorithm>
+#include <limits>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -75,6 +76,10 @@ IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
     bool register_for_restart)
     : IBHierarchyIntegrator(object_name, input_db, ib_method_ops, ins_hier_integrator, register_for_restart)
 {
+    // Setup IB ops object to use "fixed" Lagrangian-Eulerian coupling
+    // operators.
+    d_ib_method_ops->setUseFixedLEOperators(true);
+
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
@@ -99,6 +104,8 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     const double new_time,
     const int num_cycles)
 {
+    d_current_time = current_time;
+    d_new_time = new_time;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
@@ -121,16 +128,6 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
 
     // Initialize the fluid solver.
     d_ins_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
-#if 0
-    IBAMR_DO_ONCE(
-        // XXXX
-        Pointer<INSStaggeredHierarchyIntegrator> p_ins_hier_integrator = d_ins_hier_integrator;
-        Pointer<PETScKrylovLinearSolver> p_stokes_linear_solver = d_stokes_solver->getLinearSolver();
-        Pointer<LinearSolver> stokes_pc = p_ins_hier_integrator->getStokesPreconditioner();
-        stokes_pc->setTimeInterval(current_time, new_time);
-        p_stokes_linear_solver->setPreconditioner(stokes_pc);
-                  );
-#endif
 
     // Initialize IB data.
     d_ib_method_ops->preprocessIntegrateData(current_time, new_time, num_cycles);
@@ -142,6 +139,7 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     // curvilinear mesh and should not need to be re-interpolated.
     if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
     d_ib_method_ops->eulerStep(current_time, new_time);
+    d_ib_method_ops->updateFixedLEOperators();
     return;
 }// preprocessIntegrateHierarchy
 
@@ -173,7 +171,7 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(
 
     // Solve the incompressible Navier-Stokes equations.
     d_ib_method_ops->preprocessSolveFluidEquations(current_time, new_time, cycle_num);
-    if (d_do_log) plog << d_object_name << "::integrateHierarchy(): solving the incompressible Navier-Stokes equations\n";
+    if (d_do_log) plog << d_object_name << "::integrateHierarchy(): solving the modified incompressible Navier-Stokes equations\n";
     d_ins_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
     d_ib_method_ops->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
 
@@ -185,6 +183,7 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(
     // Compute an updated prediction of the updated positions of the Lagrangian
     // structure.
     d_ib_method_ops->midpointStep(current_time, new_time);
+    if (cycle_num+1 < d_num_cycles) d_ib_method_ops->updateFixedLEOperators();
 
     // Compute the pressure at the updated locations of any distributed internal
     // fluid sources or sinks.
@@ -270,6 +269,9 @@ IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(
         level->deallocatePatchData(d_scratch_data);
         level->deallocatePatchData(d_new_data    );
     }
+
+    d_current_time = std::numeric_limits<double>::quiet_NaN();
+    d_new_time = std::numeric_limits<double>::quiet_NaN();
     return;
 }// postprocessIntegrateHierarchy
 
@@ -291,16 +293,17 @@ IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs = p_ins_hier_integrator->getVelocityBoundaryConditions();
     RobinBcCoefStrategy<NDIM>* const P_bc_coef = p_ins_hier_integrator->getPressureBoundaryConditions();
     d_stokes_op = new INSStaggeredStokesOperator(problem_coefs, U_bc_coefs, P_bc_coef, buildHierarchyMathOps(hierarchy));
-    d_stokes_solver = new PETScNewtonKrylovSolver(d_object_name+"::stokes_solver", stokes_prefix);
-    d_stokes_solver->setOperator(d_stokes_op);
-    d_stokes_solver_needs_reinit_when_dt_changes = false;
-    p_ins_hier_integrator->setStokesSolver(d_stokes_op, d_stokes_solver, d_stokes_solver_needs_reinit_when_dt_changes);
+    d_modified_stokes_op = new IBImplicitStaggeredHierarchyIntegrator::Operator(d_stokes_op, this);
+    d_modified_stokes_solver = new PETScNewtonKrylovSolver(d_object_name+"::stokes_solver", stokes_prefix);
+    d_modified_stokes_solver->setOperator(d_modified_stokes_op);
+    d_modified_stokes_solver_needs_reinit_when_dt_changes = false;
+    p_ins_hier_integrator->setStokesSolver(d_stokes_op, d_modified_stokes_solver, d_modified_stokes_solver_needs_reinit_when_dt_changes);
 
     // Finish initializing the hierarchy integrator.
     IBHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
 
     // Setup the preconditioner after initializing the solver state.
-    d_stokes_solver->getLinearSolver()->setPreconditioner(p_ins_hier_integrator->getStokesPreconditioner());
+    d_modified_stokes_solver->getLinearSolver()->setPreconditioner(p_ins_hier_integrator->getStokesPreconditioner());
 }// initializeHierarchyIntegrator
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
@@ -337,6 +340,92 @@ IBImplicitStaggeredHierarchyIntegrator::getFromRestart()
     }
     return;
 }// getFromRestart
+
+IBImplicitStaggeredHierarchyIntegrator::Operator::Operator(
+    Pointer<INSStaggeredStokesOperator> stokes_op,
+    const IBImplicitStaggeredHierarchyIntegrator* ib_solver)
+    : d_stokes_op(stokes_op),
+      d_ib_solver(ib_solver)
+{
+    // intentionally blank
+    return;
+}// Operator
+
+IBImplicitStaggeredHierarchyIntegrator::Operator::~Operator()
+{
+    // intentionally blank
+    return;
+}// ~Operator();
+
+void
+IBImplicitStaggeredHierarchyIntegrator::Operator::apply(
+    SAMRAIVectorReal<NDIM,double>& x,
+    SAMRAIVectorReal<NDIM,double>& y)
+{
+    const double current_time = d_ib_solver->d_current_time;
+    const double new_time = d_ib_solver->d_new_time;
+    const double half_time = current_time+0.5*(new_time-current_time);
+
+    d_stokes_op->setTimeInterval(current_time, new_time);
+    d_stokes_op->apply(/* homogeneous_bc */ true, x, y);
+
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<SideVariable<NDIM,double> > u_current_var = d_ib_solver->d_ins_hier_integrator->getVelocityVariable();
+    Pointer<VariableContext> u_current_ctx = d_ib_solver->d_ins_hier_integrator->getCurrentContext();
+    const int u_current_idx = var_db->mapVariableAndContextToIndex(u_current_var, u_current_ctx);
+
+    const int u_new_idx = x.getComponentDescriptorIndex(0);
+    Pointer<SideVariable<NDIM,double> > u_new_var = x.getComponentVariable(0);
+
+    const int f_idx = y.getComponentDescriptorIndex(0);
+    Pointer<SideVariable<NDIM,double> > f_var = y.getComponentVariable(0);
+
+    const int u_idx = d_ib_solver->d_u_idx;
+    IBStrategy* ib_method_ops = d_ib_solver->d_ib_method_ops;
+    Pointer<HierarchyDataOpsReal<NDIM,double> > hier_velocity_data_ops = d_ib_solver->d_hier_velocity_data_ops;
+
+    // Interpolate the Eulerian velocity to the curvilinear mesh.
+    hier_velocity_data_ops->linearSum(u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
+    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_coarsen_scheds = d_ib_solver->getCoarsenSchedules(d_ib_solver->d_object_name+"::u::CONSERVATIVE_COARSEN");
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghostfill_scheds = d_ib_solver->getGhostfillRefineSchedules(d_ib_solver->d_object_name+"::u");
+    ib_method_ops->interpolateVelocity(u_idx, u_coarsen_scheds, u_ghostfill_scheds, half_time);
+
+    // Compute an updated prediction of the updated positions of the Lagrangian
+    // structure.
+    ib_method_ops->midpointStep(current_time, new_time);
+
+    // Compute the Lagrangian forces and spread them to the Eulerian grid.
+    ib_method_ops->computeLagrangianForce(half_time);
+    hier_velocity_data_ops->scale(f_idx, -1.0, f_idx);
+    const std::vector<Pointer<RefineSchedule<NDIM> > > f_prolong_scheds(u_ghostfill_scheds.size(), Pointer<RefineSchedule<NDIM> >(NULL));
+    ib_method_ops->spreadForce(f_idx, f_prolong_scheds, half_time);
+    hier_velocity_data_ops->scale(f_idx, -1.0, f_idx);
+    return;
+}// apply
+
+void
+IBImplicitStaggeredHierarchyIntegrator::Operator::initializeOperatorState(
+    const SAMRAIVectorReal<NDIM,double>& in,
+    const SAMRAIVectorReal<NDIM,double>& out)
+{
+    d_stokes_op->initializeOperatorState(in,out);
+    return;
+}// initializeOperatorState
+
+void
+IBImplicitStaggeredHierarchyIntegrator::Operator::deallocateOperatorState()
+{
+    d_stokes_op->deallocateOperatorState();
+    return;
+}// deallocateOperatorState
+
+void
+IBImplicitStaggeredHierarchyIntegrator::Operator::enableLogging(
+    bool enabled)
+{
+    d_stokes_op->enableLogging(enabled);
+    return;
+}// enableLogging
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

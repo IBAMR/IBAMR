@@ -150,10 +150,13 @@ IBMethod::IBMethod(
     d_X_current_needs_ghost_fill = true;
     d_X_new_needs_ghost_fill     = true;
     d_X_half_needs_ghost_fill    = true;
+    d_X_LE_new_needs_ghost_fill  = true;
+    d_X_LE_half_needs_ghost_fill = true;
     d_F_current_needs_ghost_fill = true;
     d_F_new_needs_ghost_fill     = true;
     d_F_half_needs_ghost_fill    = true;
     d_X_half_needs_reinit        = true;
+    d_X_LE_half_needs_reinit     = true;
     d_U_half_needs_reinit        = true;
     return;
 }// IBMethod
@@ -298,24 +301,34 @@ IBMethod::preprocessIntegrateData(
     }
 
     // Look-up or allocate Lagangian data.
-    d_X_current_data.resize(finest_ln+1);
-    d_X_new_data    .resize(finest_ln+1);
-    d_X_half_data   .resize(finest_ln+1);
-    d_U_current_data.resize(finest_ln+1);
-    d_U_new_data    .resize(finest_ln+1);
-    d_U_half_data   .resize(finest_ln+1);
-    d_F_current_data.resize(finest_ln+1);
-    d_F_new_data    .resize(finest_ln+1);
-    d_F_half_data   .resize(finest_ln+1);
+    d_X_current_data    .resize(finest_ln+1);
+    d_X_new_data        .resize(finest_ln+1);
+    d_X_half_data       .resize(finest_ln+1);
+    d_U_current_data    .resize(finest_ln+1);
+    d_U_new_data        .resize(finest_ln+1);
+    d_U_half_data       .resize(finest_ln+1);
+    d_F_current_data    .resize(finest_ln+1);
+    d_F_new_data        .resize(finest_ln+1);
+    d_F_half_data       .resize(finest_ln+1);
+    if (d_use_fixed_coupling_ops)
+    {
+        d_X_LE_new_data .resize(finest_ln+1);
+        d_X_LE_half_data.resize(finest_ln+1);
+    }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        d_X_current_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
-        d_X_new_data    [ln] = d_l_data_manager->createLData("X_new" ,ln,NDIM);
-        d_X_half_data   [ln] = d_l_data_manager->createLData("X_half",ln,NDIM);
-        d_U_current_data[ln] = d_l_data_manager->getLData(LDataManager:: VEL_DATA_NAME,ln);
-        d_U_new_data    [ln] = d_l_data_manager->createLData("U_new" ,ln,NDIM);
-        d_U_half_data   [ln] = d_l_data_manager->createLData("U_half",ln,NDIM);
+        d_X_current_data    [ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME,ln);
+        d_X_new_data        [ln] = d_l_data_manager->createLData("X_new"    ,ln,NDIM);
+        d_X_half_data       [ln] = d_l_data_manager->createLData("X_half"   ,ln,NDIM);
+        d_U_current_data    [ln] = d_l_data_manager->getLData(LDataManager:: VEL_DATA_NAME,ln);
+        d_U_new_data        [ln] = d_l_data_manager->createLData("U_new"    ,ln,NDIM);
+        d_U_half_data       [ln] = d_l_data_manager->createLData("U_half"   ,ln,NDIM);
+        if (d_use_fixed_coupling_ops)
+        {
+            d_X_LE_new_data [ln] = d_l_data_manager->createLData("X_LE_new" ,ln,NDIM);
+            d_X_LE_half_data[ln] = d_l_data_manager->createLData("X_LE_half",ln,NDIM);
+        }
 
         int ierr;
 
@@ -325,14 +338,24 @@ IBMethod::preprocessIntegrateData(
         ierr = VecCopy(d_X_current_data[ln]->getVec(), d_X_new_data [ln]->getVec());  IBTK_CHKERRQ(ierr);
         ierr = VecCopy(d_U_current_data[ln]->getVec(), d_U_half_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
         ierr = VecCopy(d_U_current_data[ln]->getVec(), d_U_new_data [ln]->getVec());  IBTK_CHKERRQ(ierr);
+
+        if (d_use_fixed_coupling_ops)
+        {
+            // Initialize X_LE^{n+1/2} and X_LE^{n+1} to equal X^{n}.
+            ierr = VecCopy(d_X_current_data[ln]->getVec(), d_X_LE_half_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
+            ierr = VecCopy(d_X_current_data[ln]->getVec(), d_X_LE_new_data [ln]->getVec());  IBTK_CHKERRQ(ierr);
+        }
     }
 
     // Indicate all updated Lagrangian data need ghost values to be refilled,
     // and that all intermediate data need to be reinitialized.
-    d_X_new_needs_ghost_fill  = true;
-    d_X_half_needs_ghost_fill = true;
-    d_X_half_needs_reinit     = false;
-    d_U_half_needs_reinit     = false;
+    d_X_new_needs_ghost_fill     = true;
+    d_X_half_needs_ghost_fill    = true;
+    d_X_LE_new_needs_ghost_fill  = true;
+    d_X_LE_half_needs_ghost_fill = true;
+    d_X_half_needs_reinit        = false;
+    d_X_LE_half_needs_reinit     = false;
+    d_U_half_needs_reinit        = false;
     return;
 }// preprocessIntegrateData
 
@@ -398,35 +421,47 @@ IBMethod::postprocessIntegrateData(
 }// postprocessIntegrateData
 
 void
+IBMethod::updateFixedLEOperators()
+{
+    if (!d_use_fixed_coupling_ops) return;
+
+    int ierr;
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+        ierr = VecCopy(d_X_new_data[ln]->getVec(), d_X_LE_new_data[ln]->getVec());  IBTK_CHKERRQ(ierr);
+    }
+    d_X_LE_new_needs_ghost_fill  = true;
+    d_X_LE_half_needs_ghost_fill = true;
+    d_X_LE_half_needs_reinit     = false;
+    return;
+}// updateFixedLEOperators
+
+void
 IBMethod::interpolateVelocity(
     const int u_data_idx,
     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
     const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
     const double data_time)
 {
-    std::vector<Pointer<LData> >* X_data = NULL;
     std::vector<Pointer<LData> >* U_data = NULL;
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
-        X_data = &d_X_current_data;
         U_data = &d_U_current_data;
     }
     else if (MathUtilities<double>::equalEps(data_time, d_half_time))
     {
-        if (d_X_half_needs_reinit)
-        {
-            reinitMidpointData(d_X_current_data, d_X_new_data, d_X_half_data);
-            d_X_half_needs_reinit = false;
-            d_X_half_needs_ghost_fill = true;
-        }
-        X_data = &d_X_half_data;
         U_data = &d_U_half_data;
     }
     else if (MathUtilities<double>::equalEps(data_time, d_new_time))
     {
-        X_data = &d_X_new_data;
         U_data = &d_U_new_data;
     }
+    std::vector<Pointer<LData> >* X_data = NULL;
+    bool* X_needs_ghost_fill = NULL;
+    getLECouplingPositions(&X_data, &X_needs_ghost_fill, data_time);
     d_l_data_manager->interp(u_data_idx, *U_data, *X_data, u_synch_scheds, u_ghost_fill_scheds, data_time);
     resetAnchorPointValues(*U_data, /*coarsest_ln*/ 0, /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
     d_U_half_needs_reinit = !MathUtilities<double>::equalEps(data_time, d_half_time);
@@ -652,36 +687,25 @@ IBMethod::spreadForce(
     const double data_time)
 {
     std::vector<Pointer<LData> >* F_data = NULL;
-    std::vector<Pointer<LData> >* X_data = NULL;
     bool* F_needs_ghost_fill = NULL;
-    bool* X_needs_ghost_fill = NULL;
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         F_data = &d_F_current_data;
-        X_data = &d_X_current_data;
         F_needs_ghost_fill = &d_F_current_needs_ghost_fill;
-        X_needs_ghost_fill = &d_X_current_needs_ghost_fill;
     }
     else if (MathUtilities<double>::equalEps(data_time, d_half_time))
     {
-        if (d_X_half_needs_reinit)
-        {
-            reinitMidpointData(d_X_current_data, d_X_new_data, d_X_half_data);
-            d_X_half_needs_reinit = false;
-            d_X_half_needs_ghost_fill = true;
-        }
         F_data = &d_F_half_data;
-        X_data = &d_X_half_data;
         F_needs_ghost_fill = &d_F_half_needs_ghost_fill;
-        X_needs_ghost_fill = &d_X_half_needs_ghost_fill;
     }
     else if (MathUtilities<double>::equalEps(data_time, d_new_time))
     {
         F_data = &d_F_new_data;
-        X_data = &d_X_new_data;
         F_needs_ghost_fill = &d_F_new_needs_ghost_fill;
-        X_needs_ghost_fill = &d_X_new_needs_ghost_fill;
     }
+    std::vector<Pointer<LData> >* X_data = NULL;
+    bool* X_needs_ghost_fill = NULL;
+    getLECouplingPositions(&X_data, &X_needs_ghost_fill, data_time);
     d_l_data_manager->spread(f_data_idx, *F_data, *X_data, f_prolongation_scheds, *F_needs_ghost_fill, *X_needs_ghost_fill);
     *F_needs_ghost_fill = false;
     *X_needs_ghost_fill = false;
@@ -725,24 +749,8 @@ IBMethod::spreadFluidSource(
 
     // Get the present source locations.
     std::vector<Pointer<LData> >* X_data = NULL;
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
-    {
-        X_data = &d_X_current_data;
-    }
-    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
-    {
-        if (d_X_half_needs_reinit)
-        {
-            reinitMidpointData(d_X_current_data, d_X_new_data, d_X_half_data);
-            d_X_half_needs_reinit = false;
-            d_X_half_needs_ghost_fill = true;
-        }
-        X_data = &d_X_half_data;
-    }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
-    {
-        X_data = &d_X_new_data;
-    }
+    bool* X_needs_ghost_fill = NULL;
+    getLECouplingPositions(&X_data, &X_needs_ghost_fill, data_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (d_n_src[ln] == 0) continue;
@@ -1385,10 +1393,62 @@ IBMethod::putToDatabase(
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
+IBMethod::getLECouplingPositions(
+    std::vector<Pointer<LData> >** X_data,
+    bool** X_needs_ghost_fill,
+    double data_time)
+{
+    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    {
+        *X_data = &d_X_current_data;
+        *X_needs_ghost_fill = &d_X_current_needs_ghost_fill;
+    }
+    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+    {
+        if (d_use_fixed_coupling_ops)
+        {
+            if (d_X_LE_half_needs_reinit)
+            {
+                reinitMidpointData(d_X_current_data, d_X_LE_new_data, d_X_LE_half_data);
+                d_X_LE_half_needs_reinit = false;
+                d_X_LE_half_needs_ghost_fill = true;
+            }
+            *X_data = &d_X_LE_half_data;
+            *X_needs_ghost_fill = &d_X_LE_half_needs_ghost_fill;
+        }
+        else
+        {
+            if (d_X_half_needs_reinit)
+            {
+                reinitMidpointData(d_X_current_data, d_X_new_data, d_X_half_data);
+                d_X_half_needs_reinit = false;
+                d_X_half_needs_ghost_fill = true;
+            }
+            *X_data = &d_X_half_data;
+            *X_needs_ghost_fill = &d_X_half_needs_ghost_fill;
+        }
+    }
+    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    {
+        if (d_use_fixed_coupling_ops)
+        {
+            *X_data = &d_X_LE_new_data;
+            *X_needs_ghost_fill = &d_X_LE_new_needs_ghost_fill;
+        }
+        else
+        {
+            *X_data = &d_X_new_data;
+            *X_needs_ghost_fill = &d_X_new_needs_ghost_fill;
+        }
+    }
+    return;
+}// getLECouplingPositions
+
+void
 IBMethod::reinitMidpointData(
-    const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& current_data,
-    const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& new_data,
-    const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& half_data)
+    const std::vector<Pointer<LData> >& current_data,
+    const std::vector<Pointer<LData> >& new_data,
+    const std::vector<Pointer<LData> >& half_data)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();

@@ -131,6 +131,16 @@ IBStrategySet::postprocessIntegrateData(
 }// postprocessIntegrateData
 
 void
+IBStrategySet::updateFixedLEOperators()
+{
+    for (std::vector<Pointer<IBStrategy> >::const_iterator cit = d_strategy_set.begin(); cit != d_strategy_set.end(); ++cit)
+    {
+        (*cit)->updateFixedLEOperators();
+    }
+    return;
+}// updateFixedLEOperators
+
+void
 IBStrategySet::interpolateVelocity(
     int u_data_idx,
     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,

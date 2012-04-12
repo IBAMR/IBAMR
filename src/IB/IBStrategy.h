@@ -149,6 +149,24 @@ public:
         int num_cycles);
 
     /*!
+     * Indicate whether "fixed" interpolation and spreading operators should be
+     * used during Lagrangian-Eulerian interaction.
+     */
+    void
+    setUseFixedLEOperators(
+        bool use_fixed_coupling_ops=true);
+
+    /*!
+     * Update the positions used for the "fixed" interpolation and spreading
+     * operators.
+     *
+     * A default implementation is provided that emits an unrecoverable
+     * exception.
+     */
+    virtual void
+    updateFixedLEOperators();
+
+    /*!
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
      * specified time within the current time interval.
      */
@@ -196,6 +214,9 @@ public:
 
     /*!
      * \brief Compute the non-zero structure of the force Jacobian matrix.
+     *
+     * \note A default implementation is provided that emits an unrecoverable
+     * exception.
      */
     virtual void
     computeLagrangianForceJacobianNonzeroStructure(
@@ -209,6 +230,9 @@ public:
      *
      * \note The elements of the Jacobian should be accumulated in the provided
      * matrix.
+     *
+     * \note A default implementation is provided that emits an unrecoverable
+     * exception.
      */
     virtual void
     computeLagrangianForceJacobian(
@@ -556,6 +580,11 @@ protected:
      * The IBHierarchyIntegrator object that is using this strategy class.
      */
     IBHierarchyIntegrator* d_ib_solver;
+
+    /*!
+     * Whether to use "fixed" Lagrangian-Eulerian coupling operators.
+     */
+    bool d_use_fixed_coupling_ops;
 
 private:
     /*!

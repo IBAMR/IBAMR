@@ -57,6 +57,8 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBStrategy::IBStrategy()
+    : d_ib_solver(NULL),
+      d_use_fixed_coupling_ops(false)
 {
     // intentionally blank
     return;
@@ -109,6 +111,21 @@ IBStrategy::postprocessIntegrateData(
     // intentionally blank
     return;
 }// postprocessIntegrateData
+
+void
+IBStrategy::setUseFixedLEOperators(
+    bool use_fixed_coupling_ops)
+{
+    d_use_fixed_coupling_ops = use_fixed_coupling_ops;
+    return;
+}// setUseFixedLEOperators
+
+void
+IBStrategy::updateFixedLEOperators()
+{
+    TBOX_ERROR("IBStrategy::updateFixedLEOperators(): unimplemented\n");
+    return;
+}// updateFixedLEOperators
 
 void
 IBStrategy::computeLagrangianForceJacobianNonzeroStructure(

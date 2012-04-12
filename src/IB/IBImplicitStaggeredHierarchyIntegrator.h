@@ -173,9 +173,119 @@ private:
     void
     getFromRestart();
 
-    SAMRAI::tbox::Pointer<IBTK::GeneralOperator>    d_stokes_op;
-    SAMRAI::tbox::Pointer<IBTK::NewtonKrylovSolver> d_stokes_solver;
-    bool d_stokes_solver_needs_reinit_when_dt_changes;
+    double d_current_time, d_new_time;
+    SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> d_stokes_op;
+    SAMRAI::tbox::Pointer<IBTK::GeneralOperator>      d_modified_stokes_op;
+    SAMRAI::tbox::Pointer<IBTK::NewtonKrylovSolver>   d_modified_stokes_solver;
+    bool d_modified_stokes_solver_needs_reinit_when_dt_changes;
+
+    /*!
+     * \brief Implementation of a modified Stokes operator that includes forcing
+     * terms computed via the IB method.
+     */
+    class Operator
+        : public IBTK::GeneralOperator
+    {
+    public:
+        /*!
+         * \brief Constructor.
+         */
+        Operator(
+            SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> stokes_op,
+            const IBImplicitStaggeredHierarchyIntegrator* ib_solver);
+
+        /*!
+         * \brief Destructor.
+         */
+        ~Operator();
+
+        /*!
+         * \name General operator functionality.
+         */
+        //\{
+
+        /*!
+         * \name General operator functionality.
+         */
+        //\{
+
+        /*!
+         * \brief Compute \f$y=F[x]\f$.
+         */
+        void
+        apply(
+            SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
+            SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
+
+        /*!
+         * \brief Compute hierarchy dependent data required for computing y=F[x] and
+         * z=F[x]+y.
+         */
+        void
+        initializeOperatorState(
+            const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& in,
+            const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& out);
+
+        /*!
+         * \brief Remove all hierarchy dependent data allocated by
+         * initializeOperatorState().
+         */
+        void
+        deallocateOperatorState();
+
+        //\}
+
+        /*!
+         * \name Logging functions.
+         */
+        //\{
+
+        /*!
+         * \brief Enable or disable logging.
+         *
+         * \param enabled logging state: true=on, false=off
+         */
+        void
+        enableLogging(
+            bool enabled=true);
+
+        //\}
+
+    private:
+        /*!
+         * \brief Default constructor.
+         *
+         * \note This constructor is not implemented and should not be used.
+         */
+        Operator();
+
+        /*!
+         * \brief Copy constructor.
+         *
+         * \note This constructor is not implemented and should not be used.
+         *
+         * \param from The value to copy to this object.
+         */
+        Operator(
+            const Operator& from);
+
+        /*!
+         * \brief Assignment operator.
+         *
+         * \note This operator is not implemented and should not be used.
+         *
+         * \param that The value to assign to this object.
+         *
+         * \return A reference to this object.
+         */
+        Operator&
+        operator=(
+            const Operator& that);
+
+        SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> d_stokes_op;
+        const IBImplicitStaggeredHierarchyIntegrator* const d_ib_solver;
+        friend class IBImplicitStaggeredHierarchyIntegrator;
+    };
 };
 }// namespace IBAMR
 

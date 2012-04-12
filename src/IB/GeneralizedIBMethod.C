@@ -251,11 +251,9 @@ GeneralizedIBMethod::interpolateVelocity(
     IBMethod::interpolateVelocity(u_data_idx, u_synch_scheds, u_ghost_fill_scheds, data_time);
 
     // Interpolate the angular velocities.
-    std::vector<Pointer<LData> >* X_data = NULL;
     std::vector<Pointer<LData> >* W_data = NULL;
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
-        X_data = &d_X_current_data;
         W_data = &d_W_current_data;
     }
     else if (MathUtilities<double>::equalEps(data_time, d_half_time))
@@ -266,7 +264,6 @@ GeneralizedIBMethod::interpolateVelocity(
     }
     else if (MathUtilities<double>::equalEps(data_time, d_new_time))
     {
-        X_data = &d_X_new_data;
         W_data = &d_W_new_data;
     }
 
@@ -288,6 +285,9 @@ GeneralizedIBMethod::interpolateVelocity(
         TBOX_ERROR(d_object_name << "::interpolateVelocity():\n"
                    << "  unsupported velocity data centering" << std::endl);
     }
+    std::vector<Pointer<LData> >* X_data = NULL;
+    bool* X_needs_ghost_fill = NULL;
+    getLECouplingPositions(&X_data, &X_needs_ghost_fill, data_time);
     getVelocityHierarchyDataOps()->scale(d_w_idx, 0.5, d_w_idx);
     d_l_data_manager->interp(d_w_idx, *W_data, *X_data, std::vector<Pointer<CoarsenSchedule<NDIM> > >(), getGhostfillRefineSchedules(d_object_name+"::w"), data_time);
     resetAnchorPointValues(*W_data, /*coarsest_ln*/ 0, /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
@@ -506,15 +506,11 @@ GeneralizedIBMethod::spreadForce(
     IBMethod::spreadForce(f_data_idx, f_prolongation_scheds, data_time);
 
     std::vector<Pointer<LData> >* N_data = NULL;
-    std::vector<Pointer<LData> >* X_data = NULL;
     bool* N_needs_ghost_fill = NULL;
-    bool* X_needs_ghost_fill = NULL;
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         N_data = &d_N_current_data;
-        X_data = &d_X_current_data;
         N_needs_ghost_fill = &d_N_current_needs_ghost_fill;
-        X_needs_ghost_fill = &d_X_current_needs_ghost_fill;
     }
     else if (MathUtilities<double>::equalEps(data_time, d_half_time))
     {
@@ -525,11 +521,12 @@ GeneralizedIBMethod::spreadForce(
     else if (MathUtilities<double>::equalEps(data_time, d_new_time))
     {
         N_data = &d_N_new_data;
-        X_data = &d_X_new_data;
         N_needs_ghost_fill = &d_N_new_needs_ghost_fill;
-        X_needs_ghost_fill = &d_X_new_needs_ghost_fill;
     }
 
+    std::vector<Pointer<LData> >* X_data = NULL;
+    bool* X_needs_ghost_fill = NULL;
+    getLECouplingPositions(&X_data, &X_needs_ghost_fill, data_time);
     getVelocityHierarchyDataOps()->setToScalar(d_n_idx, 0.0, false);
     d_l_data_manager->spread(d_n_idx, *N_data, *X_data, std::vector<Pointer<RefineSchedule<NDIM> > >(), *N_needs_ghost_fill, *X_needs_ghost_fill);
     *N_needs_ghost_fill = false;

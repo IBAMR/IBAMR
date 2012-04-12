@@ -158,6 +158,13 @@ public:
         int num_cycles);
 
     /*!
+     * Update the positions used for the "fixed" interpolation and spreading
+     * operators.
+     */
+    void
+    updateFixedLEOperators();
+
+    /*!
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
      * specified time within the current time interval.
      */
@@ -390,6 +397,15 @@ public:
 
 protected:
     /*!
+     * Get the current interpolation/spreading positions.
+     */
+    void
+    getLECouplingPositions(
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** X_data,
+        bool** X_needs_ghost_fill,
+        double data_time);
+
+    /*!
      * Interpolate the current and new data to obtain values at the midpoint of
      * the time interval.
      */
@@ -430,9 +446,9 @@ protected:
      * Boolean values tracking whether certain quantities need to be
      * reinitialized.
      */
-    bool d_X_current_needs_ghost_fill, d_X_new_needs_ghost_fill, d_X_half_needs_ghost_fill;
+    bool d_X_current_needs_ghost_fill, d_X_new_needs_ghost_fill, d_X_half_needs_ghost_fill, d_X_LE_new_needs_ghost_fill, d_X_LE_half_needs_ghost_fill;
     bool d_F_current_needs_ghost_fill, d_F_new_needs_ghost_fill, d_F_half_needs_ghost_fill;
-    bool d_X_half_needs_reinit, d_U_half_needs_reinit;
+    bool d_X_half_needs_reinit, d_X_LE_half_needs_reinit, d_U_half_needs_reinit;
 
     /*
      * The LDataManager is used to coordinate the distribution of Lagrangian
@@ -445,7 +461,7 @@ protected:
     /*
      * Lagrangian variables.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_current_data, d_X_new_data, d_X_half_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_current_data, d_X_new_data, d_X_half_data, d_X_LE_new_data, d_X_LE_half_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_U_current_data, d_U_new_data, d_U_half_data;
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_F_current_data, d_F_new_data, d_F_half_data;
 

@@ -121,6 +121,13 @@ public:
         int num_cycles);
 
     /*!
+     * Update the positions used for the "fixed" interpolation and spreading
+     * operators.
+     */
+    void
+    updateFixedLEOperators();
+
+    /*!
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
      * specified time within the current time interval.
      */
