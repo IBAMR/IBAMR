@@ -56,10 +56,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LinearOperator::LinearOperator(
-    bool is_symmetric,
     bool homogeneous_bc)
-    : d_is_symmetric(is_symmetric),
-      d_homogeneous_bc(homogeneous_bc),
+    : d_homogeneous_bc(homogeneous_bc),
       d_correcting_rhs(false)
 {
     // intentionally blank
@@ -71,12 +69,6 @@ LinearOperator::~LinearOperator()
     deallocateOperatorState();
     return;
 }// ~LinearOperator()
-
-bool
-LinearOperator::isSymmetric() const
-{
-    return d_is_symmetric;
-}// isSymmetric
 
 void
 LinearOperator::setHomogeneousBc(
@@ -99,40 +91,6 @@ LinearOperator::modifyRhsForInhomogeneousBc(
     TBOX_WARNING("LinearOperator::modifyRhsForInhomogeneousBc() not implemented for this operator" << std::endl);
     return;
 }// modifyRhsForInhomogeneousBc
-
-void
-LinearOperator::applyAdjoint(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y)
-{
-    if (isSymmetric())
-    {
-        apply(x,y);
-    }
-    else
-    {
-        TBOX_ERROR("LinearOperator::applyAdjoint():\n"
-                   << "  no adjoint operation defined for this linear operator" << std::endl);
-    }
-    return;
-}// applyAdjoint
-
-void
-LinearOperator::applyAdjointAdd(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y,
-    SAMRAIVectorReal<NDIM,double>& z)
-{
-    // Guard against the case that y == z.
-    Pointer<SAMRAIVectorReal<NDIM,double> > zz = z.cloneVector(z.getName());
-    zz->allocateVectorData();
-    zz->copyVector(Pointer<SAMRAIVectorReal<NDIM,double> >(&z,false));
-    applyAdjoint(x,*zz);
-    z.add(Pointer<SAMRAIVectorReal<NDIM,double> >(&y,false),zz);
-    zz->freeVectorComponents();
-    zz.setNull();
-    return;
-}// applyAdjointAdd
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

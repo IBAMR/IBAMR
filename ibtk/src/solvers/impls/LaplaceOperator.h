@@ -67,7 +67,6 @@ public:
         SAMRAI::solv::PoissonSpecifications poisson_spec,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* default_bc_coef,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-        bool is_symmetric=false,
         bool homogeneous_bc=false);
 
     /*!

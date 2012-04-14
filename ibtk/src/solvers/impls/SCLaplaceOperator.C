@@ -95,7 +95,6 @@ SCLaplaceOperator::SCLaplaceOperator(
         poisson_spec,
         new LocationIndexRobinBcCoefs<NDIM>(object_name+"::default_bc_coef", Pointer<Database>(NULL)),
         std::vector<RobinBcCoefStrategy<NDIM>*>(bc_coefs.data(),bc_coefs.data()+NDIM),
-        true,
         homogeneous_bc),
       d_object_name(object_name),
       d_is_initialized(false),

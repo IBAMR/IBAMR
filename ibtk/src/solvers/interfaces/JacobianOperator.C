@@ -55,9 +55,8 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-JacobianOperator::JacobianOperator(
-    bool is_symmetric)
-    : LinearOperator(is_symmetric)
+JacobianOperator::JacobianOperator()
+    : LinearOperator(/* homogeneous_bc */ true)
 {
     // intentionally blank
     return;

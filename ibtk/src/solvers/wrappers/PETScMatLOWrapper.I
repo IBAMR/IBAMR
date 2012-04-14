@@ -47,7 +47,8 @@ inline
 PETScMatLOWrapper::PETScMatLOWrapper(
     const std::string& object_name,
     const Mat& petsc_mat)
-    : d_object_name(object_name),
+    : LinearOperator(/* homogeneous_bc */ false),
+      d_object_name(object_name),
       d_is_initialized(false),
       d_do_log(false),
       d_petsc_mat(petsc_mat),
@@ -68,14 +69,6 @@ PETScMatLOWrapper::~PETScMatLOWrapper()
     if (d_is_initialized) deallocateOperatorState();
     return;
 }// ~PETScMatLOWrapper()
-
-inline bool
-PETScMatLOWrapper::isSymmetric() const
-{
-    PetscBool set, is_symmetric;
-    int ierr = MatIsSymmetricKnown(d_petsc_mat,&set,&is_symmetric); IBTK_CHKERRQ(ierr);
-    return (set && is_symmetric);
-}// isSymmetric
 
 inline const Mat&
 PETScMatLOWrapper::getPETScMat() const

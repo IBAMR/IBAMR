@@ -66,9 +66,10 @@ public:
      */
     INSStaggeredStokesOperator(
         const INSProblemCoefs* problem_coefs,
-        blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> U_bc_coefs,
+        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
-        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops);
+        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+        bool homogeneous_bc=true);
 
     /*!
      * \brief Destructor.

@@ -55,14 +55,12 @@ class LinearOperator
 {
 public:
     /*!
-     * \brief Default constructor.
+     * \brief Constructor.
      *
-     * \param is_symmetric    Boolean that indicates whether the operator is symmetric.
      * \param homogeneous_bc  Boolean that indicates whether the operator should use homogeneous boundary conditions.
      */
     LinearOperator(
-        bool is_symmetric=false,
-        bool homogeneous_bc=false);
+        bool homogeneous_bc);
 
     /*!
      * \brief Empty destructor.
@@ -73,12 +71,6 @@ public:
      * \name Linear operator functionality.
      */
     //\{
-
-    /*!
-     * \brief Indicates whether the linear operator is symmetric.
-     */
-    bool
-    isSymmetric() const;
 
     /*!
      * \brief Specify whether the boundary conditions are homogeneous.
@@ -115,77 +107,9 @@ public:
     modifyRhsForInhomogeneousBc(
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
 
-    /*!
-     * \brief Compute y=A'x.
-     *
-     * Before calling this function, the form of the vectors x and y should be
-     * set properly by the user on all patch interiors on the range of levels
-     * covered by the operator.  All data in these vectors should be allocated.
-     * The user is responsible for managing the storage for the vectors.
-     *
-     * Conditions on arguments:
-     * - vectors must have same hierarchy
-     * - vectors must have same variables (except that x \em must have enough
-     *   ghost cells for computation of A'x).
-     *
-     * In general, the vectors x and y \em cannot be the same.
-     *
-     * \note The operator MUST be initialized prior to calling apply.
-     *
-     * \see initializeOperatorState
-     *
-     * \param x input
-     * \param y output: y=A'x
-     *
-     * \note A default implementation is provided.  If the operator is
-     * symmetric, apply() is used.  Otherwise, the default implementation causes
-     * an unrecoverable error to occur.
-     */
-    virtual void
-    applyAdjoint(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y);
-
-    /*!
-     * \brief Compute z=A'x+y.
-     *
-     * Before calling this function, the form of the vectors x, y, and z should
-     * be set properly by the user on all patch interiors on the range of levels
-     * covered by the operator.  All data in these vectors should be allocated.
-     * The user is responsible for managing the storage for the vectors.
-     *
-     * Conditions on arguments:
-     * - vectors must have same hierarchy
-     * - vectors must have same variables (except that x \em must have enough
-     *   ghost cells for computation of A'x).
-     *
-     * In general, the vectors x and z \em cannot be the same.
-     *
-     * \note The operator MUST be initialized prior to calling apply.
-     *
-     * \see initializeOperatorState
-     *
-     * \param x input
-     * \param y input
-     * \param z output: z=A'x+y
-     *
-     * \note A default implementation is provided which employs applyAdjoint()
-     * and SAMRAI::solv::SAMRAIVectorReal::add().
-     */
-    virtual void
-    applyAdjointAdd(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& y,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& z);
-
     //\}
 
 protected:
-    /*!
-     * Indicates whether the linear operator is symmetric.
-     */
-    const bool d_is_symmetric;
-
     /*
      * Boolean flags indicating whether the boundary conditions are homogeneous,
      * and whether the operator is currently correcting a right-hand side vector
@@ -194,6 +118,13 @@ protected:
     bool d_homogeneous_bc, d_correcting_rhs;
 
 private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    LinearOperator();
+
     /*!
      * \brief Copy constructor.
      *

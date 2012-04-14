@@ -57,8 +57,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    JacobianOperator(
-        bool is_symmetric=false);
+    JacobianOperator();
 
     /*!
      * \brief Empty destructor.

@@ -89,10 +89,12 @@ static Timer* t_deallocate_operator_state;
 
 INSStaggeredStokesOperator::INSStaggeredStokesOperator(
     const INSProblemCoefs* problem_coefs,
-    blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM> U_bc_coefs,
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs,
     RobinBcCoefStrategy<NDIM>* P_bc_coef,
-    Pointer<HierarchyMathOps> hier_math_ops)
-    : d_is_initialized(false),
+    Pointer<HierarchyMathOps> hier_math_ops,
+    bool homogeneous_bc)
+    : LinearOperator(homogeneous_bc),
+      d_is_initialized(false),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_U_fill_pattern(NULL),

@@ -119,40 +119,6 @@ PETScSNESJacobianJOWrapper::applyAdd(
 }// applyAdd
 
 void
-PETScSNESJacobianJOWrapper::applyAdjoint(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y)
-{
-    if (!d_is_initialized) initializeOperatorState(x,y);
-
-    // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, Pointer<SAMRAIVectorReal<NDIM,double> >(&y,false));
-
-    // Apply the operator.
-    int ierr = MatMultTranspose(d_petsc_snes_jac, d_petsc_x, d_petsc_y); IBTK_CHKERRQ(ierr);
-    return;
-}// applyAdjoint
-
-void
-PETScSNESJacobianJOWrapper::applyAdjointAdd(
-    SAMRAIVectorReal<NDIM,double>& x,
-    SAMRAIVectorReal<NDIM,double>& y,
-    SAMRAIVectorReal<NDIM,double>& z)
-{
-    if (!d_is_initialized) initializeOperatorState(x,y);
-
-    // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM,double> >(&x,false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_y, Pointer<SAMRAIVectorReal<NDIM,double> >(&y,false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_z, Pointer<SAMRAIVectorReal<NDIM,double> >(&z,false));
-
-    // Apply the operator.
-    int ierr = MatMultTransposeAdd(d_petsc_snes_jac, d_petsc_x, d_petsc_y, d_petsc_z); IBTK_CHKERRQ(ierr);
-    return;
-}// applyAdjointAdd
-
-void
 PETScSNESJacobianJOWrapper::initializeOperatorState(
     const SAMRAIVectorReal<NDIM,double>& in,
     const SAMRAIVectorReal<NDIM,double>& out)

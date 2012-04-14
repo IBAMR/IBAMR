@@ -562,25 +562,6 @@ private:
         Vec z);
 
     /*!
-     * \brief Compute the matrix-transpose vector product \f$y=A^{T}x\f$.
-     */
-    static PetscErrorCode
-    MatVecMultTranspose_SAMRAI(
-        Mat A,
-        Vec x,
-        Vec y);
-
-    /*!
-     * \brief Compute the matrix-transpose vector product \f$y=A^{T}x+z\f$.
-     */
-    static PetscErrorCode
-    MatVecMultTransposeAdd_SAMRAI(
-        Mat A,
-        Vec x,
-        Vec y,
-        Vec z);
-
-    /*!
      * \brief Get vector(s) compatible with the matrix, i.e., with the same
      * parallel layout.
      */

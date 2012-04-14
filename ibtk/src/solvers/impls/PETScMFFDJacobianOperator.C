@@ -59,7 +59,7 @@ namespace IBTK
 
 PETScMFFDJacobianOperator::PETScMFFDJacobianOperator(
     const std::string& options_prefix)
-    : JacobianOperator(false),
+    : JacobianOperator(),
       d_F(NULL),
       d_nonlinear_solver(NULL),
       d_petsc_jac(PETSC_NULL),

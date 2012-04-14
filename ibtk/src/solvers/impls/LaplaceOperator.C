@@ -59,9 +59,8 @@ LaplaceOperator::LaplaceOperator(
     PoissonSpecifications poisson_spec,
     RobinBcCoefStrategy<NDIM>* default_bc_coef,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-    bool is_symmetric,
     bool homogeneous_bc)
-    : LinearOperator(is_symmetric, homogeneous_bc),
+    : LinearOperator(homogeneous_bc),
       d_apply_time(0.0),
       d_poisson_spec("LaplaceOperator::poisson_spec"),
       d_default_bc_coef(default_bc_coef),

@@ -145,9 +145,9 @@ public:
      * \brief Compute hierarchy dependent data required for computing y=F[x] and
      * z=F[x]+y.
      *
-     * The vector arguments for apply(), applyAdjoint(), etc, need not match
-     * those for initializeOperatorState().  However, there must be a certain
-     * degree of similarity, including
+     * The vector arguments for apply(), applyAdd(), etc, need not match those
+     * for initializeOperatorState().  However, there must be a certain degree
+     * of similarity, including
      * - hierarchy configuration (hierarchy pointer and level range)
      * - number, type and alignment of vector component data
      * - ghost cell widths of data in the input and output vectors
