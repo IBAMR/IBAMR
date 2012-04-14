@@ -46,7 +46,7 @@
 namespace IBTK
 {
 /*!
- * \brief Class JacobianOperator provides an abstract Interface for the
+ * \brief Class JacobianOperator provides an abstract interface for the
  * specification of general operators to compute Jacobian-vector products, i.e.,
  * \f$ F'[x]v \f$.
  */
