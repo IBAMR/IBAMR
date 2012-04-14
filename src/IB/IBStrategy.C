@@ -130,8 +130,7 @@ IBStrategy::updateFixedLEOperators()
 void
 IBStrategy::computeLagrangianForceJacobianNonzeroStructure(
     std::vector<int>& /*d_nnz*/,
-    std::vector<int>& /*o_nnz*/,
-    double /*data_time*/)
+    std::vector<int>& /*o_nnz*/)
 {
     TBOX_ERROR("IBStrategy::computeLagrangianForceJacobianNonzeroStructure(): unimplemented\n");
     return;
@@ -148,6 +147,20 @@ IBStrategy::computeLagrangianForceJacobian(
     TBOX_ERROR("IBStrategy::computeLagrangianForceJacobian(): unimplemented\n");
     return;
 }// computeLagrangianForceJacobian
+
+void
+IBStrategy::applyLagrangianForceJacobian(
+    int /*f_data_idx*/,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
+    int /*u_data_idx*/,
+    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+    double /*data_time*/,
+    Mat& /*J_mat*/)
+{
+    TBOX_ERROR("IBStrategy::applyLagrangianForceJacobian(): unimplemented\n");
+    return;
+}// applyLagrangianForceJacobian
 
 bool
 IBStrategy::hasFluidSources() const

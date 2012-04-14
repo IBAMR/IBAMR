@@ -282,7 +282,6 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
     std::vector<int>& o_nnz,
     const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     const int level_number,
-    const double /*data_time*/,
     LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
@@ -328,8 +327,9 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
                                          slave_idx <  global_node_offset + num_local_nodes);
 
             static const int N = 2;
-            const int idxs[N] = { mastr_idx , slave_idx };
+            const int idxs[N] = { mastr_idx/NDIM , slave_idx/NDIM };
             const double vals[N] = { 1.0 , 1.0 };
+
             if (slave_is_local)
             {
                 ierr = VecSetValues(d_nnz_vec, N, idxs, vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
@@ -361,31 +361,31 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
             if (next_is_local && prev_is_local)
             {
                 static const int d_N = 3;
-                const int    d_idxs[d_N] = { mastr_idx , next_idx , prev_idx };
+                const int    d_idxs[d_N] = { mastr_idx/NDIM , next_idx/NDIM , prev_idx/NDIM };
                 const double d_vals[d_N] = { 2.0 , 2.0 , 2.0 };
                 ierr = VecSetValues(d_nnz_vec, d_N, d_idxs, d_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
             }
             else if (next_is_local && (!prev_is_local))
             {
                 static const int d_N = 2;
-                const int    d_idxs[d_N] = { mastr_idx , next_idx };
+                const int    d_idxs[d_N] = { mastr_idx/NDIM , next_idx/NDIM };
                 const double d_vals[d_N] = { 1.0 , 1.0 };
                 ierr = VecSetValues(d_nnz_vec, d_N, d_idxs, d_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
 
                 static const int o_N = 3;
-                const int    o_idxs[o_N] = { mastr_idx , next_idx , prev_idx };
+                const int    o_idxs[o_N] = { mastr_idx/NDIM , next_idx/NDIM , prev_idx/NDIM };
                 const double o_vals[o_N] = { 1.0 , 1.0 , 2.0 };
                 ierr = VecSetValues(o_nnz_vec, o_N, o_idxs, o_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
             }
             else if ((!next_is_local) && prev_is_local)
             {
                 static const int d_N = 2;
-                const int    d_idxs[d_N] = { mastr_idx , prev_idx };
+                const int    d_idxs[d_N] = { mastr_idx/NDIM , prev_idx/NDIM };
                 const double d_vals[d_N] = { 1.0 , 1.0 };
                 ierr = VecSetValues(d_nnz_vec, d_N, d_idxs, d_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
 
                 static const int o_N = 3;
-                const int    o_idxs[o_N] = { mastr_idx , next_idx , prev_idx };
+                const int    o_idxs[o_N] = { mastr_idx/NDIM , next_idx/NDIM , prev_idx/NDIM };
                 const double o_vals[o_N] = { 1.0 , 2.0 , 1.0 };
                 ierr = VecSetValues(o_nnz_vec, o_N, o_idxs, o_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
             }
@@ -397,12 +397,12 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
                 // on different processors, and for the case that the previous
                 // and next nodes are on the same processor.
                 static const int d_N = 2;
-                const int    d_idxs[d_N] = { next_idx , prev_idx };
+                const int    d_idxs[d_N] = { next_idx/NDIM , prev_idx/NDIM };
                 const double d_vals[d_N] = { 2.0 , 2.0 };
                 ierr = VecSetValues(d_nnz_vec, d_N, d_idxs, d_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
 
                 static const int o_N = 3;
-                const int    o_idxs[o_N] = { mastr_idx , next_idx , prev_idx };
+                const int    o_idxs[o_N] = { mastr_idx/NDIM , next_idx/NDIM , prev_idx/NDIM };
                 const double o_vals[o_N] = { 2.0 , 2.0 , 2.0 };
                 ierr = VecSetValues(o_nnz_vec, o_N, o_idxs, o_vals, ADD_VALUES);  IBTK_CHKERRQ(ierr);
             }
@@ -439,7 +439,7 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
 void
 IBStandardForceGen::computeLagrangianForceJacobian(
     Mat& J_mat,
-    MatAssemblyType /*assembly_type*/,
+    MatAssemblyType assembly_type,
     const double X_coef,
     Pointer<LData> X_data,
     const double U_coef,
@@ -478,8 +478,8 @@ IBStandardForceGen::computeLagrangianForceJacobian(
             // "master" node with respect to the position of the "slave" node.
             const int& lag_mastr_idx = lag_mastr_node_idxs(k);
             const int& lag_slave_idx = lag_slave_node_idxs(k);
-            const int& petsc_mastr_idx = petsc_mastr_node_idxs(k);
-            const int& petsc_slave_idx = petsc_slave_node_idxs(k);
+            int petsc_mastr_idx = petsc_mastr_node_idxs(k);
+            int petsc_slave_idx = petsc_slave_node_idxs(k);
             const SpringForceFcnPtr force_fcn = force_fcns(k);
             const double& stf = d_constant_material_properties ? stiffnesses(k) : *dynamic_stiffnesses(k);
             const double& rst = d_constant_material_properties ? rest_lengths(k) : *dynamic_rest_lengths(k);
@@ -513,6 +513,10 @@ IBStandardForceGen::computeLagrangianForceJacobian(
                 }
             }
 
+            // Change the indices to block indices.
+            petsc_mastr_idx /= NDIM;
+            petsc_slave_idx /= NDIM;
+
             // Accumulate the off-diagonal parts of the matrix.
             ierr = MatSetValuesBlocked(J_mat,1,&petsc_mastr_idx,1,&petsc_slave_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
             ierr = MatSetValuesBlocked(J_mat,1,&petsc_slave_idx,1,&petsc_mastr_idx,dF_dX.data(),ADD_VALUES);  IBTK_CHKERRQ(ierr);
@@ -545,9 +549,9 @@ IBStandardForceGen::computeLagrangianForceJacobian(
         blitz::TinyMatrix<double,NDIM,NDIM> dF_dX;  dF_dX = 0.0;
         for (int k = 0; k < petsc_mastr_node_idxs.extent(0); ++k)
         {
-            const int& petsc_mastr_idx = petsc_mastr_node_idxs(k);
-            const int& petsc_next_idx  = petsc_next_node_idxs (k);
-            const int& petsc_prev_idx  = petsc_prev_node_idxs (k);
+            const int petsc_mastr_idx = petsc_mastr_node_idxs(k)/NDIM;  // block indices
+            const int petsc_next_idx  = petsc_next_node_idxs (k)/NDIM;
+            const int petsc_prev_idx  = petsc_prev_node_idxs (k)/NDIM;
             const double& bend = d_constant_material_properties ? rigidities(k) : *dynamic_rigidities(k);
 
             for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
@@ -587,7 +591,7 @@ IBStandardForceGen::computeLagrangianForceJacobian(
         blitz::TinyMatrix<double,NDIM,NDIM> dF_dX;  dF_dX = 0.0;
         for (int k = 0; k < petsc_node_idxs.extent(0); ++k)
         {
-            const int& petsc_node_idx = petsc_node_idxs(k);
+            const int petsc_node_idx = petsc_node_idxs(k)/NDIM;  // block index
             const double& K = d_constant_material_properties ? kappa(k) : *dynamic_kappa(k);
             const double& E = d_constant_material_properties ? eta(k) : *dynamic_eta(k);
             for (unsigned int alpha = 0; alpha < NDIM; ++alpha)
@@ -598,6 +602,10 @@ IBStandardForceGen::computeLagrangianForceJacobian(
         }
 
     }
+
+    // Assemble the matrix.
+    ierr = MatAssemblyBegin(J_mat, assembly_type); IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(  J_mat, assembly_type); IBTK_CHKERRQ(ierr);
     return;
 }// computeLagrangianForceJacobian
 

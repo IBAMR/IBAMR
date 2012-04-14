@@ -307,9 +307,11 @@ IBMethod::preprocessIntegrateData(
     d_U_current_data    .resize(finest_ln+1);
     d_U_new_data        .resize(finest_ln+1);
     d_U_half_data       .resize(finest_ln+1);
+    d_U_J_data          .resize(finest_ln+1);
     d_F_current_data    .resize(finest_ln+1);
     d_F_new_data        .resize(finest_ln+1);
     d_F_half_data       .resize(finest_ln+1);
+    d_F_J_data          .resize(finest_ln+1);
     if (d_use_fixed_coupling_ops)
     {
         d_X_LE_new_data .resize(finest_ln+1);
@@ -406,12 +408,16 @@ IBMethod::postprocessIntegrateData(
     d_X_current_data.clear();
     d_X_new_data    .clear();
     d_X_half_data   .clear();
+    d_X_LE_new_data .clear();
+    d_X_LE_half_data.clear();
     d_U_current_data.clear();
     d_U_new_data    .clear();
     d_U_half_data   .clear();
+    d_U_J_data      .clear();
     d_F_current_data.clear();
     d_F_new_data    .clear();
     d_F_half_data   .clear();
+    d_F_J_data      .clear();
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
@@ -615,19 +621,20 @@ IBMethod::computeLagrangianForce(
 void
 IBMethod::computeLagrangianForceJacobianNonzeroStructure(
     std::vector<int>& d_nnz,
-    std::vector<int>& o_nnz,
-    double data_time)
+    std::vector<int>& o_nnz)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln < finest_ln; ++ln)
     {
-        if (!d_l_data_manager->levelContainsLagrangianData(ln))
+        if (d_l_data_manager->levelContainsLagrangianData(ln))
         {
             TBOX_ERROR("IBMethod::computeLagrangianForceJacobianNonzeroStructure(): currently require structure to be contained in the finest level of the patch hierarchy\n");
         }
     }
-    d_ib_force_fcn->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz, d_hierarchy, finest_ln, data_time, d_l_data_manager);
+    d_nnz.resize(d_l_data_manager->getNumberOfLocalNodes(finest_ln),0);
+    o_nnz.resize(d_l_data_manager->getNumberOfLocalNodes(finest_ln),0);
+    d_ib_force_fcn->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz, d_hierarchy, finest_ln, d_l_data_manager);
     return;
 }// computeLagrangianForceJacobianNonzeroStructure
 
@@ -643,7 +650,7 @@ IBMethod::computeLagrangianForceJacobian(
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln < finest_ln; ++ln)
     {
-        if (!d_l_data_manager->levelContainsLagrangianData(ln))
+        if (d_l_data_manager->levelContainsLagrangianData(ln))
         {
             TBOX_ERROR("IBMethod::computeLagrangianForceJacobian(): currently require structure to be contained in the finest level of the patch hierarchy\n");
         }
@@ -677,6 +684,10 @@ IBMethod::computeLagrangianForceJacobian(
         U_data = d_U_new_data[finest_ln];
     }
     d_ib_force_fcn->computeLagrangianForceJacobian(J_mat, assembly_type, X_coef, X_data, U_coef, U_data, d_hierarchy, finest_ln, data_time, d_l_data_manager);
+    std::vector<int> anchor_idxs(d_anchor_point_local_idxs[finest_ln].begin(), d_anchor_point_local_idxs[finest_ln].end());
+    const int global_node_offset = d_l_data_manager->getGlobalNodeOffset(finest_ln);
+    std::transform(anchor_idxs.begin(), anchor_idxs.end(), anchor_idxs.begin(), std::bind2nd(std::plus<int>(), global_node_offset));
+    int ierr = MatZeroRowsColumns(J_mat, anchor_idxs.size(), (anchor_idxs.empty() ? PETSC_NULL : &anchor_idxs[0]), 0.0, PETSC_NULL, PETSC_NULL); IBTK_CHKERRQ(ierr);
     return;
 }// computeLagrangianForceJacobian
 
@@ -711,6 +722,53 @@ IBMethod::spreadForce(
     *X_needs_ghost_fill = false;
     return;
 }// spreadForce
+
+void
+IBMethod::applyLagrangianForceJacobian(
+    int f_data_idx,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+    int u_data_idx,
+    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
+    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+    double data_time,
+    Mat& J_mat)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln < finest_ln; ++ln)
+    {
+        if (d_l_data_manager->levelContainsLagrangianData(ln))
+        {
+            TBOX_ERROR("IBMethod::applyLagrangianForceJacobian(): currently require structure to be contained in the finest level of the patch hierarchy\n");
+        }
+    }
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+        if (d_F_J_data[ln].isNull()) d_F_J_data[ln] = d_l_data_manager->createLData("F_J",ln,NDIM);
+    }
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+        if (d_U_J_data[ln].isNull()) d_U_J_data[ln] = d_l_data_manager->createLData("U_J",ln,NDIM);
+    }
+
+    std::vector<Pointer<LData> >* X_data = NULL;
+    bool* X_needs_ghost_fill = NULL;
+    getLECouplingPositions(&X_data, &X_needs_ghost_fill, data_time);
+
+    d_l_data_manager->interp(u_data_idx, d_U_J_data, *X_data, u_synch_scheds, u_ghost_fill_scheds, data_time);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+        int ierr = MatMult(J_mat, d_U_J_data[ln]->getVec(), d_F_J_data[ln]->getVec()); IBTK_CHKERRQ(ierr);
+    }
+    const bool F_J_needs_ghost_fill = true;
+    d_l_data_manager->spread(f_data_idx, d_F_J_data, *X_data, f_prolongation_scheds, F_J_needs_ghost_fill, *X_needs_ghost_fill);
+    return;
+}// applyLagrangianForceJacobian
 
 void
 IBMethod::computeLagrangianFluidSource(
@@ -1031,8 +1089,7 @@ IBMethod::interpolatePressure(
             }
         }
         SAMRAI_MPI::sumReduction(&d_P_src[ln][0], d_P_src[ln].size());
-        std::transform(d_P_src[ln].begin(), d_P_src[ln].end(), d_P_src[ln].begin(),
-                       std::bind2nd(std::plus<double>(),-p_norm));
+        std::transform(d_P_src[ln].begin(), d_P_src[ln].end(), d_P_src[ln].begin(), std::bind2nd(std::plus<double>(),-p_norm));
 
         // Update the pressures stored by the Lagrangian source strategy.
         d_ib_source_fcn->setSourcePressures(d_P_src[ln], d_hierarchy, ln, data_time, d_l_data_manager);

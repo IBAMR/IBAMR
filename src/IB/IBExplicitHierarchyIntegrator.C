@@ -136,11 +136,11 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
         level->allocatePatchData(d_new_data    ,     new_time);
     }
 
-    // Initialize the fluid solver.
-    d_ins_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
-
     // Initialize IB data.
     d_ib_method_ops->preprocessIntegrateData(current_time, new_time, num_cycles);
+
+    // Initialize the fluid solver.
+    d_ins_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
     if (num_cycles == 1)
     {

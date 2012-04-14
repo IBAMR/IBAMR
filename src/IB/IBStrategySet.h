@@ -64,9 +64,8 @@ public:
         }// IBStrategySet
 
     /*!
-     * \brief Virtual destructor.
+     * \brief Destructor.
      */
-    virtual
     ~IBStrategySet();
 
     /*!
@@ -174,30 +173,6 @@ public:
         double data_time);
 
     /*!
-     * \brief Compute the non-zero structure of the force Jacobian matrix.
-     */
-    void
-    computeLagrangianForceJacobianNonzeroStructure(
-        std::vector<int>& d_nnz,
-        std::vector<int>& o_nnz,
-        double data_time);
-
-    /*!
-     * \brief Compute the Jacobian of the force with respect to the present
-     * structure configuration.
-     *
-     * \note The elements of the Jacobian should be accumulated in the provided
-     * matrix.
-     */
-    void
-    computeLagrangianForceJacobian(
-        Mat& J_mat,
-        MatAssemblyType assembly_type,
-        double X_coef,
-        double U_coef,
-        double data_time);
-
-    /*!
      * Spread the Lagrangian force to the Cartesian grid at the specified time
      * within the current time interval.
      */
@@ -209,8 +184,6 @@ public:
 
     /*!
      * Indicate whether there are any internal fluid sources/sinks.
-     *
-     * A default implementation is provided that returns false.
      */
     bool
     hasFluidSources() const;

@@ -213,11 +213,10 @@ public:
     /*!
      * \brief Compute the non-zero structure of the force Jacobian matrix.
      */
-    virtual void
+    void
     computeLagrangianForceJacobianNonzeroStructure(
         std::vector<int>& d_nnz,
-        std::vector<int>& o_nnz,
-        double data_time);
+        std::vector<int>& o_nnz);
 
     /*!
      * \brief Compute the Jacobian of the force with respect to the present
@@ -226,7 +225,7 @@ public:
      * \note The elements of the Jacobian should be accumulated in the provided
      * matrix.
      */
-    virtual void
+    void
     computeLagrangianForceJacobian(
         Mat& J_mat,
         MatAssemblyType assembly_type,
@@ -245,9 +244,23 @@ public:
         double data_time);
 
     /*!
+     * \brief Compute the application of the Jacobian of the force at the specified time
+     * within the current time interval.
+     */
+    void
+    applyLagrangianForceJacobian(
+        int f_data_idx,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
+        int u_data_idx,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+        double data_time,
+        Mat& J_mat);
+
+    /*!
      * Indicate whether there are any internal fluid sources/sinks.
      */
-    virtual bool
+    bool
     hasFluidSources() const;
 
     /*!
@@ -462,8 +475,8 @@ protected:
      * Lagrangian variables.
      */
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_current_data, d_X_new_data, d_X_half_data, d_X_LE_new_data, d_X_LE_half_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_U_current_data, d_U_new_data, d_U_half_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_F_current_data, d_F_new_data, d_F_half_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_U_current_data, d_U_new_data, d_U_half_data, d_U_J_data;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_F_current_data, d_F_new_data, d_F_half_data, d_F_J_data;
 
     /*
      * List of local indices of local anchor points.

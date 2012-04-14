@@ -221,8 +221,7 @@ public:
     virtual void
     computeLagrangianForceJacobianNonzeroStructure(
         std::vector<int>& d_nnz,
-        std::vector<int>& o_nnz,
-        double data_time);
+        std::vector<int>& o_nnz);
 
     /*!
      * \brief Compute the Jacobian of the force with respect to the present
@@ -251,6 +250,23 @@ public:
         int f_data_idx,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
         double data_time) = 0;
+
+    /*!
+     * \brief Compute the application of the Jacobian of the force at the specified time
+     * within the current time interval.
+     *
+     * \note A default implementation is provided that emits an unrecoverable
+     * exception.
+     */
+    virtual void
+    applyLagrangianForceJacobian(
+        int f_data_idx,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
+        int u_data_idx,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+        double data_time,
+        Mat& J_mat);
 
     /*!
      * Indicate whether there are any internal fluid sources/sinks.

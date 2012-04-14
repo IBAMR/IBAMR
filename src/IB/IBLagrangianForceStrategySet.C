@@ -116,14 +116,13 @@ IBLagrangianForceStrategySet::computeLagrangianForceJacobianNonzeroStructure(
     std::vector<int>& o_nnz,
     const Pointer<PatchHierarchy<NDIM> > hierarchy,
     const int level_number,
-    const double data_time,
     LDataManager* const l_data_manager)
 {
     for (std::vector<Pointer<IBLagrangianForceStrategy> >::const_iterator cit = d_strategy_set.begin();
          cit != d_strategy_set.end(); ++cit)
     {
         (*cit)->computeLagrangianForceJacobianNonzeroStructure(
-            d_nnz, o_nnz, hierarchy, level_number, data_time, l_data_manager);
+            d_nnz, o_nnz, hierarchy, level_number, l_data_manager);
     }
     return;
 }// computeLagrangianForceJacobianNonzeroStructure
