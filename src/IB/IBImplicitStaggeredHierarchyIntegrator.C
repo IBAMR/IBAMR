@@ -139,7 +139,6 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     // curvilinear mesh and should not need to be re-interpolated.
     if (d_do_log) plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
     d_ib_method_ops->eulerStep(current_time, new_time);
-    d_ib_method_ops->updateFixedLEOperators();
     return;
 }// preprocessIntegrateHierarchy
 
@@ -157,6 +156,9 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(
                                                                    d_ins_hier_integrator->getNewContext());
     const int p_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVariable(),
                                                                    d_ins_hier_integrator->getNewContext());
+
+    // Fix the positions of the Lagrangian-Eulerian interaction operators.
+    d_ib_method_ops->updateFixedLEOperators();
 
     // Compute the Lagrangian source/sink strengths and spread them to the
     // Eulerian grid.
@@ -183,7 +185,6 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(
     // Compute an updated prediction of the updated positions of the Lagrangian
     // structure.
     d_ib_method_ops->midpointStep(current_time, new_time);
-    if (cycle_num+1 < d_num_cycles) d_ib_method_ops->updateFixedLEOperators();
 
     // Compute the pressure at the updated locations of any distributed internal
     // fluid sources or sinks.

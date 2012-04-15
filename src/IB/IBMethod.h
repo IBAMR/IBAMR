@@ -410,12 +410,38 @@ public:
 
 protected:
     /*!
-     * Get the current interpolation/spreading positions.
+     * Get the current structure position data.
      */
     void
-    getLECouplingPositions(
+    getPositionData(
         std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** X_data,
         bool** X_needs_ghost_fill,
+        double data_time);
+
+    /*!
+     * Get the current interpolation/spreading position data.
+     */
+    void
+    getLECouplingPositionData(
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** X_LE_data,
+        bool** X_LE_needs_ghost_fill,
+        double data_time);
+
+    /*!
+     * Get the current structure velocity data.
+     */
+    void
+    getVelocityData(
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** U_data,
+        double data_time);
+
+    /*!
+     * Get the current structure force data.
+     */
+    void
+    getForceData(
+        std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** F_data,
+        bool** F_needs_ghost_fill,
         double data_time);
 
     /*!
@@ -459,7 +485,8 @@ protected:
      * Boolean values tracking whether certain quantities need to be
      * reinitialized.
      */
-    bool d_X_current_needs_ghost_fill, d_X_new_needs_ghost_fill, d_X_half_needs_ghost_fill, d_X_LE_new_needs_ghost_fill, d_X_LE_half_needs_ghost_fill;
+    bool d_X_current_needs_ghost_fill, d_X_new_needs_ghost_fill, d_X_half_needs_ghost_fill;
+    bool d_X_LE_new_needs_ghost_fill, d_X_LE_half_needs_ghost_fill;
     bool d_F_current_needs_ghost_fill, d_F_new_needs_ghost_fill, d_F_half_needs_ghost_fill;
     bool d_X_half_needs_reinit, d_X_LE_half_needs_reinit, d_U_half_needs_reinit;
 

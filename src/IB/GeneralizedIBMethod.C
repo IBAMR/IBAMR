@@ -285,11 +285,11 @@ GeneralizedIBMethod::interpolateVelocity(
         TBOX_ERROR(d_object_name << "::interpolateVelocity():\n"
                    << "  unsupported velocity data centering" << std::endl);
     }
-    std::vector<Pointer<LData> >* X_data = NULL;
-    bool* X_needs_ghost_fill = NULL;
-    getLECouplingPositions(&X_data, &X_needs_ghost_fill, data_time);
+    std::vector<Pointer<LData> >* X_LE_data;
+    bool* X_LE_needs_ghost_fill;
+    getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     getVelocityHierarchyDataOps()->scale(d_w_idx, 0.5, d_w_idx);
-    d_l_data_manager->interp(d_w_idx, *W_data, *X_data, std::vector<Pointer<CoarsenSchedule<NDIM> > >(), getGhostfillRefineSchedules(d_object_name+"::w"), data_time);
+    d_l_data_manager->interp(d_w_idx, *W_data, *X_LE_data, std::vector<Pointer<CoarsenSchedule<NDIM> > >(), getGhostfillRefineSchedules(d_object_name+"::w"), data_time);
     resetAnchorPointValues(*W_data, /*coarsest_ln*/ 0, /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
     return;
 }// interpolateVelocity
@@ -523,13 +523,13 @@ GeneralizedIBMethod::spreadForce(
         N_needs_ghost_fill = &d_N_new_needs_ghost_fill;
     }
 
-    std::vector<Pointer<LData> >* X_data = NULL;
-    bool* X_needs_ghost_fill = NULL;
-    getLECouplingPositions(&X_data, &X_needs_ghost_fill, data_time);
+    std::vector<Pointer<LData> >* X_LE_data;
+    bool* X_LE_needs_ghost_fill;
+    getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     getVelocityHierarchyDataOps()->setToScalar(d_n_idx, 0.0, false);
-    d_l_data_manager->spread(d_n_idx, *N_data, *X_data, std::vector<Pointer<RefineSchedule<NDIM> > >(), *N_needs_ghost_fill, *X_needs_ghost_fill);
-    *N_needs_ghost_fill = false;
-    *X_needs_ghost_fill = false;
+    d_l_data_manager->spread(d_n_idx, *N_data, *X_LE_data, std::vector<Pointer<RefineSchedule<NDIM> > >(), *N_needs_ghost_fill, *X_LE_needs_ghost_fill);
+    *N_needs_ghost_fill    = false;
+    *X_LE_needs_ghost_fill = false;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const std::vector<Pointer<RefineSchedule<NDIM> > >& n_ghostfill_scheds = getGhostfillRefineSchedules(d_object_name+"::n");
