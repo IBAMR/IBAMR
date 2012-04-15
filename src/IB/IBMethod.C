@@ -685,8 +685,8 @@ IBMethod::spreadFluidSource(
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Get the present source locations.
-    std::vector<Pointer<LData> >* X_data = NULL;
-    bool* X_needs_ghost_fill = NULL;
+    std::vector<Pointer<LData> >* X_data;
+    bool* X_needs_ghost_fill;
     getLECouplingPositionData(&X_data, &X_needs_ghost_fill, data_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
