@@ -137,7 +137,7 @@ IBStandardForceGen::IBStandardForceGen(
     }
 
     // Setup the default force generation functions.
-    registerSpringForceFunction(0, &default_linear_spring_force);
+    registerSpringForceFunction(0, &default_spring_force, &default_spring_force_deriv);
     return;
 }// IBStandardForceGen
 
@@ -150,9 +150,11 @@ IBStandardForceGen::~IBStandardForceGen()
 void
 IBStandardForceGen::registerSpringForceFunction(
     const int force_fcn_index,
-    const SpringForceFcnPtr spring_force_fcn_ptr)
+    const SpringForceFcnPtr spring_force_fcn_ptr,
+    const SpringForceDerivFcnPtr spring_force_deriv_fcn_ptr)
 {
-    d_spring_force_fcn_map[force_fcn_index] = spring_force_fcn_ptr;
+    d_spring_force_fcn_map      [force_fcn_index] = spring_force_fcn_ptr;
+    d_spring_force_deriv_fcn_map[force_fcn_index] = spring_force_deriv_fcn_ptr;
     return;
 }// registerSpringForceFunction
 
@@ -460,18 +462,20 @@ IBStandardForceGen::computeLagrangianForceJacobian(
 
     {   // Spring forces.
 
-        const blitz::Array<int,1>&            lag_mastr_node_idxs = d_spring_data[level_number].lag_mastr_node_idxs;
-        const blitz::Array<int,1>&            lag_slave_node_idxs = d_spring_data[level_number].lag_slave_node_idxs;
-        const blitz::Array<int,1>&          petsc_mastr_node_idxs = d_spring_data[level_number].petsc_mastr_node_idxs;
-        const blitz::Array<int,1>&          petsc_slave_node_idxs = d_spring_data[level_number].petsc_slave_node_idxs;
-        const blitz::Array<SpringForceFcnPtr,1>&       force_fcns = d_spring_data[level_number].force_fcns;
-        const blitz::Array<double,1>&                 stiffnesses = d_spring_data[level_number].stiffnesses;
-        const blitz::Array<double,1>&                rest_lengths = d_spring_data[level_number].rest_lengths;
-        const blitz::Array<const double*,1>&  dynamic_stiffnesses = d_spring_data[level_number].dynamic_stiffnesses;
-        const blitz::Array<const double*,1>& dynamic_rest_lengths = d_spring_data[level_number].dynamic_rest_lengths;
+        const blitz::Array<int,1>&                 lag_mastr_node_idxs = d_spring_data[level_number].lag_mastr_node_idxs;
+        const blitz::Array<int,1>&                 lag_slave_node_idxs = d_spring_data[level_number].lag_slave_node_idxs;
+        const blitz::Array<int,1>&               petsc_mastr_node_idxs = d_spring_data[level_number].petsc_mastr_node_idxs;
+        const blitz::Array<int,1>&               petsc_slave_node_idxs = d_spring_data[level_number].petsc_slave_node_idxs;
+        const blitz::Array<SpringForceFcnPtr,1>&            force_fcns = d_spring_data[level_number].force_fcns;
+        const blitz::Array<SpringForceDerivFcnPtr,1>& force_deriv_fcns = d_spring_data[level_number].force_deriv_fcns;
+        const blitz::Array<double,1>&                      stiffnesses = d_spring_data[level_number].stiffnesses;
+        const blitz::Array<double,1>&                     rest_lengths = d_spring_data[level_number].rest_lengths;
+        const blitz::Array<const double*,1>&       dynamic_stiffnesses = d_spring_data[level_number].dynamic_stiffnesses;
+        const blitz::Array<const double*,1>&      dynamic_rest_lengths = d_spring_data[level_number].dynamic_rest_lengths;
         const double* const restrict X_node = X_data->getGhostedLocalFormVecArray()->data();
-        blitz::TinyMatrix<double,NDIM,NDIM> dF_dX;  dF_dX = 0.0;
-        blitz::TinyVector<double,NDIM> D, D_eps, F0, F1;
+        blitz::TinyMatrix<double,NDIM,NDIM> dF_dX;
+        blitz::TinyVector<double,NDIM> D;
+        double R, T, dT_dR, eps;
         for (int k = 0; k < petsc_mastr_node_idxs.extent(0); ++k)
         {
             // Compute the Jacobian of the force applied by the spring to the
@@ -481,6 +485,7 @@ IBStandardForceGen::computeLagrangianForceJacobian(
             int petsc_mastr_idx = petsc_mastr_node_idxs(k);
             int petsc_slave_idx = petsc_slave_node_idxs(k);
             const SpringForceFcnPtr force_fcn = force_fcns(k);
+            const SpringForceDerivFcnPtr force_deriv_fcn = force_deriv_fcns(k);
             const double& stf = d_constant_material_properties ? stiffnesses(k) : *dynamic_stiffnesses(k);
             const double& rst = d_constant_material_properties ? rest_lengths(k) : *dynamic_rest_lengths(k);
 
@@ -489,27 +494,30 @@ IBStandardForceGen::computeLagrangianForceJacobian(
 #if (NDIM == 3)
             D[2] = X_node[petsc_slave_idx+2] - X_node[petsc_mastr_idx+2];
 #endif
-
-            static const double eps = sqrt(std::numeric_limits<double>::epsilon());
-            for (unsigned int j = 0; j < NDIM; ++j)
+#if (NDIM == 2)
+            R = sqrt(D[0]*D[0]+D[1]*D[1]);
+#endif
+#if (NDIM == 3)
+            R = sqrt(D[0]*D[0]+D[1]*D[1]+D[2]*D[2]);
+#endif
+            T = force_fcn(R,stf,rst,lag_mastr_idx,lag_slave_idx);
+            if (force_deriv_fcn == NULL)
             {
-                D_eps = D;
-                D_eps[j] += 1.0*eps;
-                force_fcn(&F1[0],&D_eps[0],stf,rst,lag_mastr_idx,lag_slave_idx);
-                D_eps[j] -= 2.0*eps;
-                force_fcn(&F0[0],&D_eps[0],stf,rst,lag_mastr_idx,lag_slave_idx);
-                for (unsigned int i = 0; i < NDIM; ++i)
-                {
-                    dF_dX(i,j) = (F1[i]-F0[i])/(2.0*eps);
-                }
+                // Use finite differences to approximate dT/dR.
+                eps = std::max(R,1.0)*pow(std::numeric_limits<double>::epsilon(),1.0/3.0);
+                dT_dR = (force_fcn(R+eps,stf,rst,lag_mastr_idx,lag_slave_idx) -
+                         force_fcn(R-eps,stf,rst,lag_mastr_idx,lag_slave_idx))/(2.0*eps);
+            }
+            else
+            {
+                dT_dR = force_deriv_fcn(R,stf,rst,lag_mastr_idx,lag_slave_idx);
             }
 
-            // Scale the Jacobian entries appropriately.
             for (unsigned int i = 0; i < NDIM; ++i)
             {
                 for (unsigned int j = 0; j < NDIM; ++j)
                 {
-                    dF_dX(i,j) *= X_coef;
+                    dF_dX(i,j) = X_coef*( (T/R)*((i == j ? 1.0 : 0.0)) + (dT_dR - T/R)*D[i]*D[j]/(R*R) );
                 }
             }
 
@@ -639,15 +647,16 @@ IBStandardForceGen::initializeSpringLevelData(
     const bool /*initial_time*/,
     LDataManager* const l_data_manager)
 {
-    blitz::Array<int,1>&            lag_mastr_node_idxs = d_spring_data[level_number].lag_mastr_node_idxs;
-    blitz::Array<int,1>&            lag_slave_node_idxs = d_spring_data[level_number].lag_slave_node_idxs;
-    blitz::Array<int,1>&          petsc_mastr_node_idxs = d_spring_data[level_number].petsc_mastr_node_idxs;
-    blitz::Array<int,1>&          petsc_slave_node_idxs = d_spring_data[level_number].petsc_slave_node_idxs;
-    blitz::Array<SpringForceFcnPtr,1>&       force_fcns = d_spring_data[level_number].force_fcns;
-    blitz::Array<double,1>&                 stiffnesses = d_spring_data[level_number].stiffnesses;
-    blitz::Array<double,1>&                rest_lengths = d_spring_data[level_number].rest_lengths;
-    blitz::Array<const double*,1>&  dynamic_stiffnesses = d_spring_data[level_number].dynamic_stiffnesses;
-    blitz::Array<const double*,1>& dynamic_rest_lengths = d_spring_data[level_number].dynamic_rest_lengths;
+    blitz::Array<int,1>&                 lag_mastr_node_idxs = d_spring_data[level_number].lag_mastr_node_idxs;
+    blitz::Array<int,1>&                 lag_slave_node_idxs = d_spring_data[level_number].lag_slave_node_idxs;
+    blitz::Array<int,1>&               petsc_mastr_node_idxs = d_spring_data[level_number].petsc_mastr_node_idxs;
+    blitz::Array<int,1>&               petsc_slave_node_idxs = d_spring_data[level_number].petsc_slave_node_idxs;
+    blitz::Array<SpringForceFcnPtr,1>&            force_fcns = d_spring_data[level_number].force_fcns;
+    blitz::Array<SpringForceDerivFcnPtr,1>& force_deriv_fcns = d_spring_data[level_number].force_deriv_fcns;
+    blitz::Array<double,1>&                      stiffnesses = d_spring_data[level_number].stiffnesses;
+    blitz::Array<double,1>&                     rest_lengths = d_spring_data[level_number].rest_lengths;
+    blitz::Array<const double*,1>&       dynamic_stiffnesses = d_spring_data[level_number].dynamic_stiffnesses;
+    blitz::Array<const double*,1>&      dynamic_rest_lengths = d_spring_data[level_number].dynamic_rest_lengths;
 
     // The LMesh object provides the set of local Lagrangian nodes.
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
@@ -663,6 +672,7 @@ IBStandardForceGen::initializeSpringLevelData(
         petsc_mastr_node_idxs.resize(num_springs);
         petsc_slave_node_idxs.resize(num_springs);
         force_fcns           .resize(num_springs);
+        force_deriv_fcns     .resize(num_springs);
         if (d_constant_material_properties)
         {
             stiffnesses         .resize(num_springs);
@@ -695,6 +705,7 @@ IBStandardForceGen::initializeSpringLevelData(
     petsc_mastr_node_idxs.resize(num_springs);
     petsc_slave_node_idxs.resize(num_springs);
     force_fcns           .resize(num_springs);
+    force_deriv_fcns     .resize(num_springs);
     if (d_constant_material_properties)
     {
         stiffnesses         .resize(num_springs);
@@ -743,7 +754,8 @@ IBStandardForceGen::initializeSpringLevelData(
                 lag_mastr_node_idxs  (current_spring) = lag_idx;
                 lag_slave_node_idxs  (current_spring) = slv[k];
                 petsc_mastr_node_idxs(current_spring) = petsc_idx;
-                force_fcns           (current_spring) = d_spring_force_fcn_map[fcn[k]];
+                force_fcns           (current_spring) = d_spring_force_fcn_map      [fcn[k]];
+                force_deriv_fcns     (current_spring) = d_spring_force_deriv_fcn_map[fcn[k]];
                 stiffnesses          (current_spring) = stf[k];
                 rest_lengths         (current_spring) = rst[k];
                 ++current_spring;
@@ -779,7 +791,8 @@ IBStandardForceGen::initializeSpringLevelData(
                 lag_mastr_node_idxs  (current_spring) = lag_idx;
                 lag_slave_node_idxs  (current_spring) = slv[k];
                 petsc_mastr_node_idxs(current_spring) = petsc_idx;
-                force_fcns           (current_spring) = d_spring_force_fcn_map[fcn[k]];
+                force_fcns           (current_spring) = d_spring_force_fcn_map      [fcn[k]];
+                force_deriv_fcns     (current_spring) = d_spring_force_deriv_fcn_map[fcn[k]];
                 dynamic_stiffnesses  (current_spring) = &stf[k];
                 dynamic_rest_lengths (current_spring) = &rst[k];
                 ++current_spring;
@@ -832,7 +845,7 @@ IBStandardForceGen::computeLagrangianSpringForce(
 
     static const int BLOCKSIZE = 16;  // This parameter needs to be tuned.
     int k, kblock, kunroll, mastr_idx, slave_idx;
-    double F[NDIM], D[NDIM];
+    double F[NDIM], D[NDIM], R, T_over_R;
     kblock = 0;
     if (d_constant_material_properties)
     {
@@ -862,7 +875,18 @@ IBStandardForceGen::computeLagrangianSpringForce(
 #if (NDIM == 3)
                 D[2] = X_node[slave_idx+2] - X_node[mastr_idx+2];
 #endif
-                (force_fcns[k])(F,D,stiffnesses[k],rest_lengths[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k]);
+#if (NDIM == 2)
+                R = sqrt(D[0]*D[0]+D[1]*D[1]);
+#endif
+#if (NDIM == 3)
+                R = sqrt(D[0]*D[0]+D[1]*D[1]+D[2]*D[2]);
+#endif
+                T_over_R = (force_fcns[k])(R,stiffnesses[k],rest_lengths[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k])/R;
+                F[0] = T_over_R*D[0];
+                F[1] = T_over_R*D[1];
+#if (NDIM == 3)
+                F[2] = T_over_R*D[2];
+#endif
                 F_node[mastr_idx+0] += F[0];
                 F_node[mastr_idx+1] += F[1];
 #if (NDIM == 3)
@@ -887,7 +911,18 @@ IBStandardForceGen::computeLagrangianSpringForce(
 #if (NDIM == 3)
             D[2] = X_node[slave_idx+2] - X_node[mastr_idx+2];
 #endif
-            (force_fcns[k])(F,D,stiffnesses[k],rest_lengths[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k]);
+#if (NDIM == 2)
+            R = sqrt(D[0]*D[0]+D[1]*D[1]);
+#endif
+#if (NDIM == 3)
+            R = sqrt(D[0]*D[0]+D[1]*D[1]+D[2]*D[2]);
+#endif
+            T_over_R = (force_fcns[k])(R,stiffnesses[k],rest_lengths[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k])/R;
+            F[0] = T_over_R*D[0];
+            F[1] = T_over_R*D[1];
+#if (NDIM == 3)
+            F[2] = T_over_R*D[2];
+#endif
             F_node[mastr_idx+0] += F[0];
             F_node[mastr_idx+1] += F[1];
 #if (NDIM == 3)
@@ -930,7 +965,18 @@ IBStandardForceGen::computeLagrangianSpringForce(
 #if (NDIM == 3)
                 D[2] = X_node[slave_idx+2] - X_node[mastr_idx+2];
 #endif
-                (force_fcns[k])(F,D,*dynamic_stiffnesses[k],*dynamic_rest_lengths[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k]);
+#if (NDIM == 2)
+                R = sqrt(D[0]*D[0]+D[1]*D[1]);
+#endif
+#if (NDIM == 3)
+                R = sqrt(D[0]*D[0]+D[1]*D[1]+D[2]*D[2]);
+#endif
+                T_over_R = (force_fcns[k])(R,*dynamic_stiffnesses[k],*dynamic_rest_lengths[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k])/R;
+                F[0] = T_over_R*D[0];
+                F[1] = T_over_R*D[1];
+#if (NDIM == 3)
+                F[2] = T_over_R*D[2];
+#endif
                 F_node[mastr_idx+0] += F[0];
                 F_node[mastr_idx+1] += F[1];
 #if (NDIM == 3)
@@ -955,7 +1001,18 @@ IBStandardForceGen::computeLagrangianSpringForce(
 #if (NDIM == 3)
             D[2] = X_node[slave_idx+2] - X_node[mastr_idx+2];
 #endif
-            (force_fcns[k])(F,D,*dynamic_stiffnesses[k],*dynamic_rest_lengths[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k]);
+#if (NDIM == 2)
+            R = sqrt(D[0]*D[0]+D[1]*D[1]);
+#endif
+#if (NDIM == 3)
+            R = sqrt(D[0]*D[0]+D[1]*D[1]+D[2]*D[2]);
+#endif
+            T_over_R = (force_fcns[k])(R,*dynamic_stiffnesses[k],*dynamic_rest_lengths[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k])/R;
+            F[0] = T_over_R*D[0];
+            F[1] = T_over_R*D[1];
+#if (NDIM == 3)
+            F[2] = T_over_R*D[2];
+#endif
             F_node[mastr_idx+0] += F[0];
             F_node[mastr_idx+1] += F[1];
 #if (NDIM == 3)

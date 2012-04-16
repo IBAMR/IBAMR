@@ -88,7 +88,8 @@ public:
     void
     registerSpringForceFunction(
         int force_fcn_index,
-        const SpringForceFcnPtr spring_force_fcn_ptr);
+        const SpringForceFcnPtr spring_force_fcn_ptr,
+        const SpringForceDerivFcnPtr spring_force_deriv_fcn_ptr=NULL);
 
     /*!
      * \brief Setup the data needed to compute the forces on the specified level
@@ -204,6 +205,7 @@ private:
         blitz::Array<int,1> lag_mastr_node_idxs, lag_slave_node_idxs;
         blitz::Array<int,1> petsc_mastr_node_idxs, petsc_slave_node_idxs;
         blitz::Array<SpringForceFcnPtr,1> force_fcns;
+        blitz::Array<SpringForceDerivFcnPtr,1> force_deriv_fcns;
         blitz::Array<double,1> stiffnesses, rest_lengths;
         blitz::Array<const double*,1> dynamic_stiffnesses, dynamic_rest_lengths;
     };
@@ -298,6 +300,7 @@ private:
      * \brief Spring force functions.
      */
     std::map<int,SpringForceFcnPtr> d_spring_force_fcn_map;
+    std::map<int,SpringForceDerivFcnPtr> d_spring_force_deriv_fcn_map;
 };
 }// namespace IBAMR
 
