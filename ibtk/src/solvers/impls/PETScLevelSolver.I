@@ -1,5 +1,5 @@
-// Filename: CCPoissonPETScLevelSolver.I
-// Created on 30 Aug 2010 by Boyce Griffith
+// Filename: PETScLevelSolver.I
+// Created on 16 Apr 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -44,7 +44,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 inline void
-CCPoissonPETScLevelSolver::setInitialGuessNonzero(
+PETScLevelSolver::setInitialGuessNonzero(
     bool initial_guess_nonzero)
 {
     d_initial_guess_nonzero = initial_guess_nonzero;
@@ -52,13 +52,13 @@ CCPoissonPETScLevelSolver::setInitialGuessNonzero(
 }// setInitialGuessNonzero
 
 inline bool
-CCPoissonPETScLevelSolver::getInitialGuessNonzero() const
+PETScLevelSolver::getInitialGuessNonzero() const
 {
     return d_initial_guess_nonzero;
 }// getInitialGuessNonzero
 
 inline void
-CCPoissonPETScLevelSolver::setMaxIterations(
+PETScLevelSolver::setMaxIterations(
     int max_iterations)
 {
     d_max_iterations = max_iterations;
@@ -66,13 +66,13 @@ CCPoissonPETScLevelSolver::setMaxIterations(
 }// setMaxIterations
 
 inline int
-CCPoissonPETScLevelSolver::getMaxIterations() const
+PETScLevelSolver::getMaxIterations() const
 {
     return d_max_iterations;
 }// getMaxIterations
 
 inline void
-CCPoissonPETScLevelSolver::setAbsoluteTolerance(
+PETScLevelSolver::setAbsoluteTolerance(
     double abs_residual_tol)
 {
     d_abs_residual_tol = abs_residual_tol;
@@ -80,13 +80,13 @@ CCPoissonPETScLevelSolver::setAbsoluteTolerance(
 }//setAbsoluteTolerance
 
 inline double
-CCPoissonPETScLevelSolver::getAbsoluteTolerance() const
+PETScLevelSolver::getAbsoluteTolerance() const
 {
     return d_abs_residual_tol;
 }// getAbsoluteTolerance
 
 inline void
-CCPoissonPETScLevelSolver::setRelativeTolerance(
+PETScLevelSolver::setRelativeTolerance(
     double rel_residual_tol)
 {
     d_rel_residual_tol = rel_residual_tol;
@@ -94,19 +94,19 @@ CCPoissonPETScLevelSolver::setRelativeTolerance(
 }//setRelativeTolerance
 
 inline double
-CCPoissonPETScLevelSolver::getRelativeTolerance() const
+PETScLevelSolver::getRelativeTolerance() const
 {
     return d_rel_residual_tol;
 }// getRelativeTolerance
 
 inline int
-CCPoissonPETScLevelSolver::getNumIterations() const
+PETScLevelSolver::getNumIterations() const
 {
     return d_current_its;
 }// getNumIterations
 
 inline double
-CCPoissonPETScLevelSolver::getResidualNorm() const
+PETScLevelSolver::getResidualNorm() const
 {
     return d_current_residual_norm;
 }// getResidualNorm

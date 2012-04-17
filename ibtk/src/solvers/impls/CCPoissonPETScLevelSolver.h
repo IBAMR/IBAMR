@@ -35,11 +35,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscksp.h>
-
 // IBTK INCLUDES
-#include <ibtk/LinearSolver.h>
+#include <ibtk/PETScLevelSolver.h>
 
 // SAMRAI INCLUDES
 #include <LocationIndexRobinBcCoefs.h>
@@ -57,10 +54,9 @@
 namespace IBTK
 {
 /*!
- * \brief Class CCPoissonPETScLevelSolver is a concrete LinearSolver for solving
- * elliptic equations of the form \f$ \mbox{$L u$} = \mbox{$(C I + \nabla \cdot
- * D \nabla) u$} = f \f$ on a \em single SAMRAI::hier::PatchLevel using <A
- * HREF="http://www.mcs.anl.gov/petsc/petsc-as">PETSc</A>.
+ * \brief Class CCPoissonPETScLevelSolver is a concrete PETScLevelSolver for
+ * solving elliptic equations of the form \f$ \mbox{$L u$} = \mbox{$(C I +
+ * \nabla \cdot D \nabla) u$} = f \f$ on a \em single SAMRAI::hier::PatchLevel.
  *
  * This solver class uses the PETSc library to solve linear equations of the
  * form \f$ (C I + \nabla \cdot D \nabla ) u = f \f$, where \f$C\f$ and \f$D\f$
@@ -97,7 +93,7 @@ namespace IBTK
  * HREF="http://www.mcs.anl.gov/petsc/petsc-as">http://www.mcs.anl.gov/petsc/petsc-as</A>.
  */
 class CCPoissonPETScLevelSolver
-    : public LinearSolver
+    : public PETScLevelSolver
 {
 public:
     /*!
@@ -114,13 +110,6 @@ public:
      * \brief Destructor.
      */
     ~CCPoissonPETScLevelSolver();
-
-    /*!
-     * \brief Set the options prefix used by this PETSc solver object.
-     */
-    void
-    setOptionsPrefix(
-        const std::string& options_prefix);
 
     /*!
      * \name Functions for specifying the Poisson problem.
@@ -192,200 +181,42 @@ public:
 
     //\}
 
-    /*!
-     * \name Linear solver functionality.
-     */
-    //\{
-
-    /*!
-     * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
-     *
-     * Before calling solveSystem(), the form of the solution \a x and
-     * right-hand-side \a b vectors must be set properly by the user on all
-     * patch interiors on the specified range of levels in the patch hierarchy.
-     * The user is responsible for all data management for the quantities
-     * associated with the solution and right-hand-side vectors.  In particular,
-     * patch data in these vectors must be allocated prior to calling this
-     * method.
-     *
-     * \param x solution vector
-     * \param b right-hand-side vector
-     *
-     * <b>Conditions on Parameters:</b>
-     * - vectors \a x and \a b must have same patch hierarchy
-     * - vectors \a x and \a b must have same structure, depth, etc.
-     *
-     * \note The vector arguments for solveSystem() need not match those for
-     * initializeSolverState().  However, there must be a certain degree of
-     * similarity, including:\par
-     * - hierarchy configuration (hierarchy pointer and range of levels)
-     * - number, type and alignment of vector component data
-     * - ghost cell widths of data in the solution \a x and right-hand-side \a b
-     *   vectors
-     *
-     * \note The solver need not be initialized prior to calling solveSystem();
-     * however, see initializeSolverState() and deallocateSolverState() for
-     * opportunities to save overhead when performing multiple consecutive
-     * solves.
-     *
-     * \see initializeSolverState
-     * \see deallocateSolverState
-     *
-     * \return \p true if the solver converged to the specified tolerances, \p
-     * false otherwise
-     */
-    bool
-    solveSystem(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
-
+protected:
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
-     *
-     * By default, the solveSystem() method computes some required hierarchy
-     * dependent data before solving and removes that data after the solve.  For
-     * multiple solves that use the same hierarchy configuration, it is more
-     * efficient to:
-     *
-     * -# initialize the hierarchy-dependent data required by the solver via
-     *    initializeSolverState(),
-     * -# solve the system one or more times via solveSystem(), and
-     * -# remove the hierarchy-dependent data via deallocateSolverState().
-     *
-     * Note that it is generally necessary to reinitialize the solver state when
-     * the hierarchy configuration changes.
-     *
-     * \param x solution vector
-     * \param b right-hand-side vector
-     *
-     * <b>Conditions on Parameters:</b>
-     * - vectors \a x and \a b must have same patch hierarchy
-     * - vectors \a x and \a b must have same structure, depth, etc.
-     *
-     * \note The vector arguments for solveSystem() need not match those for
-     * initializeSolverState().  However, there must be a certain degree of
-     * similarity, including:\par
-     * - hierarchy configuration (hierarchy pointer and range of levels)
-     * - number, type and alignment of vector component data
-     * - ghost cell widths of data in the solution \a x and right-hand-side \a b
-     *   vectors
-     *
-     * \note It is safe to call initializeSolverState() when the state is
-     * already initialized.  In this case, the solver state is first deallocated
-     * and then reinitialized.
-     *
-     * \see deallocateSolverState
      */
     void
-    initializeSolverState(
+    initializeSolverStateSpecialized(
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
         const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
-     * initializeSolverState().
-     *
-     * \note It is safe to call deallocateSolverState() when the solver state is
-     * already deallocated.
-     *
-     * \see initializeSolverState
+     * initializeSolverStateSpecialized().
      */
     void
-    deallocateSolverState();
-
-    //\}
+    deallocateSolverStateSpecialized();
 
     /*!
-     * \name Functions to access solver parameters.
-     */
-    //\{
-
-    /*!
-     * \brief Set whether the initial guess is non-zero.
+     * \brief Copy solution and right-hand-side data to the PETSc
+     * representation.
      */
     void
-    setInitialGuessNonzero(
-        bool initial_guess_nonzero=true);
+    copyToPETScVecs(
+        Vec& petsc_x,
+        Vec& petsc_b,
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
-     * \brief Get whether the initial guess is non-zero.
-     */
-    bool
-    getInitialGuessNonzero() const;
-
-    /*!
-     * \brief Set the maximum number of iterations to use per solve.
+     * \brief Copy solution data from the PETSc representation.
      */
     void
-    setMaxIterations(
-        int max_iterations);
-
-    /*!
-     * \brief Get the maximum number of iterations to use per solve.
-     */
-    int
-    getMaxIterations() const;
-
-    /*!
-     * \brief Set the absolute residual tolerance for convergence.
-     */
-    void
-    setAbsoluteTolerance(
-        double abs_residual_tol);
-
-    /*!
-     * \brief Get the absolute residual tolerance for convergence.
-     */
-    double
-    getAbsoluteTolerance() const;
-
-    /*!
-     * \brief Set the relative residual tolerance for convergence.
-     */
-    void
-    setRelativeTolerance(
-        double rel_residual_tol);
-
-    /*!
-     * \brief Get the relative residual tolerance for convergence.
-     */
-    double
-    getRelativeTolerance() const;
-
-    //\}
-
-    /*!
-     * \name Functions to access data on the most recent solve.
-     */
-    //\{
-
-    /*!
-     * \brief Return the iteration count from the most recent linear solve.
-     */
-    int
-    getNumIterations() const;
-
-    /*!
-     * \brief Return the residual norm from the most recent iteration.
-     */
-    double
-    getResidualNorm() const;
-
-    //\}
-
-    /*!
-     * \name Logging functions.
-     */
-    //\{
-
-    /*!
-     * \brief Enable or disable logging.
-     */
-    void
-    enableLogging(
-        bool enabled=true);
-
-    //\}
+    copyFromPETScVec(
+        Vec& petsc_x,
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
 private:
     /*!
@@ -419,26 +250,6 @@ private:
         const CCPoissonPETScLevelSolver& that);
 
     /*!
-     * \brief Object name.
-     */
-    std::string d_object_name;
-
-    /*!
-     * \brief Solver initialization status.
-     */
-    bool d_is_initialized;
-
-    /*!
-     * \brief Associated hierarchy.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-
-    /*!
-     * \brief Associated level number.
-     */
-    int d_level_num;
-
-    /*!
      * \name Problem specification and boundary condition handling.
      */
     //\{
@@ -452,50 +263,24 @@ private:
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
     bool d_homogeneous_bc;
     double d_apply_time;
-
     //\}
 
     /*!
      * \name PETSc objects.
      */
     //\{
-    std::string d_options_prefix;
-    KSP d_petsc_ksp;
-    Mat d_petsc_mat;
-    Vec d_petsc_x, d_petsc_b;
-    int d_max_iterations;
-    double d_abs_residual_tol;
-    double d_rel_residual_tol;
-    bool d_initial_guess_nonzero;
-
-    int d_current_its;
-    double d_current_residual_norm;
-
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
     std::vector<int> d_num_dofs_per_proc;
     int d_dof_index_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,int> > d_dof_index_var;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > d_data_synch_sched, d_ghost_fill_sched;
-
-    //\}
-
-    /*!
-     * \name Variables for debugging and analysis.
-     */
-    //\{
-
-    /*!
-     * \brief Flag to print solver info.
-     */
-    bool d_enable_logging;
-
     //\}
 };
 }// namespace IBTK
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include <ibtk/CCPoissonPETScLevelSolver.I>
+//#include <ibtk/CCPoissonPETScLevelSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
