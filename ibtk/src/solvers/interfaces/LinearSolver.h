@@ -72,20 +72,6 @@ public:
     /*!
      * \brief Set the nullspace of the linear system.
      *
-     * Should not assume the basis vector, if any, to be normalized.  If the
-     * basis vector is not normalized, the solver may normalize it.
-     *
-     * \note A default implementation is provided which calls the vector version
-     * of setNullspace().
-     */
-    virtual void
-    setNullspace(
-        bool contains_constant_vector,
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > nullspace_basis_vec);
-
-    /*!
-     * \brief Set the nullspace of the linear system.
-     *
      * Implementations can require the nullspace basis vectors to be orthogonal
      * but should not assume the basis vectors to be orthonormal.  If the basis
      * vectors are not orthonormal, the solver may normalize them.
@@ -95,7 +81,7 @@ public:
     virtual void
     setNullspace(
         bool contains_constant_vector,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs);
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs=std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >());
 
     //\}
 

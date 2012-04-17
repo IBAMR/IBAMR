@@ -369,7 +369,7 @@ INSCollocatedHierarchyIntegrator::getPressureSubdomainSolver()
         d_pressure_solver->setMaxIterations(25);
         Pointer<PETScKrylovLinearSolver> p_pressure_solver = d_pressure_solver;
         p_pressure_solver->setOperator(d_pressure_op);
-        if (d_normalize_pressure) p_pressure_solver->setNullspace(d_normalize_pressure, NULL);
+        if (d_normalize_pressure) p_pressure_solver->setNullspace(d_normalize_pressure);
         static const size_t len = 255;
         char pressure_pc_type_str[len];
         PetscBool flg;
@@ -448,7 +448,7 @@ INSCollocatedHierarchyIntegrator::getExactProjectionSolver()
         d_exact_projection_solver->setMaxIterations(25);
         Pointer<PETScKrylovLinearSolver> p_exact_projection_solver = d_exact_projection_solver;
         p_exact_projection_solver->setOperator(d_exact_projection_op);
-        if (d_normalize_pressure) p_exact_projection_solver->setNullspace(d_normalize_pressure, NULL);
+        if (d_normalize_pressure) p_exact_projection_solver->setNullspace(d_normalize_pressure);
         static const size_t len = 255;
         char exact_projection_pc_type_str[len];
         PetscBool flg;
@@ -1431,7 +1431,7 @@ INSCollocatedHierarchyIntegrator::regridProjection()
     regrid_projection_solver.setAbsoluteTolerance(1.0e-12);
     regrid_projection_solver.setRelativeTolerance(1.0e-06);
     regrid_projection_solver.setMaxIterations(25);
-    regrid_projection_solver.setNullspace(true, NULL);
+    regrid_projection_solver.setNullspace(true);
     regrid_projection_solver.setInitialGuessNonzero(false);
 
     // Allocate temporary data.

@@ -1738,7 +1738,6 @@ c
          ic_upper(1) = ic_lower(1) + 3
          r1 = X_o_dx - ((ic_lower(1)+1-ifirst1)+0.5d0)
          q1 = sqrt(1.d0+4.d0*r1*(1.d0-r1))
-
          w1(0) = 0.125d0*(3.d0-2.d0*r1-q1)
          w1(1) = 0.125d0*(3.d0-2.d0*r1+q1)
          w1(2) = 0.125d0*(1.d0+2.d0*r1+q1)
@@ -2663,7 +2662,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Spread V onto u at the positions specified by X using the IB
 c     6-point delta function using standard (double) precision
-c     accumulation on the Cartesian grid..
+c     accumulation on the Cartesian grid.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -2845,7 +2844,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Spread V onto u at the positions specified by X using the IB
 c     6-point delta function using extended (double-double) precision
-c     accumulation on the Cartesian grid..
+c     accumulation on the Cartesian grid.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c

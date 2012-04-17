@@ -128,6 +128,16 @@ IBStrategy::updateFixedLEOperators()
 }// updateFixedLEOperators
 
 void
+IBStrategy::getLEOperatorPositions(
+    Vec& /*X_vec*/,
+    int /*level_num*/,
+    double /*data_time*/)
+{
+    TBOX_ERROR("IBStrategy::getLEOperatorPositions(): unimplemented\n");
+    return;
+}// getLEOperatorPositions
+
+void
 IBStrategy::computeLagrangianForceJacobianNonzeroStructure(
     std::vector<int>& /*d_nnz*/,
     std::vector<int>& /*o_nnz*/)

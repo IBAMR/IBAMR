@@ -172,7 +172,7 @@ main(
         Pointer<CCLaplaceOperator> laplace_op = new CCLaplaceOperator("laplace op", poisson_spec, bc_coef);
         PETScKrylovLinearSolver poisson_solver("poisson solver");
         poisson_solver.setOperator(laplace_op);
-        poisson_solver.setNullspace(true, NULL);
+        poisson_solver.setNullspace(true);
 
         string solver_choice = input_db->getString("SOLVER_CHOICE");
         if (gridding_algorithm->getMaxLevels() != 1)

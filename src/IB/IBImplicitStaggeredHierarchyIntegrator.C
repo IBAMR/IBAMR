@@ -45,9 +45,11 @@
 #endif
 
 // IBAMR INCLUDES
+#include <ibamr/IBImplicitStaggeredPETScLevelSolver.h>
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
+#include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScNewtonKrylovSolver.h>
 
 // C++ STDLIB INCLUDES
@@ -150,15 +152,13 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(
 {
     const double half_time = current_time+0.5*(new_time-current_time);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
-                                                                   d_ins_hier_integrator->getCurrentContext());
-    const int u_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
-                                                                   d_ins_hier_integrator->getNewContext());
-    const int p_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVariable(),
-                                                                   d_ins_hier_integrator->getNewContext());
+    const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getCurrentContext());
+    const int u_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getNewContext());
+    const int p_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVariable(), d_ins_hier_integrator->getNewContext());
 
     // Fix the positions of the Lagrangian-Eulerian interaction operators.
     d_ib_method_ops->updateFixedLEOperators();
+    d_ib_method_ops->getLEOperatorPositions(d_X_LE_vec, d_hierarchy->getFinestLevelNumber(), half_time);
 
     // Compute the Lagrangian source/sink strengths and spread them to the
     // Eulerian grid.
@@ -293,17 +293,18 @@ IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     const INSProblemCoefs* const problem_coefs = p_ins_hier_integrator->getINSProblemCoefs();
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs = p_ins_hier_integrator->getVelocityBoundaryConditions();
     RobinBcCoefStrategy<NDIM>* const P_bc_coef = p_ins_hier_integrator->getPressureBoundaryConditions();
-    d_stokes_op = new INSStaggeredStokesOperator(problem_coefs, U_bc_coefs, P_bc_coef, buildHierarchyMathOps(hierarchy));
+    d_stokes_op = new INSStaggeredStokesOperator(d_object_name+"::INSStaggeredStokesOperator", problem_coefs, U_bc_coefs, P_bc_coef, buildHierarchyMathOps(hierarchy));
     Pointer<NewtonKrylovSolver> modified_stokes_solver = new PETScNewtonKrylovSolver(d_object_name+"::stokes_solver", stokes_prefix);
-    modified_stokes_solver->setOperator(new IBImplicitStaggeredHierarchyIntegrator::Operator(this));
-    modified_stokes_solver->setJacobian(new IBImplicitStaggeredHierarchyIntegrator::Jacobian(this));
+    d_F_op = new IBImplicitStaggeredHierarchyIntegrator::Operator(this);
+    modified_stokes_solver->setOperator(d_F_op);
+    d_J_op = new IBImplicitStaggeredHierarchyIntegrator::Jacobian(this);
+    modified_stokes_solver->setJacobian(d_J_op);
     p_ins_hier_integrator->setStokesSolver(d_stokes_op, modified_stokes_solver, /* solver_needs_reinit_when_dt_changes */ false);
+    d_modified_stokes_pc = new IBImplicitStaggeredPETScLevelSolver(d_object_name+"::PETScLevelSolver", *problem_coefs, &d_J_mat, PETScMatUtilities::ib_4_interp_fcn, PETScMatUtilities::ib_4_interp_stencil, &d_X_LE_vec, U_bc_coefs);
+    modified_stokes_solver->getLinearSolver()->setPreconditioner(d_modified_stokes_pc);
 
     // Finish initializing the hierarchy integrator.
     IBHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
-
-    // Setup the preconditioner after initializing the solver state.
-    modified_stokes_solver->getLinearSolver()->setPreconditioner(p_ins_hier_integrator->getStokesPreconditioner());
 }// initializeHierarchyIntegrator
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
@@ -424,7 +425,7 @@ IBImplicitStaggeredHierarchyIntegrator::Operator::enableLogging(
 }// enableLogging
 
 IBImplicitStaggeredHierarchyIntegrator::Jacobian::Jacobian(
-    const IBImplicitStaggeredHierarchyIntegrator* ib_solver)
+    IBImplicitStaggeredHierarchyIntegrator* ib_solver)
     : d_ib_solver(ib_solver),
       d_J_mat(PETSC_NULL),
       d_J_is_set(false),
@@ -454,9 +455,17 @@ IBImplicitStaggeredHierarchyIntegrator::Jacobian::formJacobian(
     if (d_J_is_set)
     {
         int ierr = MatZeroEntries(d_J_mat); IBTK_CHKERRQ(ierr);
-        d_J_is_set = false;
     }
     ib_method_ops->computeLagrangianForceJacobian(d_J_mat, MAT_FINAL_ASSEMBLY, /* X_coef */ -0.25*dt, /* U_coef */ -0.5, half_time);
+    Pointer<IBImplicitStaggeredPETScLevelSolver> p_modified_stokes_pc = d_ib_solver->d_modified_stokes_pc;
+    if (!d_J_is_set)
+    {
+        p_modified_stokes_pc->initializeOperator();
+    }
+    else
+    {
+        p_modified_stokes_pc->updateOperator();
+    }
     d_J_is_set = true;
     return;
 }// formJacobian
@@ -507,7 +516,10 @@ IBImplicitStaggeredHierarchyIntegrator::Jacobian::initializeOperatorState(
     std::vector<int> d_nnz, o_nnz;
     ib_method_ops->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz);
     const int n_local = d_nnz.size();
-    int ierr = MatCreateMPIBAIJ(PETSC_COMM_WORLD, NDIM, NDIM*n_local, NDIM*n_local, PETSC_DETERMINE, PETSC_DETERMINE, 0, (n_local == 0 ? PETSC_NULL : &d_nnz[0]), 0, (n_local == 0 ? PETSC_NULL : &o_nnz[0]), &d_J_mat); IBTK_CHKERRQ(ierr);
+    int ierr;
+    ierr = MatCreateMPIAIJ(PETSC_COMM_WORLD, n_local, n_local, PETSC_DETERMINE, PETSC_DETERMINE, 0, (n_local == 0 ? PETSC_NULL : &d_nnz[0]), 0, (n_local == 0 ? PETSC_NULL : &o_nnz[0]), &d_J_mat); IBTK_CHKERRQ(ierr);
+    ierr = MatSetBlockSize(d_J_mat, NDIM);
+    d_ib_solver->d_J_mat = d_J_mat;
     d_J_is_set = false;
     return;
 }// initializeOperatorState

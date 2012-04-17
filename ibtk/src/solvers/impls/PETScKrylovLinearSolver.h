@@ -229,23 +229,13 @@ public:
     /*!
      * \brief Set the nullspace of the linear system.
      *
-     * The basis vector, if any, will be normalized by the solver.
-     */
-    void
-    setNullspace(
-        bool contains_constant_vector,
-        SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > nullspace_basis_vec);
-
-    /*!
-     * \brief Set the nullspace of the linear system.
-     *
      * Basis vectors must be orthogonal but are not required to be orthonormal.
      * Basis vectors will be normalized automatically.
      */
     void
     setNullspace(
         bool contains_constant_vector,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs);
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs=std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >());
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.

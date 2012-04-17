@@ -65,10 +65,11 @@ public:
      * \brief Class constructor.
      */
     INSStaggeredStokesOperator(
+        const std::string& object_name,
         const INSProblemCoefs* problem_coefs,
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
-        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops=SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps>(),
         bool homogeneous_bc=true);
 
     /*!
@@ -243,6 +244,9 @@ private:
     operator=(
         const INSStaggeredStokesOperator& that);
 
+    // Housekeeping.
+    std::string d_object_name;
+
     // Operator parameters.
     bool d_is_initialized;
     double d_current_time, d_new_time, d_dt;
@@ -261,6 +265,7 @@ private:
     const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const d_P_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
+    const bool d_hier_math_ops_external;
 };
 }// namespace IBAMR
 

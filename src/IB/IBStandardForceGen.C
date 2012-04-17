@@ -426,8 +426,11 @@ IBStandardForceGen::computeLagrangianForceJacobianNonzeroStructure(
 
     for (int k = 0; k < num_local_nodes; ++k)
     {
-        d_nnz[k] += static_cast<int>(d_nnz_vec_arr[k]);
-        o_nnz[k] += static_cast<int>(o_nnz_vec_arr[k]);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            d_nnz[NDIM*k+d] += static_cast<int>(d_nnz_vec_arr[k]);
+            o_nnz[NDIM*k+d] += static_cast<int>(o_nnz_vec_arr[k]);
+        }
     }
 
     ierr = VecRestoreArray(d_nnz_vec, &d_nnz_vec_arr);  IBTK_CHKERRQ(ierr);

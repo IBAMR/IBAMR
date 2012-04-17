@@ -88,12 +88,14 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredStokesOperator::INSStaggeredStokesOperator(
+    const std::string& object_name,
     const INSProblemCoefs* problem_coefs,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs,
     RobinBcCoefStrategy<NDIM>* P_bc_coef,
     Pointer<HierarchyMathOps> hier_math_ops,
     bool homogeneous_bc)
     : LinearOperator(homogeneous_bc),
+      d_object_name(object_name),
       d_is_initialized(false),
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
@@ -105,10 +107,11 @@ INSStaggeredStokesOperator::INSStaggeredStokesOperator(
       d_x(NULL),
       d_b(NULL),
       d_problem_coefs(problem_coefs),
-      d_helmholtz_spec("INSStaggeredStokesOperator::helmholtz_spec"),
+      d_helmholtz_spec(d_object_name+"::helmholtz_spec"),
       d_U_bc_coefs(U_bc_coefs),
       d_P_bc_coef(P_bc_coef),
-      d_hier_math_ops(hier_math_ops)
+      d_hier_math_ops(hier_math_ops),
+      d_hier_math_ops_external(!d_hier_math_ops.isNull())
 {
     // Setup Timers.
     IBAMR_DO_ONCE(
@@ -236,6 +239,18 @@ INSStaggeredStokesOperator::initializeOperatorState(
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
     d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_x->getPatchHierarchy());
 
+    // Initialize hierarchy math ops object.
+    if (!d_hier_math_ops_external)
+    {
+        d_hier_math_ops = new HierarchyMathOps(d_object_name+"::HierarchyMathOps", in.getPatchHierarchy(), in.getCoarsestLevelNumber(), in.getFinestLevelNumber());
+    }
+#ifdef DEBUG_CHECK_ASSERTIONS
+    else
+    {
+        TBOX_ASSERT(!d_hier_math_ops.isNull());
+    }
+#endif
+
     // Indicate the operator is initialized.
     d_is_initialized = true;
 
@@ -249,6 +264,9 @@ INSStaggeredStokesOperator::deallocateOperatorState()
     if (!d_is_initialized) return;
 
     IBAMR_TIMER_START(t_deallocate_operator_state);
+
+    // Deallocate hierarchy math operations object.
+    if (!d_hier_math_ops_external) d_hier_math_ops.setNull();
 
     // Deallocate the interpolation operators.
     d_hier_bdry_fill->deallocateOperatorState();

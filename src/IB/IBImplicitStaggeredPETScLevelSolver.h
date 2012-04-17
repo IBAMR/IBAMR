@@ -1,5 +1,5 @@
-// Filename: INSStaggeredPETScLevelSolver.h
-// Created on 08 Sep 2010 by Boyce Griffith
+// Filename: IBImplicitStaggeredPETScLevelSolver.h
+// Created on 16 Apr 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_INSStaggeredPETScLevelSolver
-#define included_INSStaggeredPETScLevelSolver
+#ifndef included_IBImplicitStaggeredPETScLevelSolver
+#define included_IBImplicitStaggeredPETScLevelSolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -56,28 +56,33 @@
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredPETScLevelSolver is a concrete LinearSolver for a
- * staggered-grid (MAC) discretization of the incompressible Stokes operator.
+ * \brief Class IBImplicitStaggeredPETScLevelSolver is a concrete LinearSolver
+ * for a staggered-grid (MAC) discretization of a linearly implicit version of
+ * the IB method.
  *
- * \see INSStaggeredHierarchyIntegrator
+ * \see IBImplicitStaggeredHierarchyIntegrator
  */
-class INSStaggeredPETScLevelSolver
+class IBImplicitStaggeredPETScLevelSolver
     : public IBTK::PETScLevelSolver
 {
 public:
     /*!
      * \brief Constructor.
      */
-    INSStaggeredPETScLevelSolver(
+    IBImplicitStaggeredPETScLevelSolver(
         const std::string& object_name,
         const INSProblemCoefs& problem_coefs,
+        Mat* J_mat,
+        void (*interp_fcn)(double r_lower,double* w),
+        int interp_stencil,
+        Vec* X_vec,
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
 
     /*!
      * \brief Destructor.
      */
-    ~INSStaggeredPETScLevelSolver();
+    ~IBImplicitStaggeredPETScLevelSolver();
 
     /*!
      * \brief Set the current time interval, for use with the refinement
@@ -94,6 +99,18 @@ public:
     void
     setHomogeneousBc(
         bool homogeneous_bc);
+
+    /*!
+     * \brief Initialize the operator.
+     */
+    void
+    initializeOperator();
+
+    /*!
+     * \brief Update the operator.
+     */
+    void
+    updateOperator();
 
 protected:
     /*!
@@ -148,7 +165,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredPETScLevelSolver();
+    IBImplicitStaggeredPETScLevelSolver();
 
     /*!
      * \brief Copy constructor.
@@ -157,8 +174,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredPETScLevelSolver(
-        const INSStaggeredPETScLevelSolver& from);
+    IBImplicitStaggeredPETScLevelSolver(
+        const IBImplicitStaggeredPETScLevelSolver& from);
 
     /*!
      * \brief Assignment operator.
@@ -169,9 +186,9 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredPETScLevelSolver&
+    IBImplicitStaggeredPETScLevelSolver&
     operator=(
-        const INSStaggeredPETScLevelSolver& that);
+        const IBImplicitStaggeredPETScLevelSolver& that);
 
     /*!
      * \name Problem specification and boundary condition handling.
@@ -183,6 +200,20 @@ private:
      */
     INSProblemCoefs d_problem_coefs;
     double d_dt;
+
+    /*!
+     * Fluid operator.
+     */
+    Mat d_stokes_mat;
+
+    /*!
+     * Structure operator and coupling position vector.
+     */
+    Mat* d_J_mat;
+    void (*d_interp_fcn)(double r_lower,double* w);
+    int d_interp_stencil;
+    Vec* d_X_vec;
+    Mat d_R_mat, d_RtJR_mat;
 
     /*!
      * \brief Boundary coefficient object for physical boundaries and related
@@ -213,8 +244,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/INSStaggeredPETScLevelSolver.I>
+//#include <ibamr/IBImplicitStaggeredPETScLevelSolver.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_INSStaggeredPETScLevelSolver
+#endif //#ifndef included_IBImplicitStaggeredPETScLevelSolver

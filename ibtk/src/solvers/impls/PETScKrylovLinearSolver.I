@@ -112,25 +112,6 @@ PETScKrylovLinearSolver::getPreconditioner() const
 inline void
 PETScKrylovLinearSolver::setNullspace(
     const bool contains_constant_vector,
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > nullspace_basis_vec)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(contains_constant_vector || !nullspace_basis_vec.isNull());
-#endif
-    if (!nullspace_basis_vec.isNull())
-    {
-        setNullspace(contains_constant_vector, std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >(1, nullspace_basis_vec));
-    }
-    else
-    {
-        setNullspace(contains_constant_vector, std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >());
-    }
-    return;
-}// setNullspace
-
-inline void
-PETScKrylovLinearSolver::setNullspace(
-    const bool contains_constant_vector,
     const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS

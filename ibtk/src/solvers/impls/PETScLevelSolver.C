@@ -93,6 +93,8 @@ PETScLevelSolver::PETScLevelSolver(
       d_initial_guess_nonzero(false),
       d_current_its(-1),
       d_current_residual_norm(-1.0),
+      d_nullsp_contains_constant_vector(false),
+      d_solver_nullsp_vecs(),
       d_enable_logging(false)
 {
     // Get values from the input database.
@@ -121,6 +123,17 @@ PETScLevelSolver::~PETScLevelSolver()
     return;
 }// ~PETScLevelSolver
 
+void
+PETScLevelSolver::setNullspace(
+    bool contains_constant_vector,
+    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs)
+{
+    d_nullsp_contains_constant_vector = contains_constant_vector;
+    d_solver_nullsp_vecs = nullspace_basis_vecs;
+    if (d_is_initialized) setupNullspace();
+    return;
+}// setNullspace
+
 bool
 PETScLevelSolver::solveSystem(
     SAMRAIVectorReal<NDIM,double>& x,
@@ -142,7 +155,7 @@ PETScLevelSolver::solveSystem(
 
     // Solve the system.
     Pointer<PatchLevel<NDIM> > patch_level = d_hierarchy->getPatchLevel(d_level_num);
-    copyToPETScVecs(d_petsc_x, d_petsc_b, x, b, patch_level);
+    setupKSPVecs(d_petsc_x, d_petsc_b, x, b, patch_level);
     ierr = KSPSolve(d_petsc_ksp, d_petsc_b, d_petsc_x); IBTK_CHKERRQ(ierr);
     copyFromPETScVec(d_petsc_x, x, patch_level);
 
@@ -241,12 +254,13 @@ PETScLevelSolver::initializeSolverState(
     // Setup PETSc objects.
     int ierr;
     ierr = KSPCreate(PETSC_COMM_WORLD, &d_petsc_ksp); IBTK_CHKERRQ(ierr);
-    ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat, SAME_PRECONDITIONER); IBTK_CHKERRQ(ierr);
+    ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_pc, d_petsc_ksp_ops_flag); IBTK_CHKERRQ(ierr);
     if (!d_options_prefix.empty())
     {
         ierr = KSPSetOptionsPrefix(d_petsc_ksp, d_options_prefix.c_str()); IBTK_CHKERRQ(ierr);
     }
     ierr = KSPSetFromOptions(d_petsc_ksp); IBTK_CHKERRQ(ierr);
+    if (d_nullsp_contains_constant_vector || !d_solver_nullsp_vecs.empty()) setupNullspace();
 
     // Indicate that the solver is initialized.
     d_is_initialized = true;
@@ -269,6 +283,10 @@ PETScLevelSolver::deallocateSolverState()
     int ierr;
     ierr = KSPDestroy(&d_petsc_ksp); IBTK_CHKERRQ(ierr);
     ierr = MatDestroy(&d_petsc_mat); IBTK_CHKERRQ(ierr);
+    if (d_nullsp_contains_constant_vector || !d_solver_nullsp_vecs.empty())
+    {
+        ierr = MatNullSpaceDestroy(&d_petsc_nullsp); IBTK_CHKERRQ(ierr);
+    }
     ierr = VecDestroy(&d_petsc_x); IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&d_petsc_b); IBTK_CHKERRQ(ierr);
 
@@ -293,6 +311,30 @@ PETScLevelSolver::enableLogging(
 }// enableLogging
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
+
+void
+PETScLevelSolver::setupNullspace()
+{
+    int ierr;
+    Pointer<PatchLevel<NDIM> > patch_level = d_hierarchy->getPatchLevel(d_level_num);
+    std::vector<Vec> petsc_nullsp_vecs(d_solver_nullsp_vecs.size());
+    for (unsigned k = 0; k < d_solver_nullsp_vecs.size(); ++k)
+    {
+        Vec& petsc_nullsp_vec = petsc_nullsp_vecs[k];
+        ierr = MatGetVecs(d_petsc_mat, PETSC_NULL, &petsc_nullsp_vec); IBTK_CHKERRQ(ierr);
+        copyToPETScVec(petsc_nullsp_vec, *d_solver_nullsp_vecs[k], patch_level);
+        double dot;
+        ierr = VecDot(petsc_nullsp_vec, petsc_nullsp_vec, &dot); IBTK_CHKERRQ(ierr);
+        ierr = VecScale(petsc_nullsp_vec, 1.0/sqrt(dot)); IBTK_CHKERRQ(ierr);
+    }
+    ierr = MatNullSpaceCreate(PETSC_COMM_WORLD, d_nullsp_contains_constant_vector ? PETSC_TRUE : PETSC_FALSE, petsc_nullsp_vecs.size(), (petsc_nullsp_vecs.empty() ? PETSC_NULL : &petsc_nullsp_vecs[0]), &d_petsc_nullsp); IBTK_CHKERRQ(ierr);
+    ierr = KSPSetNullSpace(d_petsc_ksp, d_petsc_nullsp); IBTK_CHKERRQ(ierr);
+    for (unsigned k = 0; k < d_solver_nullsp_vecs.size(); ++k)
+    {
+        ierr = VecDestroy(&petsc_nullsp_vecs[k]); IBTK_CHKERRQ(ierr);
+    }
+    return;
+}// setupNullspace
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

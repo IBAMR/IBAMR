@@ -443,10 +443,10 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(
     // "master" location.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<SideVariable<NDIM,int > > patch_num_var = new SideVariable<NDIM,int >("PETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_num_var");
-    const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
+    static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
     patch_level->allocatePatchData(patch_num_idx);
     Pointer<SideVariable<NDIM,bool> > mastr_loc_var = new SideVariable<NDIM,bool>("PETScVecUtilities::constructPatchLevelDOFIndices_side()::mastr_loc_var");
-    const int mastr_loc_idx = var_db->registerPatchDataIndex(mastr_loc_var);
+    static const int mastr_loc_idx = var_db->registerPatchDataIndex(mastr_loc_var);
     patch_level->allocatePatchData(mastr_loc_idx);
     int counter = 0;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
@@ -558,8 +558,6 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(
     // Deallocate temporary variable data.
     patch_level->deallocatePatchData(patch_num_idx);
     patch_level->deallocatePatchData(mastr_loc_idx);
-    var_db->removePatchDataIndex(patch_num_idx);
-    var_db->removePatchDataIndex(mastr_loc_idx);
 
     // Communicate ghost DOF indices.
     RefineAlgorithm<NDIM> dof_synch_alg;

@@ -648,9 +648,9 @@ PETScKrylovLinearSolver::resetKSPNullspace()
         for (unsigned int k = 0; k < nullspace_vecs.size(); ++k)
         {
             Vec petsc_nvec = nullspace_vecs[k];
-            double one_dot_one;
-            ierr = VecDot(petsc_nvec, petsc_nvec, &one_dot_one); IBTK_CHKERRQ(ierr);
-            ierr = VecScale(petsc_nvec, 1.0/one_dot_one); IBTK_CHKERRQ(ierr);
+            double dot;
+            ierr = VecDot(petsc_nvec, petsc_nvec, &dot); IBTK_CHKERRQ(ierr);
+            ierr = VecScale(petsc_nvec, 1.0/sqrt(dot)); IBTK_CHKERRQ(ierr);
         }
 
         static const PetscBool has_cnst = PETSC_FALSE;

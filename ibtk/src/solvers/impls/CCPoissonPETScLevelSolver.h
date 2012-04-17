@@ -198,24 +198,34 @@ protected:
     deallocateSolverStateSpecialized();
 
     /*!
-     * \brief Copy solution and right-hand-side data to the PETSc
-     * representation.
+     * \brief Copy a generic vector to the PETSc representation.
      */
     void
-    copyToPETScVecs(
+    copyToPETScVec(
         Vec& petsc_x,
-        Vec& petsc_b,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
     /*!
-     * \brief Copy solution data from the PETSc representation.
+     * \brief Copy a generic vector from the PETSc representation.
      */
     void
     copyFromPETScVec(
         Vec& petsc_x,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
+
+    /*!
+     * \brief Copy solution and right-hand-side data to the PETSc
+     * representation, including any modifications to account for boundary
+     * conditions.
+     */
+    void
+    setupKSPVecs(
+        Vec& petsc_x,
+        Vec& petsc_b,
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& b,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level);
 
 private:

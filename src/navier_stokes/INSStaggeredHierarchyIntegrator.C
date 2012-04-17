@@ -442,7 +442,7 @@ INSStaggeredHierarchyIntegrator::getPressureSubdomainSolver()
         d_pressure_solver->setMaxIterations(25);
         Pointer<PETScKrylovLinearSolver> p_pressure_solver = d_pressure_solver;
         p_pressure_solver->setOperator(d_pressure_op);
-        if (d_normalize_pressure) p_pressure_solver->setNullspace(d_normalize_pressure, NULL);
+        if (d_normalize_pressure) p_pressure_solver->setNullspace(d_normalize_pressure);
         static const size_t len = 255;
         char pressure_pc_type_str[len];
         PetscBool flg;
@@ -525,7 +525,7 @@ INSStaggeredHierarchyIntegrator::getStokesSolver()
     if (d_stokes_solver.isNull())
     {
         const std::string stokes_prefix = "stokes_";
-        d_stokes_op = new INSStaggeredStokesOperator(&d_problem_coefs, d_U_bc_coefs, d_P_bc_coef, d_hier_math_ops);
+        d_stokes_op = new INSStaggeredStokesOperator(d_object_name+"::INSStaggeredStokesOperator", &d_problem_coefs, d_U_bc_coefs, d_P_bc_coef, d_hier_math_ops);
         d_stokes_solver = new PETScKrylovLinearSolver(d_object_name+"::stokes_solver", stokes_prefix);
         Pointer<PETScKrylovLinearSolver> p_stokes_solver = d_stokes_solver;
         p_stokes_solver->setInitialGuessNonzero(true);
@@ -1589,7 +1589,7 @@ INSStaggeredHierarchyIntegrator::regridProjection()
     regrid_projection_solver.setAbsoluteTolerance(1.0e-12);
     regrid_projection_solver.setRelativeTolerance(1.0e-08);
     regrid_projection_solver.setMaxIterations(25);
-    regrid_projection_solver.setNullspace(true, NULL);
+    regrid_projection_solver.setNullspace(true);
     regrid_projection_solver.setInitialGuessNonzero(false);
 
     // Allocate temporary data.
@@ -1725,6 +1725,9 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         {
             if (!d_nul_vec.isNull()) d_nul_vec->freeVectorComponents();
             d_nul_vec = d_sol_vec->cloneVector(d_object_name+"::nul_vec");
+            d_nul_vec->allocateVectorData(current_time);
+            d_hier_sc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(0), 0.0);
+            d_hier_cc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(1), 1.0);
         }
 
         if (MathUtilities<double>::equalEps(rho, 0.0))
@@ -1736,6 +1739,18 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
                 std::ostringstream stream;
                 stream << k;
                 d_U_nul_vecs[k] = d_U_scratch_vec->cloneVector(d_object_name+"::U_nul_vec_"+stream.str());
+                d_U_nul_vecs[k]->allocateVectorData(current_time);
+                for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+                {
+                    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                    {
+                        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                        Pointer<SideData<NDIM,double> > U_nul_data = patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
+                        U_nul_data->fillAll(0.0);
+                        U_nul_data->getArrayData(k).fillAll(1.0);
+                    }
+                }
             }
         }
 
@@ -1806,21 +1821,6 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         if (!p_velocity_solver.isNull()) p_velocity_solver->setOperator(d_velocity_op);
         if (MathUtilities<double>::equalEps(rho, 0.0))
         {
-            for (unsigned int k = 0; k < NDIM; ++k)
-            {
-                d_U_nul_vecs[k]->allocateVectorData(current_time);
-                for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-                {
-                    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-                    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-                    {
-                        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                        Pointer<SideData<NDIM,double> > U_nul_data = patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
-                        U_nul_data->fillAll(0.0);
-                        U_nul_data->getArrayData(k).fillAll(1.0);
-                    }
-                }
-            }
             p_velocity_solver->setNullspace(false, d_U_nul_vecs);
         }
         if (d_velocity_solver_needs_init)
@@ -1880,13 +1880,13 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
         d_stokes_solver->initializeSolverState(*d_sol_vec,*d_rhs_vec);
         if (d_normalize_pressure)
         {
-            d_nul_vec->allocateVectorData(current_time);
-            d_hier_sc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(0), 0.0);
-            d_hier_cc_data_ops->setToScalar(d_nul_vec->getComponentDescriptorIndex(1), 1.0);
             Pointer<LinearSolver> p_stokes_linear_solver = d_stokes_solver;
-            if (!p_stokes_linear_solver.isNull()) p_stokes_linear_solver->setNullspace(false, d_nul_vec);
-            Pointer<NewtonKrylovSolver> p_stokes_newton_solver = d_stokes_solver;
-            if (!p_stokes_newton_solver.isNull()) p_stokes_newton_solver->getLinearSolver()->setNullspace(false, d_nul_vec);
+            if (!p_stokes_linear_solver.isNull())
+            {
+                Pointer<NewtonKrylovSolver> p_stokes_newton_solver = d_stokes_solver;
+                if (!p_stokes_newton_solver.isNull()) p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver();
+            }
+            if (!p_stokes_linear_solver.isNull()) p_stokes_linear_solver->setNullspace(false, std::vector<Pointer<SAMRAIVectorReal<NDIM,double> > >(1, d_nul_vec));
         }
         d_stokes_solver_needs_init = false;
     }

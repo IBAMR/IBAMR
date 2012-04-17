@@ -96,6 +96,14 @@ public:
     //\{
 
     /*!
+     * \brief Set the nullspace of the linear system.
+     */
+    void
+    setNullspace(
+        bool contains_constant_vector,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >& nullspace_basis_vecs=std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > >());
+
+    /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
      *
      * Before calling solveSystem(), the form of the solution \a x and
@@ -310,11 +318,30 @@ protected:
     deallocateSolverStateSpecialized() = 0;
 
     /*!
-     * \brief Copy solution and right-hand-side data to the PETSc
-     * representation.
+     * \brief Copy a generic vector to the PETSc representation.
      */
     virtual void
-    copyToPETScVecs(
+    copyToPETScVec(
+        Vec& petsc_x,
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level) = 0;
+
+    /*!
+     * \brief Copy a generic vector from the PETSc representation.
+     */
+    virtual void
+    copyFromPETScVec(
+        Vec& petsc_x,
+        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level) = 0;
+
+    /*!
+     * \brief Copy solution and right-hand-side data to the PETSc
+     * representation, including any modifications to account for boundary
+     * conditions.
+     */
+    virtual void
+    setupKSPVecs(
         Vec& petsc_x,
         Vec& petsc_b,
         SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
@@ -322,13 +349,10 @@ protected:
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level) = 0;
 
     /*!
-     * \brief Copy solution data from the PETSc representation.
+     * \brief Setup the solver nullspace (if any).
      */
     virtual void
-    copyFromPETScVec(
-        Vec& petsc_x,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& x,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level) = 0;
+    setupNullspace();
 
     /*!
      * \brief Object name.
@@ -356,7 +380,9 @@ protected:
     //\{
     std::string d_options_prefix;
     KSP d_petsc_ksp;
-    Mat d_petsc_mat;
+    Mat d_petsc_mat, d_petsc_pc;
+    MatStructure d_petsc_op_flag;
+    MatNullSpace d_petsc_nullsp;
     Vec d_petsc_x, d_petsc_b;
     int d_max_iterations;
     double d_abs_residual_tol;
@@ -365,6 +391,9 @@ protected:
 
     int d_current_its;
     double d_current_residual_norm;
+
+    bool d_nullsp_contains_constant_vector;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_solver_nullsp_vecs;
 
     //\}
 

@@ -436,6 +436,25 @@ IBMethod::updateFixedLEOperators()
 }// updateFixedLEOperators
 
 void
+IBMethod::getLEOperatorPositions(
+    Vec& X_vec,
+    int level_num,
+    double data_time)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
+    TBOX_ASSERT(d_l_data_manager->levelContainsLagrangianData(level_num));
+#endif
+    std::vector<Pointer<LData> >* X_LE_data;
+    bool* X_LE_needs_ghost_fill;
+    getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
+    X_vec = (*X_LE_data)[level_num]->getVec();
+    return;
+}// getLEOperatorPositions
+
+void
 IBMethod::interpolateVelocity(
     const int u_data_idx,
     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
@@ -560,8 +579,8 @@ IBMethod::computeLagrangianForceJacobianNonzeroStructure(
             TBOX_ERROR("IBMethod::computeLagrangianForceJacobianNonzeroStructure(): currently require structure to be contained in the finest level of the patch hierarchy\n");
         }
     }
-    d_nnz.resize(d_l_data_manager->getNumberOfLocalNodes(finest_ln),0);
-    o_nnz.resize(d_l_data_manager->getNumberOfLocalNodes(finest_ln),0);
+    d_nnz.resize(NDIM*d_l_data_manager->getNumberOfLocalNodes(finest_ln),0);
+    o_nnz.resize(NDIM*d_l_data_manager->getNumberOfLocalNodes(finest_ln),0);
     d_ib_force_fcn->computeLagrangianForceJacobianNonzeroStructure(d_nnz, o_nnz, d_hierarchy, finest_ln, d_l_data_manager);
     return;
 }// computeLagrangianForceJacobianNonzeroStructure

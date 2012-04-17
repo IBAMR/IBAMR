@@ -175,6 +175,11 @@ private:
 
     double d_current_time, d_new_time;
     SAMRAI::tbox::Pointer<INSStaggeredStokesOperator> d_stokes_op;
+    SAMRAI::tbox::Pointer<IBTK::GeneralOperator> d_F_op;
+    SAMRAI::tbox::Pointer<IBTK::JacobianOperator> d_J_op;
+    Mat d_J_mat;
+    Vec d_X_LE_vec;
+    SAMRAI::tbox::Pointer<IBTK::LinearSolver> d_modified_stokes_pc;
 
     /*!
      * \brief Implementation of a modified Stokes operator that includes forcing
@@ -288,7 +293,7 @@ private:
          * \brief Constructor.
          */
         Jacobian(
-            const IBImplicitStaggeredHierarchyIntegrator* ib_solver);
+            IBImplicitStaggeredHierarchyIntegrator* ib_solver);
 
         /*!
          * \brief Destructor.
@@ -395,7 +400,7 @@ private:
         operator=(
             const Jacobian& that);
 
-        const IBImplicitStaggeredHierarchyIntegrator* const d_ib_solver;
+        IBImplicitStaggeredHierarchyIntegrator* const d_ib_solver;
         Mat d_J_mat;
         bool d_J_is_set;
         SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_x_base;

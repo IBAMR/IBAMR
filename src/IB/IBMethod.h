@@ -165,6 +165,16 @@ public:
     updateFixedLEOperators();
 
     /*!
+     * Get a pointer to a vector of coupling positions for the specified level
+     * of the patch hierarchy.
+     */
+    void
+    getLEOperatorPositions(
+        Vec& X_vec,
+        int level_num,
+        double data_time);
+
+    /*!
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
      * specified time within the current time interval.
      */

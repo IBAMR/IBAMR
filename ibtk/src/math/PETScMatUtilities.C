@@ -417,7 +417,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(
     double* X_arr;
     ierr = VecGetArray(X_vec, &X_arr); IBTK_CHKERRQ(ierr);
     blitz::Array<int,1> patch_num(n_local_points);
-    blitz::Array<blitz::TinyVector<Box<NDIM>,1>,NDIM> stencil_box(n_local_points);
+    blitz::Array<blitz::TinyVector<Box<NDIM>,NDIM>,1> stencil_box(n_local_points);
     std::vector<int> d_nnz(m_local,0), o_nnz(m_local,0);
     for (int k = 0; k < n_local_points; ++k)
     {
@@ -483,9 +483,6 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(
                     stencil_box_lower(d) = X_idx(d)-interp_stencil/2+1;
                     stencil_box_upper(d) = X_idx(d)+interp_stencil/2  ;
                 }
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(stencil_box_upper(d)-stencil_box_lower(d) == interp_stencil);
-#endif
             }
             const int local_idx = NDIM*k+axis;
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -550,8 +547,8 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(
             for (int d = 0; d < NDIM; ++d)
             {
                 const int i = stencil_box_lower(d);
-                const double X_grid_lower = (static_cast<double>(i - domain_lower(d)) + (d == axis ? 0.0 : 0.5))*dx[d] + x_lower[d];
-                interp_fcn((X_grid_lower-X[d])/dx[d],w[d].data());
+                const double X_stencil_lower = (static_cast<double>(i + 1 - domain_lower(d)) + (d == axis ? 0.0 : 0.5))*dx[d] + x_lower[d];
+                interp_fcn((X[d]-X_stencil_lower)/dx[d],w[d].data());
             }
 
             // Compute the weights of the d-dimensional delta function as the
