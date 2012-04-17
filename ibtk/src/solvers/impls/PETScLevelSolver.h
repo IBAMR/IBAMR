@@ -381,7 +381,7 @@ protected:
     std::string d_options_prefix;
     KSP d_petsc_ksp;
     Mat d_petsc_mat, d_petsc_pc;
-    MatStructure d_petsc_op_flag;
+    MatStructure d_petsc_ksp_ops_flag;
     MatNullSpace d_petsc_nullsp;
     Vec d_petsc_x, d_petsc_b;
     int d_max_iterations;

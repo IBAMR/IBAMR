@@ -282,6 +282,10 @@ PETScLevelSolver::deallocateSolverState()
     // Deallocate PETSc objects.
     int ierr;
     ierr = KSPDestroy(&d_petsc_ksp); IBTK_CHKERRQ(ierr);
+    if (d_petsc_mat != d_petsc_pc)
+    {
+        ierr = MatDestroy(&d_petsc_pc); IBTK_CHKERRQ(ierr);
+    }
     ierr = MatDestroy(&d_petsc_mat); IBTK_CHKERRQ(ierr);
     if (d_nullsp_contains_constant_vector || !d_solver_nullsp_vecs.empty())
     {

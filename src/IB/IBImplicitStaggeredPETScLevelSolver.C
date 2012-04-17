@@ -191,7 +191,9 @@ IBImplicitStaggeredPETScLevelSolver::initializeOperator()
 //  ierr = MatPtAP(*d_J_mat, d_R_mat, MAT_INITIAL_MATRIX, 5.0, &d_RtJR_mat); IBTK_CHKERRQ(ierr);
     ierr = MatDuplicate(d_stokes_mat, MAT_COPY_VALUES, &d_petsc_mat); IBTK_CHKERRQ(ierr);
 //  ierr = MatAXPY(d_petsc_mat, vol, d_RtJR_mat, DIFFERENT_NONZERO_PATTERN); IBTK_CHKERRQ(ierr);
-    ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat, SAME_PRECONDITIONER); IBTK_CHKERRQ(ierr);
+    d_petsc_pc = d_petsc_mat;
+    d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
+    ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_pc, d_petsc_ksp_ops_flag); IBTK_CHKERRQ(ierr);
     return;
 }// initializeOperator
 
@@ -214,7 +216,9 @@ IBImplicitStaggeredPETScLevelSolver::updateOperator()
     ierr = MatZeroEntries(d_petsc_mat); IBTK_CHKERRQ(ierr);
     ierr = MatAXPY(d_petsc_mat, 1.0, d_stokes_mat, SAME_NONZERO_PATTERN); IBTK_CHKERRQ(ierr);
 //  ierr = MatAXPY(d_petsc_mat, vol, d_RtJR_mat  , SAME_NONZERO_PATTERN); IBTK_CHKERRQ(ierr); XXXX
-    ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_mat, SAME_PRECONDITIONER); IBTK_CHKERRQ(ierr);
+    d_petsc_pc = d_petsc_mat;
+    d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
+    ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_pc, d_petsc_ksp_ops_flag); IBTK_CHKERRQ(ierr);
     return;
 }// updateOperator
 
@@ -237,6 +241,9 @@ IBImplicitStaggeredPETScLevelSolver::initializeSolverStateSpecialized(
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x); IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b); IBTK_CHKERRQ(ierr);
     INSPETScMatUtilities::constructPatchLevelMACStokesOp(d_stokes_mat, &d_problem_coefs, d_u_bc_coefs, d_new_time, d_dt, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, level);
+    d_petsc_mat = d_stokes_mat;
+    d_petsc_pc = d_petsc_mat;
+    d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
     d_data_synch_sched = INSPETScVecUtilities::constructDataSynchSchedule(u_idx, p_idx, level);
