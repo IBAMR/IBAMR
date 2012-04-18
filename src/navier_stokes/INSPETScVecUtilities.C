@@ -406,10 +406,10 @@ INSPETScVecUtilities::constructPatchLevelDOFIndices_MAC(
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<SideData<NDIM,int > > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        Pointer<CellData<NDIM,int > > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         u_dof_index_data->fillAll(-1);
-        p_dof_index_data->fillAll(-1);
         Pointer<SideData<NDIM,bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
+        Pointer<CellData<NDIM,int > > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        p_dof_index_data->fillAll(-1);
         blitz::TinyVector<Box<NDIM>,NDIM> data_boxes;
         BoxList<NDIM> data_box_union(patch_box);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
@@ -430,9 +430,11 @@ INSPETScVecUtilities::constructPatchLevelDOFIndices_MAC(
                     if (UNLIKELY(!(*u_mastr_loc_data)(is))) continue;
                     (*u_dof_index_data)(is) = counter++;
                 }
-                if (UNLIKELY(!patch_box.contains(ic))) continue;
-                (*p_dof_index_data)(ic) = counter++;
             }
+        }
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        {
+            (*p_dof_index_data)(b()) = counter++;
         }
     }
 

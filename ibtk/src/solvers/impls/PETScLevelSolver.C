@@ -119,7 +119,11 @@ PETScLevelSolver::PETScLevelSolver(
 
 PETScLevelSolver::~PETScLevelSolver()
 {
-    if (d_is_initialized) deallocateSolverState();
+    if (d_is_initialized)
+    {
+        TBOX_ERROR(d_object_name << "::~PETScLevelSolver()\n"
+                   << "  subclass must call deallocateSolverState in subclass destructor" << std::endl);
+    }
     return;
 }// ~PETScLevelSolver
 

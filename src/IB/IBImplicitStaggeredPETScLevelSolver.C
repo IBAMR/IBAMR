@@ -56,6 +56,7 @@
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
+#include <HierarchyDataOpsManager.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -146,6 +147,7 @@ IBImplicitStaggeredPETScLevelSolver::IBImplicitStaggeredPETScLevelSolver(
 
 IBImplicitStaggeredPETScLevelSolver::~IBImplicitStaggeredPETScLevelSolver()
 {
+    if (d_is_initialized) deallocateSolverState();
     delete d_default_u_bc_coef;
     return;
 }// ~IBImplicitStaggeredPETScLevelSolver
@@ -172,14 +174,11 @@ IBImplicitStaggeredPETScLevelSolver::setHomogeneousBc(
 void
 IBImplicitStaggeredPETScLevelSolver::initializeOperator()
 {
-    pout << "IBImplicitStaggeredPETScLevelSolver::initializeOperator(): only doing Stokes!\n";
     int ierr;
 
     // Setup PETSc objects.
-    int X_local_sz;
-    ierr = VecGetLocalSize(*d_X_vec, &X_local_sz); IBTK_CHKERRQ(ierr);
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
-//  PETScMatUtilities::constructPatchLevelSCInterpOp(d_R_mat, d_interp_fcn, d_interp_stencil, *d_X_vec, d_num_dofs_per_proc, d_u_dof_index_idx, level);
+    PETScMatUtilities::constructPatchLevelSCInterpOp(d_R_mat, d_interp_fcn, d_interp_stencil, *d_X_vec, d_num_dofs_per_proc, d_u_dof_index_idx, level);
     Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
     const IntVector<NDIM>& ratio = d_hierarchy->getPatchLevel(d_level_num)->getRatio();
     const double* const dx_coarsest = geometry->getDx();
@@ -188,11 +187,16 @@ IBImplicitStaggeredPETScLevelSolver::initializeOperator()
     {
         vol *= dx_coarsest[d]/static_cast<double>(ratio(d));
     }
-//  ierr = MatPtAP(*d_J_mat, d_R_mat, MAT_INITIAL_MATRIX, 5.0, &d_RtJR_mat); IBTK_CHKERRQ(ierr);
+    ierr = MatPtAP(*d_J_mat, d_R_mat, MAT_INITIAL_MATRIX, 5.0, &d_RtJR_mat); IBTK_CHKERRQ(ierr);
     ierr = MatDuplicate(d_stokes_mat, MAT_COPY_VALUES, &d_petsc_mat); IBTK_CHKERRQ(ierr);
-//  ierr = MatAXPY(d_petsc_mat, vol, d_RtJR_mat, DIFFERENT_NONZERO_PATTERN); IBTK_CHKERRQ(ierr);
-    d_petsc_pc = d_petsc_mat;
-    d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
+    ierr = MatAXPY(d_petsc_mat, 1.0/vol, d_RtJR_mat, DIFFERENT_NONZERO_PATTERN); IBTK_CHKERRQ(ierr);
+    ierr = MatDuplicate(d_petsc_mat, MAT_COPY_VALUES, &d_petsc_pc); IBTK_CHKERRQ(ierr);
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    Pointer<HierarchyDataOpsInteger<NDIM> > hier_p_dof_index_ops = hier_ops_manager->getOperationsInteger(d_p_dof_index_var, d_hierarchy, true);
+    hier_p_dof_index_ops->resetLevels(d_level_num, d_level_num);
+    const int min_p_idx = hier_p_dof_index_ops->min(d_p_dof_index_idx);  // NOTE: HierarchyDataOpsInteger::max() is broken
+    ierr = MatZeroRowsColumns(d_petsc_pc, 1, &min_p_idx, 1.0, PETSC_NULL, PETSC_NULL); IBTK_CHKERRQ(ierr);
+    d_petsc_ksp_ops_flag = DIFFERENT_NONZERO_PATTERN;
     ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_pc, d_petsc_ksp_ops_flag); IBTK_CHKERRQ(ierr);
     return;
 }// initializeOperator
@@ -200,7 +204,6 @@ IBImplicitStaggeredPETScLevelSolver::initializeOperator()
 void
 IBImplicitStaggeredPETScLevelSolver::updateOperator()
 {
-    pout << "IBImplicitStaggeredPETScLevelSolver::updateOperator(): only doing Stokes!\n";
     int ierr;
 
     // Setup PETSc objects.
@@ -212,12 +215,17 @@ IBImplicitStaggeredPETScLevelSolver::updateOperator()
     {
         vol *= dx_coarsest[d]/static_cast<double>(ratio(d));
     }
-//  ierr = MatPtAP(*d_J_mat, d_R_mat, MAT_REUSE_MATRIX, 5.0, &d_RtJR_mat); IBTK_CHKERRQ(ierr);
+    ierr = MatPtAP(*d_J_mat, d_R_mat, MAT_REUSE_MATRIX, 5.0, &d_RtJR_mat); IBTK_CHKERRQ(ierr);
     ierr = MatZeroEntries(d_petsc_mat); IBTK_CHKERRQ(ierr);
     ierr = MatAXPY(d_petsc_mat, 1.0, d_stokes_mat, SAME_NONZERO_PATTERN); IBTK_CHKERRQ(ierr);
-//  ierr = MatAXPY(d_petsc_mat, vol, d_RtJR_mat  , SAME_NONZERO_PATTERN); IBTK_CHKERRQ(ierr); XXXX
-    d_petsc_pc = d_petsc_mat;
-    d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
+    ierr = MatAXPY(d_petsc_mat, 1.0/vol, d_RtJR_mat, SAME_NONZERO_PATTERN); IBTK_CHKERRQ(ierr);
+    ierr = MatCopy(d_petsc_mat, d_petsc_pc, SAME_NONZERO_PATTERN); IBTK_CHKERRQ(ierr);
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    Pointer<HierarchyDataOpsInteger<NDIM> > hier_p_dof_index_ops = hier_ops_manager->getOperationsInteger(d_p_dof_index_var, d_hierarchy, true);
+    hier_p_dof_index_ops->resetLevels(d_level_num, d_level_num);
+    const int min_p_idx = hier_p_dof_index_ops->min(d_p_dof_index_idx);  // NOTE: HierarchyDataOpsInteger::max() is broken
+    ierr = MatZeroRowsColumns(d_petsc_pc, 1, &min_p_idx, 1.0, PETSC_NULL, PETSC_NULL); IBTK_CHKERRQ(ierr);
+    d_petsc_ksp_ops_flag = DIFFERENT_NONZERO_PATTERN;
     ierr = KSPSetOperators(d_petsc_ksp, d_petsc_mat, d_petsc_pc, d_petsc_ksp_ops_flag); IBTK_CHKERRQ(ierr);
     return;
 }// updateOperator
@@ -241,9 +249,14 @@ IBImplicitStaggeredPETScLevelSolver::initializeSolverStateSpecialized(
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x); IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b); IBTK_CHKERRQ(ierr);
     INSPETScMatUtilities::constructPatchLevelMACStokesOp(d_stokes_mat, &d_problem_coefs, d_u_bc_coefs, d_new_time, d_dt, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, level);
-    d_petsc_mat = d_stokes_mat;
-    d_petsc_pc = d_petsc_mat;
-    d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
+    ierr = MatDuplicate(d_stokes_mat, MAT_COPY_VALUES, &d_petsc_mat); IBTK_CHKERRQ(ierr);
+    ierr = MatDuplicate(d_petsc_mat, MAT_COPY_VALUES, &d_petsc_pc); IBTK_CHKERRQ(ierr);
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    Pointer<HierarchyDataOpsInteger<NDIM> > hier_p_dof_index_ops = hier_ops_manager->getOperationsInteger(d_p_dof_index_var, d_hierarchy, true);
+    hier_p_dof_index_ops->resetLevels(d_level_num, d_level_num);
+    const int min_p_idx = hier_p_dof_index_ops->min(d_p_dof_index_idx);  // NOTE: HierarchyDataOpsInteger::max() is broken
+    ierr = MatZeroRowsColumns(d_petsc_pc, 1, &min_p_idx, 1.0, PETSC_NULL, PETSC_NULL); IBTK_CHKERRQ(ierr);
+    d_petsc_ksp_ops_flag = DIFFERENT_NONZERO_PATTERN;
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);
     d_data_synch_sched = INSPETScVecUtilities::constructDataSynchSchedule(u_idx, p_idx, level);
@@ -254,12 +267,6 @@ IBImplicitStaggeredPETScLevelSolver::initializeSolverStateSpecialized(
 void
 IBImplicitStaggeredPETScLevelSolver::deallocateSolverStateSpecialized()
 {
-    // Deallocate PETSc data.
-    int ierr;
-    ierr = MatDestroy(&d_stokes_mat); IBTK_CHKERRQ(ierr);
-    ierr = MatDestroy(&     d_R_mat); IBTK_CHKERRQ(ierr);
-    ierr = MatDestroy(&  d_RtJR_mat); IBTK_CHKERRQ(ierr);
-
     // Deallocate DOF index data.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_num);
     if (level->checkAllocated(d_u_dof_index_idx)) level->deallocatePatchData(d_u_dof_index_idx);

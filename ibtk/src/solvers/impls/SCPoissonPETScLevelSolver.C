@@ -113,6 +113,7 @@ SCPoissonPETScLevelSolver::SCPoissonPETScLevelSolver(
 
 SCPoissonPETScLevelSolver::~SCPoissonPETScLevelSolver()
 {
+    if (d_is_initialized) deallocateSolverState();
     delete d_default_bc_coef;
     return;
 }// ~SCPoissonPETScLevelSolver

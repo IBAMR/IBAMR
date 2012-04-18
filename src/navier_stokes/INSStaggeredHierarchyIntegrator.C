@@ -551,8 +551,13 @@ INSStaggeredHierarchyIntegrator::setStokesPreconditioner(
     d_stokes_solver_needs_init = true;
     if (!d_stokes_solver.isNull())
     {
-        Pointer<KrylovLinearSolver> p_stokes_solver = d_stokes_solver;
-        if (!p_stokes_solver.isNull()) p_stokes_solver->setPreconditioner(d_stokes_pc);
+        Pointer<KrylovLinearSolver> p_stokes_krylov_solver = d_stokes_solver;
+        if (!p_stokes_krylov_solver.isNull())
+        {
+            Pointer<NewtonKrylovSolver> p_stokes_newton_solver = d_stokes_solver;
+            if (!p_stokes_newton_solver.isNull()) p_stokes_krylov_solver = p_stokes_newton_solver->getLinearSolver();
+        }
+        if (!p_stokes_krylov_solver.isNull()) p_stokes_krylov_solver->setPreconditioner(d_stokes_pc);
     }
     return;
 }// setStokesPreconditioner

@@ -27,10 +27,6 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-// XXXX
-#include <ibamr/INSStaggeredPETScLevelSolver.h>
-// XXXX
-
 // Config files
 #include <IBAMR_prefix_config.h>
 #include <IBTK_prefix_config.h>
@@ -190,13 +186,6 @@ main(
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-
-        // CONFIGURE THE FLUID SOLVER TO USE A PETSC LEVEL SOLVER.
-        Pointer<INSStaggeredHierarchyIntegrator> p_ins_hier_integrator = time_integrator;
-        const INSProblemCoefs* const problem_coefs = p_ins_hier_integrator->getINSProblemCoefs();
-        const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs = p_ins_hier_integrator->getVelocityBoundaryConditions();
-//      RobinBcCoefStrategy<NDIM>* const P_bc_coef = p_ins_hier_integrator->getPressureBoundaryConditions();
-        p_ins_hier_integrator->setStokesSolver(NULL, new INSStaggeredPETScLevelSolver("INSPETScLevelSolver", *problem_coefs, U_bc_coefs), true);
 
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);

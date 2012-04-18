@@ -53,6 +53,9 @@
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
 
+// SAMRAI INCLUDES
+#include <HierarchyDataOpsManager.h>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -134,6 +137,7 @@ INSStaggeredPETScLevelSolver::INSStaggeredPETScLevelSolver(
 
 INSStaggeredPETScLevelSolver::~INSStaggeredPETScLevelSolver()
 {
+    if (d_is_initialized) deallocateSolverState();
     delete d_default_u_bc_coef;
     return;
 }// ~INSStaggeredPETScLevelSolver
@@ -176,7 +180,12 @@ INSStaggeredPETScLevelSolver::initializeSolverStateSpecialized(
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x); IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b); IBTK_CHKERRQ(ierr);
     INSPETScMatUtilities::constructPatchLevelMACStokesOp(d_petsc_mat, &d_problem_coefs, d_u_bc_coefs, d_new_time, d_dt, d_num_dofs_per_proc, d_u_dof_index_idx, d_p_dof_index_idx, level);
-    d_petsc_pc = d_petsc_mat;
+    ierr = MatDuplicate(d_petsc_mat, MAT_COPY_VALUES, &d_petsc_pc); IBTK_CHKERRQ(ierr);
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    Pointer<HierarchyDataOpsInteger<NDIM> > hier_p_dof_index_ops = hier_ops_manager->getOperationsInteger(d_p_dof_index_var, d_hierarchy, true);
+    hier_p_dof_index_ops->resetLevels(d_level_num, d_level_num);
+    const int min_p_idx = hier_p_dof_index_ops->min(d_p_dof_index_idx);  // NOTE: HierarchyDataOpsInteger::max() is broken
+    ierr = MatZeroRowsColumns(d_petsc_pc, 1, &min_p_idx, 1.0, PETSC_NULL, PETSC_NULL); IBTK_CHKERRQ(ierr);
     d_petsc_ksp_ops_flag = SAME_PRECONDITIONER;
     const int u_idx = x.getComponentDescriptorIndex(0);
     const int p_idx = x.getComponentDescriptorIndex(1);

@@ -167,7 +167,6 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C \
 	$(top_srcdir)/src/solvers/impls/PETScLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C \
-	$(top_srcdir)/src/solvers/impls/PETScMultiVec.C \
 	$(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.C \
 	$(top_srcdir)/src/solvers/impls/SCLaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/SCPoissonFACOperator.C \
@@ -299,7 +298,6 @@ am__objects_2 = libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK2d_a-PETScKrylovLinearSolver.$(OBJEXT) \
 	libIBTK2d_a-PETScLevelSolver.$(OBJEXT) \
 	libIBTK2d_a-PETScMFFDJacobianOperator.$(OBJEXT) \
-	libIBTK2d_a-PETScMultiVec.$(OBJEXT) \
 	libIBTK2d_a-PETScNewtonKrylovSolver.$(OBJEXT) \
 	libIBTK2d_a-SCLaplaceOperator.$(OBJEXT) \
 	libIBTK2d_a-SCPoissonFACOperator.$(OBJEXT) \
@@ -427,7 +425,6 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C \
 	$(top_srcdir)/src/solvers/impls/PETScLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C \
-	$(top_srcdir)/src/solvers/impls/PETScMultiVec.C \
 	$(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.C \
 	$(top_srcdir)/src/solvers/impls/SCLaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/SCPoissonFACOperator.C \
@@ -558,7 +555,6 @@ am__objects_4 = libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	libIBTK3d_a-PETScKrylovLinearSolver.$(OBJEXT) \
 	libIBTK3d_a-PETScLevelSolver.$(OBJEXT) \
 	libIBTK3d_a-PETScMFFDJacobianOperator.$(OBJEXT) \
-	libIBTK3d_a-PETScMultiVec.$(OBJEXT) \
 	libIBTK3d_a-PETScNewtonKrylovSolver.$(OBJEXT) \
 	libIBTK3d_a-SCLaplaceOperator.$(OBJEXT) \
 	libIBTK3d_a-SCPoissonFACOperator.$(OBJEXT) \
@@ -1098,7 +1094,6 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/solvers/impls/PETScLevelSolver.h \
 	$(top_srcdir)/src/solvers/impls/PETScLevelSolver.I \
 	$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.h \
-	$(top_srcdir)/src/solvers/impls/PETScMultiVec.h \
 	$(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.I \
 	$(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.h \
 	$(top_srcdir)/src/solvers/impls/SCLaplaceOperator.h \
@@ -1229,7 +1224,6 @@ DIM_INDEPENDENT_SOURCES =  \
 	$(top_srcdir)/src/solvers/impls/PETScKrylovLinearSolver.C \
 	$(top_srcdir)/src/solvers/impls/PETScLevelSolver.C \
 	$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C \
-	$(top_srcdir)/src/solvers/impls/PETScMultiVec.C \
 	$(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.C \
 	$(top_srcdir)/src/solvers/impls/SCLaplaceOperator.C \
 	$(top_srcdir)/src/solvers/impls/SCPoissonFACOperator.C \
@@ -1484,7 +1478,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScMFFDJacobianOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScMatLOWrapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScMatUtilities.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScMultiVec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScNewtonKrylovSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScPCLSWrapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK2d_a-PETScSAMRAIVectorReal.Po@am__quote@
@@ -1599,7 +1592,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScMFFDJacobianOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScMatLOWrapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScMatUtilities.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScMultiVec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScNewtonKrylovSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScPCLSWrapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBTK3d_a-PETScSAMRAIVectorReal.Po@am__quote@
@@ -2661,20 +2653,6 @@ libIBTK2d_a-PETScMFFDJacobianOperator.obj: $(top_srcdir)/src/solvers/impls/PETSc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C' object='libIBTK2d_a-PETScMFFDJacobianOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PETScMFFDJacobianOperator.obj `if test -f '$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C'; fi`
-
-libIBTK2d_a-PETScMultiVec.o: $(top_srcdir)/src/solvers/impls/PETScMultiVec.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-PETScMultiVec.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-PETScMultiVec.Tpo -c -o libIBTK2d_a-PETScMultiVec.o `test -f '$(top_srcdir)/src/solvers/impls/PETScMultiVec.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/PETScMultiVec.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-PETScMultiVec.Tpo $(DEPDIR)/libIBTK2d_a-PETScMultiVec.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/PETScMultiVec.C' object='libIBTK2d_a-PETScMultiVec.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PETScMultiVec.o `test -f '$(top_srcdir)/src/solvers/impls/PETScMultiVec.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/PETScMultiVec.C
-
-libIBTK2d_a-PETScMultiVec.obj: $(top_srcdir)/src/solvers/impls/PETScMultiVec.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-PETScMultiVec.obj -MD -MP -MF $(DEPDIR)/libIBTK2d_a-PETScMultiVec.Tpo -c -o libIBTK2d_a-PETScMultiVec.obj `if test -f '$(top_srcdir)/src/solvers/impls/PETScMultiVec.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/PETScMultiVec.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/PETScMultiVec.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK2d_a-PETScMultiVec.Tpo $(DEPDIR)/libIBTK2d_a-PETScMultiVec.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/PETScMultiVec.C' object='libIBTK2d_a-PETScMultiVec.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK2d_a-PETScMultiVec.obj `if test -f '$(top_srcdir)/src/solvers/impls/PETScMultiVec.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/PETScMultiVec.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/PETScMultiVec.C'; fi`
 
 libIBTK2d_a-PETScNewtonKrylovSolver.o: $(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK2d_a-PETScNewtonKrylovSolver.o -MD -MP -MF $(DEPDIR)/libIBTK2d_a-PETScNewtonKrylovSolver.Tpo -c -o libIBTK2d_a-PETScNewtonKrylovSolver.o `test -f '$(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.C
@@ -4271,20 +4249,6 @@ libIBTK3d_a-PETScMFFDJacobianOperator.obj: $(top_srcdir)/src/solvers/impls/PETSc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C' object='libIBTK3d_a-PETScMFFDJacobianOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PETScMFFDJacobianOperator.obj `if test -f '$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/PETScMFFDJacobianOperator.C'; fi`
-
-libIBTK3d_a-PETScMultiVec.o: $(top_srcdir)/src/solvers/impls/PETScMultiVec.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-PETScMultiVec.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-PETScMultiVec.Tpo -c -o libIBTK3d_a-PETScMultiVec.o `test -f '$(top_srcdir)/src/solvers/impls/PETScMultiVec.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/PETScMultiVec.C
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-PETScMultiVec.Tpo $(DEPDIR)/libIBTK3d_a-PETScMultiVec.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/PETScMultiVec.C' object='libIBTK3d_a-PETScMultiVec.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PETScMultiVec.o `test -f '$(top_srcdir)/src/solvers/impls/PETScMultiVec.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/PETScMultiVec.C
-
-libIBTK3d_a-PETScMultiVec.obj: $(top_srcdir)/src/solvers/impls/PETScMultiVec.C
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-PETScMultiVec.obj -MD -MP -MF $(DEPDIR)/libIBTK3d_a-PETScMultiVec.Tpo -c -o libIBTK3d_a-PETScMultiVec.obj `if test -f '$(top_srcdir)/src/solvers/impls/PETScMultiVec.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/PETScMultiVec.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/PETScMultiVec.C'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBTK3d_a-PETScMultiVec.Tpo $(DEPDIR)/libIBTK3d_a-PETScMultiVec.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/solvers/impls/PETScMultiVec.C' object='libIBTK3d_a-PETScMultiVec.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBTK3d_a-PETScMultiVec.obj `if test -f '$(top_srcdir)/src/solvers/impls/PETScMultiVec.C'; then $(CYGPATH_W) '$(top_srcdir)/src/solvers/impls/PETScMultiVec.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/solvers/impls/PETScMultiVec.C'; fi`
 
 libIBTK3d_a-PETScNewtonKrylovSolver.o: $(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBTK3d_a-PETScNewtonKrylovSolver.o -MD -MP -MF $(DEPDIR)/libIBTK3d_a-PETScNewtonKrylovSolver.Tpo -c -o libIBTK3d_a-PETScNewtonKrylovSolver.o `test -f '$(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.C' || echo '$(srcdir)/'`$(top_srcdir)/src/solvers/impls/PETScNewtonKrylovSolver.C

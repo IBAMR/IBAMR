@@ -941,18 +941,17 @@ LM3DDataWriter::writePlotData(
     }
 
     // Store information about the data layout in the local HDF5 files.
-    herr_t status;
 
     // Add the local clouds to the local marker file.
     hid_t marker_group_id = H5Gcreate1(marker_file_id, "/markers", 0);
 
-    status = H5LTset_attribute_int(marker_file_id, "/markers", "num_local_marker_nodes", &num_local_marker_nodes, 1);
-    status = H5LTset_attribute_int(marker_file_id, "/markers", "marker_node_offset", &marker_node_offset, 1);
-    status = H5LTset_attribute_int(marker_file_id, "/markers", "num_marker_nodes", &num_marker_nodes, 1);
+    H5LTset_attribute_int(marker_file_id, "/markers", "num_local_marker_nodes", &num_local_marker_nodes, 1);
+    H5LTset_attribute_int(marker_file_id, "/markers", "marker_node_offset", &marker_node_offset, 1);
+    H5LTset_attribute_int(marker_file_id, "/markers", "num_marker_nodes", &num_marker_nodes, 1);
 
-    status = H5LTset_attribute_int(marker_file_id, "/markers", "num_local_marker_clouds", &num_local_marker_clouds, 1);
-    status = H5LTset_attribute_int(marker_file_id, "/markers", "marker_cloud_offset", &marker_cloud_offset, 1);
-    status = H5LTset_attribute_int(marker_file_id, "/markers", "num_marker_clouds", &num_marker_clouds, 1);
+    H5LTset_attribute_int(marker_file_id, "/markers", "num_local_marker_clouds", &num_local_marker_clouds, 1);
+    H5LTset_attribute_int(marker_file_id, "/markers", "marker_cloud_offset", &marker_cloud_offset, 1);
+    H5LTset_attribute_int(marker_file_id, "/markers", "num_marker_clouds", &num_marker_clouds, 1);
 
     local_marker_node_counter = 0;
     local_marker_cloud_counter = 0;
@@ -977,43 +976,43 @@ LM3DDataWriter::writePlotData(
         // Create the dataset with data compression enabled.
         hid_t plist_id = H5Pcreate(H5P_DATASET_CREATE);
         hsize_t cdims[rank] = { NDIM , nmarks };
-        status = H5Pset_chunk(plist_id, rank, cdims);
-        status = H5Pset_deflate(plist_id, M3D_DEFLATE_LEVEL);
+        H5Pset_chunk(plist_id, rank, cdims);
+        H5Pset_deflate(plist_id, M3D_DEFLATE_LEVEL);
         hid_t dataset_id = H5Dcreate1(marker_file_id, dset_name.c_str(), H5T_NATIVE_FLOAT, dataspace_id, H5P_DEFAULT);
 
         // Write the data and related attributes to the dataset.
-        status = H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &buffer[0]);
-        status = H5LTset_attribute_int(marker_file_id, dset_name.c_str(), "nmarks", &nmarks, 1);
-        status = H5LTset_attribute_int(marker_file_id, dset_name.c_str(), "node_offset", &node_offset, 1);
-        status = H5LTset_attribute_int(marker_file_id, dset_name.c_str(), "cloud_number", &cloud_number, 1);
-        status = H5LTset_attribute_string(marker_file_id, dset_name.c_str(), "cloud_name", d_cloud_names[cloud].c_str());
+        H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &buffer[0]);
+        H5LTset_attribute_int(marker_file_id, dset_name.c_str(), "nmarks", &nmarks, 1);
+        H5LTset_attribute_int(marker_file_id, dset_name.c_str(), "node_offset", &node_offset, 1);
+        H5LTset_attribute_int(marker_file_id, dset_name.c_str(), "cloud_number", &cloud_number, 1);
+        H5LTset_attribute_string(marker_file_id, dset_name.c_str(), "cloud_name", d_cloud_names[cloud].c_str());
 
         // Cleanup HDF5 data.
-        status = H5Dclose(dataset_id);
-        status = H5Pclose(plist_id);
-        status = H5Sclose(dataspace_id);
+        H5Dclose(dataset_id);
+        H5Pclose(plist_id);
+        H5Sclose(dataspace_id);
 
         // Advance the counters.
         local_marker_node_counter += nmarks;
         local_marker_cloud_counter += 1;
     }
-    status = H5Gclose(marker_group_id);
-    status = H5Fclose(marker_file_id);
+    H5Gclose(marker_group_id);
+    H5Fclose(marker_file_id);
 
     // Add the local fibers to the local fiber file.
     hid_t fiber_group_id = H5Gcreate1(fiber_file_id, "/fibers", 0);
 
-    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "num_local_fibers", &num_local_fibers, 1);
-    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "fiber_offset", &fiber_offset, 1);
-    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "num_fibers", &num_fibers, 1);
+    H5LTset_attribute_int(fiber_file_id, "/fibers", "num_local_fibers", &num_local_fibers, 1);
+    H5LTset_attribute_int(fiber_file_id, "/fibers", "fiber_offset", &fiber_offset, 1);
+    H5LTset_attribute_int(fiber_file_id, "/fibers", "num_fibers", &num_fibers, 1);
 
-    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "num_local_groups", &num_local_groups, 1);
-    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "group_offset", &group_offset, 1);
-    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "num_groups", &num_groups, 1);
+    H5LTset_attribute_int(fiber_file_id, "/fibers", "num_local_groups", &num_local_groups, 1);
+    H5LTset_attribute_int(fiber_file_id, "/fibers", "group_offset", &group_offset, 1);
+    H5LTset_attribute_int(fiber_file_id, "/fibers", "num_groups", &num_groups, 1);
 
-    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "num_local_layers", &num_local_layers, 1);
-    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "layer_offset", &layer_offset, 1);
-    status = H5LTset_attribute_int(fiber_file_id, "/fibers", "num_layers", &num_layers, 1);
+    H5LTset_attribute_int(fiber_file_id, "/fibers", "num_local_layers", &num_local_layers, 1);
+    H5LTset_attribute_int(fiber_file_id, "/fibers", "layer_offset", &layer_offset, 1);
+    H5LTset_attribute_int(fiber_file_id, "/fibers", "num_layers", &num_layers, 1);
 
     local_fiber_counter = 0;
     local_group_counter = 0;
@@ -1067,25 +1066,25 @@ LM3DDataWriter::writePlotData(
                 // Create the dataset with data compression enabled.
                 hid_t plist_id = H5Pcreate(H5P_DATASET_CREATE);
                 hsize_t cdims[rank] = { NDIM , nelem[0] , nelem[1] , nelem[2] };
-                status = H5Pset_chunk(plist_id, rank, cdims);
-                status = H5Pset_deflate(plist_id, M3D_DEFLATE_LEVEL);
+                H5Pset_chunk(plist_id, rank, cdims);
+                H5Pset_deflate(plist_id, M3D_DEFLATE_LEVEL);
                 hid_t dataset_id = H5Dcreate1(fiber_file_id, dset_name.c_str(), H5T_NATIVE_FLOAT, dataspace_id, plist_id);
 
                 // Write the data and related attributes to the dataset.
-                status = H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &buffer[0]);
-                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "nelem", &nelem[0], NDIM);
-                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "periodic", &periodic[0], NDIM);
-                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "fiber_number", &fiber_number, 1);
-                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "group_number", &group_number, 1);
-                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "layer_number", &layer_number, 1);
-                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "nfibers", &d_block_nfibers[ln][block], 1);
-                status = H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "ngroups", &d_block_ngroups[ln][block], 1);
-                status = H5LTset_attribute_string(fiber_file_id, dset_name.c_str(), "layer_name", d_block_names[ln][block].c_str());
+                H5Dwrite(dataset_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &buffer[0]);
+                H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "nelem", &nelem[0], NDIM);
+                H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "periodic", &periodic[0], NDIM);
+                H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "fiber_number", &fiber_number, 1);
+                H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "group_number", &group_number, 1);
+                H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "layer_number", &layer_number, 1);
+                H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "nfibers", &d_block_nfibers[ln][block], 1);
+                H5LTset_attribute_int(fiber_file_id, dset_name.c_str(), "ngroups", &d_block_ngroups[ln][block], 1);
+                H5LTset_attribute_string(fiber_file_id, dset_name.c_str(), "layer_name", d_block_names[ln][block].c_str());
 
                 // Cleanup HDF5 data.
-                status = H5Dclose(dataset_id);
-                status = H5Pclose(plist_id);
-                status = H5Sclose(dataspace_id);
+                H5Dclose(dataset_id);
+                H5Pclose(plist_id);
+                H5Sclose(dataspace_id);
 
                 // Advance the counters.
                 offset += ntot;
@@ -1099,8 +1098,8 @@ LM3DDataWriter::writePlotData(
             ierr = VecDestroy(&local_X_vec);  IBTK_CHKERRQ(ierr);
         }
     }
-    status = H5Gclose(fiber_group_id);
-    status = H5Fclose(fiber_file_id);
+    H5Gclose(fiber_group_id);
+    H5Fclose(fiber_file_id);
     return;
 }// writePlotData
 

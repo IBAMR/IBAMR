@@ -299,7 +299,7 @@ IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     modified_stokes_solver->setOperator(d_F_op);
     d_J_op = new IBImplicitStaggeredHierarchyIntegrator::Jacobian(this);
     modified_stokes_solver->setJacobian(d_J_op);
-    p_ins_hier_integrator->setStokesSolver(d_stokes_op, modified_stokes_solver, /* solver_needs_reinit_when_dt_changes */ false);
+    p_ins_hier_integrator->setStokesSolver(d_stokes_op, modified_stokes_solver, /* solver_needs_reinit_when_dt_changes */ true);
     d_modified_stokes_pc = new IBImplicitStaggeredPETScLevelSolver(d_object_name+"::PETScLevelSolver", *problem_coefs, &d_J_mat, PETScMatUtilities::ib_4_interp_fcn, PETScMatUtilities::ib_4_interp_stencil, &d_X_LE_vec, U_bc_coefs);
     modified_stokes_solver->getLinearSolver()->setPreconditioner(d_modified_stokes_pc);
 
@@ -458,14 +458,7 @@ IBImplicitStaggeredHierarchyIntegrator::Jacobian::formJacobian(
     }
     ib_method_ops->computeLagrangianForceJacobian(d_J_mat, MAT_FINAL_ASSEMBLY, /* X_coef */ -0.25*dt, /* U_coef */ -0.5, half_time);
     Pointer<IBImplicitStaggeredPETScLevelSolver> p_modified_stokes_pc = d_ib_solver->d_modified_stokes_pc;
-    if (!d_J_is_set)
-    {
-        p_modified_stokes_pc->initializeOperator();
-    }
-    else
-    {
-        p_modified_stokes_pc->updateOperator();
-    }
+    p_modified_stokes_pc->initializeOperator();
     d_J_is_set = true;
     return;
 }// formJacobian
