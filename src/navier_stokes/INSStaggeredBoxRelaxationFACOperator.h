@@ -39,20 +39,11 @@
 #include <petscksp.h>
 
 // IBAMR INCLUDES
+#include <ibamr/INSStaggeredFACPreconditionerStrategy.h>
 #include <ibamr/INSProblemCoefs.h>
 
-// IBTK INCLUDES
-#include <ibtk/CartCellRobinPhysBdryOp.h>
-#include <ibtk/CartSideRobinPhysBdryOp.h>
-#include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
-#include <ibtk/FACPreconditionerStrategy.h>
-#include <ibtk/HierarchyMathOps.h>
-
 // SAMRAI INCLUDES
-#include <CoarsenAlgorithm.h>
 #include <LocationIndexRobinBcCoefs.h>
-#include <RefineAlgorithm.h>
-#include <tbox/ConstPointer.h>
 
 // C++ STDLIB INCLUDES
 #include <map>
@@ -63,30 +54,11 @@ namespace IBAMR
 {
 /*!
  * \brief Class INSStaggeredBoxRelaxationFACOperator is a concrete
- * FACPreconditionerStrategy implementing a box relaxation (Vanka-type) smoother
- * for use as a multigrid preconditioner.
- *
- * \warning This class was originally intended to be used with the SAMRAI class
- * SAMRAI::solv::FACPreconditioner but is now designed to be used with the IBTK
- * class IBTK::FACPreconditioner.
- *
- * Sample parameters for initialization from database (and their default
- * values): \verbatim
-
- smoother_choice = "additive"                   // see setSmootherChoice()
-
- U_prolongation_method = "CONSTANT_REFINE"      // see setProlongationMethods()
- P_prolongation_method = "LINEAR_REFINE"        // see setProlongationMethods()
- U_restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethods()
- P_restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethods()
-
- coarse_solver_choice = "block_jacobi"              // see setCoarsestLevelSolverChoice()
- coarse_solver_tolerance = 1.0e-6                   // see setCoarsestLevelSolverTolerance()
- coarse_solver_max_iterations = 10                  // see setCoarsestLevelSolverMaxIterations()
- \endverbatim
+ * INSStaggeredFACPreconditionerStrategy implementing a box relaxation
+ * (Vanka-type) smoother for use as a multigrid preconditioner.
 */
 class INSStaggeredBoxRelaxationFACOperator
-    : public IBTK::FACPreconditionerStrategy
+    : public INSStaggeredFACPreconditionerStrategy
 {
 public:
     /*!
@@ -131,190 +103,12 @@ public:
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
 
-    /*!
-     * \brief Set the current time interval, for use with the refinement
-     * schedules and boundary condition routines employed by the object.
-     */
-    void
-    setTimeInterval(
-        double current_time,
-        double new_time);
-
     //\}
-
-    /*!
-     * \name Functions for configuring the solver.
-     */
-    //\{
-
-    /*!
-     * \brief Specify the levels that need to be reset the next time the
-     * operator is re-initialized.
-     *
-     * When the operator is initialized, then only the specified range of levels
-     * are reset in the operator state the next time that the operator is
-     * initialized.  If the operator is not initialized, this method has no
-     * effect.
-     *
-     * To ensure the range of levels that is reset includes all levels in the
-     * patch hierarchy, use \a coarsest_ln = \a finest_ln = \p -1.
-     *
-     * \note This function is used to save some unnecessary computations when
-     * the hierarchy is regridded.  The range of levels specified must include
-     * all levels which need to be reset by
-     * SAMRAI::mesh::StandardTagAndInitStrategy::resetHierarchyConfiguration().
-     * Any data residing outside of this range of levels will not be reset.
-     * This \b is \b not what you want to have happen if, for instance, the
-     * Poisson specifications changes.
-     */
-    void
-    setResetLevels(
-        int coarsest_ln,
-        int finest_ln);
-
-    /*!
-     * \brief Specify the ghost cell width for \em both the solution and the
-     * right-hand side patch data.
-     */
-    void
-    setGhostCellWidth(
-        const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
-
-    /*!
-     * \brief Specify the smoother type.
-     *
-     * Select from:
-     * - \c "additive"
-     * - \c "multiplicative"
-     *
-     * \note The smoother is always additive between processors ("processor
-     * block Gauss-Seidel").
-     */
-    void
-    setSmootherChoice(
-        const std::string& smoother_choice);
-
-    /*!
-     * \brief Specify the coarse level solver.
-     *
-     * Select from:
-     * - \c "block_jacobi"
-     */
-    void
-    setCoarsestLevelSolverChoice(
-        const std::string& coarse_solver_choice);
-
-    /*!
-     * \brief Set tolerance for coarse level solve.
-     *
-     * If the coarse level solver requires a tolerance, the specified value is
-     * used.
-     *
-     * \note This value is ignored if the bottom solver choice is
-     * "block_jacobi".
-     */
-    void
-    setCoarsestLevelSolverTolerance(
-        double coarse_solver_tol);
-
-    /*!
-     * \brief Set the maximum number of iterations for the coarsest level solve.
-     */
-    void
-    setCoarsestLevelSolverMaxIterations(
-        int coarse_solver_max_its);
-
-    /*!
-     * \brief Set the names of the prolongation methods.
-     */
-    void
-    setProlongationMethods(
-        const std::string& U_prolongation_method,
-        const std::string& P_prolongation_method);
-
-    /*!
-     * \brief Set the names of the restriction methods.
-     */
-    void
-    setRestrictionMethods(
-        const std::string& U_restriction_method,
-        const std::string& P_restriction_method);
-
-    //\}
-
-    ///
-    ///  The following routines:
-    ///
-    ///      setFACPreconditioner(),
-    ///      restrictResidual(),
-    ///      prolongError(),
-    ///      prolongErrorAndCorrect(),
-    ///      smoothError(),
-    ///      solveCoarsestLevel(),
-    ///      computeResidual(),
-    ///      initializeOperatorState(),
-    ///      deallocateOperatorState()
-    ///
-    ///  are concrete implementations of functions declared in the
-    ///  FACPreconditionerStrategy abstract base class.
-    ///
 
     /*!
      * \name Implementation of FACPreconditionerStrategy interface.
      */
     //\{
-
-    /*!
-     * \brief Set the FACPreconditioner object that is using this concrete
-     * FACPreconditionerStrategy object.
-     *
-     * \param preconditioner  Pointer to the FAC preconditioner that is using this concrete FAC strategy
-     */
-    void
-    setFACPreconditioner(
-        SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> preconditioner);
-
-    /*!
-     * \brief Restrict the residual quantity to the specified level from the
-     * next finer level.
-     *
-     * \param src source residual
-     * \param dst destination residual
-     * \param dst_ln destination level number
-     */
-    void
-    restrictResidual(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& src,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& dst,
-        int dst_ln);
-
-    /*!
-     * \brief Prolong the error quantity to the specified level from the next
-     * coarser level.
-     *
-     * \param src source error vector
-     * \param dst destination error vector
-     * \param dst_ln destination level number of data transfer
-     */
-    void
-    prolongError(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& src,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& dst,
-        int dst_ln);
-
-    /*!
-     * \brief Prolong the error quantity to the specified level from the next
-     * coarser level and apply the correction to the fine-level error.
-     *
-     * \param src source error vector
-     * \param dst destination error vector
-     * \param dst_ln destination level number of data transfer
-     */
-    void
-    prolongErrorAndCorrect(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& src,
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& dst,
-        int dst_ln);
 
     /*!
      * \brief Perform a given number of relaxations on the error.
@@ -361,36 +155,26 @@ public:
         int coarsest_level_num,
         int finest_level_num);
 
-    /*!
-     * \brief Compute hierarchy-dependent data.
-     *
-     * Note that although the vector arguments given to other methods in this
-     * class may not necessarily be the same as those given to this method,
-     * there will be similarities, including:
-     *
-     * - hierarchy configuration (hierarchy pointer and level range)
-     * - number, type and alignment of vector component data
-     * - ghost cell width of data in the solution (or solution-like) vector
-     *
-     * \param solution solution vector u
-     * \param rhs right hand side vector f
-     */
-    void
-    initializeOperatorState(
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs);
-
-    /*!
-     * \brief Remove all hierarchy-dependent data.
-     *
-     * Remove all hierarchy-dependent data set by initializeOperatorState().
-     *
-     * \see initializeOperatorState
-     */
-    void
-    deallocateOperatorState();
-
     //\}
+
+protected:
+    /*!
+     * \brief Compute implementation-specific hierarchy-dependent data.
+     */
+    void
+    initializeOperatorStateSpecialized(
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs,
+        int coarsest_reset_ln,
+        int finest_reset_ln);
+
+    /*!
+     * \brief Remove implementation-specific hierarchy-dependent data.
+     */
+    void
+    deallocateOperatorStateSpecialized(
+        int coarsest_reset_ln,
+        int finest_reset_ln);
 
 private:
     /*!
@@ -422,76 +206,19 @@ private:
     INSStaggeredBoxRelaxationFACOperator& operator=(
         const INSStaggeredBoxRelaxationFACOperator& that);
 
-    /*!
-     * \name For executing, caching and resetting communication schedules.
+    /*
+     * Problem coefficient specifications.
      */
-    //\{
-
-    /*!
-     * \brief Execute a refinement schedule for prolonging data.
-     */
-    void
-    xeqScheduleProlongation(
-        const std::pair<int,int>& dst_idxs,
-        const std::pair<int,int>& src_idxs,
-        int dst_ln);
-
-    /*!
-     * \brief Execute schedule for restricting solution or residual to the
-     * specified level.
-     */
-    void
-    xeqScheduleRestriction(
-        const std::pair<int,int>& dst_idxs,
-        const std::pair<int,int>& src_idxs,
-        int dst_ln);
-
-    /*!
-     * \brief Execute schedule for filling ghosts on the specified level.
-     */
-    void
-    xeqScheduleGhostFillNoCoarse(
-        const std::pair<int,int>& dst_idxs,
-        int dst_ln);
-
-    /*!
-     * \brief Execute schedule for synchronizing data on the specified level.
-     */
-    void
-    xeqScheduleSideDataSynch(
-        int dst_idx,
-        int dst_ln);
-
-    //\}
-
-    /*!
-     * \brief Check to make sure that all of the options make sense.
-     */
-    void
-    sanityCheck();
+    INSProblemCoefs d_problem_coefs;
 
     /*
-     * The object name is used for error reporting purposes.
-     *
-     * The boolean indicates whether this object has been initialized.
+     * \name Boundary condition handling objects.
      */
-    std::string d_object_name;
-    bool d_is_initialized;
+    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_U_bc_coef;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_bc_coefs;
 
-    /*!
-     * \name Hierarchy-dependent objects.
-     */
-    //\{
-
-    /*
-     * Solution and rhs vectors.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_solution, d_rhs;
-
-    /*
-     * Ghost cell width.
-     */
-    SAMRAI::hier::IntVector<NDIM> d_gcw;
+    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_P_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
 
     /*
      * Box operator data.
@@ -505,161 +232,6 @@ private:
      */
     std::vector<std::vector<blitz::TinyVector<SAMRAI::hier::BoxList<NDIM>,NDIM> > > d_patch_side_bc_box_overlap;
     std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
-    std::vector<std::vector<blitz::TinyVector<std::map<int,SAMRAI::hier::Box<NDIM> >,NDIM> > > d_patch_side_smoother_bc_boxes;
-    std::vector<std::vector<std::map<int,SAMRAI::hier::Box<NDIM> > > > d_patch_cell_smoother_bc_boxes;
-
-    /*
-     * Reference patch hierarchy and range of levels involved in the solve.
-     *
-     * This variable is non-null between the initializeOperatorState() and
-     * deallocateOperatorState() calls.  It is not truly needed, because the
-     * hierarchy is obtainable through variables in most function argument
-     * lists.  We use it to enforce working on one hierarchy at a time.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
-
-    /*
-     * Level operators, used to compute composite-grid residuals.
-     */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> > d_hier_bdry_fill_ops;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> > d_hier_math_ops;
-
-    /*
-     * Range of levels to be reset the next time the operator is initialized.
-     */
-    bool d_in_initialize_operator_state;
-    int d_coarsest_reset_ln, d_finest_reset_ln;
-
-    //\}
-
-    /*!
-     * \name Private state variables for solution process.
-     */
-    //\{
-
-    /*
-     * Problem coefficient specifications.
-     */
-    INSProblemCoefs d_problem_coefs;
-    double d_dt;
-
-    /*
-     * The kind of smoothing to perform.
-     */
-    std::string d_smoother_choice;
-
-    /*
-     * The names of the refinement operators used to prolong the coarse grid
-     * correction.
-     */
-    std::string d_U_prolongation_method, d_P_prolongation_method;
-
-    /*
-     * The names of the coarsening operators used to restrict the fine grid
-     * error or residual.
-     */
-    std::string d_U_restriction_method, d_P_restriction_method;
-
-    /*
-     * Pointer to the FACPreconditioner that is using this operator.
-     */
-    SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> d_preconditioner;
-
-    /*
-     * Coarse level solver parameters.
-     */
-    std::string d_coarse_solver_choice;
-    double d_coarse_solver_tol;
-    int d_coarse_solver_max_its;
-
-    //\}
-
-    /*!
-     * \name Internal context and scratch data.
-     */
-    //\{
-
-    /*
-     * Variable context for internally maintained hierarchy data.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-
-    /*
-     * Patch descriptor indices for scratch data.
-     */
-    int d_side_scratch_idx, d_cell_scratch_idx;
-
-    //\}
-
-    /*!
-     * \name Boundary condition handling objects.
-     */
-    //\{
-
-    SAMRAI::tbox::Pointer<IBTK::CartSideRobinPhysBdryOp> d_U_bc_op;
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_U_bc_coef;
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_bc_coefs;
-
-    SAMRAI::tbox::Pointer<IBTK::CartCellRobinPhysBdryOp> d_P_bc_op;
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_P_bc_coef;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
-
-    SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_U_P_bc_op;
-
-    double d_current_time, d_new_time;
-
-    //\}
-
-    /*!
-     * \name Various refine and coarsen objects.
-     */
-    //\{
-
-    /*
-     * Coarse-fine interface interpolation objects.
-     */
-    SAMRAI::tbox::Pointer<IBTK::CoarseFineBoundaryRefinePatchStrategy> d_U_cf_bdry_op;
-    SAMRAI::tbox::Pointer<IBTK::CoarseFineBoundaryRefinePatchStrategy> d_P_cf_bdry_op;
-
-    /*
-     * Variable fill pattern object.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_U_op_stencil_fill_pattern,  d_P_op_stencil_fill_pattern, d_U_synch_fill_pattern;
-
-    /*
-     * Error prolongation (refinement) operator.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_U_prolongation_refine_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_P_prolongation_refine_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_prolongation_refine_patch_strategy;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_prolongation_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_prolongation_refine_schedules;
-
-    /*
-     * Residual restriction (coarsening) operator.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_U_restriction_coarsen_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_P_restriction_coarsen_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_restriction_coarsen_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_restriction_coarsen_schedules;
-
-    /*
-     * Refine operator for side and cell data from same level.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_U_ghostfill_nocoarse_refine_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_P_ghostfill_nocoarse_refine_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_ghostfill_nocoarse_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_ghostfill_nocoarse_refine_schedules;
-
-    /*
-     * Operator for side data synchronization on same level.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_U_synch_refine_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_U_synch_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_U_synch_refine_schedules;
-
-    //\}
 };
 }// namespace IBTK
 

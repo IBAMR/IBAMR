@@ -49,23 +49,14 @@
 #include <ibamr/namespaces.h>
 
 // IBTK INCLUDES
-#include <ibtk/CartCellDoubleCubicCoarsen.h>
 #include <ibtk/CartCellDoubleQuadraticCFInterpolation.h>
-#include <ibtk/CartSideDoubleCubicCoarsen.h>
 #include <ibtk/CartSideDoubleQuadraticCFInterpolation.h>
 #include <ibtk/CellNoCornersFillPattern.h>
 #include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/NormOps.h>
-#include <ibtk/RefinePatchStrategySet.h>
 #include <ibtk/SideNoCornersFillPattern.h>
 #include <ibtk/SideSynchCopyFillPattern.h>
-#include <ibtk/compiler_hints.h>
-
-// SAMRAI INCLUDES
-#include <CartesianGridGeometry.h>
 
 // C++ STDLIB INCLUDES
-#include <algorithm>
 #include <limits>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -76,21 +67,8 @@ namespace IBAMR
 
 namespace
 {
-// Timers.
-static Timer* t_restrict_residual;
-static Timer* t_prolong_error;
-static Timer* t_prolong_error_and_correct;
-static Timer* t_smooth_error;
-static Timer* t_solve_coarsest_level;
-static Timer* t_compute_residual;
-static Timer* t_initialize_operator_state;
-static Timer* t_deallocate_operator_state;
-
 // Number of ghosts cells used for each variable quantity.
 static const int GHOSTS = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
-
-// Number of ghost cells used for box operator.
-static const int BOX_GHOSTS = 0;
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values; used only to evaluate composite grid
@@ -452,84 +430,19 @@ copyFromVec(
 INSStaggeredBoxRelaxationFACOperator::INSStaggeredBoxRelaxationFACOperator(
     const std::string& object_name,
     const Pointer<Database> input_db)
-    : d_object_name(object_name),
-      d_is_initialized(false),
-      d_solution(NULL),
-      d_rhs(NULL),
-      d_gcw(GHOSTS),
-      d_patch_side_bc_box_overlap(),
-      d_patch_cell_bc_box_overlap(),
-      d_patch_side_smoother_bc_boxes(),
-      d_patch_cell_smoother_bc_boxes(),
-      d_hierarchy(),
-      d_coarsest_ln(-1),
-      d_finest_ln(-1),
-      d_hier_bdry_fill_ops(),
-      d_hier_math_ops(),
-      d_in_initialize_operator_state(false),
-      d_coarsest_reset_ln(-1),
-      d_finest_reset_ln(-1),
+    : INSStaggeredFACPreconditionerStrategy(object_name, GHOSTS, input_db),
       d_problem_coefs(),
-      d_dt(std::numeric_limits<double>::quiet_NaN()),
-      d_smoother_choice("additive"),
-      d_U_prolongation_method("CONSTANT_REFINE"),
-      d_P_prolongation_method("LINEAR_REFINE"),
-      d_U_restriction_method("CONSERVATIVE_COARSEN"),
-      d_P_restriction_method("CONSERVATIVE_COARSEN"),
-      d_preconditioner(NULL),
-      d_coarse_solver_choice("block_jacobi"),
-      d_coarse_solver_tol(1.0e-6),
-      d_coarse_solver_max_its(10),
-      d_context(NULL),
-      d_side_scratch_idx(-1),
-      d_cell_scratch_idx(-1),
-      d_U_bc_op(NULL),
       d_default_U_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_U_bc_coef", Pointer<Database>(NULL))),
       d_U_bc_coefs(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(d_default_U_bc_coef)),
-      d_P_bc_op(NULL),
       d_default_P_bc_coef(new LocationIndexRobinBcCoefs<NDIM>(d_object_name+"::default_P_bc_coef", Pointer<Database>(NULL))),
       d_P_bc_coef(d_default_P_bc_coef),
-      d_current_time(0.0),
-      d_new_time(0.0),
-      d_U_cf_bdry_op(),
-      d_P_cf_bdry_op(),
-      d_U_op_stencil_fill_pattern(),
-      d_P_op_stencil_fill_pattern(),
-      d_U_synch_fill_pattern(),
-      d_U_prolongation_refine_operator(),
-      d_P_prolongation_refine_operator(),
-      d_prolongation_refine_patch_strategy(),
-      d_prolongation_refine_algorithm(),
-      d_prolongation_refine_schedules(),
-      d_U_restriction_coarsen_operator(),
-      d_P_restriction_coarsen_operator(),
-      d_restriction_coarsen_algorithm(),
-      d_restriction_coarsen_schedules(),
-      d_U_ghostfill_nocoarse_refine_operator(),
-      d_P_ghostfill_nocoarse_refine_operator(),
-      d_ghostfill_nocoarse_refine_algorithm(),
-      d_ghostfill_nocoarse_refine_schedules(),
-      d_U_synch_refine_operator(),
-      d_U_synch_refine_algorithm(),
-      d_U_synch_refine_schedules()
+      d_box_op(),
+      d_box_e(),
+      d_box_r(),
+      d_box_ksp(),
+      d_patch_side_bc_box_overlap(),
+      d_patch_cell_bc_box_overlap()
 {
-    // Get values from the input database.
-    if (!input_db.isNull())
-    {
-        d_smoother_choice = input_db->getStringWithDefault("smoother_choice", d_smoother_choice);
-        d_U_prolongation_method = input_db->getStringWithDefault("U_prolongation_method", d_U_prolongation_method);
-        d_P_prolongation_method = input_db->getStringWithDefault("P_prolongation_method", d_P_prolongation_method);
-        d_U_restriction_method = input_db->getStringWithDefault("U_restriction_method", d_U_restriction_method);
-        d_P_restriction_method = input_db->getStringWithDefault("P_restriction_method", d_P_restriction_method);
-        d_coarse_solver_choice = input_db->getStringWithDefault("coarse_solver_choice", d_coarse_solver_choice);
-        d_coarse_solver_tol = input_db->getDoubleWithDefault("coarse_solver_tolerance", d_coarse_solver_tol);
-        d_coarse_solver_max_its = input_db->getIntegerWithDefault("coarse_solver_max_iterations", d_coarse_solver_max_its);
-    }
-    sanityCheck();
-
-    // Create the hypre solver, if needed.
-    setCoarsestLevelSolverChoice(d_coarse_solver_choice);
-
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions for the velocity and homogeneous Neumann
     // boundary conditions for the pressure.
@@ -543,44 +456,6 @@ INSStaggeredBoxRelaxationFACOperator::INSStaggeredBoxRelaxationFACOperator(
 
     // Initialize the boundary conditions objects.
     setPhysicalBcCoefs(blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>(d_default_U_bc_coef),d_default_P_bc_coef);
-
-    // Setup scratch variables.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    d_context = var_db->getContext(d_object_name+"::CONTEXT");
-
-    const IntVector<NDIM> side_ghosts = d_gcw;
-    Pointer<SideVariable<NDIM,double> > side_scratch_var =
-        new SideVariable<NDIM,double>(d_object_name+"::side_scratch");
-    if (var_db->checkVariableExists(side_scratch_var->getName()))
-    {
-        side_scratch_var = var_db->getVariable(side_scratch_var->getName());
-        d_side_scratch_idx = var_db->mapVariableAndContextToIndex(side_scratch_var, d_context);
-        var_db->removePatchDataIndex(d_side_scratch_idx);
-    }
-    d_side_scratch_idx = var_db->registerVariableAndContext(side_scratch_var, d_context, side_ghosts);
-
-    const IntVector<NDIM> cell_ghosts = d_gcw;
-    Pointer<CellVariable<NDIM,double> > cell_scratch_var =
-        new CellVariable<NDIM,double>(d_object_name+"::cell_scratch");
-    if (var_db->checkVariableExists(cell_scratch_var->getName()))
-    {
-        cell_scratch_var = var_db->getVariable(cell_scratch_var->getName());
-        d_cell_scratch_idx = var_db->mapVariableAndContextToIndex(cell_scratch_var, d_context);
-        var_db->removePatchDataIndex(d_cell_scratch_idx);
-    }
-    d_cell_scratch_idx = var_db->registerVariableAndContext(cell_scratch_var, d_context, cell_ghosts);
-
-    // Setup Timers.
-    IBAMR_DO_ONCE(
-        t_restrict_residual         = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::restrictResidual()");
-        t_prolong_error             = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::prolongError()");
-        t_prolong_error_and_correct = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::prolongErrorAndCorrect()");
-        t_smooth_error              = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::smoothError()");
-        t_solve_coarsest_level      = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::solveCoarsestLevel()");
-        t_compute_residual          = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::computeResidual()");
-        t_initialize_operator_state = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->getTimer("INSStaggeredBoxRelaxationFACOperator::deallocateOperatorState()");
-                  );
     return;
 }// INSStaggeredBoxRelaxationFACOperator
 
@@ -629,288 +504,6 @@ INSStaggeredBoxRelaxationFACOperator::setPhysicalBcCoefs(
 }// setPhysicalBcCoefs
 
 void
-INSStaggeredBoxRelaxationFACOperator::setTimeInterval(
-    const double current_time,
-    const double new_time)
-{
-    d_current_time = current_time;
-    d_new_time = new_time;
-    d_dt = d_new_time-d_current_time;
-    return;
-}// setTimeInterval
-
-void
-INSStaggeredBoxRelaxationFACOperator::setResetLevels(
-    const int coarsest_ln,
-    const int finest_ln)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT((coarsest_ln == -1 && finest_ln == -1) ||
-                (coarsest_ln >=  0 && finest_ln >= coarsest_ln));
-#endif
-    if (d_is_initialized)
-    {
-        d_coarsest_reset_ln = coarsest_ln;
-        d_finest_reset_ln = finest_ln;
-    }
-    return;
-}// setResetLevels
-
-void
-INSStaggeredBoxRelaxationFACOperator::setGhostCellWidth(
-    const IntVector<NDIM>& ghost_cell_width)
-{
-    if (d_is_initialized)
-    {
-        TBOX_ERROR(d_object_name << "::setGhostCellWidth()\n"
-                   << "  cannot be called while operator state is initialized" << std::endl);
-    }
-    if (ghost_cell_width.min() == 0)
-    {
-        TBOX_ERROR(d_object_name << "::setGhostCellWidth()\n"
-                   << "  ghost_cell_width.min() must be greater than zero" << std::endl);
-    }
-    d_gcw = ghost_cell_width;
-    sanityCheck();
-
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > var;
-
-    var_db->mapIndexToVariable(d_side_scratch_idx, var);
-    Pointer<SideVariable<NDIM,double> > side_scratch_var = var;
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!side_scratch_var.isNull());
-#endif
-    var_db->removePatchDataIndex(d_side_scratch_idx);
-    const IntVector<NDIM> side_ghosts = d_gcw;
-    d_side_scratch_idx = var_db->registerVariableAndContext(side_scratch_var, d_context, side_ghosts);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    Pointer<SideDataFactory<NDIM,double> > side_scratch_pdat_fac = var_db->getPatchDescriptor()->getPatchDataFactory(d_side_scratch_idx);
-    TBOX_ASSERT(!side_scratch_pdat_fac.isNull());
-    TBOX_ASSERT(side_scratch_pdat_fac->getGhostCellWidth() == d_gcw);
-#endif
-
-    var_db->mapIndexToVariable(d_cell_scratch_idx, var);
-    Pointer<CellVariable<NDIM,double> > cell_scratch_var = var;
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!cell_scratch_var.isNull());
-#endif
-    var_db->removePatchDataIndex(d_cell_scratch_idx);
-    const IntVector<NDIM> cell_ghosts = d_gcw;
-    d_cell_scratch_idx = var_db->registerVariableAndContext(cell_scratch_var, d_context, cell_ghosts);
-#ifdef DEBUG_CHECK_ASSERTIONS
-    Pointer<CellDataFactory<NDIM,double> > cell_scratch_pdat_fac = var_db->getPatchDescriptor()->getPatchDataFactory(d_cell_scratch_idx);
-    TBOX_ASSERT(!cell_scratch_pdat_fac.isNull());
-    TBOX_ASSERT(cell_scratch_pdat_fac->getGhostCellWidth() == d_gcw);
-#endif
-    return;
-}// setGhostCellWidth
-
-void
-INSStaggeredBoxRelaxationFACOperator::setSmootherChoice(
-    const std::string& smoother_choice)
-{
-    if (d_is_initialized)
-    {
-        TBOX_ERROR(d_object_name << "::setSmootherChoice()\n"
-                   << "  cannot be called while operator state is initialized" << std::endl);
-    }
-    d_smoother_choice = smoother_choice;
-    sanityCheck();
-    return;
-}// setSmootherChoice
-
-void
-INSStaggeredBoxRelaxationFACOperator::setCoarsestLevelSolverChoice(
-    const std::string& coarse_solver_choice)
-{
-    d_coarse_solver_choice = coarse_solver_choice;
-    sanityCheck();
-    return;
-}// setCoarsestLevelSolverChoice
-
-void
-INSStaggeredBoxRelaxationFACOperator::setCoarsestLevelSolverTolerance(
-    double coarse_solver_tol)
-{
-    d_coarse_solver_tol = coarse_solver_tol;
-    sanityCheck();
-    return;
-}// setCoarsestLevelSolverTolerance
-
-void
-INSStaggeredBoxRelaxationFACOperator::setCoarsestLevelSolverMaxIterations(
-    int coarse_solver_max_its)
-{
-    d_coarse_solver_max_its = coarse_solver_max_its;
-    sanityCheck();
-    return;
-}// setCoarsestLevelSolverMaxIterations
-
-void
-INSStaggeredBoxRelaxationFACOperator::setProlongationMethods(
-    const std::string& U_prolongation_method,
-    const std::string& P_prolongation_method)
-{
-    if (d_is_initialized)
-    {
-        TBOX_ERROR(d_object_name << "::setProlongationMethods()\n"
-                   << "  cannot be called while operator state is initialized" << std::endl);
-    }
-    d_U_prolongation_method = U_prolongation_method;
-    d_P_prolongation_method = P_prolongation_method;
-    sanityCheck();
-    return;
-}// setProlongationMethods
-
-void
-INSStaggeredBoxRelaxationFACOperator::setRestrictionMethods(
-    const std::string& U_restriction_method,
-    const std::string& P_restriction_method)
-{
-    if (d_is_initialized)
-    {
-        TBOX_ERROR(d_object_name << "::setRestrictionMethods()\n"
-                   << "  cannot be called while operator state is initialized" << std::endl);
-    }
-    d_U_restriction_method = U_restriction_method;
-    d_P_restriction_method = P_restriction_method;
-    sanityCheck();
-    return;
-}// setRestrictionMethods
-
-///
-///  The following routines:
-///
-///      setFACPreconditioner(),
-///      restrictResidual(),
-///      prolongError(),
-///      prolongErrorAndCorrect(),
-///      smoothError(),
-///      solveCoarsestLevel(),
-///      computeResidual(),
-///      initializeOperatorState(),
-///      deallocateOperatorState()
-///
-///  are concrete implementations of functions declared in the
-///  FACPreconditionerStrategy abstract base class.
-///
-
-void
-INSStaggeredBoxRelaxationFACOperator::setFACPreconditioner(
-    ConstPointer<FACPreconditioner> preconditioner)
-{
-    if (d_is_initialized)
-    {
-        TBOX_ERROR(d_object_name << "::setFACPreconditioner()\n"
-                   << "  cannot be called while operator state is initialized" << std::endl);
-    }
-    d_preconditioner = preconditioner;
-    sanityCheck();
-    return;
-}// setFACPreconditioner
-
-void
-INSStaggeredBoxRelaxationFACOperator::restrictResidual(
-    const SAMRAIVectorReal<NDIM,double>& src,
-    SAMRAIVectorReal<NDIM,double>& dst,
-    int dst_ln)
-{
-    IBAMR_TIMER_START(t_restrict_residual);
-
-    const int U_src_idx = src.getComponentDescriptorIndex(0);
-    const int P_src_idx = src.getComponentDescriptorIndex(1);
-    const std::pair<int,int> src_idxs = std::make_pair(U_src_idx,P_src_idx);
-
-    const int U_dst_idx = dst.getComponentDescriptorIndex(0);
-    const int P_dst_idx = dst.getComponentDescriptorIndex(1);
-    const std::pair<int,int> dst_idxs = std::make_pair(U_dst_idx,P_dst_idx);
-
-    if (U_src_idx != U_dst_idx)
-    {
-        HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(d_hierarchy, dst_ln, dst_ln);
-        static const bool interior_only = false;
-        hier_sc_data_ops.copyData(U_dst_idx, U_src_idx, interior_only);
-    }
-
-    if (P_src_idx != P_dst_idx)
-    {
-        HierarchyCellDataOpsReal<NDIM,double> hier_sc_data_ops(d_hierarchy, dst_ln, dst_ln);
-        static const bool interior_only = false;
-        hier_sc_data_ops.copyData(P_dst_idx, P_src_idx, interior_only);
-    }
-
-    xeqScheduleRestriction(dst_idxs, src_idxs, dst_ln);
-
-    IBAMR_TIMER_STOP(t_restrict_residual);
-    return;
-}// restrictResidual
-
-void
-INSStaggeredBoxRelaxationFACOperator::prolongError(
-    const SAMRAIVectorReal<NDIM,double>& src,
-    SAMRAIVectorReal<NDIM,double>& dst,
-    int dst_ln)
-{
-    IBAMR_TIMER_START(t_prolong_error);
-
-    const int U_src_idx = src.getComponentDescriptorIndex(0);
-    const int P_src_idx = src.getComponentDescriptorIndex(1);
-    const std::pair<int,int> src_idxs = std::make_pair(U_src_idx,P_src_idx);
-
-    const int U_dst_idx = dst.getComponentDescriptorIndex(0);
-    const int P_dst_idx = dst.getComponentDescriptorIndex(1);
-    const std::pair<int,int> dst_idxs = std::make_pair(U_dst_idx,P_dst_idx);
-
-    // Refine the correction from the coarse level src data directly into the
-    // fine level error.
-    xeqScheduleProlongation(dst_idxs, src_idxs, dst_ln);
-
-    IBAMR_TIMER_STOP(t_prolong_error);
-    return;
-}// prolongError
-
-void
-INSStaggeredBoxRelaxationFACOperator::prolongErrorAndCorrect(
-    const SAMRAIVectorReal<NDIM,double>& src,
-    SAMRAIVectorReal<NDIM,double>& dst,
-    int dst_ln)
-{
-    IBAMR_TIMER_START(t_prolong_error_and_correct);
-
-    const int U_src_idx = src.getComponentDescriptorIndex(0);
-    const int P_src_idx = src.getComponentDescriptorIndex(1);
-    const std::pair<int,int> src_idxs = std::make_pair(U_src_idx,P_src_idx);
-
-    const int U_dst_idx = dst.getComponentDescriptorIndex(0);
-    const int P_dst_idx = dst.getComponentDescriptorIndex(1);
-
-    const std::pair<int,int> scratch_idxs = std::make_pair(d_side_scratch_idx,d_cell_scratch_idx);
-
-    // Prolong the correction from the coarse level src data into the fine level
-    // scratch data and then correct the fine level dst data.
-    static const bool interior_only = false;
-    if (U_src_idx != U_dst_idx)
-    {
-        HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops_coarse(d_hierarchy, dst_ln-1, dst_ln-1);
-        hier_sc_data_ops_coarse.add(U_dst_idx, U_dst_idx, U_src_idx, interior_only);
-    }
-    if (P_src_idx != P_dst_idx)
-    {
-        HierarchyCellDataOpsReal<NDIM,double> hier_sc_data_ops_coarse(d_hierarchy, dst_ln-1, dst_ln-1);
-        hier_sc_data_ops_coarse.add(P_dst_idx, P_dst_idx, P_src_idx, interior_only);
-    }
-    xeqScheduleProlongation(scratch_idxs, src_idxs, dst_ln);
-    HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops_fine(d_hierarchy, dst_ln, dst_ln);
-    hier_sc_data_ops_fine.add(U_dst_idx, U_dst_idx, d_side_scratch_idx, interior_only);
-    HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops_fine(d_hierarchy, dst_ln, dst_ln);
-    hier_cc_data_ops_fine.add(P_dst_idx, P_dst_idx, d_cell_scratch_idx, interior_only);
-
-    IBAMR_TIMER_STOP(t_prolong_error_and_correct);
-    return;
-}// prolongErrorAndCorrect
-
-void
 INSStaggeredBoxRelaxationFACOperator::smoothError(
     SAMRAIVectorReal<NDIM,double>& error,
     const SAMRAIVectorReal<NDIM,double>& residual,
@@ -921,8 +514,8 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
 {
     if (num_sweeps == 0) return;
 
-    IBAMR_TIMER_START(t_smooth_error);
-
+    int ierr;
+    const double dt = d_new_time-d_current_time;
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     const int U_error_idx = error.getComponentDescriptorIndex(0);
     const int P_error_idx = error.getComponentDescriptorIndex(1);
@@ -1061,77 +654,25 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
             TBOX_ASSERT(   P_error_data->getGhostCellWidth() == d_gcw);
             TBOX_ASSERT(P_residual_data->getGhostCellWidth() == d_gcw);
 #endif
-            // Copy updated values from other local patches.
-            if (d_smoother_choice == "multiplicative")
-            {
-                for (unsigned int axis = 0; axis < NDIM; ++axis)
-                {
-                    const std::map<int,Box<NDIM> > side_smoother_bc_boxes = d_patch_side_smoother_bc_boxes[level_num][patch_counter][axis];
-                    for (std::map<int,Box<NDIM> >::const_iterator cit = side_smoother_bc_boxes.begin();
-                         cit != side_smoother_bc_boxes.end(); ++cit)
-                    {
-                        const int src_patch_num = cit->first;
-                        const Box<NDIM>& overlap = cit->second;
-                        Pointer<Patch<NDIM> > src_patch = level->getPatch(src_patch_num);
-                        Pointer<SideData<NDIM,double> > src_U_error_data = error.getComponentPatchData(0, *src_patch);
-                        U_error_data->getArrayData(axis).copy(src_U_error_data->getArrayData(axis), overlap, IntVector<NDIM>(0));
-                    }
-                }
-
-                const std::map<int,Box<NDIM> > cell_smoother_bc_boxes = d_patch_cell_smoother_bc_boxes[level_num][patch_counter];
-                for (std::map<int,Box<NDIM> >::const_iterator cit = cell_smoother_bc_boxes.begin();
-                     cit != cell_smoother_bc_boxes.end(); ++cit)
-                {
-                    const int src_patch_num = cit->first;
-                    const Box<NDIM>& overlap = cit->second;
-                    Pointer<Patch<NDIM> > src_patch = level->getPatch(src_patch_num);
-                    Pointer<CellData<NDIM,double> > src_P_error_data = error.getComponentPatchData(1, *src_patch);
-                    P_error_data->getArrayData().copy(src_P_error_data->getArrayData(), overlap, IntVector<NDIM>(0));
-                }
-            }
-
             // Smooth the error on the patch.
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
-            if (BOX_GHOSTS == 0)
+            for (Box<NDIM>::Iterator b(patch_box); b; b++)
             {
-                // In this case, we must modify the righ-hand side to include
-                // boundary condition values.
-                for (Box<NDIM>::Iterator b(patch_box); b; b++)
-                {
-                    const Index<NDIM>& i = b();
-                    const Box<NDIM> box(i,i);
-                    copyToVec(e, *U_error_data, *P_error_data, box, box);
-                    copyToVec(r, *U_residual_data, *P_residual_data, box, box);
-                    modifyRhsForBcs(r, *U_error_data, *P_error_data, d_problem_coefs, d_dt, box, box, dx);
-                    int ierr = KSPSolve(ksp, r, e);  IBTK_CHKERRQ(ierr);
-                    copyFromVec(e, *U_error_data, *P_error_data, box, box);
-                }
-            }
-            else
-            {
-                // In this case, boundary condition values are handled
-                // implicitly by setting ghost values in the RHS vector.
-                for (Box<NDIM>::Iterator b(patch_box); b; b++)
-                {
-                    const Index<NDIM>& i = b();
-                    const Box<NDIM> box(i,i);
-                    const Box<NDIM> ghost_box = hier::Box<NDIM>::grow(box,BOX_GHOSTS);
-                    copyToVec(e, *U_error_data, *P_error_data, ghost_box, ghost_box);
-                    copyToVec(r, *U_error_data, *P_error_data, ghost_box, ghost_box);
-                    copyToVec(r, *U_residual_data, *P_residual_data, box, ghost_box);
-                    int ierr = KSPSolve(ksp, r, e);  IBTK_CHKERRQ(ierr);
-                    copyFromVec(e, *U_error_data, *P_error_data, box, ghost_box);
-                }
+                const Index<NDIM>& i = b();
+                const Box<NDIM> box(i,i);
+                copyToVec(e, *U_error_data, *P_error_data, box, box);
+                copyToVec(r, *U_residual_data, *P_residual_data, box, box);
+                modifyRhsForBcs(r, *U_error_data, *P_error_data, d_problem_coefs, dt, box, box, dx);
+                ierr = KSPSolve(ksp, r, e);  IBTK_CHKERRQ(ierr);
+                copyFromVec(e, *U_error_data, *P_error_data, box, box);
             }
         }
     }
 
     // Synchronize data along patch boundaries.
     xeqScheduleSideDataSynch(U_error_idx, level_num);
-
-    IBAMR_TIMER_STOP(t_smooth_error);
     return;
 }// smoothError
 
@@ -1141,15 +682,10 @@ INSStaggeredBoxRelaxationFACOperator::solveCoarsestLevel(
     const SAMRAIVectorReal<NDIM,double>& residual,
     int coarsest_ln)
 {
-    IBAMR_TIMER_START(t_solve_coarsest_level);
-
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(coarsest_ln == d_coarsest_ln);
 #endif
-
     smoothError(error, residual, coarsest_ln, d_coarse_solver_max_its, false, false);
-
-    IBAMR_TIMER_STOP(t_solve_coarsest_level);
     return true;
 }// solveCoarsestLevel
 
@@ -1161,8 +697,6 @@ INSStaggeredBoxRelaxationFACOperator::computeResidual(
     int coarsest_level_num,
     int finest_level_num)
 {
-    IBAMR_TIMER_START(t_compute_residual);
-
     const int U_res_idx = residual.getComponentDescriptorIndex(0);
     const int U_sol_idx = solution.getComponentDescriptorIndex(0);
     const int U_rhs_idx = rhs.getComponentDescriptorIndex(0);
@@ -1207,234 +741,50 @@ INSStaggeredBoxRelaxationFACOperator::computeResidual(
         stream << d_object_name << "::hier_math_ops_" << finest_level_num;
         d_hier_math_ops[finest_level_num] = new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
     }
-
     d_hier_math_ops[finest_level_num]->grad(U_res_idx, U_res_sc_var, /*cf_bdry_synch*/ true, 1.0, P_sol_idx, P_sol_cc_var, NULL, d_new_time);
     const double rho = d_problem_coefs.getRho();
     const double mu = d_problem_coefs.getMu();
     const double lambda = d_problem_coefs.getLambda();
+    const double dt = d_new_time-d_current_time;
     PoissonSpecifications helmholtz_spec("");
-    helmholtz_spec.setCConstant((rho/d_dt)+0.5*lambda);
-    helmholtz_spec.setDConstant(          -0.5*mu    );
+    helmholtz_spec.setCConstant((rho/dt)+0.5*lambda);
+    helmholtz_spec.setDConstant(        -0.5*mu    );
     d_hier_math_ops[finest_level_num]->laplace(U_res_idx, U_res_sc_var, helmholtz_spec, U_sol_idx, U_sol_sc_var, NULL, d_new_time, 1.0, U_res_idx, U_res_sc_var);
     HierarchySideDataOpsReal<NDIM,double> hier_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
     hier_sc_data_ops.axpy(U_res_idx, -1.0, U_res_idx, U_rhs_idx, false);
-
     d_hier_math_ops[finest_level_num]->div(P_res_idx, P_res_cc_var, -1.0, U_sol_idx, U_sol_sc_var, NULL, d_new_time, /*cf_bdry_synch*/ true);
     HierarchyCellDataOpsReal<NDIM,double> hier_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
     hier_cc_data_ops.axpy(P_res_idx, -1.0, P_res_idx, P_rhs_idx, false);
-
-    IBAMR_TIMER_STOP(t_compute_residual);
     return;
 }// computeResidual
 
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
 void
-INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
-    const SAMRAIVectorReal<NDIM,double>& solution,
-    const SAMRAIVectorReal<NDIM,double>& rhs)
+INSStaggeredBoxRelaxationFACOperator::initializeOperatorStateSpecialized(
+    const SAMRAIVectorReal<NDIM,double>& /*solution*/,
+    const SAMRAIVectorReal<NDIM,double>& /*rhs*/,
+    const int coarsest_reset_ln,
+    const int finest_reset_ln)
 {
-    IBAMR_TIMER_START(t_initialize_operator_state);
-
-    d_in_initialize_operator_state = true;
-
-    // Cache the level range to be reset.
-    //
-    // NOTE: We cannot use d_coarsest_reset_ln and d_finest_reset_ln since those
-    // values are reset by deallocateOperatorState().
-    const int coarsest_reset_ln =
-        (d_coarsest_reset_ln != -1 && d_finest_reset_ln != -1
-         ? d_coarsest_reset_ln
-         : solution.getCoarsestLevelNumber());
-    const int finest_reset_ln =
-        (d_coarsest_reset_ln != -1 && d_finest_reset_ln != -1
-         ? d_finest_reset_ln
-         : solution.getFinestLevelNumber());
-
-    // Deallocate the solver state if the solver is already initialized.
-    if (d_is_initialized) deallocateOperatorState();
-
-    // Setup solution and rhs vectors.
-    d_solution = solution.cloneVector(solution.getName());
-    d_solution->allocateVectorData();
-
-    d_rhs = rhs.cloneVector(rhs.getName());
-    d_rhs->allocateVectorData();
-
-    // Reset the hierarchy configuration.
-    d_hierarchy   = solution.getPatchHierarchy();
-    d_coarsest_ln = solution.getCoarsestLevelNumber();
-    d_finest_ln   = solution.getFinestLevelNumber();
-
-    // Setup level operators.
-    d_hier_bdry_fill_ops.resize(d_finest_ln+1, NULL);
-    d_hier_math_ops.resize(d_finest_ln+1, NULL);
-    for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
-    {
-        d_hier_bdry_fill_ops[ln].setNull();
-        d_hier_math_ops[ln].setNull();
-    }
-
-    // Allocate scratch data.
-    for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(d_side_scratch_idx)) level->allocatePatchData(d_side_scratch_idx);
-        if (!level->checkAllocated(d_cell_scratch_idx)) level->allocatePatchData(d_cell_scratch_idx);
-    }
-
-    // Get the transfer operators.
-    Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
-    IBAMR_DO_ONCE(
-        geometry->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen());
-        geometry->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen());
-                  );
-
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > var;
-
-    var_db->mapIndexToVariable(d_side_scratch_idx, var);
-    d_U_prolongation_refine_operator = geometry->lookupRefineOperator(var, d_U_prolongation_method);
-
-    d_U_cf_bdry_op = new CartSideDoubleQuadraticCFInterpolation();
-    d_U_cf_bdry_op->setConsistentInterpolationScheme(false);
-    d_U_cf_bdry_op->setPatchDataIndex(d_side_scratch_idx);
-    d_U_cf_bdry_op->setPatchHierarchy(d_hierarchy);
-
-    var_db->mapIndexToVariable(d_cell_scratch_idx, var);
-    d_P_prolongation_refine_operator = geometry->lookupRefineOperator(var, d_P_prolongation_method);
-
-    d_P_cf_bdry_op = new CartCellDoubleQuadraticCFInterpolation();
-    d_P_cf_bdry_op->setConsistentInterpolationScheme(false);
-    d_P_cf_bdry_op->setPatchDataIndex(d_cell_scratch_idx);
-    d_P_cf_bdry_op->setPatchHierarchy(d_hierarchy);
-
-    var_db->mapIndexToVariable(d_side_scratch_idx, var);
-    d_U_restriction_coarsen_operator = geometry->lookupCoarsenOperator(var, d_U_restriction_method);
-    var_db->mapIndexToVariable(d_cell_scratch_idx, var);
-    d_P_restriction_coarsen_operator = geometry->lookupCoarsenOperator(var, d_P_restriction_method);
-    d_U_ghostfill_nocoarse_refine_operator = NULL;
-    d_P_ghostfill_nocoarse_refine_operator = NULL;
-    d_U_synch_refine_operator = NULL;
-
-    // Make space for saving communication schedules.  There is no need to
-    // delete the old schedules first because we have deallocated the solver
-    // state above.
+    // Setup boundary condition handling objects.
     d_U_bc_op = new CartSideRobinPhysBdryOp(d_side_scratch_idx, d_U_bc_coefs, false);
     d_P_bc_op = new CartCellRobinPhysBdryOp(d_cell_scratch_idx, d_P_bc_coef , false);
-
+    d_U_cf_bdry_op = new CartSideDoubleQuadraticCFInterpolation();
+    d_P_cf_bdry_op = new CartCellDoubleQuadraticCFInterpolation();
     d_U_op_stencil_fill_pattern = new SideNoCornersFillPattern(GHOSTS, false, false, false);
     d_P_op_stencil_fill_pattern = new CellNoCornersFillPattern(GHOSTS, false, false, false);
     d_U_synch_fill_pattern = new SideSynchCopyFillPattern();
-
-    std::vector<RefinePatchStrategy<NDIM>*> prolongation_refine_patch_strategies;
-    prolongation_refine_patch_strategies.push_back(d_U_cf_bdry_op);
-    prolongation_refine_patch_strategies.push_back(d_P_cf_bdry_op);
-    prolongation_refine_patch_strategies.push_back(d_U_bc_op);
-    prolongation_refine_patch_strategies.push_back(d_P_bc_op);
-    d_prolongation_refine_patch_strategy = new RefinePatchStrategySet(
-        prolongation_refine_patch_strategies.begin(), prolongation_refine_patch_strategies.end(), false);
-
-    d_prolongation_refine_schedules.resize(d_finest_ln+1);
-    d_restriction_coarsen_schedules.resize(d_finest_ln+1);
-    d_ghostfill_nocoarse_refine_schedules.resize(d_finest_ln+1);
-    d_U_synch_refine_schedules.resize(d_finest_ln+1);
-
-    d_prolongation_refine_algorithm = new RefineAlgorithm<NDIM>();
-    d_restriction_coarsen_algorithm = new CoarsenAlgorithm<NDIM>();
-    d_ghostfill_nocoarse_refine_algorithm = new RefineAlgorithm<NDIM>();
-    d_U_synch_refine_algorithm = new RefineAlgorithm<NDIM>();
-
-    d_prolongation_refine_algorithm->registerRefine(
-        d_side_scratch_idx,
-        solution.getComponentDescriptorIndex(0),
-        d_side_scratch_idx,
-        d_U_prolongation_refine_operator,
-        d_U_op_stencil_fill_pattern);
-    d_prolongation_refine_algorithm->registerRefine(
-        d_cell_scratch_idx,
-        solution.getComponentDescriptorIndex(1),
-        d_cell_scratch_idx,
-        d_P_prolongation_refine_operator,
-        d_P_op_stencil_fill_pattern);
-
-    d_restriction_coarsen_algorithm->registerCoarsen(
-        d_side_scratch_idx,
-        rhs.getComponentDescriptorIndex(0),
-        d_U_restriction_coarsen_operator);
-    d_restriction_coarsen_algorithm->registerCoarsen(
-        d_cell_scratch_idx,
-        rhs.getComponentDescriptorIndex(1),
-        d_P_restriction_coarsen_operator);
-
-    d_ghostfill_nocoarse_refine_algorithm->registerRefine(
-        solution.getComponentDescriptorIndex(0),
-        solution.getComponentDescriptorIndex(0),
-        solution.getComponentDescriptorIndex(0),
-        d_U_ghostfill_nocoarse_refine_operator,
-        d_U_op_stencil_fill_pattern);
-    d_ghostfill_nocoarse_refine_algorithm->registerRefine(
-        solution.getComponentDescriptorIndex(1),
-        solution.getComponentDescriptorIndex(1),
-        solution.getComponentDescriptorIndex(1),
-        d_P_ghostfill_nocoarse_refine_operator,
-        d_P_op_stencil_fill_pattern);
-
-    d_U_synch_refine_algorithm->registerRefine(
-        solution.getComponentDescriptorIndex(0),
-        solution.getComponentDescriptorIndex(0),
-        solution.getComponentDescriptorIndex(0),
-        d_U_synch_refine_operator,
-        d_U_synch_fill_pattern);
-
-    std::vector<RefinePatchStrategy<NDIM>*> bc_op_ptrs(2);
-    bc_op_ptrs[0] = d_U_bc_op.getPointer();
-    bc_op_ptrs[1] = d_P_bc_op.getPointer();
-    d_U_P_bc_op = new RefinePatchStrategySet(bc_op_ptrs.begin(), bc_op_ptrs.end(), false);
-
-    for (int dst_ln = d_coarsest_ln+1; dst_ln <= d_finest_ln; ++dst_ln)
-    {
-        d_prolongation_refine_schedules[dst_ln] =
-            d_prolongation_refine_algorithm->createSchedule(
-                d_hierarchy->getPatchLevel(dst_ln),
-                Pointer<PatchLevel<NDIM> >(),
-                dst_ln-1, d_hierarchy, d_prolongation_refine_patch_strategy.getPointer());
-
-        d_ghostfill_nocoarse_refine_schedules[dst_ln] =
-            d_ghostfill_nocoarse_refine_algorithm->createSchedule(
-                d_hierarchy->getPatchLevel(dst_ln), d_U_P_bc_op);
-
-        d_U_synch_refine_schedules[dst_ln] =
-            d_U_synch_refine_algorithm->createSchedule(
-                d_hierarchy->getPatchLevel(dst_ln));
-    }
-
-    d_ghostfill_nocoarse_refine_schedules[d_coarsest_ln] =
-        d_ghostfill_nocoarse_refine_algorithm->createSchedule(
-            d_hierarchy->getPatchLevel(d_coarsest_ln), d_U_P_bc_op);
-
-    d_U_synch_refine_schedules[d_coarsest_ln] =
-        d_U_synch_refine_algorithm->createSchedule(
-            d_hierarchy->getPatchLevel(d_coarsest_ln));
-
-    for (int dst_ln = d_coarsest_ln; dst_ln < d_finest_ln; ++dst_ln)
-    {
-        d_restriction_coarsen_schedules[dst_ln] =
-            d_restriction_coarsen_algorithm->createSchedule(
-                d_hierarchy->getPatchLevel(dst_ln  ),
-                d_hierarchy->getPatchLevel(dst_ln+1));
-    }
 
     // Initialize the box relaxation data on each level of the patch hierarchy.
     d_box_op.resize(d_finest_ln+1);
     d_box_e.resize(d_finest_ln+1);
     d_box_r.resize(d_finest_ln+1);
     d_box_ksp.resize(d_finest_ln+1);
-
     const Box<NDIM> box(Index<NDIM>(0),Index<NDIM>(0));
-    const Box<NDIM> ghost_box = hier::Box<NDIM>::grow(box,BOX_GHOSTS);
-
+    Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
     const double* const dx_coarsest = geometry->getDx();
     blitz::TinyVector<double,NDIM> dx;
-
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
         const IntVector<NDIM>& ratio = d_hierarchy->getPatchLevel(ln)->getRatio();
@@ -1442,7 +792,8 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
         {
             dx[d] = dx_coarsest[d]/static_cast<double>(ratio(d));
         }
-        buildBoxOperator(d_box_op[ln], d_problem_coefs, d_dt, box, ghost_box, dx);
+        const double dt = d_new_time-d_current_time;
+        buildBoxOperator(d_box_op[ln], d_problem_coefs, dt, box, box, dx);
         int ierr;
         ierr = MatGetVecs(d_box_op[ln], &d_box_e[ln], &d_box_r[ln]);  IBTK_CHKERRQ(ierr);
         ierr = KSPCreate(PETSC_COMM_SELF, &d_box_ksp[ln]);  IBTK_CHKERRQ(ierr);
@@ -1460,10 +811,8 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_side_bc_box_overlap[ln].resize(num_local_patches);
-
         int patch_counter = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_counter)
         {
@@ -1498,333 +847,29 @@ INSStaggeredBoxRelaxationFACOperator::initializeOperatorState(
             d_patch_cell_bc_box_overlap[ln][patch_counter].removeIntersections(patch_box);
         }
     }
-
-    // Get overlap information for re-setting patch boundary conditions during
-    // multiplicative smoothing.
-    if (d_smoother_choice == "multiplicative")
-    {
-        d_patch_side_smoother_bc_boxes.resize(d_finest_ln+1);
-        for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-
-            const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
-            d_patch_side_smoother_bc_boxes[ln].resize(num_local_patches);
-
-            int patch_counter1 = 0;
-            for (PatchLevel<NDIM>::Iterator p1(level); p1; p1++, ++patch_counter1)
-            {
-                for (unsigned int axis = 0; axis < NDIM; ++axis)
-                {
-                    d_patch_side_smoother_bc_boxes[ln][patch_counter1][axis].clear();
-                }
-
-                Pointer<Patch<NDIM> > dst_patch = level->getPatch(p1());
-                const Box<NDIM>& dst_patch_box = dst_patch->getBox();
-                const Box<NDIM>& dst_ghost_box = Box<NDIM>::grow(dst_patch_box, 1);
-
-                int patch_counter2 = 0;
-                for (PatchLevel<NDIM>::Iterator p2(level); patch_counter2 < patch_counter1; p2++, ++patch_counter2)
-                {
-                    Pointer<Patch<NDIM> > src_patch = level->getPatch(p2());
-                    const Box<NDIM>& src_patch_box = src_patch->getBox();
-
-                    for (unsigned int axis = 0; axis < NDIM; ++axis)
-                    {
-                        const Box<NDIM> overlap =
-                            SideGeometry<NDIM>::toSideBox(dst_ghost_box,axis) *
-                            SideGeometry<NDIM>::toSideBox(src_patch_box,axis);
-                        if (!overlap.empty())
-                        {
-                            d_patch_side_smoother_bc_boxes[ln][patch_counter1][axis][p2()] = overlap;
-                        }
-                    }
-                }
-            }
-        }
-
-        d_patch_cell_smoother_bc_boxes.resize(d_finest_ln+1);
-        for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-
-            const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
-            d_patch_cell_smoother_bc_boxes[ln].resize(num_local_patches);
-
-            int patch_counter1 = 0;
-            for (PatchLevel<NDIM>::Iterator p1(level); p1; p1++, ++patch_counter1)
-            {
-                d_patch_cell_smoother_bc_boxes[ln][patch_counter1].clear();
-
-                Pointer<Patch<NDIM> > dst_patch = level->getPatch(p1());
-                const Box<NDIM>& dst_patch_box = dst_patch->getBox();
-                const Box<NDIM>& dst_ghost_box = Box<NDIM>::grow(dst_patch_box, 1);
-
-                int patch_counter2 = 0;
-                for (PatchLevel<NDIM>::Iterator p2(level); patch_counter2 < patch_counter1; p2++, ++patch_counter2)
-                {
-                    Pointer<Patch<NDIM> > src_patch = level->getPatch(p2());
-                    const Box<NDIM>& src_patch_box = src_patch->getBox();
-                    const Box<NDIM> overlap = dst_ghost_box * src_patch_box;
-                    if (!overlap.empty())
-                    {
-                        d_patch_cell_smoother_bc_boxes[ln][patch_counter1][p2()] = overlap;
-                    }
-                }
-            }
-        }
-    }
-    else
-    {
-        d_patch_side_smoother_bc_boxes.clear();
-        d_patch_cell_smoother_bc_boxes.clear();
-    }
-
-    // Indicate that the operator is initialized.
-    d_is_initialized = true;
-    d_in_initialize_operator_state = false;
-
-    IBAMR_TIMER_STOP(t_initialize_operator_state);
     return;
-}// initializeOperatorState
+}// initializeOperatorStateSpecialized
 
 void
-INSStaggeredBoxRelaxationFACOperator::deallocateOperatorState()
+INSStaggeredBoxRelaxationFACOperator::deallocateOperatorStateSpecialized(
+    const int coarsest_reset_ln,
+    const int finest_reset_ln)
 {
-    if (d_is_initialized && !d_in_initialize_operator_state &&
-        (d_coarsest_reset_ln != -1) && (d_finest_reset_ln != -1))
+    if (!d_is_initialized) return;
+    for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln,finest_reset_ln); ++ln)
     {
-        return;
+        int ierr;
+        ierr = MatDestroy(&d_box_op [ln]);  IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&d_box_e  [ln]);  IBTK_CHKERRQ(ierr);
+        ierr = VecDestroy(&d_box_r  [ln]);  IBTK_CHKERRQ(ierr);
+        ierr = KSPDestroy(&d_box_ksp[ln]);  IBTK_CHKERRQ(ierr);
+        d_patch_side_bc_box_overlap[ln].resize(0);
+        d_patch_cell_bc_box_overlap[ln].resize(0);
     }
-
-    IBAMR_TIMER_START(t_deallocate_operator_state);
-
-    if (d_is_initialized)
-    {
-        const int coarsest_reset_ln =
-            (d_in_initialize_operator_state &&
-             (d_coarsest_reset_ln != -1) && (d_finest_reset_ln != -1))
-            ? d_coarsest_reset_ln : d_coarsest_ln;
-        const int finest_reset_ln =
-            (d_in_initialize_operator_state &&
-             (d_coarsest_reset_ln != -1) && (d_finest_reset_ln != -1))
-            ? d_finest_reset_ln : d_finest_ln;
-
-        for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
-        {
-            if (ln <= d_hierarchy->getFinestLevelNumber())
-            {
-                Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-                if (level->checkAllocated(d_side_scratch_idx)) level->deallocatePatchData(d_side_scratch_idx);
-            }
-
-            int ierr;
-            ierr = MatDestroy(&d_box_op [ln]);  IBTK_CHKERRQ(ierr);
-            ierr = VecDestroy(&d_box_e  [ln]);  IBTK_CHKERRQ(ierr);
-            ierr = VecDestroy(&d_box_r  [ln]);  IBTK_CHKERRQ(ierr);
-            ierr = KSPDestroy(&d_box_ksp[ln]);  IBTK_CHKERRQ(ierr);
-        }
-
-        // Delete the solution and rhs vectors.
-        d_solution->resetLevels(d_solution->getCoarsestLevelNumber(), std::min(d_solution->getFinestLevelNumber(),d_hierarchy->getFinestLevelNumber()));
-        d_solution->freeVectorComponents();
-        d_solution.setNull();
-
-        d_rhs->resetLevels(d_rhs->getCoarsestLevelNumber(), std::min(d_rhs->getFinestLevelNumber(),d_hierarchy->getFinestLevelNumber()));
-        d_rhs->freeVectorComponents();
-        d_rhs.setNull();
-
-        if (!d_in_initialize_operator_state ||
-            (d_coarsest_reset_ln == -1) || (d_finest_reset_ln == -1))
-        {
-            d_patch_side_bc_box_overlap.resize(0);
-            d_patch_cell_bc_box_overlap.resize(0);
-            d_patch_side_smoother_bc_boxes.resize(0);
-            d_patch_cell_smoother_bc_boxes.resize(0);
-
-            d_hierarchy.setNull();
-            d_coarsest_ln = -1;
-            d_finest_ln   = -1;
-
-            d_hier_bdry_fill_ops.clear();
-            d_hier_math_ops.clear();
-
-            d_U_prolongation_refine_operator    .setNull();
-            d_U_cf_bdry_op                      .setNull();
-            d_prolongation_refine_patch_strategy.setNull();
-            d_prolongation_refine_algorithm     .setNull();
-            d_prolongation_refine_schedules     .resize(0);
-
-            d_U_restriction_coarsen_operator.setNull();
-            d_restriction_coarsen_algorithm .setNull();
-            d_restriction_coarsen_schedules .resize(0);
-
-            d_U_ghostfill_nocoarse_refine_operator.setNull();
-            d_ghostfill_nocoarse_refine_algorithm .setNull();
-            d_ghostfill_nocoarse_refine_schedules .resize(0);
-
-            d_U_synch_refine_operator .setNull();
-            d_U_synch_refine_algorithm.setNull();
-            d_U_synch_refine_schedules.resize(0);
-        }
-
-        delete d_U_P_bc_op;
-    }
-
-    // Clear the "reset level" range.
-    d_coarsest_reset_ln = -1;
-    d_finest_reset_ln   = -1;
-
-    // Indicate that the operator is not initialized.
-    d_is_initialized = false;
-
-    IBAMR_TIMER_STOP(t_deallocate_operator_state);
     return;
-}// deallocateOperatorState
-
-/////////////////////////////// PROTECTED ////////////////////////////////////
+}// deallocateOperatorStateSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
-
-void
-INSStaggeredBoxRelaxationFACOperator::xeqScheduleProlongation(
-    const std::pair<int,int>& dst_idxs,
-    const std::pair<int,int>& src_idxs,
-    const int dst_ln)
-{
-    const int U_dst_idx = dst_idxs.first;
-    const int U_src_idx = src_idxs.first;
-    d_U_bc_op->setPatchDataIndex(U_dst_idx);
-    d_U_bc_op->setPhysicalBcCoefs(d_U_bc_coefs);
-    d_U_bc_op->setHomogeneousBc(true);
-    d_U_cf_bdry_op->setPatchDataIndex(U_dst_idx);
-
-    const int P_dst_idx = dst_idxs.second;
-    const int P_src_idx = src_idxs.second;
-    d_P_bc_op->setPatchDataIndex(P_dst_idx);
-    d_P_bc_op->setPhysicalBcCoef(d_P_bc_coef);
-    d_P_bc_op->setHomogeneousBc(true);
-    d_P_cf_bdry_op->setPatchDataIndex(P_dst_idx);
-
-    RefineAlgorithm<NDIM> refiner;
-    refiner.registerRefine(U_dst_idx, U_src_idx, U_dst_idx, d_U_prolongation_refine_operator, d_U_op_stencil_fill_pattern);
-    refiner.registerRefine(P_dst_idx, P_src_idx, P_dst_idx, d_P_prolongation_refine_operator, d_P_op_stencil_fill_pattern);
-    refiner.resetSchedule(d_prolongation_refine_schedules[dst_ln]);
-    d_prolongation_refine_schedules[dst_ln]->fillData(d_new_time);
-    d_prolongation_refine_algorithm->resetSchedule(d_prolongation_refine_schedules[dst_ln]);
-    return;
-}// xeqScheduleProlongation
-
-void
-INSStaggeredBoxRelaxationFACOperator::xeqScheduleRestriction(
-    const std::pair<int,int>& dst_idxs,
-    const std::pair<int,int>& src_idxs,
-    const int dst_ln)
-{
-    const int U_dst_idx = dst_idxs.first;
-    const int U_src_idx = src_idxs.first;
-
-    const int P_dst_idx = dst_idxs.second;
-    const int P_src_idx = src_idxs.second;
-
-    CoarsenAlgorithm<NDIM> coarsener;
-    coarsener.registerCoarsen(U_dst_idx, U_src_idx, d_U_restriction_coarsen_operator);
-    coarsener.registerCoarsen(P_dst_idx, P_src_idx, d_P_restriction_coarsen_operator);
-    coarsener.resetSchedule(d_restriction_coarsen_schedules[dst_ln]);
-    d_restriction_coarsen_schedules[dst_ln]->coarsenData();
-    d_restriction_coarsen_algorithm->resetSchedule(d_restriction_coarsen_schedules[dst_ln]);
-    return;
-}// xeqScheduleRestriction
-
-void
-INSStaggeredBoxRelaxationFACOperator::xeqScheduleGhostFillNoCoarse(
-    const std::pair<int,int>& dst_idxs,
-    const int dst_ln)
-{
-    const int U_dst_idx = dst_idxs.first;
-    d_U_bc_op->setPatchDataIndex(U_dst_idx);
-    d_U_bc_op->setPhysicalBcCoefs(d_U_bc_coefs);
-    d_U_bc_op->setHomogeneousBc(true);
-
-    const int P_dst_idx = dst_idxs.second;
-    d_P_bc_op->setPatchDataIndex(P_dst_idx);
-    d_P_bc_op->setPhysicalBcCoef(d_P_bc_coef);
-    d_P_bc_op->setHomogeneousBc(true);
-
-    RefineAlgorithm<NDIM> refiner;
-    refiner.registerRefine(U_dst_idx, U_dst_idx, U_dst_idx, d_U_ghostfill_nocoarse_refine_operator, d_U_op_stencil_fill_pattern);
-    refiner.registerRefine(P_dst_idx, P_dst_idx, P_dst_idx, d_P_ghostfill_nocoarse_refine_operator, d_P_op_stencil_fill_pattern);
-    refiner.resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
-    d_ghostfill_nocoarse_refine_schedules[dst_ln]->fillData(d_new_time);
-    d_ghostfill_nocoarse_refine_algorithm->resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
-    return;
-}// xeqScheduleGhostFillNoCoarse
-
-void
-INSStaggeredBoxRelaxationFACOperator::xeqScheduleSideDataSynch(
-    const int U_dst_idx,
-    const int dst_ln)
-{
-    RefineAlgorithm<NDIM> refiner;
-    refiner.registerRefine(U_dst_idx, U_dst_idx, U_dst_idx, d_U_synch_refine_operator, d_U_synch_fill_pattern);
-    refiner.resetSchedule(d_U_synch_refine_schedules[dst_ln]);
-    d_U_synch_refine_schedules[dst_ln]->fillData(d_new_time);
-    d_U_synch_refine_algorithm->resetSchedule(d_U_synch_refine_schedules[dst_ln]);
-    return;
-}// xeqScheduleSideDataSynch
-
-void
-INSStaggeredBoxRelaxationFACOperator::sanityCheck()
-{
-    if (d_gcw.min() <= 0)
-    {
-        TBOX_ERROR(d_object_name << ":\n"
-                   << "  ghost_cell_width.min() must be greater than zero" << std::endl);
-    }
-
-    if (d_smoother_choice != "additive")
-    {
-        TBOX_ERROR(d_object_name << ":\n"
-                   << "  unknown smoother type: " << d_smoother_choice << "\n"
-                   << "  valid choices are: additive" << std::endl);
-    }
-
-    if (d_coarse_solver_choice != "block_jacobi" &&
-        d_coarse_solver_choice != "hypre")
-    {
-        TBOX_ERROR(d_object_name << ":\n"
-                   << "  unknown coarse solver type: " << d_coarse_solver_choice << "\n"
-                   << "  valid choices are: block_jacobi, hypre" << std::endl);
-    }
-
-    if (d_coarse_solver_tol < 0.0)
-    {
-        TBOX_ERROR(d_object_name << ":\n"
-                   << "  invalid coarse solver tolerance: " << d_coarse_solver_tol << std::endl);
-    }
-
-    if (d_coarse_solver_max_its <= 0)
-    {
-        TBOX_ERROR(d_object_name << ":\n"
-                   << "  invalid coarse solver maximum iterations: " << d_coarse_solver_max_its << std::endl);
-    }
-
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        if (d_U_bc_coefs[d] == NULL)
-        {
-            TBOX_ERROR(d_object_name << ":\n"
-                       << "  invalid velocity physical bc object at depth = " << d << std::endl);
-        }
-    }
-
-    if (d_P_bc_coef == NULL)
-    {
-        TBOX_ERROR(d_object_name << ":\n"
-                   << "  invalid pressure physical bc object" << std::endl);
-    }
-    return;
-}// sanityCheck
 
 //////////////////////////////////////////////////////////////////////////////
 

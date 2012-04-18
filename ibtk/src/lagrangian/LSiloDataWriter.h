@@ -231,15 +231,6 @@ public:
         int time_step_number,
         double simulation_time);
 
-    ///
-    ///  The following routines:
-    ///
-    ///      putToDatabase()
-    ///
-    ///  are concrete implementations of functions declared in the
-    ///  SAMRAI::tbox::Serializable abstract base class.
-    ///
-
     /*!
      * Write out object state to the given database.
      *

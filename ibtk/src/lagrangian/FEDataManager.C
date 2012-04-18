@@ -1701,17 +1701,6 @@ FEDataManager::updateWorkloadEstimates(
     return;
 }// updateWorkloadEstimates
 
-///
-///  The following routines:
-///
-///      initializeLevelData(),
-///      resetHierarchyConfiguration(),
-///      applyGradientDetector()
-///
-///  are concrete implementations of functions declared in the
-///  StandardTagAndInitStrategy<NDIM> abstract base class.
-///
-
 void
 FEDataManager::initializeLevelData(
     const Pointer<BasePatchHierarchy<NDIM> > hierarchy,

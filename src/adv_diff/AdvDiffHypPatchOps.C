@@ -149,16 +149,6 @@ AdvDiffHypPatchOps::getName() const
     return AdvectHypPatchOps::getName();
 }// getName
 
-///
-///  The following routines:
-///
-///      conservativeDifferenceOnPatch(),
-///      preprocessAdvanceLevelState(),
-///      postprocessAdvanceLevelState()
-///
-///  are redefined from the AdvectHypPatchOps base class.
-///
-
 void
 AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
     Patch<NDIM>& patch,

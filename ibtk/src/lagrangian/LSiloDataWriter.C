@@ -1989,15 +1989,6 @@ LSiloDataWriter::writePlotData(
     return;
 }// writePlotData
 
-///
-///  The following routines:
-///
-///      putToDatabase()
-///
-///  are concrete implementations of functions declared in the
-///  Serializable abstract base class.
-///
-
 void
 LSiloDataWriter::putToDatabase(
     Pointer<Database> db)

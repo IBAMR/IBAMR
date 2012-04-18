@@ -1803,17 +1803,6 @@ LDataManager::updateNodeCountData(
     return;
 }// updateNodeCountData
 
-///
-///  The following routines:
-///
-///      initializeLevelData(),
-///      resetHierarchyConfiguration(),
-///      applyGradientDetector()
-///
-///  are concrete implementations of functions declared in the
-///  StandardTagAndInitStrategy<NDIM> abstract base class.
-///
-
 void
 LDataManager::initializeLevelData(
     const Pointer<BasePatchHierarchy<NDIM> > hierarchy,

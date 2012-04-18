@@ -414,22 +414,6 @@ AdvectHypPatchOps::setPhysicalBcCoefs(
     return;
 }// setPhysicalBcCoefs
 
-///
-///  The following routines:
-///
-///      registerModelVariables(),
-///      initializeDataOnPatch(),
-///      computeStableDtOnPatch(),
-///      computeFluxesOnPatch(),
-///      conservativeDifferenceOnPatch(),
-///      preprocessAdvanceLevelState(),
-///      postprocessAdvanceLevelState(),
-///      tagGradientDetectorCells()
-///
-///  are concrete implementations of functions declared in the
-///  HyperbolicPatchStrategy abstract base class.
-///
-
 void
 AdvectHypPatchOps::registerModelVariables(
     HyperbolicLevelIntegrator<NDIM>* integrator)
@@ -1104,15 +1088,6 @@ AdvectHypPatchOps::tagGradientDetectorCells(
     return;
 }// tagGradientDetectorCells
 
-///
-///  The following routine:
-///
-///      setPhysicalBoundaryConditions()
-///
-///  is a concrete implementations of functions declared in the
-///  RefinePatchStrategy abstract base class.
-///
-
 void
 AdvectHypPatchOps::setPhysicalBoundaryConditions(
     Patch<NDIM>& patch,
@@ -1155,15 +1130,6 @@ AdvectHypPatchOps::setPhysicalBoundaryConditions(
     d_extrap_bc_helper.setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
     return;
 }// setPhysicalBoundaryConditions
-
-///
-///  The following routines:
-///
-///      putToDatabase()
-///
-///  are concrete implementations of functions declared in the
-///  Serializable abstract base class.
-///
 
 void
 AdvectHypPatchOps::putToDatabase(

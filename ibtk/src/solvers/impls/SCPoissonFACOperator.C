@@ -453,23 +453,6 @@ SCPoissonFACOperator::setRestrictionMethod(
     return;
 }// setRestrictionMethod
 
-///
-///  The following routines:
-///
-///      setFACPreconditioner(),
-///      restrictResidual(),
-///      prolongError(),
-///      prolongErrorAndCorrect(),
-///      smoothError(),
-///      solveCoarsestLevel(),
-///      computeResidual(),
-///      initializeOperatorState(),
-///      deallocateOperatorState()
-///
-///  are concrete implementations of functions declared in the
-///  FACOperatorStrategy abstract base class.
-///
-
 void
 SCPoissonFACOperator::setFACPreconditioner(
     ConstPointer<FACPreconditioner> preconditioner)

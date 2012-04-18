@@ -268,23 +268,6 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coef);
 
-    ///
-    ///  The following routines:
-    ///
-    ///      registerModelVariables(),
-    ///      initializeDataOnPatch(),
-    ///      computeStableDtOnPatch(),
-    ///      computeFluxesOnPatch(),
-    ///      conservativeDifferenceOnPatch(),
-    ///      preprocessAdvanceLevelState(),
-    ///      postprocessAdvanceLevelState(),
-    ///      tagGradientDetectorCells(),
-    ///      tagRichardsonExtrapolationCells()
-    ///
-    ///  are concrete implementations of functions declared in the
-    ///  SAMRAI::algs::HyperbolicPatchStrategy abstract base class.
-    ///
-
     /*!
      * \brief Register AdvectHypPatchOps model variables with the
      * SAMRAI::algs::HyperbolicLevelIntegrator according to the variable
@@ -396,15 +379,6 @@ public:
         int tag_indexindx,
         bool uses_richardson_extrapolation_too);
 
-    ///
-    ///  The following routine:
-    ///
-    ///      setPhysicalBoundaryConditions()
-    ///
-    ///  is a concrete implementations of functions declared in the
-    ///  xfer::RefinePatchStrategy abstract base class.
-    ///
-
     /*!
      * \brief Set the data in ghost cells corresponding to physical boundary
      * conditions.
@@ -414,15 +388,6 @@ public:
         SAMRAI::hier::Patch<NDIM>& patch,
         double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill);
-
-    ///
-    ///  The following routines:
-    ///
-    ///      putToDatabase()
-    ///
-    ///  are concrete implementations of functions declared in the
-    ///  SAMRAI::tbox::Serializable abstract base class.
-    ///
 
     /*!
      * \brief Write state of AdvectHypPatchOps object to the given database for

@@ -93,16 +93,6 @@ public:
     const std::string&
     getName() const;
 
-    ///
-    ///  The following routines:
-    ///
-    ///      conservativeDifferenceOnPatch(),
-    ///      preprocessAdvanceLevelState(),
-    ///      postprocessAdvanceLevelState()
-    ///
-    ///  are redefined from the AdvectHypPatchOps base class.
-    ///
-
     /*!
      * Update solution variables by performing a conservative difference using
      * the fluxes calculated in computeFluxesOnPatch().

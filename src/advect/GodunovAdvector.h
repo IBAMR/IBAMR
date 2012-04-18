@@ -116,21 +116,6 @@ public:
     const std::string&
     getName() const;
 
-    ///
-    ///  The following routines:
-    ///
-    ///      computeStableDtOnPatch(),
-    ///      computeAdvectiveDerivative()
-    ///      computeFlux(),
-    ///      predictValue(),
-    ///      predictValueWithSourceTerm(),
-    ///      predictNormalVelocity(),
-    ///      predictNormalVelocityWithSourceTerm()
-    ///
-    ///  provide the explicit predictors required to solve the advection
-    ///  equation using a predictor-corrector methodology.
-    ///
-
     /*!
      * \brief Compute the maximum stable time increment for the patch.
      *
@@ -312,15 +297,6 @@ public:
         const SAMRAI::pdat::FaceData<NDIM,double>& u_ADV,
         const SAMRAI::pdat::FaceData<NDIM,double>& grad_phi,
         const SAMRAI::hier::Patch<NDIM>& patch) const;
-
-    ///
-    ///  The following routines:
-    ///
-    ///      putToDatabase()
-    ///
-    ///  are concrete implementations of functions declared in the
-    ///  SAMRAI::tbox::Serializable abstract base class.
-    ///
 
     /*!
      * \brief Write state of GodunovAdvector object to the given database for

@@ -50,7 +50,6 @@
 #include <CoarsenAlgorithm.h>
 #include <LocationIndexRobinBcCoefs.h>
 #include <RefineAlgorithm.h>
-#include <tbox/ConstPointer.h>
 
 // BLITZ++ INCLUDES
 #include <blitz/tinyvec.h>
@@ -285,23 +284,6 @@ public:
         const std::string& restriction_method);
 
     //\}
-
-    ///
-    ///  The following routines:
-    ///
-    ///      setFACPreconditioner(),
-    ///      restrictResidual(),
-    ///      prolongError(),
-    ///      prolongErrorAndCorrect(),
-    ///      smoothError(),
-    ///      solveCoarsestLevel(),
-    ///      computeResidual(),
-    ///      initializeOperatorState(),
-    ///      deallocateOperatorState()
-    ///
-    ///  are concrete implementations of functions declared in the
-    ///  FACPreconditionerStrategy abstract base class.
-    ///
 
     /*!
      * \name Implementation of FACPreconditionerStrategy interface.

@@ -366,17 +366,6 @@ public:
         int coarsest_ln=-1,
         int finest_ln=-1);
 
-    ///
-    ///  The following routines:
-    ///
-    ///      initializeLevelData(),
-    ///      resetHierarchyConfiguration(),
-    ///      applyGradientDetector()
-    ///
-    ///  are concrete implementations of functions declared in the
-    ///  SAMRAI::mesh::StandardTagAndInitStrategy abstract base class.
-    ///
-
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
      * hierarchy by the gridding algorithm.  The level number indicates that of
@@ -459,15 +448,6 @@ public:
         int tag_index,
         bool initial_time,
         bool uses_richardson_extrapolation_too);
-
-    ///
-    ///  The following routines:
-    ///
-    ///      putToDatabase()
-    ///
-    ///  are concrete implementations of functions declared in the
-    ///  SAMRAI::tbox::Serializable abstract base class.
-    ///
 
     /*!
      * Write out object state to the given database.
