@@ -95,6 +95,11 @@ namespace blitz
 }
 using namespace blitz;
 
+namespace libMesh
+{
+}
+using namespace libMesh;
+
 namespace std
 {
 }
