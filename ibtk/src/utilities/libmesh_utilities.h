@@ -54,7 +54,6 @@
 #include <vector_value.h>
 
 // SAMRAI INCLUDES
-#include <tbox/SAMRAI_MPI.h>
 #include <tbox/Utilities.h>
 
 /////////////////////////////// FUNCTION DEFINITIONS /////////////////////////
