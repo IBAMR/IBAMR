@@ -66,6 +66,7 @@ using namespace libMesh;
 
 // SAMRAI INCLUDES
 #include <tbox/RestartManager.h>
+#include <tbox/SAMRAI_MPI.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
