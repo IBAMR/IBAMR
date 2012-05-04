@@ -71,6 +71,26 @@ namespace
 {
 // Version of IBFEMethod restart file data.
 static const int IBFE_METHOD_VERSION = 1;
+
+inline
+short int
+get_dirichlet_bdry_ids(
+    const std::vector<short int>& bdry_ids)
+{
+    short int dirichlet_bdry_ids = 0;
+    for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
+    {
+        const short int bdry_id = *cit;
+        if      (bdry_id == FEDataManager::DIRICHLET_X_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_X_BDRY_ID;
+        else if (bdry_id == FEDataManager::DIRICHLET_Y_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_Y_BDRY_ID;
+        else if (bdry_id == FEDataManager::DIRICHLET_Z_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_Z_BDRY_ID;
+        else if (bdry_id == FEDataManager::DIRICHLET_XY_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_XY_BDRY_ID;
+        else if (bdry_id == FEDataManager::DIRICHLET_XZ_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_XZ_BDRY_ID;
+        else if (bdry_id == FEDataManager::DIRICHLET_YZ_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_YZ_BDRY_ID;
+        else if (bdry_id == FEDataManager::DIRICHLET_XYZ_BDRY_ID) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_XYZ_BDRY_ID;
+    }
+    return dirichlet_bdry_ids;
+}// get_dirichlet_bdry_ids
 }
 
 const std::string IBFEMethod::       COORDS_SYSTEM_NAME = "IB coordinates system";
@@ -533,29 +553,27 @@ IBFEMethod::initializeFEData()
                 const bool at_mesh_bdry = elem->neighbor(side) == NULL;
                 if (!at_mesh_bdry) continue;
 
-                const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
-                const bool at_dirichlet_bdry = std::find(bdry_ids.begin(), bdry_ids.end(), FEDataManager::DIRICHLET_BDRY_ID) != bdry_ids.end();
-                if (!at_dirichlet_bdry) continue;
+                static const short int dirichlet_bdry_id_set[3] = { FEDataManager::DIRICHLET_X_BDRY_ID , FEDataManager::DIRICHLET_Y_BDRY_ID , FEDataManager::DIRICHLET_Z_BDRY_ID };
+                const short int dirichlet_bdry_ids = get_dirichlet_bdry_ids(mesh.boundary_info->boundary_ids(elem, side));
+                if (!dirichlet_bdry_ids) continue;
 
                 for (unsigned int n = 0; n < elem->n_nodes(); ++n)
                 {
                     if (!elem->is_node_on_side(n, side)) continue;
 
                     Node* node = elem->get_node(n);
-                    mesh.boundary_info->add_node(node, FEDataManager::DIRICHLET_BDRY_ID);
-                    if (node->n_dofs(F_sys_num) > 0)
+                    mesh.boundary_info->add_node(node, dirichlet_bdry_ids);
+                    for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        for (unsigned int d = 0; d < NDIM; ++d)
+                        if (!(dirichlet_bdry_ids | dirichlet_bdry_id_set[d])) continue;
+                        if (node->n_dofs(F_sys_num) > 0)
                         {
                             const int F_dof_index = node->dof_number(F_sys_num,d,0);
                             DofConstraintRow F_constraint_row;
                             F_constraint_row[F_dof_index] = 1.0;
                             F_dof_map.add_constraint_row(F_dof_index, F_constraint_row, 0.0, false);
                         }
-                    }
-                    if (node->n_dofs(U_sys_num) > 0)
-                    {
-                        for (unsigned int d = 0; d < NDIM; ++d)
+                        if (node->n_dofs(U_sys_num) > 0)
                         {
                             const int U_dof_index = node->dof_number(U_sys_num,d,0);
                             DofConstraintRow U_constraint_row;
@@ -1031,14 +1049,12 @@ IBFEMethod::computeInteriorForceDensity(
             // Determine whether we are at a physical boundary and, if so,
             // whether it is a Dirichlet boundary.
             bool at_physical_bdry = elem->neighbor(side) == NULL;
-            bool at_dirichlet_bdry = false;
             const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
             for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
             {
-                const short int bdry_id = *cit;
-                at_physical_bdry  = at_physical_bdry  && !dof_map.is_periodic_boundary(bdry_id);
-                at_dirichlet_bdry = at_dirichlet_bdry || (bdry_id == FEDataManager::DIRICHLET_BDRY_ID);
+                at_physical_bdry = at_physical_bdry && !dof_map.is_periodic_boundary(*cit);
             }
+            const bool at_dirichlet_bdry = get_dirichlet_bdry_ids(bdry_ids) != 0;
 
             // Skip non-physical boundaries.
             if (!at_physical_bdry) continue;
@@ -1266,8 +1282,7 @@ IBFEMethod::spreadTransmissionForceDensity(
                 const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
                 for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
                 {
-                    const short int bdry_id = *cit;
-                    at_physical_bdry  = at_physical_bdry  && !dof_map.is_periodic_boundary(bdry_id);
+                    at_physical_bdry = at_physical_bdry && !dof_map.is_periodic_boundary(*cit);
                 }
                 has_physical_boundaries = has_physical_boundaries || at_physical_bdry;
             }
@@ -1291,14 +1306,12 @@ IBFEMethod::spreadTransmissionForceDensity(
                 // Determine whether we are at a physical boundary and, if so,
                 // whether it is a Dirichlet boundary.
                 bool at_physical_bdry = elem->neighbor(side) == NULL;
-                bool at_dirichlet_bdry = false;
                 const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
                 for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
                 {
-                    const short int bdry_id = *cit;
-                    at_physical_bdry  = at_physical_bdry  && !dof_map.is_periodic_boundary(bdry_id);
-                    at_dirichlet_bdry = at_dirichlet_bdry || (bdry_id == FEDataManager::DIRICHLET_BDRY_ID);
+                    at_physical_bdry = at_physical_bdry && !dof_map.is_periodic_boundary(*cit);
                 }
+                const bool at_dirichlet_bdry = get_dirichlet_bdry_ids(bdry_ids) != 0;
 
                 // Skip non-physical boundaries.
                 if (!at_physical_bdry) continue;
@@ -1521,8 +1534,7 @@ IBFEMethod::imposeJumpConditions(
                 const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
                 for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
                 {
-                    const short int bdry_id = *cit;
-                    at_physical_bdry  = at_physical_bdry  && !dof_map.is_periodic_boundary(bdry_id);
+                    at_physical_bdry = at_physical_bdry && !dof_map.is_periodic_boundary(*cit);
                 }
                 has_physical_boundaries = has_physical_boundaries || at_physical_bdry;
             }
@@ -1539,14 +1551,12 @@ IBFEMethod::imposeJumpConditions(
                 // Determine whether we are at a physical boundary and, if so,
                 // whether it is a Dirichlet boundary.
                 bool at_physical_bdry = elem->neighbor(side) == NULL;
-                bool at_dirichlet_bdry = false;
                 const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
                 for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
                 {
-                    const short int bdry_id = *cit;
-                    at_physical_bdry  = at_physical_bdry  && !dof_map.is_periodic_boundary(bdry_id);
-                    at_dirichlet_bdry = at_dirichlet_bdry || (bdry_id == FEDataManager::DIRICHLET_BDRY_ID);
+                    at_physical_bdry = at_physical_bdry && !dof_map.is_periodic_boundary(*cit);
                 }
+                const bool at_dirichlet_bdry = get_dirichlet_bdry_ids(bdry_ids) != 0;
 
                 // Skip non-physical boundaries.
                 if (!at_physical_bdry) continue;

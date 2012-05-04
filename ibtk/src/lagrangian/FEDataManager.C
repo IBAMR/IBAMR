@@ -120,9 +120,35 @@ flatten(
     }
     return;
 }// flatten
+
+inline
+short int
+get_dirichlet_bdry_ids(
+    const std::vector<short int>& bdry_ids)
+{
+    short int dirichlet_bdry_ids = 0;
+    for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
+    {
+        const short int bdry_id = *cit;
+        if      (bdry_id == FEDataManager::DIRICHLET_X_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_X_BDRY_ID;
+        else if (bdry_id == FEDataManager::DIRICHLET_Y_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_Y_BDRY_ID;
+        else if (bdry_id == FEDataManager::DIRICHLET_Z_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_Z_BDRY_ID;
+        else if (bdry_id == FEDataManager::DIRICHLET_XY_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_XY_BDRY_ID;
+        else if (bdry_id == FEDataManager::DIRICHLET_XZ_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_XZ_BDRY_ID;
+        else if (bdry_id == FEDataManager::DIRICHLET_YZ_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_YZ_BDRY_ID;
+        else if (bdry_id == FEDataManager::DIRICHLET_XYZ_BDRY_ID) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_XYZ_BDRY_ID;
+    }
+    return dirichlet_bdry_ids;
+}// get_dirichlet_bdry_ids
 }
 
-const short int FEDataManager::DIRICHLET_BDRY_ID;
+const short int FEDataManager::DIRICHLET_X_BDRY_ID   = 0x100;
+const short int FEDataManager::DIRICHLET_Y_BDRY_ID   = 0x200;
+const short int FEDataManager::DIRICHLET_Z_BDRY_ID   = 0x400;
+const short int FEDataManager::DIRICHLET_XY_BDRY_ID  = 0x100 | 0x200;
+const short int FEDataManager::DIRICHLET_XZ_BDRY_ID  = 0x100 | 0x400;
+const short int FEDataManager::DIRICHLET_YZ_BDRY_ID  = 0x200 | 0x400;
+const short int FEDataManager::DIRICHLET_XYZ_BDRY_ID = 0x100 | 0x200 | 0x400;
 std::map<std::string,FEDataManager*> FEDataManager::s_data_manager_instances;
 bool FEDataManager::s_registered_callback;
 unsigned char FEDataManager::s_shutdown_priority;
@@ -1437,9 +1463,9 @@ FEDataManager::buildL2ProjectionSolver(
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
                 if (elem->neighbor(side) != NULL) continue;
-                const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
-                const bool at_dirichlet_bdry = std::find(bdry_ids.begin(), bdry_ids.end(), DIRICHLET_BDRY_ID) != bdry_ids.end();
-                if (!at_dirichlet_bdry) continue;
+                static const short int dirichlet_bdry_id_set[3] = { DIRICHLET_X_BDRY_ID , DIRICHLET_Y_BDRY_ID , DIRICHLET_Z_BDRY_ID };
+                const short int dirichlet_bdry_ids = get_dirichlet_bdry_ids(mesh.boundary_info->boundary_ids(elem, side));
+                if (!dirichlet_bdry_ids) continue;
                 fe->reinit(elem);
                 for (unsigned int n = 0; n < elem->n_nodes(); ++n)
                 {
@@ -1452,15 +1478,14 @@ FEDataManager::buildL2ProjectionSolver(
                             const unsigned int n_comp = node->n_comp(sys_num, var_num);
                             for (unsigned int comp = 0; comp < n_comp; ++comp)
                             {
+                                if (!(dirichlet_bdry_ids | dirichlet_bdry_id_set[comp])) continue;
                                 const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
-                                if (dof_map.is_constrained_dof(node_dof_index))
+                                if (!dof_map.is_constrained_dof(node_dof_index)) continue;
+                                for (std::vector<unsigned int>::const_iterator cit = dof_indices.begin(); cit != dof_indices.end(); ++cit)
                                 {
-                                    for (std::vector<unsigned int>::const_iterator cit = dof_indices.begin(); cit != dof_indices.end(); ++cit)
-                                    {
-                                        const unsigned int k = *cit;
-                                        M_mat->set(node_dof_index, k, (node_dof_index == k ? 1.0 : 0.0));
-                                        M_mat->set(k, node_dof_index, (node_dof_index == k ? 1.0 : 0.0));
-                                    }
+                                    const unsigned int k = *cit;
+                                    M_mat->set(node_dof_index, k, (node_dof_index == k ? 1.0 : 0.0));
+                                    M_mat->set(k, node_dof_index, (node_dof_index == k ? 1.0 : 0.0));
                                 }
                             }
                         }
@@ -1585,9 +1610,9 @@ FEDataManager::buildDiagonalL2MassMatrix(
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
                 if (elem->neighbor(side) != NULL) continue;
-                const std::vector<short int>& bdry_ids = mesh.boundary_info->boundary_ids(elem, side);
-                const bool at_dirichlet_bdry = std::find(bdry_ids.begin(), bdry_ids.end(), DIRICHLET_BDRY_ID) != bdry_ids.end();
-                if (!at_dirichlet_bdry) continue;
+                static const short int dirichlet_bdry_id_set[3] = { DIRICHLET_X_BDRY_ID , DIRICHLET_Y_BDRY_ID , DIRICHLET_Z_BDRY_ID };
+                const short int dirichlet_bdry_ids = get_dirichlet_bdry_ids(mesh.boundary_info->boundary_ids(elem, side));
+                if (!dirichlet_bdry_ids) continue;
                 for (unsigned int n = 0; n < elem->n_nodes(); ++n)
                 {
                     if (elem->is_node_on_side(n, side))
@@ -1598,8 +1623,10 @@ FEDataManager::buildDiagonalL2MassMatrix(
                             const unsigned int n_comp = node->n_comp(sys_num, var_num);
                             for (unsigned int comp = 0; comp < n_comp; ++comp)
                             {
+                                if (!(dirichlet_bdry_ids | dirichlet_bdry_id_set[comp])) continue;
                                 const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
-                                if (dof_map.is_constrained_dof(node_dof_index)) M_vec->set(node_dof_index, 1.0);
+                                if (!dof_map.is_constrained_dof(node_dof_index)) continue;
+                                M_vec->set(node_dof_index, 1.0);
                             }
                         }
                     }

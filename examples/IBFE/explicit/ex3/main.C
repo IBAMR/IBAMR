@@ -180,7 +180,12 @@ main(
                     const short int boundary_id = mesh.boundary_info->boundary_id(elem,side);
                     if (boundary_id != 2)
                     {
-                        mesh.boundary_info->add_side(elem, side, FEDataManager::DIRICHLET_BDRY_ID);
+#if (NDIM == 2)
+                        mesh.boundary_info->add_side(elem, side, FEDataManager::DIRICHLET_XY_BDRY_ID);
+#endif
+#if (NDIM == 3)
+                        mesh.boundary_info->add_side(elem, side, FEDataManager::DIRICHLET_XYZ_BDRY_ID);
+#endif
                     }
                 }
             }

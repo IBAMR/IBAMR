@@ -181,13 +181,13 @@ main(
 #if (NDIM == 2)
                     if (boundary_id == 0 || boundary_id == 2)
                     {
-                        mesh.boundary_info->add_side(elem, side, FEDataManager::DIRICHLET_BDRY_ID);
+                        mesh.boundary_info->add_side(elem, side, FEDataManager::DIRICHLET_XY_BDRY_ID);
                     }
 #endif
 #if (NDIM == 3)
                     if (!(boundary_id == 2 || boundary_id == 4))
                     {
-                        mesh.boundary_info->add_side(elem, side, FEDataManager::DIRICHLET_BDRY_ID);
+                        mesh.boundary_info->add_side(elem, side, FEDataManager::DIRICHLET_XYZ_BDRY_ID);
                     }
 #endif
                 }
