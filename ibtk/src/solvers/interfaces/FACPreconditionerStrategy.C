@@ -59,9 +59,9 @@ FACPreconditionerStrategy::~FACPreconditionerStrategy()
 
 void
 FACPreconditionerStrategy::setFACPreconditioner(
-    ConstPointer<FACPreconditioner> /*preconditioner*/)
+    ConstPointer<FACPreconditioner> preconditioner)
 {
-    // intentionally blank
+    d_preconditioner = preconditioner;
     return;
 }// setPreconditioner
 

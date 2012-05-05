@@ -45,7 +45,7 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/PETScKrylovLinearSolver.h>
 #include <ibtk/SCLaplaceOperator.h>
-#include <ibtk/SCPoissonFACOperator.h>
+#include <ibtk/SCPoissonPointRelaxationFACOperator.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/app_namespaces.h>
 
@@ -217,8 +217,8 @@ main(
 
         if (solver_choice == "FAC")
         {
-            Pointer<SCPoissonFACOperator> poisson_fac_op = new SCPoissonFACOperator(
-                "SCPoissonFACOperator", app_initializer->getComponentDatabase("FACPoissonSolver"));
+            Pointer<SCPoissonPointRelaxationFACOperator> poisson_fac_op = new SCPoissonPointRelaxationFACOperator(
+                "SCPoissonPointRelaxationFACOperator", app_initializer->getComponentDatabase("FACPoissonSolver"));
             poisson_fac_op->setPoissonSpecifications(poisson_spec);
             Pointer<FACPreconditioner> poisson_fac_pc = new FACPreconditioner(
                 "FACPreconditioner", poisson_fac_op, app_initializer->getComponentDatabase("FACPoissonSolver"));
@@ -251,16 +251,14 @@ main(
         poisson_solver.solveSystem(u_vec,f_vec);
 
         // Compute error and print error norms.
-        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&e_vec,false),
-                       Pointer<SAMRAIVectorReal<NDIM,double> >(&u_vec,false));
+        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&e_vec,false), Pointer<SAMRAIVectorReal<NDIM,double> >(&u_vec,false));
         pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
         pout << "|e|_2  = " << e_vec. L2Norm() << "\n";
         pout << "|e|_1  = " << e_vec. L1Norm() << "\n";
 
         // Compute the residual and print residual norms.
         laplace_op->apply(u_vec,r_vec);
-        r_vec.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&f_vec,false),
-                       Pointer<SAMRAIVectorReal<NDIM,double> >(&r_vec,false));
+        r_vec.subtract(Pointer<SAMRAIVectorReal<NDIM,double> >(&f_vec,false), Pointer<SAMRAIVectorReal<NDIM,double> >(&r_vec,false));
         pout << "|r|_oo = " << r_vec.maxNorm() << "\n";
         pout << "|r|_2  = " << r_vec. L2Norm() << "\n";
         pout << "|r|_1  = " << r_vec. L1Norm() << "\n";

@@ -252,9 +252,7 @@ compute_tangential_extension(
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp()
-    : d_patch_data_indices(),
-      d_bc_coefs(),
-      d_homogeneous_bc(false)
+    : RobinPhysBdryPatchStrategy()
 {
     // intentionally blank
     return;
@@ -264,9 +262,7 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
     const int patch_data_index,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
-    : d_patch_data_indices(),
-      d_bc_coefs(),
-      d_homogeneous_bc(false)
+    : RobinPhysBdryPatchStrategy()
 {
     setPatchDataIndex(patch_data_index);
     setPhysicalBcCoefs(bc_coefs);
@@ -278,9 +274,7 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
     const std::set<int>& patch_data_indices,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
-    : d_patch_data_indices(),
-      d_bc_coefs(),
-      d_homogeneous_bc(false)
+    : RobinPhysBdryPatchStrategy()
 {
     setPatchDataIndices(patch_data_indices);
     setPhysicalBcCoefs(bc_coefs);
@@ -292,9 +286,7 @@ CartSideRobinPhysBdryOp::CartSideRobinPhysBdryOp(
     const ComponentSelector& patch_data_indices,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
-    : d_patch_data_indices(),
-      d_bc_coefs(),
-      d_homogeneous_bc(false)
+    : RobinPhysBdryPatchStrategy()
 {
     setPatchDataIndices(patch_data_indices);
     setPhysicalBcCoefs(bc_coefs);
@@ -307,64 +299,6 @@ CartSideRobinPhysBdryOp::~CartSideRobinPhysBdryOp()
     // intentionally blank
     return;
 }// ~CartSideRobinPhysBdryOp
-
-void
-CartSideRobinPhysBdryOp::setPatchDataIndex(
-    const int patch_data_index)
-{
-    std::set<int> patch_data_indices;
-    patch_data_indices.insert(patch_data_index);
-    setPatchDataIndices(patch_data_indices);
-    return;
-}// setPatchDataIndex
-
-void
-CartSideRobinPhysBdryOp::setPatchDataIndices(
-    const std::set<int>& patch_data_indices)
-{
-    d_patch_data_indices.clear();
-    d_patch_data_indices = patch_data_indices;
-    return;
-}// setPatchDataIndices
-
-void
-CartSideRobinPhysBdryOp::setPatchDataIndices(
-    const ComponentSelector& patch_data_indices)
-{
-    std::set<int> patch_data_index_set;
-    for (int l = 0; l < patch_data_indices.getSize(); ++l)
-    {
-        if (patch_data_indices.isSet(l))
-        {
-            const int patch_data_index = l;
-            patch_data_index_set.insert(patch_data_index);
-        }
-    }
-    setPatchDataIndices(patch_data_index_set);
-    return;
-}// setPatchDataIndices
-
-void
-CartSideRobinPhysBdryOp::setPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        TBOX_ASSERT(bc_coefs[d] != NULL);
-    }
-#endif
-    d_bc_coefs = bc_coefs;
-    return;
-}// setPhysicalBcCoefs
-
-void
-CartSideRobinPhysBdryOp::setHomogeneousBc(
-    bool homogeneous_bc)
-{
-    d_homogeneous_bc = homogeneous_bc;
-    return;
-}// setHomogeneousBc
 
 void
 CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(
@@ -388,6 +322,12 @@ CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(
             TBOX_ERROR("CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
                        << "  patch data index " << patch_data_idx << " does not correspond to a side-centered double precision variable." << std::endl);
         }
+    }
+    if (d_bc_coefs.size() != NDIM)
+    {
+        TBOX_ERROR("CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions():\n"
+                   << "  requires NDIM==" << NDIM << " bc_coef objects (one for each data axis);\n"
+                   << "  provided " << d_bc_coefs.size() << " bc_coef" << std::endl);
     }
 
     // Indicate whether we are employing homogeneous or inhomogeneous boundary
@@ -440,8 +380,8 @@ CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(
     physical_codim1_reset_boxes.resizeArray(reset_box_counter);
 #endif
     // To set the boundary condition values:
-    // (1) Compute the boundary condition coefficients along the co-dimension one
-    //     boundary,
+    // (1) Compute the boundary condition coefficients along the co-dimension
+    //     one boundary,
     // (2) Set the boundary conditions along the co-dimension one boundary boxes
     //     (thereby ensuring that Dirichlet boundary conditions set during step
     //     (1) are used properly in setting tangential boundary conditions),
@@ -449,14 +389,12 @@ CartSideRobinPhysBdryOp::setPhysicalBoundaryConditions(
     //     co-dimension two or co-dimension three boundary box,
     // (4) Reset the boundary conditions along the co-dimension one boundary
     //     where it abuts the co-dimension two boundary,
-    // (5) Extrapolate boundary values to the co-dimension two and three boundary
-    //     boxes.
+    // (5) Extrapolate boundary values to the co-dimension two and three
+    //     boundary boxes.
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
-        setCodimension1BdryValues(
-            patch_data_idx,
-            physical_codim1_boxes, fill_time, ghost_width_to_fill, patch);
+        setCodimension1BdryValues(patch_data_idx, physical_codim1_boxes, fill_time, ghost_width_to_fill, patch);
     }
 #if (NDIM > 1)
     for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
@@ -485,28 +423,6 @@ CartSideRobinPhysBdryOp::getRefineOpStencilWidth() const
 {
     return REFINE_OP_STENCIL_WIDTH;
 }// getRefineOpStencilWidth
-
-void
-CartSideRobinPhysBdryOp::preprocessRefine(
-    Patch<NDIM>& /*fine*/,
-    const Patch<NDIM>& /*coarse*/,
-    const Box<NDIM>& /*fine_box*/,
-    const IntVector<NDIM>& /*ratio*/)
-{
-    // intentionally blank
-    return;
-}// preprocessRefine
-
-void
-CartSideRobinPhysBdryOp::postprocessRefine(
-    Patch<NDIM>& /*fine*/,
-    const Patch<NDIM>& /*coarse*/,
-    const Box<NDIM>& /*fine_box*/,
-    const IntVector<NDIM>& /*ratio*/)
-{
-    // intentionally blank
-    return;
-}// postprocessRefine
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

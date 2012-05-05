@@ -1,5 +1,5 @@
-// Filename: SCPoissonFACOperator.h
-// Created on 13 Nov 2008 by Boyce Griffith
+// Filename: PoissonFACPreconditionerStrategy.h
+// Created on 27 Apr 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,120 +30,60 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_SCPoissonFACOperator
-#define included_SCPoissonFACOperator
+#ifndef included_PoissonFACPreconditionerStrategy
+#define included_PoissonFACPreconditionerStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSc INCLUDES
-#include <petscmat.h>
-
 // IBTK INCLUDES
-#include <ibtk/CartSideRobinPhysBdryOp.h>
 #include <ibtk/CoarseFineBoundaryRefinePatchStrategy.h>
 #include <ibtk/FACPreconditionerStrategy.h>
-#include <ibtk/SCPoissonHypreLevelSolver.h>
-#include <ibtk/SCPoissonPETScLevelSolver.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/RobinPhysBdryPatchStrategy.h>
 
 // SAMRAI INCLUDES
 #include <CoarsenAlgorithm.h>
-#include <LocationIndexRobinBcCoefs.h>
 #include <RefineAlgorithm.h>
-
-// C++ STDLIB INCLUDES
-#include <map>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
 {
 /*!
- * \brief Class SCPoissonFACOperator is a concrete FACPreconditionerStrategy for
- * solving elliptic equations of the form \f$ \mbox{$L u$} = \mbox{$(C I +
- * \nabla \cdot D \nabla) u$} = f \f$ using a globally second-order accurate
- * side-centered finite-difference discretization, with support for Robin and
- * periodic boundary conditions.
- *
- * \warning This class was originally intended to be used with the SAMRAI class
- * SAMRAI::solv::FACPreconditioner but is now designed to be used with the IBTK
- * class IBTK::FACPreconditioner.
- *
- * This class provides operators that are used by class FACPreconditioner to
- * solve scalar Poisson-type equations of the form \f[ (C I + \nabla \cdot D
- * \nabla) u = f \f] using a side-centered, globally second-order accurate
- * finite-difference discretization, where
- *
- * - \f$ C \f$, \f$ D \f$ and \f$ f \f$ are independent of \f$ u \f$,
- * - \f$ C \f$ is a constant damping factor,
- * - \f$ D \f$ is a constant diffusion coefficient, and
- * - \f$ f \f$ is a side-centered scalar function.
- *
- * Robin boundary conditions may be specified at physical boundaries; see class
- * SAMRAI::solv::RobinBcCoefStrategy.
- *
- * By default, the class is configured to solve the Poisson problem \f$
- * -\nabla^2 u = f \f$, subject to homogeneous Dirichlet boundary conditions.
+ * \brief Class PoissonFACPreconditionerStrategy is an abstract
+ * FACPreconditionerStrategy implementing many of the operations required by
+ * smoothers for the Poisson equation and related problems.
  *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
  smoother_choice = "additive"                 // see setSmootherChoice()
 
- prolongation_method = "CONSTANT_REFINE"      // see setProlongationMethod()
+ prolongation_method = "LINEAR_REFINE"        // see setProlongationMethod()
  restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethod()
 
  coarse_solver_choice = "block_jacobi"        // see setCoarsestLevelSolverChoice()
  coarse_solver_tolerance = 1.0e-6             // see setCoarsestLevelSolverTolerance()
  coarse_solver_max_iterations = 10            // see setCoarsestLevelSolverMaxIterations()
-
- hypre_solver = { ... }                       // SAMRAI::tbox::Database for initializing class SCPoissonHypreLevelSolver
-
- petsc_solver = { ... }                       // SAMRAI::tbox::Database for initializing class SCPoissonPetscLevelSolver
  \endverbatim
 */
-class SCPoissonFACOperator
+class PoissonFACPreconditionerStrategy
     : public FACPreconditionerStrategy
 {
 public:
     /*!
      * \brief Constructor.
      */
-    SCPoissonFACOperator(
+    PoissonFACPreconditionerStrategy(
         const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db=NULL);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > scratch_var,
+        int ghost_cell_width,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Destructor.
      */
-    ~SCPoissonFACOperator();
-
-    /*!
-     * \name Functions for specifying the Poisson problem.
-     */
-    //\{
-
-    /*!
-     * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify
-     * the coefficients for the scalar Poisson equation.
-     */
-    void
-    setPoissonSpecifications(
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec);
-
-    /*!
-     * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
-     * physical boundary conditions.
-     *
-     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
-     * homogeneous Dirichlet boundary conditions are employed for that data
-     * depth.
-     *
-     * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition coefficients
-     */
-    void
-    setPhysicalBcCoefs(
-        const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs);
+    ~PoissonFACPreconditionerStrategy();
 
     /*!
      * \brief Set the hierarchy time, for use with the refinement schedules and
@@ -186,47 +126,25 @@ public:
         int finest_ln);
 
     /*!
-     * \brief Specify the ghost cell width for \em both the solution and the
-     * right-hand side patch data.
-     */
-    void
-    setGhostCellWidth(
-        const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
-
-    /*!
      * \brief Specify the smoother type.
-     *
-     * Select from:
-     * - \c "additive"
-     * - \c "multiplicative"
-     *
-     * \note The smoother is always additive between processors ("processor
-     * block Gauss-Seidel").
      */
-    void
+    virtual void
     setSmootherChoice(
-        const std::string& smoother_choice);
+        const std::string& smoother_choice) = 0;
 
     /*!
      * \brief Specify the coarse level solver.
-     *
-     * Select from:
-     * - \c "block_jacobi"
-     * - \c "hypre"
-     * - \c "petsc"
      */
-    void
+    virtual void
     setCoarsestLevelSolverChoice(
-        const std::string& coarse_solver_choice);
+        const std::string& coarse_solver_choice) = 0;
 
     /*!
      * \brief Set tolerance for coarse level solve.
      *
-     * If the coarse level solver requires a tolerance, the specified value is
-     * used.
-     *
-     * \note This value is ignored if the bottom solver choice is
-     * "block_jacobi".
+     * If the coarse level solver uses a convergence tolerance parameter, the
+     * specified value is used.  If the coarse level solver does not use such a
+     * stopping parameter, implementations are free to ignore this value.
      */
     void
     setCoarsestLevelSolverTolerance(
@@ -234,6 +152,10 @@ public:
 
     /*!
      * \brief Set the maximum number of iterations for the coarsest level solve.
+     *
+     * If the coarse level solver uses a maximum number of iterations parameter,
+     * the specified value is used.  If the coarse level solver does not use
+     * such a stopping parameter, implementations are free to ignore this value.
      */
     void
     setCoarsestLevelSolverMaxIterations(
@@ -256,19 +178,9 @@ public:
     //\}
 
     /*!
-     * \name Implementation of FACPreconditionerStrategy interface.
+     * \name Partial implementation of FACPreconditionerStrategy interface.
      */
     //\{
-
-    /*!
-     * \brief Set the FACPreconditioner object that is using this concrete
-     * FACPreconditionerStrategy object.
-     *
-     * \param preconditioner  Pointer to the FAC preconditioner that is using this concrete FAC strategy
-     */
-    void
-    setFACPreconditioner(
-        SAMRAI::tbox::ConstPointer<FACPreconditioner> preconditioner);
 
     /*!
      * \brief Restrict the residual quantity to the specified level from the
@@ -313,56 +225,6 @@ public:
         int dst_ln);
 
     /*!
-     * \brief Perform a given number of relaxations on the error.
-     *
-     * \param error error vector
-     * \param residual residual vector
-     * \param level_num level number
-     * \param num_sweeps number of sweeps to perform
-     * \param performing_pre_sweeps boolean value that is true when pre-smoothing sweeps are being performed
-     * \param performing_post_sweeps boolean value that is true when post-smoothing sweeps are being performed
-     */
-    void
-    smoothError(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& error,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
-        int level_num,
-        int num_sweeps,
-        bool performing_pre_sweeps,
-        bool performing_post_sweeps);
-
-    /*!
-     * \brief Solve the residual equation Ae=r on the coarsest level of the
-     * patch hierarchy.
-     *
-     * \param error error vector
-     * \param residual residual vector
-     * \param coarsest_ln coarsest level number
-     */
-    bool
-    solveCoarsestLevel(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& error,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
-        int coarsest_ln);
-
-    /*!
-     * \brief Compute composite grid residual on the specified range of levels.
-     *
-     * \param residual residual vector
-     * \param solution solution vector
-     * \param rhs source (right hand side) vector
-     * \param coarsest_level_num coarsest level number
-     * \param finest_level_num finest level number
-     */
-    void
-    computeResidual(
-        SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& residual,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
-        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs,
-        int coarsest_level_num,
-        int finest_level_num);
-
-    /*!
      * \brief Compute hierarchy-dependent data.
      *
      * Note that although the vector arguments given to other methods in this
@@ -393,38 +255,28 @@ public:
 
     //\}
 
-private:
+protected:
     /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
+     * \brief Compute implementation-specific hierarchy-dependent data.
      */
-    SCPoissonFACOperator();
+    virtual void
+    initializeOperatorStateSpecialized(
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& solution,
+        const SAMRAI::solv::SAMRAIVectorReal<NDIM,double>& rhs,
+        int coarsest_reset_ln,
+        int finest_reset_ln) = 0;
 
     /*!
-     * \brief Copy constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     *
-     * \param from The value to copy to this object.
+     * \brief Remove implementation-specific hierarchy-dependent data.
      */
-    SCPoissonFACOperator(
-        const SCPoissonFACOperator& from);
+    virtual void
+    deallocateOperatorStateSpecialized(
+        int coarsest_reset_ln,
+        int finest_reset_ln) = 0;
 
     /*!
-     * \brief Assignment operator.
-     *
-     * \note This operator is not implemented and should not be used.
-     *
-     * \param that The value to assign to this object.
-     *
-     * \return A reference to this object.
-     */
-    SCPoissonFACOperator& operator=(
-        const SCPoissonFACOperator& that);
-
-    /*!
-     * \name For executing, caching and resetting communication schedules.
+     * \name Methods for executing, caching, and resetting communication
+     * schedules.
      */
     //\{
 
@@ -459,41 +311,11 @@ private:
      * \brief Execute schedule for synchronizing data on the specified level.
      */
     void
-    xeqScheduleSideDataSynch(
+    xeqScheduleDataSynch(
         int dst_idx,
         int dst_ln);
 
     //\}
-
-    /*!
-     * \brief Initialize the hypre bottom solver.
-     */
-    void
-    initializeHypreLevelSolver();
-
-    /*!
-     * \brief Initialize the PETSc bottom solver.
-     */
-    void
-    initializePETScLevelSolver();
-
-    /*!
-     * \brief Construct a matrix corresponding to a Laplace operator restricted
-     * to a single patch.
-     */
-    static void
-    buildPatchLaplaceOperator(
-        Mat& A,
-        const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-        int component_axis,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_cell_width);
-
-    /*!
-     * \brief Check to make sure that all of the options make sense.
-     */
-    void
-    sanityCheck();
 
     /*
      * The object name is used for error reporting purposes.
@@ -502,6 +324,16 @@ private:
      */
     std::string d_object_name;
     bool d_is_initialized;
+
+    /*
+     * The current time.
+     */
+    double d_time;
+
+    /*
+     * Ghost cell width.
+     */
+    const SAMRAI::hier::IntVector<NDIM> d_gcw;
 
     /*!
      * \name Hierarchy-dependent objects.
@@ -512,17 +344,6 @@ private:
      * Solution and rhs vectors.
      */
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > d_solution, d_rhs;
-    int d_depth;
-
-    /*
-     * Mappings from patch indices to patch operators.
-     */
-    bool d_using_petsc_smoothers;
-    SAMRAI::hier::IntVector<NDIM> d_gcw;
-    std::vector<std::vector<blitz::TinyVector<Vec,NDIM> > > d_patch_vec_e, d_patch_vec_f;
-    std::vector<std::vector<blitz::TinyVector<Mat,NDIM> > > d_patch_mat;
-    std::vector<std::vector<blitz::TinyVector<SAMRAI::hier::BoxList<NDIM>,NDIM> > > d_patch_bc_box_overlap;
-    std::vector<std::vector<blitz::TinyVector<std::map<int,SAMRAI::hier::Box<NDIM> >,NDIM> > > d_patch_smoother_bc_boxes;
 
     /*
      * Reference patch hierarchy and range of levels involved in the solve.
@@ -536,10 +357,16 @@ private:
     int d_coarsest_ln, d_finest_ln;
 
     /*
+     * HierarchyDataOpsReal objects restricted to a single level of the patch
+     * hierarchy.
+     */
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM,double> > > d_level_data_ops;
+
+    /*
      * Level operators, used to compute composite-grid residuals.
      */
-    std::vector<SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> > d_hier_bdry_fill_ops;
-    std::vector<SAMRAI::tbox::Pointer<HierarchyMathOps> > d_hier_math_ops;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> > d_hier_bdry_fill_ops;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> > d_hier_math_ops;
 
     /*
      * Range of levels to be reset the next time the operator is initialized.
@@ -550,14 +377,9 @@ private:
     //\}
 
     /*!
-     * \name Private state variables for solution process.
+     * \name Solver configuration variables.
      */
     //\{
-
-    /*
-     * Scalar Poisson equations specifications.
-     */
-    SAMRAI::solv::PoissonSpecifications d_poisson_spec;
 
     /*
      * The kind of smoothing to perform.
@@ -565,21 +387,16 @@ private:
     std::string d_smoother_choice;
 
     /*
-     * The name of the refinement operator used to prolong the coarse grid
-     * correction and to set ghost cell values at coarse-fine interfaces.
+     * The names of the refinement operators used to prolong the coarse grid
+     * correction.
      */
     std::string d_prolongation_method;
 
     /*
-     * The name of the coarsening operator used to restrict the fine grid error
-     * or residual.
+     * The names of the coarsening operators used to restrict the fine grid
+     * error or residual.
      */
     std::string d_restriction_method;
-
-    /*
-     * Pointer to the FACPreconditioner that is using this operator.
-     */
-    SAMRAI::tbox::ConstPointer<FACPreconditioner> d_preconditioner;
 
     /*
      * Coarse level solver parameters.
@@ -587,12 +404,6 @@ private:
     std::string d_coarse_solver_choice;
     double d_coarse_solver_tol;
     int d_coarse_solver_max_its;
-    bool d_using_hypre;
-    SAMRAI::tbox::Pointer<SCPoissonHypreLevelSolver> d_hypre_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hypre_db;
-    bool d_using_petsc;
-    SAMRAI::tbox::Pointer<SCPoissonPETScLevelSolver> d_petsc_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_petsc_db;
 
     //\}
 
@@ -607,21 +418,9 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
 
     /*
-     * Patch descriptor indices for scratch data.
+     * Patch descriptor index for scratch data.
      */
-    int d_side_scratch_idx;
-
-    //\}
-
-    /*!
-     * \name Boundary condition handling objects.
-     */
-    //\{
-
-    SAMRAI::tbox::Pointer<CartSideRobinPhysBdryOp> d_bc_op;
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM>* const d_default_bc_coef;
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_bc_coefs;
-    double d_apply_time;
+    int d_scratch_idx;
 
     //\}
 
@@ -631,14 +430,56 @@ private:
     //\{
 
     /*
-     * Coarse-fine interface interpolation object.
+     * Physical boundary operators.
+     */
+    SAMRAI::tbox::Pointer<RobinPhysBdryPatchStrategy> d_bc_op;
+
+    /*
+     * Coarse-fine interface interpolation objects.
      */
     SAMRAI::tbox::Pointer<CoarseFineBoundaryRefinePatchStrategy> d_cf_bdry_op;
 
     /*
      * Variable fill pattern object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_op_stencil_fill_pattern, d_side_synch_fill_pattern;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_op_stencil_fill_pattern, d_synch_fill_pattern;
+
+    //\}
+
+private:
+    /*!
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    PoissonFACPreconditionerStrategy();
+
+    /*!
+     * \brief Copy constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     *
+     * \param from The value to copy to this object.
+     */
+    PoissonFACPreconditionerStrategy(
+        const PoissonFACPreconditionerStrategy& from);
+
+    /*!
+     * \brief Assignment operator.
+     *
+     * \note This operator is not implemented and should not be used.
+     *
+     * \param that The value to assign to this object.
+     *
+     * \return A reference to this object.
+     */
+    PoissonFACPreconditionerStrategy& operator=(
+        const PoissonFACPreconditionerStrategy& that);
+
+    /*!
+     * \name Various refine and coarsen objects.
+     */
+    //\{
 
     /*
      * Error prolongation (refinement) operator.
@@ -656,18 +497,16 @@ private:
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_restriction_coarsen_schedules;
 
     /*
-     * Refine operator for side data from same level.
+     * Refine operator for cell data from same level.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_ghostfill_nocoarse_refine_operator;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_ghostfill_nocoarse_refine_algorithm;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_ghostfill_nocoarse_refine_schedules;
 
     /*
-     * Operator for side data synchronization on same level.
+     * Operator for data synchronization on same level.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_side_synch_refine_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_side_synch_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_side_synch_refine_schedules;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_synch_refine_algorithm;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_synch_refine_schedules;
 
     //\}
 };
@@ -675,8 +514,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibtk/SCPoissonFACOperator.I>
+//#include <ibtk/PoissonFACPreconditionerStrategy.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_SCPoissonFACOperator
+#endif //#ifndef included_PoissonFACPreconditionerStrategy

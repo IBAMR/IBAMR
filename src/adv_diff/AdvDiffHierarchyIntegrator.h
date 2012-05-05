@@ -43,7 +43,7 @@
 
 // IBTK INCLUDES
 #include <ibtk/CCLaplaceOperator.h>
-#include <ibtk/CCPoissonFACOperator.h>
+#include <ibtk/CCPoissonPointRelaxationFACOperator.h>
 #include <ibtk/HierarchyIntegrator.h>
 #include <ibtk/KrylovLinearSolver.h>
 
@@ -481,11 +481,11 @@ private:
     double d_abs_residual_tol, d_rel_residual_tol;
     bool d_using_FAC;
 
-    std::vector<SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator> >    d_helmholtz_ops;
-    std::vector<SAMRAI::solv::PoissonSpecifications>                d_helmholtz_specs;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> >   d_helmholtz_solvers;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator> > d_helmholtz_fac_ops;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::FACPreconditioner> >    d_helmholtz_fac_pcs;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator> >                   d_helmholtz_ops;
+    std::vector<SAMRAI::solv::PoissonSpecifications>                               d_helmholtz_specs;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> >                  d_helmholtz_solvers;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::CCPoissonPointRelaxationFACOperator> > d_helmholtz_fac_ops;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>             >       d_helmholtz_fac_pcs;
     std::vector<bool> d_helmholtz_solvers_need_init;
     int d_coarsest_reset_ln, d_finest_reset_ln;
 

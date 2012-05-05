@@ -45,7 +45,7 @@
 #include <ibtk/CCDivGradOperator.h>
 #include <ibtk/CCDivGradHypreLevelSolver.h>
 #include <ibtk/CCLaplaceOperator.h>
-#include <ibtk/CCPoissonFACOperator.h>
+#include <ibtk/CCPoissonPointRelaxationFACOperator.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -357,15 +357,15 @@ private:
 
     bool d_convective_op_needs_init;
 
-    SAMRAI::solv::PoissonSpecifications*                   d_velocity_spec;
-    SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>      d_velocity_fac_op;
-    SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>         d_velocity_fac_pc;
+    SAMRAI::solv::PoissonSpecifications*                             d_velocity_spec;
+    SAMRAI::tbox::Pointer<IBTK::CCPoissonPointRelaxationFACOperator> d_velocity_fac_op;
+    SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>                   d_velocity_fac_pc;
     bool d_velocity_solver_needs_init;
 
-    SAMRAI::solv::PoissonSpecifications*                   d_pressure_spec;
-    SAMRAI::tbox::Pointer<IBTK::CCPoissonHypreLevelSolver> d_pressure_hypre_pc;
-    SAMRAI::tbox::Pointer<IBTK::CCPoissonFACOperator>      d_pressure_fac_op;
-    SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>         d_pressure_fac_pc;
+    SAMRAI::solv::PoissonSpecifications*                             d_pressure_spec;
+    SAMRAI::tbox::Pointer<IBTK::CCPoissonHypreLevelSolver>           d_pressure_hypre_pc;
+    SAMRAI::tbox::Pointer<IBTK::CCPoissonPointRelaxationFACOperator> d_pressure_fac_op;
+    SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>                   d_pressure_fac_pc;
     bool d_pressure_solver_needs_init;
 
     SAMRAI::tbox::Pointer<IBTK::LinearSolver>              d_exact_projection_solver;

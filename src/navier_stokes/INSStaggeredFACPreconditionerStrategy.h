@@ -70,9 +70,9 @@ namespace IBAMR
  U_restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethods()
  P_restriction_method = "CONSERVATIVE_COARSEN"  // see setRestrictionMethods()
 
- coarse_solver_choice = "block_jacobi"              // see setCoarsestLevelSolverChoice()
- coarse_solver_tolerance = 1.0e-6                   // see setCoarsestLevelSolverTolerance()
- coarse_solver_max_iterations = 10                  // see setCoarsestLevelSolverMaxIterations()
+ coarse_solver_choice = "block_jacobi"          // see setCoarsestLevelSolverChoice()
+ coarse_solver_tolerance = 1.0e-6               // see setCoarsestLevelSolverTolerance()
+ coarse_solver_max_iterations = 10              // see setCoarsestLevelSolverMaxIterations()
  \endverbatim
 */
 class INSStaggeredFACPreconditionerStrategy
@@ -148,8 +148,9 @@ public:
     /*!
      * \brief Set tolerance for coarse level solve.
      *
-     * If the coarse level solver requires a tolerance, the specified value is
-     * used.  Implementations are free to ignore this value.
+     * If the coarse level solver uses a convergence tolerance parameter, the
+     * specified value is used.  If the coarse level solver does not use such a
+     * stopping parameter, implementations are free to ignore this value.
      */
     void
     setCoarsestLevelSolverTolerance(
@@ -158,7 +159,9 @@ public:
     /*!
      * \brief Set the maximum number of iterations for the coarsest level solve.
      *
-     * Implementations are free to ignore this value.
+     * If the coarse level solver uses a maximum number of iterations parameter,
+     * the specified value is used.  If the coarse level solver does not use
+     * such a stopping parameter, implementations are free to ignore this value.
      */
     void
     setCoarsestLevelSolverMaxIterations(
@@ -186,16 +189,6 @@ public:
      * \name Partial implementation of FACPreconditionerStrategy interface.
      */
     //\{
-
-    /*!
-     * \brief Set the FACPreconditioner object that is using this concrete
-     * FACPreconditionerStrategy object.
-     *
-     * \param preconditioner  Pointer to the FAC preconditioner that is using this concrete FAC strategy
-     */
-    void
-    setFACPreconditioner(
-        SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> preconditioner);
 
     /*!
      * \brief Restrict the residual quantity to the specified level from the
@@ -326,7 +319,7 @@ protected:
      * \brief Execute schedule for synchronizing data on the specified level.
      */
     void
-    xeqScheduleSideDataSynch(
+    xeqScheduleDataSynch(
         int dst_idx,
         int dst_ln);
 
@@ -406,11 +399,6 @@ protected:
      * error or residual.
      */
     std::string d_U_restriction_method, d_P_restriction_method;
-
-    /*
-     * Pointer to the FACPreconditioner that is using this operator.
-     */
-    SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> d_preconditioner;
 
     /*
      * Coarse level solver parameters.
@@ -499,8 +487,7 @@ private:
     /*
      * Error prolongation (refinement) operator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_U_prolongation_refine_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_P_prolongation_refine_operator;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_U_prolongation_refine_operator, d_P_prolongation_refine_operator;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_prolongation_refine_patch_strategy;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_prolongation_refine_algorithm;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_prolongation_refine_schedules;
@@ -508,8 +495,7 @@ private:
     /*
      * Residual restriction (coarsening) operator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_U_restriction_coarsen_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_P_restriction_coarsen_operator;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_U_restriction_coarsen_operator, d_P_restriction_coarsen_operator;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_restriction_coarsen_algorithm;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_restriction_coarsen_schedules;
 

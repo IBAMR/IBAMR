@@ -81,7 +81,7 @@ public:
      *
      * \note A default empty implementation is provided.
      */
-    virtual void
+    void
     setFACPreconditioner(
         SAMRAI::tbox::ConstPointer<FACPreconditioner> preconditioner);
 
@@ -190,6 +190,12 @@ public:
      */
     virtual void
     deallocateOperatorState();
+
+protected:
+    /*
+     * Pointer to the FACPreconditioner that is using this operator.
+     */
+    SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> d_preconditioner;
 
 private:
     /*!

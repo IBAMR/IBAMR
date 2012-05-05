@@ -533,20 +533,8 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         const std::string& name = Q_var->getName();
-
         d_helmholtz_specs.push_back(PoissonSpecifications(d_object_name+"::Helmholtz Specs::"+name));
-        d_helmholtz_ops[l] = new CCLaplaceOperator(d_object_name+"::Helmholtz Operator::"+name,
-                                                   d_helmholtz_specs[l], d_Q_bc_coef[Q_var]);
-
-        if (d_using_FAC)
-        {
-            d_helmholtz_fac_ops[l] = new CCPoissonFACOperator(d_object_name+"::FAC Ops::"+name, d_fac_op_db);
-            d_helmholtz_fac_ops[l]->setPoissonSpecifications(d_helmholtz_specs[l]);
-            d_helmholtz_fac_ops[l]->setPhysicalBcCoefs(d_Q_bc_coef[Q_var]);
-            d_helmholtz_fac_pcs[l] = new FACPreconditioner(d_object_name+"::FAC Preconditioner::"+name,
-                                                           d_helmholtz_fac_ops[l], d_fac_pc_db);
-        }
-
+        d_helmholtz_ops[l] = new CCLaplaceOperator(d_object_name+"::Helmholtz Operator::"+name, d_helmholtz_specs[l], d_Q_bc_coef[Q_var]);
         d_helmholtz_solvers[l] = new PETScKrylovLinearSolver(d_object_name+"::PETSc Krylov solver::"+name, "adv_diff_");
         d_helmholtz_solvers[l]->setMaxIterations(d_max_iterations);
         d_helmholtz_solvers[l]->setAbsoluteTolerance(d_abs_residual_tol);
@@ -555,6 +543,10 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
         d_helmholtz_solvers[l]->setOperator(d_helmholtz_ops[l]);
         if (d_using_FAC)
         {
+            d_helmholtz_fac_ops[l] = new CCPoissonPointRelaxationFACOperator(d_object_name+"::FAC Ops::"+name, d_fac_op_db);
+            d_helmholtz_fac_ops[l]->setPoissonSpecifications(d_helmholtz_specs[l]);
+            d_helmholtz_fac_ops[l]->setPhysicalBcCoefs(d_Q_bc_coef[Q_var]);
+            d_helmholtz_fac_pcs[l] = new FACPreconditioner(d_object_name+"::FAC Preconditioner::"+name, d_helmholtz_fac_ops[l], d_fac_pc_db);
             d_helmholtz_solvers[l]->setPreconditioner(d_helmholtz_fac_pcs[l]);
         }
 
@@ -842,9 +834,9 @@ AdvDiffHierarchyIntegrator::integrateHierarchy(
         helmholtz_op->setTime(new_time);
         helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
 
-        Pointer<CCPoissonFACOperator> helmholtz_fac_op = d_helmholtz_fac_ops[l];
-        Pointer<FACPreconditioner>    helmholtz_fac_pc = d_helmholtz_fac_pcs[l];
-        Pointer<KrylovLinearSolver>   helmholtz_solver = d_helmholtz_solvers[l];
+        Pointer<CCPoissonPointRelaxationFACOperator> helmholtz_fac_op = d_helmholtz_fac_ops[l];
+        Pointer<FACPreconditioner>                   helmholtz_fac_pc = d_helmholtz_fac_pcs[l];
+        Pointer<KrylovLinearSolver>                  helmholtz_solver = d_helmholtz_solvers[l];
 
         if (d_helmholtz_solvers_need_init[l])
         {

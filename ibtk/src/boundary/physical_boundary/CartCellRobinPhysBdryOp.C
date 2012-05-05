@@ -170,9 +170,7 @@ static const int REFINE_OP_STENCIL_WIDTH = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp()
-    : d_patch_data_indices(),
-      d_bc_coefs(),
-      d_homogeneous_bc(false)
+    : RobinPhysBdryPatchStrategy()
 {
     // intentionally blank
     return;
@@ -182,9 +180,7 @@ CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(
     const int patch_data_index,
     RobinBcCoefStrategy<NDIM>* const bc_coef,
     const bool homogeneous_bc)
-    : d_patch_data_indices(),
-      d_bc_coefs(),
-      d_homogeneous_bc(false)
+    : RobinPhysBdryPatchStrategy()
 {
     setPatchDataIndex(patch_data_index);
     setPhysicalBcCoef(bc_coef);
@@ -196,9 +192,7 @@ CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(
     const std::set<int>& patch_data_indices,
     RobinBcCoefStrategy<NDIM>* const bc_coef,
     const bool homogeneous_bc)
-    : d_patch_data_indices(),
-      d_bc_coefs(),
-      d_homogeneous_bc(false)
+    : RobinPhysBdryPatchStrategy()
 {
     setPatchDataIndices(patch_data_indices);
     setPhysicalBcCoef(bc_coef);
@@ -210,9 +204,7 @@ CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(
     const ComponentSelector& patch_data_indices,
     RobinBcCoefStrategy<NDIM>* const bc_coef,
     const bool homogeneous_bc)
-    : d_patch_data_indices(),
-      d_bc_coefs(),
-      d_homogeneous_bc(false)
+    : RobinPhysBdryPatchStrategy()
 {
     setPatchDataIndices(patch_data_indices);
     setPhysicalBcCoef(bc_coef);
@@ -224,9 +216,7 @@ CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(
     const int patch_data_index,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
-    : d_patch_data_indices(),
-      d_bc_coefs(),
-      d_homogeneous_bc(false)
+    : RobinPhysBdryPatchStrategy()
 {
     setPatchDataIndex(patch_data_index);
     setPhysicalBcCoefs(bc_coefs);
@@ -238,9 +228,7 @@ CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(
     const std::set<int>& patch_data_indices,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
-    : d_patch_data_indices(),
-      d_bc_coefs(),
-      d_homogeneous_bc(false)
+    : RobinPhysBdryPatchStrategy()
 {
     setPatchDataIndices(patch_data_indices);
     setPhysicalBcCoefs(bc_coefs);
@@ -252,9 +240,7 @@ CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(
     const ComponentSelector& patch_data_indices,
     const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     const bool homogeneous_bc)
-    : d_patch_data_indices(),
-      d_bc_coefs(),
-      d_homogeneous_bc(false)
+    : RobinPhysBdryPatchStrategy()
 {
     setPatchDataIndices(patch_data_indices);
     setPhysicalBcCoefs(bc_coefs);
@@ -266,9 +252,7 @@ CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(
     const int patch_data_index,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
-    : d_patch_data_indices(),
-      d_bc_coefs(),
-      d_homogeneous_bc(false)
+    : RobinPhysBdryPatchStrategy()
 {
     setPatchDataIndex(patch_data_index);
     setPhysicalBcCoefs(bc_coefs);
@@ -280,9 +264,7 @@ CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(
     const std::set<int>& patch_data_indices,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
-    : d_patch_data_indices(),
-      d_bc_coefs(),
-      d_homogeneous_bc(false)
+    : RobinPhysBdryPatchStrategy()
 {
     setPatchDataIndices(patch_data_indices);
     setPhysicalBcCoefs(bc_coefs);
@@ -294,9 +276,7 @@ CartCellRobinPhysBdryOp::CartCellRobinPhysBdryOp(
     const ComponentSelector& patch_data_indices,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs,
     const bool homogeneous_bc)
-    : d_patch_data_indices(),
-      d_bc_coefs(),
-      d_homogeneous_bc(false)
+    : RobinPhysBdryPatchStrategy()
 {
     setPatchDataIndices(patch_data_indices);
     setPhysicalBcCoefs(bc_coefs);
@@ -309,80 +289,6 @@ CartCellRobinPhysBdryOp::~CartCellRobinPhysBdryOp()
     // intentionally blank
     return;
 }// ~CartCellRobinPhysBdryOp
-
-void
-CartCellRobinPhysBdryOp::setPatchDataIndex(
-    const int patch_data_index)
-{
-    std::set<int> patch_data_indices;
-    patch_data_indices.insert(patch_data_index);
-    setPatchDataIndices(patch_data_indices);
-    return;
-}// setPatchDataIndex
-
-void
-CartCellRobinPhysBdryOp::setPatchDataIndices(
-    const std::set<int>& patch_data_indices)
-{
-    d_patch_data_indices.clear();
-    d_patch_data_indices = patch_data_indices;
-    return;
-}// setPatchDataIndices
-
-void
-CartCellRobinPhysBdryOp::setPatchDataIndices(
-    const ComponentSelector& patch_data_indices)
-{
-    std::set<int> patch_data_index_set;
-    for (int l = 0; l < patch_data_indices.getSize(); ++l)
-    {
-        if (patch_data_indices.isSet(l))
-        {
-            const int patch_data_index = l;
-            patch_data_index_set.insert(patch_data_index);
-        }
-    }
-    setPatchDataIndices(patch_data_index_set);
-    return;
-}// setPatchDataIndices
-
-void
-CartCellRobinPhysBdryOp::setPhysicalBcCoef(
-    RobinBcCoefStrategy<NDIM>* const bc_coef)
-{
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(1,bc_coef));
-    return;
-}// setPhysicalBcCoef
-
-void
-CartCellRobinPhysBdryOp::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned int l = 0; l < bc_coefs.size(); ++l)
-    {
-        TBOX_ASSERT(bc_coefs[l] != NULL);
-    }
-#endif
-    d_bc_coefs = bc_coefs;
-    return;
-}// setPhysicalBcCoefs
-
-void
-CartCellRobinPhysBdryOp::setPhysicalBcCoefs(
-    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& bc_coefs)
-{
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(&bc_coefs[0],&bc_coefs[0]+NDIM));
-    return;
-}// setPhysicalBcCoefs
-
-void
-CartCellRobinPhysBdryOp::setHomogeneousBc(
-    bool homogeneous_bc)
-{
-    d_homogeneous_bc = homogeneous_bc;
-    return;
-}// setHomogeneousBc
 
 void
 CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(
@@ -401,8 +307,7 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(
     // Indicate whether we are employing homogeneous or inhomogeneous boundary
     // conditions for all extended Robin BC coef strategy objects employed by
     // this object.
-    for (std::vector<RobinBcCoefStrategy<NDIM>*>::iterator it = d_bc_coefs.begin();
-         it != d_bc_coefs.end(); ++it)
+    for (std::vector<RobinBcCoefStrategy<NDIM>*>::iterator it = d_bc_coefs.begin(); it != d_bc_coefs.end(); ++it)
     {
         ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(*it);
         if (extended_bc_coef != NULL)
@@ -426,8 +331,7 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(
     // Set the physical boundary condition coefficients for the specified
     // scratch patch data indices before actually filling the ghost cell values.
     std::map<int,std::vector<std::vector<Pointer<ArrayData<NDIM,double> > > > > acoefs, bcoefs, gcoefs;
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-         cit != d_patch_data_indices.end(); ++cit)
+    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
 
@@ -450,13 +354,9 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(
                        << "  but " << d_bc_coefs.size() << " boundary condition coefficient objects were provided to the class constructor." << std::endl);
         }
 
-        acoefs[patch_data_idx].resize(patch_data->getDepth(),std::vector<Pointer<ArrayData<NDIM,double> > >(
-                                          n_physical_codim1_boxes,Pointer<ArrayData<NDIM,double> >(NULL)));
-        bcoefs[patch_data_idx].resize(patch_data->getDepth(),std::vector<Pointer<ArrayData<NDIM,double> > >(
-                                          n_physical_codim1_boxes,Pointer<ArrayData<NDIM,double> >(NULL)));
-        gcoefs[patch_data_idx].resize(patch_data->getDepth(),std::vector<Pointer<ArrayData<NDIM,double> > >(
-                                          n_physical_codim1_boxes,Pointer<ArrayData<NDIM,double> >(NULL)));
-
+        acoefs[patch_data_idx].resize(patch_data->getDepth(),std::vector<Pointer<ArrayData<NDIM,double> > >(n_physical_codim1_boxes,Pointer<ArrayData<NDIM,double> >(NULL)));
+        bcoefs[patch_data_idx].resize(patch_data->getDepth(),std::vector<Pointer<ArrayData<NDIM,double> > >(n_physical_codim1_boxes,Pointer<ArrayData<NDIM,double> >(NULL)));
+        gcoefs[patch_data_idx].resize(patch_data->getDepth(),std::vector<Pointer<ArrayData<NDIM,double> > >(n_physical_codim1_boxes,Pointer<ArrayData<NDIM,double> >(NULL)));
         for (int depth = 0; depth < patch_data->getDepth(); ++depth)
         {
             for (int n = 0; n < n_physical_codim1_boxes; ++n)
@@ -647,28 +547,6 @@ CartCellRobinPhysBdryOp::getRefineOpStencilWidth() const
 {
     return REFINE_OP_STENCIL_WIDTH;
 }// getRefineOpStencilWidth
-
-void
-CartCellRobinPhysBdryOp::preprocessRefine(
-    Patch<NDIM>& /*fine*/,
-    const Patch<NDIM>& /*coarse*/,
-    const Box<NDIM>& /*fine_box*/,
-    const IntVector<NDIM>& /*ratio*/)
-{
-    // intentionally blank
-    return;
-}// preprocessRefine
-
-void
-CartCellRobinPhysBdryOp::postprocessRefine(
-    Patch<NDIM>& /*fine*/,
-    const Patch<NDIM>& /*coarse*/,
-    const Box<NDIM>& /*fine_box*/,
-    const IntVector<NDIM>& /*ratio*/)
-{
-    // intentionally blank
-    return;
-}// postprocessRefine
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

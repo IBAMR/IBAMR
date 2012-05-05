@@ -98,7 +98,6 @@ INSStaggeredFACPreconditionerStrategy::INSStaggeredFACPreconditionerStrategy(
       d_P_prolongation_method("LINEAR_REFINE"),
       d_U_restriction_method("CONSERVATIVE_COARSEN"),
       d_P_restriction_method("CONSERVATIVE_COARSEN"),
-      d_preconditioner(NULL),
       d_coarse_solver_choice("block_jacobi"),
       d_coarse_solver_tol(1.0e-6),
       d_coarse_solver_max_its(10),
@@ -140,7 +139,6 @@ INSStaggeredFACPreconditionerStrategy::INSStaggeredFACPreconditionerStrategy(
     // Setup scratch variables.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_context = var_db->getContext(d_object_name+"::CONTEXT");
-
     const IntVector<NDIM> side_ghosts = d_gcw;
     Pointer<SideVariable<NDIM,double> > side_scratch_var = new SideVariable<NDIM,double>(d_object_name+"::side_scratch");
     if (var_db->checkVariableExists(side_scratch_var->getName()))
@@ -150,7 +148,6 @@ INSStaggeredFACPreconditionerStrategy::INSStaggeredFACPreconditionerStrategy(
         var_db->removePatchDataIndex(d_side_scratch_idx);
     }
     d_side_scratch_idx = var_db->registerVariableAndContext(side_scratch_var, d_context, side_ghosts);
-
     const IntVector<NDIM> cell_ghosts = d_gcw;
     Pointer<CellVariable<NDIM,double> > cell_scratch_var = new CellVariable<NDIM,double>(d_object_name+"::cell_scratch");
     if (var_db->checkVariableExists(cell_scratch_var->getName()))
@@ -275,19 +272,6 @@ INSStaggeredFACPreconditionerStrategy::setRestrictionMethods(
     d_P_restriction_method = P_restriction_method;
     return;
 }// setRestrictionMethods
-
-void
-INSStaggeredFACPreconditionerStrategy::setFACPreconditioner(
-    ConstPointer<FACPreconditioner> preconditioner)
-{
-    if (d_is_initialized)
-    {
-        TBOX_ERROR(d_object_name << "::setFACPreconditioner()\n"
-                   << "  cannot be called while operator state is initialized" << std::endl);
-    }
-    d_preconditioner = preconditioner;
-    return;
-}// setFACPreconditioner
 
 void
 INSStaggeredFACPreconditionerStrategy::restrictResidual(
@@ -461,7 +445,6 @@ INSStaggeredFACPreconditionerStrategy::initializeOperatorState(
         geometry->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen());
         geometry->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen());
                   );
-
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > var;
 
@@ -742,7 +725,7 @@ INSStaggeredFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(
 }// xeqScheduleGhostFillNoCoarse
 
 void
-INSStaggeredFACPreconditionerStrategy::xeqScheduleSideDataSynch(
+INSStaggeredFACPreconditionerStrategy::xeqScheduleDataSynch(
     const int U_dst_idx,
     const int dst_ln)
 {
@@ -752,7 +735,7 @@ INSStaggeredFACPreconditionerStrategy::xeqScheduleSideDataSynch(
     d_synch_refine_schedules[dst_ln]->fillData(d_new_time);
     d_synch_refine_algorithm->resetSchedule(d_synch_refine_schedules[dst_ln]);
     return;
-}// xeqScheduleSideDataSynch
+}// xeqScheduleDataSynch
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

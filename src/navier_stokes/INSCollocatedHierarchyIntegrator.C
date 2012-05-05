@@ -343,7 +343,7 @@ INSCollocatedHierarchyIntegrator::getVelocitySubdomainSolver()
                 TBOX_WARNING(d_object_name << "::getVelocitySubdomainSolver():\n" <<
                              "  velocity fac pc solver database is null." << std::endl);
             }
-            d_velocity_fac_op = new CCPoissonFACOperator(d_object_name+"::Velocity Subdomain FAC Operator", d_velocity_fac_pc_db);
+            d_velocity_fac_op = new CCPoissonPointRelaxationFACOperator(d_object_name+"::Velocity Subdomain FAC Operator", d_velocity_fac_pc_db);
             d_velocity_fac_op->setPoissonSpecifications(*d_velocity_spec);
             d_velocity_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Velocity Subdomain Preconditioner", d_velocity_fac_op, d_velocity_fac_pc_db);
             p_velocity_solver->setPreconditioner(d_velocity_fac_pc);
@@ -405,7 +405,7 @@ INSCollocatedHierarchyIntegrator::getPressureSubdomainSolver()
                     TBOX_WARNING(d_object_name << "::getPressureSubdomainSolver():\n" <<
                                  "  Pressure FAC PC solver database is null." << std::endl);
                 }
-                d_pressure_fac_op = new CCPoissonFACOperator(d_object_name+"::Pressure Subdomain FAC Operator", d_pressure_fac_pc_db);
+                d_pressure_fac_op = new CCPoissonPointRelaxationFACOperator(d_object_name+"::Pressure Subdomain FAC Operator", d_pressure_fac_pc_db);
                 d_pressure_fac_op->setPoissonSpecifications(*d_pressure_spec);
                 d_pressure_fac_pc = new IBTK::FACPreconditioner(d_object_name+"::Pressure Subdomain Preconditioner", d_pressure_fac_op, d_pressure_fac_pc_db);
                 p_pressure_solver->setPreconditioner(d_pressure_fac_pc);
@@ -1416,7 +1416,7 @@ INSCollocatedHierarchyIntegrator::regridProjection()
         TBOX_WARNING(d_object_name << "::regridHierarchy():\n" <<
                      "  regrid projection pressure fac pc solver database is null." << std::endl);
     }
-    Pointer<CCPoissonFACOperator> regrid_projection_fac_op = new CCPoissonFACOperator(d_object_name+"::Regrid Projection FAC Operator", d_regrid_projection_fac_pc_db);
+    Pointer<CCPoissonPointRelaxationFACOperator> regrid_projection_fac_op = new CCPoissonPointRelaxationFACOperator(d_object_name+"::Regrid Projection FAC Operator", d_regrid_projection_fac_pc_db);
     regrid_projection_fac_op->setPoissonSpecifications(regrid_projection_spec);
     regrid_projection_fac_op->setPhysicalBcCoef(&Phi_bc_coef);
     regrid_projection_fac_op->setTime(d_integrator_time);

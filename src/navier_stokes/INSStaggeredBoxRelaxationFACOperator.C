@@ -672,7 +672,7 @@ INSStaggeredBoxRelaxationFACOperator::smoothError(
     }
 
     // Synchronize data along patch boundaries.
-    xeqScheduleSideDataSynch(U_error_idx, level_num);
+    xeqScheduleDataSynch(U_error_idx, level_num);
     return;
 }// smoothError
 
