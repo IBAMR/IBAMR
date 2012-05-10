@@ -1128,6 +1128,14 @@ IBInstrumentPanel::readInstrumentData(
 }// readInstrumentData
 
 void
+IBInstrumentPanel::setPlotDirectory(
+    const std::string& plot_directory_name)
+{
+    d_plot_directory_name = plot_directory_name;
+    return;
+}// setPlotDirectory
+
+void
 IBInstrumentPanel::writePlotData(
     const int timestep_num,
     const double simulation_time)
