@@ -1294,7 +1294,7 @@ C     DEC$ LOOP COUNT(8)
      &                    +w0(ic0-ic_lower(0))
      &                    *w1(ic1-ic_lower(1))
      &                    *w2(ic2-ic_lower(2))
-     &                    *u(ic0,ic1,d)
+     &                    *u(ic0,ic1,ic2,d)
                   enddo
                enddo
             enddo
@@ -1432,7 +1432,7 @@ C     DEC$ LOOP COUNT(8)
                do ic1 = ic_lower(1),ic_upper(1)
 C     DEC$ LOOP COUNT(8)
                   do ic0 = ic_lower(0),ic_upper(0)
-                     u(ic0,ic1,ic2,d) = u(ic0,ic1,d)+(
+                     u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d)+(
      &                    w0(ic0-ic_lower(0))*
      &                    w1(ic1-ic_lower(1))*
      &                    w2(ic2-ic_lower(2))*
