@@ -112,6 +112,9 @@
 #define LAGRANGIAN_IB_4_SPREAD_FC FC_FUNC_(lagrangian_ib_4_spread3d, LAGRANGIAN_IB_4_SPREAD3D)
 #define LAGRANGIAN_IB_4_SPREAD_XP_FC FC_FUNC_(lagrangian_ib_4_spread_xp3d, LAGRANGIAN_IB_4_SPREAD_XP3D)
 
+#define LAGRANGIAN_WIDE_IB_4_INTERP_FC FC_FUNC_(lagrangian_wide_ib_4_interp3d, LAGRANGIAN_WIDE_IB_4_INTERP3D)
+#define LAGRANGIAN_WIDE_IB_4_SPREAD_FC FC_FUNC_(lagrangian_wide_ib_4_spread3d, LAGRANGIAN_WIDE_IB_4_SPREAD3D)
+
 #define LAGRANGIAN_IB_6_INTERP_FC FC_FUNC_(lagrangian_ib_6_interp3d, LAGRANGIAN_IB_6_INTERP3D)
 #define LAGRANGIAN_IB_6_SPREAD_FC FC_FUNC_(lagrangian_ib_6_spread3d, LAGRANGIAN_IB_6_SPREAD3D)
 #define LAGRANGIAN_IB_6_SPREAD_XP_FC FC_FUNC_(lagrangian_ib_6_spread_xp3d, LAGRANGIAN_IB_6_SPREAD_XP3D)
@@ -396,7 +399,7 @@ extern "C"
 #endif
         double*
                                  );
-#if (NDIM == 2)
+
     void
     LAGRANGIAN_WIDE_IB_4_INTERP_FC(
         const double* , const double* , const double* , const int& ,
@@ -428,7 +431,7 @@ extern "C"
 #endif
         double*
                                    );
-#endif
+
     void
     LAGRANGIAN_IB_6_INTERP_FC(
         const double* , const double* , const double* , const int& ,
@@ -638,9 +641,7 @@ LEInteractor::getStencilSize(
     if (weighting_fcn == "WIDE_IB_3") return 6;
 #endif
     if (weighting_fcn == "IB_4") return 4;
-#if (NDIM == 2)
     if (weighting_fcn == "WIDE_IB_4") return 8;
-#endif
     if (weighting_fcn == "IB_6") return 6;
     if (weighting_fcn == "USER_DEFINED") return s_delta_fcn_stencil_size;
     TBOX_ERROR("LEInteractor::getStencilSize()\n"
@@ -670,9 +671,7 @@ LEInteractor::getC(
     if (weighting_fcn == "WIDE_IB_3") return 0.25*getC("IB_3");
 #endif
     if (weighting_fcn == "IB_4") return 3.0/8.0;
-#if (NDIM == 2)
     if (weighting_fcn == "WIDE_IB_4") return 0.25*getC("IB_4");
-#endif
     if (weighting_fcn == "IB_6") return 67.0/128.0;
     if (weighting_fcn == "USER_DEFINED") return s_delta_fcn_C;
     TBOX_ERROR("LEInteractor::getC()\n"
@@ -1956,7 +1955,6 @@ LEInteractor::interpolate(
     }
     else if (interp_fcn == "WIDE_IB_4")
     {
-#if (NDIM == 2)
         LAGRANGIAN_WIDE_IB_4_INTERP_FC(
             dx,x_lower,x_upper,q_depth,
 #if (NDIM == 2)
@@ -1970,10 +1968,6 @@ LEInteractor::interpolate(
             q_data,
             &local_indices[0], &periodic_offsets[0], local_indices_size,
             X_data,Q_data);
-#else
-        TBOX_ERROR("LEInteractor::interpolate()\n" <<
-                   "  Weighting function " << interp_fcn << " is only supported in 2D" << std::endl);
-#endif
     }
     else if (interp_fcn == "IB_6")
     {
@@ -2312,7 +2306,6 @@ LEInteractor::spread(
     }
     else if (spread_fcn == "WIDE_IB_4")
     {
-#if (NDIM == 2)
         if (s_precision_mode == DOUBLE)
         {
             LAGRANGIAN_WIDE_IB_4_SPREAD_FC(
@@ -2339,10 +2332,6 @@ LEInteractor::spread(
             TBOX_ERROR("LEInteractor::spread():\n"
                        << "  invalid precision mode; s_precision_mode = " << s_precision_mode << ".\n");
         }
-#else
-        TBOX_ERROR("LEInteractor::spread()\n" <<
-                   "  Weighting function " << spread_fcn << " is only supported in 2D" << std::endl);
-#endif
     }
     else if (spread_fcn == "IB_6")
     {
