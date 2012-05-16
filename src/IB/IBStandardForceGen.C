@@ -503,6 +503,7 @@ IBStandardForceGen::computeLagrangianForceJacobian(
 #if (NDIM == 3)
             R = sqrt(D[0]*D[0]+D[1]*D[1]+D[2]*D[2]);
 #endif
+            if (UNLIKELY(R == 0.0)) continue;
             T = force_fcn(R,stf,rst,lag_mastr_idx,lag_slave_idx);
             if (force_deriv_fcn == NULL)
             {
@@ -884,6 +885,7 @@ IBStandardForceGen::computeLagrangianSpringForce(
 #if (NDIM == 3)
                 R = sqrt(D[0]*D[0]+D[1]*D[1]+D[2]*D[2]);
 #endif
+                if (UNLIKELY(R == 0.0)) continue;
                 T_over_R = (force_fcns[k])(R,stiffnesses[k],rest_lengths[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k])/R;
                 F[0] = T_over_R*D[0];
                 F[1] = T_over_R*D[1];
@@ -920,6 +922,7 @@ IBStandardForceGen::computeLagrangianSpringForce(
 #if (NDIM == 3)
             R = sqrt(D[0]*D[0]+D[1]*D[1]+D[2]*D[2]);
 #endif
+            if (UNLIKELY(R == 0.0)) continue;
             T_over_R = (force_fcns[k])(R,stiffnesses[k],rest_lengths[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k])/R;
             F[0] = T_over_R*D[0];
             F[1] = T_over_R*D[1];
@@ -974,6 +977,7 @@ IBStandardForceGen::computeLagrangianSpringForce(
 #if (NDIM == 3)
                 R = sqrt(D[0]*D[0]+D[1]*D[1]+D[2]*D[2]);
 #endif
+                if (UNLIKELY(R == 0.0)) continue;
                 T_over_R = (force_fcns[k])(R,*dynamic_stiffnesses[k],*dynamic_rest_lengths[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k])/R;
                 F[0] = T_over_R*D[0];
                 F[1] = T_over_R*D[1];
@@ -1010,6 +1014,7 @@ IBStandardForceGen::computeLagrangianSpringForce(
 #if (NDIM == 3)
             R = sqrt(D[0]*D[0]+D[1]*D[1]+D[2]*D[2]);
 #endif
+            if (UNLIKELY(R == 0.0)) continue;
             T_over_R = (force_fcns[k])(R,*dynamic_stiffnesses[k],*dynamic_rest_lengths[k],lag_mastr_node_idxs[k],lag_slave_node_idxs[k])/R;
             F[0] = T_over_R*D[0];
             F[1] = T_over_R*D[1];
