@@ -286,7 +286,17 @@ public:
      * time step.
      */
     virtual int
-    getNumberOfCycles();
+    getNumberOfCycles() const;
+
+    /*!
+     * Virtual method to return the current cycle number within the present time
+     * step.
+     *
+     * The default implementation returns a value of -1 when it is not advancing
+     * the hierarchy.
+     */
+    virtual int
+    getCurrentCycleNumber() const;
 
     /*!
      * Virtual method to prepare to advance data from current_time to new_time.

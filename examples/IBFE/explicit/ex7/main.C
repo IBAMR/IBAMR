@@ -46,7 +46,6 @@
 #include <exodusII_io.h>
 #include <mesh.h>
 #include <mesh_generation.h>
-#include <mesh_triangle_interface.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>

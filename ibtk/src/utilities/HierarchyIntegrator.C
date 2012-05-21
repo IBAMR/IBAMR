@@ -453,10 +453,16 @@ HierarchyIntegrator::setupPlotData()
 }// setupPlotData
 
 int
-HierarchyIntegrator::getNumberOfCycles()
+HierarchyIntegrator::getNumberOfCycles() const
 {
     return d_num_cycles;
 }// getNumberOfCycles
+
+int
+HierarchyIntegrator::getCurrentCycleNumber() const
+{
+    return d_current_cycle_num;
+}// getCurrentCycleNumber
 
 void
 HierarchyIntegrator::preprocessIntegrateHierarchy(

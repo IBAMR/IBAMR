@@ -754,7 +754,7 @@ INSCollocatedHierarchyIntegrator::initializePatchHierarchy(
 }// initializePatchHierarhcy
 
 int
-INSCollocatedHierarchyIntegrator::getNumberOfCycles()
+INSCollocatedHierarchyIntegrator::getNumberOfCycles() const
 {
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     if (initial_time)

@@ -23,7 +23,8 @@ clean-local:
 libIBAMR_a_SOURCES = \
 $(top_builddir)/src/advect/fortran/godunov_helpers.f \
 $(top_builddir)/src/fortran/sqrtm.f \
-$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C
+$(top_srcdir)/src/navier_stokes/INSProblemCoefs.C \
+$(top_srcdir)/src/utilities/RNG.C
 
 if LIBMESH_ENABLED
 libIBAMR_a_SOURCES += \
@@ -32,6 +33,7 @@ endif
 
 pkg_include_HEADERS = \
 $(top_srcdir)/src/navier_stokes/INSProblemCoefs.h \
+$(top_srcdir)/src/utilities/RNG.h \
 $(top_srcdir)/src/utilities/ibamr_enums.h \
 $(top_srcdir)/src/utilities/ibamr_utilities.h \
 $(top_srcdir)/src/utilities/app_namespaces.h \
@@ -102,6 +104,7 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredPhysicalBoundaryHelper.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C \
+$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
 $(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C
@@ -169,6 +172,7 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredPPMConvectiveOperator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredPhysicalBoundaryHelper.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredPressureBcCoef.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.h \
+$(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h \
 $(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.h
@@ -190,7 +194,8 @@ $(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f \
-$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stochastic_forcing2d.f
 
 libIBAMR3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 libIBAMR3d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
@@ -204,4 +209,5 @@ $(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f \
-$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f \
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stochastic_forcing3d.f

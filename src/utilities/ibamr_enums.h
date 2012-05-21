@@ -196,6 +196,39 @@ enum_to_string<ProjectionMethodType>(
 }// enum_to_string
 
 /*!
+ * \brief Enumerated type for different forms of the stochastic stress tensor.
+ */
+enum StochasticStressTensorType
+{
+    UNCORRELATED,
+    SYMMETRIC,
+    SYMMETRIC_TRACELESS,
+    UNKNOWN_STOCHASTIC_STRESS_TENSOR_TYPE=-1
+};
+
+template<>
+inline StochasticStressTensorType
+string_to_enum<StochasticStressTensorType>(
+    const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "UNCORRELATED"       ) == 0) return UNCORRELATED;
+    if (strcasecmp(val.c_str(), "SYMMETRIC"          ) == 0) return SYMMETRIC;
+    if (strcasecmp(val.c_str(), "SYMMETRIC_TRACELESS") == 0) return SYMMETRIC_TRACELESS;
+    return UNKNOWN_STOCHASTIC_STRESS_TENSOR_TYPE;
+}// string_to_enum
+
+template<>
+inline std::string
+enum_to_string<StochasticStressTensorType>(
+    StochasticStressTensorType val)
+{
+    if (val == UNCORRELATED       ) return "UNCORRELATED";
+    if (val == SYMMETRIC          ) return "SYMMETRIC";
+    if (val == SYMMETRIC_TRACELESS) return "SYMMETRIC_TRACELESS";
+    return "UNKNOWN_STOCHASTIC_STRESS_TENSOR_TYPE";
+}// enum_to_string
+
+/*!
  * \brief Enumerated type for different Stokes preconditioners.
  */
 enum StokesPreconditionerType

@@ -100,8 +100,10 @@ public:
      * If the time integrator is configured to solve the time-dependent
      * (creeping) Stokes equations, then the returned pointer will be NULL.
      *
-     * If the convective operator has not already been constructed, then this
-     * function will initialize a INSStaggeredPPMConvectiveOperator.
+     * If the convective operator has not already been constructed, and if the
+     * time integrator is not configured to solve the time-dependent (creeping)
+     * Stokes equations, then this function will initialize the type of
+     * convective operator, which may be set in the class input database.
      */
     SAMRAI::tbox::Pointer<ConvectiveOperator>
     getConvectiveOperator();
@@ -215,7 +217,7 @@ public:
      * Returns the number of cycles to perform for the present time step.
      */
     int
-    getNumberOfCycles();
+    getNumberOfCycles() const;
 
     /*!
      * Prepare to advance the data from current_time to new_time.

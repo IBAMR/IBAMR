@@ -85,7 +85,7 @@ IBExplicitHierarchyIntegrator::~IBExplicitHierarchyIntegrator()
 }// ~IBExplicitHierarchyIntegrator
 
 int
-IBExplicitHierarchyIntegrator::getNumberOfCycles()
+IBExplicitHierarchyIntegrator::getNumberOfCycles() const
 {
     return std::max(d_num_cycles,d_ins_hier_integrator->getNumberOfCycles());
 }// getNumberOfCycles
