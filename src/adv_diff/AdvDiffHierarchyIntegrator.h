@@ -224,6 +224,20 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coef);
 
+    /*!
+     * Initialize the variables, basic communications algorithms, solvers, and
+     * other data structures used by this time integrator object.
+     *
+     * This method is called automatically by initializePatchHierarchy() prior
+     * to the construction of the patch hierarchy.  It is also possible for
+     * users to make an explicit call to initializeHierarchyIntegrator() prior
+     * to calling initializePatchHierarchy().
+     */
+    void
+    initializeHierarchyIntegrator(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+
 protected:
     /*!
      * The constructor for class AdvDiffHierarchyIntegrator sets some default
@@ -235,6 +249,29 @@ protected:
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         bool register_for_restart);
+
+    /*!
+     * Initialize data on a new level after it is inserted into an AMR patch
+     * hierarchy by the gridding algorithm.
+     */
+    void
+    initializeLevelDataSpecialized(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
+        bool allocate_data);
+
+    /*!
+     * Reset cached hierarchy dependent data.
+     */
+    void
+    resetHierarchyConfigurationSpecialized(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int coarsest_level,
+        int finest_level);
 
     /*!
      * Write out specialized object state to the given database.

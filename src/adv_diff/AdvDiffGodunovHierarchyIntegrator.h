@@ -244,11 +244,6 @@ private:
     getFromRestart();
 
     /*
-     * Variable context used for temporary storage.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_temp_context;
-
-    /*
      * The SAMRAI::algs::HyperbolicLevelIntegrator supplies generic operations
      * use to handle the explicit integration of advection terms.
      *

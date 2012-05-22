@@ -48,6 +48,9 @@
 #include <ibamr/ibamr_utilities.h>
 #include <ibamr/namespaces.h>
 
+// IBTK INCLUDES
+#include <ibtk/PETScKrylovLinearSolver.h>
+
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>
 #include <tbox/NullDatabase.h>
@@ -63,9 +66,6 @@ namespace IBAMR
 
 namespace
 {
-// Number of ghosts cells used for each variable quantity.
-static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
-
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
 static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
@@ -78,7 +78,7 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 // Version of AdvDiffHierarchyIntegrator restart file data.
-static const int ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION = 2;
+static const int ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION = 3;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -288,6 +288,77 @@ AdvDiffHierarchyIntegrator::setPhysicalBcCoefs(
     return;
 }// setPhysicalBcCoefs
 
+
+void
+AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
+    Pointer<PatchHierarchy<NDIM> > hierarchy,
+    Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+{
+    if (d_integrator_is_initialized) return;
+
+    d_hierarchy = hierarchy;
+    d_gridding_alg = gridding_alg;
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+
+    // Setup hierarchy data operations objects.
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    Pointer<CellVariable<NDIM,double> > cc_var = new CellVariable<NDIM,double>("cc_var");
+    d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
+
+    // Setup coarsening communications algorithms, used in synchronizing refined
+    // regions of coarse data with the underlying fine data.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
+         cit != d_Q_var.end(); ++cit)
+    {
+        Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+        const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
+        const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
+        Pointer<CoarsenOperator<NDIM> > coarsen_operator = grid_geom->lookupCoarsenOperator(Q_var, "CONSERVATIVE_COARSEN");
+        getCoarsenAlgorithm(SYNCH_CURRENT_DATA_ALG)->registerCoarsen(Q_current_idx, Q_current_idx, coarsen_operator);
+        getCoarsenAlgorithm(SYNCH_NEW_DATA_ALG    )->registerCoarsen(Q_new_idx    , Q_new_idx    , coarsen_operator);
+    }
+
+    // Operators and solvers are maintained for each variable registered with the
+    // integrator.
+    d_helmholtz_specs.reserve(d_Q_var.size());
+    d_helmholtz_ops.resize(d_Q_var.size());
+    d_helmholtz_fac_ops.resize(d_Q_var.size());
+    d_helmholtz_fac_pcs.resize(d_Q_var.size());
+    d_helmholtz_solvers.resize(d_Q_var.size());
+    d_helmholtz_solvers_need_init.resize(d_Q_var.size());
+    unsigned int l = 0;
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
+         cit != d_Q_var.end(); ++cit, ++l)
+    {
+        Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+        const std::string& name = Q_var->getName();
+        d_helmholtz_specs.push_back(PoissonSpecifications(d_object_name+"::Helmholtz Specs::"+name));
+        d_helmholtz_ops[l] = new CCLaplaceOperator(d_object_name+"::Helmholtz Operator::"+name, d_helmholtz_specs[l], d_Q_bc_coef[Q_var]);
+        d_helmholtz_solvers[l] = new PETScKrylovLinearSolver(d_object_name+"::PETSc Krylov solver::"+name, "adv_diff_");
+        d_helmholtz_solvers[l]->setMaxIterations(d_max_iterations);
+        d_helmholtz_solvers[l]->setAbsoluteTolerance(d_abs_residual_tol);
+        d_helmholtz_solvers[l]->setRelativeTolerance(d_rel_residual_tol);
+        d_helmholtz_solvers[l]->setInitialGuessNonzero(true);
+        d_helmholtz_solvers[l]->setOperator(d_helmholtz_ops[l]);
+        if (d_using_FAC)
+        {
+            d_helmholtz_fac_ops[l] = new CCPoissonPointRelaxationFACOperator(d_object_name+"::FAC Ops::"+name, d_fac_op_db);
+            d_helmholtz_fac_ops[l]->setPoissonSpecifications(d_helmholtz_specs[l]);
+            d_helmholtz_fac_ops[l]->setPhysicalBcCoefs(d_Q_bc_coef[Q_var]);
+            d_helmholtz_fac_pcs[l] = new FACPreconditioner(d_object_name+"::FAC Preconditioner::"+name, d_helmholtz_fac_ops[l], d_fac_pc_db);
+            d_helmholtz_solvers[l]->setPreconditioner(d_helmholtz_fac_pcs[l]);
+        }
+
+        // Indicate that the solvers need to be initialized.
+        d_helmholtz_solvers_need_init[l] = true;
+    }
+
+    // Indicate that the integrator has been initialized.
+    d_integrator_is_initialized = true;
+    return;
+}// initializeHierarchyIntegrator
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
@@ -370,6 +441,186 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     }
     return;
 }// AdvDiffHierarchyIntegrator
+
+void
+AdvDiffHierarchyIntegrator::initializeLevelDataSpecialized(
+    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+    const int level_number,
+    const double init_data_time,
+    const bool /*can_be_refined*/,
+    const bool initial_time,
+    const Pointer<BasePatchLevel<NDIM> > base_old_level,
+    const bool /*allocate_data*/)
+{
+    const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+    const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
+    if (!old_level.isNull())
+    {
+        TBOX_ASSERT(level_number == old_level->getLevelNumber());
+    }
+    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+#endif
+    // Initialize level data at the initial time.
+    if (initial_time)
+    {
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+        for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
+        {
+            Pointer<FaceVariable<NDIM,double> > u_var = *cit;
+            const int u_idx = var_db->mapVariableAndContextToIndex(u_var, getCurrentContext());
+            Pointer<CartGridFunction> u_fcn = d_u_fcn[u_var];
+            if (!u_fcn.isNull())
+            {
+                u_fcn->setDataOnPatchLevel(u_idx, u_var, level, init_data_time, initial_time);
+            }
+            else
+            {
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<FaceData<NDIM,double> > u_data = patch->getPatchData(u_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+                    TBOX_ASSERT(!u_data.isNull());
+#endif
+                    u_data->fillAll(0.0);
+                }
+            }
+        }
+        for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
+        {
+            Pointer<CellVariable<NDIM,double> > F_var = *cit;
+            const int F_idx = var_db->mapVariableAndContextToIndex(F_var, getCurrentContext());
+            Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
+            if (!F_fcn.isNull())
+            {
+                F_fcn->setDataOnPatchLevel(F_idx, F_var, level, init_data_time, initial_time);
+            }
+            else
+            {
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<CellData<NDIM,double> > F_data = patch->getPatchData(F_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+                    TBOX_ASSERT(!F_data.isNull());
+#endif
+                    F_data->fillAll(0.0);
+                }
+            }
+        }
+        for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+        {
+            Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+            const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
+            Pointer<CartGridFunction> Q_init = d_Q_init[Q_var];
+            if (!Q_init.isNull())
+            {
+                Q_init->setDataOnPatchLevel(Q_idx, Q_var, level, init_data_time, initial_time);
+            }
+            else
+            {
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<CellData<NDIM,double> > Q_data = patch->getPatchData(Q_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+                    TBOX_ASSERT(!Q_data.isNull());
+#endif
+                    Q_data->fillAll(0.0);
+                }
+            }
+        }
+        for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Psi_var.begin(); cit != d_Psi_var.end(); ++cit)
+        {
+            Pointer<CellVariable<NDIM,double> > Psi_var = *cit;
+            const int Psi_idx = var_db->mapVariableAndContextToIndex(Psi_var, getCurrentContext());
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<CellData<NDIM,double> > Psi_data = patch->getPatchData(Psi_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+                TBOX_ASSERT(!Psi_data.isNull());
+#endif
+                Psi_data->fillAll(0.0);
+            }
+        }
+    }
+    return;
+}// initializeLevelDataSpecialized
+
+void
+AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+    const int coarsest_level,
+    const int finest_level)
+{
+    const Pointer<BasePatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((coarsest_level >= 0)
+                && (coarsest_level <= finest_level)
+                && (finest_level <= hierarchy->getFinestLevelNumber()));
+    for (int ln = 0; ln <= finest_level; ++ln)
+    {
+        TBOX_ASSERT(!(hierarchy->getPatchLevel(ln)).isNull());
+    }
+#endif
+    const int finest_hier_level = hierarchy->getFinestLevelNumber();
+
+    // Reset the Hierarchy data operations for the new hierarchy configuration.
+    d_hier_cc_data_ops->setPatchHierarchy(hierarchy);
+    d_hier_cc_data_ops->resetLevels(0, finest_hier_level);
+
+    // Reset the interpolation operators.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    d_hier_bdry_fill_ops.resize(d_Q_var.size());
+    unsigned int l = 0;
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
+         cit != d_Q_var.end(); ++cit, ++l)
+    {
+        Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+        const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
+
+        // Setup the interpolation transaction information.
+        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+        InterpolationTransactionComponent transaction_comp(Q_scratch_idx, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY, d_Q_bc_coef[Q_var]);
+
+        // Initialize the interpolation operators.
+        d_hier_bdry_fill_ops[l] = new HierarchyGhostCellInterpolation();
+        d_hier_bdry_fill_ops[l]->initializeOperatorState(transaction_comp, d_hierarchy);
+    }
+
+    // Reset the solution and rhs vectors.
+    d_sol_vecs.resize(d_Q_var.size());
+    d_rhs_vecs.resize(d_Q_var.size());
+    l = 0;
+    const int wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
+         cit != d_Q_var.end(); ++cit, ++l)
+    {
+        Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+        const std::string& name = Q_var->getName();
+
+        const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
+        d_sol_vecs[l] = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::sol_vec::"+name, d_hierarchy, 0, finest_hier_level);
+        d_sol_vecs[l]->addComponent(Q_var,Q_scratch_idx,wgt_idx,d_hier_cc_data_ops);
+
+        Pointer<CellVariable<NDIM,double> > Psi_var = d_Q_Psi_map[Q_var];
+        const int Psi_scratch_idx = var_db->mapVariableAndContextToIndex(Psi_var, getScratchContext());
+        d_rhs_vecs[l] = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::rhs_vec::"+name, d_hierarchy, 0, finest_hier_level);
+        d_rhs_vecs[l]->addComponent(Psi_var,Psi_scratch_idx,wgt_idx,d_hier_cc_data_ops);
+    }
+
+    // Indicate that all linear solvers must be re-initialized.
+    std::fill(d_helmholtz_solvers_need_init.begin(), d_helmholtz_solvers_need_init.end(), true);
+    d_coarsest_reset_ln = coarsest_level;
+    d_finest_reset_ln = finest_level;
+    return;
+}// resetHierarchyConfigurationSpecialized
 
 void
 AdvDiffHierarchyIntegrator::putToDatabaseSpecialized(
