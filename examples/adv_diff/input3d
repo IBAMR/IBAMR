@@ -9,7 +9,7 @@ GodunovAdvector {
    using_full_ctu = TRUE
 }
 
-AdvDiffHierarchyIntegrator {
+AdvDiffGodunovHierarchyIntegrator {
    enable_logging = TRUE
 
    tag_buffer = 1
@@ -19,7 +19,7 @@ AdvDiffHierarchyIntegrator {
    grow_dt               = 2.0e0    // growth factor for timesteps
    regrid_interval       = 10000    // effectively disable regridding
 
-   AdvDiffHypPatchOps {
+   AdvDiffGodunovHypPatchOps {
       compute_init_velocity  = TRUE
       compute_half_velocity  = TRUE
       compute_final_velocity = FALSE

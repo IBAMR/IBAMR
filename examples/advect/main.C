@@ -42,7 +42,7 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/AdvectHypPatchOps.h>
+#include <ibamr/AdvectGodunovHypPatchOps.h>
 #include <ibamr/GodunovAdvector.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
@@ -124,8 +124,8 @@ main(
             "GodunovAdvector", app_initializer->getComponentDatabase("GodunovAdvector"));
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<AdvectHypPatchOps> hyp_patch_ops = new AdvectHypPatchOps(
-            "AdvectHypPatchOps", app_initializer->getComponentDatabase("AdvectHypPatchOps"), advector, grid_geometry);
+        Pointer<AdvectGodunovHypPatchOps> hyp_patch_ops = new AdvectGodunovHypPatchOps(
+            "AdvectGodunovHypPatchOps", app_initializer->getComponentDatabase("AdvectGodunovHypPatchOps"), advector, grid_geometry);
         Pointer<HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator = new HyperbolicLevelIntegrator<NDIM>(
             "HyperbolicLevelIntegrator", app_initializer->getComponentDatabase("HyperbolicLevelIntegrator"), hyp_patch_ops, true, using_refined_timestepping);
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(

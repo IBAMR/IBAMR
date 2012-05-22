@@ -9,7 +9,7 @@ GodunovAdvector {
    // intentionally blank
 }
 
-AdvDiffHierarchyIntegrator {
+AdvDiffGodunovHierarchyIntegrator {
    enable_logging = TRUE
 
    tag_buffer = 1
@@ -20,7 +20,7 @@ AdvDiffHierarchyIntegrator {
    max_integrator_steps  = 10000    // max number of simulation timesteps
    regrid_interval       = 10000    // effectively disable regridding
 
-   AdvDiffHypPatchOps {
+   AdvDiffGodunovHypPatchOps {
       compute_init_velocity  = TRUE
       compute_half_velocity  = TRUE
       compute_final_velocity = FALSE

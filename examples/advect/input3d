@@ -9,7 +9,7 @@ GodunovAdvector {
    using_full_ctu = TRUE
 }
 
-AdvectHypPatchOps {
+AdvectGodunovHypPatchOps {
    Refinement_data {
       refine_criteria = "QVAL_GRADIENT"
       QVAL_GRADIENT {

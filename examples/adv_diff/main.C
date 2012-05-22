@@ -42,7 +42,7 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/AdvDiffHierarchyIntegrator.h>
+#include <ibamr/AdvDiffGodunovHierarchyIntegrator.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
 #include <LocationIndexRobinBcCoefs.h>
@@ -95,10 +95,20 @@ main(
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<GodunovAdvector> predictor = new GodunovAdvector(
-            "GodunovAdvector", app_initializer->getComponentDatabase("GodunovAdvector"));
-        Pointer<AdvDiffHierarchyIntegrator> time_integrator = new AdvDiffHierarchyIntegrator(
-            "AdvDiffHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffHierarchyIntegrator"), predictor);
+        Pointer<AdvDiffHierarchyIntegrator> time_integrator;
+        const string solver_type = app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "GODUNOV");
+        if (solver_type == "GODUNOV")
+        {
+            Pointer<GodunovAdvector> predictor = new GodunovAdvector(
+                "GodunovAdvector", app_initializer->getComponentDatabase("GodunovAdvector"));
+            time_integrator = new AdvDiffGodunovHierarchyIntegrator(
+                "AdvDiffGodunovHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffGodunovHierarchyIntegrator"), predictor);
+        }
+        else
+        {
+            TBOX_ERROR("Unsupported solver type: " << solver_type << "\n" <<
+                       "Valid options are: GODUNOV");
+        }
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(

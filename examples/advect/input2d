@@ -9,7 +9,7 @@ GodunovAdvector {
    // intentionally blank
 }
 
-AdvectHypPatchOps {
+AdvectGodunovHypPatchOps {
    Refinement_data {
       refine_criteria = "QVAL_GRADIENT"
       QVAL_GRADIENT {
