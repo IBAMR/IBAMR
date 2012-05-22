@@ -1,4 +1,4 @@
-// Filename: AdvectHypPatchOps.C
+// Filename: AdvectGodunovHypPatchOps.C
 // Created on 12 Mar 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "AdvectHypPatchOps.h"
+#include "AdvectGodunovHypPatchOps.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -172,13 +172,13 @@ static const int FLUXG = 1;
 static const int TRUE_VAL  = 1;
 static const int FALSE_VAL = 0;
 
-// Version of AdvectHypPatchOps restart file data.
-static const int ADVECT_HYP_PATCH_OPS_VERSION = 1;
+// Version of AdvectGodunovHypPatchOps restart file data.
+static const int ADVECT_GODUNOV_HYP_PATCH_OPS_VERSION = 1;
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-AdvectHypPatchOps::AdvectHypPatchOps(
+AdvectGodunovHypPatchOps::AdvectGodunovHypPatchOps(
     const std::string& object_name,
     Pointer<Database> input_db,
     Pointer<GodunovAdvector> godunov_advector,
@@ -235,25 +235,25 @@ AdvectHypPatchOps::AdvectHypPatchOps(
     if (is_from_restart) getFromRestart();
     if (!input_db.isNull()) getFromInput(input_db, is_from_restart);
     return;
-}// AdvectHypPatchOps
+}// AdvectGodunovHypPatchOps
 
-AdvectHypPatchOps::~AdvectHypPatchOps()
+AdvectGodunovHypPatchOps::~AdvectGodunovHypPatchOps()
 {
     if (d_registered_for_restart)
     {
         RestartManager::getManager()->unregisterRestartItem(d_object_name);
     }
     return;
-}// ~AdvectHypPatchOps
+}// ~AdvectGodunovHypPatchOps
 
 const std::string&
-AdvectHypPatchOps::getName() const
+AdvectGodunovHypPatchOps::getName() const
 {
     return d_object_name;
 }// getName
 
 void
-AdvectHypPatchOps::registerVisItDataWriter(
+AdvectGodunovHypPatchOps::registerVisItDataWriter(
     Pointer<VisItDataWriter<NDIM> > visit_writer)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -264,7 +264,7 @@ AdvectHypPatchOps::registerVisItDataWriter(
 }// registerVisItDataWriter
 
 void
-AdvectHypPatchOps::registerAdvectionVelocity(
+AdvectGodunovHypPatchOps::registerAdvectionVelocity(
     Pointer<FaceVariable<NDIM,double> > u_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -276,7 +276,7 @@ AdvectHypPatchOps::registerAdvectionVelocity(
 }// registerAdvectionVelocity
 
 void
-AdvectHypPatchOps::setAdvectionVelocityIsDivergenceFree(
+AdvectGodunovHypPatchOps::setAdvectionVelocityIsDivergenceFree(
     Pointer<FaceVariable<NDIM,double> > u_var,
     const bool is_div_free)
 {
@@ -288,7 +288,7 @@ AdvectHypPatchOps::setAdvectionVelocityIsDivergenceFree(
 }// setAdvectionVelocityIsDivergenceFree
 
 void
-AdvectHypPatchOps::setAdvectionVelocityFunction(
+AdvectGodunovHypPatchOps::setAdvectionVelocityFunction(
     Pointer<FaceVariable<NDIM,double> > u_var,
     Pointer<IBTK::CartGridFunction> u_fcn)
 {
@@ -300,7 +300,7 @@ AdvectHypPatchOps::setAdvectionVelocityFunction(
 }// setAdvectionVelocityFunction
 
 void
-AdvectHypPatchOps::registerSourceTerm(
+AdvectGodunovHypPatchOps::registerSourceTerm(
     Pointer<CellVariable<NDIM,double> > F_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -311,7 +311,7 @@ AdvectHypPatchOps::registerSourceTerm(
 }// registerSourceTerm
 
 void
-AdvectHypPatchOps::setSourceTermFunction(
+AdvectGodunovHypPatchOps::setSourceTermFunction(
     Pointer<CellVariable<NDIM,double> > F_var,
     Pointer<IBTK::CartGridFunction> F_fcn)
 {
@@ -323,7 +323,7 @@ AdvectHypPatchOps::setSourceTermFunction(
 }// setSourceTermFunction
 
 void
-AdvectHypPatchOps::registerTransportedQuantity(
+AdvectGodunovHypPatchOps::registerTransportedQuantity(
     Pointer<CellVariable<NDIM,double> > Q_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -335,7 +335,7 @@ AdvectHypPatchOps::registerTransportedQuantity(
 }// registerTransportedQuantity
 
 void
-AdvectHypPatchOps::setAdvectionVelocity(
+AdvectGodunovHypPatchOps::setAdvectionVelocity(
     Pointer<CellVariable<NDIM,double> > Q_var,
     Pointer<FaceVariable<NDIM,double> > u_var)
 {
@@ -348,7 +348,7 @@ AdvectHypPatchOps::setAdvectionVelocity(
 }// setAdvectionVelocity
 
 void
-AdvectHypPatchOps::setSourceTerm(
+AdvectGodunovHypPatchOps::setSourceTerm(
     Pointer<CellVariable<NDIM,double> > Q_var,
     Pointer<CellVariable<NDIM,double> > F_var)
 {
@@ -361,7 +361,7 @@ AdvectHypPatchOps::setSourceTerm(
 }// setSourceTerm
 
 void
-AdvectHypPatchOps::setConvectiveDifferencingType(
+AdvectGodunovHypPatchOps::setConvectiveDifferencingType(
     Pointer<CellVariable<NDIM,double> > Q_var,
     const ConvectiveDifferencingType difference_form)
 {
@@ -373,7 +373,7 @@ AdvectHypPatchOps::setConvectiveDifferencingType(
 }// setConvectiveDifferencingType
 
 void
-AdvectHypPatchOps::setInitialConditions(
+AdvectGodunovHypPatchOps::setInitialConditions(
     Pointer<CellVariable<NDIM,double> > Q_var,
     Pointer<IBTK::CartGridFunction> Q_init)
 {
@@ -385,7 +385,7 @@ AdvectHypPatchOps::setInitialConditions(
 }// setInitialConditions
 
 void
-AdvectHypPatchOps::setPhysicalBcCoefs(
+AdvectGodunovHypPatchOps::setPhysicalBcCoefs(
     Pointer<CellVariable<NDIM,double> > Q_var,
     RobinBcCoefStrategy<NDIM>* Q_bc_coef)
 {
@@ -400,7 +400,7 @@ AdvectHypPatchOps::setPhysicalBcCoefs(
 }// setPhysicalBcCoefs
 
 void
-AdvectHypPatchOps::setPhysicalBcCoefs(
+AdvectGodunovHypPatchOps::setPhysicalBcCoefs(
     Pointer<CellVariable<NDIM,double> > Q_var,
     std::vector<RobinBcCoefStrategy<NDIM>*> Q_bc_coef)
 {
@@ -415,7 +415,7 @@ AdvectHypPatchOps::setPhysicalBcCoefs(
 }// setPhysicalBcCoefs
 
 void
-AdvectHypPatchOps::registerModelVariables(
+AdvectGodunovHypPatchOps::registerModelVariables(
     HyperbolicLevelIntegrator<NDIM>* integrator)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -526,7 +526,7 @@ AdvectHypPatchOps::registerModelVariables(
 }// registerModelVariables
 
 void
-AdvectHypPatchOps::initializeDataOnPatch(
+AdvectGodunovHypPatchOps::initializeDataOnPatch(
     Patch<NDIM>& patch,
     const double data_time,
     const bool initial_time)
@@ -586,7 +586,7 @@ AdvectHypPatchOps::initializeDataOnPatch(
 }// initializeDataOnPatch
 
 double
-AdvectHypPatchOps::computeStableDtOnPatch(
+AdvectGodunovHypPatchOps::computeStableDtOnPatch(
     Patch<NDIM>& patch,
     const bool /*initial_time*/,
     const double /*dt_time*/)
@@ -603,7 +603,7 @@ AdvectHypPatchOps::computeStableDtOnPatch(
 }// computeStableDtOnPatch
 
 void
-AdvectHypPatchOps::computeFluxesOnPatch(
+AdvectGodunovHypPatchOps::computeFluxesOnPatch(
     Patch<NDIM>& patch,
     const double time,
     const double dt)
@@ -696,7 +696,7 @@ AdvectHypPatchOps::computeFluxesOnPatch(
 }// computeFluxesOnPatch
 
 void
-AdvectHypPatchOps::conservativeDifferenceOnPatch(
+AdvectGodunovHypPatchOps::conservativeDifferenceOnPatch(
     Patch<NDIM>& patch,
     const double /*time*/,
     const double dt,
@@ -819,7 +819,7 @@ AdvectHypPatchOps::conservativeDifferenceOnPatch(
             }
             default:
             {
-                TBOX_ERROR("AdvectHypPatchOps::conservativeDifferenceOnPatch():\n"
+                TBOX_ERROR("AdvectGodunovHypPatchOps::conservativeDifferenceOnPatch():\n"
                            << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[Q_var]) << " \n"
                            << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
             }
@@ -829,7 +829,7 @@ AdvectHypPatchOps::conservativeDifferenceOnPatch(
 }// conservativeDifferenceOnPatch
 
 void
-AdvectHypPatchOps::preprocessAdvanceLevelState(
+AdvectGodunovHypPatchOps::preprocessAdvanceLevelState(
     const Pointer<PatchLevel<NDIM> >& level,
     double current_time,
     double /*dt*/,
@@ -868,7 +868,7 @@ AdvectHypPatchOps::preprocessAdvanceLevelState(
 }// preprocessAdvanceLevelState
 
 void
-AdvectHypPatchOps::postprocessAdvanceLevelState(
+AdvectGodunovHypPatchOps::postprocessAdvanceLevelState(
     const Pointer<PatchLevel<NDIM> >& level,
     double current_time,
     double dt,
@@ -934,7 +934,7 @@ AdvectHypPatchOps::postprocessAdvanceLevelState(
 }// postprocessAdvanceLevelState
 
 void
-AdvectHypPatchOps::tagGradientDetectorCells(
+AdvectGodunovHypPatchOps::tagGradientDetectorCells(
     Patch<NDIM>& patch,
     const double regrid_time,
     const bool /*initial_error*/,
@@ -1089,7 +1089,7 @@ AdvectHypPatchOps::tagGradientDetectorCells(
 }// tagGradientDetectorCells
 
 void
-AdvectHypPatchOps::setPhysicalBoundaryConditions(
+AdvectGodunovHypPatchOps::setPhysicalBoundaryConditions(
     Patch<NDIM>& patch,
     const double fill_time,
     const IntVector<NDIM>& ghost_width_to_fill)
@@ -1132,14 +1132,14 @@ AdvectHypPatchOps::setPhysicalBoundaryConditions(
 }// setPhysicalBoundaryConditions
 
 void
-AdvectHypPatchOps::putToDatabase(
+AdvectGodunovHypPatchOps::putToDatabase(
     Pointer<Database> db)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!db.isNull());
 #endif
 
-    db->putInteger("ADVECT_HYP_PATCH_OPS_VERSION", ADVECT_HYP_PATCH_OPS_VERSION);
+    db->putInteger("ADVECT_GODUNOV_HYP_PATCH_OPS_VERSION", ADVECT_GODUNOV_HYP_PATCH_OPS_VERSION);
 
     db->putIntegerArray("d_ghosts", &d_ghosts[0], NDIM);
     db->putIntegerArray("d_flux_ghosts", &d_flux_ghosts[0], NDIM);
@@ -1170,7 +1170,7 @@ AdvectHypPatchOps::putToDatabase(
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 Pointer<FaceData<NDIM,double> >
-AdvectHypPatchOps::getFluxIntegralData(
+AdvectGodunovHypPatchOps::getFluxIntegralData(
     Pointer<CellVariable<NDIM,double> > Q_var,
     Patch<NDIM>& patch,
     Pointer<VariableContext> context)
@@ -1189,7 +1189,7 @@ AdvectHypPatchOps::getFluxIntegralData(
 }// getFluxIntegralData
 
 Pointer<FaceData<NDIM,double> >
-AdvectHypPatchOps::getQIntegralData(
+AdvectGodunovHypPatchOps::getQIntegralData(
     Pointer<CellVariable<NDIM,double> > Q_var,
     Patch<NDIM>& patch,
     Pointer<VariableContext> context)
@@ -1208,7 +1208,7 @@ AdvectHypPatchOps::getQIntegralData(
 }// getQIntegralData
 
 Pointer<FaceData<NDIM,double> >
-AdvectHypPatchOps::getUIntegralData(
+AdvectGodunovHypPatchOps::getUIntegralData(
     Pointer<CellVariable<NDIM,double> > Q_var,
     Patch<NDIM>& patch,
     Pointer<VariableContext> context)
@@ -1230,7 +1230,7 @@ AdvectHypPatchOps::getUIntegralData(
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-AdvectHypPatchOps::setInflowBoundaryConditions(
+AdvectGodunovHypPatchOps::setInflowBoundaryConditions(
     Patch<NDIM>& patch,
     const double fill_time)
 {
@@ -1343,7 +1343,7 @@ AdvectHypPatchOps::setInflowBoundaryConditions(
 }// setInflowBoundaryConditions
 
 void
-AdvectHypPatchOps::getFromInput(
+AdvectGodunovHypPatchOps::getFromInput(
     Pointer<Database> db,
     bool /*is_from_restart*/)
 {
@@ -1357,7 +1357,7 @@ AdvectHypPatchOps::getFromInput(
     d_extrap_type = db->getStringWithDefault("extrap_type", d_extrap_type);
     if (!(d_extrap_type == "CONSTANT" || d_extrap_type == "LINEAR" || d_extrap_type == "QUADRATIC"))
     {
-        TBOX_ERROR("AdvectHypPatchOps::getFromInput():\n"
+        TBOX_ERROR("AdvectGodunovHypPatchOps::getFromInput():\n"
                    << "  unknown extrapolation type: " << d_extrap_type << "\n"
                    << "  valid selections are: CONSTANT, LINEAR, or QUADRATIC" << std::endl);
     }
@@ -1512,7 +1512,7 @@ AdvectHypPatchOps::getFromInput(
 }// getFromInput
 
 void
-AdvectHypPatchOps::getFromRestart()
+AdvectGodunovHypPatchOps::getFromRestart()
 {
     Pointer<Database> root_db =
         RestartManager::getManager()->getRootDatabase();
@@ -1530,8 +1530,8 @@ AdvectHypPatchOps::getFromRestart()
                    << d_object_name << " not found in restart file.");
     }
 
-    int ver = db->getInteger("ADVECT_HYP_PATCH_OPS_VERSION");
-    if (ver != ADVECT_HYP_PATCH_OPS_VERSION)
+    int ver = db->getInteger("ADVECT_GODUNOV_HYP_PATCH_OPS_VERSION");
+    if (ver != ADVECT_GODUNOV_HYP_PATCH_OPS_VERSION)
     {
         TBOX_ERROR(d_object_name << ":\n"
                    << "  Restart file version different than class version.");

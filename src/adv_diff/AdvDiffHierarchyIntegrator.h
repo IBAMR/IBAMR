@@ -1,5 +1,5 @@
 // Filename: AdvDiffHierarchyIntegrator.h
-// Created on 16 Mar 2004 by Boyce Griffith
+// Created on 21 May 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -39,7 +39,8 @@
 #include <petscsys.h>
 
 // IBAMR INCLUDES
-#include <ibamr/AdvDiffHypPatchOps.h>
+#include <ibamr/ibamr_enums.h>
+#include <ibamr/ibamr_utilities.h>
 
 // IBTK INCLUDES
 #include <ibtk/CCLaplaceOperator.h>
@@ -47,57 +48,20 @@
 #include <ibtk/HierarchyIntegrator.h>
 #include <ibtk/KrylovLinearSolver.h>
 
-// SAMRAI INCLUDES
-#include <HyperbolicLevelIntegrator.h>
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
 {
 /*!
- * \brief Class AdvDiffHierarchyIntegrator manages the spatial discretization
- * and time integration of scalar- and vector-valued quantities whose dynamics
- * are governed by the advection-diffusion equation.
- *
- * Each quantity \f$ Q \f$ managed by the integrator may have a unique diffusion
- * coefficient \f$ \kappa \f$ and damping coefficient \f$ \lambda \f$, and may
- * optionally have a forcing term \f$ F \f$.  Additionally, a different
- * advection velocity may be used with each quantity registered with the
- * integrator.
- *
- * This hierarchy integrator advances all levels of the patch hierarchy
- * synchronously in time.  In particular, subcycling in time is \em not
- * performed.
- *
- * Either Crank-Nicolson (i.e., the trapezoidal rule) or backward Euler is used
- * for the linearly implicit treatment of the diffusive terms.  The advective
- * terms are discretized by the GodunovAdvector object supplied to the class
- * constructor.
- *
- * \see AdvDiffHypPatchOps
- * \see HierarchyIntegrator
- * \see GodunovAdvector
- * \see SAMRAI::algs::HyperbolicLevelIntegrator
- * \see SAMRAI::mesh::StandardTagAndInitStrategy
- * \see SAMRAI::algs::TimeRefinementIntegrator
- * \see SAMRAI::algs::TimeRefinementLevelStrategy
+ * \brief Class AdvDiffHierarchyIntegrator provides an abstract interface for a
+ * time integrator for advection-diffusion or advection-reaction-diffusion
+ * equations on an AMR grid hierarchy, along with basic data management for
+ * variables defined on that hierarchy.
  */
 class AdvDiffHierarchyIntegrator
     : public IBTK::HierarchyIntegrator
 {
 public:
-    /*!
-     * The constructor for class AdvDiffHierarchyIntegrator sets some default
-     * values, reads in configuration information from input and restart
-     * databases, and registers the integrator object with the restart manager
-     * when requested.
-     */
-    AdvDiffHierarchyIntegrator(
-        const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<GodunovAdvector> explicit_predictor,
-        bool register_for_restart=true);
-
     /*!
      * The destructor for class AdvDiffHierarchyIntegrator unregisters the
      * integrator object with the restart manager when the object is so
@@ -260,103 +224,17 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coef);
 
-    /*!
-     * Return a pointer to the level integrator object used to integrate the
-     * advective terms.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> >
-    getHyperbolicLevelIntegrator() const;
-
-    /*!
-     * Return a pointer to the patch strategy object used to specify the
-     * numerical routines used to integrate the advective terms.
-     */
-    SAMRAI::tbox::Pointer<AdvDiffHypPatchOps>
-    getHyperbolicPatchStrategy() const;
-
-    /*!
-     * Initialize the variables, basic communications algorithms, solvers, and
-     * other data structures used by this time integrator object.
-     *
-     * This method is called automatically by initializePatchHierarchy() prior
-     * to the construction of the patch hierarchy.  It is also possible for
-     * users to make an explicit call to initializeHierarchyIntegrator() prior
-     * to calling initializePatchHierarchy().
-     */
-    void
-    initializeHierarchyIntegrator(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
-
-    /*!
-     * Synchronously advance each level in the hierarchy over the given time
-     * increment.
-     */
-    void
-    integrateHierarchy(
-        double current_time,
-        double new_time,
-        int cycle_num=0);
-
 protected:
-
     /*!
-     * Return the maximum stable time step size.
+     * The constructor for class AdvDiffHierarchyIntegrator sets some default
+     * values, reads in configuration information from input and restart
+     * databases, and registers the integrator object with the restart manager
+     * when requested.
      */
-    double
-    getTimeStepSizeSpecialized();
-
-    /*!
-     * Reset the current data to equal the new data, update the time level of
-     * the current data, and deallocate the scratch and new data.
-     */
-    void
-    resetTimeDependentHierarchyDataSpecialized(
-        double new_time);
-
-    /*!
-     * Reset the hierarchy integrator to the state at the beginning of the
-     * current time step.
-     */
-    void
-    resetIntegratorToPreadvanceStateSpecialized();
-
-    /*!
-     * Initialize data on a new level after it is inserted into an AMR patch
-     * hierarchy by the gridding algorithm.
-     */
-    void
-    initializeLevelDataSpecialized(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double init_data_time,
-        bool can_be_refined,
-        bool initial_time,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-        bool allocate_data);
-
-    /*!
-     * Reset cached hierarchy dependent data.
-     */
-    void
-    resetHierarchyConfigurationSpecialized(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int coarsest_level,
-        int finest_level);
-
-    /*!
-     * Set integer tags to "one" in cells where refinement of the given level
-     * should occur according to gradient criteria specified by the
-     * GodunovAdvector object.
-     */
-    void
-    applyGradientDetectorSpecialized(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double error_data_time,
-        int tag_index,
-        bool initial_time,
-        bool uses_richardson_extrapolation_too);
+    AdvDiffHierarchyIntegrator(
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+        bool register_for_restart);
 
     /*!
      * Write out specialized object state to the given database.
@@ -364,6 +242,11 @@ protected:
     void
     putToDatabaseSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
+    /*
+     * Boolean value that indicates whether the integrator has been initialized.
+     */
+    bool d_integrator_is_initialized;
 
     /*!
      * Enum indicating the time integration employed for the implicit
@@ -394,6 +277,32 @@ protected:
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,double> d_Q_diffusion_coef, d_Q_damping_coef;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_Q_init;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> > d_Q_bc_coef;
+
+    /*
+     * Hierarchy operations objects.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> > d_hier_bdry_fill_ops;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_no_fill_op;
+
+    /*
+     * Linear solvers and associated data.
+     */
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_sol_vecs, d_rhs_vecs;
+
+    int d_max_iterations;
+    double d_abs_residual_tol, d_rel_residual_tol;
+    bool d_using_FAC;
+
+    std::vector<SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator> >                   d_helmholtz_ops;
+    std::vector<SAMRAI::solv::PoissonSpecifications>                               d_helmholtz_specs;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> >                  d_helmholtz_solvers;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::CCPoissonPointRelaxationFACOperator> > d_helmholtz_fac_ops;
+    std::vector<SAMRAI::tbox::Pointer<IBTK::FACPreconditioner> >                   d_helmholtz_fac_pcs;
+    std::vector<bool> d_helmholtz_solvers_need_init;
+    int d_coarsest_reset_ln, d_finest_reset_ln;
+
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fac_op_db, d_fac_pc_db;
 
 private:
     /*!
@@ -441,55 +350,6 @@ private:
      */
     void
     getFromRestart();
-
-    /*
-     * The SAMRAI::algs::HyperbolicLevelIntegrator supplies generic operations
-     * use to handle the explicit integration of advection terms.
-     *
-     * The advection patch strategy supplies the advection-specific operations
-     * needed to treat data on patches in the AMR grid hierarchy.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> > d_hyp_level_integrator;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hyp_level_integrator_db;
-    SAMRAI::tbox::Pointer<AdvDiffHypPatchOps> d_hyp_patch_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hyp_patch_ops_db;
-    SAMRAI::tbox::Pointer<GodunovAdvector> d_explicit_predictor;
-
-    /*
-     * Boolean value that indicates whether the integrator has been initialized.
-     */
-    bool d_integrator_is_initialized;
-
-    /*
-     * Hierarchy operations objects.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM,double> > d_hier_cc_data_ops;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> > d_hier_bdry_fill_ops;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_no_fill_op;
-
-    /*
-     * Variable context used for temporary storage.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_temp_context;
-
-    /*
-     * Linear solvers and associated data.
-     */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM,double> > > d_sol_vecs, d_rhs_vecs;
-
-    int d_max_iterations;
-    double d_abs_residual_tol, d_rel_residual_tol;
-    bool d_using_FAC;
-
-    std::vector<SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator> >                   d_helmholtz_ops;
-    std::vector<SAMRAI::solv::PoissonSpecifications>                               d_helmholtz_specs;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::KrylovLinearSolver> >                  d_helmholtz_solvers;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::CCPoissonPointRelaxationFACOperator> > d_helmholtz_fac_ops;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::FACPreconditioner>             >       d_helmholtz_fac_pcs;
-    std::vector<bool> d_helmholtz_solvers_need_init;
-    int d_coarsest_reset_ln, d_finest_reset_ln;
-
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fac_op_db, d_fac_pc_db;
 };
 }// namespace IBAMR
 

@@ -81,9 +81,10 @@ $(top_srcdir)/src/IB/IBStrategySet.C \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.C \
 $(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C \
 $(top_srcdir)/src/IB/PenaltyIBMethod.C \
+$(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.C \
+$(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.C \
 $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
-$(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.C \
-$(top_srcdir)/src/advect/AdvectHypPatchOps.C \
+$(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.C \
 $(top_srcdir)/src/advect/GodunovAdvector.C \
 $(top_srcdir)/src/navier_stokes/ConvectiveOperator.C \
 $(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.C \
@@ -149,9 +150,10 @@ $(top_srcdir)/src/IB/IBStrategySet.h \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.I \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.h \
 $(top_srcdir)/src/IB/PenaltyIBMethod.h \
+$(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.h \
+$(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.h \
 $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.h \
-$(top_srcdir)/src/adv_diff/AdvDiffHypPatchOps.h \
-$(top_srcdir)/src/advect/AdvectHypPatchOps.h \
+$(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.h \
 $(top_srcdir)/src/advect/GodunovAdvector.h \
 $(top_srcdir)/src/navier_stokes/ConvectiveOperator.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.h \

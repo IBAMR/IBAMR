@@ -1,4 +1,4 @@
-// Filename: AdvDiffHypPatchOps.h
+// Filename: AdvDiffGodunovHypPatchOps.h
 // Created on 19 Mar 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,13 +30,13 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_AdvDiffHypPatchOps
-#define included_AdvDiffHypPatchOps
+#ifndef included_AdvDiffGodunovHypPatchOps
+#define included_AdvDiffGodunovHypPatchOps
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/AdvectHypPatchOps.h>
+#include <ibamr/AdvectGodunovHypPatchOps.h>
 #include <ibamr/GodunovAdvector.h>
 
 // SAMRAI INCLUDES
@@ -53,28 +53,28 @@
 namespace IBAMR
 {
 /*!
- * \brief Class AdvDiffHypPatchOps is a version of class AdvectHypPatchOps that
- * has been specialized for use with a linearly-implicit time integrator for the
- * advection-diffusion equation.
+ * \brief Class AdvDiffGodunovHypPatchOps is a specialization of class
+ * AdvectGodunovHypPatchOps for use with a linearly-implicit time integrator for
+ * the advection-diffusion equation.
  *
- * \see AdvDiffHierarchyIntegrator
- * \see AdvectHypPatchOps
+ * \see AdvDiffGodunovHierarchyIntegrator
+ * \see AdvectGodunovHypPatchOps
  */
-class AdvDiffHypPatchOps
-    : public AdvectHypPatchOps
+class AdvDiffGodunovHypPatchOps
+    : public AdvectGodunovHypPatchOps
 {
 public:
     /*!
-     * The constructor for AdvDiffHypPatchOps sets default parameters for the
-     * patch strategy.  The constructor also registers this object for restart
-     * with the restart manager using the object name when so requested.
+     * The constructor for AdvDiffGodunovHypPatchOps sets default parameters for
+     * the patch strategy.  The constructor also registers this object for
+     * restart with the restart manager using the object name when so requested.
      *
      * After default values are set, this routine calls getFromRestart() if
      * execution from a restart file is specified.  Finally, getFromInput() is
      * called to read values from the given input database (potentially
      * overriding those found in the restart file).
      */
-    AdvDiffHypPatchOps(
+    AdvDiffGodunovHypPatchOps(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<GodunovAdvector> godunov_advector,
@@ -82,16 +82,10 @@ public:
         bool register_for_restart=true);
 
     /*!
-     * The destructor for AdvDiffHypPatchOps unregisters the patch strategy
-     * object with the restart manager when so registered.
+     * The destructor for AdvDiffGodunovHypPatchOps unregisters the patch
+     * strategy object with the restart manager when so registered.
      */
-    ~AdvDiffHypPatchOps();
-
-    /*!
-     * Return the name of the patch operations object.
-     */
-    const std::string&
-    getName() const;
+    ~AdvDiffGodunovHypPatchOps();
 
     /*!
      * Update solution variables by performing a conservative difference using
@@ -153,7 +147,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvDiffHypPatchOps();
+    AdvDiffGodunovHypPatchOps();
 
     /*!
      * \brief Copy constructor.
@@ -162,8 +156,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffHypPatchOps(
-        const AdvDiffHypPatchOps& from);
+    AdvDiffGodunovHypPatchOps(
+        const AdvDiffGodunovHypPatchOps& from);
 
     /*!
      * \brief Assignment operator.
@@ -174,16 +168,16 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffHypPatchOps&
+    AdvDiffGodunovHypPatchOps&
     operator=(
-        const AdvDiffHypPatchOps& that);
+        const AdvDiffGodunovHypPatchOps& that);
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/AdvDiffHypPatchOps.I>
+//#include <ibamr/AdvDiffGodunovHypPatchOps.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_AdvDiffHypPatchOps
+#endif //#ifndef included_AdvDiffGodunovHypPatchOps

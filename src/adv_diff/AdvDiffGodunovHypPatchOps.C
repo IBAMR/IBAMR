@@ -1,4 +1,4 @@
-// Filename: AdvDiffHypPatchOps.C
+// Filename: AdvDiffGodunovHypPatchOps.C
 // Created on 19 Mar 2004 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "AdvDiffHypPatchOps.h"
+#include "AdvDiffGodunovHypPatchOps.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -125,32 +125,26 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-AdvDiffHypPatchOps::AdvDiffHypPatchOps(
+AdvDiffGodunovHypPatchOps::AdvDiffGodunovHypPatchOps(
     const std::string& object_name,
     Pointer<Database> input_db,
     Pointer<GodunovAdvector> godunov_advector,
     Pointer<CartesianGridGeometry<NDIM> > grid_geom,
     bool register_for_restart)
-    : AdvectHypPatchOps(object_name, input_db, godunov_advector, grid_geom, register_for_restart)
+    : AdvectGodunovHypPatchOps(object_name, input_db, godunov_advector, grid_geom, register_for_restart)
 {
     d_overwrite_tags = false;
     return;
-}// AdvDiffHypPatchOps
+}// AdvDiffGodunovHypPatchOps
 
-AdvDiffHypPatchOps::~AdvDiffHypPatchOps()
+AdvDiffGodunovHypPatchOps::~AdvDiffGodunovHypPatchOps()
 {
     // intentionally blank
     return;
-}// ~AdvDiffHypPatchOps
-
-const std::string&
-AdvDiffHypPatchOps::getName() const
-{
-    return AdvectHypPatchOps::getName();
-}// getName
+}// ~AdvDiffGodunovHypPatchOps
 
 void
-AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
+AdvDiffGodunovHypPatchOps::conservativeDifferenceOnPatch(
     Patch<NDIM>& patch,
     const double /*time*/,
     const double dt,
@@ -292,7 +286,7 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
             }
             default:
             {
-                TBOX_ERROR("AdvDiffHypPatchOps::conservativeDifferenceOnPatch():\n"
+                TBOX_ERROR("AdvDiffGodunovHypPatchOps::conservativeDifferenceOnPatch():\n"
                            << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[Q_var]) << " \n"
                            << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");
             }
@@ -302,7 +296,7 @@ AdvDiffHypPatchOps::conservativeDifferenceOnPatch(
 }// conservativeDifferenceOnPatch
 
 void
-AdvDiffHypPatchOps::preprocessAdvanceLevelState(
+AdvDiffGodunovHypPatchOps::preprocessAdvanceLevelState(
     const Pointer<PatchLevel<NDIM> >& level,
     double current_time,
     double /*dt*/,
@@ -328,7 +322,7 @@ AdvDiffHypPatchOps::preprocessAdvanceLevelState(
 }// preprocessAdvanceLevelState
 
 void
-AdvDiffHypPatchOps::postprocessAdvanceLevelState(
+AdvDiffGodunovHypPatchOps::postprocessAdvanceLevelState(
     const Pointer<PatchLevel<NDIM> >& level,
     double current_time,
     double dt,

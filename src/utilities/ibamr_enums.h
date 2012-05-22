@@ -131,6 +131,70 @@ enum_to_string<ConvectiveDifferencingType>(
     return "UNKNOWN_CONVECTIVE_DIFFERENCING_TYPE";
 }// enum_to_string
 
+#if 0
+/*!
+ * \brief Enumerated type for different types of normal boundary conditions for
+ * the incompressible Navier-Stokes equations.
+ */
+enum INSNormalBoundaryConditionsType
+{
+    PRESSURE,
+    TRUE_STRESS,
+    UNKNOWN_INS_NORMAL_BOUNDARY_CONDITIONS_TYPE=-1
+};
+
+template<>
+inline INSNormalBoundaryConditionsType
+string_to_enum<INSNormalBoundaryConditionsType>(
+    const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "PRESSURE"   ) == 0) return PRESSURE;
+    if (strcasecmp(val.c_str(), "TRUE_STRESS") == 0) return TRUE_STRESS;
+    return UNKNOWN_INS_NORMAL_BOUNDARY_CONDITIONS_TYPE;
+}// string_to_enum
+
+template<>
+inline std::string
+enum_to_string<INSNormalBoundaryConditionsType>(
+    INSNormalBoundaryConditionsType val)
+{
+    if (val == PRESSURE   ) return "PRESSURE";
+    if (val == TRUE_STRESS) return "TRUE_STRESS";
+    return "UNKNOWN_INS_NORMAL_BOUNDARY_CONDITIONS_TYPE";
+}// enum_to_string
+
+/*!
+ * \brief Enumerated type for different types of tangential boundary conditions for
+ * the incompressible Navier-Stokes equations.
+ */
+enum INSTangentialBoundaryConditionsType
+{
+    NATURAL,
+    TRUE_STRESS,
+    UNKNOWN_INS_TANGENTIAL_BOUNDARY_CONDITIONS_TYPE=-1
+};
+
+template<>
+inline INSTangentialBoundaryConditionsType
+string_to_enum<INSTangentialBoundaryConditionsType>(
+    const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "NATURAL"    ) == 0) return NATURAL;
+    if (strcasecmp(val.c_str(), "TRUE_STRESS") == 0) return TRUE_STRESS;
+    return UNKNOWN_INS_TANGENTIAL_BOUNDARY_CONDITIONS_TYPE;
+}// string_to_enum
+
+template<>
+inline std::string
+enum_to_string<INSTangentialBoundaryConditionsType>(
+    INSTangentialBoundaryConditionsType val)
+{
+    if (val == NATURAL    ) return "NATURAL";
+    if (val == TRUE_STRESS) return "TRUE_STRESS";
+    return "UNKNOWN_INS_TANGENTIAL_BOUNDARY_CONDITIONS_TYPE";
+}// enum_to_string
+#endif
+
 /*!
  * \brief Enumerated type for different basic time stepping schemes.
  */
