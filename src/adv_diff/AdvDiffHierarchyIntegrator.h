@@ -251,20 +251,6 @@ protected:
         bool register_for_restart);
 
     /*!
-     * Initialize data on a new level after it is inserted into an AMR patch
-     * hierarchy by the gridding algorithm.
-     */
-    void
-    initializeLevelDataSpecialized(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double init_data_time,
-        bool can_be_refined,
-        bool initial_time,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-        bool allocate_data);
-
-    /*!
      * Reset cached hierarchy dependent data.
      */
     void
@@ -279,6 +265,12 @@ protected:
     void
     putToDatabaseSpecialized(
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
+    /*!
+     * Standard variable registration.
+     */
+    void
+    registerVariables();
 
     /*
      * Boolean value that indicates whether the integrator has been initialized.

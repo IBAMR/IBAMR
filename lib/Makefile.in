@@ -151,6 +151,7 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/IB/IBTargetPointForceSpec.C \
 	$(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C \
 	$(top_srcdir)/src/IB/PenaltyIBMethod.C \
+	$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
@@ -229,6 +230,7 @@ am__objects_3 = libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR2d_a-IBTargetPointForceSpec.$(OBJEXT) \
 	libIBAMR2d_a-IBTargetPointForceSpecFactory.$(OBJEXT) \
 	libIBAMR2d_a-PenaltyIBMethod.$(OBJEXT) \
+	libIBAMR2d_a-AdvDiffCenteredHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-AdvDiffGodunovHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-AdvDiffGodunovHypPatchOps.$(OBJEXT) \
 	libIBAMR2d_a-AdvDiffHierarchyIntegrator.$(OBJEXT) \
@@ -308,6 +310,7 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/IB/IBTargetPointForceSpec.C \
 	$(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C \
 	$(top_srcdir)/src/IB/PenaltyIBMethod.C \
+	$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
@@ -386,6 +389,7 @@ am__objects_5 = libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR3d_a-IBTargetPointForceSpec.$(OBJEXT) \
 	libIBAMR3d_a-IBTargetPointForceSpecFactory.$(OBJEXT) \
 	libIBAMR3d_a-PenaltyIBMethod.$(OBJEXT) \
+	libIBAMR3d_a-AdvDiffCenteredHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-AdvDiffGodunovHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-AdvDiffGodunovHypPatchOps.$(OBJEXT) \
 	libIBAMR3d_a-AdvDiffHierarchyIntegrator.$(OBJEXT) \
@@ -487,6 +491,7 @@ am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/IB/IBTargetPointForceSpec.I \
 	$(top_srcdir)/src/IB/IBTargetPointForceSpec.h \
 	$(top_srcdir)/src/IB/PenaltyIBMethod.h \
+	$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.h \
@@ -891,6 +896,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/IB/IBTargetPointForceSpec.I \
 	$(top_srcdir)/src/IB/IBTargetPointForceSpec.h \
 	$(top_srcdir)/src/IB/PenaltyIBMethod.h \
+	$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.h \
@@ -955,6 +961,7 @@ DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/IB/GeneralizedIBMethod.C \
 	$(top_srcdir)/src/IB/IBTargetPointForceSpec.C \
 	$(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C \
 	$(top_srcdir)/src/IB/PenaltyIBMethod.C \
+	$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
@@ -1101,6 +1108,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ExplicitFEMechanicsSolver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/INSProblemCoefs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RNG.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffGodunovHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffGodunovHypPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffHierarchyIntegrator.Po@am__quote@
@@ -1165,6 +1173,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-INSStaggeredVelocityBcCoef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-PenaltyIBMethod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-SpongeLayerForceFunction.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffGodunovHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffGodunovHypPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffHierarchyIntegrator.Po@am__quote@
@@ -1775,6 +1784,20 @@ libIBAMR2d_a-PenaltyIBMethod.obj: $(top_srcdir)/src/IB/PenaltyIBMethod.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/PenaltyIBMethod.C' object='libIBAMR2d_a-PenaltyIBMethod.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-PenaltyIBMethod.obj `if test -f '$(top_srcdir)/src/IB/PenaltyIBMethod.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/PenaltyIBMethod.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/PenaltyIBMethod.C'; fi`
+
+libIBAMR2d_a-AdvDiffCenteredHierarchyIntegrator.o: $(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-AdvDiffCenteredHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredHierarchyIntegrator.Tpo -c -o libIBAMR2d_a-AdvDiffCenteredHierarchyIntegrator.o `test -f '$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C' object='libIBAMR2d_a-AdvDiffCenteredHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-AdvDiffCenteredHierarchyIntegrator.o `test -f '$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C
+
+libIBAMR2d_a-AdvDiffCenteredHierarchyIntegrator.obj: $(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-AdvDiffCenteredHierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredHierarchyIntegrator.Tpo -c -o libIBAMR2d_a-AdvDiffCenteredHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C' object='libIBAMR2d_a-AdvDiffCenteredHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-AdvDiffCenteredHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C'; fi`
 
 libIBAMR2d_a-AdvDiffGodunovHierarchyIntegrator.o: $(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-AdvDiffGodunovHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-AdvDiffGodunovHierarchyIntegrator.Tpo -c -o libIBAMR2d_a-AdvDiffGodunovHierarchyIntegrator.o `test -f '$(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.C
@@ -2671,6 +2694,20 @@ libIBAMR3d_a-PenaltyIBMethod.obj: $(top_srcdir)/src/IB/PenaltyIBMethod.C
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/IB/PenaltyIBMethod.C' object='libIBAMR3d_a-PenaltyIBMethod.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-PenaltyIBMethod.obj `if test -f '$(top_srcdir)/src/IB/PenaltyIBMethod.C'; then $(CYGPATH_W) '$(top_srcdir)/src/IB/PenaltyIBMethod.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/IB/PenaltyIBMethod.C'; fi`
+
+libIBAMR3d_a-AdvDiffCenteredHierarchyIntegrator.o: $(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-AdvDiffCenteredHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredHierarchyIntegrator.Tpo -c -o libIBAMR3d_a-AdvDiffCenteredHierarchyIntegrator.o `test -f '$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C' object='libIBAMR3d_a-AdvDiffCenteredHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-AdvDiffCenteredHierarchyIntegrator.o `test -f '$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C
+
+libIBAMR3d_a-AdvDiffCenteredHierarchyIntegrator.obj: $(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-AdvDiffCenteredHierarchyIntegrator.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredHierarchyIntegrator.Tpo -c -o libIBAMR3d_a-AdvDiffCenteredHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredHierarchyIntegrator.Tpo $(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C' object='libIBAMR3d_a-AdvDiffCenteredHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-AdvDiffCenteredHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C'; fi`
 
 libIBAMR3d_a-AdvDiffGodunovHierarchyIntegrator.o: $(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-AdvDiffGodunovHierarchyIntegrator.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-AdvDiffGodunovHierarchyIntegrator.Tpo -c -o libIBAMR3d_a-AdvDiffGodunovHierarchyIntegrator.o `test -f '$(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.C' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.C

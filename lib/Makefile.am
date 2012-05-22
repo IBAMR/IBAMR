@@ -81,6 +81,7 @@ $(top_srcdir)/src/IB/IBStrategySet.C \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.C \
 $(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C \
 $(top_srcdir)/src/IB/PenaltyIBMethod.C \
+$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C \
 $(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.C \
 $(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.C \
 $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
@@ -150,6 +151,7 @@ $(top_srcdir)/src/IB/IBStrategySet.h \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.I \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.h \
 $(top_srcdir)/src/IB/PenaltyIBMethod.h \
+$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.h \
 $(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.h \
 $(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.h \
 $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.h \

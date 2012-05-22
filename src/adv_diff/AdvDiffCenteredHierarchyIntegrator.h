@@ -1,5 +1,5 @@
-// Filename: AdvDiffGodunovHierarchyIntegrator.h
-// Created on 16 Mar 2004 by Boyce Griffith
+// Filename: AdvDiffCenteredHierarchyIntegrator.h
+// Created on 22 May 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
 // All rights reserved.
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_AdvDiffGodunovHierarchyIntegrator
-#define included_AdvDiffGodunovHierarchyIntegrator
+#ifndef included_AdvDiffCenteredHierarchyIntegrator
+#define included_AdvDiffCenteredHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -39,18 +39,14 @@
 #include <petscsys.h>
 
 // IBAMR INCLUDES
-#include <ibamr/AdvDiffGodunovHypPatchOps.h>
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
-
-// SAMRAI INCLUDES
-#include <HyperbolicLevelIntegrator.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
 {
 /*!
- * \brief Class AdvDiffGodunovHierarchyIntegrator manages the spatial
+ * \brief Class AdvDiffCenteredHierarchyIntegrator manages the spatial
  * discretization and time integration of scalar- and vector-valued quantities
  * whose dynamics are governed by the advection-diffusion equation.
  *
@@ -66,53 +62,35 @@ namespace IBAMR
  *
  * Either Crank-Nicolson (i.e., the trapezoidal rule) or backward Euler is used
  * for the linearly implicit treatment of the diffusive terms.  The advective
- * terms are discretized by the GodunovAdvector object supplied to the class
- * constructor.
+ * terms are discretized by centered (unlimited) differencing in advective,
+ * conservative, or skew-symmetric form.
  *
- * \see AdvDiffGodunovHypPatchOps
  * \see HierarchyIntegrator
- * \see GodunovAdvector
- * \see SAMRAI::algs::HyperbolicLevelIntegrator
  * \see SAMRAI::mesh::StandardTagAndInitStrategy
  * \see SAMRAI::algs::TimeRefinementIntegrator
  * \see SAMRAI::algs::TimeRefinementLevelStrategy
  */
-class AdvDiffGodunovHierarchyIntegrator
+class AdvDiffCenteredHierarchyIntegrator
     : public AdvDiffHierarchyIntegrator
 {
 public:
     /*!
-     * The constructor for class AdvDiffGodunovHierarchyIntegrator sets some
+     * The constructor for class AdvDiffCenteredHierarchyIntegrator sets some
      * default values, reads in configuration information from input and restart
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    AdvDiffGodunovHierarchyIntegrator(
+    AdvDiffCenteredHierarchyIntegrator(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<GodunovAdvector> explicit_predictor,
         bool register_for_restart=true);
 
     /*!
-     * The destructor for class AdvDiffGodunovHierarchyIntegrator unregisters
+     * The destructor for class AdvDiffCenteredHierarchyIntegrator unregisters
      * the integrator object with the restart manager when the object is so
      * registered.
      */
-    ~AdvDiffGodunovHierarchyIntegrator();
-
-    /*!
-     * Return a pointer to the level integrator object used to integrate the
-     * advective terms.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> >
-    getHyperbolicLevelIntegrator() const;
-
-    /*!
-     * Return a pointer to the patch strategy object used to specify the
-     * numerical routines used to integrate the advective terms.
-     */
-    SAMRAI::tbox::Pointer<AdvDiffGodunovHypPatchOps>
-    getHyperbolicPatchStrategy() const;
+    ~AdvDiffCenteredHierarchyIntegrator();
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -129,6 +107,21 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
 
     /*!
+     * Returns the number of cycles to perform for the present time step.
+     */
+    int
+    getNumberOfCycles() const;
+
+    /*!
+     * Prepare to advance the data from current_time to new_time.
+     */
+    void
+    preprocessIntegrateHierarchy(
+        double current_time,
+        double new_time,
+        int num_cycles=1);
+
+    /*!
      * Synchronously advance each level in the hierarchy over the given time
      * increment.
      */
@@ -138,6 +131,16 @@ public:
         double new_time,
         int cycle_num=0);
 
+    /*!
+     * Clean up data following call(s) to integrateHierarchy().
+     */
+    void
+    postprocessIntegrateHierarchy(
+        double current_time,
+        double new_time,
+        bool skip_synchronize_new_state_data,
+        int num_cycles=1);
+
 protected:
     /*!
      * Return the maximum stable time step size.
@@ -145,65 +148,13 @@ protected:
     double
     getTimeStepSizeSpecialized();
 
-    /*!
-     * Reset the current data to equal the new data, update the time level of
-     * the current data, and deallocate the scratch and new data.
-     */
-    void
-    resetTimeDependentHierarchyDataSpecialized(
-        double new_time);
-
-    /*!
-     * Reset the hierarchy integrator to the state at the beginning of the
-     * current time step.
-     */
-    void
-    resetIntegratorToPreadvanceStateSpecialized();
-
-    /*!
-     * Initialize data on a new level after it is inserted into an AMR patch
-     * hierarchy by the gridding algorithm.
-     */
-    void
-    initializeLevelDataSpecialized(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double init_data_time,
-        bool can_be_refined,
-        bool initial_time,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-        bool allocate_data);
-
-    /*!
-     * Reset cached hierarchy dependent data.
-     */
-    void
-    resetHierarchyConfigurationSpecialized(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int coarsest_level,
-        int finest_level);
-
-    /*!
-     * Set integer tags to "one" in cells where refinement of the given level
-     * should occur according to gradient criteria specified by the
-     * GodunovAdvector object.
-     */
-    void
-    applyGradientDetectorSpecialized(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-        int level_number,
-        double error_data_time,
-        int tag_index,
-        bool initial_time,
-        bool uses_richardson_extrapolation_too);
-
 private:
     /*!
      * \brief Default constructor.
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvDiffGodunovHierarchyIntegrator();
+    AdvDiffCenteredHierarchyIntegrator();
 
     /*!
      * \brief Copy constructor.
@@ -212,8 +163,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffGodunovHierarchyIntegrator(
-        const AdvDiffGodunovHierarchyIntegrator& from);
+    AdvDiffCenteredHierarchyIntegrator(
+        const AdvDiffCenteredHierarchyIntegrator& from);
 
     /*!
      * \brief Assignment operator.
@@ -224,29 +175,35 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffGodunovHierarchyIntegrator&
+    AdvDiffCenteredHierarchyIntegrator&
     operator=(
-        const AdvDiffGodunovHierarchyIntegrator& that);
+        const AdvDiffCenteredHierarchyIntegrator& that);
 
-    /*
-     * The SAMRAI::algs::HyperbolicLevelIntegrator supplies generic operations
-     * use to handle the explicit integration of advection terms.
-     *
-     * The advection patch strategy supplies the advection-specific operations
-     * needed to treat data on patches in the AMR grid hierarchy.
+    /*!
+     * Read input values from a given database.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegrator<NDIM> > d_hyp_level_integrator;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hyp_level_integrator_db;
-    SAMRAI::tbox::Pointer<AdvDiffGodunovHypPatchOps> d_hyp_patch_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hyp_patch_ops_db;
-    SAMRAI::tbox::Pointer<GodunovAdvector> d_explicit_predictor;
+    void
+    getFromInput(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db,
+        bool is_from_restart);
+
+    /*!
+     * Value indicating the number of solver cycles to be used for the present
+     * time step.
+     */
+    int d_num_cycles_step;
+
+    /*!
+     * Advective CFL condition.
+     */
+    double d_cfl_max;
 };
 }// namespace IBAMR
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/AdvDiffGodunovHierarchyIntegrator.I>
+//#include <ibamr/AdvDiffCenteredHierarchyIntegrator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_AdvDiffGodunovHierarchyIntegrator
+#endif //#ifndef included_AdvDiffCenteredHierarchyIntegrator

@@ -88,10 +88,6 @@ AdvDiffGodunovHierarchyIntegrator::AdvDiffGodunovHierarchyIntegrator(
     TBOX_ASSERT(!input_db.isNull());
     TBOX_ASSERT(!explicit_predictor.isNull());
 #endif
-    // Initialize object with data read from the input and restart databases.
-    bool from_restart = RestartManager::getManager()->isFromRestart();
-    if (from_restart) getFromRestart();
-
     // Get initialization data for the hyperbolic patch strategy objects.
     if (input_db->keyExists("HyperbolicLevelIntegrator"))
     {
@@ -536,8 +532,8 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
                 helmholtz_solver->solveSystem(*d_sol_vecs[l],*d_rhs_vecs[l]);
                 d_hier_cc_data_ops->copyData(Q_new_idx, Q_scratch_idx);
 
-                if (d_do_log) plog << "AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(): linear solve number of iterations = " << helmholtz_solver->getNumIterations() << "\n";
-                if (d_do_log) plog << "AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(): linear solve residual norm        = " << helmholtz_solver->getResidualNorm()  << "\n";
+                if (d_do_log) plog << d_object_name << "::integrateHierarchy(): linear solve number of iterations = " << helmholtz_solver->getNumIterations() << "\n";
+                if (d_do_log) plog << d_object_name << "::integrateHierarchy(): linear solve residual norm        = " << helmholtz_solver->getResidualNorm()  << "\n";
 
                 if (helmholtz_solver->getNumIterations() == helmholtz_solver->getMaxIterations())
                 {
@@ -626,8 +622,51 @@ AdvDiffGodunovHierarchyIntegrator::initializeLevelDataSpecialized(
     const Pointer<BasePatchLevel<NDIM> > base_old_level,
     const bool allocate_data)
 {
-    d_hyp_level_integrator->initializeLevelData(base_hierarchy, level_number, init_data_time, can_be_refined, initial_time, base_old_level, allocate_data);
-    AdvDiffHierarchyIntegrator::initializeLevelDataSpecialized(base_hierarchy, level_number, init_data_time, can_be_refined, initial_time, base_old_level, allocate_data);
+    const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+    const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(!hierarchy.isNull());
+    TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
+    if (!old_level.isNull())
+    {
+        TBOX_ASSERT(level_number == old_level->getLevelNumber());
+    }
+    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
+#endif
+    // We use the HyperbolicLevelIntegrator to handle as much data management as
+    // possible.
+    d_hyp_level_integrator->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
+
+    // Set the initial values of any forcing terms.  All other variables are
+    // initialized by the hyperbolic level integrator.
+    if (initial_time)
+    {
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+        for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin();
+             cit != d_F_var.end(); ++cit)
+        {
+            Pointer<CellVariable<NDIM,double> > F_var = *cit;
+            const int F_idx = var_db->mapVariableAndContextToIndex(F_var, getCurrentContext());
+            Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
+            if (!F_fcn.isNull())
+            {
+                F_fcn->setDataOnPatchLevel(F_idx, F_var, level, init_data_time, initial_time);
+            }
+            else
+            {
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<CellData<NDIM,double> > F_data = patch->getPatchData(F_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+                    TBOX_ASSERT(!F_data.isNull());
+#endif
+                    F_data->fillAll(0.0);
+                }
+            }
+        }
+    }
     return;
 }// initializeLevelDataSpecialized
 
@@ -658,40 +697,7 @@ AdvDiffGodunovHierarchyIntegrator::applyGradientDetectorSpecialized(
     return;
 }// applyGradientDetectorSpecialized
 
-void
-AdvDiffGodunovHierarchyIntegrator::putToDatabaseSpecialized(
-    Pointer<Database> db)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!db.isNull());
-#endif
-    db->putInteger("ADV_DIFF_GODUNOV_HIERARCHY_INTEGRATOR_VERSION", ADV_DIFF_GODUNOV_HIERARCHY_INTEGRATOR_VERSION);
-    return;
-}// putToDatabaseSpecialized
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
-
-void
-AdvDiffGodunovHierarchyIntegrator::getFromRestart()
-{
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
-    if (restart_db->isDatabase(d_object_name))
-    {
-        db = restart_db->getDatabase(d_object_name);
-    }
-    else
-    {
-        TBOX_ERROR(d_object_name << ":  Restart database corresponding to "
-                   << d_object_name << " not found in restart file." << std::endl);
-    }
-    int ver = db->getInteger("ADV_DIFF_GODUNOV_HIERARCHY_INTEGRATOR_VERSION");
-    if (ver != ADV_DIFF_GODUNOV_HIERARCHY_INTEGRATOR_VERSION)
-    {
-        TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
-    }
-    return;
-}// getFromRestart
 
 //////////////////////////////////////////////////////////////////////////////
 

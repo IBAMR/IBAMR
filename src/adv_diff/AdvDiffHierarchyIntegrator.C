@@ -66,6 +66,10 @@ namespace IBAMR
 
 namespace
 {
+// Number of ghosts cells used for each variable quantity.
+static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+static const int FACEG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
+
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
 static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
@@ -443,116 +447,6 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
 }// AdvDiffHierarchyIntegrator
 
 void
-AdvDiffHierarchyIntegrator::initializeLevelDataSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
-    const int level_number,
-    const double init_data_time,
-    const bool /*can_be_refined*/,
-    const bool initial_time,
-    const Pointer<BasePatchLevel<NDIM> > base_old_level,
-    const bool /*allocate_data*/)
-{
-    const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
-    const Pointer<PatchLevel<NDIM> > old_level = base_old_level;
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!hierarchy.isNull());
-    TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
-    if (!old_level.isNull())
-    {
-        TBOX_ASSERT(level_number == old_level->getLevelNumber());
-    }
-    TBOX_ASSERT(!(hierarchy->getPatchLevel(level_number)).isNull());
-#endif
-    // Initialize level data at the initial time.
-    if (initial_time)
-    {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-        for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
-        {
-            Pointer<FaceVariable<NDIM,double> > u_var = *cit;
-            const int u_idx = var_db->mapVariableAndContextToIndex(u_var, getCurrentContext());
-            Pointer<CartGridFunction> u_fcn = d_u_fcn[u_var];
-            if (!u_fcn.isNull())
-            {
-                u_fcn->setDataOnPatchLevel(u_idx, u_var, level, init_data_time, initial_time);
-            }
-            else
-            {
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    Pointer<FaceData<NDIM,double> > u_data = patch->getPatchData(u_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-                    TBOX_ASSERT(!u_data.isNull());
-#endif
-                    u_data->fillAll(0.0);
-                }
-            }
-        }
-        for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
-        {
-            Pointer<CellVariable<NDIM,double> > F_var = *cit;
-            const int F_idx = var_db->mapVariableAndContextToIndex(F_var, getCurrentContext());
-            Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
-            if (!F_fcn.isNull())
-            {
-                F_fcn->setDataOnPatchLevel(F_idx, F_var, level, init_data_time, initial_time);
-            }
-            else
-            {
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    Pointer<CellData<NDIM,double> > F_data = patch->getPatchData(F_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-                    TBOX_ASSERT(!F_data.isNull());
-#endif
-                    F_data->fillAll(0.0);
-                }
-            }
-        }
-        for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
-        {
-            Pointer<CellVariable<NDIM,double> > Q_var = *cit;
-            const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
-            Pointer<CartGridFunction> Q_init = d_Q_init[Q_var];
-            if (!Q_init.isNull())
-            {
-                Q_init->setDataOnPatchLevel(Q_idx, Q_var, level, init_data_time, initial_time);
-            }
-            else
-            {
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-                {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    Pointer<CellData<NDIM,double> > Q_data = patch->getPatchData(Q_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-                    TBOX_ASSERT(!Q_data.isNull());
-#endif
-                    Q_data->fillAll(0.0);
-                }
-            }
-        }
-        for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Psi_var.begin(); cit != d_Psi_var.end(); ++cit)
-        {
-            Pointer<CellVariable<NDIM,double> > Psi_var = *cit;
-            const int Psi_idx = var_db->mapVariableAndContextToIndex(Psi_var, getCurrentContext());
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CellData<NDIM,double> > Psi_data = patch->getPatchData(Psi_idx);
-#ifdef DEBUG_CHECK_ASSERTIONS
-                TBOX_ASSERT(!Psi_data.isNull());
-#endif
-                Psi_data->fillAll(0.0);
-            }
-        }
-    }
-    return;
-}// initializeLevelDataSpecialized
-
-void
 AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int coarsest_level,
@@ -633,6 +527,44 @@ AdvDiffHierarchyIntegrator::putToDatabaseSpecialized(
     db->putString("d_viscous_timestepping_type", enum_to_string<ViscousTimesteppingType>(d_viscous_timestepping_type));
     return;
 }// putToDatabaseSpecialized
+
+void
+AdvDiffHierarchyIntegrator::registerVariables()
+{
+    const IntVector<NDIM> cell_ghosts = CELLG;
+    const IntVector<NDIM> face_ghosts = FACEG;
+    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
+    {
+        Pointer<FaceVariable<NDIM,double> > u_var = *cit;
+        int u_current_idx, u_new_idx, u_scratch_idx;
+        registerVariable(u_current_idx, u_new_idx, u_scratch_idx, u_var,  face_ghosts, "CONSERVATIVE_COARSEN", "CONSERVATIVE_LINEAR_REFINE", d_u_fcn[u_var]);
+    }
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+    {
+        Pointer<CellVariable<NDIM,double> > Q_var = *cit;
+        int Q_current_idx, Q_new_idx, Q_scratch_idx;
+        registerVariable(Q_current_idx, Q_new_idx, Q_scratch_idx, Q_var, cell_ghosts, "CONSERVATIVE_COARSEN", "CONSERVATIVE_LINEAR_REFINE", d_Q_init[Q_var]);
+        Pointer<CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
+        const int Q_depth = Q_factory->getDefaultDepth();
+        if (!d_visit_writer.isNull()) d_visit_writer->registerPlotQuantity(Q_var->getName(), Q_depth == 1 ? "SCALAR" : "VECTOR", Q_current_idx);
+    }
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
+    {
+        Pointer<CellVariable<NDIM,double> > F_var = *cit;
+        int F_current_idx, F_new_idx, F_scratch_idx;
+        registerVariable(F_current_idx, F_new_idx, F_scratch_idx, F_var, cell_ghosts, "CONSERVATIVE_COARSEN", "CONSERVATIVE_LINEAR_REFINE", d_F_fcn[F_var]);
+        Pointer<CellDataFactory<NDIM,double> > F_factory = F_var->getPatchDataFactory();
+        const int F_depth = F_factory->getDefaultDepth();
+        if (!d_visit_writer.isNull()) d_visit_writer->registerPlotQuantity(F_var->getName(), F_depth == 1 ? "SCALAR" : "VECTOR", F_current_idx);
+    }
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Psi_var.begin(); cit != d_Psi_var.end(); ++cit)
+    {
+        Pointer<CellVariable<NDIM,double> > Psi_var = *cit;
+        int Psi_scratch_idx;
+        registerVariable(Psi_scratch_idx, Psi_var, cell_ghosts, getScratchContext());
+    }
+    return;
+}// registerVariables
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
