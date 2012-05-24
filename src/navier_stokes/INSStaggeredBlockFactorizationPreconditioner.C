@@ -87,6 +87,7 @@ static Timer* t_deallocate_solver_state;
 
 INSStaggeredBlockFactorizationPreconditioner::INSStaggeredBlockFactorizationPreconditioner(
     const INSProblemCoefs& problem_coefs,
+    TimeSteppingType viscous_time_stepping_type,
     RobinBcCoefStrategy<NDIM>* P_bc_coef,
     const bool normalize_pressure,
     Pointer<LinearSolver> velocity_helmholtz_solver,
@@ -100,6 +101,7 @@ INSStaggeredBlockFactorizationPreconditioner::INSStaggeredBlockFactorizationPrec
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_dt(std::numeric_limits<double>::quiet_NaN()),
       d_problem_coefs(problem_coefs),
+      d_viscous_time_stepping_type(viscous_time_stepping_type),
       d_pressure_helmholtz_spec("INSStaggeredBlockFactorizationPreconditioner::pressure_helmholtz_spec"),
       d_normalize_pressure(normalize_pressure),
       d_velocity_helmholtz_solver(velocity_helmholtz_solver),
@@ -155,6 +157,18 @@ INSStaggeredBlockFactorizationPreconditioner::INSStaggeredBlockFactorizationPrec
     TBOX_ASSERT(d_P_scratch_idx >= 0);
 #endif
 
+    // Check to make sure the time stepping type is supported.
+    switch (d_viscous_time_stepping_type)
+    {
+        case BACKWARD_EULER:
+        case FORWARD_EULER:
+        case TRAPEZOIDAL_RULE:
+            break;
+        default:
+            TBOX_ERROR("INSStaggeredBlockFactorizationPreconditioner::INSStaggeredBlockFactorizationPreconditioner():\n"
+                       << "  unsupported diffusion timestepping type: " << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << "." << std::endl);
+    }
+
     // Setup Timers.
     IBAMR_DO_ONCE(
         t_solve_system            = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredBlockFactorizationPreconditioner::solveSystem()");
@@ -181,8 +195,23 @@ INSStaggeredBlockFactorizationPreconditioner::setTimeInterval(
     d_current_time = current_time;
     d_new_time = new_time;
     d_dt = d_new_time-d_current_time;
-    d_pressure_helmholtz_spec.setCConstant(-(rho/d_dt+0.5*lambda));
-    d_pressure_helmholtz_spec.setDConstant(-(        -0.5*mu    ));
+    double K = 0.0;
+    switch (d_viscous_time_stepping_type)
+    {
+        case BACKWARD_EULER:
+            K = 1.0;
+            break;
+        case FORWARD_EULER:
+            K = 0.0;
+            break;
+        case TRAPEZOIDAL_RULE:
+            K = 0.0;
+            break;
+        default:
+            TBOX_ERROR("this statement should not be reached\n");
+    }
+    d_pressure_helmholtz_spec.setCConstant(-(rho/d_dt+K*lambda));
+    d_pressure_helmholtz_spec.setDConstant(-(        -K*mu    ));
     return;
 }// setTimeInterval
 
@@ -248,7 +277,9 @@ INSStaggeredBlockFactorizationPreconditioner::solveSystem(
 
     // Solve the pressure sub-problem.
     //
-    // P_out := -((rho/dt)*I-0.5*mu*L) * (-L)^{-1} * P_in
+    // P_out := -((rho/dt)*I-K*mu*L) * (-L)^{-1} * P_in
+    //
+    // where K is determined by the viscous time stepping scheme (see above).
     d_pressure_poisson_solver->solveSystem(*P_scratch_vec,*P_in_vec);
     d_hier_math_ops->laplace(
         P_out_idx, P_out_cc_var,   // dst
@@ -278,8 +309,10 @@ INSStaggeredBlockFactorizationPreconditioner::solveSystem(
 
     // Solve the velocity sub-problem.
     //
-    // U_out := (rho/dt)*I-0.5*mu*L)^{-1} * [U_in + Grad * ((rho/dt)*I-0.5*mu*L) * (-L)^{-1} * P_in]
-    //        = (rho/dt)*I-0.5*mu*L)^{-1} * [U_in - Grad * P_out]
+    // U_out := (rho/dt)*I-K*mu*L)^{-1} * [U_in + Grad * ((rho/dt)*I-K*mu*L) * (-L)^{-1} * P_in]
+    //        = (rho/dt)*I-K*mu*L)^{-1} * [U_in - Grad * P_out]
+    //
+    // where K is determined by the viscous time stepping scheme (see above).
     d_velocity_helmholtz_solver->solveSystem(*U_out_vec,*U_scratch_vec);
 
     // Deallocate the solver (if necessary).

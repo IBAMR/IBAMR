@@ -198,28 +198,38 @@ enum_to_string<INSTangentialBoundaryConditionsType>(
 /*!
  * \brief Enumerated type for different basic time stepping schemes.
  */
-enum TimesteppingType
+enum TimeSteppingType
 {
+    ADAMS_BASHFORTH,
+    BACKWARD_EULER,
+    FORWARD_EULER,
     MIDPOINT_RULE,
     TRAPEZOIDAL_RULE,
     UNKNOWN_TIME_STEPPING_TYPE=-1
 };
 
 template<>
-inline TimesteppingType
-string_to_enum<TimesteppingType>(
+inline TimeSteppingType
+string_to_enum<TimeSteppingType>(
     const std::string& val)
 {
+    if (strcasecmp(val.c_str(), "ADAMS_BASHFORTH" ) == 0) return ADAMS_BASHFORTH;
+    if (strcasecmp(val.c_str(), "BACKWARD_EULER"  ) == 0) return BACKWARD_EULER;
+    if (strcasecmp(val.c_str(), "FORWARD_EULER"   ) == 0) return FORWARD_EULER;
     if (strcasecmp(val.c_str(), "MIDPOINT_RULE"   ) == 0) return MIDPOINT_RULE;
     if (strcasecmp(val.c_str(), "TRAPEZOIDAL_RULE") == 0) return TRAPEZOIDAL_RULE;
+    if (strcasecmp(val.c_str(), "CRANK_NICOLSON"  ) == 0) return TRAPEZOIDAL_RULE;
     return UNKNOWN_TIME_STEPPING_TYPE;
 }// string_to_enum
 
 template<>
 inline std::string
-enum_to_string<TimesteppingType>(
-    TimesteppingType val)
+enum_to_string<TimeSteppingType>(
+    TimeSteppingType val)
 {
+    if (val == ADAMS_BASHFORTH ) return "ADAMS_BASHFORTH";
+    if (val == BACKWARD_EULER  ) return "BACKWARD_EULER";
+    if (val == FORWARD_EULER   ) return "FORWARD_EULER";
     if (val == MIDPOINT_RULE   ) return "MIDPOINT_RULE";
     if (val == TRAPEZOIDAL_RULE) return "TRAPEZOIDAL_RULE";
     return "UNKNOWN_TIME_STEPPING_TYPE";
@@ -326,36 +336,6 @@ enum_to_string<StokesPreconditionerType>(
     if (val == VANKA              ) return "VANKA";
     if (val == BLOCK_FACTORIZATION) return "BLOCK_FACTORIZATION";
     return "UNKNOWN_STOKES_PRECONDITIONER_TYPE";
-}// enum_to_string
-
-/*!
- * \brief Enumerated type for different viscous timestepping methods.
- */
-enum ViscousTimesteppingType
-{
-    BACKWARD_EULER,
-    CRANK_NICOLSON,
-    UNKNOWN_VISCOUS_TIMESTEPPING_METHOD=-1
-};
-
-template<>
-inline ViscousTimesteppingType
-string_to_enum<ViscousTimesteppingType>(
-    const std::string& val)
-{
-    if (strcasecmp(val.c_str(), "BACKWARD_EULER") == 0) return BACKWARD_EULER;
-    if (strcasecmp(val.c_str(), "CRANK_NICOLSON") == 0) return CRANK_NICOLSON;
-    return UNKNOWN_VISCOUS_TIMESTEPPING_METHOD;
-}// string_to_enum
-
-template<>
-inline std::string
-enum_to_string<ViscousTimesteppingType>(
-    ViscousTimesteppingType val)
-{
-    if (val == BACKWARD_EULER) return "BACKWARD_EULER";
-    if (val == CRANK_NICOLSON) return "CRANK_NICOLSON";
-    return "UNKNOWN_VISCOUS_TIMESTEPPING_METHOD";
 }// enum_to_string
 
 }// namespace IBAMR

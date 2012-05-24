@@ -90,6 +90,7 @@ static Timer* t_deallocate_operator_state;
 INSStaggeredStokesOperator::INSStaggeredStokesOperator(
     const std::string& object_name,
     const INSProblemCoefs* problem_coefs,
+    const TimeSteppingType viscous_time_stepping_type,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs,
     RobinBcCoefStrategy<NDIM>* P_bc_coef,
     Pointer<HierarchyMathOps> hier_math_ops,
@@ -107,12 +108,25 @@ INSStaggeredStokesOperator::INSStaggeredStokesOperator(
       d_x(NULL),
       d_b(NULL),
       d_problem_coefs(problem_coefs),
+      d_viscous_time_stepping_type(viscous_time_stepping_type),
       d_helmholtz_spec(d_object_name+"::helmholtz_spec"),
       d_U_bc_coefs(U_bc_coefs),
       d_P_bc_coef(P_bc_coef),
       d_hier_math_ops(hier_math_ops),
       d_hier_math_ops_external(!d_hier_math_ops.isNull())
 {
+    // Check to make sure the time stepping type is supported.
+    switch (d_viscous_time_stepping_type)
+    {
+        case BACKWARD_EULER:
+        case FORWARD_EULER:
+        case TRAPEZOIDAL_RULE:
+            break;
+        default:
+            TBOX_ERROR("INSStaggeredStokesOperator::INSStaggeredStokesOperator():\n"
+                       << "  unsupported diffusion timestepping type: " << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << "." << std::endl);
+    }
+
     // Setup Timers.
     IBAMR_DO_ONCE(
         t_apply                     = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredStokesOperator::apply()");
@@ -139,8 +153,23 @@ INSStaggeredStokesOperator::setTimeInterval(
     d_current_time = current_time;
     d_new_time = new_time;
     const double dt = d_new_time-d_current_time;
-    d_helmholtz_spec.setCConstant((rho/dt)+0.5*lambda);
-    d_helmholtz_spec.setDConstant(        -0.5*mu    );
+    double K = 0.0;
+    switch (d_viscous_time_stepping_type)
+    {
+        case BACKWARD_EULER:
+            K = 1.0;
+            break;
+        case FORWARD_EULER:
+            K = 0.0;
+            break;
+        case TRAPEZOIDAL_RULE:
+            K = 0.5;
+            break;
+        default:
+            TBOX_ERROR("this statment should not be reached");
+    }
+    d_helmholtz_spec.setCConstant((rho/dt)+K*lambda);
+    d_helmholtz_spec.setDConstant(        -K*mu    );
     return;
 }// setTimeInterval
 
@@ -191,7 +220,10 @@ INSStaggeredStokesOperator::apply(
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Compute the action of the operator:
-    //      A*[u;p] = [((rho/dt)*I-0.5*mu*L)*u + grad p; -div u].
+    //
+    //    A*[u;p] = [((rho/dt)*I-K*mu*L)*u + grad p; -div u]
+    //
+    // where K is determined by the viscous time stepping scheme (see above).
     d_hier_math_ops->grad(U_out_idx, U_out_sc_var, /*cf_bdry_synch*/ false, 1.0, P_in_idx, P_in_cc_var, d_no_fill, d_new_time);
     d_hier_math_ops->laplace(U_out_idx, U_out_sc_var, d_helmholtz_spec, U_in_idx, U_in_sc_var, d_no_fill, d_new_time, 1.0, U_out_idx, U_out_sc_var);
     d_hier_math_ops->div(P_out_idx, P_out_cc_var, -1.0, U_in_idx, U_in_sc_var, d_no_fill, d_new_time, /*cf_bdry_synch*/ true);

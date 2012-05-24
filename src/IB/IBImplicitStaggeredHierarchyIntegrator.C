@@ -111,7 +111,7 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    TBOX_ASSERT(d_timestepping_type == MIDPOINT_RULE);
+    TBOX_ASSERT(d_time_stepping_type == MIDPOINT_RULE);
 
     // Allocate Eulerian scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -293,7 +293,7 @@ IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     const INSProblemCoefs* const problem_coefs = p_ins_hier_integrator->getINSProblemCoefs();
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs = p_ins_hier_integrator->getVelocityBoundaryConditions();
     RobinBcCoefStrategy<NDIM>* const P_bc_coef = p_ins_hier_integrator->getPressureBoundaryConditions();
-    d_stokes_op = new INSStaggeredStokesOperator(d_object_name+"::INSStaggeredStokesOperator", problem_coefs, U_bc_coefs, P_bc_coef, buildHierarchyMathOps(hierarchy));
+    d_stokes_op = new INSStaggeredStokesOperator(d_object_name+"::INSStaggeredStokesOperator", problem_coefs, TRAPEZOIDAL_RULE, U_bc_coefs, P_bc_coef, buildHierarchyMathOps(hierarchy));
     Pointer<NewtonKrylovSolver> modified_stokes_solver = new PETScNewtonKrylovSolver(d_object_name+"::stokes_solver", stokes_prefix);
     d_F_op = new IBImplicitStaggeredHierarchyIntegrator::Operator(this);
     modified_stokes_solver->setOperator(d_F_op);

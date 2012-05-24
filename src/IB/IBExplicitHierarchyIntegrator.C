@@ -153,7 +153,7 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
         d_ib_method_ops->eulerStep(current_time, new_time);
     }
 
-    if (d_timestepping_type == TRAPEZOIDAL_RULE)
+    if (d_time_stepping_type == TRAPEZOIDAL_RULE)
     {
         // Compute the Lagrangian force at the beginning of the time interval
         // and spread it to the Eulerian grid.
@@ -183,7 +183,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
                                                                    d_ins_hier_integrator->getNewContext());
 
     // Compute the Lagrangian forces and spread them to the Eulerian grid.
-    switch (d_timestepping_type)
+    switch (d_time_stepping_type)
     {
         case MIDPOINT_RULE:
             if (d_do_log) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
@@ -209,7 +209,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
             break;
         default:
             TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                       << "  unsupported timestepping type: " << enum_to_string<TimesteppingType>(d_timestepping_type) << "\n"
+                       << "  unsupported timestepping type: " << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
                        << "  supported timestepping types are: MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
 
@@ -231,7 +231,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
     d_ib_method_ops->postprocessSolveFluidEquations(current_time, new_time, cycle_num);
 
     // Interpolate the Eulerian velocity to the curvilinear mesh.
-    switch (d_timestepping_type)
+    switch (d_time_stepping_type)
     {
         case MIDPOINT_RULE:
             d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
@@ -245,7 +245,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
             break;
         default:
             TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                       << "  unsupported timestepping type: " << enum_to_string<TimesteppingType>(d_timestepping_type) << "\n"
+                       << "  unsupported timestepping type: " << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
                        << "  supported timestepping types are: MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
 
@@ -258,7 +258,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
     }
     else
     {
-        switch (d_timestepping_type)
+        switch (d_time_stepping_type)
         {
             case MIDPOINT_RULE:
                 if (d_do_log) plog << d_object_name << "::integrateHierarchy(): performing Lagrangian midpoint-rule step\n";
@@ -270,7 +270,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
                 break;
             default:
                 TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                           << "  unsupported timestepping type: " << enum_to_string<TimesteppingType>(d_timestepping_type) << "\n"
+                           << "  unsupported timestepping type: " << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
                            << "  supported timestepping types are: MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
         }
     }

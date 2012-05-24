@@ -221,7 +221,7 @@ protected:
     /*!
      * Enum indicating the time integration employed for the IB equations.
      */
-    TimesteppingType d_timestepping_type;
+    TimeSteppingType d_time_stepping_type;
 
     /*!
      * Flags to determine whether warnings or error messages should be emitted

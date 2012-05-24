@@ -70,19 +70,19 @@ public:
     ~AdvDiffHierarchyIntegrator();
 
     /*!
-     * Return the type of viscous time integration scheme being employed by the
-     * advection-diffusion solver.
+     * Return the type of diffusion time integration scheme being employed by
+     * the advection-diffusion solver.
      *
-     * At the present time, valid time integration schemes include:
+     * At the present time, supported time integration schemes include:
      *
-     *    - CRANK_NICOLSON
      *    - BACKWARD_EULER
+     *    - TRAPEZOIDAL_RULE (same as Crank-Nicolson)
      *
      * The choice of time integration scheme is set via the input database
      * provided to the class constructor.
      */
-    ViscousTimesteppingType
-    getViscousTimesteppingType() const;
+    TimeSteppingType
+    getDiffusionTimeSteppingType() const;
 
     /*!
      * Register a face-centered advection velocity to be used to advect
@@ -279,9 +279,9 @@ protected:
 
     /*!
      * Enum indicating the time integration employed for the implicit
-     * discretization of the viscous terms.
+     * discretization of the diffusion terms.
      */
-    ViscousTimesteppingType d_viscous_timestepping_type;
+    TimeSteppingType d_diffusion_time_stepping_type;
 
     /*!
      * Advection velocity data.

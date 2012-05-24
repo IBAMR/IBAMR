@@ -153,7 +153,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
 
     d_u_idx = var_db->registerVariableAndContext(d_u_var, d_ib_context, ib_ghosts);
     d_f_idx = var_db->registerVariableAndContext(d_f_var, d_ib_context,    ghosts);
-    if (d_timestepping_type == TRAPEZOIDAL_RULE)
+    if (d_time_stepping_type == TRAPEZOIDAL_RULE)
     {
         d_f_current_idx = var_db->registerClonedPatchDataIndex(d_f_var, d_f_idx);
     }
@@ -379,7 +379,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(
 
     // Set some default values.
     d_integrator_is_initialized = false;
-    d_timestepping_type = MIDPOINT_RULE;
+    d_time_stepping_type = MIDPOINT_RULE;
     d_regrid_cfl_interval = 0.0;
     d_regrid_cfl_estimate = 0.0;
     d_error_on_dt_change = true;
@@ -502,7 +502,7 @@ IBHierarchyIntegrator::putToDatabaseSpecialized(
     Pointer<Database> db)
 {
     db->putInteger("IB_HIERARCHY_INTEGRATOR_VERSION",IB_HIERARCHY_INTEGRATOR_VERSION);
-    db->putString("d_timestepping_type", enum_to_string<TimesteppingType>(d_timestepping_type));
+    db->putString("d_time_stepping_type", enum_to_string<TimeSteppingType>(d_time_stepping_type));
     db->putDouble("d_regrid_cfl_interval", d_regrid_cfl_interval);
     db->putDouble("d_regrid_cfl_estimate", d_regrid_cfl_estimate);
     return;
@@ -522,8 +522,8 @@ IBHierarchyIntegrator::getFromInput(
     if      (db->keyExists("warn_on_dt_change")       ) d_warn_on_dt_change = db->getBool("warn_on_dt_change");
     else if (db->keyExists("warn_on_timestep_change") ) d_warn_on_dt_change = db->getBool("warn_on_timestep_change");
     else if (db->keyExists("warn_on_time_step_change")) d_warn_on_dt_change = db->getBool("warn_on_time_step_change");
-    if      (db->keyExists("timestepping_type") ) d_timestepping_type = string_to_enum<TimesteppingType>(db->getString("timestepping_type"));
-    else if (db->keyExists("time_stepping_type")) d_timestepping_type = string_to_enum<TimesteppingType>(db->getString("time_stepping_type"));
+    if      (db->keyExists("timestepping_type") ) d_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("timestepping_type"));
+    else if (db->keyExists("timestepping_type")) d_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("timestepping_type"));
     if      (db->keyExists("marker_file_name")) d_mark_file_name = db->getString("marker_file_name");
     return;
 }// getFromInput
@@ -547,7 +547,7 @@ IBHierarchyIntegrator::getFromRestart()
     {
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
-    d_timestepping_type = string_to_enum<TimesteppingType>(db->getString("d_timestepping_type"));
+    d_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_time_stepping_type"));
     d_regrid_cfl_interval = db->getDouble("d_regrid_cfl_interval");
     d_regrid_cfl_estimate = db->getDouble("d_regrid_cfl_estimate");
     return;

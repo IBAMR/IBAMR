@@ -37,6 +37,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/INSProblemCoefs.h>
+#include <ibamr/ibamr_enums.h>
 
 // IBTK INCLUDES
 #include <ibtk/LinearOperator.h>
@@ -67,6 +68,7 @@ public:
     INSStaggeredStokesOperator(
         const std::string& object_name,
         const INSProblemCoefs* problem_coefs,
+        TimeSteppingType viscous_time_stepping_type,
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops=SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps>(),
@@ -261,6 +263,7 @@ private:
 
     // Problem specification and mathematical operators.
     const INSProblemCoefs* d_problem_coefs;
+    const TimeSteppingType d_viscous_time_stepping_type;
     SAMRAI::solv::PoissonSpecifications d_helmholtz_spec;
     const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const d_P_bc_coef;

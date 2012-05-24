@@ -187,6 +187,19 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(
         new CellVariable<NDIM,double>(object_name+"::Q"),
         register_for_restart)
 {
+    // Check to make sure the time stepping type is supported.
+    switch (d_viscous_time_stepping_type)
+    {
+        case BACKWARD_EULER:
+        case FORWARD_EULER:
+        case TRAPEZOIDAL_RULE:
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::INSCollocatedHierarchyIntegrator():\n"
+                       << "  unsupported diffusion timestepping type: " << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << " \n"
+                       << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
+    }
+
     // Check to see whether the convective operator type has been set.
     d_default_convective_op_type = PPM;
     if      (input_db->keyExists("convective_op_type"))               d_default_convective_op_type = string_to_enum<ConvectiveOperatorType>(input_db->getString("convective_op_type"));
@@ -802,9 +815,24 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(
     const double rho    = d_problem_coefs.getRho();
     const double mu     = d_problem_coefs.getMu();
     const double lambda = d_problem_coefs.getLambda();
+    double K_rhs = 0.0;
+    switch (d_viscous_time_stepping_type)
+    {
+        case BACKWARD_EULER:
+            K_rhs = 0.0;
+            break;
+        case FORWARD_EULER:
+            K_rhs = 1.0;
+            break;
+        case TRAPEZOIDAL_RULE:
+            K_rhs = 0.5;
+            break;
+        default:
+            TBOX_ERROR("this statment should not be reached");
+    }
     PoissonSpecifications rhs_spec(d_object_name+"::rhs_spec");
-    rhs_spec.setCConstant((rho/dt)-0.5*lambda);
-    rhs_spec.setDConstant(        +0.5*mu    );
+    rhs_spec.setCConstant((rho/dt)-K_rhs*lambda);
+    rhs_spec.setDConstant(        +K_rhs*mu    );
     const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
     const Pointer<CellVariable<NDIM,double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
     d_hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
@@ -987,16 +1015,31 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
     d_hier_cc_data_ops->axpy(d_U_new_idx, -1.0/div_fac, d_Grad_Phi_cc_idx, d_U_scratch_idx);
 
     // Determine P(n+1/2).
+    double K = 0.0;
+    switch (d_viscous_time_stepping_type)
+    {
+        case BACKWARD_EULER:
+            K = 1.0;
+            break;
+        case FORWARD_EULER:
+            K = 0.0;
+            break;
+        case TRAPEZOIDAL_RULE:
+            K = 0.5;
+            break;
+        default:
+            TBOX_ERROR("this statment should not be reached");
+    }
     PoissonSpecifications helmholtz_spec(d_object_name+"::helmholtz_spec");
     if (MathUtilities<double>::equalEps(rho,0.0))
     {
-        helmholtz_spec.setCConstant( 0.0   );
-        helmholtz_spec.setDConstant(-0.5*mu);
+        helmholtz_spec.setCConstant( 0.0 );
+        helmholtz_spec.setDConstant(-K*mu);
     }
     else if (d_using_2nd_order_pressure_update)
     {
-        helmholtz_spec.setCConstant(1.0+0.5*dt*lambda/rho);
-        helmholtz_spec.setDConstant(   -0.5*dt*mu    /rho);
+        helmholtz_spec.setCConstant(1.0+K*dt*lambda/rho);
+        helmholtz_spec.setDConstant(   -K*dt*mu    /rho);
     }
     else
     {
@@ -1612,8 +1655,23 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     // Setup subdomain solvers.
     if (!d_velocity_solver.isNull())
     {
-        d_velocity_spec->setCConstant((rho/dt)+0.5*lambda);
-        d_velocity_spec->setDConstant(        -0.5*mu    );
+        double K = 0.0;
+        switch (d_viscous_time_stepping_type)
+        {
+            case BACKWARD_EULER:
+                K = 1.0;
+                break;
+            case FORWARD_EULER:
+                K = 0.0;
+                break;
+            case TRAPEZOIDAL_RULE:
+                K = 0.5;
+                break;
+            default:
+                TBOX_ERROR("this statment should not be reached");
+        }
+        d_velocity_spec->setCConstant((rho/dt)+K*lambda);
+        d_velocity_spec->setDConstant(        -K*mu    );
 
         d_velocity_op->setPoissonSpecifications(*d_velocity_spec);
         d_velocity_op->setPhysicalBcCoefs(d_U_star_bc_coefs);

@@ -56,15 +56,43 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
+#define ADVECT_DERIVATIVE_FC FC_FUNC_(advect_derivative2d, ADVECT_DERIVATIVE2D)
 #define ADVECT_STABLEDT_FC FC_FUNC_(advect_stabledt2d, ADVECT_STABLEDT2D)
+#define CONVECT_DERIVATIVE_FC FC_FUNC_(convect_derivative2d, CONVECT_DERIVATIVE2D)
+#define SKEW_SYM_DERIVATIVE_FC FC_FUNC_(skew_sym_derivative2d, SKEW_SYM_DERIVATIVE2D)
 #endif
 
 #if (NDIM == 3)
+#define ADVECT_DERIVATIVE_FC FC_FUNC_(advect_derivative3d, ADVECT_DERIVATIVE3D)
 #define ADVECT_STABLEDT_FC FC_FUNC_(advect_stabledt3d, ADVECT_STABLEDT3D)
+#define CONVECT_DERIVATIVE_FC FC_FUNC_(convect_derivative3d, CONVECT_DERIVATIVE3D)
+#define SKEW_SYM_DERIVATIVE_FC FC_FUNC_(skew_sym_derivative3d, SKEW_SYM_DERIVATIVE3D)
 #endif
 
 extern "C"
 {
+    void
+    ADVECT_DERIVATIVE_FC(
+        const double*,
+#if (NDIM == 2)
+        const int& , const int& , const int& , const int& ,
+        const int& , const int& ,
+        const int& , const int& ,
+        const double* , const double* ,
+        const double* , const double* ,
+        const int& , const int& ,
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double* ,
+        const double* , const double* , const double* ,
+        const int& , const int& , const int& ,
+#endif
+        double*
+                       );
+
     void
     ADVECT_STABLEDT_FC(
         const double*,
@@ -80,6 +108,50 @@ extern "C"
 #endif
         double&
                        );
+
+    void
+    CONVECT_DERIVATIVE_FC(
+        const double*,
+#if (NDIM == 2)
+        const int& , const int& , const int& , const int& ,
+        const int& , const int& ,
+        const int& , const int& ,
+        const double* , const double* ,
+        const double* , const double* ,
+        const int& , const int& ,
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double* ,
+        const double* , const double* , const double* ,
+        const int& , const int& , const int& ,
+#endif
+        double*
+                          );
+
+    void
+    SKEW_SYM_DERIVATIVE_FC(
+        const double*,
+#if (NDIM == 2)
+        const int& , const int& , const int& , const int& ,
+        const int& , const int& ,
+        const int& , const int& ,
+        const double* , const double* ,
+        const double* , const double* ,
+        const int& , const int& ,
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double* ,
+        const double* , const double* , const double* ,
+        const int& , const int& , const int& ,
+#endif
+        double*
+                           );
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -218,7 +290,7 @@ AdvDiffCenteredHierarchyIntegrator::preprocessIntegrateHierarchy(
         d_hier_bdry_fill_ops[l]->fillData(current_time);
         PoissonSpecifications& helmholtz_spec = d_helmholtz_specs[l];
         Pointer<CCLaplaceOperator> helmholtz_op = d_helmholtz_ops[l];
-        switch (d_viscous_timestepping_type)
+        switch (d_diffusion_time_stepping_type)
         {
             case BACKWARD_EULER:
             {
@@ -250,9 +322,9 @@ AdvDiffCenteredHierarchyIntegrator::preprocessIntegrateHierarchy(
                 }
                 break;
             }
-            case CRANK_NICOLSON:
+            case TRAPEZOIDAL_RULE:
             {
-                // The Crank-Nicolson discretization is:
+                // The trapezoidal rule (Crank-Nicolson) discretization is:
                 //
                 //     (I-0.5*dt*kappa*L(t_new)) Q(n+1) = (I+0.5*dt*kappa*L(t_old)) Q(n) + F(t_avg) dt
                 //
@@ -283,7 +355,7 @@ AdvDiffCenteredHierarchyIntegrator::preprocessIntegrateHierarchy(
             }
             default:
                 TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                           << "  unrecognized viscous timestepping type: " << enum_to_string<ViscousTimesteppingType>(d_viscous_timestepping_type) << "." << std::endl);
+                           << "  unsupported diffusion timestepping type: " << enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type) << "." << std::endl);
         }
 
         helmholtz_op->setPoissonSpecifications(helmholtz_spec);
@@ -359,10 +431,10 @@ AdvDiffCenteredHierarchyIntegrator::integrateHierarchy(
         Pointer<KrylovLinearSolver>                  helmholtz_solver = d_helmholtz_solvers[l];
 
         // Solve for Q(n+1).
-        switch (d_viscous_timestepping_type)
+        switch (d_diffusion_time_stepping_type)
         {
             case BACKWARD_EULER:
-            case CRANK_NICOLSON:
+            case TRAPEZOIDAL_RULE:
                 helmholtz_op->setTime(new_time);
                 if (d_using_FAC) helmholtz_fac_op->setTime(new_time);
                 helmholtz_solver->solveSystem(*d_sol_vecs[l],*d_rhs_vecs[l]);
@@ -379,7 +451,7 @@ AdvDiffCenteredHierarchyIntegrator::integrateHierarchy(
                 break;
             default:
                 TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                           << "  unrecognized viscous timestepping type: " << enum_to_string<ViscousTimesteppingType>(d_viscous_timestepping_type) << "." << std::endl);
+                           << "  unsupported diffusion timestepping type: " << enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type) << "." << std::endl);
         }
     }
     return;

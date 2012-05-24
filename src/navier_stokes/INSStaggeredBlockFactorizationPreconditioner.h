@@ -37,6 +37,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/INSProblemCoefs.h>
+#include <ibamr/ibamr_enums.h>
 
 // IBTK INCLUDES
 #include <ibtk/LinearSolver.h>
@@ -67,6 +68,7 @@ public:
      */
     INSStaggeredBlockFactorizationPreconditioner(
         const INSProblemCoefs& problem_coefs,
+        TimeSteppingType viscous_time_stepping_type,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
         bool normalize_pressure,
         SAMRAI::tbox::Pointer<IBTK::LinearSolver> velocity_helmholtz_solver,
@@ -275,6 +277,7 @@ private:
 
     // Problem coefficients.
     const INSProblemCoefs& d_problem_coefs;
+    const TimeSteppingType d_viscous_time_stepping_type;
     SAMRAI::solv::PoissonSpecifications d_pressure_helmholtz_spec;
 
     // Normalize the pressure when necessary.

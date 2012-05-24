@@ -78,6 +78,24 @@ INSHierarchyIntegrator::~INSHierarchyIntegrator()
     return;
 }// ~INSHierarchyIntegrator
 
+TimeSteppingType
+INSHierarchyIntegrator::getViscousTimeSteppingType() const
+{
+    return d_viscous_time_stepping_type;
+}// getViscousTimeSteppingType
+
+TimeSteppingType
+INSHierarchyIntegrator::getConvectiveTimeSteppingType() const
+{
+    return d_convective_time_stepping_type;
+}// getConvectiveTimeSteppingType
+
+TimeSteppingType
+INSHierarchyIntegrator::getInitialConvectiveTimeSteppingType() const
+{
+    return d_init_convective_time_stepping_type;
+}// getInitialConvectiveTimeSteppingType
+
 void
 INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator)
@@ -341,6 +359,9 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(
 {
     // Set some default values.
     d_integrator_is_initialized = false;
+    d_viscous_time_stepping_type = TRAPEZOIDAL_RULE;
+    d_convective_time_stepping_type = ADAMS_BASHFORTH;
+    d_init_convective_time_stepping_type = MIDPOINT_RULE;
     d_num_cycles = 1;
     d_cfl_max = 1.0;
     d_using_vorticity_tagging = false;
@@ -430,6 +451,9 @@ INSHierarchyIntegrator::putToDatabaseSpecialized(
     Pointer<Database> db)
 {
     db->putInteger("INS_HIERARCHY_INTEGRATOR_VERSION",INS_HIERARCHY_INTEGRATOR_VERSION);
+    db->putString("d_viscous_time_stepping_type", enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type));
+    db->putString("d_convective_time_stepping_type", enum_to_string<TimeSteppingType>(d_convective_time_stepping_type));
+    db->putString("d_init_convective_time_stepping_type", enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type));
     db->putDouble("d_rho",d_problem_coefs.getRho());
     db->putDouble("d_mu",d_problem_coefs.getMu());
     db->putDouble("d_lambda",d_problem_coefs.getLambda());
@@ -467,6 +491,9 @@ INSHierarchyIntegrator::getFromInput(
 {
     if (!is_from_restart)
     {
+        if (db->keyExists("viscous_time_stepping_type")) d_viscous_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("viscous_time_stepping_type"));
+        if (db->keyExists("convective_time_stepping_type")) d_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("convective_time_stepping_type"));
+        if (db->keyExists("init_convective_time_stepping_type")) d_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("init_convective_time_stepping_type"));
         if (db->keyExists("rho"))
         {
             d_problem_coefs.setRho(db->getDouble("rho"));
@@ -575,6 +602,9 @@ INSHierarchyIntegrator::getFromRestart()
     {
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
+    d_viscous_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_viscous_time_stepping_type"));
+    d_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_convective_time_stepping_type"));
+    d_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_init_convective_time_stepping_type"));
     d_problem_coefs.setRho(db->getDouble("d_rho"));
     d_problem_coefs.setMu(db->getDouble("d_mu"));
     d_problem_coefs.setLambda(db->getDouble("d_lambda"));

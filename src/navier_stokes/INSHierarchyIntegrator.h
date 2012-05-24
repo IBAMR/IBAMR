@@ -71,6 +71,42 @@ public:
     ~INSHierarchyIntegrator();
 
     /*!
+     * Return the type of viscous time integration scheme being employed by the
+     * incompressible flow solver.
+     *
+     * Different implementations may support different time stepping schemes.
+     *
+     * The choice of time integration scheme is set via the input database
+     * provided to the class constructor.
+     */
+    TimeSteppingType
+    getViscousTimeSteppingType() const;
+
+    /*!
+     * Return the type of convective time integration scheme being employed by the
+     * incompressible flow solver.
+     *
+     * Different implementations may support different time stepping schemes.
+     *
+     * The choice of time integration scheme is set via the input database
+     * provided to the class constructor.
+     */
+    TimeSteppingType
+    getConvectiveTimeSteppingType() const;
+
+    /*!
+     * Return the type of convective time integration scheme being employed by the
+     * incompressible flow solver during the initial time step.
+     *
+     * Different implementations may support different time stepping schemes.
+     *
+     * The choice of time integration scheme is set via the input database
+     * provided to the class constructor.
+     */
+    TimeSteppingType
+    getInitialConvectiveTimeSteppingType() const;
+
+    /*!
      * Register an advection-diffusion solver with this incompressible
      * Navier-Stokes solver.
      */
@@ -347,6 +383,24 @@ protected:
      * Boolean value that indicates whether the integrator has been initialized.
      */
     bool d_integrator_is_initialized;
+
+    /*!
+     * Enum indicating the time integration employed for the implicit
+     * discretization of the viscous terms.
+     */
+    TimeSteppingType d_viscous_time_stepping_type;
+
+    /*!
+     * Enum indicating the time integration employed for the explicit
+     * discretization of the convective terms.
+     */
+    TimeSteppingType d_convective_time_stepping_type;
+
+    /*!
+     * Enum indicating the time integration employed for the explicit
+     * discretization of the convective terms during the \em initial time step.
+     */
+    TimeSteppingType d_init_convective_time_stepping_type;
 
     /*!
      * Problem coeficients.

@@ -101,11 +101,11 @@ AdvDiffHierarchyIntegrator::~AdvDiffHierarchyIntegrator()
     return;
 }// ~AdvDiffHierarchyIntegrator
 
-ViscousTimesteppingType
-AdvDiffHierarchyIntegrator::getViscousTimesteppingType() const
+TimeSteppingType
+AdvDiffHierarchyIntegrator::getDiffusionTimeSteppingType() const
 {
-    return d_viscous_timestepping_type;
-}// getViscousTimesteppingType
+    return d_diffusion_time_stepping_type;
+}// getDiffusionTimeSteppingType
 
 void
 AdvDiffHierarchyIntegrator::registerAdvectionVelocity(
@@ -371,7 +371,7 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart),
       d_integrator_is_initialized(false),
-      d_viscous_timestepping_type(CRANK_NICOLSON),
+      d_diffusion_time_stepping_type(TRAPEZOIDAL_RULE),
       d_u_var(),
       d_u_is_div_free(),
       d_u_fcn(),
@@ -524,7 +524,7 @@ AdvDiffHierarchyIntegrator::putToDatabaseSpecialized(
     TBOX_ASSERT(!db.isNull());
 #endif
     db->putInteger("ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION", ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION);
-    db->putString("d_viscous_timestepping_type", enum_to_string<ViscousTimesteppingType>(d_viscous_timestepping_type));
+    db->putString("d_diffusion_time_stepping_type", enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type));
     return;
 }// putToDatabaseSpecialized
 
@@ -579,7 +579,7 @@ AdvDiffHierarchyIntegrator::getFromInput(
     // Read in data members from input database.
     if (!is_from_restart)
     {
-        if (db->keyExists("viscous_timestepping_type")) d_viscous_timestepping_type = string_to_enum<ViscousTimesteppingType>(db->getString("viscous_timestepping_type"));
+        if (db->keyExists("diffusion_time_stepping_type")) d_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("diffusion_time_stepping_type"));
     }
     if (db->keyExists("max_iterations")) d_max_iterations = db->getInteger("max_iterations");
     if (db->keyExists("abs_residual_tol")) d_abs_residual_tol = db->getDouble("abs_residual_tol");
@@ -607,7 +607,7 @@ AdvDiffHierarchyIntegrator::getFromRestart()
     {
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
-    d_viscous_timestepping_type = string_to_enum<ViscousTimesteppingType>(db->getString("d_viscous_timestepping_type"));
+    d_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_diffusion_time_stepping_type"));
     return;
 }// getFromRestart
 

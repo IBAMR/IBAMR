@@ -223,6 +223,19 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(
         new CellVariable<NDIM,double>(object_name+"::Q"),
         register_for_restart)
 {
+    // Check to make sure the time stepping type is supported.
+    switch (d_viscous_time_stepping_type)
+    {
+        case BACKWARD_EULER:
+        case FORWARD_EULER:
+        case TRAPEZOIDAL_RULE:
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
+                       << "  unsupported diffusion timestepping type: " << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << " \n"
+                       << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
+    }
+
     // Check to see whether the convective operator type has been set.
     d_default_convective_op_type = PPM;
     if      (input_db->keyExists("convective_op_type"))               d_default_convective_op_type = string_to_enum<ConvectiveOperatorType>(input_db->getString("convective_op_type"));
@@ -525,7 +538,7 @@ INSStaggeredHierarchyIntegrator::getStokesSolver()
     if (d_stokes_solver.isNull())
     {
         const std::string stokes_prefix = "stokes_";
-        d_stokes_op = new INSStaggeredStokesOperator(d_object_name+"::INSStaggeredStokesOperator", &d_problem_coefs, d_U_bc_coefs, d_P_bc_coef, d_hier_math_ops);
+        d_stokes_op = new INSStaggeredStokesOperator(d_object_name+"::INSStaggeredStokesOperator", &d_problem_coefs, d_viscous_time_stepping_type, d_U_bc_coefs, d_P_bc_coef, d_hier_math_ops);
         d_stokes_solver = new PETScKrylovLinearSolver(d_object_name+"::stokes_solver", stokes_prefix);
         Pointer<PETScKrylovLinearSolver> p_stokes_solver = d_stokes_solver;
         p_stokes_solver->setInitialGuessNonzero(true);
@@ -583,7 +596,7 @@ INSStaggeredHierarchyIntegrator::getStokesPreconditioner()
                        "  valid stokes preconditioner types: shell, none" << std::endl);
         }
         d_stokes_pc = new INSStaggeredProjectionPreconditioner(
-            d_problem_coefs, d_Phi_bc_coef, d_normalize_pressure,
+            d_problem_coefs, d_viscous_time_stepping_type, d_Phi_bc_coef, d_normalize_pressure,
             getVelocitySubdomainSolver(), getPressureSubdomainSolver(),
             d_hier_cc_data_ops, d_hier_sc_data_ops, d_hier_math_ops);
         d_stokes_solver_needs_reinit_when_dt_changes = false;
@@ -885,9 +898,24 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     const double rho    = d_problem_coefs.getRho();
     const double mu     = d_problem_coefs.getMu();
     const double lambda = d_problem_coefs.getLambda();
+    double K_rhs = 0.0;
+    switch (d_viscous_time_stepping_type)
+    {
+        case BACKWARD_EULER:
+            K_rhs = 0.0;
+            break;
+        case FORWARD_EULER:
+            K_rhs = 1.0;
+            break;
+        case TRAPEZOIDAL_RULE:
+            K_rhs = 0.5;
+            break;
+        default:
+            TBOX_ERROR("this statment should not be reached");
+    }
     PoissonSpecifications rhs_spec(d_object_name+"::rhs_spec");
-    rhs_spec.setCConstant((rho/dt)-0.5*lambda);
-    rhs_spec.setDConstant(        +0.5*mu    );
+    rhs_spec.setCConstant((rho/dt)-K_rhs*lambda);
+    rhs_spec.setDConstant(        +K_rhs*mu    );
     const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
     const Pointer<SideVariable<NDIM,double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
     d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
@@ -1796,8 +1824,23 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(
     // Setup subdomain solvers.
     if (!d_velocity_solver.isNull())
     {
-        d_velocity_spec->setCConstant((rho/dt)+0.5*lambda);
-        d_velocity_spec->setDConstant(        -0.5*mu    );
+        double K = 0.0;
+        switch (d_viscous_time_stepping_type)
+        {
+            case BACKWARD_EULER:
+                K = 1.0;
+                break;
+            case FORWARD_EULER:
+                K = 0.0;
+                break;
+            case TRAPEZOIDAL_RULE:
+                K = 0.5;
+                break;
+            default:
+                TBOX_ERROR("this statment should not be reached");
+        }
+        d_velocity_spec->setCConstant((rho/dt)+K*lambda);
+        d_velocity_spec->setDConstant(        -K*mu    );
 
         d_velocity_op->setPoissonSpecifications(*d_velocity_spec);
         d_velocity_op->setPhysicalBcCoefs(d_U_star_bc_coefs);

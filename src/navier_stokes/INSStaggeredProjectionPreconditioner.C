@@ -87,6 +87,7 @@ static Timer* t_deallocate_solver_state;
 
 INSStaggeredProjectionPreconditioner::INSStaggeredProjectionPreconditioner(
     const INSProblemCoefs& problem_coefs,
+    TimeSteppingType viscous_time_stepping_type,
     RobinBcCoefStrategy<NDIM>* Phi_bc_coef,
     const bool normalize_pressure,
     Pointer<LinearSolver> velocity_helmholtz_solver,
@@ -99,6 +100,7 @@ INSStaggeredProjectionPreconditioner::INSStaggeredProjectionPreconditioner(
       d_current_time(std::numeric_limits<double>::quiet_NaN()),
       d_new_time(std::numeric_limits<double>::quiet_NaN()),
       d_problem_coefs(problem_coefs),
+      d_viscous_time_stepping_type(viscous_time_stepping_type),
       d_pressure_helmholtz_spec("INSStaggeredProjectionPreconditioner::pressure_helmholtz_spec"),
       d_normalize_pressure(normalize_pressure),
       d_velocity_helmholtz_solver(velocity_helmholtz_solver),
@@ -154,6 +156,18 @@ INSStaggeredProjectionPreconditioner::INSStaggeredProjectionPreconditioner(
     TBOX_ASSERT(d_F_scratch_idx >= 0);
 #endif
 
+    // Check to make sure the time stepping type is supported.
+    switch (d_viscous_time_stepping_type)
+    {
+        case BACKWARD_EULER:
+        case FORWARD_EULER:
+        case TRAPEZOIDAL_RULE:
+            break;
+        default:
+            TBOX_ERROR("INSStaggeredProjectionPreconditioner::INSStaggeredProjectionPreconditioner():\n"
+                       << "  unsupported diffusion timestepping type: " << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << "." << std::endl);
+    }
+
     // Setup Timers.
     IBAMR_DO_ONCE(
         t_solve_system            = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredProjectionPreconditioner::solveSystem()");
@@ -179,16 +193,31 @@ INSStaggeredProjectionPreconditioner::setTimeInterval(
     const double lambda = d_problem_coefs.getLambda();
     d_current_time = current_time;
     d_new_time = new_time;
+    double K = 0.0;
+    switch (d_viscous_time_stepping_type)
+    {
+        case BACKWARD_EULER:
+            K = 1.0;
+            break;
+        case FORWARD_EULER:
+            K = 0.0;
+            break;
+        case TRAPEZOIDAL_RULE:
+            K = 0.5;
+            break;
+        default:
+            TBOX_ERROR("this statment should not be reached");
+    }
     if (MathUtilities<double>::equalEps(rho,0.0))
     {
-        d_pressure_helmholtz_spec.setCConstant( 0.0   );
-        d_pressure_helmholtz_spec.setDConstant(-0.5*mu);
+        d_pressure_helmholtz_spec.setCConstant( 0.0 );
+        d_pressure_helmholtz_spec.setDConstant(-K*mu);
     }
     else
     {
         const double dt = d_new_time-d_current_time;
-        d_pressure_helmholtz_spec.setCConstant(1.0+0.5*dt*lambda/rho);
-        d_pressure_helmholtz_spec.setDConstant(   -0.5*dt*mu    /rho);
+        d_pressure_helmholtz_spec.setCConstant(1.0+K*dt*lambda/rho);
+        d_pressure_helmholtz_spec.setDConstant(   -K*dt*mu    /rho);
     }
     return;
 }// setTimeInterval

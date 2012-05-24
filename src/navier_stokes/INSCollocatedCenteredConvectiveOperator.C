@@ -84,7 +84,6 @@ extern "C"
         const double* , const double* ,
         const double* , const double* ,
         const int& , const int& ,
-        double*
 #endif
 #if (NDIM == 3)
         const int& , const int& , const int& , const int& , const int& , const int& ,
@@ -93,8 +92,8 @@ extern "C"
         const double* , const double* , const double* ,
         const double* , const double* , const double* ,
         const int& , const int& , const int& ,
-        double*
 #endif
+        double*
                          );
 
     void

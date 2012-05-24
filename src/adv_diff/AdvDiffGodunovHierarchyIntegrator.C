@@ -412,7 +412,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         // solve for Q(n+1).
         PoissonSpecifications& helmholtz_spec = d_helmholtz_specs[l];
         Pointer<CCLaplaceOperator> helmholtz_op = d_helmholtz_ops[l];
-        switch (d_viscous_timestepping_type)
+        switch (d_diffusion_time_stepping_type)
         {
             case BACKWARD_EULER:
             {
@@ -452,9 +452,9 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
                 }
                 break;
             }
-            case CRANK_NICOLSON:
+            case TRAPEZOIDAL_RULE:
             {
-                // The Crank-Nicolson discretization is:
+                // The trapezoidal rule (Crank-Nicolson) discretization is:
                 //
                 //     (I-0.5*dt*kappa*L(t_new)) Q(n+1) = (I+0.5*dt*kappa*L(t_old)) Q(n) + F(t_avg) dt
                 //
@@ -490,7 +490,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
             }
             default:
                 TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                           << "  unrecognized viscous timestepping type: " << enum_to_string<ViscousTimesteppingType>(d_viscous_timestepping_type) << "." << std::endl);
+                           << "  unsupported diffusion timestepping type: " << enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type) << "." << std::endl);
         }
 
         // Initialize the linear solver.
@@ -523,10 +523,10 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         }
 
         // Solve for Q(n+1).
-        switch (d_viscous_timestepping_type)
+        switch (d_diffusion_time_stepping_type)
         {
             case BACKWARD_EULER:
-            case CRANK_NICOLSON:
+            case TRAPEZOIDAL_RULE:
                 helmholtz_op->setTime(new_time);
                 if (d_using_FAC) helmholtz_fac_op->setTime(new_time);
                 helmholtz_solver->solveSystem(*d_sol_vecs[l],*d_rhs_vecs[l]);
@@ -543,7 +543,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
                 break;
             default:
                 TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                           << "  unrecognized viscous timestepping type: " << enum_to_string<ViscousTimesteppingType>(d_viscous_timestepping_type) << "." << std::endl);
+                           << "  unsupported diffusion timestepping type: " << enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type) << "." << std::endl);
         }
 
         // Deallocate temporary data.
