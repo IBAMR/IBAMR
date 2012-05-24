@@ -184,6 +184,19 @@ AdvDiffCenteredHierarchyIntegrator::AdvDiffCenteredHierarchyIntegrator(
     // Default values.
     d_cfl_max = 0.5;
 
+    // Check to make sure the time stepping type is supported.
+    switch (d_diffusion_time_stepping_type)
+    {
+        case BACKWARD_EULER:
+        case FORWARD_EULER:
+        case TRAPEZOIDAL_RULE:
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::AdvDiffCenteredHierarchyIntegrator():\n"
+                       << "  unsupported diffusion time stepping type: " << enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type) << " \n"
+                       << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
+    }
+
     // Initialize object with data read from the input database.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (!input_db.isNull()) getFromInput(input_db, from_restart);
@@ -355,7 +368,7 @@ AdvDiffCenteredHierarchyIntegrator::preprocessIntegrateHierarchy(
             }
             default:
                 TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                           << "  unsupported diffusion timestepping type: " << enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type) << "." << std::endl);
+                           << "  unsupported diffusion time stepping type: " << enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type) << "." << std::endl);
         }
 
         helmholtz_op->setPoissonSpecifications(helmholtz_spec);
@@ -451,7 +464,7 @@ AdvDiffCenteredHierarchyIntegrator::integrateHierarchy(
                 break;
             default:
                 TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                           << "  unsupported diffusion timestepping type: " << enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type) << "." << std::endl);
+                           << "  unsupported diffusion time stepping type: " << enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type) << "." << std::endl);
         }
     }
     return;

@@ -166,7 +166,7 @@ INSStaggeredBlockFactorizationPreconditioner::INSStaggeredBlockFactorizationPrec
             break;
         default:
             TBOX_ERROR("INSStaggeredBlockFactorizationPreconditioner::INSStaggeredBlockFactorizationPreconditioner():\n"
-                       << "  unsupported diffusion timestepping type: " << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << "." << std::endl);
+                       << "  unsupported viscous time stepping type: " << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << "." << std::endl);
     }
 
     // Setup Timers.

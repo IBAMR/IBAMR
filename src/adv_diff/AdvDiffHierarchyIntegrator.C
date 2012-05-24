@@ -579,7 +579,8 @@ AdvDiffHierarchyIntegrator::getFromInput(
     // Read in data members from input database.
     if (!is_from_restart)
     {
-        if (db->keyExists("diffusion_time_stepping_type")) d_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("diffusion_time_stepping_type"));
+        if      (db->keyExists("diffusion_time_stepping_type")) d_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("diffusion_time_stepping_type"));
+        else if (db->keyExists("diffusion_time_steppingtype") ) d_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("diffusion_timestepping_type") );
     }
     if (db->keyExists("max_iterations")) d_max_iterations = db->getInteger("max_iterations");
     if (db->keyExists("abs_residual_tol")) d_abs_residual_tol = db->getDouble("abs_residual_tol");

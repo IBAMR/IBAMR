@@ -209,8 +209,8 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
             break;
         default:
             TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                       << "  unsupported timestepping type: " << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
-                       << "  supported timestepping types are: MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+                       << "  unsupported time stepping type: " << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                       << "  supported time stepping types are: MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
 
     // Compute the Lagrangian source/sink strengths and spread them to the
@@ -245,8 +245,8 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
             break;
         default:
             TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                       << "  unsupported timestepping type: " << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
-                       << "  supported timestepping types are: MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+                       << "  unsupported time stepping type: " << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                       << "  supported time stepping types are: MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
 
     // Compute an updated prediction of the updated positions of the Lagrangian
@@ -270,8 +270,8 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
                 break;
             default:
                 TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                           << "  unsupported timestepping type: " << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
-                           << "  supported timestepping types are: MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+                           << "  unsupported time stepping type: " << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                           << "  supported time stepping types are: MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
         }
     }
 

@@ -196,7 +196,7 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(
             break;
         default:
             TBOX_ERROR(d_object_name << "::INSCollocatedHierarchyIntegrator():\n"
-                       << "  unsupported diffusion timestepping type: " << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << " \n"
+                       << "  unsupported viscous time stepping type: " << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << " \n"
                        << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
 

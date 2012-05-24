@@ -490,7 +490,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
             }
             default:
                 TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                           << "  unsupported diffusion timestepping type: " << enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type) << "." << std::endl);
+                           << "  unsupported diffusion time stepping type: " << enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type) << "." << std::endl);
         }
 
         // Initialize the linear solver.
@@ -543,7 +543,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
                 break;
             default:
                 TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                           << "  unsupported diffusion timestepping type: " << enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type) << "." << std::endl);
+                           << "  unsupported diffusion time stepping type: " << enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type) << "." << std::endl);
         }
 
         // Deallocate temporary data.

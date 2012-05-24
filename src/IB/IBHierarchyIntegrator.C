@@ -515,15 +515,15 @@ IBHierarchyIntegrator::getFromInput(
     Pointer<Database> db,
     bool /*is_from_restart*/)
 {
-    if (db->keyExists("regrid_cfl_interval")) d_regrid_cfl_interval = db->getDouble("regrid_cfl_interval");
+    if      (db->keyExists("regrid_cfl_interval")) d_regrid_cfl_interval = db->getDouble("regrid_cfl_interval");
     if      (db->keyExists("error_on_dt_change")       ) d_error_on_dt_change = db->getBool("error_on_dt_change");
     else if (db->keyExists("error_on_timestep_change") ) d_error_on_dt_change = db->getBool("error_on_timestep_change");
     else if (db->keyExists("error_on_time_step_change")) d_error_on_dt_change = db->getBool("error_on_time_step_change");
     if      (db->keyExists("warn_on_dt_change")       ) d_warn_on_dt_change = db->getBool("warn_on_dt_change");
-    else if (db->keyExists("warn_on_timestep_change") ) d_warn_on_dt_change = db->getBool("warn_on_timestep_change");
     else if (db->keyExists("warn_on_time_step_change")) d_warn_on_dt_change = db->getBool("warn_on_time_step_change");
-    if      (db->keyExists("timestepping_type") ) d_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("timestepping_type"));
-    else if (db->keyExists("timestepping_type")) d_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("timestepping_type"));
+    else if (db->keyExists("warn_on_timestep_change") ) d_warn_on_dt_change = db->getBool("warn_on_timestep_change");
+    if      (db->keyExists("time_stepping_type")) d_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("time_stepping_type"));
+    else if (db->keyExists("timestepping_type") ) d_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("timestepping_type" ));
     if      (db->keyExists("marker_file_name")) d_mark_file_name = db->getString("marker_file_name");
     return;
 }// getFromInput

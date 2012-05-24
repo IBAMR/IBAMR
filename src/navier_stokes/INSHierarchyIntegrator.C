@@ -491,9 +491,12 @@ INSHierarchyIntegrator::getFromInput(
 {
     if (!is_from_restart)
     {
-        if (db->keyExists("viscous_time_stepping_type")) d_viscous_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("viscous_time_stepping_type"));
-        if (db->keyExists("convective_time_stepping_type")) d_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("convective_time_stepping_type"));
-        if (db->keyExists("init_convective_time_stepping_type")) d_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("init_convective_time_stepping_type"));
+        if      (db->keyExists("viscous_time_stepping_type")) d_viscous_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("viscous_time_stepping_type"));
+        else if (db->keyExists("viscous_timestepping_type") ) d_viscous_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("viscous_timestepping_type") );
+        if      (db->keyExists("convective_time_stepping_type")) d_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("convective_time_stepping_type"));
+        else if (db->keyExists("convective_timestepping_type") ) d_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("convective_timestepping_type") );
+        if      (db->keyExists("init_convective_time_stepping_type")) d_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("init_convective_time_stepping_type"));
+        else if (db->keyExists("init_convective_timestepping_type") ) d_init_convective_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("init_convective_timestepping_type") );
         if (db->keyExists("rho"))
         {
             d_problem_coefs.setRho(db->getDouble("rho"));
