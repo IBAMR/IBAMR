@@ -799,7 +799,14 @@ INSCollocatedHierarchyIntegrator::getNumberOfCycles() const
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     if (initial_time)
     {
-        return std::max(2,d_num_cycles);
+        if (d_convective_time_stepping_type == FORWARD_EULER || (is_multistep_time_stepping_type(d_convective_time_stepping_type) && d_init_convective_time_stepping_type == FORWARD_EULER))
+        {
+            return d_num_cycles;
+        }
+        else
+        {
+            return std::max(2,d_num_cycles);
+        }
     }
     else
     {
