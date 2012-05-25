@@ -88,6 +88,19 @@ AdvDiffGodunovHierarchyIntegrator::AdvDiffGodunovHierarchyIntegrator(
     TBOX_ASSERT(!input_db.isNull());
     TBOX_ASSERT(!explicit_predictor.isNull());
 #endif
+    // Check to make sure the time stepping types are supported.
+    switch (d_diffusion_time_stepping_type)
+    {
+        case BACKWARD_EULER:
+        case FORWARD_EULER:
+        case TRAPEZOIDAL_RULE:
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::AdvDiffGodunovHierarchyIntegrator():\n"
+                       << "  unsupported diffusion time stepping type: " << enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type) << " \n"
+                       << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
+    }
+
     // Get initialization data for the hyperbolic patch strategy objects.
     if (input_db->keyExists("HyperbolicLevelIntegrator"))
     {
@@ -408,89 +421,44 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
             d_hier_cc_data_ops->add(Q_new_idx, F_current_idx, Q_new_idx);
         }
 
-        // Setup the problem coefficients and right hand side for the linear
+        // Setup the problem coefficients and right-hand-side for the linear
         // solve for Q(n+1).
-        PoissonSpecifications& helmholtz_spec = d_helmholtz_specs[l];
-        Pointer<CCLaplaceOperator> helmholtz_op = d_helmholtz_ops[l];
+        double K = 0.0;
         switch (d_diffusion_time_stepping_type)
         {
             case BACKWARD_EULER:
-            {
-                // The backward Euler discretization is:
-                //
-                //     (I-dt*kappa*L(t_new)) Q(n+1) = Q(n) + F(t_avg) dt
-                //
-                // where
-                //
-                //    t_new = (n+1) dt
-                //    t_avg = (t_new+t_old)/2
-                //
-                // Note that for simplicity of implementation, we always use a
-                // timestep-centered forcing term.
-                helmholtz_spec.setCConstant(1.0+dt*lambda);
-                helmholtz_spec.setDConstant(   -dt*kappa );
-
-                PoissonSpecifications rhs_spec("rhs_spec");
-                rhs_spec.setCConstant(1.0);
-                rhs_spec.setDConstant(0.0);
-
-                d_hier_cc_data_ops->copyData(Q_scratch_idx, Q_current_idx, false);
-                d_hier_bdry_fill_ops[l]->setHomogeneousBc(false);
-                d_hier_bdry_fill_ops[l]->fillData(current_time);
-
-                for (int depth = 0; depth < Q_depth; ++depth)
-                {
-                    d_hier_math_ops->laplace(
-                        Psi_scratch_idx, Psi_var,  // Psi(n+1/2)
-                        rhs_spec,                  // Poisson spec
-                        Q_scratch_idx  , Q_var  ,  // Q(n)
-                        d_no_fill_op,              // don't need to re-fill Q(n) data
-                        current_time,              // Q(n) bdry fill time
-                        dt,                        // gamma
-                        Q_new_idx      , Q_var  ,  // N(n+1/2) = (u*grad Q)(n+1/2)
-                        depth, depth, depth);      // dst_depth, src1_depth, src2_depth
-                }
+                K = 1.0;
                 break;
-            }
+            case FORWARD_EULER:
+                K = 0.0;
+                break;
             case TRAPEZOIDAL_RULE:
-            {
-                // The trapezoidal rule (Crank-Nicolson) discretization is:
-                //
-                //     (I-0.5*dt*kappa*L(t_new)) Q(n+1) = (I+0.5*dt*kappa*L(t_old)) Q(n) + F(t_avg) dt
-                //
-                // where
-                //
-                //    t_old = n dt
-                //    t_new = (n+1) dt
-                //    t_avg = (t_new+t_old)/2
-                helmholtz_spec.setCConstant(1.0+0.5*dt*lambda);
-                helmholtz_spec.setDConstant(   -0.5*dt*kappa );
-
-                PoissonSpecifications rhs_spec("rhs_spec");
-                rhs_spec.setCConstant(1.0-0.5*dt*lambda);
-                rhs_spec.setDConstant(   +0.5*dt*kappa );
-
-                d_hier_cc_data_ops->copyData(Q_scratch_idx, Q_current_idx, false);
-                d_hier_bdry_fill_ops[l]->setHomogeneousBc(false);
-                d_hier_bdry_fill_ops[l]->fillData(current_time);
-
-                for (int depth = 0; depth < Q_depth; ++depth)
-                {
-                    d_hier_math_ops->laplace(
-                        Psi_scratch_idx, Psi_var,  // Psi(n+1/2)
-                        rhs_spec,                  // Poisson spec
-                        Q_scratch_idx  , Q_var  ,  // Q(n)
-                        d_no_fill_op,              // don't need to re-fill Q(n) data
-                        current_time,              // Q(n) bdry fill time
-                        dt,                        // gamma
-                        Q_new_idx      , Q_var  ,  // N(n+1/2) = (u*grad Q)(n+1/2)
-                        depth, depth, depth);      // dst_depth, src1_depth, src2_depth
-                }
+                K = 0.5;
                 break;
-            }
             default:
-                TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                           << "  unsupported diffusion time stepping type: " << enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type) << "." << std::endl);
+                TBOX_ERROR("this statment should not be reached");
+        }
+        PoissonSpecifications& helmholtz_spec = d_helmholtz_specs[l];
+        Pointer<CCLaplaceOperator> helmholtz_op = d_helmholtz_ops[l];
+        helmholtz_spec.setCConstant(1.0+K*dt*lambda);
+        helmholtz_spec.setDConstant(  -K*dt*kappa );
+        PoissonSpecifications rhs_spec("rhs_spec");
+        rhs_spec.setCConstant(1.0-(1.0-K)*dt*lambda);
+        rhs_spec.setDConstant(   +(1.0-K)*dt*kappa );
+        d_hier_cc_data_ops->copyData(Q_scratch_idx, Q_current_idx, false);
+        d_hier_bdry_fill_ops[l]->setHomogeneousBc(false);
+        d_hier_bdry_fill_ops[l]->fillData(current_time);
+        for (int depth = 0; depth < Q_depth; ++depth)
+        {
+            d_hier_math_ops->laplace(
+                Psi_scratch_idx, Psi_var,  // Psi(n+1/2)
+                rhs_spec,                  // Poisson spec
+                Q_scratch_idx  , Q_var  ,  // Q(n)
+                d_no_fill_op,              // don't need to re-fill Q(n) data
+                current_time,              // Q(n) bdry fill time
+                dt,                        // gamma
+                Q_new_idx      , Q_var  ,  // N(n+1/2) = (u*grad Q)(n+1/2)
+                depth, depth, depth);      // dst_depth, src1_depth, src2_depth
         }
 
         // Initialize the linear solver.
@@ -499,11 +467,9 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         helmholtz_op->setHomogeneousBc(false);
         helmholtz_op->setTime(new_time);
         helmholtz_op->setHierarchyMathOps(d_hier_math_ops);
-
         Pointer<CCPoissonPointRelaxationFACOperator> helmholtz_fac_op = d_helmholtz_fac_ops[l];
         Pointer<FACPreconditioner>                   helmholtz_fac_pc = d_helmholtz_fac_pcs[l];
         Pointer<KrylovLinearSolver>                  helmholtz_solver = d_helmholtz_solvers[l];
-
         if (d_helmholtz_solvers_need_init[l])
         {
             if (d_do_log) plog << d_object_name << ": "
@@ -516,34 +482,20 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
                 helmholtz_fac_op->setResetLevels(d_coarsest_reset_ln, d_finest_reset_ln);
             }
             helmholtz_solver->initializeSolverState(*d_sol_vecs[l],*d_rhs_vecs[l]);
-
-            // Indicate that the solvers do not presently require
-            // re-initialization.
             d_helmholtz_solvers_need_init[l] = false;
         }
 
         // Solve for Q(n+1).
-        switch (d_diffusion_time_stepping_type)
+        helmholtz_op->setTime(new_time);
+        if (d_using_FAC) helmholtz_fac_op->setTime(new_time);
+        helmholtz_solver->solveSystem(*d_sol_vecs[l],*d_rhs_vecs[l]);
+        d_hier_cc_data_ops->copyData(Q_new_idx, Q_scratch_idx);
+        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): linear solve number of iterations = " << helmholtz_solver->getNumIterations() << "\n";
+        if (d_do_log) plog << d_object_name << "::integrateHierarchy(): linear solve residual norm        = " << helmholtz_solver->getResidualNorm()  << "\n";
+        if (helmholtz_solver->getNumIterations() == helmholtz_solver->getMaxIterations())
         {
-            case BACKWARD_EULER:
-            case TRAPEZOIDAL_RULE:
-                helmholtz_op->setTime(new_time);
-                if (d_using_FAC) helmholtz_fac_op->setTime(new_time);
-                helmholtz_solver->solveSystem(*d_sol_vecs[l],*d_rhs_vecs[l]);
-                d_hier_cc_data_ops->copyData(Q_new_idx, Q_scratch_idx);
-
-                if (d_do_log) plog << d_object_name << "::integrateHierarchy(): linear solve number of iterations = " << helmholtz_solver->getNumIterations() << "\n";
-                if (d_do_log) plog << d_object_name << "::integrateHierarchy(): linear solve residual norm        = " << helmholtz_solver->getResidualNorm()  << "\n";
-
-                if (helmholtz_solver->getNumIterations() == helmholtz_solver->getMaxIterations())
-                {
-                    pout << d_object_name << "::integrateHierarchy():"
-                         <<"  WARNING: linear solver iterations == max iterations\n";
-                }
-                break;
-            default:
-                TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                           << "  unsupported diffusion time stepping type: " << enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type) << "." << std::endl);
+            pout << d_object_name << "::integrateHierarchy():"
+                 <<"  WARNING: linear solver iterations == max iterations\n";
         }
 
         // Deallocate temporary data.
