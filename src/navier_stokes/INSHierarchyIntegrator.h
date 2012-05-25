@@ -102,6 +102,9 @@ public:
      *
      * The choice of time integration scheme is set via the input database
      * provided to the class constructor.
+     *
+     * \note This is used \em only when the basic convective time stepping
+     * scheme uses a multi-step method such as Adams-Bashforth.
      */
     TimeSteppingType
     getInitialConvectiveTimeSteppingType() const;

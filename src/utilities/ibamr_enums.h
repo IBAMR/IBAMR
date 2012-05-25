@@ -235,6 +235,25 @@ enum_to_string<TimeSteppingType>(
     return "UNKNOWN_TIME_STEPPING_TYPE";
 }// enum_to_string
 
+inline bool
+is_multistep_time_stepping_scheme(
+    TimeSteppingType val)
+{
+    switch (val)
+    {
+        case ADAMS_BASHFORTH:
+            return true;
+        case BACKWARD_EULER:
+        case FORWARD_EULER:
+        case MIDPOINT_RULE:
+        case TRAPEZOIDAL_RULE:
+            return false;
+        default:
+            TBOX_ERROR("is_multistep_time_stepping_scheme(): unknown time stepping type\n");
+            return false;
+    }
+}// is_multistep_time_stepping_scheme
+
 /*!
  * \brief Enumerated type for different pressure update schemes for the
  * projection method.
