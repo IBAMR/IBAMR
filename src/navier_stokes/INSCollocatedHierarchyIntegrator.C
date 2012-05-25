@@ -211,7 +211,7 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(
                        << "  unsupported convective time stepping type: " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " \n"
                        << "  valid choices are: ADAMS_BASHFORTH, FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
-    if (is_multistep_time_stepping_scheme(d_convective_time_stepping_type))
+    if (is_multistep_time_stepping_type(d_convective_time_stepping_type))
     {
         switch (d_init_convective_time_stepping_type)
         {
@@ -906,7 +906,7 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(
 
     // Account for the convective acceleration term.
     TimeSteppingType convective_time_stepping_type = d_convective_time_stepping_type;
-    if (getIntegratorStep() == 0 && is_multistep_time_stepping_scheme(d_convective_time_stepping_type))
+    if (getIntegratorStep() == 0 && is_multistep_time_stepping_type(d_convective_time_stepping_type))
     {
         convective_time_stepping_type = d_init_convective_time_stepping_type;
     }
@@ -996,7 +996,7 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(
 
     // Account for the convective acceleration term.
     TimeSteppingType convective_time_stepping_type = d_convective_time_stepping_type;
-    if (is_multistep_time_stepping_scheme(convective_time_stepping_type))
+    if (is_multistep_time_stepping_type(convective_time_stepping_type))
     {
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(convective_time_stepping_type == ADAMS_BASHFORTH);

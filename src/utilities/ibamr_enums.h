@@ -236,7 +236,7 @@ enum_to_string<TimeSteppingType>(
 }// enum_to_string
 
 inline bool
-is_multistep_time_stepping_scheme(
+is_multistep_time_stepping_type(
     TimeSteppingType val)
 {
     switch (val)
@@ -249,10 +249,10 @@ is_multistep_time_stepping_scheme(
         case TRAPEZOIDAL_RULE:
             return false;
         default:
-            TBOX_ERROR("is_multistep_time_stepping_scheme(): unknown time stepping type\n");
+            TBOX_ERROR("is_multistep_time_stepping_type(): unknown time stepping type\n");
             return false;
     }
-}// is_multistep_time_stepping_scheme
+}// is_multistep_time_stepping_type
 
 /*!
  * \brief Enumerated type for different pressure update schemes for the
