@@ -93,6 +93,29 @@ public:
     ~AdvDiffCenteredHierarchyIntegrator();
 
     /*!
+     * Return the type of convective time integration scheme being employed by the
+     * advection-diffusion solver.
+     *
+     * The choice of time integration scheme is set via the input database
+     * provided to the class constructor.
+     */
+    TimeSteppingType
+    getConvectiveTimeSteppingType() const;
+
+    /*!
+     * Return the type of convective time integration scheme being employed by the
+     * advection-diffusion solver during the initial time step.
+     *
+     * The choice of time integration scheme is set via the input database
+     * provided to the class constructor.
+     *
+     * \note This is used \em only when the basic convective time stepping
+     * scheme uses a multi-step method such as Adams-Bashforth.
+     */
+    TimeSteppingType
+    getInitialConvectiveTimeSteppingType() const;
+
+    /*!
      * Initialize the variables, basic communications algorithms, solvers, and
      * other data structures used by this time integrator object.
      *
@@ -147,6 +170,23 @@ protected:
      */
     double
     getTimeStepSizeSpecialized();
+
+    /*!
+     * Enum indicating the time integration employed for the explicit
+     * discretization of the convective terms.
+     */
+    TimeSteppingType d_convective_time_stepping_type;
+
+    /*!
+     * Enum indicating the time integration employed for the explicit
+     * discretization of the convective terms during the \em initial time step.
+     */
+    TimeSteppingType d_init_convective_time_stepping_type;
+
+    /*
+     * Hierarchy operations objects.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM,double> > d_hier_fc_data_ops;
 
 private:
     /*!

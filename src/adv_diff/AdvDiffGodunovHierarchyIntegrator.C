@@ -200,13 +200,13 @@ AdvDiffGodunovHierarchyIntegrator::initializeHierarchyIntegrator(
             "CONSERVATIVE_LINEAR_REFINE");
     }
 
-    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Psi_var.begin();
-         cit != d_Psi_var.end(); ++cit)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_rhs_var.begin();
+         cit != d_Q_rhs_var.end(); ++cit)
     {
-        Pointer<CellVariable<NDIM,double> > Psi_var = *cit;
-        int Psi_scratch_idx;
-        registerVariable(Psi_scratch_idx, Psi_var, cell_ghosts, getScratchContext());
-        d_hyp_patch_ops->registerSourceTerm(Psi_var);
+        Pointer<CellVariable<NDIM,double> > Q_rhs_var = *cit;
+        int Q_rhs_scratch_idx;
+        registerVariable(Q_rhs_scratch_idx, Q_rhs_var, cell_ghosts, getScratchContext());
+        d_hyp_patch_ops->registerSourceTerm(Q_rhs_var);
     }
 
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
@@ -217,7 +217,7 @@ AdvDiffGodunovHierarchyIntegrator::initializeHierarchyIntegrator(
         registerVariable(Q_scratch_idx, Q_var, cell_ghosts, getScratchContext());
         d_hyp_patch_ops->registerTransportedQuantity(Q_var);
         if (!d_Q_u_map[Q_var].isNull()) d_hyp_patch_ops->setAdvectionVelocity(Q_var,d_Q_u_map[Q_var]);
-        d_hyp_patch_ops->setSourceTerm(Q_var,d_Q_Psi_map[Q_var]);
+        d_hyp_patch_ops->setSourceTerm(Q_var,d_Q_Q_rhs_map[Q_var]);
         d_hyp_patch_ops->setConvectiveDifferencingType(Q_var,d_Q_difference_form[Q_var]);
         if (!d_Q_init[Q_var].isNull()) d_hyp_patch_ops->setInitialConditions(Q_var,d_Q_init[Q_var]);
         if (!d_Q_bc_coef[Q_var].empty()) d_hyp_patch_ops->setPhysicalBcCoefs(Q_var,d_Q_bc_coef[Q_var]);
@@ -292,9 +292,9 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
          cit != d_Q_var.end(); ++cit, ++l)
     {
-        Pointer<CellVariable<NDIM,double> > Q_var   = *cit;
-        Pointer<CellVariable<NDIM,double> > F_var   = d_Q_F_map[Q_var];
-        Pointer<CellVariable<NDIM,double> > Psi_var = d_Q_Psi_map[Q_var];
+        Pointer<CellVariable<NDIM,double> > Q_var     = *cit;
+        Pointer<CellVariable<NDIM,double> > F_var     = d_Q_F_map[Q_var];
+        Pointer<CellVariable<NDIM,double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
         const double kappa = d_Q_diffusion_coef[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
 
@@ -304,7 +304,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
         const int F_current_idx = (F_var.isNull() ? -1 : var_db->mapVariableAndContextToIndex(F_var, getCurrentContext()));
-        const int Psi_current_idx = var_db->mapVariableAndContextToIndex(Psi_var, getCurrentContext());
+        const int Q_rhs_current_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getCurrentContext());
 
         // Allocate temporary data.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -325,14 +325,14 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         for (int depth = 0; depth < Q_depth; ++depth)
         {
             d_hier_math_ops->laplace(
-                Psi_current_idx, Psi_var,  // Psi(n)
-                kappa_spec,                // Poisson spec
-                Q_scratch_idx  , Q_var  ,  // Q(n)
-                d_no_fill_op,              // don't need to re-fill Q(n) data
-                current_time,              // Q(n) bdry fill time
-                1.0,                       // gamma
-                F_current_idx  , F_var  ,  // F(n)
-                depth, depth, depth);      // dst_depth, src1_depth, src2_depth
+                Q_rhs_current_idx, Q_rhs_var,  // Q_rhs(n)
+                kappa_spec,                    // Poisson spec
+                Q_scratch_idx    , Q_var    ,  // Q(n)
+                d_no_fill_op,                  // don't need to re-fill Q(n) data
+                current_time,                  // Q(n) bdry fill time
+                1.0,                           // gamma
+                F_current_idx    , F_var    ,  // F(n)
+                depth, depth, depth);          // dst_depth, src1_depth, src2_depth
         }
 
         // Deallocate temporary data.
@@ -390,9 +390,9 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
          cit != d_Q_var.end(); ++cit, ++l)
     {
-        Pointer<CellVariable<NDIM,double> > Q_var   = *cit;
-        Pointer<CellVariable<NDIM,double> > F_var   = d_Q_F_map[Q_var];
-        Pointer<CellVariable<NDIM,double> > Psi_var = d_Q_Psi_map[Q_var];
+        Pointer<CellVariable<NDIM,double> > Q_var     = *cit;
+        Pointer<CellVariable<NDIM,double> > F_var     = d_Q_F_map[Q_var];
+        Pointer<CellVariable<NDIM,double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
         const double kappa = d_Q_diffusion_coef[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
         const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef = d_Q_bc_coef[Q_var];
@@ -406,14 +406,14 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         const int F_current_idx = (F_var.isNull()
                                    ? -1
                                    : var_db->mapVariableAndContextToIndex(F_var, getCurrentContext()));
-        const int Psi_scratch_idx = var_db->mapVariableAndContextToIndex(Psi_var, getScratchContext());
+        const int Q_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getScratchContext());
 
         // Allocate temporary data.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(Q_scratch_idx, current_time);
-            level->allocatePatchData(Psi_scratch_idx, new_time);
+            level->allocatePatchData(Q_rhs_scratch_idx, new_time);
         }
 
         if (!F_var.isNull())
@@ -439,7 +439,6 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
                 TBOX_ERROR("this statment should not be reached");
         }
         PoissonSpecifications& helmholtz_spec = d_helmholtz_specs[l];
-        Pointer<CCLaplaceOperator> helmholtz_op = d_helmholtz_ops[l];
         helmholtz_spec.setCConstant(1.0+K*dt*lambda);
         helmholtz_spec.setDConstant(  -K*dt*kappa );
         PoissonSpecifications rhs_spec("rhs_spec");
@@ -451,17 +450,18 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         for (int depth = 0; depth < Q_depth; ++depth)
         {
             d_hier_math_ops->laplace(
-                Psi_scratch_idx, Psi_var,  // Psi(n+1/2)
-                rhs_spec,                  // Poisson spec
-                Q_scratch_idx  , Q_var  ,  // Q(n)
-                d_no_fill_op,              // don't need to re-fill Q(n) data
-                current_time,              // Q(n) bdry fill time
-                dt,                        // gamma
-                Q_new_idx      , Q_var  ,  // N(n+1/2) = (u*grad Q)(n+1/2)
-                depth, depth, depth);      // dst_depth, src1_depth, src2_depth
+                Q_rhs_scratch_idx, Q_rhs_var,  // Q_rhs(n+1/2)
+                rhs_spec,                      // Poisson spec
+                Q_scratch_idx    , Q_var    ,  // Q(n)
+                d_no_fill_op,                  // don't need to re-fill Q(n) data
+                current_time,                  // Q(n) bdry fill time
+                dt,                            // gamma
+                Q_new_idx        , Q_var    ,  // N(n+1/2) = (u*grad Q)(n+1/2)
+                depth, depth, depth);          // dst_depth, src1_depth, src2_depth
         }
 
         // Initialize the linear solver.
+        Pointer<CCLaplaceOperator> helmholtz_op = d_helmholtz_ops[l];
         helmholtz_op->setPoissonSpecifications(helmholtz_spec);
         helmholtz_op->setPhysicalBcCoefs(Q_bc_coef);
         helmholtz_op->setHomogeneousBc(false);
@@ -503,7 +503,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(Q_scratch_idx);
-            level->deallocatePatchData(Psi_scratch_idx);
+            level->deallocatePatchData(Q_rhs_scratch_idx);
         }
     }
     return;

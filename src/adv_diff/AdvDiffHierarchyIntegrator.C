@@ -182,9 +182,9 @@ AdvDiffHierarchyIntegrator::registerTransportedQuantity(
     const int Q_depth = Q_factory->getDefaultDepth();
     d_Q_bc_coef[Q_var] = std::vector<RobinBcCoefStrategy<NDIM>*>(Q_depth,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
 
-    Pointer<CellVariable<NDIM,double> > Psi_var = new CellVariable<NDIM,double>(Q_var->getName()+"::Psi",Q_depth);
-    d_Psi_var.insert(Psi_var);
-    d_Q_Psi_map[Q_var] = Psi_var;
+    Pointer<CellVariable<NDIM,double> > Q_rhs_var = new CellVariable<NDIM,double>(Q_var->getName()+"::Q_rhs",Q_depth);
+    d_Q_rhs_var.insert(Q_rhs_var);
+    d_Q_Q_rhs_map[Q_var] = Q_rhs_var;
     return;
 }// registerTransportedQuantity
 
@@ -378,10 +378,10 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
       d_F_var(),
       d_F_fcn(),
       d_Q_var(),
-      d_Psi_var(),
+      d_Q_rhs_var(),
       d_Q_u_map(),
       d_Q_F_map(),
-      d_Q_Psi_map(),
+      d_Q_Q_rhs_map(),
       d_Q_difference_form(),
       d_Q_diffusion_coef(),
       d_Q_damping_coef(),
@@ -503,10 +503,10 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
         d_sol_vecs[l] = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::sol_vec::"+name, d_hierarchy, 0, finest_hier_level);
         d_sol_vecs[l]->addComponent(Q_var,Q_scratch_idx,wgt_idx,d_hier_cc_data_ops);
 
-        Pointer<CellVariable<NDIM,double> > Psi_var = d_Q_Psi_map[Q_var];
-        const int Psi_scratch_idx = var_db->mapVariableAndContextToIndex(Psi_var, getScratchContext());
+        Pointer<CellVariable<NDIM,double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
+        const int Q_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getScratchContext());
         d_rhs_vecs[l] = new SAMRAIVectorReal<NDIM,double>(d_object_name+"::rhs_vec::"+name, d_hierarchy, 0, finest_hier_level);
-        d_rhs_vecs[l]->addComponent(Psi_var,Psi_scratch_idx,wgt_idx,d_hier_cc_data_ops);
+        d_rhs_vecs[l]->addComponent(Q_rhs_var,Q_rhs_scratch_idx,wgt_idx,d_hier_cc_data_ops);
     }
 
     // Indicate that all linear solvers must be re-initialized.
@@ -557,11 +557,11 @@ AdvDiffHierarchyIntegrator::registerVariables()
         const int F_depth = F_factory->getDefaultDepth();
         if (!d_visit_writer.isNull()) d_visit_writer->registerPlotQuantity(F_var->getName(), F_depth == 1 ? "SCALAR" : "VECTOR", F_current_idx);
     }
-    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Psi_var.begin(); cit != d_Psi_var.end(); ++cit)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_rhs_var.begin(); cit != d_Q_rhs_var.end(); ++cit)
     {
-        Pointer<CellVariable<NDIM,double> > Psi_var = *cit;
-        int Psi_scratch_idx;
-        registerVariable(Psi_scratch_idx, Psi_var, cell_ghosts, getScratchContext());
+        Pointer<CellVariable<NDIM,double> > Q_rhs_var = *cit;
+        int Q_rhs_scratch_idx;
+        registerVariable(Q_rhs_scratch_idx, Q_rhs_var, cell_ghosts, getScratchContext());
     }
     return;
 }// registerVariables

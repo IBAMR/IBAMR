@@ -645,6 +645,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     // Obtain the Hierarchy data operations objects.
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(new CellVariable<NDIM,double>("cc_var"), hierarchy, true);
+    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(new FaceVariable<NDIM,double>("fc_var"), hierarchy, true);
     d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(new SideVariable<NDIM,double>("sc_var"), hierarchy, true);
     d_hier_math_ops = buildHierarchyMathOps(d_hierarchy);
 
@@ -981,7 +982,7 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     {
         d_adv_diff_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int U_adv_diff_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
+        const int U_adv_diff_current_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -991,7 +992,7 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
                 const Index<NDIM>& ilower = patch->getBox().lower();
                 const Index<NDIM>& iupper = patch->getBox().upper();
                 Pointer<SideData<NDIM,double> > U_current_sc_data = patch->getPatchData(d_U_current_idx);
-                Pointer<FaceData<NDIM,double> > U_current_fc_data = patch->getPatchData(U_adv_diff_idx);
+                Pointer<FaceData<NDIM,double> > U_current_fc_data = patch->getPatchData(U_adv_diff_current_idx);
 #ifdef DEBUG_CHECK_ASSERTIONS
                 TBOX_ASSERT(U_current_sc_data->getGhostCellWidth().min() == U_current_sc_data->getGhostCellWidth().max());
                 TBOX_ASSERT(U_current_fc_data->getGhostCellWidth().min() == U_current_fc_data->getGhostCellWidth().max());
@@ -1018,6 +1019,10 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
                     U_current_fc_gcw);
             }
         }
+        const int U_adv_diff_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getScratchContext());
+        const int U_adv_diff_new_idx     = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getNewContext()    );
+        d_hier_fc_data_ops->copyData(U_adv_diff_scratch_idx, U_adv_diff_current_idx);
+        d_hier_fc_data_ops->copyData(U_adv_diff_new_idx    , U_adv_diff_current_idx);
     }
 
     // Account for the convective acceleration term.
@@ -1112,6 +1117,9 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
                     U_new_fc_gcw);
             }
         }
+        const int U_adv_diff_current_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
+        const int U_adv_diff_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getScratchContext());
+        d_hier_fc_data_ops->linearSum(U_adv_diff_scratch_idx, 0.5, U_adv_diff_current_idx, 0.5, U_adv_diff_new_idx);
     }
     if (!d_adv_diff_hier_integrator.isNull()) d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
 
