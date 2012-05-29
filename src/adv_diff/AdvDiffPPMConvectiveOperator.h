@@ -70,6 +70,8 @@ public:
      * \brief Class constructor.
      */
     AdvDiffPPMConvectiveOperator(
+        const std::string& operator_name,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         ConvectiveDifferencingType difference_form,
         const std::string& bdry_extrap_type);
 
@@ -83,7 +85,7 @@ public:
      */
     void
     applyConvectiveOperator(
-        int U_idx,
+        int Q_idx,
         int N_idx);
 
     /*!
@@ -187,6 +189,9 @@ private:
     operator=(
         const AdvDiffPPMConvectiveOperator& that);
 
+    // Operator name (needed to generate unique variable names).
+    const std::string d_operator_name;
+
     // Whether the operator is initialized.
     bool d_is_initialized;
 
@@ -203,10 +208,11 @@ private:
     int d_coarsest_ln, d_finest_ln;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_U_var;
-    int d_U_scratch_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_u_extrap_var, d_u_flux_var;
-    int d_u_extrap_idx, d_u_flux_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_Q_var;
+    unsigned int d_Q_data_depth;
+    int d_Q_scratch_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > d_q_extrap_var, d_q_flux_var;
+    int d_q_extrap_idx, d_q_flux_idx;
 };
 }// namespace IBAMR
 

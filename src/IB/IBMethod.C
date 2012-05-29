@@ -1133,8 +1133,7 @@ IBMethod::endDataRedistribution(
 
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-             cit != local_nodes.end(); ++cit)
+        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
         {
             const LNode* const node_idx = *cit;
             const IBAnchorPointSpec* const anchor_point_spec = node_idx->getNodeDataItem<IBAnchorPointSpec>();
@@ -1519,8 +1518,7 @@ IBMethod::resetAnchorPointValues(
         Vec U_vec = U_data[ln]->getVec();
         double* U_arr;
         ierr = VecGetArray(U_vec, &U_arr);  IBTK_CHKERRQ(ierr);
-        for (std::set<int>::const_iterator cit = d_anchor_point_local_idxs[ln].begin();
-             cit != d_anchor_point_local_idxs[ln].end(); ++cit)
+        for (std::set<int>::const_iterator cit = d_anchor_point_local_idxs[ln].begin(); cit != d_anchor_point_local_idxs[ln].end(); ++cit)
         {
             const int& i = *cit;
             for (int d = 0; d < depth; ++d)

@@ -295,7 +295,6 @@ INSHierarchyIntegrator::setConvectiveOperator(
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     d_convective_op = convective_op;
-    if (!d_convective_op.isNull()) d_default_convective_difference_form = d_convective_op->getConvectiveDifferencingType();
     d_creeping_flow = d_convective_op.isNull();
     d_convective_op_needs_reinit_when_dt_changes = needs_reinit_when_dt_changes;
     return;

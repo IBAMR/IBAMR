@@ -42,8 +42,8 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/AdvDiffCenteredHierarchyIntegrator.h>
 #include <ibamr/AdvDiffGodunovHierarchyIntegrator.h>
+#include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/app_namespaces.h>
 #include <ibtk/AppInitializer.h>
 #include <LocationIndexRobinBcCoefs.h>
@@ -98,22 +98,22 @@ main(
         // and, if this is a restarted run, from the restart database.
         Pointer<AdvDiffHierarchyIntegrator> time_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "GODUNOV");
-        if (solver_type == "CENTERED")
-        {
-            time_integrator = new AdvDiffCenteredHierarchyIntegrator(
-                "AdvDiffCenteredHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffCenteredHierarchyIntegrator"));
-        }
-        else if (solver_type == "GODUNOV")
+        if (solver_type == "GODUNOV")
         {
             Pointer<GodunovAdvector> predictor = new GodunovAdvector(
                 "GodunovAdvector", app_initializer->getComponentDatabase("GodunovAdvector"));
             time_integrator = new AdvDiffGodunovHierarchyIntegrator(
                 "AdvDiffGodunovHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffGodunovHierarchyIntegrator"), predictor);
         }
+        else if (solver_type == "SEMI_IMPLICIT")
+        {
+            time_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
+                "AdvDiffSemiImplicitHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
+        }
         else
         {
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n" <<
-                       "Valid options are: CENTERED, GODUNOV");
+                       "Valid options are: GODUNOV, SEMI_IMPLICIT");
         }
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));

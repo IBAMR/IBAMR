@@ -383,8 +383,7 @@ IBStandardInitializer::initializeDataOnPatchLevel(
         std::vector<std::pair<int,int> > patch_vertices;
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined);
         local_node_count += patch_vertices.size();
-        for (std::vector<std::pair<int,int> >::const_iterator it = patch_vertices.begin();
-             it != patch_vertices.end(); ++it)
+        for (std::vector<std::pair<int,int> >::const_iterator it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
         {
             const std::pair<int,int>& point_idx = (*it);
             const int lagrangian_idx = getCanonicalLagrangianIndex(point_idx, level_number) + global_index_offset;
@@ -481,8 +480,7 @@ IBStandardInitializer::initializeMassDataOnPatchLevel(
         std::vector<std::pair<int,int> > patch_vertices;
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined);
         local_node_count += patch_vertices.size();
-        for (std::vector<std::pair<int,int> >::const_iterator it = patch_vertices.begin();
-             it != patch_vertices.end(); ++it)
+        for (std::vector<std::pair<int,int> >::const_iterator it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
         {
             const std::pair<int,int>& point_idx = (*it);
             const int local_petsc_idx = ++local_idx + local_index_offset;
@@ -538,8 +536,7 @@ IBStandardInitializer::initializeDirectorDataOnPatchLevel(
         std::vector<std::pair<int,int> > patch_vertices;
         getPatchVertices(patch_vertices, patch, level_number, can_be_refined);
         local_node_count += patch_vertices.size();
-        for (std::vector<std::pair<int,int> >::const_iterator it = patch_vertices.begin();
-             it != patch_vertices.end(); ++it)
+        for (std::vector<std::pair<int,int> >::const_iterator it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
         {
             const std::pair<int,int>& point_idx = (*it);
             const int local_petsc_idx = ++local_idx + local_index_offset;
@@ -588,8 +585,7 @@ IBStandardInitializer::tagCellsForInitialRefinement(
         {
             std::vector<std::pair<int,int> > patch_vertices;
             getPatchVertices(patch_vertices, patch, ln, can_be_refined);
-            for (std::vector<std::pair<int,int> >::const_iterator it = patch_vertices.begin();
-                 it != patch_vertices.end(); ++it)
+            for (std::vector<std::pair<int,int> >::const_iterator it = patch_vertices.begin(); it != patch_vertices.end(); ++it)
             {
                 const std::pair<int,int>& point_idx = (*it);
 
@@ -929,8 +925,7 @@ IBStandardInitializer::readSpringFiles()
                     // Check to see if the edge has already been inserted in the edge map.
                     bool duplicate_edge = false;
 #ifdef DEBUG_CHECK_ASSERTIONS
-                    for (std::multimap<int,Edge>::const_iterator it = d_spring_edge_map[ln][j].lower_bound(e.first);
-                         it != d_spring_edge_map[ln][j].upper_bound(e.first); ++it)
+                    for (std::multimap<int,Edge>::const_iterator it = d_spring_edge_map[ln][j].lower_bound(e.first); it != d_spring_edge_map[ln][j].upper_bound(e.first); ++it)
                     {
                         const Edge& other_e = it->second;
                         if (e.first  == other_e.first &&
@@ -2176,8 +2171,7 @@ IBStandardInitializer::readInstrumentationFiles()
 
                 // Ensure that a complete range of instrument indices were found
                 // in the input file.
-                for (std::vector<bool>::iterator meter_it = encountered_instrument_idx.begin();
-                     meter_it != encountered_instrument_idx.end(); ++meter_it)
+                for (std::vector<bool>::iterator meter_it = encountered_instrument_idx.begin(); meter_it != encountered_instrument_idx.end(); ++meter_it)
                 {
                     const int meter_idx = std::distance(encountered_instrument_idx.begin(),meter_it);
                     if ((*meter_it) == false)
@@ -2187,8 +2181,7 @@ IBStandardInitializer::readInstrumentationFiles()
                     }
 
                     std::vector<bool>& meter_node_idxs = encountered_node_idx[meter_idx];
-                    for (std::vector<bool>::iterator node_it = meter_node_idxs.begin();
-                         node_it != meter_node_idxs.end(); ++node_it)
+                    for (std::vector<bool>::iterator node_it = meter_node_idxs.begin(); node_it != meter_node_idxs.end(); ++node_it)
                     {
                         const int node_idx = std::distance(meter_node_idxs.begin(),node_it);
                         if ((*node_it) == false)
@@ -2536,8 +2529,7 @@ IBStandardInitializer::initializeSpecs(
 #if ENABLE_SUBDOMAIN_INDICES
         std::vector<int> subdomain_idxs;
 #endif
-        for (std::multimap<int,Edge>::const_iterator it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx);
-             it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
+        for (std::multimap<int,Edge>::const_iterator it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx); it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
         {
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(mastr_idx == it->first);
@@ -2581,8 +2573,7 @@ IBStandardInitializer::initializeSpecs(
 #if ENABLE_SUBDOMAIN_INDICES
         std::vector<int> beam_subdomain_idxs;
 #endif
-        for (std::multimap<int,BeamSpec>::const_iterator it = d_beam_spec_data[level_number][j].lower_bound(mastr_idx);
-             it != d_beam_spec_data[level_number][j].upper_bound(mastr_idx); ++it)
+        for (std::multimap<int,BeamSpec>::const_iterator it = d_beam_spec_data[level_number][j].lower_bound(mastr_idx); it != d_beam_spec_data[level_number][j].upper_bound(mastr_idx); ++it)
         {
             const BeamSpec& spec_data = it->second;
             beam_neighbor_idxs.push_back(spec_data.neighbor_idxs);
@@ -2610,8 +2601,7 @@ IBStandardInitializer::initializeSpecs(
 #if ENABLE_SUBDOMAIN_INDICES
         std::vector<int> rod_subdomain_idxs;
 #endif
-        for (std::multimap<int,Edge>::const_iterator it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx);
-             it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
+        for (std::multimap<int,Edge>::const_iterator it = d_rod_edge_map[level_number][j].lower_bound(mastr_idx); it != d_rod_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
         {
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(mastr_idx == it->first);

@@ -424,8 +424,7 @@ build_local_ucd_mesh(
 
     int offset = 0;
     std::map<int,int> local_vertex_map;
-    for (std::set<int>::const_iterator it = vertices.begin();
-         it != vertices.end(); ++it)
+    for (std::set<int>::const_iterator it = vertices.begin(); it != vertices.end(); ++it)
     {
         const int idx = (*it);
         local_vertex_map[idx] = offset;
@@ -454,8 +453,7 @@ build_local_ucd_mesh(
 
     // Prune duplicate edges.
     std::set<std::pair<int,int> > local_edge_set;
-    for (std::multimap<int,std::pair<int,int> >::const_iterator it = edge_map.begin();
-         it != edge_map.end(); ++it)
+    for (std::multimap<int,std::pair<int,int> >::const_iterator it = edge_map.begin(); it != edge_map.end(); ++it)
     {
         std::pair<int,int> e = it->second;
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -471,8 +469,7 @@ build_local_ucd_mesh(
 
     // Create an edge map corresponding to the pruned edge list.
     std::multimap<int,int> local_edge_map;
-    for (std::set<std::pair<int,int> >::const_iterator it = local_edge_set.begin();
-         it != local_edge_set.end(); ++it)
+    for (std::set<std::pair<int,int> >::const_iterator it = local_edge_set.begin(); it != local_edge_set.end(); ++it)
     {
         const int e1 = it->first;
         const int e2 = it->second;
@@ -512,8 +509,7 @@ build_local_ucd_mesh(
     std::vector<int> nodelist;
     nodelist.reserve(2*local_edge_map.size());
 
-    for (std::multimap<int,int>::const_iterator it = local_edge_map.begin();
-         it != local_edge_map.end(); ++it)
+    for (std::multimap<int,int>::const_iterator it = local_edge_map.begin(); it != local_edge_map.end(); ++it)
     {
         nodelist.push_back(it->first);
         nodelist.push_back(it->second);
@@ -664,8 +660,7 @@ LSiloDataWriter::~LSiloDataWriter()
     int ierr;
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
-             it != d_dst_vec[ln].end(); ++it)
+        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin(); it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = it->second;
             if (v)
@@ -674,8 +669,7 @@ LSiloDataWriter::~LSiloDataWriter()
                 IBTK_CHKERRQ(ierr);
             }
         }
-        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
-             it != d_vec_scatter[ln].end(); ++it)
+        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin(); it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = it->second;
             if (vs)
@@ -717,8 +711,7 @@ LSiloDataWriter::resetLevels(
     int ierr;
     for (int ln = std::max(d_coarsest_ln,0); (ln <= d_finest_ln) && (ln < coarsest_ln); ++ln)
     {
-        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
-             it != d_dst_vec[ln].end(); ++it)
+        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin(); it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = it->second;
             if (v != PETSC_NULL)
@@ -726,8 +719,7 @@ LSiloDataWriter::resetLevels(
                 ierr = VecDestroy(&v);  IBTK_CHKERRQ(ierr);
             }
         }
-        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
-             it != d_vec_scatter[ln].end(); ++it)
+        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin(); it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = it->second;
             if (vs != PETSC_NULL)
@@ -739,8 +731,7 @@ LSiloDataWriter::resetLevels(
 
     for (int ln = finest_ln+1; ln <= d_finest_ln; ++ln)
     {
-        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
-             it != d_dst_vec[ln].end(); ++it)
+        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin(); it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = it->second;
             if (v != PETSC_NULL)
@@ -748,8 +739,7 @@ LSiloDataWriter::resetLevels(
                 ierr = VecDestroy(&v);  IBTK_CHKERRQ(ierr);
             }
         }
-        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
-             it != d_vec_scatter[ln].end(); ++it)
+        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin(); it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = it->second;
             if (vs != PETSC_NULL)
@@ -1054,8 +1044,7 @@ LSiloDataWriter::registerUnstructuredMesh(
 
     // Extract the list of vertices from the list of edges.
     std::set<int> vertices;
-    for (std::multimap<int,std::pair<int,int> >::const_iterator it = edge_map.begin();
-         it != edge_map.end(); ++it)
+    for (std::multimap<int,std::pair<int,int> >::const_iterator it = edge_map.begin(); it != edge_map.end(); ++it)
     {
         const std::pair<int,int>& e = it->second;
         vertices.insert(e.first );
@@ -2023,8 +2012,7 @@ LSiloDataWriter::putToDatabase(
 
             std::vector<int> flattened_block_nelems;
             flattened_block_nelems.reserve(NDIM*d_block_nelems.size());
-            for (std::vector<IntVector<NDIM> >::const_iterator cit = d_block_nelems[ln].begin();
-                 cit != d_block_nelems[ln].end(); ++cit)
+            for (std::vector<IntVector<NDIM> >::const_iterator cit = d_block_nelems[ln].begin(); cit != d_block_nelems[ln].end(); ++cit)
             {
                 flattened_block_nelems.insert(flattened_block_nelems.end(), &(*cit)[0], &(*cit)[0]+NDIM);
             }
@@ -2032,8 +2020,7 @@ LSiloDataWriter::putToDatabase(
 
             std::vector<int> flattened_block_periodic;
             flattened_block_periodic.reserve(NDIM*d_block_periodic.size());
-            for (std::vector<IntVector<NDIM> >::const_iterator cit = d_block_periodic[ln].begin();
-                 cit != d_block_periodic[ln].end(); ++cit)
+            for (std::vector<IntVector<NDIM> >::const_iterator cit = d_block_periodic[ln].begin(); cit != d_block_periodic[ln].end(); ++cit)
             {
                 flattened_block_periodic.insert(flattened_block_periodic.end(), &(*cit)[0], &(*cit)[0]+NDIM);
             }
@@ -2058,8 +2045,7 @@ LSiloDataWriter::putToDatabase(
                 {
                     std::vector<int> flattened_mb_nelems;
                     flattened_mb_nelems.reserve(NDIM*d_mb_nelems.size());
-                    for (std::vector<IntVector<NDIM> >::const_iterator cit = d_mb_nelems[ln][mb].begin();
-                         cit != d_mb_nelems[ln][mb].end(); ++cit)
+                    for (std::vector<IntVector<NDIM> >::const_iterator cit = d_mb_nelems[ln][mb].begin(); cit != d_mb_nelems[ln][mb].end(); ++cit)
                     {
                         flattened_mb_nelems.insert(flattened_mb_nelems.end(), &(*cit)[0], &(*cit)[0]+NDIM);
                     }
@@ -2067,8 +2053,7 @@ LSiloDataWriter::putToDatabase(
 
                     std::vector<int> flattened_mb_periodic;
                     flattened_mb_periodic.reserve(NDIM*d_mb_periodic.size());
-                    for (std::vector<IntVector<NDIM> >::const_iterator cit = d_mb_periodic[ln][mb].begin();
-                         cit != d_mb_periodic[ln][mb].end(); ++cit)
+                    for (std::vector<IntVector<NDIM> >::const_iterator cit = d_mb_periodic[ln][mb].begin(); cit != d_mb_periodic[ln][mb].end(); ++cit)
                     {
                         flattened_mb_periodic.insert(flattened_mb_periodic.end(), &(*cit)[0], &(*cit)[0]+NDIM);
                     }
@@ -2092,8 +2077,7 @@ LSiloDataWriter::putToDatabase(
 
                 std::vector<int> ucd_mesh_vertices_vector;
                 ucd_mesh_vertices_vector.reserve(d_ucd_mesh_vertices[ln][mesh].size());
-                for (std::set<int>::const_iterator cit = d_ucd_mesh_vertices[ln][mesh].begin();
-                     cit != d_ucd_mesh_vertices[ln][mesh].end(); ++cit)
+                for (std::set<int>::const_iterator cit = d_ucd_mesh_vertices[ln][mesh].begin(); cit != d_ucd_mesh_vertices[ln][mesh].end(); ++cit)
                 {
                     ucd_mesh_vertices_vector.push_back(*cit);
                 }
@@ -2102,8 +2086,7 @@ LSiloDataWriter::putToDatabase(
 
                 std::vector<int> ucd_mesh_edge_maps_vector;
                 ucd_mesh_edge_maps_vector.reserve(3*d_ucd_mesh_edge_maps[ln][mesh].size());
-                for (std::multimap<int,std::pair<int,int> >::const_iterator cit = d_ucd_mesh_edge_maps[ln][mesh].begin();
-                     cit != d_ucd_mesh_edge_maps[ln][mesh].end(); ++cit)
+                for (std::multimap<int,std::pair<int,int> >::const_iterator cit = d_ucd_mesh_edge_maps[ln][mesh].begin(); cit != d_ucd_mesh_edge_maps[ln][mesh].end(); ++cit)
                 {
                     const int i = cit->first;
                     std::pair<int,int> e = cit->second;
@@ -2212,8 +2195,7 @@ LSiloDataWriter::buildVecScatters(
     // Create the VecScatters to scatter data from the global PETSc Vec to
     // contiguous local subgrids.  VecScatter objects are individually created
     // for data depths as necessary.
-    for (std::map<int,std::vector<int> >::iterator it = src_is_idxs.begin();
-         it != src_is_idxs.end(); ++it)
+    for (std::map<int,std::vector<int> >::iterator it = src_is_idxs.begin(); it != src_is_idxs.end(); ++it)
     {
         const int depth = it->first;
         const std::vector<int>& idxs = it->second;

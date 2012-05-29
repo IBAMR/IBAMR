@@ -120,9 +120,7 @@ HierarchyGhostCellInterpolation::setHomogeneousBc(
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         if (!d_cc_robin_bc_ops[comp_idx].isNull()) d_cc_robin_bc_ops[comp_idx]->setHomogeneousBc(d_homogeneous_bc);
-        for (std::vector<RobinBcCoefStrategy<NDIM>*>::iterator it =
-                 d_transaction_comps[comp_idx].d_robin_bc_coefs.begin();
-             it != d_transaction_comps[comp_idx].d_robin_bc_coefs.end(); ++it)
+        for (std::vector<RobinBcCoefStrategy<NDIM>*>::iterator it = d_transaction_comps[comp_idx].d_robin_bc_coefs.begin(); it != d_transaction_comps[comp_idx].d_robin_bc_coefs.end(); ++it)
         {
             ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(*it);
             if (extended_bc_coef != NULL)
@@ -131,9 +129,7 @@ HierarchyGhostCellInterpolation::setHomogeneousBc(
             }
         }
         if (!d_sc_robin_bc_ops[comp_idx].isNull()) d_sc_robin_bc_ops[comp_idx]->setHomogeneousBc(d_homogeneous_bc);
-        for (std::vector<RobinBcCoefStrategy<NDIM>*>::iterator it =
-                 d_transaction_comps[comp_idx].d_robin_bc_coefs.begin();
-             it != d_transaction_comps[comp_idx].d_robin_bc_coefs.end(); ++it)
+        for (std::vector<RobinBcCoefStrategy<NDIM>*>::iterator it = d_transaction_comps[comp_idx].d_robin_bc_coefs.begin(); it != d_transaction_comps[comp_idx].d_robin_bc_coefs.end(); ++it)
         {
             ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(*it);
             if (extended_bc_coef != NULL)
@@ -288,8 +284,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
 
         const std::vector<RobinBcCoefStrategy<NDIM>*>& robin_bc_coefs = d_transaction_comps[comp_idx].d_robin_bc_coefs;
         bool null_bc_coefs = true;
-        for (std::vector<RobinBcCoefStrategy<NDIM>*>::const_iterator cit = robin_bc_coefs.begin();
-             cit != robin_bc_coefs.end(); ++cit)
+        for (std::vector<RobinBcCoefStrategy<NDIM>*>::const_iterator cit = robin_bc_coefs.begin(); cit != robin_bc_coefs.end(); ++cit)
         {
             if (*cit != NULL) null_bc_coefs = false;
         }
@@ -455,8 +450,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
 #endif
         const std::vector<RobinBcCoefStrategy<NDIM>*>& robin_bc_coefs = d_transaction_comps[comp_idx].d_robin_bc_coefs;
         bool null_bc_coefs = true;
-        for (std::vector<RobinBcCoefStrategy<NDIM>*>::const_iterator cit = robin_bc_coefs.begin();
-             cit != robin_bc_coefs.end(); ++cit)
+        for (std::vector<RobinBcCoefStrategy<NDIM>*>::const_iterator cit = robin_bc_coefs.begin(); cit != robin_bc_coefs.end(); ++cit)
         {
             if (*cit != NULL) null_bc_coefs = false;
         }
@@ -550,9 +544,7 @@ HierarchyGhostCellInterpolation::fillData(
     for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
     {
         if (!d_cc_robin_bc_ops[comp_idx].isNull()) d_cc_robin_bc_ops[comp_idx]->setHomogeneousBc(d_homogeneous_bc);
-        for (std::vector<RobinBcCoefStrategy<NDIM>*>::iterator it =
-                 d_transaction_comps[comp_idx].d_robin_bc_coefs.begin();
-             it != d_transaction_comps[comp_idx].d_robin_bc_coefs.end(); ++it)
+        for (std::vector<RobinBcCoefStrategy<NDIM>*>::iterator it = d_transaction_comps[comp_idx].d_robin_bc_coefs.begin(); it != d_transaction_comps[comp_idx].d_robin_bc_coefs.end(); ++it)
         {
             ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(*it);
             if (extended_bc_coef != NULL)
@@ -561,9 +553,7 @@ HierarchyGhostCellInterpolation::fillData(
             }
         }
         if (!d_sc_robin_bc_ops[comp_idx].isNull()) d_sc_robin_bc_ops[comp_idx]->setHomogeneousBc(d_homogeneous_bc);
-        for (std::vector<RobinBcCoefStrategy<NDIM>*>::iterator it =
-                 d_transaction_comps[comp_idx].d_robin_bc_coefs.begin();
-             it != d_transaction_comps[comp_idx].d_robin_bc_coefs.end(); ++it)
+        for (std::vector<RobinBcCoefStrategy<NDIM>*>::iterator it = d_transaction_comps[comp_idx].d_robin_bc_coefs.begin(); it != d_transaction_comps[comp_idx].d_robin_bc_coefs.end(); ++it)
         {
             ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(*it);
             if (extended_bc_coef != NULL)

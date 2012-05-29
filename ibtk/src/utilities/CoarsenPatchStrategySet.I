@@ -44,8 +44,7 @@ CoarsenPatchStrategySet::~CoarsenPatchStrategySet()
     if (d_managed)
     {
         typedef std::vector<SAMRAI::xfer::CoarsenPatchStrategy<NDIM>*> coarsen_strategy_set;
-        for (coarsen_strategy_set::const_iterator it = d_strategy_set.begin();
-             it != d_strategy_set.end(); ++it)
+        for (coarsen_strategy_set::const_iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
         {
             delete (*it);
         }
@@ -58,11 +57,9 @@ CoarsenPatchStrategySet::getCoarsenOpStencilWidth() const
 {
     SAMRAI::hier::IntVector<NDIM> width = 0;
     typedef std::vector<SAMRAI::xfer::CoarsenPatchStrategy<NDIM>*> coarsen_strategy_set;
-    for (coarsen_strategy_set::const_iterator it = d_strategy_set.begin();
-         it != d_strategy_set.end(); ++it)
+    for (coarsen_strategy_set::const_iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
-        width = SAMRAI::hier::IntVector<NDIM>::max(
-            width, (*it)->getCoarsenOpStencilWidth());
+        width = SAMRAI::hier::IntVector<NDIM>::max(width, (*it)->getCoarsenOpStencilWidth());
     }
     return width;
 }// getCoarsenOpStencilWidth
@@ -75,8 +72,7 @@ CoarsenPatchStrategySet::preprocessCoarsen(
     const SAMRAI::hier::IntVector<NDIM>& ratio)
 {
     typedef std::vector<SAMRAI::xfer::CoarsenPatchStrategy<NDIM>*> coarsen_strategy_set;
-    for (coarsen_strategy_set::iterator it = d_strategy_set.begin();
-         it != d_strategy_set.end(); ++it)
+    for (coarsen_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->preprocessCoarsen(coarse, fine, coarse_box, ratio);
     }
@@ -91,8 +87,7 @@ CoarsenPatchStrategySet::postprocessCoarsen(
     const SAMRAI::hier::IntVector<NDIM>& ratio)
 {
     typedef std::vector<SAMRAI::xfer::CoarsenPatchStrategy<NDIM>*> coarsen_strategy_set;
-    for (coarsen_strategy_set::iterator it = d_strategy_set.begin();
-         it != d_strategy_set.end(); ++it)
+    for (coarsen_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->postprocessCoarsen(coarse, fine, coarse_box, ratio);
     }

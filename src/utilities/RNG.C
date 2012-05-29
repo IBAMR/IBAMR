@@ -111,11 +111,13 @@ RNG::genrand(
         if (mti == N+1)   /* if srandgen() has not been called, */
             srandgen(4357); /* a default initial seed is used   */
 
-        for (kk=0;kk<N-M;kk++) {
+        for (kk=0;kk<N-M;kk++)
+        {
             y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
             mt[kk] = mt[kk+M] ^ (y >> 1) ^ mag01[y & 0x1];
         }
-        for (;kk<N-1;kk++) {
+        for (;kk<N-1;kk++)
+        {
             y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
             mt[kk] = mt[kk+(M-N)] ^ (y >> 1) ^ mag01[y & 0x1];
         }
@@ -298,8 +300,7 @@ RNG::parallel_seed(
 
             // Insert the unique seeds into the seed vector.
             unsigned i = 0;
-            for (std::set<int>::const_iterator cit = seed_set.begin();
-                 cit != seed_set.end(); ++cit, ++i)
+            for (std::set<int>::const_iterator cit = seed_set.begin(); cit != seed_set.end(); ++cit, ++i)
             {
                 seeds[i] = *cit;
             }

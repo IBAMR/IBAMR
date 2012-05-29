@@ -575,7 +575,7 @@ INSCollocatedPPMConvectiveOperator::initializeOperatorState(
     Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_u_flux_var, "CONSERVATIVE_COARSEN");
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
     if (d_difference_form == ADVECTIVE    || d_difference_form == SKEW_SYMMETRIC) d_coarsen_alg->registerCoarsen(d_u_extrap_idx, d_u_extrap_idx, coarsen_op);
-    if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC) d_coarsen_alg->registerCoarsen(d_u_flux_idx  , d_u_flux_idx  , coarsen_op);
+    if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC) d_coarsen_alg->registerCoarsen(d_u_flux_idx,   d_u_flux_idx,   coarsen_op);
     d_coarsen_scheds.resize(d_finest_ln+1);
     for (int ln = d_coarsest_ln+1; ln <= d_finest_ln; ++ln)
     {

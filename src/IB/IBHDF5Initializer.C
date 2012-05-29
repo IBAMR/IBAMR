@@ -1969,8 +1969,7 @@ IBHDF5Initializer::initializeSpecs(
                 }
                 spring_data->getMasterNodeIndex() += vertex_offset;
                 std::vector<int>& slave_idxs = spring_data->getSlaveNodeIndices();
-                for (std::vector<int>::iterator it = slave_idxs.begin();
-                     it != slave_idxs.end(); ++it)
+                for (std::vector<int>::iterator it = slave_idxs.begin(); it != slave_idxs.end(); ++it)
                 {
                     (*it) += vertex_offset;
                 }
@@ -1995,8 +1994,7 @@ IBHDF5Initializer::initializeSpecs(
                 }
                 beam_data->getMasterNodeIndex() += vertex_offset;
                 std::vector<std::pair<int,int> >& neighbor_idxs = beam_data->getNeighborNodeIndices();
-                for (std::vector<std::pair<int,int> >::iterator it = neighbor_idxs.begin();
-                     it != neighbor_idxs.end(); ++it)
+                for (std::vector<std::pair<int,int> >::iterator it = neighbor_idxs.begin(); it != neighbor_idxs.end(); ++it)
                 {
                     it->first  += vertex_offset;
                     it->second += vertex_offset;
@@ -2041,8 +2039,7 @@ IBHDF5Initializer::initializeSpecs(
     int instrument_index_offset = 0;
     for (int coarser_ln = 0; coarser_ln < ln; ++coarser_ln)
     {
-        for (int file_number = 0; file_number < static_cast<int>(d_instrument_names[coarser_ln].size());
-             ++file_number)
+        for (int file_number = 0; file_number < static_cast<int>(d_instrument_names[coarser_ln].size()); ++file_number)
         {
             instrument_index_offset += d_instrument_names[coarser_ln][file_number].size();
         }

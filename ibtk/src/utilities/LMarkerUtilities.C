@@ -507,8 +507,7 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(
 
         Pointer<LMarkerSetData> mark_data = patch->getPatchData(mark_idx);
         Pointer<LMarkerSetData> mark_data_new = new LMarkerSetData(mark_data->getBox(), mark_data->getGhostCellWidth());
-        for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getGhostBox());
-             it != mark_data->data_end(); ++it)
+        for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getGhostBox()); it != mark_data->data_end(); ++it)
         {
             const LMarkerSet::value_type& mark = *it;
             const blitz::TinyVector<double,NDIM>& X = mark->getPosition();
@@ -723,8 +722,7 @@ LMarkerUtilities::collectMarkerPositionsOnPatch(
 {
     X_mark.resize(NDIM*countMarkersOnPatch(mark_data));
     unsigned int k = 0;
-    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox());
-         it != mark_data->data_end(); ++it, ++k)
+    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end(); ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
         const blitz::TinyVector<double,NDIM>& X = mark->getPosition();
@@ -742,8 +740,7 @@ LMarkerUtilities::resetMarkerPositionsOnPatch(
     Pointer<LMarkerSetData> mark_data)
 {
     unsigned int k = 0;
-    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox());
-         it != mark_data->data_end(); ++it, ++k)
+    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end(); ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
         blitz::TinyVector<double,NDIM>& X = mark->getPosition();
@@ -762,8 +759,7 @@ LMarkerUtilities::collectMarkerVelocitiesOnPatch(
 {
     U_mark.resize(NDIM*countMarkersOnPatch(mark_data));
     unsigned int k = 0;
-    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox());
-         it != mark_data->data_end(); ++it, ++k)
+    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end(); ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
         const blitz::TinyVector<double,NDIM>& U = mark->getVelocity();
@@ -781,8 +777,7 @@ LMarkerUtilities::resetMarkerVelocitiesOnPatch(
     Pointer<LMarkerSetData> mark_data)
 {
     unsigned int k = 0;
-    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox());
-         it != mark_data->data_end(); ++it, ++k)
+    for (LMarkerSetData::DataIterator it = mark_data->data_begin(mark_data->getBox()); it != mark_data->data_end(); ++it, ++k)
     {
         const LMarkerSet::value_type& mark = *it;
         blitz::TinyVector<double,NDIM>& U = mark->getVelocity();

@@ -183,8 +183,7 @@ CartCellDoubleQuadraticRefine::refine(
         {
             const double X = XLower_fine[axis] + dx_fine[axis]*(static_cast<double>(i_fine(axis)-patch_lower_fine(axis))+0.5);
             std::vector<double> X_crse(degree+1,0.0);
-            for (int i_crse = stencil_box_crse.lower()(axis), k = 0;
-                 i_crse <= stencil_box_crse.upper()(axis); ++i_crse, ++k)
+            for (int i_crse = stencil_box_crse.lower()(axis), k = 0; i_crse <= stencil_box_crse.upper()(axis); ++i_crse, ++k)
             {
                 X_crse[k] = XLower_crse[axis] + dx_crse[axis]*(static_cast<double>(i_crse-patch_lower_crse(axis))+0.5);
             }

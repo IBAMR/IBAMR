@@ -87,8 +87,7 @@ LTransaction<T>::LTransaction(
       d_dst_proc(dst_proc)
 {
     d_outgoing_bytes = AbstractStream::sizeofInt();
-    for (typename std::vector<LTransactionComponent>::const_iterator cit = d_src_item_set.begin();
-         cit != d_src_item_set.end(); ++cit)
+    for (typename std::vector<LTransactionComponent>::const_iterator cit = d_src_item_set.begin(); cit != d_src_item_set.end(); ++cit)
     {
         d_outgoing_bytes += cit->item->getDataStreamSize() + NDIM*AbstractStream::sizeofDouble();
     }
@@ -143,8 +142,7 @@ LTransaction<T>::packStream(
     AbstractStream& stream)
 {
     stream << static_cast<int>(d_src_item_set.size());
-    for (typename std::vector<LTransactionComponent>::iterator it = d_src_item_set.begin();
-         it != d_src_item_set.end(); ++it)
+    for (typename std::vector<LTransactionComponent>::iterator it = d_src_item_set.begin(); it != d_src_item_set.end(); ++it)
     {
         typename LSet<T>::value_type& item = it->item;
         item->packStream(stream);
@@ -163,8 +161,7 @@ LTransaction<T>::unpackStream(
     int num_items;
     stream >> num_items;
     d_dst_item_set.resize(num_items);
-    for (typename std::vector<LTransactionComponent>::iterator it = d_dst_item_set.begin();
-         it != d_dst_item_set.end(); ++it)
+    for (typename std::vector<LTransactionComponent>::iterator it = d_dst_item_set.begin(); it != d_dst_item_set.end(); ++it)
     {
         it->item->unpackStream(stream, periodic_offset);
         blitz::TinyVector<double,NDIM>& posn = it->posn;

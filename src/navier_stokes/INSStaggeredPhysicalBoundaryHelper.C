@@ -90,8 +90,7 @@ INSStaggeredPhysicalBoundaryHelper::zeroValuesAtDirichletBoundaries(
     TBOX_ASSERT(!d_hierarchy.isNull());
 #endif
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
-    for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln);
-         ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
+    for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -138,8 +137,7 @@ INSStaggeredPhysicalBoundaryHelper::resetValuesAtDirichletBoundaries(
     TBOX_ASSERT(!d_hierarchy.isNull());
 #endif
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
-    for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln);
-         ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
+    for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -193,8 +191,7 @@ INSStaggeredPhysicalBoundaryHelper::cacheBcCoefData(
     // Indicate whether we are employing homogeneous or inhomogeneous boundary
     // conditions for all extended Robin BC coef strategy objects employed by
     // this object.
-    for (blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>::iterator it = u_bc_coefs.begin();
-         it != u_bc_coefs.end(); ++it)
+    for (blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>::iterator it = u_bc_coefs.begin(); it != u_bc_coefs.end(); ++it)
     {
         ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(*it);
         if (extended_bc_coef != NULL)

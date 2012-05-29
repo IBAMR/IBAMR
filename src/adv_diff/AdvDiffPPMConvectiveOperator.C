@@ -206,9 +206,12 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(
+    const std::string& operator_name,
+    Pointer<CellVariable<NDIM,double> > Q_var,
     const ConvectiveDifferencingType difference_form,
     const std::string& bdry_extrap_type)
     : ConvectiveOperator(difference_form),
+      d_operator_name(operator_name),
       d_is_initialized(false),
       d_ghostfill_alg(NULL),
       d_ghostfill_scheds(),
@@ -216,74 +219,63 @@ AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(
       d_hierarchy(NULL),
       d_coarsest_ln(-1),
       d_finest_ln(-1),
-      d_U_var(NULL),
-      d_U_scratch_idx(-1),
-      d_u_extrap_var(NULL),
-      d_u_flux_var(NULL),
-      d_u_extrap_idx(-1),
-      d_u_flux_idx(-1)
+      d_Q_var(Q_var),
+      d_Q_data_depth(0),
+      d_Q_scratch_idx(-1),
+      d_q_extrap_var(NULL),
+      d_q_flux_var(NULL),
+      d_q_extrap_idx(-1),
+      d_q_flux_idx(-1)
 {
     if (d_difference_form != ADVECTIVE &&
         d_difference_form != CONSERVATIVE &&
         d_difference_form != SKEW_SYMMETRIC)
     {
-        TBOX_ERROR("AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator():\n"
+        TBOX_ERROR("AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator():\n"
                    << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext("AdvDiffPPMConvectiveOperator::CONTEXT");
-
-    const std::string U_var_name = "AdvDiffPPMConvectiveOperator::U";
-    d_U_var = var_db->getVariable(U_var_name);
-    if (d_U_var.isNull())
+    Pointer<VariableContext> context = var_db->getContext(d_operator_name + "::CONTEXT");
+    d_Q_scratch_idx = var_db->registerVariableAndContext(d_Q_var, context, GADVECTG);
+    Pointer<CellDataFactory<NDIM,double> > Q_pdat_fac = d_Q_var->getPatchDataFactory();
+    d_Q_data_depth = Q_pdat_fac->getDefaultDepth();
+    const std::string q_extrap_var_name = d_operator_name + "::q_extrap";
+    d_q_extrap_var = var_db->getVariable(q_extrap_var_name);
+    if (d_q_extrap_var.isNull())
     {
-        d_U_var = new CellVariable<NDIM,double>(U_var_name, NDIM);
-        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(GADVECTG));
+        d_q_extrap_var = new FaceVariable<NDIM,double>(q_extrap_var_name, d_Q_data_depth);
+        d_q_extrap_idx = var_db->registerVariableAndContext(d_q_extrap_var, context, IntVector<NDIM>(0));
     }
     else
     {
-        d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
+        d_q_extrap_idx = var_db->mapVariableAndContextToIndex(d_q_extrap_var, context);
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_U_scratch_idx >= 0);
+    TBOX_ASSERT(d_q_extrap_idx >= 0);
 #endif
-    const std::string u_extrap_var_name = "AdvDiffPPMConvectiveOperator::u_extrap";
-    d_u_extrap_var = var_db->getVariable(u_extrap_var_name);
-    if (d_u_extrap_var.isNull())
+    const std::string q_flux_var_name = d_operator_name + "::q_flux";
+    d_q_flux_var = var_db->getVariable(q_flux_var_name);
+    if (d_q_flux_var.isNull())
     {
-        d_u_extrap_var = new FaceVariable<NDIM,double>(u_extrap_var_name, NDIM);
-        d_u_extrap_idx = var_db->registerVariableAndContext(d_u_extrap_var, context, IntVector<NDIM>(0));
+        d_q_flux_var = new FaceVariable<NDIM,double>(q_flux_var_name, d_Q_data_depth);
+        d_q_flux_idx = var_db->registerVariableAndContext(d_q_flux_var, context, IntVector<NDIM>(0));
     }
     else
     {
-        d_u_extrap_idx = var_db->mapVariableAndContextToIndex(d_u_extrap_var, context);
+        d_q_flux_idx = var_db->mapVariableAndContextToIndex(d_q_flux_var, context);
     }
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_u_extrap_idx >= 0);
-#endif
-    const std::string u_flux_var_name = "AdvDiffPPMConvectiveOperator::u_flux";
-    d_u_flux_var = var_db->getVariable(u_flux_var_name);
-    if (d_u_flux_var.isNull())
-    {
-        d_u_flux_var = new FaceVariable<NDIM,double>(u_flux_var_name, NDIM);
-        d_u_flux_idx = var_db->registerVariableAndContext(d_u_flux_var, context, IntVector<NDIM>(0));
-    }
-    else
-    {
-        d_u_flux_idx = var_db->mapVariableAndContextToIndex(d_u_flux_var, context);
-    }
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(d_u_flux_idx >= 0);
+    TBOX_ASSERT(d_q_flux_idx >= 0);
 #endif
 
     // Setup Timers.
     IBAMR_DO_ONCE(
-        t_apply_convective_operator = TimerManager::getManager()->getTimer("IBAMR::AdvDiffPPMConvectiveOperator::applyConvectiveOperator()");
-        t_apply                     = TimerManager::getManager()->getTimer("IBAMR::AdvDiffPPMConvectiveOperator::apply()");
-        t_initialize_operator_state = TimerManager::getManager()->getTimer("IBAMR::AdvDiffPPMConvectiveOperator::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBAMR::AdvDiffPPMConvectiveOperator::deallocateOperatorState()");
+        t_apply_convective_operator = TimerManager::getManager()->getTimer("IBAMR::AdvDiffCenteredConvectiveOperator::applyConvectiveOperator()");
+        t_apply                     = TimerManager::getManager()->getTimer("IBAMR::AdvDiffCenteredConvectiveOperator::apply()");
+        t_initialize_operator_state = TimerManager::getManager()->getTimer("IBAMR::AdvDiffCenteredConvectiveOperator::initializeOperatorState()");
+        t_deallocate_operator_state = TimerManager::getManager()->getTimer("IBAMR::AdvDiffCenteredConvectiveOperator::deallocateOperatorState()");
                   );
     return;
 }// AdvDiffPPMConvectiveOperator
@@ -296,7 +288,7 @@ AdvDiffPPMConvectiveOperator::~AdvDiffPPMConvectiveOperator()
 
 void
 AdvDiffPPMConvectiveOperator::applyConvectiveOperator(
-    const int U_idx,
+    const int Q_idx,
     const int N_idx)
 {
     IBAMR_TIMER_START(t_apply_convective_operator);
@@ -311,8 +303,8 @@ AdvDiffPPMConvectiveOperator::applyConvectiveOperator(
     // Setup communications algorithm.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
-    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
-    refine_alg->registerRefine(d_U_scratch_idx, U_idx, d_U_scratch_idx, refine_op);
+    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_Q_var, "CONSERVATIVE_LINEAR_REFINE");
+    refine_alg->registerRefine(d_Q_scratch_idx, Q_idx, d_Q_scratch_idx, refine_op);
 
     // Extrapolate from cell centers to cell faces.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -329,56 +321,56 @@ AdvDiffPPMConvectiveOperator::applyConvectiveOperator(
             const IntVector<NDIM>& patch_lower = patch_box.lower();
             const IntVector<NDIM>& patch_upper = patch_box.upper();
 
-            Pointer<CellData<NDIM,double> > U_data = patch->getPatchData(d_U_scratch_idx);
-            const IntVector<NDIM>& U_data_gcw = U_data->getGhostCellWidth();
+            Pointer<CellData<NDIM,double> > Q_data = patch->getPatchData(d_Q_scratch_idx);
+            const IntVector<NDIM>& Q_data_gcw = Q_data->getGhostCellWidth();
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(U_data_gcw.min() == U_data_gcw.max());
+            TBOX_ASSERT(Q_data_gcw.min() == Q_data_gcw.max());
 #endif
             Pointer<FaceData<NDIM,double> > u_ADV_data = patch->getPatchData(d_u_idx);
             const IntVector<NDIM>& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
 #ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(u_ADV_data_gcw.min() == u_ADV_data_gcw.max());
 #endif
-            Pointer<FaceData<NDIM,double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
-            const IntVector<NDIM>& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
+            Pointer<FaceData<NDIM,double> > q_extrap_data = patch->getPatchData(d_q_extrap_idx);
+            const IntVector<NDIM>& q_extrap_data_gcw = q_extrap_data->getGhostCellWidth();
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(u_extrap_data_gcw.min() == u_extrap_data_gcw.max());
+            TBOX_ASSERT(q_extrap_data_gcw.min() == q_extrap_data_gcw.max());
 #endif
-            CellData<NDIM,double>& U0_data = *U_data;
-            CellData<NDIM,double>  U1_data(patch_box, 1, U_data_gcw);
+            CellData<NDIM,double>& Q0_data = *Q_data;
+            CellData<NDIM,double>  Q1_data(patch_box, 1, Q_data_gcw);
 #if (NDIM == 3)
-            CellData<NDIM,double>  U2_data(patch_box, 1, U_data_gcw);
+            CellData<NDIM,double>  Q2_data(patch_box, 1, Q_data_gcw);
 #endif
-            CellData<NDIM,double>  dU_data(patch_box, 1, U_data_gcw);
-            CellData<NDIM,double> U_L_data(patch_box, 1, U_data_gcw);
-            CellData<NDIM,double> U_R_data(patch_box, 1, U_data_gcw);
+            CellData<NDIM,double>  dQ_data(patch_box, 1, Q_data_gcw);
+            CellData<NDIM,double> Q_L_data(patch_box, 1, Q_data_gcw);
+            CellData<NDIM,double> Q_R_data(patch_box, 1, Q_data_gcw);
 
             // Extrapolate from cell centers to cell faces.
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            for (unsigned int d = 0; d < d_Q_data_depth; ++d)
             {
                 GODUNOV_EXTRAPOLATE_FC(
 #if (NDIM == 2)
                     patch_lower(0), patch_upper(0),
                     patch_lower(1), patch_upper(1),
-                    U_data_gcw(0), U_data_gcw(1),
-                    U0_data.getPointer(axis), U1_data.getPointer(),
-                    dU_data.getPointer(), U_L_data.getPointer(), U_R_data.getPointer(),
+                    Q_data_gcw(0), Q_data_gcw(1),
+                    Q0_data.getPointer(d), Q1_data.getPointer(),
+                    dQ_data.getPointer(), Q_L_data.getPointer(), Q_R_data.getPointer(),
                     u_ADV_data_gcw   (0), u_ADV_data_gcw   (1),
-                    u_extrap_data_gcw(0), u_extrap_data_gcw(1),
-                    u_ADV_data   ->getPointer(0),      u_ADV_data   ->getPointer(1),
-                    u_extrap_data->getPointer(0,axis), u_extrap_data->getPointer(1,axis)
+                    q_extrap_data_gcw(0), q_extrap_data_gcw(1),
+                    u_ADV_data   ->getPointer(0),   u_ADV_data   ->getPointer(1),
+                    q_extrap_data->getPointer(0,d), q_extrap_data->getPointer(1,d)
 #endif
 #if (NDIM == 3)
                     patch_lower(0), patch_upper(0),
                     patch_lower(1), patch_upper(1),
                     patch_lower(2), patch_upper(2),
-                    U_data_gcw(0), U_data_gcw(1), U_data_gcw(2),
-                    U0_data.getPointer(axis), U1_data.getPointer(), U2_data.getPointer(),
-                    dU_data.getPointer(), U_L_data.getPointer(), U_R_data.getPointer(),
+                    Q_data_gcw(0), Q_data_gcw(1), Q_data_gcw(2),
+                    Q0_data.getPointer(d), Q1_data.getPointer(), Q2_data.getPointer(),
+                    dQ_data.getPointer(), Q_L_data.getPointer(), Q_R_data.getPointer(),
                     u_ADV_data_gcw   (0), u_ADV_data_gcw   (1), u_ADV_data_gcw   (2),
-                    u_extrap_data_gcw(0), u_extrap_data_gcw(1), u_extrap_data_gcw(2),
-                    u_ADV_data   ->getPointer(0),      u_ADV_data   ->getPointer(1),      u_ADV_data   ->getPointer(2),
-                    u_extrap_data->getPointer(0,axis), u_extrap_data->getPointer(1,axis), u_extrap_data->getPointer(2,axis)
+                    q_extrap_data_gcw(0), q_extrap_data_gcw(1), q_extrap_data_gcw(2),
+                    u_ADV_data   ->getPointer(0),   u_ADV_data   ->getPointer(1),   u_ADV_data   ->getPointer(2),
+                    q_extrap_data->getPointer(0,d), q_extrap_data->getPointer(1,d), q_extrap_data->getPointer(2,d)
 #endif
                                        );
             }
@@ -390,9 +382,9 @@ AdvDiffPPMConvectiveOperator::applyConvectiveOperator(
             {
                 Pointer<FaceData<NDIM,double> > u_ADV_data = patch->getPatchData(d_u_idx);
                 const IntVector<NDIM>& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
-                Pointer<FaceData<NDIM,double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
-                const IntVector<NDIM>& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
-                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                Pointer<FaceData<NDIM,double> > q_flux_data = patch->getPatchData(d_q_flux_idx);
+                const IntVector<NDIM>& q_flux_data_gcw = q_flux_data->getGhostCellWidth();
+                for (unsigned int d = 0; d < d_Q_data_depth; ++d)
                 {
                     static const double dt = 1.0;
                     ADVECT_FLUX_FC(
@@ -400,27 +392,23 @@ AdvDiffPPMConvectiveOperator::applyConvectiveOperator(
 #if (NDIM == 2)
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
-//                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
                         u_ADV_data_gcw   (0), u_ADV_data_gcw   (1),
-                        u_extrap_data_gcw(0), u_extrap_data_gcw(1),
-                        u_flux_data_gcw  (0), u_flux_data_gcw  (1),
-//                      u_extrap_data->getPointer(0,0),    u_extrap_data->getPointer(1,1),
-                        u_ADV_data   ->getPointer(0),      u_ADV_data   ->getPointer(1),
-                        u_extrap_data->getPointer(0,axis), u_extrap_data->getPointer(1,axis),
-                        u_flux_data  ->getPointer(0,axis), u_flux_data  ->getPointer(1,axis)
+                        q_extrap_data_gcw(0), q_extrap_data_gcw(1),
+                        q_flux_data_gcw  (0), q_flux_data_gcw  (1),
+                        u_ADV_data   ->getPointer(0),   u_ADV_data   ->getPointer(1),
+                        q_extrap_data->getPointer(0,d), q_extrap_data->getPointer(1,d),
+                        q_flux_data  ->getPointer(0,d), q_flux_data  ->getPointer(1,d)
 #endif
 #if (NDIM == 3)
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
                         patch_lower(2), patch_upper(2),
-//                      u_extrap_data_gcw(0), u_extrap_data_gcw(1), u_extrap_data_gcw(2),
                         u_ADV_data_gcw   (0), u_ADV_data_gcw   (1), u_ADV_data_gcw   (2),
-                        u_extrap_data_gcw(0), u_extrap_data_gcw(1), u_extrap_data_gcw(2),
-                        u_flux_data_gcw  (0), u_flux_data_gcw  (1), u_flux_data_gcw  (2),
-//                      u_extrap_data->getPointer(0,0),    u_extrap_data->getPointer(1,1),    u_extrap_data->getPointer(2,2),
-                        u_ADV_data   ->getPointer(0),      u_ADV_data   ->getPointer(1),      u_ADV_data   ->getPointer(2),
-                        u_extrap_data->getPointer(0,axis), u_extrap_data->getPointer(1,axis), u_extrap_data->getPointer(2,axis),
-                        u_flux_data  ->getPointer(0,axis), u_flux_data  ->getPointer(1,axis), u_flux_data  ->getPointer(2,axis)
+                        q_extrap_data_gcw(0), q_extrap_data_gcw(1), q_extrap_data_gcw(2),
+                        q_flux_data_gcw  (0), q_flux_data_gcw  (1), q_flux_data_gcw  (2),
+                        u_ADV_data   ->getPointer(0),   u_ADV_data   ->getPointer(1),   u_ADV_data   ->getPointer(2),
+                        q_extrap_data->getPointer(0,d), q_extrap_data->getPointer(1,d), q_extrap_data->getPointer(2,d),
+                        q_flux_data  ->getPointer(0,d), q_flux_data  ->getPointer(1,d), q_flux_data  ->getPointer(2,d)
 #endif
                                    );
                 }
@@ -456,56 +444,52 @@ AdvDiffPPMConvectiveOperator::applyConvectiveOperator(
             {
                 Pointer<FaceData<NDIM,double> > u_ADV_data = patch->getPatchData(d_u_idx);
                 const IntVector<NDIM>& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
-                Pointer<FaceData<NDIM,double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
-                const IntVector<NDIM>& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
-                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                Pointer<FaceData<NDIM,double> > q_extrap_data = patch->getPatchData(d_q_extrap_idx);
+                const IntVector<NDIM>& q_extrap_data_gcw = q_extrap_data->getGhostCellWidth();
+                for (unsigned int d = 0; d < d_Q_data_depth; ++d)
                 {
                     ADVECT_DERIVATIVE_FC(
                         dx,
 #if (NDIM == 2)
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
-//                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
                         u_ADV_data_gcw   (0), u_ADV_data_gcw   (1),
-                        u_extrap_data_gcw(0), u_extrap_data_gcw(1),
-//                      u_extrap_data->getPointer(0,0),    u_extrap_data->getPointer(1,1),
-                        u_ADV_data   ->getPointer(0),      u_ADV_data   ->getPointer(1),
-                        u_extrap_data->getPointer(0,axis), u_extrap_data->getPointer(1,axis),
+                        q_extrap_data_gcw(0), q_extrap_data_gcw(1),
+                        u_ADV_data   ->getPointer(0),   u_ADV_data   ->getPointer(1),
+                        q_extrap_data->getPointer(0,d), q_extrap_data->getPointer(1,d),
                         N_data_gcw(0), N_data_gcw(1),
 #endif
 #if (NDIM == 3)
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
                         patch_lower(2), patch_upper(2),
-//                      u_extrap_data_gcw(0), u_extrap_data_gcw(1), u_extrap_data_gcw(2),
                         u_ADV_data_gcw   (0), u_ADV_data_gcw   (1), u_ADV_data_gcw   (2),
-                        u_extrap_data_gcw(0), u_extrap_data_gcw(1), u_extrap_data_gcw(2),
-//                      u_extrap_data->getPointer(0,0),    u_extrap_data->getPointer(1,1),    u_extrap_data->getPointer(2,2),
-                        u_ADV_data   ->getPointer(0),      u_ADV_data   ->getPointer(1),      u_ADV_data   ->getPointer(2),
-                        u_extrap_data->getPointer(0,axis), u_extrap_data->getPointer(1,axis), u_extrap_data->getPointer(2,axis),
+                        q_extrap_data_gcw(0), q_extrap_data_gcw(1), q_extrap_data_gcw(2),
+                        u_ADV_data   ->getPointer(0),   u_ADV_data   ->getPointer(1),   u_ADV_data   ->getPointer(2),
+                        q_extrap_data->getPointer(0,d), q_extrap_data->getPointer(1,d), q_extrap_data->getPointer(2,d),
                         N_data_gcw(0), N_data_gcw(1), N_data_gcw(2),
 #endif
-                        N_data->getPointer(axis));
+                        N_data->getPointer(d));
                 }
             }
 
             if (d_difference_form == CONSERVATIVE)
             {
-                Pointer<FaceData<NDIM,double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
-                const IntVector<NDIM>& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
-                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                Pointer<FaceData<NDIM,double> > q_flux_data = patch->getPatchData(d_q_flux_idx);
+                const IntVector<NDIM>& q_flux_data_gcw = q_flux_data->getGhostCellWidth();
+                for (unsigned int d = 0; d < d_Q_data_depth; ++d)
                 {
                     static const double alpha = 1.0;
                     F_TO_C_DIV_FC(
-                        N_data->getPointer(axis), N_data_gcw.min(),
+                        N_data->getPointer(d), N_data_gcw.min(),
                         alpha,
 #if (NDIM == 2)
-                        u_flux_data->getPointer(0,axis), u_flux_data->getPointer(1,axis), u_flux_data_gcw.min(),
+                        q_flux_data->getPointer(0,d), q_flux_data->getPointer(1,d), q_flux_data_gcw.min(),
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
 #endif
 #if (NDIM == 3)
-                        u_flux_data->getPointer(0,axis), u_flux_data->getPointer(1,axis), u_flux_data->getPointer(2,axis), u_flux_data_gcw.min(),
+                        q_flux_data->getPointer(0,d), q_flux_data->getPointer(1,d), q_flux_data->getPointer(2,d), q_flux_data_gcw.min(),
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
                         patch_lower(2), patch_upper(2),
@@ -516,26 +500,26 @@ AdvDiffPPMConvectiveOperator::applyConvectiveOperator(
 
             if (d_difference_form == SKEW_SYMMETRIC)
             {
-                Pointer<FaceData<NDIM,double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
-                const IntVector<NDIM>& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
-                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                Pointer<FaceData<NDIM,double> > q_flux_data = patch->getPatchData(d_q_flux_idx);
+                const IntVector<NDIM>& q_flux_data_gcw = q_flux_data->getGhostCellWidth();
+                for (unsigned int d = 0; d < d_Q_data_depth; ++d)
                 {
                     static const double alpha = 0.5;
                     static const double beta  = 0.5;
                     F_TO_C_DIV_ADD_FC(
-                        N_data->getPointer(axis), N_data_gcw.min(),
+                        N_data->getPointer(d), N_data_gcw.min(),
                         alpha,
 #if (NDIM == 2)
-                        u_flux_data->getPointer(0,axis), u_flux_data->getPointer(1,axis), u_flux_data_gcw.min(),
+                        q_flux_data->getPointer(0,d), q_flux_data->getPointer(1,d), q_flux_data_gcw.min(),
                         beta,
-                        N_data->getPointer(axis), N_data_gcw.min(),
+                        N_data->getPointer(d), N_data_gcw.min(),
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
 #endif
 #if (NDIM == 3)
-                        u_flux_data->getPointer(0,axis), u_flux_data->getPointer(1,axis), u_flux_data->getPointer(2,axis), u_flux_data_gcw.min(),
+                        q_flux_data->getPointer(0,d), q_flux_data->getPointer(1,d), q_flux_data->getPointer(2,d), q_flux_data_gcw.min(),
                         beta,
-                        N_data->getPointer(axis), N_data_gcw.min(),
+                        N_data->getPointer(d), N_data_gcw.min(),
                         patch_lower(0), patch_upper(0),
                         patch_lower(1), patch_upper(1),
                         patch_lower(2), patch_upper(2),
@@ -572,10 +556,10 @@ AdvDiffPPMConvectiveOperator::initializeOperatorState(
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
 
     // Setup the coarsen algorithm, operator, and schedules.
-    Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_u_flux_var, "CONSERVATIVE_COARSEN");
+    Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_q_flux_var, "CONSERVATIVE_COARSEN");
     d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    if (d_difference_form == ADVECTIVE    || d_difference_form == SKEW_SYMMETRIC) d_coarsen_alg->registerCoarsen(d_u_extrap_idx, d_u_extrap_idx, coarsen_op);
-    if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC) d_coarsen_alg->registerCoarsen(d_u_flux_idx  , d_u_flux_idx  , coarsen_op);
+    if (d_difference_form == ADVECTIVE    || d_difference_form == SKEW_SYMMETRIC) d_coarsen_alg->registerCoarsen(d_q_extrap_idx, d_q_extrap_idx, coarsen_op);
+    if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC) d_coarsen_alg->registerCoarsen(d_q_flux_idx  , d_q_flux_idx  , coarsen_op);
     d_coarsen_scheds.resize(d_finest_ln+1);
     for (int ln = d_coarsest_ln+1; ln <= d_finest_ln; ++ln)
     {
@@ -585,10 +569,10 @@ AdvDiffPPMConvectiveOperator::initializeOperatorState(
     }
 
     // Setup the refine algorithm, operator, patch strategy, and schedules.
-    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_Q_var, "CONSERVATIVE_LINEAR_REFINE");
     d_ghostfill_alg = new RefineAlgorithm<NDIM>();
-    d_ghostfill_alg->registerRefine(d_U_scratch_idx, in.getComponentDescriptorIndex(0), d_U_scratch_idx, refine_op);
-    d_ghostfill_strategy = new CartExtrapPhysBdryOp(d_U_scratch_idx, d_bdry_extrap_type);
+    d_ghostfill_alg->registerRefine(d_Q_scratch_idx, in.getComponentDescriptorIndex(0), d_Q_scratch_idx, refine_op);
+    d_ghostfill_strategy = new CartExtrapPhysBdryOp(d_Q_scratch_idx, d_bdry_extrap_type);
     d_ghostfill_scheds.resize(d_finest_ln+1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
@@ -600,11 +584,11 @@ AdvDiffPPMConvectiveOperator::initializeOperatorState(
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (!level->checkAllocated(d_U_scratch_idx))
+        if (!level->checkAllocated(d_Q_scratch_idx))
         {
-            level->allocatePatchData(d_U_scratch_idx);
-            level->allocatePatchData(d_u_extrap_idx);
-            if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC) level->allocatePatchData(d_u_flux_idx);
+            level->allocatePatchData(d_Q_scratch_idx);
+            level->allocatePatchData(d_q_extrap_idx);
+            if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC) level->allocatePatchData(d_q_flux_idx);
         }
     }
     d_is_initialized = true;
@@ -624,17 +608,17 @@ AdvDiffPPMConvectiveOperator::deallocateOperatorState()
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (level->checkAllocated(d_U_scratch_idx))
+        if (level->checkAllocated(d_Q_scratch_idx))
         {
-            level->deallocatePatchData(d_U_scratch_idx);
+            level->deallocatePatchData(d_Q_scratch_idx);
         }
-        if (level->checkAllocated(d_u_extrap_idx))
+        if (level->checkAllocated(d_q_extrap_idx))
         {
-            level->deallocatePatchData(d_u_extrap_idx);
+            level->deallocatePatchData(d_q_extrap_idx);
         }
-        if (level->checkAllocated(d_u_flux_idx))
+        if (level->checkAllocated(d_q_flux_idx))
         {
-            level->deallocatePatchData(d_u_flux_idx);
+            level->deallocatePatchData(d_q_flux_idx);
         }
     }
 

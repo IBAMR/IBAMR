@@ -394,8 +394,7 @@ CartCellRobinPhysBdryOp::setPhysicalBoundaryConditions(
     // Set the boundary conditions along the co-dimension one boundary boxes,
     // then extrapolate those values to the co-dimension two and three boundary
     // boxes.
-    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin();
-         cit != d_patch_data_indices.end(); ++cit)
+    for (std::set<int>::const_iterator cit = d_patch_data_indices.begin(); cit != d_patch_data_indices.end(); ++cit)
     {
         const int patch_data_idx = (*cit);
         Pointer<CellData<NDIM,double> > patch_data = patch.getPatchData(patch_data_idx);

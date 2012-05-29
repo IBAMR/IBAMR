@@ -178,8 +178,7 @@ AdvDiffGodunovHierarchyIntegrator::initializeHierarchyIntegrator(
     }
 
     // Register variables with the hyperbolic level integrator.
-    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
-         cit != d_u_var.end(); ++cit)
+    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
         d_hyp_patch_ops->registerAdvectionVelocity(u_var);
@@ -188,8 +187,7 @@ AdvDiffGodunovHierarchyIntegrator::initializeHierarchyIntegrator(
     }
 
     const IntVector<NDIM> cell_ghosts = CELLG;
-    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin();
-         cit != d_F_var.end(); ++cit)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > F_var = *cit;
         d_hyp_level_integrator->registerVariable(
@@ -200,8 +198,7 @@ AdvDiffGodunovHierarchyIntegrator::initializeHierarchyIntegrator(
             "CONSERVATIVE_LINEAR_REFINE");
     }
 
-    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_rhs_var.begin();
-         cit != d_Q_rhs_var.end(); ++cit)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_rhs_var.begin(); cit != d_Q_rhs_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > Q_rhs_var = *cit;
         int Q_rhs_scratch_idx;
@@ -209,8 +206,7 @@ AdvDiffGodunovHierarchyIntegrator::initializeHierarchyIntegrator(
         d_hyp_patch_ops->registerSourceTerm(Q_rhs_var);
     }
 
-    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
-         cit != d_Q_var.end(); ++cit)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         int Q_scratch_idx;
@@ -271,8 +267,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
     // Compute any time-dependent source terms at time-level n.
     ////////////////////////////////////////////////////////////////////////////
 
-    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin();
-         cit != d_F_var.end(); ++cit)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > F_var = *cit;
         Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
@@ -289,8 +284,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
     ////////////////////////////////////////////////////////////////////////////
 
     unsigned int l = 0;
-    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
-         cit != d_Q_var.end(); ++cit, ++l)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
         Pointer<CellVariable<NDIM,double> > Q_var     = *cit;
         Pointer<CellVariable<NDIM,double> > F_var     = d_Q_F_map[Q_var];
@@ -361,8 +355,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
     // Compute any time-dependent source terms at time-level n+1/2.
     ////////////////////////////////////////////////////////////////////////////
 
-    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin();
-         cit != d_F_var.end(); ++cit, ++l)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit, ++l)
     {
         Pointer<CellVariable<NDIM,double> > F_var = *cit;
         Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
@@ -387,8 +380,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
     }
 
     l = 0;
-    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
-         cit != d_Q_var.end(); ++cit, ++l)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
         Pointer<CellVariable<NDIM,double> > Q_var     = *cit;
         Pointer<CellVariable<NDIM,double> > F_var     = d_Q_F_map[Q_var];
@@ -595,8 +587,7 @@ AdvDiffGodunovHierarchyIntegrator::initializeLevelDataSpecialized(
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-        for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin();
-             cit != d_F_var.end(); ++cit)
+        for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
         {
             Pointer<CellVariable<NDIM,double> > F_var = *cit;
             const int F_idx = var_db->mapVariableAndContextToIndex(F_var, getCurrentContext());

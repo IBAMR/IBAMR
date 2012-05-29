@@ -148,8 +148,7 @@ LM3DDataWriter::~LM3DDataWriter()
     int ierr;
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
-             it != d_dst_vec[ln].end(); ++it)
+        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin(); it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = it->second;
             if (v)
@@ -158,8 +157,7 @@ LM3DDataWriter::~LM3DDataWriter()
                 IBTK_CHKERRQ(ierr);
             }
         }
-        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
-             it != d_vec_scatter[ln].end(); ++it)
+        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin(); it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = it->second;
             if (vs)
@@ -201,8 +199,7 @@ LM3DDataWriter::resetLevels(
     int ierr;
     for (int ln = std::max(d_coarsest_ln,0); (ln <= d_finest_ln) && (ln < coarsest_ln); ++ln)
     {
-        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
-             it != d_dst_vec[ln].end(); ++it)
+        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin(); it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = it->second;
             if (v != PETSC_NULL)
@@ -210,8 +207,7 @@ LM3DDataWriter::resetLevels(
                 ierr = VecDestroy(&v);  IBTK_CHKERRQ(ierr);
             }
         }
-        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
-             it != d_vec_scatter[ln].end(); ++it)
+        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin(); it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = it->second;
             if (vs != PETSC_NULL)
@@ -223,8 +219,7 @@ LM3DDataWriter::resetLevels(
 
     for (int ln = finest_ln+1; ln <= d_finest_ln; ++ln)
     {
-        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin();
-             it != d_dst_vec[ln].end(); ++it)
+        for (std::map<int,Vec>::iterator it = d_dst_vec[ln].begin(); it != d_dst_vec[ln].end(); ++it)
         {
             Vec& v = it->second;
             if (v != PETSC_NULL)
@@ -232,8 +227,7 @@ LM3DDataWriter::resetLevels(
                 ierr = VecDestroy(&v);  IBTK_CHKERRQ(ierr);
             }
         }
-        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin();
-             it != d_vec_scatter[ln].end(); ++it)
+        for (std::map<int,VecScatter>::iterator it = d_vec_scatter[ln].begin(); it != d_vec_scatter[ln].end(); ++it)
         {
             VecScatter& vs = it->second;
             if (vs != PETSC_NULL)
@@ -501,8 +495,7 @@ LM3DDataWriter::writePlotData(
     int local_marker_node_counter, local_marker_cloud_counter;
 
     int num_local_fibers = 0;
-    for (std::vector<std::vector<int> >::const_iterator cit = d_block_nfibers.begin();
-         cit != d_block_nfibers.end(); ++cit)
+    for (std::vector<std::vector<int> >::const_iterator cit = d_block_nfibers.begin(); cit != d_block_nfibers.end(); ++cit)
     {
         num_local_fibers += std::accumulate(cit->begin(), cit->end(), 0);
     }
@@ -514,8 +507,7 @@ LM3DDataWriter::writePlotData(
         num_fibers_proc.begin()+mpi_rank, num_fibers_proc.end(), fiber_offset);
 
     int num_local_groups = 0;
-    for (std::vector<std::vector<int> >::const_iterator cit = d_block_ngroups.begin();
-         cit != d_block_ngroups.end(); ++cit)
+    for (std::vector<std::vector<int> >::const_iterator cit = d_block_ngroups.begin(); cit != d_block_ngroups.end(); ++cit)
     {
         num_local_groups += std::accumulate(cit->begin(), cit->end(), 0);
     }
@@ -900,8 +892,7 @@ LM3DDataWriter::writePlotData(
                     if (patch_box.contains(i))
                     {
                         const LMarkerSet& mark_set = it();
-                        for (LMarkerSet::const_iterator cit = mark_set.begin();
-                             cit != mark_set.end(); ++cit)
+                        for (LMarkerSet::const_iterator cit = mark_set.begin(); cit != mark_set.end(); ++cit)
                         {
                             const blitz::TinyVector<double,NDIM>& X = (*cit)->getPosition();
                             const int idx = (*cit)->getIndex();
@@ -1149,8 +1140,7 @@ LM3DDataWriter::buildVecScatters(
     // Create the VecScatters to scatter data from the global PETSc Vec to
     // contiguous local subgrids.  VecScatter objects are individually created
     // for data depths as necessary.
-    for (std::map<int,std::vector<int> >::iterator it = src_is_idxs.begin();
-         it != src_is_idxs.end(); ++it)
+    for (std::map<int,std::vector<int> >::iterator it = src_is_idxs.begin(); it != src_is_idxs.end(); ++it)
     {
         const int depth = it->first;
         const std::vector<int>& idxs = it->second;

@@ -775,15 +775,13 @@ CCPoissonPointRelaxationFACOperator::deallocateOperatorStateSpecialized(
                 ierr = VecDestroy(&e);  IBTK_CHKERRQ(ierr);
             }
             d_patch_vec_e[ln].clear();
-            for (std::vector<Vec>::iterator it = d_patch_vec_f[ln].begin();
-                 it != d_patch_vec_f[ln].end(); ++it)
+            for (std::vector<Vec>::iterator it = d_patch_vec_f[ln].begin(); it != d_patch_vec_f[ln].end(); ++it)
             {
                 Vec& f = *it;
                 ierr = VecDestroy(&f);  IBTK_CHKERRQ(ierr);
             }
             d_patch_vec_f[ln].clear();
-            for (std::vector<Mat>::iterator it = d_patch_mat[ln].begin();
-                 it != d_patch_mat[ln].end(); ++it)
+            for (std::vector<Mat>::iterator it = d_patch_mat[ln].begin(); it != d_patch_mat[ln].end(); ++it)
             {
                 Mat& A = *it;
                 ierr = MatDestroy(&A);  IBTK_CHKERRQ(ierr);

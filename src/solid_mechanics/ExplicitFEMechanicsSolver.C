@@ -118,20 +118,17 @@ ExplicitFEMechanicsSolver::~ExplicitFEMechanicsSolver()
     {
         delete d_equation_systems[part];
         std::map<std::string,libMesh::LinearSolver<double>*>& L2_proj_solver = d_L2_proj_solver[part];
-        for (std::map<std::string,LinearSolver<double>*>::iterator it = L2_proj_solver.begin();
-             it != L2_proj_solver.end(); ++it)
+        for (std::map<std::string,LinearSolver<double>*>::iterator it = L2_proj_solver.begin(); it != L2_proj_solver.end(); ++it)
         {
             delete it->second;
         }
         std::map<std::string,libMesh::SparseMatrix<double>*>& L2_proj_matrix = d_L2_proj_matrix[part];
-        for (std::map<std::string,SparseMatrix<double>*>::iterator it = L2_proj_matrix.begin();
-             it != L2_proj_matrix.end(); ++it)
+        for (std::map<std::string,SparseMatrix<double>*>::iterator it = L2_proj_matrix.begin(); it != L2_proj_matrix.end(); ++it)
         {
             delete it->second;
         }
         std::map<std::string,libMesh::NumericVector<double>*>& L2_proj_matrix_diag = d_L2_proj_matrix_diag[part];
-        for (std::map<std::string,NumericVector<double>*>::iterator it = L2_proj_matrix_diag.begin();
-             it != L2_proj_matrix_diag.end(); ++it)
+        for (std::map<std::string,NumericVector<double>*>::iterator it = L2_proj_matrix_diag.begin(); it != L2_proj_matrix_diag.end(); ++it)
         {
             delete it->second;
         }
@@ -637,8 +634,7 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
 
     // Setup extra data needed to compute stresses/forces.
     std::vector<NumericVector<double>*> PK1_stress_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems[part].begin();
-         cit != d_PK1_stress_fcn_systems[part].end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems[part].begin(); cit != d_PK1_stress_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         system.update();
@@ -646,8 +642,7 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
     }
 
     std::vector<NumericVector<double>*> lag_body_force_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_body_force_fcn_systems[part].begin();
-         cit != d_lag_body_force_fcn_systems[part].end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_body_force_fcn_systems[part].begin(); cit != d_lag_body_force_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         system.update();
@@ -655,8 +650,7 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
     }
 
     std::vector<NumericVector<double>*> lag_pressure_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems[part].begin();
-         cit != d_lag_pressure_fcn_systems[part].end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems[part].begin(); cit != d_lag_pressure_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         system.update();
@@ -664,8 +658,7 @@ ExplicitFEMechanicsSolver::computeInteriorForceDensity(
     }
 
     std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems[part].begin();
-         cit != d_lag_surface_force_fcn_systems[part].end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems[part].begin(); cit != d_lag_surface_force_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         system.update();

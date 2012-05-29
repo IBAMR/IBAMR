@@ -286,8 +286,7 @@ IBKirchhoffRodForceGen::initializeLevelData(
 
     // Determine the "next" node indices for all rods associated with the
     // present MPI process.
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin();
-         cit != local_nodes.end(); ++cit)
+    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
     {
         const LNode* const node_idx = *cit;
         const IBRodForceSpec* const force_spec = node_idx->getNodeDataItem<IBRodForceSpec>();

@@ -115,8 +115,7 @@ LNode::registerPeriodicShift(
     const blitz::TinyVector<double,NDIM>& displacement)
 {
     LNodeIndex::registerPeriodicShift(offset, displacement);
-    for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::iterator it = d_node_data.begin();
-         it != d_node_data.end(); ++it)
+    for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::iterator it = d_node_data.begin(); it != d_node_data.end(); ++it)
     {
         (*it)->registerPeriodicShift(offset, displacement);
     }
@@ -242,8 +241,7 @@ LNode::setupNodeDataTypeArray()
     std::fill(d_node_data_type_arr,d_node_data_type_arr+MAX_SIZE,static_cast<Streamable*>(NULL));
     Streamable* it_val;
     int class_id;
-    for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::const_iterator cit = d_node_data.begin();
-         cit != d_node_data.end(); ++cit)
+    for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::const_iterator cit = d_node_data.begin(); cit != d_node_data.end(); ++cit)
     {
         it_val = *cit;
         class_id = it_val->getStreamableClassID();

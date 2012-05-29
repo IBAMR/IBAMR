@@ -1403,8 +1403,7 @@ initializeInstrumentationData(
 
     // Ensure that a complete range of instrument indices were found in the
     // input file.
-    for (vector<bool>::iterator meter_it = encountered_instrument_idx.begin();
-         meter_it != encountered_instrument_idx.end(); ++meter_it)
+    for (vector<bool>::iterator meter_it = encountered_instrument_idx.begin(); meter_it != encountered_instrument_idx.end(); ++meter_it)
     {
         const int meter_idx = distance(encountered_instrument_idx.begin(),meter_it);
         if ((*meter_it) == false)
@@ -1414,8 +1413,7 @@ initializeInstrumentationData(
         }
 
         vector<bool>& meter_node_idxs = encountered_node_idx[meter_idx];
-        for (vector<bool>::iterator node_it = meter_node_idxs.begin();
-             node_it != meter_node_idxs.end(); ++node_it)
+        for (vector<bool>::iterator node_it = meter_node_idxs.begin(); node_it != meter_node_idxs.end(); ++node_it)
         {
             const int node_idx = distance(meter_node_idxs.begin(),node_it);
             if ((*node_it) == false)

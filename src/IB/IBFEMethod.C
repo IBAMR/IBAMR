@@ -913,8 +913,7 @@ IBFEMethod::computeInteriorForceDensity(
 
     // Setup extra data needed to compute stresses/forces.
     std::vector<NumericVector<double>*> PK1_stress_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems[part].begin();
-         cit != d_PK1_stress_fcn_systems[part].end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems[part].begin(); cit != d_PK1_stress_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         system.update();
@@ -922,8 +921,7 @@ IBFEMethod::computeInteriorForceDensity(
     }
 
     std::vector<NumericVector<double>*> lag_body_force_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_body_force_fcn_systems[part].begin();
-         cit != d_lag_body_force_fcn_systems[part].end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_body_force_fcn_systems[part].begin(); cit != d_lag_body_force_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         system.update();
@@ -931,8 +929,7 @@ IBFEMethod::computeInteriorForceDensity(
     }
 
     std::vector<NumericVector<double>*> lag_pressure_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems[part].begin();
-         cit != d_lag_pressure_fcn_systems[part].end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems[part].begin(); cit != d_lag_pressure_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         system.update();
@@ -940,8 +937,7 @@ IBFEMethod::computeInteriorForceDensity(
     }
 
     std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems[part].begin();
-         cit != d_lag_surface_force_fcn_systems[part].end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems[part].begin(); cit != d_lag_surface_force_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         system.update();
@@ -1212,24 +1208,21 @@ IBFEMethod::spreadTransmissionForceDensity(
 
     // Setup extra data needed to compute stresses/forces.
     std::vector<NumericVector<double>*> PK1_stress_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems[part].begin();
-         cit != d_PK1_stress_fcn_systems[part].end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems[part].begin(); cit != d_PK1_stress_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         PK1_stress_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
     }
 
     std::vector<NumericVector<double>*> lag_pressure_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems[part].begin();
-         cit != d_lag_pressure_fcn_systems[part].end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems[part].begin(); cit != d_lag_pressure_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         lag_pressure_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
     }
 
     std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems[part].begin();
-         cit != d_lag_surface_force_fcn_systems[part].end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems[part].begin(); cit != d_lag_surface_force_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         lag_surface_force_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
@@ -1460,24 +1453,21 @@ IBFEMethod::imposeJumpConditions(
 
     // Setup extra data needed to compute stresses/forces.
     std::vector<NumericVector<double>*> PK1_stress_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems[part].begin();
-         cit != d_PK1_stress_fcn_systems[part].end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_PK1_stress_fcn_systems[part].begin(); cit != d_PK1_stress_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         PK1_stress_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
     }
 
     std::vector<NumericVector<double>*> lag_pressure_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems[part].begin();
-         cit != d_lag_pressure_fcn_systems[part].end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_pressure_fcn_systems[part].begin(); cit != d_lag_pressure_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         lag_pressure_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));
     }
 
     std::vector<NumericVector<double>*> lag_surface_force_fcn_data;
-    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems[part].begin();
-         cit != d_lag_surface_force_fcn_systems[part].end(); ++cit)
+    for (std::vector<unsigned int>::const_iterator cit = d_lag_surface_force_fcn_systems[part].begin(); cit != d_lag_surface_force_fcn_systems[part].end(); ++cit)
     {
         System& system = equation_systems->get_system(*cit);
         lag_surface_force_fcn_data.push_back(d_fe_data_managers[part]->buildGhostedSolutionVector(system.name()));

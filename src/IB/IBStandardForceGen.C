@@ -1158,8 +1158,7 @@ IBStandardForceGen::initializeBeamLevelData(
     //
     // NOTE: Only neighbor nodes can be "off processor".  Master nodes are
     // guaranteed to be "on processor".
-    for (blitz::Array<int,1>::const_iterator cit = petsc_next_node_idxs.begin();
-         cit != petsc_next_node_idxs.end(); ++cit)
+    for (blitz::Array<int,1>::const_iterator cit = petsc_next_node_idxs.begin(); cit != petsc_next_node_idxs.end(); ++cit)
     {
         const int idx = *cit;
         if (idx < global_node_offset || idx >= global_node_offset+num_local_nodes)
@@ -1167,8 +1166,7 @@ IBStandardForceGen::initializeBeamLevelData(
             nonlocal_petsc_idx_set.insert(idx);
         }
     }
-    for (blitz::Array<int,1>::const_iterator cit = petsc_prev_node_idxs.begin();
-         cit != petsc_prev_node_idxs.end(); ++cit)
+    for (blitz::Array<int,1>::const_iterator cit = petsc_prev_node_idxs.begin(); cit != petsc_prev_node_idxs.end(); ++cit)
     {
         const int idx = *cit;
         if (idx < global_node_offset || idx >= global_node_offset+num_local_nodes)

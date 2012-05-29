@@ -47,8 +47,7 @@ StandardTagAndInitStrategySet::~StandardTagAndInitStrategySet()
     if (d_managed)
     {
         typedef std::vector<SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>*> coarsen_strategy_set;
-        for (coarsen_strategy_set::const_iterator it = d_strategy_set.begin();
-             it != d_strategy_set.end(); ++it)
+        for (coarsen_strategy_set::const_iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
         {
             delete (*it);
         }
@@ -64,8 +63,7 @@ StandardTagAndInitStrategySet::getLevelDt(
 {
     double dt = std::numeric_limits<double>::max();
     typedef std::vector<SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
-    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin();
-         it != d_strategy_set.end(); ++it)
+    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         dt = std::min(dt,(*it)->getLevelDt(level,dt_time,initial_time));
     }
@@ -84,8 +82,7 @@ StandardTagAndInitStrategySet::advanceLevel(
 {
     double dt = std::numeric_limits<double>::max();
     typedef std::vector<SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
-    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin();
-         it != d_strategy_set.end(); ++it)
+    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         dt = std::min(dt,(*it)->advanceLevel(level,hierarchy,current_time,new_time,first_step,last_step,regrid_advance));
     }
@@ -99,8 +96,7 @@ StandardTagAndInitStrategySet::resetTimeDependentData(
     const bool can_be_refined)
 {
     typedef std::vector<SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
-    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin();
-         it != d_strategy_set.end(); ++it)
+    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->resetTimeDependentData(level,new_time,can_be_refined);
     }
@@ -112,8 +108,7 @@ StandardTagAndInitStrategySet::resetDataToPreadvanceState(
     const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > level)
 {
     typedef std::vector<SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
-    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin();
-         it != d_strategy_set.end(); ++it)
+    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->resetDataToPreadvanceState(level);
     }
@@ -131,8 +126,7 @@ StandardTagAndInitStrategySet::initializeLevelData(
     const bool allocate_data)
 {
     typedef std::vector<SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
-    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin();
-         it != d_strategy_set.end(); ++it)
+    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->initializeLevelData(hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     }
@@ -146,8 +140,7 @@ StandardTagAndInitStrategySet::resetHierarchyConfiguration(
     const int finest_level)
 {
     typedef std::vector<SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
-    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin();
-         it != d_strategy_set.end(); ++it)
+    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
     }
@@ -164,8 +157,7 @@ StandardTagAndInitStrategySet::applyGradientDetector(
     const bool uses_richardson_extrapolation_too)
 {
     typedef std::vector<SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
-    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin();
-         it != d_strategy_set.end(); ++it)
+    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->applyGradientDetector(hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     }
@@ -183,8 +175,7 @@ StandardTagAndInitStrategySet::applyRichardsonExtrapolation(
     const bool uses_gradient_detector_too)
 {
     typedef std::vector<SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
-    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin();
-         it != d_strategy_set.end(); ++it)
+    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->applyRichardsonExtrapolation(level, error_data_time, tag_index, deltat, error_coarsen_ratio, initial_time, uses_gradient_detector_too);
     }
@@ -200,8 +191,7 @@ StandardTagAndInitStrategySet::coarsenDataForRichardsonExtrapolation(
     const bool before_advance)
 {
     typedef std::vector<SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>*> tag_and_init_strategy_set;
-    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin();
-         it != d_strategy_set.end(); ++it)
+    for (tag_and_init_strategy_set::iterator it = d_strategy_set.begin(); it != d_strategy_set.end(); ++it)
     {
         (*it)->coarsenDataForRichardsonExtrapolation(hierarchy, level_number, coarser_level, coarsen_data_time, before_advance);
     }

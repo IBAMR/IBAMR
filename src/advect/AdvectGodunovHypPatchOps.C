@@ -423,8 +423,7 @@ AdvectGodunovHypPatchOps::registerModelVariables(
 #endif
     d_integrator = integrator;
 
-    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
-         cit != d_u_var.end(); ++cit)
+    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
         d_integrator->registerVariable(
@@ -435,8 +434,7 @@ AdvectGodunovHypPatchOps::registerModelVariables(
             "CONSERVATIVE_LINEAR_REFINE");
     }
 
-    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin();
-         cit != d_F_var.end(); ++cit)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > F_var = *cit;
         d_integrator->registerVariable(
@@ -447,8 +445,7 @@ AdvectGodunovHypPatchOps::registerModelVariables(
             "CONSERVATIVE_LINEAR_REFINE");
     }
 
-    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
-         cit != d_Q_var.end(); ++cit)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         Pointer<CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
@@ -534,8 +531,7 @@ AdvectGodunovHypPatchOps::initializeDataOnPatch(
     if (initial_time)
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
-             cit != d_u_var.end(); ++cit)
+        for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
         {
             Pointer<FaceVariable<NDIM,double> > u_var = *cit;
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, getDataContext());
@@ -550,8 +546,7 @@ AdvectGodunovHypPatchOps::initializeDataOnPatch(
             }
         }
 
-        for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin();
-             cit != d_F_var.end(); ++cit)
+        for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
         {
             Pointer<CellVariable<NDIM,double> > F_var = *cit;
             const int F_idx = var_db->mapVariableAndContextToIndex(F_var, getDataContext());
@@ -566,8 +561,7 @@ AdvectGodunovHypPatchOps::initializeDataOnPatch(
             }
         }
 
-        for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
-             cit != d_Q_var.end(); ++cit)
+        for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
         {
             Pointer<CellVariable<NDIM,double> > Q_var = *cit;
             const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, getDataContext());
@@ -592,8 +586,7 @@ AdvectGodunovHypPatchOps::computeStableDtOnPatch(
     const double /*dt_time*/)
 {
     double stable_dt = std::numeric_limits<double>::max();
-    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
-         cit != d_u_var.end(); ++cit)
+    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
         Pointer<FaceData<NDIM,double> > u_data = patch.getPatchData(u_var, getDataContext());
@@ -613,8 +606,7 @@ AdvectGodunovHypPatchOps::computeFluxesOnPatch(
 
     PatchFaceDataOpsReal<NDIM,double> patch_fc_data_ops;
 
-    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
-         cit != d_Q_var.end(); ++cit)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
@@ -651,8 +643,7 @@ AdvectGodunovHypPatchOps::computeFluxesOnPatch(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     if (d_compute_half_velocity)
     {
-        for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
-             cit != d_u_var.end(); ++cit)
+        for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
         {
             Pointer<FaceVariable<NDIM,double> > u_var = *cit;
             if (!d_u_fcn[u_var].isNull() && d_u_fcn[u_var]->isTimeDependent())
@@ -664,8 +655,7 @@ AdvectGodunovHypPatchOps::computeFluxesOnPatch(
     }
 
     // Compute fluxes and other face-centered quantities.
-    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
-         cit != d_Q_var.end(); ++cit)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
@@ -709,8 +699,7 @@ AdvectGodunovHypPatchOps::conservativeDifferenceOnPatch(
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
-         cit != d_Q_var.end(); ++cit)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];
@@ -840,8 +829,7 @@ AdvectGodunovHypPatchOps::preprocessAdvanceLevelState(
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     // Update the source term.
-    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin();
-         cit != d_F_var.end(); ++cit)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > F_var = *cit;
         if (!d_F_fcn[F_var].isNull() && d_F_fcn[F_var]->isTimeDependent())
@@ -854,8 +842,7 @@ AdvectGodunovHypPatchOps::preprocessAdvanceLevelState(
     if (!d_compute_init_velocity) return;
 
     // Update the advection velocity.
-    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
-         cit != d_u_var.end(); ++cit)
+    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
         if (!d_u_fcn[u_var].isNull() && d_u_fcn[u_var]->isTimeDependent())
@@ -885,8 +872,7 @@ AdvectGodunovHypPatchOps::postprocessAdvanceLevelState(
 
     // Update the values of any time-dependent source terms and add the values
     // of all source terms to the advected quantities.
-    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
-         cit != d_Q_var.end(); ++cit)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         Pointer<CellVariable<NDIM,double> > F_var = d_Q_F_map[Q_var];
@@ -920,8 +906,7 @@ AdvectGodunovHypPatchOps::postprocessAdvanceLevelState(
     if (!d_compute_final_velocity) return;
 
     // Update the advection velocity.
-    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
-         cit != d_u_var.end(); ++cit)
+    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
         if (!d_u_fcn[u_var].isNull() && d_u_fcn[u_var]->isTimeDependent())
@@ -996,8 +981,7 @@ AdvectGodunovHypPatchOps::tagGradientDetectorCells(
             if (time_allowed)
             {
                 // Check for tags that have already been set in a previous step.
-                for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
-                     cit != d_Q_var.end(); ++cit)
+                for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
                 {
                     Pointer<CellVariable<NDIM,double> > Q_var = *cit;
                     Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
@@ -1039,8 +1023,7 @@ AdvectGodunovHypPatchOps::tagGradientDetectorCells(
 
             if (time_allowed)
             {
-                for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
-                     cit != d_Q_var.end(); ++cit)
+                for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
                 {
                     Pointer<CellVariable<NDIM,double> > Q_var = *cit;
                     Pointer<CellData<NDIM,double> > Q_data = patch.getPatchData(Q_var, getDataContext());
@@ -1099,8 +1082,7 @@ AdvectGodunovHypPatchOps::setPhysicalBoundaryConditions(
     // Extrapolate the interior data to set the ghost cell values for the state
     // variables and for any forcing terms.
     ComponentSelector u_patch_data_indices;
-    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin();
-         cit != d_u_var.end(); ++cit)
+    for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
     {
         Pointer<FaceVariable<NDIM,double> > u_var = *cit;
         const int u_data_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
@@ -1111,15 +1093,13 @@ AdvectGodunovHypPatchOps::setPhysicalBoundaryConditions(
     d_extrap_bc_helper.setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
 
     ComponentSelector patch_data_indices;
-    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin();
-         cit != d_F_var.end(); ++cit)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > F_var = *cit;
         const int F_data_idx = var_db->mapVariableAndContextToIndex(F_var, d_integrator->getScratchContext());
         patch_data_indices.setFlag(F_data_idx);
     }
-    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
-         cit != d_Q_var.end(); ++cit)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         const int Q_data_idx = var_db->mapVariableAndContextToIndex(Q_var, d_integrator->getScratchContext());
@@ -1253,8 +1233,7 @@ AdvectGodunovHypPatchOps::setInflowBoundaryConditions(
     // boundaries only.
     const Box<NDIM>& patch_box = patch.getBox();
     const double* const dx = pgeom->getDx();
-    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin();
-         cit != d_Q_var.end(); ++cit)
+    for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
         Pointer<FaceVariable<NDIM,double> > u_var = d_Q_u_map[Q_var];

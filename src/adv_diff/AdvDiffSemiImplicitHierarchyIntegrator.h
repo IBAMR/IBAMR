@@ -40,6 +40,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
+#include <ibamr/ConvectiveOperator.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -113,6 +114,58 @@ public:
     getInitialConvectiveTimeSteppingType() const;
 
     /*!
+     * \brief Set the default convective operator type to be used by the solver.
+     */
+    void
+    setDefaultConvectiveOperatorType(
+        ConvectiveOperatorType op_type);
+
+    /*!
+     * \brief Get the default convective operator type used by the solver.
+     */
+    ConvectiveOperatorType
+    getDefaultConvectiveOperatorType() const;
+
+    /*!
+     * \brief Set the default convective differencing form to be used by the
+     * solver.
+     */
+    void
+    setDefaultConvectiveDifferencingType(
+        ConvectiveDifferencingType difference_form);
+
+    /*!
+     * \brief Get the default convective differencing form used by the solver.
+     */
+    ConvectiveDifferencingType
+    getDefaultConvectiveDifferencingType() const;
+
+    /*!
+     * Register an operator to compute the convective derivative term u*grad Q
+     * for a particular transported quantity Q.
+     *
+     * The boolean flag needs_reinit_when_dt_changes indicates whether the
+     * operator needs to be explicitly reinitialized when the time step size
+     * changes.
+     */
+    void
+    setConvectiveOperator(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        SAMRAI::tbox::Pointer<ConvectiveOperator> convective_op,
+        bool needs_reinit_when_dt_changes);
+
+    /*!
+     * Get the convective operator being used by this solver class for a
+     * particular transported quantity Q.
+     *
+     * If the convective operator has not already been constructed, then this
+     * function will initialize a default convective operator.
+     */
+    virtual SAMRAI::tbox::Pointer<ConvectiveOperator>
+    getConvectiveOperator(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var);
+
+    /*!
      * Initialize the variables, basic communications algorithms, solvers, and
      * other data structures used by this time integrator object.
      *
@@ -167,6 +220,15 @@ protected:
      */
     double
     getTimeStepSizeSpecialized();
+
+    /*!
+     * Reset cached hierarchy dependent data.
+     */
+    void
+    resetHierarchyConfigurationSpecialized(
+        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+        int coarsest_level,
+        int finest_level);
 
     /*!
      * Enum indicating the time integration employed for the explicit
@@ -234,6 +296,18 @@ private:
      * Advective CFL condition.
      */
     double d_cfl_max;
+
+    /*!
+     * Transported quantities.
+     */
+    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_N_var, d_N_old_var;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_N_map, d_Q_N_old_map;
+
+    ConvectiveOperatorType d_default_convective_op_type;
+    ConvectiveDifferencingType d_default_convective_difference_form;
+    std::string d_default_convective_bdry_extrap_type;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<ConvectiveOperator> > d_convective_op;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,bool> d_convective_op_needs_init, d_convective_op_needs_reinit_when_dt_changes;
 };
 }// namespace IBAMR
 

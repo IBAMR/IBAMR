@@ -180,8 +180,7 @@ FEDataManager::getManager(
 void
 FEDataManager::freeAllManagers()
 {
-    for (std::map<std::string,FEDataManager*>::iterator it = s_data_manager_instances.begin();
-         it != s_data_manager_instances.end(); ++it)
+    for (std::map<std::string,FEDataManager*>::iterator it = s_data_manager_instances.begin(); it != s_data_manager_instances.end(); ++it)
     {
         if (it->second)
         {
@@ -308,8 +307,7 @@ FEDataManager::reinitElementMappings()
     // Delete cached hierarchy-dependent data.
     d_active_patch_elem_map  .free();
     d_active_patch_ghost_dofs.clear();
-    for (std::map<std::string,NumericVector<double>*>::iterator it = d_system_ghost_vec.begin();
-         it != d_system_ghost_vec.end(); ++it)
+    for (std::map<std::string,NumericVector<double>*>::iterator it = d_system_ghost_vec.begin(); it != d_system_ghost_vec.end(); ++it)
     {
         delete it->second;
     }
@@ -2022,23 +2020,19 @@ FEDataManager::FEDataManager(
 
 FEDataManager::~FEDataManager()
 {
-    for (std::map<std::string,NumericVector<double>*>::iterator it = d_system_ghost_vec.begin();
-         it != d_system_ghost_vec.end(); ++it)
+    for (std::map<std::string,NumericVector<double>*>::iterator it = d_system_ghost_vec.begin(); it != d_system_ghost_vec.end(); ++it)
     {
         delete it->second;
     }
-    for (std::map<std::string,LinearSolver<double>*>::iterator it = d_L2_proj_solver.begin();
-         it != d_L2_proj_solver.end(); ++it)
+    for (std::map<std::string,LinearSolver<double>*>::iterator it = d_L2_proj_solver.begin(); it != d_L2_proj_solver.end(); ++it)
     {
         delete it->second;
     }
-    for (std::map<std::string,SparseMatrix<double>*>::iterator it = d_L2_proj_matrix.begin();
-         it != d_L2_proj_matrix.end(); ++it)
+    for (std::map<std::string,SparseMatrix<double>*>::iterator it = d_L2_proj_matrix.begin(); it != d_L2_proj_matrix.end(); ++it)
     {
         delete it->second;
     }
-    for (std::map<std::string,NumericVector<double>*>::iterator it = d_L2_proj_matrix_diag.begin();
-         it != d_L2_proj_matrix_diag.end(); ++it)
+    for (std::map<std::string,NumericVector<double>*>::iterator it = d_L2_proj_matrix_diag.begin(); it != d_L2_proj_matrix_diag.end(); ++it)
     {
         delete it->second;
     }
@@ -2364,8 +2358,7 @@ FEDataManager::collectActivePatchElements(
             frontier_elems.clear();
             if (local_elems.empty()) continue;
 
-            for (std::set<Elem*>::const_iterator cit = local_elems.begin();
-                 cit != local_elems.end(); ++cit)
+            for (std::set<Elem*>::const_iterator cit = local_elems.begin(); cit != local_elems.end(); ++cit)
             {
                 const Elem* const elem = *cit;
                 for (unsigned int n = 0; n < elem->n_neighbors(); ++n)
@@ -2396,8 +2389,7 @@ FEDataManager::collectActivePatchElements(
         const std::set<Elem*>&  local_elems =  local_patch_elems(local_patch_num);
         active_elems.resize(local_elems.size());
         int k = 0;
-        for (std::set<Elem*>::const_iterator cit = local_elems.begin();
-             cit != local_elems.end(); ++cit, ++k)
+        for (std::set<Elem*>::const_iterator cit = local_elems.begin(); cit != local_elems.end(); ++cit, ++k)
         {
             active_elems(k) = *cit;
         }
@@ -2420,15 +2412,13 @@ FEDataManager::collectGhostDOFIndices(
     // Include non-local DOF constraint dependencies for local DOFs in the list
     // of ghost DOFs.
     std::vector<unsigned int> constraint_dependency_dof_list;
-    for (DofConstraints::const_iterator i = dof_map.constraint_rows_begin();
-         i != dof_map.constraint_rows_end(); ++i)
+    for (DofConstraints::const_iterator i = dof_map.constraint_rows_begin(); i != dof_map.constraint_rows_end(); ++i)
     {
         const unsigned int constrained_dof = i->first;
         if (constrained_dof >= first_local_dof && constrained_dof < end_local_dof)
         {
             const DofConstraintRow& constraint_row = i->second.first;
-            for (DofConstraintRow::const_iterator j = constraint_row.begin();
-                 j != constraint_row.end(); ++j)
+            for (DofConstraintRow::const_iterator j = constraint_row.begin(); j != constraint_row.end(); ++j)
             {
                 const unsigned int constraint_dependency = j->first;
                 if (constraint_dependency < first_local_dof || constraint_dependency >= end_local_dof)
