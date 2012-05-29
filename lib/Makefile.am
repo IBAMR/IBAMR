@@ -81,13 +81,14 @@ $(top_srcdir)/src/IB/IBStrategySet.C \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.C \
 $(top_srcdir)/src/IB/IBTargetPointForceSpecFactory.C \
 $(top_srcdir)/src/IB/PenaltyIBMethod.C \
-$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.C \
+$(top_srcdir)/src/adv_diff/AdvDiffCenteredConvectiveOperator.C \
 $(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.C \
 $(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.C \
 $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
+$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.C \
+$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C \
 $(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.C \
 $(top_srcdir)/src/advect/GodunovAdvector.C \
-$(top_srcdir)/src/navier_stokes/ConvectiveOperator.C \
 $(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.C \
 $(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.C \
 $(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.C \
@@ -109,7 +110,8 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.C \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.C \
-$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C
+$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.C \
+$(top_srcdir)/src/utilities/ConvectiveOperator.C
 
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
@@ -151,13 +153,14 @@ $(top_srcdir)/src/IB/IBStrategySet.h \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.I \
 $(top_srcdir)/src/IB/IBTargetPointForceSpec.h \
 $(top_srcdir)/src/IB/PenaltyIBMethod.h \
-$(top_srcdir)/src/adv_diff/AdvDiffCenteredHierarchyIntegrator.h \
+$(top_srcdir)/src/adv_diff/AdvDiffCenteredConvectiveOperator.h \
 $(top_srcdir)/src/adv_diff/AdvDiffGodunovHierarchyIntegrator.h \
 $(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.h \
 $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.h \
+$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.h \
+$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.h \
 $(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.h \
 $(top_srcdir)/src/advect/GodunovAdvector.h \
-$(top_srcdir)/src/navier_stokes/ConvectiveOperator.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedHierarchyIntegrator.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedPPMConvectiveOperator.h \
@@ -179,7 +182,8 @@ $(top_srcdir)/src/navier_stokes/INSStaggeredProjectionPreconditioner.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStochasticForcing.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredStokesOperator.h \
 $(top_srcdir)/src/navier_stokes/INSStaggeredVelocityBcCoef.h \
-$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.h
+$(top_srcdir)/src/navier_stokes/SpongeLayerForceFunction.h \
+$(top_srcdir)/src/utilities/ConvectiveOperator.h
 
 if LIBMESH_ENABLED
 pkg_include_HEADERS += \

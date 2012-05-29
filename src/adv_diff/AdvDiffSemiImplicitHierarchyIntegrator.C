@@ -1,4 +1,4 @@
-// Filename: AdvDiffCenteredHierarchyIntegrator.C
+// Filename: AdvDiffSemiImplicitHierarchyIntegrator.C
 // Created on 22 May 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,7 +30,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "AdvDiffCenteredHierarchyIntegrator.h"
+#include "AdvDiffSemiImplicitHierarchyIntegrator.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -55,124 +55,15 @@
 // C++ STDLIB INCLUDES
 #include <limits>
 
-// FORTRAN ROUTINES
-#if (NDIM == 2)
-#define ADVECT_DERIVATIVE_FC FC_FUNC_(advect_derivative2d, ADVECT_DERIVATIVE2D)
-#define ADVECT_STABLEDT_FC FC_FUNC_(advect_stabledt2d, ADVECT_STABLEDT2D)
-#define CONVECT_DERIVATIVE_FC FC_FUNC_(convect_derivative2d, CONVECT_DERIVATIVE2D)
-#define SKEW_SYM_DERIVATIVE_FC FC_FUNC_(skew_sym_derivative2d, SKEW_SYM_DERIVATIVE2D)
-#endif
-
-#if (NDIM == 3)
-#define ADVECT_DERIVATIVE_FC FC_FUNC_(advect_derivative3d, ADVECT_DERIVATIVE3D)
-#define ADVECT_STABLEDT_FC FC_FUNC_(advect_stabledt3d, ADVECT_STABLEDT3D)
-#define CONVECT_DERIVATIVE_FC FC_FUNC_(convect_derivative3d, CONVECT_DERIVATIVE3D)
-#define SKEW_SYM_DERIVATIVE_FC FC_FUNC_(skew_sym_derivative3d, SKEW_SYM_DERIVATIVE3D)
-#endif
-
-extern "C"
-{
-    void
-    ADVECT_DERIVATIVE_FC(
-        const double*,
-#if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int& , const int& ,
-        const int& , const int& ,
-        const double* , const double* ,
-        const double* , const double* ,
-        const int& , const int& ,
-#endif
-#if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const double* , const double* , const double* ,
-        const double* , const double* , const double* ,
-        const int& , const int& , const int& ,
-#endif
-        double*
-                       );
-
-    void
-    ADVECT_STABLEDT_FC(
-        const double*,
-#if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int& , const int& ,
-        const double* , const double* ,
-#endif
-#if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const double* , const double* , const double* ,
-#endif
-        double&
-                       );
-
-    void
-    CONVECT_DERIVATIVE_FC(
-        const double*,
-#if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int& , const int& ,
-        const int& , const int& ,
-        const double* , const double* ,
-        const double* , const double* ,
-        const int& , const int& ,
-#endif
-#if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const double* , const double* , const double* ,
-        const double* , const double* , const double* ,
-        const int& , const int& , const int& ,
-#endif
-        double*
-                          );
-
-    void
-    SKEW_SYM_DERIVATIVE_FC(
-        const double*,
-#if (NDIM == 2)
-        const int& , const int& , const int& , const int& ,
-        const int& , const int& ,
-        const int& , const int& ,
-        const double* , const double* ,
-        const double* , const double* ,
-        const int& , const int& ,
-#endif
-#if (NDIM == 3)
-        const int& , const int& , const int& , const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const int& , const int& , const int& ,
-        const double* , const double* , const double* ,
-        const double* , const double* , const double* ,
-        const int& , const int& , const int& ,
-#endif
-        double*
-                           );
-}
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-namespace
-{
-// Number of ghosts cells used for each variable quantity.
-static const int CELLG = (USING_LARGE_GHOST_CELL_WIDTH ? 2 : 1);
-
-// Version of AdvDiffCenteredHierarchyIntegrator restart file data.
-static const int ADV_DIFF_CENTERED_HIERARCHY_INTEGRATOR_VERSION = 1;
-}
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-AdvDiffCenteredHierarchyIntegrator::AdvDiffCenteredHierarchyIntegrator(
+AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(
     const std::string& object_name,
     Pointer<Database> input_db,
     bool register_for_restart)
@@ -193,7 +84,7 @@ AdvDiffCenteredHierarchyIntegrator::AdvDiffCenteredHierarchyIntegrator(
         case TRAPEZOIDAL_RULE:
             break;
         default:
-            TBOX_ERROR(d_object_name << "::AdvDiffCenteredHierarchyIntegrator():\n"
+            TBOX_ERROR(d_object_name << "::AdvDiffSemiImplicitHierarchyIntegrator():\n"
                        << "  unsupported diffusion time stepping type: " << enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type) << " \n"
                        << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
@@ -205,7 +96,7 @@ AdvDiffCenteredHierarchyIntegrator::AdvDiffCenteredHierarchyIntegrator(
         case TRAPEZOIDAL_RULE:
             break;
         default:
-            TBOX_ERROR(d_object_name << "::AdvDiffCenteredHierarchyIntegrator():\n"
+            TBOX_ERROR(d_object_name << "::AdvDiffSemiImplicitHierarchyIntegrator():\n"
                        << "  unsupported convective time stepping type: " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " \n"
                        << "  valid choices are: ADAMS_BASHFORTH, FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
@@ -218,7 +109,7 @@ AdvDiffCenteredHierarchyIntegrator::AdvDiffCenteredHierarchyIntegrator(
             case TRAPEZOIDAL_RULE:
                 break;
             default:
-                TBOX_ERROR(d_object_name << "::AdvDiffCenteredHierarchyIntegrator():\n"
+                TBOX_ERROR(d_object_name << "::AdvDiffSemiImplicitHierarchyIntegrator():\n"
                            << "  unsupported initial convective time stepping type: " << enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type) << " \n"
                            << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
         }
@@ -228,28 +119,28 @@ AdvDiffCenteredHierarchyIntegrator::AdvDiffCenteredHierarchyIntegrator(
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (!input_db.isNull()) getFromInput(input_db, from_restart);
     return;
-}// AdvDiffCenteredHierarchyIntegrator
+}// AdvDiffSemiImplicitHierarchyIntegrator
 
-AdvDiffCenteredHierarchyIntegrator::~AdvDiffCenteredHierarchyIntegrator()
+AdvDiffSemiImplicitHierarchyIntegrator::~AdvDiffSemiImplicitHierarchyIntegrator()
 {
     // intentionally blank
     return;
-}// ~AdvDiffCenteredHierarchyIntegrator
+}// ~AdvDiffSemiImplicitHierarchyIntegrator
 
 TimeSteppingType
-AdvDiffCenteredHierarchyIntegrator::getConvectiveTimeSteppingType() const
+AdvDiffSemiImplicitHierarchyIntegrator::getConvectiveTimeSteppingType() const
 {
     return d_convective_time_stepping_type;
 }// getConvectiveTimeSteppingType
 
 TimeSteppingType
-AdvDiffCenteredHierarchyIntegrator::getInitialConvectiveTimeSteppingType() const
+AdvDiffSemiImplicitHierarchyIntegrator::getInitialConvectiveTimeSteppingType() const
 {
     return d_init_convective_time_stepping_type;
 }// getInitialConvectiveTimeSteppingType
 
 void
-AdvDiffCenteredHierarchyIntegrator::initializeHierarchyIntegrator(
+AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
     Pointer<PatchHierarchy<NDIM> > hierarchy,
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
@@ -279,7 +170,7 @@ AdvDiffCenteredHierarchyIntegrator::initializeHierarchyIntegrator(
 }// initializeHierarchyIntegrator
 
 int
-AdvDiffCenteredHierarchyIntegrator::getNumberOfCycles() const
+AdvDiffSemiImplicitHierarchyIntegrator::getNumberOfCycles() const
 {
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     if (initial_time)
@@ -300,7 +191,7 @@ AdvDiffCenteredHierarchyIntegrator::getNumberOfCycles() const
 }// getNumberOfCycles
 
 void
-AdvDiffCenteredHierarchyIntegrator::preprocessIntegrateHierarchy(
+AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
     const double current_time,
     const double new_time,
     const int num_cycles)
@@ -461,7 +352,7 @@ AdvDiffCenteredHierarchyIntegrator::preprocessIntegrateHierarchy(
 }// preprocessIntegrateHierarchy
 
 void
-AdvDiffCenteredHierarchyIntegrator::integrateHierarchy(
+AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
     const double current_time,
     const double new_time,
     const int cycle_num)
@@ -519,7 +410,7 @@ AdvDiffCenteredHierarchyIntegrator::integrateHierarchy(
                 convective_time_stepping_type = MIDPOINT_RULE;
                 IBAMR_DO_ONCE(
                     {
-                        pout << "AdvDiffCenteredHierarchyIntegrator::integrateHierarchy():\n"
+                        pout << "AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy():\n"
                              << "  WARNING: convective_time_stepping_type = " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " but num_cycles = " << d_num_cycles << " > 1.\n"
                              << "           using " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " only for the first cycle in each time step;\n"
                              << "           using " << enum_to_string<TimeSteppingType>(  convective_time_stepping_type) << " for subsequent cycles\n";
@@ -613,7 +504,7 @@ AdvDiffCenteredHierarchyIntegrator::integrateHierarchy(
 }// integrateHierarchy
 
 void
-AdvDiffCenteredHierarchyIntegrator::postprocessIntegrateHierarchy(
+AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
     const double /*current_time*/,
     const double new_time,
     const bool /*skip_synchronize_new_state_data*/,
@@ -636,7 +527,7 @@ AdvDiffCenteredHierarchyIntegrator::postprocessIntegrateHierarchy(
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 double
-AdvDiffCenteredHierarchyIntegrator::getTimeStepSizeSpecialized()
+AdvDiffSemiImplicitHierarchyIntegrator::getTimeStepSizeSpecialized()
 {
     double dt = d_dt_max;
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
@@ -687,7 +578,7 @@ AdvDiffCenteredHierarchyIntegrator::getTimeStepSizeSpecialized()
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-AdvDiffCenteredHierarchyIntegrator::getFromInput(
+AdvDiffSemiImplicitHierarchyIntegrator::getFromInput(
     Pointer<Database> db,
     bool /*is_from_restart*/)
 {

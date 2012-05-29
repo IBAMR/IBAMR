@@ -1,4 +1,4 @@
-// Filename: AdvDiffCenteredHierarchyIntegrator.h
+// Filename: AdvDiffSemiImplicitHierarchyIntegrator.h
 // Created on 22 May 2012 by Boyce Griffith
 //
 // Copyright (c) 2002-2010, Boyce Griffith
@@ -30,8 +30,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef included_AdvDiffCenteredHierarchyIntegrator
-#define included_AdvDiffCenteredHierarchyIntegrator
+#ifndef included_AdvDiffSemiImplicitHierarchyIntegrator
+#define included_AdvDiffSemiImplicitHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -46,7 +46,7 @@
 namespace IBAMR
 {
 /*!
- * \brief Class AdvDiffCenteredHierarchyIntegrator manages the spatial
+ * \brief Class AdvDiffSemiImplicitHierarchyIntegrator manages the spatial
  * discretization and time integration of scalar- and vector-valued quantities
  * whose dynamics are governed by the advection-diffusion equation.
  *
@@ -60,37 +60,34 @@ namespace IBAMR
  * synchronously in time.  In particular, subcycling in time is \em not
  * performed.
  *
- * Either Crank-Nicolson (i.e., the trapezoidal rule) or backward Euler is used
- * for the linearly implicit treatment of the diffusive terms.  The advective
- * terms are discretized by centered (unlimited) differencing in advective,
- * conservative, or skew-symmetric form.
+ * Various options are available for the spatial and temporal discretizations.
  *
  * \see HierarchyIntegrator
  * \see SAMRAI::mesh::StandardTagAndInitStrategy
  * \see SAMRAI::algs::TimeRefinementIntegrator
  * \see SAMRAI::algs::TimeRefinementLevelStrategy
  */
-class AdvDiffCenteredHierarchyIntegrator
+class AdvDiffSemiImplicitHierarchyIntegrator
     : public AdvDiffHierarchyIntegrator
 {
 public:
     /*!
-     * The constructor for class AdvDiffCenteredHierarchyIntegrator sets some
-     * default values, reads in configuration information from input and restart
-     * databases, and registers the integrator object with the restart manager
-     * when requested.
+     * The constructor for class AdvDiffSemiImplicitHierarchyIntegrator sets
+     * some default values, reads in configuration information from input and
+     * restart databases, and registers the integrator object with the restart
+     * manager when requested.
      */
-    AdvDiffCenteredHierarchyIntegrator(
+    AdvDiffSemiImplicitHierarchyIntegrator(
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         bool register_for_restart=true);
 
     /*!
-     * The destructor for class AdvDiffCenteredHierarchyIntegrator unregisters
-     * the integrator object with the restart manager when the object is so
-     * registered.
+     * The destructor for class AdvDiffSemiImplicitHierarchyIntegrator
+     * unregisters the integrator object with the restart manager when the
+     * object is so registered.
      */
-    ~AdvDiffCenteredHierarchyIntegrator();
+    ~AdvDiffSemiImplicitHierarchyIntegrator();
 
     /*!
      * Return the type of convective time integration scheme being employed by the
@@ -194,7 +191,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    AdvDiffCenteredHierarchyIntegrator();
+    AdvDiffSemiImplicitHierarchyIntegrator();
 
     /*!
      * \brief Copy constructor.
@@ -203,8 +200,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    AdvDiffCenteredHierarchyIntegrator(
-        const AdvDiffCenteredHierarchyIntegrator& from);
+    AdvDiffSemiImplicitHierarchyIntegrator(
+        const AdvDiffSemiImplicitHierarchyIntegrator& from);
 
     /*!
      * \brief Assignment operator.
@@ -215,9 +212,9 @@ private:
      *
      * \return A reference to this object.
      */
-    AdvDiffCenteredHierarchyIntegrator&
+    AdvDiffSemiImplicitHierarchyIntegrator&
     operator=(
-        const AdvDiffCenteredHierarchyIntegrator& that);
+        const AdvDiffSemiImplicitHierarchyIntegrator& that);
 
     /*!
      * Read input values from a given database.
@@ -242,8 +239,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-//#include <ibamr/AdvDiffCenteredHierarchyIntegrator.I>
+//#include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_AdvDiffCenteredHierarchyIntegrator
+#endif //#ifndef included_AdvDiffSemiImplicitHierarchyIntegrator
