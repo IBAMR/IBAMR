@@ -60,23 +60,6 @@
 // Elasticity model data.
 namespace ModelData
 {
-// Stress tensor function.
-void
-PK1_stress_function(
-    TensorValue<double>& PP,
-    const TensorValue<double>& /*FF*/,
-    const Point& /*X*/,
-    const Point& /*s*/,
-    Elem* const /*elem*/,
-    NumericVector<double>& /*X_vec*/,
-    const vector<NumericVector<double>*>& /*system_data*/,
-    double /*time*/,
-    void* /*ctx*/)
-{
-    PP.zero();
-    return;
-}// PK1_stress_function
-
 // Tether (penalty) force function.
 static double kappa_s = 1.0e6;
 void
@@ -230,7 +213,6 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
-        ib_method_ops->registerPK1StressTensorFunction(&PK1_stress_function);
         ib_method_ops->registerLagBodyForceFunction(&tether_force_function);
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 

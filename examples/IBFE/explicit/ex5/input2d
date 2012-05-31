@@ -44,7 +44,7 @@ OUTPUT_DIV_U               = TRUE
 ENABLE_LOGGING             = TRUE
 
 // model parameters
-KAPPA_S = 1.0e3/DT
+KAPPA_S = 6.25e1*DX/DT^2
 
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"

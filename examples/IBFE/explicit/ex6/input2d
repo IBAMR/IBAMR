@@ -2,7 +2,7 @@
 RHO   = 1.0e3
 MU    = 1.0
 U_BAR = 2.0
-U_MAX = 4.0*U_BAR
+U_MAX = 4.5*U_BAR
 D     = 0.1
 RE    = U_BAR*D*RHO/MU
 
@@ -19,11 +19,6 @@ MFAC = 1.0                                         // ratio of Lagrangian mesh w
 BLOCK_ELEM_TYPE = "QUAD4"                          // type of element to use for discretization of the circular block
 BEAM_ELEM_TYPE  = "QUAD4"                          // type of element to use for discretization of the thin beam
 
-// model parameters
-MU_S = 2.0e6
-NU_S = 0.4
-LAMBDA_S = 2.0*MU_S*NU_S/(1.0 - 2.0*NU_S)
-
 // solver parameters
 USE_IB_DELTA_FUNCTIONS     = TRUE                  // whether to use smoothed delta functions to mediate Lagrangian-Eulerian interaction
 DELTA_FUNCTION             = "IB_4"                // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
@@ -31,7 +26,7 @@ SPLIT_FORCES               = FALSE                 // whether to split interior 
 USE_JUMP_CONDITIONS        = FALSE                 // whether to impose pressure jumps at fluid-structure interfaces
 USE_CONSISTENT_MASS_MATRIX = TRUE                  // whether to use a consistent or lumped mass matrix
 USE_FBAR_PROJECTION        = FALSE                 // whether to use the F-bar projection method
-IB_POINT_DENSITY           = 3.0                   // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
+IB_POINT_DENSITY           = 2.0                   // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 SOLVER_TYPE                = "STAGGERED"           // the fluid solver to use (STAGGERED or COLLOCATED)
 START_TIME                 = 0.0e0                 // initial simulation time
 END_TIME                   = 20.0                  // final simulation time
@@ -57,6 +52,11 @@ ENABLE_LOGGING             = TRUE
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
 SECOND_ORDER_PRESSURE_UPDATE = TRUE
 USE_EXACT_PROJECTION_METHOD = FALSE
+
+// model parameters
+MU_S = 2.0e6
+NU_S = 0.4
+LAMBDA_S = 2.0*MU_S*NU_S/(1.0 - 2.0*NU_S)
 
 // penalty parameters
 KAPPA_S = 6.25e4 * DX / DT^2
