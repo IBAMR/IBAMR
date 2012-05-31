@@ -74,27 +74,30 @@
 #define LAGRANGIAN_PIECEWISE_LINEAR_INTERP_FC FC_FUNC_(lagrangian_piecewise_linear_interp2d, LAGRANGIAN_PIECEWISE_LINEAR_INTERP2D)
 #define LAGRANGIAN_PIECEWISE_LINEAR_SPREAD_FC FC_FUNC_(lagrangian_piecewise_linear_spread2d, LAGRANGIAN_PIECEWISE_LINEAR_SPREAD2D)
 
-#define LAGRANGIAN_WIDE_PIECEWISE_LINEAR_INTERP_FC FC_FUNC_(lagrangian_wide_piecewise_linear_interp2d, LAGRANGIAN_WIDE_PIECEWISE_LINEAR_INTERP2D)
-#define LAGRANGIAN_WIDE_PIECEWISE_LINEAR_SPREAD_FC FC_FUNC_(lagrangian_wide_piecewise_linear_spread2d, LAGRANGIAN_WIDE_PIECEWISE_LINEAR_SPREAD2D)
+#define LAGRANGIAN_WIDE4_PIECEWISE_LINEAR_INTERP_FC FC_FUNC_(lagrangian_wide4_piecewise_linear_interp2d, LAGRANGIAN_WIDE4_PIECEWISE_LINEAR_INTERP2D)
+#define LAGRANGIAN_WIDE4_PIECEWISE_LINEAR_SPREAD_FC FC_FUNC_(lagrangian_wide4_piecewise_linear_spread2d, LAGRANGIAN_WIDE4_PIECEWISE_LINEAR_SPREAD2D)
 
 #define LAGRANGIAN_PIECEWISE_CUBIC_INTERP_FC FC_FUNC_(lagrangian_piecewise_cubic_interp2d, LAGRANGIAN_PIECEWISE_CUBIC_INTERP2D)
 #define LAGRANGIAN_PIECEWISE_CUBIC_SPREAD_FC FC_FUNC_(lagrangian_piecewise_cubic_spread2d, LAGRANGIAN_PIECEWISE_CUBIC_SPREAD2D)
 
-#define LAGRANGIAN_WIDE_PIECEWISE_CUBIC_INTERP_FC FC_FUNC_(lagrangian_wide_piecewise_cubic_interp2d, LAGRANGIAN_WIDE_PIECEWISE_CUBIC_INTERP2D)
-#define LAGRANGIAN_WIDE_PIECEWISE_CUBIC_SPREAD_FC FC_FUNC_(lagrangian_wide_piecewise_cubic_spread2d, LAGRANGIAN_WIDE_PIECEWISE_CUBIC_SPREAD2D)
+#define LAGRANGIAN_WIDE8_PIECEWISE_CUBIC_INTERP_FC FC_FUNC_(lagrangian_wide8_piecewise_cubic_interp2d, LAGRANGIAN_WIDE8_PIECEWISE_CUBIC_INTERP2D)
+#define LAGRANGIAN_WIDE8_PIECEWISE_CUBIC_SPREAD_FC FC_FUNC_(lagrangian_wide8_piecewise_cubic_spread2d, LAGRANGIAN_WIDE8_PIECEWISE_CUBIC_SPREAD2D)
 
 #define LAGRANGIAN_IB_3_INTERP_FC FC_FUNC_(lagrangian_ib_3_interp2d, LAGRANGIAN_IB_3_INTERP2D)
 #define LAGRANGIAN_IB_3_SPREAD_FC FC_FUNC_(lagrangian_ib_3_spread2d, LAGRANGIAN_IB_3_SPREAD2D)
 
-#define LAGRANGIAN_WIDE_IB_3_INTERP_FC FC_FUNC_(lagrangian_wide_ib_3_interp2d, LAGRANGIAN_WIDE_IB_3_INTERP2D)
-#define LAGRANGIAN_WIDE_IB_3_SPREAD_FC FC_FUNC_(lagrangian_wide_ib_3_spread2d, LAGRANGIAN_WIDE_IB_3_SPREAD2D)
+#define LAGRANGIAN_WIDE6_IB_3_INTERP_FC FC_FUNC_(lagrangian_wide6_ib_3_interp2d, LAGRANGIAN_WIDE6_IB_3_INTERP2D)
+#define LAGRANGIAN_WIDE6_IB_3_SPREAD_FC FC_FUNC_(lagrangian_wide6_ib_3_spread2d, LAGRANGIAN_WIDE6_IB_3_SPREAD2D)
 
 #define LAGRANGIAN_IB_4_INTERP_FC FC_FUNC_(lagrangian_ib_4_interp2d, LAGRANGIAN_IB_4_INTERP2D)
 #define LAGRANGIAN_IB_4_SPREAD_FC FC_FUNC_(lagrangian_ib_4_spread2d, LAGRANGIAN_IB_4_SPREAD2D)
 #define LAGRANGIAN_IB_4_SPREAD_XP_FC FC_FUNC_(lagrangian_ib_4_spread_xp2d, LAGRANGIAN_IB_4_SPREAD_XP2D)
 
-#define LAGRANGIAN_WIDE_IB_4_INTERP_FC FC_FUNC_(lagrangian_wide_ib_4_interp2d, LAGRANGIAN_WIDE_IB_4_INTERP2D)
-#define LAGRANGIAN_WIDE_IB_4_SPREAD_FC FC_FUNC_(lagrangian_wide_ib_4_spread2d, LAGRANGIAN_WIDE_IB_4_SPREAD2D)
+#define LAGRANGIAN_WIDE8_IB_4_INTERP_FC FC_FUNC_(lagrangian_wide8_ib_4_interp2d, LAGRANGIAN_WIDE8_IB_4_INTERP2D)
+#define LAGRANGIAN_WIDE8_IB_4_SPREAD_FC FC_FUNC_(lagrangian_wide8_ib_4_spread2d, LAGRANGIAN_WIDE8_IB_4_SPREAD2D)
+
+#define LAGRANGIAN_WIDE16_IB_4_INTERP_FC FC_FUNC_(lagrangian_wide16_ib_4_interp2d, LAGRANGIAN_WIDE16_IB_4_INTERP2D)
+#define LAGRANGIAN_WIDE16_IB_4_SPREAD_FC FC_FUNC_(lagrangian_wide16_ib_4_spread2d, LAGRANGIAN_WIDE16_IB_4_SPREAD2D)
 
 #define LAGRANGIAN_IB_6_INTERP_FC FC_FUNC_(lagrangian_ib_6_interp2d, LAGRANGIAN_IB_6_INTERP2D)
 #define LAGRANGIAN_IB_6_SPREAD_FC FC_FUNC_(lagrangian_ib_6_spread2d, LAGRANGIAN_IB_6_SPREAD2D)
@@ -112,8 +115,11 @@
 #define LAGRANGIAN_IB_4_SPREAD_FC FC_FUNC_(lagrangian_ib_4_spread3d, LAGRANGIAN_IB_4_SPREAD3D)
 #define LAGRANGIAN_IB_4_SPREAD_XP_FC FC_FUNC_(lagrangian_ib_4_spread_xp3d, LAGRANGIAN_IB_4_SPREAD_XP3D)
 
-#define LAGRANGIAN_WIDE_IB_4_INTERP_FC FC_FUNC_(lagrangian_wide_ib_4_interp3d, LAGRANGIAN_WIDE_IB_4_INTERP3D)
-#define LAGRANGIAN_WIDE_IB_4_SPREAD_FC FC_FUNC_(lagrangian_wide_ib_4_spread3d, LAGRANGIAN_WIDE_IB_4_SPREAD3D)
+#define LAGRANGIAN_WIDE8_IB_4_INTERP_FC FC_FUNC_(lagrangian_wide8_ib_4_interp3d, LAGRANGIAN_WIDE8_IB_4_INTERP3D)
+#define LAGRANGIAN_WIDE8_IB_4_SPREAD_FC FC_FUNC_(lagrangian_wide8_ib_4_spread3d, LAGRANGIAN_WIDE8_IB_4_SPREAD3D)
+
+#define LAGRANGIAN_WIDE16_IB_4_INTERP_FC FC_FUNC_(lagrangian_wide16_ib_4_interp3d, LAGRANGIAN_WIDE16_IB_4_INTERP3D)
+#define LAGRANGIAN_WIDE16_IB_4_SPREAD_FC FC_FUNC_(lagrangian_wide16_ib_4_spread3d, LAGRANGIAN_WIDE16_IB_4_SPREAD3D)
 
 #define LAGRANGIAN_IB_6_INTERP_FC FC_FUNC_(lagrangian_ib_6_interp3d, LAGRANGIAN_IB_6_INTERP3D)
 #define LAGRANGIAN_IB_6_SPREAD_FC FC_FUNC_(lagrangian_ib_6_spread3d, LAGRANGIAN_IB_6_SPREAD3D)
@@ -188,7 +194,7 @@ extern "C"
                                           );
 
     void
-    LAGRANGIAN_WIDE_PIECEWISE_LINEAR_INTERP_FC(
+    LAGRANGIAN_WIDE4_PIECEWISE_LINEAR_INTERP_FC(
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -204,7 +210,7 @@ extern "C"
                                                );
 
     void
-    LAGRANGIAN_WIDE_PIECEWISE_LINEAR_SPREAD_FC(
+    LAGRANGIAN_WIDE4_PIECEWISE_LINEAR_SPREAD_FC(
         const double* , const double* , const double* , const int& ,
         const int* , const double* , const int& ,
         const double* , const double* ,
@@ -251,7 +257,7 @@ extern "C"
                                          );
 
     void
-    LAGRANGIAN_WIDE_PIECEWISE_CUBIC_INTERP_FC(
+    LAGRANGIAN_WIDE8_PIECEWISE_CUBIC_INTERP_FC(
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -267,7 +273,7 @@ extern "C"
                                               );
 
     void
-    LAGRANGIAN_WIDE_PIECEWISE_CUBIC_SPREAD_FC(
+    LAGRANGIAN_WIDE8_PIECEWISE_CUBIC_SPREAD_FC(
         const double* , const double* , const double* , const int& ,
         const int* , const double* , const int& ,
         const double* , const double* ,
@@ -315,7 +321,7 @@ extern "C"
                               );
 #if (NDIM == 2)
     void
-    LAGRANGIAN_WIDE_IB_3_INTERP_FC(
+    LAGRANGIAN_WIDE6_IB_3_INTERP_FC(
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -331,7 +337,7 @@ extern "C"
                                    );
 
     void
-    LAGRANGIAN_WIDE_IB_3_SPREAD_FC(
+    LAGRANGIAN_WIDE6_IB_3_SPREAD_FC(
         const double* , const double* , const double* , const int& ,
         const int* , const double* , const int& ,
         const double* , const double* ,
@@ -401,7 +407,7 @@ extern "C"
                                  );
 
     void
-    LAGRANGIAN_WIDE_IB_4_INTERP_FC(
+    LAGRANGIAN_WIDE8_IB_4_INTERP_FC(
         const double* , const double* , const double* , const int& ,
 #if (NDIM == 2)
         const int& , const int& , const int& , const int& ,
@@ -417,7 +423,39 @@ extern "C"
                                    );
 
     void
-    LAGRANGIAN_WIDE_IB_4_SPREAD_FC(
+    LAGRANGIAN_WIDE8_IB_4_SPREAD_FC(
+        const double* , const double* , const double* , const int& ,
+        const int* , const double* , const int& ,
+        const double* , const double* ,
+#if (NDIM == 2)
+        const int& , const int& , const int& , const int& ,
+        const int& , const int& ,
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+#endif
+        double*
+                                   );
+
+    void
+    LAGRANGIAN_WIDE16_IB_4_INTERP_FC(
+        const double* , const double* , const double* , const int& ,
+#if (NDIM == 2)
+        const int& , const int& , const int& , const int& ,
+        const int& , const int& ,
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+#endif
+        const double* ,
+        const int* , const double* , const int& ,
+        const double* , double*
+                                   );
+
+    void
+    LAGRANGIAN_WIDE16_IB_4_SPREAD_FC(
         const double* , const double* , const double* , const int& ,
         const int* , const double* , const int& ,
         const double* , const double* ,
@@ -632,16 +670,17 @@ LEInteractor::getStencilSize(
     if (weighting_fcn == "PIECEWISE_CONSTANT") return 1;
 #if (NDIM == 2)
     if (weighting_fcn == "PIECEWISE_LINEAR") return 2;
-    if (weighting_fcn == "WIDE_PIECEWISE_LINEAR") return 4;
+    if (weighting_fcn == "WIDE4_PIECEWISE_LINEAR") return 4;
     if (weighting_fcn == "PIECEWISE_CUBIC") return 4;
-    if (weighting_fcn == "WIDE_PIECEWISE_CUBIC") return 8;
+    if (weighting_fcn == "WIDE8_PIECEWISE_CUBIC") return 8;
 #endif
     if (weighting_fcn == "IB_3") return 4;
 #if (NDIM == 2)
-    if (weighting_fcn == "WIDE_IB_3") return 6;
+    if (weighting_fcn == "WIDE6_IB_3") return 6;
 #endif
     if (weighting_fcn == "IB_4") return 4;
-    if (weighting_fcn == "WIDE_IB_4") return 8;
+    if (weighting_fcn == "WIDE8_IB_4") return 8;
+    if (weighting_fcn == "WIDE16_IB_4") return 16;
     if (weighting_fcn == "IB_6") return 6;
     if (weighting_fcn == "USER_DEFINED") return s_delta_fcn_stencil_size;
     TBOX_ERROR("LEInteractor::getStencilSize()\n"
@@ -657,9 +696,9 @@ LEInteractor::getC(
     if (weighting_fcn == "PIECEWISE_CONSTANT") return 1.0;
 #if (NDIM == 2)
     if (weighting_fcn == "PIECEWISE_LINEAR" ||
-        weighting_fcn == "WIDE_PIECEWISE_LINEAR" ||
+        weighting_fcn == "WIDE4_PIECEWISE_LINEAR" ||
         weighting_fcn == "PIECEWISE_CUBIC" ||
-        weighting_fcn == "WIDE_PIECEWISE_CUBIC")
+        weighting_fcn == "WIDE8_PIECEWISE_CUBIC")
     {
         TBOX_ERROR("LEInteractor::getC()\n"
                    << "  Weighting function " << weighting_fcn << " does not satisfy the quadratic (sum-of-squares) condition.\n"
@@ -668,10 +707,11 @@ LEInteractor::getC(
 #endif
     if (weighting_fcn == "IB_3") return 0.5;
 #if (NDIM == 2)
-    if (weighting_fcn == "WIDE_IB_3") return 0.25*getC("IB_3");
+    if (weighting_fcn == "WIDE6_IB_3") return 0.25*getC("IB_3");
 #endif
     if (weighting_fcn == "IB_4") return 3.0/8.0;
-    if (weighting_fcn == "WIDE_IB_4") return 0.25*getC("IB_4");
+    if (weighting_fcn == "WIDE8_IB_4") return 0.25*getC("IB_4");
+    if (weighting_fcn == "WIDE16_IB_4") return 0.0625*getC("IB_4");
     if (weighting_fcn == "IB_6") return 67.0/128.0;
     if (weighting_fcn == "USER_DEFINED") return s_delta_fcn_C;
     TBOX_ERROR("LEInteractor::getC()\n"
@@ -1833,10 +1873,10 @@ LEInteractor::interpolate(
                    "  Weighting function " << interp_fcn << " is only supported in 2D" << std::endl);
 #endif
     }
-    else if (interp_fcn == "WIDE_PIECEWISE_LINEAR")
+    else if (interp_fcn == "WIDE4_PIECEWISE_LINEAR")
     {
 #if (NDIM == 2)
-        LAGRANGIAN_WIDE_PIECEWISE_LINEAR_INTERP_FC(
+        LAGRANGIAN_WIDE4_PIECEWISE_LINEAR_INTERP_FC(
             dx,x_lower,x_upper,q_depth,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
@@ -1875,10 +1915,10 @@ LEInteractor::interpolate(
                    "  Weighting function " << interp_fcn << " is only supported in 2D" << std::endl);
 #endif
     }
-    else if (interp_fcn == "WIDE_PIECEWISE_CUBIC")
+    else if (interp_fcn == "WIDE8_PIECEWISE_CUBIC")
     {
 #if (NDIM == 2)
-        LAGRANGIAN_WIDE_PIECEWISE_CUBIC_INTERP_FC(
+        LAGRANGIAN_WIDE8_PIECEWISE_CUBIC_INTERP_FC(
             dx,x_lower,x_upper,q_depth,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
@@ -1912,10 +1952,10 @@ LEInteractor::interpolate(
             &local_indices[0], &periodic_offsets[0], local_indices_size,
             X_data,Q_data);
     }
-    else if (interp_fcn == "WIDE_IB_3")
+    else if (interp_fcn == "WIDE6_IB_3")
     {
 #if (NDIM == 2)
-        LAGRANGIAN_WIDE_IB_3_INTERP_FC(
+        LAGRANGIAN_WIDE6_IB_3_INTERP_FC(
             dx,x_lower,x_upper,q_depth,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
@@ -1953,9 +1993,25 @@ LEInteractor::interpolate(
             &local_indices[0], &periodic_offsets[0], local_indices_size,
             X_data,Q_data);
     }
-    else if (interp_fcn == "WIDE_IB_4")
+    else if (interp_fcn == "WIDE8_IB_4")
     {
-        LAGRANGIAN_WIDE_IB_4_INTERP_FC(
+        LAGRANGIAN_WIDE8_IB_4_INTERP_FC(
+            dx,x_lower,x_upper,q_depth,
+#if (NDIM == 2)
+            ilower(0),iupper(0),ilower(1),iupper(1),
+            q_gcw(0),q_gcw(1),
+#endif
+#if (NDIM == 3)
+            ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+            q_gcw(0),q_gcw(1),q_gcw(2),
+#endif
+            q_data,
+            &local_indices[0], &periodic_offsets[0], local_indices_size,
+            X_data,Q_data);
+    }
+    else if (interp_fcn == "WIDE16_IB_4")
+    {
+        LAGRANGIAN_WIDE16_IB_4_INTERP_FC(
             dx,x_lower,x_upper,q_depth,
 #if (NDIM == 2)
             ilower(0),iupper(0),ilower(1),iupper(1),
@@ -2091,12 +2147,12 @@ LEInteractor::spread(
                    "  Weighting function " << spread_fcn << " is only supported in 2D" << std::endl);
 #endif
     }
-    else if (spread_fcn == "WIDE_PIECEWISE_LINEAR")
+    else if (spread_fcn == "WIDE4_PIECEWISE_LINEAR")
     {
 #if (NDIM == 2)
         if (s_precision_mode == DOUBLE)
         {
-            LAGRANGIAN_WIDE_PIECEWISE_LINEAR_SPREAD_FC(
+            LAGRANGIAN_WIDE4_PIECEWISE_LINEAR_SPREAD_FC(
                 dx,x_lower,x_upper,q_depth,
                 &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data, Q_data,
@@ -2113,7 +2169,7 @@ LEInteractor::spread(
         else if (s_precision_mode == DOUBLE_DOUBLE)
         {
             TBOX_ERROR("LEInteractor::spread():\n"
-                       << "  extended precision not currently supported for WIDE_PIECEWISE_LINEAR delta function.\n");
+                       << "  extended precision not currently supported for WIDE4_PIECEWISE_LINEAR delta function.\n");
         }
         else
         {
@@ -2159,12 +2215,12 @@ LEInteractor::spread(
                    "  Weighting function " << spread_fcn << " is only supported in 2D" << std::endl);
 #endif
     }
-    else if (spread_fcn == "WIDE_PIECEWISE_CUBIC")
+    else if (spread_fcn == "WIDE8_PIECEWISE_CUBIC")
     {
 #if (NDIM == 2)
         if (s_precision_mode == DOUBLE)
         {
-            LAGRANGIAN_WIDE_PIECEWISE_CUBIC_SPREAD_FC(
+            LAGRANGIAN_WIDE8_PIECEWISE_CUBIC_SPREAD_FC(
                 dx,x_lower,x_upper,q_depth,
                 &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data, Q_data,
@@ -2181,7 +2237,7 @@ LEInteractor::spread(
         else if (s_precision_mode == DOUBLE_DOUBLE)
         {
             TBOX_ERROR("LEInteractor::spread():\n"
-                       << "  extended precision not currently supported for WIDE_PIECEWISE_CUBIC delta function.\n");
+                       << "  extended precision not currently supported for WIDE8_PIECEWISE_CUBIC delta function.\n");
         }
         else
         {
@@ -2222,12 +2278,12 @@ LEInteractor::spread(
                        << "  invalid precision mode; s_precision_mode = " << s_precision_mode << ".\n");
         }
     }
-    else if (spread_fcn == "WIDE_IB_3")
+    else if (spread_fcn == "WIDE6_IB_3")
     {
 #if (NDIM == 2)
         if (s_precision_mode == DOUBLE)
         {
-            LAGRANGIAN_WIDE_IB_3_SPREAD_FC(
+            LAGRANGIAN_WIDE6_IB_3_SPREAD_FC(
                 dx,x_lower,x_upper,q_depth,
                 &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data, Q_data,
@@ -2244,7 +2300,7 @@ LEInteractor::spread(
         else if (s_precision_mode == DOUBLE_DOUBLE)
         {
             TBOX_ERROR("LEInteractor::spread():\n"
-                       << "  extended precision not currently supported for WIDE_IB_3 delta function.\n");
+                       << "  extended precision not currently supported for WIDE6_IB_3 delta function.\n");
         }
         else
         {
@@ -2304,11 +2360,11 @@ LEInteractor::spread(
                        << "  invalid precision mode; s_precision_mode = " << s_precision_mode << ".\n");
         }
     }
-    else if (spread_fcn == "WIDE_IB_4")
+    else if (spread_fcn == "WIDE8_IB_4")
     {
         if (s_precision_mode == DOUBLE)
         {
-            LAGRANGIAN_WIDE_IB_4_SPREAD_FC(
+            LAGRANGIAN_WIDE8_IB_4_SPREAD_FC(
                 dx,x_lower,x_upper,q_depth,
                 &local_indices[0], &periodic_offsets[0], local_indices_size,
                 X_data, Q_data,
@@ -2325,7 +2381,36 @@ LEInteractor::spread(
         else if (s_precision_mode == DOUBLE_DOUBLE)
         {
             TBOX_ERROR("LEInteractor::spread():\n"
-                       << "  extended precision not currently supported for WIDE_IB_4 delta function.\n");
+                       << "  extended precision not currently supported for WIDE8_IB_4 delta function.\n");
+        }
+        else
+        {
+            TBOX_ERROR("LEInteractor::spread():\n"
+                       << "  invalid precision mode; s_precision_mode = " << s_precision_mode << ".\n");
+        }
+    }
+    else if (spread_fcn == "WIDE16_IB_4")
+    {
+        if (s_precision_mode == DOUBLE)
+        {
+            LAGRANGIAN_WIDE16_IB_4_SPREAD_FC(
+                dx,x_lower,x_upper,q_depth,
+                &local_indices[0], &periodic_offsets[0], local_indices_size,
+                X_data, Q_data,
+#if (NDIM == 2)
+                ilower(0),iupper(0),ilower(1),iupper(1),
+                q_gcw(0),q_gcw(1),
+#endif
+#if (NDIM == 3)
+                ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+                q_gcw(0),q_gcw(1),q_gcw(2),
+#endif
+                q_data);
+        }
+        else if (s_precision_mode == DOUBLE_DOUBLE)
+        {
+            TBOX_ERROR("LEInteractor::spread():\n"
+                       << "  extended precision not currently supported for WIDE16_IB_4 delta function.\n");
         }
         else
         {
