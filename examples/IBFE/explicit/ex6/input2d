@@ -2,7 +2,7 @@
 RHO   = 1.0e3
 MU    = 1.0
 U_BAR = 2.0
-U_MAX = 4.5
+U_MAX = 5.0
 D     = 0.1
 RE    = U_BAR*D*RHO/MU
 
@@ -36,7 +36,7 @@ CONVECTIVE_OP_TYPE         = "PPM"                 // convective differencing di
 CONVECTIVE_FORM            = "ADVECTIVE"           // how to compute the convective terms
 NORMALIZE_PRESSURE         = FALSE                 // whether to explicitly force the pressure to have mean zero
 CFL_MAX                    = 0.125                 // maximum CFL number
-DT                         = 0.25*CFL_MAX*DX/U_MAX // maximum timestep size
+DT                         = 0.3*CFL_MAX*DX/U_MAX  // maximum timestep size
 ERROR_ON_DT_CHANGE         = TRUE                  // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING          = TRUE                  // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                     // size of tag buffer used by grid generation algorithm

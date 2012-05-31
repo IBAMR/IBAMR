@@ -52,7 +52,7 @@ OUTPUT_DIV_U               = TRUE
 ENABLE_LOGGING             = TRUE
 
 // Penalty parameter
-KAPPA_S = 2.5e2*DX/(DT^2)
+KAPPA_S = 2.5e1*DX/(DT^2)
 
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
