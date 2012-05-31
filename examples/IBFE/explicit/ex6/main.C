@@ -61,8 +61,9 @@
 // Elasticity model data.
 namespace ModelData
 {
-// Tether (penalty) force function for the solid block.
 static double kappa_s = 1.0e6;
+
+// Tether (penalty) force function for the solid block.
 void
 block_tether_force_function(
     VectorValue<double>& F,
@@ -78,6 +79,31 @@ block_tether_force_function(
     F = kappa_s*(s-X);
     return;
 }// block_tether_force_function
+
+// Tether (penalty) force function for the thin beam.
+void
+beam_tether_force_function(
+    VectorValue<double>& F,
+    const TensorValue<double>& /*FF*/,
+    const Point& X,
+    const Point& s,
+    Elem* const /*elem*/,
+    NumericVector<double>& /*X_vec*/,
+    const vector<NumericVector<double>*>& /*system_data*/,
+    double /*time*/,
+    void* /*ctx*/)
+{
+    const double r = sqrt((s(0) - 0.2)*(s(0) - 0.2) + (s(1) - 0.2)*(s(1) - 0.2));
+    if (r <= 0.05)
+    {
+        F = kappa_s*(s-X);
+    }
+    else
+    {
+        F.zero();
+    }
+    return;
+}// beam_tether_force_function
 
 // Stress tensor function for the thin beam.
 static double mu_s, lambda_s;
@@ -272,6 +298,7 @@ main(
 
         // Configure the IBFE solver.
         ib_method_ops->registerLagBodyForceFunction(&block_tether_force_function, std::vector<unsigned int>(), NULL, 0);
+        ib_method_ops->registerLagBodyForceFunction( &beam_tether_force_function, std::vector<unsigned int>(), NULL, 1);
         ib_method_ops->registerPK1StressTensorFunction(&beam_PK1_stress_function, std::vector<unsigned int>(), NULL, 1);
         EquationSystems* block_equation_systems = ib_method_ops->getFEDataManager(0)->getEquationSystems();
         EquationSystems*  beam_equation_systems = ib_method_ops->getFEDataManager(1)->getEquationSystems();
