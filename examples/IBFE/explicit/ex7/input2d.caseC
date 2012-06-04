@@ -1,8 +1,8 @@
 // physical parameters
 RHO   = 1.0                                         // mass density of fluid (gm/cm^3)
 MU    = 0.01                                        // dynamic viscosity of fluid (gm/(cm s))
-U_BAR = 54.0                                        // mean inflow velocity (cm/s)
-U_MAX = 4.0*U_BAR                                   // approximate maximum velocity (cm/2)
+U_BAR = 5.0                                         // mean inflow velocity (cm/s)
+U_MAX = 4.0*U_BAR                                   // approximate maximum velocity in the entire domain (cm/2)
 P_E   = 48.75                                       // external pressure (dyne/cm^2)
 E_S  = 4785000.0                                    // Young's modulus of material (dyne/cm^2)
 NU_S = 0.45                                         // Poisson's ratio of material
@@ -29,17 +29,17 @@ SPLIT_FORCES               = FALSE                  // whether to split interior
 USE_JUMP_CONDITIONS        = FALSE                  // whether to impose pressure jumps at fluid-structure interfaces
 USE_CONSISTENT_MASS_MATRIX = TRUE                   // whether to use a consistent or lumped mass matrix
 USE_FBAR_PROJECTION        = FALSE                  // whether to use the F-bar projection method
-IB_POINT_DENSITY           = 2.0                    // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
+IB_POINT_DENSITY           = 3.0                    // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 SOLVER_TYPE                = "STAGGERED"            // the fluid solver to use (STAGGERED or COLLOCATED)
 START_TIME                 = 0.0e0                  // initial simulation time
-END_TIME                   = 100.0                  // final simulation time
+END_TIME                   = 1000.0                 // final simulation time
 GROW_DT                    = 2.0e0                  // growth factor for timesteps
 NUM_CYCLES                 = 1                      // number of cycles of fixed-point iteration
 CONVECTIVE_OP_TYPE         = "PPM"                  // convective differencing discretization type
 CONVECTIVE_FORM            = "ADVECTIVE"            // how to compute the convective terms
 NORMALIZE_PRESSURE         = FALSE                  // whether to explicitly force the pressure to have mean zero
 CFL_MAX                    = 0.1                    // maximum CFL number
-DT                         = 0.25*CFL_MAX*DX/U_MAX  // maximum timestep size
+DT                         = 0.125*CFL_MAX*DX/U_MAX // maximum timestep size
 ERROR_ON_DT_CHANGE         = TRUE                   // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING          = TRUE                   // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                      // size of tag buffer used by grid generation algorithm
@@ -85,7 +85,8 @@ VelocityBcCoefs_0 {
 }
 
 VelocityBcCoefs_1 {
-   P_e = P_E
+   p_e = P_E
+   tau = 1.0
 
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
@@ -100,7 +101,7 @@ VelocityBcCoefs_1 {
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
-   gcoef_function_3 = "-P_e"
+   gcoef_function_3 = "-p_e*if(t < tau , 0.5*(1.0-cos(pi*t/tau)) , 1.0)"
 }
 
 SpongeLayerForceFunction {
@@ -316,7 +317,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt" , "ExodusII"
-   viz_dump_interval           = int(32.0/CFL_MAX)          // zero to turn off
+   viz_dump_interval           = int(320.0/CFL_MAX)         // zero to turn off
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
