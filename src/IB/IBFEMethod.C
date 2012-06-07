@@ -1885,7 +1885,7 @@ IBFEMethod::commonConstructor(
     d_use_Fbar_projection = false;
     d_fe_family = LAGRANGE;
     d_fe_order = INVALID_ORDER;
-    d_F_dil_bar_fe_family = MONOMIAL;
+    d_F_dil_bar_fe_family = L2_LAGRANGE;
     d_F_dil_bar_fe_order = CONSTANT;
     d_quad_type = QGAUSS;
     d_quad_order = FIFTH;
@@ -1941,12 +1941,21 @@ IBFEMethod::commonConstructor(
         d_fe_order = SECOND;
         d_quad_order = FIFTH;
     }
-    pout << d_object_name << ": using " << Utility::enum_to_string<Order>(d_fe_order) << " order " << Utility::enum_to_string<FEFamily>(d_fe_family) << " finite elements.\n\n";
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     if (!input_db.isNull()) getFromInput(input_db, from_restart);
+
+    // Report configuration.
+    pout << "\n";
+    pout << d_object_name << ": using " << Utility::enum_to_string<Order>(d_fe_order) << " order " << Utility::enum_to_string<FEFamily>(d_fe_family) << " finite elements.\n";
+    if (d_use_Fbar_projection)
+    {
+        if (d_F_dil_bar_fe_family == L2_LAGRANGE && d_F_dil_bar_fe_order == CONSTANT) d_F_dil_bar_fe_family = MONOMIAL;
+        pout << d_object_name << ": using FF-bar projection method with " << Utility::enum_to_string<Order>(d_F_dil_bar_fe_order) << " order " << Utility::enum_to_string<FEFamily>(d_F_dil_bar_fe_family) << " finite elements for the dilataional strain.\n";
+    }
+    pout << "\n";
 
     // Check the choices for the delta function.
     if (d_interp_delta_fcn != d_spread_delta_fcn)
