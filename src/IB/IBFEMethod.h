@@ -501,6 +501,12 @@ protected:
         unsigned int part);
 
     /*!
+     * \brief Correct rigid body velocities on the grid.
+     */
+    void
+    correctRigidBodyVelocity();
+
+    /*!
      * \brief Initialize the physical coordinates using the supplied coordinate
      * mapping function.  If no function is provided, the initial coordinates
      * are taken to be the Lagrangian coordinates.
@@ -533,11 +539,6 @@ protected:
      * The current time step interval.
      */
     double d_current_time, d_new_time, d_half_time;
-
-    /*
-     * The previous time step size.
-     */
-    double d_dt_previous;
 
     /*
      * The structure mass density.
@@ -583,9 +584,14 @@ protected:
     libMesh::QBase* d_ib_qrule_face;
 
     /*
-     * Vector of booleans indicating rigid parts.
+     * Data related to handling rigid body constraints.
      */
+    double d_dt_previous;
+    bool d_has_rigid_parts;
     std::vector<bool> d_rigid_structure;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_correction_projection_fac_pc_db;
+    double d_constraint_omega;
+    bool d_do_constraint_projection;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.

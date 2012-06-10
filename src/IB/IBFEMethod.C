@@ -51,6 +51,7 @@
 // IBTK INCLUDES
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/LEInteractor.h>
+#include <ibtk/PETScKrylovLinearSolver.h>
 
 // LIBMESH INCLUDES
 #include <boundary_info.h>
@@ -167,6 +168,7 @@ void
 IBFEMethod::registerRigidStructure(
     unsigned int part)
 {
+    d_has_rigid_parts = true;
     d_rigid_structure[part] = true;
     return;
 }// registerRigidStructure
@@ -249,7 +251,7 @@ IBFEMethod::preprocessIntegrateData(
     d_current_time = current_time;
     d_new_time = new_time;
     d_half_time = current_time+0.5*(new_time-current_time);
-    const double dt = d_new_time-d_current_time;
+    double dt = d_new_time-d_current_time;
 
     // Extract the FE data.
     d_X_systems      .resize(d_num_parts);
@@ -302,12 +304,10 @@ IBFEMethod::preprocessIntegrateData(
         d_U_current_vecs[part]->localize(*d_U_new_vecs[part]);
         d_U_new_vecs[part]->close();
 
-        // Reset the current estimate for the constraint forces for the current
-        // time step size.
+        // Reset constraint forces.
         if (d_rigid_structure[part])
         {
             int ierr = VecScale(d_F_half_vecs[part]->vec(), d_dt_previous/dt); IBTK_CHKERRQ(ierr);
-            d_F_half_vecs[part]->close();
         }
     }
     return;
@@ -319,6 +319,8 @@ IBFEMethod::postprocessIntegrateData(
     double /*new_time*/,
     int /*num_cycles*/)
 {
+    if (d_has_rigid_parts) correctRigidBodyVelocity();
+
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         // Reset time-dependent Lagrangian data.
@@ -360,7 +362,7 @@ IBFEMethod::postprocessIntegrateData(
     d_F_dil_bar_half_vecs    .clear();
     d_F_dil_bar_IB_ghost_vecs.clear();
 
-    // Store the time step size.
+    // Keep track of the time step size.
     d_dt_previous = d_new_time-d_current_time;
 
     // Reset the current time step interval.
@@ -405,7 +407,7 @@ IBFEMethod::interpolateVelocity(
         }
         else
         {
-            d_fe_data_managers[part]->restrictValue(u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, false);
+            d_fe_data_managers[part]->restrictData(u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, false);
         }
     }
     return;
@@ -528,7 +530,7 @@ IBFEMethod::spreadForce(
         }
         else
         {
-            d_fe_data_managers[part]->prolongDensity(f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, false, false);
+            d_fe_data_managers[part]->prolongData(f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, false, false, /*is_density*/ true, /*accumulate_on_grid*/ true);
         }
         if (d_split_forces)
         {
@@ -895,7 +897,7 @@ IBFEMethod::computeConstraintForceDensity(
     const unsigned int /*part*/)
 {
     const double dt = d_new_time-d_current_time;
-    int ierr = VecAXPY(F_vec.vec(), -d_rho/dt, U_vec.vec()); IBTK_CHKERRQ(ierr);
+    int ierr = VecAXPY(F_vec.vec(), -d_constraint_omega*d_rho/dt, U_vec.vec()); IBTK_CHKERRQ(ierr);
     F_vec.close();
     return;
 }// trapezoidalStep
@@ -1838,6 +1840,141 @@ IBFEMethod::imposeJumpConditions(
 }// imposeJumpConditions
 
 void
+IBFEMethod::correctRigidBodyVelocity()
+{
+    if (!d_has_rigid_parts) return;
+
+    Pointer<SideVariable<NDIM,double> > u_var = d_ib_solver->getVelocityVariable();
+    Pointer<CellVariable<NDIM,double> > p_var = d_ib_solver->getPressureVariable();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int u_new_idx     = var_db->mapVariableAndContextToIndex(u_var, d_ib_solver->getNewContext()    );
+    const int p_scratch_idx = var_db->mapVariableAndContextToIndex(p_var, d_ib_solver->getScratchContext());
+    const int p_new_idx     = var_db->mapVariableAndContextToIndex(p_var, d_ib_solver->getNewContext()    );
+
+    // Force the Eulerian velocity field to agree with the constrained body
+    // velocities.
+    for (unsigned part = 0; part < d_num_parts; ++part)
+    {
+        if (!d_rigid_structure[part]) continue;
+        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+        d_X_half_vecs[part]->localize(*X_ghost_vec);
+        X_ghost_vec->close();
+        PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
+        if (d_use_IB_spread_operator)
+        {
+            int ierr = VecCopy(d_U_new_vecs[part]->vec(), F_ghost_vec->vec()); IBTK_CHKERRQ(ierr);
+            ierr = VecScale(F_ghost_vec->vec(), -1.0);
+            F_ghost_vec->close();
+            d_fe_data_managers[part]->spread(u_new_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, false, false);
+        }
+        else
+        {
+            F_ghost_vec->zero();
+            F_ghost_vec->close();
+            d_fe_data_managers[part]->prolongData(u_new_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, false, false, /*is_density*/ false, /*accumulate_on_grid*/ false);
+        }
+    }
+
+    if (!d_do_constraint_projection) return;
+
+    // Project the corrected Eulerian velocity field.
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    Pointer<HierarchyDataOpsReal<NDIM,double> > hier_cc_data_ops = getPressureHierarchyDataOps();
+    Pointer<HierarchyMathOps> hier_math_ops = getHierarchyMathOps();
+    const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
+    const double volume = hier_math_ops->getVolumeOfPhysicalDomain();
+
+    // Setup a variable to store the right-hand-side value for the corrected
+    // pressure.
+    int p_rhs_idx = var_db->registerClonedPatchDataIndex(p_var, p_scratch_idx);
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(p_rhs_idx, d_new_time);
+    }
+
+    // Setup the solver vectors.
+    SAMRAIVectorReal<NDIM,double> sol_vec(d_object_name+"::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
+    sol_vec.addComponent(p_var, p_scratch_idx, wgt_cc_idx, hier_cc_data_ops);
+
+    SAMRAIVectorReal<NDIM,double> rhs_vec(d_object_name+"::rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
+    rhs_vec.addComponent(p_var, p_rhs_idx    , wgt_cc_idx, hier_cc_data_ops);
+
+    // Setup the projection Poisson solver.
+    const std::string correction_projection_prefix = "correction_projection_";
+    LocationIndexRobinBcCoefs<NDIM> Phi_bc_coef;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        Phi_bc_coef.setBoundarySlope(2*d  ,0.0);
+        Phi_bc_coef.setBoundarySlope(2*d+1,0.0);
+    }
+
+    PoissonSpecifications correction_projection_spec(d_object_name+"::correction_projection_spec");
+    correction_projection_spec.setCZero();
+    correction_projection_spec.setDConstant(-1.0);
+
+    Pointer<CCLaplaceOperator> correction_projection_op = new CCLaplaceOperator(d_object_name+"::Correction Projection Operator", correction_projection_spec, &Phi_bc_coef, true);
+    correction_projection_op->setHierarchyMathOps(getPressureHierarchyDataOps());
+    correction_projection_op->setPoissonSpecifications(correction_projection_spec);
+    correction_projection_op->setPhysicalBcCoef(&Phi_bc_coef);
+    correction_projection_op->setHomogeneousBc(true);
+    correction_projection_op->setTime(d_new_time);
+    correction_projection_op->setHierarchyMathOps(getHierarchyMathOps());
+
+    if (d_correction_projection_fac_pc_db.isNull())
+    {
+        TBOX_WARNING(d_object_name << "::correctionHierarchy():\n" <<
+                     "  correction projection pressure fac pc solver database is null." << std::endl);
+    }
+    Pointer<CCPoissonPointRelaxationFACOperator> correction_projection_fac_op = new CCPoissonPointRelaxationFACOperator(d_object_name+"::Correction Projection FAC Operator", d_correction_projection_fac_pc_db);
+    correction_projection_fac_op->setPoissonSpecifications(correction_projection_spec);
+    correction_projection_fac_op->setPhysicalBcCoef(&Phi_bc_coef);
+    correction_projection_fac_op->setTime(d_new_time);
+    Pointer<FACPreconditioner> correction_projection_fac_pc = new FACPreconditioner(d_object_name+"::Correction Projection Preconditioner", correction_projection_fac_op, d_correction_projection_fac_pc_db);
+
+    PETScKrylovLinearSolver correction_projection_solver(d_object_name+"::Correction Projection Krylov Solver", correction_projection_prefix);
+    correction_projection_solver.setOperator(correction_projection_op);
+    correction_projection_solver.setPreconditioner(correction_projection_fac_pc);
+
+    // Set some default options.
+    correction_projection_solver.setKSPType("fgmres");
+    correction_projection_solver.setAbsoluteTolerance(1.0e-12);
+    correction_projection_solver.setRelativeTolerance(1.0e-08);
+    correction_projection_solver.setMaxIterations(25);
+    correction_projection_solver.setNullspace(true);
+    correction_projection_solver.setInitialGuessNonzero(false);
+
+    // Setup the right-hand-side vector for the projection-Poisson solve.
+    Pointer<HierarchyGhostCellInterpolation> no_fill_op(NULL);
+    hier_math_ops->div(p_rhs_idx, p_var, -1.0, u_new_idx, u_var, no_fill_op, d_new_time, /*synch_cf_bdry*/ false);
+    const double div_u_mean = (1.0/volume)*hier_cc_data_ops->integral(p_rhs_idx, wgt_cc_idx);
+    hier_cc_data_ops->addScalar(p_rhs_idx, p_rhs_idx, -div_u_mean);
+
+    // Solve the projection pressure-Poisson problem.
+    correction_projection_solver.solveSystem(sol_vec,rhs_vec);
+
+    // Fill ghost cells for Phi, compute Grad Phi, and set U := U - Grad Phi
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    InterpolationTransactionComponent Phi_bc_component(p_scratch_idx, "CONSERVATIVE_COARSEN", "CONSTANT", false, &Phi_bc_coef);
+    Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
+    Phi_bdry_bc_fill_op->setHomogeneousBc(true);
+    Phi_bdry_bc_fill_op->fillData(d_new_time);
+    hier_math_ops->grad(u_new_idx, u_var, /*synch_cf_bdry*/ true, -1.0, p_scratch_idx, p_var, no_fill_op, d_new_time, +1.0, u_new_idx, u_var);
+    hier_cc_data_ops->add(p_new_idx, p_new_idx, p_scratch_idx);
+
+    // Clean up scratch data.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(p_rhs_idx);
+    }
+    var_db->removePatchDataIndex(p_rhs_idx);
+    return;
+}// correctRigidBodyVelocity
+
+void
 IBFEMethod::initializeCoordinates(
     const unsigned int part)
 {
@@ -1943,14 +2080,18 @@ IBFEMethod::commonConstructor(
     d_quad_order = FIFTH;
     d_do_log = false;
 
-    // Initialize dt_previous to zero-out the initial constraint force.
-    d_dt_previous = 0.0;
-
     // Initialize the mass density to cause an error if it is used unitialized.
     d_rho = std::numeric_limits<double>::quiet_NaN();
 
-    // Indicate that all of the parts are nonrigid by default.
+    // Initialize dt_previous to equal zero.
+    d_dt_previous = 0.0;
+
+    // Indicate that all of the parts are nonrigid by default and set some
+    // default values.
+    d_has_rigid_parts = false;
     d_rigid_structure.resize(d_num_parts,false);
+    d_constraint_omega = 0.5;
+    d_do_constraint_projection = true;
 
     // Initialize function pointers to NULL.
     d_coordinate_mapping_fcns.resize(d_num_parts,NULL);
@@ -2164,6 +2305,18 @@ IBFEMethod::getFromInput(
     else if (db->isInteger("ib_point_density")) d_ib_qrule_point_density = static_cast<double>(db->getInteger("ib_point_density"));
     else if (db->isDouble( "IB_point_density")) d_ib_qrule_point_density = db->getDouble("IB_point_density");
     else if (db->isInteger("IB_point_density")) d_ib_qrule_point_density = static_cast<double>(db->getInteger("IB_point_density"));
+
+    if (db->isDouble("constraint_omega")) d_constraint_omega = db->getDouble("constraint_omega");
+
+    if      (db->isBool("use_constraint_projection")) d_do_constraint_projection = db->getBool("use_constraint_projection");
+    else if (db->isBool("do_constraint_projection" )) d_do_constraint_projection = db->getBool("do_constraint_projection" );
+
+    if      (db->keyExists("CorrectionProjectionFACSolver"        )) d_correction_projection_fac_pc_db = db->getDatabase("CorrectionProjectionFACSolver");
+    else if (db->keyExists("CorrectionProjectionFACPreconditioner")) d_correction_projection_fac_pc_db = db->getDatabase("CorrectionProjectionFACPreconditioner");
+    else if (db->keyExists("PressureFACSolver"                )) d_correction_projection_fac_pc_db = db->getDatabase("PressureFACSolver");
+    else if (db->keyExists("PressureFACPreconditioner"        )) d_correction_projection_fac_pc_db = db->getDatabase("PressureFACPreconditioner");
+    else if (db->keyExists("PoissonFACSolver"                 )) d_correction_projection_fac_pc_db = db->getDatabase("PoissonFACSolver");
+    else if (db->keyExists("PoissonFACPreconditioner"         )) d_correction_projection_fac_pc_db = db->getDatabase("PoissonFACPreconditioner");
     return;
 }// getFromInput
 

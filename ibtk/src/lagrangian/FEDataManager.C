@@ -83,10 +83,9 @@ namespace
 static Timer* t_reinit_element_mappings;
 static Timer* t_build_ghosted_solution_vector;
 static Timer* t_spread;
-static Timer* t_prolong_value;
-static Timer* t_prolong_density;
+static Timer* t_prolong_data;
 static Timer* t_interp;
-static Timer* t_restrict_value;
+static Timer* t_restrict_data;
 static Timer* t_build_l2_projection_solver;
 static Timer* t_build_diagonal_l2_mass_matrix;
 static Timer* t_compute_l2_projection;
@@ -519,223 +518,17 @@ FEDataManager::spread(
 }// spread
 
 void
-FEDataManager::prolongValue(
+FEDataManager::prolongData(
     const int f_data_idx,
     NumericVector<double>& F_vec,
     NumericVector<double>& X_vec,
     const std::string& system_name,
     const bool close_F,
-    const bool close_X)
+    const bool close_X,
+    const bool is_density,
+    const bool accumulate_on_grid)
 {
-    IBTK_TIMER_START(t_prolong_value);
-
-    // NOTE #1: This routine is sepcialized for a staggered-grid Eulerian
-    // discretization.  It should be straightforward to generalize it to work
-    // with other data centerings.
-    //
-    // NOTE #2: This code is specialized for isoparametric elements.  It is less
-    // clear how to relax this assumption.
-
-    // Extract the mesh.
-    const MeshBase& mesh = d_es->get_mesh();
-    const int dim = mesh.mesh_dimension();
-
-    // Extract the FE systems and DOF maps, and setup the FE objects.
-    System& F_system = d_es->get_system(system_name);
-    const unsigned int n_vars = F_system.n_vars();
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(n_vars == NDIM);  // specialized to side-centered data
-#endif
-    const DofMap& F_dof_map = F_system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned i = 0; i < n_vars; ++i) TBOX_ASSERT(F_dof_map.variable_type(i) == F_dof_map.variable_type(0));
-#endif
-    blitz::Array<std::vector<unsigned int>,1> F_dof_indices(n_vars);
-    for (unsigned int i = 0; i < n_vars; ++i) F_dof_indices(i).reserve(NDIM == 2 ? 9 : 27);
-    AutoPtr<FEBase> F_fe(FEBase::build(dim, F_dof_map.variable_type(0)));
-    const std::vector<std::vector<double> >& phi_F = F_fe->get_phi();
-
-    System& X_system = d_es->get_system(COORDINATES_SYSTEM_NAME);
-    const DofMap& X_dof_map = X_system.get_dof_map();
-#ifdef DEBUG_CHECK_ASSERTIONS
-    for (unsigned d = 0; d < NDIM; ++d) TBOX_ASSERT(X_dof_map.variable_type(d) == X_dof_map.variable_type(0));
-#endif
-    FEType X_fe_type = X_dof_map.variable_type(0);
-    blitz::Array<std::vector<unsigned int>,1> X_dof_indices(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) X_dof_indices(d).reserve(NDIM == 2 ? 9 : 27);
-
-    // Communicate any unsynchronized ghost data and enforce any constraints.
-    if (close_F) F_vec.close();
-    F_dof_map.enforce_constraints_exactly(F_system, &F_vec);
-
-    if (close_X) X_vec.close();
-    X_dof_map.enforce_constraints_exactly(X_system, &X_vec);
-
-    // Loop over the patches to interpolate nodal values on the FE mesh to the
-    // the points of the Eulerian grid.
-    blitz::Array<double,2> F_node;
-    static const unsigned int MAX_NODES = (NDIM == 2 ? 9 : 27);
-    Point s_node_cache[MAX_NODES], X_node_cache[MAX_NODES];
-    blitz::TinyVector<double,NDIM> X_min, X_max;
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_level_number);
-    int local_patch_num = 0;
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
-    {
-        // The relevant collection of elements.
-        const blitz::Array<Elem*,1>& patch_elems = d_active_patch_elem_map(local_patch_num);
-        const unsigned int num_active_patch_elems = patch_elems.size();
-        if (num_active_patch_elems == 0) continue;
-
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        Pointer<SideData<NDIM,double> > f_data = patch->getPatchData(f_data_idx);
-        const Box<NDIM>& patch_box = patch->getBox();
-        const CellIndex<NDIM>& patch_lower = patch_box.lower();
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-        const double* const patch_x_lower = patch_geom->getXLower();
-        const double* const patch_dx = patch_geom->getDx();
-
-        blitz::TinyVector<Box<NDIM>,NDIM> side_boxes;
-        for (unsigned int axis = 0; axis < NDIM; ++axis)
-        {
-            side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box,axis);
-        }
-
-        SideData<NDIM,int> spread_value_at_loc(patch_box, 1, IntVector<NDIM>(0));
-        spread_value_at_loc.fillAll(0);
-
-        // Loop over the elements and compute the values to be prolonged.
-        for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
-        {
-            Elem* const elem = patch_elems(e_idx);
-            const unsigned int n_node = elem->n_nodes();
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                X_dof_map.dof_indices(elem, X_dof_indices(d), d);
-            }
-
-            // Cache the nodal and physical coordinates of the element,
-            // determine the bounding box of the current configuration of the
-            // element, and set the nodal coordinates of the element to
-            // correspond to the physical coordinates.
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(n_node <= MAX_NODES);
-#endif
-            X_min =  0.5*std::numeric_limits<double>::max();
-            X_max = -0.5*std::numeric_limits<double>::max();
-            for (unsigned int k = 0; k < n_node; ++k)
-            {
-                s_node_cache[k] = elem->point(k);
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    X_node_cache[k](d) = X_vec(X_dof_indices(d)[k]);
-                    X_min[d] = std::min(X_min[d],X_node_cache[k](d));
-                    X_max[d] = std::max(X_max[d],X_node_cache[k](d));
-                }
-                elem->point(k) = X_node_cache[k];
-            }
-
-            // Loop over coordinate directions and look for Eulerian grid points
-            // that are covered by the element.
-            std::vector<Point>            intersection_master_coords;
-            std::vector<SideIndex<NDIM> > intersection_indices;
-            static const int estimated_max_size = (NDIM == 2 ? 64 : 512);
-            intersection_master_coords.reserve(estimated_max_size);
-            intersection_indices      .reserve(estimated_max_size);
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
-            {
-                // Loop over the relevant range of indices.
-                blitz::TinyVector<int,NDIM> i_begin, i_end, ic;
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    if (d == axis)
-                    {
-                        i_begin[d] = std::ceil((X_min[d]-patch_x_lower[d])/patch_dx[d]) + patch_lower[d];
-                        i_end  [d] = std::ceil((X_max[d]-patch_x_lower[d])/patch_dx[d]) + patch_lower[d];
-                    }
-                    else
-                    {
-                        i_begin[d] = std::ceil((X_min[d]-patch_x_lower[d])/patch_dx[d] - 0.5) + patch_lower[d];
-                        i_end  [d] = std::ceil((X_max[d]-patch_x_lower[d])/patch_dx[d] - 0.5) + patch_lower[d];
-                    }
-                }
-#if (NDIM == 3)
-                for (ic[2] = i_begin[2]; ic[2] < i_end[2]; ++ic[2])
-                {
-#endif
-                    for (ic[1] = i_begin[1]; ic[1] < i_end[1]; ++ic[1])
-                    {
-                        for (ic[0] = i_begin[0]; ic[0] < i_end[0]; ++ic[0])
-                        {
-                            Point p;
-                            for (unsigned int d = 0; d < NDIM; ++d)
-                            {
-                                p(d) = patch_x_lower[d] + patch_dx[d]*(static_cast<double>(ic[d]-patch_lower[d])+(d == axis ? 0.0 : 0.5));
-                            }
-                            const Point master_coords = FEInterface::inverse_map(dim, X_fe_type, elem, p, TOLERANCE, false);
-                            if (FEInterface::on_reference_element(master_coords,elem->type()))
-                            {
-                                intersection_master_coords.push_back(master_coords);
-#if (NDIM == 2)
-                                SideIndex<NDIM> s_i(Index<NDIM>(ic[0],ic[1]),axis,0);
-#endif
-#if (NDIM == 3)
-                                SideIndex<NDIM> s_i(Index<NDIM>(ic[0],ic[1],ic[2]),axis,0);
-#endif
-                                intersection_indices.push_back(s_i);
-                            }
-                        }
-                    }
-#if (NDIM == 3)
-                }
-#endif
-            }
-
-            // Restore the nodal coordinates.
-            for (unsigned int k = 0; k < n_node; ++k)
-            {
-                elem->point(k) = s_node_cache[k];
-            }
-
-            // If there are no intersection points, then continue on to the next
-            // element.
-            if (intersection_master_coords.empty()) continue;
-
-            // Evaluate the Lagrangian value at the Eulerian grid point, and
-            // set the value on the Eulerian grid to be F/det(dX/ds).
-            F_fe->reinit(elem, &intersection_master_coords);
-            for (unsigned int i = 0; i < n_vars; ++i)
-            {
-                F_dof_map.dof_indices(elem, F_dof_indices(i), i);
-            }
-
-            get_values_for_interpolation(F_node, F_vec, F_dof_indices);
-            for (unsigned int qp = 0; qp < intersection_master_coords.size(); ++qp)
-            {
-                const SideIndex<NDIM>& s_i = intersection_indices[qp];
-                const int axis = s_i.getAxis();
-                if (!side_boxes[axis].contains(s_i)) continue;
-                if (spread_value_at_loc(s_i) != 0) continue;  // each value may be spread to only once
-                spread_value_at_loc(s_i) = 1;
-                const double F_qp = interpolate(qp,F_node(blitz::Range::all(),axis),phi_F);
-                (*f_data)(s_i) += F_qp;
-            }
-        }
-    }
-
-    IBTK_TIMER_STOP(t_prolong_value);
-    return;
-}// prolongValue
-
-void
-FEDataManager::prolongDensity(
-    const int f_data_idx,
-    NumericVector<double>& F_vec,
-    NumericVector<double>& X_vec,
-    const std::string& system_name,
-    const bool close_F,
-    const bool close_X)
-{
-    IBTK_TIMER_START(t_prolong_density);
+    IBTK_TIMER_START(t_prolong_data);
 
     // NOTE #1: This routine is sepcialized for a staggered-grid Eulerian
     // discretization.  It should be straightforward to generalize it to work
@@ -744,11 +537,8 @@ FEDataManager::prolongDensity(
     // NOTE #2: This code is specialized for isoparametric elements.  It is less
     // clear how to relax this assumption.
     //
-    // NOTE #3: This implementation uses the pointwise value of J = det(dX/ds)
-    // to convert a Lagrangian density into an Eulerian density.  We should
-    // investigate whether there is any advantage to using a projection of J
-    // onto a (possibly discontinuous) FE basis instead of evaluating J directly
-    // from the discrete deformation.
+    // NOTE #3: This implementation optionally uses the pointwise value of J =
+    // det(dX/ds) to convert a Lagrangian density into an Eulerian density.
 
     // Extract the mesh.
     const MeshBase& mesh = d_es->get_mesh();
@@ -917,17 +707,19 @@ FEDataManager::prolongDensity(
             // element.
             if (intersection_master_coords.empty()) continue;
 
-            // Evaluate the Lagrangian density at the Eulerian grid point, and
-            // set the value on the Eulerian grid to be F/det(dX/ds).
+            // Evaluate the Lagrangian quantity at the Eulerian grid point and
+            // update the data on the grid.
             F_fe->reinit(elem, &intersection_master_coords);
-            X_fe->reinit(elem, &intersection_master_coords);
             for (unsigned int i = 0; i < n_vars; ++i)
             {
                 F_dof_map.dof_indices(elem, F_dof_indices(i), i);
             }
-
             get_values_for_interpolation(F_node, F_vec, F_dof_indices);
-            get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+            if (is_density)
+            {
+                X_fe->reinit(elem, &intersection_master_coords);
+                get_values_for_interpolation(X_node, X_vec, X_dof_indices);
+            }
             for (unsigned int qp = 0; qp < intersection_master_coords.size(); ++qp)
             {
                 const SideIndex<NDIM>& s_i = intersection_indices[qp];
@@ -935,17 +727,20 @@ FEDataManager::prolongDensity(
                 if (!side_boxes[axis].contains(s_i)) continue;
                 if (spread_value_at_loc(s_i) != 0) continue;  // each value may be spread to only once
                 spread_value_at_loc(s_i) = 1;
-                jacobian(dX_ds,qp,X_node,dphi_X);
-                const double J = std::abs(dX_ds.det());
-                const double F_qp = interpolate(qp,F_node(blitz::Range::all(),axis),phi_F)/J;
-                (*f_data)(s_i) += F_qp;
+                double F_qp = interpolate(qp,F_node(blitz::Range::all(),axis),phi_F);
+                if (is_density)
+                {
+                    jacobian(dX_ds,qp,X_node,dphi_X);
+                    F_qp /= std::abs(dX_ds.det());
+                }
+                (*f_data)(s_i) = (accumulate_on_grid ? (*f_data)(s_i) : 0.0) + F_qp;
             }
         }
     }
 
-    IBTK_TIMER_STOP(t_prolong_density);
+    IBTK_TIMER_STOP(t_prolong_data);
     return;
-}// prolongDensity
+}// prolongData
 
 void
 FEDataManager::interp(
@@ -1142,14 +937,14 @@ FEDataManager::interp(
 }// interp
 
 void
-FEDataManager::restrictValue(
+FEDataManager::restrictData(
     const int f_data_idx,
     NumericVector<double>& F_vec,
     NumericVector<double>& X_vec,
     const std::string& system_name,
     const bool close_X)
 {
-    IBTK_TIMER_START(t_restrict_value);
+    IBTK_TIMER_START(t_restrict_data);
 
     // NOTE #1: This routine is sepcialized for a staggered-grid Eulerian
     // discretization.  It should be straightforward to generalize it to work
@@ -1379,9 +1174,9 @@ FEDataManager::restrictValue(
     // Solve for the nodal values.
     computeL2Projection(F_vec, *F_rhs_vec, system_name, d_interp_uses_consistent_mass_matrix);
 
-    IBTK_TIMER_STOP(t_restrict_value);
+    IBTK_TIMER_STOP(t_restrict_data);
     return;
-}// restrictValue
+}// restrictData
 
 std::pair<LinearSolver<double>*,SparseMatrix<double>*>
 FEDataManager::buildL2ProjectionSolver(
@@ -2002,10 +1797,9 @@ FEDataManager::FEDataManager(
         t_reinit_element_mappings = TimerManager::getManager()->getTimer("IBTK::FEDataManager::reinitElementMappings()");
         t_build_ghosted_solution_vector = TimerManager::getManager()->getTimer("IBTK::FEDataManager::buildGhostedSolutionVector()");
         t_spread = TimerManager::getManager()->getTimer("IBTK::FEDataManager::spread()");
-        t_prolong_value = TimerManager::getManager()->getTimer("IBTK::FEDataManager::prolongValue()");
-        t_prolong_density = TimerManager::getManager()->getTimer("IBTK::FEDataManager::prolongDensity()");
+        t_prolong_data = TimerManager::getManager()->getTimer("IBTK::FEDataManager::prolongData()");
         t_interp = TimerManager::getManager()->getTimer("IBTK::FEDataManager::interp()");
-        t_restrict_value = TimerManager::getManager()->getTimer("IBTK::FEDataManager::restrictValue()");
+        t_restrict_data = TimerManager::getManager()->getTimer("IBTK::FEDataManager::restrictData()");
         t_build_l2_projection_solver = TimerManager::getManager()->getTimer("IBTK::FEDataManager::buildL2ProjectionSolver()");
         t_build_diagonal_l2_mass_matrix = TimerManager::getManager()->getTimer("IBTK::FEDataManager::buildDiagonalL2MassMatrix()");
         t_compute_l2_projection = TimerManager::getManager()->getTimer("IBTK::FEDataManager::computeL2Projection()");

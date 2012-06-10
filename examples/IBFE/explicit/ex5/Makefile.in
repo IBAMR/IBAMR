@@ -404,7 +404,7 @@ IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SOURCES = main.C
-EXTRA_DIST = input2d
+EXTRA_DIST = input2d input2d.constraint
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_SOURCES = $(SOURCES)
@@ -689,13 +689,13 @@ uninstall-am:
 
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input2d $(PWD) ; \
+	  cp -f $(srcdir)/{input2d,input2d.constraint} $(PWD) ; \
 	fi ;
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/input2d ; \
+	  rm -f $(builddir)/{input2d,input2d.constraint} ; \
 	fi ;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

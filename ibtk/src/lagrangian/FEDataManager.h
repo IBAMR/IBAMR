@@ -279,33 +279,19 @@ public:
         bool close_X=true);
 
     /*!
-     * \brief Prolong a value from the FE mesh to the Cartesian grid.
-     *
-     * \note This method sets f(x) = F(X(s,t)) pointwise on the Eulerian grid.
+     * \brief Prolong a value or a density from the FE mesh to the Cartesian
+     * grid.
      */
     void
-    prolongValue(
+    prolongData(
         int f_data_idx,
         libMesh::NumericVector<double>& F,
         libMesh::NumericVector<double>& X,
         const std::string& system_name,
         bool close_F=true,
-        bool close_X=true);
-
-    /*!
-     * \brief Prolong a density from the FE mesh to the Cartesian grid.
-     *
-     * \note This method sets f(x) = F(X(s,t))/det(dX/ds) pointwise on the
-     * Eulerian grid.
-     */
-    void
-    prolongDensity(
-        int f_data_idx,
-        libMesh::NumericVector<double>& F,
-        libMesh::NumericVector<double>& X,
-        const std::string& system_name,
-        bool close_F=true,
-        bool close_X=true);
+        bool close_X=true,
+        bool is_density=true,
+        bool accumulate_on_grid=true);
 
     /*!
      * \brief Interpolate a value from the Cartesian grid to the FE mesh.
@@ -324,7 +310,7 @@ public:
      * \brief Restrict a value from the Cartesian grid to the FE mesh.
      */
     void
-    restrictValue(
+    restrictData(
         int f_data_idx,
         libMesh::NumericVector<double>& F,
         libMesh::NumericVector<double>& X,
