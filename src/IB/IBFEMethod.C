@@ -156,6 +156,22 @@ IBFEMethod::getFEDataManager(
 }// getFEDataManager
 
 void
+IBFEMethod::setMassDensity(
+    double rho)
+{
+    d_rho = rho;
+    return;
+}// setMassDensity
+
+void
+IBFEMethod::registerRigidStructure(
+    unsigned int part)
+{
+    d_rigid_structure[part] = true;
+    return;
+}// registerRigidStructure
+
+void
 IBFEMethod::registerInitialCoordinateMappingFunction(
     CoordinateMappingFcnPtr coordinate_mapping_fcn,
     void* coordinate_mapping_fcn_ctx,
@@ -233,6 +249,7 @@ IBFEMethod::preprocessIntegrateData(
     d_current_time = current_time;
     d_new_time = new_time;
     d_half_time = current_time+0.5*(new_time-current_time);
+    const double dt = d_new_time-d_current_time;
 
     // Extract the FE data.
     d_X_systems      .resize(d_num_parts);
@@ -284,6 +301,14 @@ IBFEMethod::preprocessIntegrateData(
         d_U_half_vecs[part]->close();
         d_U_current_vecs[part]->localize(*d_U_new_vecs[part]);
         d_U_new_vecs[part]->close();
+
+        // Reset the current estimate for the constraint forces for the current
+        // time step size.
+        if (d_rigid_structure[part])
+        {
+            int ierr = VecScale(d_F_half_vecs[part]->vec(), d_dt_previous/dt); IBTK_CHKERRQ(ierr);
+            d_F_half_vecs[part]->close();
+        }
     }
     return;
 }// preprocessIntegrateData
@@ -334,6 +359,9 @@ IBFEMethod::postprocessIntegrateData(
     d_F_dil_bar_systems      .clear();
     d_F_dil_bar_half_vecs    .clear();
     d_F_dil_bar_IB_ghost_vecs.clear();
+
+    // Store the time step size.
+    d_dt_previous = d_new_time-d_current_time;
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
@@ -392,6 +420,7 @@ IBFEMethod::eulerStep(
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
+        if (d_rigid_structure[part]) continue;
         ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec()); IBTK_CHKERRQ(ierr);
         ierr = VecAXPBYPCZ(d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());  IBTK_CHKERRQ(ierr);
         d_X_new_vecs [part]->close();
@@ -409,6 +438,7 @@ IBFEMethod::midpointStep(
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
+        if (d_rigid_structure[part]) continue;
         ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_half_vecs[part]->vec(), d_X_current_vecs[part]->vec()); IBTK_CHKERRQ(ierr);
         ierr = VecAXPBYPCZ(d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec()); IBTK_CHKERRQ(ierr);
         d_X_new_vecs [part]->close();
@@ -426,6 +456,7 @@ IBFEMethod::trapezoidalStep(
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
+        if (d_rigid_structure[part]) continue;
         ierr = VecWAXPY(d_X_new_vecs[part]->vec(), 0.5*dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec()); IBTK_CHKERRQ(ierr);
         ierr = VecAXPY( d_X_new_vecs[part]->vec(), 0.5*dt, d_U_new_vecs    [part]->vec()); IBTK_CHKERRQ(ierr);
         ierr = VecAXPBYPCZ(d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec()); IBTK_CHKERRQ(ierr);
@@ -444,11 +475,18 @@ IBFEMethod::computeLagrangianForce(
 #endif
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
-        if (d_use_Fbar_projection)
+        if (d_rigid_structure[part])
         {
-            computeProjectedDilatationalStrain(*d_F_dil_bar_half_vecs[part], *d_X_half_vecs[part], part);
+            computeConstraintForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], *d_U_half_vecs[part], data_time, part);
         }
-        computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_F_dil_bar_half_vecs[part], data_time, part);
+        else
+        {
+            if (d_use_Fbar_projection)
+            {
+                computeProjectedDilatationalStrain(*d_F_dil_bar_half_vecs[part], *d_X_half_vecs[part], part);
+            }
+            computeInteriorForceDensity(*d_F_half_vecs[part], *d_X_half_vecs[part], d_F_dil_bar_half_vecs[part], data_time, part);
+        }
     }
     return;
 }// computeLagrangianForce
@@ -464,12 +502,12 @@ IBFEMethod::spreadForce(
 #endif
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        NumericVector<double>* X_vec = d_X_half_vecs[part];
-        NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-        NumericVector<double>* F_vec = d_F_half_vecs[part];
-        NumericVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
-        NumericVector<double>* F_dil_bar_vec = NULL;
-        NumericVector<double>* F_dil_bar_ghost_vec = NULL;
+        PetscVector<double>* X_vec = d_X_half_vecs[part];
+        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+        PetscVector<double>* F_vec = d_F_half_vecs[part];
+        PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
+        PetscVector<double>* F_dil_bar_vec = NULL;
+        PetscVector<double>* F_dil_bar_ghost_vec = NULL;
         if (d_use_Fbar_projection)
         {
             F_dil_bar_vec = d_F_dil_bar_half_vecs[part];
@@ -759,8 +797,8 @@ IBFEMethod::putToDatabase(
 
 void
 IBFEMethod::computeProjectedDilatationalStrain(
-    NumericVector<double>& F_dil_bar_vec,
-    NumericVector<double>& X_vec,
+    PetscVector<double>& F_dil_bar_vec,
+    PetscVector<double>& X_vec,
     const unsigned int part)
 {
     // Extract the mesh.
@@ -849,10 +887,24 @@ IBFEMethod::computeProjectedDilatationalStrain(
 }// computeProjectedDilatationalStrain
 
 void
+IBFEMethod::computeConstraintForceDensity(
+    PetscVector<double>& F_vec,
+    PetscVector<double>& /*X_vec*/,
+    PetscVector<double>& U_vec,
+    const double /*time*/,
+    const unsigned int /*part*/)
+{
+    const double dt = d_new_time-d_current_time;
+    int ierr = VecAXPY(F_vec.vec(), -d_rho/dt, U_vec.vec()); IBTK_CHKERRQ(ierr);
+    F_vec.close();
+    return;
+}// trapezoidalStep
+
+void
 IBFEMethod::computeInteriorForceDensity(
-    NumericVector<double>& G_vec,
-    NumericVector<double>& X_vec,
-    NumericVector<double>* F_dil_bar_vec,
+    PetscVector<double>& G_vec,
+    PetscVector<double>& X_vec,
+    PetscVector<double>* F_dil_bar_vec,
     const double time,
     const unsigned int part)
 {
@@ -1152,8 +1204,8 @@ IBFEMethod::computeInteriorForceDensity(
 void
 IBFEMethod::spreadTransmissionForceDensity(
     const int f_data_idx,
-    NumericVector<double>& X_ghost_vec,
-    NumericVector<double>* F_dil_bar_ghost_vec,
+    PetscVector<double>& X_ghost_vec,
+    PetscVector<double>* F_dil_bar_ghost_vec,
     const double time,
     const unsigned int part)
 {
@@ -1402,9 +1454,9 @@ IBFEMethod::spreadTransmissionForceDensity(
 void
 IBFEMethod::imposeJumpConditions(
     const int f_data_idx,
-    NumericVector<double>& F_ghost_vec,
-    NumericVector<double>& X_ghost_vec,
-    NumericVector<double>* F_dil_bar_ghost_vec,
+    PetscVector<double>& F_ghost_vec,
+    PetscVector<double>& X_ghost_vec,
+    PetscVector<double>* F_dil_bar_ghost_vec,
     const double time,
     const unsigned int part)
 {
@@ -1890,6 +1942,15 @@ IBFEMethod::commonConstructor(
     d_quad_type = QGAUSS;
     d_quad_order = FIFTH;
     d_do_log = false;
+
+    // Initialize dt_previous to zero-out the initial constraint force.
+    d_dt_previous = 0.0;
+
+    // Initialize the mass density to cause an error if it is used unitialized.
+    d_rho = std::numeric_limits<double>::quiet_NaN();
+
+    // Indicate that all of the parts are nonrigid by default.
+    d_rigid_structure.resize(d_num_parts,false);
 
     // Initialize function pointers to NULL.
     d_coordinate_mapping_fcns.resize(d_num_parts,NULL);

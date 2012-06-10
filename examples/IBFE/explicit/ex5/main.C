@@ -174,7 +174,9 @@ main(
             const int r = log2(0.25*num_circum_segments);
             MeshTools::Generation::build_sphere(mesh, R, r, Utility::string_to_enum<ElemType>(elem_type));
         }
-        kappa_s = input_db->getDouble("KAPPA_S");
+
+        bool use_constraint_method = input_db->getBoolWithDefault("USE_CONSTRAINT_METHOD", false);
+        if (!use_constraint_method) kappa_s = input_db->getDouble("KAPPA_S");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -213,7 +215,15 @@ main(
             "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IBFE solver.
-        ib_method_ops->registerLagBodyForceFunction(&tether_force_function);
+        if (use_constraint_method)
+        {
+            ib_method_ops->setMassDensity(input_db->getDouble("RHO"));
+            ib_method_ops->registerRigidStructure();
+        }
+        else
+        {
+            ib_method_ops->registerLagBodyForceFunction(&tether_force_function);
+        }
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
         // Create Eulerian initial condition specification objects.

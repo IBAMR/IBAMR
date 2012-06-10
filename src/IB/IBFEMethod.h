@@ -97,6 +97,20 @@ public:
         unsigned int part=0) const;
 
     /*!
+     * Set the mass density (needed only for rigid structures).
+     */
+    void
+    setMassDensity(
+        double rho);
+
+    /*!
+     * Register a structure as rigid.
+     */
+    void
+    registerRigidStructure(
+        unsigned int part=0);
+
+    /*!
      * Typedef specifying interface for coordinate mapping function.
      */
     typedef
@@ -432,8 +446,19 @@ protected:
      */
     void
     computeProjectedDilatationalStrain(
-        libMesh::NumericVector<double>& F_dil_bar_vec,
-        libMesh::NumericVector<double>& X_vec,
+        libMesh::PetscVector<double>& F_dil_bar_vec,
+        libMesh::PetscVector<double>& X_vec,
+        unsigned int part);
+
+    /*
+     * \brief Compute the constraint force density.
+     */
+    void
+    computeConstraintForceDensity(
+        libMesh::PetscVector<double>& F_vec,
+        libMesh::PetscVector<double>& X_vec,
+        libMesh::PetscVector<double>& U_vec,
+        double time,
         unsigned int part);
 
     /*
@@ -443,9 +468,9 @@ protected:
      */
     void
     computeInteriorForceDensity(
-        libMesh::NumericVector<double>& G_vec,
-        libMesh::NumericVector<double>& X_vec,
-        libMesh::NumericVector<double>* F_dil_bar_vec,
+        libMesh::PetscVector<double>& G_vec,
+        libMesh::PetscVector<double>& X_vec,
+        libMesh::PetscVector<double>* F_dil_bar_vec,
         double time,
         unsigned int part);
 
@@ -456,8 +481,8 @@ protected:
     void
     spreadTransmissionForceDensity(
         int f_data_idx,
-        libMesh::NumericVector<double>& X_ghost_vec,
-        libMesh::NumericVector<double>* F_dil_bar_ghost_vec,
+        libMesh::PetscVector<double>& X_ghost_vec,
+        libMesh::PetscVector<double>* F_dil_bar_ghost_vec,
         double time,
         unsigned int part);
 
@@ -469,9 +494,9 @@ protected:
     void
     imposeJumpConditions(
         int f_data_idx,
-        libMesh::NumericVector<double>& F_ghost_vec,
-        libMesh::NumericVector<double>& X_ghost_vec,
-        libMesh::NumericVector<double>* F_dil_bar_ghost_vec,
+        libMesh::PetscVector<double>& F_ghost_vec,
+        libMesh::PetscVector<double>& X_ghost_vec,
+        libMesh::PetscVector<double>* F_dil_bar_ghost_vec,
         double time,
         unsigned int part);
 
@@ -510,6 +535,16 @@ protected:
     double d_current_time, d_new_time, d_half_time;
 
     /*
+     * The previous time step size.
+     */
+    double d_dt_previous;
+
+    /*
+     * The structure mass density.
+     */
+    double d_rho;
+
+    /*
      * FE data associated with this object.
      */
     std::vector<libMesh::Mesh*> d_meshes;
@@ -546,6 +581,11 @@ protected:
     double d_ib_qrule_point_density;  // NOTE: currently only affects QAdaptiveGauss
     libMesh::QBase* d_ib_qrule;
     libMesh::QBase* d_ib_qrule_face;
+
+    /*
+     * Vector of booleans indicating rigid parts.
+     */
+    std::vector<bool> d_rigid_structure;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
