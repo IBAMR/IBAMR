@@ -86,13 +86,13 @@ public:
      * \brief The libMesh boundary IDs to use for specifying essential boundary
      * conditions.
      */
-    static const short int DIRICHLET_X_BDRY_ID;
-    static const short int DIRICHLET_Y_BDRY_ID;
-    static const short int DIRICHLET_Z_BDRY_ID;
-    static const short int DIRICHLET_XY_BDRY_ID;
-    static const short int DIRICHLET_XZ_BDRY_ID;
-    static const short int DIRICHLET_YZ_BDRY_ID;
-    static const short int DIRICHLET_XYZ_BDRY_ID;
+    static const short int ZERO_DISPLACEMENT_X_BDRY_ID;
+    static const short int ZERO_DISPLACEMENT_Y_BDRY_ID;
+    static const short int ZERO_DISPLACEMENT_Z_BDRY_ID;
+    static const short int ZERO_DISPLACEMENT_XY_BDRY_ID;
+    static const short int ZERO_DISPLACEMENT_XZ_BDRY_ID;
+    static const short int ZERO_DISPLACEMENT_YZ_BDRY_ID;
+    static const short int ZERO_DISPLACEMENT_XYZ_BDRY_ID;
 
     /*!
      * Return a pointer to the instance of the Lagrangian data manager

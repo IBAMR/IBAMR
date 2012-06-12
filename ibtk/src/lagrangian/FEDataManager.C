@@ -129,25 +129,25 @@ get_dirichlet_bdry_ids(
     for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
     {
         const short int bdry_id = *cit;
-        if      (bdry_id == FEDataManager::DIRICHLET_X_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_X_BDRY_ID;
-        else if (bdry_id == FEDataManager::DIRICHLET_Y_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_Y_BDRY_ID;
-        else if (bdry_id == FEDataManager::DIRICHLET_Z_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_Z_BDRY_ID;
-        else if (bdry_id == FEDataManager::DIRICHLET_XY_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_XY_BDRY_ID;
-        else if (bdry_id == FEDataManager::DIRICHLET_XZ_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_XZ_BDRY_ID;
-        else if (bdry_id == FEDataManager::DIRICHLET_YZ_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_YZ_BDRY_ID;
-        else if (bdry_id == FEDataManager::DIRICHLET_XYZ_BDRY_ID) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_XYZ_BDRY_ID;
+        if      (bdry_id == FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID;
+        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID;
+        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID;
+        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID;
+        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_XZ_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_XZ_BDRY_ID;
+        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_YZ_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_YZ_BDRY_ID;
+        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID;
     }
     return dirichlet_bdry_ids;
 }// get_dirichlet_bdry_ids
 }
 
-const short int FEDataManager::DIRICHLET_X_BDRY_ID   = 0x100;
-const short int FEDataManager::DIRICHLET_Y_BDRY_ID   = 0x200;
-const short int FEDataManager::DIRICHLET_Z_BDRY_ID   = 0x400;
-const short int FEDataManager::DIRICHLET_XY_BDRY_ID  = 0x100 | 0x200;
-const short int FEDataManager::DIRICHLET_XZ_BDRY_ID  = 0x100 | 0x400;
-const short int FEDataManager::DIRICHLET_YZ_BDRY_ID  = 0x200 | 0x400;
-const short int FEDataManager::DIRICHLET_XYZ_BDRY_ID = 0x100 | 0x200 | 0x400;
+const short int FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID   = 0x100;
+const short int FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID   = 0x200;
+const short int FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID   = 0x400;
+const short int FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID  = 0x100 | 0x200;
+const short int FEDataManager::ZERO_DISPLACEMENT_XZ_BDRY_ID  = 0x100 | 0x400;
+const short int FEDataManager::ZERO_DISPLACEMENT_YZ_BDRY_ID  = 0x200 | 0x400;
+const short int FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID = 0x100 | 0x200 | 0x400;
 std::map<std::string,FEDataManager*> FEDataManager::s_data_manager_instances;
 bool FEDataManager::s_registered_callback;
 unsigned char FEDataManager::s_shutdown_priority;
@@ -1256,7 +1256,7 @@ FEDataManager::buildL2ProjectionSolver(
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
                 if (elem->neighbor(side) != NULL) continue;
-                static const short int dirichlet_bdry_id_set[3] = { DIRICHLET_X_BDRY_ID , DIRICHLET_Y_BDRY_ID , DIRICHLET_Z_BDRY_ID };
+                static const short int dirichlet_bdry_id_set[3] = { ZERO_DISPLACEMENT_X_BDRY_ID , ZERO_DISPLACEMENT_Y_BDRY_ID , ZERO_DISPLACEMENT_Z_BDRY_ID };
                 const short int dirichlet_bdry_ids = get_dirichlet_bdry_ids(mesh.boundary_info->boundary_ids(elem, side));
                 if (!dirichlet_bdry_ids) continue;
                 fe->reinit(elem);
@@ -1403,7 +1403,7 @@ FEDataManager::buildDiagonalL2MassMatrix(
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
                 if (elem->neighbor(side) != NULL) continue;
-                static const short int dirichlet_bdry_id_set[3] = { DIRICHLET_X_BDRY_ID , DIRICHLET_Y_BDRY_ID , DIRICHLET_Z_BDRY_ID };
+                static const short int dirichlet_bdry_id_set[3] = { ZERO_DISPLACEMENT_X_BDRY_ID , ZERO_DISPLACEMENT_Y_BDRY_ID , ZERO_DISPLACEMENT_Z_BDRY_ID };
                 const short int dirichlet_bdry_ids = get_dirichlet_bdry_ids(mesh.boundary_info->boundary_ids(elem, side));
                 if (!dirichlet_bdry_ids) continue;
                 for (unsigned int n = 0; n < elem->n_nodes(); ++n)

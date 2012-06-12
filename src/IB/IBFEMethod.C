@@ -82,13 +82,13 @@ get_dirichlet_bdry_ids(
     for (std::vector<short int>::const_iterator cit = bdry_ids.begin(); cit != bdry_ids.end(); ++cit)
     {
         const short int bdry_id = *cit;
-        if      (bdry_id == FEDataManager::DIRICHLET_X_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_X_BDRY_ID;
-        else if (bdry_id == FEDataManager::DIRICHLET_Y_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_Y_BDRY_ID;
-        else if (bdry_id == FEDataManager::DIRICHLET_Z_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_Z_BDRY_ID;
-        else if (bdry_id == FEDataManager::DIRICHLET_XY_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_XY_BDRY_ID;
-        else if (bdry_id == FEDataManager::DIRICHLET_XZ_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_XZ_BDRY_ID;
-        else if (bdry_id == FEDataManager::DIRICHLET_YZ_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_YZ_BDRY_ID;
-        else if (bdry_id == FEDataManager::DIRICHLET_XYZ_BDRY_ID) dirichlet_bdry_ids |= FEDataManager::DIRICHLET_XYZ_BDRY_ID;
+        if      (bdry_id == FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID;
+        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID;
+        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID  ) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID;
+        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID;
+        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_XZ_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_XZ_BDRY_ID;
+        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_YZ_BDRY_ID ) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_YZ_BDRY_ID;
+        else if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID) dirichlet_bdry_ids |= FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID;
     }
     return dirichlet_bdry_ids;
 }// get_dirichlet_bdry_ids
@@ -593,7 +593,7 @@ IBFEMethod::initializeFEData()
                 const bool at_mesh_bdry = elem->neighbor(side) == NULL;
                 if (!at_mesh_bdry) continue;
 
-                static const short int dirichlet_bdry_id_set[3] = { FEDataManager::DIRICHLET_X_BDRY_ID , FEDataManager::DIRICHLET_Y_BDRY_ID , FEDataManager::DIRICHLET_Z_BDRY_ID };
+                static const short int dirichlet_bdry_id_set[3] = { FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID , FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID , FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID };
                 const short int dirichlet_bdry_ids = get_dirichlet_bdry_ids(mesh.boundary_info->boundary_ids(elem, side));
                 if (!dirichlet_bdry_ids) continue;
 
