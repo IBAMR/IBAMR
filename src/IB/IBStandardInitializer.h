@@ -125,6 +125,44 @@ namespace IBAMR
  *
  * <HR>
  *
+ * <B>X-Spring file format</B>
+ *
+ * X-Spring input files end with the extension <TT>".xspring"</TT> and have the
+ * following format:
+ \verbatim
+ M                                            # number of links in the file
+ i_0   j_0   kappa_0   length_0   fcn_idx_0   # first vertex index, second vertex index, spring constant, rest length, spring function index
+ i_1   j_1   kappa_1   length_1   fcn_idx_1
+ i_2   j_2   kappa_2   length_2   fcn_idx_2
+ ...
+ \endverbatim
+ *
+ * \note Unlike spring files, x-spring files may connect points from different
+ * structures.  Consequently, the node indices in an x-spring file must be \em
+ * global indices.
+ *
+ * \note There is no restriction on the number of x-springs that may be
+ * associated with any particular node of the Lagrangian mesh.
+ *
+ * \note The rest length and force function index are \em optional values.  If
+ * they are not provided, by default the rest length will be set to the value \a
+ * 0.0 and the force function index will be set to \a 0.  This corresponds to a
+ * linear spring with zero rest length.
+ *
+ * \note Spring specifications are used by class LSiloDataWriter to construct
+ * unstructured mesh representations of the Lagrangian structures.
+ * Consequently, even if your structure does not have any springs, it may be
+ * worthwhile to generate a spring input file with all spring constants set to
+ * \a 0.0.
+ *
+ * \note \a min(i,j) is always used as the "master" node index when constructing
+ * the corresponding IBSpringForceSpec object.
+ *
+ * \see IBSpringForceGen
+ * \see IBSpringForceSpec
+ *
+ * <HR>
+ *
  * <B> Beam file format</B>
  *
  * Beam input files end with the extension <TT>".beam"</TT> and have the
@@ -540,6 +578,12 @@ private:
     readSpringFiles();
 
     /*!
+     * \brief Read the x-spring data from one or more input files.
+     */
+    void
+    readXSpringFiles();
+
+    /*!
      * \brief Read the beam data from one or more input files.
      */
     void
@@ -787,6 +831,37 @@ private:
 #if ENABLE_SUBDOMAIN_INDICES
     std::vector<std::vector<bool> > d_using_uniform_spring_subdomain_idx;
     std::vector<std::vector<int> > d_uniform_spring_subdomain_idx;
+#endif
+
+    /*
+     * XSpring information.
+     */
+    std::vector<std::vector<bool> > d_enable_xsprings;
+
+    std::vector<std::vector<std::multimap<int,Edge> > > d_xspring_edge_map;
+
+    struct XSpringSpec
+    {
+        double stiffness, rest_length;
+        int force_fcn_idx;
+#if ENABLE_SUBDOMAIN_INDICES
+        int subdomain_idx;
+#endif
+    };
+    std::vector<std::vector<std::map<Edge,XSpringSpec,EdgeComp> > > d_xspring_spec_data;
+
+    std::vector<std::vector<bool> > d_using_uniform_xspring_stiffness;
+    std::vector<std::vector<double> > d_uniform_xspring_stiffness;
+
+    std::vector<std::vector<bool> > d_using_uniform_xspring_rest_length;
+    std::vector<std::vector<double> > d_uniform_xspring_rest_length;
+
+    std::vector<std::vector<bool> > d_using_uniform_xspring_force_fcn_idx;
+    std::vector<std::vector<int> > d_uniform_xspring_force_fcn_idx;
+
+#if ENABLE_SUBDOMAIN_INDICES
+    std::vector<std::vector<bool> > d_using_uniform_xspring_subdomain_idx;
+    std::vector<std::vector<int> > d_uniform_xspring_subdomain_idx;
 #endif
 
     /*

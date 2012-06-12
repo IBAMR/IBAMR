@@ -141,6 +141,19 @@ IBStandardInitializer::IBStandardInitializer(
       d_using_uniform_spring_subdomain_idx(),
       d_uniform_spring_subdomain_idx(),
 #endif
+      d_enable_xsprings(),
+      d_xspring_edge_map(),
+      d_xspring_spec_data(),
+      d_using_uniform_xspring_stiffness(),
+      d_uniform_xspring_stiffness(),
+      d_using_uniform_xspring_rest_length(),
+      d_uniform_xspring_rest_length(),
+      d_using_uniform_xspring_force_fcn_idx(),
+      d_uniform_xspring_force_fcn_idx(),
+#if ENABLE_SUBDOMAIN_INDICES
+      d_using_uniform_xspring_subdomain_idx(),
+      d_uniform_xspring_subdomain_idx(),
+#endif
       d_enable_beams(),
       d_beam_spec_data(),
       d_using_uniform_beam_bend_rigidity(),
@@ -218,6 +231,9 @@ IBStandardInitializer::IBStandardInitializer(
 
         // Process the (optional) spring information.
         readSpringFiles();
+
+        // Process the (optional) xspring information.
+        readXSpringFiles();
 
         // Process the (optional) beam information.
         readBeamFiles();
@@ -651,6 +667,19 @@ IBStandardInitializer::initializeLSiloDataWriter(
             }
         }
 
+        bool registered_xspring_edge_map = false;
+        for (unsigned int j = 0; j < d_num_vertex[level_number].size(); ++j)
+        {
+            if (d_xspring_edge_map[level_number][j].size() > 0)
+            {
+                registered_xspring_edge_map = true;
+                const std::string postfix = "_xmesh";
+                d_silo_writer->registerUnstructuredMesh(
+                    d_base_filename[level_number][j] + postfix,
+                    d_xspring_edge_map[level_number][j], level_number);
+            }
+        }
+
         for (unsigned int j = 0; j < d_num_vertex[level_number].size(); ++j)
         {
             if (d_rod_edge_map[level_number][j].size() > 0)
@@ -996,6 +1025,233 @@ IBStandardInitializer::readSpringFiles()
     if (d_use_file_batons) SAMRAI_MPI::barrier();
     return;
 }// readSpringFiles
+
+void
+IBStandardInitializer::readXSpringFiles()
+{
+    std::string line_string;
+    const int rank = SAMRAI_MPI::getRank();
+    const int nodes = SAMRAI_MPI::getNodes();
+    int flag = 1;
+    int sz = 1;
+
+    for (int ln = 0; ln < d_max_levels; ++ln)
+    {
+        const unsigned int num_base_filename = d_base_filename[ln].size();
+        d_xspring_edge_map[ln].resize(num_base_filename);
+        d_xspring_spec_data[ln].resize(num_base_filename);
+        for (unsigned int j = 0; j < num_base_filename; ++j)
+        {
+            bool warned = false;
+
+            // Wait for the previous MPI process to finish reading the current file.
+            if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
+
+            // Ensure that the file exists.
+            const std::string xspring_filename = d_base_filename[ln][j] + ".xspring";
+            std::ifstream file_stream;
+            file_stream.open(xspring_filename.c_str(), std::ios::in);
+            if (file_stream.is_open())
+            {
+                plog << d_object_name << ":  "
+                     << "processing xspring data from ASCII input file named " << xspring_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+
+                // The first line in the file indicates the number of edges in
+                // the input file.
+                int num_edges;
+                if (!std::getline(file_stream, line_string))
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << xspring_filename << std::endl);
+                }
+                else
+                {
+                    line_string = discard_comments(line_string);
+                    std::istringstream line_stream(line_string);
+                    if (!(line_stream >> num_edges))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << xspring_filename << std::endl);
+                    }
+                }
+
+                if (num_edges <= 0)
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << xspring_filename << std::endl);
+                }
+
+                // Each successive line provides the connectivity and material
+                // parameter information for each xspring in the structure.
+                for (int k = 0; k < num_edges; ++k)
+                {
+                    Edge e;
+                    double kappa, length;
+                    int force_fcn_idx;
+#if ENABLE_SUBDOMAIN_INDICES
+                    int subdomain_idx;
+#endif
+                    if (!std::getline(file_stream, line_string))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << xspring_filename << std::endl);
+                    }
+                    else
+                    {
+                        line_string = discard_comments(line_string);
+                        std::istringstream line_stream(line_string);
+                        if (!(line_stream >> e.first))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << xspring_filename << std::endl);
+                        }
+                        else if ((e.first < 0) || (e.first >= d_num_vertex[ln][j]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << xspring_filename << std::endl
+                                       << "  vertex index " << e.first << " is out of range" << std::endl);
+                        }
+
+                        if (!(line_stream >> e.second))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << xspring_filename << std::endl);
+                        }
+                        else if ((e.second < 0) || (e.second >= d_num_vertex[ln][j]))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << xspring_filename << std::endl
+                                       << "  vertex index " << e.second << " is out of range" << std::endl);
+                        }
+
+                        if (!(line_stream >> kappa))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << xspring_filename << std::endl);
+                        }
+                        else if (kappa < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << xspring_filename << std::endl
+                                       << "  xspring constant is negative" << std::endl);
+                        }
+
+                        if (!(line_stream >> length))
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << xspring_filename << std::endl);
+                        }
+                        else if (length < 0.0)
+                        {
+                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << xspring_filename << std::endl
+                                       << "  xspring resting length is negative" << std::endl);
+                        }
+                        length *= d_length_scale_factor;
+
+                        if (!(line_stream >> force_fcn_idx))
+                        {
+                            force_fcn_idx = 0;  // default force function specification.
+                        }
+#if ENABLE_SUBDOMAIN_INDICES
+                        if (!(line_stream >> subdomain_idx))
+                        {
+                            subdomain_idx = -1;  // default subdomain index.
+                        }
+#endif
+                    }
+
+                    // Modify kappa, length, and subdomain_idx according to
+                    // whether uniform values are to be employed for this
+                    // particular structure.
+                    if (d_using_uniform_xspring_stiffness[ln][j])
+                    {
+                        kappa = d_uniform_xspring_stiffness[ln][j];
+                    }
+                    if (d_using_uniform_xspring_rest_length[ln][j])
+                    {
+                        length = d_uniform_xspring_rest_length[ln][j];
+                    }
+                    if (d_using_uniform_xspring_force_fcn_idx[ln][j])
+                    {
+                        force_fcn_idx = d_uniform_xspring_force_fcn_idx[ln][j];
+                    }
+#if ENABLE_SUBDOMAIN_INDICES
+                    if (d_using_uniform_xspring_subdomain_idx[ln][j])
+                    {
+                        subdomain_idx = d_uniform_xspring_subdomain_idx[ln][j];
+                    }
+#endif
+
+                    // Always place the lower index first.
+                    if (e.first > e.second)
+                    {
+                        std::swap<int>(e.first, e.second);
+                    }
+
+                    // Check to see if the edge has already been inserted in the edge map.
+                    bool duplicate_edge = false;
+#ifdef DEBUG_CHECK_ASSERTIONS
+                    for (std::multimap<int,Edge>::const_iterator it = d_xspring_edge_map[ln][j].lower_bound(e.first); it != d_xspring_edge_map[ln][j].upper_bound(e.first); ++it)
+                    {
+                        const Edge& other_e = it->second;
+                        if (e.first  == other_e.first &&
+                            e.second == other_e.second)
+                        {
+                            // This is a duplicate edge and should not be inserted into the
+                            // edge map.
+                            duplicate_edge = true;
+
+                            // Ensure that the link information is consistent.
+                            if (!MathUtilities<double>::equalEps(d_xspring_spec_data[ln][j].find(e)->second.stiffness  , kappa ) ||
+                                !MathUtilities<double>::equalEps(d_xspring_spec_data[ln][j].find(e)->second.rest_length, length) ||
+                                (d_xspring_spec_data[ln][j].find(e)->second.force_fcn_idx != force_fcn_idx)
+#if ENABLE_SUBDOMAIN_INDICES
+                                || (d_xspring_spec_data[ln][j].find(e)->second.subdomain_idx != subdomain_idx)
+#endif
+                                )
+                            {
+                                TBOX_ERROR(d_object_name << ":\n  Inconsistent duplicate edges in input file encountered on line " << k+2 << " of file " << xspring_filename << std::endl
+                                           << "  first vertex = " << e.first-d_vertex_offset[ln][j] << " second vertex = " << e.second-d_vertex_offset[ln][j] << std::endl
+                                           << "  original spring constant      = " << d_xspring_spec_data[ln][j].find(e)->second.stiffness     << std::endl
+                                           << "  original resting length       = " << d_xspring_spec_data[ln][j].find(e)->second.rest_length   << std::endl
+                                           << "  original force function index = " << d_xspring_spec_data[ln][j].find(e)->second.force_fcn_idx << std::endl);
+                            }
+                        }
+                    }
+#endif
+                    // Initialize the map data corresponding to the present edge.
+                    //
+                    // Note that in the edge map, each edge is associated with only the
+                    // first vertex.
+                    if (!duplicate_edge)
+                    {
+                        d_xspring_edge_map[ln][j].insert(std::make_pair(e.first,e));
+                        XSpringSpec& spec_data = d_xspring_spec_data[ln][j][e];
+                        spec_data.stiffness     = kappa;
+                        spec_data.rest_length   = length;
+                        spec_data.force_fcn_idx = force_fcn_idx;
+#if ENABLE_SUBDOMAIN_INDICES
+                        spec_data.subdomain_idx = subdomain_idx;
+#endif
+                    }
+
+                    // Check to see if the xspring constant is zero and, if so,
+                    // emit a warning.
+                    if (!warned && d_enable_xsprings[ln][j] &&
+                        (kappa == 0.0 || MathUtilities<double>::equalEps(kappa,0.0)))
+                    {
+                        TBOX_WARNING(d_object_name << ":\n  X-spring with zero spring constant encountered in ASCII input file named " << xspring_filename << "." << std::endl);
+                        warned = true;
+                    }
+                }
+
+                // Close the input file.
+                file_stream.close();
+
+                plog << d_object_name << ":  "
+                     << "read " << num_edges << " edges from ASCII input file named " << xspring_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+            }
+
+            // Free the next MPI process to start reading the current file.
+            if (d_use_file_batons && rank != nodes-1) SAMRAI_MPI::send(&flag, sz, rank+1, false, j);
+        }
+    }
+
+    // Synchronize the processes.
+    if (d_use_file_batons) SAMRAI_MPI::barrier();
+    return;
+}// readXSpringFiles
 
 void
 IBStandardInitializer::readBeamFiles()
@@ -2564,6 +2820,49 @@ IBStandardInitializer::initializeSpecs(
         }
     }
 
+    // Initialize any xspring specifications associated with the present vertex.
+    if (d_enable_xsprings[level_number][j])
+    {
+        std::vector<int> slave_idxs, force_fcn_idxs;
+        std::vector<double> stiffness, rest_length;
+#if ENABLE_SUBDOMAIN_INDICES
+        std::vector<int> subdomain_idxs;
+#endif
+        for (std::multimap<int,Edge>::const_iterator it = d_xspring_edge_map[level_number][j].lower_bound(mastr_idx); it != d_xspring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
+        {
+#ifdef DEBUG_CHECK_ASSERTIONS
+            TBOX_ASSERT(mastr_idx == it->first);
+#endif
+            // The connectivity information.
+            const Edge& e = it->second;
+            if (e.first == mastr_idx)
+            {
+                slave_idxs.push_back(e.second+global_index_offset);
+            }
+            else
+            {
+                slave_idxs.push_back(e.first +global_index_offset);
+            }
+
+            // The material properties.
+            const XSpringSpec& spec_data = d_xspring_spec_data[level_number][j].find(e)->second;
+            stiffness     .push_back(spec_data.stiffness    );
+            rest_length   .push_back(spec_data.rest_length  );
+            force_fcn_idxs.push_back(spec_data.force_fcn_idx);
+#if ENABLE_SUBDOMAIN_INDICES
+            subdomain_idxs.push_back(spec_data.subdomain_idx);
+#endif
+        }
+        if (slave_idxs.size() > 0)
+        {
+            vertex_specs.push_back(new IBSpringForceSpec(mastr_idx, slave_idxs, force_fcn_idxs, stiffness, rest_length
+#if ENABLE_SUBDOMAIN_INDICES
+                                                         , subdomain_idxs
+#endif
+                                                         ));
+        }
+    }
+
     // Initialize any beam specifications associated with the present vertex.
     if (d_enable_beams[level_number][j])
     {
@@ -2749,6 +3048,20 @@ IBStandardInitializer::getFromInput(
     d_uniform_spring_subdomain_idx.resize(d_max_levels);
 #endif
 
+    d_enable_xsprings.resize(d_max_levels);
+    d_xspring_edge_map.resize(d_max_levels);
+    d_xspring_spec_data.resize(d_max_levels);
+    d_using_uniform_xspring_stiffness.resize(d_max_levels);
+    d_uniform_xspring_stiffness.resize(d_max_levels);
+    d_using_uniform_xspring_rest_length.resize(d_max_levels);
+    d_uniform_xspring_rest_length.resize(d_max_levels);
+    d_using_uniform_xspring_force_fcn_idx.resize(d_max_levels);
+    d_uniform_xspring_force_fcn_idx.resize(d_max_levels);
+#if ENABLE_SUBDOMAIN_INDICES
+    d_using_uniform_xspring_subdomain_idx.resize(d_max_levels);
+    d_uniform_xspring_subdomain_idx.resize(d_max_levels);
+#endif
+
     d_enable_beams.resize(d_max_levels);
     d_beam_spec_data.resize(d_max_levels);
     d_using_uniform_beam_bend_rigidity.resize(d_max_levels);
@@ -2897,6 +3210,18 @@ IBStandardInitializer::getFromInput(
         d_uniform_spring_subdomain_idx[ln].resize(num_base_filename,-1);
 #endif
 
+        d_enable_xsprings[ln].resize(num_base_filename,true);
+        d_using_uniform_xspring_stiffness[ln].resize(num_base_filename,false);
+        d_uniform_xspring_stiffness[ln].resize(num_base_filename,-1.0);
+        d_using_uniform_xspring_rest_length[ln].resize(num_base_filename,false);
+        d_uniform_xspring_rest_length[ln].resize(num_base_filename,-1.0);
+        d_using_uniform_xspring_force_fcn_idx[ln].resize(num_base_filename,false);
+        d_uniform_xspring_force_fcn_idx[ln].resize(num_base_filename,-1);
+#if ENABLE_SUBDOMAIN_INDICES
+        d_using_uniform_xspring_subdomain_idx[ln].resize(num_base_filename,false);
+        d_uniform_xspring_subdomain_idx[ln].resize(num_base_filename,-1);
+#endif
+
         d_enable_beams[ln].resize(num_base_filename,true);
         d_using_uniform_beam_bend_rigidity[ln].resize(num_base_filename,false);
         d_uniform_beam_bend_rigidity[ln].resize(num_base_filename,-1.0);
@@ -2953,6 +3278,10 @@ IBStandardInitializer::getFromInput(
                 if (sub_db->keyExists("enable_springs"))
                 {
                     d_enable_springs[ln][j] = sub_db->getBool("enable_springs");
+                }
+                if (sub_db->keyExists("enable_xsprings"))
+                {
+                    d_enable_xsprings[ln][j] = sub_db->getBool("enable_xsprings");
                 }
                 if (sub_db->keyExists("enable_beams"))
                 {
@@ -3015,6 +3344,39 @@ IBStandardInitializer::getFromInput(
                 {
                     d_using_uniform_spring_subdomain_idx[ln][j] = true;
                     d_uniform_spring_subdomain_idx[ln][j] = sub_db->getInteger("uniform_spring_subdomain_idx");
+                }
+#endif
+
+                if (sub_db->keyExists("uniform_xspring_stiffness"))
+                {
+                    d_using_uniform_xspring_stiffness[ln][j] = true;
+                    d_uniform_xspring_stiffness[ln][j] = sub_db->getDouble("uniform_xspring_stiffness");
+                    if (d_uniform_xspring_stiffness[ln][j] < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_xspring_stiffness' in database " << base_filename << std::endl
+                                   << "  spring constant is negative" << std::endl);
+                    }
+                }
+                if (sub_db->keyExists("uniform_xspring_rest_length"))
+                {
+                    d_using_uniform_xspring_rest_length[ln][j] = true;
+                    d_uniform_xspring_rest_length[ln][j] = sub_db->getDouble("uniform_xspring_rest_length");
+                    if (d_uniform_xspring_rest_length[ln][j] < 0.0)
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry for key `uniform_xspring_rest_length' in database " << base_filename << std::endl
+                                   << "  spring resting length is negative" << std::endl);
+                    }
+                }
+                if (sub_db->keyExists("uniform_xspring_force_fcn_idx"))
+                {
+                    d_using_uniform_xspring_force_fcn_idx[ln][j] = true;
+                    d_uniform_xspring_force_fcn_idx[ln][j] = sub_db->getInteger("uniform_xspring_force_fcn_idx");
+                }
+#if ENABLE_SUBDOMAIN_INDICES
+                if (sub_db->keyExists("uniform_xspring_subdomain_idx"))
+                {
+                    d_using_uniform_xspring_subdomain_idx[ln][j] = true;
+                    d_uniform_xspring_subdomain_idx[ln][j] = sub_db->getInteger("uniform_xspring_subdomain_idx");
                 }
 #endif
 
@@ -3153,6 +3515,36 @@ IBStandardInitializer::getFromInput(
                 {
                     pout << "  NOTE: uniform spring subdomain indicies are being employed for the structure named " << base_filename << "\n"
                          << "        any subdomain index information in optional file " << base_filename << ".spring will be IGNORED\n";
+                }
+#endif
+            }
+
+            if (!d_enable_xsprings[ln][j])
+            {
+                pout << "  NOTE: xspring forces are DISABLED for " << base_filename << "\n";
+            }
+            else
+            {
+                if (d_using_uniform_xspring_stiffness[ln][j])
+                {
+                    pout << "  NOTE: uniform spring stiffnesses are being employed for the structure named " << base_filename << "\n"
+                         << "        any stiffness information in optional file " << base_filename << ".xspring will be IGNORED\n";
+                }
+                if (d_using_uniform_xspring_rest_length[ln][j])
+                {
+                    pout << "  NOTE: uniform spring resting lengths are being employed for the structure named " << base_filename << "\n"
+                         << "        any resting length information in optional file " << base_filename << ".xspring will be IGNORED\n";
+                }
+                if (d_using_uniform_xspring_force_fcn_idx[ln][j])
+                {
+                    pout << "  NOTE: uniform spring force functions are being employed for the structure named " << base_filename << "\n"
+                         << "        any force function index information in optional file " << base_filename << ".xspring will be IGNORED\n";
+                }
+#if ENABLE_SUBDOMAIN_INDICES
+                if (d_using_uniform_xspring_subdomain_idx[ln][j])
+                {
+                    pout << "  NOTE: uniform spring subdomain indicies are being employed for the structure named " << base_filename << "\n"
+                         << "        any subdomain index information in optional file " << base_filename << ".xspring will be IGNORED\n";
                 }
 #endif
             }
