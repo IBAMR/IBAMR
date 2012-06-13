@@ -227,37 +227,37 @@ IBStandardInitializer::IBStandardInitializer(
     if (!is_from_restart)
     {
         // Process the vertex information.
-        readVertexFiles();
+        readVertexFiles(".vertex");
 
-        // Process the (optional) spring information.
-        readSpringFiles();
+        // Process the spring information.
+        readSpringFiles(".spring", /*input_uses_global_idxs*/ false);
 
-        // Process the (optional) xspring information.
-        readXSpringFiles();
+        // Process the crosslink spring ("x-spring") information.
+        readXSpringFiles(".xspring", /*input_uses_global_idxs*/ true);
 
-        // Process the (optional) beam information.
-        readBeamFiles();
+        // Process the beam information.
+        readBeamFiles(".beam", /*input_uses_global_idxs*/ false);
 
-        // Process the (optional) rod information.
-        readRodFiles();
+        // Process the rod information.
+        readRodFiles(".rod", /*input_uses_global_idxs*/ false);
 
-        // Process the (optional) target point information.
-        readTargetPointFiles();
+        // Process the target point information.
+        readTargetPointFiles(".target");
 
-        // Process the (optional) anchor point information.
-        readAnchorPointFiles();
+        // Process the anchor point information.
+        readAnchorPointFiles(".anchor");
 
-        // Process the (optional) mass information.
-        readBoundaryMassFiles();
+        // Process the mass information.
+        readBoundaryMassFiles(".mass");
 
-        // Process the (optional) directors information.
-        readDirectorFiles();
+        // Process the directors information.
+        readDirectorFiles(".director");
 
-        // Process the (optional) instrumentation information.
-        readInstrumentationFiles();
+        // Process the instrumentation information.
+        readInstrumentationFiles(".inst");
 
-        // Process the (optional) source information.
-        readSourceFiles();
+        // Process the source information.
+        readSourceFiles(".source");
     }
     return;
 }// IBStandardInitializer
@@ -648,10 +648,13 @@ IBStandardInitializer::initializeLSiloDataWriter(
     {
         for (unsigned int j = 0; j < d_num_vertex[level_number].size(); ++j)
         {
-            const std::string postfix = "_vertices";
-            d_silo_writer->registerMarkerCloud(
-                d_base_filename[level_number][j] + postfix,
-                d_num_vertex[level_number][j], d_vertex_offset[level_number][j], level_number);
+            if (d_num_vertex[level_number][j] > 0)
+            {
+                const std::string postfix = "_vertices";
+                d_silo_writer->registerMarkerCloud(
+                    d_base_filename[level_number][j] + postfix,
+                    d_num_vertex[level_number][j], d_vertex_offset[level_number][j], level_number);
+            }
         }
 
         bool registered_spring_edge_map = false;
@@ -695,7 +698,8 @@ IBStandardInitializer::initializeLSiloDataWriter(
 }// initializeLSiloDataWriter
 
 void
-IBStandardInitializer::readVertexFiles()
+IBStandardInitializer::readVertexFiles(
+    const std::string& extension)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -706,7 +710,7 @@ IBStandardInitializer::readVertexFiles()
     for (int ln = 0; ln < d_max_levels; ++ln)
     {
         const unsigned int num_base_filename = d_base_filename[ln].size();
-        d_num_vertex[ln].resize(num_base_filename,std::numeric_limits<int>::max());
+        d_num_vertex[ln].resize(num_base_filename,0);
         d_vertex_offset[ln].resize(num_base_filename,std::numeric_limits<int>::max());
         d_vertex_posn[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
@@ -724,55 +728,56 @@ IBStandardInitializer::readVertexFiles()
             }
 
             // Ensure that the file exists.
-            const std::string vertex_filename = d_base_filename[ln][j] + ".vertex";
+            const std::string vertex_filename = d_base_filename[ln][j] + extension;
             std::ifstream file_stream;
             file_stream.open(vertex_filename.c_str(), std::ios::in);
-            if (!file_stream.is_open()) TBOX_ERROR(d_object_name << ":\n  Unable to open input file " << vertex_filename << std::endl);
-
-            plog << d_object_name << ":  "
-                 << "processing vertex data from ASCII input file named " << vertex_filename << std::endl
-                 << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
-
-            // The first entry in the file is the number of vertices.
-            if (!std::getline(file_stream, line_string))
+            if (file_stream.is_open())
             {
-                TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << vertex_filename << std::endl);
-            }
-            else
-            {
-                line_string = discard_comments(line_string);
-                std::istringstream line_stream(line_string);
-                if (!(line_stream >> d_num_vertex[ln][j]))
-                {
-                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << vertex_filename << std::endl);
-                }
-            }
+                plog << d_object_name << ":  "
+                     << "processing vertex data from ASCII input file named " << vertex_filename << std::endl
+                     << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
 
-            if (d_num_vertex[ln][j] <= 0)
-            {
-                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << vertex_filename << std::endl);
-            }
-
-            // Each successive line provides the initial position of each vertex
-            // in the input file.
-            d_vertex_posn[ln][j].resize(d_num_vertex[ln][j]);
-            for (int k = 0; k < d_num_vertex[ln][j]; ++k)
-            {
+                // The first entry in the file is the number of vertices.
                 if (!std::getline(file_stream, line_string))
                 {
-                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << vertex_filename << std::endl);
+                    TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line 1 of file " << vertex_filename << std::endl);
                 }
                 else
                 {
                     line_string = discard_comments(line_string);
                     std::istringstream line_stream(line_string);
-                    for (unsigned int d = 0; d < NDIM; ++d)
+                    if (!(line_stream >> d_num_vertex[ln][j]))
                     {
-                        if (!(line_stream >> d_vertex_posn[ln][j][k][d]))
+                        TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << vertex_filename << std::endl);
+                    }
+                }
+
+                if (d_num_vertex[ln][j] <= 0)
+                {
+                    TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << vertex_filename << std::endl);
+                }
+
+                // Each successive line provides the initial position of each
+                // vertex in the input file.
+                d_vertex_posn[ln][j].resize(d_num_vertex[ln][j]);
+                for (int k = 0; k < d_num_vertex[ln][j]; ++k)
+                {
+                    if (!std::getline(file_stream, line_string))
+                    {
+                        TBOX_ERROR(d_object_name << ":\n  Premature end to input file encountered before line " << k+2 << " of file " << vertex_filename << std::endl);
+                    }
+                    else
+                    {
+                        line_string = discard_comments(line_string);
+                        std::istringstream line_stream(line_string);
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
-                            TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << vertex_filename << std::endl);
+                            if (!(line_stream >> d_vertex_posn[ln][j][k][d]))
+                            {
+                                TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << vertex_filename << std::endl);
+                            }
+                            d_vertex_posn[ln][j][k][d] = d_length_scale_factor*(d_vertex_posn[ln][j][k][d] + d_posn_shift[d]);
                         }
-                        d_vertex_posn[ln][j][k][d] = d_length_scale_factor*(d_vertex_posn[ln][j][k][d] + d_posn_shift[d]);
                     }
                 }
             }
@@ -795,7 +800,9 @@ IBStandardInitializer::readVertexFiles()
 }// readVertexFiles
 
 void
-IBStandardInitializer::readSpringFiles()
+IBStandardInitializer::readSpringFiles(
+    const std::string& extension,
+    const bool input_uses_global_idxs)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -812,11 +819,15 @@ IBStandardInitializer::readSpringFiles()
         {
             bool warned = false;
 
+            // Determine min/max index ranges.
+            const int min_idx = 0;
+            const int max_idx = (input_uses_global_idxs ? std::accumulate(d_num_vertex[ln].begin(), d_num_vertex[ln].end(), 0) : d_num_vertex[ln][j]);
+
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
             // Ensure that the file exists.
-            const std::string spring_filename = d_base_filename[ln][j] + ".spring";
+            const std::string spring_filename = d_base_filename[ln][j] + extension;
             std::ifstream file_stream;
             file_stream.open(spring_filename.c_str(), std::ios::in);
             if (file_stream.is_open())
@@ -869,7 +880,7 @@ IBStandardInitializer::readSpringFiles()
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << std::endl);
                         }
-                        else if ((e.first < 0) || (e.first >= d_num_vertex[ln][j]))
+                        else if ((e.first < min_idx) || (e.first >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << std::endl
                                        << "  vertex index " << e.first << " is out of range" << std::endl);
@@ -879,7 +890,7 @@ IBStandardInitializer::readSpringFiles()
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << std::endl);
                         }
-                        else if ((e.second < 0) || (e.second >= d_num_vertex[ln][j]))
+                        else if ((e.second < min_idx) || (e.second >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << spring_filename << std::endl
                                        << "  vertex index " << e.second << " is out of range" << std::endl);
@@ -940,72 +951,39 @@ IBStandardInitializer::readSpringFiles()
                     }
 #endif
 
-                    // Correct the edge numbers to be in the global Lagrangian indexing
-                    // scheme.
-                    e.first  += d_vertex_offset[ln][j];
-                    e.second += d_vertex_offset[ln][j];
-
-                    // Always place the lower index first.
-                    if (e.first > e.second)
-                    {
-                        std::swap<int>(e.first, e.second);
-                    }
-
-                    // Check to see if the edge has already been inserted in the edge map.
-                    bool duplicate_edge = false;
-#ifdef DEBUG_CHECK_ASSERTIONS
-                    for (std::multimap<int,Edge>::const_iterator it = d_spring_edge_map[ln][j].lower_bound(e.first); it != d_spring_edge_map[ln][j].upper_bound(e.first); ++it)
-                    {
-                        const Edge& other_e = it->second;
-                        if (e.first  == other_e.first &&
-                            e.second == other_e.second)
-                        {
-                            // This is a duplicate edge and should not be inserted into the
-                            // edge map.
-                            duplicate_edge = true;
-
-                            // Ensure that the link information is consistent.
-                            if (!MathUtilities<double>::equalEps(d_spring_spec_data[ln][j].find(e)->second.stiffness  , kappa ) ||
-                                !MathUtilities<double>::equalEps(d_spring_spec_data[ln][j].find(e)->second.rest_length, length) ||
-                                (d_spring_spec_data[ln][j].find(e)->second.force_fcn_idx != force_fcn_idx)
-#if ENABLE_SUBDOMAIN_INDICES
-                                || (d_spring_spec_data[ln][j].find(e)->second.subdomain_idx != subdomain_idx)
-#endif
-                                )
-                            {
-                                TBOX_ERROR(d_object_name << ":\n  Inconsistent duplicate edges in input file encountered on line " << k+2 << " of file " << spring_filename << std::endl
-                                           << "  first vertex = " << e.first-d_vertex_offset[ln][j] << " second vertex = " << e.second-d_vertex_offset[ln][j] << std::endl
-                                           << "  original spring constant      = " << d_spring_spec_data[ln][j].find(e)->second.stiffness     << std::endl
-                                           << "  original resting length       = " << d_spring_spec_data[ln][j].find(e)->second.rest_length   << std::endl
-                                           << "  original force function index = " << d_spring_spec_data[ln][j].find(e)->second.force_fcn_idx << std::endl);
-                            }
-                        }
-                    }
-#endif
-                    // Initialize the map data corresponding to the present edge.
-                    //
-                    // Note that in the edge map, each edge is associated with only the
-                    // first vertex.
-                    if (!duplicate_edge)
-                    {
-                        d_spring_edge_map[ln][j].insert(std::make_pair(e.first,e));
-                        SpringSpec& spec_data = d_spring_spec_data[ln][j][e];
-                        spec_data.stiffness     = kappa;
-                        spec_data.rest_length   = length;
-                        spec_data.force_fcn_idx = force_fcn_idx;
-#if ENABLE_SUBDOMAIN_INDICES
-                        spec_data.subdomain_idx = subdomain_idx;
-#endif
-                    }
-
                     // Check to see if the spring constant is zero and, if so,
                     // emit a warning.
-                    if (!warned && d_enable_springs[ln][j] &&
-                        (kappa == 0.0 || MathUtilities<double>::equalEps(kappa,0.0)))
+                    if (!warned && d_enable_springs[ln][j] && (kappa == 0.0 || MathUtilities<double>::equalEps(kappa,0.0)))
                     {
                         TBOX_WARNING(d_object_name << ":\n  Spring with zero spring constant encountered in ASCII input file named " << spring_filename << "." << std::endl);
                         warned = true;
                     }
+
+                    // Correct the edge numbers to be in the global Lagrangian indexing
+                    // scheme.
+                    if (!input_uses_global_idxs)
+                    {
+                        e.first  += d_vertex_offset[ln][j];
+                        e.second += d_vertex_offset[ln][j];
+                    }
+
+                    // Initialize the map data corresponding to the present edge.
+                    //
+                    // Note that in the edge map, each edge is associated with only the
+                    // first vertex.
+                    if (e.first > e.second)
+                    {
+                        std::swap<int>(e.first, e.second);
+                    }
+                    d_spring_edge_map[ln][j].insert(std::make_pair(e.first,e));
+                    SpringSpec spec_data;
+                    spec_data.stiffness     = kappa;
+                    spec_data.rest_length   = length;
+                    spec_data.force_fcn_idx = force_fcn_idx;
+#if ENABLE_SUBDOMAIN_INDICES
+                    spec_data.subdomain_idx = subdomain_idx;
+#endif
+                    d_spring_spec_data[ln][j].insert(std::make_pair(e,spec_data));
                 }
 
                 // Close the input file.
@@ -1027,7 +1005,9 @@ IBStandardInitializer::readSpringFiles()
 }// readSpringFiles
 
 void
-IBStandardInitializer::readXSpringFiles()
+IBStandardInitializer::readXSpringFiles(
+    const std::string& extension,
+    const bool input_uses_global_idxs)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -1044,21 +1024,25 @@ IBStandardInitializer::readXSpringFiles()
         {
             bool warned = false;
 
+            // Determine min/max index ranges.
+            const int min_idx = 0;
+            const int max_idx = (input_uses_global_idxs ? std::accumulate(d_num_vertex[ln].begin(), d_num_vertex[ln].end(), 0) : d_num_vertex[ln][j]);
+
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
             // Ensure that the file exists.
-            const std::string xspring_filename = d_base_filename[ln][j] + ".xspring";
+            const std::string xspring_filename = d_base_filename[ln][j] + extension;
             std::ifstream file_stream;
             file_stream.open(xspring_filename.c_str(), std::ios::in);
             if (file_stream.is_open())
             {
                 plog << d_object_name << ":  "
-                     << "processing xspring data from ASCII input file named " << xspring_filename << std::endl
+                     << "processing crosslink spring data from ASCII input file named " << xspring_filename << std::endl
                      << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
 
-                // The first line in the file indicates the number of edges in
-                // the input file.
+                // The first line in the file indicates the number of edges in the input
+                // file.
                 int num_edges;
                 if (!std::getline(file_stream, line_string))
                 {
@@ -1079,8 +1063,8 @@ IBStandardInitializer::readXSpringFiles()
                     TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line 1 of file " << xspring_filename << std::endl);
                 }
 
-                // Each successive line provides the connectivity and material
-                // parameter information for each xspring in the structure.
+                // Each successive line provides the connectivity and material parameter
+                // information for each crosslink spring in the structure.
                 for (int k = 0; k < num_edges; ++k)
                 {
                     Edge e;
@@ -1101,7 +1085,7 @@ IBStandardInitializer::readXSpringFiles()
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << xspring_filename << std::endl);
                         }
-                        else if ((e.first < 0) || (e.first >= d_num_vertex[ln][j]))
+                        else if ((e.first < min_idx) || (e.first >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << xspring_filename << std::endl
                                        << "  vertex index " << e.first << " is out of range" << std::endl);
@@ -1111,7 +1095,7 @@ IBStandardInitializer::readXSpringFiles()
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << xspring_filename << std::endl);
                         }
-                        else if ((e.second < 0) || (e.second >= d_num_vertex[ln][j]))
+                        else if ((e.second < min_idx) || (e.second >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << xspring_filename << std::endl
                                        << "  vertex index " << e.second << " is out of range" << std::endl);
@@ -1124,7 +1108,7 @@ IBStandardInitializer::readXSpringFiles()
                         else if (kappa < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << xspring_filename << std::endl
-                                       << "  xspring constant is negative" << std::endl);
+                                       << "  spring constant is negative" << std::endl);
                         }
 
                         if (!(line_stream >> length))
@@ -1134,7 +1118,7 @@ IBStandardInitializer::readXSpringFiles()
                         else if (length < 0.0)
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << xspring_filename << std::endl
-                                       << "  xspring resting length is negative" << std::endl);
+                                       << "  spring resting length is negative" << std::endl);
                         }
                         length *= d_length_scale_factor;
 
@@ -1172,67 +1156,39 @@ IBStandardInitializer::readXSpringFiles()
                     }
 #endif
 
-                    // Always place the lower index first.
-                    if (e.first > e.second)
+                    // Check to see if the spring constant is zero and, if so,
+                    // emit a warning.
+                    if (!warned && d_enable_xsprings[ln][j] && (kappa == 0.0 || MathUtilities<double>::equalEps(kappa,0.0)))
                     {
-                        std::swap<int>(e.first, e.second);
+                        TBOX_WARNING(d_object_name << ":\n  Crosslink spring with zero spring constant encountered in ASCII input file named " << xspring_filename << "." << std::endl);
+                        warned = true;
                     }
 
-                    // Check to see if the edge has already been inserted in the edge map.
-                    bool duplicate_edge = false;
-#ifdef DEBUG_CHECK_ASSERTIONS
-                    for (std::multimap<int,Edge>::const_iterator it = d_xspring_edge_map[ln][j].lower_bound(e.first); it != d_xspring_edge_map[ln][j].upper_bound(e.first); ++it)
+                    // Correct the edge numbers to be in the global Lagrangian indexing
+                    // scheme.
+                    if (!input_uses_global_idxs)
                     {
-                        const Edge& other_e = it->second;
-                        if (e.first  == other_e.first &&
-                            e.second == other_e.second)
-                        {
-                            // This is a duplicate edge and should not be inserted into the
-                            // edge map.
-                            duplicate_edge = true;
-
-                            // Ensure that the link information is consistent.
-                            if (!MathUtilities<double>::equalEps(d_xspring_spec_data[ln][j].find(e)->second.stiffness  , kappa ) ||
-                                !MathUtilities<double>::equalEps(d_xspring_spec_data[ln][j].find(e)->second.rest_length, length) ||
-                                (d_xspring_spec_data[ln][j].find(e)->second.force_fcn_idx != force_fcn_idx)
-#if ENABLE_SUBDOMAIN_INDICES
-                                || (d_xspring_spec_data[ln][j].find(e)->second.subdomain_idx != subdomain_idx)
-#endif
-                                )
-                            {
-                                TBOX_ERROR(d_object_name << ":\n  Inconsistent duplicate edges in input file encountered on line " << k+2 << " of file " << xspring_filename << std::endl
-                                           << "  first vertex = " << e.first-d_vertex_offset[ln][j] << " second vertex = " << e.second-d_vertex_offset[ln][j] << std::endl
-                                           << "  original spring constant      = " << d_xspring_spec_data[ln][j].find(e)->second.stiffness     << std::endl
-                                           << "  original resting length       = " << d_xspring_spec_data[ln][j].find(e)->second.rest_length   << std::endl
-                                           << "  original force function index = " << d_xspring_spec_data[ln][j].find(e)->second.force_fcn_idx << std::endl);
-                            }
-                        }
+                        e.first  += d_vertex_offset[ln][j];
+                        e.second += d_vertex_offset[ln][j];
                     }
-#endif
+
                     // Initialize the map data corresponding to the present edge.
                     //
                     // Note that in the edge map, each edge is associated with only the
                     // first vertex.
-                    if (!duplicate_edge)
+                    if (e.first > e.second)
                     {
-                        d_xspring_edge_map[ln][j].insert(std::make_pair(e.first,e));
-                        XSpringSpec& spec_data = d_xspring_spec_data[ln][j][e];
-                        spec_data.stiffness     = kappa;
-                        spec_data.rest_length   = length;
-                        spec_data.force_fcn_idx = force_fcn_idx;
+                        std::swap<int>(e.first, e.second);
+                    }
+                    d_xspring_edge_map[ln][j].insert(std::make_pair(e.first,e));
+                    XSpringSpec spec_data;
+                    spec_data.stiffness     = kappa;
+                    spec_data.rest_length   = length;
+                    spec_data.force_fcn_idx = force_fcn_idx;
 #if ENABLE_SUBDOMAIN_INDICES
-                        spec_data.subdomain_idx = subdomain_idx;
+                    spec_data.subdomain_idx = subdomain_idx;
 #endif
-                    }
-
-                    // Check to see if the xspring constant is zero and, if so,
-                    // emit a warning.
-                    if (!warned && d_enable_xsprings[ln][j] &&
-                        (kappa == 0.0 || MathUtilities<double>::equalEps(kappa,0.0)))
-                    {
-                        TBOX_WARNING(d_object_name << ":\n  X-spring with zero spring constant encountered in ASCII input file named " << xspring_filename << "." << std::endl);
-                        warned = true;
-                    }
+                    d_xspring_spec_data[ln][j].insert(std::make_pair(e,spec_data));
                 }
 
                 // Close the input file.
@@ -1254,7 +1210,9 @@ IBStandardInitializer::readXSpringFiles()
 }// readXSpringFiles
 
 void
-IBStandardInitializer::readBeamFiles()
+IBStandardInitializer::readBeamFiles(
+    const std::string& extension,
+    const bool input_uses_global_idxs)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -1270,10 +1228,14 @@ IBStandardInitializer::readBeamFiles()
         {
             bool warned = false;
 
+            // Determine min/max index ranges.
+            const int min_idx = 0;
+            const int max_idx = (input_uses_global_idxs ? std::accumulate(d_num_vertex[ln].begin(), d_num_vertex[ln].end(), 0) : d_num_vertex[ln][j]);
+
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
-            const std::string beam_filename = d_base_filename[ln][j] + ".beam";
+            const std::string beam_filename = d_base_filename[ln][j] + extension;
             std::ifstream file_stream;
             file_stream.open(beam_filename.c_str(), std::ios::in);
             if (file_stream.is_open())
@@ -1326,7 +1288,7 @@ IBStandardInitializer::readBeamFiles()
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << std::endl);
                         }
-                        else if ((prev_idx < 0) || (prev_idx >= d_num_vertex[ln][j]))
+                        else if ((prev_idx < min_idx) || (prev_idx >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << std::endl
                                        << "  vertex index " << prev_idx << " is out of range" << std::endl);
@@ -1336,7 +1298,7 @@ IBStandardInitializer::readBeamFiles()
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << std::endl);
                         }
-                        else if ((curr_idx < 0) || (curr_idx >= d_num_vertex[ln][j]))
+                        else if ((curr_idx < min_idx) || (curr_idx >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << std::endl
                                        << "  vertex index " << curr_idx << " is out of range" << std::endl);
@@ -1346,7 +1308,7 @@ IBStandardInitializer::readBeamFiles()
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << std::endl);
                         }
-                        else if ((next_idx < 0) || (next_idx >= d_num_vertex[ln][j]))
+                        else if ((next_idx < min_idx) || (next_idx >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << beam_filename << std::endl
                                        << "  vertex index " << next_idx << " is out of range" << std::endl);
@@ -1406,11 +1368,22 @@ IBStandardInitializer::readBeamFiles()
                     }
 #endif
 
+                    // Check to see if the bending rigidity is zero and, if so,
+                    // emit a warning.
+                    if (!warned && d_enable_beams[ln][j] && (bend == 0.0 || MathUtilities<double>::equalEps(bend,0.0)))
+                    {
+                        TBOX_WARNING(d_object_name << ":\n  Beam with zero bending rigidity encountered in ASCII input file named " << beam_filename << "." << std::endl);
+                        warned = true;
+                    }
+
                     // Correct the node numbers to be in the global Lagrangian
                     // indexing scheme.
-                    prev_idx += d_vertex_offset[ln][j];
-                    curr_idx += d_vertex_offset[ln][j];
-                    next_idx += d_vertex_offset[ln][j];
+                    if (!input_uses_global_idxs)
+                    {
+                        prev_idx += d_vertex_offset[ln][j];
+                        curr_idx += d_vertex_offset[ln][j];
+                        next_idx += d_vertex_offset[ln][j];
+                    }
 
                     // Initialize the map data corresponding to the present
                     // beam.
@@ -1425,15 +1398,6 @@ IBStandardInitializer::readBeamFiles()
                     spec_data.subdomain_idx = subdomain_idx;
 #endif
                     d_beam_spec_data[ln][j].insert(std::make_pair(curr_idx,spec_data));
-
-                    // Check to see if the bending rigidity is zero and, if so,
-                    // emit a warning.
-                    if (!warned && d_enable_beams[ln][j] &&
-                        (bend == 0.0 || MathUtilities<double>::equalEps(bend,0.0)))
-                    {
-                        TBOX_WARNING(d_object_name << ":\n  Beam with zero bending rigidity encountered in ASCII input file named " << beam_filename << "." << std::endl);
-                        warned = true;
-                    }
                 }
 
                 // Close the input file.
@@ -1455,7 +1419,9 @@ IBStandardInitializer::readBeamFiles()
 }// readBeamFiles
 
 void
-IBStandardInitializer::readRodFiles()
+IBStandardInitializer::readRodFiles(
+    const std::string& extension,
+    const bool input_uses_global_idxs)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -1470,10 +1436,14 @@ IBStandardInitializer::readRodFiles()
         d_rod_spec_data[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
+            // Determine min/max index ranges.
+            const int min_idx = 0;
+            const int max_idx = (input_uses_global_idxs ? std::accumulate(d_num_vertex[ln].begin(), d_num_vertex[ln].end(), 0) : d_num_vertex[ln][j]);
+
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
-            const std::string rod_filename = d_base_filename[ln][j] + ".rod";
+            const std::string rod_filename = d_base_filename[ln][j] + extension;
             std::ifstream file_stream;
             file_stream.open(rod_filename.c_str(), std::ios::in);
             if (file_stream.is_open())
@@ -1537,7 +1507,7 @@ IBStandardInitializer::readRodFiles()
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl);
                         }
-                        else if ((curr_idx < 0) || (curr_idx >= d_num_vertex[ln][j]))
+                        else if ((curr_idx < min_idx) || (curr_idx >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
                                        << "  vertex index " << curr_idx << " is out of range" << std::endl);
@@ -1547,7 +1517,7 @@ IBStandardInitializer::readRodFiles()
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl);
                         }
-                        else if ((next_idx < 0) || (next_idx >= d_num_vertex[ln][j]))
+                        else if ((next_idx < min_idx) || (next_idx >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << rod_filename << std::endl
                                        << "  vertex index " << next_idx << " is out of range" << std::endl);
@@ -1685,25 +1655,26 @@ IBStandardInitializer::readRodFiles()
 
                     // Correct the node numbers to be in the global Lagrangian
                     // indexing scheme.
-                    curr_idx += d_vertex_offset[ln][j];
-                    next_idx += d_vertex_offset[ln][j];
-
-                    // Initialize the map data corresponding to the present
-                    // edge.
-                    Edge e;
-                    e.first  = curr_idx;
-                    e.second = next_idx;
-                    d_rod_edge_map[ln][j].insert(std::make_pair(e.first,e));
+                    if (!input_uses_global_idxs)
+                    {
+                        curr_idx += d_vertex_offset[ln][j];
+                        next_idx += d_vertex_offset[ln][j];
+                    }
 
                     // Initialize the map data corresponding to the present rod.
                     //
                     // Note that in the rod property map, each edge is
                     // associated with only the "current" vertex.
-                    RodSpec& rod_spec = d_rod_spec_data[ln][j][e];
+                    Edge e;
+                    e.first  = curr_idx;
+                    e.second = next_idx;
+                    d_rod_edge_map[ln][j].insert(std::make_pair(e.first,e));
+                    RodSpec rod_spec;
                     rod_spec.properties = properties;
 #if ENABLE_SUBDOMAIN_INDICES
                     rod_spec.subdomain_idx = subdomain_idx;
 #endif
+                    d_rod_spec_data[ln][j].insert(std::make_pair(e,rod_spec));
                 }
 
                 // Close the input file.
@@ -1725,7 +1696,8 @@ IBStandardInitializer::readRodFiles()
 }// readRodFiles
 
 void
-IBStandardInitializer::readTargetPointFiles()
+IBStandardInitializer::readTargetPointFiles(
+    const std::string& extension)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -1741,6 +1713,10 @@ IBStandardInitializer::readTargetPointFiles()
         {
             bool warned = false;
 
+            // Determine min/max index ranges.
+            const int min_idx = 0;
+            const int max_idx = d_num_vertex[ln][j];
+
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
@@ -1752,7 +1728,7 @@ IBStandardInitializer::readTargetPointFiles()
 #endif
             d_target_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
 
-            const std::string target_point_stiffness_filename = d_base_filename[ln][j] + ".target";
+            const std::string target_point_stiffness_filename = d_base_filename[ln][j] + extension;
             std::ifstream file_stream;
             file_stream.open(target_point_stiffness_filename.c_str(), std::ios::in);
             if (file_stream.is_open())
@@ -1800,7 +1776,7 @@ IBStandardInitializer::readTargetPointFiles()
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << target_point_stiffness_filename << std::endl);
                         }
-                        else if ((n < 0) || (n >= d_num_vertex[ln][j]))
+                        else if ((n < min_idx) || (n >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << target_point_stiffness_filename << std::endl
                                        << "  vertex index " << n << " is out of range" << std::endl);
@@ -1836,8 +1812,7 @@ IBStandardInitializer::readTargetPointFiles()
                     // Check to see if the penalty spring constant is zero and,
                     // if so, emit a warning.
                     const double kappa = d_target_spec_data[ln][j][n].stiffness;
-                    if (!warned && d_enable_target_points[ln][j] &&
-                        (kappa == 0.0 || MathUtilities<double>::equalEps(kappa,0.0)))
+                    if (!warned && d_enable_target_points[ln][j] && (kappa == 0.0 || MathUtilities<double>::equalEps(kappa,0.0)))
                     {
                         TBOX_WARNING(d_object_name << ":\n  Target point with zero penalty spring constant encountered in ASCII input file named " << target_point_stiffness_filename << "." << std::endl);
                         warned = true;
@@ -1901,7 +1876,8 @@ IBStandardInitializer::readTargetPointFiles()
 }// readTargetPointFiles
 
 void
-IBStandardInitializer::readAnchorPointFiles()
+IBStandardInitializer::readAnchorPointFiles(
+    const std::string& extension)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -1915,6 +1891,10 @@ IBStandardInitializer::readAnchorPointFiles()
         d_anchor_spec_data[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
+            // Determine min/max index ranges.
+            const int min_idx = 0;
+            const int max_idx = d_num_vertex[ln][j];
+
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
@@ -1925,7 +1905,7 @@ IBStandardInitializer::readAnchorPointFiles()
 #endif
             d_anchor_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
 
-            const std::string anchor_point_filename = d_base_filename[ln][j] + ".anchor";
+            const std::string anchor_point_filename = d_base_filename[ln][j] + extension;
             std::ifstream file_stream;
             file_stream.open(anchor_point_filename.c_str(), std::ios::in);
             if (file_stream.is_open())
@@ -1973,7 +1953,7 @@ IBStandardInitializer::readAnchorPointFiles()
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << anchor_point_filename << std::endl);
                         }
-                        else if ((n < 0) || (n >= d_num_vertex[ln][j]))
+                        else if ((n < min_idx) || (n >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << anchor_point_filename << std::endl
                                        << "  vertex index " << n << " is out of range" << std::endl);
@@ -2017,7 +1997,8 @@ IBStandardInitializer::readAnchorPointFiles()
 }// readAnchorPointFiles
 
 void
-IBStandardInitializer::readBoundaryMassFiles()
+IBStandardInitializer::readBoundaryMassFiles(
+    const std::string& extension)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -2031,6 +2012,10 @@ IBStandardInitializer::readBoundaryMassFiles()
         d_bdry_mass_spec_data[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
+            // Determine min/max index ranges.
+            const int min_idx = 0;
+            const int max_idx = d_num_vertex[ln][j];
+
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
@@ -2039,7 +2024,7 @@ IBStandardInitializer::readBoundaryMassFiles()
             default_spec.stiffness = 0.0;
             d_bdry_mass_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
 
-            const std::string bdry_mass_filename = d_base_filename[ln][j] + ".mass";
+            const std::string bdry_mass_filename = d_base_filename[ln][j] + extension;
             std::ifstream file_stream;
             file_stream.open(bdry_mass_filename.c_str(), std::ios::in);
             if (file_stream.is_open())
@@ -2088,7 +2073,7 @@ IBStandardInitializer::readBoundaryMassFiles()
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << bdry_mass_filename << std::endl);
                         }
-                        else if ((n < 0) || (n >= d_num_vertex[ln][j]))
+                        else if ((n < min_idx) || (n >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << k+2 << " of file " << bdry_mass_filename << std::endl
                                        << "  vertex index " << n << " is out of range" << std::endl);
@@ -2161,7 +2146,8 @@ IBStandardInitializer::readBoundaryMassFiles()
 }// readBoundaryMassFiles
 
 void
-IBStandardInitializer::readDirectorFiles()
+IBStandardInitializer::readDirectorFiles(
+    const std::string& extension)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -2180,7 +2166,7 @@ IBStandardInitializer::readDirectorFiles()
 
             d_directors[ln][j].resize(d_num_vertex[ln][j], std::vector<double>(3*3,0.0));
 
-            const std::string directors_filename = d_base_filename[ln][j] + ".director";
+            const std::string directors_filename = d_base_filename[ln][j] + extension;
             std::ifstream file_stream;
             file_stream.open(directors_filename.c_str(), std::ios::in);
             if (file_stream.is_open())
@@ -2263,7 +2249,8 @@ IBStandardInitializer::readDirectorFiles()
 }// readDirectorFiles
 
 void
-IBStandardInitializer::readInstrumentationFiles()
+IBStandardInitializer::readInstrumentationFiles(
+    const std::string& extension)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -2279,10 +2266,14 @@ IBStandardInitializer::readInstrumentationFiles()
         d_instrument_idx[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
+            // Determine min/max index ranges.
+            const int min_idx = 0;
+            const int max_idx = d_num_vertex[ln][j];
+
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
-            const std::string inst_filename = d_base_filename[ln][j] + ".inst";
+            const std::string inst_filename = d_base_filename[ln][j] + extension;
             std::ifstream file_stream;
             file_stream.open(inst_filename.c_str(), std::ios::in);
             if (file_stream.is_open() && d_enable_instrumentation[ln][j])
@@ -2379,7 +2370,7 @@ IBStandardInitializer::readInstrumentationFiles()
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << num_inst+k+3 << " of file " << inst_filename << std::endl);
                         }
-                        else if ((n < 0) || (n >= d_num_vertex[ln][j]))
+                        else if ((n < min_idx) || (n >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << num_inst+k+3 << " of file " << inst_filename << std::endl
                                        << "  vertex index " << n << " is out of range" << std::endl);
@@ -2475,7 +2466,8 @@ IBStandardInitializer::readInstrumentationFiles()
 }// readInstrumentationFiles
 
 void
-IBStandardInitializer::readSourceFiles()
+IBStandardInitializer::readSourceFiles(
+    const std::string& extension)
 {
     std::string line_string;
     const int rank = SAMRAI_MPI::getRank();
@@ -2492,10 +2484,14 @@ IBStandardInitializer::readSourceFiles()
         d_source_idx[ln].resize(num_base_filename);
         for (unsigned int j = 0; j < num_base_filename; ++j)
         {
+            // Determine min/max index ranges.
+            const int min_idx = 0;
+            const int max_idx = d_num_vertex[ln][j];
+
             // Wait for the previous MPI process to finish reading the current file.
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank-1, false, j);
 
-            const std::string source_filename = d_base_filename[ln][j] + ".source";
+            const std::string source_filename = d_base_filename[ln][j] + extension;
             std::ifstream file_stream;
             file_stream.open(source_filename.c_str(), std::ios::in);
             if (file_stream.is_open() && d_enable_sources[ln][j])
@@ -2605,7 +2601,7 @@ IBStandardInitializer::readSourceFiles()
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << 2*num_source+k+3 << " of file " << source_filename << std::endl);
                         }
-                        else if ((n < 0) || (n >= d_num_vertex[ln][j]))
+                        else if ((n < min_idx) || (n >= max_idx))
                         {
                             TBOX_ERROR(d_object_name << ":\n  Invalid entry in input file encountered on line " << 2*num_source+k+3 << " of file " << source_filename << std::endl
                                        << "  vertex index " << n << " is out of range" << std::endl);
@@ -2778,80 +2774,69 @@ IBStandardInitializer::initializeSpecs(
     const int mastr_idx = getCanonicalLagrangianIndex(point_index, level_number);
 
     // Initialize any spring specifications associated with the present vertex.
-    if (d_enable_springs[level_number][j])
     {
         std::vector<int> slave_idxs, force_fcn_idxs;
         std::vector<double> stiffness, rest_length;
 #if ENABLE_SUBDOMAIN_INDICES
         std::vector<int> subdomain_idxs;
 #endif
-        for (std::multimap<int,Edge>::const_iterator it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx); it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
+        if (d_enable_springs[level_number][j])
         {
+            for (std::multimap<int,Edge>::const_iterator it = d_spring_edge_map[level_number][j].lower_bound(mastr_idx); it != d_spring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
+            {
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(mastr_idx == it->first);
+                TBOX_ASSERT(mastr_idx == it->first);
 #endif
-            // The connectivity information.
-            const Edge& e = it->second;
-            if (e.first == mastr_idx)
-            {
-                slave_idxs.push_back(e.second+global_index_offset);
-            }
-            else
-            {
-                slave_idxs.push_back(e.first +global_index_offset);
-            }
+                // The connectivity information.
+                const Edge& e = it->second;
+                if (e.first == mastr_idx)
+                {
+                    slave_idxs.push_back(e.second+global_index_offset);
+                }
+                else
+                {
+                    slave_idxs.push_back(e.first +global_index_offset);
+                }
 
-            // The material properties.
-            const SpringSpec& spec_data = d_spring_spec_data[level_number][j].find(e)->second;
-            stiffness     .push_back(spec_data.stiffness    );
-            rest_length   .push_back(spec_data.rest_length  );
-            force_fcn_idxs.push_back(spec_data.force_fcn_idx);
+                // The material properties.
+                const SpringSpec& spec_data = d_spring_spec_data[level_number][j].find(e)->second;
+                stiffness     .push_back(spec_data.stiffness    );
+                rest_length   .push_back(spec_data.rest_length  );
+                force_fcn_idxs.push_back(spec_data.force_fcn_idx);
 #if ENABLE_SUBDOMAIN_INDICES
-            subdomain_idxs.push_back(spec_data.subdomain_idx);
+                subdomain_idxs.push_back(spec_data.subdomain_idx);
 #endif
+            }
         }
-        if (slave_idxs.size() > 0)
+        const unsigned int num_base_filename = d_base_filename[level_number].size();
+        for (unsigned int j = 0; j < num_base_filename; ++j)
         {
-            vertex_specs.push_back(new IBSpringForceSpec(mastr_idx, slave_idxs, force_fcn_idxs, stiffness, rest_length
-#if ENABLE_SUBDOMAIN_INDICES
-                                                         , subdomain_idxs
-#endif
-                                                         ));
-        }
-    }
-
-    // Initialize any xspring specifications associated with the present vertex.
-    if (d_enable_xsprings[level_number][j])
-    {
-        std::vector<int> slave_idxs, force_fcn_idxs;
-        std::vector<double> stiffness, rest_length;
-#if ENABLE_SUBDOMAIN_INDICES
-        std::vector<int> subdomain_idxs;
-#endif
-        for (std::multimap<int,Edge>::const_iterator it = d_xspring_edge_map[level_number][j].lower_bound(mastr_idx); it != d_xspring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
-        {
+            if (!d_enable_xsprings[level_number][j]) continue;
+            for (std::multimap<int,Edge>::const_iterator it = d_xspring_edge_map[level_number][j].lower_bound(mastr_idx); it != d_xspring_edge_map[level_number][j].upper_bound(mastr_idx); ++it)
+            {
 #ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(mastr_idx == it->first);
+                TBOX_ASSERT(mastr_idx == it->first);
 #endif
-            // The connectivity information.
-            const Edge& e = it->second;
-            if (e.first == mastr_idx)
-            {
-                slave_idxs.push_back(e.second+global_index_offset);
-            }
-            else
-            {
-                slave_idxs.push_back(e.first +global_index_offset);
-            }
+                // The connectivity information.
+                const Edge& e = it->second;
+                if (e.first == mastr_idx)
+                {
+                    slave_idxs.push_back(e.second+global_index_offset);
+                }
+                else
+                {
+                    slave_idxs.push_back(e.first +global_index_offset);
+                }
 
-            // The material properties.
-            const XSpringSpec& spec_data = d_xspring_spec_data[level_number][j].find(e)->second;
-            stiffness     .push_back(spec_data.stiffness    );
-            rest_length   .push_back(spec_data.rest_length  );
-            force_fcn_idxs.push_back(spec_data.force_fcn_idx);
+                // The material properties.
+                const XSpringSpec& spec_data = d_xspring_spec_data[level_number][j].find(e)->second;
+                stiffness     .push_back(spec_data.stiffness    );
+                rest_length   .push_back(spec_data.rest_length  );
+                force_fcn_idxs.push_back(spec_data.force_fcn_idx);
 #if ENABLE_SUBDOMAIN_INDICES
-            subdomain_idxs.push_back(spec_data.subdomain_idx);
+                subdomain_idxs.push_back(spec_data.subdomain_idx);
 #endif
+            }
         }
         if (slave_idxs.size() > 0)
         {
@@ -3491,175 +3476,156 @@ IBStandardInitializer::getFromInput(
                  << "  assigned to level " << ln << " of the Cartesian grid patch hierarchy\n";
             if (!d_enable_springs[ln][j])
             {
-                pout << "  NOTE: spring forces are DISABLED for " << base_filename << "\n";
+                pout << "  NOTE: spring forces are DISABLED for the structure named " << base_filename << "\n";
             }
             else
             {
                 if (d_using_uniform_spring_stiffness[ln][j])
                 {
-                    pout << "  NOTE: uniform spring stiffnesses are being employed for the structure named " << base_filename << "\n"
-                         << "        any stiffness information in optional file " << base_filename << ".spring will be IGNORED\n";
+                    pout << "  NOTE: UNIFORM spring stiffnesses are being employed for the structure named " << base_filename << "\n";
                 }
                 if (d_using_uniform_spring_rest_length[ln][j])
                 {
-                    pout << "  NOTE: uniform spring resting lengths are being employed for the structure named " << base_filename << "\n"
-                         << "        any resting length information in optional file " << base_filename << ".spring will be IGNORED\n";
+                    pout << "  NOTE: UNIFORM spring resting lengths are being employed for the structure named " << base_filename << "\n";
                 }
                 if (d_using_uniform_spring_force_fcn_idx[ln][j])
                 {
-                    pout << "  NOTE: uniform spring force functions are being employed for the structure named " << base_filename << "\n"
-                         << "        any force function index information in optional file " << base_filename << ".spring will be IGNORED\n";
+                    pout << "  NOTE: UNIFORM spring force functions are being employed for the structure named " << base_filename << "\n";
                 }
 #if ENABLE_SUBDOMAIN_INDICES
                 if (d_using_uniform_spring_subdomain_idx[ln][j])
                 {
-                    pout << "  NOTE: uniform spring subdomain indicies are being employed for the structure named " << base_filename << "\n"
-                         << "        any subdomain index information in optional file " << base_filename << ".spring will be IGNORED\n";
+                    pout << "  NOTE: UNIFORM spring subdomain indicies are being employed for the structure named " << base_filename << "\n";
                 }
 #endif
             }
 
             if (!d_enable_xsprings[ln][j])
             {
-                pout << "  NOTE: xspring forces are DISABLED for " << base_filename << "\n";
+                pout << "  NOTE: crosslink spring forces are DISABLED for the structure named " << base_filename << "\n";
             }
             else
             {
                 if (d_using_uniform_xspring_stiffness[ln][j])
                 {
-                    pout << "  NOTE: uniform spring stiffnesses are being employed for the structure named " << base_filename << "\n"
-                         << "        any stiffness information in optional file " << base_filename << ".xspring will be IGNORED\n";
+                    pout << "  NOTE: UNIFORM crosslink spring stiffnesses are being employed for the structure named " << base_filename << "\n";
                 }
                 if (d_using_uniform_xspring_rest_length[ln][j])
                 {
-                    pout << "  NOTE: uniform spring resting lengths are being employed for the structure named " << base_filename << "\n"
-                         << "        any resting length information in optional file " << base_filename << ".xspring will be IGNORED\n";
+                    pout << "  NOTE: UNIFORM crosslink spring resting lengths are being employed for the structure named " << base_filename << "\n";
                 }
                 if (d_using_uniform_xspring_force_fcn_idx[ln][j])
                 {
-                    pout << "  NOTE: uniform spring force functions are being employed for the structure named " << base_filename << "\n"
-                         << "        any force function index information in optional file " << base_filename << ".xspring will be IGNORED\n";
+                    pout << "  NOTE: UNIFORM crosslink spring force functions are being employed for the structure named " << base_filename << "\n";
                 }
 #if ENABLE_SUBDOMAIN_INDICES
                 if (d_using_uniform_xspring_subdomain_idx[ln][j])
                 {
-                    pout << "  NOTE: uniform spring subdomain indicies are being employed for the structure named " << base_filename << "\n"
-                         << "        any subdomain index information in optional file " << base_filename << ".xspring will be IGNORED\n";
+                    pout << "  NOTE: UNIFORM crosslink spring subdomain indicies are being employed for the structure named " << base_filename << "\n";
                 }
 #endif
             }
 
             if (!d_enable_beams[ln][j])
             {
-                pout << "  NOTE: beam forces are DISABLED for " << base_filename << "\n";
+                pout << "  NOTE: beam forces are DISABLED for the structure named " << base_filename << "\n";
             }
             else
             {
                 if (d_using_uniform_beam_bend_rigidity[ln][j])
                 {
-                    pout << "  NOTE: uniform beam bending rigidities are being employed for the structure named " << base_filename << "\n"
-                         << "        any stiffness information in optional file " << base_filename << ".beam will be IGNORED\n";
+                    pout << "  NOTE: UNIFORM beam bending rigidities are being employed for the structure named " << base_filename << "\n";
                 }
                 if (d_using_uniform_beam_curvature[ln][j])
                 {
-                    pout << "  NOTE: uniform beam curvatures are being employed for the structure named " << base_filename << "\n"
-                         << "        any curvature information in optional file " << base_filename << ".beam will be IGNORED\n";
+                    pout << "  NOTE: UNIFORM beam curvatures are being employed for the structure named " << base_filename << "\n";
                 }
 #if ENABLE_SUBDOMAIN_INDICES
                 if (d_using_uniform_beam_subdomain_idx[ln][j])
                 {
-                    pout << "  NOTE: uniform beam subdomain indicies are being employed for the structure named " << base_filename << "\n"
-                         << "        any subdomain index information in optional file " << base_filename << ".beam will be IGNORED\n";
+                    pout << "  NOTE: UNIFORM beam subdomain indicies are being employed for the structure named " << base_filename << "\n";
                 }
 #endif
             }
 
             if (!d_enable_rods[ln][j])
             {
-                pout << "  NOTE: rod forces are DISABLED for " << base_filename << "\n";
+                pout << "  NOTE: rod forces are DISABLED for the structure named " << base_filename << "\n";
             }
             else
             {
                 if (d_using_uniform_rod_properties[ln][j])
                 {
-                    pout << "  NOTE: uniform rod material properties are being employed for the structure named " << base_filename << "\n"
-                         << "        any material property information in optional file " << base_filename << ".rod will be IGNORED\n";
+                    pout << "  NOTE: UNIFORM rod material properties are being employed for the structure named " << base_filename << "\n";
                 }
 #if ENABLE_SUBDOMAIN_INDICES
                 if (d_using_uniform_rod_subdomain_idx[ln][j])
                 {
-                    pout << "  NOTE: uniform rod subdomain indicies are being employed for the structure named " << base_filename << "\n"
-                         << "        any subdomain index information in optional file " << base_filename << ".rod will be IGNORED\n";
+                    pout << "  NOTE: UNIFORM rod subdomain indicies are being employed for the structure named " << base_filename << "\n";
                 }
 #endif
             }
 
             if (!d_enable_target_points[ln][j])
             {
-                pout << "  NOTE: target point penalty forces are DISABLED for " << base_filename << "\n";
+                pout << "  NOTE: target point penalty forces are DISABLED for the structure named " << base_filename << "\n";
             }
             else
             {
                 if (d_using_uniform_target_stiffness[ln][j])
                 {
-                    pout << "  NOTE: uniform target point stiffnesses are being employed for the structure named " << base_filename << "\n"
-                         << "        any target point stiffness information in optional file " << base_filename << ".target will be IGNORED\n";
+                    pout << "  NOTE: UNIFORM target point stiffnesses are being employed for the structure named " << base_filename << "\n";
                 }
                 if (d_using_uniform_target_damping[ln][j])
                 {
-                    pout << "  NOTE: uniform target point damping factors are being employed for the structure named " << base_filename << "\n"
-                         << "        any target point damping factor information in optional file " << base_filename << ".target will be IGNORED\n";
+                    pout << "  NOTE: UNIFORM target point damping factors are being employed for the structure named " << base_filename << "\n";
                 }
 #if ENABLE_SUBDOMAIN_INDICES
                 if (d_using_uniform_target_subdomain_idx[ln][j])
                 {
-                    pout << "  NOTE: uniform target point subdomain indicies are being employed for the structure named " << base_filename << "\n"
-                         << "        any subdomain index information in optional file " << base_filename << ".target will be IGNORED\n";
+                    pout << "  NOTE: UNIFORM target point subdomain indicies are being employed for the structure named " << base_filename << "\n";
                 }
 #endif
             }
 
             if (!d_enable_anchor_points[ln][j])
             {
-                pout << "  NOTE: anchor points are DISABLED for " << base_filename << "\n";
+                pout << "  NOTE: anchor points are DISABLED for the structure named " << base_filename << "\n";
             }
             else
             {
 #if ENABLE_SUBDOMAIN_INDICES
                 if (d_using_uniform_anchor_subdomain_idx[ln][j])
                 {
-                    pout << "  NOTE: uniform anchor point subdomain indicies are being employed for the structure named " << base_filename << "\n"
-                         << "        any subdomain index information in optional file " << base_filename << ".anchor will be IGNORED\n";
+                    pout << "  NOTE: UNIFORM anchor point subdomain indicies are being employed for the structure named " << base_filename << "\n";
                 }
 #endif
             }
 
             if (!d_enable_bdry_mass[ln][j])
             {
-                pout << "  NOTE: massive boundary points are DISABLED for " << base_filename << "\n";
+                pout << "  NOTE: massive boundary points are DISABLED for the structure named " << base_filename << "\n";
             }
             else
             {
                 if (d_using_uniform_bdry_mass[ln][j])
                 {
-                    pout << "  NOTE: uniform boundary point masses are being employed for the structure named " << base_filename << "\n"
-                         << "        any boundary point mass information in optional file " << base_filename << ".mass will be IGNORED\n";
+                    pout << "  NOTE: UNIFORM boundary point masses are being employed for the structure named " << base_filename << "\n";
                 }
                 if (d_using_uniform_bdry_mass_stiffness[ln][j])
                 {
-                    pout << "  NOTE: uniform massive boundary point stiffnesses are being employed for the structure named " << base_filename << "\n"
-                         << "        any massive boundary point stiffness information in optional file " << base_filename << ".mass will be IGNORED\n";
+                    pout << "  NOTE: UNIFORM massive boundary point stiffnesses are being employed for the structure named " << base_filename << "\n";
                 }
             }
 
             if (!d_enable_instrumentation[ln][j])
             {
-                pout << "  NOTE: instrumentation is DISABLED for " << base_filename << "\n";
+                pout << "  NOTE: instrumentation is DISABLED for the structure named " << base_filename << "\n";
             }
 
             if (!d_enable_sources[ln][j])
             {
-                pout << "  NOTE: sources/sinks are DISABLED for " << base_filename << "\n";
+                pout << "  NOTE: sources/sinks are DISABLED for the structure named " << base_filename << "\n";
             }
 
             pout << "\n";

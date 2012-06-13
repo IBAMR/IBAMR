@@ -125,10 +125,10 @@ namespace IBAMR
  *
  * <HR>
  *
- * <B>X-Spring file format</B>
+ * <B>Crosslink spring file format</B>
  *
- * X-Spring input files end with the extension <TT>".xspring"</TT> and have the
- * following format:
+ * Crosslink spring ("x-spring") input files end with the extension
+ * <TT>".xspring"</TT> and have the following format:
  \verbatim
  M                                            # number of links in the file
  i_0   j_0   kappa_0   length_0   fcn_idx_0   # first vertex index, second vertex index, spring constant, rest length, spring function index
@@ -137,20 +137,27 @@ namespace IBAMR
  ...
  \endverbatim
  *
- * \note Unlike spring files, x-spring files may connect points from different
- * structures.  Consequently, the node indices in an x-spring file must be \em
- * global indices.
+ * \note Unlike standard spring files, in which all indices are required to
+ * refer to points within a particular structure, x-spring files may connect
+ * points from different structures.  Consequently, the node indices in an
+ * x-spring file must be \em global indices.  Notice that global indices are
+ * determined by the order in which the structures are specified in the input
+ * file.  Changes in the order in which structures are specified necessarily
+ * change the global indexing scheme.
+ *
+ * \note Crosslink springs may connect only structures assigned to the \em same
+ * level of the locally refined grid.
  *
  * \note There is no restriction on the number of x-springs that may be
  * associated with any particular node of the Lagrangian mesh.
  *
  * \note The rest length and force function index are \em optional values.  If
- * they are not provided, by default the rest length will be set to the value \a
- * 0.0 and the force function index will be set to \a 0.  This corresponds to a
- * linear spring with zero rest length.
+ * they are not provided, then by default the rest length will be set to the
+ * value \a 0.0 and the force function index will be set to \a 0.  This
+ * corresponds to a linear spring with zero rest length.
  *
- * \note Spring specifications are used by class LSiloDataWriter to construct
- * unstructured mesh representations of the Lagrangian structures.
+ * \note Crosslink spring specifications are used by class LSiloDataWriter to
+ * construct unstructured mesh representations of the Lagrangian structures.
  * Consequently, even if your structure does not have any springs, it may be
  * worthwhile to generate a spring input file with all spring constants set to
  * \a 0.0.
@@ -569,67 +576,83 @@ private:
      * \brief Read the vertex data from one or more input files.
      */
     void
-    readVertexFiles();
+    readVertexFiles(
+        const std::string& extension);
 
     /*!
      * \brief Read the spring data from one or more input files.
      */
     void
-    readSpringFiles();
+    readSpringFiles(
+        const std::string& file_extension,
+        bool input_uses_global_idxs);
 
     /*!
-     * \brief Read the x-spring data from one or more input files.
+     * \brief Read the crosslink spring ("x-spring") data from one or more input
+     * files.
      */
     void
-    readXSpringFiles();
+    readXSpringFiles(
+        const std::string& file_extension,
+        bool input_uses_global_idxs);
 
     /*!
      * \brief Read the beam data from one or more input files.
      */
     void
-    readBeamFiles();
+    readBeamFiles(
+        const std::string& file_extension,
+        bool input_uses_global_idxs);
 
     /*!
      * \brief Read the rod data from one or more input files.
      */
     void
-    readRodFiles();
+    readRodFiles(
+        const std::string& file_extension,
+        bool input_uses_global_idxs);
 
     /*!
      * \brief Read the target point data from one or more input files.
      */
     void
-    readTargetPointFiles();
+    readTargetPointFiles(
+        const std::string& file_extension);
 
     /*!
      * \brief Read the anchor point data from one or more input files.
      */
     void
-    readAnchorPointFiles();
+    readAnchorPointFiles(
+        const std::string& file_extension);
 
     /*!
      * \brief Read the boundary mass data from one or more input files.
      */
     void
-    readBoundaryMassFiles();
+    readBoundaryMassFiles(
+        const std::string& file_extension);
 
     /*!
      * \brief Read the director data from one or more input files.
      */
     void
-    readDirectorFiles();
+    readDirectorFiles(
+        const std::string& file_extension);
 
     /*!
      * \brief Read the instrumentation data from one or more input files.
      */
     void
-    readInstrumentationFiles();
+    readInstrumentationFiles(
+        const std::string& file_extension);
 
     /*!
      * \brief Read the source/sink data from one or more input files.
      */
     void
-    readSourceFiles();
+    readSourceFiles(
+        const std::string& file_extension);
 
     /*!
      * \brief Determine the indices of any vertices initially located within the
@@ -834,7 +857,7 @@ private:
 #endif
 
     /*
-     * XSpring information.
+     * Crosslink spring ("x-spring") information.
      */
     std::vector<std::vector<bool> > d_enable_xsprings;
 
