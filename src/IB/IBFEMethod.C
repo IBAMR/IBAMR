@@ -819,7 +819,6 @@ IBFEMethod::computeProjectedDilatationalStrain(
     for (unsigned int d = 0; d < NDIM; ++d) dof_indices(d).reserve(27);
     AutoPtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
     fe->attach_quadrature_rule(qrule.get());
-    const std::vector<double>& JxW = fe->get_JxW();
     const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
 
     System& F_dil_bar_system = equation_systems->get_system(F_DIL_BAR_SYSTEM_NAME);
@@ -828,6 +827,7 @@ IBFEMethod::computeProjectedDilatationalStrain(
     F_dil_bar_dof_indices.reserve(27);
     AutoPtr<FEBase> F_dil_bar_fe(FEBase::build(dim, F_dil_bar_dof_map.variable_type(0)));
     F_dil_bar_fe->attach_quadrature_rule(qrule.get());
+    const std::vector<double>& F_dil_bar_JxW = F_dil_bar_fe->get_JxW();
     const std::vector<std::vector<double> >& F_dil_bar_phi = F_dil_bar_fe->get_phi();
 
     // Setup global and elemental right-hand-side vectors.
@@ -871,7 +871,7 @@ IBFEMethod::computeProjectedDilatationalStrain(
             const double J = FF.det();
             for (unsigned int k = 0; k < n_basis; ++k)
             {
-                F_dil_bar_rhs_e(k) += F_dil_bar_phi[k][qp]*JxW[qp]*pow(J,1.0/static_cast<double>(dim));
+                F_dil_bar_rhs_e(k) += F_dil_bar_phi[k][qp]*F_dil_bar_JxW[qp]*pow(J,1.0/static_cast<double>(dim));
             }
         }
 
