@@ -605,7 +605,7 @@ IBFEMethod::initializeFEData()
                     mesh.boundary_info->add_node(node, dirichlet_bdry_ids);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        if (!(dirichlet_bdry_ids | dirichlet_bdry_id_set[d])) continue;
+                        if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[d])) continue;
                         if (node->n_dofs(F_sys_num) > 0)
                         {
                             const int F_dof_index = node->dof_number(F_sys_num,d,0);

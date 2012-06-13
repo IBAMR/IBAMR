@@ -1271,7 +1271,7 @@ FEDataManager::buildL2ProjectionSolver(
                             const unsigned int n_comp = node->n_comp(sys_num, var_num);
                             for (unsigned int comp = 0; comp < n_comp; ++comp)
                             {
-                                if (!(dirichlet_bdry_ids | dirichlet_bdry_id_set[comp])) continue;
+                                if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[comp])) continue;
                                 const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
                                 if (!dof_map.is_constrained_dof(node_dof_index)) continue;
                                 for (std::vector<unsigned int>::const_iterator cit = dof_indices.begin(); cit != dof_indices.end(); ++cit)
@@ -1416,7 +1416,7 @@ FEDataManager::buildDiagonalL2MassMatrix(
                             const unsigned int n_comp = node->n_comp(sys_num, var_num);
                             for (unsigned int comp = 0; comp < n_comp; ++comp)
                             {
-                                if (!(dirichlet_bdry_ids | dirichlet_bdry_id_set[comp])) continue;
+                                if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[comp])) continue;
                                 const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
                                 if (!dof_map.is_constrained_dof(node_dof_index)) continue;
                                 M_vec->set(node_dof_index, 1.0);
