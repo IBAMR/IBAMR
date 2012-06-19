@@ -44,6 +44,8 @@
 #define included_SAMRAI_config
 #endif
 
+#define NDIM LIBMESH_DIM
+
 // IBAMR INCLUDES
 #include <ibamr/namespaces.h>
 
