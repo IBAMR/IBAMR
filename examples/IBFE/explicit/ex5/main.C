@@ -81,7 +81,7 @@ tether_force_function(
 using namespace ModelData;
 
 // Function prototypes
-static ofstream drag_stream, lift_stream;
+static ofstream drag_stream, lift_stream, U_L1_norm_stream, U_L2_norm_stream, U_max_norm_stream;
 void
 postprocess_data(
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
@@ -313,11 +313,21 @@ main(
             }
         }
 
-        // Open streams to save lift and drag coefficients.
+        // Open streams to save lift and drag coefficients and the norms of the
+        // velocity.
         if (SAMRAI_MPI::getRank() == 0)
         {
             drag_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
             lift_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
+            U_L1_norm_stream.open("U_L1.curve", ios_base::out | ios_base::trunc);
+            U_L2_norm_stream.open("U_L2.curve", ios_base::out | ios_base::trunc);
+            U_max_norm_stream.open("U_max.curve", ios_base::out | ios_base::trunc);
+
+            drag_stream.precision(10);
+            lift_stream.precision(10);
+            U_L1_norm_stream.precision(10);
+            U_L2_norm_stream.precision(10);
+            U_max_norm_stream.precision(10);
         }
 
         // Main time step loop.
@@ -385,6 +395,9 @@ main(
         {
             drag_stream.close();
             lift_stream.close();
+            U_L1_norm_stream.close();
+            U_L2_norm_stream.close();
+            U_max_norm_stream.close();
         }
 
         // Cleanup Eulerian boundary condition specification objects (when
@@ -407,53 +420,104 @@ postprocess_data(
     const double loop_time,
     const string& /*data_dump_dirname*/)
 {
-    double F_integral[NDIM];
-    for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
-
-    System& F_system = equation_systems->get_system<System>(IBFEMethod::FORCE_SYSTEM_NAME);
-    NumericVector<double>* F_vec = F_system.solution.get();
-    NumericVector<double>* F_ghost_vec = F_system.current_local_solution.get();
-    F_vec->localize(*F_ghost_vec);
-    DofMap& F_dof_map = F_system.get_dof_map();
-    blitz::Array<std::vector<unsigned int>,1> F_dof_indices(NDIM);
-    AutoPtr<FEBase> fe(FEBase::build(NDIM, F_dof_map.variable_type(0)));
-    AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
-    fe->attach_quadrature_rule(qrule.get());
-    const std::vector<std::vector<double> >& phi = fe->get_phi();
-    const std::vector<double>& JxW = fe->get_JxW();
-    blitz::Array<double,2> F_node;
-    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-    const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
     {
-        Elem* const elem = *el_it;
-        fe->reinit(elem);
-        for (unsigned int d = 0; d < NDIM; ++d)
+        double F_integral[NDIM];
+        for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
+        System& F_system = equation_systems->get_system<System>(IBFEMethod::FORCE_SYSTEM_NAME);
+        NumericVector<double>* F_vec = F_system.solution.get();
+        NumericVector<double>* F_ghost_vec = F_system.current_local_solution.get();
+        F_vec->localize(*F_ghost_vec);
+        DofMap& F_dof_map = F_system.get_dof_map();
+        blitz::Array<std::vector<unsigned int>,1> F_dof_indices(NDIM);
+        AutoPtr<FEBase> fe(FEBase::build(NDIM, F_dof_map.variable_type(0)));
+        AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
+        fe->attach_quadrature_rule(qrule.get());
+        const std::vector<std::vector<double> >& phi = fe->get_phi();
+        const std::vector<double>& JxW = fe->get_JxW();
+        blitz::Array<double,2> F_node;
+        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+        const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
+        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
-            F_dof_map.dof_indices(elem, F_dof_indices(d), d);
-        }
-        const int n_qp = qrule->n_points();
-        const int n_basis = F_dof_indices(0).size();
-        get_values_for_interpolation(F_node, *F_ghost_vec, F_dof_indices);
-        for (int qp = 0; qp < n_qp; ++qp)
-        {
-            for (int k = 0; k < n_basis; ++k)
+            Elem* const elem = *el_it;
+            fe->reinit(elem);
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
-                for (int d = 0; d < NDIM; ++d)
+                F_dof_map.dof_indices(elem, F_dof_indices(d), d);
+            }
+            const int n_qp = qrule->n_points();
+            const int n_basis = F_dof_indices(0).size();
+            get_values_for_interpolation(F_node, *F_ghost_vec, F_dof_indices);
+            for (int qp = 0; qp < n_qp; ++qp)
+            {
+                for (int k = 0; k < n_basis; ++k)
                 {
-                    F_integral[d] += F_node(k,d)*phi[k][qp]*JxW[qp];
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        F_integral[d] += F_node(k,d)*phi[k][qp]*JxW[qp];
+                    }
                 }
             }
         }
+        SAMRAI_MPI::sumReduction(F_integral,NDIM);
+        static const double rho = 1.0;
+        static const double U_max = 1.0;
+        static const double D = 1.0;
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            drag_stream << loop_time << " " << -F_integral[0]/(0.5*rho*U_max*U_max*D) << endl;
+            lift_stream << loop_time << " " << -F_integral[1]/(0.5*rho*U_max*U_max*D) << endl;
+        }
     }
-    SAMRAI_MPI::sumReduction(F_integral,NDIM);
-    static const double rho = 1.0;
-    static const double U_max = 1.0;
-    static const double D = 1.0;
-    if (SAMRAI_MPI::getRank() == 0)
+
     {
-        drag_stream << loop_time << " " << -F_integral[0]/(0.5*rho*U_max*U_max*D) << endl;
-        lift_stream << loop_time << " " << -F_integral[1]/(0.5*rho*U_max*U_max*D) << endl;
+        double U_L1_norm = 0.0, U_L2_norm = 0.0, U_max_norm = 0.0;
+        System& U_system = equation_systems->get_system<System>(IBFEMethod::VELOCITY_SYSTEM_NAME);
+        NumericVector<double>* U_vec = U_system.solution.get();
+        NumericVector<double>* U_ghost_vec = U_system.current_local_solution.get();
+        U_vec->localize(*U_ghost_vec);
+        DofMap& U_dof_map = U_system.get_dof_map();
+        blitz::Array<std::vector<unsigned int>,1> U_dof_indices(NDIM);
+        AutoPtr<FEBase> fe(FEBase::build(NDIM, U_dof_map.variable_type(0)));
+        AutoPtr<QBase> qrule = QBase::build(QGAUSS, NDIM, FIFTH);
+        fe->attach_quadrature_rule(qrule.get());
+        const std::vector<std::vector<double> >& phi = fe->get_phi();
+        const std::vector<double>& JxW = fe->get_JxW();
+        VectorValue<double> U_qp;
+        blitz::Array<double,2> U_node;
+        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+        const MeshBase::const_element_iterator el_end   = mesh.active_local_elements_end();
+        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        {
+            Elem* const elem = *el_it;
+            fe->reinit(elem);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                U_dof_map.dof_indices(elem, U_dof_indices(d), d);
+            }
+            const int n_qp = qrule->n_points();
+            get_values_for_interpolation(U_node, *U_ghost_vec, U_dof_indices);
+            for (int qp = 0; qp < n_qp; ++qp)
+            {
+                interpolate(U_qp, qp, U_node, phi);
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    U_L1_norm += std::abs(U_qp(d))*JxW[qp];
+                    U_L2_norm += U_qp(d)*U_qp(d)  *JxW[qp];
+                    U_max_norm = std::max(U_max_norm, std::abs(U_qp(d)));
+                }
+            }
+        }
+        SAMRAI_MPI::sumReduction(&U_L1_norm, 1);
+        SAMRAI_MPI::sumReduction(&U_L2_norm, 1);
+        SAMRAI_MPI::maxReduction(&U_max_norm, 1);
+        U_L2_norm = sqrt(U_L2_norm);
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            U_L1_norm_stream << loop_time << " " << U_L1_norm << endl;
+            U_L2_norm_stream << loop_time << " " << U_L2_norm << endl;
+            U_max_norm_stream << loop_time << " " << U_max_norm << endl;
+        }
     }
     return;
 }// postprocess_data

@@ -45,7 +45,7 @@ ENABLE_LOGGING             = TRUE
 
 // model parameters
 USE_CONSTRAINT_METHOD = TRUE
-CONSTRAINT_OMEGA = 1.5
+CONSTRAINT_OMEGA = 1.5                // "how hard to push" on the fluid
 USE_CONSTRAINT_PROJECTION = TRUE
 KAPPA_S = 6.25e1*DX/DT^2
 
