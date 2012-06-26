@@ -92,6 +92,7 @@ INSStaggeredStokesOperator::INSStaggeredStokesOperator(
     const INSProblemCoefs* problem_coefs,
     const TimeSteppingType viscous_time_stepping_type,
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs,
+    Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper,
     RobinBcCoefStrategy<NDIM>* P_bc_coef,
     Pointer<HierarchyMathOps> hier_math_ops,
     bool homogeneous_bc)
@@ -111,6 +112,7 @@ INSStaggeredStokesOperator::INSStaggeredStokesOperator(
       d_viscous_time_stepping_type(viscous_time_stepping_type),
       d_helmholtz_spec(d_object_name+"::helmholtz_spec"),
       d_U_bc_coefs(U_bc_coefs),
+      d_U_bc_helper(U_bc_helper),
       d_P_bc_coef(P_bc_coef),
       d_hier_math_ops(hier_math_ops),
       d_hier_math_ops_external(!d_hier_math_ops.isNull())
@@ -227,6 +229,9 @@ INSStaggeredStokesOperator::apply(
     d_hier_math_ops->grad(U_out_idx, U_out_sc_var, /*cf_bdry_synch*/ false, 1.0, P_in_idx, P_in_cc_var, d_no_fill, d_new_time);
     d_hier_math_ops->laplace(U_out_idx, U_out_sc_var, d_helmholtz_spec, U_in_idx, U_in_sc_var, d_no_fill, d_new_time, 1.0, U_out_idx, U_out_sc_var);
     d_hier_math_ops->div(P_out_idx, P_out_cc_var, -1.0, U_in_idx, U_in_sc_var, d_no_fill, d_new_time, /*cf_bdry_synch*/ true);
+
+    // Enforce homogeneous or inhomogeneous boundary conditions.
+    d_U_bc_helper->enforceDirichletBcs(U_out_idx, homogeneous_bc);
 
     IBAMR_TIMER_STOP(t_apply);
     return;

@@ -81,8 +81,9 @@ INSStaggeredPhysicalBoundaryHelper::~INSStaggeredPhysicalBoundaryHelper()
 }// ~INSStaggeredPhysicalBoundaryHelper
 
 void
-INSStaggeredPhysicalBoundaryHelper::zeroValuesAtDirichletBoundaries(
-    const int patch_data_idx,
+INSStaggeredPhysicalBoundaryHelper::enforceDirichletBcs(
+    const int u_data_idx,
+    const bool homogeneous_bcs,
     const int coarsest_ln,
     const int finest_ln) const
 {
@@ -97,61 +98,15 @@ INSStaggeredPhysicalBoundaryHelper::zeroValuesAtDirichletBoundaries(
         {
             const int patch_num = p();
             Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
-            Pointer<SideData<NDIM,double> > patch_data = patch->getPatchData(patch_data_idx);
+            Pointer<SideData<NDIM,double> > u_data = patch->getPatchData(u_data_idx);
 
             // Compute the boundary fill boxes.
-            const Array<BoundaryBox<NDIM> > physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+            const Array<BoundaryBox<NDIM> >& physical_codim1_boxes = d_physical_codim1_boxes[ln].find(patch_num)->second;
             const int n_physical_codim1_boxes = physical_codim1_boxes.size();
 
-            // Compute the locations of the Dirichlet boundary.
-            const std::vector<Pointer<ArrayData<NDIM,bool> > >& dirichlet_bdry_locs = d_dirichlet_bdry_locs[ln].find(patch_num)->second;
-            for (int n = 0; n < n_physical_codim1_boxes; ++n)
-            {
-                const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-                const unsigned int location_index   = bdry_box.getLocationIndex();
-                const unsigned int bdry_normal_axis = location_index / 2;
-                const Box<NDIM>& bc_coef_box = dirichlet_bdry_locs[n]->getBox();
-                ArrayData<NDIM,bool>& bdry_locs_data = *dirichlet_bdry_locs[n];
-                for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
-                {
-                    const Index<NDIM>& i = it();
-                    if (bdry_locs_data(i,0))
-                    {
-                        const SideIndex<NDIM> i_s(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                        (*patch_data)(i_s) = 0.0;
-                    }
-                }
-            }
-        }
-    }
-    return;
-}// zeroValuesAtDirichletBoundaries
-
-void
-INSStaggeredPhysicalBoundaryHelper::resetValuesAtDirichletBoundaries(
-    const int patch_data_idx,
-    const int coarsest_ln,
-    const int finest_ln) const
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!d_hierarchy.isNull());
-#endif
-    const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
-    for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            const int patch_num = p();
-            Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
-            Pointer<SideData<NDIM,double> > patch_data = patch->getPatchData(patch_data_idx);
-
-            // Compute the boundary fill boxes.
-            const Array<BoundaryBox<NDIM> > physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
-            const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-
-            // Compute the locations of the Dirichlet boundary.
-            const std::vector<Pointer<ArrayData<NDIM,bool> > >& dirichlet_bdry_locs = d_dirichlet_bdry_locs[ln].find(patch_num)->second;
+            // Enforce homogeneous or inhomogeneous Dirichlet boundary
+            // conditions.
+            const std::vector<Pointer<ArrayData<NDIM,bool  > > >& dirichlet_bdry_locs = d_dirichlet_bdry_locs[ln].find(patch_num)->second;
             const std::vector<Pointer<ArrayData<NDIM,double> > >& dirichlet_bdry_vals = d_dirichlet_bdry_vals[ln].find(patch_num)->second;
             for (int n = 0; n < n_physical_codim1_boxes; ++n)
             {
@@ -159,26 +114,25 @@ INSStaggeredPhysicalBoundaryHelper::resetValuesAtDirichletBoundaries(
                 const unsigned int location_index   = bdry_box.getLocationIndex();
                 const unsigned int bdry_normal_axis = location_index / 2;
                 const Box<NDIM>& bc_coef_box = dirichlet_bdry_locs[n]->getBox();
-                ArrayData<NDIM,bool>& bdry_locs_data = *dirichlet_bdry_locs[n];
+                ArrayData<NDIM,bool  >& bdry_locs_data = *dirichlet_bdry_locs[n];
                 ArrayData<NDIM,double>& bdry_vals_data = *dirichlet_bdry_vals[n];
                 for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
                 {
                     const Index<NDIM>& i = it();
                     if (bdry_locs_data(i,0))
                     {
-                        const SideIndex<NDIM> i_s(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                        (*patch_data)(i_s) = bdry_vals_data(i,0);
+                        (*u_data)(SideIndex<NDIM>(i, bdry_normal_axis, SideIndex<NDIM>::Lower)) = homogeneous_bcs ? 0.0 : bdry_vals_data(i,0);
                     }
                 }
             }
         }
     }
     return;
-}// resetValuesAtDirichletBoundaries
+}// enforceDirichletBcs
 
 void
 INSStaggeredPhysicalBoundaryHelper::cacheBcCoefData(
-    const int u_idx,
+    const int u_data_idx,
     const Pointer<Variable<NDIM> > u_var,
     blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
     const double fill_time,
@@ -196,16 +150,18 @@ INSStaggeredPhysicalBoundaryHelper::cacheBcCoefData(
         ExtendedRobinBcCoefStrategy* extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(*it);
         if (extended_bc_coef != NULL)
         {
-            extended_bc_coef->setTargetPatchDataIndex(u_idx);
+            extended_bc_coef->setTargetPatchDataIndex(u_data_idx);
             extended_bc_coef->setHomogeneousBc(false);
         }
     }
 
     if (!d_hierarchy.isNull()) clearBcCoefData();
+
     d_hierarchy = hierarchy;
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
-    d_dirichlet_bdry_locs.resize(finest_hier_level+1);
-    d_dirichlet_bdry_vals.resize(finest_hier_level+1);
+    d_physical_codim1_boxes.resize(finest_hier_level+1);
+    d_dirichlet_bdry_locs  .resize(finest_hier_level+1);
+    d_dirichlet_bdry_vals  .resize(finest_hier_level+1);
     for (int ln = 0; ln <= finest_hier_level; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -217,7 +173,8 @@ INSStaggeredPhysicalBoundaryHelper::cacheBcCoefData(
             Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
 
             // Compute the boundary fill boxes.
-            const Array<BoundaryBox<NDIM> > physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+            Array<BoundaryBox<NDIM> >& physical_codim1_boxes = d_physical_codim1_boxes[ln][patch_num];
+            physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
             const int n_physical_codim1_boxes = physical_codim1_boxes.size();
 
             // Compute the locations of the Dirichlet boundary.
@@ -242,9 +199,9 @@ INSStaggeredPhysicalBoundaryHelper::cacheBcCoefData(
                 Pointer<ArrayData<NDIM,double> > gcoef_data_ptr(&gcoef_data, false);
                 u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data_ptr, bcoef_data_ptr, gcoef_data_ptr, u_var, *patch, trimmed_bdry_box, fill_time);
 
-                dirichlet_bdry_locs[n] = new ArrayData<NDIM,bool>(bc_coef_box, 1);
-                ArrayData<NDIM,bool>& bdry_locs_data = *dirichlet_bdry_locs[n];
+                dirichlet_bdry_locs[n] = new ArrayData<NDIM,bool  >(bc_coef_box, 1);
                 dirichlet_bdry_vals[n] = new ArrayData<NDIM,double>(bc_coef_box, 1);
+                ArrayData<NDIM,bool  >& bdry_locs_data = *dirichlet_bdry_locs[n];
                 ArrayData<NDIM,double>& bdry_vals_data = *dirichlet_bdry_vals[n];
                 for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
                 {
@@ -269,8 +226,9 @@ void
 INSStaggeredPhysicalBoundaryHelper::clearBcCoefData()
 {
     d_hierarchy.setNull();
-    d_dirichlet_bdry_locs.clear();
-    d_dirichlet_bdry_vals.clear();
+    d_physical_codim1_boxes.clear();
+    d_dirichlet_bdry_locs  .clear();
+    d_dirichlet_bdry_vals  .clear();
     return;
 }// clearBcCoefData
 

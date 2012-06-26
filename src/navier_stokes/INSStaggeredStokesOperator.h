@@ -37,6 +37,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/INSProblemCoefs.h>
+#include <ibamr/INSStaggeredPhysicalBoundaryHelper.h>
 #include <ibamr/ibamr_enums.h>
 
 // IBTK INCLUDES
@@ -70,6 +71,7 @@ public:
         const INSProblemCoefs* problem_coefs,
         TimeSteppingType viscous_time_stepping_type,
         const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs,
+        SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> U_bc_helper,
         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef,
         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops=SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps>(),
         bool homogeneous_bc=true);
@@ -265,7 +267,8 @@ private:
     const INSProblemCoefs* d_problem_coefs;
     const TimeSteppingType d_viscous_time_stepping_type;
     SAMRAI::solv::PoissonSpecifications d_helmholtz_spec;
-    const blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_bc_coefs;
+    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_U_bc_coefs;
+    SAMRAI::tbox::Pointer<INSStaggeredPhysicalBoundaryHelper> d_U_bc_helper;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* const d_P_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
     const bool d_hier_math_ops_external;

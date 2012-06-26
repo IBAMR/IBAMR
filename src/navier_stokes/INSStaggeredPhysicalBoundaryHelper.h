@@ -53,9 +53,9 @@
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredPhysicalBoundaryHelper provides various helper
- * functions required to specify physical boundary conditions for a staggered
- * grid discretization of the incompressible Navier-Stokes equations.
+ * \brief Class INSStaggeredPhysicalBoundaryHelper provides helper functions to
+ * enforce physical boundary conditions for a staggered grid discretization of
+ * the incompressible Navier-Stokes equations.
  */
 class INSStaggeredPhysicalBoundaryHelper
     : SAMRAI::tbox::DescribedClass
@@ -72,20 +72,6 @@ public:
     ~INSStaggeredPhysicalBoundaryHelper();
 
     /*!
-     * \brief Set values located on the physical boundary to zero on the
-     * specified range of levels in the patch hierarchy using the cached
-     * boundary data.
-     *
-     * \note By default, boundary conditions are cached over the complete range
-     * of levels of the patch hierarchy.
-     */
-    void
-    zeroValuesAtDirichletBoundaries(
-        int patch_data_idx,
-        int coarsest_level_number=-1,
-        int finest_ln=-1) const;
-
-    /*!
      * \brief Reset boundary values located on the physical boundary to zero on
      * the specified range of levels in the patch hierarchy using the cached
      * boundary data.
@@ -94,8 +80,9 @@ public:
      * of levels of the patch hierarchy.
      */
     void
-    resetValuesAtDirichletBoundaries(
-        int patch_data_idx,
+    enforceDirichletBcs(
+        int u_data_idx,
+        bool homogeneous_bcs,
         int coarsest_level_number=-1,
         int finest_ln=-1) const;
 
@@ -104,7 +91,7 @@ public:
      */
     void
     cacheBcCoefData(
-        int u_idx,
+        int u_data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > u_var,
         blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM>& u_bc_coefs,
         double fill_time,
@@ -145,7 +132,8 @@ private:
      * Cached hierarchy-related information.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,bool> > > > > d_dirichlet_bdry_locs;
+    std::vector<std::map<int,SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> > > > d_physical_codim1_boxes;
+    std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,bool  > > > > > d_dirichlet_bdry_locs;
     std::vector<std::map<int,std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM,double> > > > > d_dirichlet_bdry_vals;
 };
 }// namespace IBAMR

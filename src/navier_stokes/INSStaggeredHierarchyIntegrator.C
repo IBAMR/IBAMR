@@ -565,7 +565,7 @@ INSStaggeredHierarchyIntegrator::getStokesSolver()
     if (d_stokes_solver.isNull())
     {
         const std::string stokes_prefix = "stokes_";
-        d_stokes_op = new INSStaggeredStokesOperator(d_object_name+"::INSStaggeredStokesOperator", &d_problem_coefs, d_viscous_time_stepping_type, d_U_bc_coefs, d_P_bc_coef, d_hier_math_ops);
+        d_stokes_op = new INSStaggeredStokesOperator(d_object_name+"::INSStaggeredStokesOperator", &d_problem_coefs, d_viscous_time_stepping_type, d_U_bc_coefs, d_U_bc_helper, d_P_bc_coef, d_hier_math_ops);
         d_stokes_solver = new PETScKrylovLinearSolver(d_object_name+"::stokes_solver", stokes_prefix);
         Pointer<PETScKrylovLinearSolver> p_stokes_solver = d_stokes_solver;
         p_stokes_solver->setInitialGuessNonzero(true);
@@ -1215,9 +1215,9 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         d_hier_cc_data_ops->subtract(d_rhs_vec->getComponentDescriptorIndex(1), d_rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
     }
 
-    // Ensure there is no forcing at Dirichlet boundaries (the Dirichlet
-    // boundary condition takes precedence).
-    d_U_bc_helper->zeroValuesAtDirichletBoundaries(d_rhs_vec->getComponentDescriptorIndex(0));
+    // Setup Dirichlet boundary conditions.
+    d_U_bc_helper->enforceDirichletBcs(d_sol_vec->getComponentDescriptorIndex(0), /*homogeneous_bcs*/ false);
+    d_U_bc_helper->enforceDirichletBcs(d_rhs_vec->getComponentDescriptorIndex(0), /*homogeneous_bcs*/ false);
 
     // Synchronize solution and right-hand-side data before solve.
     typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
@@ -1241,7 +1241,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
     d_side_synch_op->synchronizeData(current_time);
 
     // Enforce Dirichlet boundary conditions.
-    d_U_bc_helper->resetValuesAtDirichletBoundaries(d_sol_vec->getComponentDescriptorIndex(0));
+    d_U_bc_helper->enforceDirichletBcs(d_sol_vec->getComponentDescriptorIndex(0), /*homogeneous_bcs*/ false);
 
     // Pull out solution components.
     d_hier_sc_data_ops->copyData(d_U_new_idx, d_sol_vec->getComponentDescriptorIndex(0));
