@@ -38,6 +38,7 @@
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/PoissonUtilities.h>
+//#include "PoissonUtilities.h"
 #include <ibtk/namespaces.h>
 
 // SAMRAI INCLUDES
@@ -84,6 +85,37 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(
     constructPatchLevelCCLaplaceOp(mat, poisson_spec, std::vector<RobinBcCoefStrategy<NDIM>*>(&bc_coefs[0],&bc_coefs[0]+NDIM), data_time, num_dofs_per_proc, dof_index_idx, patch_level);
     return;
 }// constructPatchLevelCCLaplaceOp
+
+void
+PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
+    Mat& mat,
+    const PoissonSpecifications& poisson_spec_real,
+    const PoissonSpecifications& poisson_spec_imag,    
+    RobinBcCoefStrategy<NDIM>* bc_coef,
+    double data_time,
+    const std::vector<int>& num_dofs_per_proc,
+    const int dof_index_idx,
+    Pointer<PatchLevel<NDIM> > patch_level)
+{
+    constructPatchLevelCCComplexLaplaceOp(mat, poisson_spec_real, poisson_spec_imag, std::vector<RobinBcCoefStrategy<NDIM>*>(2,bc_coef), data_time, num_dofs_per_proc, dof_index_idx, patch_level);
+    return;
+}// constructPatchLevelCCComplexLaplaceOp
+
+void
+PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
+    Mat& mat,
+    const PoissonSpecifications& poisson_spec_real,
+    const PoissonSpecifications& poisson_spec_imag,    
+    const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,2*NDIM>& bc_coefs,
+    double data_time,
+    const std::vector<int>& num_dofs_per_proc,
+    const int dof_index_idx,
+    Pointer<PatchLevel<NDIM> > patch_level)
+{
+    constructPatchLevelCCComplexLaplaceOp(mat, poisson_spec_real,poisson_spec_imag, std::vector<RobinBcCoefStrategy<NDIM>*>(&bc_coefs[0],&bc_coefs[0]+2*NDIM), data_time, num_dofs_per_proc, dof_index_idx, patch_level);
+    return;
+}// constructPatchLevelCCComplexLaplaceOp
+
 
 void
 PETScMatUtilities::constructPatchLevelCCLaplaceOp(
@@ -224,6 +256,167 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(
     ierr = MatAssemblyEnd(  mat, MAT_FINAL_ASSEMBLY); IBTK_CHKERRQ(ierr);
     return;
 }// constructPatchLevelCCLaplaceOp
+
+
+void
+PETScMatUtilities::constructPatchLevelCCComplexLaplaceOp(
+    Mat& mat,
+    const PoissonSpecifications& poisson_spec_real,
+    const PoissonSpecifications& poisson_spec_imag,    
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+    double data_time,
+    const std::vector<int>& num_dofs_per_proc,
+    const int dof_index_idx,
+    Pointer<PatchLevel<NDIM> > patch_level)
+{
+    int ierr;
+    if (mat != PETSC_NULL)
+    {
+        ierr = MatDestroy(&mat); IBTK_CHKERRQ(ierr);
+    }
+
+    const int depth = bc_coefs.size();
+
+    // Setup the finite difference stencil.
+    static const int stencil_sz = 2*NDIM+1;
+    std::vector<Index<NDIM> > stencil(stencil_sz,Index<NDIM>(0));
+    for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
+    {
+        for (int side = 0; side <= 1; ++side, ++stencil_index)
+        {
+            stencil[stencil_index](axis) = (side == 0 ? -1 : +1);
+        }
+    }
+
+    // Determine the index ranges.
+    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int n_local = num_dofs_per_proc[mpi_rank];
+    const int i_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin()+mpi_rank, 0);
+    const int i_upper = i_lower+n_local;
+    const int n_total = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
+
+    // Determine the non-zero structure of the matrix.
+    std::vector<int> d_nnz(n_local,0), o_nnz(n_local,0);
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<CellData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(depth == dof_index_data->getDepth());
+#endif
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        {
+            const CellIndex<NDIM>& i = b();
+            for (int d = 0; d < depth; ++d)
+            {
+                const int dof_index = (*dof_index_data)(i,d);
+                if (UNLIKELY(i_lower > dof_index || dof_index >= i_upper)) continue;
+
+                // Stencil for finite difference operator.
+                const int local_idx = dof_index-i_lower;
+                d_nnz[local_idx] += 2;
+                for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
+                {
+                    for (int side = 0; side <= 1; ++side, ++stencil_index)
+                    {
+                        const int dof_index = (*dof_index_data)(i+stencil[stencil_index],d);
+                        if (dof_index >= i_lower && dof_index < i_upper)
+                        {
+                            d_nnz[local_idx] += 2;
+                        }
+                        else
+                        {
+                            o_nnz[local_idx] += 2;
+                        }
+                    }
+                }
+                d_nnz[local_idx] = std::min(n_local        ,d_nnz[local_idx]);
+                o_nnz[local_idx] = std::min(n_total-n_local,o_nnz[local_idx]);
+            }
+        }
+    }
+
+    // Create an empty matrix.
+    ierr = MatCreateMPIAIJ(PETSC_COMM_WORLD,
+                           n_local, n_local,
+                           PETSC_DETERMINE, PETSC_DETERMINE,
+                           PETSC_DEFAULT, &d_nnz[0],
+                           PETSC_DEFAULT, &o_nnz[0],
+                           &mat); IBTK_CHKERRQ(ierr);
+
+    // Set some general matrix options.
+    ierr = MatSetBlockSize(mat, depth); IBTK_CHKERRQ(ierr);
+#ifdef DEBUG_CHECK_ASSERTIONS
+    ierr = MatSetOption(mat, MAT_NEW_NONZERO_LOCATION_ERR  , PETSC_TRUE); IBTK_CHKERRQ(ierr);
+    ierr = MatSetOption(mat, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_TRUE); IBTK_CHKERRQ(ierr);
+#endif
+
+    // Set the matrix coefficients to correspond to the standard finite
+    // difference Laplacian discretization.
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        const IntVector<NDIM> no_ghosts(0);
+        CellData<NDIM,double> matrix_coefs(patch_box, 2*stencil_sz*depth, no_ghosts);
+        PoissonUtilities::computeCCComplexMatrixCoefficients(patch, matrix_coefs, stencil, poisson_spec_real, poisson_spec_imag, bc_coefs, data_time);
+        Pointer<CellData<NDIM,int> > dof_index_data = patch->getPatchData(dof_index_idx);
+
+        // Copy matrix entries to the PETSc matrix structure.
+        std::vector<double> mat_vals_real(2*stencil_sz), mat_vals_imag(2*stencil_sz);
+        std::vector<int>    mat_cols_real(2*stencil_sz), mat_cols_imag(2*stencil_sz);
+        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        {
+            const CellIndex<NDIM>& i = b();
+            for (int d = 0; d < depth; d = d+2)
+            {
+                const int dof_index_real = (*dof_index_data)(i,d);
+		const int dof_index_imag = (*dof_index_data)(i,d+1);
+                if (UNLIKELY(i_lower > dof_index_real || dof_index_real >= i_upper || i_lower > dof_index_imag || dof_index_imag >= i_upper)) continue;
+
+                // Matrix coefficients for finite difference operator.  Notice
+                // that the order in which values are set corresponds to that of
+                // the stencil defined above.
+                const int offset          = d*stencil_sz*2;
+		
+                mat_vals_real[0]          = matrix_coefs(i,offset);
+		mat_vals_real[stencil_sz] = matrix_coefs(i,offset+stencil_sz);
+                mat_cols_real[0]          = dof_index_real;
+		mat_cols_real[stencil_sz] = dof_index_imag;
+
+                mat_vals_imag[0]          = matrix_coefs(i,offset+2*stencil_sz);
+		mat_vals_imag[stencil_sz] = matrix_coefs(i,offset+3*stencil_sz);
+                mat_cols_imag[0]          = dof_index_real;
+		mat_cols_imag[stencil_sz] = dof_index_imag;		
+		
+		
+                for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
+                {
+                    for (int side = 0; side <= 1; ++side, ++stencil_index)
+                    {
+                        mat_vals_real[stencil_index] = matrix_coefs(i,offset+stencil_index);
+			mat_vals_real[stencil_index+stencil_sz] = matrix_coefs(i,offset+stencil_index+stencil_sz);
+                        mat_cols_real[stencil_index] = (*dof_index_data)(i+stencil[stencil_index],d);
+			mat_cols_real[stencil_index+stencil_sz] = (*dof_index_data)(i+stencil[stencil_index],d+1);
+			
+                        mat_vals_imag[stencil_index] = matrix_coefs(i,offset+2*stencil_sz+stencil_index);
+			mat_vals_imag[stencil_index+stencil_sz] = matrix_coefs(i,offset+stencil_index+3*stencil_sz);
+                        mat_cols_imag[stencil_index] = (*dof_index_data)(i+stencil[stencil_index],d);
+			mat_cols_imag[stencil_index+stencil_sz] = (*dof_index_data)(i+stencil[stencil_index],d+1);						
+                    }
+                }
+                ierr = MatSetValues(mat, 1, &dof_index_real, 2*stencil_sz, &mat_cols_real[0], &mat_vals_real[0], INSERT_VALUES); IBTK_CHKERRQ(ierr);
+		ierr = MatSetValues(mat, 1, &dof_index_imag, 2*stencil_sz, &mat_cols_imag[0], &mat_vals_imag[0], INSERT_VALUES); IBTK_CHKERRQ(ierr);
+            }
+        }
+    }
+
+    // Assemble the matrix.
+    ierr = MatAssemblyBegin(mat, MAT_FINAL_ASSEMBLY); IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(  mat, MAT_FINAL_ASSEMBLY); IBTK_CHKERRQ(ierr);
+    return;
+}// constructPatchLevelCCComplexLaplaceOp
 
 void
 PETScMatUtilities::constructPatchLevelSCLaplaceOp(
