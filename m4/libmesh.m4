@@ -86,9 +86,7 @@ echo "checking whether libMesh contrib package parmetis is enabled... ${contrib_
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/parmetis/Lib ${CPPFLAGS}"
   AC_LIB_HAVE_LINKFLAGS([parmetis])
-  if test "$HAVE_LIBPARMETIS" == "yes" ; then
-    LIBS="$LIBPARMETIS $LIBS"
-  else
+  if test "$HAVE_LIBPARMETIS" != "yes" ; then
     AC_MSG_WARN([libMesh contributed lib libparmetis is enabled, but could not find working libparmetis])
   fi
 fi
@@ -98,11 +96,19 @@ echo "checking whether libMesh contrib package metis is enabled... ${contrib_lib
 if test "${contrib_lib_enabled}" == "yes" ; then
   CPPFLAGS="-I${LIBMESH_CONTRIBDIR}/metis/Lib ${CPPFLAGS}"
   AC_LIB_HAVE_LINKFLAGS([metis])
-  if test "$HAVE_LIBMETIS" == "yes" ; then
-    LIBS="$LIBMETIS $LIBS"
-  else
+  if test "$HAVE_LIBMETIS" != "yes" ; then
     AC_MSG_WARN([libMesh contributed lib libmetis is enabled, but could not find working libmetis])
   fi
+fi
+
+if test "$HAVE_LIBMETIS" == "yes" ; then
+  if test "$HAVE_LIBPARMETIS" == "yes" ; then
+    LIBS="$LIBPARMETIS $LIBMETIS $LIBS"
+  else
+    LIBS="$LIBMETIS $LIBS"
+  fi
+elif test "$HAVE_LIBPARMETIS" == "yes" ; then
+  LIBS="$LIBPARMETIS $LIBS"
 fi
 
 contrib_lib_enabled=`grep "enable-sfcurves.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/[ ]*//' | sed -e 's/[\t]*//'`

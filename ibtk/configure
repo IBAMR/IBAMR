@@ -19186,9 +19186,7 @@ $as_echo "$LIBPARMETIS" >&6; }
 
 
 
-  if test "$HAVE_LIBPARMETIS" == "yes" ; then
-    LIBS="$LIBPARMETIS $LIBS"
-  else
+  if test "$HAVE_LIBPARMETIS" != "yes" ; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: libMesh contributed lib libparmetis is enabled, but could not find working libparmetis" >&5
 $as_echo "$as_me: WARNING: libMesh contributed lib libparmetis is enabled, but could not find working libparmetis" >&2;}
   fi
@@ -19754,12 +19752,20 @@ $as_echo "$LIBMETIS" >&6; }
 
 
 
-  if test "$HAVE_LIBMETIS" == "yes" ; then
-    LIBS="$LIBMETIS $LIBS"
-  else
+  if test "$HAVE_LIBMETIS" != "yes" ; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: libMesh contributed lib libmetis is enabled, but could not find working libmetis" >&5
 $as_echo "$as_me: WARNING: libMesh contributed lib libmetis is enabled, but could not find working libmetis" >&2;}
   fi
+fi
+
+if test "$HAVE_LIBMETIS" == "yes" ; then
+  if test "$HAVE_LIBPARMETIS" == "yes" ; then
+    LIBS="$LIBPARMETIS $LIBMETIS $LIBS"
+  else
+    LIBS="$LIBMETIS $LIBS"
+  fi
+elif test "$HAVE_LIBPARMETIS" == "yes" ; then
+  LIBS="$LIBPARMETIS $LIBS"
 fi
 
 contrib_lib_enabled=`grep "enable-sfcurves.*=" $LIBMESH_DIR/Make.common | sed -e 's/.*=//' | sed -e 's/ *//' | sed -e 's/\t*//'`
