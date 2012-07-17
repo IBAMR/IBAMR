@@ -95,7 +95,6 @@ IBHierarchyIntegrator {
    dt_max              = DT
    error_on_dt_change  = ERROR_ON_DT_CHANGE
    enable_logging      = ENABLE_LOGGING
-   error_on_dt_change  = TRUE
 }
 
 IBFEMethod {

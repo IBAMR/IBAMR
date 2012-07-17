@@ -181,10 +181,10 @@ main(
                     if (boundary_id != 2)
                     {
 #if (NDIM == 2)
-                        mesh.boundary_info->add_side(elem, side, FEDataManager::DIRICHLET_XY_BDRY_ID);
+                        mesh.boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
 #endif
 #if (NDIM == 3)
-                        mesh.boundary_info->add_side(elem, side, FEDataManager::DIRICHLET_XYZ_BDRY_ID);
+                        mesh.boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID);
 #endif
                     }
                 }

@@ -228,7 +228,7 @@ main(
                     const short int boundary_id = lower_mesh.boundary_info->boundary_id(elem,side);
                     if (boundary_id == 1 || boundary_id == 3)
                     {
-                        lower_mesh.boundary_info->add_side(elem, side, FEDataManager::DIRICHLET_BDRY_XY_ID);
+                        lower_mesh.boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_BDRY_XY_ID);
                     }
                 }
             }
@@ -253,7 +253,7 @@ main(
                     const short int boundary_id = upper_mesh.boundary_info->boundary_id(elem,side);
                     if (boundary_id == 1 || boundary_id == 3)
                     {
-                        upper_mesh.boundary_info->add_side(elem, side, FEDataManager::DIRICHLET_BDRY_XY_ID);
+                        upper_mesh.boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_BDRY_XY_ID);
                     }
                 }
             }
