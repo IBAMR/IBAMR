@@ -293,7 +293,8 @@ IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(
     const INSProblemCoefs* const problem_coefs = p_ins_hier_integrator->getINSProblemCoefs();
     const blitz::TinyVector<RobinBcCoefStrategy<NDIM>*,NDIM>& U_bc_coefs = p_ins_hier_integrator->getVelocityBoundaryConditions();
     RobinBcCoefStrategy<NDIM>* const P_bc_coef = p_ins_hier_integrator->getPressureBoundaryConditions();
-    d_stokes_op = new INSStaggeredStokesOperator(d_object_name+"::INSStaggeredStokesOperator", problem_coefs, TRAPEZOIDAL_RULE, U_bc_coefs, P_bc_coef, buildHierarchyMathOps(hierarchy));
+    TBOX_ERROR("need to add U bc helper . . . ?\n");
+    d_stokes_op = new INSStaggeredStokesOperator(d_object_name+"::INSStaggeredStokesOperator", problem_coefs, TRAPEZOIDAL_RULE, U_bc_coefs, NULL, P_bc_coef, buildHierarchyMathOps(hierarchy));
     Pointer<NewtonKrylovSolver> modified_stokes_solver = new PETScNewtonKrylovSolver(d_object_name+"::stokes_solver", stokes_prefix);
     d_F_op = new IBImplicitStaggeredHierarchyIntegrator::Operator(this);
     modified_stokes_solver->setOperator(d_F_op);
