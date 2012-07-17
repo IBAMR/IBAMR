@@ -101,12 +101,10 @@ if test "${contrib_lib_enabled}" == "yes" ; then
   fi
 fi
 
-if test "$HAVE_LIBMETIS" == "yes" ; then
-  if test "$HAVE_LIBPARMETIS" == "yes" ; then
-    LIBS="$LIBPARMETIS $LIBMETIS $LIBS"
-  else
-    LIBS="$LIBMETIS $LIBS"
-  fi
+if test "$HAVE_LIBMETIS" == "yes" -a "$HAVE_LIBPARMETIS" == "yes" ; then
+  LIBS="$LIBPARMETIS $LIBMETIS $LIBS"
+elif test "$HAVE_LIBMETIS" == "yes" ; then
+  LIBS="$LIBMETIS $LIBS"
 elif test "$HAVE_LIBPARMETIS" == "yes" ; then
   LIBS="$LIBPARMETIS $LIBS"
 fi
