@@ -176,12 +176,9 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
 {
     const double half_time = current_time+0.5*(new_time-current_time);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
-                                                                   d_ins_hier_integrator->getCurrentContext());
-    const int u_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
-                                                                   d_ins_hier_integrator->getNewContext());
-    const int p_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVariable(),
-                                                                   d_ins_hier_integrator->getNewContext());
+    const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getCurrentContext());
+    const int u_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(), d_ins_hier_integrator->getNewContext()    );
+    const int p_new_idx     = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVariable(), d_ins_hier_integrator->getNewContext()    );
 
     // Compute the Lagrangian forces and spread them to the Eulerian grid.
     switch (d_time_stepping_type)
@@ -199,7 +196,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(
                 // NOTE: If (current_num_cycles > 1 && cycle_num == 0), the
                 // force computed here would be the same as that computed above
                 // in preprocessIntegrateHierarchy(), so we don't bother to
-                // compute it.
+                // recompute it.
                 if (d_do_log) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
                 d_ib_method_ops->computeLagrangianForce(new_time);
                 if (d_do_log) plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
