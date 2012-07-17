@@ -243,6 +243,29 @@ IBFEMethod::getMinimumGhostCellWidth() const
 }// getMinimumGhostCellWidth
 
 void
+IBFEMethod::setupTagBuffer(
+    Array<int>& tag_buffer,
+    Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+{
+    const int finest_hier_ln = gridding_alg->getMaxLevels()-1;
+    tag_buffer.resizeArray(finest_hier_ln);
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        const int gcw    = d_fe_data_managers[part]->getGhostCellWidth().max();
+        const int tag_ln = d_fe_data_managers[part]->getLevelNumber()-1;
+        if (tag_ln >= 0 && tag_ln < finest_hier_ln)
+        {
+            tag_buffer[tag_ln] = std::max(tag_buffer[tag_ln], gcw);
+        }
+    }
+    for (int ln = finest_hier_ln-2; ln >= 0; --ln)
+    {
+        tag_buffer[ln] = std::max(tag_buffer[ln], tag_buffer[ln+1]/gridding_alg->getRatioToCoarserLevel(ln+1).max()+1);
+    }
+    return;
+}// setupTagBuffer
+
+void
 IBFEMethod::preprocessIntegrateData(
     double current_time,
     double new_time,

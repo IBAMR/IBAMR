@@ -120,11 +120,20 @@ public:
     /*!
      * Return the number of ghost cells required by the Lagrangian-Eulerian
      * interaction routines.
-     *
-     * An empty default implementation is provided.
      */
     virtual const SAMRAI::hier::IntVector<NDIM>&
     getMinimumGhostCellWidth() const = 0;
+
+    /*!
+     * Setup the tag buffer.
+     *
+     * A default implementation is provided that sets the tag buffer to be at
+     * least the minimum ghost cell width.
+     */
+    virtual void
+    setupTagBuffer(
+        SAMRAI::tbox::Array<int>& tag_buffer,
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) const;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.

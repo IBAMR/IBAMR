@@ -93,6 +93,21 @@ IBStrategy::registerEulerianCommunicationAlgorithms()
 }// registerEulerianCommunicationAlgorithms
 
 void
+IBStrategy::setupTagBuffer(
+    Array<int>& tag_buffer,
+    Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+{
+    const int finest_hier_ln = gridding_alg->getMaxLevels()-1;
+    tag_buffer.resizeArray(finest_hier_ln-1);
+    const int gcw = getMinimumGhostCellWidth().max();
+    for (int i = 0; i < tag_buffer.size(); ++i)
+    {
+        tag_buffer[i] = std::max(tag_buffer[i], gcw);
+    }
+    return;
+}// setupTagBuffer
+
+void
 IBStrategy::preprocessIntegrateData(
     double /*current_time*/,
     double /*new_time*/,

@@ -266,6 +266,28 @@ IBMethod::getMinimumGhostCellWidth() const
 }// getMinimumGhostCellWidth
 
 void
+IBMethod::setupTagBuffer(
+    Array<int>& tag_buffer,
+    Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+{
+    const int finest_hier_ln = gridding_alg->getMaxLevels()-1;
+    tag_buffer.resizeArray(finest_hier_ln);
+    const int gcw = d_ghosts.max();
+    for (int tag_ln = 0; tag_ln < finest_hier_ln; ++tag_ln)
+    {
+        const int data_ln = tag_ln+1;
+        const int can_be_refined = data_ln < finest_hier_ln;
+        if (!d_l_initializer->getLevelHasLagrangianData(data_ln, can_be_refined)) continue;
+        tag_buffer[tag_ln] = std::max(tag_buffer[tag_ln], gcw);
+    }
+    for (int ln = finest_hier_ln-2; ln >= 0; --ln)
+    {
+        tag_buffer[ln] = std::max(tag_buffer[ln], tag_buffer[ln+1]/gridding_alg->getRatioToCoarserLevel(ln+1).max()+1);
+    }
+    return;
+}// setupTagBuffer
+
+void
 IBMethod::preprocessIntegrateData(
     double current_time,
     double new_time,

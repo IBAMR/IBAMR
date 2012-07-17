@@ -255,6 +255,16 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
         LMarkerUtilities::readMarkerPositions(d_mark_init_posns, d_mark_file_name, hierarchy->getGridGeometry());
     }
 
+    // Setup the tag buffer.
+    const int finest_hier_ln = gridding_alg->getMaxLevels()-1;
+    const int tsize = d_tag_buffer.size();
+    d_tag_buffer.resizeArray(finest_hier_ln);
+    for (int i = std::max(tsize,1); i < d_tag_buffer.size(); ++i)
+    {
+        d_tag_buffer[i] = d_tag_buffer[i-1];
+    }
+    d_ib_method_ops->setupTagBuffer(d_tag_buffer, d_gridding_alg);
+
     // Indicate that the integrator has been initialized.
     d_integrator_is_initialized = true;
     return;
@@ -262,8 +272,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
 
 void
 IBHierarchyIntegrator::initializePatchHierarchy(
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg)
+    Pointer<PatchHierarchy<NDIM> > hierarchy,
+    Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     if (d_hierarchy_is_initialized) return;
 

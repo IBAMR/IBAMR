@@ -193,11 +193,17 @@ HierarchyIntegrator::initializePatchHierarchy(
         HierarchyIntegrator* integrator = hier_integrators.front();
         integrator->initializeHierarchyIntegrator(d_hierarchy, d_gridding_alg);
         integrator->setupTagBuffer(d_gridding_alg);
+        for (int i = 0; i < std::min(d_tag_buffer.size(),integrator->d_tag_buffer.size()); ++i)
+        {
+            d_tag_buffer[i] = std::max(d_tag_buffer[i], integrator->d_tag_buffer[i]);
+        }
         hier_integrators.pop_front();
-        hier_integrators.insert(hier_integrators.end(),
-                                integrator->d_child_integrators.begin(),
-                                integrator->d_child_integrators.end());
+        hier_integrators.insert(hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
     }
+    plog << d_object_name << "::initializePatchHierarchy(): "
+         << "tag_buffer =";
+    for (int i = 0; i < d_tag_buffer.size(); ++i) plog << " " << d_tag_buffer[i];
+    plog << "\n";
 
     // Initialize the patch hierarchy.
     const bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -1167,25 +1173,12 @@ void
 HierarchyIntegrator::setupTagBuffer(
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
-    if (d_tag_buffer.size() == 0)
+    const int finest_hier_ln = gridding_alg->getMaxLevels()-1;
+    const int tsize = d_tag_buffer.size();
+    d_tag_buffer.resizeArray(finest_hier_ln);
+    for (int i = std::max(tsize,1); i < d_tag_buffer.size(); ++i)
     {
-        d_tag_buffer.resizeArray(gridding_alg->getMaxLevels());
-        for (int i = 0; i < gridding_alg->getMaxLevels(); ++i)
-        {
-            d_tag_buffer[i] = 1;
-        }
-    }
-    else
-    {
-        if (d_tag_buffer.size() < gridding_alg->getMaxLevels())
-        {
-            int tsize = d_tag_buffer.size();
-            d_tag_buffer.resizeArray(gridding_alg->getMaxLevels());
-            for (int i = tsize; i < gridding_alg->getMaxLevels(); ++i)
-            {
-                d_tag_buffer[i] = d_tag_buffer[tsize-1];
-            }
-        }
+        d_tag_buffer[i] = d_tag_buffer[i-1];
     }
     return;
 }// setupTagBuffer

@@ -256,6 +256,14 @@ public:
     getMinimumGhostCellWidth() const;
 
     /*!
+     * Setup the tag buffer.
+     */
+    void
+    setupTagBuffer(
+        SAMRAI::tbox::Array<int>& tag_buffer,
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) const;
+
+    /*!
      * Method to prepare to advance data from current_time to new_time.
      */
     void

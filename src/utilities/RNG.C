@@ -279,7 +279,7 @@ RNG::parallel_seed(
 
     seed = global_seed;
 
-    SAMRAI::tbox::pout << "\nGlobal seed = " << seed << "\n\n";
+    pout << "\nGlobal seed = " << seed << "\n\n";
 
     if (size > 1)
     {
@@ -305,12 +305,12 @@ RNG::parallel_seed(
                 seeds[i] = *cit;
             }
 
-            SAMRAI::tbox::pout << "Parallel seeds:\n";
+            pout << "Parallel seeds:\n";
             for (int i = 0; i < size; i++)
             {
-                SAMRAI::tbox::pout << "MPI process " << i << ", seed = " << seeds[i] << "\n";
+                pout << "MPI process " << i << ", seed = " << seeds[i] << "\n";
             }
-            SAMRAI::tbox::pout << "\n";
+            pout << "\n";
         }
 
         // Communicate the seeds.
@@ -327,8 +327,8 @@ RNG::parallel_seed(
     // Output the local seed to the log file for debugging purposes.
     if (size > 1)
     {
-        SAMRAI::tbox::plog << "Verifying parallel seed:\n";
-        SAMRAI::tbox::plog << "MPI process " << rank << ", seed = " << seed << "\n\n";
+        plog << "Verifying parallel seed:\n";
+        plog << "MPI process " << rank << ", seed = " << seed << "\n\n";
     }
 
     // Seed the local RNG.
