@@ -535,6 +535,11 @@ PETScKrylovLinearSolver::resetKSPOptions()
     int ierr;
     const KSPType ksp_type = d_ksp_type.c_str();
     ierr = KSPSetType(d_petsc_ksp, ksp_type); IBTK_CHKERRQ(ierr);
+    std::string ksp_type_name(ksp_type);
+    if (ksp_type_name.find("gmres") != std::string::npos)
+    {
+        ierr = KSPGMRESSetCGSRefinementType(d_petsc_ksp, KSP_GMRES_CGS_REFINE_IFNEEDED); IBTK_CHKERRQ(ierr);
+    }
     PetscBool initial_guess_nonzero = (d_initial_guess_nonzero ? PETSC_TRUE : PETSC_FALSE);
     ierr = KSPSetInitialGuessNonzero(d_petsc_ksp, initial_guess_nonzero); IBTK_CHKERRQ(ierr);
     ierr = KSPSetTolerances(d_petsc_ksp, d_rel_residual_tol, d_abs_residual_tol, d_divergence_tol, d_max_iterations); IBTK_CHKERRQ(ierr);
