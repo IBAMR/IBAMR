@@ -100,7 +100,7 @@ INSStaggeredPhysicalBoundaryHelper::enforceDirichletBcs(
             Pointer<Patch<NDIM> > patch = level->getPatch(patch_num);
             Pointer<SideData<NDIM,double> > u_data = patch->getPatchData(u_data_idx);
 
-            // Compute the boundary fill boxes.
+            // Lookup the boundary fill boxes.
             const Array<BoundaryBox<NDIM> >& physical_codim1_boxes = d_physical_codim1_boxes[ln].find(patch_num)->second;
             const int n_physical_codim1_boxes = physical_codim1_boxes.size();
 

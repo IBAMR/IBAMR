@@ -229,9 +229,7 @@ INSStaggeredStokesOperator::apply(
     d_hier_math_ops->grad(U_out_idx, U_out_sc_var, /*cf_bdry_synch*/ false, 1.0, P_in_idx, P_in_cc_var, d_no_fill, d_new_time);
     d_hier_math_ops->laplace(U_out_idx, U_out_sc_var, d_helmholtz_spec, U_in_idx, U_in_sc_var, d_no_fill, d_new_time, 1.0, U_out_idx, U_out_sc_var);
     d_hier_math_ops->div(P_out_idx, P_out_cc_var, -1.0, U_in_idx, U_in_sc_var, d_no_fill, d_new_time, /*cf_bdry_synch*/ true);
-
-    // Enforce homogeneous or inhomogeneous boundary conditions.
-    d_U_bc_helper->enforceDirichletBcs(U_out_idx, homogeneous_bc);
+    if (homogeneous_bc) d_U_bc_helper->enforceDirichletBcs(U_out_idx, homogeneous_bc);
 
     IBAMR_TIMER_STOP(t_apply);
     return;

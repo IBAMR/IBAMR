@@ -72,12 +72,9 @@ public:
     ~INSStaggeredPhysicalBoundaryHelper();
 
     /*!
-     * \brief Reset boundary values located on the physical boundary to zero on
-     * the specified range of levels in the patch hierarchy using the cached
-     * boundary data.
-     *
-     * \note By default, boundary conditions are cached over the complete range
-     * of levels of the patch hierarchy.
+     * \brief Enforce Dirichlet boundary conditions on the physical boundary
+     * over the specified range of levels in the patch hierarchy using the
+     * cached boundary data.
      */
     void
     enforceDirichletBcs(
