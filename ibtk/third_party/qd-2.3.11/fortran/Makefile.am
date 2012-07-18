@@ -24,7 +24,7 @@ $(DDMOD): ddmod.o
 $(DDEXT): ddext.o
 $(QDEXT): qdext.o
 
-pkglib_DATA = $(QDMOD) $(QDEXT) $(DDMOD) $(DDEXT)
+###pkglib_DATA = $(QDMOD) $(QDEXT) $(DDMOD) $(DDEXT)
 
 DEMO=quaderq$(EXEEXT) quadgsq2d$(EXEEXT) quadgsq$(EXEEXT) \
      quadtsq$(EXEEXT) quadtsq2d$(EXEEXT)
