@@ -157,6 +157,7 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C \
+	$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C \
 	$(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.C \
 	$(top_srcdir)/src/advect/GodunovAdvector.C \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.C \
@@ -238,6 +239,7 @@ am__objects_3 = libIBAMR2d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR2d_a-AdvDiffHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR2d_a-AdvDiffPPMConvectiveOperator.$(OBJEXT) \
 	libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.$(OBJEXT) \
+	libIBAMR2d_a-AdvDiffStochasticForcing.$(OBJEXT) \
 	libIBAMR2d_a-AdvectGodunovHypPatchOps.$(OBJEXT) \
 	libIBAMR2d_a-GodunovAdvector.$(OBJEXT) \
 	libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.$(OBJEXT) \
@@ -319,6 +321,7 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C \
+	$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C \
 	$(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.C \
 	$(top_srcdir)/src/advect/GodunovAdvector.C \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.C \
@@ -400,6 +403,7 @@ am__objects_5 = libIBAMR3d_a-GeneralizedIBMethod.$(OBJEXT) \
 	libIBAMR3d_a-AdvDiffHierarchyIntegrator.$(OBJEXT) \
 	libIBAMR3d_a-AdvDiffPPMConvectiveOperator.$(OBJEXT) \
 	libIBAMR3d_a-AdvDiffSemiImplicitHierarchyIntegrator.$(OBJEXT) \
+	libIBAMR3d_a-AdvDiffStochasticForcing.$(OBJEXT) \
 	libIBAMR3d_a-AdvectGodunovHypPatchOps.$(OBJEXT) \
 	libIBAMR3d_a-GodunovAdvector.$(OBJEXT) \
 	libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.$(OBJEXT) \
@@ -503,6 +507,7 @@ am__pkg_include_HEADERS_DIST =  \
 	$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.h \
+	$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.h \
 	$(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.h \
 	$(top_srcdir)/src/advect/GodunovAdvector.h \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.h \
@@ -910,6 +915,7 @@ pkg_include_HEADERS =  \
 	$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.h \
 	$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.h \
+	$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.h \
 	$(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.h \
 	$(top_srcdir)/src/advect/GodunovAdvector.h \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.h \
@@ -977,6 +983,7 @@ DIM_INDEPENDENT_SOURCES = $(top_srcdir)/src/IB/GeneralizedIBMethod.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.C \
 	$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C \
+	$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C \
 	$(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.C \
 	$(top_srcdir)/src/advect/GodunovAdvector.C \
 	$(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.C \
@@ -1126,6 +1133,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffPPMConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-AdvectGodunovHypPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR2d_a-GeneralizedIBMethod.Po@am__quote@
@@ -1193,6 +1201,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffHierarchyIntegrator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffPPMConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffSemiImplicitHierarchyIntegrator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvDiffStochasticForcing.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-AdvectGodunovHypPatchOps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Po@am__quote@
@@ -1884,6 +1893,20 @@ libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.obj: $(top_srcdir)/src/adv_d
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C' object='libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C'; fi`
+
+libIBAMR2d_a-AdvDiffStochasticForcing.o: $(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-AdvDiffStochasticForcing.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Tpo -c -o libIBAMR2d_a-AdvDiffStochasticForcing.o `test -f '$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Tpo $(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C' object='libIBAMR2d_a-AdvDiffStochasticForcing.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-AdvDiffStochasticForcing.o `test -f '$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C
+
+libIBAMR2d_a-AdvDiffStochasticForcing.obj: $(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-AdvDiffStochasticForcing.obj -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Tpo -c -o libIBAMR2d_a-AdvDiffStochasticForcing.obj `if test -f '$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Tpo $(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C' object='libIBAMR2d_a-AdvDiffStochasticForcing.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR2d_a-AdvDiffStochasticForcing.obj `if test -f '$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C'; fi`
 
 libIBAMR2d_a-AdvectGodunovHypPatchOps.o: $(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR2d_a-AdvectGodunovHypPatchOps.o -MD -MP -MF $(DEPDIR)/libIBAMR2d_a-AdvectGodunovHypPatchOps.Tpo -c -o libIBAMR2d_a-AdvectGodunovHypPatchOps.o `test -f '$(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.C' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.C
@@ -2822,6 +2845,20 @@ libIBAMR3d_a-AdvDiffSemiImplicitHierarchyIntegrator.obj: $(top_srcdir)/src/adv_d
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C' object='libIBAMR3d_a-AdvDiffSemiImplicitHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-AdvDiffSemiImplicitHierarchyIntegrator.obj `if test -f '$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C'; fi`
+
+libIBAMR3d_a-AdvDiffStochasticForcing.o: $(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-AdvDiffStochasticForcing.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-AdvDiffStochasticForcing.Tpo -c -o libIBAMR3d_a-AdvDiffStochasticForcing.o `test -f '$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-AdvDiffStochasticForcing.Tpo $(DEPDIR)/libIBAMR3d_a-AdvDiffStochasticForcing.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C' object='libIBAMR3d_a-AdvDiffStochasticForcing.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-AdvDiffStochasticForcing.o `test -f '$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C' || echo '$(srcdir)/'`$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C
+
+libIBAMR3d_a-AdvDiffStochasticForcing.obj: $(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-AdvDiffStochasticForcing.obj -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-AdvDiffStochasticForcing.Tpo -c -o libIBAMR3d_a-AdvDiffStochasticForcing.obj `if test -f '$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libIBAMR3d_a-AdvDiffStochasticForcing.Tpo $(DEPDIR)/libIBAMR3d_a-AdvDiffStochasticForcing.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C' object='libIBAMR3d_a-AdvDiffStochasticForcing.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o libIBAMR3d_a-AdvDiffStochasticForcing.obj `if test -f '$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C'; then $(CYGPATH_W) '$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C'; else $(CYGPATH_W) '$(srcdir)/$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C'; fi`
 
 libIBAMR3d_a-AdvectGodunovHypPatchOps.o: $(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.C
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT libIBAMR3d_a-AdvectGodunovHypPatchOps.o -MD -MP -MF $(DEPDIR)/libIBAMR3d_a-AdvectGodunovHypPatchOps.Tpo -c -o libIBAMR3d_a-AdvectGodunovHypPatchOps.o `test -f '$(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.C' || echo '$(srcdir)/'`$(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.C

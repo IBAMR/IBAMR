@@ -48,6 +48,12 @@
 #include <ibtk/HierarchyIntegrator.h>
 #include <ibtk/KrylovLinearSolver.h>
 
+// FORWARD DECLARATION
+namespace IBAMR
+{
+class AdvDiffStochasticForcing;
+}
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -62,6 +68,8 @@ class AdvDiffHierarchyIntegrator
     : public IBTK::HierarchyIntegrator
 {
 public:
+    friend class AdvDiffStochasticForcing;
+
     /*!
      * The destructor for class AdvDiffHierarchyIntegrator unregisters the
      * integrator object with the restart manager when the object is so

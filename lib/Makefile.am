@@ -87,6 +87,7 @@ $(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.C \
 $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.C \
 $(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.C \
 $(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.C \
+$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.C \
 $(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.C \
 $(top_srcdir)/src/advect/GodunovAdvector.C \
 $(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.C \
@@ -159,6 +160,7 @@ $(top_srcdir)/src/adv_diff/AdvDiffGodunovHypPatchOps.h \
 $(top_srcdir)/src/adv_diff/AdvDiffHierarchyIntegrator.h \
 $(top_srcdir)/src/adv_diff/AdvDiffPPMConvectiveOperator.h \
 $(top_srcdir)/src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.h \
+$(top_srcdir)/src/adv_diff/AdvDiffStochasticForcing.h \
 $(top_srcdir)/src/advect/AdvectGodunovHypPatchOps.h \
 $(top_srcdir)/src/advect/GodunovAdvector.h \
 $(top_srcdir)/src/navier_stokes/INSCollocatedCenteredConvectiveOperator.h \

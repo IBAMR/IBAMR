@@ -38,26 +38,17 @@
 // IBAMR INCLUDES
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
-// IBTK INCLUDES
-#include <ibtk/CartGridFunction.h>
-
-// SAMRAI INCLUDES
-#include <CellVariable.h>
-#include <NodeVariable.h>
-#include <SideVariable.h>
-#include <VariableContext.h>
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
 {
 /*!
  * \brief Class INSStaggeredStochasticForcing provides an interface for
- * specifying a stochastic forcing term for the staggered-grid incompressible
+ * specifying a stochastic forcing term for a staggered-grid incompressible
  * Navier-Stokes solver.
  */
 class INSStaggeredStochasticForcing
-    : public virtual IBTK::CartGridFunction
+    : public IBTK::CartGridFunction
 {
 public:
     /*!
@@ -66,23 +57,17 @@ public:
      * grid.
      */
     INSStaggeredStochasticForcing(
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         const INSStaggeredHierarchyIntegrator* const fluid_solver);
 
     /*!
-     * \brief Empty virtual destructor.
+     * \brief Empty destructor.
      */
-    virtual
     ~INSStaggeredStochasticForcing();
 
     /*!
-     * Set objects to provide boundary conditions for the fluid velocity field.
-     */
-    void
-    setPhysicalBcCoefs(
-        blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> u_bc_coef);
-
-    /*!
-     * \name Methods to set patch interior data.
+     * \name Methods to set patch data.
      */
     //\{
 
@@ -90,81 +75,14 @@ public:
      * \brief Indicates whether the concrete INSStaggeredStochasticForcing object is
      * time-dependent.
      */
-    virtual bool
+    bool
     isTimeDependent() const;
 
     /*!
-     * \brief Set the form of the stress tensor.
-     */
-    void
-    setStochasticStressTensorType(
-        const StochasticStressTensorType stress_tensor_type);
-
-    /*!
-     * \brief Set the density of the fluid.
-     */
-    void
-    setFluidDensity(
-        const double rho);
-
-    /*!
-     * \brief Set the dynamic viscosity of the fluid.
-     */
-    void
-    setFluidViscosity(
-        const double mu);
-
-    /*!
-     * \brief Set the timestep size.
-     */
-    void
-    setDt(
-        const double dt);
-
-    /*!
-     * \brief Set the scale factor std.
-     */
-    void
-    setStd(
-        const double std);
-
-    /*!
-     * \brief Set a vector of integer values that specify whether to evaluate
-     * the stochastic fluxes for a particular Runge-Kutta cycle.
-     *
-     * For each cycle k, if regen_rand_cycle[k] == 1, then a new set of random
-     * values is generated; if regen_rand_cycle[k] == 0, then the random values
-     * from the previous cycle are used; and if regen_rand_cycle[k] == -1, then
-     * the stochastic forcing term is set to zero.
-     */
-    void
-    setRegenRandCycle(
-        const SAMRAI::tbox::Array<int>& regen_rand_cycle);
-
-    /*!
-     * \brief Set the stochastic flux scaling factor to use at Dirichlet
-     * boundaries.
-     */
-    void
-    setDirichletBcScaling(
-        const double dirichlet_scaling);
-
-    /*!
-     * \brief Set the stochastic flux scaling factor to use at Neumann
-     * boundaries.
-     */
-    void
-    setNeumannBcScaling(
-        const double neumann_scaling);
-
-    /*!
      * \brief Evaluate the function on the patch interiors on the specified
-     * levels of the patch hierarchy using the virtual function
-     * setDataOnPatchLevel().
-     *
-     * \see setDataOnPatch
+     * levels of the patch hierarchy.
      */
-    virtual void
+    void
     setDataOnPatchHierarchy(
         const int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
@@ -176,15 +94,9 @@ public:
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified
-     * level of the patch hierarchy using the virtual function setDataOnPatch().
-     *
-     * \note This function also allocates data for storing the stochastic stress
-     * components, evaluates those components, and synchronizes the values of
-     * those components before calling setDataOnPatch().
-     *
-     * \see setDataOnPatch
+     * level of the patch hierarchy.
      */
-    virtual void
+    void
     setDataOnPatchLevel(
         const int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
@@ -193,10 +105,9 @@ public:
         const bool initial_time=false);
 
     /*!
-     * \brief Pure virtual function to evaluate the function on the patch
-     * interior.
+     * \brief Evaluate the function on the patch interior.
      */
-    virtual void
+    void
     setDataOnPatch(
         const int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
@@ -208,7 +119,7 @@ public:
     //\}
 
 protected:
-    /*
+    /*!
      * The object name is used for error/warning reporting.
      */
     std::string d_object_name;
@@ -245,16 +156,27 @@ private:
         const INSStaggeredStochasticForcing& that);
 
     /*!
-     * Boundary condition specification objects.
-     */
-    blitz::TinyVector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*,NDIM> d_u_bc_coef;
-    double d_dirichlet_scaling, d_neumann_scaling;
-
-    /*!
      * Pointer to the fluid solver object that is using this stochastic force
      * generator.
      */
     const INSStaggeredHierarchyIntegrator* const d_fluid_solver;
+
+    /*!
+     * Type of stress tensor (correlated or uncorrelated).
+     */
+    StochasticStressTensorType d_stress_tensor_type;
+
+    /*!
+     * Weighting data.
+     */
+    double d_std;
+    int d_num_rand_vals;
+    std::vector<SAMRAI::tbox::Array<double> > d_weights;
+
+    /*!
+     * Boundary condition scalings.
+     */
+    double d_dirichlet_bc_scaling, d_neumann_bc_scaling;
 
     /*!
      * VariableContext and Variable objects for storing the components of the
@@ -263,17 +185,17 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_W_cc_var;
     int d_W_cc_idx;
+    std::vector<int> d_W_cc_idxs;
 #if (NDIM == 2)
     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM,double> > d_W_nc_var;
     int d_W_nc_idx;
+    std::vector<int> d_W_nc_idxs;
 #endif
 #if (NDIM == 3)
     SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM,double> > d_W_ec_var;
     int d_W_ec_idx;
+    std::vector<int> d_W_ec_idxs;
 #endif
-    StochasticStressTensorType d_stress_tensor_type;
-    double d_rho, d_mu, d_dt, d_std;
-    SAMRAI::tbox::Array<int> d_regen_rand_cycle;
 };
 }// namespace IBAMR
 

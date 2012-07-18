@@ -299,6 +299,15 @@ public:
     getCurrentCycleNumber() const;
 
     /*!
+     * Virtual method to return the current time step size.
+     *
+     * The default implementation returns the value
+     * numeric_limits<>::quiet_NaN() when it is not advancing the hierarchy.
+     */
+    virtual double
+    getCurrentTimeStepSize() const;
+
+    /*!
      * Virtual method to prepare to advance data from current_time to new_time.
      *
      * An empty default implementation is provided.
@@ -767,10 +776,11 @@ protected:
     int d_num_cycles;
 
     /*
-     * The number of cycles for the current time step and the current cycle
-     * number.
+     * The number of cycles for the current time step, the current cycle number,
+     * and the current time step size.
      */
     int d_current_num_cycles, d_current_cycle_num;
+    double d_current_dt;
 
     /*
      * The number of integration steps taken between invocations of the

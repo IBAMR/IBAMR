@@ -36,18 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/INSStaggeredHierarchyIntegrator.h>
-
-// IBTK INCLUDES
-#include <ibtk/CartGridFunction.h>
-
-// IBTK THIRD-PARTY INCLUDES
-#include <ibtk/muParser.h>
-
-// SAMRAI INCLUDES
-#include <CellVariable.h>
-#include <SideVariable.h>
-#include <VariableContext.h>
+#include <ibamr/AdvDiffHierarchyIntegrator.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -55,11 +44,10 @@ namespace IBAMR
 {
 /*!
  * \brief Class AdvDiffStochasticForcing provides an interface for specifying a
- * stochastic forcing term for a concentration that is coupled to the
- * staggered-grid incompressible Navier-Stokes solver.
+ * stochastic forcing term for cell-centered advection-diffusion solver solver.
  */
 class AdvDiffStochasticForcing
-    : public virtual IBTK::CartGridFunction
+    : public IBTK::CartGridFunction
 {
 public:
     /*!
@@ -71,36 +59,18 @@ public:
      * be used to setup a pseudo concentration gradient for periodic problems.
      */
     AdvDiffStochasticForcing(
+        const std::string& object_name,
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > C_var,
-        const INSStaggeredHierarchyIntegrator* const fluid_solver,
-        const AdvDiffSourceTermType& eval_type,
-        const std::string& f_expression="1.0",
-        const SAMRAI::tbox::Array<double>& g=SAMRAI::tbox::Array<double>());
+        const AdvDiffHierarchyIntegrator* const adv_diff_solver);
 
     /*!
-     * \brief Empty virtual destructor.
+     * \brief Empty destructor.
      */
-    virtual
     ~AdvDiffStochasticForcing();
 
     /*!
-     * Set an object to provide boundary conditions for a scalar-valued
-     * concentration.
-     */
-    void
-    setPhysicalBcCoefs(
-        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* C_bc_coef);
-
-    /*!
-     * Set objects to provide boundary conditions for a vector-valued
-     * concentration.
-     */
-    void
-    setPhysicalBcCoefs(
-        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> C_bc_coef);
-
-    /*!
-     * \name Methods to set patch interior data.
+     * \name Methods to set patch data.
      */
     //\{
 
@@ -108,74 +78,14 @@ public:
      * \brief Indicates whether the concrete AdvDiffStochasticForcing object is
      * time-dependent.
      */
-    virtual bool
+    bool
     isTimeDependent() const;
 
     /*!
-     * \brief Set the diffusion coefficient.
-     */
-    void
-    setDiffusionCoefficient(
-        const double kappa);
-
-    /*!
-     * \brief Set the timestep size.
-     */
-    void
-    setDt(
-        const double dt);
-
-    /*!
-     * \brief Set the scale factor std.
-     */
-    void
-    setStd(
-        const double std);
-
-    /*!
-     * \brief Set a vector of integer values that specify whether to evaluate
-     * the stochastic fluxes for a particular Runge-Kutta cycle.
-     *
-     * For each cycle k, if regen_rand_cycle[k] == 1, then a new set of random
-     * values is generated; if regen_rand_cycle[k] == 0, then the random values
-     * from the previous cycle are used; and if regen_rand_cycle[k] == -1, then
-     * the stochastic forcing term is set to zero.
-     */
-    void
-    setRegenRandCycle(
-        const SAMRAI::tbox::Array<int>& regen_rand_cycle);
-
-    /*!
-     * \brief Set the value of f(C), concentration-dependent flux scaling
-     * function.
-     */
-    void
-    setFExpression(
-        const std::string& f_expression);
-
-    /*!
-     * \brief Set the value of g, the pseudo concentration gradient vector
-     * coefficient.
-     */
-    void
-    setG(
-        const SAMRAI::tbox::Array<double>& g);
-
-    /*!
-     * \brief Set the manner in which the source term should be evaluated.
-     */
-    void
-    setAdvDiffSourceTermType(
-        const AdvDiffSourceTermType& eval_type);
-
-    /*!
      * \brief Evaluate the function on the patch interiors on the specified
-     * levels of the patch hierarchy using the virtual function
-     * setDataOnPatchLevel().
-     *
-     * \see setDataOnPatch
+     * levels of the patch hierarchy.
      */
-    virtual void
+    void
     setDataOnPatchHierarchy(
         const int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
@@ -187,15 +97,9 @@ public:
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified
-     * level of the patch hierarchy using the virtual function setDataOnPatch().
-     *
-     * \note This function also allocates data for storing the stochastic stress
-     * components, evaluates those components, and synchronizes the values of
-     * those components before calling setDataOnPatch().
-     *
-     * \see setDataOnPatch
+     * level of the patch hierarchy.
      */
-    virtual void
+    void
     setDataOnPatchLevel(
         const int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
@@ -204,10 +108,9 @@ public:
         const bool initial_time=false);
 
     /*!
-     * \brief Pure virtual function to evaluate the function on the patch
-     * interior.
+     * \brief Evaluate the function on the patch interior.
      */
-    virtual void
+    void
     setDataOnPatch(
         const int data_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
@@ -219,7 +122,7 @@ public:
     //\}
 
 protected:
-    /*
+    /*!
      * The object name is used for error/warning reporting.
      */
     std::string d_object_name;
@@ -256,45 +159,37 @@ private:
         const AdvDiffStochasticForcing& that);
 
     /*!
-     * Pointer to the concentration variable registered with the class.
+     * Pointer to the concentration variable associated with this source term
+     * generator.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_C_var;
 
     /*!
-     * Boundary condition specification objects.
+     * Pointer to the advection-diffusion solver object that is using this
+     * stochastic source term generator.
      */
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_C_bc_coef;
+    const AdvDiffHierarchyIntegrator* const d_adv_diff_solver;
 
     /*!
-     * Concentration-dependent scaling factor function.
+     * Weighting data.
      */
-    mu::Parser d_f_parser;
+    double d_std;
+    int d_num_rand_vals;
+    std::vector<SAMRAI::tbox::Array<double> > d_weights;
 
     /*!
-     * Pesudo-concentration gradient coefficient.
+     * Boundary condition scalings.
      */
-    SAMRAI::tbox::Array<double> d_g;
-
-    /*!
-     * Pointer to the fluid solver object that is using this stochastic force
-     * generator.
-     */
-    const INSStaggeredHierarchyIntegrator* const d_fluid_solver;
-
-    /*!
-     * Forcing type (midpoint rule or trapezoidal rule).
-     */
-    AdvDiffSourceTermType d_eval_type;
+    double d_dirichlet_bc_scaling, d_neumann_bc_scaling;
 
     /*!
      * VariableContext and Variable objects for storing the components of the
-     * stochastic stresses.
+     * stochastic fluxes.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_W_sc_var;
-    int d_W_sc_idx, d_C_cc_idx;
-    double d_kappa, d_dt, d_std;
-    SAMRAI::tbox::Array<int> d_regen_rand_cycle;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_F_sc_var;
+    int d_F_sc_idx;
+    std::vector<int> d_F_sc_idxs;
 };
 }// namespace IBAMR
 
