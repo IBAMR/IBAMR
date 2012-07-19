@@ -93,18 +93,6 @@ public:
         const int finest_ln=-1);
 
     /*!
-     * \brief Evaluate the function on the patch interiors on the specified
-     * level of the patch hierarchy.
-     */
-    void
-    setDataOnPatchLevel(
-        const int data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-        const double data_time,
-        const bool initial_time=false);
-
-    /*!
      * \brief Evaluate the function on the patch interior.
      */
     void

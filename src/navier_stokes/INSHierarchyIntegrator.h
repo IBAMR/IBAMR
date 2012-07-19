@@ -359,7 +359,7 @@ protected:
      * Return the maximum stable time step size.
      */
     double
-    getTimeStepSizeSpecialized();
+    getMaximumTimeStepSizeSpecialized();
 
     /*!
      * Determine the largest stable timestep on an individual patch level.

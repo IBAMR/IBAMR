@@ -880,22 +880,12 @@ INSStaggeredHierarchyIntegrator::initializePatchHierarchy(
 int
 INSStaggeredHierarchyIntegrator::getNumberOfCycles() const
 {
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
-    if (initial_time)
+    int num_cycles = d_num_cycles;
+    if (!d_creeping_flow && MathUtilities<double>::equalEps(d_integrator_time, d_start_time) && is_multistep_time_stepping_type(d_convective_time_stepping_type) && d_init_convective_time_stepping_type != FORWARD_EULER)
     {
-        if (d_convective_time_stepping_type == FORWARD_EULER || (is_multistep_time_stepping_type(d_convective_time_stepping_type) && d_init_convective_time_stepping_type == FORWARD_EULER))
-        {
-            return d_num_cycles;
-        }
-        else
-        {
-            return std::max(2,d_num_cycles);
-        }
+        num_cycles = std::max(2,num_cycles);
     }
-    else
-    {
-        return d_num_cycles;
-    }
+    return num_cycles;
 }// getNumberOfCycles
 
 void
@@ -911,7 +901,7 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
     // Keep track of the number of cycles to be used for the present integration
     // step.
     d_num_cycles_step = num_cycles;
-    if ((d_num_cycles_step == 1) && (d_convective_time_stepping_type == MIDPOINT_RULE || d_convective_time_stepping_type == TRAPEZOIDAL_RULE))
+    if (!d_creeping_flow && (d_num_cycles_step == 1) && (d_convective_time_stepping_type == MIDPOINT_RULE || d_convective_time_stepping_type == TRAPEZOIDAL_RULE))
     {
         TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
                    << "  time stepping type: " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type) << " requires num_cycles > 1.\n"
@@ -1051,7 +1041,7 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(
         d_hier_sc_data_ops->copyData(d_N_old_new_idx, N_idx);
         if (convective_time_stepping_type == FORWARD_EULER)
         {
-            d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0),     -rho, N_idx, d_rhs_vec->getComponentDescriptorIndex(0));
+            d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0), -1.0*rho, N_idx, d_rhs_vec->getComponentDescriptorIndex(0));
         }
         else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
         {
@@ -1184,7 +1174,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         }
         if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
         {
-            d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0),     -rho, N_idx, d_rhs_vec->getComponentDescriptorIndex(0));
+            d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0), -1.0*rho, N_idx, d_rhs_vec->getComponentDescriptorIndex(0));
         }
         else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
         {
@@ -1253,7 +1243,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
         if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
         {
-            d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0),     +rho, N_idx, d_rhs_vec->getComponentDescriptorIndex(0));
+            d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0), +1.0*rho, N_idx, d_rhs_vec->getComponentDescriptorIndex(0));
         }
         else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
         {
@@ -1566,6 +1556,9 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     // Reset the hierarchy operations objects for the new hierarchy configuration.
     d_hier_cc_data_ops->setPatchHierarchy(hierarchy);
     d_hier_cc_data_ops->resetLevels(0, finest_hier_level);
+
+    d_hier_fc_data_ops->setPatchHierarchy(hierarchy);
+    d_hier_fc_data_ops->resetLevels(0, finest_hier_level);
 
     d_hier_sc_data_ops->setPatchHierarchy(hierarchy);
     d_hier_sc_data_ops->resetLevels(0, finest_hier_level);

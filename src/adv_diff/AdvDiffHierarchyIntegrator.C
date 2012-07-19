@@ -58,6 +58,34 @@
 // C++ STDLIB INCLUDES
 #include <limits>
 
+// FORTRAN ROUTINES
+#if (NDIM == 2)
+#define ADVECT_STABLEDT_FC FC_FUNC_(advect_stabledt2d, ADVECT_STABLEDT2D)
+#endif
+
+#if (NDIM == 3)
+#define ADVECT_STABLEDT_FC FC_FUNC_(advect_stabledt3d, ADVECT_STABLEDT3D)
+#endif
+
+extern "C"
+{
+    void
+    ADVECT_STABLEDT_FC(
+        const double*,
+#if (NDIM == 2)
+        const int& , const int& , const int& , const int& ,
+        const int& , const int& ,
+        const double* , const double* ,
+#endif
+#if (NDIM == 3)
+        const int& , const int& , const int& , const int& , const int& , const int& ,
+        const int& , const int& , const int& ,
+        const double* , const double* , const double* ,
+#endif
+        double&
+                       );
+}
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -101,11 +129,33 @@ AdvDiffHierarchyIntegrator::~AdvDiffHierarchyIntegrator()
     return;
 }// ~AdvDiffHierarchyIntegrator
 
-TimeSteppingType
-AdvDiffHierarchyIntegrator::getDiffusionTimeSteppingType() const
+void
+AdvDiffHierarchyIntegrator::setDefaultDiffusionTimeSteppingType(
+    TimeSteppingType default_diffusion_time_stepping_type)
 {
-    return d_diffusion_time_stepping_type;
-}// getDiffusionTimeSteppingType
+    d_default_diffusion_time_stepping_type = default_diffusion_time_stepping_type;
+    return;
+}// setDefaultDiffusionTimeSteppingType
+
+TimeSteppingType
+AdvDiffHierarchyIntegrator::getDefaultDiffusionTimeSteppingType() const
+{
+    return d_default_diffusion_time_stepping_type;
+}// getDefaultDiffusionTimeSteppingType
+
+void
+AdvDiffHierarchyIntegrator::setDefaultConvectiveDifferencingType(
+    ConvectiveDifferencingType default_convective_difference_form)
+{
+    d_default_convective_difference_form = default_convective_difference_form;
+    return;
+}// setDefaultConvectiveDifferencingType
+
+ConvectiveDifferencingType
+AdvDiffHierarchyIntegrator::getDefaultConvectiveDifferencingType() const
+{
+    return d_default_convective_difference_form;
+}// getDefaultConvectiveDifferencingType
 
 void
 AdvDiffHierarchyIntegrator::registerAdvectionVelocity(
@@ -113,9 +163,13 @@ AdvDiffHierarchyIntegrator::registerAdvectionVelocity(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!u_var.isNull());
+    TBOX_ASSERT(d_u_var.find(u_var) == d_u_var.end());
 #endif
     d_u_var.insert(u_var);
+
+    // Set default values.
     d_u_is_div_free[u_var] = true;
+    d_u_fcn[u_var] = NULL;
     return;
 }// registerAdvectionVelocity
 
@@ -131,6 +185,16 @@ AdvDiffHierarchyIntegrator::setAdvectionVelocityIsDivergenceFree(
     return;
 }// setAdvectionVelocityIsDivergenceFree
 
+bool
+AdvDiffHierarchyIntegrator::getAdvectionVelocityIsDivergenceFree(
+    Pointer<FaceVariable<NDIM,double> > u_var) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_u_var.find(u_var) != d_u_var.end());
+#endif
+    return d_u_is_div_free.find(u_var)->second;
+}// getAdvectionVelocityIsDivergenceFree
+
 void
 AdvDiffHierarchyIntegrator::setAdvectionVelocityFunction(
     Pointer<FaceVariable<NDIM,double> > u_var,
@@ -143,14 +207,28 @@ AdvDiffHierarchyIntegrator::setAdvectionVelocityFunction(
     return;
 }// setAdvectionVelocityFunction
 
+Pointer<IBTK::CartGridFunction>
+AdvDiffHierarchyIntegrator::getAdvectionVelocityFunction(
+    Pointer<FaceVariable<NDIM,double> > u_var) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_u_var.find(u_var) != d_u_var.end());
+#endif
+    return d_u_fcn.find(u_var)->second;
+}// getAdvectionVelocityFunction
+
 void
 AdvDiffHierarchyIntegrator::registerSourceTerm(
     Pointer<CellVariable<NDIM,double> > F_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!F_var.isNull());
+    TBOX_ASSERT(d_F_var.find(F_var) == d_F_var.end());
 #endif
     d_F_var.insert(F_var);
+
+    // Set default values.
+    d_F_fcn[F_var] = NULL;
     return;
 }// registerSourceTerm
 
@@ -166,25 +244,40 @@ AdvDiffHierarchyIntegrator::setSourceTermFunction(
     return;
 }// setSourceTermFunction
 
+Pointer<IBTK::CartGridFunction>
+AdvDiffHierarchyIntegrator::getSourceTermFunction(
+    Pointer<CellVariable<NDIM,double> > F_var) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_F_var.find(F_var) != d_F_var.end());
+#endif
+    return d_F_fcn.find(F_var)->second;
+}// getSourceTermFunction
+
 void
 AdvDiffHierarchyIntegrator::registerTransportedQuantity(
     Pointer<CellVariable<NDIM,double> > Q_var)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!Q_var.isNull());
+    TBOX_ASSERT(d_Q_var.find(Q_var) == d_Q_var.end());
 #endif
     d_Q_var.insert(Q_var);
-    d_Q_difference_form[Q_var] = CONSERVATIVE;
-    d_Q_diffusion_coef[Q_var] = 0.0;
-    d_Q_damping_coef[Q_var] = 0.0;
-
     Pointer<CellDataFactory<NDIM,double> > Q_factory = Q_var->getPatchDataFactory();
     const int Q_depth = Q_factory->getDefaultDepth();
-    d_Q_bc_coef[Q_var] = std::vector<RobinBcCoefStrategy<NDIM>*>(Q_depth,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
-
     Pointer<CellVariable<NDIM,double> > Q_rhs_var = new CellVariable<NDIM,double>(Q_var->getName()+"::Q_rhs",Q_depth);
+
+    // Set default values.
+    d_Q_u_map[Q_var] = NULL;
+    d_Q_F_map[Q_var] = NULL;
     d_Q_rhs_var.insert(Q_rhs_var);
     d_Q_Q_rhs_map[Q_var] = Q_rhs_var;
+    d_Q_diffusion_time_stepping_type[Q_var] = d_default_diffusion_time_stepping_type;
+    d_Q_difference_form[Q_var] = d_default_convective_difference_form;
+    d_Q_diffusion_coef[Q_var] = 0.0;
+    d_Q_damping_coef[Q_var] = 0.0;
+    d_Q_init[Q_var] = NULL;
+    d_Q_bc_coef[Q_var] = std::vector<RobinBcCoefStrategy<NDIM>*>(Q_depth,static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
     return;
 }// registerTransportedQuantity
 
@@ -201,6 +294,16 @@ AdvDiffHierarchyIntegrator::setAdvectionVelocity(
     return;
 }// setAdvectionVelocity
 
+Pointer<FaceVariable<NDIM,double> >
+AdvDiffHierarchyIntegrator::getAdvectionVelocity(
+    Pointer<CellVariable<NDIM,double> > Q_var) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
+#endif
+    return d_Q_u_map.find(Q_var)->second;
+}// getAdvectionVelocity
+
 void
 AdvDiffHierarchyIntegrator::setSourceTerm(
     Pointer<CellVariable<NDIM,double> > Q_var,
@@ -214,6 +317,38 @@ AdvDiffHierarchyIntegrator::setSourceTerm(
     return;
 }// setSourceTerm
 
+Pointer<CellVariable<NDIM,double> >
+AdvDiffHierarchyIntegrator::getSourceTerm(
+    Pointer<CellVariable<NDIM,double> > Q_var) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
+#endif
+    return d_Q_F_map.find(Q_var)->second;
+}// getSourceTerm
+
+void
+AdvDiffHierarchyIntegrator::setDiffusionTimeSteppingType(
+    Pointer<CellVariable<NDIM,double> > Q_var,
+    const TimeSteppingType diffusion_time_stepping_type)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
+#endif
+    d_Q_diffusion_time_stepping_type[Q_var] = diffusion_time_stepping_type;
+    return;
+}// setDiffusionTimeSteppingType
+
+TimeSteppingType
+AdvDiffHierarchyIntegrator::getDiffusionTimeSteppingType(
+    Pointer<CellVariable<NDIM,double> > Q_var) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
+#endif
+    return d_Q_diffusion_time_stepping_type.find(Q_var)->second;
+}// getDiffusionTimeSteppingType
+
 void
 AdvDiffHierarchyIntegrator::setConvectiveDifferencingType(
     Pointer<CellVariable<NDIM,double> > Q_var,
@@ -225,6 +360,16 @@ AdvDiffHierarchyIntegrator::setConvectiveDifferencingType(
     d_Q_difference_form[Q_var] = difference_form;
     return;
 }// setConvectiveDifferencingType
+
+ConvectiveDifferencingType
+AdvDiffHierarchyIntegrator::getConvectiveDifferencingType(
+    Pointer<CellVariable<NDIM,double> > Q_var) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
+#endif
+    return d_Q_difference_form.find(Q_var)->second;
+}// getConvectiveDifferencingType
 
 void
 AdvDiffHierarchyIntegrator::setDiffusionCoefficient(
@@ -238,6 +383,16 @@ AdvDiffHierarchyIntegrator::setDiffusionCoefficient(
     return;
 }// setDiffusionCoefficient
 
+double
+AdvDiffHierarchyIntegrator::getDiffusionCoefficient(
+    Pointer<CellVariable<NDIM,double> > Q_var) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
+#endif
+    return d_Q_diffusion_coef.find(Q_var)->second;
+}// getDiffusionCoefficient
+
 void
 AdvDiffHierarchyIntegrator::setDampingCoefficient(
     Pointer<CellVariable<NDIM,double> > Q_var,
@@ -250,6 +405,16 @@ AdvDiffHierarchyIntegrator::setDampingCoefficient(
     return;
 }// setDampingCoefficient
 
+double
+AdvDiffHierarchyIntegrator::getDampingCoefficient(
+    Pointer<CellVariable<NDIM,double> > Q_var) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
+#endif
+    return d_Q_damping_coef.find(Q_var)->second;
+}// getDampingCoefficient
+
 void
 AdvDiffHierarchyIntegrator::setInitialConditions(
     Pointer<CellVariable<NDIM,double> > Q_var,
@@ -261,6 +426,16 @@ AdvDiffHierarchyIntegrator::setInitialConditions(
     d_Q_init[Q_var] = Q_init;
     return;
 }// setInitialConditions
+
+Pointer<IBTK::CartGridFunction>
+AdvDiffHierarchyIntegrator::getInitialConditions(
+    Pointer<CellVariable<NDIM,double> > Q_var) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
+#endif
+    return d_Q_init.find(Q_var)->second;
+}// getInitialConditions
 
 void
 AdvDiffHierarchyIntegrator::setPhysicalBcCoefs(
@@ -292,6 +467,15 @@ AdvDiffHierarchyIntegrator::setPhysicalBcCoefs(
     return;
 }// setPhysicalBcCoefs
 
+std::vector<RobinBcCoefStrategy<NDIM>*>
+AdvDiffHierarchyIntegrator::getPhysicalBcCoefs(
+    Pointer<CellVariable<NDIM,double> > Q_var) const
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(d_Q_var.find(Q_var) != d_Q_var.end());
+#endif
+    return d_Q_bc_coef.find(Q_var)->second;
+}// getPhysicalBcCoefs
 
 void
 AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(
@@ -369,7 +553,8 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart),
       d_integrator_is_initialized(false),
-      d_diffusion_time_stepping_type(TRAPEZOIDAL_RULE),
+      d_default_diffusion_time_stepping_type(TRAPEZOIDAL_RULE),
+      d_default_convective_difference_form(CONSERVATIVE),
       d_u_var(),
       d_u_is_div_free(),
       d_u_fcn(),
@@ -411,38 +596,57 @@ AdvDiffHierarchyIntegrator::AdvDiffHierarchyIntegrator(
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     if (!input_db.isNull()) getFromInput(input_db, from_restart);
-
-    // Get initialization data for the FAC ops and FAC preconditioners.
-    if (d_using_FAC)
-    {
-        if (input_db->keyExists("FACOp"))
-        {
-            d_fac_op_db = input_db->getDatabase("FACOp");
-        }
-        else if (input_db->keyExists("FACOps"))
-        {
-            d_fac_op_db = input_db->getDatabase("FACOps");
-        }
-        else
-        {
-            d_fac_op_db = new NullDatabase();
-        }
-
-        if (input_db->keyExists("FACPreconditioner"))
-        {
-            d_fac_pc_db = input_db->getDatabase("FACPreconditioner");
-        }
-        else if (input_db->keyExists("FACPreconditioners"))
-        {
-            d_fac_pc_db = input_db->getDatabase("FACPreconditioners");
-        }
-        else
-        {
-            d_fac_pc_db = new NullDatabase();
-        }
-    }
     return;
 }// AdvDiffHierarchyIntegrator
+
+double
+AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
+{
+    double dt = d_dt_max;
+    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const Index<NDIM>& ilower = patch_box.lower();
+            const Index<NDIM>& iupper = patch_box.upper();
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const dx = patch_geom->getDx();
+            for (std::set<Pointer<FaceVariable<NDIM,double> > >::const_iterator cit = d_u_var.begin(); cit != d_u_var.end(); ++cit)
+            {
+                Pointer<FaceVariable<NDIM,double> > u_var = *cit;
+                Pointer<FaceData<NDIM,double> > u_data = patch->getPatchData(u_var, getCurrentContext());
+                const IntVector<NDIM>& u_ghost_cells = u_data->getGhostCellWidth();
+                double stable_dt = std::numeric_limits<double>::max();
+#if (NDIM == 2)
+                ADVECT_STABLEDT_FC(
+                    dx,
+                    ilower(0),iupper(0),ilower(1),iupper(1),
+                    u_ghost_cells(0),u_ghost_cells(1),
+                    u_data->getPointer(0),u_data->getPointer(1),
+                    stable_dt);
+#endif
+#if (NDIM == 3)
+                ADVECT_STABLEDT_FC(
+                    dx,
+                    ilower(0),iupper(0),ilower(1),iupper(1),ilower(2),iupper(2),
+                    u_ghost_cells(0),u_ghost_cells(1),u_ghost_cells(2),
+                    u_data->getPointer(0),u_data->getPointer(1),u_data->getPointer(2),
+                    stable_dt);
+#endif
+                dt = std::min(dt,stable_dt);
+            }
+        }
+    }
+    if (!initial_time && d_dt_growth_factor >= 1.0)
+    {
+        dt = std::min(dt,d_dt_growth_factor*d_dt_previous[0]);
+    }
+    return dt;
+}// getMaximumTimeStepSizeSpecialized
 
 void
 AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
@@ -520,7 +724,8 @@ AdvDiffHierarchyIntegrator::putToDatabaseSpecialized(
     TBOX_ASSERT(!db.isNull());
 #endif
     db->putInteger("ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION", ADV_DIFF_HIERARCHY_INTEGRATOR_VERSION);
-    db->putString("d_diffusion_time_stepping_type", enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type));
+    db->putString("d_default_diffusion_time_stepping_type", enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type));
+    db->putString("d_default_convective_difference_form", enum_to_string<ConvectiveDifferencingType>(d_default_convective_difference_form));
     return;
 }// putToDatabaseSpecialized
 
@@ -575,13 +780,26 @@ AdvDiffHierarchyIntegrator::getFromInput(
     // Read in data members from input database.
     if (!is_from_restart)
     {
-        if      (db->keyExists("diffusion_time_stepping_type")) d_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("diffusion_time_stepping_type"));
-        else if (db->keyExists("diffusion_time_steppingtype") ) d_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("diffusion_timestepping_type") );
+        if      (db->keyExists("diffusion_time_stepping_type")) d_default_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("diffusion_time_stepping_type"));
+        else if (db->keyExists("diffusion_timestepping_type" )) d_default_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("diffusion_timestepping_type") );
+        else if (db->keyExists("default_diffusion_time_stepping_type")) d_default_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("default_diffusion_time_stepping_type"));
+        else if (db->keyExists("default_diffusion_timestepping_type" )) d_default_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("default_diffusion_timestepping_type") );
+        if      (db->keyExists("convective_difference_type")) d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("convective_difference_type"));
+        else if (db->keyExists("convective_difference_form")) d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("convective_difference_form"));
+        else if (db->keyExists("default_convective_difference_type")) d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("default_convective_difference_type"));
+        else if (db->keyExists("default_convective_difference_form")) d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("default_convective_difference_form"));
     }
     if (db->keyExists("max_iterations")) d_max_iterations = db->getInteger("max_iterations");
     if (db->keyExists("abs_residual_tol")) d_abs_residual_tol = db->getDouble("abs_residual_tol");
     if (db->keyExists("rel_residual_tol")) d_rel_residual_tol = db->getDouble("rel_residual_tol");
     if (db->keyExists("using_FAC")) d_using_FAC = db->getBool("using_FAC");
+    if (d_using_FAC)
+    {
+        if      (db->keyExists("FACOp" )) d_fac_op_db = db->getDatabase("FACOp" );
+        else if (db->keyExists("FACOps")) d_fac_op_db = db->getDatabase("FACOps");
+        if      (db->keyExists("FACPreconditioner" )) d_fac_pc_db = db->getDatabase("FACPreconditioner" );
+        else if (db->keyExists("FACPreconditioners")) d_fac_pc_db = db->getDatabase("FACPreconditioners");
+    }
     return;
 }// getFromInput
 
@@ -604,7 +822,8 @@ AdvDiffHierarchyIntegrator::getFromRestart()
     {
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
-    d_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_diffusion_time_stepping_type"));
+    d_default_diffusion_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_default_diffusion_time_stepping_type"));
+    d_default_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(db->getString("d_default_convective_difference_form"));
     return;
 }// getFromRestart
 

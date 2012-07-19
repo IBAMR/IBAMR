@@ -88,19 +88,6 @@ AdvDiffGodunovHierarchyIntegrator::AdvDiffGodunovHierarchyIntegrator(
     TBOX_ASSERT(!input_db.isNull());
     TBOX_ASSERT(!explicit_predictor.isNull());
 #endif
-    // Check to make sure the time stepping types are supported.
-    switch (d_diffusion_time_stepping_type)
-    {
-        case BACKWARD_EULER:
-        case FORWARD_EULER:
-        case TRAPEZOIDAL_RULE:
-            break;
-        default:
-            TBOX_ERROR(d_object_name << "::AdvDiffGodunovHierarchyIntegrator():\n"
-                       << "  unsupported diffusion time stepping type: " << enum_to_string<TimeSteppingType>(d_diffusion_time_stepping_type) << " \n"
-                       << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
-    }
-
     // Get initialization data for the hyperbolic patch strategy objects.
     if (input_db->keyExists("HyperbolicLevelIntegrator"))
     {
@@ -117,6 +104,19 @@ AdvDiffGodunovHierarchyIntegrator::AdvDiffGodunovHierarchyIntegrator(
     else
     {
         d_hyp_patch_ops_db = new NullDatabase();
+    }
+
+    // Check to make sure the time stepping types are supported.
+    switch (d_default_diffusion_time_stepping_type)
+    {
+        case BACKWARD_EULER:
+        case FORWARD_EULER:
+        case TRAPEZOIDAL_RULE:
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::AdvDiffGodunovHierarchyIntegrator():\n"
+                       << "  unsupported default diffusion time stepping type: " << enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type) << " \n"
+                       << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
     return;
 }// AdvDiffGodunovHierarchyIntegrator
@@ -385,6 +385,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         Pointer<CellVariable<NDIM,double> > Q_var     = *cit;
         Pointer<CellVariable<NDIM,double> > F_var     = d_Q_F_map[Q_var];
         Pointer<CellVariable<NDIM,double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
+        TimeSteppingType diffusion_time_stepping_type = d_Q_diffusion_time_stepping_type[Q_var];
         const double kappa = d_Q_diffusion_coef[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
         const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef = d_Q_bc_coef[Q_var];
@@ -416,7 +417,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         // Setup the problem coefficients and right-hand-side for the linear
         // solve for Q(n+1).
         double K = 0.0;
-        switch (d_diffusion_time_stepping_type)
+        switch (diffusion_time_stepping_type)
         {
             case BACKWARD_EULER:
                 K = 1.0;
@@ -428,11 +429,13 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
                 K = 0.5;
                 break;
             default:
-                TBOX_ERROR("this statment should not be reached");
+                TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                           << "  unsupported diffusion time stepping type: " << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type) << " \n"
+                           << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
         }
         PoissonSpecifications& helmholtz_spec = d_helmholtz_specs[l];
         helmholtz_spec.setCConstant(1.0+K*dt*lambda);
-        helmholtz_spec.setDConstant(  -K*dt*kappa );
+        helmholtz_spec.setDConstant(   -K*dt*kappa );
         PoissonSpecifications rhs_spec("rhs_spec");
         rhs_spec.setCConstant(1.0-(1.0-K)*dt*lambda);
         rhs_spec.setDConstant(   +(1.0-K)*dt*kappa );
@@ -504,7 +507,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 double
-AdvDiffGodunovHierarchyIntegrator::getTimeStepSizeSpecialized()
+AdvDiffGodunovHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
     double dt = d_dt_max;
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
@@ -518,7 +521,7 @@ AdvDiffGodunovHierarchyIntegrator::getTimeStepSizeSpecialized()
         dt = std::min(dt,d_dt_growth_factor*d_dt_previous[0]);
     }
     return dt;
-}// getTimeStepSizeSpecialized
+}// getMaximumTimeStepSizeSpecialized
 
 void
 AdvDiffGodunovHierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(

@@ -53,10 +53,6 @@ public:
     /*!
      * \brief This constructor creates Variable and VariableContext objects for
      * storing the stochastic fluxes at the faces of the Cartesian grid.
-     *
-     * The optional parameter \p f_expression specifies the functional form of a
-     * concentration-dependent scaling factor.  The optional parameter \p g may
-     * be used to setup a pseudo concentration gradient for periodic problems.
      */
     AdvDiffStochasticForcing(
         const std::string& object_name,
@@ -94,18 +90,6 @@ public:
         const bool initial_time=false,
         const int coarsest_ln=-1,
         const int finest_ln=-1);
-
-    /*!
-     * \brief Evaluate the function on the patch interiors on the specified
-     * level of the patch hierarchy.
-     */
-    void
-    setDataOnPatchLevel(
-        const int data_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-        const double data_time,
-        const bool initial_time=false);
 
     /*!
      * \brief Evaluate the function on the patch interior.

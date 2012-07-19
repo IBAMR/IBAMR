@@ -148,10 +148,10 @@ public:
      *
      * Subclasses can control the method used to determined the time step size
      * by overriding the protected virtual member function
-     * getTimeStepSizeSpecialized().
+     * getMaximumTimeStepSizeSpecialized().
      */
     double
-    getTimeStepSize();
+    getMaximumTimeStepSize();
 
     /*!
      * Synchronize data defined on the grid hierarchy.
@@ -476,7 +476,7 @@ protected:
      * excessive changes in the time step size as the computation progresses.
      */
     virtual double
-    getTimeStepSizeSpecialized();
+    getMaximumTimeStepSizeSpecialized();
 
     /*!
      * Virtual method to perform implementation-specific data synchronization.

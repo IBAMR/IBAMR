@@ -91,27 +91,40 @@ public:
     ~AdvDiffSemiImplicitHierarchyIntegrator();
 
     /*!
-     * Return the type of convective time integration scheme being employed by the
-     * advection-diffusion solver.
-     *
-     * The choice of time integration scheme is set via the input database
-     * provided to the class constructor.
+     * Set the default convective time stepping method to use with registered
+     * quantities.
      */
-    TimeSteppingType
-    getConvectiveTimeSteppingType() const;
+    void
+    setDefaultConvectiveTimeSteppingType(
+        TimeSteppingType default_convective_time_stepping_type);
 
     /*!
-     * Return the type of convective time integration scheme being employed by the
-     * advection-diffusion solver during the initial time step.
+     * Get the default convective time stepping method being used with registered
+     * quantities.
+     */
+    TimeSteppingType
+    getDefaultConvectiveTimeSteppingType() const;
+
+    /*!
+     * Set the default convective time stepping method used during the initial
+     * time step.
      *
-     * The choice of time integration scheme is set via the input database
-     * provided to the class constructor.
+     * \note This is used \em only when the basic convective time stepping
+     * scheme uses a multi-step method such as Adams-Bashforth.
+     */
+    void
+    setDefaultInitialConvectiveTimeSteppingType(
+        TimeSteppingType default_init_convective_time_stepping_type);
+
+    /*!
+     * Return the default convective time stepping method used during the
+     * initial time step.
      *
      * \note This is used \em only when the basic convective time stepping
      * scheme uses a multi-step method such as Adams-Bashforth.
      */
     TimeSteppingType
-    getInitialConvectiveTimeSteppingType() const;
+    getDefaultInitialConvectiveTimeSteppingType() const;
 
     /*!
      * \brief Set the default convective operator type to be used by the solver.
@@ -127,18 +140,104 @@ public:
     getDefaultConvectiveOperatorType() const;
 
     /*!
-     * \brief Set the default convective differencing form to be used by the
-     * solver.
+     * \brief Set the default convective operator boundary extrapolation to be
+     * used by the solver.
      */
     void
-    setDefaultConvectiveDifferencingType(
-        ConvectiveDifferencingType difference_form);
+    setDefaultConvectiveOperatorBoundaryExtrapolation(
+        const std::string& bdry_extrap_type);
 
     /*!
-     * \brief Get the default convective differencing form used by the solver.
+     * \brief Get the default convective operator boundary extrapolation to be
+     * used by the solver.
      */
-    ConvectiveDifferencingType
-    getDefaultConvectiveDifferencingType() const;
+    const std::string&
+    getDefaultConvectiveOperatorBoundaryExtrapolation() const;
+
+    /*!
+     * Register a cell-centered quantity to be advected and diffused by the
+     * hierarchy integrator.
+     *
+     * Data management for the registered quantity will be handled by the
+     * hierarchy integrator.
+     */
+    void
+    registerTransportedQuantity(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var);
+
+    /*!
+     * Set the convective time stepping method to use for a particular
+     * transported quantity Q.
+     */
+    void
+    setConvectiveTimeSteppingType(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        TimeSteppingType convective_time_stepping_type);
+
+    /*!
+     * Get the convective time stepping method being used for a particular
+     * transported quantity Q.
+     */
+    TimeSteppingType
+    getConvectiveTimeSteppingType(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
+
+    /*!
+     * Set the convective time stepping method used during the initial time step
+     * for a particular transported quantity Q.
+     *
+     * \note This is used \em only when the basic convective time stepping
+     * scheme uses a multi-step method such as Adams-Bashforth.
+     */
+    void
+    setInitialConvectiveTimeSteppingType(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        TimeSteppingType init_convective_time_stepping_type);
+
+    /*!
+     * Return the convective time stepping method used during the initial time
+     * step for a particular transported quantity Q.
+     *
+     * \note This is used \em only when the basic convective time stepping
+     * scheme uses a multi-step method such as Adams-Bashforth.
+     */
+    TimeSteppingType
+    getInitialConvectiveTimeSteppingType(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
+
+    /*!
+     * \brief Set the convective operator type to be used by the solver for a
+     * particular transported quantity Q.
+     */
+    void
+    setConvectiveOperatorType(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        ConvectiveOperatorType op_type);
+
+    /*!
+     * \brief Get the convective operator type used by the solver for a
+     * particular transported quantity Q.
+     */
+    ConvectiveOperatorType
+    getConvectiveOperatorType(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
+
+    /*!
+     * \brief Set the convective operator boundary extrapolation to be used by
+     * the solver for a particular transported quantity Q.
+     */
+    void
+    setConvectiveBoundaryExtrapolation(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        const std::string& bdry_extrap_type);
+
+    /*!
+     * \brief Get the convective operator boundary extrapolation used by the
+     * solver for a particular transported quantity Q.
+     */
+    const std::string&
+    getConvectiveBoundaryExtrapolation(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
 
     /*!
      * Register an operator to compute the convective derivative term u*grad Q
@@ -216,12 +315,6 @@ public:
 
 protected:
     /*!
-     * Return the maximum stable time step size.
-     */
-    double
-    getTimeStepSizeSpecialized();
-
-    /*!
      * Reset cached hierarchy dependent data.
      */
     void
@@ -231,21 +324,45 @@ protected:
         int finest_level);
 
     /*!
-     * Enum indicating the time integration employed for the explicit
-     * discretization of the convective terms.
+     * Write out specialized object state to the given database.
      */
-    TimeSteppingType d_convective_time_stepping_type;
+    void
+    putToDatabaseSpecialized(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /*!
-     * Enum indicating the time integration employed for the explicit
-     * discretization of the convective terms during the \em initial time step.
+     * Advective CFL condition.
      */
-    TimeSteppingType d_init_convective_time_stepping_type;
+    double d_cfl_max;
+
+    /*!
+     * Default convective time integration methods.
+     */
+    TimeSteppingType d_default_convective_time_stepping_type;
+    TimeSteppingType d_default_init_convective_time_stepping_type;
+
+    /*!
+     * Default convective operator settings.
+     */
+    ConvectiveOperatorType d_default_convective_op_type;
+    std::string d_default_convective_bdry_extrap_type;
 
     /*
      * Hierarchy operations objects.
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM,double> > d_hier_fc_data_ops;
+
+    /*!
+     * Transported quantities.
+     */
+    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_N_var, d_N_old_var;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_N_map, d_Q_N_old_map;
+
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,TimeSteppingType> d_Q_convective_time_stepping_type, d_Q_init_convective_time_stepping_type;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,ConvectiveOperatorType> d_Q_convective_op_type;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,std::string> d_Q_convective_bdry_extrap_type;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<ConvectiveOperator> > d_Q_convective_op;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,bool> d_Q_convective_op_needs_init, d_Q_convective_op_needs_reinit_when_dt_changes;
 
 private:
     /*!
@@ -287,27 +404,12 @@ private:
         bool is_from_restart);
 
     /*!
-     * Value indicating the number of solver cycles to be used for the present
-     * time step.
+     * Read object state from the restart file and initialize class data
+     * members.  The database from which the restart data are read is determined
+     * by the object_name specified in the class constructor.
      */
-    int d_num_cycles_step;
-
-    /*!
-     * Advective CFL condition.
-     */
-    double d_cfl_max;
-
-    /*!
-     * Transported quantities.
-     */
-    std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_N_var, d_N_old_var;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_N_map, d_Q_N_old_map;
-
-    ConvectiveOperatorType d_default_convective_op_type;
-    ConvectiveDifferencingType d_default_convective_difference_form;
-    std::string d_default_convective_bdry_extrap_type;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<ConvectiveOperator> > d_convective_op;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,bool> d_convective_op_needs_init, d_convective_op_needs_reinit_when_dt_changes;
+    void
+    getFromRestart();
 };
 }// namespace IBAMR
 

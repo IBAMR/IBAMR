@@ -48,12 +48,6 @@
 #include <ibtk/HierarchyIntegrator.h>
 #include <ibtk/KrylovLinearSolver.h>
 
-// FORWARD DECLARATION
-namespace IBAMR
-{
-class AdvDiffStochasticForcing;
-}
-
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -68,8 +62,6 @@ class AdvDiffHierarchyIntegrator
     : public IBTK::HierarchyIntegrator
 {
 public:
-    friend class AdvDiffStochasticForcing;
-
     /*!
      * The destructor for class AdvDiffHierarchyIntegrator unregisters the
      * integrator object with the restart manager when the object is so
@@ -78,19 +70,34 @@ public:
     ~AdvDiffHierarchyIntegrator();
 
     /*!
-     * Return the type of diffusion time integration scheme being employed by
-     * the advection-diffusion solver.
-     *
-     * At the present time, supported time integration schemes include:
-     *
-     *    - BACKWARD_EULER
-     *    - TRAPEZOIDAL_RULE (same as Crank-Nicolson)
-     *
-     * The choice of time integration scheme is set via the input database
-     * provided to the class constructor.
+     * Set the default diffusion time stepping method to use with registered
+     * quantities.
+     */
+    void
+    setDefaultDiffusionTimeSteppingType(
+        TimeSteppingType default_diffusion_time_stepping_type);
+
+    /*!
+     * Get the default diffusion time stepping method being used with registered
+     * quantities.
      */
     TimeSteppingType
-    getDiffusionTimeSteppingType() const;
+    getDefaultDiffusionTimeSteppingType() const;
+
+    /*!
+     * Set the default convective differencing form to use with registered
+     * quantities.
+     */
+    void
+    setDefaultConvectiveDifferencingType(
+        ConvectiveDifferencingType default_convective_difference_form);
+
+    /*!
+     * Get the default convective differencing form being used with registered
+     * quantities.
+     */
+    ConvectiveDifferencingType
+    getDefaultConvectiveDifferencingType() const;
 
     /*!
      * Register a face-centered advection velocity to be used to advect
@@ -102,7 +109,7 @@ public:
      * \note By default, each registered advection velocity is assumed to be
      * divergence free.
      */
-    void
+    virtual void
     registerAdvectionVelocity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var);
 
@@ -116,6 +123,14 @@ public:
         bool is_div_free);
 
     /*!
+     * Determine whether a particular advection velocity has been indicated to
+     * be discretely divergence free.
+     */
+    bool
+    getAdvectionVelocityIsDivergenceFree(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var) const;
+
+    /*!
      * Supply an IBTK::CartGridFunction object to specify the value of a
      * particular advection velocity.
      */
@@ -125,12 +140,20 @@ public:
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> u_fcn);
 
     /*!
+     * Get the IBTK::CartGridFunction object being used to specify the value of
+     * a particular advection velocity.
+     */
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction>
+    getAdvectionVelocityFunction(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var) const;
+
+    /*!
      * Register a cell-centered source term.
      *
      * Data management for the registered source term will be handled by the
      * hierarchy integrator.
      */
-    void
+    virtual void
     registerSourceTerm(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var);
 
@@ -144,13 +167,21 @@ public:
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn);
 
     /*!
+     * Get the IBTK::CartGridFunction object being used to specify the value of
+     * a particular source term.
+     */
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction>
+    getSourceTermFunction(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var) const;
+
+    /*!
      * Register a cell-centered quantity to be advected and diffused by the
      * hierarchy integrator.
      *
      * Data management for the registered quantity will be handled by the
      * hierarchy integrator.
      */
-    void
+    virtual void
     registerTransportedQuantity(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var);
 
@@ -167,6 +198,14 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > u_var);
 
     /*!
+     * Get the face-centered advection velocity being used with a particular
+     * cell-centered quantity.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> >
+    getAdvectionVelocity(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
+
+    /*!
      * Set the cell-centered source term to be used with a particular
      * cell-centered quantity.
      *
@@ -179,6 +218,31 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > F_var);
 
     /*!
+     * Get the cell-centered source term being used with a particular
+     * cell-centered quantity.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >
+    getSourceTerm(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
+
+    /*!
+     * Set the diffusion time integration scheme for a quantity that has been
+     * registered with the hierarchy integrator.
+     */
+    void
+    setDiffusionTimeSteppingType(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
+        TimeSteppingType time_stepping_type);
+
+    /*!
+     * Get the diffusion time integration scheme for a quantity that has been
+     * registered with the hierarchy integrator.
+     */
+    TimeSteppingType
+    getDiffusionTimeSteppingType(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
+
+    /*!
      * Set the convective differencing form for a quantity that has been
      * registered with the hierarchy integrator.
      */
@@ -186,6 +250,14 @@ public:
     setConvectiveDifferencingType(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         ConvectiveDifferencingType difference_form);
+
+    /*!
+     * Get the convective differencing form for a quantity that has been
+     * registered with the hierarchy integrator.
+     */
+    ConvectiveDifferencingType
+    getConvectiveDifferencingType(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
 
     /*!
      * Set the scalar diffusion coefficient corresponding to a quantity that has
@@ -197,6 +269,14 @@ public:
         double kappa);
 
     /*!
+     * Get the scalar diffusion coefficient corresponding to a quantity that has
+     * been registered with the hierarchy integrator.
+     */
+    double
+    getDiffusionCoefficient(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
+
+    /*!
      * Set the scalar linear damping coefficient corresponding to a quantity
      * that has been registered with the hierarchy integrator.
      */
@@ -206,6 +286,14 @@ public:
         double lambda);
 
     /*!
+     * Get the scalar linear damping coefficient corresponding to a quantity
+     * that has been registered with the hierarchy integrator.
+     */
+    double
+    getDampingCoefficient(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
+
+    /*!
      * Set a grid function to provide initial conditions for a quantity that has
      * been registered with the hierarchy integrator.
      */
@@ -213,6 +301,14 @@ public:
     setInitialConditions(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init);
+
+    /*!
+     * Get the grid function being used to provide initial conditions for a
+     * quantity that has been registered with the hierarchy integrator.
+     */
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction>
+    getInitialConditions(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
 
     /*!
      * Set an object to provide boundary conditions for a scalar-valued quantity
@@ -231,6 +327,15 @@ public:
     setPhysicalBcCoefs(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var,
         std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coef);
+
+    /*!
+     * Get objects used to provide boundary conditions for a scalar- or
+     * vector-valued quantity that has been registered with the hierarchy
+     * integrator.
+     */
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>
+    getPhysicalBcCoefs(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > Q_var) const;
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -257,6 +362,12 @@ protected:
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         bool register_for_restart);
+
+    /*!
+     * Return the maximum stable time step size.
+     */
+    double
+    getMaximumTimeStepSizeSpecialized();
 
     /*!
      * Reset cached hierarchy dependent data.
@@ -286,10 +397,14 @@ protected:
     bool d_integrator_is_initialized;
 
     /*!
-     * Enum indicating the time integration employed for the implicit
-     * discretization of the diffusion terms.
+     * Default diffusion time integration method.
      */
-    TimeSteppingType d_diffusion_time_stepping_type;
+    TimeSteppingType d_default_diffusion_time_stepping_type;
+
+    /*!
+     * Default convective differencing type.
+     */
+    ConvectiveDifferencingType d_default_convective_difference_form;
 
     /*!
      * Advection velocity data.
@@ -310,6 +425,7 @@ protected:
     std::set<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_var, d_Q_rhs_var;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM,double> > > d_Q_u_map;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > > d_Q_F_map, d_Q_Q_rhs_map;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,TimeSteppingType> d_Q_diffusion_time_stepping_type;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,ConvectiveDifferencingType> d_Q_difference_form;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,double> d_Q_diffusion_coef, d_Q_damping_coef;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> >,SAMRAI::tbox::Pointer<IBTK::CartGridFunction> > d_Q_init;

@@ -143,7 +143,7 @@ protected:
      * Return the maximum stable time step size.
      */
     double
-    getTimeStepSizeSpecialized();
+    getMaximumTimeStepSizeSpecialized();
 
     /*!
      * Reset the current data to equal the new data, update the time level of
@@ -182,6 +182,13 @@ protected:
         SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
         int coarsest_level,
         int finest_level);
+
+    /*!
+     * Write out specialized object state to the given database.
+     */
+    void
+    putToDatabaseSpecialized(
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level
@@ -227,6 +234,14 @@ private:
     AdvDiffGodunovHierarchyIntegrator&
     operator=(
         const AdvDiffGodunovHierarchyIntegrator& that);
+
+    /*!
+     * Read object state from the restart file and initialize class data
+     * members.  The database from which the restart data are read is determined
+     * by the object_name specified in the class constructor.
+     */
+    void
+    getFromRestart();
 
     /*
      * The SAMRAI::algs::HyperbolicLevelIntegrator supplies generic operations

@@ -170,117 +170,120 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(
          ? hierarchy->getFinestLevelNumber()
          : finest_ln_in);
 
-    // Allocate data to store components of the stochastic stress components.
-    for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
-    {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
-        if (!level->checkAllocated(d_F_sc_idx)) level->allocatePatchData(d_F_sc_idx);
-        for (int k = 0; k < d_num_rand_vals; ++k) if (!level->checkAllocated(d_F_sc_idxs[k])) level->allocatePatchData(d_F_sc_idxs[k]);
-    }
-
-    // Generate random components.
     const int cycle_num = d_adv_diff_solver->getCurrentCycleNumber();
-    if (!initial_time && cycle_num == 0)
+    if (!initial_time && cycle_num >= 0)
     {
-        for (int k = 0; k < d_num_rand_vals; ++k)
+        // Allocate data to store components of the stochastic stress components.
+        for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
-            for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
+            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
+            if (!level->checkAllocated(d_F_sc_idx)) level->allocatePatchData(d_F_sc_idx);
+            for (int k = 0; k < d_num_rand_vals; ++k) if (!level->checkAllocated(d_F_sc_idxs[k])) level->allocatePatchData(d_F_sc_idxs[k]);
+        }
+
+        // Generate random components.
+        if (cycle_num == 0)
+        {
+            for (int k = 0; k < d_num_rand_vals; ++k)
             {
-                Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
                 {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    Pointer<SideData<NDIM,double> > F_sc_data = patch->getPatchData(d_F_sc_idxs[k]);
-                    for (int d = 0; d < NDIM; ++d)
+                    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
+                    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                     {
-                        genrandn(F_sc_data->getArrayData(d), SideGeometry<NDIM>::toSideBox(F_sc_data->getBox(),d));
+                        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                        Pointer<SideData<NDIM,double> > F_sc_data = patch->getPatchData(d_F_sc_idxs[k]);
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            genrandn(F_sc_data->getArrayData(d), SideGeometry<NDIM>::toSideBox(F_sc_data->getBox(),d));
+                        }
                     }
                 }
             }
         }
-    }
 
-    // Set random values for the present cycle as weighted combinations of the
-    // generated random values.
+        // Set random values for the present cycle as weighted combinations of
+        // the generated random values.
 #ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(cycle_num < static_cast<int>(d_weights.size()));
+        TBOX_ASSERT(cycle_num >= 0 && cycle_num < static_cast<int>(d_weights.size()));
 #endif
-    const Array<double>& weights = d_weights[cycle_num];
-    HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<HierarchyDataOpsReal<NDIM,double> > hier_sc_data_ops = hier_data_ops_manager->getOperationsDouble(d_F_sc_var, hierarchy, /*get_unique*/ true);
-    hier_sc_data_ops->setToScalar(d_F_sc_idx, 0.0);
-    for (int k = 0; k < d_num_rand_vals; ++k) hier_sc_data_ops->axpy(d_F_sc_idx, weights[k], d_F_sc_idxs[k], d_F_sc_idx);
+        const Array<double>& weights = d_weights[cycle_num];
+        HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+        Pointer<HierarchyDataOpsReal<NDIM,double> > hier_sc_data_ops = hier_data_ops_manager->getOperationsDouble(d_F_sc_var, hierarchy, /*get_unique*/ true);
+        hier_sc_data_ops->setToScalar(d_F_sc_idx, 0.0);
+        for (int k = 0; k < d_num_rand_vals; ++k) hier_sc_data_ops->axpy(d_F_sc_idx, weights[k], d_F_sc_idxs[k], d_F_sc_idx);
 
-    // Modify the flux values (if necessary).
-    Pointer<CellDataFactory<NDIM,double> > C_factory = d_C_var->getPatchDataFactory();
-    const int C_depth = C_factory->getDefaultDepth();
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs = d_adv_diff_solver->d_Q_bc_coef.find(d_C_var)->second;
-    for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
-    {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        // Modify the flux values (if necessary).
+        Pointer<CellDataFactory<NDIM,double> > C_factory = d_C_var->getPatchDataFactory();
+        const int C_depth = C_factory->getDefaultDepth();
+        const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs = d_adv_diff_solver->getPhysicalBcCoefs(d_C_var);
+        for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<SideData<NDIM,double> > F_sc_data = patch->getPatchData(d_F_sc_idx);
-
-            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-            if (!pgeom->getTouchesRegularBoundary()) continue;
-
-            const Box<NDIM>& patch_box = patch->getBox();
-            Box<NDIM> side_boxes[NDIM];
-            for (int d = 0; d < NDIM; ++d)
+            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                side_boxes[d] = SideGeometry<NDIM>::toSideBox(patch_box,d);
-            }
-            const Array<BoundaryBox<NDIM> > physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
-            const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-            for (int n = 0; n < n_physical_codim1_boxes; ++n)
-            {
-                const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-                const IntVector<NDIM> gcw_to_fill = 1;
-                const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
-                const int location_index   = bdry_box.getLocationIndex();
-                const int bdry_normal_axis = location_index / 2;
-                const BoundaryBox<NDIM> trimmed_bdry_box(bdry_box.getBox()*bc_fill_box, bdry_box.getBoundaryType(), location_index);
-                const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-                Pointer<ArrayData<NDIM,double> > acoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
-                Pointer<ArrayData<NDIM,double> > bcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
-                Pointer<ArrayData<NDIM,double> > gcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<SideData<NDIM,double> > F_sc_data = patch->getPatchData(d_F_sc_idx);
 
-                // Set the boundary condition coefficients and use them to
-                // rescale the stochastic fluxes.
-                for (int d = 0; d < C_depth; ++d)
+                const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                if (!pgeom->getTouchesRegularBoundary()) continue;
+
+                const Box<NDIM>& patch_box = patch->getBox();
+                Box<NDIM> side_boxes[NDIM];
+                for (int d = 0; d < NDIM; ++d)
                 {
-                    RobinBcCoefStrategy<NDIM>* bc_coef = bc_coefs[d];
-                    bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box, data_time);
-                    for (Box<NDIM>::Iterator it(bc_coef_box*side_boxes[bdry_normal_axis]); it; it++)
-                    {
-                        const Index<NDIM>& i = it();
-                        const double& alpha = (*acoef_data)(i,0);
-                        const double& beta  = (*bcoef_data)(i,0);
-                        const bool dirichlet_bc = (alpha != 0.0 && beta == 0.0);
+                    side_boxes[d] = SideGeometry<NDIM>::toSideBox(patch_box,d);
+                }
+                const Array<BoundaryBox<NDIM> > physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+                const int n_physical_codim1_boxes = physical_codim1_boxes.size();
+                for (int n = 0; n < n_physical_codim1_boxes; ++n)
+                {
+                    const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+                    const IntVector<NDIM> gcw_to_fill = 1;
+                    const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
+                    const int location_index   = bdry_box.getLocationIndex();
+                    const int bdry_normal_axis = location_index / 2;
+                    const BoundaryBox<NDIM> trimmed_bdry_box(bdry_box.getBox()*bc_fill_box, bdry_box.getBoundaryType(), location_index);
+                    const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+                    Pointer<ArrayData<NDIM,double> > acoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+                    Pointer<ArrayData<NDIM,double> > bcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
+                    Pointer<ArrayData<NDIM,double> > gcoef_data = new ArrayData<NDIM,double>(bc_coef_box, 1);
 
-                        SideIndex<NDIM> s_i(i,bdry_normal_axis,0);
-                        if (dirichlet_bc)
+                    // Set the boundary condition coefficients and use them to
+                    // rescale the stochastic fluxes.
+                    for (int d = 0; d < C_depth; ++d)
+                    {
+                        RobinBcCoefStrategy<NDIM>* bc_coef = bc_coefs[d];
+                        bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box, data_time);
+                        for (Box<NDIM>::Iterator it(bc_coef_box*side_boxes[bdry_normal_axis]); it; it++)
                         {
-                            (*F_sc_data)(s_i,d) *= d_dirichlet_bc_scaling;
-                        }
-                        else
-                        {
-                            (*F_sc_data)(s_i,d) = d_neumann_bc_scaling;
+                            const Index<NDIM>& i = it();
+                            const double& alpha = (*acoef_data)(i,0);
+                            const double& beta  = (*bcoef_data)(i,0);
+                            const bool dirichlet_bc = (alpha != 0.0 && beta == 0.0);
+
+                            SideIndex<NDIM> s_i(i,bdry_normal_axis,0);
+                            if (dirichlet_bc)
+                            {
+                                (*F_sc_data)(s_i,d) *= d_dirichlet_bc_scaling;
+                            }
+                            else
+                            {
+                                (*F_sc_data)(s_i,d) = d_neumann_bc_scaling;
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
-    // Synchronize side-centered values.
-    typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
-    SynchronizationTransactionComponent synch_component(d_F_sc_idx);
-    SideDataSynchronization synch_data_op;
-    synch_data_op.initializeOperatorState(synch_component, hierarchy);
-    synch_data_op.synchronizeData(data_time);
+        // Synchronize side-centered values.
+        typedef SideDataSynchronization::SynchronizationTransactionComponent SynchronizationTransactionComponent;
+        SynchronizationTransactionComponent synch_component(d_F_sc_idx);
+        SideDataSynchronization synch_data_op;
+        synch_data_op.initializeOperatorState(synch_component, hierarchy);
+        synch_data_op.synchronizeData(data_time);
+    }
 
     // Compute div F on each patch level.
     for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
@@ -289,25 +292,6 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(
     }
     return;
 }// setDataOnPatchHierarchy
-
-void
-AdvDiffStochasticForcing::setDataOnPatchLevel(
-    const int data_idx,
-    Pointer<Variable<NDIM> > var,
-    Pointer<PatchLevel<NDIM> > level,
-    const double data_time,
-    const bool initial_time)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-    TBOX_ASSERT(!level.isNull());
-#endif
-    // Compute div F on each patch.
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-    {
-        setDataOnPatch(data_idx, var, level->getPatch(p()), data_time, initial_time, level);
-    }
-    return;
-}// setDataOnPatchLevel
 
 void
 AdvDiffStochasticForcing::setDataOnPatch(
@@ -325,7 +309,7 @@ AdvDiffStochasticForcing::setDataOnPatch(
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     double dV = 1.0; for (unsigned int d = 0; d < NDIM; ++d) dV *= dx[d];
-    const double kappa = d_adv_diff_solver->d_Q_diffusion_coef.find(d_C_var)->second;
+    const double kappa = d_adv_diff_solver->getDiffusionCoefficient(d_C_var);
     const double dt = d_adv_diff_solver->getCurrentTimeStepSize();
     const double scale = d_std*sqrt(2.0*kappa/(dt*dV));
     Pointer<SideData<NDIM,double> > F_sc_data = patch->getPatchData(d_F_sc_idx);

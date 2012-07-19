@@ -267,12 +267,29 @@ HierarchyIntegrator::advanceHierarchy(
     }
 
     // Integrate the time-dependent data.
-    d_current_num_cycles = getNumberOfCycles();
-    d_current_dt = dt;
+    const int num_cycles = getNumberOfCycles();
+    std::deque<HierarchyIntegrator*> hier_integrators(1,this);
+    while (!hier_integrators.empty())
+    {
+        HierarchyIntegrator* integrator = hier_integrators.front();
+        integrator->d_current_num_cycles = num_cycles;
+        integrator->d_current_dt = dt;
+        hier_integrators.pop_front();
+        hier_integrators.insert(hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
+    }
     preprocessIntegrateHierarchy(current_time, new_time, d_current_num_cycles);
     plog << d_object_name << "::advanceHierarchy(): integrating hierarchy\n";
     for (d_current_cycle_num = 0; d_current_cycle_num < d_current_num_cycles; ++d_current_cycle_num)
     {
+        hier_integrators.clear();
+        hier_integrators.push_back(this);
+        while (!hier_integrators.empty())
+        {
+            HierarchyIntegrator* integrator = hier_integrators.front();
+            integrator->d_current_cycle_num = d_current_cycle_num;
+            hier_integrators.pop_front();
+            hier_integrators.insert(hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
+        }
         if (d_do_log && d_current_num_cycles != 1)
         {
             plog << d_object_name << "::advanceHierarchy(): executing cycle " << d_current_cycle_num+1 << " of " << d_current_num_cycles << "\n";
@@ -280,9 +297,17 @@ HierarchyIntegrator::advanceHierarchy(
         integrateHierarchy(current_time, new_time, d_current_cycle_num);
     }
     postprocessIntegrateHierarchy(current_time, new_time, /*skip_synchronize_new_state_data*/ true, d_current_num_cycles);
-    d_current_num_cycles = -1;
-    d_current_cycle_num = -1;
-    d_current_dt = std::numeric_limits<double>::quiet_NaN();
+    hier_integrators.clear();
+    hier_integrators.push_back(this);
+    while (!hier_integrators.empty())
+    {
+        HierarchyIntegrator* integrator = hier_integrators.front();
+        integrator->d_current_num_cycles = -1;
+        integrator->d_current_cycle_num = -1;
+        integrator->d_current_dt = std::numeric_limits<double>::quiet_NaN();
+        hier_integrators.pop_front();
+        hier_integrators.insert(hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
+    }
 
     // Synchronize the updated data.
     if (d_do_log) plog << d_object_name << "::advanceHierarchy(): synchronizing updated data\n";
@@ -295,15 +320,15 @@ HierarchyIntegrator::advanceHierarchy(
 }// advanceHierarchy
 
 double
-HierarchyIntegrator::getTimeStepSize()
+HierarchyIntegrator::getMaximumTimeStepSize()
 {
-    double dt = getTimeStepSizeSpecialized();
+    double dt = getMaximumTimeStepSizeSpecialized();
     for (std::set<HierarchyIntegrator*>::iterator it = d_child_integrators.begin(); it != d_child_integrators.end(); ++it)
     {
-        dt = std::min(dt, (*it)->getTimeStepSize());
+        dt = std::min(dt, (*it)->getMaximumTimeStepSize());
     }
     return std::min(dt,d_end_time-d_integrator_time);
-}// getTimeStepSize
+}// getMaximumTimeStepSize
 
 void
 HierarchyIntegrator::synchronizeHierarchyData(
@@ -765,7 +790,7 @@ HierarchyIntegrator::putToDatabase(
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 double
-HierarchyIntegrator::getTimeStepSizeSpecialized()
+HierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
     double dt = d_dt_max;
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
@@ -774,7 +799,7 @@ HierarchyIntegrator::getTimeStepSizeSpecialized()
         dt = std::min(dt, d_dt_growth_factor*d_dt_previous[0]);
     }
     return dt;
-}// getTimeStepSizeSpecialized
+}// getMaximumTimeStepSizeSpecialized
 
 void
 HierarchyIntegrator::synchronizeHierarchyDataSpecialized(
