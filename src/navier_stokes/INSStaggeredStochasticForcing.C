@@ -234,14 +234,8 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(
     const int coarsest_ln_in,
     const int finest_ln_in)
 {
-    const int coarsest_ln =
-        (coarsest_ln_in == -1
-         ? 0
-         : coarsest_ln_in);
-    const int finest_ln =
-        (finest_ln_in == -1
-         ? hierarchy->getFinestLevelNumber()
-         : finest_ln_in);
+    const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
+    const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
 
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
     if (!initial_time && cycle_num >= 0)
