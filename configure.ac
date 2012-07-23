@@ -450,6 +450,7 @@ AC_CONFIG_FILES([
   examples/IB/explicit/ex2/Makefile
   examples/IB/explicit/ex3/Makefile
   examples/IB/explicit/ex4/Makefile
+  examples/IB/explicit/ex5/Makefile
   examples/IB/implicit/Makefile
   examples/IB/implicit/ex0/Makefile
   examples/IB/implicit/ex1/Makefile
