@@ -1241,6 +1241,11 @@ HierarchyIntegrator::getFromInput(
     else if (db->keyExists("do_log")) d_do_log = db->getBool("do_log");
     if (db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = db->getString("bdry_extrap_type");
     if (db->keyExists("tag_buffer")) d_tag_buffer = db->getIntegerArray("tag_buffer");
+    else
+    {
+        d_tag_buffer.resize(1);
+        d_tag_buffer[0] = 0;
+    }
     return;
 }// getFromInput
 
