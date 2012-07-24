@@ -1243,7 +1243,7 @@ HierarchyIntegrator::getFromInput(
     if (db->keyExists("tag_buffer")) d_tag_buffer = db->getIntegerArray("tag_buffer");
     else
     {
-        d_tag_buffer.resize(1);
+        d_tag_buffer.resizeArray(1);
         d_tag_buffer[0] = 0;
     }
     return;
