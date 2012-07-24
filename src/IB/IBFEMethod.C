@@ -248,7 +248,9 @@ IBFEMethod::setupTagBuffer(
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels()-1;
+    const int tsize = tag_buffer.size();
     tag_buffer.resizeArray(finest_hier_ln);
+    for (int i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         const int gcw    = d_fe_data_managers[part]->getGhostCellWidth().max();

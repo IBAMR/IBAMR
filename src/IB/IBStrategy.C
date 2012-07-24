@@ -98,7 +98,9 @@ IBStrategy::setupTagBuffer(
     Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels()-1;
-    tag_buffer.resizeArray(finest_hier_ln-1);
+    const int tsize = tag_buffer.size();
+    tag_buffer.resizeArray(finest_hier_ln);
+    for (int i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
     const int gcw = getMinimumGhostCellWidth().max();
     for (int i = 0; i < tag_buffer.size(); ++i)
     {

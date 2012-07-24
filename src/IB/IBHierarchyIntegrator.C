@@ -259,6 +259,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(
     const int finest_hier_ln = gridding_alg->getMaxLevels()-1;
     const int tsize = d_tag_buffer.size();
     d_tag_buffer.resizeArray(finest_hier_ln);
+    for (int i = tsize; i < finest_hier_ln; ++i) d_tag_buffer[i] = 0;
     for (int i = std::max(tsize,1); i < d_tag_buffer.size(); ++i)
     {
         d_tag_buffer[i] = d_tag_buffer[i-1];

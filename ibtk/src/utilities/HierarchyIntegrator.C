@@ -1210,6 +1210,7 @@ HierarchyIntegrator::setupTagBuffer(
     const int finest_hier_ln = gridding_alg->getMaxLevels()-1;
     const int tsize = d_tag_buffer.size();
     d_tag_buffer.resizeArray(std::max(finest_hier_ln,1));
+    for (int i = tsize; i < finest_hier_ln; ++i) d_tag_buffer[i] = 0;
     for (int i = std::max(tsize,1); i < d_tag_buffer.size(); ++i)
     {
         d_tag_buffer[i] = d_tag_buffer[i-1];
@@ -1241,11 +1242,6 @@ HierarchyIntegrator::getFromInput(
     else if (db->keyExists("do_log")) d_do_log = db->getBool("do_log");
     if (db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = db->getString("bdry_extrap_type");
     if (db->keyExists("tag_buffer")) d_tag_buffer = db->getIntegerArray("tag_buffer");
-    else
-    {
-        d_tag_buffer.resizeArray(1);
-        d_tag_buffer[0] = 0;
-    }
     return;
 }// getFromInput
 
