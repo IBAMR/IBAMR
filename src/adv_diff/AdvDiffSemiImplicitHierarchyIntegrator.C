@@ -507,7 +507,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
             d_hier_math_ops->laplace(
                 Q_rhs_scratch_idx, Q_rhs_var,  // Q_rhs(n+1/2)
                 rhs_spec,                      // Poisson spec
-                Q_scratch_idx  , Q_var  ,      // Q(n)
+                Q_scratch_idx    , Q_var    ,   // Q(n)
                 d_no_fill_op,                  // don't need to re-fill Q(n) data
                 current_time,                  // Q(n) bdry fill time
                 0.0, -1, NULL,
@@ -561,8 +561,10 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(
             const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, getCurrentContext());
             d_Q_convective_op[Q_var]->setAdvectionVelocity(u_current_idx);
             const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
+            const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
             const int N_scratch_idx = var_db->mapVariableAndContextToIndex(N_var, getScratchContext());
-            d_Q_convective_op[Q_var]->applyConvectiveOperator(Q_current_idx, N_scratch_idx);
+            d_hier_cc_data_ops->copyData(Q_scratch_idx, Q_current_idx);
+            d_Q_convective_op[Q_var]->applyConvectiveOperator(Q_scratch_idx, N_scratch_idx);
             const int N_old_new_idx = var_db->mapVariableAndContextToIndex(N_old_var, getNewContext());
             d_hier_cc_data_ops->copyData(N_old_new_idx, N_scratch_idx);
             if (convective_time_stepping_type == FORWARD_EULER)
@@ -667,8 +669,10 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
                 {
                     const int u_new_idx = var_db->mapVariableAndContextToIndex(u_var, getNewContext());
                     d_Q_convective_op[Q_var]->setAdvectionVelocity(u_new_idx);
-                    const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
-                    d_Q_convective_op[Q_var]->applyConvectiveOperator(Q_new_idx, N_scratch_idx);
+                    const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
+                    const int Q_new_idx     = var_db->mapVariableAndContextToIndex(Q_var, getNewContext()    );
+                    d_hier_cc_data_ops->copyData(Q_scratch_idx, Q_new_idx);
+                    d_Q_convective_op[Q_var]->applyConvectiveOperator(Q_scratch_idx, N_scratch_idx);
                 }
             }
             if (convective_time_stepping_type == ADAMS_BASHFORTH)
