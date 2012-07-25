@@ -118,23 +118,15 @@ main(
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
-            "INSStaggeredHierarchyIntegrator", app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
-        Pointer<IBMethod> ib_method_ops = new IBMethod(
-            "IBMethod", app_initializer->getComponentDatabase("IBMethod"));
-        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator(
-            "IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops, navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
-            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>(
-            "PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", time_integrator, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator("INSStaggeredHierarchyIntegrator", app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+        Pointer<IBMethod> ib_method_ops = new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
+        Pointer<IBHierarchyIntegrator> time_integrator = new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator", app_initializer->getComponentDatabase("IBHierarchyIntegrator"), ib_method_ops, navier_stokes_integrator);
+        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>("CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize", time_integrator, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>(
-            "LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>(
-            "GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
+        Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm = new GriddingAlgorithm<NDIM>("GriddingAlgorithm", app_initializer->getComponentDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
 
         // Configure the IB solver.
         Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer("IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
