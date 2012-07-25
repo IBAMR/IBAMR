@@ -764,6 +764,10 @@ AdvDiffSemiImplicitHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const int coarsest_level,
     const int finest_level)
 {
+    const Pointer<BasePatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+    const int finest_hier_level = hierarchy->getFinestLevelNumber();
+    d_hier_fc_data_ops->setPatchHierarchy(hierarchy);
+    d_hier_fc_data_ops->resetLevels(0, finest_hier_level);
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > Q_var = *cit;
