@@ -230,10 +230,16 @@ main(
         double loop_time = time_integrator->getIntegratorTime();
         if (dump_viz_data && uses_visit)
         {
-            pout << "\n\nWriting visualization files...\n\n";
+            if(output_level>=0)
+                pout << "\nWriting visualization files at timestep # " <<  iteration_num << " t=" << loop_time << "\n";                    
             time_integrator->setupPlotData();
-            visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-            silo_data_writer->writePlotData(iteration_num, loop_time);
+            if(output_level>=2) visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+            if(output_level>=1) silo_data_writer->writePlotData(iteration_num, loop_time);
+
+        }
+        if (dump_postproc_data)
+        {
+            output_data(patch_hierarchy, navier_stokes_integrator, ib_method_ops->getLDataManager(), iteration_num, loop_time, output_level, postproc_data_dump_dirname);
         }
 
         // Main time step loop.

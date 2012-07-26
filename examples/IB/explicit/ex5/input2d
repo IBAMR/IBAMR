@@ -218,8 +218,8 @@ Main {
    restart_dump_dirname        = "restart_IB2d"
 
 // postprocessing data dump parameters
-   postproc_dump_interval          = 10                        // zero to turn off
-   postproc_dump_dirname           = "data_IB2d"
+   data_dump_interval          = 10                        // zero to turn off
+   data_dump_dirname           = "data_IB2d"
 
 // timer dump parameters
    timer_dump_interval         = 0                          // zero to turn off
