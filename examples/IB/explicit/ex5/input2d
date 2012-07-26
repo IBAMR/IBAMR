@@ -1,14 +1,18 @@
-SEED = 873                                         // RNG seed
+SEED = 0                                         // RNG seed (0 for clock)
+OUTPUT_LEVEL = 2 // -1=none, 0=txt, 1=silo+txt, 2=visit+silo+txt, 3=visit+SAMRAI+silo+txt, >3=verbose
 
 // system size
-NX = 32                                            // Grid size x axis
-NY = 32                                            // Grid size y axis
-N_STEPS = 50000                                    // Number of time steps
+NX = 64                                            // Grid size x axis
+NY = 64                                            // Grid size y axis
+N_STEPS = 100                                      // Number of time steps
+
+// Parallelization parameters:
+PATCH_X = 1024
+PATCH_Y = 1024
 
 // discretization parameters
-MAX_LEVELS = 1
-H = 1.0
-DT = 0.1
+H = 1.0 // Grid spacing
+DT = 1.0 // Time step
 PERIODIC_X = 1
 PERIODIC_Y = 1
 
@@ -18,25 +22,25 @@ MU = 1.0                                           // viscosity (shear)
 RHO = 1.0                                          // density
 
 // fluctuation parameters
-STD_U = 0.1*sqrt(kT / H)                           // velocities = sqrt(k_B*T/dz)
-STOCHASTIC_STRESS_TENSOR_TYPE = "UNCORRELATED"
-STOCHASTIC_STRESS_WALL_MULT = sqrt(2.0)
-STOCHASTIC_STRESS_OPEN_BC_MULT = 0.0
+DZ = H // Physical thickness of 2d domain
+STD_U = 0.01                                       // scaling of velocity fluctuations (<<1 linearizes the fluctuations)
 
 // solver parameters
-DELTA_FUNCTION                = "IB_4"
+DELTA_FUNCTION                = "IB_3"             // Use "IB_3" or "IB_4"
 START_TIME                    = 0.0e0              // initial simulation time
 END_TIME                      = N_STEPS            // final simulation time
 GROW_DT                       = 1.0e0              // growth factor for timesteps
-NUM_CYCLES                    = 2                  // number of cycles of fixed-point iteration
+
+NUM_CYCLES                    = 1                  // number of cycles of fixed-point iteration
 IB_TIME_STEPPING_TYPE         = "MIDPOINT_RULE"    // time stepping rule for IB points
 VISCOUS_TIME_STEPPING_TYPE    = "CRANK_NICOLSON"   // viscous time stepping rule
-CONVECTIVE_TIME_STEPPING_TYPE = "TRAPEZOIDAL_RULE" // convective time stepping rule
+
+CREEPING_FLOW                 = TRUE               // whether to use the creeping Stokes equations (no v*grad(v) term)
+CONVECTIVE_TIME_STEPPING_TYPE = "TRAPEZOIDAL_RULE" // convective time stepping rule (if NUM_CYCLES>1)
 CONVECTIVE_OP_TYPE            = "CENTERED"         // convective differencing discretization type
 CONVECTIVE_FORM               = "CONSERVATIVE"     // how to compute the convective terms
-CREEPING_FLOW                 = FALSE              // whether to use the creeping Stokes equations (instead of the full Navier-Stokes equations)
 NORMALIZE_PRESSURE            = TRUE               // whether to explicitly force the pressure to have mean zero
-CFL_MAX                       = 0.3                // maximum CFL number
+CFL_MAX                       = 0.5                // maximum CFL number
 ERROR_ON_DT_CHANGE            = TRUE               // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING             = FALSE              // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                    = 1                  // size of tag buffer used by grid generation algorithm
@@ -56,10 +60,10 @@ CartesianGeometry {
 }
 
 GriddingAlgorithm {
-   max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
+   max_levels = 1           // Maximum number of levels in hierarchy.
 
    largest_patch_size {
-      level_0 =512,512 // largest patch allowed in hierarchy
+      level_0 = 512, 512 // largest patch allowed in hierarchy
                        // all finer levels will use same values as level_0...
    }
 
@@ -92,8 +96,9 @@ IBMethod {
 }
 
 IBStandardInitializer {
+   MAX_LEVELS = 1
    max_levels      = MAX_LEVELS
-   structure_names = "points2d"
+   structure_names = "points2d" // Name of input file to read for positions, in this case points2d.vertex
    points2d {
       level_number = MAX_LEVELS - 1
    }
@@ -183,13 +188,13 @@ INSStaggeredHierarchyIntegrator {
 }
 
 INSStaggeredStochasticForcing {
-   stress_tensor_type = STOCHASTIC_STRESS_TENSOR_TYPE
-   dirichlet_bc_scaling = STOCHASTIC_STRESS_WALL_MULT
-   neumann_bc_scaling = STOCHASTIC_STRESS_OPEN_BC_MULT
-   std = STD_U
-   num_rand_vals = NUM_CYCLES
-   weights_0 = 1.0 , 0.0
-   weights_1 = 0.0 , 1.0
+   stress_tensor_type = "SYMMETRIC"
+   dirichlet_bc_scaling = sqrt(2.0)
+   neumann_bc_scaling = 0.0
+   std = STD_U * sqrt(kT / DZ)
+   num_rand_vals = 1
+   weights_0 = 1.0
+   weights_1 = 1.0
 }
 
 LoadBalancer {
@@ -204,7 +209,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 50                         // zero to turn off
+   viz_dump_interval           = 10                         // zero to turn off
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
@@ -212,9 +217,9 @@ Main {
    restart_dump_interval       = 0                          // zero to turn off
    restart_dump_dirname        = "restart_IB2d"
 
-// hierarchy data dump parameters
-   data_dump_interval          = 100                        // zero to turn off
-   data_dump_dirname           = "hier_data_IB2d"
+// postprocessing data dump parameters
+   postproc_dump_interval          = 10                        // zero to turn off
+   postproc_dump_dirname           = "data_IB2d"
 
 // timer dump parameters
    timer_dump_interval         = 0                          // zero to turn off
@@ -231,6 +236,9 @@ TimerManager{
 
    timer_list = "IBAMR::*::*" , "IBTK::*::*" , "*::*::*"
 }
+
+// For purely periodic BCs the information below is not used
+// The input below puts no-slip zero velocity boundaries along nonperiodic dimensions
 
 VelocityBcCoefs_0 {
    acoef_function_0 = "1.0"
