@@ -278,8 +278,13 @@ RNG::parallel_seed(
     std::vector<int> seeds(size);
 
     seed = global_seed;
-
-    pout << "\nGlobal seed = " << seed << "\n\n";
+    
+    // Use the clock to generate a seed
+    if ( (rank == mpi_root) )
+    {
+      if(seed==0) seed=time(0);    
+      std::cout << "\nGlobal seed = " << seed << "\n\n";
+    }
 
     if (size > 1)
     {
