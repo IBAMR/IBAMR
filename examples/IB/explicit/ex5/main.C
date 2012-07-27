@@ -188,7 +188,7 @@ main(
             TBOX_ERROR("Key data `seed' not found in input.");
         }
         RNG::parallel_seed(seed);
-        
+
         // We are primarily interested in the Lagrangian data so we can skip writing Eulerian data:
         int output_level = 1; // -1=none, 0=txt, 1=silo+txt, 2=visit+silo+txt, 3=visit+SAMRAI+silo+txt, >3=verbose
         if (input_db->keyExists("OUTPUT_LEVEL"))
@@ -230,11 +230,10 @@ main(
         double loop_time = time_integrator->getIntegratorTime();
         if (dump_viz_data && uses_visit)
         {
-            if(output_level>=0)
-                pout << "\nWriting visualization files at timestep # " <<  iteration_num << " t=" << loop_time << "\n";                    
+            if (output_level >= 0) pout << "\nWriting visualization files at timestep # " <<  iteration_num << " t=" << loop_time << "\n";
             time_integrator->setupPlotData();
-            if(output_level>=2) visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-            if(output_level>=1) silo_data_writer->writePlotData(iteration_num, loop_time);
+            if (output_level >= 2) visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+            if (output_level >= 1) silo_data_writer->writePlotData(iteration_num, loop_time);
 
         }
         if (dump_postproc_data)
@@ -249,26 +248,26 @@ main(
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
 
-            if(output_level>3)
+            if (output_level > 3)
             {
-               pout <<                                                    "\n";
-               pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-               pout << "At beginning of timestep # " <<  iteration_num << "\n";
-               pout << "Simulation time is " << loop_time              << "\n";
+                pout <<                                                    "\n";
+                pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+                pout << "At beginning of timestep # " <<  iteration_num << "\n";
+                pout << "Simulation time is " << loop_time              << "\n";
             }
 
             const double dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
-            if(output_level>3)
+            if (output_level > 3)
             {
-               pout <<                                                    "\n";
-               pout << "At end       of timestep # " <<  iteration_num << "\n";
-               pout << "Simulation time is " << loop_time              << "\n";
-               pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-               pout <<                                                    "\n";
-            }   
+                pout <<                                                    "\n";
+                pout << "At end       of timestep # " <<  iteration_num << "\n";
+                pout << "Simulation time is " << loop_time              << "\n";
+                pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+                pout <<                                                    "\n";
+            }
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
@@ -277,11 +276,10 @@ main(
             const bool last_step = !time_integrator->stepsRemaining();
             if (dump_viz_data && uses_visit && (iteration_num%viz_dump_interval == 0 || last_step))
             {
-                if(output_level>=0)
-                    pout << "\nWriting visualization files at timestep # " <<  iteration_num << " t=" << loop_time << "\n";                    
+                if (output_level >= 0) pout << "\nWriting visualization files at timestep # " <<  iteration_num << " t=" << loop_time << "\n";
                 time_integrator->setupPlotData();
-                if(output_level>=2) visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-                if(output_level>=1) silo_data_writer->writePlotData(iteration_num, loop_time);
+                if (output_level >= 2) visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+                if (output_level >= 1) silo_data_writer->writePlotData(iteration_num, loop_time);
             }
             if (dump_restart_data && (iteration_num%restart_dump_interval == 0 || last_step))
             {
@@ -320,48 +318,47 @@ output_data(
     const int output_level,
     const string& data_dump_dirname)
 {
-
-    if(output_level>=0)
-        pout << "\nWriting output files at timestep # " <<  iteration_num << " t=" << loop_time << "\n";                    
-
+    if (output_level >= 0)
+    {
+        pout << "\nWriting output files at timestep # " <<  iteration_num << " t=" << loop_time << "\n";
+    }
     string file_name = data_dump_dirname + "/" + "hier_data.";
     char temp_buf[128];
     sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
     file_name += temp_buf;
 
     // Write Cartesian data.
-    if(output_level>=3)
+    if (output_level >= 3)
     {
-       Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
-       hier_db->create(file_name);
-       VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-       ComponentSelector hier_data;
-       hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(), navier_stokes_integrator->getCurrentContext()));
-       hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(), navier_stokes_integrator->getCurrentContext()));
-       patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
-       hier_db->putDouble("loop_time", loop_time);
-       hier_db->putInteger("iteration_num", iteration_num);
-       hier_db->close();
+        Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
+        hier_db->create(file_name);
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        ComponentSelector hier_data;
+        hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(), navier_stokes_integrator->getCurrentContext()));
+        hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getPressureVariable(), navier_stokes_integrator->getCurrentContext()));
+        patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
+        hier_db->putDouble("loop_time", loop_time);
+        hier_db->putInteger("iteration_num", iteration_num);
+        hier_db->close();
     }
 
     // Write Lagrangian data.
-    if(output_level>=0)
+    if (output_level >= 0)
     {
-       const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
-       Pointer<LData> X_data = l_data_manager->getLData("X", finest_hier_level);
-       Vec X_petsc_vec = X_data->getVec();
-       Vec X_lag_vec;
-       VecDuplicate(X_petsc_vec, &X_lag_vec);
-       l_data_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
-       file_name = data_dump_dirname + "/" + "X.";
-       sprintf(temp_buf, "%05d", iteration_num);
-       file_name += temp_buf;
-       PetscViewer viewer;
-       PetscViewerASCIIOpen(PETSC_COMM_WORLD, file_name.c_str(), &viewer);
-       VecView(X_lag_vec, viewer);
-       PetscViewerDestroy(&viewer);
-       VecDestroy(&X_lag_vec);
+        const int finest_hier_level = patch_hierarchy->getFinestLevelNumber();
+        Pointer<LData> X_data = l_data_manager->getLData("X", finest_hier_level);
+        Vec X_petsc_vec = X_data->getVec();
+        Vec X_lag_vec;
+        VecDuplicate(X_petsc_vec, &X_lag_vec);
+        l_data_manager->scatterPETScToLagrangian(X_petsc_vec, X_lag_vec, finest_hier_level);
+        file_name = data_dump_dirname + "/" + "X.";
+        sprintf(temp_buf, "%05d", iteration_num);
+        file_name += temp_buf;
+        PetscViewer viewer;
+        PetscViewerASCIIOpen(PETSC_COMM_WORLD, file_name.c_str(), &viewer);
+        VecView(X_lag_vec, viewer);
+        PetscViewerDestroy(&viewer);
+        VecDestroy(&X_lag_vec);
     }
-       
     return;
 }// output_data
