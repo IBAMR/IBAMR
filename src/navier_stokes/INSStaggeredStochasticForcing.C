@@ -151,8 +151,8 @@ INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(
       d_std(std::numeric_limits<double>::quiet_NaN()),
       d_num_rand_vals(0),
       d_weights(),
-      d_dirichlet_bc_scaling(NDIM == 2 ? 2.0 : 5.0/3.0),
-      d_neumann_bc_scaling(0.0),
+      d_velocity_bc_scaling(NDIM == 2 ? 2.0 : 5.0/3.0),
+      d_traction_bc_scaling(0.0),
       d_context(NULL),
       d_W_cc_var(NULL),
       d_W_cc_idx(-1),
@@ -186,8 +186,8 @@ INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(
             stream << "weights_" << k;
             key_name = stream.str();
         }
-        if (input_db->keyExists("dirichlet_bc_scaling")) d_dirichlet_bc_scaling = input_db->getDouble("dirichlet_bc_scaling");
-        if (input_db->keyExists("neumann_bc_scaling")) d_neumann_bc_scaling = input_db->getDouble("neumann_bc_scaling");
+        if (input_db->keyExists("velocity_bc_scaling")) d_velocity_bc_scaling = input_db->getDouble("velocity_bc_scaling");
+        if (input_db->keyExists("traction_bc_scaling")) d_traction_bc_scaling = input_db->getDouble("traction_bc_scaling");
     }
 
     // Setup variables and variable context objects.
@@ -449,14 +449,14 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(
                             const NodeIndex<NDIM> n_i(i,0);
                             const double& alpha = (*acoef_data)(i,0);
                             const double& beta  = (*bcoef_data)(i,0);
-                            const bool dirichlet_bc = (alpha != 0.0 && beta == 0.0);
-                            if (dirichlet_bc)
+                            const bool velocity_bc = (alpha != 0.0 && beta == 0.0);
+                            if (velocity_bc)
                             {
-                                (*W_nc_data)(n_i,d) *= d_dirichlet_bc_scaling;
+                                (*W_nc_data)(n_i,d) *= d_velocity_bc_scaling;
                             }
                             else
                             {
-                                (*W_nc_data)(n_i,d) *= d_neumann_bc_scaling;
+                                (*W_nc_data)(n_i,d) *= d_traction_bc_scaling;
                             }
                         }
                     }
@@ -516,14 +516,14 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(
                                 const EdgeIndex<NDIM> e_i(i, edge_axis, 0);
                                 const double& alpha = (*acoef_data)(i,0);
                                 const double& beta  = (*bcoef_data)(i,0);
-                                const bool dirichlet_bc = (alpha != 0.0 && beta == 0.0);
-                                if (dirichlet_bc)
+                                const bool velocity_bc = (alpha != 0.0 && beta == 0.0);
+                                if (velocity_bc)
                                 {
-                                    (*W_ec_data)(e_i,data_depth) *= d_dirichlet_bc_scaling;
+                                    (*W_ec_data)(e_i,data_depth) *= d_velocity_bc_scaling;
                                 }
                                 else
                                 {
-                                    (*W_ec_data)(e_i,data_depth) *= d_neumann_bc_scaling;
+                                    (*W_ec_data)(e_i,data_depth) *= d_traction_bc_scaling;
                                 }
                             }
                         }
