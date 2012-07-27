@@ -164,7 +164,7 @@ private:
     /*!
      * Boundary condition scalings.
      */
-    double d_dirichlet_bc_scaling, d_neumann_bc_scaling;
+    double d_velocity_bc_scaling, d_traction_bc_scaling;
 
     /*!
      * VariableContext and Variable objects for storing the components of the
