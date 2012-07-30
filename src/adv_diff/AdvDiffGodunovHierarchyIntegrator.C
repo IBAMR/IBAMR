@@ -251,10 +251,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    ////////////////////////////////////////////////////////////////////////////
     // Reset time-dependent data when necessary.
-    ////////////////////////////////////////////////////////////////////////////
-
     if (cycle_num > 0)
     {
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -263,10 +260,7 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////
     // Compute any time-dependent source terms at time-level n.
-    ////////////////////////////////////////////////////////////////////////////
-
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit)
     {
         Pointer<CellVariable<NDIM,double> > F_var = *cit;
@@ -278,11 +272,8 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////
     // Predict the advective terms and synchronize them across all levels of the
     // patch hierarchy.
-    ////////////////////////////////////////////////////////////////////////////
-
     unsigned int l = 0;
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
@@ -341,20 +332,15 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
     {
         static const bool first_step = true;
         static const bool last_step = false;
-        d_hyp_level_integrator->advanceLevel(
-            d_hierarchy->getPatchLevel(ln), d_hierarchy, current_time, new_time, first_step, last_step);
+        d_hyp_level_integrator->advanceLevel(d_hierarchy->getPatchLevel(ln), d_hierarchy, current_time, new_time, first_step, last_step);
     }
 
     if (finest_ln > 0)
     {
-        d_hyp_level_integrator->standardLevelSynchronization(
-            d_hierarchy, coarsest_ln, finest_ln, new_time, current_time);
+        d_hyp_level_integrator->standardLevelSynchronization(d_hierarchy, coarsest_ln, finest_ln, new_time, current_time);
     }
 
-    ////////////////////////////////////////////////////////////////////////////
     // Compute any time-dependent source terms at time-level n+1/2.
-    ////////////////////////////////////////////////////////////////////////////
-
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_F_var.begin(); cit != d_F_var.end(); ++cit, ++l)
     {
         Pointer<CellVariable<NDIM,double> > F_var = *cit;
@@ -366,19 +352,16 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////
-    // Solve for Q(n+1).
-    ////////////////////////////////////////////////////////////////////////////
-
-    // Indicate that all solvers need to be reinitialized if the current
+    // Indicate that all linear solvers need to be reinitialized if the current
     // timestep size is different from the previous one.
-    if (initial_time || !MathUtilities<double>::equalEps(dt,d_dt_previous[0]))
+    if (cycle_num == 0 && (initial_time || !MathUtilities<double>::equalEps(dt,d_dt_previous[0])))
     {
         std::fill(d_helmholtz_solvers_need_init.begin(),d_helmholtz_solvers_need_init.end(), true);
         d_coarsest_reset_ln = 0;
         d_finest_reset_ln = finest_ln;
     }
 
+    // Solve for Q(n+1).
     l = 0;
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
@@ -540,8 +523,7 @@ AdvDiffGodunovHierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(
     // Reset the time dependent data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        d_hyp_level_integrator->resetTimeDependentData(
-            d_hierarchy->getPatchLevel(ln), d_integrator_time, d_gridding_alg->levelCanBeRefined(ln));
+        d_hyp_level_integrator->resetTimeDependentData(d_hierarchy->getPatchLevel(ln), d_integrator_time, d_gridding_alg->levelCanBeRefined(ln));
     }
     return;
 }// resetTimeDependentHierarchyDataSpecialized
