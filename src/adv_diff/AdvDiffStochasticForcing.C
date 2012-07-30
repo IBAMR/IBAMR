@@ -395,7 +395,7 @@ AdvDiffStochasticForcing::setDataOnPatch(
                 const Index<NDIM>& ic = i();
                 Index<NDIM> ic_lower(ic); ic_lower(axis) -= 1;
                 SideIndex<NDIM> is(ic, axis, SideIndex<NDIM>::Lower);
-                double f = 0.0;
+                double f;
                 switch (convective_time_stepping_type)
                 {
                     case FORWARD_EULER:
@@ -427,6 +427,7 @@ AdvDiffStochasticForcing::setDataOnPatch(
                         break;
                     }
                     default:
+                        f = std::numeric_limits<double>::quiet_NaN();
                         TBOX_ERROR(d_object_name << "::setDataOnPatch():\n"
                                    << "  unsupported default convective time stepping type: " << enum_to_string<TimeSteppingType>(convective_time_stepping_type) << " \n"
                                    << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
