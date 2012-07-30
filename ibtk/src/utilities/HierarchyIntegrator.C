@@ -235,14 +235,10 @@ HierarchyIntegrator::initializePatchHierarchy(
     while (!hier_integrators.empty())
     {
         HierarchyIntegrator* integrator = hier_integrators.front();
-        integrator->initializeHierarchyIntegrator(d_hierarchy, d_gridding_alg);
-        integrator->setupTagBuffer(d_gridding_alg);
+        integrator->d_hierarchy_is_initialized = true;
         hier_integrators.pop_front();
-        hier_integrators.insert(hier_integrators.end(),
-                                integrator->d_child_integrators.begin(),
-                                integrator->d_child_integrators.end());
+        hier_integrators.insert(hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
     }
-    d_hierarchy_is_initialized = true;
     return;
 }// initializePatchHierarchy
 
@@ -1168,6 +1164,9 @@ void
 HierarchyIntegrator::registerChildHierarchyIntegrator(
     HierarchyIntegrator* child_integrator)
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(child_integrator != this);
+#endif
     child_integrator->d_parent_integrator = this;
     d_child_integrators.insert(child_integrator);
     return;
@@ -1177,6 +1176,9 @@ void
 HierarchyIntegrator::registerParentHierarchyIntegrator(
     HierarchyIntegrator* parent_integrator)
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+    TBOX_ASSERT(parent_integrator != this);
+#endif
     d_parent_integrator = parent_integrator;
     parent_integrator->d_child_integrators.insert(this);
     d_manage_hier_math_ops = false;
