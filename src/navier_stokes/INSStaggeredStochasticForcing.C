@@ -236,10 +236,12 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(
 {
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
-
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
-    if (!initial_time && cycle_num >= 0)
+    if (!initial_time)
     {
+#ifdef DEBUG_CHECK_ASSERTIONS
+        TBOX_ASSERT(cycle_num >= 0);
+#endif
         // Allocate data to store components of the stochastic stress components.
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
@@ -596,10 +598,8 @@ INSStaggeredStochasticForcing::setDataOnPatch(
     double dV = 1.0; for (unsigned int d = 0; d < NDIM; ++d) dV *= dx[d];
     const double mu = d_fluid_solver->getINSProblemCoefs()->getMu();
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
-    const double scale = d_std*sqrt(2.0*mu/(dt*dV)); // Note that weare really
-                                                     // solving the momentum
-                                                     // equation rather than the
-                                                     // velocity equation.
+    // NOTE: We are solving the momentum equation, not the velocity equation.
+    const double scale = d_std*sqrt(2.0*mu/(dt*dV));
     Pointer<CellData<NDIM,double> > W_cc_data = patch->getPatchData(d_W_cc_idx);
     const IntVector<NDIM> W_cc_ghosts = W_cc_data->getGhostCellWidth();
 #if (NDIM == 2)

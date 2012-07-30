@@ -36,7 +36,10 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/AdvDiffHierarchyIntegrator.h>
+#include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
+
+// IBTK THIRD-PARTY INCLUDES
+#include <ibtk/muParser.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -58,7 +61,7 @@ public:
         const std::string& object_name,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > C_var,
-        const AdvDiffHierarchyIntegrator* const adv_diff_solver);
+        const AdvDiffSemiImplicitHierarchyIntegrator* const adv_diff_solver);
 
     /*!
      * \brief Empty destructor.
@@ -149,10 +152,15 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_C_var;
 
     /*!
+     * Concentration-dependent flux scaling function.
+     */
+    mu::Parser d_f_parser;
+
+    /*!
      * Pointer to the advection-diffusion solver object that is using this
      * stochastic source term generator.
      */
-    const AdvDiffHierarchyIntegrator* const d_adv_diff_solver;
+    const AdvDiffSemiImplicitHierarchyIntegrator* const d_adv_diff_solver;
 
     /*!
      * Weighting data.
@@ -171,6 +179,8 @@ private:
      * stochastic fluxes.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM,double> > d_C_cc_var;
+    int d_C_current_cc_idx, d_C_half_cc_idx, d_C_new_cc_idx;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM,double> > d_F_sc_var;
     int d_F_sc_idx;
     std::vector<int> d_F_sc_idxs;
