@@ -142,21 +142,21 @@ INSProjectionBcCoef::setBcCoefs(
     TBOX_ASSERT(!acoef_data.isNull());
     TBOX_ASSERT(!bcoef_data.isNull());
 #endif
-    const unsigned int location_index   = bdry_box.getLocationIndex();
-    const unsigned int bdry_normal_axis = location_index/2;
-//  const bool is_lower        = location_index%2 == 0;
     const Box<NDIM>& bc_coef_box = acoef_data->getBox();
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
     if (!gcoef_data.isNull()) TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
-
     // Set the unmodified velocity bc coefs.
+    const unsigned int location_index   = bdry_box.getLocationIndex();
+    const unsigned int bdry_normal_axis = location_index/2;
     d_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data, bcoef_data, gcoef_data, variable, patch, bdry_box, fill_time);
 
-    // Modify the velocity boundary conditions to correspond to pressure
-    // boundary conditions.
+    // Update the boundary condition coefficients.  Specifically, normal
+    // velocity boundary conditions are converted into Neumann conditions for
+    // the pressure, and normal traction boundary conditions are converted into
+    // Dirichlet conditions for the pressure.
     const bool set_acoef_vals = !acoef_data.isNull();
     const bool set_bcoef_vals = !bcoef_data.isNull();
     const bool set_gcoef_vals = !gcoef_data.isNull();
@@ -175,16 +175,12 @@ INSProjectionBcCoef::setBcCoefs(
 #endif
         if (velocity_bc)
         {
-            // Set the boundary condition coefficients to correspond to
-            // homogeneous Neumann boundary conditions on the pressure.
             alpha = 0.0;
             beta  = 1.0;
             gamma = 0.0;
         }
         else if (traction_bc)
         {
-            // Set the boundary condition coefficients to correspond to
-            // homogeneous Dirichlet boundary conditions on the pressure.
             alpha = 1.0;
             beta  = 0.0;
             gamma = (d_homogeneous_bc ? 0.0 : -gamma);
