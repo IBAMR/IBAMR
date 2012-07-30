@@ -310,7 +310,8 @@ public:
     /*!
      * Virtual method to prepare to advance data from current_time to new_time.
      *
-     * An empty default implementation is provided.
+     * A default implementation is provided that sets the current values of
+     * num_cycles and the time step size.
      */
     virtual void
     preprocessIntegrateHierarchy(
@@ -336,7 +337,8 @@ public:
      * Virtual method to clean up data following call(s) to
      * integrateHierarchy().
      *
-     * An empty default implementation is provided.
+     * A default implementation is provided that resets the current values of
+     * num_cycles and the time step size.
      */
     virtual void
     postprocessIntegrateHierarchy(

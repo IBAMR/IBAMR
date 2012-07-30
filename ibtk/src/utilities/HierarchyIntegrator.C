@@ -263,29 +263,12 @@ HierarchyIntegrator::advanceHierarchy(
     }
 
     // Integrate the time-dependent data.
-    const int num_cycles = getNumberOfCycles();
-    std::deque<HierarchyIntegrator*> hier_integrators(1,this);
-    while (!hier_integrators.empty())
-    {
-        HierarchyIntegrator* integrator = hier_integrators.front();
-        integrator->d_current_num_cycles = num_cycles;
-        integrator->d_current_dt = dt;
-        hier_integrators.pop_front();
-        hier_integrators.insert(hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
-    }
+    d_current_num_cycles = getNumberOfCycles();
+    d_current_dt = new_time-current_time;
     preprocessIntegrateHierarchy(current_time, new_time, d_current_num_cycles);
     plog << d_object_name << "::advanceHierarchy(): integrating hierarchy\n";
     for (d_current_cycle_num = 0; d_current_cycle_num < d_current_num_cycles; ++d_current_cycle_num)
     {
-        hier_integrators.clear();
-        hier_integrators.push_back(this);
-        while (!hier_integrators.empty())
-        {
-            HierarchyIntegrator* integrator = hier_integrators.front();
-            integrator->d_current_cycle_num = d_current_cycle_num;
-            hier_integrators.pop_front();
-            hier_integrators.insert(hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
-        }
         if (d_do_log && d_current_num_cycles != 1)
         {
             plog << d_object_name << "::advanceHierarchy(): executing cycle " << d_current_cycle_num+1 << " of " << d_current_num_cycles << "\n";
@@ -293,7 +276,10 @@ HierarchyIntegrator::advanceHierarchy(
         integrateHierarchy(current_time, new_time, d_current_cycle_num);
     }
     postprocessIntegrateHierarchy(current_time, new_time, /*skip_synchronize_new_state_data*/ true, d_current_num_cycles);
-    hier_integrators.clear();
+
+    // Ensure that the current values of num_cycles, cycle_num, and dt are
+    // reset.
+    std::deque<HierarchyIntegrator*> hier_integrators(1,this);
     hier_integrators.push_back(this);
     while (!hier_integrators.empty())
     {
@@ -492,13 +478,27 @@ HierarchyIntegrator::getCurrentTimeStepSize() const
 
 void
 HierarchyIntegrator::preprocessIntegrateHierarchy(
-    const double /*current_time*/,
-    const double /*new_time*/,
-    const int /*num_cycles*/)
+    const double current_time,
+    const double new_time,
+    const int num_cycles)
 {
-    // intentionally blank
+    d_current_num_cycles = num_cycles;
+    d_current_cycle_num = -1;
+    d_current_dt = new_time-current_time;
     return;
 }// preprocessIntegrateHierarchy
+
+void
+HierarchyIntegrator::integrateHierarchy(
+    const double current_time,
+    const double new_time,
+    const int num_cycles)
+{
+    d_current_num_cycles = num_cycles;
+    d_current_cycle_num = -1;
+    d_current_dt = new_time-current_time;
+    return;
+}// integrateHierarchy
 
 void
 HierarchyIntegrator::postprocessIntegrateHierarchy(
@@ -507,7 +507,9 @@ HierarchyIntegrator::postprocessIntegrateHierarchy(
     const bool /*skip_synchronize_new_state_data*/,
     const int /*num_cycles*/)
 {
-    // intentionally blank
+    d_current_num_cycles = -1;
+    d_current_cycle_num = -1;
+    d_current_dt = std::numeric_limits<double>::quiet_NaN();
     return;
 }// postprocessIntegrateHierarchy
 
