@@ -251,6 +251,18 @@ AdvDiffGodunovHierarchyIntegrator::integrateHierarchy(
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
+    // Check to make sure that the number of cycles is what we expect it to be.
+    const int expected_num_cycles = getNumberOfCycles();
+    if (d_current_num_cycles != expected_num_cycles)
+    {
+        IBAMR_DO_ONCE(
+            {
+                pout << "AdvDiffGodunovHierarchyIntegrator::integrateHierarchy():\n"
+                     << "  WARNING: num_cycles = " << d_current_num_cycles << " but expected num_cycles = " << expected_num_cycles << ".\n";
+            }
+                      );
+    }
+
     // Reset time-dependent data when necessary.
     if (cycle_num > 0)
     {

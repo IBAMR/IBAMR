@@ -592,6 +592,18 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(
     const double dt  = new_time-current_time;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
+    // Check to make sure that the number of cycles is what we expect it to be.
+    const int expected_num_cycles = getNumberOfCycles();
+    if (d_current_num_cycles != expected_num_cycles)
+    {
+        IBAMR_DO_ONCE(
+            {
+                pout << "AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy():\n"
+                     << "  WARNING: num_cycles = " << d_current_num_cycles << " but expected num_cycles = " << expected_num_cycles << ".\n";
+            }
+                      );
+    }
+
     // Perform a single step of fixed point iteration.
     unsigned int l = 0;
     for (std::set<Pointer<CellVariable<NDIM,double> > >::const_iterator cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
